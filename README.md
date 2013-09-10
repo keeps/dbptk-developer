@@ -13,7 +13,8 @@ The Database Preservation Toolkit allows conversion between Database formats, in
 ```bash
 $ mvn clean package
 ```
-4. Binaries will be on the `target` folder
+
+Binaries will be on the `target` folder
 
 ## Download pre-compiled version
 
