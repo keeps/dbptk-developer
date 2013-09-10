@@ -1,0 +1,120 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Db-preservation-toolkit by keeps</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+
+      <header>
+        <h1>Db-preservation-toolkit</h1>
+        <p>Database Preservation Toolkit</p>
+      </header>
+
+      <div id="banner">
+        <span id="logo"></span>
+
+        <a href="https://github.com/keeps/db-preservation-toolkit" class="button fork"><strong>View On GitHub</strong></a>
+        <div class="downloads">
+          <span>Downloads:</span>
+          <ul>
+            <li><a href="https://github.com/keeps/db-preservation-toolkit/zipball/master" class="button">ZIP</a></li>
+            <li><a href="https://github.com/keeps/db-preservation-toolkit/tarball/master" class="button">TAR</a></li>
+          </ul>
+        </div>
+      </div><!-- end banner -->
+
+    <div class="wrapper">
+      <nav>
+        <ul></ul>
+      </nav>
+      <section>
+        <h1>
+<a name="database-preservation-toolkit" class="anchor" href="#database-preservation-toolkit"><span class="octicon octicon-link"></span></a>Database Preservation Toolkit</h1>
+
+<p>The Database Preservation Toolkit allows conversion between Database formats, including connection to live systems, for purposes of digitally preserve databases. The toolkit allows conversion of live or backed-up databases into preservation formats such as DBML, and XML format created for the purpose of database preservation. The toolkit also allows conversion of the preservation format into live systems to allow the full functionality of databases. For example, it supports a specialized export into MySQL, optimized for PhpMyAdmin, so the database can fully be experimented using a web interface.</p>
+
+<h2>
+<a name="how-to-build-from-source" class="anchor" href="#how-to-build-from-source"><span class="octicon octicon-link"></span></a>How to build from source</h2>
+
+<ol>
+<li>Download the <a href="https://github.com/keeps/db-preservation-toolkit/releases">latest stable release</a>.</li>
+<li>Unzip and open the folder on a command-line terminal</li>
+<li>Build with Maven</li>
+</ol><div class="highlight highlight-bash"><pre><span class="nv">$ </span>mvn clean package
+</pre></div>
+
+<p>Binaries will be on the <code>target</code> folder</p>
+
+<h2>
+<a name="download-pre-compiled-version" class="anchor" href="#download-pre-compiled-version"><span class="octicon octicon-link"></span></a>Download pre-compiled version</h2>
+
+<p>Binaries with all dependencies included:</p>
+
+<ul>
+<li><a href="https://keeps.github.io/db-preservation-toolkit/releases/db-preservation-toolkit-1.0.0-jar-with-dependencies.jar">db-preservation-toolkit-1.0.0-jar-with-dependencies.jar</a></li>
+</ul><h2>
+<a name="how-to-use" class="anchor" href="#how-to-use"><span class="octicon octicon-link"></span></a>How to use</h2>
+
+<p>To use the program, open a command-line and try out the following command:</p>
+
+<div class="highlight highlight-bash"><pre><span class="nv">$ </span>java -jar db-preservation-toolkit-1.0.0-jar-with-dependencies.jar 
+Synopsys: java -jar roda-common-convert-db.jar -i IMPORT_MODULE <span class="o">[</span>options...<span class="o">]</span> -o EXPORT_MODULE <span class="o">[</span>options...<span class="o">]</span>
+Available import modules:
+    SQLServerJDBC serverName <span class="o">[</span>port|instance<span class="o">]</span> database username password useIntegratedSecurity encrypt
+    PostgreSQLJDBC hostName database <span class="o">[</span>port<span class="o">]</span> username password encrypt
+    MySQLJDBC hostName <span class="o">[</span>port<span class="o">]</span> database username password
+    Oracle8i hostName port database username password &lt;- untested!
+    MSAccess database.mdb
+    ODBC <span class="nb">source</span> <span class="o">[</span>username password<span class="o">]</span>
+    DBML baseDir
+Available <span class="nb">export </span>modules:
+    SQLServerJDBC serverName <span class="o">[</span>port|instance<span class="o">]</span> database username password useIntegratedSecurity encrypt
+    PostgreSQLJDBC hostName database <span class="o">[</span>port<span class="o">]</span> username password encrypt
+    MySQLJDBC hostName <span class="o">[</span>port<span class="o">]</span> database username password
+    PhpMyAdmin hostName <span class="o">[</span>port<span class="o">]</span> database username password
+    DBML baseDir
+    PostgreSQLFile sqlFile &lt;- SQL file optimized <span class="k">for </span>PostgreSQL
+    MySQLFile sqlFile &lt;- SQL file optimized <span class="k">for </span>MySQL
+    SQLServerFile sqlFile &lt;- SQL file optimized <span class="k">for </span>SQL Server
+    GenericSQLFile sqlFile &lt;- generic SQL file
+</pre></div>
+
+<p>You have to select an input and an output module, providing for each its configuration.</p>
+
+<p>For example, if you want to connect to a live MySQL database and export its content to DBML format, you can use the following command.</p>
+
+<pre><code>$ java -jar db-preservation-toolkit-1.0.0-jar-with-dependencies.jar \
+-i MySQLJDBC localhost example_db username p4ssw0rd \
+-o DBML example_db_dbml_export
+</code></pre>
+      </section>
+      <footer>
+        <p>Project maintained by <a href="https://github.com/keeps">keeps</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-42276300-3");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
