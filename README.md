@@ -80,11 +80,11 @@ Other related publications:
 
 **Getting exception "java.net.ConnectException: Connection refused"**
 
-Most databases are not configured by default to allow TCP/IP connections. Check your database configuration if it accepts TCP/IP connection and if your IP address is allowed to connect. Also, ensure that the user has permissions to access the database from the your IP address.
+Most databases are not configured by default to allow TCP/IP connections. Check your database configuration if it accepts TCP/IP connection and if your IP address is allowed to connect. Also, ensure that the user has permissions to access the database from your IP address.
 
 **Problems importing from Microsoft Access**
 
-In order to extract DB structures we need to have access to the internal DB table Msysrelationships. We need to perform some hacking over the DBMS and this is version dependent. Microsoft published a white paper explaining how to do this for all versions: ["Preparing a Microsoft Access Database for Migration"](https://redmine.keep.pt/attachments/download/2885).
+In order to extract DB structures we need to have access to the internal database table `Msysrelationships`. You need to perform some hacking over the DBMS and this is version dependent. Please follow the instructions described on Microsoft's white paper, which explains how to do this for all Microsoft Access versions: ["Preparing a Microsoft Access Database for Migration"](https://redmine.keep.pt/attachments/download/2885).
 
 
 ## Information & Commercial support
