@@ -1,11 +1,11 @@
 Database Preservation Toolkit
 =============================
 
-The Database Preservation Toolkit allows conversion between Database formats, including connection to live systems, for purposes of digitally preserve databases. The toolkit allows conversion of live or backed-up databases into preservation formats such as DBML, an XML format created for the purpose of database preservation. The toolkit also allows conversion of the preservation format into live systems to allow the full functionality of databases. For example, it supports a specialized export into MySQL, optimized for PhpMyAdmin, so the database can fully be experimented using a web interface.
+The Database Preservation Toolkit allows conversion between Database formats, including connection to live systems, for purposes of digitally preserving databases. The toolkit allows conversion of live or backed-up databases into preservation formats such as DBML, an XML format created for the purpose of database preservation. The toolkit also allows conversion of the preservation formats back into live systems to allow the full functionality of databases. For example, it supports a specialized export into MySQL, optimized for PhpMyAdmin, so the database can be fully  experimented using a web interface.
 
-This toolkit was a part of the [RODA project](http://www.roda-community.org) and now has been released as a project by its own due to the increasing interest on this particular feature. 
+This toolkit was part of the [RODA project](http://www.roda-community.org) and now has been released as a project by its own due to the increasing interest on this particular feature. 
 
-The toolkit is created as a platform that uses input and output modules. Each module support read and/or write to a particular database format or live system. New modules can easily be added by implementation of a new interface and adding of new drivers.
+The toolkit is created as a platform that uses input and output modules. Each module supports read and/or write to a particular database format or live system. New modules can easily be added by implementation of a new interface and adding of new drivers.
 
 
 ## How to build from source
