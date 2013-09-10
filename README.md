@@ -19,7 +19,7 @@ Binaries will be on the `target` folder
 ## Download pre-compiled version
 
 Binaries with all dependencies included:
-* [db-preservation-toolkit-1.0.0-jar-with-dependencies.jar](https://keeps.github.io/db-preservation-toolkit/releases/db-preservation-toolkit-1.0.0-jar-with-dependencies.jar)
+* [db-preservation-toolkit-1.0.0-jar-with-dependencies.jar](http://keeps.github.io/db-preservation-toolkit/db-preservation-toolkit-1.0.0-jar-with-dependencies.jar)
 
 ## How to use
 
