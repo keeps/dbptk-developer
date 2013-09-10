@@ -53,7 +53,7 @@ You have to select an input and an output module, providing for each its configu
 
 For example, if you want to connect to a live MySQL database and export its content to DBML format, you can use the following command.
 
-```
+```bash
 $ java -jar db-preservation-toolkit-1.0.0-jar-with-dependencies.jar \
 -i MySQLJDBC localhost example_db username p4ssw0rd \
 -o DBML example_db_dbml_export
