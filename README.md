@@ -76,6 +76,17 @@ $ java -jar db-preservation-toolkit-1.0.0-jar-with-dependencies.jar \
 Other related publications:
 * Neal Fitzgerald, "Using data archiving tools to preserve archival records in business systems – a case study", in proocedings of iPRES 2013, Lisbon, 2013.
 
+## Troubleshooting
+
+**Getting exception "java.net.ConnectException: Connection refused"**
+
+Most databases are not configured by default to allow TCP/IP connections. Check your database configuration if it accepts TCP/IP connection and if your IP address is allowed to connect. Also, ensure that the user has permissions to access the database from the your IP address.
+
+**Problems importing from Microsoft Access**
+
+In order to extract DB structures we need to have access to the internal DB table Msysrelationships. We need to perform some hacking over the DBMS and this is version dependent. Microsoft published a white paper explaining how to do this for all versions: ["Preparing a Microsoft Access Database for Migration"](https://redmine.keep.pt/attachments/download/2885).
+
+
 ## Information & Commercial support
 
 For more information or commercial support, contact [KEEP SOLUTIONS](http://www.keep.pt/contactos/?lang=en).
