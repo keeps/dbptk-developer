@@ -84,7 +84,7 @@ Most databases are not configured by default to allow TCP/IP connections. Check 
 
 **Problems importing from Microsoft Access**
 
-In order to extract DB structures we need to have access to the internal database table `Msysrelationships`. You need to perform some hacking over the DBMS and this is version dependent. Please follow the instructions described on Microsoft's white paper, which explains how to do this for all Microsoft Access versions: ["Preparing a Microsoft Access Database for Migration"](https://redmine.keep.pt/attachments/download/2885).
+In order to extract DB structures we need to have access to the internal database table `Msysrelationships`. You need to perform some hacking over the DBMS and this is version dependent. Please follow the instructions described on Microsoft's white paper, which explains how to do this for all Microsoft Access versions: ["Preparing a Microsoft Access Database for Migration"](http://rawgithub.com/keeps/db-preservation-toolkit/master/doc/Preparing_MSAccess_for_Migration.pdf).
 
 **Got error "java.lang.OutOfMemoryError: Java heap space"**
 
