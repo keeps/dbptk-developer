@@ -86,6 +86,16 @@ Most databases are not configured by default to allow TCP/IP connections. Check 
 
 In order to extract DB structures we need to have access to the internal database table `Msysrelationships`. You need to perform some hacking over the DBMS and this is version dependent. Please follow the instructions described on Microsoft's white paper, which explains how to do this for all Microsoft Access versions: ["Preparing a Microsoft Access Database for Migration"](https://redmine.keep.pt/attachments/download/2885).
 
+**Got error "java.lang.OutOfMemoryError: Java heap space"**
+
+The toolkit might need more memory than it is available by default (normally 64MB). To increase the available memory use the `-Xmx` option. For example, the following command will increase the heap size to 3 GB.
+
+```bash
+$ java -Xmx3g -jar db-preservation-toolkit-1.0.0-jar-with-dependencies.jar ...
+```
+
+The toolkit needs enough memory to put the table structure definition in memory (not the data) and to load each data row or row set, which might include having some BLOBs completely in memory, but this depends on the database driver implementation.
+
 
 ## Information & Commercial support
 
