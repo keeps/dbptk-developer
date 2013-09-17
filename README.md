@@ -102,3 +102,5 @@ The toolkit needs enough memory to put the table structure definition in memory 
 ## Information & Commercial support
 
 For more information or commercial support, contact [KEEP SOLUTIONS](http://www.keep.pt/contactos/?lang=en).
+
+[![Build Status](https://travis-ci.org/keeps/db-preservation-toolkit.png?branch=master)](https://travis-ci.org/keeps/db-preservation-toolkit)
