@@ -74,7 +74,7 @@ $ java -jar db-preservation-toolkit-1.0.0-jar-with-dependencies.jar \
 
 
 Other related publications:
-* Neal Fitzgerald, "Using data archiving tools to preserve archival records in business systems – a case study", in proocedings of iPRES 2013, Lisbon, 2013.
+* Neal Fitzgerald, ["Using data archiving tools to preserve archival records in business systems – a case study"](http://purl.pt/24107/1/iPres2013_PDF/Using%20data%20archiving%20tools%20to%20preserve%20archival%20records%20in%20business%20systems%20%E2%80%93%20a%20case%20study.pdf), in proceedings of iPRES 2013, Lisbon, 2013.
 
 ## Troubleshooting
 
