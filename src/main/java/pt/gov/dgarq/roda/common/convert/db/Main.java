@@ -95,7 +95,14 @@ public class Main {
 				logger.info("Done in " + (duration / 60000) + "m "
 						+ (duration % 60000 / 1000) + "s");
 			} catch (ModuleException e) {
-				if (e.getModuleErrors() != null) {
+				if (e.getCause() != null
+						&& e.getCause() instanceof ClassNotFoundException
+						&& e.getCause().getMessage()
+								.equals("sun.jdbc.odbc.JdbcOdbcDriver")) {
+					logger.error(
+							"Could not find the Java ODBC driver, please run this program under Windows to use the JDBC-ODBC bridge.",
+							e.getCause());
+				} else if (e.getModuleErrors() != null) {
 					for (Map.Entry<String, Throwable> entry : e
 							.getModuleErrors().entrySet()) {
 						logger.error(entry.getKey(), entry.getValue());
