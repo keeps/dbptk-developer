@@ -125,7 +125,9 @@ Available <span class="nb">export </span>modules:
 
 <p><strong>Problems importing from Microsoft Access</strong></p>
 
-<p>In order to extract DB structures we need to have access to the internal database table <code>Msysrelationships</code>. You need to perform some hacking over the DBMS and this is version dependent. Please follow the instructions described on Microsoft's white paper, which explains how to do this for all Microsoft Access versions: <a href="http://rawgithub.com/keeps/db-preservation-toolkit/master/doc/Preparing_MSAccess_for_Migration.pdf">"Preparing a Microsoft Access Database for Migration"</a>.</p>
+<p>To import from Microsoft Access you need to be on a Windows machine with Microsoft Access installed. This is because the current Microsoft Access import module is implemented using ODBC connection. Therefore, you need Windows installed to be able to use ODBC. Also, you need Microsoft Access installed so its ODBC driver is installed on your system.</p>
+
+<p>Furthermore, in order to extract DB structures we need to have access to the internal database table <code>Msysrelationships</code>. You need to perform some hacking over the DBMS and this is version dependent. Please follow the instructions described on Microsoft's white paper, which explains how to do this for all Microsoft Access versions: <a href="http://rawgithub.com/keeps/db-preservation-toolkit/master/doc/Preparing_MSAccess_for_Migration.pdf">"Preparing a Microsoft Access Database for Migration"</a>.</p>
 
 <p><strong>Got error "java.lang.OutOfMemoryError: Java heap space"</strong></p>
 
