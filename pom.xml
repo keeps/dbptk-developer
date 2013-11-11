@@ -58,11 +58,6 @@
 			<name>KEEP Artifacts-releases</name>
 			<url>http://artifactory.keep.pt/keep</url>
 		</repository>
-		<repository>
-			<id>jhove</id>
-			<name>jhove</name>
-			<url>http://repository.bibforge.org/archiva/repository/snapshots</url>
-		</repository>
 	</repositories>
 	<dependencies>
 		<dependency>
