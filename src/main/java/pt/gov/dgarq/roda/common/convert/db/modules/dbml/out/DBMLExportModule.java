@@ -553,7 +553,9 @@ public class DBMLExportModule implements DatabaseHandler {
 				print(encode(simple.getSimpledata()));
 				print("</s>\n");
 			} else {
-				print("<s xsi:nil=\"true\"/>\n");
+				// XXX need for schema change?  
+				//print("<s xsi:nil=\"true\"/>\n");
+				print("<s/>");
 			}
 
 		} else if (cell instanceof ComposedCell) {
@@ -565,7 +567,9 @@ public class DBMLExportModule implements DatabaseHandler {
 				}
 				print(space + "</c>\n");
 			} else {
-				print("<c xsi:nil=\"true\"/>\n");
+				// FIXME need for schema change?
+				//print("<c xsi:nil=\"true\"/>\n");
+				print("<c/>\n");
 			}
 		} else if (cell instanceof BinaryCell) {
 			BinaryCell bin = (BinaryCell) cell;
