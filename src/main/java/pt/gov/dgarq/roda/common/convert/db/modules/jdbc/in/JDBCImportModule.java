@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Time;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
@@ -180,11 +181,16 @@ public class JDBCImportModule implements DatabaseImportModule {
 			ResultSet rset = getMetadata().getTables(dbStructure.getName(),
 					null, "%", new String[] { "TABLE" });
 			while (rset.next()) {
+				logger.debug("--------------");
+				logger.debug("TABLE: " + rset.getString("TABLE_NAME"));
+				logger.debug("TABLE: " + rset.getString("TABLE_TYPE"));
+				logger.debug("--------------");
 				String tablename = rset.getString(3);
 				tables.add(getTableStructure(tablename));
 			}
 			dbStructure.setTables(tables);
-		}
+			logger.debug("Finishing get dbStructure");
+		}		
 		return dbStructure;
 	}
 
@@ -206,8 +212,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 		List<ColumnStructure> columns = new Vector<ColumnStructure>();
 		ResultSet rs = getMetadata().getColumns(null, null, tableName, "%");
-		logger
-				.debug(tableName
+		logger.debug(tableName
 						+ "Structure: "
 						+ "Column Name, Nullable, Data Type, Type Name, Column Size, Decimal Digits, Num Prec Radix, index, Remarks");
 		while (rs.next()) {
@@ -374,6 +379,19 @@ public class JDBCImportModule implements DatabaseImportModule {
 		case Types.STRUCT:
 			// TODO add struct type convert support
 			throw new UnknownTypeException("Struct type not yet supported");
+		
+		case Types.OTHER:
+			if (typeName.equalsIgnoreCase("XML")) {
+				// type = new SimpleTypeXML();
+				type = new SimpleTypeString(Integer.valueOf(columnSize),
+						Boolean.TRUE);
+			}
+			else {
+				throw new UnknownTypeException("Unsuported JDBC type, code: "
+						+ dataType);
+			}
+			break;
+			
 		default:
 			throw new UnknownTypeException("Unsuported JDBC type, code: "
 					+ dataType);
@@ -401,7 +419,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 		while (rs.next()) {
 			pkColumns.add(rs.getString(4));
 		}
-		return new PrimaryKey(pkColumns);
+		
+		return !pkColumns.isEmpty() ? new PrimaryKey(pkColumns) : null;
 	}
 
 	/**
@@ -468,12 +487,20 @@ public class JDBCImportModule implements DatabaseImportModule {
 			cell = new SimpleCell(id, rawData.getBoolean(columnName) ? "true"
 					: "false");
 		} else if (cellType instanceof SimpleTypeDateTime) {
-			Date date = rawData.getDate(columnName);
-			if (date != null) {
-				String isoDate = DateParser.getIsoDate(date);
+			// XXX verify if it's fixed
+			SimpleTypeDateTime undefinedDate = (SimpleTypeDateTime) cellType;
+			if (undefinedDate.getTimeDefined() && !undefinedDate.getTimeZoneDefined()) {
+				Time time = rawData.getTime(columnName);
+				String isoDate = DateParser.getIsoDate(time);
 				cell = new SimpleCell(id, isoDate);
 			} else {
-				cell = new SimpleCell(id, null);
+				Date date = rawData.getDate(columnName);
+				if (date != null) {
+					String isoDate = DateParser.getIsoDate(date);
+					cell = new SimpleCell(id, isoDate);
+				} else {
+					cell = new SimpleCell(id, null);
+				}
 			}
 		} else if (cellType instanceof SimpleTypeBinary) {
 			InputStream binaryStream = rawData.getBinaryStream(columnName);
@@ -485,6 +512,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			cell = new BinaryCell(id, fileItem, formats);
 		} else {
 			cell = new SimpleCell(id, rawData.getString(columnName));
+			// logger.debug("Raw: " + rawData.getString(columnName));
 		}
 		return cell;
 	}
@@ -521,17 +549,17 @@ public class JDBCImportModule implements DatabaseImportModule {
 			handler.initDatabase();
 			logger.debug("getting database structure");
 			handler.handleStructure(getDatabaseStructure());
-			for (TableStructure table : getDatabaseStructure().getTables()) {
-				logger.debug("getting data of table " + table.getId());
-				handler.handleDataOpenTable(table.getId());
-				ResultSet tableRawData = getTableRawData(table.getName());
-				while (tableRawData.next()) {
-					handler.handleDataRow(convertRawToRow(tableRawData, table));
-				}
-				handler.handleDataCloseTable(table.getId());
-			}
-			logger.debug("finishing database");
-			handler.finishDatabase();
+//			for (TableStructure table : getDatabaseStructure().getTables()) {
+//				logger.debug("getting data of table " + table.getId());
+//				handler.handleDataOpenTable(table.getId());
+//				ResultSet tableRawData = getTableRawData(table.getName());
+//				while (tableRawData.next()) {
+//					handler.handleDataRow(convertRawToRow(tableRawData, table));
+//				}
+//				handler.handleDataCloseTable(table.getId());
+//			}
+//			logger.debug("finishing database");
+//			handler.finishDatabase();
 		} catch (SQLException e) {
 			throw new ModuleException("SQL error while conecting", e);
 		} catch (ClassNotFoundException e) {

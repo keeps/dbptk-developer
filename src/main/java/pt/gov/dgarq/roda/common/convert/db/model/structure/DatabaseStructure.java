@@ -440,4 +440,46 @@ public class DatabaseStructure {
 		return foundIt;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("DatabaseStructure [name=");
+		builder.append(name);
+		builder.append(", creationDate=");
+		builder.append(creationDate);
+		builder.append(", productName=");
+		builder.append(productName);
+		builder.append(", productVersion=");
+		builder.append(productVersion);
+		builder.append(", defaultTransactionIsolationLevel=");
+		builder.append(defaultTransactionIsolationLevel);
+		builder.append(", extraNameCharacters=");
+		builder.append(extraNameCharacters);
+		builder.append(", stringFunctions=");
+		builder.append(stringFunctions);
+		builder.append(", systemFunctions=");
+		builder.append(systemFunctions);
+		builder.append(", timeDateFunctions=");
+		builder.append(timeDateFunctions);
+		builder.append(", url=");
+		builder.append(url);
+		builder.append(", supportsANSI92EntryLevelSQL=");
+		builder.append(supportsANSI92EntryLevelSQL);
+		builder.append(", supportsANSI92IntermediateSQL=");
+		builder.append(supportsANSI92IntermediateSQL);
+		builder.append(", supportsANSI92FullSQL=");
+		builder.append(supportsANSI92FullSQL);
+		builder.append(", supportsCoreSQLGrammar=");
+		builder.append(supportsCoreSQLGrammar);
+		builder.append(", tables=");
+		builder.append(tables);
+		builder.append("]");
+		return builder.toString();
+	}
+	
+	
+
 }

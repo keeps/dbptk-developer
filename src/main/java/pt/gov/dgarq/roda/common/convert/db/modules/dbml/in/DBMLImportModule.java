@@ -110,7 +110,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 	}
 
 	/**
-	 * DBML import modile constructor using a base directory
+	 * DBML import module constructor using a base directory
 	 * 
 	 * @param baseDir
 	 *            the base directory, all files are inside this directory, the
@@ -306,6 +306,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 			types.add("simpleTypeDateTime");
 			types.add("simpleTypeInterval");
 			types.add("simpleTypeBinary");
+			// types.add("simpleTypeXML");
 			types.add("composedTypeArray");
 			types.add("composedTypeStructure");
 		}
@@ -331,6 +332,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 
 		public void endDocument() {
 			try {
+				logger.debug("Finish Database");
 				handler.finishDatabase();
 			} catch (ModuleException e) {
 				errors.put("Error in document end", e);
@@ -432,6 +434,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 							+ " opened without tableData " + currentTableDataId
 							+ " being closed", null);
 					try {
+						logger.debug("handleDataCloseTable");
 						handler.handleDataCloseTable(currentTableDataId);
 					} catch (ModuleException e) {
 						errors.put("Error handling close of table "
@@ -439,6 +442,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 					}
 				}
 				try {
+					logger.debug("handleDataOpenTable");
 					handler.handleDataOpenTable(tableDataId);
 					currentTableDataId = tableDataId;
 				} catch (ModuleException e) {
@@ -548,7 +552,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 					handler.handleStructure(structure);
 				} catch (ModuleException e) {
 					errors.put("Error handling structure", e);
-
+					
 				} catch (UnknownTypeException e) {
 					errors.put("Error handling structure", e);
 				}
@@ -786,6 +790,8 @@ public class DBMLImportModule implements DatabaseImportModule {
 				type = new SimpleTypeBinary(
 						attr.getValue("formatRegistryName"), attr
 								.getValue("formatRegistryKey"));
+//			} else if (qname.equals("simpleTypeXML")) {
+//				type = new SimpleTypeXML();
 			} else if (qname.equals("composedTypeArray")) {
 				type = new ComposedTypeArray();
 			} else if (qname.equals("composedTypeStructure")) {

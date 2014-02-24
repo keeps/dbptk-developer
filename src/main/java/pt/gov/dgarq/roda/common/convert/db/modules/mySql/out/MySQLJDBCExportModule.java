@@ -87,7 +87,7 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 	}
 
 	/**
-	 * Get a conection to a database. This connection can be used to create the
+	 * Get a connection to a database. This connection can be used to create the
 	 * database
 	 * 
 	 * @param databaseName

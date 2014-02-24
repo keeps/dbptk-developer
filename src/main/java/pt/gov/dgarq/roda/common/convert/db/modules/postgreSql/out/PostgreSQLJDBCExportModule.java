@@ -34,7 +34,7 @@ import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.PostgreSQLHelper;
 public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 
 	/**
-	 * Create a new PostgreSQL JDBC import module
+	 * Create a new PostgreSQL JDBC export module
 	 * 
 	 * @param hostname
 	 *            the name of the PostgreSQL server host (e.g. localhost)
@@ -55,7 +55,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 	}
 
 	/**
-	 * Create a new PostgreSQL JDBC import module
+	 * Create a new PostgreSQL JDBC export module
 	 * 
 	 * @param hostname
 	 *            the name of the PostgreSQL server host (e.g. localhost)

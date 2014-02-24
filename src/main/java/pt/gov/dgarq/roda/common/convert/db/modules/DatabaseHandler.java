@@ -73,5 +73,4 @@ public interface DatabaseHandler {
 	 * @throws ModuleException
 	 */
 	public void finishDatabase() throws ModuleException;
-
 }

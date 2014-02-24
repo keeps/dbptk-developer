@@ -45,5 +45,4 @@ public class PrimaryKey {
 	public void setColumnNames(List<String> columnNames) {
 		this.columnNames = columnNames;
 	}
-
 }

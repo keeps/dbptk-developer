@@ -326,6 +326,8 @@ public class DBMLExportModule implements DatabaseHandler {
 		}
 		print(" schemaVersion=\"" + SCHEMA_VERSION + "\">\n");
 		print("\t<structure>\n");
+		
+		logger.debug("Starting to get TableStructure");
 		for (TableStructure table : structure.getTables()) {
 			exportTableStructure(table);
 		}
@@ -476,6 +478,11 @@ public class DBMLExportModule implements DatabaseHandler {
 						+ encode(binary.getFormatRegistryKey()) + "\"");
 			}
 			print("/>\n");
+		
+//		} else if (type instanceof SimpleTypeXML) {
+//			// SimpleTypeXML xmlType = (SimpleTypeXML) type;
+//			print("<simpleTypeXML/>\n");
+//			
 		} else if (type instanceof ComposedTypeArray) {
 			ComposedTypeArray array = (ComposedTypeArray) type;
 			print("<composedTypeArray>\n");
@@ -553,9 +560,7 @@ public class DBMLExportModule implements DatabaseHandler {
 				print(encode(simple.getSimpledata()));
 				print("</s>\n");
 			} else {
-				// XXX need for schema change?  
-				//print("<s xsi:nil=\"true\"/>\n");
-				print("<s/>");
+				print("<s xsi:nil=\"true\"/>\n");
 			}
 
 		} else if (cell instanceof ComposedCell) {
@@ -567,9 +572,7 @@ public class DBMLExportModule implements DatabaseHandler {
 				}
 				print(space + "</c>\n");
 			} else {
-				// FIXME need for schema change?
-				//print("<c xsi:nil=\"true\"/>\n");
-				print("<c/>\n");
+				print("<c xsi:nil=\"true\"/>\n");
 			}
 		} else if (cell instanceof BinaryCell) {
 			BinaryCell bin = (BinaryCell) cell;

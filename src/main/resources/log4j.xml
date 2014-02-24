@@ -7,12 +7,23 @@
 			<param name="ConversionPattern" value="%p %d (%c{1}) %m%n" />
 		</layout>
 	</appender>
+	
+    <appender name="FILE" class="org.apache.log4j.FileAppender">
+        <param name="file" value="/Users/miguelcoutada/Documents/EI/MEI/2-ano/Dissertation/src/toolkit-tests/db-pres.log" />
+        <param name="immediateFlush" value="true"/>
+        <param name="threshold" value="debug"/>
+        <param name="append" value="false"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%p %d (%c{1}) %m%n" />
+        </layout>
+    </appender>
 
-	<logger name="pt.gov.dgarq.roda.common.convert.db" additivity="false">
-		<level value="INFO" />
-		<!-- <level value="DEBUG" /> -->
-		<!-- <level value="TRACE" /> -->
-		<appender-ref ref="STDOUT" />
+	<logger name="pt.gov.dgarq.roda.common.convert.db" additivity="false"> 
+		<!-- <level value="INFO" /> -->
+		<level value="DEBUG" /> 
+		<!-- <level value="TRACE" />  -->
+		<appender-ref ref="STDOUT" /> 
+		<appender-ref ref="FILE" /> 
 	</logger>
 
 	<root>

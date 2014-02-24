@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
+
 import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.Row;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.InvalidDataException;
@@ -34,7 +35,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
  * 
  */
 public class SQLHelper {
-
+	
 	/**
 	 * SQL to get all rows from a table
 	 * 
@@ -133,13 +134,22 @@ public class SQLHelper {
 		} else if (type instanceof SimpleTypeBoolean) {
 			ret = "boolean";
 		} else if (type instanceof SimpleTypeDateTime) {
-			throw new UnknownTypeException("DateTime type not yet supported");
+			SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
+			if (!dateTime.getTimeDefined() && !dateTime.getTimeZoneDefined()) {
+				ret = "date";
+			} else if (dateTime.getTimeZoneDefined()) {
+				//FIXME
+				throw new UnknownTypeException(
+						"Time zone not supported in MySQL");
+			} else {
+				ret = "datetime";
+			}
 		} else if (type instanceof SimpleTypeInterval) {
 			throw new UnknownTypeException("Interval type not yet supported");
 		} else if (type instanceof SimpleTypeEnumeration) {
 			throw new UnknownTypeException("Enumeration type not yet supported");
 		} else if (type instanceof SimpleTypeBinary) {
-			throw new UnknownTypeException("Binary type not yet supported");
+			ret = "MEDIUMBLOB";
 		} else if (type instanceof ComposedTypeArray) {
 			throw new UnknownTypeException("Array type not yet supported");
 		} else if (type instanceof ComposedTypeStructure) {
@@ -280,7 +290,8 @@ public class SQLHelper {
 	}
 
 	protected String escapeColumnName(String column) {
-		return column;
+		return "`" + column + "`";
+		// return column;
 	}
 
 }

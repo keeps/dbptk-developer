@@ -50,6 +50,8 @@ public class MySQLHelper extends SQLHelper {
 				ret = "varchar(" + length + ")";
 			} else if (string.getOriginalTypeName().equals("TEXT")) {
 				ret = "text";
+			} else if (string.getOriginalTypeName().equals("XML")) {
+				ret = "text";
 			} else if (string.isLengthVariable()) {
 				if (string.getLength().intValue() >= 65535) {
 					ret = "text";
@@ -74,7 +76,8 @@ public class MySQLHelper extends SQLHelper {
 			} else {
 				ret = "datetime";
 			}
-
+//		} else if (type instanceof SimpleTypeXML) {
+//			ret = "MEDIUMTEXT";
 		} else if (type instanceof SimpleTypeBinary) {
 			ret = "MEDIUMBLOB";
 		} else {

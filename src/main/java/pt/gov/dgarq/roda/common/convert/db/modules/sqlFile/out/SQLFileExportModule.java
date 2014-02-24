@@ -92,6 +92,8 @@ public class SQLFileExportModule implements DatabaseHandler {
 				sqlWriter.write(sqlHelper.createTableSQL(table) + ";\n");
 				String pkeySQL = sqlHelper.createPrimaryKeySQL(table.getName(),
 						table.getPrimaryKey());
+				logger.debug("PKEY: " + sqlHelper.createPrimaryKeySQL(table.getName(),
+						table.getPrimaryKey()));
 				if (pkeySQL != null) {
 					sqlWriter.write(pkeySQL + ";\n");
 				}
@@ -179,15 +181,17 @@ public class SQLFileExportModule implements DatabaseHandler {
 		for (TableStructure table : structure.getTables()) {
 			for (ForeignKey fkey : table.getForeignKeys()) {
 				try {
-					sqlWriter.write(sqlHelper.createForeignKeySQL(table
-							.getName(), fkey)
-							+ ";\n");
+					String fkeySQL = sqlHelper.createForeignKeySQL(table
+							.getName(), fkey);
+					sqlWriter.write(fkeySQL + ";\n");
+					sqlWriter.flush();
 				} catch (IOException e) {
 					throw new ModuleException("Error writing foreign key: "
 							+ fkey, e);
 				}
 			}
 		}
+		
 	}
 
 	/**
@@ -220,7 +224,7 @@ public class SQLFileExportModule implements DatabaseHandler {
 			throws IOException {
 		// BufferedInputStream buffin = new BufferedInputStream(in);
 		// BufferedOutputStream buffout = new BufferedOutputStream(out);
-
+ 
 		out.write("E'".getBytes());
 
 		int ibyte = in.read();

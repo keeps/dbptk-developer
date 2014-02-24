@@ -15,8 +15,7 @@ public class Oracle8iJDBCImportModule extends JDBCImportModule {
 			.getLogger(Oracle8iJDBCImportModule.class);
 
 	/**
-	 * Create a new Microsoft SQL Server import module using the default
-	 * instance.
+	 * Create a new Oracle8i import module 
 	 * 
 	 * @param serverName
 	 *            the name (host name) of the server

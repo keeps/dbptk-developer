@@ -144,8 +144,8 @@ public class JDBCExportModule implements DatabaseHandler {
 		return statement;
 	}
 
-	public void initDatabase() throws ModuleException {
-
+	public void initDatabase() throws ModuleException {		
+	
 	}
 
 	public void handleStructure(DatabaseStructure structure)
@@ -159,8 +159,9 @@ public class JDBCExportModule implements DatabaseHandler {
 				for (TableStructure table : structure.getTables()) {
 					logger.debug("Adding to batch creation of table "
 							+ table.getName());
-					logger.trace("sql: " + sqlHelper.createTableSQL(table));
-					getStatement().addBatch(sqlHelper.createTableSQL(table));
+					// logger.debug("sql: " + sqlHelper.createTableSQL(table));
+					// logger.trace("sql: " + sqlHelper.createTableSQL(table));
+					getStatement().addBatch(sqlHelper.createTableSQL(table));					
 					String pkeySQL = sqlHelper.createPrimaryKeySQL(table
 							.getName(), table.getPrimaryKey());
 					if (pkeySQL != null) {
@@ -171,6 +172,7 @@ public class JDBCExportModule implements DatabaseHandler {
 				logger.debug("Executing table creation batch");
 				batchResult = getStatement().executeBatch();
 				getStatement().clearBatch();
+				logger.debug("handle structure finished");
 
 			} catch (SQLException e) {
 				if (batchResult != null) {
@@ -216,6 +218,7 @@ public class JDBCExportModule implements DatabaseHandler {
 					try {
 						currentRowInsertStatement = getConnection()
 								.prepareStatement(sqlHelper.createRowSQL(table));
+						// logger.debug("sql row: " + sqlHelper.createRowSQL(table));
 					} catch (SQLException e) {
 						throw new ModuleException("Error creating table "
 								+ tableId + " prepared statement", e);
@@ -257,9 +260,11 @@ public class JDBCExportModule implements DatabaseHandler {
 				CleanResourcesInterface cleanResources = handleDataCell(
 						currentRowInsertStatement, index, cell, column
 								.getType());
+				// logger.debug("colType: " + column.getType().getClass().toString());
 				cleanResourcesList.add(cleanResources);
 				index++;
 			}
+			// logger.debug("-------------");
 			try {
 				currentRowInsertStatement.addBatch();
 				if (++batch_index > BATCH_SIZE) {
@@ -298,16 +303,22 @@ public class JDBCExportModule implements DatabaseHandler {
 			if (cell instanceof SimpleCell) {
 				SimpleCell simple = (SimpleCell) cell;
 				String data = simple.getSimpledata();
+				// logger.debug("cell: " + data);
 				if (type instanceof SimpleTypeString) {
 					if (data != null) {
 						ps.setString(index, data);
-
 					} else {
 						ps.setNull(index, Types.VARCHAR);
 					}
 				} else if (type instanceof SimpleTypeNumericExact) {
 					if (data != null) {
-						ps.setInt(index, Integer.valueOf(data));
+						// XXX confirm it's fixed
+						if (((SimpleTypeNumericExact) type).getScale() > 0) {
+							ps.setFloat(index, Float.valueOf(data));
+						}
+						else {
+							ps.setInt(index, Integer.valueOf(data));
+						}
 					} else {
 						ps.setNull(index, Types.INTEGER);
 					}
@@ -317,7 +328,6 @@ public class JDBCExportModule implements DatabaseHandler {
 					} else {
 						ps.setNull(index, Types.FLOAT);
 					}
-
 				} else if (type instanceof SimpleTypeDateTime) {
 					// SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
 					if (data != null) {
@@ -328,14 +338,12 @@ public class JDBCExportModule implements DatabaseHandler {
 					} else {
 						ps.setNull(index, Types.DATE);
 					}
-
 				} else if (type instanceof SimpleTypeBoolean) {
 					if (data != null) {
 						ps.setBoolean(index, Boolean.valueOf(data));
 					} else {
 						ps.setNull(index, Types.BOOLEAN);
-					}
-
+					}						 
 				} else {
 					throw new InvalidDataException(
 							type.getClass().getSimpleName()
@@ -390,12 +398,23 @@ public class JDBCExportModule implements DatabaseHandler {
 				for (ForeignKey fkey : table.getForeignKeys()) {
 					String fkeySQL = sqlHelper.createForeignKeySQL(table
 							.getName(), fkey);
+					logger.debug("Returned fkey: " + fkeySQL);
 					getStatement().addBatch(fkeySQL);
 				}
 			}
+			logger.debug("Getting fkeys finished");
 			getStatement().executeBatch();
 			getStatement().clearBatch();
 		} catch (SQLException e) {
+			SQLException ei = e;
+			do {
+				if (ei != null) {
+					logger.error("Error handleing foreign key (next exception)",
+						ei);
+					logger.error("Error description: ", ei);
+				}
+				ei = ei.getNextException();
+			} while (ei != null);
 			throw new ModuleException("Error creating foreign keys", e);
 		}
 	}
