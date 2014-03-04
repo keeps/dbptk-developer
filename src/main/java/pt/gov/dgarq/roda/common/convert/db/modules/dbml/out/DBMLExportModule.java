@@ -328,7 +328,7 @@ public class DBMLExportModule implements DatabaseHandler {
 		print("\t<structure>\n");
 		
 		logger.debug("Starting to get TableStructure");
-		for (TableStructure table : structure.getTables()) {
+		for (TableStructure table : structure.getSchemas().get(0).getTables()) {
 			exportTableStructure(table);
 		}
 		print("\t</structure>\n");
@@ -519,8 +519,10 @@ public class DBMLExportModule implements DatabaseHandler {
 	private void exportForeignKey(ForeignKey fk)
 			throws UnsupportedEncodingException, IOException {
 		print("\t\t\t<fkey id=\"" + encode(fk.getId()) + "\" name=\""
-				+ encode(fk.getName()) + "\" in=\"" + encode(fk.getRefTable())
-				+ "\" ref=\"" + encode(fk.getRefColumn()) + "\"/>\n");
+				+ encode(fk.getName()) + "\" in=\""
+				+ encode(fk.getReferencedTable())
+				+ "\" ref=\"" + encode(fk.getReference().getColumn())
+				+ "\"/>\n");
 
 	}
 

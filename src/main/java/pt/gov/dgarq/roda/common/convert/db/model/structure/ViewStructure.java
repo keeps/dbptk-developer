@@ -8,7 +8,7 @@ import java.util.List;
  *
  */
 
-public class SIARDViewStructure {
+public class ViewStructure {
 	
 	private String name;
 	
@@ -18,14 +18,14 @@ public class SIARDViewStructure {
 	
 	private String description;
 	
-	private List<SIARDColumnStructure> columns;
+	private List<ColumnStructure> columns;
 	
 	
 
 	/**
 	 * 
 	 */
-	public SIARDViewStructure() {
+	public ViewStructure() {
 	}
 
 
@@ -36,8 +36,8 @@ public class SIARDViewStructure {
 	 * @param description
 	 * @param columns
 	 */
-	public SIARDViewStructure(String name, String query, String queryOriginal,
-			String description, List<SIARDColumnStructure> columns) {
+	public ViewStructure(String name, String query, String queryOriginal,
+			String description, List<ColumnStructure> columns) {
 		this.name = name;
 		this.query = query;
 		this.queryOriginal = queryOriginal;
@@ -113,7 +113,7 @@ public class SIARDViewStructure {
 	/**
 	 * @return the columns
 	 */
-	public List<SIARDColumnStructure> getColumns() {
+	public List<ColumnStructure> getColumns() {
 		return columns;
 	}
 
@@ -121,8 +121,26 @@ public class SIARDViewStructure {
 	/**
 	 * @param columns the columns to set
 	 */
-	public void setColumns(List<SIARDColumnStructure> columns) {
+	public void setColumns(List<ColumnStructure> columns) {
 		this.columns = columns;
+	}
+
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("ViewStructure [name=");
+		builder.append(name);
+		builder.append(", query=");
+		builder.append(query);
+		builder.append(", queryOriginal=");
+		builder.append(queryOriginal);
+		builder.append(", description=");
+		builder.append(description);
+		builder.append(", columns=");
+		builder.append(columns);
+		builder.append("]");
+		return builder.toString();
 	}
 	
 	

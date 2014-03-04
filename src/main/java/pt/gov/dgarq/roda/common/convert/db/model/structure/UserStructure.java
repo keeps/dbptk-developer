@@ -6,7 +6,7 @@ package pt.gov.dgarq.roda.common.convert.db.model.structure;
  *
  */
 
-public class SIARDUserStructure {
+public class UserStructure {
 	
 	private String name;
 	
@@ -15,14 +15,14 @@ public class SIARDUserStructure {
 	/**
 	 * 
 	 */
-	public SIARDUserStructure() {
+	public UserStructure() {
 	}
 	
 	/**
 	 * @param name
 	 * @param description
 	 */
-	public SIARDUserStructure(String name, String description) {
+	public UserStructure(String name, String description) {
 		this.name = name;
 		this.description = description;
 	}

@@ -11,8 +11,12 @@ public class ColumnStructure {
 	private String id;
 
 	private String name;
+	
+	private String folder; //XXX only SIARD
 
 	private Type type;
+	
+	private String defaultValue;
 
 	private Boolean nillable;
 
@@ -25,6 +29,7 @@ public class ColumnStructure {
 	public ColumnStructure() {
 	}
 
+	
 	/**
 	 * ColumnStructure constructor
 	 * 
@@ -34,10 +39,10 @@ public class ColumnStructure {
 	 *            the column name
 	 * @param nillable
 	 *            if column values can be null
-	 * @param description
-	 *            column description, optionally null
 	 * @param type
 	 *            the column type
+	 * @param description
+	 *            column description, optionally null
 	 */
 	public ColumnStructure(String id, String name, Type type, Boolean nillable,
 			String description) {
@@ -46,9 +51,8 @@ public class ColumnStructure {
 		this.type = type;
 		this.nillable = nillable;
 		this.description = description;
-
 	}
-
+	
 	/**
 	 * @return column description, null if none
 	 */
@@ -95,6 +99,22 @@ public class ColumnStructure {
 	}
 
 	/**
+	 * @return the folder
+	 */
+	public String getFolder() {
+		return folder;
+	}
+
+
+	/**
+	 * @param folder the folder to set
+	 */
+	public void setFolder(String folder) {
+		this.folder = folder;
+	}
+
+
+	/**
 	 * @return the column type
 	 */
 	public Type getType() {
@@ -107,6 +127,21 @@ public class ColumnStructure {
 	 */
 	public void setType(Type type) {
 		this.type = type;
+	}
+
+	/**
+	 * @return the defaultValue
+	 */
+	public String getDefaultValue() {
+		return defaultValue;
+	}
+
+	/**
+	 * @param defaultValue 
+	 * 			  the defaultValue to set
+	 */
+	public void setDefaultValue(String defaultValue) {
+		this.defaultValue = defaultValue;
 	}
 
 	/**
@@ -124,4 +159,25 @@ public class ColumnStructure {
 		this.nillable = nillable;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("ColumnStructure [id=");
+		builder.append(id);
+		builder.append(", name=");
+		builder.append(name);
+		builder.append(", type=");
+		builder.append(type.getClass().toString());
+		builder.append(", defaultValue=");
+		builder.append(defaultValue);
+		builder.append(", nillable=");
+		builder.append(nillable);
+		builder.append(", description=");
+		builder.append(description);
+		builder.append("]");
+		return builder.toString();
+	}
 }

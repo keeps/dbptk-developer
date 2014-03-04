@@ -212,6 +212,7 @@ public class JDBCExportModule implements DatabaseHandler {
 
 	public void handleDataOpenTable(String tableId) throws ModuleException {
 		if (databaseStructure != null) {
+			
 			for (TableStructure table : databaseStructure.getTables()) {
 				if (table.getId().equals(tableId)) {
 					currentTableStructure = table;

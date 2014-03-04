@@ -6,7 +6,7 @@ package pt.gov.dgarq.roda.common.convert.db.model.structure;
  *
  */
 
-public class SIARDTrigger {
+public class Trigger {
 	
 	private String name;
 	
@@ -24,7 +24,7 @@ public class SIARDTrigger {
 	/**
 	 * 
 	 */
-	public SIARDTrigger() {
+	public Trigger() {
 	}
 
 
@@ -36,7 +36,7 @@ public class SIARDTrigger {
 	 * @param triggeredAction
 	 * @param description
 	 */
-	public SIARDTrigger(String name, String actionTime, String triggerEvent,
+	public Trigger(String name, String actionTime, String triggerEvent,
 			String aliasList, String triggeredAction, String description) {
 		this.name = name;
 		this.actionTime = actionTime;

@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +41,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.DatabaseStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ForeignKey;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.PrimaryKey;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeArray;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeStructure;
@@ -349,9 +351,17 @@ public class DBMLImportModule implements DatabaseImportModule {
 				}
 			} else if (qname.equals("structure")) {
 				// nothing to do
+				// XXX DBML is set to static schema "schema0"
+				List<SchemaStructure> schemas = 
+						new ArrayList<SchemaStructure>();
+				SchemaStructure schema = new SchemaStructure();
+				schema.setName("schema0");
+				schema.setFolder("schema0");
+				schemas.add(schema);
+				structure.setSchemas(schemas);
 			} else if (qname.equals("table")) {
 				TableStructure table = createTableStructure(attr);
-				structure.getTables().add(table);
+				structure.getSchemas().get(0).getTables().add(table);
 				if (currentTableStructure != null) {
 					errors.put("table not closed: "
 							+ currentTableStructure.getId(), null);

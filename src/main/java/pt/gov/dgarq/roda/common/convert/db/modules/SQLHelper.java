@@ -198,8 +198,8 @@ public class SQLHelper {
 	public String createForeignKeySQL(String tableName, ForeignKey fkey) {
 		return "ALTER TABLE " + escapeTableName(tableName)
 				+ " ADD FOREIGN KEY (" + escapeColumnName(fkey.getName())
-				+ ") REFERENCES " + escapeTableName(fkey.getRefTable()) + "("
-				+ escapeColumnName(fkey.getRefColumn()) + ")";
+				+ ") REFERENCES " + escapeTableName(fkey.getReferencedTable()) + "("
+				+ escapeColumnName(fkey.getReference().getColumn()) + ")";
 	}
 
 	/**

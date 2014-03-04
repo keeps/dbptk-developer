@@ -6,7 +6,7 @@ package pt.gov.dgarq.roda.common.convert.db.model.structure;
  *
  */
 
-public class SIARDCheckConstraint {
+public class CheckConstraint {
 
 	private String name;
 	
@@ -18,7 +18,7 @@ public class SIARDCheckConstraint {
 	/**
 	 * 
 	 */
-	public SIARDCheckConstraint() {
+	public CheckConstraint() {
 	}
 
 	/**
@@ -26,7 +26,7 @@ public class SIARDCheckConstraint {
 	 * @param condition
 	 * @param description
 	 */
-	public SIARDCheckConstraint(String name, String condition,
+	public CheckConstraint(String name, String condition,
 			String description) {
 		this.name = name;
 		this.condition = condition;

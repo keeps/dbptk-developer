@@ -1,5 +1,6 @@
 package pt.gov.dgarq.roda.common.convert.db.model.structure;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -8,7 +9,7 @@ import java.util.List;
  *
  */
 
-public class SIARDSchemaStructure {
+public class SchemaStructure {
 	
 	private String name;
 	
@@ -16,19 +17,17 @@ public class SIARDSchemaStructure {
 	
 	private String description;
 	
-	private List<SIARDTableStructure> tables;
+	private List<TableStructure> tables;
 	
-	private List<SIARDViewStructure> views;
+	private List<ViewStructure> views;
 	
-	private List<SIARDRoutineStructure> routines;
+	private List<RoutineStructure> routines;
 			
-	
-	/**
-	 * 
-	 */
-	public SIARDSchemaStructure() {
+		public SchemaStructure() {
+		tables = new ArrayList<TableStructure>();
+		views = new ArrayList<ViewStructure>();
+		routines = new ArrayList<RoutineStructure>();
 	}
-
 
 	/**
 	 * @param name
@@ -38,9 +37,9 @@ public class SIARDSchemaStructure {
 	 * @param views
 	 * @param routines
 	 */
-	public SIARDSchemaStructure(String name, String folder, String description,
-			List<SIARDTableStructure> tables, List<SIARDViewStructure> views,
-			List<SIARDRoutineStructure> routines) {
+	public SchemaStructure(String name, String folder, String description,
+			List<TableStructure> tables, List<ViewStructure> views,
+			List<RoutineStructure> routines) {
 		this.name = name;
 		this.folder = folder;
 		this.description = description;
@@ -102,7 +101,7 @@ public class SIARDSchemaStructure {
 	/**
 	 * @return the tables
 	 */
-	public List<SIARDTableStructure> getTables() {
+	public List<TableStructure> getTables() {
 		return tables;
 	}
 
@@ -111,7 +110,7 @@ public class SIARDSchemaStructure {
 	/**
 	 * @param tables the tables to set
 	 */
-	public void setTables(List<SIARDTableStructure> tables) {
+	public void setTables(List<TableStructure> tables) {
 		this.tables = tables;
 	}
 
@@ -119,7 +118,7 @@ public class SIARDSchemaStructure {
 	/**
 	 * @return the views
 	 */
-	public List<SIARDViewStructure> getViews() {
+	public List<ViewStructure> getViews() {
 		return views;
 	}
 	
@@ -127,7 +126,7 @@ public class SIARDSchemaStructure {
 	/**
 	 * @param views the views to set
 	 */
-	public void setViews(List<SIARDViewStructure> views) {
+	public void setViews(List<ViewStructure> views) {
 		this.views = views;
 	}
 
@@ -135,7 +134,7 @@ public class SIARDSchemaStructure {
 	/**
 	 * @return the routines
 	 */
-	public List<SIARDRoutineStructure> getRoutines() {
+	public List<RoutineStructure> getRoutines() {
 		return routines;
 	}
 
@@ -143,10 +142,10 @@ public class SIARDSchemaStructure {
 	/**
 	 * @param routines the routines to set
 	 */
-	public void setRoutines(List<SIARDRoutineStructure> routines) {
+	public void setRoutines(List<RoutineStructure> routines) {
 		this.routines = routines;
 	}
-
+	
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
@@ -154,19 +153,25 @@ public class SIARDSchemaStructure {
 	@Override
 	public String toString() {		
 		StringBuilder builder = new StringBuilder();
-		builder.append("{SIARDSchemaStructure: [name : ");
-		builder.append(name);
-		builder.append(", folder : ");
+		builder.append("\n****** SCHEMA: " + name + " ******");
+		builder.append("\n");
+		builder.append("folder : ");
 		builder.append(folder);
-		builder.append(", description=");
+		builder.append("\n");
+		builder.append("description=");
 		builder.append(description);
-		builder.append(", tables=");
+		builder.append("\n");
+		builder.append("tables=");
 		builder.append(tables);
-		builder.append(", views=");
+		builder.append("\n");
+		builder.append("views=");
 		builder.append(views);
-		builder.append(", routines=");
+		builder.append("\n");
+		builder.append("routines=");
 		builder.append(routines);
-		builder.append("]}");
+		builder.append("\n");
+		builder.append("****** END SCHEMA ******");
+		builder.append("\n");
 		return builder.toString();
 	}
 	

@@ -6,7 +6,7 @@ package pt.gov.dgarq.roda.common.convert.db.model.structure;
  *
  */
 
-public class SIARDReference {
+public class Reference {
 
 	private String column;
 	
@@ -15,7 +15,7 @@ public class SIARDReference {
 	/**
 	 * 
 	 */
-	public SIARDReference() {
+	public Reference() {
 	}
 
 	/**

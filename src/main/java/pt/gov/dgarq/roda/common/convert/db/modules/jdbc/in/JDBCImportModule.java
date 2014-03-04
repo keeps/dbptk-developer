@@ -35,7 +35,10 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.DatabaseStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ForeignKey;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.PrimaryKey;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.RoutineStructure;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.ViewStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeArray;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBinary;
@@ -176,23 +179,89 @@ public class JDBCImportModule implements DatabaseImportModule {
 			dbStructure.setProductName(getMetadata().getDatabaseProductName());
 			dbStructure.setProductVersion(getMetadata()
 					.getDatabaseProductVersion());
-
-			List<TableStructure> tables = new Vector<TableStructure>();
-			ResultSet rset = getMetadata().getTables(dbStructure.getName(),
-					null, "%", new String[] { "TABLE" });
-			while (rset.next()) {
-				logger.debug("--------------");
-				logger.debug("TABLE: " + rset.getString("TABLE_NAME"));
-				logger.debug("TABLE: " + rset.getString("TABLE_TYPE"));
-				logger.debug("--------------");
-				String tablename = rset.getString(3);
-				tables.add(getTableStructure(tablename));
+						
+			List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
+			
+			if (getMetadata().supportsSchemasInDataManipulation()) {
+				logger.debug("supports schemas table manipulation: " 
+						+ getMetadata().supportsSchemasInDataManipulation());
+				ResultSet rs = getMetadata().getSchemas();	
+				while (rs.next()) {
+					String schemaName = rs.getString(1);
+					schemas.add(getSchemaStructure(schemaName));
+				}
+			} else {
+				String schemaName = "schemaX";
+				schemas.add(getSchemaStructure(schemaName));
 			}
-			dbStructure.setTables(tables);
+			
+			dbStructure.setSchemas(schemas);
 			logger.debug("Finishing get dbStructure");
-		}		
+		}	
 		return dbStructure;
 	}
+
+	/**
+	 * 
+	 * @param schemaName
+	 * @return
+	 */
+	protected SchemaStructure getSchemaStructure(String schemaName) 
+			throws SQLException, UnknownTypeException, 
+			ClassNotFoundException {
+		
+		SchemaStructure schema = new SchemaStructure();
+		schema.setName(schemaName);
+		schema.setFolder(schemaName);
+		
+		// tables
+		List<TableStructure> tables = new ArrayList<TableStructure>();
+		ResultSet rset = getMetadata().getTables(dbStructure.getName(),
+				schemaName, "%", new String[] { "TABLE" });
+		while (rset.next()) {
+			// ------------------------------------------------
+//			logger.debug("--- TABLE INFO ---");
+//			if (rset.getString("TABLE_CAT") != null)
+//				logger.debug(
+//						"Catalog: " + rset.getString("TABLE_CAT"));
+//			if (rset.getString("TABLE_SCHEM") != null)
+//				logger.debug(
+//						"Schema: " + rset.getString("TABLE_SCHEM"));					
+//			logger.debug("Name: " + rset.getString("TABLE_NAME"));
+//			logger.debug("Type: " + rset.getString("TABLE_TYPE"));
+//			
+//			logger.debug("--- END TABLE INFO ---");
+			// ------------------------------------------------
+			String tableName = rset.getString(3);
+			tables.add(getTableStructure(tableName));
+		}
+		schema.setTables(tables);
+
+		// views
+		List<ViewStructure> views = new ArrayList<ViewStructure>();
+		rset = getMetadata().getTables(dbStructure.getName(), schemaName, 
+				"%", new String[] { "VIEW" });
+		while (rset.next()) {
+			String viewName = rset.getString(3);
+			views.add(getViewStructure(schemaName, viewName));
+		}
+		schema.setViews(views);
+		
+		// routines		
+		logger.debug("ProcTerm: " + getMetadata().getProcedureTerm());
+		List<RoutineStructure> routines = new ArrayList<RoutineStructure>();
+		rset = getMetadata().getProcedures(
+				dbStructure.getName(), schema.getName(), "%");
+		while (rset.next()) {
+			String routineName = rset.getString(3);
+			logger.debug("routine: " + routineName);
+			routines.add(getRoutineStructure(routineName));
+		}
+		schema.setRoutines(routines);
+
+		return schema;
+	}
+	
 
 	/**
 	 * @param tableName
@@ -210,11 +279,13 @@ public class JDBCImportModule implements DatabaseImportModule {
 		table.setId(tableName);
 		table.setName(tableName);
 
-		List<ColumnStructure> columns = new Vector<ColumnStructure>();
+		List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
 		ResultSet rs = getMetadata().getColumns(null, null, tableName, "%");
-		logger.debug(tableName
-						+ "Structure: "
-						+ "Column Name, Nullable, Data Type, Type Name, Column Size, Decimal Digits, Num Prec Radix, index, Remarks");
+//		logger.debug(tableName
+//						+ "Structure: "
+//						+ "Column Name, Nullable, Data Type, Type Name, "
+//						+ "Column Size, Decimal Digits, Num Prec Radix, index, "
+//						+ "Remarks");
 		while (rs.next()) {
 			String columnName = rs.getString(4);
 			String isNullable = rs.getString(18);
@@ -226,10 +297,10 @@ public class JDBCImportModule implements DatabaseImportModule {
 			int index = rs.getInt(17);
 			String remarks = rs.getString(12);
 
-			logger.debug(tableName + "Column: " + columnName + ", "
-					+ isNullable + ", " + dataType + ", " + typeName + ", "
-					+ columnSize + ", " + decimalDigits + ", " + numPrecRadix
-					+ ", " + index + ", " + remarks);
+//			logger.debug(tableName + "Column: " + columnName + ", "
+//					+ isNullable + ", " + dataType + ", " + typeName + ", "
+//					+ columnSize + ", " + decimalDigits + ", " + numPrecRadix
+//					+ ", " + index + ", " + remarks);
 
 			Boolean nillable = Boolean.TRUE;
 			if (isNullable != null && isNullable.equals("NO")) {
@@ -248,10 +319,62 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 		table.setPrimaryKey(getPrimaryKey(tableName));
 		table.setForeignKeys(getForeignKeys(tableName));
-
+		
+		// FIXME get table n rows
+		
 		return table;
 	}
+	
+	protected ViewStructure getViewStructure(String schemaName, 
+			String viewName) throws SQLException, ClassNotFoundException, 
+			UnknownTypeException {
+		ViewStructure view = new ViewStructure();
+		view.setName(viewName);
+		
+		List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
+		ResultSet rs = getMetadata().getColumns(dbStructure.getName(), 
+				schemaName, viewName, "%");
 
+		while (rs.next()) {
+			String columnName = rs.getString(4);
+			String isNullable = rs.getString(18);
+			int dataType = rs.getInt(5);
+			String typeName = rs.getString(6);
+			int columnSize = rs.getInt(7);
+			int decimalDigits = rs.getInt(9);
+			int numPrecRadix = rs.getInt(10);
+			int index = rs.getInt(17);
+			String remarks = rs.getString(12);
+
+//			logger.debug(tableName + "Column: " + columnName + ", "
+//					+ isNullable + ", " + dataType + ", " + typeName + ", "
+//					+ columnSize + ", " + decimalDigits + ", " + numPrecRadix
+//					+ ", " + index + ", " + remarks);
+
+			Boolean nillable = Boolean.TRUE;
+			if (isNullable != null && isNullable.equals("NO")) {
+				nillable = Boolean.FALSE;
+			}
+
+			Type columnType = getType(dataType, typeName, columnSize,
+					decimalDigits, numPrecRadix);
+
+			ColumnStructure column = getColumnStructure(viewName, columnName,
+					columnType, nillable, index, remarks);
+
+			columns.add(column);
+		}
+		view.setColumns(columns);
+		return view;
+	}	
+
+	protected RoutineStructure getRoutineStructure(String routineName) {
+		RoutineStructure routine = new RoutineStructure();
+		routine.setName(routineName);
+		// TODO complete routine information
+		return routine;
+	}
+	
 	/**
 	 * Create the column structure
 	 * 
@@ -273,12 +396,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			String columnName, Type type, Boolean nillable, int index,
 			String description) {
 		ColumnStructure column = new ColumnStructure(tableName + "."
-				+ columnName, columnName, type, nillable, description);
-		column.setId(tableName + "." + columnName);
-		column.setName(columnName);
-		column.setType(type);
-		column.setNillable(nillable);
-		column.setDescription(description);
+				+ columnName, columnName, type, nillable, description);	
 		return column;
 	}
 
@@ -346,7 +464,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 					Boolean.TRUE);
 			break;
 		case Types.NUMERIC:
-			type = new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
+			type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
+					Integer.valueOf(decimalDigits));
 			break;
 		case Types.REAL:
 			type = new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
@@ -420,7 +539,10 @@ public class JDBCImportModule implements DatabaseImportModule {
 			pkColumns.add(rs.getString(4));
 		}
 		
-		return !pkColumns.isEmpty() ? new PrimaryKey(pkColumns) : null;
+		//TODO add name & descriptiom to PK
+		PrimaryKey pk = new PrimaryKey();
+		pk.setColumnNames(pkColumns);
+		return !pkColumns.isEmpty() ? pk : null;
 	}
 
 	/**
@@ -489,7 +611,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 		} else if (cellType instanceof SimpleTypeDateTime) {
 			// XXX verify if it's fixed
 			SimpleTypeDateTime undefinedDate = (SimpleTypeDateTime) cellType;
-			if (undefinedDate.getTimeDefined() && !undefinedDate.getTimeZoneDefined()) {
+			if (undefinedDate.getTimeDefined() 
+					&& !undefinedDate.getTimeZoneDefined()) {
 				Time time = rawData.getTime(columnName);
 				String isoDate = DateParser.getIsoDate(time);
 				cell = new SimpleCell(id, isoDate);
@@ -549,17 +672,22 @@ public class JDBCImportModule implements DatabaseImportModule {
 			handler.initDatabase();
 			logger.debug("getting database structure");
 			handler.handleStructure(getDatabaseStructure());
-//			for (TableStructure table : getDatabaseStructure().getTables()) {
-//				logger.debug("getting data of table " + table.getId());
-//				handler.handleDataOpenTable(table.getId());
-//				ResultSet tableRawData = getTableRawData(table.getName());
-//				while (tableRawData.next()) {
-//					handler.handleDataRow(convertRawToRow(tableRawData, table));
-//				}
-//				handler.handleDataCloseTable(table.getId());
-//			}
-//			logger.debug("finishing database");
-//			handler.finishDatabase();
+			logger.debug("DB STRUCTURE: " + getDatabaseStructure().toString());
+			for (SchemaStructure schema: getDatabaseStructure().getSchemas()) {
+				for (TableStructure table : schema.getTables()) {
+					logger.debug("getting data of table " + table.getId());
+					handler.handleDataOpenTable(table.getId());
+					ResultSet tableRawData = getTableRawData(table.getName());
+					while (tableRawData.next()) {
+						handler.handleDataRow(
+								convertRawToRow(tableRawData, table));
+					}
+					handler.handleDataCloseTable(table.getId());
+				}				
+			}
+			
+			logger.debug("finishing database");
+			handler.finishDatabase();
 		} catch (SQLException e) {
 			throw new ModuleException("SQL error while conecting", e);
 		} catch (ClassNotFoundException e) {

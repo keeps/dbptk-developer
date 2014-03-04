@@ -8,29 +8,30 @@ import java.util.List;
  *
  */
 
-public class SIARDPrimaryKey {
+public class CandidateKey {
 	
 	private String name;
 	
-	private List<String> columns;
-	
 	private String description;
 	
+	private List<String> columns;
+
 	/**
 	 * 
 	 */
-	public SIARDPrimaryKey() {		
+	public CandidateKey() {
 	}
 
 	/**
 	 * @param name
-	 * @param columns
 	 * @param description
+	 * @param columns
 	 */
-	public SIARDPrimaryKey(String name, List<String> columns, String description) {
+	public CandidateKey(String name, String description,
+			List<String> columns) {
 		this.name = name;
-		this.columns = columns;
 		this.description = description;
+		this.columns = columns;
 	}
 
 	/**
@@ -48,20 +49,6 @@ public class SIARDPrimaryKey {
 	}
 
 	/**
-	 * @return the columns
-	 */
-	public List<String> getColumns() {
-		return columns;
-	}
-
-	/**
-	 * @param columns the columns to set
-	 */
-	public void setColumns(List<String> columns) {
-		this.columns = columns;
-	}
-
-	/**
 	 * @return the description
 	 */
 	public String getDescription() {
@@ -75,22 +62,33 @@ public class SIARDPrimaryKey {
 		this.description = description;
 	}
 
+	/**
+	 * @return the columns
+	 */
+	public List<String> getColumns() {
+		return columns;
+	}
+
+	/**
+	 * @param columns the columns to set
+	 */
+	public void setColumns(List<String> columns) {
+		this.columns = columns;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("SIARDPrimaryKey [name=");
+		builder.append("SIARDCandidateKey [name=");
 		builder.append(name);
-		builder.append(", columns=");
-		builder.append(columns);
 		builder.append(", description=");
 		builder.append(description);
+		builder.append(", columns=");
+		builder.append(columns);
 		builder.append("]");
 		return builder.toString();
-	}	
-	
-	
-	
+	}
 }

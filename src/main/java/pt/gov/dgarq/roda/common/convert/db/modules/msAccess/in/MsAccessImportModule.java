@@ -79,8 +79,11 @@ public class MsAccessImportModule extends ODBCImportModule {
 				}
 			}
 		}
-
-		return new PrimaryKey(Arrays.asList(new String[] { key_colname }));
+			
+		// TODO add name & description
+		PrimaryKey pk = new PrimaryKey();
+		pk.setColumnNames(Arrays.asList(new String[] { key_colname }));
+		return pk;
 	}
 
 	@Override

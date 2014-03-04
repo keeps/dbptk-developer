@@ -6,6 +6,6 @@ package pt.gov.dgarq.roda.common.convert.db.model.structure;
  *
  */
 
-public class SIARDRoleStructure {
-
+public class PrivilegeStructure {
+	// TODO complete..
 }

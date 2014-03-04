@@ -6,8 +6,8 @@ package pt.gov.dgarq.roda.common.convert.db.model.structure;
  *
  */
 
-public class SIARDRoutineStructure {
-	
+public class RoutineStructure {
+
 	private String name;
 	
 	private String description;
@@ -27,7 +27,7 @@ public class SIARDRoutineStructure {
 	/**
 	 * 
 	 */
-	public SIARDRoutineStructure() {
+	public RoutineStructure() {
 	}
 
 
@@ -40,7 +40,7 @@ public class SIARDRoutineStructure {
 	 * @param returnType
 	 * @param parameters
 	 */
-	public SIARDRoutineStructure(String name, String description,
+	public RoutineStructure(String name, String description,
 			String source, String body, String characteristic,
 			String returnType, String parameters) {
 		this.name = name;
@@ -164,5 +164,24 @@ public class SIARDRoutineStructure {
 		this.parameters = parameters;
 	}
 	
-	
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("RoutineStructure [name=");
+		builder.append(name);
+		builder.append(", description=");
+		builder.append(description);
+		builder.append(", source=");
+		builder.append(source);
+		builder.append(", body=");
+		builder.append(body);
+		builder.append(", characteristic=");
+		builder.append(characteristic);
+		builder.append(", returnType=");
+		builder.append(returnType);
+		builder.append(", parameters=");
+		builder.append(parameters);
+		builder.append("]");
+		return builder.toString();
+	}
 }

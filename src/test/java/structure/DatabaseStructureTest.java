@@ -15,6 +15,5 @@ public class DatabaseStructureTest {
 	@Test
 	public void test() {
 		fail("Not yet implemented");
-	}
-
+	}	
 }
