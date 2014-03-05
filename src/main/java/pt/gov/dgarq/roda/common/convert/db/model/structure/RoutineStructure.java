@@ -1,5 +1,7 @@
 package pt.gov.dgarq.roda.common.convert.db.model.structure;
 
+import java.util.List;
+
 /**
  * 
  * @author Miguel Coutada
@@ -20,7 +22,7 @@ public class RoutineStructure {
 	
 	private String returnType;
 	
-	private String parameters;
+	private List<Parameter> parameters;
 	
 	
 
@@ -42,7 +44,7 @@ public class RoutineStructure {
 	 */
 	public RoutineStructure(String name, String description,
 			String source, String body, String characteristic,
-			String returnType, String parameters) {
+			String returnType, List<Parameter> parameters) {
 		this.name = name;
 		this.description = description;
 		this.source = source;
@@ -152,7 +154,7 @@ public class RoutineStructure {
 	/**
 	 * @return the parameters
 	 */
-	public String getParameters() {
+	public List<Parameter> getParameters() {
 		return parameters;
 	}
 
@@ -160,7 +162,7 @@ public class RoutineStructure {
 	/**
 	 * @param parameters the parameters to set
 	 */
-	public void setParameters(String parameters) {
+	public void setParameters(List<Parameter> parameters) {
 		this.parameters = parameters;
 	}
 	

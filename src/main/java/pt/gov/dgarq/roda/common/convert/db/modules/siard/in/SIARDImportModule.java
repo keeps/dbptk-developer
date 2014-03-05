@@ -29,8 +29,11 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.CheckConstraint;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.DatabaseStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ForeignKey;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.Parameter;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.PrimaryKey;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.PrivilegeStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.Reference;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.RoleStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.RoutineStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
@@ -197,15 +200,17 @@ public class SIARDImportModule implements DatabaseImportModule {
 		private ViewStructure view;
 		private List<RoutineStructure> routines;
 		private RoutineStructure routine;
+		private List<Parameter> parameters;
+		private Parameter parameter;
 		private List<UserStructure> users;
 		private UserStructure user;
-		// TODO add roles & privileges
-		//private List<SIARDRoleStructure> roles;
-		//private List<SIARDPrivilegesStructure> privileges;
-				
+		private List<RoleStructure> roles;
+		private RoleStructure role;
+		private List<PrivilegeStructure> privileges;
+		private PrivilegeStructure privilege;
+		
 		public SIARDHeaderSAXHandler(DatabaseHandler handler) {
 			this.handler = handler;
-			// TODO set vars to null
 		}
 		
 		public void startDocument() {
@@ -217,11 +222,11 @@ public class SIARDImportModule implements DatabaseImportModule {
 			try {
 				handler.handleStructure(dbStructure);
 			} catch (ModuleException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error("An error occurred "
+						+ "while handling Database Structure", e);
 			} catch (UnknownTypeException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error("An error occurred "
+						+ "while handling Database Structure", e);
 			}
 		}
 	
@@ -268,20 +273,31 @@ public class SIARDImportModule implements DatabaseImportModule {
 				triggers = new ArrayList<Trigger>();
 			} else if (qName.equalsIgnoreCase("trigger")) {
 				trigger = new Trigger();
-			} else if (qName.equalsIgnoreCase("view")) {
-				view = new ViewStructure();
 			} else if (qName.equalsIgnoreCase("views")) {
 				views = new ArrayList<ViewStructure>();
-			} else if (qName.equalsIgnoreCase("routine")) {
-				routine = new RoutineStructure();
-			} else if (qName.equalsIgnoreCase("views")) {
+			} else if (qName.equalsIgnoreCase("view")) {
+				view = new ViewStructure();
+			} else if (qName.equalsIgnoreCase("routines")) {
 				routines = new ArrayList<RoutineStructure>();
-			} else if (qName.equalsIgnoreCase("user")) {
-				user = new UserStructure();
+			} else if (qName.equalsIgnoreCase("routine")) {
+				routine = new RoutineStructure();	
+			} else if (qName.equals("parameters")) {
+				parameters = new ArrayList<Parameter>();
+			} else if (qName.equalsIgnoreCase("parameter")) {
+				parameter = new Parameter();
 			} else if (qName.equalsIgnoreCase("users")) {
 				users = new ArrayList<UserStructure>();
+			} else if (qName.equalsIgnoreCase("user")) {
+				user = new UserStructure();
+			} else if (qName.equalsIgnoreCase("roles")) {
+				roles = new ArrayList<RoleStructure>();
+			} else if (qName.equalsIgnoreCase("role")) {
+				role = new RoleStructure();
+			} else if (qName.equalsIgnoreCase("privileges")) {
+				privileges = new ArrayList<PrivilegeStructure>();
+			} else if (qName.equalsIgnoreCase("privilege")) {
+				privilege = new PrivilegeStructure();
 			}
-			// TODO add roles & privileges
 		}
 		
 		public void endElement(String uri, String localName, String qName) {
@@ -345,6 +361,10 @@ public class SIARDImportModule implements DatabaseImportModule {
 					routine.setName(trimmedVal);
 				} else if (parentTag.equalsIgnoreCase("user")) {
 					user.setName(trimmedVal);
+				} else if (parentTag.equalsIgnoreCase("parameter")) {
+					parameter.setName(trimmedVal);
+				} else if (parentTag.equalsIgnoreCase("role")) {
+					role.setName(trimmedVal);
 				}
 			} else if (tag.equalsIgnoreCase("folder")) {
 				if (parentTag.equalsIgnoreCase("table")) {
@@ -379,12 +399,26 @@ public class SIARDImportModule implements DatabaseImportModule {
 					routine.setDescription(trimmedVal);
 				} else if (parentTag.equalsIgnoreCase("user")) {
 					user.setDescription(trimmedVal);
+				} else if (parentTag.equalsIgnoreCase("parameter")) {
+					parameter.setDescription(trimmedVal);
+				} else if (parentTag.equalsIgnoreCase("role")) {
+					role.setDescription(trimmedVal);
+				} else if (parentTag.equalsIgnoreCase("privilege")) {
+					privilege.setDescription(trimmedVal);
 				}
 			} else if (tag.equalsIgnoreCase("type")) {
-				type = createType(trimmedVal);
+				if (parentTag.equalsIgnoreCase("privilege")) {
+					privilege.setType(trimmedVal);
+				} else { 
+					type = createType(trimmedVal);
+				}
 			} else if (tag.equalsIgnoreCase("typeOriginal")) {
 				type.setOriginalTypeName(trimmedVal);
-				column.setType(type);
+				if (parentTag.equalsIgnoreCase("column")) {
+					column.setType(type);
+				} else if (parentTag.equalsIgnoreCase("parameter")) {
+					parameter.setType(type);
+				}
 			} else if (tag.equalsIgnoreCase("defaultValue")) {
 				column.setDefaultValue(trimmedVal);
 			} else if (tag.equalsIgnoreCase("nullable")) {
@@ -471,8 +505,12 @@ public class SIARDImportModule implements DatabaseImportModule {
 				routine.setCharacteristic(trimmedVal);
 			} else if (tag.equalsIgnoreCase("returnType")) {
 				routine.setReturnType(trimmedVal);
+			} else if (tag.equalsIgnoreCase("mode")) {
+				parameter.setMode(trimmedVal);
+			} else if (tag.equalsIgnoreCase("parameter")) {
+				parameters.add(parameter);
 			} else if (tag.equalsIgnoreCase("parameters")) {
-				routine.setParameters(trimmedVal);
+				routine.setParameters(parameters);
 			} else if (tag.equalsIgnoreCase("routine")) {
 				routines.add(routine);
 			} else if (tag.equalsIgnoreCase("routines")) {
@@ -485,9 +523,25 @@ public class SIARDImportModule implements DatabaseImportModule {
 				users.add(user);
 			} else if (tag.equalsIgnoreCase("users")) {
 				dbStructure.setUsers(users);
+			} else if (tag.equalsIgnoreCase("admin")) {
+				role.setAdmin(trimmedVal);
+			} else if (tag.equalsIgnoreCase("role")) {
+				roles.add(role);
+			} else if (tag.equalsIgnoreCase("roles")) {
+				dbStructure.setRoles(roles);
+			} else if (tag.equalsIgnoreCase("object")) {
+				privilege.setObject(trimmedVal);
+			} else if (tag.equalsIgnoreCase("grantor")) {
+				privilege.setGrantor(trimmedVal);
+			} else if (tag.equalsIgnoreCase("grantee")) {
+				privilege.setGrantee(trimmedVal);
+			} else if (tag.equalsIgnoreCase("option")) {
+				privilege.setOption(trimmedVal);
+			} else if (tag.equalsIgnoreCase("privilege")) {
+				privileges.add(privilege);
+			} else if (tag.equalsIgnoreCase("privileges")) {
+				dbStructure.setPrivileges(privileges);
 			}
-			// TODO add roles
-			// TODO add privileges
 		}
 		
 		public void characters(char buf[], int offset, int len) {
@@ -507,7 +561,6 @@ public class SIARDImportModule implements DatabaseImportModule {
 		}
 
 		private Type createType(String sqlType) {
-			// FIXME complete
 			sqlType = sqlType.toUpperCase();
 			Type type = null;
 						
@@ -703,8 +756,8 @@ public class SIARDImportModule implements DatabaseImportModule {
 				try {
 					handler.handleDataOpenTable(currentTable.getId());
 				} catch (ModuleException e) {
-					// TODO Treat error..
-					e.printStackTrace();
+					logger.error("An error occurred "
+							+ "while handling data open table", e);
 				}
 			}
 			else if (qName.equalsIgnoreCase("row")) {
@@ -728,8 +781,8 @@ public class SIARDImportModule implements DatabaseImportModule {
 				try {
 					handler.handleDataCloseTable(currentTable.getId());
 				} catch (ModuleException e) {
-					// TODO treat error..
-					e.printStackTrace();
+					logger.error("An error occurred "
+							+ "while handling data close table", e);
 				}
 				logger.debug("--------End Table--------");
 			} else if (tag.equalsIgnoreCase("row")) {
@@ -742,15 +795,15 @@ public class SIARDImportModule implements DatabaseImportModule {
 					}
 					handler.handleDataRow(row);
 				} catch (InvalidDataException e) {
-					// TODO treat errors
-					e.printStackTrace();
+					logger.error(
+							"An error occurred while handling data row", e);
 				} catch (ModuleException e) {
-					// TODO treat errors
-					e.printStackTrace();
+					logger.error(
+							"An error occurred while handling data row", e);
 				}
 				logger.debug("--End Row--");
 			} else if (tag.contains("c")) {
-				// TODO treat cell types
+				// TODO Support other cell types
 				String[] subStrings = tag.split("c");
 				Integer colIndex = Integer.valueOf(subStrings[1]);
 				
