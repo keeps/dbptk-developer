@@ -456,9 +456,8 @@ public class DBMLImportModule implements DatabaseImportModule {
 					handler.handleDataOpenTable(tableDataId);
 					currentTableDataId = tableDataId;
 				} catch (ModuleException e) {
-					errors
-							.put("Error handling open of table " + tableDataId,
-									e);
+					errors.put(
+							"Error handling open of table " + tableDataId, e);
 				}
 
 			} else if (qname.equals("row")) {

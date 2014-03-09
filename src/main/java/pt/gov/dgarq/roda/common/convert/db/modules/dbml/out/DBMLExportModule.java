@@ -422,7 +422,8 @@ public class DBMLExportModule implements DatabaseHandler {
 			print("/>\n");
 
 		} else if (type instanceof SimpleTypeNumericApproximate) {
-			SimpleTypeNumericApproximate numApproxType = (SimpleTypeNumericApproximate) type;
+			SimpleTypeNumericApproximate numApproxType = 
+					(SimpleTypeNumericApproximate) type;
 			print("<simpleTypeNumericApproximate");
 			if (numApproxType.getPrecision() != null) {
 				print(" precision=\"" + numApproxType.getPrecision() + "\"");
@@ -454,13 +455,17 @@ public class DBMLExportModule implements DatabaseHandler {
 			SimpleTypeInterval interval = (SimpleTypeInterval) type;
 			print("<simpleTypeInterval");
 
-			if (interval.getType() == SimpleTypeInterval.IntervalType.STARTDATE_ENDDATE) {
+			if (interval.getType() == SimpleTypeInterval.IntervalType.
+					STARTDATE_ENDDATE) {
 				print(" type=\"START_END\"");
-			} else if (interval.getType() == SimpleTypeInterval.IntervalType.STARTDATE_DURATION) {
+			} else if (interval.getType() == SimpleTypeInterval.IntervalType.
+					STARTDATE_DURATION) {
 				print(" type=\"START_DURATION\"");
-			} else if (interval.getType() == SimpleTypeInterval.IntervalType.DURATION_ENDDATE) {
+			} else if (interval.getType() == SimpleTypeInterval.IntervalType.
+					DURATION_ENDDATE) {
 				print(" type=\"DURATION_END\"");
-			} else if (interval.getType() == SimpleTypeInterval.IntervalType.DURATION) {
+			} else if (interval.getType() == SimpleTypeInterval.IntervalType.
+					DURATION) {
 				print(" type=\"DURATION\"");
 			}
 

@@ -236,7 +236,8 @@ public class JDBCExportModule implements DatabaseHandler {
 		}
 	}
 
-	public void handleDataCloseTable(String tableId) throws ModuleException {
+	public void handleDataCloseTable(String tableId) 
+			throws ModuleException {
 		currentTableStructure = null;
 		if (batch_index > 0) {
 			try {

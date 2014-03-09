@@ -209,6 +209,8 @@ public class SIARDImportModule implements DatabaseImportModule {
 		private List<PrivilegeStructure> privileges;
 		private PrivilegeStructure privilege;
 		
+		// TODO add import of LOBs
+		
 		public SIARDHeaderSAXHandler(DatabaseHandler handler) {
 			this.handler = handler;
 		}

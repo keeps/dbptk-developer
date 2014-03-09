@@ -31,6 +31,7 @@ import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.PostgreSQLHelper;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.in.PostgreSQLJDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.out.PostgreSQLJDBCExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.siard.in.SIARDImportModule;
+import pt.gov.dgarq.roda.common.convert.db.modules.siard.out.SIARDExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.sqlFile.out.SQLFileExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.sqlServer.SQLServerHelper;
 import pt.gov.dgarq.roda.common.convert.db.modules.sqlServer.in.SQLServerJDBCImportModule;
@@ -42,9 +43,10 @@ import pt.gov.dgarq.roda.common.convert.db.modules.sqlServer.out.SqlServerExport
  */
 public class Main {
 
-	private static final String NAME = "db-preservation-toolkit.jar";
+	public static final String APP_NAME = "db-preservation-toolkit";
 
 	private static final Logger logger = Logger.getLogger(Main.class);
+	
 
 	/**
 	 * @param args
@@ -263,6 +265,18 @@ public class Main {
 				logger.error("Wrong argument number for "
 						+ "DBML export module: " + exportModuleArgs.size());
 			}
+		} else if (exportModuleArgs.get(0).equals("SIARD")) {
+			if (exportModuleArgs.size() == 2) {
+				try {
+					exportModule = new SIARDExportModule(new File(
+							exportModuleArgs.get(1)));
+				} catch (FileNotFoundException e) {
+					logger.error("Could not find file for SIARD export", e);
+				}
+			} else {
+				logger.error("Wrong argument number for SIARD export module: "
+						+ exportModuleArgs.size());
+			}
 		} else if (exportModuleArgs.get(0).equals("PostgreSQLJDBC")) {
 			if (exportModuleArgs.size() == 6) {
 				exportModule = new PostgreSQLJDBCExportModule(
@@ -403,7 +417,7 @@ public class Main {
 	}
 
 	private static void printHelp() {
-		System.out.println("Synopsys: java -jar " + NAME
+		System.out.println("Synopsys: java -jar " + APP_NAME + ".jar" 
 				+ " -i IMPORT_MODULE [options...]"
 				+ " -o EXPORT_MODULE [options...]");
 		System.out.println("Available import modules:");

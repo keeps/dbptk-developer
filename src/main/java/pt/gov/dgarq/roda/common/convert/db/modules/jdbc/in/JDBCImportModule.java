@@ -23,6 +23,7 @@ import org.w3c.util.DateParser;
 
 import pt.gov.dgarq.roda.common.FileFormat;
 import pt.gov.dgarq.roda.common.FormatUtility;
+import pt.gov.dgarq.roda.common.convert.db.Main;
 import pt.gov.dgarq.roda.common.convert.db.model.data.BinaryCell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.FileItem;
@@ -38,6 +39,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.PrimaryKey;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.RoutineStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.UserStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ViewStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeArray;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeStructure;
@@ -61,6 +63,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 	// if fetch size is zero, then the driver decides the best fetch size
 	private static final int ROW_FETCH_BLOCK_SIZE = 0;
 
+	private static final int DEFAULT_DATA_TIMESPAN = 5;
+	
 	private final Logger logger = Logger.getLogger(JDBCImportModule.class);
 
 	protected final String driverClassName;
@@ -179,6 +183,11 @@ public class JDBCImportModule implements DatabaseImportModule {
 			dbStructure.setProductName(getMetadata().getDatabaseProductName());
 			dbStructure.setProductVersion(getMetadata()
 					.getDatabaseProductVersion());
+			dbStructure.setDataOwner(System.getProperty("user.name"));
+			dbStructure.setDataOriginTimespan(
+					new Integer(DEFAULT_DATA_TIMESPAN).toString());
+			dbStructure.setProducerApplication(
+					Main.APP_NAME);
 						
 			List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
 			
@@ -194,8 +203,17 @@ public class JDBCImportModule implements DatabaseImportModule {
 				String schemaName = "schemaX";
 				schemas.add(getSchemaStructure(schemaName));
 			}
-			
 			dbStructure.setSchemas(schemas);
+			
+			// FIXME database structure must have users!
+			List<UserStructure> users = new ArrayList<UserStructure>();
+			// ResultSet rs = getMetadata()..
+//			while (rs.next()) {
+//				String userName = rs.getString(1);
+//			}
+			users.add(new UserStructure("DEFAULT_USER", "DEFAULT_DESCRIPTION"));
+			
+			dbStructure.setUsers(users);;
 			logger.debug("Finishing get dbStructure");
 		}	
 		return dbStructure;
@@ -233,7 +251,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 //			logger.debug("--- END TABLE INFO ---");
 			// ------------------------------------------------
 			String tableName = rset.getString(3);
-			tables.add(getTableStructure(tableName));
+			tables.add(getTableStructure(schemaName, tableName));
 		}
 		schema.setTables(tables);
 
@@ -254,7 +272,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 				dbStructure.getName(), schema.getName(), "%");
 		while (rset.next()) {
 			String routineName = rset.getString(3);
-			logger.debug("routine: " + routineName);
+			// logger.debug("routine: " + routineName);
 			routines.add(getRoutineStructure(routineName));
 		}
 		schema.setRoutines(routines);
@@ -272,12 +290,15 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 *             the original data type is unknown
 	 * @throws ClassNotFoundException
 	 */
-	protected TableStructure getTableStructure(String tableName)
+	protected TableStructure getTableStructure(
+			String schemaName, String tableName)
 			throws SQLException, UnknownTypeException, ClassNotFoundException {
 
 		TableStructure table = new TableStructure();
-		table.setId(tableName);
-		table.setName(tableName);
+		table.setId(schemaName + "." + tableName);
+		// XXX table0 vs real name? 
+		table.setName(tableName);         
+		table.setFolder(tableName);
 
 		List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
 		ResultSet rs = getMetadata().getColumns(null, null, tableName, "%");
@@ -320,7 +341,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 		table.setPrimaryKey(getPrimaryKey(tableName));
 		table.setForeignKeys(getForeignKeys(tableName));
 		
-		// FIXME get table n rows
+		// TODO add candidate, checkConstraints, etc
 		
 		return table;
 	}
@@ -371,7 +392,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 	protected RoutineStructure getRoutineStructure(String routineName) {
 		RoutineStructure routine = new RoutineStructure();
 		routine.setName(routineName);
-		// TODO complete routine information
+		// TODO complete option routine fields
 		return routine;
 	}
 	
@@ -531,16 +552,23 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 */
 	protected PrimaryKey getPrimaryKey(String tableName) throws SQLException,
 			UnknownTypeException, ClassNotFoundException {
+		String pkName = null;
 		List<String> pkColumns = new Vector<String>();
 
 		ResultSet rs = getMetadata().getPrimaryKeys(
 				getDatabaseStructure().getName(), null, tableName);
 		while (rs.next()) {
+			pkName = rs.getString(6);
 			pkColumns.add(rs.getString(4));
 		}
 		
-		//TODO add name & descriptiom to PK
+		if (pkName == null) {
+			pkName = tableName + "_pkey";
+			logger.debug("IS NULL");
+		}
+
 		PrimaryKey pk = new PrimaryKey();
+		pk.setName(pkName);
 		pk.setColumnNames(pkColumns);
 		return !pkColumns.isEmpty() ? pk : null;
 	}
@@ -555,6 +583,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 * @throws UnknownTypeException
 	 * @throws ClassNotFoundException
 	 */
+	// FIXME add mandatory fields
 	protected List<ForeignKey> getForeignKeys(String tableName)
 			throws SQLException, UnknownTypeException, ClassNotFoundException {
 		List<ForeignKey> foreignKeys = new Vector<ForeignKey>();
@@ -665,6 +694,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return set;
 	}
 
+	//XXX check schema name is correct on table id
 	public void getDatabase(DatabaseHandler handler) throws ModuleException,
 			UnknownTypeException, InvalidDataException {
 		try {
@@ -678,20 +708,24 @@ public class JDBCImportModule implements DatabaseImportModule {
 					logger.debug("getting data of table " + table.getId());
 					handler.handleDataOpenTable(table.getId());
 					ResultSet tableRawData = getTableRawData(table.getName());
+					int nRows = 0;
 					while (tableRawData.next()) {
 						handler.handleDataRow(
 								convertRawToRow(tableRawData, table));
+						nRows++;
 					}
+					getTableStructure(
+							schema.getName(), table.getName()).setRows(nRows);
 					handler.handleDataCloseTable(table.getId());
 				}				
-			}
-			
+			}			
 			logger.debug("finishing database");
 			handler.finishDatabase();
 		} catch (SQLException e) {
 			throw new ModuleException("SQL error while conecting", e);
 		} catch (ClassNotFoundException e) {
-			throw new ModuleException("JDBC driver class could not be found", e);
+			throw new ModuleException(
+					"JDBC driver class could not be found", e);
 		}
 	}
 

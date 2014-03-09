@@ -522,9 +522,11 @@ public class DatabaseStructure {
 	 */
 	public TableStructure lookupTableStructure(String tableId) {
 		TableStructure ret = null;
-		for (TableStructure tableStructure : getTables()) {
-			if (tableStructure.getId().equals(tableId)) {
-				ret = tableStructure;
+		for (SchemaStructure schema : getSchemas()) {
+			for (TableStructure tableStructure : schema.getTables()) {
+				if (tableStructure.getId().equals(tableId)) {
+					ret = tableStructure;
+				}
 			}
 		}
 		return ret;
