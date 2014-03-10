@@ -3,7 +3,6 @@ package pt.gov.dgarq.roda.common.convert.db.modules.siard.out;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Date;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -15,6 +14,7 @@ import org.w3c.util.DateParser;
 
 import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.Row;
+import pt.gov.dgarq.roda.common.convert.db.model.data.SimpleCell;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.InvalidDataException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
@@ -77,8 +77,7 @@ public class SIARDExportModule implements DatabaseHandler {
 
 	@Override
 	public void initDatabase() throws ModuleException {
-		// TODO Auto-generated method stub
-		
+		// nothing to do
 	}
 
 	@Override
@@ -283,7 +282,7 @@ public class SIARDExportModule implements DatabaseHandler {
 			}
 			print("\t\t\t</tables>\n");
 		}
-		// FIXME tables cannot be null (some schemas doesn't have tables)
+		// FIXME tables cannot be null (some schemas don't have tables)
 //		else {
 //			throw new ModuleException("Error while exporting schema structure: "
 //					+ "schema tables cannot be null");
@@ -802,18 +801,26 @@ public class SIARDExportModule implements DatabaseHandler {
 	private void exportRowData(Row row) throws IOException {
 		print("\t<row>\n");
 		int index = 0;
-		for (Cell c : row.getCells()) {
+		for (Cell cell : row.getCells()) {
 			index++;
 			print("\t\t<c" + index + ">\n");
-			exportCell(c);
+			exportCellData(cell);
 			print("\t\t</c" + index + ">\n");
 		}
 		print("\t</row>\n");		
 	}
 	
-	private void exportCell(Cell c) throws IOException {
+	// TODO add support to other cell types
+	private void exportCellData(Cell cell) throws IOException {
 		print("\t\t\t");
-		print("Cell id: " + c.getId());
+		if (cell instanceof SimpleCell) {
+			SimpleCell simple = (SimpleCell) cell;
+			if (simple.getSimpledata() != null) {
+				print(encode(simple.getSimpledata()));
+			} else {
+				print("");
+			}
+		}
 		print("\n");
 	}
 
