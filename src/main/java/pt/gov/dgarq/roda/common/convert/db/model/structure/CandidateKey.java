@@ -1,5 +1,6 @@
 package pt.gov.dgarq.roda.common.convert.db.model.structure;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,6 +21,7 @@ public class CandidateKey {
 	 * 
 	 */
 	public CandidateKey() {
+		columns = new ArrayList<String>();
 	}
 
 	/**

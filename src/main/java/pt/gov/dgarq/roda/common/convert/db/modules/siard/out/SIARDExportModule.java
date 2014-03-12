@@ -219,7 +219,12 @@ public class SIARDExportModule implements DatabaseHandler {
 		}
 		print("\t<schemas>\n");
 		for (SchemaStructure schema : structure.getSchemas()) {
-			exportSchemaStructure(schema);
+			if (schema.getTables() != null && schema.getTables().size() > 0) {
+				exportSchemaStructure(schema);
+			} else {
+				logger.info("Schema: '" + schema.getName() + "' was not "
+						+ "exported because it does not contain any table");
+			}
 		}
 		print("\t</schemas>\n");
 		
@@ -257,6 +262,7 @@ public class SIARDExportModule implements DatabaseHandler {
 	
 	private void exportSchemaStructure(SchemaStructure schema) 
 			throws IOException, ModuleException {
+		logger.debug("Exporting schema: " + schema.getName());
 		print("\t\t<schema>\n");
 		if (schema.getName() != null) {
 			print("\t\t\t<name>" + schema.getName() + "</name>\n");
@@ -282,11 +288,10 @@ public class SIARDExportModule implements DatabaseHandler {
 			}
 			print("\t\t\t</tables>\n");
 		}
-		// FIXME tables cannot be null (some schemas don't have tables)
-//		else {
-//			throw new ModuleException("Error while exporting schema structure: "
-//					+ "schema tables cannot be null");
-//		}
+		else {
+			throw new ModuleException("Error while exporting schema structure: "
+					+ "schema tables cannot be null");
+		}
 		
 		if (schema.getViews() != null && schema.getViews().size() > 0) {
 			print("\t\t\t<views>\n");
@@ -469,11 +474,10 @@ public class SIARDExportModule implements DatabaseHandler {
 					+ foreignKey.getReferencedSchema() 
 					+ "</referencedSchema>\n");
 		}
-		// FIXME get referenced schema on import
-//		else {
-//			throw new ModuleException("Error while exporting foreign key: "
-//					+ "referencedSchema cannot be null");
-//		}
+		else {
+			throw new ModuleException("Error while exporting foreign key: "
+					+ "referencedSchema cannot be null");
+		}
 		if (foreignKey.getReferencedTable() != null) {
 			print("\t\t\t\t\t\t\t<referencedTable>" 
 					+ foreignKey.getReferencedTable() 

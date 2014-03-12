@@ -32,6 +32,8 @@ import pt.gov.dgarq.roda.common.convert.db.model.data.SimpleCell;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.InvalidDataException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.CandidateKey;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.CheckConstraint;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.DatabaseStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ForeignKey;
@@ -291,8 +293,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 * @throws ClassNotFoundException
 	 */
 	protected TableStructure getTableStructure(
-			String schemaName, String tableName)
-			throws SQLException, UnknownTypeException, ClassNotFoundException {
+			String schemaName, String tableName) throws SQLException, 
+			UnknownTypeException, ClassNotFoundException {
 
 		TableStructure table = new TableStructure();
 		table.setId(schemaName + "." + tableName);
@@ -340,11 +342,13 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 		table.setPrimaryKey(getPrimaryKey(tableName));
 		table.setForeignKeys(getForeignKeys(tableName));
-		
-		// TODO add candidate, checkConstraints, etc
+		table.setCandidateKeys(getCandidateKeys(schemaName, tableName));
+		table.setCheckConstraints(getCheckConstraints());
+		// TODO add checkConstraints, etc
 		
 		return table;
 	}
+	
 	
 	protected ViewStructure getViewStructure(String schemaName, 
 			String viewName) throws SQLException, ClassNotFoundException, 
@@ -583,7 +587,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 * @throws UnknownTypeException
 	 * @throws ClassNotFoundException
 	 */
-	// FIXME add mandatory fields
+	// FIXME add required fields
 	protected List<ForeignKey> getForeignKeys(String tableName)
 			throws SQLException, UnknownTypeException, ClassNotFoundException {
 		List<ForeignKey> foreignKeys = new Vector<ForeignKey>();
@@ -592,15 +596,60 @@ public class JDBCImportModule implements DatabaseImportModule {
 				getDatabaseStructure().getName(), null, tableName);
 		while (rs.next()) {
 			String name = rs.getString(8);
+			String refSchema = rs.getString(2);
 			String refTable = rs.getString(3);
 			String refColumn = rs.getString(4);
+			
 			ForeignKey fk = new ForeignKey(tableName + "." + name, name,
 					refTable, refColumn);
+			fk.setReferencedSchema(refSchema);
 			foreignKeys.add(fk);
 		}
 		return foreignKeys;
 	}
+	
+	protected List<CandidateKey> getCandidateKeys(
+			String schemaName, String tableName) 
+					throws SQLException, ClassNotFoundException {
+		List<CandidateKey> candidateKeys = new ArrayList<CandidateKey>();
+		
+		ResultSet rs = getMetadata().getIndexInfo(
+				dbStructure.getName(), schemaName, tableName, true, false);
+		while (rs.next()) {
+			List<String> columns = new ArrayList<String>();
+			boolean found = false;
 
+			String name = rs.getString(6);
+			String columnName = rs.getString(9);
+			
+			for (CandidateKey key : candidateKeys) {
+				if (key.getName().equals(name)) {
+					columns = key.getColumns(); 
+					columns.add(columnName);
+					key.setColumns(columns);
+					found = true;
+				}
+			}
+			
+			if (!found) {
+				CandidateKey candidateKey = new CandidateKey();
+				candidateKey.setName(name);
+				columns.add(columnName);
+				candidateKey.setColumns(columns);
+				candidateKeys.add(candidateKey);
+			}
+		}
+		logger.debug("cadidateKeys: " + candidateKeys);
+		return candidateKeys;		
+	}
+
+	// TODO complete getCheckConstraints
+	protected List<CheckConstraint> getCheckConstraints() {
+		List<CheckConstraint> checkConstraints = 
+				new ArrayList<CheckConstraint>();
+		return checkConstraints;
+	}
+	
 	protected Row convertRawToRow(ResultSet rawData,
 			TableStructure tableStructure) throws InvalidDataException,
 			SQLException, ClassNotFoundException, ModuleException {
