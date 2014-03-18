@@ -7,9 +7,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
@@ -114,6 +120,10 @@ public class SIARDImportModule implements DatabaseImportModule {
 	protected void setHeader() throws ModuleException {
 		try {
 			ZipArchiveEntry metadata = zipFile.getEntry("header/metadata.xml");
+			if (metadata == null) {
+				throw new ModuleException("SIARD package is not well formed: "
+						+ "header/metadata.xml missing");
+			}
 			this.header = zipFile.getInputStream(metadata);
 		} catch (IOException e) {
 			throw new ModuleException("An error ocurred while accessing to "
@@ -127,12 +137,42 @@ public class SIARDImportModule implements DatabaseImportModule {
 			ZipArchiveEntry content = zipFile.getEntry("content/"
 					+ schema.getFolder() + "/" + table.getFolder() 
 					+ "/" + table.getFolder() + ".xml");
+			if (content == null) {
+				throw new ModuleException("SIARD package is not well formed");
+			}
 			
 			this.currentInputStream = zipFile.getInputStream(content);
 		} catch (IOException e) {
 			throw new ModuleException("An error ocurred while accessing to "
 					+ "a file in SIARD package", e);
 		}
+	}
+	
+	protected boolean validateSchema() {
+	    try {
+	    	SchemaFactory factory = SchemaFactory.newInstance(
+	    			XMLConstants.W3C_XML_SCHEMA_NS_URI);
+	    	
+	    	ZipArchiveEntry schemaEntry = 
+	    			zipFile.getEntry("header/metadata.xsd");
+	        InputStream schemaIS = zipFile.getInputStream(schemaEntry);
+	        Schema schema = factory.newSchema(new StreamSource(schemaIS));
+	      
+	        Validator validator = schema.newValidator();
+
+	        ZipArchiveEntry metadata = zipFile.getEntry("header/metadata.xml");
+	        InputStream metadataIS = zipFile.getInputStream(metadata);
+	        Source metadataSource = new StreamSource(metadataIS);
+	        
+	        validator.validate(metadataSource);
+	    } catch (IOException e) {
+	        logger.debug("Exception: " + e.getMessage());
+		    return false;
+		} catch (SAXException e) {
+	        logger.debug("Exception: " + e.getMessage());
+	        return false;
+        }
+	    return true;
 	}
 	
 	@Override
@@ -144,23 +184,24 @@ public class SIARDImportModule implements DatabaseImportModule {
 				new SIARDContentSAXHandler(handler);
 		
 		try {
+			if (!validateSchema()) {
+				throw new ModuleException("Schema is not valid!");
+			}
 			setHeader();
 			saxParser.parse(header, siardHeaderSAXHandler);
 			header.close();
 			
 			dbStructure = siardHeaderSAXHandler.getDatabaseStructure();
-			SchemaStructure schema = dbStructure.getSchemas().get(0);
-			//for (SchemaStructure schema : dbStructure.getSchemas()) {
+			for (SchemaStructure schema : dbStructure.getSchemas()) {
 				for (TableStructure table : schema.getTables()) {
 					setCurrentInputStream(schema, table);
 					siardContentSAXHandler.setCurrentTable(table);
-					logger.debug("Parsing " + schema.getName() + "/"
-							+ table.getName());
 					saxParser.parse(currentInputStream, siardContentSAXHandler);
 					currentInputStream.close();
 				}
-			//}
+			}
 			zipFile.close();
+			handler.finishDatabase();
 			
 		} catch (SAXException e) {
 			throw new ModuleException("Error parsing SIARD", e);
@@ -220,7 +261,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 		}
 		
 		public void endDocument() {
-			logger.debug(dbStructure.toString());
+			// logger.debug(dbStructure.toString());
 			try {
 				handler.handleStructure(dbStructure);
 			} catch (ModuleException e) {
@@ -488,6 +529,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 			} else if (tag.equalsIgnoreCase("rows")) {
 				table.setRows(Integer.parseInt(trimmedVal));
 			} else if (tag.equalsIgnoreCase("table")) {
+				table.setSchema(schema);
 				tables.add(table);
 			} else if (tag.equalsIgnoreCase("tables")) {
 				schema.setTables(tables);
@@ -626,7 +668,6 @@ public class SIARDImportModule implements DatabaseImportModule {
 			} else if (sqlType.equals("TIME")) {
 				type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
 			} else {
-				logger.debug("last!: " + sqlType);
 				type = new SimpleTypeString(255, Boolean.TRUE);
 			}
 			 			
@@ -634,7 +675,6 @@ public class SIARDImportModule implements DatabaseImportModule {
 		}
 		
 		private int getLength(String sqlType) {
-			logger.debug(sqlType);
 			int length = -1;
 			int start = sqlType.indexOf("(");
 			int end = sqlType.indexOf(")");
@@ -648,7 +688,6 @@ public class SIARDImportModule implements DatabaseImportModule {
 		}
 		
 		private int getLengthLarge(String sqlType) {
-			logger.debug(sqlType);
 			int length = -1;
 			int multiplier = -1;
 			int start = sqlType.indexOf("(");
@@ -680,7 +719,6 @@ public class SIARDImportModule implements DatabaseImportModule {
 		}
 		
 		private int getPrecision(String sqlType) {
-			logger.debug("type: " + sqlType);
 			int precision = -1;
 			int start = sqlType.indexOf("(");
 			int end = sqlType.indexOf(",");
@@ -746,7 +784,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 		}
 		
 		public void endDocument() throws SAXException {
-			logger.debug("Ended. Table content summary: HERE");
+			// nothing to do
 		}
 		
 		public void startElement(String uri, String localName, String qName,
@@ -786,15 +824,10 @@ public class SIARDImportModule implements DatabaseImportModule {
 					logger.error("An error occurred "
 							+ "while handling data close table", e);
 				}
-				logger.debug("--------End Table--------");
 			} else if (tag.equalsIgnoreCase("row")) {
 				row.setIndex(colIndex);
 				row.setCells(cells);
 				try {
-					logger.debug("rows index: " + row.getIndex());
-					for (Cell c : row.getCells()) {
-						logger.debug("cell id: " + c.getId());						
-					}
 					handler.handleDataRow(row);
 				} catch (InvalidDataException e) {
 					logger.error(
@@ -803,7 +836,6 @@ public class SIARDImportModule implements DatabaseImportModule {
 					logger.error(
 							"An error occurred while handling data row", e);
 				}
-				logger.debug("--End Row--");
 			} else if (tag.contains("c")) {
 				// TODO Support other cell types
 				String[] subStrings = tag.split("c");
@@ -815,7 +847,6 @@ public class SIARDImportModule implements DatabaseImportModule {
 						+ "." + colIndex);
 				simpleCell.setSimpledata(trimmedVal);
 				cells.add(simpleCell);
-				logger.debug("TAG C" + colIndex + ": " + trimmedVal);
 				this.colIndex++;
 			}
 		}

@@ -138,7 +138,7 @@ public class SQLHelper {
 			if (!dateTime.getTimeDefined() && !dateTime.getTimeZoneDefined()) {
 				ret = "date";
 			} else if (dateTime.getTimeZoneDefined()) {
-				//FIXME
+				//FIXME time zone support
 				throw new UnknownTypeException(
 						"Time zone not supported in MySQL");
 			} else {

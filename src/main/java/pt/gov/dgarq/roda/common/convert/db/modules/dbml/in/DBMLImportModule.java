@@ -124,7 +124,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 	}
 
 	/**
-	 * DBML import modile constructor using a base directory and specifying the
+	 * DBML import module constructor using a base directory and specifying the
 	 * DBML file name
 	 * 
 	 * @param baseDir

@@ -3,15 +3,17 @@ package pt.gov.dgarq.roda.common.convert.db.modules.siard.out;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
-import org.w3c.util.DateParser;
 
+import pt.gov.dgarq.roda.common.convert.db.Main;
 import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.Row;
 import pt.gov.dgarq.roda.common.convert.db.model.data.SimpleCell;
@@ -33,6 +35,14 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.Trigger;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.UserStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ViewStructure;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeArray;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeStructure;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBinary;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBoolean;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeDateTime;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumericApproximate;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumericExact;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeString;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.DatabaseHandler;
 import pt.gov.dgarq.roda.util.XmlEncodeUtility;
@@ -52,9 +62,7 @@ public class SIARDExportModule implements DatabaseHandler {
 	private static final String ENCODING = "UTF-8";
 	
 	private ZipArchiveOutputStream zipOut;
-		
-	private String packageName;
-		
+				
 	private DatabaseStructure dbStructure; 
 	
 	/**
@@ -63,10 +71,8 @@ public class SIARDExportModule implements DatabaseHandler {
 	 * @throws FileNotFoundException
 	 */
 	public SIARDExportModule(File siardPackage) 
-		throws  FileNotFoundException {
-		
-		packageName = siardPackage.getName();
-		
+		throws FileNotFoundException {
+			
 		try {
 			this.zipOut = new ZipArchiveOutputStream(siardPackage);
 			zipOut.setUseZip64(Zip64Mode.Always);
@@ -83,17 +89,7 @@ public class SIARDExportModule implements DatabaseHandler {
 	@Override
 	public void handleStructure(DatabaseStructure structure)
 			throws ModuleException, UnknownTypeException {
-		dbStructure = structure;
-		ArchiveEntry archiveEntry = new ZipArchiveEntry(packageName 
-				+ "/header/metadata.xml");
-
-		try {
-			zipOut.putArchiveEntry(archiveEntry);
-			exportDatabaseStructure(structure);
-			zipOut.closeArchiveEntry();
-		} catch (IOException e) {
-			logger.error("Error while handle database structure", e);
-		}		
+		dbStructure = structure;	
 	}
 
 	@Override
@@ -109,9 +105,9 @@ public class SIARDExportModule implements DatabaseHandler {
 					"Couldn't find table with id: " + tableId);
 		}
 		
-		String dir = tableId.replace(".", "/");		
-		ArchiveEntry archiveEntry = new ZipArchiveEntry(packageName
-				+ "/content/" + dir + "/" + table.getName() + ".xml");
+		ArchiveEntry archiveEntry = new ZipArchiveEntry("content/" 
+				+ table.getSchema().getFolder() + "/" + table.getFolder() 
+				+ "/" + table.getFolder() + ".xml");
 		
 		try {
 			zipOut.putArchiveEntry(archiveEntry);
@@ -146,6 +142,31 @@ public class SIARDExportModule implements DatabaseHandler {
 
 	@Override
 	public void finishDatabase() throws ModuleException {
+		ArchiveEntry metaXML = new ZipArchiveEntry("header/metadata.xml");
+		try {
+			zipOut.putArchiveEntry(metaXML);
+			try {
+				exportDatabaseStructure(dbStructure);
+			} catch (UnknownTypeException e) {
+				logger.error("Error handling database structure", e);
+			}
+			zipOut.closeArchiveEntry();
+		} catch (IOException e) {
+			logger.error("Error while writing database "
+					+ "structure to SIARD package", e);
+		}
+		
+		ArchiveEntry metaXSD = new ZipArchiveEntry("header/metadata.xsd");
+		try {
+			zipOut.putArchiveEntry(metaXSD);
+			zipOut.write(IOUtils.toByteArray(
+					getClass().getResourceAsStream("/schema/siard.xsd")));
+			zipOut.closeArchiveEntry();
+		} catch (IOException e) {
+			logger.error(
+					"Error while writing metadata.xsd to SIARD package", e);
+		}
+		
 		try {
 			zipOut.finish();
 			zipOut.close();
@@ -155,10 +176,15 @@ public class SIARDExportModule implements DatabaseHandler {
 	}
 	
 	private void exportDatabaseStructure(DatabaseStructure structure) 
-			throws IOException, ModuleException {
-		logger.debug("Exporting SIARD structure");
+			throws IOException, ModuleException, UnknownTypeException {
 		print("<?xml version=\"1.0\" encoding=\"" + ENCODING + "\"?>\n");
-		print("<siardArchive version=\"" + "1.0" + "\">\n");
+		// print("<siardArchive version=\"" + "1.0" + "\">\n");
+		print("<siardArchive version=\"" + "1.0" + "\" "
+				+ "xmlns=\"http://www.bar.admin.ch/xmlns/siard/1.0/metadata.xsd\" "
+				+ "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+				+ "xsi:schemaLocation=\"http://www.bar.admin.ch/xmlns/siard/1.0/metadata.xsd metadata.xsd\""
+				+ ">\n"); 
+		
 		if (structure.getName() != null) {
 			print("\t<dbname>" + structure.getName() + "</dbname>\n");
 		} else {
@@ -188,12 +214,12 @@ public class SIARDExportModule implements DatabaseHandler {
 					+ "</dataOriginTimespan>\n");
 		}
 		if (structure.getProducerApplication() != null) {
-			print("\t<producerApplication>" + structure.getProducerApplication()
+			print("\t<producerApplication>" + Main.APP_NAME
 					+ "</producerApplication>\n");
 		}
-		print("\t<archivalDate>" + getCurrentDate() + "</arhivalDate>\n");
-		print("\t<messageDigest>" + getMessageDigest () 
-				+  "</messageDigest>\n");
+		print("\t<archivalDate>" + getCurrentDate() + "</archivalDate>\n");
+		print("\t<messageDigest>" + getMessageDigest() + "</messageDigest>\n");
+		
 		if (structure.getClientMachine() != null) {
 			print("\t<clientMachine>" + structure.getClientMachine()
 					+ "</clientMachine>\n");
@@ -212,10 +238,6 @@ public class SIARDExportModule implements DatabaseHandler {
 		if (structure.getDatabaseUser() != null) {
 			print("\t<databaseUser>" + structure.getDatabaseUser()
 					+ "</databaseUser>\n");
-		}
-		if (structure.getClientMachine() != null) {
-			print("\t<clientMachine>" + structure.getClientMachine()
-					+ "</clientMachine>\n");
 		}
 		print("\t<schemas>\n");
 		for (SchemaStructure schema : structure.getSchemas()) {
@@ -261,8 +283,7 @@ public class SIARDExportModule implements DatabaseHandler {
 	}
 	
 	private void exportSchemaStructure(SchemaStructure schema) 
-			throws IOException, ModuleException {
-		logger.debug("Exporting schema: " + schema.getName());
+			throws IOException, ModuleException, UnknownTypeException {
 		print("\t\t<schema>\n");
 		if (schema.getName() != null) {
 			print("\t\t\t<name>" + schema.getName() + "</name>\n");
@@ -313,7 +334,7 @@ public class SIARDExportModule implements DatabaseHandler {
 	
 
 	private void exportTableStructure(TableStructure table) 
-			throws IOException, ModuleException {
+			throws IOException, ModuleException, UnknownTypeException {
 		print("\t\t\t\t<table>\n");
 		if (table.getName() != null) {
 			print("\t\t\t\t\t<name>" + table.getName() + "</name>\n");
@@ -379,21 +400,22 @@ public class SIARDExportModule implements DatabaseHandler {
 			}
 			print("\t\t\t\t\t</triggers>\n");
 		}
-
 		
-		// FIXME handleStructure must be after handle db content: md5, rows, etc
-//		if (table.getRows() != -1) {
-//			print("\t\t\t\t\t<rows>" + table.getRows() + "</rows>\n");			
-//		} else {
-//			throw new ModuleException("Error while exporting table structure: "
-//					+ "talbe rows cannot be null");
-//		}
+		
+		// FIXME table rows
+		// print("\t\t\t\t\t<rows>" + "100" + "</rows>\n");
+		if (table.getRows() != -1) {
+			print("\t\t\t\t\t<rows>" + table.getRows() + "</rows>\n");			
+		} else {
+			throw new ModuleException("Error while exporting table structure: "
+					+ "table rows cannot be null");
+		}
 		print("\t\t\t\t</table>\n");
 	}
 	
 
 	private void exportColumnStructure(ColumnStructure column) 
-			throws IOException, ModuleException {
+			throws IOException, ModuleException, UnknownTypeException {
 		print("\t\t\t\t\t\t<column>\n");
 		if (column.getName() != null) {
 			print("\t\t\t\t\t\t\t<name>" + column.getName() + "</name>\n");
@@ -433,9 +455,57 @@ public class SIARDExportModule implements DatabaseHandler {
 		print("\t\t\t\t\t\t</column>\n");		
 	}
 	
-	private String exportType(Type type) throws ModuleException {
+	private String exportType(Type type) 
+			throws ModuleException, IOException, UnknownTypeException {
 		// TODO return correct types
-		return "DEFAULT TYPE";
+		if (type instanceof SimpleTypeString) {
+			SimpleTypeString stringType = (SimpleTypeString) type;
+			return "CHARACTER VARYING(" + stringType.getLength() + ")";
+		}
+		else if (type instanceof SimpleTypeNumericExact) {
+			SimpleTypeNumericExact numExactType = (SimpleTypeNumericExact) type;
+			StringBuilder sb = new StringBuilder();
+			sb.append("DECIMAL(");
+			sb.append(numExactType.getPrecision());
+			if (numExactType.getScale() > 0) {
+				sb.append(numExactType.getScale());
+			}
+			sb.append(")");
+			return sb.toString();
+		} else if (type instanceof SimpleTypeNumericApproximate) {
+			SimpleTypeNumericApproximate numApproxType = 
+					(SimpleTypeNumericApproximate) type;
+			StringBuilder sb = new StringBuilder();
+			sb.append("FLOAT");
+			// FLOAT default precision is 1. return only "FLOAT"
+			if (numApproxType.getPrecision() > 1) {
+				sb.append("(");
+				sb.append(numApproxType.getPrecision());
+				sb.append(")");
+			}
+			return sb.toString();
+		} else if (type instanceof SimpleTypeBoolean) {
+			return "BOOLEAN";
+		} else if (type instanceof SimpleTypeDateTime) {
+			// TODO datetime types 
+			SimpleTypeDateTime dateTimeType = (SimpleTypeDateTime) type;
+			if (!dateTimeType.getTimeDefined() 
+					&& !dateTimeType.getTimeZoneDefined()) {
+				return "DATE";
+			} else {
+				return "TIMESTAMP";
+			}
+		} else if (type instanceof SimpleTypeBinary) {
+			// TODO test type BLOB
+			// SimpleTypeBinary binary = (SimpleTypeBinary) type;
+			return "BINARY LARGE OBJECT";
+		} else if (type instanceof ComposedTypeArray) {
+			throw new ModuleException("Not yet supported type: ARRAY");
+		} else if (type instanceof ComposedTypeStructure) {
+			throw new ModuleException("Not yet supported type: ROW");
+		} else {
+			throw new UnknownTypeException(type.toString());
+		}
 	}
 
 	private void exportPrimaryKey(PrimaryKey primaryKey) 
@@ -497,6 +567,14 @@ public class SIARDExportModule implements DatabaseHandler {
 //				print("\t\t\t\t\t\t\t</reference>\n");
 //			}
 //		}
+		// FIXME change this		
+				print("\t\t\t\t\t\t\t<reference>\n");
+				print("\t\t\t\t\t\t\t\t<column>" + "col"
+						+ "</column>\n");
+				print("\t\t\t\t\t\t\t\t<referenced>" + "ref" 
+						+ "</referenced>\n");
+				print("\t\t\t\t\t\t\t</reference>\n");
+				
 		if (foreignKey.getMatchType() != null) {
 			print("\t\t\t\t\t\t\t<matchType>" + foreignKey.getMatchType()
 					+ "</matchType>\n");
@@ -616,7 +694,7 @@ public class SIARDExportModule implements DatabaseHandler {
 	}
 
 	private void exportViewStructure(ViewStructure view) 
-		throws IOException, ModuleException {
+		throws IOException, ModuleException, UnknownTypeException {
 			print("\t\t\t\t<view>\n");
 			if (view.getName() != null) {
 				print("\t\t\t\t\t<name>" + view.getName() + "</name>\n");
@@ -646,7 +724,7 @@ public class SIARDExportModule implements DatabaseHandler {
 	}
 
 	private void exportRoutineStructure(RoutineStructure routine) 
-		throws IOException, ModuleException {
+		throws IOException, ModuleException, UnknownTypeException {
 			print("\t\t\t\t<routine>\n");
 			if (routine.getName() != null) {
 				print("\t\t\t\t\t<name>" + routine.getName() + "</name>\n");
@@ -729,7 +807,7 @@ public class SIARDExportModule implements DatabaseHandler {
 					+ "user name cannot be null");
 		}			
 		if (user.getDescription() != null) {
-			print("\t\t\t<description>" + user.getName() + "</description\n");
+			print("\t\t\t<description>" + user.getName() + "</description>\n");
 		}
 		print("\t\t</user>\n");		
 	}
@@ -793,30 +871,31 @@ public class SIARDExportModule implements DatabaseHandler {
 
 	private void exportDataOpenTable() throws IOException {
 		print("<?xml version=\"1.0\" encoding=\"" + ENCODING + "\"?>\n");
+		print("<?xml-stylesheet type=\"text/xsl\" href=\"metadata.xsl\"?>");
 		// TODO complete xml header
-		print("<table xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
-				+ " MORE>\n");		
+		print("<table xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n");		
 	}
 	
 	private void exportDataCloseTable() throws IOException {
 		print("</table>");
 	}
-
+	
 	private void exportRowData(Row row) throws IOException {
-		print("\t<row>\n");
+		print("<row>");
 		int index = 0;
 		for (Cell cell : row.getCells()) {
 			index++;
-			print("\t\t<c" + index + ">\n");
+			print("<c" + index + ">");
 			exportCellData(cell);
-			print("\t\t</c" + index + ">\n");
+			print("</c" + index + ">");
 		}
-		print("\t</row>\n");		
+		print("</row>\n");		
 	}
 	
-	// TODO add support to other cell types
+	
+	// FIXME add support to other cell types
 	private void exportCellData(Cell cell) throws IOException {
-		print("\t\t\t");
+		//print("\t\t\t");
 		if (cell instanceof SimpleCell) {
 			SimpleCell simple = (SimpleCell) cell;
 			if (simple.getSimpledata() != null) {
@@ -825,7 +904,7 @@ public class SIARDExportModule implements DatabaseHandler {
 				print("");
 			}
 		}
-		print("\n");
+		//print("\n");
 	}
 
 	/**
@@ -834,12 +913,13 @@ public class SIARDExportModule implements DatabaseHandler {
 	 * @return the date in ISO 8601 format, with no milliseconds
 	 */
 	private String getCurrentDate() {
-		Date date = new Date();
-		return DateParser.getIsoDateNoMillis(date);
+		return new SimpleDateFormat("yyyy-MM-dd").format(new Date());		
 	}
 	
 	private String getMessageDigest() {
-		return "MD5DefaultCompleteThis";
+		String messageDigest = "MD5DefaultMD";
+		// TODO calc message digest
+		return messageDigest;
 	}
 	
 	private void print(String s) throws IOException {

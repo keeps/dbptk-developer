@@ -126,6 +126,11 @@
 			<artifactId>lucene-analyzers-common</artifactId>
 			<version>4.7.0</version>
 		</dependency>
+		<dependency>
+			<groupId>net.sourceforge.zip64file</groupId>
+			<artifactId>zip64file</artifactId>
+			<version>1.02</version>
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>

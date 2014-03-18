@@ -83,7 +83,7 @@ public class PrimaryKey {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("SIARDPrimaryKey [name=");
+		builder.append("PrimaryKey [name=");
 		builder.append(name);
 		builder.append(", columns=");
 		builder.append(columns);

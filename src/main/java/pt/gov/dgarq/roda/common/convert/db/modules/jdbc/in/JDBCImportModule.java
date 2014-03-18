@@ -194,8 +194,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
 			
 			if (getMetadata().supportsSchemasInDataManipulation()) {
-				logger.debug("supports schemas table manipulation: " 
-						+ getMetadata().supportsSchemasInDataManipulation());
+				logger.debug("supports schemas table manipulation: YES");
 				ResultSet rs = getMetadata().getSchemas();	
 				while (rs.next()) {
 					String schemaName = rs.getString(1);
@@ -253,7 +252,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 //			logger.debug("--- END TABLE INFO ---");
 			// ------------------------------------------------
 			String tableName = rset.getString(3);
-			tables.add(getTableStructure(schemaName, tableName));
+			tables.add(getTableStructure(schema, tableName));
 		}
 		schema.setTables(tables);
 
@@ -268,7 +267,6 @@ public class JDBCImportModule implements DatabaseImportModule {
 		schema.setViews(views);
 		
 		// routines		
-		logger.debug("ProcTerm: " + getMetadata().getProcedureTerm());
 		List<RoutineStructure> routines = new ArrayList<RoutineStructure>();
 		rset = getMetadata().getProcedures(
 				dbStructure.getName(), schema.getName(), "%");
@@ -293,14 +291,15 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 * @throws ClassNotFoundException
 	 */
 	protected TableStructure getTableStructure(
-			String schemaName, String tableName) throws SQLException, 
+			SchemaStructure schema, String tableName) throws SQLException, 
 			UnknownTypeException, ClassNotFoundException {
 
 		TableStructure table = new TableStructure();
-		table.setId(schemaName + "." + tableName);
+		table.setId(schema.getName() + "." + tableName);
 		// XXX table0 vs real name? 
 		table.setName(tableName);         
 		table.setFolder(tableName);
+		table.setSchema(schema);
 
 		List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
 		ResultSet rs = getMetadata().getColumns(null, null, tableName, "%");
@@ -342,7 +341,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 		table.setPrimaryKey(getPrimaryKey(tableName));
 		table.setForeignKeys(getForeignKeys(tableName));
-		table.setCandidateKeys(getCandidateKeys(schemaName, tableName));
+		table.setCandidateKeys(getCandidateKeys(schema, tableName));
 		table.setCheckConstraints(getCheckConstraints());
 		// TODO add checkConstraints, etc
 		
@@ -568,7 +567,6 @@ public class JDBCImportModule implements DatabaseImportModule {
 		
 		if (pkName == null) {
 			pkName = tableName + "_pkey";
-			logger.debug("IS NULL");
 		}
 
 		PrimaryKey pk = new PrimaryKey();
@@ -587,7 +585,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 * @throws UnknownTypeException
 	 * @throws ClassNotFoundException
 	 */
-	// FIXME add required fields
+	// TODO add optional fields
 	protected List<ForeignKey> getForeignKeys(String tableName)
 			throws SQLException, UnknownTypeException, ClassNotFoundException {
 		List<ForeignKey> foreignKeys = new Vector<ForeignKey>();
@@ -599,6 +597,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			String refSchema = rs.getString(2);
 			String refTable = rs.getString(3);
 			String refColumn = rs.getString(4);
+			// FIXME add reference (list of columns)
 			
 			ForeignKey fk = new ForeignKey(tableName + "." + name, name,
 					refTable, refColumn);
@@ -609,12 +608,12 @@ public class JDBCImportModule implements DatabaseImportModule {
 	}
 	
 	protected List<CandidateKey> getCandidateKeys(
-			String schemaName, String tableName) 
+			SchemaStructure schema, String tableName) 
 					throws SQLException, ClassNotFoundException {
 		List<CandidateKey> candidateKeys = new ArrayList<CandidateKey>();
 		
 		ResultSet rs = getMetadata().getIndexInfo(
-				dbStructure.getName(), schemaName, tableName, true, false);
+				dbStructure.getName(), schema.getName(), tableName, true, false);
 		while (rs.next()) {
 			List<String> columns = new ArrayList<String>();
 			boolean found = false;
@@ -639,7 +638,6 @@ public class JDBCImportModule implements DatabaseImportModule {
 				candidateKeys.add(candidateKey);
 			}
 		}
-		logger.debug("cadidateKeys: " + candidateKeys);
 		return candidateKeys;		
 	}
 
@@ -713,7 +711,6 @@ public class JDBCImportModule implements DatabaseImportModule {
 			cell = new BinaryCell(id, fileItem, formats);
 		} else {
 			cell = new SimpleCell(id, rawData.getString(columnName));
-			// logger.debug("Raw: " + rawData.getString(columnName));
 		}
 		return cell;
 	}
@@ -751,7 +748,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			handler.initDatabase();
 			logger.debug("getting database structure");
 			handler.handleStructure(getDatabaseStructure());
-			logger.debug("DB STRUCTURE: " + getDatabaseStructure().toString());
+			// logger.debug("DB STRUCTURE: " + getDatabaseStructure().toString());
 			for (SchemaStructure schema: getDatabaseStructure().getSchemas()) {
 				for (TableStructure table : schema.getTables()) {
 					logger.debug("getting data of table " + table.getId());
@@ -763,8 +760,9 @@ public class JDBCImportModule implements DatabaseImportModule {
 								convertRawToRow(tableRawData, table));
 						nRows++;
 					}
-					getTableStructure(
-							schema.getName(), table.getName()).setRows(nRows);
+					getDatabaseStructure().
+							lookupTableStructure(table.getId()).
+							setRows(nRows);
 					handler.handleDataCloseTable(table.getId());
 				}				
 			}			

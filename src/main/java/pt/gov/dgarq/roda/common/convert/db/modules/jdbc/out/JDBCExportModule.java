@@ -334,8 +334,8 @@ public class JDBCExportModule implements DatabaseHandler {
 					// SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
 					if (data != null) {
 						Date date = DateParser.parse(data);
-						java.sql.Date sqlDate = new java.sql.Date(date
-								.getTime());
+						java.sql.Date sqlDate = 
+								new java.sql.Date(date.getTime());
 						ps.setDate(index, sqlDate);
 					} else {
 						ps.setNull(index, Types.DATE);

@@ -43,7 +43,10 @@ import pt.gov.dgarq.roda.common.convert.db.modules.sqlServer.out.SqlServerExport
  */
 public class Main {
 
-	public static final String APP_NAME = "db-preservation-toolkit";
+	public static final String APP_NAME = 
+			"db-preservation-toolkit 1.0.0 - KEEP SOLUTIONS";
+	
+	public static final String NAME = "db-preservation-toolkit";
 
 	private static final Logger logger = Logger.getLogger(Main.class);
 	
@@ -417,7 +420,7 @@ public class Main {
 	}
 
 	private static void printHelp() {
-		System.out.println("Synopsys: java -jar " + APP_NAME + ".jar" 
+		System.out.println("Synopsys: java -jar " + NAME + ".jar" 
 				+ " -i IMPORT_MODULE [options...]"
 				+ " -o EXPORT_MODULE [options...]");
 		System.out.println("Available import modules:");

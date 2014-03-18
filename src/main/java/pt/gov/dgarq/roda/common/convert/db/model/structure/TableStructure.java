@@ -32,6 +32,8 @@ public class TableStructure {
 	private List<Trigger> triggers;
 	
 	private int rows; 
+	
+	private SchemaStructure schema;
 
 
 	/**
@@ -50,6 +52,7 @@ public class TableStructure {
 		checkConstraints = new ArrayList<CheckConstraint>();
 		triggers = new ArrayList<Trigger>();
 		rows = -1;
+		schema = null;
 	}
 
 	/**
@@ -251,6 +254,14 @@ public class TableStructure {
 	 */
 	public void setRows(int rows) {
 		this.rows = rows;
+	}
+	
+	public SchemaStructure getSchema() {
+		return schema;
+	}
+
+	public void setSchema(SchemaStructure schema) {
+		this.schema = schema;
 	}
 
 	@Override
