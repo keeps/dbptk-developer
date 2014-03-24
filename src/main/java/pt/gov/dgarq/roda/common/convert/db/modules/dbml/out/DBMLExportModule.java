@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
+import java.util.Set;
 
 import org.apache.commons.transaction.util.FileHelper;
 import org.apache.log4j.Logger;
@@ -256,6 +257,10 @@ public class DBMLExportModule implements DatabaseHandler {
 			throw new ModuleException("Error writing file", e);
 		}
 
+	}
+	
+	public void setIgnoredSchemas(Set<String> ignoredSchemas) {
+		// nothing to do;
 	}
 
 	/**

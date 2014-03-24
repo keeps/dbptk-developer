@@ -11,8 +11,10 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.w3c.util.DateParser;
@@ -29,6 +31,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.DatabaseStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ForeignKey;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBinary;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBoolean;
@@ -67,7 +70,11 @@ public class JDBCExportModule implements DatabaseHandler {
 	protected int batch_index;
 
 	protected PreparedStatement currentRowInsertStatement;
+	
+	protected Set<String> ignoredSchemas;
 
+	protected boolean currentIsIgnoredSchema;
+	
 	/**
 	 * Generic JDBC export module constructor
 	 * 
@@ -101,6 +108,8 @@ public class JDBCExportModule implements DatabaseHandler {
 		currentTableStructure = null;
 		batch_index = 0;
 		currentRowInsertStatement = null;
+		ignoredSchemas = new HashSet<String>();
+		currentIsIgnoredSchema = false;
 	}
 
 	/**
@@ -128,7 +137,6 @@ public class JDBCExportModule implements DatabaseHandler {
 			} catch (SQLException e) {
 				throw new ModuleException("SQL error creating connection", e);
 			}
-
 		}
 		return connection;
 	}
@@ -144,36 +152,37 @@ public class JDBCExportModule implements DatabaseHandler {
 		return statement;
 	}
 
-	public void initDatabase() throws ModuleException {		
-	
+	public void initDatabase() throws ModuleException {
+		// nothing to do
 	}
-
+	
+	/**
+	 * Override this method to create the database
+	 * 
+	 * @param dbName
+	 *            the database name
+	 * @throws ModuleException
+	 */
+	protected void createDatabase(String dbName) throws ModuleException {
+		// nothing will be done by default
+	}
+	
 	public void handleStructure(DatabaseStructure structure)
 			throws ModuleException, UnknownTypeException {
 		this.databaseStructure = structure;
-		createDatabase(structure.getName());
+		// XXX what to do with it?
+		createDatabase(structure.getName()); 		
 		int[] batchResult = null;
 		if (getStatement() != null) {
 			try {
 				logger.debug("Handling database structure");
-				for (TableStructure table : structure.getTables()) {
-					logger.debug("Adding to batch creation of table "
-							+ table.getName());
-					// logger.debug("sql: " + sqlHelper.createTableSQL(table));
-					// logger.trace("sql: " + sqlHelper.createTableSQL(table));
-					getStatement().addBatch(sqlHelper.createTableSQL(table));					
-					String pkeySQL = sqlHelper.createPrimaryKeySQL(table
-							.getName(), table.getPrimaryKey());
-					if (pkeySQL != null) {
-						logger.trace("sql: " + pkeySQL);
-						getStatement().addBatch(pkeySQL);
-					}
+				for (SchemaStructure schema : structure.getSchemas()) {
+					handleSchemaStructure(schema);				
 				}
 				logger.debug("Executing table creation batch");
 				batchResult = getStatement().executeBatch();
 				getStatement().clearBatch();
-				logger.debug("handle structure finished");
-
+				logger.debug("Handling datababase structure finished");
 			} catch (SQLException e) {
 				if (batchResult != null) {
 					for (int i = 0; i < batchResult.length; i++) {
@@ -186,51 +195,93 @@ public class JDBCExportModule implements DatabaseHandler {
 				SQLException ei = e;
 				do {
 					if (ei != null) {
-						logger
-								.error(
-										"Error creating structure (next exception)",
-										ei);
+						logger.error("Error creating "
+								+ "structure (next exception)", ei);
 					}
 					ei = ei.getNextException();
 				} while (ei != null);
 				throw new ModuleException("Error creating structure", e);
-
 			}
 		}
 	}
-
-	/**
-	 * Override this method to create the database
-	 * 
-	 * @param dbName
-	 *            the database name
-	 * @throws ModuleException
-	 */
-	protected void createDatabase(String dbName) throws ModuleException {
-		// nothing will be done by default
+	
+	protected void handleSchemaStructure(SchemaStructure schema) 
+			throws ModuleException, UnknownTypeException {
+		logger.debug("Handling schema structure " + schema.getName());
+		try {
+			getStatement().addBatch(sqlHelper.createSchemaSQL(schema));
+			getStatement().executeBatch();
+			logger.debug("batch executed: " + schema.getName());
+		} catch (SQLException e) {
+			throw new ModuleException("Error while adding schema SQL to batch", e);
+		}
+		// FIXME override mysql handleSchemaStructure
+		// changeStatement(schema);
+		for (TableStructure table : schema.getTables()) {
+			handleTableStructure(table); 
+		}
+	}
+		
+	protected void handleTableStructure(TableStructure table) 
+			throws ModuleException, UnknownTypeException {
+		
+		if (getStatement() != null) {
+			try {
+				logger.debug("Adding to batch creation of table " 
+						+ table.getName());
+				logger.debug("SQL: " + sqlHelper.createTableSQL(table));
+				getStatement().addBatch(sqlHelper.createTableSQL(table));	
+				// logger.debug("pKey: " + table.getPrimaryKey());
+				String pkeySQL = sqlHelper.createPrimaryKeySQL(table.getId(), 
+						table.getPrimaryKey());
+				if (pkeySQL != null) {
+					logger.debug("SQL: " + pkeySQL);
+					getStatement().addBatch(pkeySQL);
+				}				
+			} catch (SQLException e) {
+				throw new ModuleException("Error while adding SQL to batch", e);
+			}
+		}
+	}
+	
+	public void setIgnoredSchemas(Set<String> ignoredSchemas) {
+		this.ignoredSchemas = ignoredSchemas;
+	}
+	
+	protected boolean isIgnoredSchema(SchemaStructure schema) {
+		for (String s : ignoredSchemas) {			
+			if (schema.getName().startsWith(s)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public void handleDataOpenTable(String tableId) throws ModuleException {
-		if (databaseStructure != null) {
-			
-			for (TableStructure table : databaseStructure.getTables()) {
-				if (table.getId().equals(tableId)) {
-					currentTableStructure = table;
+		if (databaseStructure != null) {			
+			// logger.debug("DataOpenTable: " + tableId);
+			TableStructure table = 
+					databaseStructure.lookupTableStructure(tableId);
+			this.currentTableStructure = table;			
+			if (currentTableStructure != null) {
+				currentIsIgnoredSchema = isIgnoredSchema(table.getSchema());
+				if (!currentIsIgnoredSchema) {					
 					try {
 						currentRowInsertStatement = getConnection()
-								.prepareStatement(sqlHelper.createRowSQL(table));
-						// logger.debug("sql row: " + sqlHelper.createRowSQL(table));
+								.prepareStatement(sqlHelper.createRowSQL(
+										currentTableStructure));
+						logger.debug("sql: " + sqlHelper.
+								createRowSQL(currentTableStructure));
 					} catch (SQLException e) {
 						throw new ModuleException("Error creating table "
 								+ tableId + " prepared statement", e);
 					}
-				}
-			}
-			if (currentTableStructure == null) {
+				}		
+			} else {
 				throw new ModuleException("Could not find table id '" + tableId
 						+ "' in database structure");
-			}
-		} else if (databaseStructure != null) {
+			}		
+		} else {
 			throw new ModuleException(
 					"Cannot open table before database structure is created");
 		}
@@ -252,41 +303,45 @@ public class JDBCExportModule implements DatabaseHandler {
 
 	public void handleDataRow(Row row) throws InvalidDataException,
 			ModuleException {
-		if (currentTableStructure != null && currentRowInsertStatement != null) {
-			Iterator<ColumnStructure> columnIterator = currentTableStructure
-					.getColumns().iterator();
-			List<CleanResourcesInterface> cleanResourcesList = new ArrayList<CleanResourcesInterface>();
-			int index = 1;
-			for (Cell cell : row.getCells()) {
-				ColumnStructure column = columnIterator.next();
-				CleanResourcesInterface cleanResources = handleDataCell(
-						currentRowInsertStatement, index, cell, column
-								.getType());
-				// logger.debug("colType: " + column.getType().getClass().toString());
-				cleanResourcesList.add(cleanResources);
-				index++;
-			}
-			// logger.debug("-------------");
-			try {
-				currentRowInsertStatement.addBatch();
-				if (++batch_index > BATCH_SIZE) {
-					currentRowInsertStatement.executeBatch();
-					currentRowInsertStatement.clearBatch();
-					batch_index = 0;
+		if (!currentIsIgnoredSchema) {
+			if (currentTableStructure != null 
+					&& currentRowInsertStatement != null) {
+				Iterator<ColumnStructure> columnIterator = 
+						currentTableStructure.getColumns().iterator();
+				List<CleanResourcesInterface> cleanResourcesList = 
+						new ArrayList<CleanResourcesInterface>();
+				int index = 1;
+				for (Cell cell : row.getCells()) {
+					ColumnStructure column = columnIterator.next();
+					CleanResourcesInterface cleanResources = handleDataCell(
+							currentRowInsertStatement, index, 
+							cell, column.getType());
+					cleanResourcesList.add(cleanResources);
+					index++;
 				}
-			} catch (SQLException e) {
-				throw new ModuleException("Error executing insert batch", e);
-			} finally {
-				for (CleanResourcesInterface clean : cleanResourcesList) {
-					clean.clean();
+				try {
+					currentRowInsertStatement.addBatch();
+					if (++batch_index > BATCH_SIZE) {
+						currentRowInsertStatement.executeBatch();
+						logger.debug("batch executed");
+						currentRowInsertStatement.clearBatch();
+						logger.debug("batch index: " + batch_index);
+						batch_index = 0;
+					}
+				} catch (SQLException e) {
+					throw new ModuleException(
+							"Error executing insert batch", e);
+				} finally {
+					for (CleanResourcesInterface clean : cleanResourcesList) {
+						clean.clean();
+					}
 				}
+			} else if (databaseStructure != null) {
+				throw new ModuleException(
+						"Cannot handle data row before a table "
+						+ "is open and insert statement created");
 			}
-
-		} else if (databaseStructure != null) {
-			throw new ModuleException(
-					"Cannot handle data row before a table is open and insert statement created");
 		}
-
 	}
 
 	public interface CleanResourcesInterface {
@@ -305,7 +360,6 @@ public class JDBCExportModule implements DatabaseHandler {
 			if (cell instanceof SimpleCell) {
 				SimpleCell simple = (SimpleCell) cell;
 				String data = simple.getSimpledata();
-				// logger.debug("cell: " + data);
 				if (type instanceof SimpleTypeString) {
 					if (data != null) {
 						ps.setString(index, data);
@@ -314,7 +368,7 @@ public class JDBCExportModule implements DatabaseHandler {
 					}
 				} else if (type instanceof SimpleTypeNumericExact) {
 					if (data != null) {
-						// XXX confirm it's fixed
+						// TODO confirm it's fixed
 						if (((SimpleTypeNumericExact) type).getScale() > 0) {
 							ps.setFloat(index, Float.valueOf(data));
 						}
@@ -396,12 +450,14 @@ public class JDBCExportModule implements DatabaseHandler {
 	protected void handleForeignKeys() throws ModuleException {
 		logger.debug("Creating foreign keys");
 		try {
-			for (TableStructure table : databaseStructure.getTables()) {
-				for (ForeignKey fkey : table.getForeignKeys()) {
-					String fkeySQL = sqlHelper.createForeignKeySQL(table
-							.getName(), fkey);
-					logger.debug("Returned fkey: " + fkeySQL);
-					getStatement().addBatch(fkeySQL);
+			for (SchemaStructure schema : databaseStructure.getSchemas()) {
+				for (TableStructure table : schema.getTables()) {		
+					for (ForeignKey fkey : table.getForeignKeys()) {
+						String fkeySQL = 
+								sqlHelper.createForeignKeySQL(table, fkey);
+						logger.debug("Returned fkey: " + fkeySQL);
+						getStatement().addBatch(fkeySQL);
+					}
 				}
 			}
 			logger.debug("Getting fkeys finished");

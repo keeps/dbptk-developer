@@ -5,6 +5,7 @@ package pt.gov.dgarq.roda.common.convert.db.modules.mySql;
 
 import org.apache.log4j.Logger;
 
+import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
@@ -21,9 +22,22 @@ import pt.gov.dgarq.roda.common.convert.db.modules.SQLHelper;
 public class MySQLHelper extends SQLHelper {
 
 	private final Logger logger = Logger.getLogger(MySQLHelper.class);
+	
+	private String startQuote = "`";
+	
+	private String endQuote = "`";
+	
+	public String getStartQuote() {
+		return startQuote;
+	}
+
+	public String getEndQuote() {
+		return endQuote;
+	}
 
 	public String createTableSQL(TableStructure table)
-			throws UnknownTypeException {
+			throws UnknownTypeException, ModuleException {
+		logger.debug("create table mysql");
 		return super.createTableSQL(table) + " ENGINE=INNODB";
 	}
 
@@ -86,22 +100,7 @@ public class MySQLHelper extends SQLHelper {
 		return ret;
 	}
 
-	protected String escapeDatabaseName(String database) {
-		return "`" + database + "`";
-	}
-
-	protected String escapeTableName(String table) {
-		return "`" + table + "`";
-	}
-
-	protected String escapeColumnName(String column) {
-		return "`" + column + "`";
-	}
-
 	protected String escapeComment(String description) {
 		return description.replaceAll("'", "''");
 	}
-	
-	
-
 }

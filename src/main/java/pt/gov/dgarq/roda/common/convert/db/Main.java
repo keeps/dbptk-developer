@@ -50,7 +50,7 @@ public class Main {
 
 	private static final Logger logger = Logger.getLogger(Main.class);
 	
-
+	
 	/**
 	 * @param args
 	 *            the console arguments
@@ -58,7 +58,7 @@ public class Main {
 	public static void main(String... args) {
 		List<String> importModuleArgs = new Vector<String>();
 		List<String> exportModuleArgs = new Vector<String>();
-
+		
 		boolean parsingImportModule = false;
 		boolean parsingExportModule = false;
 
@@ -103,7 +103,9 @@ public class Main {
 						&& e.getCause().getMessage()
 								.equals("sun.jdbc.odbc.JdbcOdbcDriver")) {
 					logger.error(
-							"Could not find the Java ODBC driver, please run this program under Windows to use the JDBC-ODBC bridge.",
+							"Could not find the Java ODBC driver, "
+								+ "please run this program under Windows "
+								+ "to use the JDBC-ODBC bridge.",
 							e.getCause());
 				} else if (e.getModuleErrors() != null) {
 					for (Map.Entry<String, Throwable> entry : e

@@ -21,6 +21,19 @@ import pt.gov.dgarq.roda.common.convert.db.modules.SQLHelper;
 public class SQLServerHelper extends SQLHelper {
 
 	private final Logger logger = Logger.getLogger(SQLServerHelper.class);
+	
+	private String startQuote = "[";
+	
+	private String endQuote = "]";
+	
+	
+	public String getStartQuote() {
+		return startQuote;
+	}
+
+	public String getEndQuote() {
+		return endQuote;
+	}
 
 	protected String createTypeSQL(Type type, boolean isPkey, boolean isFkey)
 			throws UnknownTypeException {

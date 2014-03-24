@@ -4,6 +4,7 @@
 package pt.gov.dgarq.roda.common.convert.db.modules.mySql.in;
 
 import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.in.JDBCImportModule;
+import pt.gov.dgarq.roda.common.convert.db.modules.mySql.MySQLHelper;
 
 /**
  * @author Luis Faria
@@ -26,7 +27,8 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 	public MySQLJDBCImportModule(String hostname, String database,
 			String username, String password) {
 		super("com.mysql.jdbc.Driver", "jdbc:mysql://" + hostname + "/"
-				+ database + "?" + "user=" + username + "&password=" + password);
+				+ database + "?" + "user=" + username + "&password=" + password, 
+				new MySQLHelper());
 	}
 
 	/**
@@ -47,6 +49,6 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 			String username, String password) {
 		super("com.mysql.jdbc.Driver", "jdbc:mysql://" + hostname + ":" + port
 				+ "/" + database + "?" + "user=" + username + "&password="
-				+ password);
+				+ password, new MySQLHelper());
 	}
 }

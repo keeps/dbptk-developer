@@ -31,7 +31,9 @@ public class DatabaseStructure {
 	
 	private String producerApplication;	
 
-	private String creationDate; // archivalDate on SIARD
+	private String creationDate; 
+	
+	private String archivalDate;
 	
 	private String messageDigest;
 	
@@ -185,6 +187,21 @@ public class DatabaseStructure {
 		this.creationDate = creationDate;
 	}
 
+	/**
+	 * @return the date when the database was archived, ISO 8601 format
+	 */
+	public String getArchivalDate() {
+		return archivalDate;
+	}
+
+	/**
+	 * @param creationDate
+	 *            the date when the database was archived, ISO 8601 format
+	 */
+	public void setArchivalDate(String archivalDate) {
+		this.archivalDate = archivalDate;
+	}
+	
 	/**
 	 * @return database name
 	 */
@@ -533,7 +550,7 @@ public class DatabaseStructure {
 	}
 
 	/**
-	 * Sort the tables topologicaly by its foreign key references. This method
+	 * Sort the tables topologically by its foreign key references. This method
 	 * is useful when inserting data into the database, so the foreign key
 	 * constrains will be respected
 	 * 
@@ -541,7 +558,9 @@ public class DatabaseStructure {
 	 * @return the sorted table list or null if the tables cannot be sorted
 	 *         topologically (recursive graph)
 	 */
-	public static List<TableStructure> topologicSort(List<TableStructure> tables) {
+	public static List<TableStructure> topologicSort(
+			List<TableStructure> tables) {
+		
 		List<TableStructure> sortedTables = new ArrayList<TableStructure>(
 				tables.size());
 		boolean canSortTopologically = true;
@@ -560,13 +579,16 @@ public class DatabaseStructure {
 	}
 
 	private static List<TableStructure> filterReferencedTables(
-			List<TableStructure> allTables, List<TableStructure> insertedTables) {
+			List<TableStructure> allTables, 
+			List<TableStructure> insertedTables) {
+		
 		List<TableStructure> referencedTables = new Vector<TableStructure>();
 		for (TableStructure table : allTables) {
 			if (!insertedTables.contains(table)) {
 				boolean allReferredTablesInserted = true;
 				for (ForeignKey fkey : table.getForeignKeys()) {
-					if (!containsTable(insertedTables, fkey.getReferencedTable())) {
+					if (!containsTable(
+							insertedTables, fkey.getReferencedTable())) {
 						allReferredTablesInserted = false;
 						break;
 					}
@@ -646,17 +668,5 @@ public class DatabaseStructure {
 		builder.append("\n------ END SCHEMAS ------");
 		builder.append("\n****** END STRUCTURE ******");
 		return builder.toString();
-	}
-	
-	
-	//FIXME Decide structure schema -> table?
-	
-	//get the tables of first schema
-	public List<TableStructure> getTables() {
-		return schemas.get(0).getTables();
-	}
-	
-	public void setTables(List<TableStructure> tables) {
-		schemas.get(0).setTables(tables);
-	}
+	}	
 }

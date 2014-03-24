@@ -15,7 +15,9 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
@@ -193,6 +195,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 						
 			List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
 			
+			// TODO refactor: mysql must override this
 			if (getMetadata().supportsSchemasInDataManipulation()) {
 				logger.debug("supports schemas table manipulation: YES");
 				ResultSet rs = getMetadata().getSchemas();	
@@ -201,7 +204,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 					schemas.add(getSchemaStructure(schemaName));
 				}
 			} else {
-				String schemaName = "schemaX";
+				String schemaName = "schema0";
 				schemas.add(getSchemaStructure(schemaName));
 			}
 			dbStructure.setSchemas(schemas);
@@ -238,19 +241,6 @@ public class JDBCImportModule implements DatabaseImportModule {
 		ResultSet rset = getMetadata().getTables(dbStructure.getName(),
 				schemaName, "%", new String[] { "TABLE" });
 		while (rset.next()) {
-			// ------------------------------------------------
-//			logger.debug("--- TABLE INFO ---");
-//			if (rset.getString("TABLE_CAT") != null)
-//				logger.debug(
-//						"Catalog: " + rset.getString("TABLE_CAT"));
-//			if (rset.getString("TABLE_SCHEM") != null)
-//				logger.debug(
-//						"Schema: " + rset.getString("TABLE_SCHEM"));					
-//			logger.debug("Name: " + rset.getString("TABLE_NAME"));
-//			logger.debug("Type: " + rset.getString("TABLE_TYPE"));
-//			
-//			logger.debug("--- END TABLE INFO ---");
-			// ------------------------------------------------
 			String tableName = rset.getString(3);
 			tables.add(getTableStructure(schema, tableName));
 		}
@@ -296,7 +286,6 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 		TableStructure table = new TableStructure();
 		table.setId(schema.getName() + "." + tableName);
-		// XXX table0 vs real name? 
 		table.setName(tableName);         
 		table.setFolder(tableName);
 		table.setSchema(schema);
@@ -339,6 +328,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 		}
 		table.setColumns(columns);
 
+		// TODO verify tableName vs tableId
 		table.setPrimaryKey(getPrimaryKey(tableName));
 		table.setForeignKeys(getForeignKeys(tableName));
 		table.setCandidateKeys(getCandidateKeys(schema, tableName));
@@ -598,10 +588,15 @@ public class JDBCImportModule implements DatabaseImportModule {
 			String refTable = rs.getString(3);
 			String refColumn = rs.getString(4);
 			// FIXME add reference (list of columns)
-			
 			ForeignKey fk = new ForeignKey(tableName + "." + name, name,
 					refTable, refColumn);
-			fk.setReferencedSchema(refSchema);
+			
+			// TODO refactor: specific to mysql
+			if (refSchema != null) {
+				fk.setReferencedSchema(refSchema);
+			} else {
+				fk.setReferencedSchema("schema0");
+			}
 			foreignKeys.add(fk);
 		}
 		return foreignKeys;
@@ -612,8 +607,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 					throws SQLException, ClassNotFoundException {
 		List<CandidateKey> candidateKeys = new ArrayList<CandidateKey>();
 		
-		ResultSet rs = getMetadata().getIndexInfo(
-				dbStructure.getName(), schema.getName(), tableName, true, false);
+		ResultSet rs = getMetadata().getIndexInfo(dbStructure.getName(),
+				schema.getName(), tableName, true, false);
 		while (rs.next()) {
 			List<String> columns = new ArrayList<String>();
 			boolean found = false;
@@ -732,28 +727,35 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return ret;
 	}
 
-	protected ResultSet getTableRawData(String tableName) throws SQLException,
-			ClassNotFoundException {
+	protected ResultSet getTableRawData(String tableId) throws SQLException,
+			ClassNotFoundException, ModuleException {
 		ResultSet set = getStatement().executeQuery(
-				sqlHelper.selectTableSQL(tableName));
+				sqlHelper.selectTableSQL(tableId));
 		set.setFetchSize(ROW_FETCH_BLOCK_SIZE);
 		return set;
 	}
+	
+	protected Set<String> getIgnoredSchemas() {
+		// no ignored schemas.
+		return new HashSet<String>();
+	}
 
-	//XXX check schema name is correct on table id
 	public void getDatabase(DatabaseHandler handler) throws ModuleException,
 			UnknownTypeException, InvalidDataException {
 		try {
 			logger.debug("initializing database");
 			handler.initDatabase();
+			handler.setIgnoredSchemas(getIgnoredSchemas());
 			logger.debug("getting database structure");
 			handler.handleStructure(getDatabaseStructure());
 			// logger.debug("DB STRUCTURE: " + getDatabaseStructure().toString());
 			for (SchemaStructure schema: getDatabaseStructure().getSchemas()) {
+				logger.debug("tables of " + schema.getName() 
+						+ schema.getTables().toString());
 				for (TableStructure table : schema.getTables()) {
 					logger.debug("getting data of table " + table.getId());
 					handler.handleDataOpenTable(table.getId());
-					ResultSet tableRawData = getTableRawData(table.getName());
+					ResultSet tableRawData = getTableRawData(table.getId());
 					int nRows = 0;
 					while (tableRawData.next()) {
 						handler.handleDataRow(

@@ -3,6 +3,7 @@
  */
 package pt.gov.dgarq.roda.common.convert.db.modules.postgreSql;
 
+import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBinary;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeDateTime;
@@ -15,16 +16,33 @@ import pt.gov.dgarq.roda.common.convert.db.modules.SQLHelper;
  * 
  */
 public class PostgreSQLHelper extends SQLHelper {
+	
+	private String startQuote = "\"";
+	
+	private String endQuote = "\"";
+	
+	public String getStartQuote() {
+		return startQuote;
+	}
+
+	public String getEndQuote() {
+		return endQuote;
+	}
 
 	/**
-	 * Grant table read permissions to public
+	 * Grant table read permissions to table schema
 	 * 
 	 * @param tableName
-	 *            the table name
+	 *            the table id
 	 * @return the SQL
+	 * @throws ModuleException 
 	 */
-	public String grantPermissionsSQL(String tableName) {
-		return "GRANT SELECT ON " + tableName + " TO PUBLIC";
+	public String grantPermissionsSQL(String tableId) throws ModuleException {
+		String[] parts = splitTableId(tableId);
+		String schema = parts[0];
+		String table = parts[1];
+		return "GRANT SELECT ON " + escapeSchemaName(schema) + "." 
+				+ escapeTableName(table) + " TO PUBLIC";
 	}
 
 	protected String createTypeSQL(Type type, boolean isPkey, boolean isFkey)
@@ -56,5 +74,4 @@ public class PostgreSQLHelper extends SQLHelper {
 		}
 		return ret;
 	}
-
 }

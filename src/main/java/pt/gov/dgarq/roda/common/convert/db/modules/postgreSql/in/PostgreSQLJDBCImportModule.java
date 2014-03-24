@@ -3,7 +3,11 @@
  */
 package pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.in;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.in.JDBCImportModule;
+import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.PostgreSQLHelper;
 
 /**
  * <p>
@@ -50,7 +54,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 			String username, String password, boolean encrypt) {
 		super("org.postgresql.Driver", "jdbc:postgresql://" + hostname + "/"
 				+ database + "?user=" + username + "&password=" + password
-				+ (encrypt ? "&ssl=true" : ""));
+				+ (encrypt ? "&ssl=true" : ""), new PostgreSQLHelper());
 	}
 
 	/**
@@ -74,6 +78,15 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 			String database, String username, String password, boolean encrypt) {
 		super("org.postgresql.Driver", "jdbc:postgresql://" + hostname + ":"
 				+ port + "/" + database + "?user=" + username + "&password="
-				+ password + (encrypt ? "&ssl=true" : ""));
+				+ password + (encrypt ? "&ssl=true" : ""), 
+				new PostgreSQLHelper());
+	}
+	
+	public Set<String> getIgnoredSchemas() {
+		Set<String> ignoredSchemas = new HashSet<String>();
+		ignoredSchemas.add("information_schema");
+		ignoredSchemas.add("pg_");
+		
+		return ignoredSchemas;
 	}
 }

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 
 import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.Row;
@@ -17,6 +18,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ForeignKey;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.PrimaryKey;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeArray;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeStructure;
@@ -35,16 +37,31 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
  * 
  */
 public class SQLHelper {
+	private Logger logger = Logger.getLogger(SQLHelper.class);
+
+	private String startQuote = "";
 	
+	private String endQuote = "";
+	
+	public String getStartQuote() {
+		return startQuote;
+	}
+
+	public String getEndQuote() {
+		return endQuote;
+	}
+
 	/**
 	 * SQL to get all rows from a table
 	 * 
 	 * @param tableName
 	 *            the table name
 	 * @return the SQL
+	 * @throws ModuleException 
 	 */
-	public String selectTableSQL(String tableName) {
-		return "SELECT * FROM " + escapeTableName(tableName);
+	public String selectTableSQL(String tableId) throws ModuleException {
+		logger.debug("escape " + escapeTableId(tableId));
+		return "SELECT * FROM " + escapeTableId(tableId);
 	}
 
 	/**
@@ -59,7 +76,20 @@ public class SQLHelper {
 	}
 
 	/**
-	 * SQL to create a table from table struture
+	 * SQL to create a schema
+	 * 
+	 * @param schema
+	 * 			  the schema structure
+	 * @return the SQL
+	 */
+	// TODO add authorization 
+	public String createSchemaSQL(SchemaStructure schema) {
+		logger.debug("added schema to batch");
+		return "CREATE SCHEMA " + escapeSchemaName(schema.getName());
+	}
+	
+	/**
+	 * SQL to create a table from table structure
 	 * 
 	 * @param table
 	 *            the table structure
@@ -67,10 +97,9 @@ public class SQLHelper {
 	 * @throws UnknownTypeException
 	 */
 	public String createTableSQL(TableStructure table)
-			throws UnknownTypeException {
-		return "CREATE TABLE "
-				+ escapeTableName(table.getName())
-				+ " ("
+			throws UnknownTypeException, ModuleException {	
+		logger.debug("TABLE escape id " + escapeTableId(table.getId()));
+		return "CREATE TABLE " + escapeTableId(table.getId()) + " ("
 				+ createColumnsSQL(table.getColumns(), table.getPrimaryKey(),
 						table.getForeignKeys()) + ")";
 	}
@@ -106,7 +135,7 @@ public class SQLHelper {
 
 	/**
 	 * Convert a column type (from model) to the database type. This method
-	 * should be overriden for each specific DBMS export module implementation
+	 * should be overridden for each specific DBMS export module implementation
 	 * to use the specific data types.
 	 * 
 	 * @param type
@@ -129,7 +158,8 @@ public class SQLHelper {
 			ret = "numeric(" + numericExact.getPrecision() + ","
 					+ numericExact.getScale() + ")";
 		} else if (type instanceof SimpleTypeNumericApproximate) {
-			SimpleTypeNumericApproximate numericApproximate = (SimpleTypeNumericApproximate) type;
+			SimpleTypeNumericApproximate numericApproximate = 
+					(SimpleTypeNumericApproximate) type;
 			ret = "float(" + numericApproximate.getPrecision() + ")";
 		} else if (type instanceof SimpleTypeBoolean) {
 			ret = "boolean";
@@ -147,7 +177,8 @@ public class SQLHelper {
 		} else if (type instanceof SimpleTypeInterval) {
 			throw new UnknownTypeException("Interval type not yet supported");
 		} else if (type instanceof SimpleTypeEnumeration) {
-			throw new UnknownTypeException("Enumeration type not yet supported");
+			throw new UnknownTypeException(
+					"Enumeration type not yet supported");
 		} else if (type instanceof SimpleTypeBinary) {
 			ret = "MEDIUMBLOB";
 		} else if (type instanceof ComposedTypeArray) {
@@ -169,11 +200,13 @@ public class SQLHelper {
 	 * @param pkey
 	 *            the primary key
 	 * @return the SQL
+	 * @throws ModuleException 
 	 */
-	public String createPrimaryKeySQL(String tableName, PrimaryKey pkey) {
+	public String createPrimaryKeySQL(String tableId, PrimaryKey pkey) 
+			throws ModuleException {
 		String ret = null;
 		if (pkey != null) {
-			ret = "ALTER TABLE " + escapeTableName(tableName)
+			ret = "ALTER TABLE " + escapeTableId(tableId)
 					+ " ADD PRIMARY KEY (";
 			boolean comma = false;
 			for (String field : pkey.getColumnNames()) {
@@ -194,12 +227,19 @@ public class SQLHelper {
 	 * @param fkey
 	 *            the foreign key
 	 * @return the SQL
+	 * @throws ModuleException 
 	 */
-	public String createForeignKeySQL(String tableName, ForeignKey fkey) {
-		return "ALTER TABLE " + escapeTableName(tableName)
-				+ " ADD FOREIGN KEY (" + escapeColumnName(fkey.getName())
-				+ ") REFERENCES " + escapeTableName(fkey.getReferencedTable()) 
-				+ "(" + escapeColumnName(fkey.getReference().getColumn()) + ")";
+	public String createForeignKeySQL(TableStructure table, ForeignKey fkey) 
+			throws ModuleException {
+		logger.debug("FKEY reference: " + fkey.getReferencedTable());
+		logger .debug("creating foreign key sql");
+		return "ALTER TABLE " + escapeTableId(table.getId())
+				+ " ADD FOREIGN KEY (" 
+				+ escapeColumnName(fkey.getReference().getColumn())
+				+ ") REFERENCES " 
+				+ escapeTableName(fkey.getReferencedSchema()) + "." 
+				+ escapeTableName(fkey.getReferencedTable()) + " (" 
+				+ escapeColumnName(fkey.getReference().getColumn()) + ")";
 	}
 
 	/**
@@ -242,8 +282,9 @@ public class SQLHelper {
 			ModuleException {
 		ByteArrayOutputStream sqlOut = new ByteArrayOutputStream();
 		try {
-			sqlOut.write(("INSERT INTO " + escapeTableName(table.getName()) + " VALUES (")
-					.getBytes());
+			sqlOut.write(("INSERT INTO " 
+					+ escapeTableId(table.getId()) 
+					+ " VALUES (").getBytes());
 			int i = 0;
 			Iterator<ColumnStructure> columnIt = table.getColumns().iterator();
 			for (Cell cell : row.getCells()) {
@@ -266,10 +307,12 @@ public class SQLHelper {
 	 * @param table
 	 *            the table structure
 	 * @return the prepared SQL statement
+	 * @throws ModuleException 
 	 * 
 	 */
-	public String createRowSQL(TableStructure table) {
-		String ret = "INSERT INTO " + escapeTableName(table.getName()) + " VALUES (";
+	public String createRowSQL(TableStructure table) throws ModuleException {
+		String ret = "INSERT INTO " + escapeTableId(table.getId()) 
+				+ " VALUES (";
 		for (int i = 0; i < table.getColumns().size(); i++) {
 			if (i > 0) {
 				ret += ", ";
@@ -282,16 +325,35 @@ public class SQLHelper {
 	}
 
 	protected String escapeDatabaseName(String database) {
-		return database;
+		return getStartQuote() + database + getEndQuote();
 	}
 
-	protected String escapeTableName(String table) {
-		return table;
+	public String escapeSchemaName(String schema) {
+		return getStartQuote() + schema + getEndQuote();
+	}
+		
+	protected String escapeTableId(String tableId) throws ModuleException {
+		String[] parts = splitTableId(tableId);
+		String schema = parts[0];
+		String table = parts[1];
+		return  escapeSchemaName(schema) + "." + escapeTableName(table); 		
+	}
+	
+	public String escapeTableName(String table) {
+		return getStartQuote() + table + getEndQuote();
 	}
 
 	protected String escapeColumnName(String column) {
-		return "`" + column + "`";
-		// return column;
+		return getStartQuote() + column + getEndQuote();
 	}
-
+	
+	protected String[] splitTableId(String tableId) throws ModuleException {
+		String[] parts = tableId.split("\\.");
+		if (parts.length < 2) {
+			throw new ModuleException(
+					"An error ocurred while spliting table id: "
+					+ "tableId is malformed");
+		}
+		return parts;	
+	}	
 }

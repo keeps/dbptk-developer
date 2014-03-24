@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Set;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
@@ -83,6 +84,11 @@ public class SIARDExportModule implements DatabaseHandler {
 
 	@Override
 	public void initDatabase() throws ModuleException {
+		// nothing to do
+	}
+	
+	@Override 
+	public void setIgnoredSchemas(Set<String> ignoredSchemas) {
 		// nothing to do
 	}
 
@@ -178,7 +184,7 @@ public class SIARDExportModule implements DatabaseHandler {
 	private void exportDatabaseStructure(DatabaseStructure structure) 
 			throws IOException, ModuleException, UnknownTypeException {
 		print("<?xml version=\"1.0\" encoding=\"" + ENCODING + "\"?>\n");
-		// print("<siardArchive version=\"" + "1.0" + "\">\n");
+		// FIXME change to appropriate header 
 		print("<siardArchive version=\"" + "1.0" + "\" "
 				+ "xmlns=\"http://www.bar.admin.ch/xmlns/siard/1.0/metadata.xsd\" "
 				+ "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
@@ -401,9 +407,6 @@ public class SIARDExportModule implements DatabaseHandler {
 			print("\t\t\t\t\t</triggers>\n");
 		}
 		
-		
-		// FIXME table rows
-		// print("\t\t\t\t\t<rows>" + "100" + "</rows>\n");
 		if (table.getRows() != -1) {
 			print("\t\t\t\t\t<rows>" + table.getRows() + "</rows>\n");			
 		} else {
@@ -465,7 +468,7 @@ public class SIARDExportModule implements DatabaseHandler {
 		else if (type instanceof SimpleTypeNumericExact) {
 			SimpleTypeNumericExact numExactType = (SimpleTypeNumericExact) type;
 			StringBuilder sb = new StringBuilder();
-			sb.append("DECIMAL(");
+			sb.append("NUMERIC(");
 			sb.append(numExactType.getPrecision());
 			if (numExactType.getScale() > 0) {
 				sb.append(numExactType.getScale());
@@ -477,7 +480,7 @@ public class SIARDExportModule implements DatabaseHandler {
 					(SimpleTypeNumericApproximate) type;
 			StringBuilder sb = new StringBuilder();
 			sb.append("FLOAT");
-			// FLOAT default precision is 1. return only "FLOAT"
+			// FLOAT default precision is 1: returns only "FLOAT"
 			if (numApproxType.getPrecision() > 1) {
 				sb.append("(");
 				sb.append(numApproxType.getPrecision());
@@ -642,8 +645,8 @@ public class SIARDExportModule implements DatabaseHandler {
 					+ "check constraint condition cannot be null");
 		}
 		if (checkConstraint.getDescription() != null) {
-			print("\t\t\t\t\t\t\t<description>" + checkConstraint.getDescription()
-					+ "</description>\n");
+			print("\t\t\t\t\t\t\t<description>" 
+					+ checkConstraint.getDescription() + "</description>\n");
 		}			
 		print("\t\t\t\t\t\t</checkConstraint>\n");				
 	}
