@@ -526,12 +526,13 @@ public class DBMLExportModule implements DatabaseHandler {
 
 	}
 
+	// TODO add support to multiple columns references
 	private void exportForeignKey(ForeignKey fk)
 			throws UnsupportedEncodingException, IOException {
 		print("\t\t\t<fkey id=\"" + encode(fk.getId()) + "\" name=\""
 				+ encode(fk.getName()) + "\" in=\""
 				+ encode(fk.getReferencedTable())
-				+ "\" ref=\"" + encode(fk.getReference().getColumn())
+				+ "\" ref=\"" + encode(fk.getReferences().get(0).getColumn())
 				+ "\"/>\n");
 
 	}

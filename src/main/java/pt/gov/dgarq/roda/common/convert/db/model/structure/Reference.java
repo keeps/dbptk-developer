@@ -17,6 +17,18 @@ public class Reference {
 	 */
 	public Reference() {
 	}
+	
+	/**
+	 * 
+	 * @param column
+	 * 			  the foreign key column (foreign key table)
+	 * @param referenced
+	 * 			  the referenced column (the referenced table column) 
+	 */
+	public Reference(String column, String referenced) {
+		this.column = column;
+		this.referenced = referenced;
+	}
 
 	/**
 	 * @return the column

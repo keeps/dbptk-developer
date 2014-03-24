@@ -40,6 +40,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.DatabaseStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ForeignKey;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.PrimaryKey;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.Reference;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.RoutineStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
@@ -204,7 +205,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 					schemas.add(getSchemaStructure(schemaName));
 				}
 			} else {
-				String schemaName = "schema0";
+				String schemaName = getConnection().getCatalog();
 				schemas.add(getSchemaStructure(schemaName));
 			}
 			dbStructure.setSchemas(schemas);
@@ -574,8 +575,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 * @throws SQLException
 	 * @throws UnknownTypeException
 	 * @throws ClassNotFoundException
+	 * @throws ModuleException 
 	 */
-	// TODO add optional fields
 	protected List<ForeignKey> getForeignKeys(String tableName)
 			throws SQLException, UnknownTypeException, ClassNotFoundException {
 		List<ForeignKey> foreignKeys = new Vector<ForeignKey>();
@@ -583,23 +584,64 @@ public class JDBCImportModule implements DatabaseImportModule {
 		ResultSet rs = getMetadata().getImportedKeys(
 				getDatabaseStructure().getName(), null, tableName);
 		while (rs.next()) {
-			String name = rs.getString(8);
-			String refSchema = rs.getString(2);
-			String refTable = rs.getString(3);
-			String refColumn = rs.getString(4);
-			// FIXME add reference (list of columns)
-			ForeignKey fk = new ForeignKey(tableName + "." + name, name,
-					refTable, refColumn);
+			List<Reference> references = new ArrayList<Reference>();
+			boolean found = false;
+			Reference reference = new Reference(rs.getString("FKCOLUMN_NAME"), 
+					rs.getString("PKCOLUMN_NAME"));
 			
-			// TODO refactor: specific to mysql
-			if (refSchema != null) {
-				fk.setReferencedSchema(refSchema);
-			} else {
-				fk.setReferencedSchema("schema0");
+			String fkeyName = rs.getString("FK_NAME");
+			if (fkeyName == null) {
+				fkeyName = "FK_" + rs.getString("FKCOLUMN_NAME");
 			}
-			foreignKeys.add(fk);
+			
+			for (ForeignKey key : foreignKeys) {
+				if (key.getName().equals(fkeyName)) {
+					references = key.getReferences();
+					references.add(reference);
+					key.setReferences(references);
+					found = true;
+					break;
+				}
+			}
+			
+			if (!found) {
+				ForeignKey fkey = new ForeignKey();
+				fkey.setId(tableName + "." + rs.getString("FKCOLUMN_NAME"));
+				fkey.setName(fkeyName);
+				fkey.setReferencedSchema(
+						getReferencedSchema(rs.getString("PKTABLE_SCHEM")));
+				fkey.setReferencedTable(rs.getString("PKTABLE_NAME"));
+				references.add(reference);
+				fkey.setReferences(references);
+				// TODO add: fkey.setMatchType(??);
+				fkey.setUpdateAction(getUpdateRule(rs.getShort("UPDATE_RULE")));
+				fkey.setDeleteAction(getDeleteRule(rs.getShort("DELETE_RULE")));
+				foreignKeys.add(fkey);
+			}
 		}
 		return foreignKeys;
+	}
+	
+	protected String getReferencedSchema(String s) 
+			throws SQLException, ClassNotFoundException {	
+		return s;
+	}
+	
+	protected String getUpdateRule(Short value) {
+		String rule = null;
+		switch(value) {
+			case 0: rule = "NO ACTION"; break;
+			case 1: rule = "CASCADE"; break;
+			case 2: rule = "SET NULL"; break;
+			case 3: rule = "SET DEFAULT"; break;
+			case 4: rule = "RESTRICT"; break;
+			default: rule = "SET DEFAULT"; break;
+		}
+		return rule;
+	}
+	
+	protected String getDeleteRule(Short value) {
+		return getUpdateRule(value);
 	}
 	
 	protected List<CandidateKey> getCandidateKeys(
@@ -612,23 +654,21 @@ public class JDBCImportModule implements DatabaseImportModule {
 		while (rs.next()) {
 			List<String> columns = new ArrayList<String>();
 			boolean found = false;
-
-			String name = rs.getString(6);
-			String columnName = rs.getString(9);
 			
 			for (CandidateKey key : candidateKeys) {
-				if (key.getName().equals(name)) {
+				if (key.getName().equals(rs.getString(6))) {
 					columns = key.getColumns(); 
-					columns.add(columnName);
+					columns.add(rs.getString(9));
 					key.setColumns(columns);
 					found = true;
+					break;
 				}
 			}
 			
 			if (!found) {
 				CandidateKey candidateKey = new CandidateKey();
-				candidateKey.setName(name);
-				columns.add(columnName);
+				candidateKey.setName(rs.getString(6));
+				columns.add(rs.getString(9));
 				candidateKey.setColumns(columns);
 				candidateKeys.add(candidateKey);
 			}
@@ -750,8 +790,6 @@ public class JDBCImportModule implements DatabaseImportModule {
 			handler.handleStructure(getDatabaseStructure());
 			// logger.debug("DB STRUCTURE: " + getDatabaseStructure().toString());
 			for (SchemaStructure schema: getDatabaseStructure().getSchemas()) {
-				logger.debug("tables of " + schema.getName() 
-						+ schema.getTables().toString());
 				for (TableStructure table : schema.getTables()) {
 					logger.debug("getting data of table " + table.getId());
 					handler.handleDataOpenTable(table.getId());

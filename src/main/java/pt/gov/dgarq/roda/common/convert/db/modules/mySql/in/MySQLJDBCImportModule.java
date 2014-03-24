@@ -3,6 +3,8 @@
  */
 package pt.gov.dgarq.roda.common.convert.db.modules.mySql.in;
 
+import java.sql.SQLException;
+
 import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.in.JDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.MySQLHelper;
 
@@ -11,7 +13,7 @@ import pt.gov.dgarq.roda.common.convert.db.modules.mySql.MySQLHelper;
  * 
  */
 public class MySQLJDBCImportModule extends JDBCImportModule {
-
+	
 	/**
 	 * MySQL JDBC import module constructor
 	 * 
@@ -50,5 +52,10 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 		super("com.mysql.jdbc.Driver", "jdbc:mysql://" + hostname + ":" + port
 				+ "/" + database + "?" + "user=" + username + "&password="
 				+ password, new MySQLHelper());
+	}
+	
+	protected String getReferencedSchema(String s) 
+			throws SQLException, ClassNotFoundException {
+		return (s == null) ? getConnection().getCatalog() : s;
 	}
 }

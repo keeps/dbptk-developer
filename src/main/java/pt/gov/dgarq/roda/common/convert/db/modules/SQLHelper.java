@@ -60,7 +60,6 @@ public class SQLHelper {
 	 * @throws ModuleException 
 	 */
 	public String selectTableSQL(String tableId) throws ModuleException {
-		logger.debug("escape " + escapeTableId(tableId));
 		return "SELECT * FROM " + escapeTableId(tableId);
 	}
 
@@ -233,13 +232,32 @@ public class SQLHelper {
 			throws ModuleException {
 		logger.debug("FKEY reference: " + fkey.getReferencedTable());
 		logger .debug("creating foreign key sql");
-		return "ALTER TABLE " + escapeTableId(table.getId())
-				+ " ADD FOREIGN KEY (" 
-				+ escapeColumnName(fkey.getReference().getColumn())
-				+ ") REFERENCES " 
+		String ret =  "ALTER TABLE " + escapeTableId(table.getId())
+				+ " ADD FOREIGN KEY (";
+		
+				for (int i = 0; i < fkey.getReferences().size(); i++) {
+					if (i > 0) {
+						ret += ", ";
+					}
+					ret += escapeColumnName(
+							fkey.getReferences().get(i).getColumn());
+				}
+				
+				ret += ") REFERENCES " 
 				+ escapeTableName(fkey.getReferencedSchema()) + "." 
-				+ escapeTableName(fkey.getReferencedTable()) + " (" 
-				+ escapeColumnName(fkey.getReference().getColumn()) + ")";
+				+ escapeTableName(fkey.getReferencedTable()) + " (";
+				
+				for (int i = 0; i < fkey.getReferences().size(); i++) {
+					if (i > 0) {
+						ret += ", ";
+					}
+					ret += escapeColumnName(
+							fkey.getReferences().get(i).getColumn()); 
+				}
+				
+				ret += ")";
+				
+			return ret;
 	}
 
 	/**

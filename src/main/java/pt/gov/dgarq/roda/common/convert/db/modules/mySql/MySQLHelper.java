@@ -37,7 +37,7 @@ public class MySQLHelper extends SQLHelper {
 
 	public String createTableSQL(TableStructure table)
 			throws UnknownTypeException, ModuleException {
-		logger.debug("create table mysql");
+		logger.debug("mysq");
 		return super.createTableSQL(table) + " ENGINE=INNODB";
 	}
 
@@ -57,8 +57,8 @@ public class MySQLHelper extends SQLHelper {
 			if (isPkey) {
 				int length = string.getLength().intValue();
 				if (length >= 65535) {
-					logger
-							.warn("Resizing column length to 333 so it can be a primary key");
+					logger.warn("Resizing column length to 333 "
+							+ "so it can be a primary key");
 					length = 333;
 				}
 				ret = "varchar(" + length + ")";

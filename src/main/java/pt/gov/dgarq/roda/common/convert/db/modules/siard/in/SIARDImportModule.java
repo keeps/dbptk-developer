@@ -245,6 +245,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 		private List<String> primaryKeyColumns;
 		private List<ForeignKey> foreignKeys;
 		private ForeignKey foreignKey;
+		private List<Reference> references;
 		private Reference reference;
 		private List<CandidateKey> candidateKeys;
 		private List<String> candidateKeyColumns;
@@ -317,6 +318,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 				foreignKeys = new ArrayList<ForeignKey>();
 			} else if (qName.equalsIgnoreCase("foreignKey")) {
 				foreignKey = new ForeignKey();
+				references = new ArrayList<Reference>();
 			} else if (qName.equalsIgnoreCase("reference")) {
 				reference = new Reference();
 			} else if (qName.equalsIgnoreCase("candidateKeys")) {
@@ -513,7 +515,8 @@ public class SIARDImportModule implements DatabaseImportModule {
 			} else if (tag.equalsIgnoreCase("referenced")) {				
 				reference.setReferenced(trimmedVal);
 			} else if (tag.equalsIgnoreCase("reference")) {
-				foreignKey.setReference(reference);
+				references.add(reference);
+				
 			} else if (tag.equalsIgnoreCase("matchType")) {
 				foreignKey.setMatchType(trimmedVal);
 			} else if (tag.equalsIgnoreCase("deleteAction")) {
@@ -521,6 +524,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 			} else if (tag.equalsIgnoreCase("updateAction")) {
 				foreignKey.setUpdateAction(trimmedVal);
 			} else if (tag.equalsIgnoreCase("foreignKey")) {
+				foreignKey.setReferences(references);
 				foreignKeys.add(foreignKey);
 			} else if (tag.equalsIgnoreCase("foreignKeys")) {
 				table.setForeignKeys(foreignKeys);

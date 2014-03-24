@@ -1,5 +1,8 @@
 package pt.gov.dgarq.roda.common.convert.db.model.structure;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * 
@@ -17,7 +20,7 @@ public class ForeignKey {
 	
 	private String referencedTable;
 	
-	private Reference reference;
+	private List<Reference> references;
 	
 	private String matchType;
 	
@@ -33,6 +36,7 @@ public class ForeignKey {
 	 * 
 	 */
 	public ForeignKey() {
+		
 	}
 
 	/**
@@ -48,7 +52,7 @@ public class ForeignKey {
 		this.referencedTable = refTable;
 		Reference reference = new Reference();
 		reference.setColumn(refCol);
-		this.reference = reference;
+		this.references = new ArrayList<Reference>();
 	}
 
 	/**
@@ -63,13 +67,13 @@ public class ForeignKey {
 	 * @param description
 	 */
 	public ForeignKey(String id, String name, String referencedSchema,
-			String referencedTable, Reference reference, String matchType,
+			String referencedTable, List<Reference> references, String matchType,
 			String deleteAction, String updateAction, String description) {
 		this.id = id;
 		this.name = name;
 		this.referencedSchema = referencedSchema;
 		this.referencedTable = referencedTable;
-		this.reference = reference;
+		this.references = references;
 		this.matchType = matchType;
 		this.deleteAction = deleteAction;
 		this.updateAction = updateAction;
@@ -153,8 +157,8 @@ public class ForeignKey {
 	/**
 	 * @return the reference
 	 */
-	public Reference getReference() {
-		return reference;
+	public List<Reference> getReferences() {
+		return references;
 	}
 
 
@@ -162,8 +166,8 @@ public class ForeignKey {
 	/**
 	 * @param reference the reference to set
 	 */
-	public void setReference(Reference reference) {
-		this.reference = reference;
+	public void setReferences(List<Reference> references) {
+		this.references = references;
 	}
 
 
@@ -246,7 +250,7 @@ public class ForeignKey {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("SIARDForeignKey [name=");
+		builder.append("ForeignKey [name=");
 		builder.append(name);
 		builder.append(", id=");
 		builder.append(id);
@@ -255,7 +259,7 @@ public class ForeignKey {
 		builder.append(", referencedTable=");
 		builder.append(referencedTable);
 		builder.append(", reference=");
-		builder.append(reference);
+		builder.append(references);
 		builder.append(", matchType=");
 		builder.append(matchType);
 		builder.append(", deleteAction=");

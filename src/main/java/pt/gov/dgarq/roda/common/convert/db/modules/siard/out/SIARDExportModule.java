@@ -29,6 +29,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.ForeignKey;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.Parameter;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.PrimaryKey;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.PrivilegeStructure;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.Reference;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.RoleStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.RoutineStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
@@ -559,24 +560,20 @@ public class SIARDExportModule implements DatabaseHandler {
 			throw new ModuleException("Error while exporting foreign key: "
 					+ "referencedSchema cannot be null");
 		}
-		// FIXME foreign key reference: must be a list of references
-//		if (foreignKey.getReference() != null && foreignKey.getReference > 0) {
-//			for (Reference ref : foreignKey.getReference()) {
-//				print("\t\t\t\t\t\t\t<reference>\n");
-//				print("\t\t\t\t\t\t\t\t<column>" + ref.getColumn() 
-//						+ "</column>\n");
-//				print("\t\t\t\t\t\t\t\t<referenced>" + ref.getReferenced() 
-//						+ "</referenced>\n");
-//				print("\t\t\t\t\t\t\t</reference>\n");
-//			}
-//		}
-		// FIXME change this		
+		if (foreignKey.getReferences() != null 
+				&& foreignKey.getReferences().size() > 0) {
+			for (Reference ref : foreignKey.getReferences()) {
 				print("\t\t\t\t\t\t\t<reference>\n");
-				print("\t\t\t\t\t\t\t\t<column>" + "col"
+				print("\t\t\t\t\t\t\t\t<column>" + ref.getColumn() 
 						+ "</column>\n");
-				print("\t\t\t\t\t\t\t\t<referenced>" + "ref" 
+				print("\t\t\t\t\t\t\t\t<referenced>" + ref.getReferenced() 
 						+ "</referenced>\n");
 				print("\t\t\t\t\t\t\t</reference>\n");
+			}
+		} else {
+			throw new ModuleException("Error while exporting foreign key: "
+					+ "reference cannot be null or empty");
+		}
 				
 		if (foreignKey.getMatchType() != null) {
 			print("\t\t\t\t\t\t\t<matchType>" + foreignKey.getMatchType()
