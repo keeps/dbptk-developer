@@ -528,8 +528,6 @@ public class DatabaseStructure {
 		this.privileges = privileges;
 	}
 	
-	
-	// TODO change method definition to lookup a table in a specific schema
 	/**
 	 * Lookup a table structure by its table id
 	 * 

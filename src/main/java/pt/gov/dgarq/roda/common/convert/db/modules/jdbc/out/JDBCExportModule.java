@@ -170,13 +170,16 @@ public class JDBCExportModule implements DatabaseHandler {
 	public void handleStructure(DatabaseStructure structure)
 			throws ModuleException, UnknownTypeException {
 		this.databaseStructure = structure;
-		// XXX what to do with it?
+		// TODO handle creation and drop of DBs
 		createDatabase(structure.getName()); 		
 		int[] batchResult = null;
 		if (getStatement() != null) {
 			try {
 				logger.debug("Handling database structure");
 				for (SchemaStructure schema : structure.getSchemas()) {
+					if (isIgnoredSchema(schema)) {
+						continue;
+					}
 					handleSchemaStructure(schema);				
 				}
 				logger.debug("Executing table creation batch");
@@ -216,8 +219,7 @@ public class JDBCExportModule implements DatabaseHandler {
 			throw new ModuleException(
 					"Error while adding schema SQL to batch", e);
 		}
-		// FIXME override mysql handleSchemaStructure
-		// changeStatement(schema);
+
 		for (TableStructure table : schema.getTables()) {
 			handleTableStructure(table); 
 		}
@@ -245,8 +247,18 @@ public class JDBCExportModule implements DatabaseHandler {
 		}
 	}
 	
+	/**
+	 * @param ignoredSchemas
+	 * 			  ignored schemas name to be added to the list
+	 */
 	public void setIgnoredSchemas(Set<String> ignoredSchemas) {
-		this.ignoredSchemas = ignoredSchemas;
+		/* 
+		 * ignored are added (ignoredSchemas may already been filled with 
+		 * some default schemas to ignore) 
+		 */
+		for (String s : ignoredSchemas) {
+			this.ignoredSchemas.add(s);
+		}
 	}
 	
 	protected boolean isIgnoredSchema(SchemaStructure schema) {
@@ -299,6 +311,7 @@ public class JDBCExportModule implements DatabaseHandler {
 			}
 			batch_index = 0;
 			currentRowInsertStatement = null;
+			currentIsIgnoredSchema = false;
 		}
 	}
 

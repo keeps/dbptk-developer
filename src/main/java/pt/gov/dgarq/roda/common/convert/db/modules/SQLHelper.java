@@ -81,7 +81,7 @@ public class SQLHelper {
 	 * 			  the schema structure
 	 * @return the SQL
 	 */
-	// TODO add authorization 
+	// TODO add authorization to create schema SQL
 	public String createSchemaSQL(SchemaStructure schema) {
 		logger.debug("added schema to batch");
 		return "CREATE SCHEMA " + escapeSchemaName(schema.getName());

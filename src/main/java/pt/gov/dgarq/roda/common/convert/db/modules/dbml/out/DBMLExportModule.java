@@ -274,7 +274,7 @@ public class DBMLExportModule implements DatabaseHandler {
 	 */
 	private void exportStructure(DatabaseStructure structure)
 			throws UnknownTypeException, UnsupportedEncodingException,
-			IOException {
+			IOException, ModuleException {
 		logger.debug("Exporting structure");
 		print("<db name=\"" + encode(structure.getName()) + "\"");
 
@@ -350,7 +350,7 @@ public class DBMLExportModule implements DatabaseHandler {
 	 */
 	private void exportTableStructure(TableStructure table)
 			throws UnknownTypeException, UnsupportedEncodingException,
-			IOException {
+			IOException, ModuleException {
 		print("\t\t<table id=\"" + encode(table.getId()) + "\" name=\""
 				+ encode(table.getName()) + "\"");
 		if (table.getDescription() != null) {
@@ -526,9 +526,14 @@ public class DBMLExportModule implements DatabaseHandler {
 
 	}
 
-	// TODO add support to multiple columns references
+	/* TODO add support to multiple columns references 
+	(DBML must support it first) */	
 	private void exportForeignKey(ForeignKey fk)
-			throws UnsupportedEncodingException, IOException {
+			throws UnsupportedEncodingException, IOException, ModuleException {
+		if (fk.getReferences().size() > 1) {
+			throw new ModuleException(
+					"DBML does not support  composite foreign keys yet.");
+		}
 		print("\t\t\t<fkey id=\"" + encode(fk.getId()) + "\" name=\""
 				+ encode(fk.getName()) + "\" in=\""
 				+ encode(fk.getReferencedTable())

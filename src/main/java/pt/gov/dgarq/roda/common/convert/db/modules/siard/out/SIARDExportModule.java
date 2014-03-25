@@ -47,7 +47,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumeri
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeString;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.DatabaseHandler;
-import pt.gov.dgarq.roda.util.XmlEncodeUtility;
+import pt.gov.dgarq.roda.common.convert.db.modules.siard.SIARDHelper;
 
 /**
  * 
@@ -463,8 +463,13 @@ public class SIARDExportModule implements DatabaseHandler {
 			throws ModuleException, IOException, UnknownTypeException {
 		// TODO return correct types
 		if (type instanceof SimpleTypeString) {
+			String ret = null;
 			SimpleTypeString stringType = (SimpleTypeString) type;
-			return "CHARACTER VARYING(" + stringType.getLength() + ")";
+			if (stringType.getLength() > 255) {
+				ret = "TEXT";
+			} else 
+			ret = "CHARACTER VARYING(" + stringType.getLength() + ")";
+			return ret;
 		}
 		else if (type instanceof SimpleTypeNumericExact) {
 			SimpleTypeNumericExact numExactType = (SimpleTypeNumericExact) type;
@@ -772,7 +777,6 @@ public class SIARDExportModule implements DatabaseHandler {
 								+ "routine parameters: "
 								+ "parameter mode cannot be null");
 					}
-					// FIXME change 'type' type from String to Type
 					if (param.getType() != null) {
 						print("\t\t\t\t\t\t<type>" + exportType(param.getType()) 
 								+ "</type>\n");
@@ -787,8 +791,8 @@ public class SIARDExportModule implements DatabaseHandler {
 								+ "</typeOriginal>\n");
 					}
 					if (param.getDescription() != null) {
-						print("\t\t\t\t\t\t<description>" + param.getDescription()
-								+ "</description>\n");
+						print("\t\t\t\t\t\t<description>" 
+								+ param.getDescription() + "</description>\n");
 					}
 				}
 				print("\t\t\t\t\t</parameters>\n");
@@ -864,7 +868,8 @@ public class SIARDExportModule implements DatabaseHandler {
 			print("\t\t\t<option>" + privilege.getOption() + "</option>\n");
 		} 
 		if (privilege.getDescription() != null) {
-			print("\t\t\t<description>" + privilege.getDescription() + "</description>\n");
+			print("\t\t\t<description>" + privilege.getDescription() 
+					+ "</description>\n");
 		} 		
 		print("\t\t</privilege>\n");
 	}
@@ -893,13 +898,14 @@ public class SIARDExportModule implements DatabaseHandler {
 	}
 	
 	
-	// FIXME add support to other cell types
+	// TODO add support to other cell types
 	private void exportCellData(Cell cell) throws IOException {
 		//print("\t\t\t");
 		if (cell instanceof SimpleCell) {
 			SimpleCell simple = (SimpleCell) cell;
 			if (simple.getSimpledata() != null) {
-				print(encode(simple.getSimpledata()));
+				// print(encode(simple.getSimpledata()));
+				print(SIARDHelper.encode(simple.getSimpledata()));
 			} else {
 				print("");
 			}
@@ -924,9 +930,5 @@ public class SIARDExportModule implements DatabaseHandler {
 	
 	private void print(String s) throws IOException {
 		zipOut.write(s.getBytes());
-	}
-	
-	private String encode(String s) {
-		return s != null ? XmlEncodeUtility.encode(s) : null;
 	}
 }

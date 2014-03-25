@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
+import java.util.TreeMap;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
@@ -24,7 +26,9 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import pt.gov.dgarq.roda.common.convert.db.model.data.BinaryCell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
+import pt.gov.dgarq.roda.common.convert.db.model.data.FileItem;
 import pt.gov.dgarq.roda.common.convert.db.model.data.Row;
 import pt.gov.dgarq.roda.common.convert.db.model.data.SimpleCell;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.InvalidDataException;
@@ -55,6 +59,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeString
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.DatabaseHandler;
 import pt.gov.dgarq.roda.common.convert.db.modules.DatabaseImportModule;
+import pt.gov.dgarq.roda.common.convert.db.modules.siard.SIARDHelper;
 
 /**
  * 
@@ -205,6 +210,9 @@ public class SIARDImportModule implements DatabaseImportModule {
 			}
 			setHeader();
 			saxParser.parse(header, siardHeaderSAXHandler);
+			if (siardHeaderSAXHandler.getErrors().size() > 0) {
+				throw new ModuleException(siardHeaderSAXHandler.getErrors());
+			}
 			header.close();
 			
 			dbStructure = siardHeaderSAXHandler.getDatabaseStructure();
@@ -213,6 +221,10 @@ public class SIARDImportModule implements DatabaseImportModule {
 					setCurrentInputStream(schema, table);
 					siardContentSAXHandler.setCurrentTable(table);
 					saxParser.parse(currentInputStream, siardContentSAXHandler);
+					if (siardContentSAXHandler.getErrors().size() > 0) {
+						throw new ModuleException(
+								siardHeaderSAXHandler.getErrors());
+					}
 					currentInputStream.close();
 				}
 			}
@@ -229,6 +241,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 	public class SIARDHeaderSAXHandler extends DefaultHandler {
 		
 		private DatabaseHandler handler;
+		private Map<String, Throwable> errors;
 		
 		private final Stack<String> tagsStack = new Stack<String>();
 		private final StringBuilder tempVal = new StringBuilder();
@@ -271,6 +284,11 @@ public class SIARDImportModule implements DatabaseImportModule {
 		
 		public SIARDHeaderSAXHandler(DatabaseHandler handler) {
 			this.handler = handler;
+			this.errors = new TreeMap<String, Throwable>();
+		}
+		
+		public Map<String, Throwable> getErrors() {
+			return errors;
 		}
 		
 		public void startDocument() {
@@ -297,8 +315,11 @@ public class SIARDImportModule implements DatabaseImportModule {
 
 			if (qName.equalsIgnoreCase("siardArchive")) {
 				dbStructure = new DatabaseStructure();
-				//dbStructure.setVersion(attr.getValue("version"));
-				// TODO handle siard format version;
+				double version = Double.parseDouble(attr.getValue("version"));
+				if (version > 1.0) {
+					errors.put("SIARD version is not 1.0. "
+							+ "Currently only version 1.0 is supported", null);
+				}				
 			} else if (qName.equalsIgnoreCase("schemas")) {
 				schemas = new ArrayList<SchemaStructure>();
 			} else if (qName.equalsIgnoreCase("schema")) {
@@ -791,6 +812,8 @@ public class SIARDImportModule implements DatabaseImportModule {
 		
 		private DatabaseHandler handler;
 		private TableStructure currentTable;
+		private BinaryCell currentBinaryCell;
+		private Map<String, Throwable> errors;
 		
 		private final Stack<String> tagsStack = new Stack<String>();		
 		private final StringBuilder tempVal = new StringBuilder();
@@ -801,6 +824,11 @@ public class SIARDImportModule implements DatabaseImportModule {
 				
 		public SIARDContentSAXHandler(DatabaseHandler handler) {
 			this.handler = handler;
+			this.errors = new TreeMap<String, Throwable>();
+		}
+		
+		public Map<String, Throwable> getErrors() {
+			return errors;
 		}
 		
 		public void startDocument() throws SAXException {
@@ -824,14 +852,37 @@ public class SIARDImportModule implements DatabaseImportModule {
 					logger.error("An error occurred "
 							+ "while handling data open table", e);
 				}
-			}
-			else if (qName.equalsIgnoreCase("row")) {
+			} else if (qName.equalsIgnoreCase("row")) {
 				row = new Row();
 				cells = new ArrayList<Cell>();
 				for (int i = 0; i < currentTable.getColumns().size(); i++) {
 					cells.add(new SimpleCell(""));
 				}
-			} 
+			} else if (qName.startsWith("c")) {
+				if (attr.getValue("file") != null) {
+					logger.debug("i'm on lob");
+					String fileDir = attr.getValue("file");
+					ZipArchiveEntry lob = zipFile.getEntry(fileDir);
+					if (lob == null) {
+						errors.put("Could not find lob in '" + fileDir + "'", 
+								null);
+					}
+					InputStream stream;
+					FileItem fileItem;
+					try {
+						stream = zipFile.getInputStream(lob);
+						fileItem = 
+								(stream != null) ? new FileItem(stream) : null;
+						currentBinaryCell = new BinaryCell(fileDir, fileItem);
+						
+					}
+					catch (IOException e) {
+						errors.put("", e);					
+					} catch (ModuleException e) {
+						errors.put("", e);
+					}
+				}
+			}
 		}
 
 		public void endElement(String uri, String localName, String qName)
@@ -870,13 +921,24 @@ public class SIARDImportModule implements DatabaseImportModule {
 				// TODO Support other cell types
 				String[] subStrings = tag.split("c");
 				Integer colIndex = Integer.valueOf(subStrings[1]);
+				Type type = 
+						currentTable.getColumns().get(colIndex-1).getType();
+				if (type instanceof SimpleTypeString) {
+					trimmedVal = SIARDHelper.decode(trimmedVal);
+				}
 				
-				SimpleCell simpleCell = new SimpleCell(currentTable.getId() 
-						+ "." 
-						+ currentTable.getColumns().get(colIndex-1).getName()  
-						+ "." + colIndex);
-				simpleCell.setSimpledata(trimmedVal);
-				cells.set(colIndex-1, simpleCell);
+				Cell cell = null;
+				if (currentBinaryCell != null) {
+					cell = (BinaryCell) currentBinaryCell;
+				} else {
+					cell = new SimpleCell(currentTable.getId() 
+							+ "." 
+							+ currentTable.getColumns().get(colIndex-1).getName()  
+							+ "." + colIndex);
+					
+					((SimpleCell) cell).setSimpledata(trimmedVal);
+				}
+				cells.set(colIndex-1, cell);
 			}
 		}
 

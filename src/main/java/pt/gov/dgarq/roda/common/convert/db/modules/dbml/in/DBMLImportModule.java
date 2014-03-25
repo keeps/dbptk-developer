@@ -317,7 +317,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 		 * Get all the errors that occured while parsing the DBML file and
 		 * sending to the database handler
 		 * 
-		 * @return A map of errors, where the key is the erros message and the
+		 * @return A map of errors, where the key is the errors message and the
 		 *         value is the exception or null if there was no exception
 		 */
 		public Map<String, Throwable> getErrors() {
@@ -350,8 +350,8 @@ public class DBMLImportModule implements DatabaseImportModule {
 					createStructure(attr);
 				}
 			} else if (qname.equals("structure")) {
-				// nothing to do
-				// XXX DBML is set to static schema "schema0"
+				// VERIFY DBML default schema
+				// DBML is set to static schema "schema0" by default 
 				List<SchemaStructure> schemas = 
 						new ArrayList<SchemaStructure>();
 				SchemaStructure schema = new SchemaStructure();

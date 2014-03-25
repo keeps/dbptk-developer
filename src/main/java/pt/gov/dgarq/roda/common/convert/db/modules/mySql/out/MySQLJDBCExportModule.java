@@ -6,8 +6,10 @@ package pt.gov.dgarq.roda.common.convert.db.modules.mySql.out;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
@@ -34,6 +36,9 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 	private final String password;
 
 	private final Map<String, Connection> connections;
+	
+	private static final String[] IGNORED_SCHEMAS = 
+			{ "mysql", "performance_schema", "information_schema" };
 
 	/**
 	 * MySQL JDBC export module constructor
@@ -58,7 +63,8 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 		this.username = username;
 		this.password = password;
 		this.connections = new HashMap<String, Connection>();
-
+		super.ignoredSchemas = 
+				new TreeSet<String>(Arrays.asList(IGNORED_SCHEMAS));
 	}
 
 	/**
@@ -85,6 +91,8 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 		this.username = username;
 		this.password = password;
 		this.connections = new HashMap<String, Connection>();
+		super.ignoredSchemas = 
+				new TreeSet<String>(Arrays.asList(IGNORED_SCHEMAS));
 	}
 
 	/**
@@ -123,4 +131,6 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 		}
 		return connection;
 	}
+	
+	
 }

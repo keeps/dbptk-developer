@@ -12,7 +12,7 @@ public class ColumnStructure {
 
 	private String name;
 	
-	private String folder; //XXX only SIARD
+	private String folder; // TODO folder must be ascii chars only (LOB)
 
 	private Type type;
 	

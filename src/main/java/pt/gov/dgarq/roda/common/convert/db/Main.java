@@ -49,7 +49,7 @@ public class Main {
 	public static final String NAME = "db-preservation-toolkit";
 
 	private static final Logger logger = Logger.getLogger(Main.class);
-	
+		
 	
 	/**
 	 * @param args
@@ -58,7 +58,7 @@ public class Main {
 	public static void main(String... args) {
 		List<String> importModuleArgs = new Vector<String>();
 		List<String> exportModuleArgs = new Vector<String>();
-		
+				
 		boolean parsingImportModule = false;
 		boolean parsingExportModule = false;
 

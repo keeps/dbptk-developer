@@ -199,7 +199,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			// schemas
 			List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
 			
-			// TODO refactor: mysql must override this
+			// TODO mysql must override this
 			if (getMetadata().supportsSchemasInDataManipulation()) {
 				logger.debug("supports schemas table manipulation: YES");
 				ResultSet rs = getMetadata().getSchemas();	
@@ -213,8 +213,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 			}
 			dbStructure.setSchemas(schemas);
 			
-			// TODO get users			
 			// users
+			// TODO get users			
 			List<UserStructure> users = getUsers();
 			dbStructure.setUsers(users);
 			
@@ -264,37 +264,18 @@ public class JDBCImportModule implements DatabaseImportModule {
 		}
 		schema.setViews(views);
 		
-		// routines		
+		// routines	
+		// TODO add optional fields to routine
 		List<RoutineStructure> routines = new ArrayList<RoutineStructure>();
 		rset = getMetadata().getProcedures(
 				dbStructure.getName(), schema.getName(), "%");
 		while (rset.next()) {
 			String routineName = rset.getString(3);
-			// logger.debug("routine: " + routineName);
 			routines.add(getRoutineStructure(routineName));
 		}
 		schema.setRoutines(routines);
 
 		return schema;
-	}
-	
-	protected List<UserStructure> getUsers() 
-			throws SQLException, ClassNotFoundException {
-		List<UserStructure> users = new ArrayList<UserStructure>();
-		users.add(new UserStructure("UNDETERMINED_USER", "NO_DESCRIPTION"));
-		return users;
-	}
-
-	protected List<RoleStructure> getRoles() {
-		List<RoleStructure> roles = new ArrayList<RoleStructure>();
-		// no roles
-		return roles;
-	}
-	
-	protected List<PrivilegeStructure> getPrivileges() {
-		List<PrivilegeStructure> privileges = new ArrayList<PrivilegeStructure>();
-		// no privileges
-		return privileges;
 	}
 	
 	/**
@@ -316,9 +297,83 @@ public class JDBCImportModule implements DatabaseImportModule {
 		table.setFolder(tableName);
 		table.setSchema(schema);
 
+		table.setColumns(getColumns(schema.getName(), tableName));		
+		table.setPrimaryKey(getPrimaryKey(schema.getName(), tableName));
+		table.setForeignKeys(getForeignKeys(schema.getName(), tableName));
+		table.setCandidateKeys(getCandidateKeys(schema.getName(), tableName));
+		table.setCheckConstraints(getCheckConstraints());
+		// TODO add checkConstraints, etc
+		
+		return table;
+	}
+	
+	protected ViewStructure getViewStructure(String schemaName, 
+			String viewName) throws SQLException, ClassNotFoundException, 
+			UnknownTypeException {
+		ViewStructure view = new ViewStructure();
+		view.setName(viewName);
+		view.setColumns(getColumns(schemaName, viewName));
+		return view;
+	}	
+
+	protected RoutineStructure getRoutineStructure(String routineName) {
+		RoutineStructure routine = new RoutineStructure();
+		routine.setName(routineName);
+		// TODO complete option routine fields
+		return routine;
+	}
+	
+	/**
+	 * Create the column structure
+	 * 
+	 * @param tableName
+	 *            the name of the table which the column belongs to
+	 * @param columnName
+	 *            the name of the column
+	 * @param type
+	 *            the type of the column
+	 * @param nillable
+	 *            is the column nillable
+	 * @param index
+	 *            the column index
+	 * @param description
+	 *            the column description
+	 * @return the column structure
+	 */
+	protected ColumnStructure getColumnStructure(String tableName,
+			String columnName, Type type, Boolean nillable, int index,
+			String description) {
+		ColumnStructure column = new ColumnStructure(tableName + "."
+				+ columnName, columnName, type, nillable, description);	
+		return column;
+	}
+	
+	protected List<UserStructure> getUsers() 
+			throws SQLException, ClassNotFoundException {
+		List<UserStructure> users = new ArrayList<UserStructure>();
+		users.add(new UserStructure("UNDETERMINED_USER", "NO_DESCRIPTION"));
+		return users;
+	}
+
+	protected List<RoleStructure> getRoles() {
+		List<RoleStructure> roles = new ArrayList<RoleStructure>();
+		// no roles
+		return roles;
+	}
+	
+	protected List<PrivilegeStructure> getPrivileges() {
+		List<PrivilegeStructure> privileges = new ArrayList<PrivilegeStructure>();
+		// no privileges
+		return privileges;
+	}
+	
+	protected List<ColumnStructure> getColumns(
+			String schemaName, String tableName) 
+			throws SQLException, ClassNotFoundException, UnknownTypeException {
+		
 		List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
 		ResultSet rs = getMetadata().getColumns(dbStructure.getName(), 
-				schema.getName(), tableName, "%");
+				schemaName, tableName, "%");
 //		logger.debug(tableName
 //						+ "Structure: "
 //						+ "Column Name, Nullable, Data Type, Type Name, "
@@ -353,92 +408,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 			columns.add(column);
 		}
-		table.setColumns(columns);
-
-		// TODO verify tableName vs tableId
-		table.setPrimaryKey(getPrimaryKey(schema.getName(), tableName));
-		table.setForeignKeys(getForeignKeys(schema.getName(), tableName));
-		table.setCandidateKeys(getCandidateKeys(schema.getName(), tableName));
-		table.setCheckConstraints(getCheckConstraints());
-		// TODO add checkConstraints, etc
-		
-		return table;
-	}
-	
-	
-	protected ViewStructure getViewStructure(String schemaName, 
-			String viewName) throws SQLException, ClassNotFoundException, 
-			UnknownTypeException {
-		ViewStructure view = new ViewStructure();
-		view.setName(viewName);
-		
-		List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
-		ResultSet rs = getMetadata().getColumns(dbStructure.getName(), 
-				schemaName, viewName, "%");
-
-		while (rs.next()) {
-			String columnName = rs.getString(4);
-			String isNullable = rs.getString(18);
-			int dataType = rs.getInt(5);
-			String typeName = rs.getString(6);
-			int columnSize = rs.getInt(7);
-			int decimalDigits = rs.getInt(9);
-			int numPrecRadix = rs.getInt(10);
-			int index = rs.getInt(17);
-			String remarks = rs.getString(12);
-
-//			logger.debug(tableName + "Column: " + columnName + ", "
-//					+ isNullable + ", " + dataType + ", " + typeName + ", "
-//					+ columnSize + ", " + decimalDigits + ", " + numPrecRadix
-//					+ ", " + index + ", " + remarks);
-
-			Boolean nillable = Boolean.TRUE;
-			if (isNullable != null && isNullable.equals("NO")) {
-				nillable = Boolean.FALSE;
-			}
-
-			Type columnType = getType(dataType, typeName, columnSize,
-					decimalDigits, numPrecRadix);
-
-			ColumnStructure column = getColumnStructure(viewName, columnName,
-					columnType, nillable, index, remarks);
-
-			columns.add(column);
-		}
-		view.setColumns(columns);
-		return view;
-	}	
-
-	protected RoutineStructure getRoutineStructure(String routineName) {
-		RoutineStructure routine = new RoutineStructure();
-		routine.setName(routineName);
-		// TODO complete option routine fields
-		return routine;
-	}
-	
-	/**
-	 * Create the column structure
-	 * 
-	 * @param tableName
-	 *            the name of the table which the column belongs to
-	 * @param columnName
-	 *            the name of the column
-	 * @param type
-	 *            the type of the column
-	 * @param nillable
-	 *            is the column nillable
-	 * @param index
-	 *            the column index
-	 * @param description
-	 *            the column description
-	 * @return the column structure
-	 */
-	protected ColumnStructure getColumnStructure(String tableName,
-			String columnName, Type type, Boolean nillable, int index,
-			String description) {
-		ColumnStructure column = new ColumnStructure(tableName + "."
-				+ columnName, columnName, type, nillable, description);	
-		return column;
+		return columns;
 	}
 
 	/**
@@ -579,9 +549,6 @@ public class JDBCImportModule implements DatabaseImportModule {
 				getDatabaseStructure().getName(), schemaName, tableName);
 		
 		while (rs.next()) {
-			logger.debug("schema: " + rs.getString(2));
-			logger.debug("table: " + rs.getString(3));
-			logger.debug("col: " + rs.getString(6));
 			pkName = rs.getString(6);
 			pkColumns.add(rs.getString(4));
 		}
@@ -753,7 +720,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			cell = new SimpleCell(id, rawData.getBoolean(columnName) ? "true"
 					: "false");
 		} else if (cellType instanceof SimpleTypeDateTime) {
-			// XXX verify if it's fixed
+			// VERIFY jdbc import DateTime
 			SimpleTypeDateTime undefinedDate = (SimpleTypeDateTime) cellType;
 			if (undefinedDate.getTimeDefined() 
 					&& !undefinedDate.getTimeZoneDefined()) {
@@ -802,7 +769,6 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 	protected ResultSet getTableRawData(String tableId) throws SQLException,
 			ClassNotFoundException, ModuleException {
-		logger.debug(sqlHelper.selectTableSQL(tableId));
 		ResultSet set = getStatement().executeQuery(
 				sqlHelper.selectTableSQL(tableId));
 		set.setFetchSize(ROW_FETCH_BLOCK_SIZE);
@@ -822,12 +788,11 @@ public class JDBCImportModule implements DatabaseImportModule {
 			handler.setIgnoredSchemas(getIgnoredSchemas());
 			logger.debug("getting database structure");
 			handler.handleStructure(getDatabaseStructure());
-			logger.debug("DB STRUCTURE: " + getDatabaseStructure().toString());
+			//logger.debug("db struct: " + getDatabaseStructure().toString());
 			for (SchemaStructure schema: getDatabaseStructure().getSchemas()) {
 				for (TableStructure table : schema.getTables()) {
 					logger.debug("getting data of table " + table.getId());
 					handler.handleDataOpenTable(table.getId());
-					logger.debug("table id: " + table.getId());
 					ResultSet tableRawData = getTableRawData(table.getId());
 					int nRows = 0;
 					while (tableRawData.next()) {
