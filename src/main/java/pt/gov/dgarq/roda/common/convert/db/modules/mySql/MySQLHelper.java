@@ -99,6 +99,10 @@ public class MySQLHelper extends SQLHelper {
 		}
 		return ret;
 	}
+	
+	public String getUsers() {
+		return "SELECT * FROM `mysql`.`user`";
+	}
 
 	protected String escapeComment(String description) {
 		return description.replaceAll("'", "''");

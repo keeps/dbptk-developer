@@ -373,5 +373,9 @@ public class SQLHelper {
 					+ "tableId is malformed");
 		}
 		return parts;	
+	}
+
+	public String getUsers() {
+		return null;
 	}	
 }

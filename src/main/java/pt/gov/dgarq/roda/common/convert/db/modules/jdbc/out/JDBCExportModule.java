@@ -213,7 +213,8 @@ public class JDBCExportModule implements DatabaseHandler {
 			getStatement().executeBatch();
 			logger.debug("batch executed: " + schema.getName());
 		} catch (SQLException e) {
-			throw new ModuleException("Error while adding schema SQL to batch", e);
+			throw new ModuleException(
+					"Error while adding schema SQL to batch", e);
 		}
 		// FIXME override mysql handleSchemaStructure
 		// changeStatement(schema);

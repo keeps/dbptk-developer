@@ -3,8 +3,12 @@
  */
 package pt.gov.dgarq.roda.common.convert.db.modules.mySql.in;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
+import pt.gov.dgarq.roda.common.convert.db.model.structure.UserStructure;
 import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.in.JDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.MySQLHelper;
 
@@ -13,7 +17,7 @@ import pt.gov.dgarq.roda.common.convert.db.modules.mySql.MySQLHelper;
  * 
  */
 public class MySQLJDBCImportModule extends JDBCImportModule {
-	
+		
 	/**
 	 * MySQL JDBC import module constructor
 	 * 
@@ -57,5 +61,18 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 	protected String getReferencedSchema(String s) 
 			throws SQLException, ClassNotFoundException {
 		return (s == null) ? getConnection().getCatalog() : s;
+	}
+	
+	protected List<UserStructure> getUsers() 
+			throws  SQLException, ClassNotFoundException {
+		List<UserStructure> users = new ArrayList<UserStructure>();
+		ResultSet rs = getStatement().executeQuery(sqlHelper.getUsers());
+		while (rs.next()) {
+			UserStructure user = new UserStructure(
+					rs.getString(2) + "@" + rs.getString(1), null);
+			users.add(user);
+		}
+		
+		return users;
 	}
 }
