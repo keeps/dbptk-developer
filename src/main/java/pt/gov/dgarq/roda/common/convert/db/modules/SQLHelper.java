@@ -8,8 +8,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
 import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.Row;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.InvalidDataException;
@@ -37,7 +35,8 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
  * 
  */
 public class SQLHelper {
-	private Logger logger = Logger.getLogger(SQLHelper.class);
+	
+	//private Logger logger = Logger.getLogger(SQLHelper.class);
 
 	private String startQuote = "";
 	
@@ -83,7 +82,6 @@ public class SQLHelper {
 	 */
 	// TODO add authorization to create schema SQL
 	public String createSchemaSQL(SchemaStructure schema) {
-		logger.debug("added schema to batch");
 		return "CREATE SCHEMA " + escapeSchemaName(schema.getName());
 	}
 	
@@ -97,7 +95,6 @@ public class SQLHelper {
 	 */
 	public String createTableSQL(TableStructure table)
 			throws UnknownTypeException, ModuleException {	
-		logger.debug("TABLE escape id " + escapeTableId(table.getId()));
 		return "CREATE TABLE " + escapeTableId(table.getId()) + " ("
 				+ createColumnsSQL(table.getColumns(), table.getPrimaryKey(),
 						table.getForeignKeys()) + ")";
@@ -230,8 +227,6 @@ public class SQLHelper {
 	 */
 	public String createForeignKeySQL(TableStructure table, ForeignKey fkey) 
 			throws ModuleException {
-		logger.debug("FKEY reference: " + fkey.getReferencedTable());
-		logger .debug("creating foreign key sql");
 		String ret =  "ALTER TABLE " + escapeTableId(table.getId())
 				+ " ADD FOREIGN KEY (";
 		

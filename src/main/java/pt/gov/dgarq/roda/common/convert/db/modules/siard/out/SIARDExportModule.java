@@ -3,9 +3,11 @@ package pt.gov.dgarq.roda.common.convert.db.modules.siard.out;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
@@ -15,6 +17,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
 import pt.gov.dgarq.roda.common.convert.db.Main;
+import pt.gov.dgarq.roda.common.convert.db.model.data.BinaryCell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.Row;
 import pt.gov.dgarq.roda.common.convert.db.model.data.SimpleCell;
@@ -67,6 +70,12 @@ public class SIARDExportModule implements DatabaseHandler {
 				
 	private DatabaseStructure dbStructure; 
 	
+	private TableStructure currentTable; 
+	
+	private int currentRow; 
+	
+	private Set<Object[]> BLOBsToExport;
+	
 	/**
 	 * 
 	 * @param siardPackage
@@ -74,7 +83,11 @@ public class SIARDExportModule implements DatabaseHandler {
 	 */
 	public SIARDExportModule(File siardPackage) 
 		throws FileNotFoundException {
-			
+		dbStructure = null;
+		currentTable = null;
+		currentRow = 0;
+		BLOBsToExport = new TreeSet<Object[]>();
+		
 		try {
 			this.zipOut = new ZipArchiveOutputStream(siardPackage);
 			zipOut.setUseZip64(Zip64Mode.Always);
@@ -106,15 +119,16 @@ public class SIARDExportModule implements DatabaseHandler {
 					"Database structure handling was not performed");
 		}
 		
-		TableStructure table = dbStructure.lookupTableStructure(tableId);
-		if (table == null) {
+		currentTable = dbStructure.lookupTableStructure(tableId);
+		if (currentTable == null) {
 			throw new ModuleException(
 					"Couldn't find table with id: " + tableId);
 		}
 		
 		ArchiveEntry archiveEntry = new ZipArchiveEntry("content/" 
-				+ table.getSchema().getFolder() + "/" + table.getFolder() 
-				+ "/" + table.getFolder() + ".xml");
+				+ currentTable.getSchema().getFolder() + "/" 
+				+ currentTable.getFolder() 
+				+ "/" + currentTable.getFolder() + ".xml");
 		
 		try {
 			zipOut.putArchiveEntry(archiveEntry);
@@ -130,11 +144,19 @@ public class SIARDExportModule implements DatabaseHandler {
 		try {
 			exportDataCloseTable();
 			zipOut.closeArchiveEntry();
+			for (Object[] obj : BLOBsToExport) {
+				Cell cell = (Cell) obj[0];
+				int colIndex = (Integer) obj[1];
+				int cellIndex = (Integer) obj[2];
+				
+				exportBLOB(cell, colIndex, cellIndex);
+			}
 		} catch (IOException e) {
 			throw new ModuleException("Error closing table " + tableId, e);
-		}		
+		}	
+		currentTable = null;
+		currentRow = 0;
 	}
-
 
 	@Override
 	public void handleDataRow(Row row) throws InvalidDataException,
@@ -144,11 +166,13 @@ public class SIARDExportModule implements DatabaseHandler {
 		} catch (IOException e) {
 			throw new ModuleException(
 					"Error exporting row " + row.getIndex(), e);
-		}		
+		}
+		currentRow++;
 	}
 
 	@Override
 	public void finishDatabase() throws ModuleException {
+		// SIARD only exports database structure after inserting data
 		ArchiveEntry metaXML = new ZipArchiveEntry("header/metadata.xml");
 		try {
 			zipOut.putArchiveEntry(metaXML);
@@ -163,6 +187,7 @@ public class SIARDExportModule implements DatabaseHandler {
 					+ "structure to SIARD package", e);
 		}
 		
+		// copies SIARD schema to archive as "metadata.xsd"
 		ArchiveEntry metaXSD = new ZipArchiveEntry("header/metadata.xsd");
 		try {
 			zipOut.putArchiveEntry(metaXSD);
@@ -428,7 +453,8 @@ public class SIARDExportModule implements DatabaseHandler {
 					+ "column name cannot be null");
 		}
 		if (column.getFolder() != null) {
-			print("\t\t\t\t\t\t\t<folder>" + column.getFolder() + "</folder>\n");
+			print("\t\t\t\t\t\t\t<folder>" 
+					+ column.getFolder() + "</folder>\n");
 		}
 		if (column.getType() != null) {
 			print("\t\t\t\t\t\t\t<type>" + exportType(column.getType()) 
@@ -876,32 +902,39 @@ public class SIARDExportModule implements DatabaseHandler {
 
 	private void exportDataOpenTable() throws IOException {
 		print("<?xml version=\"1.0\" encoding=\"" + ENCODING + "\"?>\n");
-		print("<?xml-stylesheet type=\"text/xsl\" href=\"metadata.xsl\"?>");
+		print("<?xml-stylesheet type=\"text/xsl\" href=\"metadata.xsl\"?>\n");
 		// TODO complete xml header
-		print("<table xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n");		
+		print("<table xmlns:xsi="
+				+ "\"http://www.w3.org/2001/XMLSchema-instance\">\n");		
 	}
 	
 	private void exportDataCloseTable() throws IOException {
 		print("</table>");
 	}
 	
-	private void exportRowData(Row row) throws IOException {
+	private void exportRowData(Row row) throws IOException, ModuleException {
 		print("<row>");
 		int index = 0;
 		for (Cell cell : row.getCells()) {
 			index++;
-			print("<c" + index + ">");
-			exportCellData(cell);
-			print("</c" + index + ">");
+			if (cell instanceof BinaryCell) {
+				print("<c" + index + " " 
+						+ getBlobHeader(cell, index, currentRow) + "/>");
+				BLOBsToExport.add(new Object[] { cell, index, currentRow });
+			} else {
+				print("<c" + index + ">");
+				exportSimpleCellData(cell);
+				print("</c" + index + ">");
+			}
 		}
 		print("</row>\n");		
 	}
 	
 	
-	// TODO add support to other cell types
-	private void exportCellData(Cell cell) throws IOException {
-		//print("\t\t\t");
+	// TODO add support to composed cell
+	private void exportSimpleCellData(Cell cell) throws IOException {
 		if (cell instanceof SimpleCell) {
+			//print("\t\t\t");
 			SimpleCell simple = (SimpleCell) cell;
 			if (simple.getSimpledata() != null) {
 				// print(encode(simple.getSimpledata()));
@@ -911,6 +944,29 @@ public class SIARDExportModule implements DatabaseHandler {
 			}
 		}
 		//print("\n");
+	}
+	
+	private void exportBLOB(Cell cell, int colIndex, int cellIndex) 
+			throws IOException, ModuleException {
+		ArchiveEntry binaryFile = new ZipArchiveEntry(
+				getPathBinaryFile(colIndex, cellIndex));
+		
+		zipOut.putArchiveEntry(binaryFile);
+		InputStream inputStream = ((BinaryCell) cell).getInputstream();
+		zipOut.write(IOUtils.toByteArray(inputStream));
+		zipOut.closeArchiveEntry();
+	}
+	
+	private String getPathBinaryFile(int colIndex, int cellIndex) {
+		return "content/" + currentTable.getSchema().getFolder() 
+				+ "/" + currentTable.getFolder() + "/" 
+				+ currentTable.getColumns().get(colIndex-1).getFolder() 
+				+ "/record" + cellIndex + ".bin";
+	}
+	
+	private String getBlobHeader(Cell cell, int colIndex, int cellIndex) {
+		return "file=\"" + getPathBinaryFile(colIndex, cellIndex) 
+				+ "\" length=\"" + ((BinaryCell) cell).getLength() + "\"" ;
 	}
 
 	/**

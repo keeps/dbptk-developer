@@ -389,7 +389,6 @@ public class JDBCImportModule implements DatabaseImportModule {
 			int numPrecRadix = rs.getInt(10);
 			int index = rs.getInt(17);
 			String remarks = rs.getString(12);
-
 //			logger.debug(tableName + "Column: " + columnName + ", "
 //					+ isNullable + ", " + dataType + ", " + typeName + ", "
 //					+ columnSize + ", " + decimalDigits + ", " + numPrecRadix
@@ -404,7 +403,11 @@ public class JDBCImportModule implements DatabaseImportModule {
 					decimalDigits, numPrecRadix);
 
 			ColumnStructure column = getColumnStructure(tableName, columnName,
-					columnType, nillable, index, remarks);
+					columnType, nillable, index, remarks);	
+			
+			if (columnType instanceof SimpleTypeBinary) {
+				column.setFolder("lob" + index);
+			}
 
 			columns.add(column);
 		}
@@ -788,7 +791,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			handler.setIgnoredSchemas(getIgnoredSchemas());
 			logger.debug("getting database structure");
 			handler.handleStructure(getDatabaseStructure());
-			//logger.debug("db struct: " + getDatabaseStructure().toString());
+			// logger.debug("db struct: " + getDatabaseStructure().toString());
 			for (SchemaStructure schema: getDatabaseStructure().getSchemas()) {
 				for (TableStructure table : schema.getTables()) {
 					logger.debug("getting data of table " + table.getId());

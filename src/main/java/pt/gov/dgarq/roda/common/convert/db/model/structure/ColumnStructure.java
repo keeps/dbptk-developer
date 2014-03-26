@@ -169,6 +169,8 @@ public class ColumnStructure {
 		builder.append(id);
 		builder.append(", name=");
 		builder.append(name);
+		builder.append(", folder=");
+		builder.append(folder);
 		builder.append(", type=");
 		builder.append(type.getClass().toString());
 		builder.append(", defaultValue=");

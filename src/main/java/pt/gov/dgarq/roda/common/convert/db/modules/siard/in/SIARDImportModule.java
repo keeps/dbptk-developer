@@ -860,7 +860,6 @@ public class SIARDImportModule implements DatabaseImportModule {
 				}
 			} else if (qName.startsWith("c")) {
 				if (attr.getValue("file") != null) {
-					logger.debug("i'm on lob");
 					String fileDir = attr.getValue("file");
 					ZipArchiveEntry lob = zipFile.getEntry(fileDir);
 					if (lob == null) {
@@ -877,9 +876,11 @@ public class SIARDImportModule implements DatabaseImportModule {
 						
 					}
 					catch (IOException e) {
-						errors.put("", e);					
-					} catch (ModuleException e) {
-						errors.put("", e);
+						errors.put("Failed to get InputStream of "
+								+ "ZipArchiveEntry", e);					
+					} 
+					catch (ModuleException e) {
+						errors.put("Failed to create new FileItem", e);
 					}
 				}
 			}

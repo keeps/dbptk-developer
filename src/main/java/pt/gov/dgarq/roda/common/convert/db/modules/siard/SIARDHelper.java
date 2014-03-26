@@ -1,7 +1,6 @@
 package pt.gov.dgarq.roda.common.convert.db.modules.siard;
 
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.log4j.Logger;
 
 /**
  * 
@@ -11,7 +10,7 @@ import org.apache.log4j.Logger;
 
 public class SIARDHelper {
 	
-	private static final Logger logger = Logger.getLogger(SIARDHelper.class);
+	// private static final Logger logger = Logger.getLogger(SIARDHelper.class);
 	
 	// TODO complete encode/decode methods
 	public static final String encode(String text) {
