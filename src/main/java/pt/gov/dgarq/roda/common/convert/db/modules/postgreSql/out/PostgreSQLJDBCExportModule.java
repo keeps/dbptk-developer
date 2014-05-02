@@ -1,10 +1,20 @@
 package pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.out;
 
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.sql.Types;
+import java.util.Calendar;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.w3c.util.InvalidDateException;
 
+import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeDateTime;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.out.JDBCExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.PostgreSQLHelper;
 
@@ -95,5 +105,104 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 					"Error granting permissions to public", e);
 		}
 		super.handleDataCloseTable(tableId);
+	}
+
+//	protected void handleSimpleTypeDateTimeDataCell(String data,
+//			PreparedStatement ps, int index, Cell cell, Type type) 
+//					throws InvalidDateException, SQLException {
+//		SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
+//		if (dateTime.getTimeDefined()) {
+//			if (StringUtils.startsWithIgnoreCase(type.getOriginalTypeName(),
+//					"TIMESTAMP")) {
+//				if (data != null) {
+//					logger.debug("set timestamp");
+//					
+//					SimpleDateFormat sdf = new SimpleDateFormat(
+//							"yyyy-MM-dd hh:mm:ss");
+//					java.util.Date date;
+//					Timestamp sqlTimestamp = null;
+//					try {
+//						date = sdf.parse(data);
+//						logger.debug("timestamp: " + date.getTime());
+//						sqlTimestamp = new java.sql.Timestamp(date.getTime());
+//					} catch (ParseException e) {
+//						// TODO Auto-generated catch block
+//						e.printStackTrace();
+//					}
+//					// Timestamp sqlTimestamp = Timestamp.valueOf(formatted);
+//					ps.setTimestamp(index, sqlTimestamp);
+//				} else {
+//					ps.setNull(index, Types.TIMESTAMP);
+//				}
+//			} else {
+//				if (data != null) {
+//					logger.debug("set TIME");
+//					Time sqlTime = Time.valueOf(data);
+//					ps.setTime(index, sqlTime);
+//				} else {
+//					ps.setNull(index, Types.TIME);
+//				}
+//			}
+//		} else {
+//			// Date date = DateParser.parse(data);
+//			// java.sql.Date sqlDate = new java.sql.Date(date.getTime());
+//			if (data != null) {
+//				logger.debug("set DATE");
+//				java.sql.Date sqlDate = java.sql.Date.valueOf(data);
+//				ps.setDate(index, sqlDate);
+//			} else {
+//				ps.setNull(index, Types.DATE);
+//			}
+//		}
+//	}
+	
+	protected void handleSimpleTypeDateTimeDataCell(String data,
+			PreparedStatement ps, int index, Cell cell, Type type) 
+					throws InvalidDateException, SQLException {
+		SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
+		if (dateTime.getTimeDefined()) {
+			if (StringUtils.startsWithIgnoreCase(type.getOriginalTypeName(),
+					"TIMESTAMP") || StringUtils.startsWithIgnoreCase(
+							type.getOriginalTypeName(), "DATETIME")) {
+				if (data != null) {
+					Calendar cal = javax.xml.bind.DatatypeConverter.
+							parseDateTime(data);
+					Timestamp sqlTimestamp = 
+							new Timestamp(cal.getTimeInMillis());
+					ps.setTimestamp(index, sqlTimestamp);
+				} else {
+					ps.setNull(index, Types.TIMESTAMP);
+				}
+			} else {
+				if (data != null) {
+					Time sqlTime = Time.valueOf(data);
+					ps.setTime(index, sqlTime);
+				} else {
+					ps.setNull(index, Types.TIME);
+				}
+			}
+		} else {
+			if (data != null) {
+				java.sql.Date sqlDate = java.sql.Date.valueOf(data);
+				ps.setDate(index, sqlDate);
+			} else {
+				ps.setNull(index, Types.DATE);
+			}
+		}
+	}
+	
+	protected void handleSimpleTypeNumericApproximateDataCell(String data,
+			PreparedStatement ps, int index, Cell cell, Type type) 
+					throws NumberFormatException, SQLException {
+		if (data != null) {
+			logger.debug("set approx: " + data);
+			if (type.getOriginalTypeName().equalsIgnoreCase("float4")) {
+				ps.setFloat(index, Float.valueOf(data));
+			} else {
+				ps.setDouble(index, Double.valueOf(data));
+			}
+		} else {
+			ps.setNull(index, Types.FLOAT);
+		}		
 	}
 }

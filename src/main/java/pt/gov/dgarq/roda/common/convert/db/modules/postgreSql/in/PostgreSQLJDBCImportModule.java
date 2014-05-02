@@ -3,9 +3,19 @@
  */
 package pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.in;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
+import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
+import pt.gov.dgarq.roda.common.convert.db.model.data.SimpleCell;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeDateTime;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumericApproximate;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumericExact;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.in.JDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.PostgreSQLHelper;
 
@@ -35,6 +45,10 @@ import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.PostgreSQLHelper;
  * 
  */
 public class PostgreSQLJDBCImportModule extends JDBCImportModule {
+	
+	private final Logger logger = 
+			Logger.getLogger(PostgreSQLJDBCImportModule.class);
+ 
 
 	/**
 	 * Create a new PostgreSQL JDBC import module
@@ -82,6 +96,10 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 				new PostgreSQLHelper());
 	}
 	
+	
+	/**
+	 * Schemas that won't be exported
+	 */
 	public Set<String> getIgnoredSchemas() {
 		Set<String> ignoredSchemas = new HashSet<String>();
 		ignoredSchemas.add("information_schema");
@@ -89,4 +107,85 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 		
 		return ignoredSchemas;
 	}
+	
+	protected Type getNumericType(String typeName, int columnSize, 
+			int decimalDigits, int numPrecRadix) {
+		if (columnSize > 131000) {
+			logger.info("Numeric or decimal column with no "
+					+ "precision or scale specified");
+			logger.info("Lowering precision to 28 with scale 10");
+			columnSize = 28;
+			decimalDigits = 10;
+		}
+		return new SimpleTypeNumericExact(
+				Integer.valueOf(columnSize), Integer.valueOf(decimalDigits));
+	}
+	
+	protected Type getDecimalType(String typeName, int columnSize, 
+			int decimalDigits, int numPrecRadix) {
+		if (columnSize > 131000) {
+			logger.warn("Numeric or decimal column with no defined "
+					+ "precision or scale");
+			logger.warn("Lowering precision to 28 and scale to 10");
+			columnSize = 28;
+			decimalDigits = 10;
+		}
+		return new SimpleTypeNumericExact(
+				Integer.valueOf(columnSize), Integer.valueOf(decimalDigits));
+	}
+	
+	protected Type getDoubleType(String typeName, int columnSize, 
+			int decimalDigits, int numPrecRadix) {
+		if (typeName.equalsIgnoreCase("MONEY") 
+				|| typeName.equalsIgnoreCase("FLOAT8")) {
+			columnSize = 53;
+		}
+		return new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
+	}
+	
+	protected Type getTimestampType(String typeName, int columnSize, 
+			int decimalDigits, int numPrecRadix) {
+		if (typeName.equalsIgnoreCase("TIMESTAMPTZ")) {
+			return new SimpleTypeDateTime(Boolean.TRUE, Boolean.TRUE);
+		} else {
+			return new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+		}
+	}
+	
+	protected Type getTimeType(String typeName, int columnSize, 
+			int decimalDigits, int numPrecRadix) {
+		if (typeName.equalsIgnoreCase("TIMETZ")) {
+			return new SimpleTypeDateTime(Boolean.TRUE, Boolean.TRUE);
+		} else {
+			return new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+		}
+	}
+		
+	protected Cell rawToCellSimpleTypeNumericApproximate(String id, 
+			String columnName, Type cellType, ResultSet rawData) 
+					throws SQLException {
+		Cell cell = null;
+		if (cellType.getOriginalTypeName().equalsIgnoreCase("MONEY")) {
+			String data = rawData.getString(columnName);
+			String parts[] = data.split(" ");
+			if (parts[1] != null) {
+				logger.info("Money currency lost: " + parts[1]);
+			}
+			cell = new SimpleCell(id, parts[0]);
+		}
+		else {
+			String value;
+			if (cellType.getOriginalTypeName().equalsIgnoreCase("float4")) {
+				Float f = rawData.getFloat(columnName);
+				value = f.toString();
+			} else {
+				Double d = rawData.getDouble(columnName);
+				value = d.toString();
+			}
+			logger.debug("VALUE: " + value);
+			cell = new SimpleCell(id, value);
+		}
+		return cell;
+	}
+	
 }

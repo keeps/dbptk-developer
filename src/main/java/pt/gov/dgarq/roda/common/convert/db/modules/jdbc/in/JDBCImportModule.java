@@ -13,6 +13,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Time;
+import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -46,6 +47,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.RoleStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.RoutineStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.Trigger;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.UserStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ViewStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeArray;
@@ -180,13 +182,13 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 *             the original data type is unknown
 	 * @throws ClassNotFoundException
 	 */
-	protected DatabaseStructure getDatabaseStructure() throws SQLException,
-			UnknownTypeException, ClassNotFoundException {
+	protected DatabaseStructure getDatabaseStructure() 
+			throws SQLException, UnknownTypeException, ClassNotFoundException {
 		if (dbStructure == null) {
 			logger.debug("Importing structure");
 			dbStructure = new DatabaseStructure();
 
-			dbStructure.setName(getConnection().getCatalog());
+			dbStructure.setName(getDbName());
 			dbStructure.setProductName(getMetadata().getDatabaseProductName());
 			dbStructure.setProductVersion(getMetadata()
 					.getDatabaseProductVersion());
@@ -195,87 +197,106 @@ public class JDBCImportModule implements DatabaseImportModule {
 					new Integer(DEFAULT_DATA_TIMESPAN).toString());
 			dbStructure.setProducerApplication(
 					Main.APP_NAME);
-						
-			// schemas
-			List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
-			
-			// TODO mysql must override this
-			if (getMetadata().supportsSchemasInDataManipulation()) {
-				logger.debug("supports schemas table manipulation: YES");
-				ResultSet rs = getMetadata().getSchemas();	
-				while (rs.next()) {
-					String schemaName = rs.getString(1);
-					schemas.add(getSchemaStructure(schemaName));
-				}
-			} else {
-				String schemaName = getConnection().getCatalog();
-				schemas.add(getSchemaStructure(schemaName));
-			}
-			dbStructure.setSchemas(schemas);
-			
-			// users
-			// TODO get users			
-			List<UserStructure> users = getUsers();
-			dbStructure.setUsers(users);
-			
-			// roles
-			List<RoleStructure> roles = getRoles();
-			dbStructure.setRoles(roles);
-			
-			// privileges
-			List<PrivilegeStructure> privileges = getPrivileges();
-			dbStructure.setPrivileges(privileges);
+		
+			dbStructure.setSchemas(getSchemas());			
+			dbStructure.setUsers(getUsers());			
+			dbStructure.setRoles(getRoles());
+			dbStructure.setPrivileges(getPrivileges());
 			
 			logger.debug("Finishing get dbStructure");
 		}	
 		return dbStructure;
+	}
+	
+	protected String getDbName() throws SQLException, ClassNotFoundException {
+		return getConnection().getCatalog();
+	}
+	
+	protected List<SchemaStructure> getSchemas() 
+			throws SQLException, ClassNotFoundException, UnknownTypeException {		
+		List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
+		
+		ResultSet rs = getMetadata().getSchemas();	
+		while (rs.next()) {
+			String schemaName = rs.getString(1);
+			schemas.add(getSchemaStructure(schemaName));
+		}
+		return schemas;
 	}
 
 	/**
 	 * 
 	 * @param schemaName
 	 * @return
+	 * @throws ModuleException 
 	 */
 	protected SchemaStructure getSchemaStructure(String schemaName) 
-			throws SQLException, UnknownTypeException, 
-			ClassNotFoundException {
-		
+			throws SQLException, UnknownTypeException, ClassNotFoundException {
 		SchemaStructure schema = new SchemaStructure();
 		schema.setName(schemaName);
 		schema.setFolder(schemaName);
-		
-		// tables
-		List<TableStructure> tables = new ArrayList<TableStructure>();
-		ResultSet rset = getMetadata().getTables(dbStructure.getName(),
-				schemaName, "%", new String[] { "TABLE" });
-		while (rset.next()) {
-			String tableName = rset.getString(3);
-			tables.add(getTableStructure(schema, tableName));
-		}
-		schema.setTables(tables);
 
-		// views
+		schema.setTables(getTables(schema));
+		schema.setViews(getViews(schemaName));
+		schema.setRoutines(getRoutines(schemaName));
+		
+		return schema;
+	}
+	
+	protected List<TableStructure> getTables(SchemaStructure schema) 
+			throws SQLException, ClassNotFoundException, UnknownTypeException {
+		List<TableStructure> tables = new ArrayList<TableStructure>();
+		
+		ResultSet rset = getMetadata().getTables(dbStructure.getName(),
+				schema.getName(), "%", new String[] { "TABLE" });
+		while (rset.next()) {
+			tables.add(getTableStructure(schema, rset.getString(3)));
+		}
+		return tables;
+	}
+	
+	protected List<ViewStructure> getViews(String schemaName) 
+			throws SQLException, ClassNotFoundException, UnknownTypeException {
+		logger.debug("VIEW");
+		logger.debug("schemaName: " + schemaName);
 		List<ViewStructure> views = new ArrayList<ViewStructure>();
-		rset = getMetadata().getTables(dbStructure.getName(), schemaName, 
-				"%", new String[] { "VIEW" });
+		ResultSet rset = getMetadata().getTables(dbStructure.getName(), 
+				schemaName, "%", new String[] { "VIEW" });
 		while (rset.next()) {
 			String viewName = rset.getString(3);
-			views.add(getViewStructure(schemaName, viewName));
+			logger.debug("View name: " + viewName);
+			ViewStructure view = new ViewStructure();
+			view.setName(viewName);
+			view.setColumns(getColumns(schemaName, viewName));
+			views.add(view);
 		}
-		schema.setViews(views);
-		
-		// routines	
+		logger.debug("END VIEWS");
+		return views;
+	}
+	
+	protected List<RoutineStructure> getRoutines(String schemaName) 
+			throws SQLException, ClassNotFoundException {
 		// TODO add optional fields to routine
 		List<RoutineStructure> routines = new ArrayList<RoutineStructure>();
-		rset = getMetadata().getProcedures(
-				dbStructure.getName(), schema.getName(), "%");
+		
+		ResultSet rset = getMetadata().getProcedures(
+				dbStructure.getName(), schemaName, "%");
 		while (rset.next()) {
-			String routineName = rset.getString(3);
-			routines.add(getRoutineStructure(routineName));
-		}
-		schema.setRoutines(routines);
-
-		return schema;
+			String routineName = rset.getString(3);			
+			RoutineStructure routine = new RoutineStructure();
+			routine.setName(routineName);			
+			if (rset.getString(7) != null) {
+				routine.setDescription(rset.getString(7));
+			} else {
+				if (rset.getShort(8) == 1) {				
+					routine.setDescription("procedureNoResult");
+				} else if (rset.getShort(8) == 2) {
+					routine.setDescription("procedureReturnsResult");
+				}
+			}
+			routines.add(routine);
+		}		
+		return routines;
 	}
 	
 	/**
@@ -286,10 +307,11 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 * @throws UnknownTypeException
 	 *             the original data type is unknown
 	 * @throws ClassNotFoundException
+	 * @throws ModuleException 
 	 */
 	protected TableStructure getTableStructure(
-			SchemaStructure schema, String tableName) throws SQLException, 
-			UnknownTypeException, ClassNotFoundException {
+			SchemaStructure schema, String tableName) 
+			throws SQLException, UnknownTypeException, ClassNotFoundException {
 
 		TableStructure table = new TableStructure();
 		table.setId(schema.getName() + "." + tableName);
@@ -301,28 +323,13 @@ public class JDBCImportModule implements DatabaseImportModule {
 		table.setPrimaryKey(getPrimaryKey(schema.getName(), tableName));
 		table.setForeignKeys(getForeignKeys(schema.getName(), tableName));
 		table.setCandidateKeys(getCandidateKeys(schema.getName(), tableName));
-		table.setCheckConstraints(getCheckConstraints());
-		// TODO add checkConstraints, etc
+		table.setCheckConstraints(
+				getCheckConstraints(schema.getName(), tableName));
+		table.setTriggers(getTriggers(schema.getName(), tableName));
 		
 		return table;
 	}
-	
-	protected ViewStructure getViewStructure(String schemaName, 
-			String viewName) throws SQLException, ClassNotFoundException, 
-			UnknownTypeException {
-		ViewStructure view = new ViewStructure();
-		view.setName(viewName);
-		view.setColumns(getColumns(schemaName, viewName));
-		return view;
-	}	
-
-	protected RoutineStructure getRoutineStructure(String routineName) {
-		RoutineStructure routine = new RoutineStructure();
-		routine.setName(routineName);
-		// TODO complete option routine fields
-		return routine;
-	}
-	
+		
 	/**
 	 * Create the column structure
 	 * 
@@ -351,19 +358,67 @@ public class JDBCImportModule implements DatabaseImportModule {
 	protected List<UserStructure> getUsers() 
 			throws SQLException, ClassNotFoundException {
 		List<UserStructure> users = new ArrayList<UserStructure>();
-		users.add(new UserStructure("UNDETERMINED_USER", "NO_DESCRIPTION"));
+		String query = sqlHelper.getUsersSQL();
+		if (query != null) {
+			ResultSet rs = getStatement().executeQuery(query);
+			while (rs.next()) {
+				UserStructure user = new UserStructure();
+				user.setName(rs.getString(1));
+				users.add(user);
+			}
+		} else {
+			// TODO implement getUsers for all modules
+			users.add(new UserStructure("UNDEFINED_USER", "DESCRIPTION"));
+			// logger.info("Users were not imported: not supported yet on " 
+			//		+ getClass().getName());
+		}
 		return users;
 	}
 
-	protected List<RoleStructure> getRoles() {
+	// TODO complete roles
+	protected List<RoleStructure> getRoles() 
+			throws SQLException, ClassNotFoundException {
 		List<RoleStructure> roles = new ArrayList<RoleStructure>();
-		// no roles
+		String query = sqlHelper.getRolesSQL();
+		if (query != null) {
+			ResultSet rs = getStatement().executeQuery(query);
+			while(rs.next()) {
+				RoleStructure role = new RoleStructure();
+				role.setName(rs.getString(1));
+				roles.add(role);
+			}
+		}
+		else {
+			logger.info("Roles were not imported: not supported yet on " 
+					+ getClass().getName());
+		}
 		return roles;
 	}
 	
-	protected List<PrivilegeStructure> getPrivileges() {
-		List<PrivilegeStructure> privileges = new ArrayList<PrivilegeStructure>();
-		// no privileges
+	// TODO add optional fields
+	// TODO add sql query more modules
+	protected List<PrivilegeStructure> getPrivileges() 
+			throws SQLException, ClassNotFoundException {
+		List<PrivilegeStructure> privileges = 
+				new ArrayList<PrivilegeStructure>();
+		
+		String query =  sqlHelper.getPrivilegesSQL();
+		if (query != null) {
+			ResultSet rs = getStatement().executeQuery(query);
+			ResultSetMetaData rsmd = rs.getMetaData();
+			while (rs.next()) {
+				PrivilegeStructure privilege = new PrivilegeStructure();
+				privilege.setType(rs.getString(1));			
+				privilege.setGrantee(rs.getString(2));
+				privilege.setGrantor(
+						(rsmd.getColumnCount() > 2) ? rs.getString(3) 
+								: "unknown grantor");
+				privileges.add(privilege);
+			}
+		} else {
+			logger.info("Privileges were not imported: not supported yet on " 
+					+ getClass().getName());
+		}
 		return privileges;
 	}
 	
@@ -371,6 +426,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			String schemaName, String tableName) 
 			throws SQLException, ClassNotFoundException, UnknownTypeException {
 		
+		logger.debug("id: " + schemaName + "." + tableName);
 		List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
 		ResultSet rs = getMetadata().getColumns(dbStructure.getName(), 
 				schemaName, tableName, "%");
@@ -398,16 +454,13 @@ public class JDBCImportModule implements DatabaseImportModule {
 			if (isNullable != null && isNullable.equals("NO")) {
 				nillable = Boolean.FALSE;
 			}
-
+			
+			logger.debug("(" + tableName + ") " + "col name: " + columnName);
 			Type columnType = getType(dataType, typeName, columnSize,
 					decimalDigits, numPrecRadix);
 
 			ColumnStructure column = getColumnStructure(tableName, columnName,
 					columnType, nillable, index, remarks);	
-			
-			if (columnType instanceof SimpleTypeBinary) {
-				column.setFolder("lob" + index);
-			}
 
 			columns.add(column);
 		}
@@ -428,25 +481,36 @@ public class JDBCImportModule implements DatabaseImportModule {
 	protected Type getType(int dataType, String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) throws UnknownTypeException {
 		Type type;
+		logger.debug("datatype: " + dataType);
+		logger.debug("typeName: " + typeName);
+		logger.debug("col size: " + columnSize);
+		logger.debug("decimal digits: " + decimalDigits);
+		logger.debug("-----\n");
 		switch (dataType) {
 		case Types.BIGINT:
 			type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
 					Integer.valueOf(decimalDigits));
 			break;
 		case Types.BINARY:
-			type = new SimpleTypeBinary();
+			type = new SimpleTypeBinary(Integer.valueOf(columnSize));
 			break;
 		case Types.BIT:
-			type = new SimpleTypeBoolean();
+			type = (columnSize > 1) 
+				? new SimpleTypeBinary(Integer.valueOf(columnSize)) 
+					: new SimpleTypeBoolean();
 			break;
 		case Types.BLOB:
-			type = new SimpleTypeBinary();
+			type = new SimpleTypeBinary(Integer.valueOf(columnSize));
 			break;
 		case Types.BOOLEAN:
 			type = new SimpleTypeBoolean();
 			break;
 		case Types.CHAR:
 			type = new SimpleTypeString(Integer.valueOf(columnSize),
+					Boolean.FALSE);
+			break;
+		case Types.NCHAR:
+			type = new SimpleTypeString(Integer.valueOf(columnSize), 
 					Boolean.FALSE);
 			break;
 		case Types.CLOB:
@@ -457,52 +521,66 @@ public class JDBCImportModule implements DatabaseImportModule {
 			type = new SimpleTypeDateTime(Boolean.FALSE, Boolean.FALSE);
 			break;
 		case Types.DECIMAL:
-			type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
-					Integer.valueOf(decimalDigits));
+			type = getDecimalType(typeName, columnSize, decimalDigits, 
+					numPrecRadix);
 			break;
 		case Types.DOUBLE:
-			type = new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
+			type = getDoubleType(typeName, columnSize, decimalDigits, 
+					numPrecRadix);
 			break;
 		case Types.FLOAT:
-			type = new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
+			type = new SimpleTypeNumericApproximate(
+					Integer.valueOf(columnSize));
 			break;
 		case Types.INTEGER:
 			type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
 					Integer.valueOf(decimalDigits));
 			break;
 		case Types.LONGVARBINARY:
-			type = new SimpleTypeBinary();
+			type = getLongvarbinaryType(typeName, columnSize, decimalDigits, 
+					numPrecRadix);
 			break;
 		case Types.LONGVARCHAR:
 			type = new SimpleTypeString(Integer.valueOf(columnSize),
 					Boolean.TRUE);
 			break;
+		case Types.LONGNVARCHAR:
+			type = new SimpleTypeString(Integer.valueOf(columnSize),
+					Boolean.TRUE);
+			break;
 		case Types.NUMERIC:
-			type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
-					Integer.valueOf(decimalDigits));
+			type = getNumericType(typeName, columnSize, decimalDigits, 
+					numPrecRadix);
 			break;
 		case Types.REAL:
-			type = new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
+			type = new SimpleTypeNumericApproximate(
+					Integer.valueOf(columnSize));
 			break;
 		case Types.SMALLINT:
 			type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
 					Integer.valueOf(decimalDigits));
 			break;
 		case Types.TIME:
-			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+			type = getTimeType(
+					typeName, columnSize, decimalDigits, numPrecRadix);
 			break;
 		case Types.TIMESTAMP:
-			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+			type = getTimestampType(typeName, columnSize, decimalDigits, 
+					numPrecRadix);
 			break;
 		case Types.TINYINT:
 			type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
 					Integer.valueOf(decimalDigits));
 			break;
 		case Types.VARBINARY:
-			type = new SimpleTypeBinary();
+			type = new SimpleTypeBinary(Integer.valueOf(columnSize));
 			break;
 		case Types.VARCHAR:
 			type = new SimpleTypeString(Integer.valueOf(columnSize),
+					Boolean.TRUE);
+			break;
+		case Types.NVARCHAR:
+			type = new SimpleTypeString(Integer.valueOf(columnSize), 
 					Boolean.TRUE);
 			break;
 		case Types.ARRAY:
@@ -514,15 +592,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 			throw new UnknownTypeException("Struct type not yet supported");
 		
 		case Types.OTHER:
-			if (typeName.equalsIgnoreCase("XML")) {
-				// type = new SimpleTypeXML();
-				type = new SimpleTypeString(Integer.valueOf(columnSize),
-						Boolean.TRUE);
-			}
-			else {
-				throw new UnknownTypeException("Unsuported JDBC type, code: "
-						+ dataType);
-			}
+			logger.debug("OTHER");
+			type = getOtherTypes(dataType, typeName, columnSize);
 			break;
 			
 		default:
@@ -532,6 +603,47 @@ public class JDBCImportModule implements DatabaseImportModule {
 		type.setOriginalTypeName(typeName);
 		return type;
 	}
+	
+	protected Type getDecimalType(String typeName, int columnSize, 
+			int decimalDigits, int numPrecRadix) {
+		return new SimpleTypeNumericExact(Integer.valueOf(columnSize),
+				Integer.valueOf(decimalDigits));
+	}
+	
+	protected Type getNumericType(String typeName, int columnSize, 
+			int decimalDigits, int numPrecRadix) {
+		return new SimpleTypeNumericExact(
+				Integer.valueOf(columnSize), Integer.valueOf(decimalDigits));
+	}
+	
+	protected Type getDoubleType(String typeName, int columnSize, 
+			int decimalDigits, int numPrecRadix) {
+		return new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
+	}
+	
+	protected Type getLongvarbinaryType(String typeName, int columnSize,
+			int decimalDigits, int numPrecRadix) {
+		return new SimpleTypeBinary(Integer.valueOf(columnSize));
+	}
+	
+	protected Type getTimestampType(String typeName, int columnSize, 
+			int decimalDigits, int numPrecRadix) {
+		return new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+	}
+	
+	protected Type getTimeType(String typeName, int columnSize,
+			int decimalDigits, int numPrecRadix) {
+		return new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+	}
+	
+	// TODO override (support more data types)
+	protected Type getOtherTypes(int dataType, String typeName, int columnSize)
+			throws UnknownTypeException {
+		
+		throw new UnknownTypeException("Unsuported JDBC type, code: "
+				+ dataType);
+	}
+	
 
 	/**
 	 * Get the table primary key
@@ -542,6 +654,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 * @throws SQLException
 	 * @throws UnknownTypeException
 	 * @throws ClassNotFoundException
+	 * @throws ModuleException 
 	 */
 	protected PrimaryKey getPrimaryKey(String schemaName, String tableName) 
 			throws SQLException, UnknownTypeException, ClassNotFoundException {
@@ -580,8 +693,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 * @throws ModuleException 
 	 */
 	protected List<ForeignKey> getForeignKeys(
-			String schemaName, String tableName) throws SQLException, 
-					UnknownTypeException, ClassNotFoundException {
+			String schemaName, String tableName) 
+			throws SQLException, UnknownTypeException, ClassNotFoundException {
 		
 		List<ForeignKey> foreignKeys = new Vector<ForeignKey>();
 		
@@ -631,6 +744,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return s;
 	}
 	
+	// VERIFY update & delete rules
 	protected String getUpdateRule(Short value) {
 		String rule = null;
 		switch(value) {
@@ -653,7 +767,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 		List<CandidateKey> candidateKeys = new ArrayList<CandidateKey>();
 		
 		ResultSet rs = getMetadata().getIndexInfo(dbStructure.getName(),
-				schemaName, tableName, true, false);
+				schemaName, tableName, true, true);
 		while (rs.next()) {
 			List<String> columns = new ArrayList<String>();
 			boolean found = false;
@@ -669,21 +783,75 @@ public class JDBCImportModule implements DatabaseImportModule {
 			}
 			
 			if (!found) {
-				CandidateKey candidateKey = new CandidateKey();
-				candidateKey.setName(rs.getString(6));
-				columns.add(rs.getString(9));
-				candidateKey.setColumns(columns);
-				candidateKeys.add(candidateKey);
+				if (rs.getString(6) != null) {
+					CandidateKey candidateKey = new CandidateKey();
+					candidateKey.setName(rs.getString(6));
+					columns.add(rs.getString(9));
+					candidateKey.setColumns(columns);
+					candidateKeys.add(candidateKey);
+				}
 			}
 		}
 		return candidateKeys;		
 	}
 
 	// TODO complete getCheckConstraints
-	protected List<CheckConstraint> getCheckConstraints() {
+	protected List<CheckConstraint> getCheckConstraints(String schemaName, 
+			String tableName) throws ClassNotFoundException {
 		List<CheckConstraint> checkConstraints = 
 				new ArrayList<CheckConstraint>();
+		
+		String query = sqlHelper.getCheckConstraintsSQL(schemaName, tableName);
+		if (query != null) {
+			try {
+				ResultSet rs = getStatement().executeQuery(sqlHelper.
+						getCheckConstraintsSQL(schemaName, tableName));
+				while (rs.next()) {
+					CheckConstraint checkConst = new CheckConstraint();
+					checkConst.setName(rs.getString(1));
+//					checkConst.setCondition((rs.getString(2) != null) 
+//							? rs.getString(2) : "UNKNOWN");
+//					checkConst.setDescription(rs.getString(3));
+				}
+			} catch (SQLException e) {
+				logger.info("Check constraints were not imported for " 
+						+ schemaName + "." + tableName);
+			}
+		} else {
+			logger.info(
+					"Check constraints were not imported: not supported yet on "
+							+ getClass().getName());
+		}
 		return checkConstraints;
+	}
+	
+	protected List<Trigger> getTriggers(String schemaName, String tableName) 
+			throws ClassNotFoundException {
+		List<Trigger> triggers = new ArrayList<Trigger>();
+		
+		String query = sqlHelper.getTriggersSQL(schemaName, tableName);
+		if (query != null) {
+			try { 
+				ResultSet rs = getStatement().executeQuery(
+						sqlHelper.getTriggersSQL(schemaName, tableName));		
+				
+				while (rs.next()) {
+					Trigger trigger = new Trigger();
+					trigger.setName(rs.getString(1));
+					trigger.setActionTime(rs.getString(2));
+					trigger.setTriggerEvent(rs.getString(3));
+					trigger.setTriggeredAction(rs.getString(4));
+					triggers.add(trigger);
+				}
+			} catch (SQLException e) {
+				logger.info("No triggers imported for " + schemaName 
+						+ "." + tableName);
+			}
+		} else {
+			logger.info("Triggers were not imported: not supported yet on "
+					+ getClass().getName());
+		}
+		return triggers;
 	}
 	
 	protected Row convertRawToRow(ResultSet rawData,
@@ -722,37 +890,73 @@ public class JDBCImportModule implements DatabaseImportModule {
 		} else if (cellType instanceof SimpleTypeBoolean) {
 			cell = new SimpleCell(id, rawData.getBoolean(columnName) ? "true"
 					: "false");
+		} else if (cellType instanceof SimpleTypeNumericApproximate) {
+			cell = rawToCellSimpleTypeNumericApproximate(id, columnName, 
+					cellType, rawData);
 		} else if (cellType instanceof SimpleTypeDateTime) {
-			// VERIFY jdbc import DateTime
-			SimpleTypeDateTime undefinedDate = (SimpleTypeDateTime) cellType;
-			if (undefinedDate.getTimeDefined() 
-					&& !undefinedDate.getTimeZoneDefined()) {
-				Time time = rawData.getTime(columnName);
-				String isoDate = DateParser.getIsoDate(time);
-				cell = new SimpleCell(id, isoDate);
-			} else {
-				Date date = rawData.getDate(columnName);
-				if (date != null) {
-					String isoDate = DateParser.getIsoDate(date);
-					cell = new SimpleCell(id, isoDate);
-				} else {
-					cell = new SimpleCell(id, null);
-				}
-			}
+			cell = rawToCellSimpleTypeDateTime(
+					id, columnName, cellType, rawData);
 		} else if (cellType instanceof SimpleTypeBinary) {
+			logger.debug("simple type binary TOP @ " + columnName);
 			InputStream binaryStream = rawData.getBinaryStream(columnName);
-			FileItem fileItem = new FileItem(binaryStream);
-			FileFormat fileFormat = FormatUtility.getFileFormat(fileItem
-					.getFile());
-			List<FileFormat> formats = new ArrayList<FileFormat>();
-			formats.add(fileFormat);
-			cell = new BinaryCell(id, fileItem, formats);
+			if (binaryStream != null) {
+				logger.debug("binaryStrem: " + columnName);
+				FileItem fileItem = new FileItem(binaryStream);
+				FileFormat fileFormat = FormatUtility.getFileFormat(fileItem
+						.getFile());
+				List<FileFormat> formats = new ArrayList<FileFormat>();
+				formats.add(fileFormat);
+				cell = new BinaryCell(id, fileItem, formats);
+			} else {
+				logger.debug("binaryStrem NULL: " + columnName);
+				cell = new BinaryCell(id);
+			}
 		} else {
 			cell = new SimpleCell(id, rawData.getString(columnName));
 		}
 		return cell;
 	}
-
+	
+	protected Cell rawToCellSimpleTypeNumericApproximate(String id, 
+			String columnName, Type cellType, ResultSet rawData) 
+					throws SQLException {
+		return new SimpleCell(id, rawData.getString(columnName));		
+	}
+		
+	protected Cell rawToCellSimpleTypeDateTime(String id, String columnName, 
+			Type cellType, ResultSet rawData) throws SQLException {
+		Cell cell = null;
+		SimpleTypeDateTime undefinedDate = (SimpleTypeDateTime) cellType;
+		if (undefinedDate.getTimeDefined()) {
+			if (cellType.getOriginalTypeName().equalsIgnoreCase("TIME")
+					|| cellType.getOriginalTypeName().
+						equalsIgnoreCase("TIMETZ")) {
+				Time time = rawData.getTime(columnName);
+				if (time != null) {
+					cell = new SimpleCell(id, time.toString());
+				} else {
+					cell = new SimpleCell(id, null);
+				}
+			} else {
+				Timestamp timestamp = rawData.getTimestamp(columnName);
+				if (timestamp != null) {
+					String isoDate = DateParser.getIsoDate(timestamp);
+					cell = new SimpleCell(id, isoDate);
+				} else {
+					cell = new SimpleCell(id, null);
+				}
+			}
+		} else {
+			Date date = rawData.getDate(columnName);
+			if (date != null) {
+				cell = new SimpleCell(id, date.toString());
+			} else {
+				cell = new SimpleCell(id, null);
+			}
+		}
+		return cell;
+	}
+	
 	protected boolean isRowValid(ResultSet raw, TableStructure structure)
 			throws InvalidDataException, SQLException {
 		boolean ret;

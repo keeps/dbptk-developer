@@ -26,6 +26,7 @@ import pt.gov.dgarq.roda.common.convert.db.modules.mySql.in.MySQLJDBCImportModul
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.out.MySQLJDBCExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.out.PhpMyAdminExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.odbc.in.ODBCImportModule;
+import pt.gov.dgarq.roda.common.convert.db.modules.oracle12c.out.Oracle12cJDBCExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.oracle8i.in.Oracle8iJDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.PostgreSQLHelper;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.in.PostgreSQLJDBCImportModule;
@@ -384,6 +385,18 @@ public class Main {
 			} else {
 				logger.error("Wrong argument number for "
 						+ "SQLServerJDBC import module: "
+						+ exportModuleArgs.size());
+			}
+		} else if (exportModuleArgs.get(0).equals("Oracle12cJDBC")) {
+			if (exportModuleArgs.size() == 6) {
+				exportModule = new Oracle12cJDBCExportModule(
+						exportModuleArgs.get(1), 
+						Integer.valueOf(exportModuleArgs.get(2)).intValue(), 
+						exportModuleArgs.get(3), exportModuleArgs.get(4), 
+						exportModuleArgs.get(5));
+			} else {
+				logger.error("Wrong argument number for "
+						+ "Oracle12cJDBC import module: "
 						+ exportModuleArgs.size());
 			}
 		} else if (exportModuleArgs.get(0).equals("SQLServerFile")) {

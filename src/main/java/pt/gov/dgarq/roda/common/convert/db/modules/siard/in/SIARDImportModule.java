@@ -1,5 +1,6 @@
 package pt.gov.dgarq.roda.common.convert.db.modules.siard.in;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -232,7 +233,8 @@ public class SIARDImportModule implements DatabaseImportModule {
 			handler.finishDatabase();
 			
 		} catch (SAXException e) {
-			throw new ModuleException("Error parsing SIARD", e);
+			throw new ModuleException(
+					"An error occurred while importing SIARD", e);
 		} catch (IOException e) {
 			throw new ModuleException("Error reading SIARD", e);
 		}
@@ -279,9 +281,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 		private RoleStructure role;
 		private List<PrivilegeStructure> privileges;
 		private PrivilegeStructure privilege;
-		
-		// TODO add import of LOBs
-		
+				
 		public SIARDHeaderSAXHandler(DatabaseHandler handler) {
 			this.handler = handler;
 			this.errors = new TreeMap<String, Throwable>();
@@ -295,13 +295,14 @@ public class SIARDImportModule implements DatabaseImportModule {
 			pushTag("");
 		}
 		
-		public void endDocument() {
-			// logger.debug(dbStructure.toString());
+		public void endDocument() throws SAXException {
+			logger.debug(dbStructure.toString());
 			try {
 				handler.handleStructure(dbStructure);
 			} catch (ModuleException e) {
 				logger.error("An error occurred "
 						+ "while handling Database Structure", e);
+				throw new SAXException();
 			} catch (UnknownTypeException e) {
 				logger.error("An error occurred "
 						+ "while handling Database Structure", e);
@@ -673,24 +674,17 @@ public class SIARDImportModule implements DatabaseImportModule {
 			} else if (sqlType.equals("BIT")) {
 				type = new SimpleTypeBoolean();
 			} else if (sqlType.startsWith("BIT")) {
-				// FIXME bit string
 				if (getLength(sqlType) == 1) {
 					type = new SimpleTypeBoolean();
-				} else if (isLengthVariable(sqlType)) {
-					// FIXME simple type bit variable
-					type = new SimpleTypeBinary();
 				} else {
-					// FIXME simple type bit not variable
-					type = new SimpleTypeBinary();
+					type = new SimpleTypeBinary(getLength(sqlType));
 				}
 			} else if (sqlType.startsWith("BINARY LARGE OBJECT")
 					|| sqlType.startsWith("BLOB")) {
-				// FIXME length
 				type = new SimpleTypeBinary();
 			} else if (sqlType.startsWith("CHAR")) {
 				if (isLargeObject(sqlType)) {
-					type = new SimpleTypeString(getLengthLarge(sqlType), 
-							Boolean.TRUE);
+					type = new SimpleTypeString(getCLOBMinimum(), Boolean.TRUE);
 				} else {
 					type = new SimpleTypeString(getLength(sqlType), 
 							isLengthVariable(sqlType));
@@ -700,11 +694,12 @@ public class SIARDImportModule implements DatabaseImportModule {
 						getLength(sqlType), Boolean.TRUE);
 			} else if (sqlType.startsWith("NATIONAL")) {
 				if (isLargeObject(sqlType) || sqlType.startsWith("NCLOB")) {
-					type = new SimpleTypeString(getLengthLarge(sqlType), 
+					type = new SimpleTypeString(getCLOBMinimum(), 
 							Boolean.TRUE, ENCODING);
+				} else {
+					type = new SimpleTypeString(getLength(sqlType), 
+							isLengthVariable(sqlType), ENCODING);
 				}
-				type = new SimpleTypeString(getLength(sqlType), 
-						isLengthVariable(sqlType), ENCODING);
 			} else if (sqlType.equals("BOOLEAN")) {
 				type = new SimpleTypeBoolean();
 			} else if (sqlType.equals("DATE")) {
@@ -720,6 +715,10 @@ public class SIARDImportModule implements DatabaseImportModule {
 			return type;
 		}
 		
+		private int getCLOBMinimum() {
+			return 65535;
+		}
+		
 		private int getLength(String sqlType) {
 			int length = -1;
 			int start = sqlType.indexOf("(");
@@ -733,6 +732,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 			return length;
 		}
 		
+		@SuppressWarnings("unused")
 		private int getLengthLarge(String sqlType) {
 			int length = -1;
 			int multiplier = -1;
@@ -860,6 +860,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 				}
 			} else if (qName.startsWith("c")) {
 				if (attr.getValue("file") != null) {
+					logger.debug("<c> binary " + attr.getValue("file"));
 					String fileDir = attr.getValue("file");
 					ZipArchiveEntry lob = zipFile.getEntry(fileDir);
 					if (lob == null) {
@@ -882,6 +883,8 @@ public class SIARDImportModule implements DatabaseImportModule {
 					catch (ModuleException e) {
 						errors.put("Failed to create new FileItem", e);
 					}
+				} else {
+					currentBinaryCell = null;
 				}
 			}
 		}
@@ -929,20 +932,38 @@ public class SIARDImportModule implements DatabaseImportModule {
 				}
 				
 				Cell cell = null;
+				String id = currentTable.getId() + "." 
+						+ currentTable.getColumns().get(colIndex-1).getName() 
+						+ "." + colIndex;
 				if (currentBinaryCell != null) {
 					cell = (BinaryCell) currentBinaryCell;
+				} else if (type instanceof SimpleTypeBinary) {
+					/* 
+					 * in case: 
+					 *   - binary cell < 2000 bytes (does not have its own file)
+					 *   - binary cell is null
+					 */
+					InputStream is = new ByteArrayInputStream(SIARDHelper.
+							hexStringToByteArray(trimmedVal));
+					try {
+						cell = new BinaryCell(id, new FileItem(is));
+					} catch (ModuleException e) {
+						logger.error("An error occurred while importing "
+								+ "in-table binary celll");
+					}
 				} else {
-					cell = new SimpleCell(currentTable.getId() 
-							+ "." 
-							+ currentTable.getColumns().get(colIndex-1).getName()  
-							+ "." + colIndex);
-					
-					((SimpleCell) cell).setSimpledata(trimmedVal);
+					cell = new SimpleCell(id);
+					if (trimmedVal.length() > 0) {
+						logger.debug("trimmed: " + trimmedVal);
+						((SimpleCell) cell).setSimpledata(trimmedVal);
+					} else {
+						((SimpleCell) cell).setSimpledata(null);
+					}
 				}
 				cells.set(colIndex-1, cell);
 			}
 		}
-
+		
 		public void characters(char buf[], int offset, int len) {
 			tempVal.append(buf, offset, len);
 		}		

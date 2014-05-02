@@ -3,6 +3,8 @@
  */
 package pt.gov.dgarq.roda.common.convert.db.modules.postgreSql;
 
+import com.mysql.jdbc.StringUtils;
+
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBinary;
@@ -61,10 +63,21 @@ public class PostgreSQLHelper extends SQLHelper {
 			SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
 			if (!dateTime.getTimeDefined() && !dateTime.getTimeZoneDefined()) {
 				ret = "date";
-			} else if (dateTime.getTimeZoneDefined()) {
-				ret = "timestamp with time zone";
 			} else {
-				ret = "timestamp without time zone";
+				if (StringUtils.startsWithIgnoreCase(type.getOriginalTypeName(),
+						"TIMESTAMP")) {
+					if (dateTime.getTimeZoneDefined()) {
+						ret = "timestamp with time zone";
+					} else {
+						ret = "timestamp without time zone";
+					}
+				} else {
+					if (dateTime.getTimeDefined()) {
+						ret = "time with time zone";
+					} else {
+						ret = "time without time zone";
+					}
+				}
 			}
 
 		} else if (type instanceof SimpleTypeBinary) {
@@ -73,5 +86,42 @@ public class PostgreSQLHelper extends SQLHelper {
 			ret = super.createTypeSQL(type, isPkey, isFkey);
 		}
 		return ret;
+	}
+
+	
+	public String getCheckConstraintsSQL(String schemaName, String tableName) {
+		return "SELECT tc.constraint_name "
+				+ "FROM information_schema.table_constraints tc "
+				+ "WHERE table_name='" + tableName + "' AND table_schema='"
+				+ schemaName + "' AND constraint_type = 'CHECK'";
+	}
+	
+	public String getCheckConstraintsSQL2(String schemaName, String tableName) {
+		return "SELECT conname FROM pg_catalog.pg_constraint c "
+				+ "LEFT JOIN pg_class t ON c.conrelid = t.oid "
+				+ "LEFT JOIN pg_namespace n ON t.relnamespace = n.oid"
+				+ "WHERE t.relname='" + tableName + "' "
+				+ "AND n.nspname='" + schemaName + "'"; 
+	}
+	
+	public String getTriggersSQL(String schemaName, String tableName) {
+		return "SELECT "
+				+ "trigger_name, action_timing, event_manipulation, "
+				+ "action_statement FROM information_schema.triggers "
+				+ "WHERE trigger_schema=\"" + schemaName 
+				+ "\" AND event_object_table=\"" + tableName + "\"";
+	}
+	
+	public String getUsersSQL() {
+		return "SELECT usename FROM pg_catalog.pg_user";
+	}
+	
+	public String getRolesSQL() {
+		return "SELECT rolname FROM pg_roles";
+	}
+	
+	// TODO complete..
+	public String getPrivilegesSQL() {
+		return null;
 	}
 }

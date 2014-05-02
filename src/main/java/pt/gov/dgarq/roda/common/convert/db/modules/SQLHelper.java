@@ -36,7 +36,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
  */
 public class SQLHelper {
 	
-	//private Logger logger = Logger.getLogger(SQLHelper.class);
+	// private Logger logger = Logger.getLogger(SQLHelper.class);
 
 	private String startQuote = "";
 	
@@ -370,7 +370,23 @@ public class SQLHelper {
 		return parts;	
 	}
 
-	public String getUsers() {
+	public String getCheckConstraintsSQL(String schemaName, String tableName) {
 		return null;
-	}	
+	}
+	
+	public String getTriggersSQL(String schemaName, String tableName) {
+		return null;
+	}
+	
+	public String getUsersSQL() {
+		return null;
+	}
+	
+	public String getPrivilegesSQL() {
+		return null;
+	}
+
+	public String getRolesSQL() {
+		return null;
+	}
 }

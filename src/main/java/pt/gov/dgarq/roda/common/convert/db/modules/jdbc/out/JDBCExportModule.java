@@ -3,21 +3,25 @@
  */
 package pt.gov.dgarq.roda.common.convert.db.modules.jdbc.out;
 
+import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.w3c.util.DateParser;
 import org.w3c.util.InvalidDateException;
 
 import pt.gov.dgarq.roda.common.convert.db.model.data.BinaryCell;
@@ -99,6 +103,7 @@ public class JDBCExportModule implements DatabaseHandler {
 	 */
 	public JDBCExportModule(String driverClassName, String connectionURL,
 			SQLHelper sqlHelper) {
+		logger.debug(driverClassName + ", " + connectionURL);
 		this.driverClassName = driverClassName;
 		this.connectionURL = connectionURL;
 		this.sqlHelper = sqlHelper;
@@ -153,6 +158,8 @@ public class JDBCExportModule implements DatabaseHandler {
 	}
 
 	public void initDatabase() throws ModuleException {
+		logger.debug("on init db");
+		getConnection();
 		// nothing to do
 	}
 	
@@ -212,19 +219,40 @@ public class JDBCExportModule implements DatabaseHandler {
 			throws ModuleException, UnknownTypeException {
 		logger.debug("Handling schema structure " + schema.getName());
 		try {
+			// on a new db, existing schemas == default/system schemas
+			for (String schemaName : getExistingSchemasNames()) {
+				if (schemaName.equalsIgnoreCase(schema.getName())) {
+					String newSchemaName = schema.getName() + "_replaced";
+					schema.setName(newSchemaName);
+					for (TableStructure table : schema.getTables()) {
+						table.setId(newSchemaName + "." + table.getName());
+					}
+				}
+			}
 			getStatement().addBatch(sqlHelper.createSchemaSQL(schema));
 			getStatement().executeBatch();
 			logger.debug("batch executed: " + schema.getName());
+			
+			for (TableStructure table : schema.getTables()) {
+				handleTableStructure(table); 
+			}
 		} catch (SQLException e) {
+			logger.info(e.getLocalizedMessage());
 			throw new ModuleException(
 					"Error while adding schema SQL to batch", e);
 		}
-
-		for (TableStructure table : schema.getTables()) {
-			handleTableStructure(table); 
-		}
 	}
 		
+	protected List<String> getExistingSchemasNames() 
+			throws SQLException, ModuleException {
+		List<String> existingSchemas = new ArrayList<String>();
+		ResultSet rs = getConnection().getMetaData().getSchemas();
+		while (rs.next()) {
+			existingSchemas.add(rs.getString(1));
+		}
+		return existingSchemas;
+	}
+
 	protected void handleTableStructure(TableStructure table) 
 			throws ModuleException, UnknownTypeException {
 		
@@ -263,7 +291,9 @@ public class JDBCExportModule implements DatabaseHandler {
 	
 	protected boolean isIgnoredSchema(SchemaStructure schema) {
 		for (String s : ignoredSchemas) {			
-			if (schema.getName().startsWith(s)) {
+			if (schema.getName().equalsIgnoreCase(s)
+					|| (schema.getName().length() == 3 
+						&& schema.getName().startsWith(s))) {
 				return true;
 			}
 		}
@@ -337,9 +367,7 @@ public class JDBCExportModule implements DatabaseHandler {
 					currentRowInsertStatement.addBatch();
 					if (++batch_index > BATCH_SIZE) {
 						currentRowInsertStatement.executeBatch();
-						logger.debug("batch executed");
 						currentRowInsertStatement.clearBatch();
-						logger.debug("batch index: " + batch_index);
 						batch_index = 0;
 					}
 				} catch (SQLException e) {
@@ -374,67 +402,63 @@ public class JDBCExportModule implements DatabaseHandler {
 			if (cell instanceof SimpleCell) {
 				SimpleCell simple = (SimpleCell) cell;
 				String data = simple.getSimpledata();
+				logger.debug("data: " + data);
+				logger.debug("type: " + type.getOriginalTypeName());
 				if (type instanceof SimpleTypeString) {
-					if (data != null) {
-						ps.setString(index, data);
-					} else {
-						ps.setNull(index, Types.VARCHAR);
-					}
+					handleSimpleTypeStringDataCell(data, ps, index, cell, type);
 				} else if (type instanceof SimpleTypeNumericExact) {
-					if (data != null) {
-						// TODO confirm it's fixed
-						if (((SimpleTypeNumericExact) type).getScale() > 0) {
-							ps.setFloat(index, Float.valueOf(data));
-						}
-						else {
-							ps.setInt(index, Integer.valueOf(data));
-						}
-					} else {
-						ps.setNull(index, Types.INTEGER);
-					}
+					handleSimpleTypeNumericExactDataCell(
+							data, ps, index, cell, type);
 				} else if (type instanceof SimpleTypeNumericApproximate) {
-					if (data != null) {
-						ps.setFloat(index, Float.valueOf(data));
-					} else {
-						ps.setNull(index, Types.FLOAT);
-					}
+					handleSimpleTypeNumericApproximateDataCell(
+							data, ps, index, cell, type);
 				} else if (type instanceof SimpleTypeDateTime) {
-					// SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
-					if (data != null) {
-						Date date = DateParser.parse(data);
-						java.sql.Date sqlDate = 
-								new java.sql.Date(date.getTime());
-						ps.setDate(index, sqlDate);
-					} else {
-						ps.setNull(index, Types.DATE);
-					}
+					handleSimpleTypeDateTimeDataCell(
+							data, ps, index, cell, type);
 				} else if (type instanceof SimpleTypeBoolean) {
-					if (data != null) {
-						ps.setBoolean(index, Boolean.valueOf(data));
-					} else {
-						ps.setNull(index, Types.BOOLEAN);
-					}						 
+					handleSimpleTypeBooleanDataCell(
+							data, ps, index, cell, type);					 
 				} else {
 					throw new InvalidDataException(
-							type.getClass().getSimpleName()
-									+ " not applicable to simple cell or not yet supported");
+							type.getClass().getSimpleName() 
+							+ " not applicable to simple cell or "
+							+ "not yet supported");
 				}
 			} else if (cell instanceof BinaryCell) {
 				final BinaryCell bin = (BinaryCell) cell;
-				if (!(type instanceof SimpleTypeBinary)) {
+				
+				if (type instanceof SimpleTypeBinary) {
+					if (bin.getInputstream() != null) {
+						ps.setBinaryStream(index, bin.getInputstream(), 
+								(int) bin.getLength());
+					} else {
+						logger.debug("is null");
+						ps.setNull(index, Types.BINARY);
+					}	
+					ret = new CleanResourcesInterface() {
+	
+						public void clean() {
+							bin.cleanResources();
+						}
+	
+					};
+				} else if (type instanceof SimpleTypeString) {
+					ps.setClob(index, 
+							new InputStreamReader(bin.getInputstream()), 
+							bin.getLength());
+					
+					ret = new CleanResourcesInterface() {
+						
+						public void clean() {
+							bin.cleanResources();
+						}
+	
+					};
+					
+				} else {
 					logger.error("Binary cell found when column type is "
 							+ type.getClass().getSimpleName());
 				}
-				ps.setBinaryStream(index, bin.getInputstream(), (int) bin
-						.getLength());
-
-				ret = new CleanResourcesInterface() {
-
-					public void clean() {
-						bin.cleanResources();
-					}
-
-				};
 
 			} else if (cell instanceof ComposedCell) {
 				// ComposedCell comp = (ComposedCell) cell;
@@ -454,6 +478,94 @@ public class JDBCExportModule implements DatabaseHandler {
 		return ret;
 	}
 
+	protected void handleSimpleTypeStringDataCell(String data, 
+			PreparedStatement ps, int index, Cell cell, Type type) 
+					throws SQLException {
+		if (data != null) {
+			ps.setString(index, data);
+		} else {
+			ps.setNull(index, Types.VARCHAR);
+		}		
+	}
+	
+	protected void handleSimpleTypeNumericExactDataCell(String data,
+			PreparedStatement ps, int index, Cell cell, Type type) 
+					throws NumberFormatException, SQLException {
+		if (data != null) {
+			logger.debug("big decimal: " + data);
+			BigDecimal bd = new BigDecimal(data);
+			ps.setBigDecimal(index, bd);
+			//VERIFY bigdecimal
+//			if (((SimpleTypeNumericExact) type).getScale() > 0) {
+//				logger.debug("NumericExact: " + data);
+//				ps.setFloat(index, Float.valueOf(data));
+//			}
+//			else {
+//				if (data.length() > 10) {
+//					ps.setLong(index, Long.valueOf(data));
+//				} else {
+//					ps.setInt(index, Integer.valueOf(data));
+//				}
+//			}
+		} else {
+			ps.setNull(index, Types.INTEGER);
+		}		
+	}
+	
+	protected void handleSimpleTypeNumericApproximateDataCell(String data,
+			PreparedStatement ps, int index, Cell cell, Type type) 
+					throws NumberFormatException, SQLException {
+		if (data != null) {
+			logger.debug("set approx: " + data);
+			ps.setFloat(index, Float.valueOf(data));
+		} else {
+			ps.setNull(index, Types.FLOAT);
+		}		
+	}
+	
+	protected void handleSimpleTypeDateTimeDataCell(String data,
+			PreparedStatement ps, int index, Cell cell, Type type) 
+					throws InvalidDateException, SQLException {
+		SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
+		if (dateTime.getTimeDefined()) {
+			if (StringUtils.startsWithIgnoreCase(type.getOriginalTypeName(),
+					"TIMESTAMP")) {
+				if (data != null) {
+					Timestamp sqlTimestamp = Timestamp.valueOf(data);
+					ps.setTimestamp(index, sqlTimestamp);
+				} else {
+					ps.setNull(index, Types.TIMESTAMP);
+				}
+			} else {
+				if (data != null) {
+					Time sqlTime = Time.valueOf(data);
+					ps.setTime(index, sqlTime);
+				} else {
+					ps.setNull(index, Types.TIME);
+				}
+			}
+		} else {
+			// Date date = DateParser.parse(data);
+			// java.sql.Date sqlDate = new java.sql.Date(date.getTime());
+			if (data != null) {
+				java.sql.Date sqlDate = java.sql.Date.valueOf(data);
+				ps.setDate(index, sqlDate);
+			} else {
+				ps.setNull(index, Types.DATE);
+			}
+		}
+	}
+	
+	protected void handleSimpleTypeBooleanDataCell(String data,
+			PreparedStatement ps, int index, Cell cell, Type type) 
+					throws SQLException {
+		if (data != null) {
+			ps.setBoolean(index, Boolean.valueOf(data));
+		} else {
+			ps.setNull(index, Types.BOOLEAN);
+		}			
+	}
+	
 	public void finishDatabase() throws ModuleException {
 		if (databaseStructure != null) {
 			handleForeignKeys();

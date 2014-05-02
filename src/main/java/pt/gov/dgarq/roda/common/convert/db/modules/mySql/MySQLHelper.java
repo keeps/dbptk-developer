@@ -3,6 +3,7 @@
  */
 package pt.gov.dgarq.roda.common.convert.db.modules.mySql;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
@@ -10,6 +11,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBinary;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBoolean;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeDateTime;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeString;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
@@ -62,13 +64,9 @@ public class MySQLHelper extends SQLHelper {
 					length = 333;
 				}
 				ret = "varchar(" + length + ")";
-			} else if (string.getOriginalTypeName().equals("TEXT")) {
-				ret = "text";
-			} else if (string.getOriginalTypeName().equals("XML")) {
-				ret = "text";
 			} else if (string.isLengthVariable()) {
 				if (string.getLength().intValue() >= 65535) {
-					ret = "text";
+					ret = "longtext";
 				} else {
 					ret = "varchar(" + string.getLength() + ")";
 				}
@@ -79,7 +77,8 @@ public class MySQLHelper extends SQLHelper {
 					ret = "char(" + string.getLength() + ")";
 				}
 			}
-
+		} else if (type instanceof SimpleTypeBoolean) {
+			ret = "bit(1)";
 		} else if (type instanceof SimpleTypeDateTime) {
 			SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
 			if (!dateTime.getTimeDefined() && !dateTime.getTimeZoneDefined()) {
@@ -87,21 +86,65 @@ public class MySQLHelper extends SQLHelper {
 			} else if (dateTime.getTimeZoneDefined()) {
 				throw new UnknownTypeException(
 						"Time zone not supported in MySQL");
+			} else if (type.getOriginalTypeName().equalsIgnoreCase("TIME") 
+					|| type.getOriginalTypeName().equalsIgnoreCase("TIMETZ")) { 
+				ret = "time";
 			} else {
 				ret = "datetime";
 			}
-//		} else if (type instanceof SimpleTypeXML) {
-//			ret = "MEDIUMTEXT";
 		} else if (type instanceof SimpleTypeBinary) {
-			ret = "MEDIUMBLOB";
+			SimpleTypeBinary binary = (SimpleTypeBinary) type;
+			Integer lenght = binary.getLength();
+			String originalName = binary.getOriginalTypeName();
+			logger.debug("original: " + originalName);
+			if (StringUtils.startsWithIgnoreCase(originalName, "VARBINARY")
+					|| StringUtils.startsWithIgnoreCase(
+							originalName, "TINYBLOB")) {
+				ret = "varbinary";
+				if (lenght != null) {
+					ret += "(" + lenght / 8 + ")";
+				}
+			} else if (StringUtils.startsWithIgnoreCase(originalName, "BIT")) {
+				ret = "bit";
+				if (lenght != null) {
+					ret += "(" + lenght + ")";
+				}
+			} else if (StringUtils.startsWithIgnoreCase(
+					originalName, "BINARY")) {
+				ret = "binary";
+				if (lenght != null) {
+					ret += "(" + lenght / 8 + ")";
+				}
+			} else {
+				ret = "longblob";
+			}
 		} else {
 			ret = super.createTypeSQL(type, isPkey, isFkey);
 		}
 		return ret;
 	}
 	
-	public String getUsers() {
+	// MySQL does not support check constraints
+	public String getCheckConstraintsSQL(String schemaName, String tableName) {
+		return super.getCheckConstraintsSQL(schemaName, tableName);
+	}
+	
+	public String getTriggersSQL(String schemaName, String tableName) {
+		return "SELECT "
+				+ "trigger_name, action_timing, event_manipulation, "
+				+ "action_statement FROM information_schema.triggers "
+				+ "WHERE trigger_schema='" + schemaName + "'" 
+				+ " AND event_object_table='" + tableName + "'";
+	}
+	
+	public String getUsersSQL() {
 		return "SELECT * FROM `mysql`.`user`";
+	}
+	
+	// TODO check if columns exist
+	public String getPrivilegesSQL() {
+		return "SELECT privilege_type, grantee " // grantor "
+				+ "FROM `information_schema`.`user_privileges`";
 	}
 
 	protected String escapeComment(String description) {

@@ -13,6 +13,8 @@ public class SimpleTypeBinary extends Type {
 	private String formatRegistryName;
 
 	private String formatRegistryKey;
+	
+	private Integer length;
 
 	/**
 	 * Binary type constructor, with no optional fields. Format registry name
@@ -22,6 +24,19 @@ public class SimpleTypeBinary extends Type {
 	public SimpleTypeBinary() {
 		formatRegistryName = null;
 		formatRegistryKey = null;
+		length = null;
+	}
+	
+	
+	/**
+	 * 
+	 * @param length
+	 * 			  Column size
+	 */
+	public SimpleTypeBinary(Integer length) {
+		formatRegistryName = null;
+		formatRegistryKey = null;
+		this.length = length;
 	}
 
 	/**
@@ -36,6 +51,7 @@ public class SimpleTypeBinary extends Type {
 	public SimpleTypeBinary(String formatRegistryName, String formatRegistryKey) {
 		this.formatRegistryName = formatRegistryName;
 		this.formatRegistryKey = formatRegistryKey;
+		this.length = null;
 	}
 
 	/**
@@ -66,4 +82,11 @@ public class SimpleTypeBinary extends Type {
 		this.formatRegistryKey = key;
 	}
 
+	public Integer getLength() {
+		return length;
+	}
+
+	public void setLength(Integer length) {
+		this.length = length;
+	}
 }

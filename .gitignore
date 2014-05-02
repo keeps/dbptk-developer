@@ -3,3 +3,7 @@ target/
 .classpath
 .project
 .settings/
+
+
+**/modules/oracle12c/
+src/test/

@@ -5,15 +5,28 @@ package pt.gov.dgarq.roda.common.convert.db.modules.mySql.out;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.w3c.util.InvalidDateException;
 
+import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeDateTime;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.out.JDBCExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.MySQLHelper;
 
@@ -132,5 +145,56 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 		return connection;
 	}
 	
+	protected List<String> getExistingSchemasNames() 
+			throws SQLException, ModuleException {
+		List<String> existingSchemas = new ArrayList<String>();
+		ResultSet rs = getConnection().getMetaData().getCatalogs();
+		while (rs.next()) {
+			existingSchemas.add(rs.getString(1));
+		}
+		return existingSchemas;
+	}
+
+	
+	protected void handleSimpleTypeDateTimeDataCell(String data,
+			PreparedStatement ps, int index, Cell cell, Type type) 
+					throws InvalidDateException, SQLException {
+		SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
+		if (dateTime.getTimeDefined()) {
+			if (StringUtils.startsWithIgnoreCase(type.getOriginalTypeName(),
+					"TIMESTAMP") || StringUtils.startsWithIgnoreCase(
+							type.getOriginalTypeName(), "DATETIME")) {
+				if (data != null) {
+					logger.debug("timestamp before: " + data);
+					Calendar cal = javax.xml.bind.DatatypeConverter.
+							parseDateTime(data);
+					Timestamp sqlTimestamp = 
+							new Timestamp(cal.getTimeInMillis());
+					logger.debug("timestamp after: " + sqlTimestamp.toString());
+					ps.setTimestamp(index, sqlTimestamp);
+				} else {
+					ps.setNull(index, Types.TIMESTAMP);
+				}
+			} else {
+				if (data != null) {
+					logger.debug("TIME before: "+ data);
+					Time sqlTime = Time.valueOf(data);
+					logger.debug("TIME after: "+ sqlTime.toString());
+					ps.setTime(index, sqlTime);
+				} else {
+					ps.setNull(index, Types.TIME);
+				}
+			}
+		} else {
+			if (data != null) {
+				logger.debug("DATE before: " + data);
+				java.sql.Date sqlDate = java.sql.Date.valueOf(data);
+				logger.debug("DATE after: " + sqlDate.toString());
+				ps.setDate(index, sqlDate);
+			} else {
+				ps.setNull(index, Types.DATE);
+			}
+		}
+	}
 	
 }

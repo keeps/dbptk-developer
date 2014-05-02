@@ -77,4 +77,9 @@ public class SQLServerHelper extends SQLHelper {
 		}
 		return ret;
 	}
+
+	// TODO add triggers sql
+	public String getTriggersSQL(String schemaName, String tableName) {
+		return super.getTriggersSQL(schemaName, tableName);
+	}
 }
