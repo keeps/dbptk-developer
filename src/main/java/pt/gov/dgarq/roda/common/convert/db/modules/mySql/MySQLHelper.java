@@ -137,7 +137,7 @@ public class MySQLHelper extends SQLHelper {
 				+ " AND event_object_table='" + tableName + "'";
 	}
 	
-	public String getUsersSQL() {
+	public String getUsersSQL(String dbName) {
 		return "SELECT * FROM `mysql`.`user`";
 	}
 	

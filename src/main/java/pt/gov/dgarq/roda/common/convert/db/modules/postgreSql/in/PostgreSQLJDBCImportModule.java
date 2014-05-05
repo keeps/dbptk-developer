@@ -3,21 +3,32 @@
  */
 package pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.in;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.math.BigInteger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
 
+import pt.gov.dgarq.roda.common.FileFormat;
+import pt.gov.dgarq.roda.common.FormatUtility;
+import pt.gov.dgarq.roda.common.convert.db.model.data.BinaryCell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
+import pt.gov.dgarq.roda.common.convert.db.model.data.FileItem;
 import pt.gov.dgarq.roda.common.convert.db.model.data.SimpleCell;
+import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeDateTime;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumericApproximate;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumericExact;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.in.JDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.PostgreSQLHelper;
+import pt.gov.dgarq.roda.common.convert.db.modules.siard.SIARDHelper;
 
 /**
  * <p>
@@ -169,7 +180,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 			String data = rawData.getString(columnName);
 			String parts[] = data.split(" ");
 			if (parts[1] != null) {
-				logger.info("Money currency lost: " + parts[1]);
+				logger.warn("Money currency lost: " + parts[1]);
 			}
 			cell = new SimpleCell(id, parts[0]);
 		}
@@ -184,6 +195,35 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 			}
 			logger.debug("VALUE: " + value);
 			cell = new SimpleCell(id, value);
+		}
+		return cell;
+	}
+	
+	protected Cell rawToCellSimpleTypeBinary(String id, String columnName,
+			Type cellType, ResultSet rawData) 
+					throws SQLException, ModuleException {
+		Cell cell;
+		InputStream binaryStream;
+		if (cellType.getOriginalTypeName().equalsIgnoreCase("bit")) {
+			String bitString = rawData.getString(columnName);
+			String hexString = new BigInteger(bitString, 2).toString(16);
+			if ((hexString.length() % 2) != 0) {
+				hexString = "0" + hexString;
+			}
+			byte[] bytes = SIARDHelper.hexStringToByteArray(hexString);
+			binaryStream = new ByteArrayInputStream(bytes);
+		} else {
+			binaryStream = rawData.getBinaryStream(columnName);
+		}
+		if (binaryStream != null) {
+			FileItem fileItem = new FileItem(binaryStream);
+			FileFormat fileFormat = FormatUtility.getFileFormat(fileItem
+					.getFile());
+			List<FileFormat> formats = new ArrayList<FileFormat>();
+			formats.add(fileFormat);
+			cell = new BinaryCell(id, fileItem, formats);
+		} else {
+			cell = new BinaryCell(id);
 		}
 		return cell;
 	}

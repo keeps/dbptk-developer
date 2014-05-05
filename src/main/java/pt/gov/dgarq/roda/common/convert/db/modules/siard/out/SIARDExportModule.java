@@ -521,29 +521,6 @@ public class SIARDExportModule implements DatabaseHandler {
 
 	private String exportTypeOriginal(Type type) {
 		String ret = type.getOriginalTypeName();
-		// if (type instanceof SimpleTypeString) {
-		// ret += "(" + ((SimpleTypeString) type).getLength() + ")";
-		// } else if (type instanceof SimpleTypeNumericApproximate) {
-		// Integer precision =
-		// ((SimpleTypeNumericApproximate) type).getPrecision();
-		// if (precision != null) {
-		// ret += "(" + precision + ")";
-		// }
-		// } else if (type instanceof SimpleTypeNumericExact) {
-		// SimpleTypeNumericExact exact = (SimpleTypeNumericExact) type;
-		// if (exact.getPrecision() != null) {
-		// ret += "(" + exact.getPrecision();
-		// if (exact.getScale() != null && exact.getScale() > 0) {
-		// ret += "," + exact.getScale();
-		// }
-		// ret += ")";
-		// }
-		// } else if (type instanceof SimpleTypeBinary) {
-		// SimpleTypeBinary binary = (SimpleTypeBinary) type;
-		// if (binary.getLength() != null) {
-		// ret += "(" + binary.getLength() + ")";
-		// }
-		// }
 		return ret;
 	}
 
@@ -967,9 +944,10 @@ public class SIARDExportModule implements DatabaseHandler {
 				simpleCell.setSimpledata(null);
 			} else {
 				byte[] bytes = IOUtils.toByteArray(binaryCell.getInputstream());
-				// FIXME export hex | bits 
+				logger.debug("COL NAME OUT: " + column.getName());
+				logger.debug("bytes out : " + bytes);
+				logger.debug("bytes out HEX: " + SIARDHelper.bytesToHex(bytes));
 				simpleCell.setSimpledata(SIARDHelper.bytesToHex(bytes));
-				// simpleCell.setSimpledata("");
 			}
 			exportSimpleCellData(simpleCell, index);
 		}

@@ -381,7 +381,7 @@ public class SQLHelper {
 		return null;
 	}
 	
-	public String getUsersSQL() {
+	public String getUsersSQL(String dbName) {
 		return null;
 	}
 	

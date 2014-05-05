@@ -54,7 +54,9 @@ public class SIARDHelper {
 	
 	public static byte[] hexStringToByteArray(String s) {
 	    int len = s.length();
+	    logger.debug("len: " + len/2);
 	    byte[] data = new byte[len / 2];
+	    logger.debug("data length: " + data.length);
 	    for (int i = 0; i < len; i += 2) {
 	        data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
 	                             + Character.digit(s.charAt(i+1), 16));

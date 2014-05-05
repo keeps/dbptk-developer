@@ -97,18 +97,15 @@ public class SQLServerHelper extends SQLHelper {
 			SimpleTypeBinary binType = (SimpleTypeBinary) type;
 			String sql99TypeName = binType.getSql99TypeName();
 			if (sql99TypeName.startsWith("BIT")) {
-				logger.debug("starts BIT");
 				String dataType = null;
 				if (sql99TypeName.equals("BIT")) {
 					logger.debug("is BIT");
 					dataType = "binary";
 				}
 				else {
-					logger.debug("is VAR BINARY");
 					dataType = "varbinary";
 				}
-				logger.debug("RES: " + 3413/8);
-				Integer bytes = binType.getLength() / 8;
+				Integer bytes = (binType.getLength() / 8) + 1;
 				if (bytes <= 8000) {  
 					ret = dataType + "(" + bytes + ")";
 				} else {
@@ -117,12 +114,18 @@ public class SQLServerHelper extends SQLHelper {
 			} else if (sql99TypeName.equals("BINARY LARGE OBJECT")) {
 				ret = "image";
 			} else {
-				logger.debug("nenhma das anteriores");
+				ret = "image";
 			}
 		} else {
 			ret = super.createTypeSQL(type, isPkey, isFkey);
 		}
 		return ret;
+	}
+	
+	@Override
+	public String getUsersSQL(String dbName) {
+		return "SELECT suser_sname( owner_sid ) FROM sys.databases "
+				+ "WHERE name = '" + dbName + "'";
 	}
 
 	// TODO add triggers sql

@@ -85,7 +85,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 	protected List<UserStructure> getUsers() 
 			throws  SQLException, ClassNotFoundException {
 		List<UserStructure> users = new ArrayList<UserStructure>();
-		ResultSet rs = getStatement().executeQuery(sqlHelper.getUsersSQL());
+		ResultSet rs = getStatement().executeQuery(sqlHelper.getUsersSQL(null));
 		while (rs.next()) {
 			UserStructure user = new UserStructure(
 					rs.getString(2) + "@" + rs.getString(1), null);

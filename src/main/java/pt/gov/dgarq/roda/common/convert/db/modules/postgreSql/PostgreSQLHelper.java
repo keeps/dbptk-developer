@@ -112,7 +112,7 @@ public class PostgreSQLHelper extends SQLHelper {
 				+ "\" AND event_object_table=\"" + tableName + "\"";
 	}
 	
-	public String getUsersSQL() {
+	public String getUsersSQL(String dbName) {
 		return "SELECT usename FROM pg_catalog.pg_user";
 	}
 	

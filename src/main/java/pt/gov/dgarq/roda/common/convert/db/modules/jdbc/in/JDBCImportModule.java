@@ -354,7 +354,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 	protected List<UserStructure> getUsers() 
 			throws SQLException, ClassNotFoundException {
 		List<UserStructure> users = new ArrayList<UserStructure>();
-		String query = sqlHelper.getUsersSQL();
+		String query = sqlHelper.getUsersSQL(getDbName());
 		if (query != null) {
 			ResultSet rs = getStatement().executeQuery(query);
 			while (rs.next()) {
