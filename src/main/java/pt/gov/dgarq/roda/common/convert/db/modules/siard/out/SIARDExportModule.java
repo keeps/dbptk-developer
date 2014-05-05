@@ -47,11 +47,6 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.ViewStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeString;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.DatabaseHandler;
-import pt.gov.dgarq.roda.common.convert.db.modules.siard.SIARDExportHelper;
-import pt.gov.dgarq.roda.common.convert.db.modules.siard.SIARDExportHelperMySQL;
-import pt.gov.dgarq.roda.common.convert.db.modules.siard.SIARDExportHelperOracle;
-import pt.gov.dgarq.roda.common.convert.db.modules.siard.SIARDExportHelperPostgreSQL;
-import pt.gov.dgarq.roda.common.convert.db.modules.siard.SIARDExportHelperSQLServer;
 import pt.gov.dgarq.roda.common.convert.db.modules.siard.SIARDHelper;
 
 /**
@@ -515,7 +510,7 @@ public class SIARDExportModule implements DatabaseHandler {
 				siardExportHelper = new SIARDExportHelperPostgreSQL();
 			} else if (StringUtils.containsIgnoreCase(product, "Oracle")) {
 				siardExportHelper = new SIARDExportHelperOracle();
-			} else if (StringUtils.containsIgnoreCase(product, "SQLServer")) {
+			} else if (StringUtils.containsIgnoreCase(product, "SQL Server")) {
 				siardExportHelper = new SIARDExportHelperSQLServer();
 			} else {
 				siardExportHelper = new SIARDExportHelper();

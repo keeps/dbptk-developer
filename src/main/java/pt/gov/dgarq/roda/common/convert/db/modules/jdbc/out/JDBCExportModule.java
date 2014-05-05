@@ -560,6 +560,7 @@ public class JDBCExportModule implements DatabaseHandler {
 			PreparedStatement ps, int index, Cell cell, Type type) 
 					throws SQLException {
 		if (data != null) {
+			logger.debug("boolData: " + data);
 			ps.setBoolean(index, Boolean.valueOf(data));
 		} else {
 			ps.setNull(index, Types.BOOLEAN);

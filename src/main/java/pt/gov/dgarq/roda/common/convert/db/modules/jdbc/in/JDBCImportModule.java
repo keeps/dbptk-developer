@@ -257,20 +257,16 @@ public class JDBCImportModule implements DatabaseImportModule {
 	
 	protected List<ViewStructure> getViews(String schemaName) 
 			throws SQLException, ClassNotFoundException, UnknownTypeException {
-		logger.debug("VIEW");
-		logger.debug("schemaName: " + schemaName);
 		List<ViewStructure> views = new ArrayList<ViewStructure>();
 		ResultSet rset = getMetadata().getTables(dbStructure.getName(), 
 				schemaName, "%", new String[] { "VIEW" });
 		while (rset.next()) {
 			String viewName = rset.getString(3);
-			logger.debug("View name: " + viewName);
 			ViewStructure view = new ViewStructure();
 			view.setName(viewName);
 			view.setColumns(getColumns(schemaName, viewName));
 			views.add(view);
 		}
-		logger.debug("END VIEWS");
 		return views;
 	}
 	
@@ -481,11 +477,12 @@ public class JDBCImportModule implements DatabaseImportModule {
 	protected Type getType(int dataType, String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) throws UnknownTypeException {
 		Type type;
+		logger.debug("--- INIT ----");
 		logger.debug("datatype: " + dataType);
 		logger.debug("typeName: " + typeName);
 		logger.debug("col size: " + columnSize);
 		logger.debug("decimal digits: " + decimalDigits);
-		logger.debug("-----\n");
+		logger.debug("----\n");
 		switch (dataType) {
 		case Types.BIGINT:
 			type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
@@ -510,6 +507,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 					Boolean.FALSE);
 			break;
 		case Types.NCHAR:
+			// TODO add charset
 			type = new SimpleTypeString(Integer.valueOf(columnSize), 
 					Boolean.FALSE);
 			break;
@@ -541,8 +539,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 					numPrecRadix);
 			break;
 		case Types.LONGVARCHAR:
-			type = new SimpleTypeString(Integer.valueOf(columnSize),
-					Boolean.TRUE);
+			type = getLongvarcharType(typeName, columnSize, decimalDigits,
+					numPrecRadix);
 			break;
 		case Types.LONGNVARCHAR:
 			type = new SimpleTypeString(Integer.valueOf(columnSize),
@@ -580,6 +578,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 					Boolean.TRUE);
 			break;
 		case Types.NVARCHAR:
+			// TODO add charset
 			type = new SimpleTypeString(Integer.valueOf(columnSize), 
 					Boolean.TRUE);
 			break;
@@ -593,12 +592,13 @@ public class JDBCImportModule implements DatabaseImportModule {
 		
 		case Types.OTHER:
 			logger.debug("OTHER");
-			type = getOtherTypes(dataType, typeName, columnSize);
+			type = getOtherType(dataType, typeName, columnSize);
 			break;
 			
 		default:
-			throw new UnknownTypeException("Unsuported JDBC type, code: "
-					+ dataType);
+			// tries to get specific DBMS data types
+			type = getSpecificType(dataType, typeName, columnSize);
+			break;
 		}
 		type.setOriginalTypeName(typeName);
 		return type;
@@ -626,6 +626,12 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return new SimpleTypeBinary(Integer.valueOf(columnSize));
 	}
 	
+	protected Type getLongvarcharType(String typeName, int columnSize,
+			int decimalDigits, int numPrecRadix) throws UnknownTypeException {
+		return new SimpleTypeString(Integer.valueOf(columnSize),
+				Boolean.TRUE);
+	}
+	
 	protected Type getTimestampType(String typeName, int columnSize, 
 			int decimalDigits, int numPrecRadix) {
 		return new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
@@ -636,14 +642,21 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
 	}
 	
-	// TODO override (support more data types)
-	protected Type getOtherTypes(int dataType, String typeName, int columnSize)
+	protected Type getOtherType(int dataType, String typeName, int columnSize)
 			throws UnknownTypeException {
-		
 		throw new UnknownTypeException("Unsuported JDBC type, code: "
 				+ dataType);
 	}
 	
+	/**
+	 * get specific DBMS data types	 
+	 * @throws UnknownTypeException 
+	 */
+	protected Type getSpecificType(int dataType, String typeName, 
+			int columnSize) throws UnknownTypeException {
+		throw new UnknownTypeException("Unsuported JDBC type, code: "
+				+ dataType);
+	}
 
 	/**
 	 * Get the table primary key
@@ -897,20 +910,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			cell = rawToCellSimpleTypeDateTime(
 					id, columnName, cellType, rawData);
 		} else if (cellType instanceof SimpleTypeBinary) {
-			logger.debug("simple type binary TOP @ " + columnName);
-			InputStream binaryStream = rawData.getBinaryStream(columnName);
-			if (binaryStream != null) {
-				logger.debug("binaryStrem: " + columnName);
-				FileItem fileItem = new FileItem(binaryStream);
-				FileFormat fileFormat = FormatUtility.getFileFormat(fileItem
-						.getFile());
-				List<FileFormat> formats = new ArrayList<FileFormat>();
-				formats.add(fileFormat);
-				cell = new BinaryCell(id, fileItem, formats);
-			} else {
-				logger.debug("binaryStrem NULL: " + columnName);
-				cell = new BinaryCell(id);
-			}
+			cell = rawToCellSimpleTypeBinary(id, columnName, cellType, rawData);
 		} else {
 			cell = new SimpleCell(id, rawData.getString(columnName));
 		}
@@ -957,6 +957,24 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return cell;
 	}
 	
+	protected Cell rawToCellSimpleTypeBinary(String id, String columnName,
+			Type cellType, ResultSet rawData) 
+					throws SQLException, ModuleException {
+		Cell cell;
+		InputStream binaryStream = rawData.getBinaryStream(columnName);
+		if (binaryStream != null) {
+			FileItem fileItem = new FileItem(binaryStream);
+			FileFormat fileFormat = FormatUtility.getFileFormat(fileItem
+					.getFile());
+			List<FileFormat> formats = new ArrayList<FileFormat>();
+			formats.add(fileFormat);
+			cell = new BinaryCell(id, fileItem, formats);
+		} else {
+			cell = new BinaryCell(id);
+		}
+		return cell;
+	}
+	
 	protected boolean isRowValid(ResultSet raw, TableStructure structure)
 			throws InvalidDataException, SQLException {
 		boolean ret;
@@ -973,7 +991,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 		}
 		return ret;
 	}
-
+	
 	protected ResultSet getTableRawData(String tableId) throws SQLException,
 			ClassNotFoundException, ModuleException {
 		ResultSet set = getStatement().executeQuery(

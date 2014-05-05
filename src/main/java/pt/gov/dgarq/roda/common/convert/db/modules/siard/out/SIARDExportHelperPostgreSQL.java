@@ -1,6 +1,4 @@
-package pt.gov.dgarq.roda.common.convert.db.modules.siard;
-
-import org.apache.log4j.Logger;
+package pt.gov.dgarq.roda.common.convert.db.modules.siard.out;
 
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeDateTime;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
@@ -13,8 +11,8 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 
 public class SIARDExportHelperPostgreSQL extends SIARDExportHelper {
 	
-	private static Logger logger = 
-			Logger.getLogger(SIARDExportHelperPostgreSQL.class);
+//	private static Logger logger = 
+//			Logger.getLogger(SIARDExportHelperPostgreSQL.class);
 	
 //	protected String exportSimpleTypeNumericExact(Type type) {
 //		SimpleTypeNumericExact numExactType = (SimpleTypeNumericExact) type;
@@ -50,7 +48,6 @@ public class SIARDExportHelperPostgreSQL extends SIARDExportHelper {
 //	}
 	
 	protected String exportSimpleTypeDateTime(Type type) {
-		logger.debug("export datetime");
 		String ret = null;
 		SimpleTypeDateTime dateTimeType = (SimpleTypeDateTime) type;
 		if (!dateTimeType.getTimeDefined()

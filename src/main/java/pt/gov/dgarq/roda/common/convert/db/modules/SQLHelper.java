@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.Row;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.InvalidDataException;
@@ -36,7 +38,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
  */
 public class SQLHelper {
 	
-	// private Logger logger = Logger.getLogger(SQLHelper.class);
+	private Logger logger = Logger.getLogger(SQLHelper.class);
 
 	private String startQuote = "";
 	
@@ -157,6 +159,7 @@ public class SQLHelper {
 			SimpleTypeNumericApproximate numericApproximate = 
 					(SimpleTypeNumericApproximate) type;
 			ret = "float(" + numericApproximate.getPrecision() + ")";
+			logger.debug("ret: " + ret);
 		} else if (type instanceof SimpleTypeBoolean) {
 			ret = "boolean";
 		} else if (type instanceof SimpleTypeDateTime) {

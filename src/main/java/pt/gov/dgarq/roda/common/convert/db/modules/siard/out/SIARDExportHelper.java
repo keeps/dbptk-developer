@@ -1,4 +1,4 @@
-package pt.gov.dgarq.roda.common.convert.db.modules.siard;
+package pt.gov.dgarq.roda.common.convert.db.modules.siard.out;
 
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
@@ -63,7 +63,11 @@ public class SIARDExportHelper {
 	protected String exportSimpleTypeNumericExact(Type type) {
 		SimpleTypeNumericExact numExactType = (SimpleTypeNumericExact) type;
 		StringBuilder sb = new StringBuilder();
-		sb.append("NUMERIC(");
+		if (type.getOriginalTypeName().equalsIgnoreCase("DECIMAL")) {
+			sb.append("DECIMAL(");
+		} else {
+			sb.append("NUMERIC(");
+		}
 		sb.append(numExactType.getPrecision());
 		if (numExactType.getScale() > 0) {
 			sb.append("," + numExactType.getScale());

@@ -14,6 +14,8 @@ public abstract class Type {
 	private String originalTypeName;
 
 	private String description;
+	
+	private String sql99TypeName;
 
 	/**
 	 * Type abstract empty constructor
@@ -22,6 +24,7 @@ public abstract class Type {
 	public Type() {
 		description = null;
 		originalTypeName = null;
+		sql99TypeName = null;
 	}
 
 	/**
@@ -67,4 +70,17 @@ public abstract class Type {
 		this.description = description;
 	}
 
+	/**
+	 * @return the sql99TypeName
+	 */
+	public String getSql99TypeName() {
+		return sql99TypeName;
+	}
+
+	/**
+	 * @param sql99TypeName the sql99TypeName to set
+	 */
+	public void setSql99TypeName(String sql99TypeName) {
+		this.sql99TypeName = sql99TypeName;
+	}
 }

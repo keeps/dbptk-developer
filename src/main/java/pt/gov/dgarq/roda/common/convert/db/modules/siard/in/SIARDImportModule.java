@@ -657,59 +657,97 @@ public class SIARDImportModule implements DatabaseImportModule {
 						
 			if (sqlType.startsWith("INT")) {
 				type = new SimpleTypeNumericExact(10, 0);
+				type.setSql99TypeName("INTEGER");
 			} else if (sqlType.equals("SMALLINT")) {
 				type = new SimpleTypeNumericExact(5, 0);
-			} else if (sqlType.startsWith("NUMERIC")
-					|| sqlType.startsWith("DEC")) {
-				type = new SimpleTypeNumericExact(getPrecision(sqlType),
+				type.setSql99TypeName("SMALLINT");
+			} else if (sqlType.startsWith("NUMERIC")) {
+				type = new SimpleTypeNumericExact(getPrecision(sqlType), 
 						getScale(sqlType));
+				type.setSql99TypeName("NUMERIC");
+			} else if (sqlType.startsWith("DEC")) {
+				type = new SimpleTypeNumericExact(getPrecision(sqlType), 
+						getScale(sqlType));
+				type.setSql99TypeName("DECIMAL");
 			} else if (sqlType.equals("FLOAT")) {
 				type = new SimpleTypeNumericApproximate(53);
+				type.setSql99TypeName("FLOAT");
 			} else if (sqlType.startsWith("FLOAT")) {
 				type = new SimpleTypeNumericApproximate(getPrecision(sqlType));
+				type.setSql99TypeName("FLOAT");
 			} else if (sqlType.equals("REAL")) {
 				type = new SimpleTypeNumericApproximate(24);
+				type.setSql99TypeName("REAL");
 			} else if (sqlType.startsWith("DOUBLE")) {
 				type = new SimpleTypeNumericApproximate(53);
+				type.setSql99TypeName("DOUBLE PRECISION");
 			} else if (sqlType.equals("BIT")) {
 				type = new SimpleTypeBoolean();
+				type.setSql99TypeName("BOOLEAN");
+			} else if (sqlType.startsWith("BIT VARYING")) {
+				 type = new SimpleTypeBinary(getLength(sqlType));
+				 type.setSql99TypeName("BIT VARYING");
 			} else if (sqlType.startsWith("BIT")) {
 				if (getLength(sqlType) == 1) {
 					type = new SimpleTypeBoolean();
+					type.setSql99TypeName("BOOLEAN");
 				} else {
 					type = new SimpleTypeBinary(getLength(sqlType));
+					type.setSql99TypeName("BIT");
 				}
 			} else if (sqlType.startsWith("BINARY LARGE OBJECT")
 					|| sqlType.startsWith("BLOB")) {
 				type = new SimpleTypeBinary();
+				type.setSql99TypeName("BINARY LARGE OBJECT");
 			} else if (sqlType.startsWith("CHAR")) {
 				if (isLargeObject(sqlType)) {
 					type = new SimpleTypeString(getCLOBMinimum(), Boolean.TRUE);
+					type.setSql99TypeName("CHARACTER LARGE OBJECT");
 				} else {
-					type = new SimpleTypeString(getLength(sqlType), 
-							isLengthVariable(sqlType));
+					if (isLengthVariable(sqlType)) {
+						type = new SimpleTypeString(getLength(sqlType), 
+								Boolean.TRUE);
+								type.setSql99TypeName("CHARACTER VARYING");
+					} else {
+						type = new SimpleTypeString(getLength(sqlType), 
+								Boolean.FALSE);
+								type.setSql99TypeName("CHARACTER");
+					}
 				}
 			} else if (sqlType.startsWith("VARCHAR")) {
-				type = new SimpleTypeString(
-						getLength(sqlType), Boolean.TRUE);
+				type = new SimpleTypeString(getLength(sqlType), Boolean.TRUE);
+				type.setSql99TypeName("CHARACTER VARYING");
 			} else if (sqlType.startsWith("NATIONAL")) {
 				if (isLargeObject(sqlType) || sqlType.startsWith("NCLOB")) {
 					type = new SimpleTypeString(getCLOBMinimum(), 
 							Boolean.TRUE, ENCODING);
+					type.setSql99TypeName("NATIONAL CHARACTER LARGE OBJECT");
 				} else {
-					type = new SimpleTypeString(getLength(sqlType), 
-							isLengthVariable(sqlType), ENCODING);
+					if (isLengthVariable(sqlType)) {
+						type = new SimpleTypeString(getLength(sqlType), 
+								Boolean.TRUE, ENCODING);
+						type.setSql99TypeName("NATIONAL CHARACTER VARYING");
+					} else {
+						type = new SimpleTypeString(getLength(sqlType), 
+								Boolean.FALSE, ENCODING);
+						type.setSql99TypeName("NATIONAL CHARACTER");
+					}
 				}
 			} else if (sqlType.equals("BOOLEAN")) {
 				type = new SimpleTypeBoolean();
+				type.setSql99TypeName("BOOLEAN");
 			} else if (sqlType.equals("DATE")) {
 				type = new SimpleTypeDateTime(Boolean.FALSE, Boolean.FALSE);
+				type.setSql99TypeName("DATE");
 			} else if (sqlType.equals("TIMESTAMP")) {
 				type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+				type.setSql99TypeName("TIMESTAMP");
 			} else if (sqlType.equals("TIME")) {
 				type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+				type.setSql99TypeName("TIME");
 			} else {
 				type = new SimpleTypeString(255, Boolean.TRUE);
+				type.setSql99TypeName("CHARACTER VARYING");
 			}
 			 			
 			return type;

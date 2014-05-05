@@ -26,8 +26,8 @@ import pt.gov.dgarq.roda.common.convert.db.modules.mySql.in.MySQLJDBCImportModul
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.out.MySQLJDBCExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.out.PhpMyAdminExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.odbc.in.ODBCImportModule;
+import pt.gov.dgarq.roda.common.convert.db.modules.oracle12c.in.Oracle12cJDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.oracle12c.out.Oracle12cJDBCExportModule;
-import pt.gov.dgarq.roda.common.convert.db.modules.oracle8i.in.Oracle8iJDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.PostgreSQLHelper;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.in.PostgreSQLJDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.out.PostgreSQLJDBCExportModule;
@@ -36,7 +36,7 @@ import pt.gov.dgarq.roda.common.convert.db.modules.siard.out.SIARDExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.sqlFile.out.SQLFileExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.sqlServer.SQLServerHelper;
 import pt.gov.dgarq.roda.common.convert.db.modules.sqlServer.in.SQLServerJDBCImportModule;
-import pt.gov.dgarq.roda.common.convert.db.modules.sqlServer.out.SqlServerExportModule;
+import pt.gov.dgarq.roda.common.convert.db.modules.sqlServer.out.SQLServerJDBCExportModule;
 
 /**
  * @author Luis Faria
@@ -220,7 +220,7 @@ public class Main {
 			}
 		} else if (importModuleArgs.get(0).equals("Oracle8i")) {
 			if (importModuleArgs.size() == 6) {
-				importModule = new Oracle8iJDBCImportModule(
+				importModule = new Oracle12cJDBCImportModule(
 						importModuleArgs.get(1), Integer.valueOf(
 								importModuleArgs.get(2)).intValue(),
 						importModuleArgs.get(3), importModuleArgs.get(4),
@@ -360,14 +360,14 @@ public class Main {
 			}
 		} else if (exportModuleArgs.get(0).equals("SQLServerJDBC")) {
 			if (exportModuleArgs.size() == 7) {
-				exportModule = new SqlServerExportModule(
+				exportModule = new SQLServerJDBCExportModule(
 						exportModuleArgs.get(1), exportModuleArgs.get(2),
 						exportModuleArgs.get(3), exportModuleArgs.get(4),
 						exportModuleArgs.get(5).equals("true"),
 						exportModuleArgs.get(6).equals("true"));
 			} else if (exportModuleArgs.size() == 8) {
 				try {
-					exportModule = new SqlServerExportModule(
+					exportModule = new SQLServerJDBCExportModule(
 							exportModuleArgs.get(1), Integer.valueOf(
 									exportModuleArgs.get(2)).intValue(),
 							exportModuleArgs.get(3), exportModuleArgs.get(4),
@@ -375,7 +375,7 @@ public class Main {
 									.equals("true"), exportModuleArgs.get(7)
 									.equals("true"));
 				} catch (NumberFormatException e) {
-					exportModule = new SqlServerExportModule(
+					exportModule = new SQLServerJDBCExportModule(
 							exportModuleArgs.get(1), exportModuleArgs.get(2),
 							exportModuleArgs.get(3), exportModuleArgs.get(4),
 							exportModuleArgs.get(5), exportModuleArgs.get(6)

@@ -1,4 +1,4 @@
-package pt.gov.dgarq.roda.common.convert.db.modules.siard;
+package pt.gov.dgarq.roda.common.convert.db.modules.siard.out;
 
 /**
  * 

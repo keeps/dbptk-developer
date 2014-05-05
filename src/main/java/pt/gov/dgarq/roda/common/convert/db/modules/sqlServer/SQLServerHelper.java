@@ -7,7 +7,9 @@ import org.apache.log4j.Logger;
 
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBinary;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBoolean;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeDateTime;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumericExact;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeString;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.SQLHelper;
@@ -37,7 +39,7 @@ public class SQLServerHelper extends SQLHelper {
 
 	protected String createTypeSQL(Type type, boolean isPkey, boolean isFkey)
 			throws UnknownTypeException {
-		String ret;
+		String ret = null;
 		if (type instanceof SimpleTypeString) {
 			SimpleTypeString string = (SimpleTypeString) type;
 			if (string.isLengthVariable()) {
@@ -59,18 +61,63 @@ public class SQLServerHelper extends SQLHelper {
 					ret = "char(" + string.getLength() + ")";
 				}
 			}
-
+		} else if (type instanceof SimpleTypeBoolean) {
+			ret = "bit";
+		} else if (type instanceof SimpleTypeNumericExact) {
+			String sql99TypeName = type.getSql99TypeName();
+			Integer precision = ((SimpleTypeNumericExact) type).getPrecision();
+			Integer scale = ((SimpleTypeNumericExact) type).getScale();
+			if (sql99TypeName.equals("INTEGER")) {
+				ret = "int";
+			} else if (sql99TypeName.equals("SMALLINT")) {
+				ret = "smallint";
+			} else {
+				ret = "decimal(";
+				int min = Math.min(precision, 28);
+				ret += min;
+				if (scale > 0) {
+					ret += "," + (scale - precision + min); 
+				}
+				ret += ")";
+			}
 		} else if (type instanceof SimpleTypeDateTime) {
-			logger.warn("Using string instead of datetime type because "
-					+ "SQL Server doesn't support dates before 1753-01-01");
-			ret = "char(23)";
-
+			String sql99TypeName = type.getSql99TypeName();
+			if (sql99TypeName.equals("TIME")) {
+				ret = "time";
+			} else if (sql99TypeName.equals("DATE")) {
+				ret = "date";
+			} else if (sql99TypeName.equals("TIMESTAMP")) {
+				ret = "datetime2";
+			} else {
+				logger.warn("Using string instead of datetime type because "
+						+ "SQL Server doesn't support dates before 1753-01-01");
+				ret = "char(23)";
+			}
 		} else if (type instanceof SimpleTypeBinary) {
 			SimpleTypeBinary binType = (SimpleTypeBinary) type;
-			if (binType.getFormatRegistryName().matches("image.*")) {
+			String sql99TypeName = binType.getSql99TypeName();
+			if (sql99TypeName.startsWith("BIT")) {
+				logger.debug("starts BIT");
+				String dataType = null;
+				if (sql99TypeName.equals("BIT")) {
+					logger.debug("is BIT");
+					dataType = "binary";
+				}
+				else {
+					logger.debug("is VAR BINARY");
+					dataType = "varbinary";
+				}
+				logger.debug("RES: " + 3413/8);
+				Integer bytes = binType.getLength() / 8;
+				if (bytes <= 8000) {  
+					ret = dataType + "(" + bytes + ")";
+				} else {
+					ret = "image";
+				}	
+			} else if (sql99TypeName.equals("BINARY LARGE OBJECT")) {
 				ret = "image";
 			} else {
-				ret = "varbinary";
+				logger.debug("nenhma das anteriores");
 			}
 		} else {
 			ret = super.createTypeSQL(type, isPkey, isFkey);
