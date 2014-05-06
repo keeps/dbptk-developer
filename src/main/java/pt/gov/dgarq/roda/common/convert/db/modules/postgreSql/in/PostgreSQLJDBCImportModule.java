@@ -107,14 +107,13 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 				new PostgreSQLHelper());
 	}
 	
-	
 	/**
 	 * Schemas that won't be exported
 	 */
 	public Set<String> getIgnoredSchemas() {
 		Set<String> ignoredSchemas = new HashSet<String>();
 		ignoredSchemas.add("information_schema");
-		ignoredSchemas.add("pg_");
+		ignoredSchemas.add("pg_.*");
 		
 		return ignoredSchemas;
 	}

@@ -39,7 +39,7 @@ public class MySQLHelper extends SQLHelper {
 
 	public String createTableSQL(TableStructure table)
 			throws UnknownTypeException, ModuleException {
-		logger.debug("mysq");
+		logger.debug("mysql");
 		return super.createTableSQL(table) + " ENGINE=INNODB";
 	}
 

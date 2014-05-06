@@ -1,10 +1,5 @@
 package pt.gov.dgarq.roda.common.convert.db.modules.siard;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.log4j.Logger;
 
@@ -88,39 +83,5 @@ public class SIARDHelper {
 			return true;
 		}
 		return false;
-	}
-
-	public static byte[] digest(RandomAccessFile raf, String algorithm,
-			long start, long end) throws IOException {
-
-		if (!(algorithm.equals("MD5") || algorithm.equals("SHA-1"))) {
-			throw new IllegalArgumentException(
-					"Digest algorithm must be MD5 or SHA-1!");
-		}
-
-		long lFilePointer = raf.getFilePointer();
-		byte[] bufDigest = null;
-		try {
-			MessageDigest md = MessageDigest.getInstance(algorithm);
-			byte[] buf = new byte[4098];
-			int read = 0;
-			for (long position = start; position < end; position += read) {
-				raf.seek(position);
-				int length = buf.length;
-				if (end - position < length)
-					length = (int) (end - position);
-				read = raf.read(buf, 0, length);
-				if (read != length)
-					throw new IOException("Could not read "
-							+ String.valueOf(length) + " bytes at position "
-							+ String.valueOf(position));
-				md.update(buf, 0, read);
-			}
-			bufDigest = md.digest();
-		} catch (NoSuchAlgorithmException e) {
-			logger.error(e.getClass().getName() + ": " + e.getMessage());
-		}
-		raf.seek(lFilePointer);
-		return bufDigest;
 	}
 }

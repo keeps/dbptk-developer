@@ -5,11 +5,11 @@ import java.io.InputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.transaction.util.FileHelper;
 import org.apache.log4j.Logger;
 
@@ -19,8 +19,6 @@ import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.FileItem;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.InvalidDataException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
-import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
-import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBinary;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.in.JDBCImportModule;
@@ -142,46 +140,15 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 		return statement;
 	}
 	
-	/**
-	 * System schemas are ignored/not imported.
-	 */
-	protected List<SchemaStructure> getSchemas() 
-			throws SQLException, ClassNotFoundException, UnknownTypeException {		
-		List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
-		
-		getConnection().setCatalog(getConnection().getCatalog());
-		ResultSet rs = getMetadata().getSchemas();	
-		while (rs.next()) {
-			String schemaName = rs.getString(1);
-			if (StringUtils.startsWith(schemaName, "db_")
-					|| schemaName.equalsIgnoreCase("INFORMATION_SCHEMA")
-					|| schemaName.equalsIgnoreCase("sys")) {
-				continue;
-			}
-			logger.debug("schemaX: " + schemaName);
-			schemas.add(getSchemaStructure(schemaName));
-		}
-		return schemas;
+	
+	@Override
+	protected Set<String> getIgnoredImportedSchemas() {
+		Set<String> ignored = new HashSet<String>();
+		ignored.add("db_.*");
+		ignored.add("sys");
+		ignored.add("INFORMATION_SCHEMA");
+		return ignored;
 	}
-
-//	protected Type getType(int dataType, String typeName, int columnSize,
-//			int decimalDigits, int numPrecRadix) throws UnknownTypeException {
-//		Type type;
-//		switch (dataType) {
-//		case Types.LONGVARBINARY:
-//			if (typeName.equals("image")) {
-//				type = new SimpleTypeBinary("MIME", "image");
-//			} else {
-//				type = new SimpleTypeBinary();
-//			}
-//			type.setOriginalTypeName(typeName);
-//			break;
-//		default:
-//			type = super.getType(dataType, typeName, columnSize, decimalDigits,
-//					numPrecRadix);
-//		}
-//		return type;
-//	}
 	
 	protected Type getLongvarbinaryType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {

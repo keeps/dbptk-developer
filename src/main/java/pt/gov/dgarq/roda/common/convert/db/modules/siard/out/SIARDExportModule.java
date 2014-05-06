@@ -236,7 +236,7 @@ public class SIARDExportModule implements DatabaseHandler {
 				+ "metadata.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-"
 				+ "instance\" version=\"1.0\" xsi:schemaLocation=\""
 				+ "http://www.bar.admin.ch/xmlns/siard/1.0/metadata.xsd "
-				+ "metadata.xsd\">");
+				+ "metadata.xsd\">\n");
 
 		if (structure.getName() != null) {
 			print("\t<dbname>" + structure.getName() + "</dbname>\n");

@@ -70,9 +70,9 @@ import pt.gov.dgarq.roda.common.convert.db.modules.SQLHelper;
 public class JDBCImportModule implements DatabaseImportModule {
 
 	// if fetch size is zero, then the driver decides the best fetch size
-	private static final int ROW_FETCH_BLOCK_SIZE = 0;
+	protected static final int ROW_FETCH_BLOCK_SIZE = 0;
 
-	private static final int DEFAULT_DATA_TIMESPAN = 5;
+	protected static final int DEFAULT_DATA_TIMESPAN = 5;
 	
 	private final Logger logger = Logger.getLogger(JDBCImportModule.class);
 
@@ -212,6 +212,21 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return getConnection().getCatalog();
 	}
 	
+	/**
+	 * Checks if schema name matches the set of schemas to be ignored.
+	 * @param schemaName
+	 * @return
+	 */
+	protected boolean isIgnoredImportedSchema(String schemaName) {
+		boolean ignoredSchema = false;
+		for (String s : getIgnoredImportedSchemas()) {
+			if (schemaName.matches(s)) {
+				ignoredSchema = true;
+			}
+		}
+		return ignoredSchema;
+	}
+	
 	protected List<SchemaStructure> getSchemas() 
 			throws SQLException, ClassNotFoundException, UnknownTypeException {		
 		List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
@@ -219,9 +234,24 @@ public class JDBCImportModule implements DatabaseImportModule {
 		ResultSet rs = getMetadata().getSchemas();	
 		while (rs.next()) {
 			String schemaName = rs.getString(1);
+			// does not import ignored schemas
+			if (isIgnoredImportedSchema(schemaName)) {
+				continue;
+			}
 			schemas.add(getSchemaStructure(schemaName));
 		}
 		return schemas;
+	}
+
+	/**
+	 * Accepts schemas names in the form of regular expressions
+	 * I.e. SYS.* will ignore SYSCAT, SYSFUN, etc
+	 *  
+	 * @return
+	 * 			  the schema names not to be imported
+	 */
+	protected Set<String> getIgnoredImportedSchemas() {
+		return new HashSet<String>();
 	}
 
 	/**
@@ -245,11 +275,11 @@ public class JDBCImportModule implements DatabaseImportModule {
 	
 	protected List<TableStructure> getTables(SchemaStructure schema) 
 			throws SQLException, ClassNotFoundException, UnknownTypeException {
-		List<TableStructure> tables = new ArrayList<TableStructure>();
-		
+		List<TableStructure> tables = new ArrayList<TableStructure>();		
 		ResultSet rset = getMetadata().getTables(dbStructure.getName(),
 				schema.getName(), "%", new String[] { "TABLE" });
 		while (rset.next()) {
+			logger.debug("getting table structure for: " + rset.getString(3));
 			tables.add(getTableStructure(schema, rset.getString(3)));
 		}
 		return tables;
@@ -365,8 +395,9 @@ public class JDBCImportModule implements DatabaseImportModule {
 		} else {
 			// TODO implement getUsers for all modules
 			users.add(new UserStructure("UNDEFINED_USER", "DESCRIPTION"));
-			// logger.info("Users were not imported: not supported yet on " 
-			//		+ getClass().getName());
+			logger.warn("Users were not imported: not supported yet on " 
+					+ getClass().getName() + "\n"
+					+ "UNDEFINED_USER will be set as user name");
 		}
 		return users;
 	}
@@ -426,11 +457,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 		List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
 		ResultSet rs = getMetadata().getColumns(dbStructure.getName(), 
 				schemaName, tableName, "%");
-//		logger.debug(tableName
-//						+ "Structure: "
-//						+ "Column Name, Nullable, Data Type, Type Name, "
-//						+ "Column Size, Decimal Digits, Num Prec Radix, index, "
-//						+ "Remarks");
+
 		while (rs.next()) {
 			String columnName = rs.getString(4);
 			String isNullable = rs.getString(18);
@@ -441,10 +468,6 @@ public class JDBCImportModule implements DatabaseImportModule {
 			int numPrecRadix = rs.getInt(10);
 			int index = rs.getInt(17);
 			String remarks = rs.getString(12);
-//			logger.debug(tableName + "Column: " + columnName + ", "
-//					+ isNullable + ", " + dataType + ", " + typeName + ", "
-//					+ columnSize + ", " + decimalDigits + ", " + numPrecRadix
-//					+ ", " + index + ", " + remarks);
 
 			Boolean nillable = Boolean.TRUE;
 			if (isNullable != null && isNullable.equals("NO")) {
@@ -487,100 +510,128 @@ public class JDBCImportModule implements DatabaseImportModule {
 		case Types.BIGINT:
 			type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
 					Integer.valueOf(decimalDigits));
+			type.setSql99TypeName("DECIMAL");
 			break;
 		case Types.BINARY:
 			type = new SimpleTypeBinary(Integer.valueOf(columnSize));
+			type.setSql99TypeName("BIT");
 			break;
 		case Types.BIT:
-			type = (columnSize > 1) 
-				? new SimpleTypeBinary(Integer.valueOf(columnSize)) 
-					: new SimpleTypeBoolean();
+			if (columnSize > 1) {
+				type = new SimpleTypeBinary(Integer.valueOf(columnSize));
+				type.setSql99TypeName("BIT");
+			} else {
+				type = new SimpleTypeBoolean();
+				type.setSql99TypeName("BOOLEAN");
+			}
 			break;
 		case Types.BLOB:
 			type = new SimpleTypeBinary(Integer.valueOf(columnSize));
+			type.setSql99TypeName("BINARY LARGE OBJECT");
 			break;
 		case Types.BOOLEAN:
 			type = new SimpleTypeBoolean();
+			type.setSql99TypeName("BOOLEAN");
 			break;
 		case Types.CHAR:
 			type = new SimpleTypeString(Integer.valueOf(columnSize),
 					Boolean.FALSE);
+			type.setSql99TypeName("CHARACTER");
 			break;
 		case Types.NCHAR:
 			// TODO add charset
 			type = new SimpleTypeString(Integer.valueOf(columnSize), 
 					Boolean.FALSE);
+			type.setSql99TypeName("CHARACTER");
 			break;
 		case Types.CLOB:
 			type = new SimpleTypeString(Integer.valueOf(columnSize),
 					Boolean.TRUE);
+			type.setSql99TypeName("CHARACTER LARGE OBJECT");
 			break;
 		case Types.DATE:
 			type = new SimpleTypeDateTime(Boolean.FALSE, Boolean.FALSE);
+			type.setSql99TypeName("DATE");
 			break;
 		case Types.DECIMAL:
 			type = getDecimalType(typeName, columnSize, decimalDigits, 
 					numPrecRadix);
+			type.setSql99TypeName("DECIMAL");
 			break;
 		case Types.DOUBLE:
 			type = getDoubleType(typeName, columnSize, decimalDigits, 
 					numPrecRadix);
+			type.setSql99TypeName("DOUBLE PRECISION");
 			break;
 		case Types.FLOAT:
 			type = new SimpleTypeNumericApproximate(
 					Integer.valueOf(columnSize));
+			type.setSql99TypeName("FLOAT");
 			break;
 		case Types.INTEGER:
 			type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
 					Integer.valueOf(decimalDigits));
+			type.setSql99TypeName("INTEGER");
 			break;
 		case Types.LONGVARBINARY:
 			type = getLongvarbinaryType(typeName, columnSize, decimalDigits, 
 					numPrecRadix);
+			type.setSql99TypeName("BINARY LARGE OBJECT");
 			break;
 		case Types.LONGVARCHAR:
 			type = getLongvarcharType(typeName, columnSize, decimalDigits,
 					numPrecRadix);
+			type.setSql99TypeName("CHARACTER LARGE OBJECT");
 			break;
 		case Types.LONGNVARCHAR:
 			type = new SimpleTypeString(Integer.valueOf(columnSize),
 					Boolean.TRUE);
+			type.setSql99TypeName("CHARACTER LARGE OBJECT");
 			break;
 		case Types.NUMERIC:
 			type = getNumericType(typeName, columnSize, decimalDigits, 
 					numPrecRadix);
+			type.setSql99TypeName("NUMERIC");
 			break;
 		case Types.REAL:
 			type = new SimpleTypeNumericApproximate(
 					Integer.valueOf(columnSize));
+			type.setSql99TypeName("REAL");
 			break;
 		case Types.SMALLINT:
 			type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
 					Integer.valueOf(decimalDigits));
+			type.setSql99TypeName("SMALLINT");
 			break;
 		case Types.TIME:
 			type = getTimeType(
 					typeName, columnSize, decimalDigits, numPrecRadix);
+			type.setSql99TypeName("TIME");
 			break;
 		case Types.TIMESTAMP:
 			type = getTimestampType(typeName, columnSize, decimalDigits, 
 					numPrecRadix);
+			type.setSql99TypeName("TIMESTAMP");
 			break;
 		case Types.TINYINT:
 			type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
 					Integer.valueOf(decimalDigits));
+			type.setSql99TypeName("SMALLINT");
 			break;
 		case Types.VARBINARY:
 			type = new SimpleTypeBinary(Integer.valueOf(columnSize));
+			type.setSql99TypeName("BIT VARYING");
 			break;
 		case Types.VARCHAR:
 			type = new SimpleTypeString(Integer.valueOf(columnSize),
 					Boolean.TRUE);
+			type.setSql99TypeName("CHARACTER VARYING");
 			break;
 		case Types.NVARCHAR:
 			// TODO add charset
 			type = new SimpleTypeString(Integer.valueOf(columnSize), 
 					Boolean.TRUE);
+			type.setSql99TypeName("CHARACTER VARYING");
 			break;
 		case Types.ARRAY:
 			// TODO add array type convert support
@@ -761,11 +812,11 @@ public class JDBCImportModule implements DatabaseImportModule {
 	protected String getUpdateRule(Short value) {
 		String rule = null;
 		switch(value) {
-			case 0: rule = "NO ACTION"; break;
-			case 1: rule = "CASCADE"; break;
+			case 0: rule = "CASCADE"; break;
+			case 1: rule = "RESTRICT"; break;
 			case 2: rule = "SET NULL"; break;
-			case 3: rule = "SET DEFAULT"; break;
-			case 4: rule = "RESTRICT"; break;
+			case 3: rule = "NO ACTION"; break;
+			case 4: rule = "SET DEFAULT"; break;
 			default: rule = "SET DEFAULT"; break;
 		}
 		return rule;
@@ -1010,6 +1061,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 		try {
 			logger.debug("initializing database");
 			handler.initDatabase();
+			// sets schemas won't be exported
 			handler.setIgnoredSchemas(getIgnoredSchemas());
 			logger.debug("getting database structure");
 			handler.handleStructure(getDatabaseStructure());

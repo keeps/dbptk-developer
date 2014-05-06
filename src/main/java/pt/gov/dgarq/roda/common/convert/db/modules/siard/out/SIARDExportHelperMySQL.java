@@ -1,5 +1,6 @@
 package pt.gov.dgarq.roda.common.convert.db.modules.siard.out;
 
+
 /**
  * 
  * @author Miguel Coutada
@@ -7,5 +8,4 @@ package pt.gov.dgarq.roda.common.convert.db.modules.siard.out;
  */
 
 public class SIARDExportHelperMySQL extends SIARDExportHelper {
-
 }

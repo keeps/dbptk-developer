@@ -447,7 +447,7 @@ public class Main {
 				.println("\tMySQLJDBC hostName [port] database username password");
 		System.out.println("\tDb2JDBC hostname port database username password");
 		System.out
-				.println("\tOracle8i hostName port database username password <- untested!");
+				.println("\tOracle12c hostName port database username password <- untested!");
 		System.out.println("\tMSAccess database.mdb");
 		System.out.println("\tODBC source [username password]");
 		System.out.println("\tDBML baseDir");

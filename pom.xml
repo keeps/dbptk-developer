@@ -169,6 +169,11 @@
 			<artifactId>postgresql</artifactId>
 			<version>9.3-1101-jdbc4</version>
 		</dependency>
+		<dependency>
+			<groupId>com.ibm</groupId>
+			<artifactId>db2jcc4</artifactId>
+			<version>4.16.53</version>
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>

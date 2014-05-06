@@ -291,9 +291,7 @@ public class JDBCExportModule implements DatabaseHandler {
 	
 	protected boolean isIgnoredSchema(SchemaStructure schema) {
 		for (String s : ignoredSchemas) {			
-			if (schema.getName().equalsIgnoreCase(s)
-					|| (schema.getName().length() == 3 
-						&& schema.getName().startsWith(s))) {
+			if (schema.getName().matches(s)) {
 				return true;
 			}
 		}
@@ -302,7 +300,6 @@ public class JDBCExportModule implements DatabaseHandler {
 
 	public void handleDataOpenTable(String tableId) throws ModuleException {
 		if (databaseStructure != null) {			
-			// logger.debug("DataOpenTable: " + tableId);
 			TableStructure table = 
 					databaseStructure.lookupTableStructure(tableId);
 			this.currentTableStructure = table;			
