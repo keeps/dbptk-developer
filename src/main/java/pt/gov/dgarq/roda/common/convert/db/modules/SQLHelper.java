@@ -166,12 +166,12 @@ public class SQLHelper {
 			SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
 			if (!dateTime.getTimeDefined() && !dateTime.getTimeZoneDefined()) {
 				ret = "date";
-			} else if (dateTime.getTimeZoneDefined()) {
-				//FIXME time zone support
-				throw new UnknownTypeException(
-						"Time zone not supported in MySQL");
 			} else {
-				ret = "datetime";
+				if (type.getSql99TypeName().equalsIgnoreCase("TIME")) {
+					ret = "time";
+				} else {
+					ret = "timestamp";
+				}
 			}
 		} else if (type instanceof SimpleTypeInterval) {
 			throw new UnknownTypeException("Interval type not yet supported");

@@ -3,8 +3,6 @@
  */
 package pt.gov.dgarq.roda.common.convert.db.modules.postgreSql;
 
-import com.mysql.jdbc.StringUtils;
-
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBinary;
@@ -64,8 +62,7 @@ public class PostgreSQLHelper extends SQLHelper {
 			if (!dateTime.getTimeDefined() && !dateTime.getTimeZoneDefined()) {
 				ret = "date";
 			} else {
-				if (StringUtils.startsWithIgnoreCase(type.getOriginalTypeName(),
-						"TIMESTAMP")) {
+				if (type.getSql99TypeName().equalsIgnoreCase("TIMESTAMP")) {
 					if (dateTime.getTimeZoneDefined()) {
 						ret = "timestamp with time zone";
 					} else {

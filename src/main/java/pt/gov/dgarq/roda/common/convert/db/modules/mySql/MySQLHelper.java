@@ -3,7 +3,6 @@
  */
 package pt.gov.dgarq.roda.common.convert.db.modules.mySql;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
@@ -86,8 +85,7 @@ public class MySQLHelper extends SQLHelper {
 			} else if (dateTime.getTimeZoneDefined()) {
 				throw new UnknownTypeException(
 						"Time zone not supported in MySQL");
-			} else if (type.getOriginalTypeName().equalsIgnoreCase("TIME") 
-					|| type.getOriginalTypeName().equalsIgnoreCase("TIMETZ")) { 
+			} else if (type.getSql99TypeName().equalsIgnoreCase("TIME")) { 
 				ret = "time";
 			} else {
 				ret = "datetime";
@@ -95,25 +93,20 @@ public class MySQLHelper extends SQLHelper {
 		} else if (type instanceof SimpleTypeBinary) {
 			SimpleTypeBinary binary = (SimpleTypeBinary) type;
 			Integer lenght = binary.getLength();
-			String originalName = binary.getOriginalTypeName();
-			logger.debug("original: " + originalName);
-			if (StringUtils.startsWithIgnoreCase(originalName, "VARBINARY")
-					|| StringUtils.startsWithIgnoreCase(
-							originalName, "TINYBLOB")) {
-				ret = "varbinary";
-				if (lenght != null) {
-					ret += "(" + lenght / 8 + ")";
-				}
-			} else if (StringUtils.startsWithIgnoreCase(originalName, "BIT")) {
-				ret = "bit";
-				if (lenght != null) {
-					ret += "(" + lenght + ")";
-				}
-			} else if (StringUtils.startsWithIgnoreCase(
-					originalName, "BINARY")) {
-				ret = "binary";
-				if (lenght != null) {
-					ret += "(" + lenght / 8 + ")";
+			if (lenght != null) {
+				if (type.getSql99TypeName().equalsIgnoreCase("BIT")) {
+					if (type.getOriginalTypeName().equalsIgnoreCase("BIT")) {
+						ret = "bit(" + lenght + ")";
+					} else {
+						ret = "binary(" + (((lenght / 8) % 2 == 0) ? 
+								(lenght / 8) : ((lenght / 8) + 1)) + ")";
+					}
+				} else if (type.
+						getSql99TypeName().equalsIgnoreCase("BIT VARYING")) {
+					ret = "varbinary(" + (((lenght / 8) % 2 == 0) ? 
+							(lenght / 8) : ((lenght / 8) + 1)) + ")";
+				} else {
+					ret = "longblob";
 				}
 			} else {
 				ret = "longblob";

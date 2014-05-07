@@ -187,7 +187,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 		if (dbStructure == null) {
 			logger.debug("Importing structure");
 			dbStructure = new DatabaseStructure();
-
+			logger.debug("driver version: " + getMetadata().getDriverVersion());
 			dbStructure.setName(getDbName());
 			dbStructure.setProductName(getMetadata().getDatabaseProductName());
 			dbStructure.setProductVersion(getMetadata()
@@ -510,11 +510,11 @@ public class JDBCImportModule implements DatabaseImportModule {
 		case Types.BIGINT:
 			type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
 					Integer.valueOf(decimalDigits));
-			type.setSql99TypeName("DECIMAL");
+			type.setSql99TypeName("NUMERIC");
 			break;
 		case Types.BINARY:
-			type = new SimpleTypeBinary(Integer.valueOf(columnSize));
-			type.setSql99TypeName("BIT");
+			type = getBinaryType(typeName, columnSize, decimalDigits, 
+					numPrecRadix);
 			break;
 		case Types.BIT:
 			if (columnSize > 1) {
@@ -556,12 +556,10 @@ public class JDBCImportModule implements DatabaseImportModule {
 		case Types.DECIMAL:
 			type = getDecimalType(typeName, columnSize, decimalDigits, 
 					numPrecRadix);
-			type.setSql99TypeName("DECIMAL");
 			break;
 		case Types.DOUBLE:
 			type = getDoubleType(typeName, columnSize, decimalDigits, 
 					numPrecRadix);
-			type.setSql99TypeName("DOUBLE PRECISION");
 			break;
 		case Types.FLOAT:
 			type = new SimpleTypeNumericApproximate(
@@ -576,12 +574,10 @@ public class JDBCImportModule implements DatabaseImportModule {
 		case Types.LONGVARBINARY:
 			type = getLongvarbinaryType(typeName, columnSize, decimalDigits, 
 					numPrecRadix);
-			type.setSql99TypeName("BINARY LARGE OBJECT");
 			break;
 		case Types.LONGVARCHAR:
 			type = getLongvarcharType(typeName, columnSize, decimalDigits,
 					numPrecRadix);
-			type.setSql99TypeName("CHARACTER LARGE OBJECT");
 			break;
 		case Types.LONGNVARCHAR:
 			type = new SimpleTypeString(Integer.valueOf(columnSize),
@@ -591,7 +587,6 @@ public class JDBCImportModule implements DatabaseImportModule {
 		case Types.NUMERIC:
 			type = getNumericType(typeName, columnSize, decimalDigits, 
 					numPrecRadix);
-			type.setSql99TypeName("NUMERIC");
 			break;
 		case Types.REAL:
 			type = new SimpleTypeNumericApproximate(
@@ -606,12 +601,10 @@ public class JDBCImportModule implements DatabaseImportModule {
 		case Types.TIME:
 			type = getTimeType(
 					typeName, columnSize, decimalDigits, numPrecRadix);
-			type.setSql99TypeName("TIME");
 			break;
 		case Types.TIMESTAMP:
 			type = getTimestampType(typeName, columnSize, decimalDigits, 
 					numPrecRadix);
-			type.setSql99TypeName("TIMESTAMP");
 			break;
 		case Types.TINYINT:
 			type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
@@ -623,9 +616,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 			type.setSql99TypeName("BIT VARYING");
 			break;
 		case Types.VARCHAR:
-			type = new SimpleTypeString(Integer.valueOf(columnSize),
-					Boolean.TRUE);
-			type.setSql99TypeName("CHARACTER VARYING");
+			type = getVarcharType(typeName, columnSize, decimalDigits, 
+					numPrecRadix);
 			break;
 		case Types.NVARCHAR:
 			// TODO add charset
@@ -655,42 +647,71 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return type;
 	}
 	
+	protected Type getBinaryType(String typeName, int columnSize,
+			int decimalDigits, int numPrecRadix) {
+		Type type = new SimpleTypeBinary(Integer.valueOf(columnSize));
+		type.setSql99TypeName("BIT");
+		return type;
+	}
+
 	protected Type getDecimalType(String typeName, int columnSize, 
 			int decimalDigits, int numPrecRadix) {
-		return new SimpleTypeNumericExact(Integer.valueOf(columnSize),
+		Type type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
 				Integer.valueOf(decimalDigits));
+		type.setSql99TypeName("DECIMAL");
+		return type;
 	}
 	
 	protected Type getNumericType(String typeName, int columnSize, 
 			int decimalDigits, int numPrecRadix) {
-		return new SimpleTypeNumericExact(
+		Type type = new SimpleTypeNumericExact(
 				Integer.valueOf(columnSize), Integer.valueOf(decimalDigits));
+		type.setSql99TypeName("NUMERIC");
+		return type;
 	}
 	
 	protected Type getDoubleType(String typeName, int columnSize, 
 			int decimalDigits, int numPrecRadix) {
-		return new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
+		Type type = new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
+		type.setSql99TypeName("DOUBLE PRECISION");
+		return type;
 	}
 	
 	protected Type getLongvarbinaryType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
-		return new SimpleTypeBinary(Integer.valueOf(columnSize));
+		Type type = new SimpleTypeBinary(Integer.valueOf(columnSize));
+		type.setSql99TypeName("BINARY LARGE OBJECT");
+		return type;
 	}
 	
 	protected Type getLongvarcharType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) throws UnknownTypeException {
-		return new SimpleTypeString(Integer.valueOf(columnSize),
+		Type type = new SimpleTypeString(Integer.valueOf(columnSize),
 				Boolean.TRUE);
-	}
-	
-	protected Type getTimestampType(String typeName, int columnSize, 
-			int decimalDigits, int numPrecRadix) {
-		return new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+		type.setSql99TypeName("CHARACTER LARGE OBJECT");
+		return type;
 	}
 	
 	protected Type getTimeType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
-		return new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+		Type type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+		type.setSql99TypeName("TIME");
+		return type;
+	}
+	
+	protected Type getTimestampType(String typeName, int columnSize, 
+			int decimalDigits, int numPrecRadix) {
+		Type type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+		type.setSql99TypeName("TIMESTAMP");
+		return type;
+	}
+		
+	protected Type getVarcharType(String typeName, int columnSize,
+			int decimalDigits, int numPrecRadix) {
+		Type type = new SimpleTypeString(Integer.valueOf(columnSize),
+				Boolean.TRUE);
+		type.setSql99TypeName("CHARACTER VARYING");
+		return type;
 	}
 	
 	protected Type getOtherType(int dataType, String typeName, int columnSize)

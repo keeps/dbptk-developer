@@ -1,5 +1,7 @@
 package pt.gov.dgarq.roda.common.convert.db.modules.siard.out;
 
+import org.apache.commons.lang3.StringUtils;
+
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeArray;
@@ -48,14 +50,15 @@ public class SIARDExportHelper {
 	protected String exportSimpleTypeString(Type type) {
 		String ret = null;
 		SimpleTypeString stringType = (SimpleTypeString) type;
-		if (stringType.isLengthVariable()) {
-			if (stringType.getLength() > 255) {
-				ret = "CHARACTER LARGE OBJECT";
-			} else {
-				ret = "CHARACTER VARYING(" + stringType.getLength() + ")";
-			}
+		if (type.getSql99TypeName().
+				equalsIgnoreCase("CHARACTER LARGE OBJECT")) {
+			ret = "CHARACTER LARGE OBJECT";
 		} else {
-			ret = "CHARACTER(" + stringType.getLength() + ")";
+			if (stringType.isLengthVariable()) {
+				ret = "CHARACTER VARYING(" + stringType.getLength() + ")";
+			} else {
+				ret = "CHARACTER(" + stringType.getLength() + ")";
+			}
 		}
 		return ret;
 	}
@@ -63,16 +66,22 @@ public class SIARDExportHelper {
 	protected String exportSimpleTypeNumericExact(Type type) {
 		SimpleTypeNumericExact numExactType = (SimpleTypeNumericExact) type;
 		StringBuilder sb = new StringBuilder();
-		if (type.getOriginalTypeName().equalsIgnoreCase("DECIMAL")) {
-			sb.append("DECIMAL(");
+		if (type.getSql99TypeName().equalsIgnoreCase("SMALLINT")) {
+			sb.append("SMALLINT");
+		} else if (type.getSql99TypeName().equalsIgnoreCase("INTEGER")) {
+			sb.append("INTEGER");
 		} else {
-			sb.append("NUMERIC(");
+			if (type.getSql99TypeName().equalsIgnoreCase("DECIMAL")) {
+				sb.append("DECIMAL(");
+			} else {
+				sb.append("NUMERIC(");
+			}
+			sb.append(numExactType.getPrecision());
+			if (numExactType.getScale() > 0) {
+				sb.append("," + numExactType.getScale());
+			}
+			sb.append(")");
 		}
-		sb.append(numExactType.getPrecision());
-		if (numExactType.getScale() > 0) {
-			sb.append("," + numExactType.getScale());
-		}
-		sb.append(")");
 		return sb.toString();
 	}
 	
@@ -80,12 +89,19 @@ public class SIARDExportHelper {
 		SimpleTypeNumericApproximate numApproxType = 
 				(SimpleTypeNumericApproximate) type;
 		StringBuilder sb = new StringBuilder();
-		sb.append("FLOAT");
-		// FLOAT default precision is 1: returns only "FLOAT"
-		if (numApproxType.getPrecision() > 1) {
-			sb.append("(");
-			sb.append(numApproxType.getPrecision());
-			sb.append(")");
+		if (type.getSql99TypeName().equalsIgnoreCase("REAL")) {
+			sb.append("REAL");
+		} else if (StringUtils.
+				startsWithIgnoreCase(type.getSql99TypeName(), "DOUBLE")){
+			sb.append("DOUBLE PRECISION");			
+		} else {
+			sb.append("FLOAT");
+			// FLOAT default precision is 1: returns only "FLOAT"
+			if (numApproxType.getPrecision() > 1) {
+				sb.append("(");
+				sb.append(numApproxType.getPrecision());
+				sb.append(")");
+			}
 		}
 		return sb.toString();
 	}
@@ -97,7 +113,7 @@ public class SIARDExportHelper {
 				&& !dateTimeType.getTimeZoneDefined()) {
 			ret = "DATE";
 		} else {
-			if (type.getOriginalTypeName().equalsIgnoreCase("TIME")) {
+			if (type.getSql99TypeName().equalsIgnoreCase("TIME")) {
 				ret = "TIME";
 			} else {
 				ret = "TIMESTAMP";
@@ -108,21 +124,18 @@ public class SIARDExportHelper {
 
 	protected String exportSimpleTypeBinary(Type type) {
 		Integer length = ((SimpleTypeBinary) type).getLength();
-		String originalName = type.getOriginalTypeName();
+		String sql99TypeName = type.getSql99TypeName();
 		String ret = null;
-		if (length != null) {
-			if (originalName.equalsIgnoreCase("BIT")) {
+		if (sql99TypeName.equalsIgnoreCase("BIT")) {
+			if (type.getOriginalTypeName().equalsIgnoreCase("BIT")) {
 				ret = "BIT(" + length + ")";
-			} else if (originalName.equalsIgnoreCase("BINARY")) {
-				ret = "BIT(" + length * 8 + ")";
-			} else if (originalName.equalsIgnoreCase("VARBINARY")
-					|| originalName.equalsIgnoreCase("TINYBLOB")) {
-				ret = "BIT VARYING(" + length * 8 + ")";
 			} else {
-				ret = "BINARY LARGE OBJECT";
+				ret = "BIT(" + length * 8 + ")";
 			}
+		} else if (sql99TypeName.equalsIgnoreCase("BIT VARYING")) {
+			ret = "BIT VARYING(" + length * 8 + ")";
 		} else {
-			ret = "BINARY LARGE OBJECT";
+			ret = "BINARY LARGE OBJECT";	
 		}
 		return ret;
 	}

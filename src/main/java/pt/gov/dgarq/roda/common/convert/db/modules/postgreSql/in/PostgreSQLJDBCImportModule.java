@@ -22,9 +22,11 @@ import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.FileItem;
 import pt.gov.dgarq.roda.common.convert.db.model.data.SimpleCell;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
+import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBinary;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeDateTime;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumericApproximate;
-import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumericExact;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeString;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.in.JDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.PostgreSQLHelper;
@@ -118,59 +120,120 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 		return ignoredSchemas;
 	}
 	
-	protected Type getNumericType(String typeName, int columnSize, 
+	@Override
+	protected Type getBinaryType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
-		if (columnSize > 131000) {
-			logger.info("Numeric or decimal column with no "
-					+ "precision or scale specified");
-			logger.info("Lowering precision to 28 with scale 10");
-			columnSize = 28;
-			decimalDigits = 10;
+		Type type = new SimpleTypeBinary(Integer.valueOf(columnSize));
+		if (typeName.equalsIgnoreCase("bytea")) {
+			type.setSql99TypeName("BINARY LARGE OBJECT");
+		} else {
+			type.setSql99TypeName("BIT");
 		}
-		return new SimpleTypeNumericExact(
-				Integer.valueOf(columnSize), Integer.valueOf(decimalDigits));
+		return type;
 	}
-	
-	protected Type getDecimalType(String typeName, int columnSize, 
-			int decimalDigits, int numPrecRadix) {
-		if (columnSize > 131000) {
-			logger.warn("Numeric or decimal column with no defined "
-					+ "precision or scale");
-			logger.warn("Lowering precision to 28 and scale to 10");
-			columnSize = 28;
-			decimalDigits = 10;
-		}
-		return new SimpleTypeNumericExact(
-				Integer.valueOf(columnSize), Integer.valueOf(decimalDigits));
-	}
+
+//	protected Type getNumericType(String typeName, int columnSize, 
+//			int decimalDigits, int numPrecRadix) {
+//		if (columnSize > 131000) {
+//			logger.info("Numeric or decimal column with no "
+//					+ "precision or scale specified");
+//			logger.warn("Lowering precision to 28 with scale 10");
+//			columnSize = 28;
+//			decimalDigits = 10;
+//		}
+//		Type type = new SimpleTypeNumericExact(
+//				Integer.valueOf(columnSize), Integer.valueOf(decimalDigits));
+//		type.setSql99TypeName("NUMERIC");
+//		return type;
+//	}
+//
+//	protected Type getDecimalType(String typeName, int columnSize, 
+//			int decimalDigits, int numPrecRadix) {
+//		if (columnSize > 131000) {
+//			logger.info("Numeric or decimal column with no defined "
+//					+ "precision or scale");
+//			logger.warn("Lowering precision to 28 and scale to 10");
+//			columnSize = 28;
+//			decimalDigits = 10;
+//		}
+//		Type type = new SimpleTypeNumericExact(
+//				Integer.valueOf(columnSize), Integer.valueOf(decimalDigits));
+//		type.setSql99TypeName("DECIMAL");
+//		return type;
+//	}
 	
 	protected Type getDoubleType(String typeName, int columnSize, 
 			int decimalDigits, int numPrecRadix) {
 		if (typeName.equalsIgnoreCase("MONEY") 
 				|| typeName.equalsIgnoreCase("FLOAT8")) {
+			logger.warn("Setting Money column size to 53");
 			columnSize = 53;
 		}
-		return new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
-	}
-	
-	protected Type getTimestampType(String typeName, int columnSize, 
-			int decimalDigits, int numPrecRadix) {
-		if (typeName.equalsIgnoreCase("TIMESTAMPTZ")) {
-			return new SimpleTypeDateTime(Boolean.TRUE, Boolean.TRUE);
-		} else {
-			return new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
-		}
+		Type type = 
+				new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
+		type.setSql99TypeName("DOUBLE PRECISION");
+		return type;
 	}
 	
 	protected Type getTimeType(String typeName, int columnSize, 
 			int decimalDigits, int numPrecRadix) {
+		Type type;
 		if (typeName.equalsIgnoreCase("TIMETZ")) {
-			return new SimpleTypeDateTime(Boolean.TRUE, Boolean.TRUE);
+			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.TRUE);
 		} else {
-			return new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
 		}
+		type.setSql99TypeName("TIME");
+		return type;
 	}
-		
+	
+	protected Type getTimestampType(String typeName, int columnSize, 
+			int decimalDigits, int numPrecRadix) {
+		Type type;
+		if (typeName.equalsIgnoreCase("TIMESTAMPTZ")) {
+			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.TRUE);
+		} else {
+			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+		}
+		type.setSql99TypeName("TIMESTAMP");
+		return type;
+	}
+
+	@Override
+	protected Type getVarcharType(String typeName, int columnSize,
+			int decimalDigits, int numPrecRadix) {
+		Type type = new SimpleTypeString(Integer.valueOf(columnSize), 
+				Boolean.TRUE); 
+		if (typeName.equalsIgnoreCase("text")) {
+			type.setSql99TypeName("CHARACTER LARGE OBJECT");
+		} else {
+			type.setSql99TypeName("CHARACTER VARYING");
+		}
+		return type;
+	}
+
+	@Override
+	protected Type getSpecificType(int dataType, String typeName, 
+			int columnSize) throws UnknownTypeException {
+		Type type;
+		logger.debug("Specific type name: " + typeName);
+		logger.debug("------\n");
+		switch (dataType) {
+		case 2009: // XML Data type
+			type = new SimpleTypeString(Integer.valueOf(columnSize), 
+					Boolean.TRUE);
+			type.setSql99TypeName("CHARACTER LARGE OBJECT");
+			break;
+		default:
+			type = super.getSpecificType(dataType, typeName, columnSize);
+			break;
+		}
+		return type;
+	}
+
+	/**
+	 * Drops money currency 
+	 */
 	protected Cell rawToCellSimpleTypeNumericApproximate(String id, 
 			String columnName, Type cellType, ResultSet rawData) 
 					throws SQLException {
@@ -192,12 +255,15 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 				Double d = rawData.getDouble(columnName);
 				value = d.toString();
 			}
-			logger.debug("VALUE: " + value);
 			cell = new SimpleCell(id, value);
 		}
 		return cell;
 	}
 	
+	/**
+	 * Treats bit strings, as the default behavior does not handle 
+	 * PostgreSQL byte streams correctly 
+	 */
 	protected Cell rawToCellSimpleTypeBinary(String id, String columnName,
 			Type cellType, ResultSet rawData) 
 					throws SQLException, ModuleException {
