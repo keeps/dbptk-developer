@@ -644,16 +644,8 @@ public class SIARDExportModule implements DatabaseHandler {
 							+ "check constraint key name cannot be null");
 		}
 		if (checkConstraint.getCondition() != null) {
-			String condition = checkConstraint.getCondition();
-			if (SIARDHelper.isValidConstrainstCondition(condition)) {
-				print("\t\t\t\t\t\t\t<condition>" + condition
-						+ "</condition>\n");
-			} else {
-				throw new ModuleException(
-						"Error while exporting candidate key: "
-								+ "check constraint condition is not correct. "
-								+ "It may be 'TRUE', 'FASE' or 'UNKNOWN'");
-			}
+			print("\t\t\t\t\t\t\t<condition>" + checkConstraint.getCondition()	
+					+ "</condition>\n");
 		} else {
 			throw new ModuleException("Error while exporting candidate key: "
 					+ "check constraint condition cannot be null");
@@ -667,38 +659,43 @@ public class SIARDExportModule implements DatabaseHandler {
 
 	private void exportTrigger(Trigger trigger) throws IOException,
 			ModuleException {
+		String description = trigger.getDescription();
+		
 		print("\t\t\t\t\t\t<trigger>\n");
 		if (trigger.getName() != null) {
-			print("\t\t\t\t\t\t\t<name>" + trigger.getName() + "</name>\n");
+			print("\t\t\t\t\t\t\t<name>" 
+					+ SIARDHelper.encode(trigger.getName()) + "</name>\n");
 		} else {
 			throw new ModuleException("Error while exporting trigger: "
 					+ "trigger name key name cannot be null");
 		}
 		if (trigger.getActionTime() != null) {
 			String actionTime = trigger.getActionTime();
+			print("\t\t\t\t\t\t\t<actionTime>");
 			if (SIARDHelper.isValidActionTime(actionTime)) {
-				print("\t\t\t\t\t\t\t<actionTime>" + actionTime
-						+ "</actionTime>\n");
+				print(SIARDHelper.encode(actionTime));
 			} else {
-				throw new ModuleException("Error while exporting trigger: "
-						+ "trigger action time is not correct. "
-						+ "It may be 'BEFORE' or 'AFTER'");
+				print("BEFORE");
+				String message = "Trigger true action time is: " 
+						+ actionTime + ".";
+				if (description == null) {
+					description = "";
+				}
+				description = message + description;
+						
+				logger.warn("Trigger action time set to BEFORE but "
+						+ "its action time is unknown");
 			}
+				
+			print("</actionTime>\n");
 		} else {
 			throw new ModuleException("Error while exporting trigger: "
 					+ "trigger actionTime cannot be null");
 		}
-		// TODO add list column names
 		if (trigger.getTriggerEvent() != null) {
-			String triggerEvent = trigger.getTriggerEvent();
-			if (SIARDHelper.isValidTriggerEvent(triggerEvent)) {
-				print("\t\t\t\t\t\t\t<triggerEvent>" + triggerEvent
-						+ "</triggerEvent>\n");
-			} else {
-				throw new ModuleException("Error while exporting trigger: "
-						+ "trigger event time is not correct. "
-						+ "It may be 'INSERT', 'DELETE' or 'UPDATE'");
-			}
+			print("\t\t\t\t\t\t\t<triggerEvent>" 
+					+ SIARDHelper.encode(trigger.getTriggerEvent())
+					+ "</triggerEvent>\n");
 		} else {
 			throw new ModuleException("Error while exporting trigger: "
 					+ "trigger triggerEvent cannot be null");
@@ -709,13 +706,15 @@ public class SIARDExportModule implements DatabaseHandler {
 		}
 		if (trigger.getTriggeredAction() != null) {
 			print("\t\t\t\t\t\t\t<triggeredAction>"
-					+ trigger.getTriggeredAction() + "</triggeredAction>\n");
+					+ SIARDHelper.encode(trigger.getTriggeredAction()) 
+					+ "</triggeredAction>\n");
 		} else {
 			throw new ModuleException("Error while exporting trigger: "
 					+ "trigger triggeredAction cannot be null");
 		}
-		if (trigger.getDescription() != null) {
-			print("\t\t\t\t\t\t\t<description>" + trigger.getDescription()
+		if (description != null) {
+			print("\t\t\t\t\t\t\t<description>" 
+					+ SIARDHelper.encode(description)
 					+ "</description>\n");
 		}
 
@@ -888,7 +887,8 @@ public class SIARDExportModule implements DatabaseHandler {
 			throw new ModuleException("Error while exporting users structure: "
 					+ "privilege grantee cannot be null");
 		}
-		if (privilege.getOption() != null) {
+		if (privilege.getOption() != null 
+				&& SIARDHelper.isValidOption(privilege.getOption())) {
 			print("\t\t\t<option>" + privilege.getOption() + "</option>\n");
 		}
 		if (privilege.getDescription() != null) {
@@ -944,9 +944,6 @@ public class SIARDExportModule implements DatabaseHandler {
 				simpleCell.setSimpledata(null);
 			} else {
 				byte[] bytes = IOUtils.toByteArray(binaryCell.getInputstream());
-				logger.debug("COL NAME OUT: " + column.getName());
-				logger.debug("bytes out : " + bytes);
-				logger.debug("bytes out HEX: " + SIARDHelper.bytesToHex(bytes));
 				simpleCell.setSimpledata(SIARDHelper.bytesToHex(bytes));
 			}
 			exportSimpleCellData(simpleCell, index);

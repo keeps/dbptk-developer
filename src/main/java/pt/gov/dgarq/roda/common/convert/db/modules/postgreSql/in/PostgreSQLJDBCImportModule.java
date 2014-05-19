@@ -131,36 +131,6 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 		}
 		return type;
 	}
-
-//	protected Type getNumericType(String typeName, int columnSize, 
-//			int decimalDigits, int numPrecRadix) {
-//		if (columnSize > 131000) {
-//			logger.info("Numeric or decimal column with no "
-//					+ "precision or scale specified");
-//			logger.warn("Lowering precision to 28 with scale 10");
-//			columnSize = 28;
-//			decimalDigits = 10;
-//		}
-//		Type type = new SimpleTypeNumericExact(
-//				Integer.valueOf(columnSize), Integer.valueOf(decimalDigits));
-//		type.setSql99TypeName("NUMERIC");
-//		return type;
-//	}
-//
-//	protected Type getDecimalType(String typeName, int columnSize, 
-//			int decimalDigits, int numPrecRadix) {
-//		if (columnSize > 131000) {
-//			logger.info("Numeric or decimal column with no defined "
-//					+ "precision or scale");
-//			logger.warn("Lowering precision to 28 and scale to 10");
-//			columnSize = 28;
-//			decimalDigits = 10;
-//		}
-//		Type type = new SimpleTypeNumericExact(
-//				Integer.valueOf(columnSize), Integer.valueOf(decimalDigits));
-//		type.setSql99TypeName("DECIMAL");
-//		return type;
-//	}
 	
 	protected Type getDoubleType(String typeName, int columnSize, 
 			int decimalDigits, int numPrecRadix) {

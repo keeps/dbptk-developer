@@ -653,6 +653,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 
 		private Type createType(String sqlType) {
 			sqlType = sqlType.toUpperCase();
+			logger.debug("sqlType: " + sqlType);
 			Type type = null;
 						
 			if (sqlType.startsWith("INT")) {
@@ -739,7 +740,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 			} else if (sqlType.equals("DATE")) {
 				type = new SimpleTypeDateTime(Boolean.FALSE, Boolean.FALSE);
 				type.setSql99TypeName("DATE");
-			} else if (sqlType.equals("TIMESTAMP")) {
+			} else if (sqlType.startsWith("TIMESTAMP")) {
 				type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
 				type.setSql99TypeName("TIMESTAMP");
 			} else if (sqlType.equals("TIME")) {
@@ -992,7 +993,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 				} else {
 					cell = new SimpleCell(id);
 					if (trimmedVal.length() > 0) {
-						logger.debug("trimmed: " + trimmedVal);
+						// logger.debug("trimmed: " + trimmedVal);
 						((SimpleCell) cell).setSimpledata(trimmedVal);
 					} else {
 						((SimpleCell) cell).setSimpledata(null);

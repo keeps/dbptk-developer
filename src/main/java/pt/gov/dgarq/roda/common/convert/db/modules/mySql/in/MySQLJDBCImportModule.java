@@ -3,23 +3,14 @@
  */
 package pt.gov.dgarq.roda.common.convert.db.modules.mySql.in;
 
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Time;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.w3c.util.DateParser;
-
-import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
-import pt.gov.dgarq.roda.common.convert.db.model.data.SimpleCell;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.UserStructure;
-import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeDateTime;
-import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.in.JDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.MySQLHelper;
 
@@ -94,39 +85,4 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 		
 		return users;
 	}
-	
-	protected Cell rawToCellSimpleTypeDateTime(String id, String columnName, 
-			Type cellType, ResultSet rawData) throws SQLException {
-		Cell cell = null;
-		SimpleTypeDateTime undefinedDate = (SimpleTypeDateTime) cellType;
-		if (undefinedDate.getTimeDefined()) {
-			if (cellType.getOriginalTypeName().equalsIgnoreCase("TIME")
-					|| cellType.getOriginalTypeName().
-						equalsIgnoreCase("TIMETZ")) {
-				Time time = rawData.getTime(columnName);
-				if (time != null) {
-					cell = new SimpleCell(id, time.toString());
-				} else {
-					cell = new SimpleCell(id, null);
-				}
-			} else {
-				Timestamp timestamp = rawData.getTimestamp(columnName);
-				if (timestamp != null) {
-					String isoDate = DateParser.getIsoDate(timestamp);
-					cell = new SimpleCell(id, isoDate);
-				} else {
-					cell = new SimpleCell(id, null);
-				}
-			}
-		} else {
-			Date date = rawData.getDate(columnName);
-			if (date != null) {
-				cell = new SimpleCell(id, date.toString());
-			} else {
-				cell = new SimpleCell(id, null);
-			}
-		}
-		return cell;
-	}
-	
 }

@@ -193,4 +193,40 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 		}
 		return cell;
 	}
+
+	@Override
+	protected String processTriggerEvent(String string) {
+		char[] charArray = string.toCharArray();
+		
+		String res = "INSTEAD OF";		
+		if (charArray[0] == '1') {
+			res = "AFTER";
+		}
+		return res;
+	}
+
+	@Override
+	protected String processActionTime(String string) {
+		char[] charArray = string.toCharArray();
+		
+		String res = "";
+		if (charArray[0] == '1') {
+			res = "INSERT";
+		} 
+		
+		if (charArray[1] == '1') {
+			if (!res.equals("")) {
+				res += " OR ";
+			}
+			res = "UPDATE";
+		}
+		
+		if (charArray[2] == '1') {
+			if (!res.equals("")) {
+				res += " OR ";
+			}
+			res = "DELETE";
+		}
+		return res;		
+	}	
 }

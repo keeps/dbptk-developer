@@ -8,8 +8,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
 import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.Row;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.InvalidDataException;
@@ -38,11 +36,17 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
  */
 public class SQLHelper {
 	
-	private Logger logger = Logger.getLogger(SQLHelper.class);
+	// private Logger logger = Logger.getLogger(SQLHelper.class);
+	
+	private String name = "";
 
 	private String startQuote = "";
 	
 	private String endQuote = "";
+	
+	public String getName() {
+		return name;
+	}
 	
 	public String getStartQuote() {
 		return startQuote;
@@ -152,14 +156,37 @@ public class SQLHelper {
 				ret = "char(" + string.getLength() + ")";
 			}
 		} else if (type instanceof SimpleTypeNumericExact) {
-			SimpleTypeNumericExact numericExact = (SimpleTypeNumericExact) type;
-			ret = "numeric(" + numericExact.getPrecision() + ","
-					+ numericExact.getScale() + ")";
+			if (type.getSql99TypeName().equalsIgnoreCase("INTEGER")) {
+				ret = "integer";
+			} else if (type.getSql99TypeName().equalsIgnoreCase("SMALLINT")) {
+				ret = "smallint";
+			} else if (type.getSql99TypeName().equalsIgnoreCase("DECIMAL")){
+				ret = "decimal";
+					if (getNumericExactPrecision(type, 30) > 0) {
+						ret += "(" + getNumericExactPrecision(type, 30);  
+						if (getNumericExactScale(type, 30) > 0) {
+							ret += "," + getNumericExactScale(type, 30);
+						}
+						ret += ")";
+					}
+			} else {
+				ret = "numeric";
+				if (getNumericExactPrecision(type, 30) > 0) {
+					ret += "(" + getNumericExactPrecision(type, 30);  
+					if (getNumericExactScale(type, 30) > 0) {
+						ret += "," + getNumericExactScale(type, 30);
+					}
+					ret += ")";
+				}
+			}
 		} else if (type instanceof SimpleTypeNumericApproximate) {
 			SimpleTypeNumericApproximate numericApproximate = 
 					(SimpleTypeNumericApproximate) type;
-			ret = "float(" + numericApproximate.getPrecision() + ")";
-			logger.debug("ret: " + ret);
+			Integer precision = numericApproximate.getPrecision();
+			if (precision > 53) {
+				precision = 53;
+			}
+			ret = "float(" + precision + ")";
 		} else if (type instanceof SimpleTypeBoolean) {
 			ret = "boolean";
 		} else if (type instanceof SimpleTypeDateTime) {
@@ -179,7 +206,7 @@ public class SQLHelper {
 			throw new UnknownTypeException(
 					"Enumeration type not yet supported");
 		} else if (type instanceof SimpleTypeBinary) {
-			ret = "MEDIUMBLOB";
+			ret = "blob";
 		} else if (type instanceof ComposedTypeArray) {
 			throw new UnknownTypeException("Array type not yet supported");
 		} else if (type instanceof ComposedTypeStructure) {
@@ -189,6 +216,33 @@ public class SQLHelper {
 					+ " not yet supported");
 		}
 		return ret;
+	}
+	
+	protected Integer getNumericExactPrecision(Type type, Integer max) {
+		SimpleTypeNumericExact numericExact = (SimpleTypeNumericExact) type;
+		Integer precision;
+		if (max == null) {
+			precision = numericExact.getPrecision();
+		} else {
+			precision = Math.min(numericExact.getPrecision(), max);
+		}
+		return precision;
+	}
+	
+	protected Integer getNumericExactScale(Type type, Integer max) {
+		SimpleTypeNumericExact numericExact = (SimpleTypeNumericExact) type;
+		Integer scale;
+		if (max == null || numericExact.getScale() == 0) {
+			scale = numericExact.getScale();
+		} else {
+			scale = numericExact.getScale();
+			if (scale < 0) {
+				scale = 0;
+			}
+			scale = scale - numericExact.getPrecision() 
+					+ getNumericExactPrecision(type, max);
+		}
+		return scale;
 	}
 
 	/**
@@ -385,10 +439,6 @@ public class SQLHelper {
 		return null;
 	}
 	
-	public String getPrivilegesSQL() {
-		return null;
-	}
-
 	public String getRolesSQL() {
 		return null;
 	}

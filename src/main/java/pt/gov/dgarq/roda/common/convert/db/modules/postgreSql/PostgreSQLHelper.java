@@ -3,10 +3,13 @@
  */
 package pt.gov.dgarq.roda.common.convert.db.modules.postgreSql;
 
+import com.mysql.jdbc.StringUtils;
+
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBinary;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeDateTime;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumericApproximate;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeString;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.SQLHelper;
@@ -50,12 +53,23 @@ public class PostgreSQLHelper extends SQLHelper {
 		String ret;
 		if (type instanceof SimpleTypeString) {
 			SimpleTypeString string = (SimpleTypeString) type;
-			if (string.getLength().intValue() > 10485760) {
+			if (string.getLength().intValue() >= 65535) {
 				ret = "text";
 			} else if (string.isLengthVariable()) {
 				ret = "varchar(" + string.getLength() + ")";
 			} else {
 				ret = "char(" + string.getLength() + ")";
+			}
+		} else if (type instanceof SimpleTypeNumericApproximate) {
+			SimpleTypeNumericApproximate numericApproximate = 
+					(SimpleTypeNumericApproximate) type;
+			if (type.getSql99TypeName().equalsIgnoreCase("REAL")) {
+				ret = "real";
+			} else if (StringUtils.startsWithIgnoreCase(
+					type.getSql99TypeName(), "DOUBLE")) {
+				ret = "double precision";
+			} else {
+				ret = "float(" + numericApproximate.getPrecision() + ")";
 			}
 		} else if (type instanceof SimpleTypeDateTime) {
 			SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
@@ -76,7 +90,6 @@ public class PostgreSQLHelper extends SQLHelper {
 					}
 				}
 			}
-
 		} else if (type instanceof SimpleTypeBinary) {
 			ret = "bytea";
 		} else {
@@ -87,7 +100,7 @@ public class PostgreSQLHelper extends SQLHelper {
 
 	
 	public String getCheckConstraintsSQL(String schemaName, String tableName) {
-		return "SELECT tc.constraint_name "
+		return "SELECT tc.constraint_name AS CHECK_NAME "
 				+ "FROM information_schema.table_constraints tc "
 				+ "WHERE table_name='" + tableName + "' AND table_schema='"
 				+ schemaName + "' AND constraint_type = 'CHECK'";
@@ -103,22 +116,19 @@ public class PostgreSQLHelper extends SQLHelper {
 	
 	public String getTriggersSQL(String schemaName, String tableName) {
 		return "SELECT "
-				+ "trigger_name, action_timing, event_manipulation, "
-				+ "action_statement FROM information_schema.triggers "
-				+ "WHERE trigger_schema=\"" + schemaName 
-				+ "\" AND event_object_table=\"" + tableName + "\"";
+				+ "trigger_name AS TRIGGER_NAME, action_timing AS ACTION_TIME, "
+				+ "event_manipulation AS TRIGGER_EVENT, "
+				+ "action_statement AS TRIGGERED_ACTION "
+				+ "FROM information_schema.triggers "
+				+ "WHERE trigger_schema='" + schemaName 
+				+ "' AND event_object_table='" + tableName + "'";
 	}
 	
 	public String getUsersSQL(String dbName) {
-		return "SELECT usename FROM pg_catalog.pg_user";
+		return "SELECT usename AS USER_NAME FROM pg_catalog.pg_user";
 	}
 	
 	public String getRolesSQL() {
-		return "SELECT rolname FROM pg_roles";
-	}
-	
-	// TODO complete..
-	public String getPrivilegesSQL() {
-		return null;
+		return "SELECT rolname AS ROLE_NAME FROM pg_roles";
 	}
 }

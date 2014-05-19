@@ -10,7 +10,7 @@ public class Trigger {
 	
 	private String name;
 	
-	private String actionTime; // TODO change to actionTime
+	private String actionTime;
 	
 	private String triggerEvent;
 	

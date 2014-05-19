@@ -16,6 +16,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.ForeignKey;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumericApproximate;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeString;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
+import pt.gov.dgarq.roda.common.convert.db.modules.db2.DB2Helper;
 import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.in.JDBCImportModule;
 
 /** 
@@ -48,7 +49,7 @@ public class DB2JDBCImportModule extends JDBCImportModule {
 			String username, String password) {
 		super("com.ibm.db2.jcc.DB2Driver", "jdbc:db2://" + hostname 
 				+ ":" + port + "/" + database + ":user=" + username 
-				+ ";password=" + password + ";");
+				+ ";password=" + password + ";", new DB2Helper());
 		dbName = database;
 	}
 	
@@ -148,6 +149,7 @@ public class DB2JDBCImportModule extends JDBCImportModule {
 	 * @throws UnknownTypeException
 	 * @throws ClassNotFoundException 
 	 */
+	// VERIFY Need of custom getForeignKeys
 	protected List<ForeignKey> getForeignKeys(String tableName)
 			throws SQLException, UnknownTypeException, ClassNotFoundException {
 		List<ForeignKey> foreignKeys = new Vector<ForeignKey>();
@@ -170,5 +172,30 @@ public class DB2JDBCImportModule extends JDBCImportModule {
 		}
 		return foreignKeys;
 	}
-	
+
+	@Override
+	protected String processTriggerEvent(String string) {
+		String res = "";
+		if (string.equals("I")) {
+			res = "INSERT";
+		} else if (string.equals("U")) {
+			res = "UPDATE";
+		} else if (string.equals("D")) {
+			res = "DELETE";
+		}
+		return res;
+	}
+
+	@Override
+	protected String processActionTime(String string) {
+		String res = "";
+		if (string.equals("B")) {
+			res = "BEFORE";
+		} else if (string.equals("A")) {
+			res = "AFTER";
+		} else if (string.equals("I")) {
+			res = "INSTEAD OF";
+		}
+		return res;
+	}
 }

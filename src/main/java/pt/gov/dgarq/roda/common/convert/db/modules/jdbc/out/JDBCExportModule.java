@@ -15,12 +15,12 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.w3c.util.InvalidDateException;
 
@@ -133,6 +133,7 @@ public class JDBCExportModule implements DatabaseHandler {
 				logger.debug("Loading JDBC Driver " + driverClassName);
 				Class.forName(driverClassName);
 				logger.debug("Getting connection");
+				logger.debug("Connection URL: " + connectionURL);
 				connection = DriverManager.getConnection(connectionURL);
 				connection.setAutoCommit(true);
 				logger.debug("Connected");
@@ -224,6 +225,7 @@ public class JDBCExportModule implements DatabaseHandler {
 				if (schemaName.equalsIgnoreCase(schema.getName())) {
 					String newSchemaName = schema.getName() + "_replaced";
 					schema.setName(newSchemaName);
+					logger.debug("schemaName: " + newSchemaName);
 					for (TableStructure table : schema.getTables()) {
 						table.setId(newSchemaName + "." + table.getName());
 					}
@@ -489,21 +491,9 @@ public class JDBCExportModule implements DatabaseHandler {
 			PreparedStatement ps, int index, Cell cell, Type type) 
 					throws NumberFormatException, SQLException {
 		if (data != null) {
-			logger.debug("big decimal: " + data);
+			// logger.debug("big decimal: " + data);
 			BigDecimal bd = new BigDecimal(data);
 			ps.setBigDecimal(index, bd);
-			//VERIFY bigdecimal
-//			if (((SimpleTypeNumericExact) type).getScale() > 0) {
-//				logger.debug("NumericExact: " + data);
-//				ps.setFloat(index, Float.valueOf(data));
-//			}
-//			else {
-//				if (data.length() > 10) {
-//					ps.setLong(index, Long.valueOf(data));
-//				} else {
-//					ps.setInt(index, Integer.valueOf(data));
-//				}
-//			}
 		} else {
 			ps.setNull(index, Types.INTEGER);
 		}		
@@ -513,39 +503,45 @@ public class JDBCExportModule implements DatabaseHandler {
 			PreparedStatement ps, int index, Cell cell, Type type) 
 					throws NumberFormatException, SQLException {
 		if (data != null) {
-			logger.debug("set approx: " + data);
+			// logger.debug("set approx: " + data);
 			ps.setFloat(index, Float.valueOf(data));
 		} else {
 			ps.setNull(index, Types.FLOAT);
 		}		
 	}
-	
+		
 	protected void handleSimpleTypeDateTimeDataCell(String data,
 			PreparedStatement ps, int index, Cell cell, Type type) 
 					throws InvalidDateException, SQLException {
 		SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
 		if (dateTime.getTimeDefined()) {
-			if (StringUtils.startsWithIgnoreCase(type.getOriginalTypeName(),
-					"TIMESTAMP")) {
+			if (type.getSql99TypeName().equalsIgnoreCase("TIMESTAMP")) {
 				if (data != null) {
-					Timestamp sqlTimestamp = Timestamp.valueOf(data);
+					// logger.debug("timestamp before: " + data);
+					Calendar cal = javax.xml.bind.DatatypeConverter.
+							parseDateTime(data);
+					Timestamp sqlTimestamp = 
+							new Timestamp(cal.getTimeInMillis());
+					logger.debug("timestamp after: " + sqlTimestamp.toString());
 					ps.setTimestamp(index, sqlTimestamp);
 				} else {
 					ps.setNull(index, Types.TIMESTAMP);
 				}
 			} else {
 				if (data != null) {
+					// logger.debug("TIME before: " + data);
 					Time sqlTime = Time.valueOf(data);
+					// logger.debug("TIME after: " + sqlTime.toString());
 					ps.setTime(index, sqlTime);
 				} else {
 					ps.setNull(index, Types.TIME);
 				}
 			}
 		} else {
-			// Date date = DateParser.parse(data);
-			// java.sql.Date sqlDate = new java.sql.Date(date.getTime());
 			if (data != null) {
+				// logger.debug("DATE before: " + data);
 				java.sql.Date sqlDate = java.sql.Date.valueOf(data);
+				// logger.debug("DATE after: " + sqlDate.toString());
 				ps.setDate(index, sqlDate);
 			} else {
 				ps.setNull(index, Types.DATE);
@@ -557,7 +553,7 @@ public class JDBCExportModule implements DatabaseHandler {
 			PreparedStatement ps, int index, Cell cell, Type type) 
 					throws SQLException {
 		if (data != null) {
-			logger.debug("boolData: " + data);
+			// logger.debug("boolData: " + data);
 			ps.setBoolean(index, Boolean.valueOf(data));
 		} else {
 			ps.setNull(index, Types.BOOLEAN);

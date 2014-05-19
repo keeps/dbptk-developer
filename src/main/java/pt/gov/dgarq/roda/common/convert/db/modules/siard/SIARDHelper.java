@@ -13,7 +13,6 @@ public class SIARDHelper {
 
 	private static final Logger logger = Logger.getLogger(SIARDHelper.class);
 
-	// TODO complete encode/decode methods
 	public static final String encode(String text) {
 		// logger.debug("original text: " + text);
 		String xml = text.replaceAll("\\\\", "\\u005C");
@@ -22,17 +21,19 @@ public class SIARDHelper {
 		xml = xml.replaceAll("<", "&lt;");
 		xml = xml.replaceAll(">", "&gt;");
 		xml = xml.replaceAll("\"", "&quot;");
+		xml = xml.replaceAll("\\s+", "\\\\u0020");
 		// logger.debug("after xml: " + xml);
 		return xml;
 	}
 
 	public static final String decode(String xml) {
-		String text = StringEscapeUtils.unescapeJava(xml);
-		xml = xml.replaceAll("\\u005C", "\\\\");
-		xml = xml.replaceAll("&amp;", "&");
-		xml = xml.replaceAll("&lt;", "<");
-		xml = xml.replaceAll("&gt;", ">");
-		xml = xml.replaceAll("&quot;", "\"");
+		String text = xml.replace("\\\\u0020", " ");
+		text = text.replaceAll("&quot;", "\"");
+		text = text.replaceAll("&gt;", ">");
+		text = text.replaceAll("&lt;", "<");
+		text = text.replaceAll("&amp;", "&");
+		text = StringEscapeUtils.unescapeJava(text);
+		text = text.replaceAll("\\u005C", "\\\\");
 		return text;
 	}
 	
@@ -71,6 +72,7 @@ public class SIARDHelper {
 	public static boolean isValidActionTime(String actionTime) {
 		if (actionTime.equalsIgnoreCase("BEFORE")
 				|| actionTime.equalsIgnoreCase("AFTER")) {
+				// || actionTime.equalsIgnoreCase("INSTEAD OF")) {
 			return true;
 		}
 		return false;
@@ -80,6 +82,14 @@ public class SIARDHelper {
 		if (triggerEvent.equalsIgnoreCase("INSERT")
 				|| triggerEvent.equalsIgnoreCase("DELETE")
 				|| triggerEvent.equalsIgnoreCase("UPDATE")) {
+			return true;
+		}
+		return false;
+	}
+	
+	public static boolean isValidOption(String option) {
+		if (option.equalsIgnoreCase("GRANT")
+				|| option.equalsIgnoreCase("ADMIN")) {
 			return true;
 		}
 		return false;

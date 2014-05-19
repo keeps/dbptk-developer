@@ -105,7 +105,9 @@ public class SQLServerHelper extends SQLHelper {
 				else {
 					dataType = "varbinary";
 				}
-				Integer bytes = (binType.getLength() / 8) + 1;
+				Integer length = binType.getLength();
+				Integer bytes = (((length / 8.0) % 1 == 0) 
+						? (length / 8) : ((length / 8) + 1));
 				if (bytes <= 8000) {  
 					ret = dataType + "(" + bytes + ")";
 				} else {
@@ -123,13 +125,42 @@ public class SQLServerHelper extends SQLHelper {
 	}
 	
 	@Override
-	public String getUsersSQL(String dbName) {
-		return "SELECT suser_sname( owner_sid ) FROM sys.databases "
-				+ "WHERE name = '" + dbName + "'";
+	public String getCheckConstraintsSQL(String schemaName, String tableName) {
+		return "SELECT cc.CONSTRAINT_NAME AS CHECK_NAME, "
+				+ "cc.CHECK_CLAUSE AS CHECK_CONDITION "
+				+ "FROM INFORMATION_SCHEMA.CHECK_CONSTRAINTS cc "
+				+ "INNER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE c "
+				+ "ON cc.CONSTRAINT_NAME = c.CONSTRAINT_NAME "
+				+ "WHERE c.TABLE_NAME = '" + tableName + "' "
+						+ "AND c.TABLE_SCHEMA = '" + schemaName + "'";
+		
 	}
 
-	// TODO add triggers sql
 	public String getTriggersSQL(String schemaName, String tableName) {
-		return super.getTriggersSQL(schemaName, tableName);
+		return  "SELECT o.name AS TRIGGER_NAME, "
+				+ "CAST(OBJECTPROPERTY(id, 'ExecIsAfterTrigger') AS char(1)) "
+				+ "+ CAST(OBJECTPROPERTY(id, 'ExecIsInsteadOfTrigger') "
+				+ "AS char(1)) AS ACTION_TIME, "
+				+ "CAST(OBJECTPROPERTY(id, 'ExecIsInsertTrigger') AS char(1)) "
+				+ "+ CAST(OBJECTPROPERTY(id, 'ExecIsUpdateTrigger') AS char(1))"
+				+ "+ CAST(OBJECTPROPERTY(id, 'ExecIsDeleteTrigger') AS char(1))"
+				+ "AS TRIGGER_EVENT, "
+				+ "OBJECT_DEFINITION(o.id) AS TRIGGERED_ACTION "
+				+ "FROM sysobjects o "
+				+ "INNER JOIN sys.tables tab ON o.parent_obj = tab.object_id "
+				+ "INNER JOIN sys.schemas s ON tab.schema_id = s.schema_id "
+				+ "WHERE o.type = 'TR' AND tab.name = '" + tableName + "' "
+						+ "AND s.name='" + schemaName + "';";		
+	}
+	
+	@Override
+	public String getUsersSQL(String dbName) {
+		return "SELECT suser_sname(owner_sid) AS USER_NAME FROM sys.databases "
+				+ "WHERE name = '" + dbName + "'";
+	}
+	
+	@Override
+	public String getRolesSQL() {
+		return "SELECT name AS ROLE_NAME FROM sysusers WHERE issqlrole = 1";
 	}
 }

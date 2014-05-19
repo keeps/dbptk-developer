@@ -1,8 +1,19 @@
 package pt.gov.dgarq.roda.common.convert.db.modules.db2.out;
 
-import org.apache.log4j.Logger;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.sql.Types;
+import java.util.Calendar;
 
+import org.apache.log4j.Logger;
+import org.w3c.util.InvalidDateException;
+
+import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeDateTime;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.db2.DB2Helper;
 import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.out.JDBCExportModule;
 
@@ -11,7 +22,7 @@ import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.out.JDBCExportModule;
  *
  */
 public class DB2JDBCExportModule extends JDBCExportModule {
-	//FIXME remove it
+
 	private final Logger logger = Logger.getLogger(DB2JDBCExportModule.class);
 
 	
@@ -45,4 +56,42 @@ public class DB2JDBCExportModule extends JDBCExportModule {
 		}
 	}
 	
+	protected void handleSimpleTypeDateTimeDataCell(String data,
+			PreparedStatement ps, int index, Cell cell, Type type) 
+					throws InvalidDateException, SQLException {
+		SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
+		if (dateTime.getTimeDefined()) {
+			if (type.getSql99TypeName().equalsIgnoreCase("TIMESTAMP")) {
+				if (data != null) {
+					logger.debug("timestamp before: " + data);
+					Calendar cal = javax.xml.bind.DatatypeConverter.
+							parseDateTime(data);
+					Timestamp sqlTimestamp = 
+							new Timestamp(cal.getTimeInMillis());
+					logger.debug("timestamp after: " + sqlTimestamp.toString());
+					ps.setTimestamp(index, sqlTimestamp);
+				} else {
+					ps.setNull(index, Types.TIMESTAMP);
+				}
+			} else {
+				if (data != null) {
+					logger.debug("TIME before: " + data);
+					Time sqlTime = Time.valueOf(data);
+					logger.debug("TIME after: " + sqlTime.toString());
+					ps.setTime(index, sqlTime);
+				} else {
+					ps.setNull(index, Types.TIME);
+				}
+			}
+		} else {
+			if (data != null) {
+				logger.debug("DATE before: " + data);
+				java.sql.Date sqlDate = java.sql.Date.valueOf(data);
+				logger.debug("DATE after: " + sqlDate.toString());
+				ps.setDate(index, sqlDate);
+			} else {
+				ps.setNull(index, Types.DATE);
+			}
+		}
+	}
 }

@@ -308,7 +308,6 @@ public class DBMLImportModule implements DatabaseImportModule {
 			types.add("simpleTypeDateTime");
 			types.add("simpleTypeInterval");
 			types.add("simpleTypeBinary");
-			// types.add("simpleTypeXML");
 			types.add("composedTypeArray");
 			types.add("composedTypeStructure");
 		}

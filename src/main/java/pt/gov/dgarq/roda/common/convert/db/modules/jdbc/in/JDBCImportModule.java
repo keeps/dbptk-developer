@@ -202,7 +202,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			dbStructure.setUsers(getUsers());			
 			dbStructure.setRoles(getRoles());
 			dbStructure.setPrivileges(getPrivileges());
-			
+				
 			logger.debug("Finishing get dbStructure");
 		}	
 		return dbStructure;
@@ -389,20 +389,19 @@ public class JDBCImportModule implements DatabaseImportModule {
 			ResultSet rs = getStatement().executeQuery(query);
 			while (rs.next()) {
 				UserStructure user = new UserStructure();
-				user.setName(rs.getString(1));
+				user.setName(rs.getString("USER_NAME"));
 				users.add(user);
 			}
 		} else {
 			// TODO implement getUsers for all modules
 			users.add(new UserStructure("UNDEFINED_USER", "DESCRIPTION"));
 			logger.warn("Users were not imported: not supported yet on " 
-					+ getClass().getName() + "\n"
+					+ getClass().getSimpleName() + "\n"
 					+ "UNDEFINED_USER will be set as user name");
 		}
 		return users;
 	}
 
-	// TODO complete roles
 	protected List<RoleStructure> getRoles() 
 			throws SQLException, ClassNotFoundException {
 		List<RoleStructure> roles = new ArrayList<RoleStructure>();
@@ -411,40 +410,71 @@ public class JDBCImportModule implements DatabaseImportModule {
 			ResultSet rs = getStatement().executeQuery(query);
 			while(rs.next()) {
 				RoleStructure role = new RoleStructure();
-				role.setName(rs.getString(1));
+				String roleName;
+				try {
+					roleName = rs.getString("ROLE_NAME");
+				} catch (SQLException e) {
+					roleName = "";
+				}
+				role.setName(roleName);
+				
+				String admin;
+				try {
+					admin = rs.getString("ADMIN");
+				} catch (SQLException e) {
+					admin = "";
+				}
+				role.setAdmin(admin);
+				
 				roles.add(role);
 			}
 		}
 		else {
 			logger.info("Roles were not imported: not supported yet on " 
-					+ getClass().getName());
+					+ getClass().getSimpleName());
 		}
 		return roles;
 	}
 	
-	// TODO add optional fields
-	// TODO add sql query more modules
 	protected List<PrivilegeStructure> getPrivileges() 
 			throws SQLException, ClassNotFoundException {
 		List<PrivilegeStructure> privileges = 
 				new ArrayList<PrivilegeStructure>();
 		
-		String query =  sqlHelper.getPrivilegesSQL();
-		if (query != null) {
-			ResultSet rs = getStatement().executeQuery(query);
-			ResultSetMetaData rsmd = rs.getMetaData();
-			while (rs.next()) {
-				PrivilegeStructure privilege = new PrivilegeStructure();
-				privilege.setType(rs.getString(1));			
-				privilege.setGrantee(rs.getString(2));
-				privilege.setGrantor(
-						(rsmd.getColumnCount() > 2) ? rs.getString(3) 
-								: "unknown grantor");
-				privileges.add(privilege);
+		for (SchemaStructure schema : dbStructure.getSchemas()) {
+			for (TableStructure table : schema.getTables()) {
+				ResultSet rs = getMetadata().getTablePrivileges(
+						dbStructure.getName(), schema.getName(), 
+						table.getName());
+				while (rs.next()) {
+					PrivilegeStructure privilege = new PrivilegeStructure();
+					String grantor = rs.getString("GRANTOR");
+					if (grantor == null) {
+						grantor = "";
+					}
+					privilege.setGrantor(grantor);
+					
+					String grantee = rs.getString("GRANTEE");
+					if (grantee == null) {
+						grantee = "";
+					}
+					privilege.setGrantee(grantee);					
+					privilege.setType(rs.getString("PRIVILEGE"));
+					
+					String option = "false";
+					String isGrantable = rs.getString("IS_GRANTABLE");
+					if (isGrantable != null) {
+						if (isGrantable.equalsIgnoreCase("yes")) {
+							option = "true";
+						}
+					}
+					privilege.setOption(option);
+					privilege.setObject("TABLE \"" + schema.getName() 
+							+ "\".\"" + table.getName() + "\"");
+					
+					privileges.add(privilege);
+				}
 			}
-		} else {
-			logger.info("Privileges were not imported: not supported yet on " 
-					+ getClass().getName());
 		}
 		return privileges;
 	}
@@ -453,7 +483,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			String schemaName, String tableName) 
 			throws SQLException, ClassNotFoundException, UnknownTypeException {
 		
-		logger.debug("id: " + schemaName + "." + tableName);
+		// logger.debug("id: " + schemaName + "." + tableName);
 		List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
 		ResultSet rs = getMetadata().getColumns(dbStructure.getName(), 
 				schemaName, tableName, "%");
@@ -474,7 +504,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 				nillable = Boolean.FALSE;
 			}
 			
-			logger.debug("(" + tableName + ") " + "col name: " + columnName);
+			// logger.debug("(" + tableName + ") " + "col name: " + columnName);
 			Type columnType = getType(dataType, typeName, columnSize,
 					decimalDigits, numPrecRadix);
 
@@ -499,13 +529,13 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 */
 	protected Type getType(int dataType, String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) throws UnknownTypeException {
+//		logger.debug("--- INIT ----");
+//		logger.debug("datatype: " + dataType);
+//		logger.debug("typeName: " + typeName);
+//		logger.debug("col size: " + columnSize);
+//		logger.debug("decimal digits: " + decimalDigits);
+//		logger.debug("----\n");
 		Type type;
-		logger.debug("--- INIT ----");
-		logger.debug("datatype: " + dataType);
-		logger.debug("typeName: " + typeName);
-		logger.debug("col size: " + columnSize);
-		logger.debug("decimal digits: " + decimalDigits);
-		logger.debug("----\n");
 		switch (dataType) {
 		case Types.BIGINT:
 			type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
@@ -829,7 +859,6 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return s;
 	}
 	
-	// VERIFY update & delete rules
 	protected String getUpdateRule(Short value) {
 		String rule = null;
 		switch(value) {
@@ -847,6 +876,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return getUpdateRule(value);
 	}
 	
+	
+	// VERIFY adding PKs !?!
 	protected List<CandidateKey> getCandidateKeys(String schemaName, 
 			String tableName) throws SQLException, ClassNotFoundException {
 		List<CandidateKey> candidateKeys = new ArrayList<CandidateKey>();
@@ -880,7 +911,6 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return candidateKeys;		
 	}
 
-	// TODO complete getCheckConstraints
 	protected List<CheckConstraint> getCheckConstraints(String schemaName, 
 			String tableName) throws ClassNotFoundException {
 		List<CheckConstraint> checkConstraints = 
@@ -888,24 +918,53 @@ public class JDBCImportModule implements DatabaseImportModule {
 		
 		String query = sqlHelper.getCheckConstraintsSQL(schemaName, tableName);
 		if (query != null) {
-			try {
-				ResultSet rs = getStatement().executeQuery(sqlHelper.
-						getCheckConstraintsSQL(schemaName, tableName));
+			try {	
+				ResultSet rs = getStatement().executeQuery(query);
 				while (rs.next()) {
 					CheckConstraint checkConst = new CheckConstraint();
-					checkConst.setName(rs.getString(1));
-//					checkConst.setCondition((rs.getString(2) != null) 
-//							? rs.getString(2) : "UNKNOWN");
-//					checkConst.setDescription(rs.getString(3));
+					
+					String checkName;
+					try {
+						checkName = rs.getString("CHECK_NAME");
+					} catch (SQLException e) {
+						checkName = "";
+					}
+					checkConst.setName(checkName);
+					
+					String checkCondition;
+					try {
+						checkCondition = rs.getString("CHECK_CONDITION");
+					} catch (SQLException e) {
+						checkCondition = "UNKNOWN";
+					}
+					checkConst.setCondition(checkCondition);
+					
+					String checkDescription;
+					try {
+						checkDescription = rs.getString("CHECK_DESCRIPTION");
+					} catch (SQLException e) {
+						checkDescription = null;
+					}
+					if (checkDescription != null) {
+						checkConst.setDescription(checkDescription);
+					}
+					checkConstraints.add(checkConst);
 				}
 			} catch (SQLException e) {
-				logger.info("Check constraints were not imported for " 
-						+ schemaName + "." + tableName);
+				e.printStackTrace();
+				String message = "Check constraints were not imported for " 
+						+ schemaName + "." + tableName + "! ";
+				if (query.equals("")) {
+					message += "Not supported by " + sqlHelper.getName();
+				} else {
+					message += "An error occurred!";
+				}
+				logger.info(message);
 			}
 		} else {
 			logger.info(
 					"Check constraints were not imported: not supported yet on "
-							+ getClass().getName());
+							+ getClass().getSimpleName());
 		}
 		return checkConstraints;
 	}
@@ -918,14 +977,55 @@ public class JDBCImportModule implements DatabaseImportModule {
 		if (query != null) {
 			try { 
 				ResultSet rs = getStatement().executeQuery(
-						sqlHelper.getTriggersSQL(schemaName, tableName));		
-				
+						sqlHelper.getTriggersSQL(schemaName, tableName));
+			
 				while (rs.next()) {
 					Trigger trigger = new Trigger();
-					trigger.setName(rs.getString(1));
-					trigger.setActionTime(rs.getString(2));
-					trigger.setTriggerEvent(rs.getString(3));
-					trigger.setTriggeredAction(rs.getString(4));
+					
+					String triggerName;
+					try {
+						triggerName = rs.getString("TRIGGER_NAME");
+					} catch (SQLException e) {
+						triggerName = "";
+					}
+					trigger.setName(triggerName);
+					
+					String actionTime; 
+					try {
+						actionTime = 
+								processActionTime(rs.getString("ACTION_TIME"));
+					} catch (SQLException e) {
+						actionTime = "";
+					}
+					trigger.setActionTime(actionTime);
+					
+					String triggerEvent;
+					try {
+						triggerEvent = processTriggerEvent(
+								rs.getString("TRIGGER_EVENT"));
+					} catch (SQLException e) {
+						triggerEvent = "";
+					}
+					trigger.setTriggerEvent(triggerEvent);
+					
+					String triggeredAction;
+					try {
+						triggeredAction = rs.getString("TRIGGERED_ACTION");
+					} catch (SQLException e) {
+						triggeredAction = "";
+					}
+					trigger.setTriggeredAction(triggeredAction);
+					
+					String description;
+					try {
+						description = rs.getString("REMARKS");
+					} catch (SQLException e) {
+						description = null;
+					}
+					if (description != null) {
+						trigger.setDescription(description);		
+					}
+					
 					triggers.add(trigger);
 				}
 			} catch (SQLException e) {
@@ -934,11 +1034,19 @@ public class JDBCImportModule implements DatabaseImportModule {
 			}
 		} else {
 			logger.info("Triggers were not imported: not supported yet on "
-					+ getClass().getName());
+					+ getClass().getSimpleName());
 		}
 		return triggers;
 	}
 	
+	protected String processTriggerEvent(String string) {
+		return string;
+	}
+
+	protected String processActionTime(String string) {
+		return string;
+	}
+
 	protected Row convertRawToRow(ResultSet rawData,
 			TableStructure tableStructure) throws InvalidDataException,
 			SQLException, ClassNotFoundException, ModuleException {
@@ -1000,9 +1108,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 		Cell cell = null;
 		SimpleTypeDateTime undefinedDate = (SimpleTypeDateTime) cellType;
 		if (undefinedDate.getTimeDefined()) {
-			if (cellType.getOriginalTypeName().equalsIgnoreCase("TIME")
-					|| cellType.getOriginalTypeName().
-						equalsIgnoreCase("TIMETZ")) {
+			if (cellType.getSql99TypeName().equalsIgnoreCase("TIME")) {
 				Time time = rawData.getTime(columnName);
 				if (time != null) {
 					cell = new SimpleCell(id, time.toString());
@@ -1066,12 +1172,17 @@ public class JDBCImportModule implements DatabaseImportModule {
 	
 	protected ResultSet getTableRawData(String tableId) throws SQLException,
 			ClassNotFoundException, ModuleException {
+		logger.debug("query: " + sqlHelper.selectTableSQL(tableId));
 		ResultSet set = getStatement().executeQuery(
 				sqlHelper.selectTableSQL(tableId));
 		set.setFetchSize(ROW_FETCH_BLOCK_SIZE);
 		return set;
 	}
 	
+	/**
+	 * Schemas that won't be exported
+	 * @return
+	 */
 	protected Set<String> getIgnoredSchemas() {
 		// no ignored schemas.
 		return new HashSet<String>();
