@@ -7,11 +7,11 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
@@ -135,12 +135,14 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 		return connection;
 	}
 	
-	protected List<String> getExistingSchemasNames() 
+	protected Set<String> getExistingSchemasNames() 
 			throws SQLException, ModuleException {
-		List<String> existingSchemas = new ArrayList<String>();
-		ResultSet rs = getConnection().getMetaData().getCatalogs();
-		while (rs.next()) {
-			existingSchemas.add(rs.getString(1));
+		if (existingSchemas == null) {
+			existingSchemas = new HashSet<String>();
+ 			ResultSet rs = getConnection().getMetaData().getCatalogs();
+			while (rs.next()) {
+				existingSchemas.add(rs.getString(1));
+			}
 		}
 		return existingSchemas;
 	}	

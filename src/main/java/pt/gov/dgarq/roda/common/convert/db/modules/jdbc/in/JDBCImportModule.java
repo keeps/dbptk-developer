@@ -1,6 +1,3 @@
-/**
- * 
- */
 package pt.gov.dgarq.roda.common.convert.db.modules.jdbc.in;
 
 import java.io.InputStream;
@@ -951,9 +948,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 					checkConstraints.add(checkConst);
 				}
 			} catch (SQLException e) {
-				e.printStackTrace();
 				String message = "Check constraints were not imported for " 
-						+ schemaName + "." + tableName + "! ";
+						+ schemaName + "." + tableName + ". ";
 				if (query.equals("")) {
 					message += "Not supported by " + sqlHelper.getName();
 				} else {
@@ -1201,8 +1197,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 			for (SchemaStructure schema: getDatabaseStructure().getSchemas()) {
 				for (TableStructure table : schema.getTables()) {
 					logger.debug("getting data of table " + table.getId());
-					handler.handleDataOpenTable(table.getId());
 					ResultSet tableRawData = getTableRawData(table.getId());
+					handler.handleDataOpenTable(table.getId());
 					int nRows = 0;
 					while (tableRawData.next()) {
 						handler.handleDataRow(

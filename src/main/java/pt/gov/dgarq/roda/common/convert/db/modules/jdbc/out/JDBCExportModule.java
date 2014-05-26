@@ -52,10 +52,12 @@ import pt.gov.dgarq.roda.common.convert.db.modules.SQLHelper;
  * 
  */
 public class JDBCExportModule implements DatabaseHandler {
+	
+	private final Logger logger = Logger.getLogger(JDBCExportModule.class);
 
 	protected static int BATCH_SIZE = 100;
-
-	private final Logger logger = Logger.getLogger(JDBCExportModule.class);
+	
+	protected static String REPLACED_SUFFIX = "_"; 
 
 	protected final String driverClassName;
 
@@ -76,8 +78,12 @@ public class JDBCExportModule implements DatabaseHandler {
 	protected PreparedStatement currentRowInsertStatement;
 	
 	protected Set<String> ignoredSchemas;
+	
+	protected Set<String> existingSchemas;
 
 	protected boolean currentIsIgnoredSchema;
+	
+	protected boolean currentIsExistingSchema;
 	
 	/**
 	 * Generic JDBC export module constructor
@@ -114,7 +120,9 @@ public class JDBCExportModule implements DatabaseHandler {
 		batch_index = 0;
 		currentRowInsertStatement = null;
 		ignoredSchemas = new HashSet<String>();
+		existingSchemas = null;
 		currentIsIgnoredSchema = false;
+		currentIsExistingSchema = false;
 	}
 
 	/**
@@ -178,6 +186,12 @@ public class JDBCExportModule implements DatabaseHandler {
 	public void handleStructure(DatabaseStructure structure)
 			throws ModuleException, UnknownTypeException {
 		this.databaseStructure = structure;
+		try {
+			this.existingSchemas = getExistingSchemasNames();
+		} catch (SQLException e) {
+			logger.error("An error occurred while getting the name "
+					+ "of existing schemas");
+		}
 		// TODO handle creation and drop of DBs
 		createDatabase(structure.getName()); 		
 		int[] batchResult = null;
@@ -219,24 +233,26 @@ public class JDBCExportModule implements DatabaseHandler {
 	protected void handleSchemaStructure(SchemaStructure schema) 
 			throws ModuleException, UnknownTypeException {
 		logger.debug("Handling schema structure " + schema.getName());
-		try {
-			// on a new db, existing schemas == default/system schemas
-			for (String schemaName : getExistingSchemasNames()) {
-				if (schemaName.equalsIgnoreCase(schema.getName())) {
-					String newSchemaName = schema.getName() + "_replaced";
-					schema.setName(newSchemaName);
-					logger.debug("schemaName: " + newSchemaName);
-					for (TableStructure table : schema.getTables()) {
-						table.setId(newSchemaName + "." + table.getName());
-					}
-				}
+		try {	
+			boolean changedSchemaName = false;
+			if (isExistingSchema(schema.getName())) {
+				schema.setNewSchemaName(REPLACED_SUFFIX);
+				currentIsExistingSchema = true;
+				changedSchemaName = true;
+				logger.debug("CHANGED NAME..");
 			}
+
 			getStatement().addBatch(sqlHelper.createSchemaSQL(schema));
 			getStatement().executeBatch();
 			logger.debug("batch executed: " + schema.getName());
-			
+
 			for (TableStructure table : schema.getTables()) {
 				handleTableStructure(table); 
+			}
+			
+			if (changedSchemaName) {
+				schema.setOriginalSchemaName(REPLACED_SUFFIX);
+				logger.debug("schemaNAME AFTER: " + schema.getName());
 			}
 		} catch (SQLException e) {
 			logger.info(e.getLocalizedMessage());
@@ -245,16 +261,46 @@ public class JDBCExportModule implements DatabaseHandler {
 		}
 	}
 		
-	protected List<String> getExistingSchemasNames() 
+	/**
+	 * Checks if a schema with 'schemaName' already exists on the database.
+	 * @param schemaName
+	 * 			  the schema name to be checked.
+	 * @return
+	 * 			  
+	 * @throws SQLException
+	 * @throws ModuleException
+	 */
+	protected boolean isExistingSchema(String schemaName) 
 			throws SQLException, ModuleException {
-		List<String> existingSchemas = new ArrayList<String>();
-		ResultSet rs = getConnection().getMetaData().getSchemas();
-		while (rs.next()) {
-			existingSchemas.add(rs.getString(1));
+		boolean exists = false;
+		for (String existingName : getExistingSchemasNames()) {
+			if (existingName.equalsIgnoreCase(schemaName)) {
+				exists = true;
+				break;
+			}
+		}
+		return exists;
+	}
+
+	/**
+	 *	Gets the list of names of the existing schemas on a database. 
+	 * @return
+	 * 			  The list of schemas names on a database.
+	 * @throws SQLException
+	 * @throws ModuleException
+	 */
+	protected Set<String> getExistingSchemasNames() 
+			throws SQLException, ModuleException {
+		if (existingSchemas == null) {
+			existingSchemas = new HashSet<String>();
+			ResultSet rs = getConnection().getMetaData().getSchemas();
+			while (rs.next()) {
+				existingSchemas.add(rs.getString(1));
+			}
 		}
 		return existingSchemas;
 	}
-
+	
 	protected void handleTableStructure(TableStructure table) 
 			throws ModuleException, UnknownTypeException {
 		
@@ -264,7 +310,6 @@ public class JDBCExportModule implements DatabaseHandler {
 						+ table.getName());
 				logger.debug("SQL: " + sqlHelper.createTableSQL(table));
 				getStatement().addBatch(sqlHelper.createTableSQL(table));	
-				// logger.debug("pKey: " + table.getPrimaryKey());
 				String pkeySQL = sqlHelper.createPrimaryKeySQL(table.getId(), 
 						table.getPrimaryKey());
 				if (pkeySQL != null) {
@@ -278,19 +323,23 @@ public class JDBCExportModule implements DatabaseHandler {
 	}
 	
 	/**
+	 * Sets the schemas to be ignored on the export. 
+	 * These schemas won't be exported 
 	 * @param ignoredSchemas
 	 * 			  ignored schemas name to be added to the list
 	 */
 	public void setIgnoredSchemas(Set<String> ignoredSchemas) {
-		/* 
-		 * ignored are added (ignoredSchemas may already been filled with 
-		 * some default schemas to ignore) 
-		 */
 		for (String s : ignoredSchemas) {
 			this.ignoredSchemas.add(s);
 		}
 	}
 	
+	/**
+	 * Checks if a given schema is set to be ignored
+	 * @param schema
+	 * 			  The schema structure to be checked
+	 * @return
+	 */
 	protected boolean isIgnoredSchema(SchemaStructure schema) {
 		for (String s : ignoredSchemas) {			
 			if (schema.getName().matches(s)) {
@@ -308,12 +357,25 @@ public class JDBCExportModule implements DatabaseHandler {
 			if (currentTableStructure != null) {
 				currentIsIgnoredSchema = isIgnoredSchema(table.getSchema());
 				if (!currentIsIgnoredSchema) {					
-					try {
+					try {				
+						boolean changedSchemaName = false;
+						currentIsExistingSchema = 
+								isExistingSchema(table.getSchema().getName());
+						if (currentIsExistingSchema) {
+							logger.debug("will replace");
+							table.getSchema().setNewSchemaName(REPLACED_SUFFIX);
+							changedSchemaName = true;
+						}
 						currentRowInsertStatement = getConnection()
 								.prepareStatement(sqlHelper.createRowSQL(
 										currentTableStructure));
 						logger.debug("sql: " + sqlHelper.
 								createRowSQL(currentTableStructure));
+						if (changedSchemaName) {
+							table.getSchema().
+								setOriginalSchemaName(REPLACED_SUFFIX);
+						}
+							
 					} catch (SQLException e) {
 						throw new ModuleException("Error creating table "
 								+ tableId + " prepared statement", e);
@@ -341,6 +403,7 @@ public class JDBCExportModule implements DatabaseHandler {
 			batch_index = 0;
 			currentRowInsertStatement = null;
 			currentIsIgnoredSchema = false;
+			currentIsExistingSchema = false;
 		}
 	}
 

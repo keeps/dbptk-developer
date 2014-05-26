@@ -1,6 +1,3 @@
-/**
- * 
- */
 package pt.gov.dgarq.roda.common.convert.db;
 
 import java.io.File;
@@ -24,7 +21,6 @@ import pt.gov.dgarq.roda.common.convert.db.modules.mySql.MySQLHelper;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.in.MySQLJDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.out.MySQLJDBCExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.oracle.in.Oracle12cJDBCImportModule;
-import pt.gov.dgarq.roda.common.convert.db.modules.oracle.out.Oracle12cJDBCExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.PostgreSQLHelper;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.in.PostgreSQLJDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.out.PostgreSQLJDBCExportModule;
@@ -225,7 +221,7 @@ public class Main {
 				logger.error("Wrong argument number for "
 						+ "SIARD import module: " + importModuleArgs.size());
 			}
-		} else if (importModuleArgs.get(0).equals("Oracle12c")) {
+		} else if (importModuleArgs.get(0).equals("Oracle12cJDBC")) {
 			if (importModuleArgs.size() == 6) {
 				importModule = new Oracle12cJDBCImportModule(
 						importModuleArgs.get(1), Integer.valueOf(
@@ -404,18 +400,6 @@ public class Main {
 						+ "SQLServerJDBC import module: "
 						+ exportModuleArgs.size());
 			}
-		} else if (exportModuleArgs.get(0).equals("Oracle12cJDBC")) {
-			if (exportModuleArgs.size() == 6) {
-				exportModule = new Oracle12cJDBCExportModule(
-						exportModuleArgs.get(1), 
-						Integer.valueOf(exportModuleArgs.get(2)).intValue(), 
-						exportModuleArgs.get(3), exportModuleArgs.get(4), 
-						exportModuleArgs.get(5));
-			} else {
-				logger.error("Wrong argument number for "
-						+ "Oracle12cJDBC import module: "
-						+ exportModuleArgs.size());
-			}
 		} else if (exportModuleArgs.get(0).equals("SQLServerFile")) {
 			if (exportModuleArgs.size() == 2) {
 				try {
@@ -456,6 +440,7 @@ public class Main {
 				+ " -i IMPORT_MODULE [options...]"
 				+ " -o EXPORT_MODULE [options...]");
 		System.out.println("Available import modules:");
+		System.out.println("\tSIARD dir");
 		System.out
 				.println("\tSQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt");
 		System.out
@@ -470,6 +455,7 @@ public class Main {
 		// System.out.println("\tDBML baseDir");
 
 		System.out.println("Available export modules:");
+		System.out.println("\tSIARD dir");
 		System.out
 				.println("\tSQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt");
 		System.out

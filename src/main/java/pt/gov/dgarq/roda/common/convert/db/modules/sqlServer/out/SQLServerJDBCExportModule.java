@@ -7,13 +7,14 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 
+import org.apache.log4j.Logger;
+
 import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.SimpleCell;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.InvalidDataException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
-import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeDateTime;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.out.JDBCExportModule;
@@ -24,9 +25,9 @@ import pt.gov.dgarq.roda.common.convert.db.modules.sqlServer.SQLServerHelper;
  * 
  */
 public class SQLServerJDBCExportModule extends JDBCExportModule {
-	
-//	private final Logger logger = 
-//			Logger.getLogger(SQLServerJDBCExportModule.class);
+
+	private final Logger logger = 
+			Logger.getLogger(SQLServerJDBCExportModule.class);
 
 	/**
 	 * Create a new Microsoft SQL Server export module using the default
@@ -145,15 +146,16 @@ public class SQLServerJDBCExportModule extends JDBCExportModule {
 		}
 		return ret;
 	}
-	
-	protected void handleSchemaStructure(SchemaStructure schema) 
+
+	/**
+	 * Although a it's not a schema, a 'public' object exists on SQLServer. 
+	 * A new schema name is assigned.
+	 */
+	protected void handleSchemaStructure(SchemaStructure schema)
 			throws ModuleException, UnknownTypeException {
-		String newSchemaName = schema.getName() + "_replaced";
+		logger.debug("Handling schema structure " + schema.getName());
 		if (schema.getName().equalsIgnoreCase("public")) {
-			schema.setName(newSchemaName);
-		}
-		for (TableStructure table : schema.getTables()) {
-			table.setId(newSchemaName + "." + table.getName());
+			existingSchemas.add("public");
 		}
 		super.handleSchemaStructure(schema);
 	}

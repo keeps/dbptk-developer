@@ -22,8 +22,14 @@ public class SchemaStructure {
 	private List<ViewStructure> views;
 	
 	private List<RoutineStructure> routines;
-			
-		public SchemaStructure() {
+	
+	private String originalName;
+	
+	private String replacedName;
+	
+	
+	public SchemaStructure() {
+		replacedName = null;
 		tables = new ArrayList<TableStructure>();
 		views = new ArrayList<ViewStructure>();
 		routines = new ArrayList<RoutineStructure>();
@@ -46,6 +52,7 @@ public class SchemaStructure {
 		this.tables = tables;
 		this.views = views;
 		this.routines = routines;
+		this.replacedName = null;
 	}
 
 
@@ -146,6 +153,31 @@ public class SchemaStructure {
 		this.routines = routines;
 	}
 	
+	public void setNewSchemaName(String suffix) {
+		originalName = name;
+		String newSchemaName = name + suffix + System.currentTimeMillis();
+		if (replacedName == null) {
+			replacedName = newSchemaName;
+		}
+		
+		this.setName(replacedName);
+		for (TableStructure table : this.getTables()) {
+			table.setId(replacedName + "." + table.getName());
+		}
+	}
+
+	/**
+	 *  reset schema name as database structure is shared by import 
+	 *	module and its original name is needed in order to get data 
+	 *	from tables
+	 * @param suffix
+	 */
+	public void setOriginalSchemaName(String suffix) {
+		this.setName(originalName);
+		for (TableStructure table: this.getTables()) {
+			table.setId(originalName + "." + table.getName());
+		}
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
