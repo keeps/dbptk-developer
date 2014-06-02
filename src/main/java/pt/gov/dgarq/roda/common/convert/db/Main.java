@@ -13,21 +13,15 @@ import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.modules.DatabaseHandler;
 import pt.gov.dgarq.roda.common.convert.db.modules.DatabaseImportModule;
-import pt.gov.dgarq.roda.common.convert.db.modules.SQLHelper;
 import pt.gov.dgarq.roda.common.convert.db.modules.db2.in.DB2JDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.db2.out.DB2JDBCExportModule;
-import pt.gov.dgarq.roda.common.convert.db.modules.dbml.in.DBMLImportModule;
-import pt.gov.dgarq.roda.common.convert.db.modules.mySql.MySQLHelper;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.in.MySQLJDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.out.MySQLJDBCExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.oracle.in.Oracle12cJDBCImportModule;
-import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.PostgreSQLHelper;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.in.PostgreSQLJDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.out.PostgreSQLJDBCExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.siard.in.SIARDImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.siard.out.SIARDExportModule;
-import pt.gov.dgarq.roda.common.convert.db.modules.sqlFile.out.SQLFileExportModule;
-import pt.gov.dgarq.roda.common.convert.db.modules.sqlServer.SQLServerHelper;
 import pt.gov.dgarq.roda.common.convert.db.modules.sqlServer.in.SQLServerJDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.sqlServer.out.SQLServerJDBCExportModule;
 
@@ -125,7 +119,7 @@ public class Main {
 	private static DatabaseImportModule getImportModule(
 			List<String> importModuleArgs) {
 		DatabaseImportModule importModule = null;
-		if (importModuleArgs.get(0).equals("SQLServerJDBC")) {
+		if (importModuleArgs.get(0).equalsIgnoreCase("SQLServerJDBC")) {
 			if (importModuleArgs.size() == 7) {
 				importModule = new SQLServerJDBCImportModule(
 						importModuleArgs.get(1), importModuleArgs.get(2),
@@ -154,7 +148,7 @@ public class Main {
 						+ "SQLServerJDBC import module: "
 						+ importModuleArgs.size());
 			}
-		} else if (importModuleArgs.get(0).equals("PostgreSQLJDBC")) {
+		} else if (importModuleArgs.get(0).equalsIgnoreCase("PostgreSQLJDBC")) {
 			if (importModuleArgs.size() == 6) {
 				importModule = new PostgreSQLJDBCImportModule(
 						importModuleArgs.get(1), importModuleArgs.get(2),
@@ -172,7 +166,7 @@ public class Main {
 						+ "PostgreSQLJDBC import module: "
 						+ importModuleArgs.size());
 			}
-		} else if (importModuleArgs.get(0).equals("DB2JDBC")) {
+		} else if (importModuleArgs.get(0).equalsIgnoreCase("DB2JDBC")) {
 			if (importModuleArgs.size() == 6) {
 				importModule = new DB2JDBCImportModule(importModuleArgs.get(1), 
 						Integer.valueOf(importModuleArgs.get(2)), 
@@ -182,7 +176,7 @@ public class Main {
 				logger.error("Wrong argument number for DB2JDBC import module: "
 						+ importModuleArgs.size());
 				}
-		} else if (importModuleArgs.get(0).equals("MySQLJDBC")) {
+		} else if (importModuleArgs.get(0).equalsIgnoreCase("MySQLJDBC")) {
 			if (importModuleArgs.size() == 5) {
 				importModule = new MySQLJDBCImportModule(
 						importModuleArgs.get(1), importModuleArgs.get(2),
@@ -197,19 +191,19 @@ public class Main {
 				logger.error("Wrong argument number for "
 						+ "MySQLJDBC import module: " + importModuleArgs.size());
 			}
-		} else if (importModuleArgs.get(0).equals("DBML")) {
-			if (importModuleArgs.size() == 2) {
-				try {
-					importModule = new DBMLImportModule(new File(
-							importModuleArgs.get(1)));
-				} catch (ModuleException e) {
-					logger.error("Error creating DBML import module", e);
-				}
-			} else {
-				logger.error("Wrong argument number for "
-						+ "DBML import module: " + importModuleArgs.size());
-			}
-		} else if (importModuleArgs.get(0).equals("SIARD")) {
+//		} else if (importModuleArgs.get(0).equals("DBML")) {
+//			if (importModuleArgs.size() == 2) {
+//				try {
+//					importModule = new DBMLImportModule(new File(
+//							importModuleArgs.get(1)));
+//				} catch (ModuleException e) {
+//					logger.error("Error creating DBML import module", e);
+//				}
+//			} else {
+//				logger.error("Wrong argument number for "
+//						+ "DBML import module: " + importModuleArgs.size());
+//			}
+		} else if (importModuleArgs.get(0).equalsIgnoreCase("SIARD")) {
 			if (importModuleArgs.size() == 2) {
 				try {
 					importModule = new SIARDImportModule(new File(
@@ -221,7 +215,7 @@ public class Main {
 				logger.error("Wrong argument number for "
 						+ "SIARD import module: " + importModuleArgs.size());
 			}
-		} else if (importModuleArgs.get(0).equals("Oracle12cJDBC")) {
+		} else if (importModuleArgs.get(0).equalsIgnoreCase("Oracle12cJDBC")) {
 			if (importModuleArgs.size() == 6) {
 				importModule = new Oracle12cJDBCImportModule(
 						importModuleArgs.get(1), Integer.valueOf(
@@ -275,7 +269,7 @@ public class Main {
 //						+ "DBML export module: " + exportModuleArgs.size());
 //			}
 //		} else if (exportModuleArgs.get(0).equals("SIARD")) {
-		if (exportModuleArgs.get(0).equals("SIARD")) {
+		if (exportModuleArgs.get(0).equalsIgnoreCase("SIARD")) {
 			if (exportModuleArgs.size() == 2) {
 				try {
 					exportModule = new SIARDExportModule(new File(
@@ -287,7 +281,7 @@ public class Main {
 				logger.error("Wrong argument number for SIARD export module: "
 						+ exportModuleArgs.size());
 			}
-		} else if (exportModuleArgs.get(0).equals("DB2JDBC")) {
+		} else if (exportModuleArgs.get(0).equalsIgnoreCase("DB2JDBC")) {
 			if (exportModuleArgs.size() == 6) {
 				exportModule = new DB2JDBCExportModule(exportModuleArgs.get(1), 
 						Integer.valueOf(exportModuleArgs.get(2)),
@@ -297,7 +291,7 @@ public class Main {
 				logger.error("Wrong argument number for DB2JDBC export module: "
 						+ exportModuleArgs.size());
 			}
-		} else if (exportModuleArgs.get(0).equals("PostgreSQLJDBC")) {
+		} else if (exportModuleArgs.get(0).equalsIgnoreCase("PostgreSQLJDBC")) {
 			if (exportModuleArgs.size() == 6) {
 				exportModule = new PostgreSQLJDBCExportModule(
 						exportModuleArgs.get(1), exportModuleArgs.get(2),
@@ -315,19 +309,19 @@ public class Main {
 						+ "PostgreSQLJDBC export module: "
 						+ exportModuleArgs.size());
 			}			
-		} else if (exportModuleArgs.get(0).equals("PostgreSQLFile")) {
-			if (exportModuleArgs.size() == 2) {
-				try {
-					exportModule = new SQLFileExportModule(new File(
-							exportModuleArgs.get(1)), new PostgreSQLHelper());
-				} catch (ModuleException e) {
-					logger.error("Error creating PostgreSQLFile export module", e);
-				}
-			} else {
-				logger.error("Wrong argument number for "
-						+ "PostgreSQLFile export module: " + exportModuleArgs.size());
-			}
-		} else if (exportModuleArgs.get(0).equals("MySQLJDBC")) {
+//		} else if (exportModuleArgs.get(0).equals("PostgreSQLFile")) {
+//			if (exportModuleArgs.size() == 2) {
+//				try {
+//					exportModule = new SQLFileExportModule(new File(
+//							exportModuleArgs.get(1)), new PostgreSQLHelper());
+//				} catch (ModuleException e) {
+//					logger.error("Error creating PostgreSQLFile export module", e);
+//				}
+//			} else {
+//				logger.error("Wrong argument number for "
+//						+ "PostgreSQLFile export module: " + exportModuleArgs.size());
+//			}
+		} else if (exportModuleArgs.get(0).equalsIgnoreCase("MySQLJDBC")) {
 			if (exportModuleArgs.size() == 5) {
 				exportModule = new MySQLJDBCExportModule(
 						exportModuleArgs.get(1), exportModuleArgs.get(2),
@@ -342,19 +336,19 @@ public class Main {
 				logger.error("Wrong argument number for "
 						+ "MySQLJDBC export module: " + exportModuleArgs.size());
 			}
-		} else if (exportModuleArgs.get(0).equals("MySQLFile")) {
-			if (exportModuleArgs.size() == 2) {
-				try {
-					exportModule = new SQLFileExportModule(new File(
-							exportModuleArgs.get(1)), new MySQLHelper());
-				} catch (ModuleException e) {
-					logger.error("Error creating MySQLFile export module", e);
-				}
-
-			} else {
-				logger.error("Wrong argument number for "
-						+ "MySQLFile export module: " + exportModuleArgs.size());
-			}
+//		} else if (exportModuleArgs.get(0).equals("MySQLFile")) {
+//			if (exportModuleArgs.size() == 2) {
+//				try {
+//					exportModule = new SQLFileExportModule(new File(
+//							exportModuleArgs.get(1)), new MySQLHelper());
+//				} catch (ModuleException e) {
+//					logger.error("Error creating MySQLFile export module", e);
+//				}
+//
+//			} else {
+//				logger.error("Wrong argument number for "
+//						+ "MySQLFile export module: " + exportModuleArgs.size());
+//			}
 //		} else if (exportModuleArgs.get(0).equals("PhpMyAdmin")) {
 //			if (exportModuleArgs.size() == 5) {
 //				exportModule = new PhpMyAdminExportModule(
@@ -371,7 +365,7 @@ public class Main {
 //						+ "PhpMyAdmin export module: "
 //						+ exportModuleArgs.size());
 //			}
-		} else if (exportModuleArgs.get(0).equals("SQLServerJDBC")) {
+		} else if (exportModuleArgs.get(0).equalsIgnoreCase("SQLServerJDBC")) {
 			if (exportModuleArgs.size() == 7) {
 				exportModule = new SQLServerJDBCExportModule(
 						exportModuleArgs.get(1), exportModuleArgs.get(2),
@@ -400,34 +394,34 @@ public class Main {
 						+ "SQLServerJDBC import module: "
 						+ exportModuleArgs.size());
 			}
-		} else if (exportModuleArgs.get(0).equals("SQLServerFile")) {
-			if (exportModuleArgs.size() == 2) {
-				try {
-					exportModule = new SQLFileExportModule(new File(
-							exportModuleArgs.get(1)), new SQLServerHelper());
-				} catch (ModuleException e) {
-					logger.error("Error creating SQLServerFile export module", e);
-				}
-
-			} else {
-				logger.error("Wrong argument number for "
-						+ "SQLServerFile export module: "
-						+ exportModuleArgs.size());
-			}
-		} else if (exportModuleArgs.get(0).equals("GenericSQLFile")) {
-			if (exportModuleArgs.size() == 2) {
-				try {
-					exportModule = new SQLFileExportModule(new File(
-							exportModuleArgs.get(1)), new SQLHelper());
-				} catch (ModuleException e) {
-					logger.error("Error creating GenericSQLFile export module", e);
-				}
-
-			} else {
-				logger.error("Wrong argument number for "
-						+ "GenericSQLFile export module: "
-						+ exportModuleArgs.size());
-			}
+//		} else if (exportModuleArgs.get(0).equals("SQLServerFile")) {
+//			if (exportModuleArgs.size() == 2) {
+//				try {
+//					exportModule = new SQLFileExportModule(new File(
+//							exportModuleArgs.get(1)), new SQLServerHelper());
+//				} catch (ModuleException e) {
+//					logger.error("Error creating SQLServerFile export module", e);
+//				}
+//
+//			} else {
+//				logger.error("Wrong argument number for "
+//						+ "SQLServerFile export module: "
+//						+ exportModuleArgs.size());
+//			}
+//		} else if (exportModuleArgs.get(0).equals("GenericSQLFile")) {
+//			if (exportModuleArgs.size() == 2) {
+//				try {
+//					exportModule = new SQLFileExportModule(new File(
+//							exportModuleArgs.get(1)), new SQLHelper());
+//				} catch (ModuleException e) {
+//					logger.error("Error creating GenericSQLFile export module", e);
+//				}
+//
+//			} else {
+//				logger.error("Wrong argument number for "
+//						+ "GenericSQLFile export module: "
+//						+ exportModuleArgs.size());
+//			}
 		} else {
 			logger.error("Unrecognized export module: "
 					+ exportModuleArgs.get(0));
@@ -447,7 +441,7 @@ public class Main {
 				.println("\tPostgreSQLJDBC hostName database [port] username password encrypt");
 		System.out
 				.println("\tMySQLJDBC hostName [port] database username password");
-		System.out.println("\tDb2JDBC hostname port database username password");
+		System.out.println("\tDB2JDBC hostname port database username password");
 		System.out
 				.println("\tOracle12c hostName port database username password");
 		// System.out.println("\tMSAccess database.mdb");
@@ -463,17 +457,17 @@ public class Main {
 		System.out
 				.println("\tMySQLJDBC hostName [port] database username password");
 		System.out
-				.println("\tDb2JDBC hostname port database username password");
-		// System.out
-		// 		.println("\tPhpMyAdmin hostName [port] database username password");
-		// System.out.println("\tDBML baseDir");
-		System.out
-				.println("\tPostgreSQLFile sqlFile <- SQL file optimized for PostgreSQL");
-		System.out
-				.println("\tMySQLFile sqlFile <- SQL file optimized for MySQL");
-		System.out
-				.println("\tSQLServerFile sqlFile <- SQL file optimized for SQL Server");
-		System.out.println("\tGenericSQLFile sqlFile <- generic SQL file");
+				.println("\tDB2JDBC hostname port database username password");
+//		System.out
+//		 		.println("\tPhpMyAdmin hostName [port] database username password");
+//		System.out.println("\tDBML baseDir");
+//		System.out
+//				.println("\tPostgreSQLFile sqlFile <- SQL file optimized for PostgreSQL");
+//		System.out
+//				.println("\tMySQLFile sqlFile <- SQL file optimized for MySQL");
+//		System.out
+//				.println("\tSQLServerFile sqlFile <- SQL file optimized for SQL Server");
+//		System.out.println("\tGenericSQLFile sqlFile <- generic SQL file");
 	}
 
 }
