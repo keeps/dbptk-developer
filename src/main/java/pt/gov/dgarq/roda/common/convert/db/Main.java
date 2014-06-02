@@ -438,7 +438,7 @@ public class Main {
 		System.out
 				.println("\tSQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt");
 		System.out
-				.println("\tPostgreSQLJDBC hostName database [port] username password encrypt");
+				.println("\tPostgreSQLJDBC hostName [port] database username password encrypt");
 		System.out
 				.println("\tMySQLJDBC hostName [port] database username password");
 		System.out.println("\tDB2JDBC hostname port database username password");
@@ -453,7 +453,7 @@ public class Main {
 		System.out
 				.println("\tSQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt");
 		System.out
-				.println("\tPostgreSQLJDBC hostName database [port] username password encrypt");
+				.println("\tPostgreSQLJDBC [port] hostName database username password encrypt");
 		System.out
 				.println("\tMySQLJDBC hostName [port] database username password");
 		System.out

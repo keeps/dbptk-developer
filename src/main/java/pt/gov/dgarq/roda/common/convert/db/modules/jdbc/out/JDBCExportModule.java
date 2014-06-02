@@ -197,7 +197,7 @@ public class JDBCExportModule implements DatabaseHandler {
 		int[] batchResult = null;
 		if (getStatement() != null) {
 			try {
-				logger.debug("Handling database structure");
+				logger.info("Handling database structure");
 				for (SchemaStructure schema : structure.getSchemas()) {
 					if (isIgnoredSchema(schema)) {
 						continue;
@@ -207,7 +207,7 @@ public class JDBCExportModule implements DatabaseHandler {
 				logger.debug("Executing table creation batch");
 				batchResult = getStatement().executeBatch();
 				getStatement().clearBatch();
-				logger.debug("Handling datababase structure finished");
+				logger.info("Handling datababase structure finished");
 			} catch (SQLException e) {
 				if (batchResult != null) {
 					for (int i = 0; i < batchResult.length; i++) {
@@ -232,7 +232,7 @@ public class JDBCExportModule implements DatabaseHandler {
 	
 	protected void handleSchemaStructure(SchemaStructure schema) 
 			throws ModuleException, UnknownTypeException {
-		logger.debug("Handling schema structure " + schema.getName());
+		logger.info("Handling schema structure " + schema.getName());
 		try {	
 			boolean changedSchemaName = false;
 			if (isExistingSchema(schema.getName())) {
@@ -253,6 +253,8 @@ public class JDBCExportModule implements DatabaseHandler {
 				schema.setOriginalSchemaName(REPLACED_SUFFIX);
 				logger.debug("schemaNAME AFTER: " + schema.getName());
 			}
+			logger.info("Handling schema structure " + schema.getName() 
+					+ " finished");
 		} catch (SQLException e) {
 			logger.info(e.getLocalizedMessage());
 			throw new ModuleException(
@@ -305,6 +307,7 @@ public class JDBCExportModule implements DatabaseHandler {
 		
 		if (getStatement() != null) {
 			try {
+				logger.info("Handling table structure " + table.getName());
 				logger.debug("Adding to batch creation of table " 
 						+ table.getName());
 				logger.debug("SQL: " + sqlHelper.createTableSQL(table));
@@ -314,7 +317,7 @@ public class JDBCExportModule implements DatabaseHandler {
 				if (pkeySQL != null) {
 					logger.debug("SQL: " + pkeySQL);
 					getStatement().addBatch(pkeySQL);
-				}				
+				}	
 			} catch (SQLException e) {
 				throw new ModuleException("Error while adding SQL to batch", e);
 			}
@@ -365,6 +368,7 @@ public class JDBCExportModule implements DatabaseHandler {
 							table.getSchema().setNewSchemaName(REPLACED_SUFFIX);
 							changedSchemaName = true;
 						}
+						logger.info("Exporting data for " + table.getId());
 						currentRowInsertStatement = getConnection()
 								.prepareStatement(sqlHelper.createRowSQL(
 										currentTableStructure));
@@ -466,6 +470,9 @@ public class JDBCExportModule implements DatabaseHandler {
 				logger.debug("data: " + data);
 				logger.debug("type: " + type.getOriginalTypeName());
 				if (type instanceof SimpleTypeString) {
+					if (data == null) {
+						data = "";
+					}
 					handleSimpleTypeStringDataCell(data, ps, index, cell, type);
 				} else if (type instanceof SimpleTypeNumericExact) {
 					handleSimpleTypeNumericExactDataCell(
@@ -633,12 +640,29 @@ public class JDBCExportModule implements DatabaseHandler {
 		logger.debug("Creating foreign keys");
 		try {
 			for (SchemaStructure schema : databaseStructure.getSchemas()) {
-				for (TableStructure table : schema.getTables()) {		
+				for (TableStructure table : schema.getTables()) {
+					
+					boolean changedSchemaName = false;
+					currentIsExistingSchema = 
+							isExistingSchema(schema.getName());
+					if (currentIsExistingSchema) {
+						table.getSchema().setNewSchemaName(REPLACED_SUFFIX);
+						changedSchemaName = true;
+					}
+					
 					for (ForeignKey fkey : table.getForeignKeys()) {
+						if (fkey.getReferencedSchema().equals(
+								schema.getOriginalSchemaName())) {
+							fkey.setReferencedSchema(schema.getName());
+						}
 						String fkeySQL = 
 								sqlHelper.createForeignKeySQL(table, fkey);
 						logger.debug("Returned fkey: " + fkeySQL);
 						getStatement().addBatch(fkeySQL);
+					}
+					
+					if (changedSchemaName) {
+						schema.setOriginalSchemaName(REPLACED_SUFFIX);
 					}
 				}
 			}

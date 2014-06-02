@@ -178,6 +178,10 @@ public class SchemaStructure {
 			table.setId(originalName + "." + table.getName());
 		}
 	}
+	
+	public String getOriginalSchemaName() {
+		return originalName;
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()

@@ -34,14 +34,14 @@ $ java -jar db-preservation-toolkit-1.0.0-jar-with-dependencies.jar
 Synopsys: java -jar roda-common-convert-db.jar -i IMPORT_MODULE [options...] -o EXPORT_MODULE [options...]
 Available import modules:
 	SQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt
-	PostgreSQLJDBC hostName database [port] username password encrypt
+	PostgreSQLJDBC hostName [port] database username password encrypt
 	MySQLJDBC hostName [port] database username password
 	Oracle12cJDBC hostName port database username password
 	DB2JDBC hostname port database username password
 	SIARD dir
 Available export modules:
 	SQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt
-	PostgreSQLJDBC hostName database [port] username password encrypt
+	PostgreSQLJDBC hostName [port] database username password encrypt
 	MySQLJDBC hostName [port] database username password
 	DB2JDBC hostname port database username password
 	SIARD dir

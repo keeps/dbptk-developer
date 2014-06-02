@@ -303,11 +303,10 @@ public class SQLHelper {
 						ret += ", ";
 					}
 					ret += escapeColumnName(
-							fkey.getReferences().get(i).getColumn()); 
+							fkey.getReferences().get(i).getReferenced()); 
 				}
 				
 				ret += ")";
-				
 			return ret;
 	}
 
