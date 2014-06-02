@@ -20,11 +20,8 @@ public class PrivilegeStructure {
 	
 	private String description;
 	
-	/**
-	 * 
-	 */
-	public PrivilegeStructure() {
-		
+
+	public PrivilegeStructure() {		
 	}
 
 	public String getType() {

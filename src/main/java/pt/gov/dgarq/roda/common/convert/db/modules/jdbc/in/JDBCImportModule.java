@@ -1,6 +1,8 @@
 package pt.gov.dgarq.roda.common.convert.db.modules.jdbc.in;
 
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Date;
@@ -69,7 +71,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 	// if fetch size is zero, then the driver decides the best fetch size
 	protected static final int ROW_FETCH_BLOCK_SIZE = 0;
 
-	protected static final int DEFAULT_DATA_TIMESPAN = 5;
+	protected static final String DEFAULT_DATA_TIMESPAN = "(...)";
 	
 	private final Logger logger = Logger.getLogger(JDBCImportModule.class);
 
@@ -190,10 +192,14 @@ public class JDBCImportModule implements DatabaseImportModule {
 			dbStructure.setProductVersion(getMetadata()
 					.getDatabaseProductVersion());
 			dbStructure.setDataOwner(System.getProperty("user.name"));
-			dbStructure.setDataOriginTimespan(
-					new Integer(DEFAULT_DATA_TIMESPAN).toString());
+			dbStructure.setDataOriginTimespan(DEFAULT_DATA_TIMESPAN);
 			dbStructure.setProducerApplication(
 					Main.APP_NAME);
+			String clientMachine = "";
+			try {
+				clientMachine = InetAddress.getLocalHost().getHostName();
+			} catch (UnknownHostException e) {}
+			dbStructure.setClientMachine(clientMachine);
 		
 			dbStructure.setSchemas(getSchemas());			
 			dbStructure.setUsers(getUsers());			
@@ -212,7 +218,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 	/**
 	 * Checks if schema name matches the set of schemas to be ignored.
 	 * @param schemaName
-	 * @return
+	 * 			  the schema name
+	 * @return true if schema is ignored; false if it isn't
 	 */
 	protected boolean isIgnoredImportedSchema(String schemaName) {
 		boolean ignoredSchema = false;
@@ -224,6 +231,13 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return ignoredSchema;
 	}
 	
+	/**
+	 * 
+	 * @return the database schemas (not ignored by default and/or user)
+	 * @throws SQLException
+	 * @throws ClassNotFoundException
+	 * @throws UnknownTypeException
+	 */
 	protected List<SchemaStructure> getSchemas() 
 			throws SQLException, ClassNotFoundException, UnknownTypeException {		
 		List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
@@ -241,7 +255,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 	}
 
 	/**
-	 * Accepts schemas names in the form of regular expressions
+	 * Accepts schemas names in as regular expressions
 	 * I.e. SYS.* will ignore SYSCAT, SYSFUN, etc
 	 *  
 	 * @return
@@ -254,7 +268,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 	/**
 	 * 
 	 * @param schemaName
-	 * @return
+	 * 			  the schema name
+	 * @return the schema structure of a given schema name
 	 * @throws ModuleException 
 	 */
 	protected SchemaStructure getSchemaStructure(String schemaName) 
@@ -270,6 +285,15 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return schema;
 	}
 	
+	/**
+	 * 
+	 * @param schema
+	 * 			  the schema structure
+	 * @return the database tables of a given schema
+	 * @throws SQLException
+	 * @throws ClassNotFoundException
+	 * @throws UnknownTypeException
+	 */
 	protected List<TableStructure> getTables(SchemaStructure schema) 
 			throws SQLException, ClassNotFoundException, UnknownTypeException {
 		List<TableStructure> tables = new ArrayList<TableStructure>();		
@@ -282,6 +306,15 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return tables;
 	}
 	
+	/**
+	 * 
+	 * @param schemaName
+	 * 			  the schema name
+	 * @return the database views of a given schema
+	 * @throws SQLException
+	 * @throws ClassNotFoundException
+	 * @throws UnknownTypeException
+	 */
 	protected List<ViewStructure> getViews(String schemaName) 
 			throws SQLException, ClassNotFoundException, UnknownTypeException {
 		List<ViewStructure> views = new ArrayList<ViewStructure>();
@@ -297,9 +330,16 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return views;
 	}
 	
+	/**
+	 * 
+	 * @param schemaName
+	 * @return
+	 * @throws SQLException
+	 * @throws ClassNotFoundException
+	 */
 	protected List<RoutineStructure> getRoutines(String schemaName) 
 			throws SQLException, ClassNotFoundException {
-		// TODO add optional fields to routine
+		// TODO add optional fields to routine (use getProcedureColumns)
 		List<RoutineStructure> routines = new ArrayList<RoutineStructure>();
 		
 		ResultSet rset = getMetadata().getProcedures(
@@ -312,9 +352,10 @@ public class JDBCImportModule implements DatabaseImportModule {
 				routine.setDescription(rset.getString(7));
 			} else {
 				if (rset.getShort(8) == 1) {				
-					routine.setDescription("procedureNoResult");
+					routine.setDescription("Procedure does not "
+							+ "return a result");
 				} else if (rset.getShort(8) == 2) {
-					routine.setDescription("procedureReturnsResult");
+					routine.setDescription("Procedure returns a result");
 				}
 			}
 			routines.add(routine);
@@ -390,7 +431,6 @@ public class JDBCImportModule implements DatabaseImportModule {
 				users.add(user);
 			}
 		} else {
-			// TODO implement getUsers for all modules
 			users.add(new UserStructure("UNDEFINED_USER", "DESCRIPTION"));
 			logger.warn("Users were not imported: not supported yet on " 
 					+ getClass().getSimpleName() + "\n"
@@ -399,6 +439,12 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return users;
 	}
 
+	/**
+	 * 
+	 * @return the database roles 
+	 * @throws SQLException
+	 * @throws ClassNotFoundException
+	 */
 	protected List<RoleStructure> getRoles() 
 			throws SQLException, ClassNotFoundException {
 		List<RoleStructure> roles = new ArrayList<RoleStructure>();
@@ -433,6 +479,12 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return roles;
 	}
 	
+	/**
+	 * 
+	 * @return the database privileges
+	 * @throws SQLException
+	 * @throws ClassNotFoundException
+	 */
 	protected List<PrivilegeStructure> getPrivileges() 
 			throws SQLException, ClassNotFoundException {
 		List<PrivilegeStructure> privileges = 
@@ -476,6 +528,17 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return privileges;
 	}
 	
+	/**
+	 * 
+	 * @param schemaName
+	 * 			  the schema name
+	 * @param tableName
+	 * 			  the table name
+	 * @return the columns of a given schema.table
+	 * @throws SQLException
+	 * @throws ClassNotFoundException
+	 * @throws UnknownTypeException
+	 */
 	protected List<ColumnStructure> getColumns(
 			String schemaName, String tableName) 
 			throws SQLException, ClassNotFoundException, UnknownTypeException {
@@ -514,7 +577,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 	}
 
 	/**
-	 * Map the original type to the normalized type model
+	 * Map the original type to the normalized type model 
+	 * saving the appropriate SQL:99 data type info 
 	 * 
 	 * @param originalDataType
 	 *            the name of the original data type
@@ -526,12 +590,6 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 */
 	protected Type getType(int dataType, String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) throws UnknownTypeException {
-//		logger.debug("--- INIT ----");
-//		logger.debug("datatype: " + dataType);
-//		logger.debug("typeName: " + typeName);
-//		logger.debug("col size: " + columnSize);
-//		logger.debug("decimal digits: " + decimalDigits);
-//		logger.debug("----\n");
 		Type type;
 		switch (dataType) {
 		case Types.BIGINT:
@@ -699,7 +757,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 	
 	protected Type getDoubleType(String typeName, int columnSize, 
 			int decimalDigits, int numPrecRadix) {
-		Type type = new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
+		Type type = 
+				new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
 		type.setSql99TypeName("DOUBLE PRECISION");
 		return type;
 	}
@@ -741,6 +800,16 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return type;
 	}
 	
+	/**
+	 * Gets data types defined as Types.OTHER. The data type is inferred 
+	 * by typeName, sometimes specific to each DBMS 
+	 * 
+	 * @param dataType
+	 * @param typeName
+	 * @param columnSize
+	 * @return
+	 * @throws UnknownTypeException
+	 */
 	protected Type getOtherType(int dataType, String typeName, int columnSize)
 			throws UnknownTypeException {
 		throw new UnknownTypeException("Unsuported JDBC type, code: "
@@ -748,8 +817,14 @@ public class JDBCImportModule implements DatabaseImportModule {
 	}
 	
 	/**
-	 * get specific DBMS data types	 
-	 * @throws UnknownTypeException 
+	 * Gets specific DBMS data types. 
+	 * E.g.:OracleTypes.BINARY_DOUBLE
+	 * 
+	 * @param dataType
+	 * @param typeName
+	 * @param columnSize
+	 * @return
+	 * @throws UnknownTypeException
 	 */
 	protected Type getSpecificType(int dataType, String typeName, 
 			int columnSize) throws UnknownTypeException {
@@ -856,6 +931,12 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return s;
 	}
 	
+	/**
+	 * Gets the name of the update rule
+	 * 
+	 * @param value
+	 * @return
+	 */
 	protected String getUpdateRule(Short value) {
 		String rule = null;
 		switch(value) {
@@ -869,12 +950,27 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return rule;
 	}
 	
+	/**
+	 * Gets the name of the delete rule
+	 * 
+	 * @param value
+	 * @return
+	 */
 	protected String getDeleteRule(Short value) {
 		return getUpdateRule(value);
 	}
 	
-	
-	// VERIFY adding PKs !?!
+
+	/**
+	 * Gets the candidate keys of a given schema table
+	 * 
+	 * @param schemaName
+	 * @param tableName
+	 * @return
+	 * @throws SQLException
+	 * @throws ClassNotFoundException
+	 */
+	// VERIFY adding PKs
 	protected List<CandidateKey> getCandidateKeys(String schemaName, 
 			String tableName) throws SQLException, ClassNotFoundException {
 		List<CandidateKey> candidateKeys = new ArrayList<CandidateKey>();
@@ -908,6 +1004,14 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return candidateKeys;		
 	}
 
+	/**
+	 * Gets the check constraints of a given schema table
+	 * 
+	 * @param schemaName
+	 * @param tableName
+	 * @return
+	 * @throws ClassNotFoundException
+	 */
 	protected List<CheckConstraint> getCheckConstraints(String schemaName, 
 			String tableName) throws ClassNotFoundException {
 		List<CheckConstraint> checkConstraints = 
@@ -965,6 +1069,14 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return checkConstraints;
 	}
 	
+	/**
+	 * Gets the triggers of a given schema table
+	 * 
+	 * @param schemaName
+	 * @param tableName
+	 * @return
+	 * @throws ClassNotFoundException
+	 */
 	protected List<Trigger> getTriggers(String schemaName, String tableName) 
 			throws ClassNotFoundException {
 		List<Trigger> triggers = new ArrayList<Trigger>();
@@ -1034,11 +1146,23 @@ public class JDBCImportModule implements DatabaseImportModule {
 		}
 		return triggers;
 	}
-	
+
+	/**
+	 * Sanitizes the trigger event data  
+	 * 
+	 * @param string
+	 * @return
+	 */
 	protected String processTriggerEvent(String string) {
 		return string;
 	}
 
+	/**
+	 * Sanitizes the trigger action time data
+	 * 
+	 * @param string
+	 * @return
+	 */
 	protected String processActionTime(String string) {
 		return string;
 	}
@@ -1176,8 +1300,9 @@ public class JDBCImportModule implements DatabaseImportModule {
 	}
 	
 	/**
-	 * Schemas that won't be exported
-	 * @return
+	 * Gets the schemas that won't be exported
+	 * 
+	 * @return the schemas to be ignored at export
 	 */
 	protected Set<String> getIgnoredSchemas() {
 		// no ignored schemas.

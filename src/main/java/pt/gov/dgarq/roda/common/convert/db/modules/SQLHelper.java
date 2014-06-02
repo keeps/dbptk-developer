@@ -86,7 +86,6 @@ public class SQLHelper {
 	 * 			  the schema structure
 	 * @return the SQL
 	 */
-	// TODO add authorization to create schema SQL
 	public String createSchemaSQL(SchemaStructure schema) {
 		return "CREATE SCHEMA " + escapeSchemaName(schema.getName());
 	}
@@ -427,18 +426,45 @@ public class SQLHelper {
 		return parts;	
 	}
 
+	/**
+	 * 
+	 * @param schemaName
+	 * 			  The schema name
+	 * @param tableName
+	 * 			  The table name
+	 * @return the SQL to get check constraints
+	 */
 	public String getCheckConstraintsSQL(String schemaName, String tableName) {
 		return null;
 	}
 	
+	/**
+	 * 
+	 * @param schemaName
+	 * 			  The schema name
+	 * @param tableName
+	 * 			  The table name
+	 * @return the SQL to get table triggers
+	 */
 	public String getTriggersSQL(String schemaName, String tableName) {
 		return null;
 	}
 	
+	/**
+	 * 
+	 * @param dbName
+	 * 			  the database name 
+	 * @return the SQL to get all users
+	 */
 	public String getUsersSQL(String dbName) {
 		return null;
 	}
 	
+	/**
+	 * 
+	 * @return the SQL to get all roles
+	 * 
+	 */
 	public String getRolesSQL() {
 		return null;
 	}

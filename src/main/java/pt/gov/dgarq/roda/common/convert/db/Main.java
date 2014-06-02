@@ -38,18 +38,18 @@ import pt.gov.dgarq.roda.common.convert.db.modules.sqlServer.out.SQLServerJDBCEx
 public class Main {
 
 	public static final String APP_NAME = 
-			"db-preservation-toolkit 1.0.0 - KEEP SOLUTIONS";
+			"db-preservation-toolkit - KEEP SOLUTIONS";
 	
 	public static final String NAME = "db-preservation-toolkit";
 
 	private static final Logger logger = Logger.getLogger(Main.class);
-		
+	
 	
 	/**
 	 * @param args
 	 *            the console arguments
 	 */
-	public static void main(String... args) {
+	public static void main(String... args) {		
 		List<String> importModuleArgs = new Vector<String>();
 		List<String> exportModuleArgs = new Vector<String>();
 				

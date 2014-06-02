@@ -13,8 +13,14 @@ public class SIARDHelper {
 
 	private static final Logger logger = Logger.getLogger(SIARDHelper.class);
 
+	/**
+	 * Encodes a data string as defined by SIARD format 
+	 * 
+	 * @param text
+	 * 			  the text string to be encoded
+	 * @return the encoded text
+	 */
 	public static final String encode(String text) {
-		// logger.debug("original text: " + text);
 		String xml = text.replaceAll("\\\\", "\\u005C");
 		xml = StringEscapeUtils.escapeJava(xml);
 		xml = xml.replaceAll("&", "&amp;");
@@ -22,10 +28,16 @@ public class SIARDHelper {
 		xml = xml.replaceAll(">", "&gt;");
 		xml = xml.replaceAll("\"", "&quot;");
 		xml = xml.replaceAll("\\s+", "\\\\u0020");
-		// logger.debug("after xml: " + xml);
 		return xml;
 	}
 
+	/**
+	 * Decodes an encoded string as defined by SIARD format
+	 * 
+	 * @param xml
+	 * 			  the encoded string
+	 * @return the original string
+	 */
 	public static final String decode(String xml) {
 		String text = xml.replace("\\\\u0020", " ");
 		text = text.replaceAll("&quot;", "\"");
@@ -60,6 +72,13 @@ public class SIARDHelper {
 	    return data;
 	}
 
+	/**
+	 * Checks whether a check constraint condition string is valid 
+	 * to be exported to SIARD format
+	 *   
+	 * @param condition
+	 * @return
+	 */
 	public static boolean isValidConstrainstCondition(String condition) {
 		if (condition.equalsIgnoreCase("TRUE")
 				|| condition.equalsIgnoreCase("FALSE")
@@ -69,6 +88,13 @@ public class SIARDHelper {
 		return false;
 	}
 
+	/**
+	 * Checks whether a trigger action time string is valid to be exported 
+	 * to SIARD format
+	 * 
+	 * @param actionTime
+	 * @return
+	 */
 	public static boolean isValidActionTime(String actionTime) {
 		if (actionTime.equalsIgnoreCase("BEFORE")
 				|| actionTime.equalsIgnoreCase("AFTER")) {
@@ -78,6 +104,12 @@ public class SIARDHelper {
 		return false;
 	}
 
+	/**
+	 * Checks whether a trigger event is valid to be exported to SIARD format
+	 * 
+	 * @param triggerEvent
+	 * @return
+	 */
 	public static boolean isValidTriggerEvent(String triggerEvent) {
 		if (triggerEvent.equalsIgnoreCase("INSERT")
 				|| triggerEvent.equalsIgnoreCase("DELETE")
@@ -87,6 +119,13 @@ public class SIARDHelper {
 		return false;
 	}
 	
+	/**
+	 * Checks whether a privilege option string is valid 
+	 * to be exported to SIARD format
+	 * 
+	 * @param option
+	 * @return
+	 */
 	public static boolean isValidOption(String option) {
 		if (option.equalsIgnoreCase("GRANT")
 				|| option.equalsIgnoreCase("ADMIN")) {

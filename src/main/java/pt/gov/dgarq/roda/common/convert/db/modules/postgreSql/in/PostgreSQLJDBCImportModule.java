@@ -110,7 +110,8 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 	}
 	
 	/**
-	 * Schemas that won't be exported
+	 * Gets the schemas that won't be exported. 
+	 * Defaults to PostgreSQL are information_schema and all pg_XXX
 	 */
 	public Set<String> getIgnoredSchemas() {
 		Set<String> ignoredSchemas = new HashSet<String>();

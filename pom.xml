@@ -7,7 +7,7 @@
 	<version>1.0.0</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<java_version>1.6</java_version>
+		<java_version>1.8</java_version>
 	</properties>
 	<build>
 		<plugins>
@@ -173,6 +173,21 @@
 			<groupId>com.ibm</groupId>
 			<artifactId>db2jcc4</artifactId>
 			<version>4.16.53</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.solr</groupId>
+			<artifactId>solr-solrj</artifactId>
+			<version>4.8.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.solr</groupId>
+			<artifactId>solr-core</artifactId>
+			<version>4.8.0</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
 		</dependency>
 	</dependencies>
 	<dependencyManagement>

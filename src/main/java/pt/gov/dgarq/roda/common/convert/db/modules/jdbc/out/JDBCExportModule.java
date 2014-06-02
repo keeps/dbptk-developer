@@ -239,7 +239,6 @@ public class JDBCExportModule implements DatabaseHandler {
 				schema.setNewSchemaName(REPLACED_SUFFIX);
 				currentIsExistingSchema = true;
 				changedSchemaName = true;
-				logger.debug("CHANGED NAME..");
 			}
 
 			getStatement().addBatch(sqlHelper.createSchemaSQL(schema));

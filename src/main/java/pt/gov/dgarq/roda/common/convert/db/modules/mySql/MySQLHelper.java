@@ -136,10 +136,9 @@ public class MySQLHelper extends SQLHelper {
 		return ret;
 	}
 	
-	// MySQL does not support check constraints
+	// MySQL does not support check constraints (returns no empty SQL query)
 	public String getCheckConstraintsSQL(String schemaName, String tableName) {
 		return "";
-		// return super.getCheckConstraintsSQL(schemaName, tableName);
 	}
 	
 	public String getTriggersSQL(String schemaName, String tableName) {

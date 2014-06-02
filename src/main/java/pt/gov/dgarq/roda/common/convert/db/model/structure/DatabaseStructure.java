@@ -14,8 +14,8 @@ import org.apache.log4j.Logger;
  */
 public class DatabaseStructure {
 
-	private static final Logger logger = Logger
-			.getLogger(DatabaseStructure.class);
+	private static final Logger logger = 
+			Logger.getLogger(DatabaseStructure.class);
 
 	private String name;
 	

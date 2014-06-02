@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
-
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.DatabaseStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ForeignKey;
@@ -24,7 +22,6 @@ import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.in.JDBCImportModule;
  *
  */
 public class DB2JDBCImportModule extends JDBCImportModule {
-	private final Logger logger = Logger.getLogger(DB2JDBCImportModule.class);
 	
 	private List<String> aliasTables = null;
 	
@@ -69,6 +66,10 @@ public class DB2JDBCImportModule extends JDBCImportModule {
 		return dbStructure;
 	}
 	
+	/**
+	 * Returns the default ignored schemas for DB2
+	 * These schemas won't be imported
+	 */
 	protected Set<String> getIgnoredImportedSchemas() {
 		Set<String> ignored = new HashSet<String>();
 		ignored.add("SQLJ");
@@ -90,8 +91,6 @@ public class DB2JDBCImportModule extends JDBCImportModule {
 	protected Type getOtherType(int dataType, String typeName, int columnSize)
 			throws UnknownTypeException {
 		Type type;
-		logger.debug("TYPE NAME: " + typeName);
-		logger.debug("-----\n");
 		if (typeName.equalsIgnoreCase("XML")) {
 			type = new SimpleTypeString(31457280, Boolean.TRUE);
 			type.setSql99TypeName("CHARACTER LARGE OBJECT");
@@ -109,8 +108,6 @@ public class DB2JDBCImportModule extends JDBCImportModule {
 	protected Type getSpecificType(int dataType, String typeName, 
 			int columnSize) throws UnknownTypeException {
 		Type type;
-		logger.debug("Specific type name: " + typeName);
-		logger.debug("------\n");
 		switch (dataType) {
 //		case 2001:
 //			type = new SimpleTypeNumericApproximate(

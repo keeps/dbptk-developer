@@ -17,7 +17,7 @@ public class Oracle12cJDBCExportModule extends JDBCExportModule {
 			Logger.getLogger(Oracle12cJDBCExportModule.class);
 
 	/**
-	 * Create a new Oracle8i import module 
+	 * Create a new Oracle12c import module 
 	 * 
 	 * @param serverName
 	 *            the name (host name) of the server

@@ -12,7 +12,7 @@ public class ColumnStructure {
 
 	private String name;
 	
-	private String folder; // TODO folder must be ascii chars only (LOB)
+	private String folder;
 
 	private Type type;
 	

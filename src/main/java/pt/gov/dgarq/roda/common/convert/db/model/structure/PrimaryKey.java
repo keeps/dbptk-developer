@@ -5,7 +5,6 @@ import java.util.List;
 
 /**
  * @author Luis Faria
- * @author Miguel Coutada
  *
  */
 
@@ -17,9 +16,7 @@ public class PrimaryKey {
 	
 	private String description;
 	
-	/**
-	 * 
-	 */
+
 	public PrimaryKey() {
 		this.columns = new ArrayList<String>();
 	}

@@ -3,7 +3,6 @@ target/
 .classpath
 .project
 .settings/
+.DS_Store
 
-
-**/modules/oracle12c/
 src/test/

@@ -21,7 +21,16 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
  */
 
 public class SIARDExportHelper {
-
+	
+	/**
+	 * Gets the Type corresponding SQL:1999 data type string 
+	 * in order to be exported to a SIARD package 
+	 * 
+	 * @param type
+	 * @return
+	 * @throws ModuleException
+	 * @throws UnknownTypeException
+	 */
 	public String exportType(Type type) 
 			throws ModuleException, UnknownTypeException {
 		String ret = null;
@@ -92,7 +101,7 @@ public class SIARDExportHelper {
 		if (type.getSql99TypeName().equalsIgnoreCase("REAL")) {
 			sb.append("REAL");
 		} else if (StringUtils.
-				startsWithIgnoreCase(type.getSql99TypeName(), "DOUBLE")){
+				startsWithIgnoreCase(type.getSql99TypeName(), "DOUBLE")) {
 			sb.append("DOUBLE PRECISION");			
 		} else {
 			sb.append("FLOAT");
