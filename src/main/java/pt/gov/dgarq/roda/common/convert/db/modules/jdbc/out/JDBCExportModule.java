@@ -85,6 +85,7 @@ public class JDBCExportModule implements DatabaseHandler {
 	
 	protected boolean currentIsExistingSchema;
 	
+	
 	/**
 	 * Generic JDBC export module constructor
 	 * 
@@ -192,7 +193,6 @@ public class JDBCExportModule implements DatabaseHandler {
 			logger.error("An error occurred while getting the name "
 					+ "of existing schemas");
 		}
-		// TODO handle creation and drop of DBs
 		createDatabase(structure.getName()); 		
 		int[] batchResult = null;
 		if (getStatement() != null) {
