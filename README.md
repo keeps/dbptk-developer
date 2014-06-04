@@ -55,7 +55,7 @@ For example, if you want to connect to a live MySQL database and export its cont
 ```bash
 $ java -jar db-preservation-toolkit-1.0.0-jar-with-dependencies.jar \
 -i MySQLJDBC localhost example_db username p4ssw0rd \
--o DBML example_db_dbml_export
+-o SIARD example_db_siard_export
 ```
 
 ## Related publications & presentations

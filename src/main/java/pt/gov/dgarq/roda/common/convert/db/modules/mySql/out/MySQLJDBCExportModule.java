@@ -59,7 +59,8 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 			String username, String password) {
 		super("com.mysql.jdbc.Driver",
 				"jdbc:mysql://" + hostname + "/" + database + "?" + "user="
-						+ username + "&password=" + password, 
+						+ username + "&password=" + password 
+						+ "&rewriteBatchedStatements=true", 
 						new MySQLHelper());
 		this.hostname = hostname;
 		this.port = -1;
