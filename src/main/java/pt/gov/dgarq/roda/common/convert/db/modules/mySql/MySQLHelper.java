@@ -4,12 +4,16 @@
 package pt.gov.dgarq.roda.common.convert.db.modules.mySql;
 
 import org.apache.log4j.Logger;
+import org.springframework.util.StringUtils;
 
+import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBinary;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBoolean;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeDateTime;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumericApproximate;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeString;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.SQLHelper;
@@ -21,9 +25,27 @@ import pt.gov.dgarq.roda.common.convert.db.modules.SQLHelper;
 public class MySQLHelper extends SQLHelper {
 
 	private final Logger logger = Logger.getLogger(MySQLHelper.class);
+	
+	private String name = "MySQL";
+	
+	private String startQuote = "`";
+	
+	private String endQuote = "`";
+	
+	public String getName() {
+		return name;
+	}
+	
+	public String getStartQuote() {
+		return startQuote;
+	}
+
+	public String getEndQuote() {
+		return endQuote;
+	}
 
 	public String createTableSQL(TableStructure table)
-			throws UnknownTypeException {
+			throws UnknownTypeException, ModuleException {
 		return super.createTableSQL(table) + " ENGINE=INNODB";
 	}
 
@@ -43,16 +65,14 @@ public class MySQLHelper extends SQLHelper {
 			if (isPkey) {
 				int length = string.getLength().intValue();
 				if (length >= 65535) {
-					logger
-							.warn("Resizing column length to 333 so it can be a primary key");
+					logger.warn("Resizing column length to 333 "
+							+ "so it can be a primary key");
 					length = 333;
 				}
 				ret = "varchar(" + length + ")";
-			} else if (string.getOriginalTypeName().equals("TEXT")) {
-				ret = "text";
 			} else if (string.isLengthVariable()) {
 				if (string.getLength().intValue() >= 65535) {
-					ret = "text";
+					ret = "longtext";
 				} else {
 					ret = "varchar(" + string.getLength() + ")";
 				}
@@ -63,7 +83,20 @@ public class MySQLHelper extends SQLHelper {
 					ret = "char(" + string.getLength() + ")";
 				}
 			}
-
+		} else if (type instanceof SimpleTypeNumericApproximate) {
+			SimpleTypeNumericApproximate numericApprox = 
+					(SimpleTypeNumericApproximate) type;
+			if (type.getSql99TypeName().equalsIgnoreCase("REAL")) {
+				ret = "float(12)";
+			} else if (StringUtils.startsWithIgnoreCase(
+					type.getSql99TypeName(), "DOUBLE")) {
+				ret = "double";
+			} else {
+				logger.debug("float precision: " + numericApprox.getPrecision());
+				ret = "float(" + numericApprox.getPrecision() + ")";
+			}
+		} else if (type instanceof SimpleTypeBoolean) {
+			ret = "bit(1)";
 		} else if (type instanceof SimpleTypeDateTime) {
 			SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
 			if (!dateTime.getTimeDefined() && !dateTime.getTimeZoneDefined()) {
@@ -71,34 +104,59 @@ public class MySQLHelper extends SQLHelper {
 			} else if (dateTime.getTimeZoneDefined()) {
 				throw new UnknownTypeException(
 						"Time zone not supported in MySQL");
+			} else if (type.getSql99TypeName().equalsIgnoreCase("TIME")) { 
+				ret = "time";
 			} else {
 				ret = "datetime";
 			}
-
 		} else if (type instanceof SimpleTypeBinary) {
-			ret = "MEDIUMBLOB";
+			SimpleTypeBinary binary = (SimpleTypeBinary) type;
+			Integer length = binary.getLength();
+			if (length != null) {
+				if (type.getSql99TypeName().equalsIgnoreCase("BIT")) {
+					if (type.getOriginalTypeName().equalsIgnoreCase("BIT")) {
+						ret = "bit(" + length + ")";
+					} else {
+						ret = "binary(" + (((length / 8.0) % 1 == 0) ? 
+								(length / 8) : ((length / 8) + 1)) + ")";
+					}
+				} else if (type.
+						getSql99TypeName().equalsIgnoreCase("BIT VARYING")) {
+					ret = "varbinary(" + (((length / 8.0) % 1 == 0) ? 
+							(length / 8) : ((length / 8) + 1)) + ")";
+				} else {
+					ret = "longblob";
+				}
+			} else {
+				ret = "longblob";
+			}
 		} else {
 			ret = super.createTypeSQL(type, isPkey, isFkey);
 		}
 		return ret;
 	}
-
-	protected String escapeDatabaseName(String database) {
-		return "`" + database + "`";
+	
+	// MySQL does not support check constraints (returns no empty SQL query)
+	public String getCheckConstraintsSQL(String schemaName, String tableName) {
+		return "";
 	}
-
-	protected String escapeTableName(String table) {
-		return "`" + table + "`";
+	
+	public String getTriggersSQL(String schemaName, String tableName) {
+		return "SELECT "
+				+ "trigger_name AS TRIGGER_NAME, "
+				+ "action_timing AS ACTION_TIME, "
+				+ "event_manipulation AS TRIGGER_EVENT, "
+				+ "action_statement AS TRIGGERED_ACTION "
+				+ "FROM information_schema.triggers "
+				+ "WHERE trigger_schema='" + schemaName + "' " 
+				+ "AND event_object_table='" + tableName + "'";
 	}
-
-	protected String escapeColumnName(String column) {
-		return "`" + column + "`";
+	
+	public String getUsersSQL(String dbName) {
+		return "SELECT * FROM `mysql`.`user`";
 	}
-
+	
 	protected String escapeComment(String description) {
 		return description.replaceAll("'", "''");
 	}
-	
-	
-
 }

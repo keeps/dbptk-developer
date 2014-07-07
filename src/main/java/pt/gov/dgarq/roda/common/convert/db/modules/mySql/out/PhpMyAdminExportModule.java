@@ -16,6 +16,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.DatabaseStructure;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBinary;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
@@ -139,39 +140,41 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 						.createStatement();
 				List<PreparedStatement> statements = new ArrayList<PreparedStatement>();
 
-				for (TableStructure table : structure.getTables()) {
-					for (ColumnStructure column : table.getColumns()) {
-						Type type = column.getType();
-						String comment = createColumnComment(column
-								.getDescription(), type.getOriginalTypeName(),
-								type.getDescription());
-						String mimetype = "";
-						String transformation = "";
-						String transformation_options = "";
-						if (type instanceof SimpleTypeBinary) {
-							SimpleTypeBinary bin = (SimpleTypeBinary) type;
-							if (bin.getFormatRegistryKey() != null
-									&& bin.getFormatRegistryKey()
-											.equals("MIME")) {
-								mimetype = bin.getFormatRegistryName().replace(
-										'/', '_');
-								if (mimetype.equals("image_jpeg")) {
-									transformation = "image_jpeg__link.inc.php";
+				for (SchemaStructure schema : structure.getSchemas()) {
+					for (TableStructure table : schema.getTables()) {
+						for (ColumnStructure column : table.getColumns()) {
+							Type type = column.getType();
+							String comment = createColumnComment(column
+									.getDescription(), type.getOriginalTypeName(),
+									type.getDescription());
+							String mimetype = "";
+							String transformation = "";
+							String transformation_options = "";
+							if (type instanceof SimpleTypeBinary) {
+								SimpleTypeBinary bin = (SimpleTypeBinary) type;
+								if (bin.getFormatRegistryKey() != null
+										&& bin.getFormatRegistryKey()
+												.equals("MIME")) {
+									mimetype = bin.getFormatRegistryName().replace(
+											'/', '_');
+									if (mimetype.equals("image_jpeg")) {
+										transformation = "image_jpeg__link.inc.php";
+									} else {
+										transformation = "application_octetstream__download.inc.php";
+									}
+	
 								} else {
+									mimetype = "application_octet-stream";
 									transformation = "application_octetstream__download.inc.php";
 								}
-
-							} else {
-								mimetype = "application_octet-stream";
-								transformation = "application_octetstream__download.inc.php";
 							}
+	
+							statements.add(getInsertIntoPhpMyAdminStatement(
+									database, table.getName(), column.getName(),
+									comment, mimetype, transformation,
+									transformation_options));
+	
 						}
-
-						statements.add(getInsertIntoPhpMyAdminStatement(
-								database, table.getName(), column.getName(),
-								comment, mimetype, transformation,
-								transformation_options));
-
 					}
 				}
 				st.executeBatch();

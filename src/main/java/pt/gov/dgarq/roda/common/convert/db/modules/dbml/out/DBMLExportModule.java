@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
+import java.util.Set;
 
 import org.apache.commons.transaction.util.FileHelper;
 import org.apache.log4j.Logger;
@@ -257,6 +258,10 @@ public class DBMLExportModule implements DatabaseHandler {
 		}
 
 	}
+	
+	public void setIgnoredSchemas(Set<String> ignoredSchemas) {
+		// nothing to do;
+	}
 
 	/**
 	 * Export the database structure to DBML
@@ -269,7 +274,7 @@ public class DBMLExportModule implements DatabaseHandler {
 	 */
 	private void exportStructure(DatabaseStructure structure)
 			throws UnknownTypeException, UnsupportedEncodingException,
-			IOException {
+			IOException, ModuleException {
 		logger.debug("Exporting structure");
 		print("<db name=\"" + encode(structure.getName()) + "\"");
 
@@ -326,7 +331,9 @@ public class DBMLExportModule implements DatabaseHandler {
 		}
 		print(" schemaVersion=\"" + SCHEMA_VERSION + "\">\n");
 		print("\t<structure>\n");
-		for (TableStructure table : structure.getTables()) {
+		
+		logger.debug("Starting to get TableStructure");
+		for (TableStructure table : structure.getSchemas().get(0).getTables()) {
 			exportTableStructure(table);
 		}
 		print("\t</structure>\n");
@@ -343,7 +350,7 @@ public class DBMLExportModule implements DatabaseHandler {
 	 */
 	private void exportTableStructure(TableStructure table)
 			throws UnknownTypeException, UnsupportedEncodingException,
-			IOException {
+			IOException, ModuleException {
 		print("\t\t<table id=\"" + encode(table.getId()) + "\" name=\""
 				+ encode(table.getName()) + "\"");
 		if (table.getDescription() != null) {
@@ -420,7 +427,8 @@ public class DBMLExportModule implements DatabaseHandler {
 			print("/>\n");
 
 		} else if (type instanceof SimpleTypeNumericApproximate) {
-			SimpleTypeNumericApproximate numApproxType = (SimpleTypeNumericApproximate) type;
+			SimpleTypeNumericApproximate numApproxType = 
+					(SimpleTypeNumericApproximate) type;
 			print("<simpleTypeNumericApproximate");
 			if (numApproxType.getPrecision() != null) {
 				print(" precision=\"" + numApproxType.getPrecision() + "\"");
@@ -452,13 +460,17 @@ public class DBMLExportModule implements DatabaseHandler {
 			SimpleTypeInterval interval = (SimpleTypeInterval) type;
 			print("<simpleTypeInterval");
 
-			if (interval.getType() == SimpleTypeInterval.IntervalType.STARTDATE_ENDDATE) {
+			if (interval.getType() == SimpleTypeInterval.IntervalType.
+					STARTDATE_ENDDATE) {
 				print(" type=\"START_END\"");
-			} else if (interval.getType() == SimpleTypeInterval.IntervalType.STARTDATE_DURATION) {
+			} else if (interval.getType() == SimpleTypeInterval.IntervalType.
+					STARTDATE_DURATION) {
 				print(" type=\"START_DURATION\"");
-			} else if (interval.getType() == SimpleTypeInterval.IntervalType.DURATION_ENDDATE) {
+			} else if (interval.getType() == SimpleTypeInterval.IntervalType.
+					DURATION_ENDDATE) {
 				print(" type=\"DURATION_END\"");
-			} else if (interval.getType() == SimpleTypeInterval.IntervalType.DURATION) {
+			} else if (interval.getType() == SimpleTypeInterval.IntervalType.
+					DURATION) {
 				print(" type=\"DURATION\"");
 			}
 
@@ -476,6 +488,11 @@ public class DBMLExportModule implements DatabaseHandler {
 						+ encode(binary.getFormatRegistryKey()) + "\"");
 			}
 			print("/>\n");
+		
+//		} else if (type instanceof SimpleTypeXML) {
+//			// SimpleTypeXML xmlType = (SimpleTypeXML) type;
+//			print("<simpleTypeXML/>\n");
+//			
 		} else if (type instanceof ComposedTypeArray) {
 			ComposedTypeArray array = (ComposedTypeArray) type;
 			print("<composedTypeArray>\n");
@@ -509,11 +526,19 @@ public class DBMLExportModule implements DatabaseHandler {
 
 	}
 
+	/* TODO add support to multiple columns references 
+	(DBML must support it first) */	
 	private void exportForeignKey(ForeignKey fk)
-			throws UnsupportedEncodingException, IOException {
+			throws UnsupportedEncodingException, IOException, ModuleException {
+		if (fk.getReferences().size() > 1) {
+			throw new ModuleException(
+					"DBML does not support  composite foreign keys yet.");
+		}
 		print("\t\t\t<fkey id=\"" + encode(fk.getId()) + "\" name=\""
-				+ encode(fk.getName()) + "\" in=\"" + encode(fk.getRefTable())
-				+ "\" ref=\"" + encode(fk.getRefColumn()) + "\"/>\n");
+				+ encode(fk.getName()) + "\" in=\""
+				+ encode(fk.getReferencedTable())
+				+ "\" ref=\"" + encode(fk.getReferences().get(0).getColumn())
+				+ "\"/>\n");
 
 	}
 

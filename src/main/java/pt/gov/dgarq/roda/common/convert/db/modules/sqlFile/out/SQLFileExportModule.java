@@ -16,6 +16,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -30,6 +31,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.DatabaseStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ForeignKey;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumericApproximate;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumericExact;
@@ -84,16 +86,24 @@ public class SQLFileExportModule implements DatabaseHandler {
 		// nothing to do
 	}
 
+	public void setIgnoredSchemas(Set<String> ignoredSchemas) {
+		// nothing to do
+	}
+	
 	public void handleStructure(DatabaseStructure structure)
 			throws ModuleException, UnknownTypeException {
 		try {
 			this.structure = structure;
-			for (TableStructure table : structure.getTables()) {
-				sqlWriter.write(sqlHelper.createTableSQL(table) + ";\n");
-				String pkeySQL = sqlHelper.createPrimaryKeySQL(table.getName(),
-						table.getPrimaryKey());
-				if (pkeySQL != null) {
-					sqlWriter.write(pkeySQL + ";\n");
+			for (SchemaStructure schema : structure.getSchemas()) {
+				for (TableStructure table : schema.getTables()) {
+					sqlWriter.write(sqlHelper.createTableSQL(table) + ";\n");
+					String pkeySQL = sqlHelper.createPrimaryKeySQL(
+							table.getId(), table.getPrimaryKey());
+					logger.debug("PKEY: " + sqlHelper.createPrimaryKeySQL(
+							table.getId(), table.getPrimaryKey()));
+					if (pkeySQL != null) {
+						sqlWriter.write(pkeySQL + ";\n");
+					}
 				}
 			}
 			sqlWriter.flush();
@@ -176,18 +186,21 @@ public class SQLFileExportModule implements DatabaseHandler {
 	}
 
 	public void finishDatabase() throws ModuleException {
-		for (TableStructure table : structure.getTables()) {
-			for (ForeignKey fkey : table.getForeignKeys()) {
-				try {
-					sqlWriter.write(sqlHelper.createForeignKeySQL(table
-							.getName(), fkey)
-							+ ";\n");
-				} catch (IOException e) {
-					throw new ModuleException("Error writing foreign key: "
-							+ fkey, e);
+		for (SchemaStructure schema : structure.getSchemas()) {
+			for (TableStructure table : schema.getTables()) {
+				for (ForeignKey fkey : table.getForeignKeys()) {
+					try {
+						String fkeySQL = 
+								sqlHelper.createForeignKeySQL(table, fkey);
+						sqlWriter.write(fkeySQL + ";\n");
+						sqlWriter.flush();
+					} catch (IOException e) {
+						throw new ModuleException("Error writing foreign key: "
+								+ fkey, e);
+					}
 				}
 			}
-		}
+		}		
 	}
 
 	/**
@@ -220,7 +233,7 @@ public class SQLFileExportModule implements DatabaseHandler {
 			throws IOException {
 		// BufferedInputStream buffin = new BufferedInputStream(in);
 		// BufferedOutputStream buffout = new BufferedOutputStream(out);
-
+ 
 		out.write("E'".getBytes());
 
 		int ibyte = in.read();

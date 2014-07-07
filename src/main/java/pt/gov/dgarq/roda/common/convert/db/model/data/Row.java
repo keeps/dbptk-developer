@@ -68,4 +68,16 @@ public class Row {
 		this.cells = cells;
 	}
 
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("Row [index=");
+		builder.append(index);
+		builder.append(", cells=");
+		builder.append(cells);
+		builder.append("]");
+		return builder.toString();
+	}
+
+	
 }

@@ -3,6 +3,8 @@
  */
 package pt.gov.dgarq.roda.common.convert.db.modules;
 
+import java.util.Set;
+
 import pt.gov.dgarq.roda.common.convert.db.model.data.Row;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.InvalidDataException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
@@ -22,8 +24,17 @@ public interface DatabaseHandler {
 	 */
 	public void initDatabase() throws ModuleException;
 
+	
 	/**
-	 * Handle the database structure, this will be the second method called
+	 * Set ignored schemas. Ignored schemas won't be exported.
+	 * This method should be called before handleStructure. 
+	 * However, if not called it will be assumed there is not ignored schemas.
+	 */
+	public void setIgnoredSchemas(Set<String> ignoredSchemas);
+	
+	/**
+	 * Handle the database structure.
+	 * This method will called after setIgnoredSchemas.
 	 * 
 	 * @param structure
 	 *            the database structure
@@ -73,5 +84,4 @@ public interface DatabaseHandler {
 	 * @throws ModuleException
 	 */
 	public void finishDatabase() throws ModuleException;
-
 }

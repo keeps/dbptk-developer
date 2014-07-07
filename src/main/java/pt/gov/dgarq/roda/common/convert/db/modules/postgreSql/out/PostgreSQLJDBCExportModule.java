@@ -1,8 +1,14 @@
 package pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.out;
 
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Types;
 
+import org.apache.log4j.Logger;
+
+import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.out.JDBCExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.PostgreSQLHelper;
 
@@ -33,8 +39,11 @@ import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.PostgreSQLHelper;
  */
 public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 
+	private final Logger logger = 
+			Logger.getLogger(PostgreSQLJDBCExportModule.class);
+	
 	/**
-	 * Create a new PostgreSQL JDBC import module
+	 * Create a new PostgreSQL JDBC export module
 	 * 
 	 * @param hostname
 	 *            the name of the PostgreSQL server host (e.g. localhost)
@@ -55,7 +64,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 	}
 
 	/**
-	 * Create a new PostgreSQL JDBC import module
+	 * Create a new PostgreSQL JDBC export module
 	 * 
 	 * @param hostname
 	 *            the name of the PostgreSQL server host (e.g. localhost)
@@ -81,14 +90,29 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 
 	public void handleDataCloseTable(String tableId) throws ModuleException {
 		try {
+			logger.debug("table ID: " + currentTableStructure.getId());
 			getStatement().executeUpdate(
-					((PostgreSQLHelper) getSqlHelper())
-							.grantPermissionsSQL(currentTableStructure
-									.getName()));
+					((PostgreSQLHelper) getSqlHelper()).grantPermissionsSQL(
+							currentTableStructure.getId()));
 		} catch (SQLException e) {
-			throw new ModuleException("Error granting permissions to public", e);
+			throw new ModuleException(
+					"Error granting permissions to public", e);
 		}
 		super.handleDataCloseTable(tableId);
 	}
-
+	
+	protected void handleSimpleTypeNumericApproximateDataCell(String data,
+			PreparedStatement ps, int index, Cell cell, Type type) 
+					throws NumberFormatException, SQLException {
+		if (data != null) {
+			logger.debug("set approx: " + data);
+			if (type.getSql99TypeName().equalsIgnoreCase("FLOAT")) {
+				ps.setFloat(index, Float.valueOf(data));
+			} else {
+				ps.setDouble(index, Double.valueOf(data));
+			}
+		} else {
+			ps.setNull(index, Types.FLOAT);
+		}		
+	}
 }

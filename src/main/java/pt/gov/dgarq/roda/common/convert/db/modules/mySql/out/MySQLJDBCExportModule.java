@@ -5,9 +5,14 @@ package pt.gov.dgarq.roda.common.convert.db.modules.mySql.out;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
@@ -34,6 +39,9 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 	private final String password;
 
 	private final Map<String, Connection> connections;
+	
+	private static final String[] IGNORED_SCHEMAS = 
+			{ "mysql", "performance_schema", "information_schema" };
 
 	/**
 	 * MySQL JDBC export module constructor
@@ -51,13 +59,16 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 			String username, String password) {
 		super("com.mysql.jdbc.Driver",
 				"jdbc:mysql://" + hostname + "/" + database + "?" + "user="
-						+ username + "&password=" + password, new MySQLHelper());
+						+ username + "&password=" + password 
+						+ "&rewriteBatchedStatements=true", 
+						new MySQLHelper());
 		this.hostname = hostname;
 		this.port = -1;
 		this.username = username;
 		this.password = password;
 		this.connections = new HashMap<String, Connection>();
-
+		super.ignoredSchemas = 
+				new TreeSet<String>(Arrays.asList(IGNORED_SCHEMAS));
 	}
 
 	/**
@@ -84,10 +95,12 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 		this.username = username;
 		this.password = password;
 		this.connections = new HashMap<String, Connection>();
+		super.ignoredSchemas = 
+				new TreeSet<String>(Arrays.asList(IGNORED_SCHEMAS));
 	}
 
 	/**
-	 * Get a conection to a database. This connection can be used to create the
+	 * Get a connection to a database. This connection can be used to create the
 	 * database
 	 * 
 	 * @param databaseName
@@ -122,5 +135,16 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 		}
 		return connection;
 	}
-
+	
+	protected Set<String> getExistingSchemasNames() 
+			throws SQLException, ModuleException {
+		if (existingSchemas == null) {
+			existingSchemas = new HashSet<String>();
+ 			ResultSet rs = getConnection().getMetaData().getCatalogs();
+			while (rs.next()) {
+				existingSchemas.add(rs.getString(1));
+			}
+		}
+		return existingSchemas;
+	}	
 }

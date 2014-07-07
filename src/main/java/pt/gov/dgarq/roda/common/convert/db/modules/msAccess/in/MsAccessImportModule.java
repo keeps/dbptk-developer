@@ -62,8 +62,8 @@ public class MsAccessImportModule extends ODBCImportModule {
 	}
 
 	@Override
-	protected PrimaryKey getPrimaryKey(String tableName) throws SQLException,
-			UnknownTypeException, ClassNotFoundException {
+	protected PrimaryKey getPrimaryKey(String schemaName, String tableName) 
+			throws SQLException, UnknownTypeException, ClassNotFoundException {
 		String key_colname = null;
 
 		// get the primary key information
@@ -79,8 +79,11 @@ public class MsAccessImportModule extends ODBCImportModule {
 				}
 			}
 		}
-
-		return new PrimaryKey(Arrays.asList(new String[] { key_colname }));
+			
+		// TODO add name & description
+		PrimaryKey pk = new PrimaryKey();
+		pk.setColumnNames(Arrays.asList(new String[] { key_colname }));
+		return pk;
 	}
 
 	@Override
@@ -93,8 +96,10 @@ public class MsAccessImportModule extends ODBCImportModule {
 	}
 
 	@Override
-	protected List<ForeignKey> getForeignKeys(String tableName)
-			throws SQLException, UnknownTypeException, ClassNotFoundException {
+	protected List<ForeignKey> getForeignKeys(String schemaName, 
+			String tableName) 
+					throws SQLException, UnknownTypeException, 
+							ClassNotFoundException {
 		List<ForeignKey> fKeys = new Vector<ForeignKey>();
 
 		ResultSet foreignKeys = getStatement()

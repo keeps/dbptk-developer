@@ -5,11 +5,13 @@ import java.io.InputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import org.apache.commons.transaction.util.FileHelper;
+import org.apache.log4j.Logger;
 
 import pt.gov.dgarq.roda.common.FileFormat;
 import pt.gov.dgarq.roda.common.convert.db.model.data.BinaryCell;
@@ -17,10 +19,10 @@ import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.FileItem;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.InvalidDataException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
-import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBinary;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.in.JDBCImportModule;
+import pt.gov.dgarq.roda.common.convert.db.modules.sqlServer.SQLServerHelper;
 
 import com.microsoft.sqlserver.jdbc.SQLServerConnection;
 import com.microsoft.sqlserver.jdbc.SQLServerResultSet;
@@ -32,8 +34,8 @@ import com.microsoft.sqlserver.jdbc.SQLServerResultSet;
  */
 public class SQLServerJDBCImportModule extends JDBCImportModule {
 
-	// private final Logger logger =
-	// Logger.getLogger(SQLServerJDBCImportModule.class);
+	private final Logger logger = 
+			Logger.getLogger(SQLServerJDBCImportModule.class);
 
 	/**
 	 * Create a new Microsoft SQL Server import module using the default
@@ -59,7 +61,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 				"jdbc:sqlserver://" + serverName + ";database=" + database
 						+ ";integratedSecurity="
 						+ (integratedSecurity ? "true" : "false") + ";encrypt="
-						+ (encrypt ? "true" : "false"));
+						+ (encrypt ? "true" : "false"), new SQLServerHelper());
 		
 		System.setProperty("java.net.preferIPv6Addresses", "true");
 
@@ -93,7 +95,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 						+ ";database=" + database + ";user=" + username
 						+ ";password=" + password + ";integratedSecurity="
 						+ (integratedSecurity ? "true" : "false") + ";encrypt="
-						+ (encrypt ? "true" : "false"));
+						+ (encrypt ? "true" : "false"), new SQLServerHelper());
 
 	}
 
@@ -123,7 +125,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 						+ ";database=" + database + ";user=" + username
 						+ ";password=" + password + ";integratedSecurity="
 						+ (integratedSecurity ? "true" : "false") + ";encrypt="
-						+ (encrypt ? "true" : "false"));
+						+ (encrypt ? "true" : "false"), new SQLServerHelper());
 
 	}
 
@@ -137,26 +139,29 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 		}
 		return statement;
 	}
-
-	protected Type getType(int dataType, String typeName, int columnSize,
-			int decimalDigits, int numPrecRadix) throws UnknownTypeException {
-		Type type;
-		switch (dataType) {
-		case Types.LONGVARBINARY:
-			if (typeName.equals("image")) {
-				type = new SimpleTypeBinary("MIME", "image");
-			} else {
-				type = new SimpleTypeBinary();
-			}
-			type.setOriginalTypeName(typeName);
-			break;
-		default:
-			type = super.getType(dataType, typeName, columnSize, decimalDigits,
-					numPrecRadix);
+	
+	
+	@Override
+	protected Set<String> getIgnoredImportedSchemas() {
+		Set<String> ignored = new HashSet<String>();
+		ignored.add("db_.*");
+		ignored.add("sys");
+		ignored.add("INFORMATION_SCHEMA");
+		return ignored;
+	}
+	
+	protected Type getLongvarbinaryType(String typeName, int columnSize,
+			int decimalDigits, int numPrecRadix) {
+		Type type; 
+		if (typeName.equals("image")) {
+			type = new SimpleTypeBinary("MIME", "image");
+		} else {
+			type = new SimpleTypeBinary();
 		}
+		type.setSql99TypeName("BINARY LARGE OBJECT");
 		return type;
 	}
-
+	
 	protected Cell convertRawToCell(String tableName, String columnName,
 			int columnIndex, int rowIndex, Type cellType, ResultSet rawData)
 			throws SQLException, InvalidDataException, ClassNotFoundException,
@@ -166,6 +171,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 		if (cellType instanceof SimpleTypeBinary) {
 			InputStream input = rawData.getBinaryStream(columnName);
 			if (input != null) {
+				logger.debug("SQL ServerbinaryStream: " + columnName);
 				FileItem fileItem = new FileItem();
 				try {
 					FileHelper.copy(input, fileItem.getOutputStream());
@@ -187,4 +193,40 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 		}
 		return cell;
 	}
+
+	@Override
+	protected String processTriggerEvent(String string) {
+		char[] charArray = string.toCharArray();
+		
+		String res = "INSTEAD OF";		
+		if (charArray[0] == '1') {
+			res = "AFTER";
+		}
+		return res;
+	}
+
+	@Override
+	protected String processActionTime(String string) {
+		char[] charArray = string.toCharArray();
+		
+		String res = "";
+		if (charArray[0] == '1') {
+			res = "INSERT";
+		} 
+		
+		if (charArray[1] == '1') {
+			if (!res.equals("")) {
+				res += " OR ";
+			}
+			res = "UPDATE";
+		}
+		
+		if (charArray[2] == '1') {
+			if (!res.equals("")) {
+				res += " OR ";
+			}
+			res = "DELETE";
+		}
+		return res;		
+	}	
 }

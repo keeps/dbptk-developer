@@ -34,22 +34,17 @@ $ java -jar db-preservation-toolkit-1.0.0-jar-with-dependencies.jar
 Synopsys: java -jar roda-common-convert-db.jar -i IMPORT_MODULE [options...] -o EXPORT_MODULE [options...]
 Available import modules:
 	SQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt
-	PostgreSQLJDBC hostName database [port] username password encrypt
+	PostgreSQLJDBC hostName [port] database username password encrypt
 	MySQLJDBC hostName [port] database username password
-	Oracle8i hostName port database username password <- untested!
-	MSAccess database.mdb
-	ODBC source [username password]
-	DBML baseDir
+	Oracle12cJDBC hostName port database username password
+	DB2JDBC hostname port database username password
+	SIARD dir
 Available export modules:
 	SQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt
-	PostgreSQLJDBC hostName database [port] username password encrypt
+	PostgreSQLJDBC hostName [port] database username password encrypt
 	MySQLJDBC hostName [port] database username password
-	PhpMyAdmin hostName [port] database username password
-	DBML baseDir
-	PostgreSQLFile sqlFile <- SQL file optimized for PostgreSQL
-	MySQLFile sqlFile <- SQL file optimized for MySQL
-	SQLServerFile sqlFile <- SQL file optimized for SQL Server
-	GenericSQLFile sqlFile <- generic SQL file
+	DB2JDBC hostname port database username password
+	SIARD dir
 ```
 
 You have to select an input and an output module, providing for each its configuration.
@@ -60,7 +55,7 @@ For example, if you want to connect to a live MySQL database and export its cont
 ```bash
 $ java -jar db-preservation-toolkit-1.0.0-jar-with-dependencies.jar \
 -i MySQLJDBC localhost example_db username p4ssw0rd \
--o DBML example_db_dbml_export
+-o SIARD example_db_siard_export
 ```
 
 ## Related publications & presentations

@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +41,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.DatabaseStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ForeignKey;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.PrimaryKey;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeArray;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeStructure;
@@ -110,7 +112,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 	}
 
 	/**
-	 * DBML import modile constructor using a base directory
+	 * DBML import module constructor using a base directory
 	 * 
 	 * @param baseDir
 	 *            the base directory, all files are inside this directory, the
@@ -122,7 +124,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 	}
 
 	/**
-	 * DBML import modile constructor using a base directory and specifying the
+	 * DBML import module constructor using a base directory and specifying the
 	 * DBML file name
 	 * 
 	 * @param baseDir
@@ -314,7 +316,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 		 * Get all the errors that occured while parsing the DBML file and
 		 * sending to the database handler
 		 * 
-		 * @return A map of errors, where the key is the erros message and the
+		 * @return A map of errors, where the key is the errors message and the
 		 *         value is the exception or null if there was no exception
 		 */
 		public Map<String, Throwable> getErrors() {
@@ -331,6 +333,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 
 		public void endDocument() {
 			try {
+				logger.debug("Finish Database");
 				handler.finishDatabase();
 			} catch (ModuleException e) {
 				errors.put("Error in document end", e);
@@ -346,10 +349,18 @@ public class DBMLImportModule implements DatabaseImportModule {
 					createStructure(attr);
 				}
 			} else if (qname.equals("structure")) {
-				// nothing to do
+				// VERIFY DBML default schema
+				// DBML is set to static schema "schema0" by default 
+				List<SchemaStructure> schemas = 
+						new ArrayList<SchemaStructure>();
+				SchemaStructure schema = new SchemaStructure();
+				schema.setName("schema0");
+				schema.setFolder("schema0");
+				schemas.add(schema);
+				structure.setSchemas(schemas);
 			} else if (qname.equals("table")) {
 				TableStructure table = createTableStructure(attr);
-				structure.getTables().add(table);
+				structure.getSchemas().get(0).getTables().add(table);
 				if (currentTableStructure != null) {
 					errors.put("table not closed: "
 							+ currentTableStructure.getId(), null);
@@ -432,6 +443,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 							+ " opened without tableData " + currentTableDataId
 							+ " being closed", null);
 					try {
+						logger.debug("handleDataCloseTable");
 						handler.handleDataCloseTable(currentTableDataId);
 					} catch (ModuleException e) {
 						errors.put("Error handling close of table "
@@ -439,12 +451,12 @@ public class DBMLImportModule implements DatabaseImportModule {
 					}
 				}
 				try {
+					logger.debug("handleDataOpenTable");
 					handler.handleDataOpenTable(tableDataId);
 					currentTableDataId = tableDataId;
 				} catch (ModuleException e) {
-					errors
-							.put("Error handling open of table " + tableDataId,
-									e);
+					errors.put(
+							"Error handling open of table " + tableDataId, e);
 				}
 
 			} else if (qname.equals("row")) {
@@ -548,7 +560,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 					handler.handleStructure(structure);
 				} catch (ModuleException e) {
 					errors.put("Error handling structure", e);
-
+					
 				} catch (UnknownTypeException e) {
 					errors.put("Error handling structure", e);
 				}
@@ -786,6 +798,8 @@ public class DBMLImportModule implements DatabaseImportModule {
 				type = new SimpleTypeBinary(
 						attr.getValue("formatRegistryName"), attr
 								.getValue("formatRegistryKey"));
+//			} else if (qname.equals("simpleTypeXML")) {
+//				type = new SimpleTypeXML();
 			} else if (qname.equals("composedTypeArray")) {
 				type = new ComposedTypeArray();
 			} else if (qname.equals("composedTypeStructure")) {
