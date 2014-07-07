@@ -352,6 +352,7 @@ public class JDBCExportModule implements DatabaseHandler {
 	}
 
 	public void handleDataOpenTable(String tableId) throws ModuleException {
+		logger.debug("Started data open");
 		if (databaseStructure != null) {			
 			TableStructure table = 
 					databaseStructure.lookupTableStructure(tableId);

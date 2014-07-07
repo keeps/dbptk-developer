@@ -153,6 +153,17 @@ public class SchemaStructure {
 		this.routines = routines;
 	}
 	
+	/**
+	 * Sets the schema name and its tables to the
+	 * <schemaName><suffix><timestamp> format
+	 *
+	 * Useful to avoid collisions (repeated schema names) while exporting
+	 * a database with schema names that may already be used by the target
+	 * database
+	 *
+	 * @param suffix
+	 * 			  the symbol/word to join schemaName and timestamp
+	 */
 	public void setNewSchemaName(String suffix) {
 		originalName = name;
 		String newSchemaName = name + suffix + System.currentTimeMillis();

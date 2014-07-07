@@ -6,8 +6,11 @@ package pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.in;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -107,6 +110,30 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 				+ port + "/" + database + "?user=" + username + "&password="
 				+ password + (encrypt ? "&ssl=true" : ""), 
 				new PostgreSQLHelper());
+	}
+	
+	public Connection getConnection() throws SQLException,
+			ClassNotFoundException {
+		if (connection == null) {
+			logger.debug("Loading JDBC Driver " + driverClassName);
+			Class.forName(driverClassName);
+			logger.debug("Getting connection");
+			connection = DriverManager.getConnection(connectionURL);
+			connection.setAutoCommit(false);
+			logger.debug("Connected");
+		}
+		return connection;
+	}
+	
+	protected ResultSet getTableRawData(String tableId) throws SQLException,
+			ClassNotFoundException, ModuleException {
+		logger.debug("query: " + sqlHelper.selectTableSQL(tableId));
+		Statement st = getStatement();
+		// st.setFetchSize(ROW_FETCH_BLOCK_SIZE);
+		st.setFetchSize(1000);
+		ResultSet set = st.executeQuery(sqlHelper.selectTableSQL(tableId));
+		// set.setFetchSize(ROW_FETCH_BLOCK_SIZE);
+		return set;
 	}
 	
 	/**

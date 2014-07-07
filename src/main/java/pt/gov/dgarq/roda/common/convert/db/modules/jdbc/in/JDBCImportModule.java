@@ -1316,12 +1316,14 @@ public class JDBCImportModule implements DatabaseImportModule {
 			handler.initDatabase();
 			// sets schemas won't be exported
 			handler.setIgnoredSchemas(getIgnoredSchemas());
-			logger.debug("getting database structure");
+			logger.info("STARTED: Getting the database structure.");
 			handler.handleStructure(getDatabaseStructure());
+			logger.info("FINISHED: Getting the database structure.");
 			// logger.debug("db struct: " + getDatabaseStructure().toString());
 			for (SchemaStructure schema: getDatabaseStructure().getSchemas()) {
 				for (TableStructure table : schema.getTables()) {
-					logger.debug("getting data of table " + table.getId());
+					logger.info("STARTED: Getting data of table: " 
+							+ table.getId());
 					ResultSet tableRawData = getTableRawData(table.getId());
 					handler.handleDataOpenTable(table.getId());
 					int nRows = 0;
@@ -1329,13 +1331,19 @@ public class JDBCImportModule implements DatabaseImportModule {
 						handler.handleDataRow(
 								convertRawToRow(tableRawData, table));
 						nRows++;
+						if (nRows % 100 == 0) {
+							logger.info(nRows + " rows processed");
+						}
 					}
+					logger.info("Total of " + nRows + " row(s) processed");
 					getDatabaseStructure().
 							lookupTableStructure(table.getId()).
 							setRows(nRows);
 					handler.handleDataCloseTable(table.getId());
+					logger.info("FINISHED: Getting data of table: " 
+							+ table.getId());
 				}				
-			}			
+			}
 			logger.debug("finishing database");
 			handler.finishDatabase();
 		} catch (SQLException e) {
