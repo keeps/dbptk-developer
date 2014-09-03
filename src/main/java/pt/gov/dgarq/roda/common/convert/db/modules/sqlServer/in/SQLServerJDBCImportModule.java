@@ -57,6 +57,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 			boolean encrypt) {
 		super("com.microsoft.sqlserver.jdbc.SQLServerDriver",
 				"jdbc:sqlserver://" + serverName + ";database=" + database
+						+ ";user=" + username + ";password=" + password
 						+ ";integratedSecurity="
 						+ (integratedSecurity ? "true" : "false") + ";encrypt="
 						+ (encrypt ? "true" : "false"));

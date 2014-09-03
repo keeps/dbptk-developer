@@ -367,6 +367,14 @@ public class JDBCImportModule implements DatabaseImportModule {
 			type = new SimpleTypeString(Integer.valueOf(columnSize),
 					Boolean.TRUE);
 			break;
+		case Types.NCHAR:
+			type = new SimpleTypeString(Integer.valueOf(columnSize),
+					Boolean.TRUE);
+			break;
+		case Types.NVARCHAR:
+			type = new SimpleTypeString(Integer.valueOf(columnSize),
+					Boolean.TRUE);
+			break;
 		case Types.ARRAY:
 			// TODO add array type convert support
 			throw new UnknownTypeException("Array type not yet supported");

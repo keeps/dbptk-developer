@@ -64,4 +64,8 @@ public class SQLServerHelper extends SQLHelper {
 		}
 		return ret;
 	}
+	
+	protected String escapeTableName(String table) {
+		return "["+table+"]";
+	}
 }
