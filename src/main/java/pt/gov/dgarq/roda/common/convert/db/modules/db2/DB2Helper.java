@@ -14,7 +14,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.SQLHelper;
 
 /**
- * @author Luis Faria
+ * @author Miguel Coutada
  * 
  */
 public class DB2Helper extends SQLHelper {
