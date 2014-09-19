@@ -5,11 +5,10 @@ target/
 .settings/
 **/.DS_Store
 
+
 src/test/
-
-
 -----------------
-src/main/resources
 lib/
+
 **/MsAccessUCanAccessImportModule.java
 
