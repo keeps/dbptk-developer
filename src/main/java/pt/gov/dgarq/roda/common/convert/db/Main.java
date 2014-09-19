@@ -18,6 +18,7 @@ import pt.gov.dgarq.roda.common.convert.db.modules.db2.out.DB2JDBCExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.lucene.out.EmbeddedSolrExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.lucene.out.JSONExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.msAccess.in.MsAccessImportModule;
+import pt.gov.dgarq.roda.common.convert.db.modules.msAccess.in.MsAccessUCanAccessImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.in.MySQLJDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.out.MySQLJDBCExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.oracle.in.Oracle12cJDBCImportModule;
