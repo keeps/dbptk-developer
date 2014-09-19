@@ -34,7 +34,7 @@ public class LuceneExportModule implements DatabaseHandler {
 	private static final Logger logger = 
 			Logger.getLogger(DatabaseStructure.class);
 
-	private static final Version LUCENE_VERSION = Version.LUCENE_48;
+	private static final Version LUCENE_VERSION = Version.LUCENE_4_10_0;
 	
 	private static final String META_PREFIX = "dbpres_meta_";
 	
@@ -47,6 +47,7 @@ public class LuceneExportModule implements DatabaseHandler {
 	private int currentRow;
 	
 	
+	@SuppressWarnings("deprecation")
 	public LuceneExportModule(String indexDir) {
 		Directory directory = null;
 		try {
@@ -118,7 +119,7 @@ public class LuceneExportModule implements DatabaseHandler {
 		doc.add(new TextField(
 				META_PREFIX + "table", tableName, Field.Store.YES));
 		String fieldId = schemaName + "." + tableName + "." + currentRow;
-		doc.add(new TextField("id", fieldId, Field.Store.YES));
+		doc.add(new TextField(META_PREFIX + "id", fieldId, Field.Store.YES));
 		
 		Iterator<ColumnStructure> columnIterator = 
 				currentTableStructure.getColumns().iterator();
@@ -126,7 +127,7 @@ public class LuceneExportModule implements DatabaseHandler {
 			ColumnStructure column = columnIterator.next();
 			String data;
 			if (cell instanceof BinaryCell) {
-				data = "BINARY HERE";
+				data = "EXPORT BINARY FILE";
 			} else {
 				data = handleCell(cell);				
 			}
@@ -137,6 +138,8 @@ public class LuceneExportModule implements DatabaseHandler {
 			
 			doc.add(new TextField(
 					META_PREFIX + "col", column.getName(), Field.Store.YES));
+			doc.add(new TextField(META_PREFIX + "col_type", 
+					column.getType().getOriginalTypeName(), Field.Store.YES));
 			doc.add(new TextField(column.getName(), data, Field.Store.YES));
 		}
 		try {
@@ -149,7 +152,7 @@ public class LuceneExportModule implements DatabaseHandler {
 
 	protected String handleCell(Cell cell) {
 		SimpleCell simpleCell = (SimpleCell) cell;
-		return simpleCell.getSimpledata();
+		return "palavra" + simpleCell.getSimpledata();
 	}
 
 	@Override

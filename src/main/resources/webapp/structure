@@ -1,0 +1,19 @@
+schemas: {
+	schema1: {
+		tables: {
+			table1: {
+				id: schema1.table1,
+				columns: [col1, col2, col3, col4]
+				columnsType: [colType1, colType2,..]
+			},
+			table2: {},
+			table3: {}
+		},
+		// others
+	},
+	schema2: {
+		tables: {},
+		// others
+	}
+}
+

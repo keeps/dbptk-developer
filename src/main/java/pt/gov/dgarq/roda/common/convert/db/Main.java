@@ -15,8 +15,9 @@ import pt.gov.dgarq.roda.common.convert.db.modules.DatabaseHandler;
 import pt.gov.dgarq.roda.common.convert.db.modules.DatabaseImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.db2.in.DB2JDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.db2.out.DB2JDBCExportModule;
+import pt.gov.dgarq.roda.common.convert.db.modules.lucene.out.EmbeddedSolrExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.lucene.out.JSONExportModule;
-import pt.gov.dgarq.roda.common.convert.db.modules.lucene.out.LuceneExportModule;
+import pt.gov.dgarq.roda.common.convert.db.modules.msAccess.in.MsAccessImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.in.MySQLJDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.out.MySQLJDBCExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.oracle.in.Oracle12cJDBCImportModule;
@@ -229,14 +230,23 @@ public class Main {
 						+ "Oracle12c import module: "
 						+ importModuleArgs.size());
 			}
-//		} else if (importModuleArgs.get(0).equals("MSAccess")) {
-//			if (importModuleArgs.size() == 2) {
-//				importModule = new MsAccessImportModule(new File(
-//						importModuleArgs.get(1)));
-//			} else {
-//				logger.error("Wrong argument number for "
-//						+ "MSAccess import module: " + importModuleArgs.size());
-//			}
+		} else if (importModuleArgs.get(0).equals("MSAccess")) {
+			if (importModuleArgs.size() == 2) {
+				importModule = new MsAccessImportModule(new File(
+						importModuleArgs.get(1)));
+			} else {
+				logger.error("Wrong argument number for "
+						+ "MSAccess import module: " + importModuleArgs.size());
+			}
+		} else if (importModuleArgs.get(0).equals("MSAccessExp")) {
+			if (importModuleArgs.size() == 2) {
+				importModule = new MsAccessUCanAccessImportModule(new File(
+						importModuleArgs.get(1)));
+			} else {
+				logger.error("Wrong argument number for "
+						+ "MSAccessExp import module: " 
+						+ importModuleArgs.size());
+			}
 //		} else if (importModuleArgs.get(0).equals("ODBC")) {
 //			if (importModuleArgs.size() == 2) {
 //				importModule = new ODBCImportModule(importModuleArgs.get(1));
@@ -424,12 +434,12 @@ public class Main {
 //						+ "GenericSQLFile export module: "
 //						+ exportModuleArgs.size());
 //			}
-		} else if (exportModuleArgs.get(0).equalsIgnoreCase("Lucene")) {
-			if (exportModuleArgs.size() == 2) {
-				exportModule = new LuceneExportModule(exportModuleArgs.get(1));
+		} else if (exportModuleArgs.get(0).equalsIgnoreCase("EmbeddedSolr")) {
+			if (exportModuleArgs.size() == 1) {
+				exportModule = new EmbeddedSolrExportModule();
 			} else {
 				logger.error("Wrong argument number for "
-						+ "Lucene export module: " + exportModuleArgs.size());
+						+ "Solr export module: " + exportModuleArgs.size());
 			}
 		} 
 		else if (exportModuleArgs.get(0).equalsIgnoreCase("JSON")) {
