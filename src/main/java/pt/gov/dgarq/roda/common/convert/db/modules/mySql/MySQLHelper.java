@@ -101,12 +101,17 @@ public class MySQLHelper extends SQLHelper {
 			SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
 			if (!dateTime.getTimeDefined() && !dateTime.getTimeZoneDefined()) {
 				ret = "date";
-			} else if (dateTime.getTimeZoneDefined()) {
-				throw new UnknownTypeException(
-						"Time zone not supported in MySQL");
-			} else if (type.getSql99TypeName().equalsIgnoreCase("TIME")) { 
+			} else if (type.getSql99TypeName().equalsIgnoreCase("TIME")) {
+				if (dateTime.getTimeZoneDefined()) {
+					logger.warn("Timezone not supported on MySQL: "
+							+ "defining type as 'time'");
+				}
 				ret = "time";
 			} else {
+				if (dateTime.getTimeZoneDefined()) {
+					logger.warn("Timezone not supported on MySQL: "
+							+ "defining type as 'datetime'");
+				}
 				ret = "datetime";
 			}
 		} else if (type instanceof SimpleTypeBinary) {

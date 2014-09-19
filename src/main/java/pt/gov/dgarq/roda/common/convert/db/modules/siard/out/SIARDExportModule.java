@@ -1,5 +1,6 @@
 package pt.gov.dgarq.roda.common.convert.db.modules.siard.out;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -23,6 +24,7 @@ import org.apache.log4j.Logger;
 import pt.gov.dgarq.roda.common.convert.db.Main;
 import pt.gov.dgarq.roda.common.convert.db.model.data.BinaryCell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
+import pt.gov.dgarq.roda.common.convert.db.model.data.FileItem;
 import pt.gov.dgarq.roda.common.convert.db.model.data.Row;
 import pt.gov.dgarq.roda.common.convert.db.model.data.SimpleCell;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.InvalidDataException;
@@ -168,10 +170,10 @@ public class SIARDExportModule implements DatabaseHandler {
 			}
 
 			for (Object[] obj : CLOBsToExport) {
-				Cell cell = (Cell) obj[0];
+				FileItem fileItem = (FileItem) obj[0];
 				int colIndex = (Integer) obj[1];
 				int cellIndex = (Integer) obj[2];
-				createCLOB(cell, colIndex, cellIndex);
+				createCLOB(fileItem, colIndex, cellIndex);
 			}
 
 		} catch (IOException e) {
@@ -992,7 +994,16 @@ public class SIARDExportModule implements DatabaseHandler {
 			BLOBsToExport.add(new Object[] { cell, cellIndex, rowIndex });
 		} else {
 			print(getLobHeader(cell, cellIndex, rowIndex, length, "txt"));
-			CLOBsToExport.add(new Object[] { cell, cellIndex, rowIndex });
+			// TODO change CLOB data type mapping to BinaryCell, so data is stored on a tmp file
+			String data = ((SimpleCell) cell).getSimpledata();
+			try {
+				FileItem fileItem = new FileItem(
+						new ByteArrayInputStream(data.getBytes()));
+				CLOBsToExport.add(new Object[] { fileItem , cellIndex, rowIndex });
+			} catch (ModuleException e) {
+				logger.error("An error ocurred while creating a tmp "
+						+ "file to store CLOB data");
+			}
 		}
 		print("/>");
 	}
@@ -1017,19 +1028,28 @@ public class SIARDExportModule implements DatabaseHandler {
 
 		zipOut.putArchiveEntry(binaryFile);
 		InputStream inputStream = ((BinaryCell) cell).getInputstream();
-		byte[] bytesToWrite = IOUtils.toByteArray(inputStream);
-		digest.update(bytesToWrite);
-		zipOut.write(bytesToWrite);
+		
+		byte[] buffer = new byte[1024];
+		int length;
+		while ((length = inputStream.read(buffer)) >= 0) {
+			zipOut.write(buffer, 0, length);
+			digest.update(buffer, 0, length);
+		}
 		zipOut.closeArchiveEntry();
 	}
 
-	private void createCLOB(Cell cell, int colIndex, int cellIndex)
+	private void createCLOB(FileItem fileItem, int colIndex, int cellIndex)
 			throws IOException, ModuleException {
 		ArchiveEntry file = new ZipArchiveEntry(getPathFile(colIndex,
 				cellIndex, "txt"));
-
+		
 		zipOut.putArchiveEntry(file);
-		print(((SimpleCell) cell).getSimpledata());
+		byte[] buffer = new byte[1024];
+		int length;
+		while ((length = fileItem.getInputStream().read(buffer)) >= 0) {
+			zipOut.write(buffer, 0, length);
+			digest.update(buffer, 0, length);
+		}
 		zipOut.closeArchiveEntry();
 	}
 

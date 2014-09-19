@@ -43,7 +43,7 @@ public class MsAccessImportModule extends ODBCImportModule {
 	 * @param msAccessFile
 	 */
 	public MsAccessImportModule(File msAccessFile) {
-		super("Driver={Microsoft Access Driver (*.mdb)};DBQ="
+		super("Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ="
 				+ msAccessFile.getAbsolutePath(), new MsAccessHelper());
 	}
 

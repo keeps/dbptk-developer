@@ -125,12 +125,21 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 		return connection;
 	}
 	
+	protected Statement getStatement() throws SQLException,
+	ClassNotFoundException {
+		if (statement == null) {
+			statement = getConnection().createStatement();
+		}
+		return statement;
+	}
+	
+	
 	protected ResultSet getTableRawData(String tableId) throws SQLException,
 			ClassNotFoundException, ModuleException {
 		logger.debug("query: " + sqlHelper.selectTableSQL(tableId));
 		Statement st = getStatement();
 		// st.setFetchSize(ROW_FETCH_BLOCK_SIZE);
-		st.setFetchSize(1000);
+		st.setFetchSize(100);
 		ResultSet set = st.executeQuery(sqlHelper.selectTableSQL(tableId));
 		// set.setFetchSize(ROW_FETCH_BLOCK_SIZE);
 		return set;
