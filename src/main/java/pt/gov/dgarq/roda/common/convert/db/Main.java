@@ -15,8 +15,6 @@ import pt.gov.dgarq.roda.common.convert.db.modules.DatabaseHandler;
 import pt.gov.dgarq.roda.common.convert.db.modules.DatabaseImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.db2.in.DB2JDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.db2.out.DB2JDBCExportModule;
-import pt.gov.dgarq.roda.common.convert.db.modules.lucene.out.JSONExportModule;
-import pt.gov.dgarq.roda.common.convert.db.modules.lucene.out.LuceneExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.in.MySQLJDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.out.MySQLJDBCExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.oracle.in.Oracle12cJDBCImportModule;
@@ -424,21 +422,6 @@ public class Main {
 //						+ "GenericSQLFile export module: "
 //						+ exportModuleArgs.size());
 //			}
-		} else if (exportModuleArgs.get(0).equalsIgnoreCase("Lucene")) {
-			if (exportModuleArgs.size() == 2) {
-				exportModule = new LuceneExportModule(exportModuleArgs.get(1));
-			} else {
-				logger.error("Wrong argument number for "
-						+ "Lucene export module: " + exportModuleArgs.size());
-			}
-		} 
-		else if (exportModuleArgs.get(0).equalsIgnoreCase("JSON")) {
-			if (exportModuleArgs.size() == 2) {
-				exportModule = new JSONExportModule(exportModuleArgs.get(1));
-			} else {
-				logger.error("Wrong argument number for " 
-						+ "JSON export module: " + exportModuleArgs.size());
-			}
 		} else {
 			logger.error("Unrecognized export module: "
 					+ exportModuleArgs.get(0));
