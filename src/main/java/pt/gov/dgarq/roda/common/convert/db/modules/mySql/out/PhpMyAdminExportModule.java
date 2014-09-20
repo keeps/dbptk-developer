@@ -35,7 +35,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 	 */
 	private static final String DEFAULT_PHPMYADMIN_DATABASE = "phpmyadmin";
 
-	private static final String DEFAULT_COLUMN_INFO_TABLE = "pma_column_info";
+	private static final String DEFAULT_COLUMN_INFO_TABLE = "pma__column_info";
 
 	private String database;
 
@@ -112,22 +112,22 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 		column_info_table = columnInfoTable;
 	}
 
-	public void initDatabase() throws ModuleException {
-		try {
-			logger.debug("Cleaning...");
-			getConnection(MYSQL_ADMIN_DATABASE).createStatement()
-					.executeUpdate("DROP DATABASE IF EXISTS " + database);
-			getConnection(phpmyadmin_database).createStatement().executeUpdate(
-					"DELETE FROM " + column_info_table + " WHERE db_name = '"
-							+ database + "'");
-			logger.debug("Creating database " + database);
-			// create database
-			getConnection(MYSQL_ADMIN_DATABASE).createStatement()
-					.executeUpdate(sqlHelper.createDatabaseSQL(database));
-		} catch (SQLException e) {
-			throw new ModuleException("Error creating database " + database, e);
-		}
-	}
+//	public void initDatabase() throws ModuleException {
+//		try {
+//			logger.debug("Cleaning...");
+//			getConnection(MYSQL_ADMIN_DATABASE).createStatement()
+//					.executeUpdate("DROP DATABASE IF EXISTS " + database);
+//			getConnection(phpmyadmin_database).createStatement().executeUpdate(
+//					"DELETE FROM " + column_info_table + " WHERE db_name = '"
+//							+ database + "'");
+//			logger.debug("Creating database " + database);
+//			// create database
+//			getConnection(MYSQL_ADMIN_DATABASE).createStatement()
+//					.executeUpdate(sqlHelper.createDatabaseSQL(database));
+//		} catch (SQLException e) {
+//			throw new ModuleException("Error creating database " + database, e);
+//		}
+//	}
 
 	public void handleStructure(DatabaseStructure structure)
 			throws ModuleException, UnknownTypeException {
@@ -170,7 +170,8 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 							}
 	
 							statements.add(getInsertIntoPhpMyAdminStatement(
-									database, table.getName(), column.getName(),
+									schema.getReplacedSchemaName(), 
+									table.getName(), column.getName(),
 									comment, mimetype, transformation,
 									transformation_options));
 	

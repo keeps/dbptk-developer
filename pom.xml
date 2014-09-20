@@ -74,6 +74,10 @@
 			<version>1.0.0</version>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.solr</groupId>
+			<artifactId>solr-core</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>pt.keep</groupId>
 			<artifactId>file-format-utility</artifactId>
 			<version>1.0.0</version>
@@ -112,7 +116,7 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.3</version>
+			<version>3.3.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.dbunit</groupId>
@@ -153,7 +157,32 @@
 			<groupId>com.ibm</groupId>
 			<artifactId>db2jcc4</artifactId>
 			<version>4.16.53</version>
-		 		</dependency>
+		 </dependency>
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-analyzers</artifactId>
+			<version>3.6.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-core</artifactId>
+			<version>4.10.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-analyzers-common</artifactId>
+			<version>4.10.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20140107</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-analyzers-icu</artifactId>
+			<version>4.10.0</version>
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
@@ -171,6 +200,11 @@
 				<groupId>mysql</groupId>
 				<artifactId>mysql-connector-java</artifactId>
 				<version>5.1.30</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.solr</groupId>
+				<artifactId>solr-core</artifactId>
+				<version>4.10.0</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

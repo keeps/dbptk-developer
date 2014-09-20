@@ -3,12 +3,8 @@ target/
 .classpath
 .project
 .settings/
+
 **/.DS_Store
-
-
 src/test/
------------------
 lib/
-
-**/MsAccessUCanAccessImportModule.java
-
+log/
