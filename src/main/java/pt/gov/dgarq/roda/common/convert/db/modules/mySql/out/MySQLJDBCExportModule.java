@@ -27,7 +27,7 @@ import pt.gov.dgarq.roda.common.convert.db.modules.mySql.MySQLHelper;
 public class MySQLJDBCExportModule extends JDBCExportModule {
 
 	protected static final String MYSQL_ADMIN_DATABASE = "mysql";
-
+	
 	private final Logger logger = Logger.getLogger(MySQLJDBCExportModule.class);
 
 	private final String hostname;
@@ -39,7 +39,7 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 	private final String password;
 
 	private final Map<String, Connection> connections;
-	
+		
 	private static final String[] IGNORED_SCHEMAS = 
 			{ "mysql", "performance_schema", "information_schema" };
 
@@ -67,7 +67,8 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 		this.username = username;
 		this.password = password;
 		this.connections = new HashMap<String, Connection>();
-		super.ignoredSchemas = 
+		this.replacedPrefix = database;
+		this.ignoredSchemas = 
 				new TreeSet<String>(Arrays.asList(IGNORED_SCHEMAS));
 	}
 
@@ -95,10 +96,21 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 		this.username = username;
 		this.password = password;
 		this.connections = new HashMap<String, Connection>();
-		super.ignoredSchemas = 
+		this.replacedPrefix = database;
+		this.ignoredSchemas = 
 				new TreeSet<String>(Arrays.asList(IGNORED_SCHEMAS));
 	}
 
+	/**
+	 * Get a connection to the default MySQL Admin Database.
+	 * 
+	 * @return the JDBC Connection
+	 * @throws ModuleException
+	 */
+	public Connection getConnection() throws ModuleException {
+		return getConnection(null);
+	}
+	
 	/**
 	 * Get a connection to a database. This connection can be used to create the
 	 * database
@@ -111,11 +123,16 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 	 */
 	public Connection getConnection(String databaseName) throws ModuleException {
 		Connection connection;
+		if (databaseName == null) {
+			databaseName = MYSQL_ADMIN_DATABASE;
+		}
+		
 		if (!connections.containsKey(databaseName)) {
 			String connectionURL = "jdbc:mysql://" + hostname
 					+ (port >= 0 ? ":" + port : "") + "/" + databaseName + "?"
 					+ "user=" + username + "&password=" + password;
 			try {
+				logger.debug("Database: " + databaseName);
 				logger.debug("Loading JDBC Driver " + driverClassName);
 				Class.forName(driverClassName);
 				logger.debug("Getting admin connection");
@@ -146,5 +163,5 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 			}
 		}
 		return existingSchemas;
-	}	
+	}
 }

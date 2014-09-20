@@ -17,6 +17,7 @@ import pt.gov.dgarq.roda.common.convert.db.modules.db2.in.DB2JDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.db2.out.DB2JDBCExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.in.MySQLJDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.out.MySQLJDBCExportModule;
+import pt.gov.dgarq.roda.common.convert.db.modules.mySql.out.PhpMyAdminExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.oracle.in.Oracle12cJDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.in.PostgreSQLJDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.out.PostgreSQLJDBCExportModule;
@@ -349,22 +350,22 @@ public class Main {
 //				logger.error("Wrong argument number for "
 //						+ "MySQLFile export module: " + exportModuleArgs.size());
 //			}
-//		} else if (exportModuleArgs.get(0).equals("PhpMyAdmin")) {
-//			if (exportModuleArgs.size() == 5) {
-//				exportModule = new PhpMyAdminExportModule(
-//						exportModuleArgs.get(1), exportModuleArgs.get(2),
-//						exportModuleArgs.get(3), exportModuleArgs.get(4));
-//			} else if (exportModuleArgs.size() == 6) {
-//				exportModule = new PhpMyAdminExportModule(
-//						exportModuleArgs.get(1), Integer.valueOf(
-//								exportModuleArgs.get(2)).intValue(),
-//						exportModuleArgs.get(3), exportModuleArgs.get(4),
-//						exportModuleArgs.get(5));
-//			} else {
-//				logger.error("Wrong argument number for "
-//						+ "PhpMyAdmin export module: "
-//						+ exportModuleArgs.size());
-//			}
+		} else if (exportModuleArgs.get(0).equals("PhpMyAdmin")) {
+			if (exportModuleArgs.size() == 5) {
+				exportModule = new PhpMyAdminExportModule(
+						exportModuleArgs.get(1), exportModuleArgs.get(2),
+						exportModuleArgs.get(3), exportModuleArgs.get(4));
+			} else if (exportModuleArgs.size() == 6) {
+				exportModule = new PhpMyAdminExportModule(
+						exportModuleArgs.get(1), Integer.valueOf(
+								exportModuleArgs.get(2)).intValue(),
+						exportModuleArgs.get(3), exportModuleArgs.get(4),
+						exportModuleArgs.get(5));
+			} else {
+				logger.error("Wrong argument number for "
+						+ "PhpMyAdmin export module: "
+						+ exportModuleArgs.size());
+			}
 		} else if (exportModuleArgs.get(0).equalsIgnoreCase("SQLServerJDBC")) {
 			if (exportModuleArgs.size() == 7) {
 				exportModule = new SQLServerJDBCExportModule(
@@ -458,8 +459,8 @@ public class Main {
 				.println("\tMySQLJDBC hostName [port] database username password");
 		System.out
 				.println("\tDB2JDBC hostname port database username password");
-//		System.out
-//		 		.println("\tPhpMyAdmin hostName [port] database username password");
+		System.out
+		 		.println("\tPhpMyAdmin hostName [port] database username password");
 //		System.out.println("\tDBML baseDir");
 //		System.out
 //				.println("\tPostgreSQLFile sqlFile <- SQL file optimized for PostgreSQL");

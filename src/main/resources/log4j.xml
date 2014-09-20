@@ -8,11 +8,21 @@
 		</layout>
 	</appender>
 
+	 <appender name="default.file" class="org.apache.log4j.FileAppender">
+        <param name="file" value="log/log.log" />
+        <param name="append" value="false" />
+        <param name="threshold" value="debug" />
+        <layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%p %d (%c{1}) %m%n" />
+		</layout>
+    </appender>
+
 	<logger name="pt.gov.dgarq.roda.common.convert.db" additivity="false">
 		<level value="INFO" />
-		<!-- <level value="DEBUG" /> -->
+		<level value="DEBUG" />
 		<!-- <level value="TRACE" /> -->
 		<appender-ref ref="STDOUT" />
+		<appender-ref ref="default.file" />
 	</logger>
 
 	<root>

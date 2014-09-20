@@ -55,10 +55,11 @@ public class JDBCExportModule implements DatabaseHandler {
 	
 	private final Logger logger = Logger.getLogger(JDBCExportModule.class);
 
+	// by default is empty. i.e no prefix will be used
+	protected static final String DEFAULT_REPLACED_PREFIX = "";
+
 	protected static int BATCH_SIZE = 100;
 	
-	protected static String REPLACED_SUFFIX = "_"; 
-
 	protected final String driverClassName;
 
 	protected final String connectionURL;
@@ -82,8 +83,8 @@ public class JDBCExportModule implements DatabaseHandler {
 	protected Set<String> existingSchemas;
 
 	protected boolean currentIsIgnoredSchema;
-	
-	protected boolean currentIsExistingSchema;
+		
+	protected String replacedPrefix;
 	
 	
 	/**
@@ -123,7 +124,7 @@ public class JDBCExportModule implements DatabaseHandler {
 		ignoredSchemas = new HashSet<String>();
 		existingSchemas = null;
 		currentIsIgnoredSchema = false;
-		currentIsExistingSchema = false;
+		replacedPrefix = DEFAULT_REPLACED_PREFIX;
 	}
 
 	/**
@@ -235,11 +236,8 @@ public class JDBCExportModule implements DatabaseHandler {
 		logger.info("Handling schema structure " + schema.getName());
 		try {	
 			boolean changedSchemaName = false;
-			if (isExistingSchema(schema.getName())) {
-				schema.setNewSchemaName(REPLACED_SUFFIX);
-				currentIsExistingSchema = true;
-				changedSchemaName = true;
-			}
+			schema.setNewSchemaName(replacedPrefix);
+			changedSchemaName = true;
 
 			getStatement().addBatch(sqlHelper.createSchemaSQL(schema));
 			getStatement().executeBatch();
@@ -250,7 +248,7 @@ public class JDBCExportModule implements DatabaseHandler {
 			}
 			
 			if (changedSchemaName) {
-				schema.setOriginalSchemaName(REPLACED_SUFFIX);
+				schema.setOriginalSchemaName();
 				logger.debug("schemaNAME AFTER: " + schema.getName());
 			}
 			logger.info("Handling schema structure " + schema.getName() 
@@ -362,13 +360,9 @@ public class JDBCExportModule implements DatabaseHandler {
 				if (!currentIsIgnoredSchema) {					
 					try {				
 						boolean changedSchemaName = false;
-						currentIsExistingSchema = 
-								isExistingSchema(table.getSchema().getName());
-						if (currentIsExistingSchema) {
-							logger.debug("will replace");
-							table.getSchema().setNewSchemaName(REPLACED_SUFFIX);
-							changedSchemaName = true;
-						}
+						logger.debug("will replace");
+						table.getSchema().setNewSchemaName(replacedPrefix);
+						changedSchemaName = true;
 						logger.info("Exporting data for " + table.getId());
 						currentRowInsertStatement = getConnection()
 								.prepareStatement(sqlHelper.createRowSQL(
@@ -377,7 +371,7 @@ public class JDBCExportModule implements DatabaseHandler {
 								createRowSQL(currentTableStructure));
 						if (changedSchemaName) {
 							table.getSchema().
-								setOriginalSchemaName(REPLACED_SUFFIX);
+								setOriginalSchemaName();
 						}
 							
 					} catch (SQLException e) {
@@ -407,7 +401,6 @@ public class JDBCExportModule implements DatabaseHandler {
 			batch_index = 0;
 			currentRowInsertStatement = null;
 			currentIsIgnoredSchema = false;
-			currentIsExistingSchema = false;
 		}
 	}
 
@@ -644,12 +637,8 @@ public class JDBCExportModule implements DatabaseHandler {
 				for (TableStructure table : schema.getTables()) {
 					
 					boolean changedSchemaName = false;
-					currentIsExistingSchema = 
-							isExistingSchema(schema.getName());
-					if (currentIsExistingSchema) {
-						table.getSchema().setNewSchemaName(REPLACED_SUFFIX);
-						changedSchemaName = true;
-					}
+					table.getSchema().setNewSchemaName(replacedPrefix);
+					changedSchemaName = true;
 					
 					for (ForeignKey fkey : table.getForeignKeys()) {
 						if (fkey.getReferencedSchema().equals(
@@ -663,7 +652,7 @@ public class JDBCExportModule implements DatabaseHandler {
 					}
 					
 					if (changedSchemaName) {
-						schema.setOriginalSchemaName(REPLACED_SUFFIX);
+						schema.setOriginalSchemaName();
 					}
 				}
 			}

@@ -155,18 +155,20 @@ public class SchemaStructure {
 	
 	/**
 	 * Sets the schema name and its tables to the
-	 * <schemaName><suffix><timestamp> format
+	 * <prefix>_<schemaName>_<timestamp> format
 	 *
 	 * Useful to avoid collisions (repeated schema names) while exporting
 	 * a database with schema names that may already be used by the target
 	 * database
 	 *
-	 * @param suffix
-	 * 			  the symbol/word to join schemaName and timestamp
+	 * @param prefix
+	 * 			  the symbol/word the prefixes the new schema name
+	 *
 	 */
-	public void setNewSchemaName(String suffix) {
+	public void setNewSchemaName(String preffix) {
 		originalName = name;
-		String newSchemaName = name + suffix + System.currentTimeMillis();
+		String newSchemaName = 
+				preffix + "_" + name + "_" + System.currentTimeMillis();
 		if (replacedName == null) {
 			replacedName = newSchemaName;
 		}
@@ -181,9 +183,8 @@ public class SchemaStructure {
 	 *  reset schema name as database structure is shared by import 
 	 *	module and its original name is needed in order to get data 
 	 *	from tables
-	 * @param suffix
 	 */
-	public void setOriginalSchemaName(String suffix) {
+	public void setOriginalSchemaName() {
 		this.setName(originalName);
 		for (TableStructure table: this.getTables()) {
 			table.setId(originalName + "." + table.getName());
@@ -192,6 +193,10 @@ public class SchemaStructure {
 	
 	public String getOriginalSchemaName() {
 		return originalName;
+	}
+	
+	public String getReplacedSchemaName() {
+		return replacedName;
 	}
 
 	/* (non-Javadoc)
