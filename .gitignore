@@ -3,9 +3,8 @@ target/
 .classpath
 .project
 .settings/
-**/.DS_Store
 
+**/.DS_Store
 src/test/
 lib/
 log/
-
