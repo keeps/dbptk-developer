@@ -112,7 +112,11 @@ public class SIARDExportModule implements DatabaseHandler {
 	public void initDatabase() throws ModuleException {
 		// nothing to do
 	}
-
+	
+	/**
+	 * SIARDExportModule lets all available schemas to be export as SIARD export
+	 * creates a new file with no previously existing schemas
+	 */
 	@Override
 	public void setIgnoredSchemas(Set<String> ignoredSchemas) {
 		// nothing to do

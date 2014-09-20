@@ -8,6 +8,7 @@ import org.apache.log4j.Logger;
 
 import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.out.JDBCExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.PostgreSQLHelper;
@@ -87,13 +88,17 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 				+ password + (encrypt ? "&ssl=true" : ""),
 				new PostgreSQLHelper());
 	}
-
+	
 	public void handleDataCloseTable(String tableId) throws ModuleException {
 		try {
+			TableStructure table = 
+					databaseStructure.lookupTableStructure(tableId);
+			table.getSchema().setNewSchemaName(replacedPrefix);			
 			logger.debug("table ID: " + currentTableStructure.getId());
 			getStatement().executeUpdate(
 					((PostgreSQLHelper) getSqlHelper()).grantPermissionsSQL(
 							currentTableStructure.getId()));
+			table.getSchema().setOriginalSchemaName();
 		} catch (SQLException e) {
 			throw new ModuleException(
 					"Error granting permissions to public", e);

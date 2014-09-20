@@ -187,10 +187,10 @@ public class SIARDImportModule implements DatabaseImportModule {
 	        
 	        validator.validate(metadataSource);
 	    } catch (IOException e) {
-	        logger.debug("Exception: " + e.getMessage());
+	        logger.error("Exception: " + e.getMessage());
 		    return false;
 		} catch (SAXException e) {
-	        logger.debug("Exception: " + e.getMessage());
+	        logger.error("Exception: " + e.getMessage());
 	        return false;
         }
 	    return true;
@@ -296,7 +296,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 		}
 		
 		public void endDocument() throws SAXException {
-			logger.debug(dbStructure.toString());
+//			logger.debug(dbStructure.toString());
 			try {
 				handler.handleStructure(dbStructure);
 			} catch (ModuleException e) {

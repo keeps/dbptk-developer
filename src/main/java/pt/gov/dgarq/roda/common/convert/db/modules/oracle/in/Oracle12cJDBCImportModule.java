@@ -82,8 +82,8 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
 	}
 	
 	@Override
-	protected Type getOtherType(int dataType, String typeName, int columnSize)
-			throws UnknownTypeException {
+	protected Type getOtherType(int dataType, String typeName, int columnSize, 
+			int decimalDigits, int numPrecRadix) throws UnknownTypeException {
 		Type type;
 		// TODO define charset
 		if (typeName.equalsIgnoreCase("NCHAR")) {
@@ -107,14 +107,16 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
 					Integer.valueOf(columnSize), Boolean.TRUE);
 			type.setSql99TypeName("CHARACTER VARYING");
 		} else {		
-			type = super.getOtherType(dataType, typeName, columnSize);
+			type = super.getOtherType(dataType, typeName, columnSize, 
+					decimalDigits, numPrecRadix);
 		}
 		return type; 
 	}
 
 	@Override
 	protected Type getSpecificType(int dataType, String typeName, 
-			int columnSize) throws UnknownTypeException {
+			int columnSize, int decimalDigits, int numPrecRadix) 
+					throws UnknownTypeException {
 		Type type;
 		switch (dataType) {
 		case OracleTypes.BINARY_DOUBLE:
@@ -140,7 +142,8 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
 			type.setSql99TypeName("TIMESTAMP");
 			break;
 		default:
-			type = super.getSpecificType(dataType, typeName, columnSize);
+			type = super.getSpecificType(dataType, typeName, columnSize, 
+					decimalDigits, numPrecRadix);
 			break;
 		}
 		return type;

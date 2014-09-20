@@ -155,7 +155,7 @@ public class SchemaStructure {
 	
 	/**
 	 * Sets the schema name and its tables to the
-	 * <prefix>_<schemaName>_<timestamp> format
+	 * <prefix>_<schemaName> format
 	 *
 	 * Useful to avoid collisions (repeated schema names) while exporting
 	 * a database with schema names that may already be used by the target
@@ -167,8 +167,10 @@ public class SchemaStructure {
 	 */
 	public void setNewSchemaName(String preffix) {
 		originalName = name;
-		String newSchemaName = 
-				preffix + "_" + name + "_" + System.currentTimeMillis();
+		if (!preffix.equals("")) {
+			preffix += "_";
+		}
+		String newSchemaName = preffix + name; // + "_" + System.currentTimeMillis();
 		if (replacedName == null) {
 			replacedName = newSchemaName;
 		}

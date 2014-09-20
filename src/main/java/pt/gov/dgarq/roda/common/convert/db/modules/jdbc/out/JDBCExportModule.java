@@ -44,6 +44,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumeri
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumericExact;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeString;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.UnsupportedDataType;
 import pt.gov.dgarq.roda.common.convert.db.modules.DatabaseHandler;
 import pt.gov.dgarq.roda.common.convert.db.modules.SQLHelper;
 
@@ -358,7 +359,10 @@ public class JDBCExportModule implements DatabaseHandler {
 			if (currentTableStructure != null) {
 				currentIsIgnoredSchema = isIgnoredSchema(table.getSchema());
 				if (!currentIsIgnoredSchema) {					
-					try {				
+					try {		
+						// TODO clean up boolean changedSchemaName 
+						// vs.
+						// update to allow or not the schema name changing
 						boolean changedSchemaName = false;
 						logger.debug("will replace");
 						table.getSchema().setNewSchemaName(replacedPrefix);
@@ -370,8 +374,7 @@ public class JDBCExportModule implements DatabaseHandler {
 						logger.debug("sql: " + sqlHelper.
 								createRowSQL(currentTableStructure));
 						if (changedSchemaName) {
-							table.getSchema().
-								setOriginalSchemaName();
+							table.getSchema().setOriginalSchemaName();
 						}
 							
 					} catch (SQLException e) {
@@ -479,7 +482,9 @@ public class JDBCExportModule implements DatabaseHandler {
 							data, ps, index, cell, type);
 				} else if (type instanceof SimpleTypeBoolean) {
 					handleSimpleTypeBooleanDataCell(
-							data, ps, index, cell, type);					 
+							data, ps, index, cell, type);
+				} else if (type instanceof UnsupportedDataType) {
+					handleSimpleTypeStringDataCell(data, ps, index, cell, type);
 				} else {
 					throw new InvalidDataException(
 							type.getClass().getSimpleName() 

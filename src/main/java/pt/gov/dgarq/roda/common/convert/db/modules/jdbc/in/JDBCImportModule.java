@@ -58,6 +58,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumeri
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumericExact;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeString;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.UnsupportedDataType;
 import pt.gov.dgarq.roda.common.convert.db.modules.DatabaseHandler;
 import pt.gov.dgarq.roda.common.convert.db.modules.DatabaseImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.SQLHelper;
@@ -72,6 +73,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 	protected static final int ROW_FETCH_BLOCK_SIZE = 0;
 
 	protected static final String DEFAULT_DATA_TIMESPAN = "(...)";
+	
+	protected static final boolean IGNORE_UNSUPPORTED_DATA_TYPES = true;
 	
 	private final Logger logger = Logger.getLogger(JDBCImportModule.class);
 
@@ -255,6 +258,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 	}
 
 	/**
+	 * Get schemas that won't be imported
+	 * 
 	 * Accepts schemas names in as regular expressions
 	 * I.e. SYS.* will ignore SYSCAT, SYSFUN, etc
 	 *  
@@ -564,7 +569,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 				nillable = Boolean.FALSE;
 			}
 			
-			// logger.debug("(" + tableName + ") " + "col name: " + columnName);
+			logger.debug("(" + tableName + ") " + "colName: " + columnName 
+					+ "; dataType: " + dataType + "; typeName: " + typeName);
 			Type columnType = getType(dataType, typeName, columnSize,
 					decimalDigits, numPrecRadix);
 
@@ -720,12 +726,14 @@ public class JDBCImportModule implements DatabaseImportModule {
 		
 		case Types.OTHER:
 			logger.debug("OTHER");
-			type = getOtherType(dataType, typeName, columnSize);
+			type = getOtherType(dataType, typeName, columnSize, decimalDigits, 
+					numPrecRadix);
 			break;
 			
 		default:
 			// tries to get specific DBMS data types
-			type = getSpecificType(dataType, typeName, columnSize);
+			type = getSpecificType(dataType, typeName, columnSize, 
+					decimalDigits, numPrecRadix);
 			break;
 		}
 		type.setOriginalTypeName(typeName);
@@ -807,13 +815,17 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 * @param dataType
 	 * @param typeName
 	 * @param columnSize
-	 * @return
+	 * @param numPrecRadix 
+	 * @param decimalDigits
+	 *  
+	 * @return the inferred data type
 	 * @throws UnknownTypeException
 	 */
-	protected Type getOtherType(int dataType, String typeName, int columnSize)
-			throws UnknownTypeException {
-		throw new UnknownTypeException("Unsuported JDBC type, code: "
-				+ dataType);
+	protected Type getOtherType(int dataType, String typeName, int columnSize, 
+			int decimalDigits, int numPrecRadix)
+					throws UnknownTypeException {
+		return getUnsupportedDataType(dataType, typeName, columnSize, 
+				decimalDigits, numPrecRadix);
 	}
 	
 	/**
@@ -823,13 +835,41 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 * @param dataType
 	 * @param typeName
 	 * @param columnSize
-	 * @return
+	 * @param numPrecRadix 
+	 * @param decimalDigits
+	 *  
+	 * @return the inferred data type
 	 * @throws UnknownTypeException
 	 */
 	protected Type getSpecificType(int dataType, String typeName, 
-			int columnSize) throws UnknownTypeException {
-		throw new UnknownTypeException("Unsuported JDBC type, code: "
-				+ dataType);
+			int columnSize, int decimalDigits, int numPrecRadix) 
+					throws UnknownTypeException {
+		return getUnsupportedDataType(dataType, typeName, columnSize, 
+				decimalDigits, numPrecRadix);
+	}
+	
+	/**
+	 * Gets the UnsupportedDataType. 
+	 * This data type is a placeholder for unsupported data types
+	 * 
+	 * @param dataType
+	 * @param typeName
+	 * @param columnSize
+	 * @param decimalDigits
+	 * @param numPrecRadix
+	 * @return
+	 * @throws UnknownTypeException
+	 */
+	protected Type getUnsupportedDataType(int dataType, String typeName, 
+			int columnSize, int decimalDigits, int numPrecRadix) 
+					throws UnknownTypeException {
+		if (IGNORE_UNSUPPORTED_DATA_TYPES) {
+			return new UnsupportedDataType(dataType, typeName, columnSize, 
+					decimalDigits, numPrecRadix);
+		} else {
+			throw new UnknownTypeException("Unsupported JDBC type, code: "
+					+ dataType);
+		}		
 	}
 
 	/**
@@ -1211,6 +1251,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 					id, columnName, cellType, rawData);
 		} else if (cellType instanceof SimpleTypeBinary) {
 			cell = rawToCellSimpleTypeBinary(id, columnName, cellType, rawData);
+		} else if (cellType instanceof UnsupportedDataType) {
+			cell = new SimpleCell(id, "UNSUPPORTED DATA TYPE");
 		} else {
 			cell = new SimpleCell(id, rawData.getString(columnName));
 		}
@@ -1300,11 +1342,14 @@ public class JDBCImportModule implements DatabaseImportModule {
 	}
 	
 	/**
-	 * Gets the schemas that won't be exported
+	 * Gets the schemas that won't be exported.
+	 * 
+	 * Accepts schemas names in as regular expressions
+	 * I.e. SYS.* will ignore SYSCAT, SYSFUN, etc
 	 * 
 	 * @return the schemas to be ignored at export
 	 */
-	protected Set<String> getIgnoredSchemas() {
+	protected Set<String> getIgnoredExportedSchemas() {
 		// no ignored schemas.
 		return new HashSet<String>();
 	}
@@ -1315,7 +1360,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			logger.debug("initializing database");
 			handler.initDatabase();
 			// sets schemas won't be exported
-			handler.setIgnoredSchemas(getIgnoredSchemas());
+			handler.setIgnoredSchemas(getIgnoredExportedSchemas());
 			logger.info("STARTED: Getting the database structure.");
 			handler.handleStructure(getDatabaseStructure());
 			logger.info("FINISHED: Getting the database structure.");

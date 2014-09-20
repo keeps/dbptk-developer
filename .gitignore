@@ -6,5 +6,5 @@ target/
 
 **/.DS_Store
 src/test/
-lib/
+
 log/

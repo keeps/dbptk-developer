@@ -28,7 +28,10 @@ public interface DatabaseHandler {
 	/**
 	 * Set ignored schemas. Ignored schemas won't be exported.
 	 * This method should be called before handleStructure. 
-	 * However, if not called it will be assumed there is not ignored schemas.
+	 * However, if not called it will be assumed there are not ignored schemas.
+	 * 
+	 * @param ignoredSchemas
+	 * 			  the set of schemas to ignored
 	 */
 	public void setIgnoredSchemas(Set<String> ignoredSchemas);
 	
