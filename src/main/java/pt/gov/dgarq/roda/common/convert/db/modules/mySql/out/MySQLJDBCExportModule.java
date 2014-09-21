@@ -217,8 +217,6 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 									+ "MySQL schemas are treated as databases");
 							logger.warn("Foreign Key not added: " + fkeySQL);
 						}
-						getStatement().executeBatch();
-						getStatement().clearBatch();
 					}
 					
 					if (changedSchemaName) {
@@ -227,8 +225,8 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 				}
 			}
 			logger.debug("Getting fkeys finished");
-//			getStatement().executeBatch();
-//			getStatement().clearBatch();
+			getStatement().executeBatch();
+			getStatement().clearBatch();
 		} catch (SQLException e) {
 			SQLException ei = e;
 			do {
