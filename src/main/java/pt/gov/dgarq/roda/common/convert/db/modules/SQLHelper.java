@@ -467,4 +467,12 @@ public class SQLHelper {
 	public String getRolesSQL() {
 		return null;
 	}
+	
+	/**
+	 * 
+	 * @return the SQL to get all databases
+	 */
+	public String getDatabases() {
+		return null;
+	}
 }

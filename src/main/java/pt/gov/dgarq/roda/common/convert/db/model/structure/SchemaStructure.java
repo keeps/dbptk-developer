@@ -84,6 +84,7 @@ public class SchemaStructure {
 	 * @param folder the folder to set
 	 */
 	public void setFolder(String folder) {
+		folder = folder.replaceAll("\\s+","-");
 		this.folder = folder;
 	}
 	

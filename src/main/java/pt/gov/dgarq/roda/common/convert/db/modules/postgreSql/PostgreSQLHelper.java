@@ -97,7 +97,6 @@ public class PostgreSQLHelper extends SQLHelper {
 		}
 		return ret;
 	}
-
 	
 	public String getCheckConstraintsSQL(String schemaName, String tableName) {
 		return "SELECT tc.constraint_name AS CHECK_NAME "
@@ -130,5 +129,9 @@ public class PostgreSQLHelper extends SQLHelper {
 	
 	public String getRolesSQL() {
 		return "SELECT rolname AS ROLE_NAME FROM pg_roles";
+	}
+	
+	public String getDatabases() {
+		return "SELECT datname FROM pg_database WHERE datistemplate = false;";
 	}
 }

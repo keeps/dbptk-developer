@@ -3,6 +3,7 @@
  */
 package pt.gov.dgarq.roda.common.convert.db.modules.mySql.out;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -37,12 +38,11 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 
 	private static final String DEFAULT_COLUMN_INFO_TABLE = "pma__column_info";
 
-	private String database;
-
 	private String phpmyadmin_database;
 
 	private String column_info_table;
-
+	
+	
 	/**
 	 * PhpMyAdmin export module constructor
 	 * 
@@ -58,7 +58,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 	public PhpMyAdminExportModule(String hostname, String database,
 			String username, String password) {
 		super(hostname, database, username, password);
-		this.database = database;
+		
 		phpmyadmin_database = DEFAULT_PHPMYADMIN_DATABASE;
 		column_info_table = DEFAULT_COLUMN_INFO_TABLE;
 	}
@@ -80,7 +80,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 	public PhpMyAdminExportModule(String hostname, int port, String database,
 			String username, String password) {
 		super(hostname, port, database, username, password);
-		this.database = database;
+		
 		phpmyadmin_database = DEFAULT_PHPMYADMIN_DATABASE;
 		column_info_table = DEFAULT_COLUMN_INFO_TABLE;
 	}
@@ -107,28 +107,50 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 			String username, String password, String phpMyAdminDatabase,
 			String columnInfoTable) {
 		super(hostname, port, database, username, password);
-		this.database = database;
+		
 		phpmyadmin_database = phpMyAdminDatabase;
 		column_info_table = columnInfoTable;
 	}
 
-//	public void initDatabase() throws ModuleException {
-//		try {
-//			logger.debug("Cleaning...");
-//			getConnection(MYSQL_ADMIN_DATABASE).createStatement()
-//					.executeUpdate("DROP DATABASE IF EXISTS " + database);
-//			getConnection(phpmyadmin_database).createStatement().executeUpdate(
-//					"DELETE FROM " + column_info_table + " WHERE db_name = '"
-//							+ database + "'");
-//			logger.debug("Creating database " + database);
-//			// create database
-//			getConnection(MYSQL_ADMIN_DATABASE).createStatement()
-//					.executeUpdate(sqlHelper.createDatabaseSQL(database));
-//		} catch (SQLException e) {
-//			throw new ModuleException("Error creating database " + database, e);
-//		}
-//	}
-
+	public void initDatabase() throws ModuleException {
+		try {
+			logger.debug("Cleaning...");
+			getConnection(MYSQL_CONNECTION_DATABASE, 
+					createConnectionURL(MYSQL_CONNECTION_DATABASE))
+					.createStatement()
+					.executeUpdate("DROP DATABASE IF EXISTS " + database);
+			getConnection(phpmyadmin_database, 
+					createConnectionURL(phpmyadmin_database)).createStatement()
+					.executeUpdate(
+					"DELETE FROM " + column_info_table + " WHERE db_name = '"
+							+ database + "'");
+			logger.debug("Creating database " + database);
+			// create database
+			getConnection(MYSQL_CONNECTION_DATABASE, 
+					createConnectionURL(MYSQL_CONNECTION_DATABASE))
+					.createStatement()
+					.executeUpdate(sqlHelper.createDatabaseSQL(database));
+		} catch (SQLException e) {
+			throw new ModuleException("Error creating database " + database, e);
+		}
+	}
+	
+	public Connection getConnection(String databaseName) 
+			throws ModuleException {
+		Connection connection = null;
+		if (!connections.containsKey(databaseName)) {
+			try {
+				super.getConnection(databaseName, 
+						createConnectionURL(databaseName));
+			} catch (ModuleException e) {
+				throw new ModuleException("Error getting connection", e);
+			}
+		} else {
+			connection = connections.get(databaseName);
+		}
+		return connection;
+	}
+	
 	public void handleStructure(DatabaseStructure structure)
 			throws ModuleException, UnknownTypeException {
 		super.handleStructure(structure);
@@ -136,7 +158,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 			logger.debug("Exporting columns info into PhpMyAdmin"
 					+ " extended features database");
 			try {
-				Statement st = getConnection(phpmyadmin_database)
+				Statement st = getConnection(phpmyadmin_database, connectionURL)
 						.createStatement();
 				List<PreparedStatement> statements = new ArrayList<PreparedStatement>();
 
@@ -237,7 +259,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 	}
 
 	/**
-	 * Check is a database exists
+	 * Check if a database exists
 	 * 
 	 * @param dbName
 	 *            the name of the database
@@ -247,7 +269,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 	public boolean databaseExists() throws ModuleException {
 		boolean ret;
 		try {
-			ResultSet result = getConnection(MYSQL_ADMIN_DATABASE)
+			ResultSet result = getConnection(MYSQL_CONNECTION_DATABASE)
 					.createStatement().executeQuery(
 							"SHOW DATABASES LIKE '" + database + "'");
 			ret = result.next();
@@ -269,7 +291,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 	public boolean userExists(String username) throws ModuleException {
 		boolean ret;
 		try {
-			ResultSet result = getConnection(MYSQL_ADMIN_DATABASE)
+			ResultSet result = getConnection(MYSQL_CONNECTION_DATABASE)
 					.createStatement().executeQuery(
 							"SELECT User FROM mysql.user WHERE User =  '"
 									+ username + "'");
@@ -298,7 +320,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 	protected void setUserPermissions(String username, String host,
 			String password, String database) throws ModuleException {
 		try {
-			Statement st = getConnection(MYSQL_ADMIN_DATABASE)
+			Statement st = getConnection(MYSQL_CONNECTION_DATABASE)
 					.createStatement();
 			if (userExists(username)) {
 				st.addBatch("GRANT SELECT, SHOW VIEW ON " + database

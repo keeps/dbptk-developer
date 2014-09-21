@@ -32,23 +32,28 @@ public class MySQLHelper extends SQLHelper {
 	
 	private String endQuote = "`";
 	
+	@Override
 	public String getName() {
 		return name;
 	}
 	
+	@Override
 	public String getStartQuote() {
 		return startQuote;
 	}
 
+	@Override
 	public String getEndQuote() {
 		return endQuote;
 	}
 
+	@Override
 	public String createTableSQL(TableStructure table)
 			throws UnknownTypeException, ModuleException {
 		return super.createTableSQL(table) + " ENGINE=INNODB";
 	}
 
+	@Override
 	protected String createColumnSQL(ColumnStructure column,
 			boolean isPrimaryKey, boolean isForeignKey)
 			throws UnknownTypeException {
@@ -57,6 +62,7 @@ public class MySQLHelper extends SQLHelper {
 						+ escapeComment(column.getDescription()) + "'" : "");
 	}
 
+	@Override
 	protected String createTypeSQL(Type type, boolean isPkey, boolean isFkey)
 			throws UnknownTypeException {
 		String ret;
@@ -142,10 +148,12 @@ public class MySQLHelper extends SQLHelper {
 	}
 	
 	// MySQL does not support check constraints (returns an empty SQL query)
+	@Override
 	public String getCheckConstraintsSQL(String schemaName, String tableName) {
 		return "";
 	}
 	
+	@Override
 	public String getTriggersSQL(String schemaName, String tableName) {
 		return "SELECT "
 				+ "trigger_name AS TRIGGER_NAME, "
@@ -157,11 +165,17 @@ public class MySQLHelper extends SQLHelper {
 				+ "AND event_object_table='" + tableName + "'";
 	}
 	
+	@Override
 	public String getUsersSQL(String dbName) {
 		return "SELECT * FROM `mysql`.`user`";
 	}
 	
 	protected String escapeComment(String description) {
 		return description.replaceAll("'", "''");
+	}
+	
+	@Override
+	public String getDatabases() {
+		return "SHOW DATABASES;";
 	}
 }

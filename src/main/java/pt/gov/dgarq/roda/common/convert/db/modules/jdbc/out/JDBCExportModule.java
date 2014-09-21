@@ -16,9 +16,11 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -58,6 +60,8 @@ public class JDBCExportModule implements DatabaseHandler {
 
 	// by default is empty. i.e no prefix will be used
 	protected static final String DEFAULT_REPLACED_PREFIX = "";
+	
+	protected static final boolean CAN_DROP_DATABASE_DEFAULT = false;
 
 	protected static int BATCH_SIZE = 100;
 	
@@ -65,7 +69,10 @@ public class JDBCExportModule implements DatabaseHandler {
 
 	protected final String connectionURL;
 
+	protected final Map<String, Connection> connections;
+	
 	protected Connection connection;
+	
 
 	protected Statement statement;
 
@@ -116,6 +123,7 @@ public class JDBCExportModule implements DatabaseHandler {
 		this.driverClassName = driverClassName;
 		this.connectionURL = connectionURL;
 		this.sqlHelper = sqlHelper;
+		this.connections = new HashMap<String, Connection>();
 		connection = null;
 		statement = null;
 		databaseStructure = null;
@@ -127,7 +135,8 @@ public class JDBCExportModule implements DatabaseHandler {
 		currentIsIgnoredSchema = false;
 		replacedPrefix = DEFAULT_REPLACED_PREFIX;
 	}
-
+	
+	
 	/**
 	 * Connect to the server using the properties defined in the constructor, or
 	 * return the existing connection
@@ -157,7 +166,73 @@ public class JDBCExportModule implements DatabaseHandler {
 		}
 		return connection;
 	}
+	
+	/**
+	 * Get a connection to a database. This connection can be used to create the
+	 * database
+	 * 
+	 * @param databaseName
+	 *            the name of the database to connect
+	 * 
+	 * @return the JDBC connection
+	 * @throws ModuleException
+	 */
+	public Connection getConnection(String databaseName, String connectionURL) 
+			throws ModuleException {
+		Connection connection;		
+		try {
+			logger.debug("Database: " + databaseName);
+			logger.debug("Loading JDBC Driver " + driverClassName);
+			Class.forName(driverClassName);
+			logger.debug("Getting admin connection");
+			connection = DriverManager.getConnection(connectionURL);
+			connection.setAutoCommit(true);
+			logger.debug("Connected");
+			connections.put(databaseName, connection);
+		} catch (ClassNotFoundException e) {
+			throw new ModuleException(
+					"JDBC driver class could not be found", e);
+		} catch (SQLException e) {
+			throw new ModuleException("SQL error creating connection", e);
+		}
 
+		return connection;
+	}
+	
+	
+	/**
+	 * Check if a database exists
+	 * 
+	 * @param defaultConnectionDb
+	 * 			  an existing dbml database to establish the connection
+	 * @param database
+	 * 			  the name of the database to check
+	 * @param connectionURL
+	 * 			  the connection URL needed by getConnection
+	 * 
+	 * @return
+	 * 			  true if exists, false otherwise
+	 * @throws ModuleException
+	 */
+	public boolean databaseExists(String defaultConnectionDb, String database, 
+			String connectionURL) throws ModuleException {
+		boolean found = false;
+		try {
+			ResultSet result = 
+					getConnection(defaultConnectionDb, connectionURL)
+					.createStatement().executeQuery(sqlHelper.getDatabases());
+			while (result.next() && !found) {
+				if (result.getString(1).equalsIgnoreCase(database)) {
+					found = true;
+				}
+			}
+		} catch (SQLException e) {
+			throw new ModuleException("Error checking if database " + database
+					+ " exists", e);
+		}
+		return found;
+	}
+	
 	protected Statement getStatement() throws ModuleException {
 		if (statement == null && getConnection() != null) {
 			try {
