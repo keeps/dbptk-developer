@@ -138,10 +138,8 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 			ClassNotFoundException, ModuleException {
 		logger.debug("query: " + sqlHelper.selectTableSQL(tableId));
 		Statement st = getStatement();
-		// st.setFetchSize(ROW_FETCH_BLOCK_SIZE);
 		st.setFetchSize(100);
 		ResultSet set = st.executeQuery(sqlHelper.selectTableSQL(tableId));
-		// set.setFetchSize(ROW_FETCH_BLOCK_SIZE);
 		return set;
 	}
 	
@@ -149,7 +147,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 	 * Gets the schemas that won't be exported. 
 	 * Defaults to PostgreSQL are information_schema and all pg_XXX
 	 */
-	public Set<String> getIgnoredSchemas() {
+	public Set<String> getIgnoredExportedSchemas() {
 		Set<String> ignoredSchemas = new HashSet<String>();
 		ignoredSchemas.add("information_schema");
 		ignoredSchemas.add("pg_.*");
@@ -221,7 +219,8 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 
 	@Override
 	protected Type getSpecificType(int dataType, String typeName, 
-			int columnSize) throws UnknownTypeException {
+			int columnSize, int decimalDigits, int numPrecRadix) 
+					throws UnknownTypeException {
 		Type type;
 		logger.debug("Specific type name: " + typeName);
 		logger.debug("------\n");
@@ -232,7 +231,8 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 			type.setSql99TypeName("CHARACTER LARGE OBJECT");
 			break;
 		default:
-			type = super.getSpecificType(dataType, typeName, columnSize);
+			type = super.getSpecificType(dataType, typeName, columnSize, 
+					decimalDigits, numPrecRadix);
 			break;
 		}
 		return type;

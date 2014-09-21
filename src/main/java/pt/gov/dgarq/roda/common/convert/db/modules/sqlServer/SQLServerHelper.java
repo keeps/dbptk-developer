@@ -163,4 +163,10 @@ public class SQLServerHelper extends SQLHelper {
 	public String getRolesSQL() {
 		return "SELECT name AS ROLE_NAME FROM sysusers WHERE issqlrole = 1";
 	}
+	
+	@Override
+	public String getDatabases(String database) {
+		// TODO test
+		return "EXEC sp_databases;";
+	}
 }

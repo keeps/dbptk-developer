@@ -11,6 +11,7 @@ import java.util.List;
  * 
  */
 public class TableStructure {
+	
 	private String id;
 
 	private String name;
@@ -167,6 +168,7 @@ public class TableStructure {
 	 * @param folder the folder to set
 	 */
 	public void setFolder(String folder) {
+		folder = folder.replaceAll(" ","-");
 		this.folder = folder;
 	}
 

@@ -13,6 +13,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumeri
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumericExact;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeString;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.type.UnsupportedDataType;
 
 /**
  * 
@@ -46,6 +47,8 @@ public class SIARDExportHelper {
 			ret = exportSimpleTypeDateTime(type);
 		} else if (type instanceof SimpleTypeBinary) {
 			ret = exportSimpleTypeBinary(type);
+		} else if (type instanceof UnsupportedDataType) {
+			ret = exportUnsupportedDataType(type);
 		} else if (type instanceof ComposedTypeArray) {
 			throw new ModuleException("Not yet supported type: ARRAY");
 		} else if (type instanceof ComposedTypeStructure) {
@@ -56,6 +59,10 @@ public class SIARDExportHelper {
 		return ret;
 	}
 	
+	protected String exportUnsupportedDataType(Type type) {
+		return "CHARACTER VARYING(40)";
+	}
+
 	protected String exportSimpleTypeString(Type type) {
 		String ret = null;
 		SimpleTypeString stringType = (SimpleTypeString) type;

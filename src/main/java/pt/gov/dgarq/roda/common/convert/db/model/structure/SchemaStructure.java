@@ -84,6 +84,7 @@ public class SchemaStructure {
 	 * @param folder the folder to set
 	 */
 	public void setFolder(String folder) {
+		folder = folder.replaceAll("\\s+","-");
 		this.folder = folder;
 	}
 	
@@ -155,7 +156,7 @@ public class SchemaStructure {
 	
 	/**
 	 * Sets the schema name and its tables to the
-	 * <prefix>_<schemaName>_<timestamp> format
+	 * <prefix>_<schemaName> format
 	 *
 	 * Useful to avoid collisions (repeated schema names) while exporting
 	 * a database with schema names that may already be used by the target
@@ -165,10 +166,12 @@ public class SchemaStructure {
 	 * 			  the symbol/word the prefixes the new schema name
 	 *
 	 */
-	public void setNewSchemaName(String preffix) {
+	public void setNewSchemaName(String prefix) {
 		originalName = name;
-		String newSchemaName = 
-				preffix + "_" + name + "_" + System.currentTimeMillis();
+		if (!prefix.equals("")) {
+			prefix += "_";
+		}
+		String newSchemaName = prefix + name; // + "_" + System.currentTimeMillis();
 		if (replacedName == null) {
 			replacedName = newSchemaName;
 		}

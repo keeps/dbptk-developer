@@ -88,8 +88,8 @@ public class DB2JDBCImportModule extends JDBCImportModule {
 	}
 	
 	@Override
-	protected Type getOtherType(int dataType, String typeName, int columnSize)
-			throws UnknownTypeException {
+	protected Type getOtherType(int dataType, String typeName, int columnSize, 
+			int decimalDigits, int numPrecRadix) throws UnknownTypeException {
 		Type type;
 		if (typeName.equalsIgnoreCase("XML")) {
 			type = new SimpleTypeString(31457280, Boolean.TRUE);
@@ -99,14 +99,16 @@ public class DB2JDBCImportModule extends JDBCImportModule {
 					Integer.valueOf(columnSize));
 			type.setSql99TypeName("DOUBLE");
 		} else {		
-			type = super.getOtherType(dataType, typeName, columnSize);
+			type = super.getOtherType(dataType, typeName, columnSize, 
+					decimalDigits, numPrecRadix);
 		}
 		return type; 
 	}
 	
 	@Override
 	protected Type getSpecificType(int dataType, String typeName, 
-			int columnSize) throws UnknownTypeException {
+			int columnSize, int decimalDigits, int numPrecRadix) 
+					throws UnknownTypeException {
 		Type type;
 		switch (dataType) {
 //		case 2001:
@@ -114,7 +116,8 @@ public class DB2JDBCImportModule extends JDBCImportModule {
 //					Integer.valueOf(columnSize));
 //			break;
 		default:
-			type = super.getSpecificType(dataType, typeName, columnSize);
+			type = super.getSpecificType(dataType, typeName, columnSize, 
+					decimalDigits, numPrecRadix);
 			break;
 		}
 		return type;

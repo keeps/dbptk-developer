@@ -9,6 +9,7 @@ import org.springframework.util.StringUtils;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.ForeignKey;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBinary;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBoolean;
@@ -32,23 +33,28 @@ public class MySQLHelper extends SQLHelper {
 	
 	private String endQuote = "`";
 	
+	@Override
 	public String getName() {
 		return name;
 	}
 	
+	@Override
 	public String getStartQuote() {
 		return startQuote;
 	}
 
+	@Override
 	public String getEndQuote() {
 		return endQuote;
 	}
 
+	@Override
 	public String createTableSQL(TableStructure table)
 			throws UnknownTypeException, ModuleException {
 		return super.createTableSQL(table) + " ENGINE=INNODB";
 	}
 
+	@Override
 	protected String createColumnSQL(ColumnStructure column,
 			boolean isPrimaryKey, boolean isForeignKey)
 			throws UnknownTypeException {
@@ -57,6 +63,7 @@ public class MySQLHelper extends SQLHelper {
 						+ escapeComment(column.getDescription()) + "'" : "");
 	}
 
+	@Override
 	protected String createTypeSQL(Type type, boolean isPkey, boolean isFkey)
 			throws UnknownTypeException {
 		String ret;
@@ -141,11 +148,51 @@ public class MySQLHelper extends SQLHelper {
 		return ret;
 	}
 	
+	@Override
+	public String createForeignKeySQL(TableStructure table, ForeignKey fkey, 
+			boolean addConstraint) throws ModuleException {
+		
+		String foreignRefs = "";
+		for (int i = 0; i < fkey.getReferences().size(); i++) {
+			if (i > 0) {
+				foreignRefs += ", ";
+			}
+			foreignRefs += escapeColumnName(
+					fkey.getReferences().get(i).getColumn());
+			fkey.getReferences().get(i).getColumn();
+		}
+		
+		String foreignReferenced = "";
+		for (int i = 0; i < fkey.getReferences().size(); i++) {
+			if (i > 0) {
+				foreignReferenced += ", ";
+			}
+			foreignReferenced += escapeColumnName(
+					fkey.getReferences().get(i).getReferenced());
+			fkey.getReferences().get(i).getReferenced();
+		}
+		
+		String constraint = "";
+		if (addConstraint) {
+			constraint = "ADD CONSTRAINT `dbpres_" 
+					+ System.currentTimeMillis() + "`";
+		}
+		String ret =  "ALTER TABLE " + escapeTableId(table.getId())
+				+ (addConstraint ? constraint : "ADD")
+				+ " FOREIGN KEY (" + foreignRefs + ") REFERENCES " 
+				+ escapeTableName(fkey.getReferencedSchema()) + "." 
+				+ escapeTableName(fkey.getReferencedTable()) 
+				+ " (" + foreignReferenced + ")";
+		return ret;
+	}
+	
 	// MySQL does not support check constraints (returns an empty SQL query)
+	@Override
 	public String getCheckConstraintsSQL(String schemaName, String tableName) {
 		return "";
 	}
 	
+	@Override
 	public String getTriggersSQL(String schemaName, String tableName) {
 		return "SELECT "
 				+ "trigger_name AS TRIGGER_NAME, "
@@ -157,11 +204,22 @@ public class MySQLHelper extends SQLHelper {
 				+ "AND event_object_table='" + tableName + "'";
 	}
 	
+	@Override
 	public String getUsersSQL(String dbName) {
 		return "SELECT * FROM `mysql`.`user`";
 	}
 	
 	protected String escapeComment(String description) {
 		return description.replaceAll("'", "''");
+	}
+	
+	@Override
+	public String getDatabases(String database) {
+		return "SHOW DATABASES LIKE '" + database + "%';";
+	}
+	
+	@Override
+	public String dropDatabase(String database) {
+		return "DROP DATABASE IF EXISTS " + database;
 	}
 }

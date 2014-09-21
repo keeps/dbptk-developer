@@ -52,4 +52,9 @@ public class OracleHelper extends SQLHelper {
 		return "SELECT role AS ROLE_NAME FROM session_roles";
 	}
 	
+	@Override
+	public String getDatabases(String database) {
+		return null;
+	}
+	
 }
