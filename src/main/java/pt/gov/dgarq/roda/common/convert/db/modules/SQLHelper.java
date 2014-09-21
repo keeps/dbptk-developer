@@ -309,6 +309,25 @@ public class SQLHelper {
 				ret += ")";
 			return ret;
 	}
+	
+	/**
+	 * SQL to create a foreign key (relation), altering the already created
+	 * table
+	 * 
+	 * @param tableName
+	 *            the name of the table
+	 * @param fkey
+	 *            the foreign key
+	 * @param addConstraint
+	 * 			  if an extra constraint info is need at creation of fkey
+	 * @return the SQL
+	 * @throws ModuleException 
+	 */
+	public String createForeignKeySQL(TableStructure table, ForeignKey fkey, 
+			boolean addConstraint) throws ModuleException {
+		throw new ModuleException("The specific SQLHelper "
+				+ "must implement this method");
+	}
 
 	/**
 	 * Interface of handlers that will transform a cell in SQL
@@ -470,9 +489,22 @@ public class SQLHelper {
 	
 	/**
 	 * 
+	 * @param database
+	 * 			  the database name required for some DBMSs
+	 * 
 	 * @return the SQL to get all databases
 	 */
-	public String getDatabases() {
+	public String getDatabases(String database) {
+		return null;
+	}
+
+	/**
+	 * 
+	 * @param database
+	 * 			  the database name 
+	 * @return the SQL to drop the database
+	 */
+	public String dropDatabase(String database) {
 		return null;
 	}
 }

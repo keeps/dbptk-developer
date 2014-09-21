@@ -24,10 +24,12 @@ public class PostgreSQLHelper extends SQLHelper {
 	
 	private String endQuote = "\"";
 	
+	@Override
 	public String getStartQuote() {
 		return startQuote;
 	}
 
+	@Override
 	public String getEndQuote() {
 		return endQuote;
 	}
@@ -48,6 +50,7 @@ public class PostgreSQLHelper extends SQLHelper {
 				+ escapeTableName(table) + " TO PUBLIC";
 	}
 
+	@Override
 	protected String createTypeSQL(Type type, boolean isPkey, boolean isFkey)
 			throws UnknownTypeException {
 		String ret;
@@ -98,6 +101,7 @@ public class PostgreSQLHelper extends SQLHelper {
 		return ret;
 	}
 	
+	@Override
 	public String getCheckConstraintsSQL(String schemaName, String tableName) {
 		return "SELECT tc.constraint_name AS CHECK_NAME "
 				+ "FROM information_schema.table_constraints tc "
@@ -113,6 +117,7 @@ public class PostgreSQLHelper extends SQLHelper {
 				+ "AND n.nspname='" + schemaName + "'"; 
 	}
 	
+	@Override
 	public String getTriggersSQL(String schemaName, String tableName) {
 		return "SELECT "
 				+ "trigger_name AS TRIGGER_NAME, action_timing AS ACTION_TIME, "
@@ -123,15 +128,23 @@ public class PostgreSQLHelper extends SQLHelper {
 				+ "' AND event_object_table='" + tableName + "'";
 	}
 	
+	@Override
 	public String getUsersSQL(String dbName) {
 		return "SELECT usename AS USER_NAME FROM pg_catalog.pg_user";
 	}
 	
+	@Override
 	public String getRolesSQL() {
 		return "SELECT rolname AS ROLE_NAME FROM pg_roles";
 	}
 	
-	public String getDatabases() {
+	@Override
+	public String getDatabases(String database) {
 		return "SELECT datname FROM pg_database WHERE datistemplate = false;";
+	}
+
+	@Override
+	public String dropDatabase(String database) {
+		return "DROP DATABASE IF EXISTS " + database;
 	}
 }

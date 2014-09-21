@@ -57,8 +57,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 	
 	private final boolean encrypt;
 	
-	private boolean canDropDatabase;
-		
+	
 	/**
 	 * Create a new PostgreSQL JDBC export module
 	 * 
@@ -83,7 +82,6 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 		this.username = username;
 		this.password = password;
 		this.encrypt = encrypt;
-		this.canDropDatabase = CAN_DROP_DATABASE_DEFAULT;
 	}
 
 	/**
@@ -113,7 +111,6 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 		this.username = username;
 		this.password = password;
 		this.encrypt = encrypt;
-		this.canDropDatabase = CAN_DROP_DATABASE_DEFAULT;
 	}
 	
 	public static String createConnectionURL(String hostname, int port, 
@@ -134,9 +131,9 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 		
 		if (canDropDatabase) {
 			try {
-				getConnection(POSTGRES_CONNECTION_DATABASE, connectionURL).
-						createStatement().executeUpdate(
-								"DROP DATABASE IF EXISTS " + database);
+				getConnection(POSTGRES_CONNECTION_DATABASE, connectionURL)
+						.createStatement().executeUpdate(sqlHelper
+								.dropDatabase(database));
 			} catch (SQLException e) {
 				throw new ModuleException(
 						"Error droping database " + database, e);

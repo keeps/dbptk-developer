@@ -53,7 +53,7 @@ public class OracleHelper extends SQLHelper {
 	}
 	
 	@Override
-	public String getDatabases() {
+	public String getDatabases(String database) {
 		return null;
 	}
 	

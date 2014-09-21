@@ -61,7 +61,9 @@ public class JDBCExportModule implements DatabaseHandler {
 	// by default is empty. i.e no prefix will be used
 	protected static final String DEFAULT_REPLACED_PREFIX = "";
 	
-	protected static final boolean CAN_DROP_DATABASE_DEFAULT = false;
+	protected static final boolean DEFAULT_MAY_CHANGE_SCHEMA_NAME = false;
+	
+	protected static final boolean DEFAULT_CAN_DROP_DATABASE = false;
 
 	protected static int BATCH_SIZE = 100;
 	
@@ -71,8 +73,11 @@ public class JDBCExportModule implements DatabaseHandler {
 
 	protected final Map<String, Connection> connections;
 	
-	protected Connection connection;
+	protected final boolean canDropDatabase;
 	
+	protected boolean mayChangeSchemaName;
+
+	protected Connection connection;
 
 	protected Statement statement;
 
@@ -93,6 +98,8 @@ public class JDBCExportModule implements DatabaseHandler {
 	protected boolean currentIsIgnoredSchema;
 		
 	protected String replacedPrefix;
+	
+	
 	
 	
 	/**
@@ -124,6 +131,7 @@ public class JDBCExportModule implements DatabaseHandler {
 		this.connectionURL = connectionURL;
 		this.sqlHelper = sqlHelper;
 		this.connections = new HashMap<String, Connection>();
+		this.canDropDatabase = DEFAULT_CAN_DROP_DATABASE;
 		connection = null;
 		statement = null;
 		databaseStructure = null;
@@ -134,6 +142,7 @@ public class JDBCExportModule implements DatabaseHandler {
 		existingSchemas = null;
 		currentIsIgnoredSchema = false;
 		replacedPrefix = DEFAULT_REPLACED_PREFIX;
+		mayChangeSchemaName = DEFAULT_MAY_CHANGE_SCHEMA_NAME;
 	}
 	
 	
@@ -179,7 +188,7 @@ public class JDBCExportModule implements DatabaseHandler {
 	 */
 	public Connection getConnection(String databaseName, String connectionURL) 
 			throws ModuleException {
-		Connection connection;		
+		Connection connection;	
 		try {
 			logger.debug("Database: " + databaseName);
 			logger.debug("Loading JDBC Driver " + driverClassName);
@@ -220,7 +229,8 @@ public class JDBCExportModule implements DatabaseHandler {
 		try {
 			ResultSet result = 
 					getConnection(defaultConnectionDb, connectionURL)
-					.createStatement().executeQuery(sqlHelper.getDatabases());
+					.createStatement().executeQuery(
+							sqlHelper.getDatabases(database));
 			while (result.next() && !found) {
 				if (result.getString(1).equalsIgnoreCase(database)) {
 					found = true;
@@ -312,8 +322,10 @@ public class JDBCExportModule implements DatabaseHandler {
 		logger.info("Handling schema structure " + schema.getName());
 		try {	
 			boolean changedSchemaName = false;
-			schema.setNewSchemaName(replacedPrefix);
-			changedSchemaName = true;
+			if (mayChangeSchemaName) {
+				schema.setNewSchemaName(replacedPrefix);
+				changedSchemaName = true;
+			}
 
 			getStatement().addBatch(sqlHelper.createSchemaSQL(schema));
 			getStatement().executeBatch();
@@ -435,13 +447,12 @@ public class JDBCExportModule implements DatabaseHandler {
 				currentIsIgnoredSchema = isIgnoredSchema(table.getSchema());
 				if (!currentIsIgnoredSchema) {					
 					try {		
-						// TODO clean up boolean changedSchemaName 
-						// vs.
-						// update to allow or not the schema name changing
 						boolean changedSchemaName = false;
-						logger.debug("will replace");
-						table.getSchema().setNewSchemaName(replacedPrefix);
-						changedSchemaName = true;
+						if (mayChangeSchemaName) {
+							logger.debug("will replace");
+							table.getSchema().setNewSchemaName(replacedPrefix);
+							changedSchemaName = true;
+						}
 						logger.info("Exporting data for " + table.getId());
 						currentRowInsertStatement = getConnection()
 								.prepareStatement(sqlHelper.createRowSQL(
@@ -717,8 +728,10 @@ public class JDBCExportModule implements DatabaseHandler {
 				for (TableStructure table : schema.getTables()) {
 					
 					boolean changedSchemaName = false;
-					table.getSchema().setNewSchemaName(replacedPrefix);
-					changedSchemaName = true;
+					if (mayChangeSchemaName) {
+						table.getSchema().setNewSchemaName(replacedPrefix);
+						changedSchemaName = true;
+					}
 					
 					for (ForeignKey fkey : table.getForeignKeys()) {
 						if (fkey.getReferencedSchema().equals(

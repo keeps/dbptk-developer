@@ -165,7 +165,7 @@ public class SQLServerHelper extends SQLHelper {
 	}
 	
 	@Override
-	public String getDatabases() {
+	public String getDatabases(String database) {
 		// TODO test
 		return "EXEC sp_databases;";
 	}

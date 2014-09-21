@@ -9,6 +9,7 @@ import org.springframework.util.StringUtils;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.ForeignKey;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBinary;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBoolean;
@@ -147,6 +148,44 @@ public class MySQLHelper extends SQLHelper {
 		return ret;
 	}
 	
+	@Override
+	public String createForeignKeySQL(TableStructure table, ForeignKey fkey, 
+			boolean addConstraint) throws ModuleException {
+		
+		String foreignRefs = "";
+		for (int i = 0; i < fkey.getReferences().size(); i++) {
+			if (i > 0) {
+				foreignRefs += ", ";
+			}
+			foreignRefs += escapeColumnName(
+					fkey.getReferences().get(i).getColumn());
+			fkey.getReferences().get(i).getColumn();
+		}
+		
+		String foreignReferenced = "";
+		for (int i = 0; i < fkey.getReferences().size(); i++) {
+			if (i > 0) {
+				foreignReferenced += ", ";
+			}
+			foreignReferenced += escapeColumnName(
+					fkey.getReferences().get(i).getReferenced());
+			fkey.getReferences().get(i).getReferenced();
+		}
+		
+		String constraint = "";
+		if (addConstraint) {
+			constraint = "ADD CONSTRAINT `dbpres_" 
+					+ System.currentTimeMillis() + "`";
+		}
+		String ret =  "ALTER TABLE " + escapeTableId(table.getId())
+				+ (addConstraint ? constraint : "ADD")
+				+ " FOREIGN KEY (" + foreignRefs + ") REFERENCES " 
+				+ escapeTableName(fkey.getReferencedSchema()) + "." 
+				+ escapeTableName(fkey.getReferencedTable()) 
+				+ " (" + foreignReferenced + ")";
+		return ret;
+	}
+	
 	// MySQL does not support check constraints (returns an empty SQL query)
 	@Override
 	public String getCheckConstraintsSQL(String schemaName, String tableName) {
@@ -175,7 +214,12 @@ public class MySQLHelper extends SQLHelper {
 	}
 	
 	@Override
-	public String getDatabases() {
-		return "SHOW DATABASES;";
+	public String getDatabases(String database) {
+		return "SHOW DATABASES LIKE '" + database + "%';";
+	}
+	
+	@Override
+	public String dropDatabase(String database) {
+		return "DROP DATABASE IF EXISTS " + database;
 	}
 }
