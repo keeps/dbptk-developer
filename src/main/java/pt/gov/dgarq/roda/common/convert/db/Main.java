@@ -16,6 +16,7 @@ import pt.gov.dgarq.roda.common.convert.db.modules.DatabaseImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.db2.in.DB2JDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.db2.out.DB2JDBCExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.msAccess.in.MsAccessImportModule;
+import pt.gov.dgarq.roda.common.convert.db.modules.msAccess.in.MsAccessUCanAccessImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.in.MySQLJDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.out.MySQLJDBCExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.out.PhpMyAdminExportModule;
@@ -237,7 +238,16 @@ public class Main {
 				logger.error("Wrong argument number for "
 						+ "MSAccess import module: " + importModuleArgs.size());
 			}
-//		} else if (importModuleArgs.get(0).equals("ODBC")) {
+		} else if (importModuleArgs.get(0).equals("MSAccessExp")) {
+			if (importModuleArgs.size() == 2) {
+				importModule = new MsAccessUCanAccessImportModule(new File(
+						importModuleArgs.get(1)));
+			} else {
+				logger.error("Wrong argument number for "
+						+ "MSAccessExp import module: "
+						+ importModuleArgs.size());
+			}
+			//		} else if (importModuleArgs.get(0).equals("ODBC")) {
 //			if (importModuleArgs.size() == 2) {
 //				importModule = new ODBCImportModule(importModuleArgs.get(1));
 //			} else if (importModuleArgs.size() == 4) {
