@@ -569,8 +569,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 				nillable = Boolean.FALSE;
 			}
 			
-			logger.debug("(" + tableName + ") " + "colName: " + columnName 
-					+ "; dataType: " + dataType + "; typeName: " + typeName);
+//			logger.debug("(" + tableName + ") " + "colName: " + columnName 
+//					+ "; dataType: " + dataType + "; typeName: " + typeName);
 			Type columnType = getType(dataType, typeName, columnSize,
 					decimalDigits, numPrecRadix);
 

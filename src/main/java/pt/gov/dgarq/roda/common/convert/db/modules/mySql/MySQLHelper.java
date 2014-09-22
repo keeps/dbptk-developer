@@ -147,10 +147,24 @@ public class MySQLHelper extends SQLHelper {
 		}
 		return ret;
 	}
-	
-	@Override
+
+	/**
+	 * SQL to create a foreign key (relation), altering the already created
+	 * table
+	 * 
+	 * @param tableName
+	 *            the name of the table
+	 * @param fkey
+	 *            the foreign key
+	 * @param addConstraint
+	 * 			  if an extra constraint info is need at creation of fkey
+	 * @param plus
+	 * 			  a plus factor that makes a foreign key name unique 
+	 * @return the SQL
+	 * @throws ModuleException 
+	 */
 	public String createForeignKeySQL(TableStructure table, ForeignKey fkey, 
-			boolean addConstraint) throws ModuleException {
+			boolean addConstraint, int plus) throws ModuleException {
 		
 		String foreignRefs = "";
 		for (int i = 0; i < fkey.getReferences().size(); i++) {
@@ -174,11 +188,11 @@ public class MySQLHelper extends SQLHelper {
 		
 		String constraint = "";
 		if (addConstraint) {
-			constraint = "ADD CONSTRAINT `dbpres_" 
-					+ System.currentTimeMillis() + "`";
+			constraint = " ADD CONSTRAINT `dbpres_" 
+					+ System.currentTimeMillis() + plus + "`";
 		}
 		String ret =  "ALTER TABLE " + escapeTableId(table.getId())
-				+ (addConstraint ? constraint : "ADD")
+				+ (addConstraint ? constraint : " ADD")
 				+ " FOREIGN KEY (" + foreignRefs + ") REFERENCES " 
 				+ escapeTableName(fkey.getReferencedSchema()) + "." 
 				+ escapeTableName(fkey.getReferencedTable()) 
@@ -215,7 +229,7 @@ public class MySQLHelper extends SQLHelper {
 	
 	@Override
 	public String getDatabases(String database) {
-		return "SHOW DATABASES LIKE '" + database + "%';";
+		return "SHOW DATABASES LIKE '" + database + "\\_%';";
 	}
 	
 	@Override

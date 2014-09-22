@@ -34,6 +34,18 @@ public class PostgreSQLHelper extends SQLHelper {
 		return endQuote;
 	}
 
+	@Override
+	public String escapeSchemaName(String schema) {
+		schema = schema.toLowerCase();
+		return getStartQuote() + schema + getEndQuote();
+	}
+	
+	@Override
+	public String escapeTableName(String table) {
+		table = table.toLowerCase();
+		return getStartQuote() + table + getEndQuote();
+	}
+
 	/**
 	 * Grant table read permissions to table schema
 	 * 
