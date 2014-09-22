@@ -311,25 +311,6 @@ public class SQLHelper {
 	}
 	
 	/**
-	 * SQL to create a foreign key (relation), altering the already created
-	 * table
-	 * 
-	 * @param tableName
-	 *            the name of the table
-	 * @param fkey
-	 *            the foreign key
-	 * @param addConstraint
-	 * 			  if an extra constraint info is need at creation of fkey
-	 * @return the SQL
-	 * @throws ModuleException 
-	 */
-	public String createForeignKeySQL(TableStructure table, ForeignKey fkey, 
-			boolean addConstraint) throws ModuleException {
-		throw new ModuleException("The specific SQLHelper "
-				+ "must implement this method");
-	}
-
-	/**
 	 * Interface of handlers that will transform a cell in SQL
 	 * 
 	 */

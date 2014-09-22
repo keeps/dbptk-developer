@@ -61,6 +61,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 		
 		phpmyadmin_database = DEFAULT_PHPMYADMIN_DATABASE;
 		column_info_table = DEFAULT_COLUMN_INFO_TABLE;
+		schemaSuffix = "";
 	}
 
 	/**
@@ -83,6 +84,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 		
 		phpmyadmin_database = DEFAULT_PHPMYADMIN_DATABASE;
 		column_info_table = DEFAULT_COLUMN_INFO_TABLE;
+		schemaSuffix = "";
 	}
 
 	/**
@@ -110,26 +112,18 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 		
 		phpmyadmin_database = phpMyAdminDatabase;
 		column_info_table = columnInfoTable;
+		schemaSuffix = "";
 	}
 
 	public void initDatabase() throws ModuleException {
 		try {
 			logger.debug("Cleaning...");
-			getConnection(MYSQL_CONNECTION_DATABASE, 
-					createConnectionURL(MYSQL_CONNECTION_DATABASE))
-					.createStatement()
-					.executeUpdate("DROP DATABASE IF EXISTS " + database);
+			super.initDatabase();
 			getConnection(phpmyadmin_database, 
 					createConnectionURL(phpmyadmin_database)).createStatement()
 					.executeUpdate(
-					"DELETE FROM " + column_info_table + " WHERE db_name = '"
-							+ database + "'");
-			logger.debug("Creating database " + database);
-			// create database
-			getConnection(MYSQL_CONNECTION_DATABASE, 
-					createConnectionURL(MYSQL_CONNECTION_DATABASE))
-					.createStatement()
-					.executeUpdate(sqlHelper.createDatabaseSQL(database));
+					"DELETE FROM " + column_info_table + " WHERE db_name LIKE '"
+							+ database + "\\_%'");
 		} catch (SQLException e) {
 			throw new ModuleException("Error creating database " + database, e);
 		}
@@ -158,7 +152,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 			logger.debug("Exporting columns info into PhpMyAdmin"
 					+ " extended features database");
 			try {
-				Statement st = getConnection(phpmyadmin_database, connectionURL)
+				Statement st = getConnection(phpmyadmin_database)
 						.createStatement();
 				List<PreparedStatement> statements = new ArrayList<PreparedStatement>();
 
@@ -238,7 +232,8 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 			String mimetype, String transformation,
 			String transformation_options) throws SQLException, ModuleException {
 
-		PreparedStatement ps = getConnection()
+//		PreparedStatement ps = getConnection()
+		PreparedStatement ps = getConnection(phpmyadmin_database)
 				.prepareStatement(
 						"INSERT INTO "
 								+ phpmyadmin_database

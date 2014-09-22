@@ -3,12 +3,13 @@ package pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.out;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Arrays;
+import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
 import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
-import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.out.JDBCExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.PostgreSQLHelper;
@@ -30,9 +31,8 @@ import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.PostgreSQLHelper;
  * file.</li>
  * <li>The client authentication setup in the pg_hba.conf file may need to be
  * configured, adding a line like
- * <code>host all all 127.0.0.1 255.0.0.0 trust</code>. The JDBC driver
- * supports the trust, ident, password, md5, and crypt authentication methods.
- * </li>
+ * <code>host all all 127.0.0.1 255.0.0.0 trust</code>. The JDBC driver supports
+ * the trust, ident, password, md5, and crypt authentication methods.</li>
  * </ol>
  * 
  * @author Luis Faria
@@ -40,24 +40,25 @@ import pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.PostgreSQLHelper;
  */
 public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 
-	private final Logger logger = 
-			Logger.getLogger(PostgreSQLJDBCExportModule.class);
-	
+	private final Logger logger = Logger
+			.getLogger(PostgreSQLJDBCExportModule.class);
+
 	private static final String POSTGRES_CONNECTION_DATABASE = "postgres";
-	
+
 	private final String hostname;
-	
+
 	private final int port;
-		
+
 	private final String database;
-	
+
 	private final String username;
-	
+
 	private final String password;
-	
+
 	private final boolean encrypt;
-	
-	
+
+	private static final String[] IGNORED_SCHEMAS = {};
+
 	/**
 	 * Create a new PostgreSQL JDBC export module
 	 * 
@@ -74,7 +75,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 	 */
 	public PostgreSQLJDBCExportModule(String hostname, String database,
 			String username, String password, boolean encrypt) {
-		super("org.postgresql.Driver", createConnectionURL(hostname, -1, 
+		super("org.postgresql.Driver", createConnectionURL(hostname, -1,
 				database, username, password, encrypt), new PostgreSQLHelper());
 		this.hostname = hostname;
 		this.port = -1;
@@ -82,6 +83,8 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 		this.username = username;
 		this.password = password;
 		this.encrypt = encrypt;
+		this.ignoredSchemas = new TreeSet<String>(
+				Arrays.asList(IGNORED_SCHEMAS));
 	}
 
 	/**
@@ -103,7 +106,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 	 */
 	public PostgreSQLJDBCExportModule(String hostname, int port,
 			String database, String username, String password, boolean encrypt) {
-		super("org.postgresql.Driver", createConnectionURL(hostname, port, 
+		super("org.postgresql.Driver", createConnectionURL(hostname, port,
 				database, username, password, encrypt), new PostgreSQLHelper());
 		this.hostname = hostname;
 		this.port = port;
@@ -111,75 +114,85 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 		this.username = username;
 		this.password = password;
 		this.encrypt = encrypt;
+		this.ignoredSchemas = new TreeSet<String>(
+				Arrays.asList(IGNORED_SCHEMAS));
 	}
-	
-	public static String createConnectionURL(String hostname, int port, 
+
+	public static String createConnectionURL(String hostname, int port,
 			String database, String username, String password, boolean encrypt) {
-		return "jdbc:postgresql://" + hostname + (port >= 0 ? ":" + port : "") 
-				+ "/" + database + "?user=" + username + "&password=" + password
-				+ (encrypt ? "&ssl=true" : "");
+		return "jdbc:postgresql://" + hostname + (port >= 0 ? ":" + port : "")
+				+ "/" + database + "?user=" + username + "&password="
+				+ password + (encrypt ? "&ssl=true" : "");
 	}
-	
+
 	public String createConnectionURL(String databaseName) {
-		return createConnectionURL(hostname, port, databaseName, 
-				username, password, encrypt);
+		return createConnectionURL(hostname, port, databaseName, username,
+				password, encrypt);
 	}
-	
+
 	public void initDatabase() throws ModuleException {
-		String connectionURL = 
-				createConnectionURL(POSTGRES_CONNECTION_DATABASE);
-		
+		String connectionURL = createConnectionURL(POSTGRES_CONNECTION_DATABASE);
+
 		if (canDropDatabase) {
 			try {
 				getConnection(POSTGRES_CONNECTION_DATABASE, connectionURL)
-						.createStatement().executeUpdate(sqlHelper
-								.dropDatabase(database));
+						.createStatement().executeUpdate(
+								sqlHelper.dropDatabase(database));
 			} catch (SQLException e) {
-				throw new ModuleException(
-						"Error droping database " + database, e);
+				throw new ModuleException("Error droping database " + database,
+						e);
 			}
-			
+
 		} else {
 			logger.debug("here");
-			if (databaseExists(POSTGRES_CONNECTION_DATABASE, database, 
+			if (databaseExists(POSTGRES_CONNECTION_DATABASE, database,
 					connectionURL)) {
-				throw new ModuleException("Cannot create database " + database 
-						+ ". Please choose another name or delete the database "
-						+ "'" + database + "'.");
+				throw new ModuleException(
+						"Cannot create database "
+								+ database
+								+ ". Please choose another name or delete the database "
+								+ "'" + database + "'.");
 			}
 		}
-		
+
 		try {
 			logger.debug("Creating database " + database);
-			getConnection(POSTGRES_CONNECTION_DATABASE, connectionURL).
-					createStatement().executeUpdate(
+			getConnection(POSTGRES_CONNECTION_DATABASE, connectionURL)
+					.createStatement().executeUpdate(
 							sqlHelper.createDatabaseSQL(database));
-			
+
 		} catch (SQLException e) {
 			throw new ModuleException("Error creating database " + database, e);
 		}
 	}
-	
+
 	public void handleDataCloseTable(String tableId) throws ModuleException {
 		try {
-			TableStructure table = 
-					databaseStructure.lookupTableStructure(tableId);
-			table.getSchema().setNewSchemaName(replacedPrefix);			
-			logger.debug("table ID: " + currentTableStructure.getId());
-			getStatement().executeUpdate(
-					((PostgreSQLHelper) getSqlHelper()).grantPermissionsSQL(
-							currentTableStructure.getId()));
-			table.getSchema().setOriginalSchemaName();
+			if (!currentIsIgnoredSchema) {
+				boolean changedSchemaName = false;
+				if (mayChangeSchemaName) {
+					currentTableStructure.getSchema().setNewSchemaName(
+							createNewSchemaName(currentTableStructure
+									.getSchema().getName(), schemaPrefix,
+									schemaSuffix, schemaJoinSymbol));
+				}
+				getStatement().executeUpdate(
+						((PostgreSQLHelper) getSqlHelper())
+								.grantPermissionsSQL(currentTableStructure
+										.getId()));
+				if (changedSchemaName) {
+					currentTableStructure.getSchema().setOriginalSchemaName();
+				}
+			}
 		} catch (SQLException e) {
-			throw new ModuleException(
-					"Error granting permissions to public", e);
+			throw new ModuleException("Error granting permissions to public", e);
 		}
 		super.handleDataCloseTable(tableId);
 	}
-	
+
 	protected void handleSimpleTypeNumericApproximateDataCell(String data,
-			PreparedStatement ps, int index, Cell cell, Type type) 
-					throws NumberFormatException, SQLException {
+			PreparedStatement ps, int index, Cell cell, Type type)
+			throws NumberFormatException, SQLException {
 		if (data != null) {
 			logger.debug("set approx: " + data);
 			if (type.getSql99TypeName().equalsIgnoreCase("FLOAT")) {
@@ -189,6 +202,6 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 			}
 		} else {
 			ps.setNull(index, Types.FLOAT);
-		}		
+		}
 	}
 }

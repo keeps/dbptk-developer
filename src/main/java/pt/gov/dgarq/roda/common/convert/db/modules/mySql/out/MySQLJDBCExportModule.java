@@ -27,21 +27,21 @@ import pt.gov.dgarq.roda.common.convert.db.modules.mySql.MySQLHelper;
 public class MySQLJDBCExportModule extends JDBCExportModule {
 
 	protected static final String MYSQL_CONNECTION_DATABASE = "mysql";
-	
+
 	private final Logger logger = Logger.getLogger(MySQLJDBCExportModule.class);
 
 	protected final String hostname;
-	
+
 	protected final String database;
-	
+
 	protected final int port;
 
 	protected final String username;
 
 	protected final String password;
-	
-	private static final String[] IGNORED_SCHEMAS = 
-			{ "mysql", "performance_schema", "information_schema" };
+
+	private static final String[] IGNORED_SCHEMAS = { "mysql",
+			"performance_schema", "information_schema" };
 
 	/**
 	 * MySQL JDBC export module constructor
@@ -57,16 +57,17 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 	 */
 	public MySQLJDBCExportModule(String hostname, String database,
 			String username, String password) {
-		super("com.mysql.jdbc.Driver", createConnectionURL(hostname, -1, 
+		super("com.mysql.jdbc.Driver", createConnectionURL(hostname, -1,
 				database, username, password), new MySQLHelper());
 		this.hostname = hostname;
 		this.port = -1;
 		this.database = database;
 		this.username = username;
 		this.password = password;
-		this.replacedPrefix = database;
-		this.ignoredSchemas = 
-				new TreeSet<String>(Arrays.asList(IGNORED_SCHEMAS));
+		this.schemaPrefix = database;
+		this.schemaSuffix = "";
+		this.ignoredSchemas = new TreeSet<String>(
+				Arrays.asList(IGNORED_SCHEMAS));
 		this.mayChangeSchemaName = true;
 	}
 
@@ -86,45 +87,42 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 	 */
 	public MySQLJDBCExportModule(String hostname, int port, String database,
 			String username, String password) {
-		super("com.mysql.jdbc.Driver", createConnectionURL(hostname, port, 
+		super("com.mysql.jdbc.Driver", createConnectionURL(hostname, port,
 				database, username, password), new MySQLHelper());
 		this.hostname = hostname;
 		this.port = port;
 		this.database = database;
 		this.username = username;
 		this.password = password;
-		this.replacedPrefix = database;
-		this.ignoredSchemas = 
-				new TreeSet<String>(Arrays.asList(IGNORED_SCHEMAS));
+		this.schemaPrefix = database;
+		this.schemaSuffix = "";
+		this.ignoredSchemas = new TreeSet<String>(
+				Arrays.asList(IGNORED_SCHEMAS));
 		this.mayChangeSchemaName = true;
 	}
-	
+
 	/**
-	 * Checks if database exists.
-	 * It checks if the name prefix of MySQL databases (schemas actually) 
-	 * already exists as the database name is used to prefix the schemas 
-	 * of a given database. 
+	 * Checks if database exists. It checks if the name prefix of MySQL
+	 * databases (schemas actually) already exists as the database name is used
+	 * to prefix the schemas of a given database.
 	 * 
-	 * I.e: databaseX_schemaA
-	 * 		databaseX_schemaB
-	 * 		databaseY_schemaA
+	 * I.e: databaseX_schemaA databaseX_schemaB databaseY_schemaA
 	 */
 	@Override
 	public void initDatabase() throws ModuleException {
-		String connectionURL = 
-				createConnectionURL(MYSQL_CONNECTION_DATABASE);
+		String connectionURL = createConnectionURL(MYSQL_CONNECTION_DATABASE);
 
 		// TODO implement drop databases for a given prefix
-		
-//		if (canDropDatabase) {
-//			try {
-//				getConnection(MYSQL_CONNECTION_DATABASE, connectionURL).
-//				createStatement().executeUpdate(
-//						"DROP DATABASE IF EXISTS " + database);
-//			} catch (SQLException e) {
-//				throw new ModuleException(
-//						"Error droping database " + database, e);
-//			}
+
+		// if (canDropDatabase) {
+		// try {
+		// getConnection(MYSQL_CONNECTION_DATABASE, connectionURL).
+		// createStatement().executeUpdate(
+		// "DROP DATABASE IF EXISTS " + database);
+		// } catch (SQLException e) {
+		// throw new ModuleException(
+		// "Error droping database " + database, e);
+		// }
 
 		Set<String> existingDatabasesByName = getExistingSchemasByName(
 				MYSQL_CONNECTION_DATABASE, database, connectionURL);
@@ -133,41 +131,39 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 			for (String s : existingDatabasesByName) {
 				existingSchemas += "- " + s + ";\n";
 			}
-			
-			throw new ModuleException("Cannot create databases with prefix " 
+
+			throw new ModuleException("Cannot create databases with prefix "
 					+ database + ". Please choose another name or delete the "
 					+ "following databases: " + existingSchemas);
 		}
 	}
-	
+
 	public Connection getConnection() throws ModuleException {
-		return getConnection(MYSQL_CONNECTION_DATABASE, 
+		return getConnection(MYSQL_CONNECTION_DATABASE,
 				createConnectionURL(MYSQL_CONNECTION_DATABASE));
 	}
-	
+
 	/**
 	 * Check if a database exists
 	 * 
 	 * @param defaultConnectionDb
-	 * 			  an existing dbml database to establish the connection
+	 *            an existing dbml database to establish the connection
 	 * @param database
-	 * 			  the name of the database to check
+	 *            the name of the database to check
 	 * @param connectionURL
-	 * 			  the connection URL needed by getConnection
+	 *            the connection URL needed by getConnection
 	 * 
-	 * @return
-	 * 			  true if exists, false otherwise
+	 * @return true if exists, false otherwise
 	 * @throws ModuleException
 	 */
-	public Set<String> getExistingSchemasByName(String defaultConnectionDb, 
+	public Set<String> getExistingSchemasByName(String defaultConnectionDb,
 			String database, String connectionURL) throws ModuleException {
 		HashSet<String> found = new HashSet<String>();
 		try {
-			ResultSet result = 
-					getConnection(defaultConnectionDb, connectionURL)
+			ResultSet result = getConnection(defaultConnectionDb, connectionURL)
 					.createStatement().executeQuery(
 							sqlHelper.getDatabases(database));
-			while(result.next()) {
+			while (result.next()) {
 				found.add(result.getString(1));
 			}
 		} catch (SQLException e) {
@@ -177,62 +173,86 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 		return found;
 	}
 
-	public static String createConnectionURL(String hostname, int port, 
+	public static String createConnectionURL(String hostname, int port,
 			String database, String username, String password) {
-		return "jdbc:mysql://" + hostname + (port >= 0 ? ":" + port : "") 
-				+ "/" + database + "?" + "user=" + username + "&password=" 
-				+ password + "&rewriteBatchedStatements=true";
+		return "jdbc:mysql://" + hostname + (port >= 0 ? ":" + port : "") + "/"
+				+ database + "?" + "user=" + username + "&password=" + password
+				+ "&rewriteBatchedStatements=true";
 	}
-	
+
 	public String createConnectionURL(String databaseName) {
-		return createConnectionURL(hostname, port, databaseName, 
-				username, password);
+		return createConnectionURL(hostname, port, databaseName, username,
+				password);
 	}
-	
+
 	protected void handleForeignKeys() throws ModuleException {
 		logger.debug("Creating foreign keys");
 		try {
 			for (SchemaStructure schema : databaseStructure.getSchemas()) {
+				if (isIgnoredSchema(schema)) {
+					continue;
+				}
 				for (TableStructure table : schema.getTables()) {
-					
 					boolean changedSchemaName = false;
 					if (mayChangeSchemaName) {
-						table.getSchema().setNewSchemaName(replacedPrefix);
+						table.getSchema().setNewSchemaName(
+								createNewSchemaName(
+										table.getSchema().getName(),
+										schemaPrefix, schemaSuffix,
+										schemaJoinSymbol));
 						changedSchemaName = true;
 					}
-					
+
+					int count = 0;
 					for (ForeignKey fkey : table.getForeignKeys()) {
-						if (fkey.getReferencedSchema().equals(
-								schema.getOriginalSchemaName())) {
-							fkey.setReferencedSchema(schema.getName());
-							String fkeySQL = sqlHelper.createForeignKeySQL(
-									table, fkey, true);
-							logger.debug("FKEYS: " + fkeySQL);
-							getStatement().addBatch(fkeySQL);
-						} else {
-							String fkeySQL = sqlHelper.createForeignKeySQL(
-											table, fkey, true);
-							logger.warn("MySQL doesn't support foreign keys "
-									+ "that reference different schemas as "
-									+ "MySQL schemas are treated as databases");
-							logger.warn("Foreign Key not added: " + fkeySQL);
+						count++;
+						String originalReferencedSchema = 
+								fkey.getReferencedSchema();
+						
+						if (changedSchemaName) {
+							fkey.setReferencedSchema(createNewSchemaName(
+									originalReferencedSchema, schemaPrefix,
+									schemaSuffix, schemaJoinSymbol));
 						}
+						
+						String tableId = originalReferencedSchema + "."
+								+ fkey.getReferencedTable();
+
+						TableStructure tableAux = databaseStructure
+								.lookupTableStructure(tableId);
+						if (tableAux != null) {
+							if (isIgnoredSchema(tableAux.getSchema())) {
+								logger.warn("Foreign key not exported: "
+										+ "referenced schema ("
+										+ fkey.getReferencedSchema()
+										+ ") is ignored at export.");
+								continue;
+							}
+						}
+
+						String fkeySQL = ((MySQLHelper) sqlHelper)
+								.createForeignKeySQL(table, fkey, true, count);
+						if (changedSchemaName) {
+							fkey.setReferencedSchema(originalReferencedSchema);
+						}
+						logger.debug("Returned fkey: " + fkeySQL);
+						getStatement().addBatch(fkeySQL);
 					}
-					
+
 					if (changedSchemaName) {
 						schema.setOriginalSchemaName();
 					}
+					getStatement().executeBatch();
+					getStatement().clearBatch();
 				}
 			}
 			logger.debug("Getting fkeys finished");
-			getStatement().executeBatch();
-			getStatement().clearBatch();
 		} catch (SQLException e) {
 			SQLException ei = e;
 			do {
 				if (ei != null) {
-					logger.error("Error handleing foreign key (next exception)",
-						ei);
+					logger.error(
+							"Error handleing foreign key (next exception)", ei);
 					logger.error("Error description: ", ei);
 				}
 				ei = ei.getNextException();
@@ -240,12 +260,12 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 			throw new ModuleException("Error creating foreign keys", e);
 		}
 	}
-	
-	protected Set<String> getExistingSchemasNames() 
-			throws SQLException, ModuleException {
+
+	protected Set<String> getExistingSchemasNames() throws SQLException,
+			ModuleException {
 		if (existingSchemas == null) {
 			existingSchemas = new HashSet<String>();
- 			ResultSet rs = getConnection().getMetaData().getCatalogs();
+			ResultSet rs = getConnection().getMetaData().getCatalogs();
 			while (rs.next()) {
 				existingSchemas.add(rs.getString(1));
 			}

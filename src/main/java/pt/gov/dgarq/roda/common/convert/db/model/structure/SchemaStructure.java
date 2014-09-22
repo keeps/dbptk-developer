@@ -166,12 +166,9 @@ public class SchemaStructure {
 	 * 			  the symbol/word the prefixes the new schema name
 	 *
 	 */
-	public void setNewSchemaName(String prefix) {
+	public void setNewSchemaName(String newSchemaName) {
 		originalName = name;
-		if (!prefix.equals("")) {
-			prefix += "_";
-		}
-		String newSchemaName = prefix + name; // + "_" + System.currentTimeMillis();
+		
 		if (replacedName == null) {
 			replacedName = newSchemaName;
 		}

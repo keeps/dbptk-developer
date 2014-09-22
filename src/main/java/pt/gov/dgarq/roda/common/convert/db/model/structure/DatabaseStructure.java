@@ -539,7 +539,7 @@ public class DatabaseStructure {
 		TableStructure ret = null;
 		for (SchemaStructure schema : getSchemas()) {
 			for (TableStructure tableStructure : schema.getTables()) {
-				if (tableStructure.getId().equals(tableId)) {
+				if (tableStructure.getId().equalsIgnoreCase(tableId)) {
 					ret = tableStructure;
 				}
 			}
