@@ -42,7 +42,7 @@ public class SIARDExportHelper {
 		} else if (type instanceof SimpleTypeNumericApproximate) {
 			ret = exportSimpleTypeNumericApproximate(type);
 		} else if (type instanceof SimpleTypeBoolean) {
-			return "BOOLEAN";
+			ret =  "BOOLEAN";
 		} else if (type instanceof SimpleTypeDateTime) {
 			ret = exportSimpleTypeDateTime(type);
 		} else if (type instanceof SimpleTypeBinary) {

@@ -30,6 +30,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.DatabaseStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ForeignKey;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.PrimaryKey;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeArray;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeStructure;
@@ -258,7 +259,7 @@ public class DBMLExportModule implements DatabaseHandler {
 		}
 
 	}
-	
+
 	public void setIgnoredSchemas(Set<String> ignoredSchemas) {
 		// nothing to do;
 	}
@@ -331,12 +332,25 @@ public class DBMLExportModule implements DatabaseHandler {
 		}
 		print(" schemaVersion=\"" + SCHEMA_VERSION + "\">\n");
 		print("\t<structure>\n");
-		
-		logger.debug("Starting to get TableStructure");
-		for (TableStructure table : structure.getSchemas().get(0).getTables()) {
-			exportTableStructure(table);
+
+		for (SchemaStructure schema : structure.getSchemas()) {
+			if (schema.getTables() != null && schema.getTables().size() > 0) {
+				exportSchemaStructure(schema);
+			} else {
+				logger.info("Schema: '" + schema.getName() + "' was not "
+						+ "exported because it does not contain any table");
+			}
 		}
 		print("\t</structure>\n");
+	}
+
+	private void exportSchemaStructure(SchemaStructure schema)
+			throws UnsupportedEncodingException, UnknownTypeException,
+			IOException, ModuleException {
+		logger.debug("Starting to get TableStructure");
+		for (TableStructure table : schema.getTables()) {
+			exportTableStructure(table);
+		}
 	}
 
 	/**
@@ -427,8 +441,7 @@ public class DBMLExportModule implements DatabaseHandler {
 			print("/>\n");
 
 		} else if (type instanceof SimpleTypeNumericApproximate) {
-			SimpleTypeNumericApproximate numApproxType = 
-					(SimpleTypeNumericApproximate) type;
+			SimpleTypeNumericApproximate numApproxType = (SimpleTypeNumericApproximate) type;
 			print("<simpleTypeNumericApproximate");
 			if (numApproxType.getPrecision() != null) {
 				print(" precision=\"" + numApproxType.getPrecision() + "\"");
@@ -460,17 +473,13 @@ public class DBMLExportModule implements DatabaseHandler {
 			SimpleTypeInterval interval = (SimpleTypeInterval) type;
 			print("<simpleTypeInterval");
 
-			if (interval.getType() == SimpleTypeInterval.IntervalType.
-					STARTDATE_ENDDATE) {
+			if (interval.getType() == SimpleTypeInterval.IntervalType.STARTDATE_ENDDATE) {
 				print(" type=\"START_END\"");
-			} else if (interval.getType() == SimpleTypeInterval.IntervalType.
-					STARTDATE_DURATION) {
+			} else if (interval.getType() == SimpleTypeInterval.IntervalType.STARTDATE_DURATION) {
 				print(" type=\"START_DURATION\"");
-			} else if (interval.getType() == SimpleTypeInterval.IntervalType.
-					DURATION_ENDDATE) {
+			} else if (interval.getType() == SimpleTypeInterval.IntervalType.DURATION_ENDDATE) {
 				print(" type=\"DURATION_END\"");
-			} else if (interval.getType() == SimpleTypeInterval.IntervalType.
-					DURATION) {
+			} else if (interval.getType() == SimpleTypeInterval.IntervalType.DURATION) {
 				print(" type=\"DURATION\"");
 			}
 
@@ -488,11 +497,11 @@ public class DBMLExportModule implements DatabaseHandler {
 						+ encode(binary.getFormatRegistryKey()) + "\"");
 			}
 			print("/>\n");
-		
-//		} else if (type instanceof SimpleTypeXML) {
-//			// SimpleTypeXML xmlType = (SimpleTypeXML) type;
-//			print("<simpleTypeXML/>\n");
-//			
+
+			// } else if (type instanceof SimpleTypeXML) {
+			// // SimpleTypeXML xmlType = (SimpleTypeXML) type;
+			// print("<simpleTypeXML/>\n");
+			//
 		} else if (type instanceof ComposedTypeArray) {
 			ComposedTypeArray array = (ComposedTypeArray) type;
 			print("<composedTypeArray>\n");
@@ -526,8 +535,10 @@ public class DBMLExportModule implements DatabaseHandler {
 
 	}
 
-	/* TODO add support to multiple columns references 
-	(DBML must support it first) */	
+	/*
+	 * TODO add support to multiple columns references (DBML must support it
+	 * first)
+	 */
 	private void exportForeignKey(ForeignKey fk)
 			throws UnsupportedEncodingException, IOException, ModuleException {
 		if (fk.getReferences().size() > 1) {
@@ -536,9 +547,8 @@ public class DBMLExportModule implements DatabaseHandler {
 		}
 		print("\t\t\t<fkey id=\"" + encode(fk.getId()) + "\" name=\""
 				+ encode(fk.getName()) + "\" in=\""
-				+ encode(fk.getReferencedTable())
-				+ "\" ref=\"" + encode(fk.getReferences().get(0).getColumn())
-				+ "\"/>\n");
+				+ encode(fk.getReferencedTable()) + "\" ref=\""
+				+ encode(fk.getReferences().get(0).getColumn()) + "\"/>\n");
 
 	}
 

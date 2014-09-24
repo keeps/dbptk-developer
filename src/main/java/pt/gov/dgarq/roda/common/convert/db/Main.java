@@ -2,6 +2,7 @@ package pt.gov.dgarq.roda.common.convert.db;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -15,7 +16,8 @@ import pt.gov.dgarq.roda.common.convert.db.modules.DatabaseHandler;
 import pt.gov.dgarq.roda.common.convert.db.modules.DatabaseImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.db2.in.DB2JDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.db2.out.DB2JDBCExportModule;
-import pt.gov.dgarq.roda.common.convert.db.modules.msAccess.in.MsAccessImportModule;
+import pt.gov.dgarq.roda.common.convert.db.modules.dbml.in.DBMLImportModule;
+import pt.gov.dgarq.roda.common.convert.db.modules.dbml.out.DBMLExportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.msAccess.in.MsAccessUCanAccessImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.in.MySQLJDBCImportModule;
 import pt.gov.dgarq.roda.common.convert.db.modules.mySql.out.MySQLJDBCExportModule;
@@ -194,18 +196,18 @@ public class Main {
 				logger.error("Wrong argument number for "
 						+ "MySQLJDBC import module: " + importModuleArgs.size());
 			}
-//		} else if (importModuleArgs.get(0).equals("DBML")) {
-//			if (importModuleArgs.size() == 2) {
-//				try {
-//					importModule = new DBMLImportModule(new File(
-//							importModuleArgs.get(1)));
-//				} catch (ModuleException e) {
-//					logger.error("Error creating DBML import module", e);
-//				}
-//			} else {
-//				logger.error("Wrong argument number for "
-//						+ "DBML import module: " + importModuleArgs.size());
-//			}
+		} else if (importModuleArgs.get(0).equals("DBML")) {
+			if (importModuleArgs.size() == 2) {
+				try {
+					importModule = new DBMLImportModule(new File(
+							importModuleArgs.get(1)));
+				} catch (ModuleException e) {
+					logger.error("Error creating DBML import module", e);
+				}
+			} else {
+				logger.error("Wrong argument number for "
+						+ "DBML import module: " + importModuleArgs.size());
+			}
 		} else if (importModuleArgs.get(0).equalsIgnoreCase("SIARD")) {
 			if (importModuleArgs.size() == 2) {
 				try {
@@ -230,15 +232,15 @@ public class Main {
 						+ "Oracle12c import module: "
 						+ importModuleArgs.size());
 			}
-		} else if (importModuleArgs.get(0).equals("MSAccess")) {
-			if (importModuleArgs.size() == 2) {
-				importModule = new MsAccessImportModule(new File(
-						importModuleArgs.get(1)));
-			} else {
-				logger.error("Wrong argument number for "
-						+ "MSAccess import module: " + importModuleArgs.size());
-			}
-		} else if (importModuleArgs.get(0).equals("MSAccessExp")) {
+//		} else if (importModuleArgs.get(0).equals("MSAccess")) {
+//			if (importModuleArgs.size() == 2) {
+//				importModule = new MsAccessImportModule(new File(
+//						importModuleArgs.get(1)));
+//			} else {
+//				logger.error("Wrong argument number for "
+//						+ "MSAccess import module: " + importModuleArgs.size());
+//			}
+		} else if (importModuleArgs.get(0).equals("MSAccessUCanAccess")) {
 			if (importModuleArgs.size() == 2) {
 				importModule = new MsAccessUCanAccessImportModule(new File(
 						importModuleArgs.get(1)));
@@ -266,22 +268,21 @@ public class Main {
 
 	private static DatabaseHandler getExportModule(List<String> exportModuleArgs) {
 		DatabaseHandler exportModule = null;
-//		if (exportModuleArgs.get(0).equals("DBML")) {
-//			if (exportModuleArgs.size() == 2) {
-//				try {
-//					exportModule = new DBMLExportModule(new File(
-//							exportModuleArgs.get(1)));
-//				} catch (FileNotFoundException e) {
-//					logger.error("Could not find file for DBML export", e);
-//				} catch (UnsupportedEncodingException e) {
-//					logger.error("Unsupported encoding", e);
-//				}
-//			} else {
-//				logger.error("Wrong argument number for "
-//						+ "DBML export module: " + exportModuleArgs.size());
-//			}
-//		} else if (exportModuleArgs.get(0).equals("SIARD")) {
-		if (exportModuleArgs.get(0).equalsIgnoreCase("SIARD")) {
+		if (exportModuleArgs.get(0).equals("DBML")) {
+			if (exportModuleArgs.size() == 2) {
+				try {
+					exportModule = new DBMLExportModule(new File(
+							exportModuleArgs.get(1)));
+				} catch (FileNotFoundException e) {
+					logger.error("Could not find file for DBML export", e);
+				} catch (UnsupportedEncodingException e) {
+					logger.error("Unsupported encoding", e);
+				}
+			} else {
+				logger.error("Wrong argument number for "
+						+ "DBML export module: " + exportModuleArgs.size());
+			}
+		} else if (exportModuleArgs.get(0).equalsIgnoreCase("SIARD")) {
 			if (exportModuleArgs.size() == 2) {
 				try {
 					exportModule = new SIARDExportModule(new File(
@@ -456,9 +457,10 @@ public class Main {
 		System.out.println("\tDB2JDBC hostname port database username password");
 		System.out
 				.println("\tOracle12c hostName port database username password");
-		// System.out.println("\tMSAccess database.mdb");
+//		System.out.println("\tMSAccess database.mdb|accdb");
+		System.out.println("\tMSAccessUCanAccess database.mdb|accdb");
 		// System.out.println("\tODBC source [username password]");
-		// System.out.println("\tDBML baseDir");
+		System.out.println("\tDBML baseDir");
 
 		System.out.println("Available export modules:");
 		System.out.println("\tSIARD dir");
@@ -472,7 +474,7 @@ public class Main {
 				.println("\tDB2JDBC hostname port database username password");
 		System.out
 		 		.println("\tPhpMyAdmin hostName [port] database username password");
-//		System.out.println("\tDBML baseDir");
+		System.out.println("\tDBML baseDir");
 //		System.out
 //				.println("\tPostgreSQLFile sqlFile <- SQL file optimized for PostgreSQL");
 //		System.out

@@ -144,13 +144,11 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 			}
 
 		} else {
-			logger.debug("here");
 			if (databaseExists(POSTGRES_CONNECTION_DATABASE, database,
 					connectionURL)) {
 				throw new ModuleException(
-						"Cannot create database "
-								+ database
-								+ ". Please choose another name or delete the database "
+						"Cannot create database " + database + ". Please choose"
+								+ " another name or delete the database "
 								+ "'" + database + "'.");
 			}
 		}
@@ -175,6 +173,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 							createNewSchemaName(currentTableStructure
 									.getSchema().getName(), schemaPrefix,
 									schemaSuffix, schemaJoinSymbol));
+					changedSchemaName = true;
 				}
 				getStatement().executeUpdate(
 						((PostgreSQLHelper) getSqlHelper())

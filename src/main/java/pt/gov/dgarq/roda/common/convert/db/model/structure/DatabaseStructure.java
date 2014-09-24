@@ -18,31 +18,31 @@ public class DatabaseStructure {
 			Logger.getLogger(DatabaseStructure.class);
 
 	private String name;
-	
-	private String description;
-	
-	private String archiver;
-	
-	private String archiverContact;
-	
-	private String dataOwner;
-	
-	private String dataOriginTimespan;
-	
-	private String producerApplication;	
 
-	private String creationDate; 
-	
+	private String description;
+
+	private String archiver;
+
+	private String archiverContact;
+
+	private String dataOwner;
+
+	private String dataOriginTimespan;
+
+	private String producerApplication;
+
+	private String creationDate;
+
 	private String archivalDate;
-	
+
 	private String messageDigest;
-	
+
 	private String clientMachine;
 
 	private String productName; // databaseProduct on SIARD
 
 	private String productVersion;
-		
+
 	private String databaseUser;
 
 	private Integer defaultTransactionIsolationLevel;
@@ -66,13 +66,12 @@ public class DatabaseStructure {
 	private Boolean supportsCoreSQLGrammar;
 
 	private List<SchemaStructure> schemas;
-	
+
 	private List<UserStructure> users;
-	
+
 	private List<RoleStructure> roles;
-	
-	private List<PrivilegeStructure> privileges;	
- 
+
+	private List<PrivilegeStructure> privileges;
 
 	/**
 	 * Create a new empty database. All attributes are null, except for tables,
@@ -86,7 +85,7 @@ public class DatabaseStructure {
 		schemas = new ArrayList<SchemaStructure>();
 		users = new ArrayList<UserStructure>();
 		roles = new ArrayList<RoleStructure>();
-		privileges = new ArrayList<PrivilegeStructure>();	
+		privileges = new ArrayList<PrivilegeStructure>();
 	}
 
 	/**
@@ -94,7 +93,7 @@ public class DatabaseStructure {
 	 * 
 	 * @param name
 	 *            the database name
-	 * @param creationDate 
+	 * @param creationDate
 	 *            date when the database was created, ISO 8601 format
 	 * @param productName
 	 *            the DBMS name
@@ -127,7 +126,7 @@ public class DatabaseStructure {
 	 * @param supportsCoreSQLGrammar
 	 *            whether this database supports the ODBC Core SQL grammar
 	 */
-	
+
 	// TODO complete doc
 	public DatabaseStructure(String name, String description, String archiver,
 			String archiverContact, String dataOwner,
@@ -201,7 +200,7 @@ public class DatabaseStructure {
 	public void setArchivalDate(String archivalDate) {
 		this.archivalDate = archivalDate;
 	}
-	
+
 	/**
 	 * @return database name
 	 */
@@ -503,31 +502,26 @@ public class DatabaseStructure {
 		return users;
 	}
 
-
 	public void setUsers(List<UserStructure> users) {
 		this.users = users;
 	}
-
 
 	public List<RoleStructure> getRoles() {
 		return roles;
 	}
 
-
 	public void setRoles(List<RoleStructure> roles) {
 		this.roles = roles;
 	}
-
 
 	public List<PrivilegeStructure> getPrivileges() {
 		return privileges;
 	}
 
-
 	public void setPrivileges(List<PrivilegeStructure> privileges) {
 		this.privileges = privileges;
 	}
-	
+
 	/**
 	 * Lookup a table structure by its table id
 	 * 
@@ -556,9 +550,8 @@ public class DatabaseStructure {
 	 * @return the sorted table list or null if the tables cannot be sorted
 	 *         topologically (recursive graph)
 	 */
-	public static List<TableStructure> topologicSort(
-			List<TableStructure> tables) {
-		
+	public static List<TableStructure> topologicSort(List<TableStructure> tables) {
+
 		List<TableStructure> sortedTables = new ArrayList<TableStructure>(
 				tables.size());
 		boolean canSortTopologically = true;
@@ -577,16 +570,15 @@ public class DatabaseStructure {
 	}
 
 	private static List<TableStructure> filterReferencedTables(
-			List<TableStructure> allTables, 
-			List<TableStructure> insertedTables) {
-		
+			List<TableStructure> allTables, List<TableStructure> insertedTables) {
+
 		List<TableStructure> referencedTables = new Vector<TableStructure>();
 		for (TableStructure table : allTables) {
 			if (!insertedTables.contains(table)) {
 				boolean allReferredTablesInserted = true;
 				for (ForeignKey fkey : table.getForeignKeys()) {
-					if (!containsTable(
-							insertedTables, fkey.getReferencedTable())) {
+					if (!containsTable(insertedTables,
+							fkey.getReferencedTable())) {
 						allReferredTablesInserted = false;
 						break;
 					}
@@ -599,11 +591,22 @@ public class DatabaseStructure {
 		return referencedTables;
 	}
 
+	public SchemaStructure getSchemaByName(String schemaName) {
+		SchemaStructure retSchema = null;
+		for (SchemaStructure schema: schemas) {
+			if (schema.getName().equalsIgnoreCase(schemaName)) {
+				retSchema = schema;
+				break;
+			}
+		}
+		return retSchema;
+	}
+
 	private static boolean containsTable(List<TableStructure> tables,
 			String tableId) {
 		boolean foundIt = false;
 		for (TableStructure table : tables) {
-			if (table.getId().equals(tableId)) {
+			if (table.getId().equalsIgnoreCase(tableId)) {
 				foundIt = true;
 				break;
 			}
@@ -611,7 +614,9 @@ public class DatabaseStructure {
 		return foundIt;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -666,5 +671,5 @@ public class DatabaseStructure {
 		builder.append("\n------ END SCHEMAS ------");
 		builder.append("\n****** END STRUCTURE ******");
 		return builder.toString();
-	}	
+	}
 }

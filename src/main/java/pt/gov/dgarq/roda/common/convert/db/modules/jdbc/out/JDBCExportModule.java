@@ -462,13 +462,11 @@ public class JDBCExportModule implements DatabaseHandler {
 			this.currentTableStructure = table;
 			if (currentTableStructure != null) {
 				currentIsIgnoredSchema = isIgnoredSchema(table.getSchema());
-				logger.debug("ignored? :" + currentIsIgnoredSchema + " "
-						+ tableId);
 				if (!currentIsIgnoredSchema) {
 					try {
 						boolean changedSchemaName = false;
 						if (mayChangeSchemaName) {
-							logger.debug("will replace");
+							logger.debug("Will set new schema name");
 							table.getSchema().setNewSchemaName(
 									createNewSchemaName(table.getSchema()
 											.getName(), schemaPrefix,
@@ -478,8 +476,7 @@ public class JDBCExportModule implements DatabaseHandler {
 						logger.info("Exporting data for " + table.getId());
 						currentRowInsertStatement = getConnection()
 								.prepareStatement(
-										sqlHelper
-												.createRowSQL(currentTableStructure));
+								sqlHelper.createRowSQL(currentTableStructure));
 						logger.debug("sql: "
 								+ sqlHelper.createRowSQL(currentTableStructure));
 						if (changedSchemaName) {
@@ -759,15 +756,15 @@ public class JDBCExportModule implements DatabaseHandler {
 					}
 
 					for (ForeignKey fkey : table.getForeignKeys()) {
-						String originalReferencedSchema = 
-								fkey.getReferencedSchema();
-						
+						String originalReferencedSchema = fkey
+								.getReferencedSchema();
+
 						if (changedSchemaName) {
 							fkey.setReferencedSchema(createNewSchemaName(
 									originalReferencedSchema, schemaPrefix,
 									schemaSuffix, schemaJoinSymbol));
 						}
-						
+
 						String tableId = originalReferencedSchema + "."
 								+ fkey.getReferencedTable();
 

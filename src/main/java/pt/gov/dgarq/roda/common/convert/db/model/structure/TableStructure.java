@@ -6,6 +6,8 @@ package pt.gov.dgarq.roda.common.convert.db.model.structure;
 import java.util.ArrayList;
 import java.util.List;
 
+import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
+
 /**
  * @author Luis Faria
  * 
@@ -85,7 +87,7 @@ public class TableStructure {
 			PrimaryKey primaryKey, List<CandidateKey> candidateKeys,
 			List<CheckConstraint> checkConstraints,
 			List<Trigger> triggers, int rows) {
-		this.id = id;
+		isValidId(id); this.id = id;
 		this.name = name;
 		this.description = description;
 		this.columns = columns;
@@ -135,10 +137,15 @@ public class TableStructure {
 	}
 
 	/**
+	 * Sets a table id. Must be in the form of <schema>.<table>
+	 * 
 	 * @param id
 	 *            the table unique id
+	 * @throws ModuleException 
+	 *            
 	 */
 	public void setId(String id) {
+		isValidId(id);
 		this.id = id;
 	}
 
@@ -264,6 +271,13 @@ public class TableStructure {
 
 	public void setSchema(SchemaStructure schema) {
 		this.schema = schema;
+	}
+	
+	protected void isValidId(String id) throws IllegalArgumentException{
+		if (id.split("\\.").length < 2) {
+			throw new IllegalArgumentException(
+					"Table id must be in the form of <schema>.<table>");
+		}
 	}
 
 	@Override
