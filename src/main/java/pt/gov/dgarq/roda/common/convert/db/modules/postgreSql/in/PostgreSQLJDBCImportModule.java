@@ -138,7 +138,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 			ClassNotFoundException, ModuleException {
 		logger.debug("query: " + sqlHelper.selectTableSQL(tableId));
 		Statement st = getStatement();
-		st.setFetchSize(100);
+		st.setFetchSize(200);
 		ResultSet set = st.executeQuery(sqlHelper.selectTableSQL(tableId));
 		return set;
 	}
