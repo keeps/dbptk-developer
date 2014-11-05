@@ -809,25 +809,35 @@ public class DBMLImportModule implements DatabaseImportModule {
 			} catch (UnknownTypeException e) {
 				errors.put("Could not define the SQL99TypeName for " 
 						+ type.getOriginalTypeName(), null);
-//				String error = "Could not define the SQL99TypeName for " 
-//						+ type.getOriginalTypeName();
-//				logger.debug("ERROR: " + error + "; " + error.length());
 			}
 			return type;
 		}
 
-		// TODO complete..
 		private String convertDBMLTypeToSql99Type(Type type)
 				throws UnknownTypeException {
 			String ret = null;
 			if (type instanceof SimpleTypeString) {
-				ret = "VARCHAR(244)";
+				SimpleTypeString string = (SimpleTypeString) type;
+				if (string.isLengthVariable()) {
+					ret = "CHARACTER VARYING";
+				} else {
+					ret = "CHARACTER";
+				}
 			} else if (type instanceof SimpleTypeNumericExact) {
-				ret = "INTEGER";
+				ret = "DECIMAL";
 			} else if (type instanceof SimpleTypeNumericApproximate) {
-				ret = "DOUBLE";
+				ret = "FLOAT";
 			} else if (type instanceof SimpleTypeBoolean) {
 				ret = "BOOLEAN";
+			} else if (type instanceof SimpleTypeDateTime) {
+				SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
+				if (dateTime.getTimeDefined()) {
+					ret = "TIMESTAMP";
+				} else {
+					ret = "DATE";
+				}
+			} else if (type instanceof SimpleTypeBinary) {
+				ret = "BIT VARYING";
 			} else {
 				throw new UnknownTypeException(type.toString());
 			}
