@@ -985,8 +985,6 @@ public class SIARDExportModule implements DatabaseHandler {
 			print("<c" + index + ">");
 			print(SIARDHelper.encode(simple.getSimpledata()));
 			print("</c" + index + ">");
-		} else {
-			print("<c" + index + "/>");
 		}
 	}
 
