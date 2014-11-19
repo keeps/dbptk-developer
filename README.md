@@ -23,14 +23,15 @@ Binaries will be on the `target` folder
 ## Download pre-compiled version
 
 Binaries with all dependencies included:
+* [db-preservation-toolkit-1.0.1-jar-with-dependencies.jar](https://github.com/keeps/db-preservation-toolkit/releases/download/v1.0.1/db-preservation-toolkit-1.0.1-jar-with-dependencies.jar)
 * [db-preservation-toolkit-1.0.0-jar-with-dependencies.jar](http://keeps.github.io/db-preservation-toolkit/db-preservation-toolkit-1.0.0-jar-with-dependencies.jar)
 
 ## How to use
 
-To use the program, open a command-line and try out the following command:
+To use the program, open a command-line and try out the following command (replace x.y.z accordingly to the version of the binary in use):
 
 ```bash
-$ java -jar db-preservation-toolkit-1.0.0-jar-with-dependencies.jar 
+$ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar 
 Synopsys: java -jar roda-common-convert-db.jar -i IMPORT_MODULE [options...] -o EXPORT_MODULE [options...]
 Available import modules:
 	SQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt
@@ -58,7 +59,7 @@ You have to select an input and an output module, providing for each its configu
 For example, if you want to connect to a live MySQL database and export its content to DBML format, you can use the following command.
 
 ```bash
-$ java -jar db-preservation-toolkit-1.0.0-jar-with-dependencies.jar \
+$ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar \
 -i MySQLJDBC localhost example_db username p4ssw0rd \
 -o DBML example_db_dbml_export
 ```
@@ -93,7 +94,7 @@ Furthermore, in order to extract DB structures we need to have access to the int
 The toolkit might need more memory than it is available by default (normally 64MB). To increase the available memory use the `-Xmx` option. For example, the following command will increase the heap size to 3 GB.
 
 ```bash
-$ java -Xmx3g -jar db-preservation-toolkit-1.0.0-jar-with-dependencies.jar ...
+$ java -Xmx3g -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar ...
 ```
 
 The toolkit needs enough memory to put the table structure definition in memory (not the data) and to load each data row or row set, which might include having some BLOBs completely in memory, but this depends on the database driver implementation.
