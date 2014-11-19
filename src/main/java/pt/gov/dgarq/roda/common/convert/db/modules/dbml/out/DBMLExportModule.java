@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
@@ -57,9 +58,11 @@ public class DBMLExportModule implements DatabaseHandler {
 	 */
 	public static final String DEFAULT_DBML_FILE_NAME = "DBML.xml";
 
-	private static final String SCHEMA_VERSION = "0.2";
+	private static final String SCHEMA_VERSION = "1.1";
 
 	private static final String ENCODING = "UTF-8";
+
+	private static final String XSI_NAMESPACE_DECLARATION="xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"";
 
 	/**
 	 * Interface to control binary files creation
@@ -324,7 +327,8 @@ public class DBMLExportModule implements DatabaseHandler {
 			print(" supportsCoreSQLGrammar=\""
 					+ structure.getSupportsCoreSQLGrammar() + "\"");
 		}
-		print(" schemaVersion=\"" + SCHEMA_VERSION + "\">\n");
+		print(" schemaVersion=\"" + SCHEMA_VERSION + "\"");
+		print(" " + XSI_NAMESPACE_DECLARATION + ">\n");
 		print("\t<structure>\n");
 		for (TableStructure table : structure.getTables()) {
 			exportTableStructure(table);
@@ -569,11 +573,12 @@ public class DBMLExportModule implements DatabaseHandler {
 			}
 		} else if (cell instanceof BinaryCell) {
 			BinaryCell bin = (BinaryCell) cell;
-			if (bin.getInputstream() != null) {
+			InputStream inputstream = bin.getInputstream();
+			if (inputstream != null) {
 				String path = dbmlBinaryCreate.createBinaryPath(bin);
 				File binFile = dbmlBinaryCreate.createBinaryFile(baseDir, bin,
 						path);
-				FileHelper.copy(bin.getInputstream(), binFile);
+				FileHelper.copy(inputstream, binFile);
 				print("<b file=\"" + encode(path) + "\"");
 				if (bin.getFormatHits().size() > 0) {
 					FileFormat format = bin.getFormatHits().get(0);
@@ -589,6 +594,7 @@ public class DBMLExportModule implements DatabaseHandler {
 				}
 				print("/>\n");
 
+				inputstream.close();
 				bin.cleanResources();
 			} else {
 				print("<b xsi:nil=\"true\"/>\n");

@@ -485,12 +485,16 @@ public class JDBCImportModule implements DatabaseImportModule {
 			}
 		} else if (cellType instanceof SimpleTypeBinary) {
 			InputStream binaryStream = rawData.getBinaryStream(columnName);
-			FileItem fileItem = new FileItem(binaryStream);
-			FileFormat fileFormat = FormatUtility.getFileFormat(fileItem
-					.getFile());
-			List<FileFormat> formats = new ArrayList<FileFormat>();
-			formats.add(fileFormat);
-			cell = new BinaryCell(id, fileItem, formats);
+			if (binaryStream != null) {
+				FileItem fileItem = new FileItem(binaryStream);
+				FileFormat fileFormat = FormatUtility.getFileFormat(fileItem
+						.getFile());
+				List<FileFormat> formats = new ArrayList<FileFormat>();
+				formats.add(fileFormat);
+				cell = new BinaryCell(id, fileItem, formats);
+			}else{
+				cell = new SimpleCell(id, null);
+			}
 		} else {
 			cell = new SimpleCell(id, rawData.getString(columnName));
 		}
