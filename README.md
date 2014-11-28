@@ -12,11 +12,11 @@ The toolkit is created as a platform that uses input and output modules. Each mo
 
 1. Download the [latest stable release](https://github.com/keeps/db-preservation-toolkit/releases).
 2. Unzip and open the folder on a command-line terminal
-3. Build with Maven
-
-```bash
-$ mvn clean package
-```
+3. Download Oracle Database 12.1.0.1 JDBC Driver for java 6 [ojdbc6.jar](http://www.oracle.com/technetwork/database/features/jdbc/jdbc-drivers-12c-download-1958347.html)
+4. Install the jar with command:`mvn install:install-file -DgroupId=com.oracle -DartifactId=ojdbc6 -Dversion=12.1.0.1 -Dpackaging=jar -Dfile=ojdbc6.jar -DgeneratePom=true`
+5. Download DB2 JDBC driver [db2jcc4.jar](https://www14.software.ibm.com/webapp/iwm/web/preLogin.do?source=swg-idsdjs)
+6. Extract the db2jcc4.jar from the downloaded zip and install with the command:`mvn install:install-file -DgroupId=com.ibm -DartifactId=db2jcc4 -Dversion=4.16.53 -Dpackaging=jar -Dfile=db2jcc4.jar -DgeneratePom=true`
+5. Build with Maven `mvn clean package`
 
 Binaries will be on the `target` folder
 
