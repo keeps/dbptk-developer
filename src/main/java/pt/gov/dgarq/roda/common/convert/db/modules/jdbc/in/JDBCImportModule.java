@@ -1376,7 +1376,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 						handler.handleDataRow(
 								convertRawToRow(tableRawData, table));
 						nRows++;
-						if (nRows % 100 == 0) {
+						if (nRows % 1000 == 0) {
 							logger.info(nRows + " rows processed");
 						}
 					}

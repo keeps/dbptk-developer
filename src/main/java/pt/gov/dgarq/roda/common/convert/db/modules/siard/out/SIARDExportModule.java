@@ -178,6 +178,8 @@ public class SIARDExportModule implements DatabaseHandler {
 				int colIndex = (Integer) obj[1];
 				int cellIndex = (Integer) obj[2];
 				createCLOB(fileItem, colIndex, cellIndex);
+				// cleaning up file items temporary files
+				fileItem.delete();
 			}
 
 		} catch (IOException e) {
@@ -1048,11 +1050,13 @@ public class SIARDExportModule implements DatabaseHandler {
 		zipOut.putArchiveEntry(file);
 		byte[] buffer = new byte[1024];
 		int length;
-		while ((length = fileItem.getInputStream().read(buffer)) >= 0) {
+		InputStream stream = fileItem.getInputStream();
+		while ((length = stream.read(buffer)) >= 0) {
 			zipOut.write(buffer, 0, length);
 			digest.update(buffer, 0, length);
 		}
 		zipOut.closeArchiveEntry();
+		stream.close();
 	}
 
 	private String getCurrentDate() {
