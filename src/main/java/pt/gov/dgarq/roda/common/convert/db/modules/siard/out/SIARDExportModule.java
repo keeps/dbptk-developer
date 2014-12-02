@@ -66,7 +66,7 @@ public class SIARDExportModule implements DatabaseHandler {
 	private static final String ENCODING = "UTF-8";
 
 	private ZipArchiveOutputStream zipOut;
-	
+
 	private DatabaseStructure dbStructure;
 
 	private TableStructure currentTable;
@@ -80,10 +80,9 @@ public class SIARDExportModule implements DatabaseHandler {
 	private SIARDExportHelper siardExportHelper;
 
 	private boolean isWritingContent;
-	
+
 	private MessageDigest digest;
 
-	
 	/**
 	 * 
 	 * @throws FileNotFoundException
@@ -96,7 +95,7 @@ public class SIARDExportModule implements DatabaseHandler {
 		CLOBsToExport = new HashSet<Object[]>();
 		siardExportHelper = null;
 		isWritingContent = false;
-		
+
 		try {
 			digest = MessageDigest.getInstance("MD5");
 			this.zipOut = new ZipArchiveOutputStream(siardPackage);
@@ -112,7 +111,7 @@ public class SIARDExportModule implements DatabaseHandler {
 	public void initDatabase() throws ModuleException {
 		// nothing to do
 	}
-	
+
 	/**
 	 * SIARDExportModule lets all available schemas to be export as SIARD export
 	 * creates a new file with no previously existing schemas
@@ -181,6 +180,8 @@ public class SIARDExportModule implements DatabaseHandler {
 				// cleaning up file items temporary files
 				fileItem.delete();
 			}
+
+			createTableXSD(currentTable);
 
 		} catch (IOException e) {
 			throw new ModuleException("Error closing table " + tableId, e);
@@ -509,8 +510,7 @@ public class SIARDExportModule implements DatabaseHandler {
 		print("\t\t\t\t\t\t</column>\n");
 	}
 
-	private String exportType(String product, Type type)
-			throws ModuleException, IOException, UnknownTypeException {
+	private SIARDExportHelper getSIARDExportHelper(String product) {
 		if (siardExportHelper == null) {
 			if (StringUtils.containsIgnoreCase(product, "MySQL")) {
 				siardExportHelper = new SIARDExportHelperMySQL();
@@ -524,12 +524,16 @@ public class SIARDExportModule implements DatabaseHandler {
 				siardExportHelper = new SIARDExportHelper();
 			}
 		}
-		return siardExportHelper.exportType(type);
+		return siardExportHelper;
+	}
+
+	private String exportType(String product, Type type)
+			throws ModuleException, IOException, UnknownTypeException {
+		return getSIARDExportHelper(product).exportType(type);
 	}
 
 	private String exportTypeOriginal(Type type) {
-		String ret = type.getOriginalTypeName();
-		return ret;
+		return type.getOriginalTypeName();
 	}
 
 	private void exportPrimaryKey(PrimaryKey primaryKey) throws IOException,
@@ -652,7 +656,7 @@ public class SIARDExportModule implements DatabaseHandler {
 							+ "check constraint key name cannot be null");
 		}
 		if (checkConstraint.getCondition() != null) {
-			print("\t\t\t\t\t\t\t<condition>" + checkConstraint.getCondition()	
+			print("\t\t\t\t\t\t\t<condition>" + checkConstraint.getCondition()
 					+ "</condition>\n");
 		} else {
 			throw new ModuleException("Error while exporting candidate key: "
@@ -668,10 +672,10 @@ public class SIARDExportModule implements DatabaseHandler {
 	private void exportTrigger(Trigger trigger) throws IOException,
 			ModuleException {
 		String description = trigger.getDescription();
-		
+
 		print("\t\t\t\t\t\t<trigger>\n");
 		if (trigger.getName() != null) {
-			print("\t\t\t\t\t\t\t<name>" 
+			print("\t\t\t\t\t\t\t<name>"
 					+ SIARDHelper.encode(trigger.getName()) + "</name>\n");
 		} else {
 			throw new ModuleException("Error while exporting trigger: "
@@ -684,24 +688,24 @@ public class SIARDExportModule implements DatabaseHandler {
 				print(SIARDHelper.encode(actionTime));
 			} else {
 				print("BEFORE");
-				String message = "Trigger true action time is: " 
-						+ actionTime + ".";
+				String message = "Trigger true action time is: " + actionTime
+						+ ".";
 				if (description == null) {
 					description = "";
 				}
 				description = message + description;
-						
+
 				logger.warn("Trigger action time set to BEFORE but "
 						+ "its action time is unknown");
 			}
-				
+
 			print("</actionTime>\n");
 		} else {
 			throw new ModuleException("Error while exporting trigger: "
 					+ "trigger actionTime cannot be null");
 		}
 		if (trigger.getTriggerEvent() != null) {
-			print("\t\t\t\t\t\t\t<triggerEvent>" 
+			print("\t\t\t\t\t\t\t<triggerEvent>"
 					+ SIARDHelper.encode(trigger.getTriggerEvent())
 					+ "</triggerEvent>\n");
 		} else {
@@ -714,16 +718,15 @@ public class SIARDExportModule implements DatabaseHandler {
 		}
 		if (trigger.getTriggeredAction() != null) {
 			print("\t\t\t\t\t\t\t<triggeredAction>"
-					+ SIARDHelper.encode(trigger.getTriggeredAction()) 
+					+ SIARDHelper.encode(trigger.getTriggeredAction())
 					+ "</triggeredAction>\n");
 		} else {
 			throw new ModuleException("Error while exporting trigger: "
 					+ "trigger triggeredAction cannot be null");
 		}
 		if (description != null) {
-			print("\t\t\t\t\t\t\t<description>" 
-					+ SIARDHelper.encode(description)
-					+ "</description>\n");
+			print("\t\t\t\t\t\t\t<description>"
+					+ SIARDHelper.encode(description) + "</description>\n");
 		}
 
 		print("\t\t\t\t\t\t</trigger>\n");
@@ -857,8 +860,9 @@ public class SIARDExportModule implements DatabaseHandler {
 			print("\t\t\t<admin>" + role.getAdmin() + "</admin>\n");
 		} else {
 			print("\t\t\t<admin/>\n");
-			// throw new ModuleException("Error while exporting users structure: "
-			//		+ "role admin cannot be null");
+			// throw new
+			// ModuleException("Error while exporting users structure: "
+			// + "role admin cannot be null");
 		}
 		if (role.getDescription() != null) {
 			print("\t\t\t<description>" + role.getName() + "</description\n");
@@ -880,8 +884,9 @@ public class SIARDExportModule implements DatabaseHandler {
 		} else {
 			print("\t\t\t<object>" + "unknown object" + "</object>\n");
 			logger.warn("Could not export privilege object");
-			// throw new ModuleException("Error while exporting users structure: "
-			// 		+ "privilege object cannot be null");
+			// throw new
+			// ModuleException("Error while exporting users structure: "
+			// + "privilege object cannot be null");
 		}
 		if (privilege.getGrantor() != null) {
 			print("\t\t\t<grantor>" + privilege.getGrantor() + "</grantor>\n");
@@ -895,7 +900,7 @@ public class SIARDExportModule implements DatabaseHandler {
 			throw new ModuleException("Error while exporting users structure: "
 					+ "privilege grantee cannot be null");
 		}
-		if (privilege.getOption() != null 
+		if (privilege.getOption() != null
 				&& SIARDHelper.isValidOption(privilege.getOption())) {
 			print("\t\t\t<option>" + privilege.getOption() + "</option>\n");
 		}
@@ -936,7 +941,7 @@ public class SIARDExportModule implements DatabaseHandler {
 		}
 		print("</row>\n");
 	}
-	
+
 	private void exportBinaryCell(Cell cell, ColumnStructure column, int index)
 			throws IOException, ModuleException {
 		BinaryCell binaryCell = (BinaryCell) cell;
@@ -998,12 +1003,14 @@ public class SIARDExportModule implements DatabaseHandler {
 			BLOBsToExport.add(new Object[] { cell, cellIndex, rowIndex });
 		} else {
 			print(getLobHeader(cell, cellIndex, rowIndex, length, "txt"));
-			// TODO change CLOB data type mapping to BinaryCell, so data is stored on a tmp file
+			// TODO change CLOB data type mapping to BinaryCell, so data is
+			// stored on a tmp file
 			String data = ((SimpleCell) cell).getSimpledata();
 			try {
-				FileItem fileItem = new FileItem(
-						new ByteArrayInputStream(data.getBytes()));
-				CLOBsToExport.add(new Object[] { fileItem , cellIndex, rowIndex });
+				FileItem fileItem = new FileItem(new ByteArrayInputStream(
+						data.getBytes()));
+				CLOBsToExport
+						.add(new Object[] { fileItem, cellIndex, rowIndex });
 			} catch (ModuleException e) {
 				logger.error("An error ocurred while creating a tmp "
 						+ "file to store CLOB data");
@@ -1032,7 +1039,7 @@ public class SIARDExportModule implements DatabaseHandler {
 
 		zipOut.putArchiveEntry(binaryFile);
 		InputStream inputStream = ((BinaryCell) cell).getInputstream();
-		
+
 		byte[] buffer = new byte[1024];
 		int length;
 		while ((length = inputStream.read(buffer)) >= 0) {
@@ -1046,7 +1053,7 @@ public class SIARDExportModule implements DatabaseHandler {
 			throws IOException, ModuleException {
 		ArchiveEntry file = new ZipArchiveEntry(getPathFile(colIndex,
 				cellIndex, "txt"));
-		
+
 		zipOut.putArchiveEntry(file);
 		byte[] buffer = new byte[1024];
 		int length;
@@ -1057,6 +1064,80 @@ public class SIARDExportModule implements DatabaseHandler {
 		}
 		zipOut.closeArchiveEntry();
 		stream.close();
+	}
+
+	private void createTableXSD(TableStructure table) {
+		ArchiveEntry archiveEntry = new ZipArchiveEntry("content/"
+				+ table.getSchema().getFolder() + "/" + table.getFolder() + "/"
+				+ table.getFolder() + ".xsd");
+
+		try {
+			zipOut.putArchiveEntry(archiveEntry);
+			exportTableXSD(table);
+			zipOut.closeArchiveEntry();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	private void exportTableXSD(TableStructure table) throws IOException {
+		String schemaFolder = table.getSchema().getFolder();
+		String tableFolder = table.getFolder();
+
+		print("<?xml version=\"1.0\" encoding=\"" + ENCODING + "\"?>\n");
+		print("<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" "
+				+ "xmlns=\"http://www.admin.ch/xmlns/siard/1.0/" + schemaFolder
+				+ "/" + tableFolder
+				+ "\" attributeFormDefault=\"unqualified\" "
+				+ "elementFormDefault=\"qualified\" "
+				+ "targetNamespace=\"http://www.admin.ch/xmlns/siard/1.0/"
+				+ schemaFolder + "/" + tableFolder + ".xsd\">\n");
+		print("\t<xs:element name=\"table\">\n");
+		print("\t\t<xs:complexType>\n");
+		print("\t\t\t<xs:sequence>\n");
+		print("\t\t\t\t<xs:element maxOccurs=\"unbounded\" minOccurs=\"0\" "
+				+ "name=\"row\" type=\"rowType\">\n");
+		print("\t\t\t\t</xs:element>\n");
+		print("\t\t\t</xs:sequence>\n");
+		print("\t\t</xs:complexType>\n");
+		print("\t</xs:element>\n");
+		print("\t<xs:complexType name=\"rowType\">\n");
+		print("\t\t<xs:sequence>\n");
+		exportXSDColumnElement(table);
+		print("\t\t</xs:sequence>\n");
+		print("\t</xs:complexType>\n");
+		print("</xs:schema>");
+	}
+
+	private void exportXSDColumnElement(TableStructure table)
+			throws IOException {
+		int columnIndex = 1;
+		for (ColumnStructure col : table.getColumns()) {
+			print("\t\t\t");
+			print("<xs:element ");
+			if (col.isNillable()) {
+				print("minOccurs=\"0\" ");
+			}
+			print("name=\"c" + columnIndex + "\" ");
+			try {
+				print("type=\"" + getXSDType(col) + "\"");
+			} catch (ModuleException e) {
+				logger.error("An error occurred while getting the XSD type "
+						+ "of column c" + columnIndex);
+			} catch (UnknownTypeException e) {
+				logger.error("An error occurred while getting the XSD type "
+						+ "of column c" + columnIndex);
+			}
+			print("/>\n");
+			columnIndex++;
+		}
+	}
+
+	private String getXSDType(ColumnStructure col) throws ModuleException,
+			UnknownTypeException {
+		return getSIARDExportHelper(dbStructure.getProductName())
+				.exportXSDType(col.getType());
 	}
 
 	private String getCurrentDate() {

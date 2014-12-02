@@ -1,6 +1,8 @@
 package pt.gov.dgarq.roda.common.convert.db.modules.siard.out;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBinary;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeNumericApproximate;
@@ -16,10 +18,11 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 public class SIARDExportHelperMySQL extends SIARDExportHelper {
 
 	@Override
-	protected String exportSimpleTypeNumericApproximate(Type type) {
+	protected Pair<String, String> exportSimpleTypeNumericApproximate(Type type) {
 		SimpleTypeNumericApproximate numApproxType = 
 				(SimpleTypeNumericApproximate) type;
 		StringBuilder sb = new StringBuilder();
+		String xsdType = "xs:float";
 		if (type.getSql99TypeName().equalsIgnoreCase("REAL")
 				&& numApproxType.getPrecision() == 12) {
 			sb.append("REAL");
@@ -35,26 +38,28 @@ public class SIARDExportHelperMySQL extends SIARDExportHelper {
 				sb.append(")");
 			}
 		}
-		return sb.toString();
+		return new ImmutablePair<String, String>(sb.toString(), xsdType);
 	}
 	
-	protected String exportSimpleTypeBinary(Type type) {
+	protected Pair<String, String> exportSimpleTypeBinary(Type type) {
 		Integer length = ((SimpleTypeBinary) type).getLength();
 		String sql99TypeName = type.getSql99TypeName();
-		String ret = null;
+		String dataType = null;
+		String xsdType = "xs:hexBinary";
 		if (sql99TypeName.equalsIgnoreCase("BIT")) {
 			if (type.getOriginalTypeName().equalsIgnoreCase("TINYBLOB")) {
-				ret = "BIT VARYING(2040)";
+				dataType = "BIT VARYING(2040)";
 			} else if (type.getOriginalTypeName().equalsIgnoreCase("BIT")) {
-				ret = "BIT(" + length + ")";
+				dataType = "BIT(" + length + ")";
 			} else {
-				ret = "BIT(" + length * 8 + ")";
+				dataType = "BIT(" + length * 8 + ")";
 			}
 		} else if (sql99TypeName.equalsIgnoreCase("BIT VARYING")) {
-			ret = "BIT VARYING(" + length * 8 + ")";
+			dataType = "BIT VARYING(" + length * 8 + ")";
 		} else {
-			ret = "BINARY LARGE OBJECT";	
+			dataType = "BINARY LARGE OBJECT";
+			xsdType = "blobType";
 		}
-		return ret;
+		return new ImmutablePair<String, String>(dataType, xsdType);
 	}
 }

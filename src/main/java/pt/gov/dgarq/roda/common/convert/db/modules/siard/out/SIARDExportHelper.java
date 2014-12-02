@@ -1,6 +1,8 @@
 package pt.gov.dgarq.roda.common.convert.db.modules.siard.out;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
@@ -22,19 +24,29 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.UnsupportedDataT
  */
 
 public class SIARDExportHelper {
-	
+
 	/**
-	 * Gets the Type corresponding SQL:1999 data type string 
-	 * in order to be exported to a SIARD package 
+	 * Gets the Type corresponding SQL:1999 data type string in order to be
+	 * exported to a SIARD package
 	 * 
 	 * @param type
 	 * @return
 	 * @throws ModuleException
 	 * @throws UnknownTypeException
 	 */
-	public String exportType(Type type) 
+	public String exportType(Type type) throws ModuleException,
+			UnknownTypeException {
+		return exportTypePair(type).getLeft();
+	}
+
+	public String exportXSDType(Type type) throws ModuleException,
+			UnknownTypeException {
+		return exportTypePair(type).getRight();
+	}
+
+	protected Pair<String, String> exportTypePair(Type type)
 			throws ModuleException, UnknownTypeException {
-		String ret = null;
+		Pair<String, String> ret = null;
 		if (type instanceof SimpleTypeString) {
 			ret = exportSimpleTypeString(type);
 		} else if (type instanceof SimpleTypeNumericExact) {
@@ -42,7 +54,7 @@ public class SIARDExportHelper {
 		} else if (type instanceof SimpleTypeNumericApproximate) {
 			ret = exportSimpleTypeNumericApproximate(type);
 		} else if (type instanceof SimpleTypeBoolean) {
-			ret =  "BOOLEAN";
+			ret = new ImmutablePair<String, String>("BOOLEAN", "xs:boolean");
 		} else if (type instanceof SimpleTypeDateTime) {
 			ret = exportSimpleTypeDateTime(type);
 		} else if (type instanceof SimpleTypeBinary) {
@@ -57,31 +69,38 @@ public class SIARDExportHelper {
 			throw new UnknownTypeException(type.toString());
 		}
 		return ret;
-	}
-	
-	protected String exportUnsupportedDataType(Type type) {
-		return "CHARACTER VARYING(40)";
+
 	}
 
-	protected String exportSimpleTypeString(Type type) {
-		String ret = null;
+	protected Pair<String, String> exportUnsupportedDataType(Type type) {
+		return new ImmutablePair<String, String>("CHARACTER VARYING(40)",
+				"unsupported");
+	}
+
+	protected Pair<String, String> exportSimpleTypeString(Type type) {
+		String dataType = null;
+		String xsdType = null;
 		SimpleTypeString stringType = (SimpleTypeString) type;
-		if (type.getSql99TypeName().
-				equalsIgnoreCase("CHARACTER LARGE OBJECT")) {
-			ret = "CHARACTER LARGE OBJECT";
+		if (type.getSql99TypeName().equalsIgnoreCase("CHARACTER LARGE OBJECT")) {
+			dataType = "CHARACTER LARGE OBJECT";
+			xsdType = "clobType";
 		} else {
 			if (stringType.isLengthVariable()) {
-				ret = "CHARACTER VARYING(" + stringType.getLength() + ")";
+				dataType = "CHARACTER VARYING(" + stringType.getLength() + ")";
+				xsdType = "xs:string";
+
 			} else {
-				ret = "CHARACTER(" + stringType.getLength() + ")";
+				dataType = "CHARACTER(" + stringType.getLength() + ")";
+				xsdType = "xs:string";
 			}
 		}
-		return ret;
+		return new ImmutablePair<String, String>(dataType, xsdType);
 	}
-	
-	protected String exportSimpleTypeNumericExact(Type type) {
+
+	protected Pair<String, String> exportSimpleTypeNumericExact(Type type) {
 		SimpleTypeNumericExact numExactType = (SimpleTypeNumericExact) type;
 		StringBuilder sb = new StringBuilder();
+		String xsdType = "xs:integer";
 		if (type.getSql99TypeName().equalsIgnoreCase("SMALLINT")) {
 			sb.append("SMALLINT");
 		} else if (type.getSql99TypeName().equalsIgnoreCase("INTEGER")) {
@@ -89,8 +108,10 @@ public class SIARDExportHelper {
 		} else {
 			if (type.getSql99TypeName().equalsIgnoreCase("DECIMAL")) {
 				sb.append("DECIMAL(");
+				xsdType = "xs:decimal";
 			} else {
 				sb.append("NUMERIC(");
+				xsdType = "xs:decimal";
 			}
 			sb.append(numExactType.getPrecision());
 			if (numExactType.getScale() > 0) {
@@ -98,18 +119,18 @@ public class SIARDExportHelper {
 			}
 			sb.append(")");
 		}
-		return sb.toString();
+		return new ImmutablePair<String, String>(sb.toString(), xsdType);
 	}
-	
-	protected String exportSimpleTypeNumericApproximate(Type type) {
-		SimpleTypeNumericApproximate numApproxType = 
-				(SimpleTypeNumericApproximate) type;
+
+	protected Pair<String, String> exportSimpleTypeNumericApproximate(Type type) {
+		SimpleTypeNumericApproximate numApproxType = (SimpleTypeNumericApproximate) type;
 		StringBuilder sb = new StringBuilder();
+		String xsdType = "xs:float";
 		if (type.getSql99TypeName().equalsIgnoreCase("REAL")) {
 			sb.append("REAL");
-		} else if (StringUtils.
-				startsWithIgnoreCase(type.getSql99TypeName(), "DOUBLE")) {
-			sb.append("DOUBLE PRECISION");			
+		} else if (StringUtils.startsWithIgnoreCase(type.getSql99TypeName(),
+				"DOUBLE")) {
+			sb.append("DOUBLE PRECISION");
 		} else {
 			sb.append("FLOAT");
 			// FLOAT default precision is 1: returns only "FLOAT"
@@ -119,40 +140,46 @@ public class SIARDExportHelper {
 				sb.append(")");
 			}
 		}
-		return sb.toString();
+		return new ImmutablePair<String, String>(sb.toString(), xsdType);
 	}
-	
-	protected String exportSimpleTypeDateTime(Type type) {
-		String ret = null;
+
+	protected Pair<String, String> exportSimpleTypeDateTime(Type type) {
+		String dataType = null;
+		String xsdType = null;
 		SimpleTypeDateTime dateTimeType = (SimpleTypeDateTime) type;
 		if (!dateTimeType.getTimeDefined()
 				&& !dateTimeType.getTimeZoneDefined()) {
-			ret = "DATE";
+			dataType = "DATE";
+			xsdType = "xs:date";
 		} else {
 			if (type.getSql99TypeName().equalsIgnoreCase("TIME")) {
-				ret = "TIME";
+				dataType = "TIME";
+				xsdType = "xs:time";
 			} else {
-				ret = "TIMESTAMP";
+				dataType = "TIMESTAMP";
+				xsdType = "xs:dateTime";
 			}
 		}
-		return ret;
+		return new ImmutablePair<String, String>(dataType, xsdType);
 	}
 
-	protected String exportSimpleTypeBinary(Type type) {
+	protected Pair<String, String> exportSimpleTypeBinary(Type type) {
 		Integer length = ((SimpleTypeBinary) type).getLength();
 		String sql99TypeName = type.getSql99TypeName();
-		String ret = null;
+		String dataType = null;
+		String xsdType = "xs:hexBinary";
 		if (sql99TypeName.equalsIgnoreCase("BIT")) {
 			if (type.getOriginalTypeName().equalsIgnoreCase("BIT")) {
-				ret = "BIT(" + length + ")";
+				dataType = "BIT(" + length + ")";
 			} else {
-				ret = "BIT(" + length * 8 + ")";
+				dataType = "BIT(" + length * 8 + ")";
 			}
 		} else if (sql99TypeName.equalsIgnoreCase("BIT VARYING")) {
-			ret = "BIT VARYING(" + length * 8 + ")";
+			dataType = "BIT VARYING(" + length * 8 + ")";
 		} else {
-			ret = "BINARY LARGE OBJECT";	
+			dataType = "BINARY LARGE OBJECT";
+			xsdType = "blobType";
 		}
-		return ret;
+		return new ImmutablePair<String, String>(dataType, xsdType);
 	}
 }

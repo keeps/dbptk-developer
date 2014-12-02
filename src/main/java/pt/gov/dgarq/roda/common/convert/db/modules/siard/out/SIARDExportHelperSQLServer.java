@@ -1,5 +1,8 @@
 package pt.gov.dgarq.roda.common.convert.db.modules.siard.out;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeString;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 
@@ -11,18 +14,20 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 
 public class SIARDExportHelperSQLServer extends SIARDExportHelper {
 	
-	protected String exportSimpleTypeString(Type type) {
-		String ret = null;
+	protected Pair<String, String> exportSimpleTypeString(Type type) {
+		String dataType = null;
+		String xsdType = "xs:string";
 		SimpleTypeString stringType = (SimpleTypeString) type;
 		if (stringType.isLengthVariable()) {
 			if (stringType.getLength() > 8000) {
-				ret = "CHARACTER LARGE OBJECT";
+				dataType = "CHARACTER LARGE OBJECT";
+				xsdType = "clobType";
 			} else {
-				ret = "CHARACTER VARYING(" + stringType.getLength() + ")";
+				dataType = "CHARACTER VARYING(" + stringType.getLength() + ")";
 			}
 		} else {
-			ret = "CHARACTER(" + stringType.getLength() + ")";
+			dataType = "CHARACTER(" + stringType.getLength() + ")";
 		}
-		return ret;
+		return new ImmutablePair<String, String>(dataType, xsdType);
 	}
 }
