@@ -1090,7 +1090,7 @@ public class SIARDExportModule implements DatabaseHandler {
 		print("<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" "
 				+ "xmlns=\"http://www.admin.ch/xmlns/siard/1.0/" + schemaFolder
 				+ "/" + tableFolder
-				+ "\" attributeFormDefault=\"unqualified\" "
+				+ ".xsd\" attributeFormDefault=\"unqualified\" "
 				+ "elementFormDefault=\"qualified\" "
 				+ "targetNamespace=\"http://www.admin.ch/xmlns/siard/1.0/"
 				+ schemaFolder + "/" + tableFolder + ".xsd\">\n");
