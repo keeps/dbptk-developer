@@ -1,7 +1,7 @@
 Database Preservation Toolkit
 =============================
 
-The Database Preservation Toolkit allows conversion between Database formats, including connection to live systems, for purposes of digitally preserving databases. The toolkit allows conversion of live or backed-up databases into preservation formats such as DBML, an XML format created for the purpose of database preservation. The toolkit also allows conversion of the preservation formats back into live systems to allow the full functionality of databases. For example, it supports a specialized export into MySQL, optimized for PhpMyAdmin, so the database can be fully  experimented using a web interface.
+The Database Preservation Toolkit allows conversion between Database formats, including connection to live systems, for purposes of digitally preserving databases. The toolkit allows conversion of live or backed-up databases into preservation formats such as **DBML** or **SIARD**, XML-based formats created for the purpose of database preservation. The toolkit also allows conversion of the preservation formats back into live systems to allow the full functionality of databases. For example, it supports a specialized export into MySQL, optimized for PhpMyAdmin, so the database can be fully  experimented using a web interface.
 
 This toolkit was part of the [RODA project](http://www.roda-community.org) and now has been released as a project by its own due to the increasing interest on this particular feature. 
 
@@ -21,20 +21,24 @@ To use the program, open a command-line and try out the following command (repla
 
 ```bash
 $ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar 
-Synopsys: java -jar roda-common-convert-db.jar -i IMPORT_MODULE [options...] -o EXPORT_MODULE [options...]
+Synopsys: java -jar db-preservation-toolkit.jar -i IMPORT_MODULE [options...] -o EXPORT_MODULE [options...]
 Available import modules:
+	SIARD dir
 	SQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt
 	PostgreSQLJDBC hostName [port] database username password encrypt
 	MySQLJDBC hostName [port] database username password
-	Oracle12cJDBC hostName port database username password
 	DB2JDBC hostname port database username password
-	SIARD dir
+	Oracle12c hostName port database username password
+	MSAccessUCanAccess database.mdb|accdb
+	DBML baseDir
 Available export modules:
+	SIARD dir
 	SQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt
-	PostgreSQLJDBC hostName [port] database username password encrypt
+	PostgreSQLJDBC [port] hostName database username password encrypt
 	MySQLJDBC hostName [port] database username password
 	DB2JDBC hostname port database username password
-	SIARD dir
+	PhpMyAdmin hostName [port] database username password
+	DBML baseDir
 ```
 
 You have to select an input and an output module, providing for each its configuration.
