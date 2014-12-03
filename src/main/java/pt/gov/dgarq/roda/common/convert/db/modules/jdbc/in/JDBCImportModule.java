@@ -1,5 +1,6 @@
 package pt.gov.dgarq.roda.common.convert.db.modules.jdbc.in;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -1309,6 +1310,12 @@ public class JDBCImportModule implements DatabaseImportModule {
 			List<FileFormat> formats = new ArrayList<FileFormat>();
 			formats.add(fileFormat);
 			cell = new BinaryCell(id, fileItem, formats);
+			
+			try {
+				binaryStream.close();
+			} catch (IOException e) {
+				logger.error(e);
+			}			
 		} else {
 			cell = new BinaryCell(id);
 		}

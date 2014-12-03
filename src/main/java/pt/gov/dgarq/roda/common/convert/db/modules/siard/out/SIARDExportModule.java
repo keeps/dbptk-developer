@@ -957,7 +957,9 @@ public class SIARDExportModule implements DatabaseHandler {
 			if (length == 0) {
 				simpleCell.setSimpledata(null);
 			} else {
-				byte[] bytes = IOUtils.toByteArray(binaryCell.getInputstream());
+				InputStream inputStream = binaryCell.getInputstream();
+				byte[] bytes = IOUtils.toByteArray(inputStream);
+				inputStream.close();
 				simpleCell.setSimpledata(SIARDHelper.bytesToHex(bytes));
 			}
 			exportSimpleCellData(simpleCell, index);
@@ -1008,10 +1010,13 @@ public class SIARDExportModule implements DatabaseHandler {
 			// stored on a tmp file
 			String data = ((SimpleCell) cell).getSimpledata();
 			try {
-				FileItem fileItem = new FileItem(new ByteArrayInputStream(
-						data.getBytes()));
+				ByteArrayInputStream inputStream = new ByteArrayInputStream(
+						data.getBytes());
+				FileItem fileItem = new FileItem(inputStream);
 				CLOBsToExport
 						.add(new Object[] { fileItem, cellIndex, rowIndex });
+
+				inputStream.close();
 			} catch (ModuleException e) {
 				logger.error("An error ocurred while creating a tmp "
 						+ "file to store CLOB data");
@@ -1048,6 +1053,7 @@ public class SIARDExportModule implements DatabaseHandler {
 			digest.update(buffer, 0, length);
 		}
 		zipOut.closeArchiveEntry();
+		inputStream.close();
 	}
 
 	private void createCLOB(FileItem fileItem, int colIndex, int cellIndex)
@@ -1077,8 +1083,7 @@ public class SIARDExportModule implements DatabaseHandler {
 			exportTableXSD(table);
 			zipOut.closeArchiveEntry();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e);
 		}
 	}
 
@@ -1108,6 +1113,8 @@ public class SIARDExportModule implements DatabaseHandler {
 		exportXSDColumnElement(table);
 		print("\t\t</xs:sequence>\n");
 		print("\t</xs:complexType>\n");
+		print("\t<xs:complexType name=\"clobType\"><xs:simpleContent><xs:extension base=\"xs:string\"><xs:attribute name=\"file\" type=\"xs:string\" /><xs:attribute name=\"length\" type=\"xs:integer\" /></xs:extension></xs:simpleContent></xs:complexType>");
+		print("\t<xs:complexType name=\"blobType\"><xs:simpleContent><xs:extension base=\"xs:string\"><xs:attribute name=\"file\" type=\"xs:string\" /><xs:attribute name=\"length\" type=\"xs:integer\" /></xs:extension></xs:simpleContent></xs:complexType>");
 		print("</xs:schema>");
 	}
 
@@ -1115,14 +1122,16 @@ public class SIARDExportModule implements DatabaseHandler {
 			throws IOException {
 		int columnIndex = 1;
 		for (ColumnStructure col : table.getColumns()) {
-			print("\t\t\t");
-			print("<xs:element ");
-			if (col.isNillable()) {
-				print("minOccurs=\"0\" ");
-			}
-			print("name=\"c" + columnIndex + "\" ");
 			try {
-				print("type=\"" + getXSDType(col) + "\"");
+				String xsdType = getXSDType(col);
+				print("\t\t\t");
+				print("<xs:element ");
+				if (col.isNillable()) {
+					print("minOccurs=\"0\" ");
+				}
+				print("name=\"c" + columnIndex + "\" ");
+				print("type=\"" + xsdType + "\"");
+				print("/>\n");
 			} catch (ModuleException e) {
 				logger.error("An error occurred while getting the XSD type "
 						+ "of column c" + columnIndex);
@@ -1130,7 +1139,6 @@ public class SIARDExportModule implements DatabaseHandler {
 				logger.error("An error occurred while getting the XSD type "
 						+ "of column c" + columnIndex);
 			}
-			print("/>\n");
 			columnIndex++;
 		}
 	}

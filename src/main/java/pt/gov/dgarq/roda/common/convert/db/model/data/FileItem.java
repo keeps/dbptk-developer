@@ -34,7 +34,7 @@ public class FileItem {
 			file = File.createTempFile("roda", null);
 			file.deleteOnExit();
 		} catch (IOException e) {
-			throw new ModuleException("Error creating temporary file");
+			throw new ModuleException("Error creating temporary file", e);
 		}
 	}
 
