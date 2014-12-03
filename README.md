@@ -12,11 +12,11 @@ The toolkit is created as a platform that uses input and output modules. Each mo
 
 1. Download the [latest stable release](https://github.com/keeps/db-preservation-toolkit/releases).
 2. Unzip and open the folder on a command-line terminal
-3. Build with Maven
-
-```bash
-$ mvn clean package
-```
+3. Download Oracle Database 12.1.0.1 JDBC Driver for java 6 [ojdbc6.jar](http://www.oracle.com/technetwork/database/features/jdbc/jdbc-drivers-12c-download-1958347.html)
+4. Install the jar with command:`mvn install:install-file -DgroupId=com.oracle -DartifactId=ojdbc6 -Dversion=12.1.0.1 -Dpackaging=jar -Dfile=ojdbc6.jar -DgeneratePom=true`
+5. Download DB2 JDBC driver [db2jcc4.jar](https://www14.software.ibm.com/webapp/iwm/web/preLogin.do?source=swg-idsdjs)
+6. Extract the db2jcc4.jar from the downloaded zip and install with the command:`mvn install:install-file -DgroupId=com.ibm -DartifactId=db2jcc4 -Dversion=4.16.53 -Dpackaging=jar -Dfile=db2jcc4.jar -DgeneratePom=true`
+5. Build with Maven `mvn clean package`
 
 Binaries will be on the `target` folder
 
@@ -35,22 +35,17 @@ $ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar
 Synopsys: java -jar roda-common-convert-db.jar -i IMPORT_MODULE [options...] -o EXPORT_MODULE [options...]
 Available import modules:
 	SQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt
-	PostgreSQLJDBC hostName database [port] username password encrypt
+	PostgreSQLJDBC hostName [port] database username password encrypt
 	MySQLJDBC hostName [port] database username password
-	Oracle8i hostName port database username password <- untested!
-	MSAccess database.mdb
-	ODBC source [username password]
-	DBML baseDir
+	Oracle12cJDBC hostName port database username password
+	DB2JDBC hostname port database username password
+	SIARD dir
 Available export modules:
 	SQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt
-	PostgreSQLJDBC hostName database [port] username password encrypt
+	PostgreSQLJDBC hostName [port] database username password encrypt
 	MySQLJDBC hostName [port] database username password
-	PhpMyAdmin hostName [port] database username password
-	DBML baseDir
-	PostgreSQLFile sqlFile <- SQL file optimized for PostgreSQL
-	MySQLFile sqlFile <- SQL file optimized for MySQL
-	SQLServerFile sqlFile <- SQL file optimized for SQL Server
-	GenericSQLFile sqlFile <- generic SQL file
+	DB2JDBC hostname port database username password
+	SIARD dir
 ```
 
 You have to select an input and an output module, providing for each its configuration.
@@ -61,7 +56,7 @@ For example, if you want to connect to a live MySQL database and export its cont
 ```bash
 $ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar \
 -i MySQLJDBC localhost example_db username p4ssw0rd \
--o DBML example_db_dbml_export
+-o SIARD example_db_siard_export
 ```
 
 ## Related publications & presentations

@@ -7,10 +7,14 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 
+import org.apache.log4j.Logger;
+
 import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.SimpleCell;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.InvalidDataException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
+import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeDateTime;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 import pt.gov.dgarq.roda.common.convert.db.modules.jdbc.out.JDBCExportModule;
@@ -20,7 +24,11 @@ import pt.gov.dgarq.roda.common.convert.db.modules.sqlServer.SQLServerHelper;
  * @author Luis Faria
  * 
  */
-public class SqlServerExportModule extends JDBCExportModule {
+public class SQLServerJDBCExportModule extends JDBCExportModule {
+
+	private final Logger logger = 
+			Logger.getLogger(SQLServerJDBCExportModule.class);
+
 	/**
 	 * Create a new Microsoft SQL Server export module using the default
 	 * instance.
@@ -38,7 +46,7 @@ public class SqlServerExportModule extends JDBCExportModule {
 	 * @param encrypt
 	 *            true to use encryption in the connection
 	 */
-	public SqlServerExportModule(String serverName, String database,
+	public SQLServerJDBCExportModule(String serverName, String database,
 			String username, String password, boolean integratedSecurity,
 			boolean encrypt) {
 		super("com.microsoft.sqlserver.jdbc.SQLServerDriver",
@@ -69,7 +77,7 @@ public class SqlServerExportModule extends JDBCExportModule {
 	 * @param encrypt
 	 *            true to use encryption in the connection
 	 */
-	public SqlServerExportModule(String serverName, String instanceName,
+	public SQLServerJDBCExportModule(String serverName, String instanceName,
 			String database, String username, String password,
 			boolean integratedSecurity, boolean encrypt) {
 		super("com.microsoft.sqlserver.jdbc.SQLServerDriver",
@@ -99,7 +107,7 @@ public class SqlServerExportModule extends JDBCExportModule {
 	 * @param encrypt
 	 *            true to use encryption in the connection
 	 */
-	public SqlServerExportModule(String serverName, int portNumber,
+	public SQLServerJDBCExportModule(String serverName, int portNumber,
 			String database, String username, String password,
 			boolean integratedSecurity, boolean encrypt) {
 		super("com.microsoft.sqlserver.jdbc.SQLServerDriver",
@@ -137,5 +145,18 @@ public class SqlServerExportModule extends JDBCExportModule {
 			super.handleDataCell(ps, index, cell, type);
 		}
 		return ret;
+	}
+
+	/**
+	 * Although a it's not a schema, a 'public' object exists on SQLServer. 
+	 * A new schema name is assigned.
+	 */
+	protected void handleSchemaStructure(SchemaStructure schema)
+			throws ModuleException, UnknownTypeException {
+		logger.debug("Handling schema structure " + schema.getName());
+		if (schema.getName().equalsIgnoreCase("public")) {
+			existingSchemas.add("public");
+		}
+		super.handleSchemaStructure(schema);
 	}
 }

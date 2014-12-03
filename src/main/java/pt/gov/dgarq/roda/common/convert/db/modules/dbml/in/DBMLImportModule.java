@@ -40,6 +40,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.DatabaseStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ForeignKey;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.PrimaryKey;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeArray;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeStructure;
@@ -110,7 +111,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 	}
 
 	/**
-	 * DBML import modile constructor using a base directory
+	 * DBML import module constructor using a base directory
 	 * 
 	 * @param baseDir
 	 *            the base directory, all files are inside this directory, the
@@ -122,7 +123,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 	}
 
 	/**
-	 * DBML import modile constructor using a base directory and specifying the
+	 * DBML import module constructor using a base directory and specifying the
 	 * DBML file name
 	 * 
 	 * @param baseDir
@@ -212,10 +213,14 @@ public class DBMLImportModule implements DatabaseImportModule {
 			throws UnknownTypeException, ModuleException {
 		DBMLSAXHandler dbmlSAXHandler = new DBMLSAXHandler(binLookup, handler);
 		try {
+			logger.debug("Init Database");
+			handler.initDatabase();
 			saxParser.parse(dbml, dbmlSAXHandler);
 			if (dbmlSAXHandler.getErrors().size() > 0) {
 				throw new ModuleException(dbmlSAXHandler.getErrors());
 			}
+			logger.debug("Finish Database");
+			handler.finishDatabase();
 		} catch (SAXException e) {
 			throw new ModuleException("Error parsing DBML", e);
 		} catch (IOException e) {
@@ -314,7 +319,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 		 * Get all the errors that occured while parsing the DBML file and
 		 * sending to the database handler
 		 * 
-		 * @return A map of errors, where the key is the erros message and the
+		 * @return A map of errors, where the key is the errors message and the
 		 *         value is the exception or null if there was no exception
 		 */
 		public Map<String, Throwable> getErrors() {
@@ -322,19 +327,11 @@ public class DBMLImportModule implements DatabaseImportModule {
 		}
 
 		public void startDocument() {
-			try {
-				handler.initDatabase();
-			} catch (ModuleException e) {
-				errors.put("Error in document start", e);
-			}
+			// nothing do to
 		}
 
 		public void endDocument() {
-			try {
-				handler.finishDatabase();
-			} catch (ModuleException e) {
-				errors.put("Error in document end", e);
-			}
+			// nothing to do
 		}
 
 		public void startElement(String uri, String localName, String qname,
@@ -348,11 +345,11 @@ public class DBMLImportModule implements DatabaseImportModule {
 			} else if (qname.equals("structure")) {
 				// nothing to do
 			} else if (qname.equals("table")) {
-				TableStructure table = createTableStructure(attr);
-				structure.getTables().add(table);
+				TableStructure table = setSchemaByTableId(attr);
 				if (currentTableStructure != null) {
-					errors.put("table not closed: "
-							+ currentTableStructure.getId(), null);
+					errors.put(
+							"table not closed: "
+									+ currentTableStructure.getId(), null);
 				}
 				// TODO check if current column and type are null
 				currentTableStructure = table;
@@ -401,9 +398,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 					}
 					currentPKey = pkey;
 				} else {
-					errors
-							.put("pkey found outside table structure scope",
-									null);
+					errors.put("pkey found outside table structure scope", null);
 				}
 			} else if (qname.equals("field")) {
 				String fieldName = attr.getValue("name");
@@ -418,9 +413,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 				if (currentTableStructure != null) {
 					currentTableStructure.getForeignKeys().add(fkey);
 				} else {
-					errors
-							.put("fkey found outside table structure scope",
-									null);
+					errors.put("fkey found outside table structure scope", null);
 				}
 			} else if (qname.equals("data")) {
 				// nothing to do
@@ -432,6 +425,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 							+ " opened without tableData " + currentTableDataId
 							+ " being closed", null);
 					try {
+						logger.debug("handleDataCloseTable: start elem");
 						handler.handleDataCloseTable(currentTableDataId);
 					} catch (ModuleException e) {
 						errors.put("Error handling close of table "
@@ -439,20 +433,20 @@ public class DBMLImportModule implements DatabaseImportModule {
 					}
 				}
 				try {
+					logger.debug("handleDataOpenTable");
 					handler.handleDataOpenTable(tableDataId);
 					currentTableDataId = tableDataId;
 				} catch (ModuleException e) {
-					errors
-							.put("Error handling open of table " + tableDataId,
-									e);
+					errors.put("Error handling open of table " + tableDataId, e);
 				}
 
 			} else if (qname.equals("row")) {
 				Row row = new Row();
 				row.setIndex(parseInteger(attr.getValue("id")).intValue());
 				if (currentRow != null) {
-					errors.put("Row not closed, index: "
-							+ currentRow.getIndex(), null);
+					errors.put(
+							"Row not closed, index: " + currentRow.getIndex(),
+							null);
 				}
 				currentRow = row;
 			} else if (qname.equals("cell")) {
@@ -533,9 +527,8 @@ public class DBMLImportModule implements DatabaseImportModule {
 		public void ignorableWhitespace(char[] ch, int start, int length)
 				throws SAXException {
 			if (currentSimpleCell != null) {
-				logger
-						.warn("found ignorable whitespace inside a simple cell: '"
-								+ new String(ch, start, length) + "'");
+				logger.warn("found ignorable whitespace inside a simple cell: '"
+						+ new String(ch, start, length) + "'");
 			}
 		}
 
@@ -570,9 +563,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 					}
 					currentType.remove(currentType.size() - 1);
 				} else {
-					errors
-							.put("Type closed with no type opened in scope",
-									null);
+					errors.put("Type closed with no type opened in scope", null);
 				}
 			} else if (qname.equals("keys")) {
 				// nothing to do
@@ -596,13 +587,13 @@ public class DBMLImportModule implements DatabaseImportModule {
 					try {
 						handler.handleDataRow(currentRow);
 					} catch (InvalidDataException e) {
-						errors.put("Error handling row "
-								+ currentRow.getIndex() + " of table "
-								+ currentTableDataId, e);
+						errors.put(
+								"Error handling row " + currentRow.getIndex()
+										+ " of table " + currentTableDataId, e);
 					} catch (ModuleException e) {
-						errors.put("Error handling row "
-								+ currentRow.getIndex() + " of table "
-								+ currentTableDataId, e);
+						errors.put(
+								"Error handling row " + currentRow.getIndex()
+										+ " of table " + currentTableDataId, e);
 					}
 					currentRow = null;
 				} else {
@@ -713,6 +704,25 @@ public class DBMLImportModule implements DatabaseImportModule {
 			}
 		}
 
+		private TableStructure setSchemaByTableId(Attributes attr) {
+			String[] parts = attr.getValue("id").split("\\.");
+			if (parts.length < 2) {
+				errors.put("Invalid table id", null);
+			}
+			String schemaName = parts[0];
+			SchemaStructure schema = structure.getSchemaByName(schemaName);
+			if (schema == null) {
+				schema = new SchemaStructure();
+				structure.getSchemas().add(schema);
+			}
+			schema.setName(schemaName);
+			TableStructure table = createTableStructure(attr);
+			table.setSchema(schema);
+			schema.getTables().add(table);
+
+			return table;
+		}
+
 		private TableStructure createTableStructure(Attributes attr) {
 			TableStructure table = new TableStructure();
 			table.setId(attr.getValue("id"));
@@ -733,16 +743,17 @@ public class DBMLImportModule implements DatabaseImportModule {
 		private Type createType(String qname, Attributes attr) {
 			Type type = null;
 			if (qname.equals("simpleTypeString")) {
-				type = new SimpleTypeString(parseInteger(attr
-						.getValue("length")), parseBoolean(attr
-						.getValue("variableLegth")), attr.getValue("charSet"));
+				type = new SimpleTypeString(
+						parseInteger(attr.getValue("length")),
+						parseBoolean(attr.getValue("variableLegth")),
+						attr.getValue("charSet"));
 			} else if (qname.equals("simpleTypeNumericExact")) {
-				type = new SimpleTypeNumericExact(parseInteger(attr
-						.getValue("precision")), parseInteger(attr
-						.getValue("scale")));
+				type = new SimpleTypeNumericExact(
+						parseInteger(attr.getValue("precision")),
+						parseInteger(attr.getValue("scale")));
 			} else if (qname.equals("simpleTypeNumericApproximate")) {
-				type = new SimpleTypeNumericApproximate(parseInteger(attr
-						.getValue("precision")));
+				type = new SimpleTypeNumericApproximate(
+						parseInteger(attr.getValue("precision")));
 			} else if (qname.equals("simpleTypeBoolean")) {
 				type = new SimpleTypeBoolean();
 			} else if (qname.equals("simpleTypeEnumeration")) {
@@ -754,15 +765,14 @@ public class DBMLImportModule implements DatabaseImportModule {
 					((SimpleTypeEnumeration) currentType
 							.get(currentType.size() - 1)).getOptions().add(
 							optionName);
-
 				} else {
 					errors.put("Enumeration option element must be inside an"
 							+ " enumeration element", null);
 				}
 			} else if (qname.equals("simpleTypeDateTime")) {
-				type = new SimpleTypeDateTime(parseBoolean(attr
-						.getValue("timeDefined")), parseBoolean(attr
-						.getValue("timeZoneDefined")));
+				type = new SimpleTypeDateTime(
+						parseBoolean(attr.getValue("timeDefined")),
+						parseBoolean(attr.getValue("timeZoneDefined")));
 			} else if (qname.equals("simpleTypeInterval")) {
 				String intervalType = attr.getValue("type");
 				if (intervalType.equals("START_END")) {
@@ -784,8 +794,8 @@ public class DBMLImportModule implements DatabaseImportModule {
 
 			} else if (qname.equals("simpleTypeBinary")) {
 				type = new SimpleTypeBinary(
-						attr.getValue("formatRegistryName"), attr
-								.getValue("formatRegistryKey"));
+						attr.getValue("formatRegistryName"),
+						attr.getValue("formatRegistryKey"));
 			} else if (qname.equals("composedTypeArray")) {
 				type = new ComposedTypeArray();
 			} else if (qname.equals("composedTypeStructure")) {
@@ -793,7 +803,45 @@ public class DBMLImportModule implements DatabaseImportModule {
 			} else {
 				errors.put("Unrecognized type: " + qname, null);
 			}
+			
+			try {
+				type.setSql99TypeName(convertDBMLTypeToSql99Type(type));
+			} catch (UnknownTypeException e) {
+				errors.put("Could not define the SQL99TypeName for " 
+						+ type.getOriginalTypeName(), null);
+			}
 			return type;
+		}
+
+		private String convertDBMLTypeToSql99Type(Type type)
+				throws UnknownTypeException {
+			String ret = null;
+			if (type instanceof SimpleTypeString) {
+				SimpleTypeString string = (SimpleTypeString) type;
+				if (string.isLengthVariable()) {
+					ret = "CHARACTER VARYING";
+				} else {
+					ret = "CHARACTER";
+				}
+			} else if (type instanceof SimpleTypeNumericExact) {
+				ret = "DECIMAL";
+			} else if (type instanceof SimpleTypeNumericApproximate) {
+				ret = "FLOAT";
+			} else if (type instanceof SimpleTypeBoolean) {
+				ret = "BOOLEAN";
+			} else if (type instanceof SimpleTypeDateTime) {
+				SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
+				if (dateTime.getTimeDefined()) {
+					ret = "TIMESTAMP";
+				} else {
+					ret = "DATE";
+				}
+			} else if (type instanceof SimpleTypeBinary) {
+				ret = "BIT VARYING";
+			} else {
+				throw new UnknownTypeException(type.toString());
+			}
+			return ret;
 		}
 
 		private ForeignKey createForeignKey(Attributes attr) {

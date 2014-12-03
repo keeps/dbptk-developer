@@ -16,6 +16,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ForeignKey;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.PrimaryKey;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeArray;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeStructure;
@@ -34,6 +35,26 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
  * 
  */
 public class SQLHelper {
+	
+	// private Logger logger = Logger.getLogger(SQLHelper.class);
+	
+	private String name = "";
+
+	private String startQuote = "";
+	
+	private String endQuote = "";
+	
+	public String getName() {
+		return name;
+	}
+	
+	public String getStartQuote() {
+		return startQuote;
+	}
+
+	public String getEndQuote() {
+		return endQuote;
+	}
 
 	/**
 	 * SQL to get all rows from a table
@@ -41,9 +62,10 @@ public class SQLHelper {
 	 * @param tableName
 	 *            the table name
 	 * @return the SQL
+	 * @throws ModuleException 
 	 */
-	public String selectTableSQL(String tableName) {
-		return "SELECT * FROM " + escapeTableName(tableName);
+	public String selectTableSQL(String tableId) throws ModuleException {
+		return "SELECT * FROM " + escapeTableId(tableId);
 	}
 
 	/**
@@ -58,7 +80,18 @@ public class SQLHelper {
 	}
 
 	/**
-	 * SQL to create a table from table struture
+	 * SQL to create a schema
+	 * 
+	 * @param schema
+	 * 			  the schema structure
+	 * @return the SQL
+	 */
+	public String createSchemaSQL(SchemaStructure schema) {
+		return "CREATE SCHEMA " + escapeSchemaName(schema.getName());
+	}
+	
+	/**
+	 * SQL to create a table from table structure
 	 * 
 	 * @param table
 	 *            the table structure
@@ -66,10 +99,8 @@ public class SQLHelper {
 	 * @throws UnknownTypeException
 	 */
 	public String createTableSQL(TableStructure table)
-			throws UnknownTypeException {
-		return "CREATE TABLE "
-				+ escapeTableName(table.getName())
-				+ " ("
+			throws UnknownTypeException, ModuleException {	
+		return "CREATE TABLE " + escapeTableId(table.getId()) + " ("
 				+ createColumnsSQL(table.getColumns(), table.getPrimaryKey(),
 						table.getForeignKeys()) + ")";
 	}
@@ -105,7 +136,7 @@ public class SQLHelper {
 
 	/**
 	 * Convert a column type (from model) to the database type. This method
-	 * should be overriden for each specific DBMS export module implementation
+	 * should be overridden for each specific DBMS export module implementation
 	 * to use the specific data types.
 	 * 
 	 * @param type
@@ -124,22 +155,57 @@ public class SQLHelper {
 				ret = "char(" + string.getLength() + ")";
 			}
 		} else if (type instanceof SimpleTypeNumericExact) {
-			SimpleTypeNumericExact numericExact = (SimpleTypeNumericExact) type;
-			ret = "numeric(" + numericExact.getPrecision() + ","
-					+ numericExact.getScale() + ")";
+			if (type.getSql99TypeName().equalsIgnoreCase("INTEGER")) {
+				ret = "integer";
+			} else if (type.getSql99TypeName().equalsIgnoreCase("SMALLINT")) {
+				ret = "smallint";
+			} else if (type.getSql99TypeName().equalsIgnoreCase("DECIMAL")){
+				ret = "decimal";
+					if (getNumericExactPrecision(type, 30) > 0) {
+						ret += "(" + getNumericExactPrecision(type, 30);  
+						if (getNumericExactScale(type, 30) > 0) {
+							ret += "," + getNumericExactScale(type, 30);
+						}
+						ret += ")";
+					}
+			} else {
+				ret = "numeric";
+				if (getNumericExactPrecision(type, 30) > 0) {
+					ret += "(" + getNumericExactPrecision(type, 30);  
+					if (getNumericExactScale(type, 30) > 0) {
+						ret += "," + getNumericExactScale(type, 30);
+					}
+					ret += ")";
+				}
+			}
 		} else if (type instanceof SimpleTypeNumericApproximate) {
-			SimpleTypeNumericApproximate numericApproximate = (SimpleTypeNumericApproximate) type;
-			ret = "float(" + numericApproximate.getPrecision() + ")";
+			SimpleTypeNumericApproximate numericApproximate = 
+					(SimpleTypeNumericApproximate) type;
+			Integer precision = numericApproximate.getPrecision();
+			if (precision > 53) {
+				precision = 53;
+			}
+			ret = "float(" + precision + ")";
 		} else if (type instanceof SimpleTypeBoolean) {
 			ret = "boolean";
 		} else if (type instanceof SimpleTypeDateTime) {
-			throw new UnknownTypeException("DateTime type not yet supported");
+			SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
+			if (!dateTime.getTimeDefined() && !dateTime.getTimeZoneDefined()) {
+				ret = "date";
+			} else {
+				if (type.getSql99TypeName().equalsIgnoreCase("TIME")) {
+					ret = "time";
+				} else {
+					ret = "timestamp";
+				}
+			}
 		} else if (type instanceof SimpleTypeInterval) {
 			throw new UnknownTypeException("Interval type not yet supported");
 		} else if (type instanceof SimpleTypeEnumeration) {
-			throw new UnknownTypeException("Enumeration type not yet supported");
+			throw new UnknownTypeException(
+					"Enumeration type not yet supported");
 		} else if (type instanceof SimpleTypeBinary) {
-			throw new UnknownTypeException("Binary type not yet supported");
+			ret = "blob";
 		} else if (type instanceof ComposedTypeArray) {
 			throw new UnknownTypeException("Array type not yet supported");
 		} else if (type instanceof ComposedTypeStructure) {
@@ -150,6 +216,33 @@ public class SQLHelper {
 		}
 		return ret;
 	}
+	
+	protected Integer getNumericExactPrecision(Type type, Integer max) {
+		SimpleTypeNumericExact numericExact = (SimpleTypeNumericExact) type;
+		Integer precision;
+		if (max == null) {
+			precision = numericExact.getPrecision();
+		} else {
+			precision = Math.min(numericExact.getPrecision(), max);
+		}
+		return precision;
+	}
+	
+	protected Integer getNumericExactScale(Type type, Integer max) {
+		SimpleTypeNumericExact numericExact = (SimpleTypeNumericExact) type;
+		Integer scale;
+		if (max == null || numericExact.getScale() == 0) {
+			scale = numericExact.getScale();
+		} else {
+			scale = numericExact.getScale();
+			if (scale < 0) {
+				scale = 0;
+			}
+			scale = scale - numericExact.getPrecision() 
+					+ getNumericExactPrecision(type, max);
+		}
+		return scale;
+	}
 
 	/**
 	 * SQL to create the primary key, altering the already created table
@@ -159,11 +252,13 @@ public class SQLHelper {
 	 * @param pkey
 	 *            the primary key
 	 * @return the SQL
+	 * @throws ModuleException 
 	 */
-	public String createPrimaryKeySQL(String tableName, PrimaryKey pkey) {
+	public String createPrimaryKeySQL(String tableId, PrimaryKey pkey) 
+			throws ModuleException {
 		String ret = null;
 		if (pkey != null) {
-			ret = "ALTER TABLE " + escapeTableName(tableName)
+			ret = "ALTER TABLE " + escapeTableId(tableId)
 					+ " ADD PRIMARY KEY (";
 			boolean comma = false;
 			for (String field : pkey.getColumnNames()) {
@@ -184,14 +279,37 @@ public class SQLHelper {
 	 * @param fkey
 	 *            the foreign key
 	 * @return the SQL
+	 * @throws ModuleException 
 	 */
-	public String createForeignKeySQL(String tableName, ForeignKey fkey) {
-		return "ALTER TABLE " + escapeTableName(tableName)
-				+ " ADD FOREIGN KEY (" + escapeColumnName(fkey.getName())
-				+ ") REFERENCES " + escapeTableName(fkey.getRefTable()) + "("
-				+ escapeColumnName(fkey.getRefColumn()) + ")";
+	public String createForeignKeySQL(TableStructure table, ForeignKey fkey) 
+			throws ModuleException {
+		String ret =  "ALTER TABLE " + escapeTableId(table.getId())
+				+ " ADD FOREIGN KEY (";
+		
+				for (int i = 0; i < fkey.getReferences().size(); i++) {
+					if (i > 0) {
+						ret += ", ";
+					}
+					ret += escapeColumnName(
+							fkey.getReferences().get(i).getColumn());
+				}
+				
+				ret += ") REFERENCES " 
+				+ escapeTableName(fkey.getReferencedSchema()) + "." 
+				+ escapeTableName(fkey.getReferencedTable()) + " (";
+				
+				for (int i = 0; i < fkey.getReferences().size(); i++) {
+					if (i > 0) {
+						ret += ", ";
+					}
+					ret += escapeColumnName(
+							fkey.getReferences().get(i).getReferenced()); 
+				}
+				
+				ret += ")";
+			return ret;
 	}
-
+	
 	/**
 	 * Interface of handlers that will transform a cell in SQL
 	 * 
@@ -232,8 +350,9 @@ public class SQLHelper {
 			ModuleException {
 		ByteArrayOutputStream sqlOut = new ByteArrayOutputStream();
 		try {
-			sqlOut.write(("INSERT INTO " + escapeTableName(table.getName()) + " VALUES (")
-					.getBytes());
+			sqlOut.write(("INSERT INTO " 
+					+ escapeTableId(table.getId()) 
+					+ " VALUES (").getBytes());
 			int i = 0;
 			Iterator<ColumnStructure> columnIt = table.getColumns().iterator();
 			for (Cell cell : row.getCells()) {
@@ -256,10 +375,12 @@ public class SQLHelper {
 	 * @param table
 	 *            the table structure
 	 * @return the prepared SQL statement
+	 * @throws ModuleException 
 	 * 
 	 */
-	public String createRowSQL(TableStructure table) {
-		String ret = "INSERT INTO " + escapeTableName(table.getName()) + " VALUES (";
+	public String createRowSQL(TableStructure table) throws ModuleException {
+		String ret = "INSERT INTO " + escapeTableId(table.getId()) 
+				+ " VALUES (";
 		for (int i = 0; i < table.getColumns().size(); i++) {
 			if (i > 0) {
 				ret += ", ";
@@ -272,15 +393,99 @@ public class SQLHelper {
 	}
 
 	protected String escapeDatabaseName(String database) {
-		return database;
+		return getStartQuote() + database + getEndQuote();
 	}
 
+	public String escapeSchemaName(String schema) {
+		return getStartQuote() + schema + getEndQuote();
+	}
+		
+	protected String escapeTableId(String tableId) throws ModuleException {
+		String[] parts = splitTableId(tableId);
+		String schema = parts[0];
+		String table = parts[1];
+		return  escapeSchemaName(schema) + "." + escapeTableName(table); 		
+	}
+	
 	protected String escapeTableName(String table) {
-		return table;
+		return getStartQuote() + table + getEndQuote();
 	}
 
 	protected String escapeColumnName(String column) {
-		return column;
+		return getStartQuote() + column + getEndQuote();
+	}
+	
+	protected String[] splitTableId(String tableId) throws ModuleException {
+		String[] parts = tableId.split("\\.");
+		if (parts.length < 2) {
+			throw new ModuleException(
+					"An error ocurred while spliting table id: "
+					+ "tableId is malformed");
+		}
+		return parts;	
 	}
 
+	/**
+	 * 
+	 * @param schemaName
+	 * 			  The schema name
+	 * @param tableName
+	 * 			  The table name
+	 * @return the SQL to get check constraints
+	 */
+	public String getCheckConstraintsSQL(String schemaName, String tableName) {
+		return null;
+	}
+	
+	/**
+	 * 
+	 * @param schemaName
+	 * 			  The schema name
+	 * @param tableName
+	 * 			  The table name
+	 * @return the SQL to get table triggers
+	 */
+	public String getTriggersSQL(String schemaName, String tableName) {
+		return null;
+	}
+	
+	/**
+	 * 
+	 * @param dbName
+	 * 			  the database name 
+	 * @return the SQL to get all users
+	 */
+	public String getUsersSQL(String dbName) {
+		return null;
+	}
+	
+	/**
+	 * 
+	 * @return the SQL to get all roles
+	 * 
+	 */
+	public String getRolesSQL() {
+		return null;
+	}
+	
+	/**
+	 * 
+	 * @param database
+	 * 			  the database name required for some DBMSs
+	 * 
+	 * @return the SQL to get all databases
+	 */
+	public String getDatabases(String database) {
+		return null;
+	}
+
+	/**
+	 * 
+	 * @param database
+	 * 			  the database name 
+	 * @return the SQL to drop the database
+	 */
+	public String dropDatabase(String database) {
+		return null;
+	}
 }

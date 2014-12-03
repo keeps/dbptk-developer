@@ -3,3 +3,9 @@ target/
 .classpath
 .project
 .settings/
+
+**/.DS_Store
+src/test/
+
+log/
+exported-dbs/

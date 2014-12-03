@@ -36,7 +36,7 @@ public class ModuleException extends Exception {
 	}
 
 	/**
-	 * Create a generic module exception specifing the cause
+	 * Create a generic module exception specifying the cause
 	 * 
 	 * @param cause
 	 *            the underlying error
@@ -46,7 +46,7 @@ public class ModuleException extends Exception {
 	}
 
 	/**
-	 * Create a generic module exception specifing a message and the cause
+	 * Create a generic module exception specifying a message and the cause
 	 * 
 	 * @param message
 	 *            the error message

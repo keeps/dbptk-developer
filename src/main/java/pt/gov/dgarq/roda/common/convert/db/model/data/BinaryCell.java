@@ -20,6 +20,18 @@ public class BinaryCell extends Cell {
 
 	private List<FileFormat> formatHits;
 
+	
+	/**
+	 * 
+	 * @param id
+	 * 			  the cell id, equal to 'tableId.columnId.rowIndex'
+	 */
+	public BinaryCell(String id) {
+		super(id);
+		fileItem = null;
+		formatHits = new ArrayList<FileFormat>();
+	}
+	
 	/**
 	 * Binary cell constructor
 	 * 

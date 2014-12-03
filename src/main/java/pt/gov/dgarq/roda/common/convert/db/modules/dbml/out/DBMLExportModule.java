@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
+import java.util.Set;
 
 import org.apache.commons.transaction.util.FileHelper;
 import org.apache.log4j.Logger;
@@ -30,6 +31,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.DatabaseStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ForeignKey;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.PrimaryKey;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeArray;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.ComposedTypeStructure;
@@ -261,6 +263,10 @@ public class DBMLExportModule implements DatabaseHandler {
 
 	}
 
+	public void setIgnoredSchemas(Set<String> ignoredSchemas) {
+		// nothing to do;
+	}
+
 	/**
 	 * Export the database structure to DBML
 	 * 
@@ -272,7 +278,7 @@ public class DBMLExportModule implements DatabaseHandler {
 	 */
 	private void exportStructure(DatabaseStructure structure)
 			throws UnknownTypeException, UnsupportedEncodingException,
-			IOException {
+			IOException, ModuleException {
 		logger.debug("Exporting structure");
 		print("<db name=\"" + encode(structure.getName()) + "\"");
 
@@ -330,10 +336,25 @@ public class DBMLExportModule implements DatabaseHandler {
 		print(" schemaVersion=\"" + SCHEMA_VERSION + "\"");
 		print(" " + XSI_NAMESPACE_DECLARATION + ">\n");
 		print("\t<structure>\n");
-		for (TableStructure table : structure.getTables()) {
-			exportTableStructure(table);
+
+		for (SchemaStructure schema : structure.getSchemas()) {
+			if (schema.getTables() != null && schema.getTables().size() > 0) {
+				exportSchemaStructure(schema);
+			} else {
+				logger.info("Schema: '" + schema.getName() + "' was not "
+						+ "exported because it does not contain any table");
+			}
 		}
 		print("\t</structure>\n");
+	}
+
+	private void exportSchemaStructure(SchemaStructure schema)
+			throws UnsupportedEncodingException, UnknownTypeException,
+			IOException, ModuleException {
+		logger.debug("Starting to get TableStructure");
+		for (TableStructure table : schema.getTables()) {
+			exportTableStructure(table);
+		}
 	}
 
 	/**
@@ -347,7 +368,7 @@ public class DBMLExportModule implements DatabaseHandler {
 	 */
 	private void exportTableStructure(TableStructure table)
 			throws UnknownTypeException, UnsupportedEncodingException,
-			IOException {
+			IOException, ModuleException {
 		print("\t\t<table id=\"" + encode(table.getId()) + "\" name=\""
 				+ encode(table.getName()) + "\"");
 		if (table.getDescription() != null) {
@@ -480,6 +501,11 @@ public class DBMLExportModule implements DatabaseHandler {
 						+ encode(binary.getFormatRegistryKey()) + "\"");
 			}
 			print("/>\n");
+
+			// } else if (type instanceof SimpleTypeXML) {
+			// // SimpleTypeXML xmlType = (SimpleTypeXML) type;
+			// print("<simpleTypeXML/>\n");
+			//
 		} else if (type instanceof ComposedTypeArray) {
 			ComposedTypeArray array = (ComposedTypeArray) type;
 			print("<composedTypeArray>\n");
@@ -513,11 +539,20 @@ public class DBMLExportModule implements DatabaseHandler {
 
 	}
 
+	/*
+	 * TODO add support to multiple columns references (DBML must support it
+	 * first)
+	 */
 	private void exportForeignKey(ForeignKey fk)
-			throws UnsupportedEncodingException, IOException {
+			throws UnsupportedEncodingException, IOException, ModuleException {
+		if (fk.getReferences().size() > 1) {
+			throw new ModuleException(
+					"DBML does not support  composite foreign keys yet.");
+		}
 		print("\t\t\t<fkey id=\"" + encode(fk.getId()) + "\" name=\""
-				+ encode(fk.getName()) + "\" in=\"" + encode(fk.getRefTable())
-				+ "\" ref=\"" + encode(fk.getRefColumn()) + "\"/>\n");
+				+ encode(fk.getName()) + "\" in=\""
+				+ encode(fk.getReferencedTable()) + "\" ref=\""
+				+ encode(fk.getReferences().get(0).getColumn()) + "\"/>\n");
 
 	}
 

@@ -3,6 +3,7 @@
  */
 package pt.gov.dgarq.roda.common.convert.db.modules.mySql.out;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,6 +17,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.DatabaseStructure;
+import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.SimpleTypeBinary;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
@@ -34,14 +36,13 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 	 */
 	private static final String DEFAULT_PHPMYADMIN_DATABASE = "phpmyadmin";
 
-	private static final String DEFAULT_COLUMN_INFO_TABLE = "pma_column_info";
-
-	private String database;
+	private static final String DEFAULT_COLUMN_INFO_TABLE = "pma__column_info";
 
 	private String phpmyadmin_database;
 
 	private String column_info_table;
-
+	
+	
 	/**
 	 * PhpMyAdmin export module constructor
 	 * 
@@ -57,9 +58,10 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 	public PhpMyAdminExportModule(String hostname, String database,
 			String username, String password) {
 		super(hostname, database, username, password);
-		this.database = database;
+		
 		phpmyadmin_database = DEFAULT_PHPMYADMIN_DATABASE;
 		column_info_table = DEFAULT_COLUMN_INFO_TABLE;
+		schemaSuffix = "";
 	}
 
 	/**
@@ -79,9 +81,10 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 	public PhpMyAdminExportModule(String hostname, int port, String database,
 			String username, String password) {
 		super(hostname, port, database, username, password);
-		this.database = database;
+		
 		phpmyadmin_database = DEFAULT_PHPMYADMIN_DATABASE;
 		column_info_table = DEFAULT_COLUMN_INFO_TABLE;
+		schemaSuffix = "";
 	}
 
 	/**
@@ -106,28 +109,42 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 			String username, String password, String phpMyAdminDatabase,
 			String columnInfoTable) {
 		super(hostname, port, database, username, password);
-		this.database = database;
+		
 		phpmyadmin_database = phpMyAdminDatabase;
 		column_info_table = columnInfoTable;
+		schemaSuffix = "";
 	}
 
 	public void initDatabase() throws ModuleException {
 		try {
 			logger.debug("Cleaning...");
-			getConnection(MYSQL_ADMIN_DATABASE).createStatement()
-					.executeUpdate("DROP DATABASE IF EXISTS " + database);
-			getConnection(phpmyadmin_database).createStatement().executeUpdate(
-					"DELETE FROM " + column_info_table + " WHERE db_name = '"
-							+ database + "'");
-			logger.debug("Creating database " + database);
-			// create database
-			getConnection(MYSQL_ADMIN_DATABASE).createStatement()
-					.executeUpdate(sqlHelper.createDatabaseSQL(database));
+			super.initDatabase();
+			getConnection(phpmyadmin_database, 
+					createConnectionURL(phpmyadmin_database)).createStatement()
+					.executeUpdate(
+					"DELETE FROM " + column_info_table + " WHERE db_name LIKE '"
+							+ database + "\\_%'");
 		} catch (SQLException e) {
 			throw new ModuleException("Error creating database " + database, e);
 		}
 	}
-
+	
+	public Connection getConnection(String databaseName) 
+			throws ModuleException {
+		Connection connection = null;
+		if (!connections.containsKey(databaseName)) {
+			try {
+				super.getConnection(databaseName, 
+						createConnectionURL(databaseName));
+			} catch (ModuleException e) {
+				throw new ModuleException("Error getting connection", e);
+			}
+		} else {
+			connection = connections.get(databaseName);
+		}
+		return connection;
+	}
+	
 	public void handleStructure(DatabaseStructure structure)
 			throws ModuleException, UnknownTypeException {
 		super.handleStructure(structure);
@@ -139,39 +156,42 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 						.createStatement();
 				List<PreparedStatement> statements = new ArrayList<PreparedStatement>();
 
-				for (TableStructure table : structure.getTables()) {
-					for (ColumnStructure column : table.getColumns()) {
-						Type type = column.getType();
-						String comment = createColumnComment(column
-								.getDescription(), type.getOriginalTypeName(),
-								type.getDescription());
-						String mimetype = "";
-						String transformation = "";
-						String transformation_options = "";
-						if (type instanceof SimpleTypeBinary) {
-							SimpleTypeBinary bin = (SimpleTypeBinary) type;
-							if (bin.getFormatRegistryKey() != null
-									&& bin.getFormatRegistryKey()
-											.equals("MIME")) {
-								mimetype = bin.getFormatRegistryName().replace(
-										'/', '_');
-								if (mimetype.equals("image_jpeg")) {
-									transformation = "image_jpeg__link.inc.php";
+				for (SchemaStructure schema : structure.getSchemas()) {
+					for (TableStructure table : schema.getTables()) {
+						for (ColumnStructure column : table.getColumns()) {
+							Type type = column.getType();
+							String comment = createColumnComment(column
+									.getDescription(), type.getOriginalTypeName(),
+									type.getDescription());
+							String mimetype = "";
+							String transformation = "";
+							String transformation_options = "";
+							if (type instanceof SimpleTypeBinary) {
+								SimpleTypeBinary bin = (SimpleTypeBinary) type;
+								if (bin.getFormatRegistryKey() != null
+										&& bin.getFormatRegistryKey()
+												.equals("MIME")) {
+									mimetype = bin.getFormatRegistryName().replace(
+											'/', '_');
+									if (mimetype.equals("image_jpeg")) {
+										transformation = "image_jpeg__link.inc.php";
+									} else {
+										transformation = "application_octetstream__download.inc.php";
+									}
+	
 								} else {
+									mimetype = "application_octet-stream";
 									transformation = "application_octetstream__download.inc.php";
 								}
-
-							} else {
-								mimetype = "application_octet-stream";
-								transformation = "application_octetstream__download.inc.php";
 							}
+	
+							statements.add(getInsertIntoPhpMyAdminStatement(
+									schema.getReplacedSchemaName(), 
+									table.getName(), column.getName(),
+									comment, mimetype, transformation,
+									transformation_options));
+	
 						}
-
-						statements.add(getInsertIntoPhpMyAdminStatement(
-								database, table.getName(), column.getName(),
-								comment, mimetype, transformation,
-								transformation_options));
-
 					}
 				}
 				st.executeBatch();
@@ -212,7 +232,8 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 			String mimetype, String transformation,
 			String transformation_options) throws SQLException, ModuleException {
 
-		PreparedStatement ps = getConnection()
+//		PreparedStatement ps = getConnection()
+		PreparedStatement ps = getConnection(phpmyadmin_database)
 				.prepareStatement(
 						"INSERT INTO "
 								+ phpmyadmin_database
@@ -233,7 +254,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 	}
 
 	/**
-	 * Check is a database exists
+	 * Check if a database exists
 	 * 
 	 * @param dbName
 	 *            the name of the database
@@ -243,7 +264,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 	public boolean databaseExists() throws ModuleException {
 		boolean ret;
 		try {
-			ResultSet result = getConnection(MYSQL_ADMIN_DATABASE)
+			ResultSet result = getConnection(MYSQL_CONNECTION_DATABASE)
 					.createStatement().executeQuery(
 							"SHOW DATABASES LIKE '" + database + "'");
 			ret = result.next();
@@ -265,7 +286,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 	public boolean userExists(String username) throws ModuleException {
 		boolean ret;
 		try {
-			ResultSet result = getConnection(MYSQL_ADMIN_DATABASE)
+			ResultSet result = getConnection(MYSQL_CONNECTION_DATABASE)
 					.createStatement().executeQuery(
 							"SELECT User FROM mysql.user WHERE User =  '"
 									+ username + "'");
@@ -294,7 +315,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 	protected void setUserPermissions(String username, String host,
 			String password, String database) throws ModuleException {
 		try {
-			Statement st = getConnection(MYSQL_ADMIN_DATABASE)
+			Statement st = getConnection(MYSQL_CONNECTION_DATABASE)
 					.createStatement();
 			if (userExists(username)) {
 				st.addBatch("GRANT SELECT, SHOW VIEW ON " + database

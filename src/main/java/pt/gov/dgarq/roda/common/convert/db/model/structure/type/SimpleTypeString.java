@@ -4,7 +4,7 @@
 package pt.gov.dgarq.roda.common.convert.db.model.structure.type;
 
 /**
- * Sequence of charecters drawn from sobre character repertoire (charset) This
+ * Sequence of characters drawn from character repertoire (charset) This
  * sequence is is either of fixed length, or of variable length up to some
  * implementation-defined maximum.
  * 
