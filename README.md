@@ -94,9 +94,19 @@ $ java -Xmx3g -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar ...
 
 The toolkit needs enough memory to put the table structure definition in memory (not the data) and to load each data row or row set, which might include having some BLOBs completely in memory, but this depends on the database driver implementation.
 
+**Main hard drive gets full due to temporary files**
+
+Due to the structure of some export modules (e.g. SIARD) and because we only want to pass throught the database once with minimum amount of used memory, all BLOBs and CLOBs of a database table must be kept on temporary files during the export of a table. This can cause your main disk to get full and the execution to fail. To select a diferent folder for the temporary files, e.g. on a bigger hard drive, use the option `-Djava.io.tmpdir=/path/to/tmpdir`. For example, the following command will use the folder `/media/BIGHD/tmp` as the temporary folder:
+
+```bash
+$ java -Djava.io.tmpdir=/media/BIGHD/tmp -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar ...
+```
+
 
 ## Information & Commercial support
 
 For more information or commercial support, contact [KEEP SOLUTIONS](http://www.keep.pt/contactos/?lang=en).
 
+<!-- Removing build status as some database library drivers cannot be distributed via maven
 [![Build Status](https://travis-ci.org/keeps/db-preservation-toolkit.png?branch=master)](https://travis-ci.org/keeps/db-preservation-toolkit)
+-->
