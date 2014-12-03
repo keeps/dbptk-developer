@@ -1,45 +1,53 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Db-preservation-toolkit by keeps</title>
-    <link rel="stylesheet" href="stylesheets/styles.css">
+    <meta name="viewport" content="width=640">
+
+    <link rel="stylesheet" href="stylesheets/core.css" media="screen">
+    <link rel="stylesheet" href="stylesheets/mobile.css" media="handheld, only screen and (max-device-width:640px)">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script src="javascripts/respond.js"></script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <!--[if lt IE 8]>
-    <link rel="stylesheet" href="stylesheets/ie.css">
-    <![endif]-->
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
+    <script type="text/javascript" src="javascripts/modernizr.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="javascripts/headsmart.min.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function () {
+        $('#main_content').headsmart()
+      })
+    </script>
+    <title>Db-preservation-toolkit by keeps</title>
   </head>
+
   <body>
-      <div id="header">
-        <nav>
-          <li class="fork"><a href="https://github.com/keeps/db-preservation-toolkit">View On GitHub</a></li>
-          <li class="downloads"><a href="https://github.com/keeps/db-preservation-toolkit/zipball/master">ZIP</a></li>
-          <li class="downloads"><a href="https://github.com/keeps/db-preservation-toolkit/tarball/master">TAR</a></li>
-          <li class="title">DOWNLOADS</li>
-        </nav>
-      </div><!-- end header -->
+    <a id="forkme_banner" href="https://github.com/keeps/db-preservation-toolkit">View on GitHub</a>
+    <div class="shell">
 
-    <div class="wrapper">
+      <header>
+        <span class="ribbon-outer">
+          <span class="ribbon-inner">
+            <h1>Db-preservation-toolkit</h1>
+            <h2>Database Preservation Toolkit</h2>
+          </span>
+          <span class="left-tail"></span>
+          <span class="right-tail"></span>
+        </span>
+      </header>
 
-      <section>
-        <div id="title">
-          <h1>Db-preservation-toolkit</h1>
-          <p>Database Preservation Toolkit</p>
-          <hr>
-          <span class="credits left">Project maintained by <a href="https://github.com/keeps">keeps</a></span>
-          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
-        </div>
+      <section id="downloads">
+        <span class="inner">
+          <a href="https://github.com/keeps/db-preservation-toolkit/zipball/master" class="zip"><em>download</em> .ZIP</a><a href="https://github.com/keeps/db-preservation-toolkit/tarball/master" class="tgz"><em>download</em> .TGZ</a>
+        </span>
+      </section>
 
+
+      <span class="banner-fix"></span>
+
+
+      <section id="main_content">
         <h1>
-<a name="database-preservation-toolkit" class="anchor" href="#database-preservation-toolkit"><span class="octicon octicon-link"></span></a>Database Preservation Toolkit</h1>
+<a id="database-preservation-toolkit" class="anchor" href="#database-preservation-toolkit" aria-hidden="true"><span class="octicon octicon-link"></span></a>Database Preservation Toolkit</h1>
 
 <p>The Database Preservation Toolkit allows conversion between Database formats, including connection to live systems, for purposes of digitally preserving databases. The toolkit allows conversion of live or backed-up databases into preservation formats such as DBML, an XML format created for the purpose of database preservation. The toolkit also allows conversion of the preservation formats back into live systems to allow the full functionality of databases. For example, it supports a specialized export into MySQL, optimized for PhpMyAdmin, so the database can be fully  experimented using a web interface.</p>
 
@@ -48,62 +56,68 @@
 <p>The toolkit is created as a platform that uses input and output modules. Each module supports read and/or write to a particular database format or live system. New modules can easily be added by implementation of a new interface and adding of new drivers.</p>
 
 <h2>
-<a name="how-to-build-from-source" class="anchor" href="#how-to-build-from-source"><span class="octicon octicon-link"></span></a>How to build from source</h2>
-
-<ol>
-<li>Download the <a href="https://github.com/keeps/db-preservation-toolkit/releases">latest stable release</a>.</li>
-<li>Unzip and open the folder on a command-line terminal</li>
-<li>Build with Maven</li>
-</ol><div class="highlight highlight-bash"><pre><span class="nv">$ </span>mvn clean package
-</pre></div>
-
-<p>Binaries will be on the <code>target</code> folder</p>
-
-<h2>
-<a name="download-pre-compiled-version" class="anchor" href="#download-pre-compiled-version"><span class="octicon octicon-link"></span></a>Download pre-compiled version</h2>
+<a id="download-pre-compiled-version" class="anchor" href="#download-pre-compiled-version" aria-hidden="true"><span class="octicon octicon-link"></span></a>Download pre-compiled version</h2>
 
 <p>Binaries with all dependencies included:</p>
 
 <ul>
-<li><a href="http://keeps.github.io/db-preservation-toolkit/db-preservation-toolkit-1.0.0-jar-with-dependencies.jar">db-preservation-toolkit-1.0.0-jar-with-dependencies.jar</a></li>
-</ul><h2>
-<a name="how-to-use" class="anchor" href="#how-to-use"><span class="octicon octicon-link"></span></a>How to use</h2>
+<li>
+<a href="https://github.com/keeps/db-preservation-toolkit/releases/download/2.0-rc1/db-preservation-toolkit-2.0.0-jar-with-dependencies.jar">db-preservation-toolkit v2.0-rc1</a> (release candidate, untested, unstable)</li>
+<li><a href="https://github.com/keeps/db-preservation-toolkit/releases/download/v1.0.1/db-preservation-toolkit-1.0.1-jar-with-dependencies.jar">db-preservation-toolkit v1.0.1</a></li>
+<li><a href="http://keeps.github.io/db-preservation-toolkit/db-preservation-toolkit-1.0.0-jar-with-dependencies.jar">db-preservation-toolkit v1.0.0</a></li>
+</ul>
 
-<p>To use the program, open a command-line and try out the following command:</p>
+<h2>
+<a id="how-to-use" class="anchor" href="#how-to-use" aria-hidden="true"><span class="octicon octicon-link"></span></a>How to use</h2>
 
-<div class="highlight highlight-bash"><pre><span class="nv">$ </span>java -jar db-preservation-toolkit-1.0.0-jar-with-dependencies.jar 
-Synopsys: java -jar roda-common-convert-db.jar -i IMPORT_MODULE <span class="o">[</span>options...<span class="o">]</span> -o EXPORT_MODULE <span class="o">[</span>options...<span class="o">]</span>
+<p>To use the program, open a command-line and try out the following command (replace x.y.z accordingly to the version of the binary in use):</p>
+
+<div class="highlight highlight-bash"><pre>$ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar 
+Synopsys: java -jar roda-common-convert-db.jar -i IMPORT_MODULE [options...] -o EXPORT_MODULE [options...]
 Available import modules:
-    SQLServerJDBC serverName <span class="o">[</span>port|instance<span class="o">]</span> database username password useIntegratedSecurity encrypt
-    PostgreSQLJDBC hostName database <span class="o">[</span>port<span class="o">]</span> username password encrypt
-    MySQLJDBC hostName <span class="o">[</span>port<span class="o">]</span> database username password
-    Oracle8i hostName port database username password &lt;- untested!
-    MSAccess database.mdb
-    ODBC <span class="nb">source</span> <span class="o">[</span>username password<span class="o">]</span>
-    DBML baseDir
-Available <span class="nb">export </span>modules:
-    SQLServerJDBC serverName <span class="o">[</span>port|instance<span class="o">]</span> database username password useIntegratedSecurity encrypt
-    PostgreSQLJDBC hostName database <span class="o">[</span>port<span class="o">]</span> username password encrypt
-    MySQLJDBC hostName <span class="o">[</span>port<span class="o">]</span> database username password
-    PhpMyAdmin hostName <span class="o">[</span>port<span class="o">]</span> database username password
-    DBML baseDir
-    PostgreSQLFile sqlFile &lt;- SQL file optimized <span class="k">for </span>PostgreSQL
-    MySQLFile sqlFile &lt;- SQL file optimized <span class="k">for </span>MySQL
-    SQLServerFile sqlFile &lt;- SQL file optimized <span class="k">for </span>SQL Server
-    GenericSQLFile sqlFile &lt;- generic SQL file
-</pre></div>
+    SQLServerJDBC serverName [port<span class="pl-k">|</span>instance] database username password useIntegratedSecurity encrypt
+    PostgreSQLJDBC hostName [port] database username password encrypt
+    MySQLJDBC hostName [port] database username password
+    Oracle12cJDBC hostName port database username password
+    DB2JDBC hostname port database username password
+    SIARD dir
+Available <span class="pl-s">export</span> modules:
+    SQLServerJDBC serverName [port<span class="pl-k">|</span>instance] database username password useIntegratedSecurity encrypt
+    PostgreSQLJDBC hostName [port] database username password encrypt
+    MySQLJDBC hostName [port] database username password
+    DB2JDBC hostname port database username password
+    SIARD dir</pre></div>
 
 <p>You have to select an input and an output module, providing for each its configuration.</p>
 
 <p>For example, if you want to connect to a live MySQL database and export its content to DBML format, you can use the following command.</p>
 
-<div class="highlight highlight-bash"><pre><span class="nv">$ </span>java -jar db-preservation-toolkit-1.0.0-jar-with-dependencies.jar <span class="se">\</span>
--i MySQLJDBC localhost example_db username p4ssw0rd <span class="se">\</span>
--o DBML example_db_dbml_export
-</pre></div>
+<div class="highlight highlight-bash"><pre>$ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar \
+-i MySQLJDBC localhost example_db username p4ssw0rd \
+-o SIARD example_db_siard_export</pre></div>
 
 <h2>
-<a name="related-publications--presentations" class="anchor" href="#related-publications--presentations"><span class="octicon octicon-link"></span></a>Related publications &amp; presentations</h2>
+<a id="how-to-build-from-source" class="anchor" href="#how-to-build-from-source" aria-hidden="true"><span class="octicon octicon-link"></span></a>How to build from source</h2>
+
+<ol>
+<li>Download the <a href="https://github.com/keeps/db-preservation-toolkit/releases">latest stable release</a>.</li>
+<li>Unzip and open the folder on a command-line terminal</li>
+<li>Download Oracle Database 12.1.0.1 JDBC Driver for java 6 <a href="http://www.oracle.com/technetwork/database/features/jdbc/jdbc-drivers-12c-download-1958347.html">ojdbc6.jar</a>
+</li>
+<li>Install the jar with command:<code>mvn install:install-file -DgroupId=com.oracle -DartifactId=ojdbc6 -Dversion=12.1.0.1 -Dpackaging=jar -Dfile=ojdbc6.jar -DgeneratePom=true</code>
+</li>
+<li>Download DB2 JDBC driver <a href="https://www14.software.ibm.com/webapp/iwm/web/preLogin.do?source=swg-idsdjs">db2jcc4.jar</a>
+</li>
+<li>Extract the db2jcc4.jar from the downloaded zip and install with the command:<code>mvn install:install-file -DgroupId=com.ibm -DartifactId=db2jcc4 -Dversion=4.16.53 -Dpackaging=jar -Dfile=db2jcc4.jar -DgeneratePom=true</code>
+</li>
+<li>Build with Maven <code>mvn clean package</code>
+</li>
+</ol>
+
+<p>Binaries will be on the <code>target</code> folder</p>
+
+<h2>
+<a id="related-publications--presentations" class="anchor" href="#related-publications--presentations" aria-hidden="true"><span class="octicon octicon-link"></span></a>Related publications &amp; presentations</h2>
 
 <ul>
 <li>Presentation <a href="http://hdl.handle.net/1822/17856">"Database migration: CLI"</a> by José Ramalho at "A Pratical Approach to Database Archiving", Danish National Archives, Copenhagen, Denmark, 2012-02-07.</li>
@@ -112,12 +126,16 @@ Available <span class="nb">export </span>modules:
 <li>José Carlos Ramalho, <a href="http://hdl.handle.net/1822/7120">Relational database preservation through XML modelling</a>, in proceedings of the International Workshop on Markup of Overlapping Structures (Extreme Markup 2007), Montréal, Canada, 2007.</li>
 <li>Marta Jacinto, <a href="http://hdl.handle.net/1822/601">Bidirectional conversion between XML documents and relational data bases</a>, in proceedings of the International Conference on CSCW in Design, Rio de Janeiro, 2002.</li>
 <li>Ricardo Freitas, <a href="http://hdl.handle.net/1822/13702">Significant properties in the preservation of relational databases</a>, Springer, 2010.</li>
-</ul><p>Other related publications:</p>
+</ul>
+
+<p>Other related publications:</p>
 
 <ul>
 <li>Neal Fitzgerald, <a href="http://purl.pt/24107/1/iPres2013_PDF/Using%20data%20archiving%20tools%20to%20preserve%20archival%20records%20in%20business%20systems%20%E2%80%93%20a%20case%20study.pdf">"Using data archiving tools to preserve archival records in business systems – a case study"</a>, in proceedings of iPRES 2013, Lisbon, 2013.</li>
-</ul><h2>
-<a name="troubleshooting" class="anchor" href="#troubleshooting"><span class="octicon octicon-link"></span></a>Troubleshooting</h2>
+</ul>
+
+<h2>
+<a id="troubleshooting" class="anchor" href="#troubleshooting" aria-hidden="true"><span class="octicon octicon-link"></span></a>Troubleshooting</h2>
 
 <p><strong>Getting exception "java.net.ConnectException: Connection refused"</strong></p>
 
@@ -133,19 +151,38 @@ Available <span class="nb">export </span>modules:
 
 <p>The toolkit might need more memory than it is available by default (normally 64MB). To increase the available memory use the <code>-Xmx</code> option. For example, the following command will increase the heap size to 3 GB.</p>
 
-<div class="highlight highlight-bash"><pre><span class="nv">$ </span>java -Xmx3g -jar db-preservation-toolkit-1.0.0-jar-with-dependencies.jar ...
-</pre></div>
+<div class="highlight highlight-bash"><pre>$ java -Xmx3g -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar ...</pre></div>
 
 <p>The toolkit needs enough memory to put the table structure definition in memory (not the data) and to load each data row or row set, which might include having some BLOBs completely in memory, but this depends on the database driver implementation.</p>
 
+<p><strong>Main hard drive gets full due to temporary files</strong></p>
+
+<p>Due to the structure of some export modules (e.g. SIARD) and because we only want to pass throught the database once with minimum amount of used memory, all BLOBs and CLOBs of a database table must be kept on temporary files during the export of a table. This can cause your main disk to get full and the execution to fail. To select a diferent folder for the temporary files, e.g. on a bigger hard drive, use the option <code>-Djava.io.tmpdir=/path/to/tmpdir</code>. For example, the following command will use the folder <code>/media/BIGHD/tmp</code> as the temporary folder:</p>
+
+<div class="highlight highlight-bash"><pre>$ java -Djava.io.tmpdir=/media/BIGHD/tmp -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar ...</pre></div>
+
 <h2>
-<a name="information--commercial-support" class="anchor" href="#information--commercial-support"><span class="octicon octicon-link"></span></a>Information &amp; Commercial support</h2>
+<a id="information--commercial-support" class="anchor" href="#information--commercial-support" aria-hidden="true"><span class="octicon octicon-link"></span></a>Information &amp; Commercial support</h2>
 
 <p>For more information or commercial support, contact <a href="http://www.keep.pt/contactos/?lang=en">KEEP SOLUTIONS</a>.</p>
+
+
       </section>
 
+      <footer>
+        <span class="ribbon-outer">
+          <span class="ribbon-inner">
+            <p>this project by <a href="https://github.com/keeps">keeps</a> can be found on <a href="https://github.com/keeps/db-preservation-toolkit">GitHub</a></p>
+          </span>
+          <span class="left-tail"></span>
+          <span class="right-tail"></span>
+        </span>
+        <p>Generated with <a href="http://pages.github.com">GitHub Pages</a> using Merlot</p>
+        <span class="octocat"></span>
+      </footer>
+
     </div>
-    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+
               <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
             document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
