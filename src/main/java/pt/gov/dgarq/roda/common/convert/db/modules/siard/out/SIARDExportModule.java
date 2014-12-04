@@ -697,7 +697,7 @@ public class SIARDExportModule implements DatabaseHandler {
 				description = message + description;
 
 				logger.warn("Trigger action time set to BEFORE but "
-						+ "its action time is unknown");
+						+ "its action time is unknown. " + message);
 			}
 
 			print("</actionTime>\n");

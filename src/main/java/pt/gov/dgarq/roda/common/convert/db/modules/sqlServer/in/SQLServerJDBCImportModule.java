@@ -34,8 +34,8 @@ import com.microsoft.sqlserver.jdbc.SQLServerResultSet;
  */
 public class SQLServerJDBCImportModule extends JDBCImportModule {
 
-	private final Logger logger = 
-			Logger.getLogger(SQLServerJDBCImportModule.class);
+	private final Logger logger = Logger
+			.getLogger(SQLServerJDBCImportModule.class);
 
 	/**
 	 * Create a new Microsoft SQL Server import module using the default
@@ -63,7 +63,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 						+ ";integratedSecurity="
 						+ (integratedSecurity ? "true" : "false") + ";encrypt="
 						+ (encrypt ? "true" : "false"), new SQLServerHelper());
-		
+
 		System.setProperty("java.net.preferIPv6Addresses", "true");
 
 	}
@@ -140,8 +140,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 		}
 		return statement;
 	}
-	
-	
+
 	@Override
 	protected Set<String> getIgnoredImportedSchemas() {
 		Set<String> ignored = new HashSet<String>();
@@ -150,10 +149,10 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 		ignored.add("INFORMATION_SCHEMA");
 		return ignored;
 	}
-	
+
 	protected Type getLongvarbinaryType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
-		Type type; 
+		Type type;
 		if (typeName.equals("image")) {
 			type = new SimpleTypeBinary("MIME", "image");
 		} else {
@@ -162,7 +161,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 		type.setSql99TypeName("BINARY LARGE OBJECT");
 		return type;
 	}
-	
+
 	protected Cell convertRawToCell(String tableName, String columnName,
 			int columnIndex, int rowIndex, Type cellType, ResultSet rawData)
 			throws SQLException, InvalidDataException, ClassNotFoundException,
@@ -198,8 +197,8 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 	@Override
 	protected String processTriggerEvent(String string) {
 		char[] charArray = string.toCharArray();
-		
-		String res = "INSTEAD OF";		
+
+		String res = "INSTEAD OF";
 		if (charArray[0] == '1') {
 			res = "AFTER";
 		}
@@ -208,26 +207,27 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 
 	@Override
 	protected String processActionTime(String string) {
+		logger.info("Trigger action time: " + string);
 		char[] charArray = string.toCharArray();
-		
+
 		String res = "";
-		if (charArray[0] == '1') {
+		if (charArray.length > 0 && charArray[0] == '1') {
 			res = "INSERT";
-		} 
-		
-		if (charArray[1] == '1') {
+		}
+
+		if (charArray.length > 1 && charArray[1] == '1') {
 			if (!res.equals("")) {
 				res += " OR ";
 			}
 			res = "UPDATE";
 		}
-		
-		if (charArray[2] == '1') {
+
+		if (charArray.length > 2 && charArray[2] == '1') {
 			if (!res.equals("")) {
 				res += " OR ";
 			}
 			res = "DELETE";
 		}
-		return res;		
-	}	
+		return res;
+	}
 }
