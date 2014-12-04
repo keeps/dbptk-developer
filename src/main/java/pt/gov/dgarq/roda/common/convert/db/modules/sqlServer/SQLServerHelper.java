@@ -108,7 +108,10 @@ public class SQLServerHelper extends SQLHelper {
 				Integer length = binType.getLength();
 				Integer bytes = (((length / 8.0) % 1 == 0) 
 						? (length / 8) : ((length / 8) + 1));
-				if (bytes <= 8000) {  
+				
+				if(dataType.equals("varbinary") && bytes <= 0) {
+					ret = "varbinary(max)";
+				} else if (bytes > 0 && bytes <= 8000 ) {  
 					ret = dataType + "(" + bytes + ")";
 				} else {
 					ret = "image";

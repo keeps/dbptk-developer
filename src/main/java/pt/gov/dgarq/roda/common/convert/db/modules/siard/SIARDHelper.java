@@ -14,10 +14,10 @@ public class SIARDHelper {
 	private static final Logger logger = Logger.getLogger(SIARDHelper.class);
 
 	/**
-	 * Encodes a data string as defined by SIARD format 
+	 * Encodes a data string as defined by SIARD format
 	 * 
 	 * @param text
-	 * 			  the text string to be encoded
+	 *            the text string to be encoded
 	 * @return the encoded text
 	 */
 	public static final String encode(String text) {
@@ -35,7 +35,7 @@ public class SIARDHelper {
 	 * Decodes an encoded string as defined by SIARD format
 	 * 
 	 * @param xml
-	 * 			  the encoded string
+	 *            the encoded string
 	 * @return the original string
 	 */
 	public static final String decode(String xml) {
@@ -48,34 +48,34 @@ public class SIARDHelper {
 		text = text.replaceAll("\\u005C", "\\\\");
 		return text;
 	}
-	
+
 	public static String bytesToHex(byte[] bytes) {
 		final char[] hexArray = "0123456789ABCDEF".toCharArray();
-	    char[] hexChars = new char[bytes.length * 2];
-	    for ( int j = 0; j < bytes.length; j++ ) {
-	        int v = bytes[j] & 0xFF;
-	        hexChars[j * 2] = hexArray[v >>> 4];
-	        hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-	    }
-	    return new String(hexChars);
+		char[] hexChars = new char[bytes.length * 2];
+		for (int j = 0; j < bytes.length; j++) {
+			int v = bytes[j] & 0xFF;
+			hexChars[j * 2] = hexArray[v >>> 4];
+			hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+		}
+		return new String(hexChars);
 	}
-	
+
 	public static byte[] hexStringToByteArray(String s) {
-	    int len = s.length();
-	    logger.debug("len: " + len/2);
-	    byte[] data = new byte[len / 2];
-	    logger.debug("data length: " + data.length);
-	    for (int i = 0; i < len; i += 2) {
-	        data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-	                             + Character.digit(s.charAt(i+1), 16));
-	    }
-	    return data;
+		int len = s.length();
+		logger.debug("len: " + len / 2);
+		byte[] data = new byte[len / 2];
+		logger.debug("data length: " + data.length);
+		for (int i = 0; i < len; i += 2) {
+			data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character
+					.digit(s.charAt(i + 1), 16));
+		}
+		return data;
 	}
 
 	/**
-	 * Checks whether a check constraint condition string is valid 
-	 * to be exported to SIARD format
-	 *   
+	 * Checks whether a check constraint condition string is valid to be
+	 * exported to SIARD format
+	 * 
 	 * @param condition
 	 * @return
 	 */
@@ -89,16 +89,18 @@ public class SIARDHelper {
 	}
 
 	/**
-	 * Checks whether a trigger action time string is valid to be exported 
-	 * to SIARD format
+	 * Checks whether a trigger action time string is valid to be exported to
+	 * SIARD format
 	 * 
 	 * @param actionTime
 	 * @return
 	 */
 	public static boolean isValidActionTime(String actionTime) {
 		if (actionTime.equalsIgnoreCase("BEFORE")
-				|| actionTime.equalsIgnoreCase("AFTER")) {
-				// || actionTime.equalsIgnoreCase("INSTEAD OF")) {
+				|| actionTime.equalsIgnoreCase("AFTER")
+				|| actionTime.equalsIgnoreCase("INSTEAD OF")) {
+			// Please note that INSTEAD OF was added as a valid action time even
+			// dough it is not suggested in the SIARD specification
 			return true;
 		}
 		return false;
@@ -118,10 +120,10 @@ public class SIARDHelper {
 		}
 		return false;
 	}
-	
+
 	/**
-	 * Checks whether a privilege option string is valid 
-	 * to be exported to SIARD format
+	 * Checks whether a privilege option string is valid to be exported to SIARD
+	 * format
 	 * 
 	 * @param option
 	 * @return

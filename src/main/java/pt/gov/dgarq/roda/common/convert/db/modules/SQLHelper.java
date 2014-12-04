@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.Row;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.InvalidDataException;
@@ -35,19 +37,19 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
  * 
  */
 public class SQLHelper {
-	
-	// private Logger logger = Logger.getLogger(SQLHelper.class);
-	
+
+	private Logger logger = Logger.getLogger(SQLHelper.class);
+
 	private String name = "";
 
 	private String startQuote = "";
-	
+
 	private String endQuote = "";
-	
+
 	public String getName() {
 		return name;
 	}
-	
+
 	public String getStartQuote() {
 		return startQuote;
 	}
@@ -62,7 +64,7 @@ public class SQLHelper {
 	 * @param tableName
 	 *            the table name
 	 * @return the SQL
-	 * @throws ModuleException 
+	 * @throws ModuleException
 	 */
 	public String selectTableSQL(String tableId) throws ModuleException {
 		return "SELECT * FROM " + escapeTableId(tableId);
@@ -83,13 +85,13 @@ public class SQLHelper {
 	 * SQL to create a schema
 	 * 
 	 * @param schema
-	 * 			  the schema structure
+	 *            the schema structure
 	 * @return the SQL
 	 */
 	public String createSchemaSQL(SchemaStructure schema) {
 		return "CREATE SCHEMA " + escapeSchemaName(schema.getName());
 	}
-	
+
 	/**
 	 * SQL to create a table from table structure
 	 * 
@@ -99,8 +101,10 @@ public class SQLHelper {
 	 * @throws UnknownTypeException
 	 */
 	public String createTableSQL(TableStructure table)
-			throws UnknownTypeException, ModuleException {	
-		return "CREATE TABLE " + escapeTableId(table.getId()) + " ("
+			throws UnknownTypeException, ModuleException {
+		return "CREATE TABLE "
+				+ escapeTableId(table.getId())
+				+ " ("
 				+ createColumnsSQL(table.getColumns(), table.getPrimaryKey(),
 						table.getForeignKeys()) + ")";
 	}
@@ -159,19 +163,19 @@ public class SQLHelper {
 				ret = "integer";
 			} else if (type.getSql99TypeName().equalsIgnoreCase("SMALLINT")) {
 				ret = "smallint";
-			} else if (type.getSql99TypeName().equalsIgnoreCase("DECIMAL")){
+			} else if (type.getSql99TypeName().equalsIgnoreCase("DECIMAL")) {
 				ret = "decimal";
-					if (getNumericExactPrecision(type, 30) > 0) {
-						ret += "(" + getNumericExactPrecision(type, 30);  
-						if (getNumericExactScale(type, 30) > 0) {
-							ret += "," + getNumericExactScale(type, 30);
-						}
-						ret += ")";
+				if (getNumericExactPrecision(type, 30) > 0) {
+					ret += "(" + getNumericExactPrecision(type, 30);
+					if (getNumericExactScale(type, 30) > 0) {
+						ret += "," + getNumericExactScale(type, 30);
 					}
+					ret += ")";
+				}
 			} else {
 				ret = "numeric";
 				if (getNumericExactPrecision(type, 30) > 0) {
-					ret += "(" + getNumericExactPrecision(type, 30);  
+					ret += "(" + getNumericExactPrecision(type, 30);
 					if (getNumericExactScale(type, 30) > 0) {
 						ret += "," + getNumericExactScale(type, 30);
 					}
@@ -179,8 +183,7 @@ public class SQLHelper {
 				}
 			}
 		} else if (type instanceof SimpleTypeNumericApproximate) {
-			SimpleTypeNumericApproximate numericApproximate = 
-					(SimpleTypeNumericApproximate) type;
+			SimpleTypeNumericApproximate numericApproximate = (SimpleTypeNumericApproximate) type;
 			Integer precision = numericApproximate.getPrecision();
 			if (precision > 53) {
 				precision = 53;
@@ -202,8 +205,7 @@ public class SQLHelper {
 		} else if (type instanceof SimpleTypeInterval) {
 			throw new UnknownTypeException("Interval type not yet supported");
 		} else if (type instanceof SimpleTypeEnumeration) {
-			throw new UnknownTypeException(
-					"Enumeration type not yet supported");
+			throw new UnknownTypeException("Enumeration type not yet supported");
 		} else if (type instanceof SimpleTypeBinary) {
 			ret = "blob";
 		} else if (type instanceof ComposedTypeArray) {
@@ -216,7 +218,7 @@ public class SQLHelper {
 		}
 		return ret;
 	}
-	
+
 	protected Integer getNumericExactPrecision(Type type, Integer max) {
 		SimpleTypeNumericExact numericExact = (SimpleTypeNumericExact) type;
 		Integer precision;
@@ -227,7 +229,7 @@ public class SQLHelper {
 		}
 		return precision;
 	}
-	
+
 	protected Integer getNumericExactScale(Type type, Integer max) {
 		SimpleTypeNumericExact numericExact = (SimpleTypeNumericExact) type;
 		Integer scale;
@@ -238,7 +240,7 @@ public class SQLHelper {
 			if (scale < 0) {
 				scale = 0;
 			}
-			scale = scale - numericExact.getPrecision() 
+			scale = scale - numericExact.getPrecision()
 					+ getNumericExactPrecision(type, max);
 		}
 		return scale;
@@ -252,9 +254,9 @@ public class SQLHelper {
 	 * @param pkey
 	 *            the primary key
 	 * @return the SQL
-	 * @throws ModuleException 
+	 * @throws ModuleException
 	 */
-	public String createPrimaryKeySQL(String tableId, PrimaryKey pkey) 
+	public String createPrimaryKeySQL(String tableId, PrimaryKey pkey)
 			throws ModuleException {
 		String ret = null;
 		if (pkey != null) {
@@ -279,37 +281,34 @@ public class SQLHelper {
 	 * @param fkey
 	 *            the foreign key
 	 * @return the SQL
-	 * @throws ModuleException 
+	 * @throws ModuleException
 	 */
-	public String createForeignKeySQL(TableStructure table, ForeignKey fkey) 
+	public String createForeignKeySQL(TableStructure table, ForeignKey fkey)
 			throws ModuleException {
-		String ret =  "ALTER TABLE " + escapeTableId(table.getId())
+		String ret = "ALTER TABLE " + escapeTableId(table.getId())
 				+ " ADD FOREIGN KEY (";
-		
-				for (int i = 0; i < fkey.getReferences().size(); i++) {
-					if (i > 0) {
-						ret += ", ";
-					}
-					ret += escapeColumnName(
-							fkey.getReferences().get(i).getColumn());
-				}
-				
-				ret += ") REFERENCES " 
-				+ escapeTableName(fkey.getReferencedSchema()) + "." 
-				+ escapeTableName(fkey.getReferencedTable()) + " (";
-				
-				for (int i = 0; i < fkey.getReferences().size(); i++) {
-					if (i > 0) {
-						ret += ", ";
-					}
-					ret += escapeColumnName(
-							fkey.getReferences().get(i).getReferenced()); 
-				}
-				
-				ret += ")";
-			return ret;
+
+		for (int i = 0; i < fkey.getReferences().size(); i++) {
+			if (i > 0) {
+				ret += ", ";
+			}
+			ret += escapeColumnName(fkey.getReferences().get(i).getColumn());
+		}
+
+		ret += ") REFERENCES " + escapeTableName(fkey.getReferencedSchema())
+				+ "." + escapeTableName(fkey.getReferencedTable()) + " (";
+
+		for (int i = 0; i < fkey.getReferences().size(); i++) {
+			if (i > 0) {
+				ret += ", ";
+			}
+			ret += escapeColumnName(fkey.getReferences().get(i).getReferenced());
+		}
+
+		ret += ")";
+		return ret;
 	}
-	
+
 	/**
 	 * Interface of handlers that will transform a cell in SQL
 	 * 
@@ -350,9 +349,8 @@ public class SQLHelper {
 			ModuleException {
 		ByteArrayOutputStream sqlOut = new ByteArrayOutputStream();
 		try {
-			sqlOut.write(("INSERT INTO " 
-					+ escapeTableId(table.getId()) 
-					+ " VALUES (").getBytes());
+			sqlOut.write(("INSERT INTO " + escapeTableId(table.getId()) + " VALUES (")
+					.getBytes());
 			int i = 0;
 			Iterator<ColumnStructure> columnIt = table.getColumns().iterator();
 			for (Cell cell : row.getCells()) {
@@ -375,11 +373,11 @@ public class SQLHelper {
 	 * @param table
 	 *            the table structure
 	 * @return the prepared SQL statement
-	 * @throws ModuleException 
+	 * @throws ModuleException
 	 * 
 	 */
 	public String createRowSQL(TableStructure table) throws ModuleException {
-		String ret = "INSERT INTO " + escapeTableId(table.getId()) 
+		String ret = "INSERT INTO " + escapeTableId(table.getId())
 				+ " VALUES (";
 		for (int i = 0; i < table.getColumns().size(); i++) {
 			if (i > 0) {
@@ -399,14 +397,14 @@ public class SQLHelper {
 	public String escapeSchemaName(String schema) {
 		return getStartQuote() + schema + getEndQuote();
 	}
-		
+
 	protected String escapeTableId(String tableId) throws ModuleException {
 		String[] parts = splitTableId(tableId);
 		String schema = parts[0];
 		String table = parts[1];
-		return  escapeSchemaName(schema) + "." + escapeTableName(table); 		
+		return escapeSchemaName(schema) + "." + escapeTableName(table);
 	}
-	
+
 	protected String escapeTableName(String table) {
 		return getStartQuote() + table + getEndQuote();
 	}
@@ -414,51 +412,51 @@ public class SQLHelper {
 	protected String escapeColumnName(String column) {
 		return getStartQuote() + column + getEndQuote();
 	}
-	
+
 	protected String[] splitTableId(String tableId) throws ModuleException {
 		String[] parts = tableId.split("\\.");
 		if (parts.length < 2) {
 			throw new ModuleException(
 					"An error ocurred while spliting table id: "
-					+ "tableId is malformed");
+							+ "tableId is malformed");
 		}
-		return parts;	
+		return parts;
 	}
 
 	/**
 	 * 
 	 * @param schemaName
-	 * 			  The schema name
+	 *            The schema name
 	 * @param tableName
-	 * 			  The table name
+	 *            The table name
 	 * @return the SQL to get check constraints
 	 */
 	public String getCheckConstraintsSQL(String schemaName, String tableName) {
 		return null;
 	}
-	
+
 	/**
 	 * 
 	 * @param schemaName
-	 * 			  The schema name
+	 *            The schema name
 	 * @param tableName
-	 * 			  The table name
+	 *            The table name
 	 * @return the SQL to get table triggers
 	 */
 	public String getTriggersSQL(String schemaName, String tableName) {
 		return null;
 	}
-	
+
 	/**
 	 * 
 	 * @param dbName
-	 * 			  the database name 
+	 *            the database name
 	 * @return the SQL to get all users
 	 */
 	public String getUsersSQL(String dbName) {
 		return null;
 	}
-	
+
 	/**
 	 * 
 	 * @return the SQL to get all roles
@@ -467,11 +465,11 @@ public class SQLHelper {
 	public String getRolesSQL() {
 		return null;
 	}
-	
+
 	/**
 	 * 
 	 * @param database
-	 * 			  the database name required for some DBMSs
+	 *            the database name required for some DBMSs
 	 * 
 	 * @return the SQL to get all databases
 	 */
@@ -482,7 +480,7 @@ public class SQLHelper {
 	/**
 	 * 
 	 * @param database
-	 * 			  the database name 
+	 *            the database name
 	 * @return the SQL to drop the database
 	 */
 	public String dropDatabase(String database) {

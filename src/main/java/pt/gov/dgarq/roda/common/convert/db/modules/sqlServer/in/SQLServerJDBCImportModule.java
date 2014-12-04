@@ -196,18 +196,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 
 	@Override
 	protected String processTriggerEvent(String string) {
-		char[] charArray = string.toCharArray();
-
-		String res = "INSTEAD OF";
-		if (charArray[0] == '1') {
-			res = "AFTER";
-		}
-		return res;
-	}
-
-	@Override
-	protected String processActionTime(String string) {
-		logger.info("Trigger action time: " + string);
+		logger.debug("Trigger event: " + string);
 		char[] charArray = string.toCharArray();
 
 		String res = "";
@@ -228,6 +217,27 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 			}
 			res = "DELETE";
 		}
+		return res;
+	}
+
+	@Override
+	protected String processActionTime(String string) {
+		logger.debug("Trigger action time: " + string);
+		char[] charArray = string.toCharArray();
+
+		String res = "";
+		if (charArray.length > 0 && charArray[0] == '1') {
+			res = "AFTER";
+		}
+		if (charArray.length > 1 && charArray[1] == '1') {
+			if (!res.equals("")) {
+				res += " OR ";
+			}
+			res = "INSTEAD OF";
+		}
+		
+		// note that SQL Server does not support BEFORE triggers 
+		
 		return res;
 	}
 }
