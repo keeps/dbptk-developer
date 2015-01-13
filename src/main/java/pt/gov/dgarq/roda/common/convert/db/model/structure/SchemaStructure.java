@@ -23,13 +23,8 @@ public class SchemaStructure {
 	
 	private List<RoutineStructure> routines;
 	
-	private String originalName;
-	
-	private String replacedName;
-	
 	
 	public SchemaStructure() {
-		replacedName = null;
 		tables = new ArrayList<TableStructure>();
 		views = new ArrayList<ViewStructure>();
 		routines = new ArrayList<RoutineStructure>();
@@ -52,7 +47,6 @@ public class SchemaStructure {
 		this.tables = tables;
 		this.views = views;
 		this.routines = routines;
-		this.replacedName = null;
 	}
 
 
@@ -154,51 +148,6 @@ public class SchemaStructure {
 		this.routines = routines;
 	}
 	
-	/**
-	 * Sets the schema name and its tables to the
-	 * <prefix>_<schemaName> format
-	 *
-	 * Useful to avoid collisions (repeated schema names) while exporting
-	 * a database with schema names that may already be used by the target
-	 * database
-	 *
-	 * @param prefix
-	 * 			  the symbol/word the prefixes the new schema name
-	 *
-	 */
-	public void setNewSchemaName(String newSchemaName) {
-		originalName = name;
-		
-		if (replacedName == null) {
-			replacedName = newSchemaName;
-		}
-		
-		this.setName(replacedName);
-		for (TableStructure table : this.getTables()) {
-			table.setId(replacedName + "." + table.getName());
-		}
-	}
-
-	/**
-	 *  reset schema name as database structure is shared by import 
-	 *	module and its original name is needed in order to get data 
-	 *	from tables
-	 */
-	public void setOriginalSchemaName() {
-		this.setName(originalName);
-		for (TableStructure table: this.getTables()) {
-			table.setId(originalName + "." + table.getName());
-		}
-	}
-	
-	public String getOriginalSchemaName() {
-		return originalName;
-	}
-	
-	public String getReplacedSchemaName() {
-		return replacedName;
-	}
-
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

@@ -64,11 +64,8 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 		this.database = database;
 		this.username = username;
 		this.password = password;
-		this.schemaPrefix = database;
-		this.schemaSuffix = "";
 		this.ignoredSchemas = new TreeSet<String>(
 				Arrays.asList(IGNORED_SCHEMAS));
-		this.mayChangeSchemaName = true;
 	}
 
 	/**
@@ -94,11 +91,8 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 		this.database = database;
 		this.username = username;
 		this.password = password;
-		this.schemaPrefix = database;
-		this.schemaSuffix = "";
 		this.ignoredSchemas = new TreeSet<String>(
 				Arrays.asList(IGNORED_SCHEMAS));
-		this.mayChangeSchemaName = true;
 	}
 
 	/**
@@ -193,28 +187,12 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 					continue;
 				}
 				for (TableStructure table : schema.getTables()) {
-					boolean changedSchemaName = false;
-					if (mayChangeSchemaName) {
-						table.getSchema().setNewSchemaName(
-								createNewSchemaName(
-										table.getSchema().getName(),
-										schemaPrefix, schemaSuffix,
-										schemaJoinSymbol));
-						changedSchemaName = true;
-					}
-
 					int count = 0;
 					for (ForeignKey fkey : table.getForeignKeys()) {
 						count++;
-						String originalReferencedSchema = 
-								fkey.getReferencedSchema();
-						
-						if (changedSchemaName) {
-							fkey.setReferencedSchema(createNewSchemaName(
-									originalReferencedSchema, schemaPrefix,
-									schemaSuffix, schemaJoinSymbol));
-						}
-						
+						String originalReferencedSchema = fkey
+								.getReferencedSchema();
+
 						String tableId = originalReferencedSchema + "."
 								+ fkey.getReferencedTable();
 
@@ -232,16 +210,10 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 
 						String fkeySQL = ((MySQLHelper) sqlHelper)
 								.createForeignKeySQL(table, fkey, true, count);
-						if (changedSchemaName) {
-							fkey.setReferencedSchema(originalReferencedSchema);
-						}
 						logger.debug("Returned fkey: " + fkeySQL);
 						getStatement().addBatch(fkeySQL);
 					}
-
-					if (changedSchemaName) {
-						schema.setOriginalSchemaName();
-					}
+					
 					getStatement().executeBatch();
 					getStatement().clearBatch();
 				}

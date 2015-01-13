@@ -58,14 +58,6 @@ public class JDBCExportModule implements DatabaseHandler {
 
 	private final Logger logger = Logger.getLogger(JDBCExportModule.class);
 
-	protected static final String DEFAULT_REPLACED_PREFIX = "";
-
-	protected static final String DEFAULT_REPLACED_SUFFIX = "dbpresExport";
-
-	protected static final String DEFAULT_REPLACED_JOIN_SYMBOL = "_";
-
-	protected static final boolean DEFAULT_MAY_CHANGE_SCHEMA_NAME = false;
-
 	protected static final boolean DEFAULT_CAN_DROP_DATABASE = false;
 
 	protected static int BATCH_SIZE = 100;
@@ -77,8 +69,6 @@ public class JDBCExportModule implements DatabaseHandler {
 	protected final Map<String, Connection> connections;
 
 	protected final boolean canDropDatabase;
-
-	protected boolean mayChangeSchemaName;
 
 	protected Connection connection;
 
@@ -99,12 +89,6 @@ public class JDBCExportModule implements DatabaseHandler {
 	protected Set<String> existingSchemas;
 
 	protected boolean currentIsIgnoredSchema;
-
-	protected String schemaPrefix;
-
-	protected String schemaSuffix;
-
-	protected String schemaJoinSymbol;
 
 	/**
 	 * Generic JDBC export module constructor
@@ -145,10 +129,6 @@ public class JDBCExportModule implements DatabaseHandler {
 		ignoredSchemas = new HashSet<String>();
 		existingSchemas = null;
 		currentIsIgnoredSchema = false;
-		schemaPrefix = DEFAULT_REPLACED_PREFIX;
-		schemaSuffix = DEFAULT_REPLACED_SUFFIX;
-		schemaJoinSymbol = DEFAULT_REPLACED_JOIN_SYMBOL;
-		mayChangeSchemaName = DEFAULT_MAY_CHANGE_SCHEMA_NAME;
 	}
 
 	/**
@@ -296,12 +276,6 @@ public class JDBCExportModule implements DatabaseHandler {
 						continue;
 					}
 
-					// will allow the schema name to change so no name
-					// conflicts can happen
-					if (isExistingSchema(schema.getName())) {
-						mayChangeSchemaName = true;
-					}
-
 					handleSchemaStructure(schema);
 				}
 				logger.debug("Executing table creation batch");
@@ -330,33 +304,32 @@ public class JDBCExportModule implements DatabaseHandler {
 		}
 	}
 
+	protected Set<String> getDefaultSchemas() {
+		return new HashSet<String>();
+	}
+
 	protected void handleSchemaStructure(SchemaStructure schema)
 			throws ModuleException, UnknownTypeException {
 		logger.info("Handling schema structure " + schema.getName());
 		try {
-			boolean changedSchemaName = false;
-			if (mayChangeSchemaName) {
-				schema.setNewSchemaName(createNewSchemaName(schema.getName(),
-						schemaPrefix, schemaSuffix, schemaJoinSymbol));
-				changedSchemaName = true;
+			if (!isExistingSchema(schema.getName())) {
+				getStatement().addBatch(sqlHelper.createSchemaSQL(schema));
+				getStatement().executeBatch();
+				logger.debug("batch executed: " + schema.getName());
 			}
-
-			getStatement().addBatch(sqlHelper.createSchemaSQL(schema));
-			getStatement().executeBatch();
-			logger.debug("batch executed: " + schema.getName());
 
 			for (TableStructure table : schema.getTables()) {
 				handleTableStructure(table);
 			}
 
-			if (changedSchemaName) {
-				schema.setOriginalSchemaName();
-				logger.debug("schema name AFTER: " + schema.getName());
-			}
 			logger.info("Handling schema structure " + schema.getName()
 					+ " finished");
 		} catch (SQLException e) {
-			logger.info(e.getLocalizedMessage());
+			logger.error("Error handling schema structure", e);
+			SQLException nextException = e.getNextException();
+			if (nextException != null) {
+				logger.error("Error details", nextException);
+			}
 			throw new ModuleException("Error while adding schema SQL to batch",
 					e);
 		}
@@ -464,24 +437,13 @@ public class JDBCExportModule implements DatabaseHandler {
 				currentIsIgnoredSchema = isIgnoredSchema(table.getSchema());
 				if (!currentIsIgnoredSchema) {
 					try {
-						boolean changedSchemaName = false;
-						if (mayChangeSchemaName) {
-							logger.debug("Will set new schema name");
-							table.getSchema().setNewSchemaName(
-									createNewSchemaName(table.getSchema()
-											.getName(), schemaPrefix,
-											schemaSuffix, schemaJoinSymbol));
-							changedSchemaName = true;
-						}
 						logger.info("Exporting data for " + table.getId());
 						currentRowInsertStatement = getConnection()
 								.prepareStatement(
-								sqlHelper.createRowSQL(currentTableStructure));
+										sqlHelper
+												.createRowSQL(currentTableStructure));
 						logger.debug("sql: "
 								+ sqlHelper.createRowSQL(currentTableStructure));
-						if (changedSchemaName) {
-							table.getSchema().setOriginalSchemaName();
-						}
 
 					} catch (SQLException e) {
 						throw new ModuleException("Error creating table "
@@ -612,9 +574,7 @@ public class JDBCExportModule implements DatabaseHandler {
 
 					};
 				} else if (type instanceof SimpleTypeString) {
-					ps.setClob(index,
-							new InputStreamReader(bin.getInputstream()),
-							bin.getLength());
+					handleSimpleTypeString(ps, index, bin);
 
 					ret = new CleanResourcesInterface() {
 
@@ -730,6 +690,12 @@ public class JDBCExportModule implements DatabaseHandler {
 		}
 	}
 
+	protected void handleSimpleTypeString(PreparedStatement ps, int index,
+			BinaryCell bin) throws SQLException, ModuleException {
+		ps.setClob(index, new InputStreamReader(bin.getInputstream()),
+				bin.getLength());
+	}
+
 	public void finishDatabase() throws ModuleException {
 		if (databaseStructure != null) {
 			handleForeignKeys();
@@ -745,25 +711,10 @@ public class JDBCExportModule implements DatabaseHandler {
 					continue;
 				}
 				for (TableStructure table : schema.getTables()) {
-					boolean changedSchemaName = false;
-					if (mayChangeSchemaName) {
-						table.getSchema().setNewSchemaName(
-								createNewSchemaName(
-										table.getSchema().getName(),
-										schemaPrefix, schemaSuffix,
-										schemaJoinSymbol));
-						changedSchemaName = true;
-					}
 
 					for (ForeignKey fkey : table.getForeignKeys()) {
 						String originalReferencedSchema = fkey
 								.getReferencedSchema();
-
-						if (changedSchemaName) {
-							fkey.setReferencedSchema(createNewSchemaName(
-									originalReferencedSchema, schemaPrefix,
-									schemaSuffix, schemaJoinSymbol));
-						}
 
 						String tableId = originalReferencedSchema + "."
 								+ fkey.getReferencedTable();
@@ -782,16 +733,10 @@ public class JDBCExportModule implements DatabaseHandler {
 
 						String fkeySQL = sqlHelper.createForeignKeySQL(table,
 								fkey);
-						if (changedSchemaName) {
-							fkey.setReferencedSchema(originalReferencedSchema);
-						}
 						logger.debug("Returned fkey: " + fkeySQL);
 						getStatement().addBatch(fkeySQL);
 					}
 
-					if (changedSchemaName) {
-						schema.setOriginalSchemaName();
-					}
 				}
 			}
 			logger.debug("Getting fkeys finished");
@@ -809,20 +754,6 @@ public class JDBCExportModule implements DatabaseHandler {
 			} while (ei != null);
 			throw new ModuleException("Error creating foreign keys", e);
 		}
-	}
-
-	protected String createNewSchemaName(String name, String prefix,
-			String suffix, String joinSymbol) {
-
-		String newSchemaName = name;
-		if (!prefix.equals("")) {
-			newSchemaName = prefix + joinSymbol + newSchemaName;
-		}
-		if (!suffix.equals("")) {
-			newSchemaName += joinSymbol + suffix;
-		}
-
-		return newSchemaName;
 	}
 
 	protected void commit() throws ModuleException {

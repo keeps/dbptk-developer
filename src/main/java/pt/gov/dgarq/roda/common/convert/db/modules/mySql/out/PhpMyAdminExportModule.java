@@ -41,8 +41,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 	private String phpmyadmin_database;
 
 	private String column_info_table;
-	
-	
+
 	/**
 	 * PhpMyAdmin export module constructor
 	 * 
@@ -58,10 +57,9 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 	public PhpMyAdminExportModule(String hostname, String database,
 			String username, String password) {
 		super(hostname, database, username, password);
-		
+
 		phpmyadmin_database = DEFAULT_PHPMYADMIN_DATABASE;
 		column_info_table = DEFAULT_COLUMN_INFO_TABLE;
-		schemaSuffix = "";
 	}
 
 	/**
@@ -81,10 +79,9 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 	public PhpMyAdminExportModule(String hostname, int port, String database,
 			String username, String password) {
 		super(hostname, port, database, username, password);
-		
+
 		phpmyadmin_database = DEFAULT_PHPMYADMIN_DATABASE;
 		column_info_table = DEFAULT_COLUMN_INFO_TABLE;
-		schemaSuffix = "";
 	}
 
 	/**
@@ -109,32 +106,31 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 			String username, String password, String phpMyAdminDatabase,
 			String columnInfoTable) {
 		super(hostname, port, database, username, password);
-		
+
 		phpmyadmin_database = phpMyAdminDatabase;
 		column_info_table = columnInfoTable;
-		schemaSuffix = "";
 	}
 
 	public void initDatabase() throws ModuleException {
 		try {
 			logger.debug("Cleaning...");
 			super.initDatabase();
-			getConnection(phpmyadmin_database, 
+			getConnection(phpmyadmin_database,
 					createConnectionURL(phpmyadmin_database)).createStatement()
 					.executeUpdate(
-					"DELETE FROM " + column_info_table + " WHERE db_name LIKE '"
-							+ database + "\\_%'");
+							"DELETE FROM " + column_info_table
+									+ " WHERE db_name LIKE '" + database
+									+ "\\_%'");
 		} catch (SQLException e) {
 			throw new ModuleException("Error creating database " + database, e);
 		}
 	}
-	
-	public Connection getConnection(String databaseName) 
-			throws ModuleException {
+
+	public Connection getConnection(String databaseName) throws ModuleException {
 		Connection connection = null;
 		if (!connections.containsKey(databaseName)) {
 			try {
-				super.getConnection(databaseName, 
+				super.getConnection(databaseName,
 						createConnectionURL(databaseName));
 			} catch (ModuleException e) {
 				throw new ModuleException("Error getting connection", e);
@@ -144,7 +140,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 		}
 		return connection;
 	}
-	
+
 	public void handleStructure(DatabaseStructure structure)
 			throws ModuleException, UnknownTypeException {
 		super.handleStructure(structure);
@@ -160,8 +156,9 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 					for (TableStructure table : schema.getTables()) {
 						for (ColumnStructure column : table.getColumns()) {
 							Type type = column.getType();
-							String comment = createColumnComment(column
-									.getDescription(), type.getOriginalTypeName(),
+							String comment = createColumnComment(
+									column.getDescription(),
+									type.getOriginalTypeName(),
 									type.getDescription());
 							String mimetype = "";
 							String transformation = "";
@@ -169,28 +166,27 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 							if (type instanceof SimpleTypeBinary) {
 								SimpleTypeBinary bin = (SimpleTypeBinary) type;
 								if (bin.getFormatRegistryKey() != null
-										&& bin.getFormatRegistryKey()
-												.equals("MIME")) {
-									mimetype = bin.getFormatRegistryName().replace(
-											'/', '_');
+										&& bin.getFormatRegistryKey().equals(
+												"MIME")) {
+									mimetype = bin.getFormatRegistryName()
+											.replace('/', '_');
 									if (mimetype.equals("image_jpeg")) {
 										transformation = "image_jpeg__link.inc.php";
 									} else {
 										transformation = "application_octetstream__download.inc.php";
 									}
-	
+
 								} else {
 									mimetype = "application_octet-stream";
 									transformation = "application_octetstream__download.inc.php";
 								}
 							}
-	
+
 							statements.add(getInsertIntoPhpMyAdminStatement(
-									schema.getReplacedSchemaName(), 
-									table.getName(), column.getName(),
-									comment, mimetype, transformation,
-									transformation_options));
-	
+									schema.getName(), table.getName(),
+									column.getName(), comment, mimetype,
+									transformation, transformation_options));
+
 						}
 					}
 				}
@@ -232,7 +228,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 			String mimetype, String transformation,
 			String transformation_options) throws SQLException, ModuleException {
 
-//		PreparedStatement ps = getConnection()
+		// PreparedStatement ps = getConnection()
 		PreparedStatement ps = getConnection(phpmyadmin_database)
 				.prepareStatement(
 						"INSERT INTO "

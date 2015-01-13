@@ -1,5 +1,6 @@
 package pt.gov.dgarq.roda.common.convert.db.modules.postgreSql.out;
 
+import java.io.InputStreamReader;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -8,6 +9,7 @@ import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
+import pt.gov.dgarq.roda.common.convert.db.model.data.BinaryCell;
 import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
@@ -146,10 +148,10 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 		} else {
 			if (databaseExists(POSTGRES_CONNECTION_DATABASE, database,
 					connectionURL)) {
-				throw new ModuleException(
-						"Cannot create database " + database + ". Please choose"
-								+ " another name or delete the database "
-								+ "'" + database + "'.");
+				throw new ModuleException("Cannot create database " + database
+						+ ". Please choose"
+						+ " another name or delete the database " + "'"
+						+ database + "'.");
 			}
 		}
 
@@ -167,21 +169,10 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 	public void handleDataCloseTable(String tableId) throws ModuleException {
 		try {
 			if (!currentIsIgnoredSchema) {
-				boolean changedSchemaName = false;
-				if (mayChangeSchemaName) {
-					currentTableStructure.getSchema().setNewSchemaName(
-							createNewSchemaName(currentTableStructure
-									.getSchema().getName(), schemaPrefix,
-									schemaSuffix, schemaJoinSymbol));
-					changedSchemaName = true;
-				}
 				getStatement().executeUpdate(
 						((PostgreSQLHelper) getSqlHelper())
 								.grantPermissionsSQL(currentTableStructure
 										.getId()));
-				if (changedSchemaName) {
-					currentTableStructure.getSchema().setOriginalSchemaName();
-				}
 			}
 		} catch (SQLException e) {
 			throw new ModuleException("Error granting permissions to public", e);
@@ -202,5 +193,10 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 		} else {
 			ps.setNull(index, Types.FLOAT);
 		}
+	}
+
+	protected void handleSimpleTypeString(PreparedStatement ps, int index,
+			BinaryCell bin) throws SQLException, ModuleException {
+		ps.setBinaryStream(index, bin.getInputstream(), bin.getLength());
 	}
 }
