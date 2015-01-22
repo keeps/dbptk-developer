@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.postgresql.PGConnection;
+import org.postgresql.util.PGobject;
 
 import pt.gov.dgarq.roda.common.FileFormat;
 import pt.gov.dgarq.roda.common.FormatUtility;
@@ -52,19 +54,17 @@ import pt.gov.dgarq.roda.common.convert.db.modules.siard.SIARDHelper;
  * file.</li>
  * <li>The client authentication setup in the pg_hba.conf file may need to be
  * configured, adding a line like
- * <code>host all all 127.0.0.1 255.0.0.0 trust</code>. The JDBC driver
- * supports the trust, ident, password, md5, and crypt authentication methods.
- * </li>
+ * <code>host all all 127.0.0.1 255.0.0.0 trust</code>. The JDBC driver supports
+ * the trust, ident, password, md5, and crypt authentication methods.</li>
  * </ol>
  * 
  * @author Luis Faria
  * 
  */
 public class PostgreSQLJDBCImportModule extends JDBCImportModule {
-	
-	private final Logger logger = 
-			Logger.getLogger(PostgreSQLJDBCImportModule.class);
- 
+
+	private final Logger logger = Logger
+			.getLogger(PostgreSQLJDBCImportModule.class);
 
 	/**
 	 * Create a new PostgreSQL JDBC import module
@@ -108,10 +108,10 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 			String database, String username, String password, boolean encrypt) {
 		super("org.postgresql.Driver", "jdbc:postgresql://" + hostname + ":"
 				+ port + "/" + database + "?user=" + username + "&password="
-				+ password + (encrypt ? "&ssl=true" : ""), 
+				+ password + (encrypt ? "&ssl=true" : ""),
 				new PostgreSQLHelper());
 	}
-	
+
 	public Connection getConnection() throws SQLException,
 			ClassNotFoundException {
 		if (connection == null) {
@@ -121,19 +121,28 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 			connection = DriverManager.getConnection(connectionURL);
 			connection.setAutoCommit(false);
 			logger.debug("Connected");
+
 		}
 		return connection;
 	}
-	
+
+	class PGTime extends PGobject {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+	}
+
 	protected Statement getStatement() throws SQLException,
-	ClassNotFoundException {
+			ClassNotFoundException {
 		if (statement == null) {
 			statement = getConnection().createStatement();
 		}
 		return statement;
 	}
-	
-	
+
 	protected ResultSet getTableRawData(String tableId) throws SQLException,
 			ClassNotFoundException, ModuleException {
 		logger.debug("query: " + sqlHelper.selectTableSQL(tableId));
@@ -142,19 +151,19 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 		ResultSet set = st.executeQuery(sqlHelper.selectTableSQL(tableId));
 		return set;
 	}
-	
+
 	/**
-	 * Gets the schemas that won't be exported. 
-	 * Defaults to PostgreSQL are information_schema and all pg_XXX
+	 * Gets the schemas that won't be exported. Defaults to PostgreSQL are
+	 * information_schema and all pg_XXX
 	 */
 	public Set<String> getIgnoredExportedSchemas() {
 		Set<String> ignoredSchemas = new HashSet<String>();
 		ignoredSchemas.add("information_schema");
 		ignoredSchemas.add("pg_.*");
-		
+
 		return ignoredSchemas;
 	}
-	
+
 	@Override
 	protected Type getBinaryType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
@@ -166,21 +175,21 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 		}
 		return type;
 	}
-	
-	protected Type getDoubleType(String typeName, int columnSize, 
+
+	protected Type getDoubleType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
-		if (typeName.equalsIgnoreCase("MONEY") 
+		if (typeName.equalsIgnoreCase("MONEY")
 				|| typeName.equalsIgnoreCase("FLOAT8")) {
 			logger.warn("Setting Money column size to 53");
 			columnSize = 53;
 		}
-		Type type = 
-				new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
+		Type type = new SimpleTypeNumericApproximate(
+				Integer.valueOf(columnSize));
 		type.setSql99TypeName("DOUBLE PRECISION");
 		return type;
 	}
-	
-	protected Type getTimeType(String typeName, int columnSize, 
+
+	protected Type getTimeType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
 		Type type;
 		if (typeName.equalsIgnoreCase("TIMETZ")) {
@@ -191,8 +200,8 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 		type.setSql99TypeName("TIME");
 		return type;
 	}
-	
-	protected Type getTimestampType(String typeName, int columnSize, 
+
+	protected Type getTimestampType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
 		Type type;
 		if (typeName.equalsIgnoreCase("TIMESTAMPTZ")) {
@@ -207,8 +216,8 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 	@Override
 	protected Type getVarcharType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
-		Type type = new SimpleTypeString(Integer.valueOf(columnSize), 
-				Boolean.TRUE); 
+		Type type = new SimpleTypeString(Integer.valueOf(columnSize),
+				Boolean.TRUE);
 		if (typeName.equalsIgnoreCase("text")) {
 			type.setSql99TypeName("CHARACTER LARGE OBJECT");
 		} else {
@@ -218,20 +227,20 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 	}
 
 	@Override
-	protected Type getSpecificType(int dataType, String typeName, 
-			int columnSize, int decimalDigits, int numPrecRadix) 
-					throws UnknownTypeException {
+	protected Type getSpecificType(int dataType, String typeName,
+			int columnSize, int decimalDigits, int numPrecRadix)
+			throws UnknownTypeException {
 		Type type;
 		logger.debug("Specific type name: " + typeName);
 		logger.debug("------\n");
 		switch (dataType) {
 		case 2009: // XML Data type
-			type = new SimpleTypeString(Integer.valueOf(columnSize), 
+			type = new SimpleTypeString(Integer.valueOf(columnSize),
 					Boolean.TRUE);
 			type.setSql99TypeName("CHARACTER LARGE OBJECT");
 			break;
 		default:
-			type = super.getSpecificType(dataType, typeName, columnSize, 
+			type = super.getSpecificType(dataType, typeName, columnSize,
 					decimalDigits, numPrecRadix);
 			break;
 		}
@@ -239,21 +248,25 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 	}
 
 	/**
-	 * Drops money currency 
+	 * Drops money currency
 	 */
-	protected Cell rawToCellSimpleTypeNumericApproximate(String id, 
-			String columnName, Type cellType, ResultSet rawData) 
-					throws SQLException {
+	protected Cell rawToCellSimpleTypeNumericApproximate(String id,
+			String columnName, Type cellType, ResultSet rawData)
+			throws SQLException {
 		Cell cell = null;
 		if (cellType.getOriginalTypeName().equalsIgnoreCase("MONEY")) {
 			String data = rawData.getString(columnName);
-			String parts[] = data.split(" ");
-			if (parts[1] != null) {
-				logger.warn("Money currency lost: " + parts[1]);
+			if (data != null) {
+				String parts[] = data.split(" ");
+				if (parts[1] != null) {
+					logger.warn("Money currency lost: " + parts[1]);
+				}
+				cell = new SimpleCell(id, parts[0]);
+			} else {
+				cell = new SimpleCell(id, null);
 			}
-			cell = new SimpleCell(id, parts[0]);
-		}
-		else {
+			
+		} else {
 			String value;
 			if (cellType.getOriginalTypeName().equalsIgnoreCase("float4")) {
 				Float f = rawData.getFloat(columnName);
@@ -266,14 +279,14 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 		}
 		return cell;
 	}
-	
+
 	/**
-	 * Treats bit strings, as the default behavior does not handle 
-	 * PostgreSQL byte streams correctly 
+	 * Treats bit strings, as the default behavior does not handle PostgreSQL
+	 * byte streams correctly
 	 */
 	protected Cell rawToCellSimpleTypeBinary(String id, String columnName,
-			Type cellType, ResultSet rawData) 
-					throws SQLException, ModuleException {
+			Type cellType, ResultSet rawData) throws SQLException,
+			ModuleException {
 		Cell cell;
 		InputStream binaryStream;
 		if (cellType.getOriginalTypeName().equalsIgnoreCase("bit")) {
@@ -299,5 +312,5 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 		}
 		return cell;
 	}
-	
+
 }

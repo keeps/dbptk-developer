@@ -11,16 +11,18 @@ public class ColumnStructure {
 	private String id;
 
 	private String name;
-	
+
 	private String folder;
 
 	private Type type;
-	
+
 	private String defaultValue;
 
 	private Boolean nillable;
 
 	private String description;
+
+	private Boolean isAutoIncrement;
 
 	/**
 	 * ColumnStructure empty constructor
@@ -29,7 +31,6 @@ public class ColumnStructure {
 	public ColumnStructure() {
 	}
 
-	
 	/**
 	 * ColumnStructure constructor
 	 * 
@@ -43,16 +44,21 @@ public class ColumnStructure {
 	 *            the column type
 	 * @param description
 	 *            column description, optionally null
+	 * @param isGeneratedColumn
+	 * @param isAutoIncrement
+	 * @param defaultValue2
 	 */
 	public ColumnStructure(String id, String name, Type type, Boolean nillable,
-			String description) {
+			String description, String defaultValue, Boolean isAutoIncrement) {
 		this.id = id;
 		this.name = name;
 		this.type = type;
 		this.nillable = nillable;
 		this.description = description;
+		this.defaultValue = defaultValue;
+		this.isAutoIncrement = isAutoIncrement;
 	}
-	
+
 	/**
 	 * @return column description, null if none
 	 */
@@ -105,14 +111,13 @@ public class ColumnStructure {
 		return folder;
 	}
 
-
 	/**
-	 * @param folder the folder to set
+	 * @param folder
+	 *            the folder to set
 	 */
 	public void setFolder(String folder) {
 		this.folder = folder;
 	}
-
 
 	/**
 	 * @return the column type
@@ -137,8 +142,8 @@ public class ColumnStructure {
 	}
 
 	/**
-	 * @param defaultValue 
-	 * 			  the defaultValue to set
+	 * @param defaultValue
+	 *            the defaultValue to set
 	 */
 	public void setDefaultValue(String defaultValue) {
 		this.defaultValue = defaultValue;
@@ -159,9 +164,18 @@ public class ColumnStructure {
 		this.nillable = nillable;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
+	public Boolean getIsAutoIncrement() {
+		return isAutoIncrement;
+	}
+
+	public void setIsAutoIncrement(Boolean isAutoIncrement) {
+		this.isAutoIncrement = isAutoIncrement;
+	}
+
+	public Boolean getNillable() {
+		return nillable;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -172,14 +186,17 @@ public class ColumnStructure {
 		builder.append(", folder=");
 		builder.append(folder);
 		builder.append(", type=");
-		builder.append(type.getClass().toString());
+		builder.append(type);
 		builder.append(", defaultValue=");
 		builder.append(defaultValue);
 		builder.append(", nillable=");
 		builder.append(nillable);
 		builder.append(", description=");
 		builder.append(description);
+		builder.append(", isAutoIncrement=");
+		builder.append(isAutoIncrement);
 		builder.append("]");
 		return builder.toString();
 	}
+
 }
