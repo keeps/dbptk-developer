@@ -3,6 +3,10 @@
  */
 package pt.gov.dgarq.roda.common.convert.db.modules.postgreSql;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.commons.lang3.StringUtils;
 
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
@@ -19,11 +23,14 @@ import pt.gov.dgarq.roda.common.convert.db.modules.SQLHelper;
  * 
  */
 public class PostgreSQLHelper extends SQLHelper {
-	
+
+	private static final Set<String> POSTGRESQL_TYPES = new HashSet<String>(
+			Arrays.asList("char", "abstime", "aclitem", "bigint", "biserial", "bit varying", "boolean", "bytea", "cid", "cidr", "circle"));
+
 	private String startQuote = "\"";
-	
+
 	private String endQuote = "\"";
-	
+
 	@Override
 	public String getStartQuote() {
 		return startQuote;
@@ -39,7 +46,7 @@ public class PostgreSQLHelper extends SQLHelper {
 		schema = schema.toLowerCase();
 		return getStartQuote() + schema + getEndQuote();
 	}
-	
+
 	@Override
 	public String escapeTableName(String table) {
 		table = table.toLowerCase();
@@ -52,13 +59,13 @@ public class PostgreSQLHelper extends SQLHelper {
 	 * @param tableName
 	 *            the table id
 	 * @return the SQL
-	 * @throws ModuleException 
+	 * @throws ModuleException
 	 */
 	public String grantPermissionsSQL(String tableId) throws ModuleException {
 		String[] parts = splitTableId(tableId);
 		String schema = parts[0];
 		String table = parts[1];
-		return "GRANT SELECT ON " + escapeSchemaName(schema) + "." 
+		return "GRANT SELECT ON " + escapeSchemaName(schema) + "."
 				+ escapeTableName(table) + " TO PUBLIC";
 	}
 
@@ -66,7 +73,9 @@ public class PostgreSQLHelper extends SQLHelper {
 	protected String createTypeSQL(Type type, boolean isPkey, boolean isFkey)
 			throws UnknownTypeException {
 		String ret;
-		if (type instanceof SimpleTypeString) {
+		if (POSTGRESQL_TYPES.contains(type.getOriginalTypeName())) {
+			ret = type.getOriginalTypeName();
+		} else if (type instanceof SimpleTypeString) {
 			SimpleTypeString string = (SimpleTypeString) type;
 			if (string.getLength().intValue() >= 65535) {
 				ret = "text";
@@ -76,8 +85,7 @@ public class PostgreSQLHelper extends SQLHelper {
 				ret = "char(" + string.getLength() + ")";
 			}
 		} else if (type instanceof SimpleTypeNumericApproximate) {
-			SimpleTypeNumericApproximate numericApproximate = 
-					(SimpleTypeNumericApproximate) type;
+			SimpleTypeNumericApproximate numericApproximate = (SimpleTypeNumericApproximate) type;
 			if (type.getSql99TypeName().equalsIgnoreCase("REAL")) {
 				ret = "real";
 			} else if (StringUtils.startsWithIgnoreCase(
@@ -112,7 +120,7 @@ public class PostgreSQLHelper extends SQLHelper {
 		}
 		return ret;
 	}
-	
+
 	@Override
 	public String getCheckConstraintsSQL(String schemaName, String tableName) {
 		return "SELECT tc.constraint_name AS CHECK_NAME "
@@ -120,15 +128,15 @@ public class PostgreSQLHelper extends SQLHelper {
 				+ "WHERE table_name='" + tableName + "' AND table_schema='"
 				+ schemaName + "' AND constraint_type = 'CHECK'";
 	}
-	
+
 	public String getCheckConstraintsSQL2(String schemaName, String tableName) {
 		return "SELECT conname FROM pg_catalog.pg_constraint c "
 				+ "LEFT JOIN pg_class t ON c.conrelid = t.oid "
 				+ "LEFT JOIN pg_namespace n ON t.relnamespace = n.oid"
-				+ "WHERE t.relname='" + tableName + "' "
-				+ "AND n.nspname='" + schemaName + "'"; 
+				+ "WHERE t.relname='" + tableName + "' " + "AND n.nspname='"
+				+ schemaName + "'";
 	}
-	
+
 	@Override
 	public String getTriggersSQL(String schemaName, String tableName) {
 		return "SELECT "
@@ -136,20 +144,20 @@ public class PostgreSQLHelper extends SQLHelper {
 				+ "event_manipulation AS TRIGGER_EVENT, "
 				+ "action_statement AS TRIGGERED_ACTION "
 				+ "FROM information_schema.triggers "
-				+ "WHERE trigger_schema='" + schemaName 
+				+ "WHERE trigger_schema='" + schemaName
 				+ "' AND event_object_table='" + tableName + "'";
 	}
-	
+
 	@Override
 	public String getUsersSQL(String dbName) {
 		return "SELECT usename AS USER_NAME FROM pg_catalog.pg_user";
 	}
-	
+
 	@Override
 	public String getRolesSQL() {
 		return "SELECT rolname AS ROLE_NAME FROM pg_roles";
 	}
-	
+
 	@Override
 	public String getDatabases(String database) {
 		return "SELECT datname FROM pg_database WHERE datistemplate = false;";

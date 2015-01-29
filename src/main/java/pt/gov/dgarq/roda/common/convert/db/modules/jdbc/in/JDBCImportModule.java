@@ -600,6 +600,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			int numPrecRadix = rs.getInt(10);
 			cLogMessage.append("Radix: " + numPrecRadix + "\n");
 			// 11. is NULL allowed (using 18. instead)
+			
 			// 12. comment describing column (may be null)
 			String remarks = rs.getString(12);
 			cLogMessage.append("Remarks: " + remarks + "\n");
@@ -619,7 +620,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			// YES --- if the column can include NULLs
 			// NO --- if the column cannot include NULLs
 			// empty string --- if the nullability for the column is unknown
-			Boolean isNullable = rs.getString(18) == "YES";
+			Boolean isNullable = "YES".equals(rs.getString(18));
 			cLogMessage.append("Is Nullable: " + isNullable + "\n");
 			// 20. SCOPE_SCHEMA String => schema of table that is the scope of a
 			// reference attribute (null if the DATA_TYPE isn't REF)
@@ -634,7 +635,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			// NO --- if the column is not auto incremented
 			// empty string --- if it cannot be determined whether the column is
 			// auto incremented
-			Boolean isAutoIncrement = rs.getString(23) == "YES";
+			Boolean isAutoIncrement = "YES".equals(rs.getString(23));
 			cLogMessage.append("Is auto increment: " + isAutoIncrement + "\n");
 			// 24. IS_GENERATEDCOLUMN String => Indicates whether this is a
 			// generated column
@@ -1384,7 +1385,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 		} else if (cellType instanceof SimpleTypeBinary) {
 			cell = rawToCellSimpleTypeBinary(id, columnName, cellType, rawData);
 		} else if (cellType instanceof UnsupportedDataType) {
-			cell = new SimpleCell(id, "UNSUPPORTED DATA TYPE");
+			cell = new SimpleCell(id, rawData.getString(columnName));
 		} else {
 			cell = new SimpleCell(id, rawData.getString(columnName));
 		}
@@ -1410,31 +1411,31 @@ public class JDBCImportModule implements DatabaseImportModule {
 					cells.add(new SimpleCell(baseid + "." + i, item));
 				}
 				break;
-			case Types.BIT: 
+			case Types.BIT:
 				for (int i = 0; i < items.length; i++) {
 					Boolean item = (Boolean) items[i];
 					cells.add(new SimpleCell(baseid + "." + i, item.toString()));
 				}
 				break;
-			case Types.DATE: 
+			case Types.DATE:
 				for (int i = 0; i < items.length; i++) {
 					Date item = (Date) items[i];
 					// XXX should date be formatted as ISO8601?
 					cells.add(new SimpleCell(baseid + "." + i, item.toString()));
 				}
 				break;
-			case Types.INTEGER: 
+			case Types.INTEGER:
 				for (int i = 0; i < items.length; i++) {
 					Integer item = (Integer) items[i];
 					cells.add(new SimpleCell(baseid + "." + i, item.toString()));
 				}
 				break;
-			case Types.DOUBLE: 
+			case Types.DOUBLE:
 				for (int i = 0; i < items.length; i++) {
 					Double item = (Double) items[i];
 					cells.add(new SimpleCell(baseid + "." + i, item.toString()));
 				}
-				break;	
+				break;
 			default:
 				throw new InvalidDataException(
 						"Convert data of array of base type '" + baseType

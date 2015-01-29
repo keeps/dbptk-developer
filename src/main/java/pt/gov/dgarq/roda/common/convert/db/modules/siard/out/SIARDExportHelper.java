@@ -73,6 +73,7 @@ public class SIARDExportHelper {
 	}
 
 	protected Pair<String, String> exportUnsupportedDataType(Type type) {
+		// TODO check what is the best type for an unsupported data type
 		return new ImmutablePair<String, String>("CHARACTER VARYING(40)",
 				"unsupported");
 	}

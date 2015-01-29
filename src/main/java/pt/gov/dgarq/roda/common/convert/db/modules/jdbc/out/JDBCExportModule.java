@@ -466,6 +466,11 @@ public class JDBCExportModule implements DatabaseHandler {
 			try {
 				currentRowInsertStatement.executeBatch();
 			} catch (SQLException e) {
+				logger.error("Error closing table", e);
+				SQLException nextException = e.getNextException();
+				if (nextException != null) {
+					logger.error("More details", nextException);
+				}
 				throw new ModuleException("Error executing insert batch", e);
 			}
 			batch_index = 0;
@@ -532,9 +537,6 @@ public class JDBCExportModule implements DatabaseHandler {
 				logger.debug("data: " + data);
 				logger.debug("type: " + type.getOriginalTypeName());
 				if (type instanceof SimpleTypeString) {
-					if (data == null) {
-						data = "";
-					}
 					handleSimpleTypeStringDataCell(data, ps, index, cell, type);
 				} else if (type instanceof SimpleTypeNumericExact) {
 					handleSimpleTypeNumericExactDataCell(data, ps, index, cell,
@@ -549,6 +551,12 @@ public class JDBCExportModule implements DatabaseHandler {
 					handleSimpleTypeBooleanDataCell(data, ps, index, cell, type);
 				} else if (type instanceof UnsupportedDataType) {
 					handleSimpleTypeStringDataCell(data, ps, index, cell, type);
+				} else if (type instanceof SimpleTypeBinary) {
+					if (data != null) {
+						ps.setString(index, data);
+					} else {
+						ps.setNull(index, Types.BINARY);
+					}
 				} else {
 					throw new InvalidDataException(type.getClass()
 							.getSimpleName()
