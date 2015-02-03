@@ -58,6 +58,18 @@
 			<name>KEEP Artifacts-releases</name>
 			<url>http://artifactory.keep.pt/keep</url>
 		</repository>
+		<repository>
+			<id>vendorDependencies</id>
+			<name>Vendor dependencies</name>
+			<releases>
+				<enabled>true</enabled>
+				<checksumPolicy>ignore</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<url>file://${project.basedir}/vendor-libs/repository/</url>
+		</repository>
 	</repositories>
 	<dependencies>
 		<dependency>
