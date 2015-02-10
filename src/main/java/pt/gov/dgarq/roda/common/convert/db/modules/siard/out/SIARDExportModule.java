@@ -1134,10 +1134,10 @@ public class SIARDExportModule implements DatabaseHandler {
 				print("/>\n");
 			} catch (ModuleException e) {
 				logger.error("An error occurred while getting the XSD type "
-						+ "of column c" + columnIndex);
+						+ "of column c" + columnIndex, e);
 			} catch (UnknownTypeException e) {
 				logger.error("An error occurred while getting the XSD type "
-						+ "of column c" + columnIndex);
+						+ "of column c" + columnIndex, e);
 			}
 			columnIndex++;
 		}

@@ -652,7 +652,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 			cLogMessage.append("Calculated type: "
 					+ columnType.getClass().getSimpleName() + "\n");
-			logger.debug(cLogMessage);
+			logger.trace(cLogMessage);
 
 			ColumnStructure column = getColumnStructure(tableName, columnName,
 					columnType, isNullable, index, remarks, defaultValue,
@@ -1444,7 +1444,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			}
 		} catch (SQLFeatureNotSupportedException e) {
 			logger.warn("Got a problem getting Array value: " + e.getMessage());
-			logger.warn("Trying via result set, string representations will not ne controlled!");
+			logger.warn("Trying via result set, string representations will not be controlled!");
 			ResultSet rs = array.getResultSet();
 			while (rs.next()) {
 				String item = rs.getString(1);

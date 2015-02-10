@@ -29,7 +29,7 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: datatypes; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: datatypes; Type: TABLE; Schema: public; Owner: -; Tablespace:
 --
 
 CREATE TABLE datatypes (
@@ -229,7 +229,7 @@ SELECT pg_catalog.setval('datatypes_col9_seq', 2, true);
 
 
 --
--- Name: Primary key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: Primary key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace:
 --
 
 ALTER TABLE ONLY datatypes
@@ -240,13 +240,12 @@ ALTER TABLE ONLY datatypes
 -- Name: public; Type: ACL; Schema: -; Owner: -
 --
 
-REVOKE ALL ON SCHEMA public FROM PUBLIC;
-REVOKE ALL ON SCHEMA public FROM postgres;
-GRANT ALL ON SCHEMA public TO postgres;
-GRANT ALL ON SCHEMA public TO PUBLIC;
+--REVOKE ALL ON SCHEMA public FROM PUBLIC;
+--REVOKE ALL ON SCHEMA public FROM postgres;
+--GRANT ALL ON SCHEMA public TO postgres;
+--GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
 --
 -- PostgreSQL database dump complete
 --
-

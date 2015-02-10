@@ -20,6 +20,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.UnsupportedDataT
 /**
  * 
  * @author Miguel Coutada
+ * @author Luis Faria <lfaria@keep.pt>
  *
  */
 
@@ -62,7 +63,8 @@ public class SIARDExportHelper {
 		} else if (type instanceof UnsupportedDataType) {
 			ret = exportUnsupportedDataType(type);
 		} else if (type instanceof ComposedTypeArray) {
-			throw new ModuleException("Not yet supported type: ARRAY");
+			ret = exportUnsupportedDataType(type);
+			// throw new ModuleException("Not yet supported type: ARRAY");
 		} else if (type instanceof ComposedTypeStructure) {
 			throw new ModuleException("Not yet supported type: ROW");
 		} else {

@@ -145,24 +145,26 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 						e);
 			}
 
-		} else {
-			if (databaseExists(POSTGRES_CONNECTION_DATABASE, database,
-					connectionURL)) {
-				throw new ModuleException("Cannot create database " + database
-						+ ". Please choose"
-						+ " another name or delete the database " + "'"
-						+ database + "'.");
-			}
 		}
 
-		try {
-			logger.debug("Creating database " + database);
-			getConnection(POSTGRES_CONNECTION_DATABASE, connectionURL)
-					.createStatement().executeUpdate(
-							sqlHelper.createDatabaseSQL(database));
+		if (databaseExists(POSTGRES_CONNECTION_DATABASE, database,
+				connectionURL)) {
+			logger.info("Database already exists, reusing.");
+			// throw new ModuleException("Cannot create database " + database
+			// + ". Please choose"
+			// + " another name or delete the database " + "'"
+			// + database + "'.");
+		} else {
+			try {
+				logger.debug("Creating database " + database);
+				getConnection(POSTGRES_CONNECTION_DATABASE, connectionURL)
+						.createStatement().executeUpdate(
+								sqlHelper.createDatabaseSQL(database));
 
-		} catch (SQLException e) {
-			throw new ModuleException("Error creating database " + database, e);
+			} catch (SQLException e) {
+				throw new ModuleException(
+						"Error creating database " + database, e);
+			}
 		}
 	}
 

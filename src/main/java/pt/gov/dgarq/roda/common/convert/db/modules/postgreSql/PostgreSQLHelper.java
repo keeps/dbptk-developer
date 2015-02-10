@@ -25,7 +25,7 @@ import pt.gov.dgarq.roda.common.convert.db.modules.SQLHelper;
 public class PostgreSQLHelper extends SQLHelper {
 
 	private static final Set<String> POSTGRESQL_TYPES = new HashSet<String>(
-			Arrays.asList("char", "abstime", "aclitem", "bigint", "biserial", "bit varying", "boolean", "bytea", "cid", "cidr", "circle"));
+			Arrays.asList("char", "bigint"));
 
 	private String startQuote = "\"";
 
