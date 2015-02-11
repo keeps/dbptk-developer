@@ -740,9 +740,15 @@ public class SIARDImportModule implements DatabaseImportModule {
 			} else if (sqlType.equals("DATE")) {
 				type = new SimpleTypeDateTime(Boolean.FALSE, Boolean.FALSE);
 				type.setSql99TypeName("DATE");
-			} else if (sqlType.startsWith("TIMESTAMP")) {
+			}  else if (sqlType.equals("TIMESTAMP WITH TIME ZONE")) {
+				type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.TRUE);
+				type.setSql99TypeName("TIMESTAMP WITH TIME ZONE");
+			}  else if (sqlType.equals("TIMESTAMP")) {
 				type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
 				type.setSql99TypeName("TIMESTAMP");
+			} else if (sqlType.equals("TIME WITH TIME ZONE")) {
+				type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.TRUE);
+				type.setSql99TypeName("TIME WITH TIME ZONE");
 			} else if (sqlType.equals("TIME")) {
 				type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
 				type.setSql99TypeName("TIME");

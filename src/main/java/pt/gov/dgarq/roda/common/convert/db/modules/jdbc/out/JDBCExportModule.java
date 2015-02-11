@@ -653,7 +653,9 @@ public class JDBCExportModule implements DatabaseHandler {
 			throws InvalidDateException, SQLException {
 		SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
 		if (dateTime.getTimeDefined()) {
-			if (type.getSql99TypeName().equalsIgnoreCase("TIMESTAMP")) {
+			if (type.getSql99TypeName().equalsIgnoreCase("TIMESTAMP")
+					|| type.getSql99TypeName().equalsIgnoreCase(
+							"TIMESTAMP WITH TIME ZONE")) {
 				if (data != null) {
 					// logger.debug("timestamp before: " + data);
 					Calendar cal = javax.xml.bind.DatatypeConverter

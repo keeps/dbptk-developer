@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
@@ -25,7 +26,10 @@ import pt.gov.dgarq.roda.common.convert.db.modules.SQLHelper;
 public class PostgreSQLHelper extends SQLHelper {
 
 	private static final Set<String> POSTGRESQL_TYPES = new HashSet<String>(
-			Arrays.asList("char", "bigint"));
+			Arrays.asList("char", "int8", "varchar", "bigserial", "name",
+					"numeric"));
+
+	private final Logger logger = Logger.getLogger(getClass());
 
 	private String startQuote = "\"";
 
@@ -73,8 +77,14 @@ public class PostgreSQLHelper extends SQLHelper {
 	protected String createTypeSQL(Type type, boolean isPkey, boolean isFkey)
 			throws UnknownTypeException {
 		String ret;
+
+		logger.debug("Checking PSQL type " + type.getOriginalTypeName());
 		if (POSTGRESQL_TYPES.contains(type.getOriginalTypeName())) {
 			ret = type.getOriginalTypeName();
+			if (ret.equals("char")) {
+				ret = "\"char\"";
+			}
+			logger.warn("Using PostgreSQL original type " + ret);
 		} else if (type instanceof SimpleTypeString) {
 			SimpleTypeString string = (SimpleTypeString) type;
 			if (string.getLength().intValue() >= 65535) {
@@ -100,17 +110,17 @@ public class PostgreSQLHelper extends SQLHelper {
 				ret = "date";
 			} else {
 				if (type.getSql99TypeName().equalsIgnoreCase("TIMESTAMP")) {
-					if (dateTime.getTimeZoneDefined()) {
-						ret = "timestamp with time zone";
-					} else {
-						ret = "timestamp without time zone";
-					}
+					ret = "timestamp without time zone";
+				} else if (type.getSql99TypeName().equalsIgnoreCase(
+						"TIMESTAMP WITH TIME ZONE")) {
+					ret = "timestamp with time zone";
+				} else if (type.getSql99TypeName().equalsIgnoreCase("TIME")) {
+					ret = "time without time zone";
+				} else if (type.getSql99TypeName().equalsIgnoreCase(
+						"TIME WITH TIME ZONE")) {
+					ret = "time with time zone";
 				} else {
-					if (dateTime.getTimeDefined()) {
-						ret = "time with time zone";
-					} else {
-						ret = "time without time zone";
-					}
+					throw new UnknownTypeException(type.toString());
 				}
 			}
 		} else if (type instanceof SimpleTypeBinary) {

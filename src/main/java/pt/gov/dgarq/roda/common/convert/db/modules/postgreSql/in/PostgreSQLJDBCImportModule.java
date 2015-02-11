@@ -194,10 +194,12 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 		Type type;
 		if (typeName.equalsIgnoreCase("TIMETZ")) {
 			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.TRUE);
+			type.setSql99TypeName("TIME WITH TIME ZONE");
 		} else {
 			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+			type.setSql99TypeName("TIME");
 		}
-		type.setSql99TypeName("TIME");
+		
 		return type;
 	}
 
@@ -206,10 +208,12 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 		Type type;
 		if (typeName.equalsIgnoreCase("TIMESTAMPTZ")) {
 			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.TRUE);
+			type.setSql99TypeName("TIMESTAMP WITH TIME ZONE");
 		} else {
 			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+			type.setSql99TypeName("TIMESTAMP");
 		}
-		type.setSql99TypeName("TIMESTAMP");
+		
 		return type;
 	}
 

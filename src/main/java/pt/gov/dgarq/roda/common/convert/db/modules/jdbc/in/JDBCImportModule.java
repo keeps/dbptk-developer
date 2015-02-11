@@ -600,7 +600,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			int numPrecRadix = rs.getInt(10);
 			cLogMessage.append("Radix: " + numPrecRadix + "\n");
 			// 11. is NULL allowed (using 18. instead)
-			
+
 			// 12. comment describing column (may be null)
 			String remarks = rs.getString(12);
 			cLogMessage.append("Remarks: " + remarks + "\n");
@@ -1466,7 +1466,9 @@ public class JDBCImportModule implements DatabaseImportModule {
 		Cell cell = null;
 		SimpleTypeDateTime undefinedDate = (SimpleTypeDateTime) cellType;
 		if (undefinedDate.getTimeDefined()) {
-			if (cellType.getSql99TypeName().equalsIgnoreCase("TIME")) {
+			if (cellType.getSql99TypeName().equalsIgnoreCase("TIME")
+					|| cellType.getSql99TypeName().equalsIgnoreCase(
+							"TIME WITH TIME ZONE")) {
 				Time time = rawData.getTime(columnName);
 				if (time != null) {
 					cell = new SimpleCell(id, time.toString());

@@ -83,4 +83,17 @@ public abstract class Type {
 	public void setSql99TypeName(String sql99TypeName) {
 		this.sql99TypeName = sql99TypeName;
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("Type [originalTypeName=");
+		builder.append(originalTypeName);
+		builder.append(", description=");
+		builder.append(description);
+		builder.append(", sql99TypeName=");
+		builder.append(sql99TypeName);
+		builder.append("]");
+		return builder.toString();
+	}
 }

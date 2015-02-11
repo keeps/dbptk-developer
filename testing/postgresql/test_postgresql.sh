@@ -42,7 +42,7 @@ psql "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO \"$TEST_DB_USER\
 psql "GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO \"$TEST_DB_USER\";" "$TEST_DB_TARGET"
 
 # Executing
-echo "Converting DBMS to SIARD"
+echo "Converting DBMS to SIARD at $SIARD_TEMP_FILE"
 java -jar ../../target/db-preservation-toolkit-2.0.0-jar-with-dependencies.jar \
  -i PostgreSQLJDBC localhost $TEST_DB_SOURCE $TEST_DB_USER $TEST_DB_PASS false \
  -o SIARD $SIARD_TEMP_FILE
@@ -66,7 +66,7 @@ sudo -u postgres pg_dump $TEST_DB_SOURCE $PG_DUMP_OPTIONS > $DUMP_SOURCE
 echo "Dumping target DB to $DUMP_TARGET"
 sudo -u postgres pg_dump $TEST_DB_TARGET $PG_DUMP_OPTIONS > $DUMP_TARGET
 
-meld $DUMP_SOURCE $DUMP_TARGET
+meld $DUMP_SOURCE $DUMP_TARGET &
 
 echo "Cleaning up"
 psql "DROP DATABASE \"$TEST_DB_SOURCE\";"
@@ -74,4 +74,4 @@ psql "DROP DATABASE \"$TEST_DB_TARGET\";"
 psql "REVOKE ALL PRIVILEGES ON SCHEMA public FROM \"$TEST_DB_USER\";"
 psql "DROP ROLE \"$TEST_DB_USER\";"
 
-rm -f $SIARD_TEMP_FILE
+#rm -f $SIARD_TEMP_FILE

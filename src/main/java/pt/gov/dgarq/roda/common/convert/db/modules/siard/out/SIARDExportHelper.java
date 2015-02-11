@@ -154,14 +154,18 @@ public class SIARDExportHelper {
 				&& !dateTimeType.getTimeZoneDefined()) {
 			dataType = "DATE";
 			xsdType = "xs:date";
-		} else {
-			if (type.getSql99TypeName().equalsIgnoreCase("TIME")) {
-				dataType = "TIME";
-				xsdType = "xs:time";
-			} else {
-				dataType = "TIMESTAMP";
-				xsdType = "xs:dateTime";
-			}
+		} else if (type.getSql99TypeName().equalsIgnoreCase("TIME")) {
+			dataType = "TIME";
+			xsdType = "xs:time";
+		} else if (type.getSql99TypeName().equalsIgnoreCase("TIME WITH TIME ZONE")) {
+			dataType = "TIME WITH TIME ZONE";
+			xsdType = "xs:time";
+		} else if (type.getSql99TypeName().equalsIgnoreCase("TIMESTAMP")) {
+			dataType = "TIMESTAMP";
+			xsdType = "xs:dateTime";
+		} else if (type.getSql99TypeName().equalsIgnoreCase("TIMESTAMP WITH TIME ZONE")) {
+			dataType = "TIMESTAMP WITH TIME ZONE";
+			xsdType = "xs:dateTime";
 		}
 		return new ImmutablePair<String, String>(dataType, xsdType);
 	}
