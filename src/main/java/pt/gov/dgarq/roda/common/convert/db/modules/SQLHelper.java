@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import pt.gov.dgarq.roda.common.convert.db.model.data.Cell;
@@ -258,18 +259,28 @@ public class SQLHelper {
 	 */
 	public String createPrimaryKeySQL(String tableId, PrimaryKey pkey)
 			throws ModuleException {
-		String ret = null;
+		StringBuilder ret = new StringBuilder();
 		if (pkey != null) {
-			ret = "ALTER TABLE " + escapeTableId(tableId)
-					+ " ADD PRIMARY KEY (";
+
+			ret.append("ALTER TABLE ").append(escapeTableId(tableId));
+			if (StringUtils.isBlank(pkey.getName())) {
+				ret.append(" ADD PRIMARY KEY (");
+			} else {
+				ret.append(" ADD CONSTRAINT \"").append(pkey.getName())
+						.append("\" PRIMARY KEY (");
+			}
+
 			boolean comma = false;
 			for (String field : pkey.getColumnNames()) {
-				ret += (comma ? ", " : "") + escapeColumnName(field);
+				if (comma) {
+					ret.append(", ");
+				}
+				ret.append(escapeColumnName(field));
 				comma = true;
 			}
-			ret += ")";
+			ret.append(")");
 		}
-		return ret;
+		return ret.toString();
 	}
 
 	/**

@@ -1374,8 +1374,14 @@ public class JDBCImportModule implements DatabaseImportModule {
 			throw new InvalidDataException(
 					"Convert data of struct type not yet supported");
 		} else if (cellType instanceof SimpleTypeBoolean) {
-			cell = new SimpleCell(id, rawData.getBoolean(columnName) ? "true"
-					: "false");
+			boolean booleanValue = rawData.getBoolean(columnName);
+			boolean wasNull = rawData.wasNull();
+			if (wasNull) {
+				cell = new SimpleCell(id, null);
+			} else {
+				cell = new SimpleCell(id, booleanValue ? "true" : "false");
+			}
+
 		} else if (cellType instanceof SimpleTypeNumericApproximate) {
 			cell = rawToCellSimpleTypeNumericApproximate(id, columnName,
 					cellType, rawData);
@@ -1458,7 +1464,17 @@ public class JDBCImportModule implements DatabaseImportModule {
 	protected Cell rawToCellSimpleTypeNumericApproximate(String id,
 			String columnName, Type cellType, ResultSet rawData)
 			throws SQLException {
-		return new SimpleCell(id, rawData.getString(columnName));
+
+		String stringValue = rawData.getString(columnName);
+		boolean wasNull = rawData.wasNull();
+		SimpleCell cell;
+		if (wasNull) {
+			cell = new SimpleCell(id, null);
+		} else {
+			cell = new SimpleCell(id, stringValue);
+		}
+
+		return cell;
 	}
 
 	protected Cell rawToCellSimpleTypeDateTime(String id, String columnName,

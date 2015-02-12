@@ -199,7 +199,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
 			type.setSql99TypeName("TIME");
 		}
-		
+
 		return type;
 	}
 
@@ -213,7 +213,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
 			type.setSql99TypeName("TIMESTAMP");
 		}
-		
+
 		return type;
 	}
 
@@ -269,15 +269,15 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 			} else {
 				cell = new SimpleCell(id, null);
 			}
-			
+
 		} else {
 			String value;
 			if (cellType.getOriginalTypeName().equalsIgnoreCase("float4")) {
 				Float f = rawData.getFloat(columnName);
-				value = f.toString();
+				value = rawData.wasNull() ? null : f.toString();
 			} else {
 				Double d = rawData.getDouble(columnName);
-				value = d.toString();
+				value = rawData.wasNull() ? null : d.toString();
 			}
 			cell = new SimpleCell(id, value);
 		}
