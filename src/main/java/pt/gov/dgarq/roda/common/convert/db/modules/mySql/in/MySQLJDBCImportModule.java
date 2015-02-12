@@ -5,9 +5,13 @@ package pt.gov.dgarq.roda.common.convert.db.modules.mySql.in;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
+import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
 import pt.gov.dgarq.roda.common.convert.db.model.structure.UserStructure;
@@ -19,7 +23,9 @@ import pt.gov.dgarq.roda.common.convert.db.modules.mySql.MySQLHelper;
  * 
  */
 public class MySQLJDBCImportModule extends JDBCImportModule {
-		
+
+	private final Logger logger = Logger.getLogger(MySQLJDBCImportModule.class);
+
 	/**
 	 * MySQL JDBC import module constructor
 	 * 
@@ -34,9 +40,9 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 	 */
 	public MySQLJDBCImportModule(String hostname, String database,
 			String username, String password) {
-		super("com.mysql.jdbc.Driver", "jdbc:mysql://" + hostname + "/"
-				+ database + "?" + "user=" + username + "&password=" + password, 
-				new MySQLHelper());
+		super("com.mysql.jdbc.Driver",
+				"jdbc:mysql://" + hostname + "/" + database + "?" + "user="
+						+ username + "&password=" + password, new MySQLHelper());
 	}
 
 	/**
@@ -59,30 +65,55 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 				+ "/" + database + "?" + "user=" + username + "&password="
 				+ password, new MySQLHelper());
 	}
-	
-	protected List<SchemaStructure> getSchemas() 
-			throws SQLException, ClassNotFoundException, UnknownTypeException {
+
+	protected boolean isGetRowAvailable() {
+		return false;
+	}
+
+	protected List<SchemaStructure> getSchemas() throws SQLException,
+			ClassNotFoundException, UnknownTypeException {
 		List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
 		String schemaName = getConnection().getCatalog();
 		schemas.add(getSchemaStructure(schemaName));
 		return schemas;
 	}
-	
-	protected String getReferencedSchema(String s) 
-			throws SQLException, ClassNotFoundException {
+
+	protected String getReferencedSchema(String s) throws SQLException,
+			ClassNotFoundException {
 		return (s == null) ? getConnection().getCatalog() : s;
 	}
-	
-	protected List<UserStructure> getUsers() 
-			throws  SQLException, ClassNotFoundException {
+
+	protected List<UserStructure> getUsers() throws SQLException,
+			ClassNotFoundException {
 		List<UserStructure> users = new ArrayList<UserStructure>();
 		ResultSet rs = getStatement().executeQuery(sqlHelper.getUsersSQL(null));
 		while (rs.next()) {
-			UserStructure user = new UserStructure(
-					rs.getString(2) + "@" + rs.getString(1), null);
+			UserStructure user = new UserStructure(rs.getString(2) + "@"
+					+ rs.getString(1), null);
 			users.add(user);
 		}
-		
+
 		return users;
+	}
+
+	protected ResultSet getTableRawData(String tableId) throws SQLException,
+			ClassNotFoundException, ModuleException {
+		logger.debug("query: " + sqlHelper.selectTableSQL(tableId));
+
+		Statement statement = getStatement();
+		statement.setFetchSize(Integer.MIN_VALUE);
+
+		ResultSet set = statement.executeQuery(sqlHelper
+				.selectTableSQL(tableId));
+		return set;
+	}
+
+	protected Statement getStatement() throws SQLException,
+			ClassNotFoundException {
+		if (statement == null) {
+			statement = getConnection().createStatement(
+					ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+		}
+		return statement;
 	}
 }

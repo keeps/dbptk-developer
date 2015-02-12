@@ -182,6 +182,21 @@ public class JDBCImportModule implements DatabaseImportModule {
 	}
 
 	/**
+	 * Some driver may not report correctly (due to cursor setup, etc) the
+	 * number of the row currently being processed (ResultSet.getRow).
+	 * 
+	 * If its known that a particular import module doesn't support it,
+	 * re-implement this method in that particular module to return false
+	 * 
+	 * @return true if ResultSet.getRow reports correctly the number of the row
+	 *         being processed; false otherwise
+	 * 
+	 * */
+	protected boolean isGetRowAvailable() {
+		return true;
+	}
+
+	/**
 	 * @return the database structure
 	 * @throws SQLException
 	 * @throws UnknownTypeException
@@ -1344,14 +1359,21 @@ public class JDBCImportModule implements DatabaseImportModule {
 		if (isRowValid(rawData, tableStructure)) {
 			List<Cell> cells = new ArrayList<Cell>(tableStructure.getColumns()
 					.size());
+
+			int currentRow = tableStructure.getCurrentRow();
+			if (isGetRowAvailable()) {
+				currentRow = rawData.getRow();
+			}
+
 			for (int i = 0; i < tableStructure.getColumns().size(); i++) {
 				ColumnStructure colStruct = tableStructure.getColumns().get(i);
 				cells.add(convertRawToCell(tableStructure.getName(),
-						colStruct.getName(), i + 1, rawData.getRow(),
+						colStruct.getName(), i + 1, currentRow,
 						colStruct.getType(), rawData));
 			}
-			row = new Row(rawData.getRow(), cells);
+			row = new Row(currentRow, cells);
 		}
+		tableStructure.incrementCurrentRow();
 		return row;
 	}
 
