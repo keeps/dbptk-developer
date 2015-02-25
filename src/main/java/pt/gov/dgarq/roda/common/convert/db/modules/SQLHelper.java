@@ -266,8 +266,9 @@ public class SQLHelper {
 			if (StringUtils.isBlank(pkey.getName())) {
 				ret.append(" ADD PRIMARY KEY (");
 			} else {
-				ret.append(" ADD CONSTRAINT \"").append(pkey.getName())
-						.append("\" PRIMARY KEY (");
+				ret.append(" ADD CONSTRAINT ")
+						.append(escapePrimaryKeyName(pkey.getName()))
+						.append(" PRIMARY KEY (");
 			}
 
 			boolean comma = false;
@@ -422,6 +423,10 @@ public class SQLHelper {
 
 	protected String escapeColumnName(String column) {
 		return getStartQuote() + column + getEndQuote();
+	}
+
+	protected String escapePrimaryKeyName(String pkey_name) {
+		return getStartQuote() + pkey_name + getEndQuote();
 	}
 
 	protected String[] splitTableId(String tableId) throws ModuleException {

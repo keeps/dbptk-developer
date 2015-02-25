@@ -236,4 +236,15 @@ public class MySQLHelper extends SQLHelper {
 	public String dropDatabase(String database) {
 		return "DROP DATABASE IF EXISTS " + database;
 	}
+	
+	@Override
+	protected String escapePrimaryKeyName(String pkey_name) {
+		if(pkey_name.equals("PRIMARY")) {
+			logger.warn("Cannot set primary key name to reserved name PRIMARY, renaming it");
+			pkey_name += "_pkey";
+		}
+		
+		return super.escapePrimaryKeyName(pkey_name);
+	}
+	
 }

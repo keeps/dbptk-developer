@@ -52,7 +52,7 @@ java -jar ../../target/db-preservation-toolkit-2.0.0-jar-with-dependencies.jar \
  -i SIARD $SIARD_TEMP_FILE \
  -o PostgreSQLJDBC localhost $TEST_DB_TARGET $TEST_DB_USER $TEST_DB_PASS false
 
-echo "TODO: Dumping result and comparing"
+echo "Dumping result and comparing"
 
 DUMP_FOLDER=$(mktemp -d)
 DUMP_SOURCE="$DUMP_FOLDER/source.sql"
@@ -74,4 +74,4 @@ psql "DROP DATABASE \"$TEST_DB_TARGET\";"
 psql "REVOKE ALL PRIVILEGES ON SCHEMA public FROM \"$TEST_DB_USER\";"
 psql "DROP ROLE \"$TEST_DB_USER\";"
 
-#rm -f $SIARD_TEMP_FILE
+rm -f $SIARD_TEMP_FILE

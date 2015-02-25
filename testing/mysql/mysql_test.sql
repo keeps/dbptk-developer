@@ -76,10 +76,17 @@ UPDATE datatypes SET col11 = b'1010101010101010101010101010101010101010101010101
 
 -- Date and time types
 -- col12 DATE,
+UPDATE datatypes SET col12 = '9999-12-31' WHERE col1 = 1;
 
 -- col13 DATETIME,
+UPDATE datatypes SET col13 = '9999-12-31 23:59:59.999999' WHERE col1 = 1;
+
 -- col14 TIMESTAMP,
+UPDATE datatypes SET col14 = '2038-01-19 03:14:07.999999' WHERE col1 = 1;
+
 -- col15 YEAR(4),
+UPDATE datatypes SET col15 = '2015' WHERE col1 = 1;
+
 
 -- String types
 -- col16 CHAR(255),
