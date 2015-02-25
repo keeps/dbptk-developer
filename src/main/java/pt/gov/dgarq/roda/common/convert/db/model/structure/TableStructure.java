@@ -13,11 +13,11 @@ import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
  * 
  */
 public class TableStructure {
-	
+
 	private String id;
 
 	private String name;
-	
+
 	private String folder;
 
 	private String description;
@@ -27,17 +27,18 @@ public class TableStructure {
 	private PrimaryKey primaryKey;
 
 	private List<ForeignKey> foreignKeys;
-	
+
 	private List<CandidateKey> candidateKeys;
-	
+
 	private List<CheckConstraint> checkConstraints;
-	
+
 	private List<Trigger> triggers;
-	
-	private int rows; 
-	
+
+	private int rows;
+
 	private SchemaStructure schema;
 
+	private int currentRow;
 
 	/**
 	 * Empty table constructor. All fields are null except columns and foreign
@@ -56,6 +57,8 @@ public class TableStructure {
 		triggers = new ArrayList<Trigger>();
 		rows = -1;
 		schema = null;
+
+		currentRow = 1;
 	}
 
 	/**
@@ -74,20 +77,21 @@ public class TableStructure {
 	 * @param primaryKey
 	 *            primary key definition
 	 * @param candidateKeys
-	 * 			  candidate keys definition
+	 *            candidate keys definition
 	 * @param checkConstraints
-	 * 			  check constraints definition
+	 *            check constraints definition
 	 * @param triggers
-	 * 			  triggers definition
+	 *            triggers definition
 	 * @param rows
-	 * 			  number of table rows
+	 *            number of table rows
 	 */
 	public TableStructure(String id, String name, String description,
 			List<ColumnStructure> columns, List<ForeignKey> foreignKeys,
 			PrimaryKey primaryKey, List<CandidateKey> candidateKeys,
-			List<CheckConstraint> checkConstraints,
-			List<Trigger> triggers, int rows) {
-		isValidId(id); this.id = id;
+			List<CheckConstraint> checkConstraints, List<Trigger> triggers,
+			int rows) {
+		isValidId(id);
+		this.id = id;
 		this.name = name;
 		this.description = description;
 		this.columns = columns;
@@ -137,12 +141,13 @@ public class TableStructure {
 	}
 
 	/**
-	 * Sets a table id. Must be in the form of <schema>.<table>
+	 * Sets a table id. Must be in the form of <schema>.
+	 * <table>
 	 * 
 	 * @param id
 	 *            the table unique id
-	 * @throws ModuleException 
-	 *            
+	 * @throws ModuleException
+	 * 
 	 */
 	public void setId(String id) {
 		isValidId(id);
@@ -172,10 +177,11 @@ public class TableStructure {
 	}
 
 	/**
-	 * @param folder the folder to set
+	 * @param folder
+	 *            the folder to set
 	 */
 	public void setFolder(String folder) {
-		folder = folder.replaceAll(" ","-");
+		folder = folder.replaceAll(" ", "-");
 		this.folder = folder;
 	}
 
@@ -217,7 +223,8 @@ public class TableStructure {
 	}
 
 	/**
-	 * @param candidateKeys the candidateKeys to set
+	 * @param candidateKeys
+	 *            the candidateKeys to set
 	 */
 	public void setCandidateKeys(List<CandidateKey> candidateKeys) {
 		this.candidateKeys = candidateKeys;
@@ -231,7 +238,8 @@ public class TableStructure {
 	}
 
 	/**
-	 * @param checkConstraints the checkConstraints to set
+	 * @param checkConstraints
+	 *            the checkConstraints to set
 	 */
 	public void setCheckConstraints(List<CheckConstraint> checkConstraints) {
 		this.checkConstraints = checkConstraints;
@@ -245,7 +253,8 @@ public class TableStructure {
 	}
 
 	/**
-	 * @param triggers the triggers to set
+	 * @param triggers
+	 *            the triggers to set
 	 */
 	public void setTriggers(List<Trigger> triggers) {
 		this.triggers = triggers;
@@ -259,12 +268,13 @@ public class TableStructure {
 	}
 
 	/**
-	 * @param rows the rows to set
+	 * @param rows
+	 *            the rows to set
 	 */
 	public void setRows(int rows) {
 		this.rows = rows;
 	}
-	
+
 	public SchemaStructure getSchema() {
 		return schema;
 	}
@@ -272,8 +282,8 @@ public class TableStructure {
 	public void setSchema(SchemaStructure schema) {
 		this.schema = schema;
 	}
-	
-	protected void isValidId(String id) throws IllegalArgumentException{
+
+	protected void isValidId(String id) throws IllegalArgumentException {
 		if (id.split("\\.").length < 2) {
 			throw new IllegalArgumentException(
 					"Table id must be in the form of <schema>.<table>");
@@ -309,5 +319,17 @@ public class TableStructure {
 		return builder.toString();
 	}
 
-	
+	public int getCurrentRow() {
+		return currentRow;
+	}
+
+	public void setCurrentRow(int currentRow) {
+		this.currentRow = currentRow;
+	}
+
+	public int incrementCurrentRow() {
+		currentRow = currentRow + 1;
+		return currentRow;
+	}
+
 }
