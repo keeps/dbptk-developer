@@ -1,59 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-us">
   <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="viewport" content="width=640">
-
-    <link rel="stylesheet" href="stylesheets/core.css" media="screen">
-    <link rel="stylesheet" href="stylesheets/mobile.css" media="handheld, only screen and (max-device-width:640px)">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-
-    <script type="text/javascript" src="javascripts/modernizr.js"></script>
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script type="text/javascript" src="javascripts/headsmart.min.js"></script>
-    <script type="text/javascript">
-      $(document).ready(function () {
-        $('#main_content').headsmart()
-      })
-    </script>
+    <meta charset="UTF-8">
     <title>Db-preservation-toolkit by keeps</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
   </head>
-
   <body>
-    <a id="forkme_banner" href="https://github.com/keeps/db-preservation-toolkit">View on GitHub</a>
-    <div class="shell">
+    <section class="page-header">
+      <h1 class="project-name">Db-preservation-toolkit</h1>
+      <h2 class="project-tagline">Database Preservation Toolkit</h2>
+      <a href="https://github.com/keeps/db-preservation-toolkit" class="btn">View on GitHub</a>
+      <a href="https://github.com/keeps/db-preservation-toolkit/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/keeps/db-preservation-toolkit/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
 
-      <header>
-        <span class="ribbon-outer">
-          <span class="ribbon-inner">
-            <h1>Db-preservation-toolkit</h1>
-            <h2>Database Preservation Toolkit</h2>
-          </span>
-          <span class="left-tail"></span>
-          <span class="right-tail"></span>
-        </span>
-      </header>
-
-      <section id="downloads">
-        <span class="inner">
-          <a href="https://github.com/keeps/db-preservation-toolkit/zipball/master" class="zip"><em>download</em> .ZIP</a><a href="https://github.com/keeps/db-preservation-toolkit/tarball/master" class="tgz"><em>download</em> .TGZ</a>
-        </span>
-      </section>
-
-
-      <span class="banner-fix"></span>
-
-
-      <section id="main_content">
-        <h1>
+    <section class="main-content">
+      <h1>
 <a id="database-preservation-toolkit" class="anchor" href="#database-preservation-toolkit" aria-hidden="true"><span class="octicon octicon-link"></span></a>Database Preservation Toolkit</h1>
 
 <p>The Database Preservation Toolkit allows conversion between Database formats, including connection to live systems, for purposes of digitally preserving databases. The toolkit allows conversion of live or backed-up databases into preservation formats such as <strong>DBML</strong> or <strong>SIARD</strong>, XML-based formats created for the purpose of database preservation. The toolkit also allows conversion of the preservation formats back into live systems to allow the full functionality of databases. For example, it supports a specialized export into MySQL, optimized for PhpMyAdmin, so the database can be fully  experimented using a web interface.</p>
 
-<p>This toolkit was part of the <a href="http://www.roda-community.org">RODA project</a> and now has been released as a project by its own due to the increasing interest on this particular feature. </p>
+<p>This toolkit was part of the <a href="http://www.roda-community.org">RODA project</a> and now has been released as a project by its own due to the increasing interest on this particular feature. It is now being further developed in the <a href="http://www.eark-project.com/">EARK project</a> together with a new version of the SIARD preservation format.</p>
 
 <p>The toolkit is created as a platform that uses input and output modules. Each module supports read and/or write to a particular database format or live system. New modules can easily be added by implementation of a new interface and adding of new drivers.</p>
+
+<h2>
+<a id="eark-and-siard-20" class="anchor" href="#eark-and-siard-20" aria-hidden="true"><span class="octicon octicon-link"></span></a>EARK and SIARD 2.0</h2>
+
+<p>A new version of the this tool, together with a <a href="http://eark-project.github.io/siard-e-format/">new version of the SIARD preservation format</a>, is currently being designed and developed on the <a href="http://www.eark-project.com/">EARK project</a>. A draft specification will be available soon, together with a request for comments. In the meanwhile, if you'd like to know more and even send us use cases and requirements, <a href="http://www.eark-project.com/contacts">contact us</a>.</p>
 
 <h2>
 <a id="download-pre-compiled-version" class="anchor" href="#download-pre-compiled-version" aria-hidden="true"><span class="octicon octicon-link"></span></a>Download pre-compiled version</h2>
@@ -83,7 +61,7 @@ Available import modules:
     Oracle12c hostName port database username password
     MSAccessUCanAccess database.mdb<span class="pl-k">|</span>accdb
     DBML baseDir
-Available <span class="pl-s">export</span> modules:
+Available <span class="pl-k">export</span> modules:
     SIARD dir
     SQLServerJDBC serverName [port<span class="pl-k">|</span>instance] database username password useIntegratedSecurity encrypt
     PostgreSQLJDBC [port] hostName database username password encrypt
@@ -171,23 +149,16 @@ Available <span class="pl-s">export</span> modules:
 <p>For more information or commercial support, contact <a href="http://www.keep.pt/contactos/?lang=en">KEEP SOLUTIONS</a>.</p>
 
 
-      </section>
 
-      <footer>
-        <span class="ribbon-outer">
-          <span class="ribbon-inner">
-            <p>this project by <a href="https://github.com/keeps">keeps</a> can be found on <a href="https://github.com/keeps/db-preservation-toolkit">GitHub</a></p>
-          </span>
-          <span class="left-tail"></span>
-          <span class="right-tail"></span>
-        </span>
-        <p>Generated with <a href="http://pages.github.com">GitHub Pages</a> using Merlot</p>
-        <span class="octocat"></span>
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/keeps/db-preservation-toolkit">Db-preservation-toolkit</a> is maintained by <a href="https://github.com/keeps">keeps</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
       </footer>
 
-    </div>
+    </section>
 
-              <script type="text/javascript">
+            <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
             document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
           </script>
@@ -200,3 +171,4 @@ Available <span class="pl-s">export</span> modules:
 
   </body>
 </html>
+
