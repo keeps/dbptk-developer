@@ -54,6 +54,7 @@ import pt.gov.dgarq.roda.common.convert.db.modules.siard.SIARDHelper;
 /**
  * 
  * @author Miguel Coutada
+ * @author Luis Faria <lfaria@keep.pt>
  * 
  */
 
@@ -166,13 +167,27 @@ public class SIARDExportModule implements DatabaseHandler {
 			zipOut.closeArchiveEntry();
 
 			// finally create LOB files.
+			int iBlobs = 0;
+			int nBlobs = BLOBsToExport.size();
+			logger.info("Exporting " + nBlobs + " blobs");
 			for (Object[] obj : BLOBsToExport) {
+
 				Cell cell = (Cell) obj[0];
 				int colIndex = (Integer) obj[1];
 				int cellIndex = (Integer) obj[2];
 				createBLOB(cell, colIndex, cellIndex);
+
+				iBlobs++;
+				if (iBlobs % 1000 == 0) {
+					long percentage = Math.round(iBlobs * 100.0 / nBlobs);
+					logger.info(iBlobs + " of " + nBlobs + " blobs processed ("
+							+ percentage + "%)");
+				}
 			}
 
+			int iClobs = 0;
+			int nClobs = CLOBsToExport.size();
+			logger.info("Exporting " + nClobs + " clobs");
 			for (Object[] obj : CLOBsToExport) {
 				FileItem fileItem = (FileItem) obj[0];
 				int colIndex = (Integer) obj[1];
@@ -180,6 +195,13 @@ public class SIARDExportModule implements DatabaseHandler {
 				createCLOB(fileItem, colIndex, cellIndex);
 				// cleaning up file items temporary files
 				fileItem.delete();
+
+				iClobs++;
+				if (iClobs % 1000 == 0) {
+					long percentage = Math.round(iClobs * 100.0 / nClobs);
+					logger.info(iClobs + " of " + nClobs + " clobs processed ("
+							+ percentage + "%)");
+				}
 			}
 
 			createTableXSD(currentTable);
