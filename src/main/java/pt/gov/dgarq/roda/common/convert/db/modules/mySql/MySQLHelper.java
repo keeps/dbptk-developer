@@ -26,18 +26,18 @@ import pt.gov.dgarq.roda.common.convert.db.modules.SQLHelper;
 public class MySQLHelper extends SQLHelper {
 
 	private final Logger logger = Logger.getLogger(MySQLHelper.class);
-	
+
 	private String name = "MySQL";
-	
+
 	private String startQuote = "`";
-	
+
 	private String endQuote = "`";
-	
+
 	@Override
 	public String getName() {
 		return name;
 	}
-	
+
 	@Override
 	public String getStartQuote() {
 		return startQuote;
@@ -91,8 +91,7 @@ public class MySQLHelper extends SQLHelper {
 				}
 			}
 		} else if (type instanceof SimpleTypeNumericApproximate) {
-			SimpleTypeNumericApproximate numericApprox = 
-					(SimpleTypeNumericApproximate) type;
+			SimpleTypeNumericApproximate numericApprox = (SimpleTypeNumericApproximate) type;
 			if (type.getSql99TypeName().equalsIgnoreCase("REAL")) {
 				ret = "float(12)";
 			} else if (StringUtils.startsWithIgnoreCase(
@@ -129,13 +128,15 @@ public class MySQLHelper extends SQLHelper {
 					if (type.getOriginalTypeName().equalsIgnoreCase("BIT")) {
 						ret = "bit(" + length + ")";
 					} else {
-						ret = "binary(" + (((length / 8.0) % 1 == 0) ? 
-								(length / 8) : ((length / 8) + 1)) + ")";
+						ret = "binary("
+								+ (((length / 8.0) % 1 == 0) ? (length / 8)
+										: ((length / 8) + 1)) + ")";
 					}
-				} else if (type.
-						getSql99TypeName().equalsIgnoreCase("BIT VARYING")) {
-					ret = "varbinary(" + (((length / 8.0) % 1 == 0) ? 
-							(length / 8) : ((length / 8) + 1)) + ")";
+				} else if (type.getSql99TypeName().equalsIgnoreCase(
+						"BIT VARYING")) {
+					ret = "varbinary("
+							+ (((length / 8.0) % 1 == 0) ? (length / 8)
+									: ((length / 8) + 1)) + ")";
 				} else {
 					ret = "longblob";
 				}
@@ -157,94 +158,93 @@ public class MySQLHelper extends SQLHelper {
 	 * @param fkey
 	 *            the foreign key
 	 * @param addConstraint
-	 * 			  if an extra constraint info is need at creation of fkey
+	 *            if an extra constraint info is need at creation of fkey
 	 * @param plus
-	 * 			  a plus factor that makes a foreign key name unique 
+	 *            a plus factor that makes a foreign key name unique
 	 * @return the SQL
-	 * @throws ModuleException 
+	 * @throws ModuleException
 	 */
-	public String createForeignKeySQL(TableStructure table, ForeignKey fkey, 
+	public String createForeignKeySQL(TableStructure table, ForeignKey fkey,
 			boolean addConstraint, int plus) throws ModuleException {
-		
+
 		String foreignRefs = "";
 		for (int i = 0; i < fkey.getReferences().size(); i++) {
 			if (i > 0) {
 				foreignRefs += ", ";
 			}
-			foreignRefs += escapeColumnName(
-					fkey.getReferences().get(i).getColumn());
+			foreignRefs += escapeColumnName(fkey.getReferences().get(i)
+					.getColumn());
 			fkey.getReferences().get(i).getColumn();
 		}
-		
+
 		String foreignReferenced = "";
 		for (int i = 0; i < fkey.getReferences().size(); i++) {
 			if (i > 0) {
 				foreignReferenced += ", ";
 			}
-			foreignReferenced += escapeColumnName(
-					fkey.getReferences().get(i).getReferenced());
+			foreignReferenced += escapeColumnName(fkey.getReferences().get(i)
+					.getReferenced());
 			fkey.getReferences().get(i).getReferenced();
 		}
-		
+
 		String constraint = "";
 		if (addConstraint) {
-			constraint = " ADD CONSTRAINT `dbpres_" 
+			constraint = " ADD CONSTRAINT `dbpres_"
 					+ System.currentTimeMillis() + plus + "`";
 		}
-		String ret =  "ALTER TABLE " + escapeTableId(table.getId())
-				+ (addConstraint ? constraint : " ADD")
-				+ " FOREIGN KEY (" + foreignRefs + ") REFERENCES " 
-				+ escapeTableName(fkey.getReferencedSchema()) + "." 
-				+ escapeTableName(fkey.getReferencedTable()) 
-				+ " (" + foreignReferenced + ")";
+		String ret = "ALTER TABLE " + escapeTableName(table.getName())
+				+ (addConstraint ? constraint : " ADD") + " FOREIGN KEY ("
+				+ foreignRefs + ") REFERENCES "
+				+ escapeTableName(fkey.getReferencedSchema()) + "."
+				+ escapeTableName(fkey.getReferencedTable()) + " ("
+				+ foreignReferenced + ")";
 		return ret;
 	}
-	
+
 	// MySQL does not support check constraints (returns an empty SQL query)
 	@Override
 	public String getCheckConstraintsSQL(String schemaName, String tableName) {
 		return "";
 	}
-	
+
 	@Override
 	public String getTriggersSQL(String schemaName, String tableName) {
-		return "SELECT "
-				+ "trigger_name AS TRIGGER_NAME, "
+		return "SELECT " + "trigger_name AS TRIGGER_NAME, "
 				+ "action_timing AS ACTION_TIME, "
 				+ "event_manipulation AS TRIGGER_EVENT, "
 				+ "action_statement AS TRIGGERED_ACTION "
 				+ "FROM information_schema.triggers "
-				+ "WHERE trigger_schema='" + schemaName + "' " 
+				+ "WHERE trigger_schema='" + schemaName + "' "
 				+ "AND event_object_table='" + tableName + "'";
 	}
-	
+
 	@Override
 	public String getUsersSQL(String dbName) {
 		return "SELECT * FROM `mysql`.`user`";
 	}
-	
+
 	protected String escapeComment(String description) {
 		return description.replaceAll("'", "''");
 	}
-	
+
 	@Override
 	public String getDatabases(String database) {
 		return "SHOW DATABASES LIKE '" + database + "\\_%';";
 	}
-	
+
 	@Override
 	public String dropDatabase(String database) {
 		return "DROP DATABASE IF EXISTS " + database;
 	}
-	
+
 	@Override
 	protected String escapePrimaryKeyName(String pkey_name) {
-		if(pkey_name.equals("PRIMARY")) {
+		if (pkey_name.equals("PRIMARY")) {
 			logger.warn("Cannot set primary key name to reserved name PRIMARY, renaming it");
 			pkey_name += "_pkey";
 		}
-		
+
 		return super.escapePrimaryKeyName(pkey_name);
 	}
-	
+
 }

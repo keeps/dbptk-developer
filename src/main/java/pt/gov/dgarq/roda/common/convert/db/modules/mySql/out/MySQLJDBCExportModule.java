@@ -3,7 +3,6 @@
  */
 package pt.gov.dgarq.roda.common.convert.db.modules.mySql.out;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -25,8 +24,6 @@ import pt.gov.dgarq.roda.common.convert.db.modules.mySql.MySQLHelper;
  * 
  */
 public class MySQLJDBCExportModule extends JDBCExportModule {
-
-	protected static final String MYSQL_CONNECTION_DATABASE = "mysql";
 
 	private final Logger logger = Logger.getLogger(MySQLJDBCExportModule.class);
 
@@ -93,48 +90,6 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 		this.password = password;
 		this.ignoredSchemas = new TreeSet<String>(
 				Arrays.asList(IGNORED_SCHEMAS));
-	}
-
-	/**
-	 * Checks if database exists. It checks if the name prefix of MySQL
-	 * databases (schemas actually) already exists as the database name is used
-	 * to prefix the schemas of a given database.
-	 * 
-	 * I.e: databaseX_schemaA databaseX_schemaB databaseY_schemaA
-	 */
-	@Override
-	public void initDatabase() throws ModuleException {
-		String connectionURL = createConnectionURL(MYSQL_CONNECTION_DATABASE);
-
-		// TODO implement drop databases for a given prefix
-
-		// if (canDropDatabase) {
-		// try {
-		// getConnection(MYSQL_CONNECTION_DATABASE, connectionURL).
-		// createStatement().executeUpdate(
-		// "DROP DATABASE IF EXISTS " + database);
-		// } catch (SQLException e) {
-		// throw new ModuleException(
-		// "Error droping database " + database, e);
-		// }
-
-		Set<String> existingDatabasesByName = getExistingSchemasByName(
-				MYSQL_CONNECTION_DATABASE, database, connectionURL);
-		if (existingDatabasesByName.size() != 0) {
-			String existingSchemas = "\n";
-			for (String s : existingDatabasesByName) {
-				existingSchemas += "- " + s + ";\n";
-			}
-
-			throw new ModuleException("Cannot create databases with prefix "
-					+ database + ". Please choose another name or delete the "
-					+ "following databases: " + existingSchemas);
-		}
-	}
-
-	public Connection getConnection() throws ModuleException {
-		return getConnection(MYSQL_CONNECTION_DATABASE,
-				createConnectionURL(MYSQL_CONNECTION_DATABASE));
 	}
 
 	/**
@@ -213,7 +168,7 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 						logger.debug("Returned fkey: " + fkeySQL);
 						getStatement().addBatch(fkeySQL);
 					}
-					
+
 					getStatement().executeBatch();
 					getStatement().clearBatch();
 				}

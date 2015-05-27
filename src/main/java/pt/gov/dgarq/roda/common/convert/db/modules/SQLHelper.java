@@ -68,7 +68,7 @@ public class SQLHelper {
 	 * @throws ModuleException
 	 */
 	public String selectTableSQL(String tableId) throws ModuleException {
-		return "SELECT * FROM " + escapeTableId(tableId);
+		return "SELECT * FROM " + getEscapedTableNameFromId(tableId);
 	}
 
 	/**
@@ -104,7 +104,7 @@ public class SQLHelper {
 	public String createTableSQL(TableStructure table)
 			throws UnknownTypeException, ModuleException {
 		return "CREATE TABLE "
-				+ escapeTableId(table.getId())
+				+ escapeTableName(table.getName())
 				+ " ("
 				+ createColumnsSQL(table.getColumns(), table.getPrimaryKey(),
 						table.getForeignKeys()) + ")";
@@ -262,7 +262,8 @@ public class SQLHelper {
 		StringBuilder ret = new StringBuilder();
 		if (pkey != null) {
 
-			ret.append("ALTER TABLE ").append(escapeTableId(tableId));
+			ret.append("ALTER TABLE ").append(
+					getEscapedTableNameFromId(tableId));
 			if (StringUtils.isBlank(pkey.getName())) {
 				ret.append(" ADD PRIMARY KEY (");
 			} else {
@@ -297,7 +298,7 @@ public class SQLHelper {
 	 */
 	public String createForeignKeySQL(TableStructure table, ForeignKey fkey)
 			throws ModuleException {
-		String ret = "ALTER TABLE " + escapeTableId(table.getId())
+		String ret = "ALTER TABLE " + escapeTableName(table.getName())
 				+ " ADD FOREIGN KEY (";
 
 		for (int i = 0; i < fkey.getReferences().size(); i++) {
@@ -361,7 +362,7 @@ public class SQLHelper {
 			ModuleException {
 		ByteArrayOutputStream sqlOut = new ByteArrayOutputStream();
 		try {
-			sqlOut.write(("INSERT INTO " + escapeTableId(table.getId()) + " VALUES (")
+			sqlOut.write(("INSERT INTO " + escapeTableName(table.getName()) + " VALUES (")
 					.getBytes());
 			int i = 0;
 			Iterator<ColumnStructure> columnIt = table.getColumns().iterator();
@@ -389,7 +390,7 @@ public class SQLHelper {
 	 * 
 	 */
 	public String createRowSQL(TableStructure table) throws ModuleException {
-		String ret = "INSERT INTO " + escapeTableId(table.getId())
+		String ret = "INSERT INTO " + escapeTableName(table.getName())
 				+ " VALUES (";
 		for (int i = 0; i < table.getColumns().size(); i++) {
 			if (i > 0) {
@@ -415,6 +416,14 @@ public class SQLHelper {
 		String schema = parts[0];
 		String table = parts[1];
 		return escapeSchemaName(schema) + "." + escapeTableName(table);
+	}
+
+	protected String getEscapedTableNameFromId(String tableId)
+			throws ModuleException {
+		String[] parts = splitTableId(tableId);
+		// String schema = parts[0];
+		String table = parts[1];
+		return escapeTableName(table);
 	}
 
 	protected String escapeTableName(String table) {

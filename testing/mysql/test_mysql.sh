@@ -68,26 +68,25 @@ java -jar ../../target/db-preservation-toolkit-2.0.0-jar-with-dependencies.jar \
  -i SIARD $SIARD_TEMP_FILE \
  -o MySQLJDBC localhost $TEST_DB_TARGET $user $password
 
-#echo "TODO: Dumping result and comparing"
+echo "Dumping result and comparing"
 
-#DUMP_FOLDER=$(mktemp -d)
-#DUMP_SOURCE="$DUMP_FOLDER/source.sql"
-#DUMP_TARGET="$DUMP_FOLDER/target.sql"
+DUMP_FOLDER=$(mktemp -d)
+DUMP_SOURCE="$DUMP_FOLDER/source.sql"
+DUMP_TARGET="$DUMP_FOLDER/target.sql"
 
-#PG_DUMP_OPTIONS="--format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces"
+MYSQLDUMP_OPTIONS="--compact"
 
-#echo "Dumping original DB to $DUMP_SOURCE"
-#sudo -u postgres pg_dump $TEST_DB_SOURCE $PG_DUMP_OPTIONS > $DUMP_SOURCE
+echo "Dumping original DB to $DUMP_SOURCE"
+mysqldump --user="$user" --password="$password" $TEST_DB_SOURCE $MYSQLDUMP_OPTIONS > $DUMP_SOURCE
 
-#echo "Dumping target DB to $DUMP_TARGET"
-#sudo -u postgres pg_dump $TEST_DB_TARGET $PG_DUMP_OPTIONS > $DUMP_TARGET
+echo "Dumping target DB to $DUMP_TARGET"
+mysqldump --user="$user" --password="$password" $TEST_DB_TARGET $MYSQLDUMP_OPTIONS > $DUMP_TARGET
 
-#meld $DUMP_SOURCE $DUMP_TARGET &
+meld $DUMP_SOURCE $DUMP_TARGET &
 
 echo "Cleaning up"
 sql "DROP DATABASE $TEST_DB_SOURCE;"
-#sql "DROP DATABASE $TEST_DB_TARGET;"
-#psql "REVOKE ALL PRIVILEGES ON SCHEMA public FROM \"$TEST_DB_USER\";"
+sql "DROP DATABASE $TEST_DB_TARGET;"
 sql "DROP USER '$TEST_DB_USER'@'localhost';"
 
-#rm -f $SIARD_TEMP_FILE
+rm -f $SIARD_TEMP_FILE

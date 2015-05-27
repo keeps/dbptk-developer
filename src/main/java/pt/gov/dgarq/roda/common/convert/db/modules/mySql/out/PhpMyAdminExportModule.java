@@ -260,9 +260,8 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 	public boolean databaseExists() throws ModuleException {
 		boolean ret;
 		try {
-			ResultSet result = getConnection(MYSQL_CONNECTION_DATABASE)
-					.createStatement().executeQuery(
-							"SHOW DATABASES LIKE '" + database + "'");
+			ResultSet result = getConnection().createStatement().executeQuery(
+					"SHOW DATABASES LIKE '" + database + "'");
 			ret = result.next();
 		} catch (SQLException e) {
 			throw new ModuleException("Error checking if database " + database
@@ -282,10 +281,9 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 	public boolean userExists(String username) throws ModuleException {
 		boolean ret;
 		try {
-			ResultSet result = getConnection(MYSQL_CONNECTION_DATABASE)
-					.createStatement().executeQuery(
-							"SELECT User FROM mysql.user WHERE User =  '"
-									+ username + "'");
+			ResultSet result = getConnection().createStatement().executeQuery(
+					"SELECT User FROM mysql.user WHERE User =  '" + username
+							+ "'");
 			ret = result.next();
 		} catch (SQLException e) {
 			throw new ModuleException("Error checking if user " + username
@@ -311,8 +309,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
 	protected void setUserPermissions(String username, String host,
 			String password, String database) throws ModuleException {
 		try {
-			Statement st = getConnection(MYSQL_CONNECTION_DATABASE)
-					.createStatement();
+			Statement st = getConnection().createStatement();
 			if (userExists(username)) {
 				st.addBatch("GRANT SELECT, SHOW VIEW ON " + database
 						+ ".* TO '" + username + "'@'" + host + "'");
