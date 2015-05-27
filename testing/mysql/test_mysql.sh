@@ -50,21 +50,23 @@ sql "GRANT ALL PRIVILEGES ON information.schema TO '$TEST_DB_USER'@'%';"
 sql "FLUSH PRIVILEGES;"
 
 # Executing
+JAR=`ls ../../target/db-preservation-toolkit-?.?.?-jar-with-dependencies.jar`
+
 echo "Converting DBMS to SIARD at $SIARD_TEMP_FILE"
 # TODO use created users instead of root
-#java -jar ../../target/db-preservation-toolkit-2.0.0-jar-with-dependencies.jar \
+#java -jar $JAR \
 # -i MySQLJDBC localhost $TEST_DB_SOURCE $TEST_DB_USER $TEST_DB_PASS \
 # -o SIARD $SIARD_TEMP_FILE
-java -jar ../../target/db-preservation-toolkit-2.0.0-jar-with-dependencies.jar \
+java -jar $JAR \
  -i MySQLJDBC localhost $TEST_DB_SOURCE $user $password \
  -o SIARD $SIARD_TEMP_FILE
 
 echo "Converting SIARD back to DBMS"
 # TODO use created users instead of root
-#java -jar ../../target/db-preservation-toolkit-2.0.0-jar-with-dependencies.jar \
+#java -jar $JAR \
 # -i SIARD $SIARD_TEMP_FILE \
 # -o MySQLJDBC localhost $TEST_DB_TARGET $TEST_DB_USER $TEST_DB_PASS
-java -jar ../../target/db-preservation-toolkit-2.0.0-jar-with-dependencies.jar \
+java -jar $JAR \
  -i SIARD $SIARD_TEMP_FILE \
  -o MySQLJDBC localhost $TEST_DB_TARGET $user $password
 

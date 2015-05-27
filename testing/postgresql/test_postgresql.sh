@@ -42,13 +42,16 @@ psql "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO \"$TEST_DB_USER\
 psql "GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO \"$TEST_DB_USER\";" "$TEST_DB_TARGET"
 
 # Executing
+JAR=`ls ../../target/db-preservation-toolkit-?.?.?-jar-with-dependencies.jar`
+
 echo "Converting DBMS to SIARD at $SIARD_TEMP_FILE"
-java -jar ../../target/db-preservation-toolkit-2.0.0-jar-with-dependencies.jar \
+
+java -jar $JAR \
  -i PostgreSQLJDBC localhost $TEST_DB_SOURCE $TEST_DB_USER $TEST_DB_PASS false \
  -o SIARD $SIARD_TEMP_FILE
 
 echo "Converting SIARD back to DBMS"
-java -jar ../../target/db-preservation-toolkit-2.0.0-jar-with-dependencies.jar \
+java -jar $JAR \
  -i SIARD $SIARD_TEMP_FILE \
  -o PostgreSQLJDBC localhost $TEST_DB_TARGET $TEST_DB_USER $TEST_DB_PASS false
 
