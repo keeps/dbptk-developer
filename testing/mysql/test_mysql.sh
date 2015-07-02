@@ -59,7 +59,7 @@ echo "Converting DBMS to SIARD at $SIARD_TEMP_FILE"
 # -o SIARD $SIARD_TEMP_FILE
 java -jar $JAR \
  -i MySQLJDBC localhost $TEST_DB_SOURCE $user $password \
- -o SIARD $SIARD_TEMP_FILE
+ -o SIARD $SIARD_TEMP_FILE store
 
 echo "Converting SIARD back to DBMS"
 # TODO use created users instead of root
@@ -84,7 +84,9 @@ mysqldump --user="$user" --password="$password" $TEST_DB_SOURCE $MYSQLDUMP_OPTIO
 echo "Dumping target DB to $DUMP_TARGET"
 mysqldump --user="$user" --password="$password" $TEST_DB_TARGET $MYSQLDUMP_OPTIONS > $DUMP_TARGET
 
-meld $DUMP_SOURCE $DUMP_TARGET &
+diff -u $DUMP_SOURCE $DUMP_TARGET | wdiff -nd \
+-w $'\033[30;41m' -x $'\033[0m' \
+-y $'\033[30;42m' -z $'\033[0m'
 
 echo "Cleaning up"
 sql "DROP DATABASE $TEST_DB_SOURCE;"

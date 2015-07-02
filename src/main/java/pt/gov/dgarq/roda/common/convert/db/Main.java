@@ -283,10 +283,11 @@ public class Main {
 						+ "DBML export module: " + exportModuleArgs.size());
 			}
 		} else if (exportModuleArgs.get(0).equalsIgnoreCase("SIARD")) {
-			if (exportModuleArgs.size() == 2) {
+			if (exportModuleArgs.size() == 3) {
 				try {
 					exportModule = new SIARDExportModule(new File(
-							exportModuleArgs.get(1)));
+							exportModuleArgs.get(1)),
+							exportModuleArgs.get(2).equals("compress"));
 				} catch (FileNotFoundException e) {
 					logger.error("Could not find file for SIARD export", e);
 				}
@@ -447,7 +448,7 @@ public class Main {
 				+ " -i IMPORT_MODULE [options...]"
 				+ " -o EXPORT_MODULE [options...]");
 		System.out.println("Available import modules:");
-		System.out.println("\tSIARD dir");
+		System.out.println("\tSIARD dir compress|store");
 		System.out
 				.println("\tSQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt");
 		System.out
