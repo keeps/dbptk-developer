@@ -641,8 +641,7 @@ public class JDBCExportModule implements DatabaseHandler {
 			PreparedStatement ps, int index, Cell cell, Type type)
 			throws NumberFormatException, SQLException {
 		if (data != null) {
-			// logger.debug("set approx: " + data);
-			ps.setFloat(index, Float.valueOf(data));
+			ps.setString(index, data);
 		} else {
 			ps.setNull(index, Types.FLOAT);
 		}
