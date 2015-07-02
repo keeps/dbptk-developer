@@ -3,6 +3,10 @@
  */
 package pt.gov.dgarq.roda.common.convert.db.modules.mySql;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.log4j.Logger;
 import org.springframework.util.StringUtils;
 
@@ -26,6 +30,9 @@ import pt.gov.dgarq.roda.common.convert.db.modules.SQLHelper;
 public class MySQLHelper extends SQLHelper {
 
 	private final Logger logger = Logger.getLogger(MySQLHelper.class);
+
+	private static final Set<String> MYSQL_TYPES = new HashSet<String>(
+			Arrays.asList("BLOB", "MEDIUMBLOB", "LONGBLOB"));
 
 	private String name = "MySQL";
 
@@ -67,7 +74,13 @@ public class MySQLHelper extends SQLHelper {
 	protected String createTypeSQL(Type type, boolean isPkey, boolean isFkey)
 			throws UnknownTypeException {
 		String ret;
-		if (type instanceof SimpleTypeString) {
+
+		logger.debug("Checking MySQL type " + type.getOriginalTypeName());
+		if (MYSQL_TYPES.contains(type.getOriginalTypeName())) {
+			// TODO verify if original database is also mysql
+			ret = type.getOriginalTypeName();
+			logger.warn("Using MySQL original type " + ret);
+		} else if (type instanceof SimpleTypeString) {
 			SimpleTypeString string = (SimpleTypeString) type;
 			if (isPkey) {
 				int length = string.getLength().intValue();
