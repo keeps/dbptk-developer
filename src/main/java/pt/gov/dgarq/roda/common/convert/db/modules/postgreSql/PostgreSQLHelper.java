@@ -80,6 +80,7 @@ public class PostgreSQLHelper extends SQLHelper {
 
 		logger.debug("Checking PSQL type " + type.getOriginalTypeName());
 		if (POSTGRESQL_TYPES.contains(type.getOriginalTypeName())) {
+			// TODO verify if original database is also postgresql
 			ret = type.getOriginalTypeName();
 			if (ret.equals("char")) {
 				ret = "\"char\"";

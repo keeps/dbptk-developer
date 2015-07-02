@@ -59,7 +59,7 @@ echo "Converting DBMS to SIARD at $SIARD_TEMP_FILE"
 # -o SIARD $SIARD_TEMP_FILE
 java -jar $JAR \
  -i MySQLJDBC localhost $TEST_DB_SOURCE $user $password \
- -o SIARD $SIARD_TEMP_FILE
+ -o SIARD $SIARD_TEMP_FILE store
 
 echo "Converting SIARD back to DBMS"
 # TODO use created users instead of root

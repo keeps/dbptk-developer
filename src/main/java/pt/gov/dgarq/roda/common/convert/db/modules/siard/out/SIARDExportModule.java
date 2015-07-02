@@ -88,7 +88,7 @@ public class SIARDExportModule implements DatabaseHandler {
 	 * 
 	 * @throws FileNotFoundException
 	 */
-	public SIARDExportModule(File siardPackage) throws FileNotFoundException {
+	public SIARDExportModule(File siardPackage, boolean compressZip) throws FileNotFoundException {
 		dbStructure = null;
 		currentTable = null;
 		currentRow = 0;
@@ -101,7 +101,11 @@ public class SIARDExportModule implements DatabaseHandler {
 			digest = MessageDigest.getInstance("MD5");
 			this.zipOut = new ZipArchiveOutputStream(siardPackage);
 			zipOut.setUseZip64(Zip64Mode.Always);
-			zipOut.setMethod(ZipArchiveOutputStream.STORED);
+			if(compressZip){
+				zipOut.setMethod(ZipArchiveOutputStream.DEFLATED);
+			}else{
+				zipOut.setMethod(ZipArchiveOutputStream.STORED);
+			}
 		} catch (IOException e) {
 			logger.error("Error while creating SIARD archive file", e);
 		} catch (NoSuchAlgorithmException e) {
