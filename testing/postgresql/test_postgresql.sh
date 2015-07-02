@@ -69,7 +69,9 @@ sudo -u postgres pg_dump $TEST_DB_SOURCE $PG_DUMP_OPTIONS > $DUMP_SOURCE
 echo "Dumping target DB to $DUMP_TARGET"
 sudo -u postgres pg_dump $TEST_DB_TARGET $PG_DUMP_OPTIONS > $DUMP_TARGET
 
-meld $DUMP_SOURCE $DUMP_TARGET &
+diff -u $DUMP_SOURCE $DUMP_TARGET | wdiff -nd \
+-w $'\033[30;41m' -x $'\033[0m' \
+-y $'\033[30;42m' -z $'\033[0m'
 
 echo "Cleaning up"
 psql "DROP DATABASE \"$TEST_DB_SOURCE\";"

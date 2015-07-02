@@ -84,7 +84,9 @@ mysqldump --user="$user" --password="$password" $TEST_DB_SOURCE $MYSQLDUMP_OPTIO
 echo "Dumping target DB to $DUMP_TARGET"
 mysqldump --user="$user" --password="$password" $TEST_DB_TARGET $MYSQLDUMP_OPTIONS > $DUMP_TARGET
 
-meld $DUMP_SOURCE $DUMP_TARGET &
+diff -u $DUMP_SOURCE $DUMP_TARGET | wdiff -nd \
+-w $'\033[30;41m' -x $'\033[0m' \
+-y $'\033[30;42m' -z $'\033[0m'
 
 echo "Cleaning up"
 sql "DROP DATABASE $TEST_DB_SOURCE;"
