@@ -48,7 +48,7 @@ echo "Converting DBMS to SIARD at $SIARD_TEMP_FILE"
 
 java -jar $JAR \
  -i PostgreSQLJDBC localhost $TEST_DB_SOURCE $TEST_DB_USER $TEST_DB_PASS false \
- -o SIARD $SIARD_TEMP_FILE
+ -o SIARD $SIARD_TEMP_FILE store
 
 echo "Converting SIARD back to DBMS"
 java -jar $JAR \
