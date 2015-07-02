@@ -32,7 +32,7 @@ public class MySQLHelper extends SQLHelper {
 	private final Logger logger = Logger.getLogger(MySQLHelper.class);
 
 	private static final Set<String> MYSQL_TYPES = new HashSet<String>(
-			Arrays.asList("BLOB", "MEDIUMBLOB", "LONGBLOB"));
+			Arrays.asList("BLOB", "MEDIUMBLOB", "LONGBLOB", "TIMESTAMP", "TINYBLOB", "TINYTEXT", "TEXT", "MEDIUMTEXT"));
 
 	private String name = "MySQL";
 
