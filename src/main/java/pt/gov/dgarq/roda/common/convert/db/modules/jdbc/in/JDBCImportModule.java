@@ -1495,6 +1495,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 		} else {
 			cell = new SimpleCell(id, stringValue);
 		}
+		logger.trace("rawToCellSimpleTypeNumericApproximate cell: " + (((SimpleCell)cell).getSimpledata()));
 
 		return cell;
 	}
@@ -1530,6 +1531,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 				cell = new SimpleCell(id, null);
 			}
 		}
+		logger.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell)cell).getSimpledata()));
 		return cell;
 	}
 
