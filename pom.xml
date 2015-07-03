@@ -26,7 +26,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>pt.gov.dgarq.roda.common.convert.db.Main</mainClass>
+							<mainClass>com.database_preservation.Main</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
