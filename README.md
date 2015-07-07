@@ -54,6 +54,7 @@ $ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar \
 -i MySQLJDBC localhost example_db username p4ssw0rd \
 -o SIARD example_db_siard_export
 ```
+
 ## How to build from source
 
 1. Download the [latest stable release](https://github.com/keeps/db-preservation-toolkit/releases).
@@ -117,3 +118,16 @@ For more information or commercial support, contact [KEEP SOLUTIONS](http://www.
 <!-- Removing build status as some database library drivers cannot be distributed via maven
 [![Build Status](https://travis-ci.org/keeps/db-preservation-toolkit.png?branch=master)](https://travis-ci.org/keeps/db-preservation-toolkit)
 -->
+
+## Development [![Build Status](https://travis-ci.org/keeps/db-preservation-toolkit.png?branch=master)](https://travis-ci.org/keeps/db-preservation-toolkit)
+
+To develop we recommend the use of Maven and Eclipse.
+
+The following plugins should be installed in Eclipse:
+
+* [ANSI Escape in Console](http://marketplace.eclipse.org/content/ansi-escape-console) to have coloured output in tests
+
+And the following environment variables should be set:
+
+* **DPT_MYSQL_USER** - MySQL user that must be able to create new users and give them permissions
+* **DPT_MYSQL_PASS** - MySQL user's password

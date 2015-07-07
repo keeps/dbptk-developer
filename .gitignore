@@ -5,7 +5,7 @@ target/
 .settings/
 
 **/.DS_Store
-src/test/
 
 log/
 exported-dbs/
+test-output/
