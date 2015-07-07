@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package pt.gov.dgarq.roda.common.convert.db.modules;
 
@@ -35,7 +35,7 @@ import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
 
 /**
  * @author Luis Faria
- * 
+ *
  */
 public class SQLHelper {
 
@@ -61,7 +61,7 @@ public class SQLHelper {
 
 	/**
 	 * SQL to get all rows from a table
-	 * 
+	 *
 	 * @param tableName
 	 *            the table name
 	 * @return the SQL
@@ -73,7 +73,7 @@ public class SQLHelper {
 
 	/**
 	 * SQL to create the database
-	 * 
+	 *
 	 * @param dbName
 	 *            the database name
 	 * @return the SQL
@@ -84,7 +84,7 @@ public class SQLHelper {
 
 	/**
 	 * SQL to create a schema
-	 * 
+	 *
 	 * @param schema
 	 *            the schema structure
 	 * @return the SQL
@@ -95,7 +95,7 @@ public class SQLHelper {
 
 	/**
 	 * SQL to create a table from table structure
-	 * 
+	 *
 	 * @param table
 	 *            the table structure
 	 * @return the SQL
@@ -143,7 +143,7 @@ public class SQLHelper {
 	 * Convert a column type (from model) to the database type. This method
 	 * should be overridden for each specific DBMS export module implementation
 	 * to use the specific data types.
-	 * 
+	 *
 	 * @param type
 	 *            the column type
 	 * @return the string representation of the database type
@@ -249,7 +249,7 @@ public class SQLHelper {
 
 	/**
 	 * SQL to create the primary key, altering the already created table
-	 * 
+	 *
 	 * @param tableName
 	 *            the name of the table
 	 * @param pkey
@@ -288,7 +288,7 @@ public class SQLHelper {
 	/**
 	 * SQL to create a foreign key (relation), altering the already created
 	 * table
-	 * 
+	 *
 	 * @param tableName
 	 *            the name of the table
 	 * @param fkey
@@ -324,12 +324,12 @@ public class SQLHelper {
 
 	/**
 	 * Interface of handlers that will transform a cell in SQL
-	 * 
+	 *
 	 */
 	public interface CellSQLHandler {
 		/**
 		 * Transform a cell in SQL
-		 * 
+		 *
 		 * @param cell
 		 *            the cell to transform
 		 * @param column
@@ -345,7 +345,7 @@ public class SQLHelper {
 
 	/**
 	 * SQL to insert row on the table.
-	 * 
+	 *
 	 * @param table
 	 *            the table structure
 	 * @param row
@@ -355,7 +355,7 @@ public class SQLHelper {
 	 * @return the prepared statement SQL
 	 * @throws ModuleException
 	 * @throws InvalidDataException
-	 * 
+	 *
 	 */
 	public byte[] createRowSQL(TableStructure table, Row row,
 			CellSQLHandler cellSQLHandler) throws InvalidDataException,
@@ -382,12 +382,12 @@ public class SQLHelper {
 
 	/**
 	 * Prepared SQL statement to insert row on the table.
-	 * 
+	 *
 	 * @param table
 	 *            the table structure
 	 * @return the prepared SQL statement
 	 * @throws ModuleException
-	 * 
+	 *
 	 */
 	public String createRowSQL(TableStructure table) throws ModuleException {
 		String ret = "INSERT INTO " + escapeTableName(table.getName())
@@ -449,7 +449,7 @@ public class SQLHelper {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param schemaName
 	 *            The schema name
 	 * @param tableName
@@ -461,7 +461,7 @@ public class SQLHelper {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param schemaName
 	 *            The schema name
 	 * @param tableName
@@ -473,7 +473,20 @@ public class SQLHelper {
 	}
 
 	/**
-	 * 
+	 *
+	 * @param schemaName
+	 *            The schema name
+	 * @param tableName
+	 *            The table name
+	 * @return the SQL to get table triggers
+	 */
+	public String getRowsSQL(String tableName) {
+		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(escapeTableName(tableName)).append(";");
+		return sb.toString();
+	}
+
+	/**
+	 *
 	 * @param dbName
 	 *            the database name
 	 * @return the SQL to get all users
@@ -483,19 +496,19 @@ public class SQLHelper {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return the SQL to get all roles
-	 * 
+	 *
 	 */
 	public String getRolesSQL() {
 		return null;
 	}
 
 	/**
-	 * 
+	 *
 	 * @param database
 	 *            the database name required for some DBMSs
-	 * 
+	 *
 	 * @return the SQL to get all databases
 	 */
 	public String getDatabases(String database) {
@@ -503,7 +516,7 @@ public class SQLHelper {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param database
 	 *            the database name
 	 * @return the SQL to drop the database
