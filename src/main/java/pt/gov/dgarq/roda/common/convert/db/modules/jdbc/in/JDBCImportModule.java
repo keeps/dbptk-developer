@@ -69,7 +69,7 @@ import pt.gov.dgarq.roda.common.convert.db.modules.SQLHelper;
 
 /**
  * @author Luis Faria
- * 
+ *
  */
 public class JDBCImportModule implements DatabaseImportModule {
 
@@ -100,7 +100,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 	/**
 	 * Create a new JDBC import module
-	 * 
+	 *
 	 * @param driverClassName
 	 *            the name of the the JDBC driver class
 	 * @param connectionURL
@@ -123,9 +123,9 @@ public class JDBCImportModule implements DatabaseImportModule {
 	/**
 	 * Connect to the server using the properties defined in the constructor, or
 	 * return the existing connection
-	 * 
+	 *
 	 * @return the connection
-	 * 
+	 *
 	 * @throws SQLException
 	 * @throws ClassNotFoundException
 	 *             the JDBC driver could not be found in classpath
@@ -154,7 +154,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 	/**
 	 * Get the database metadata
-	 * 
+	 *
 	 * @return the database metadata
 	 * @throws SQLException
 	 * @throws ClassNotFoundException
@@ -169,7 +169,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 	/**
 	 * Close current connection
-	 * 
+	 *
 	 * @throws SQLException
 	 */
 	public void closeConnection() throws SQLException {
@@ -184,13 +184,13 @@ public class JDBCImportModule implements DatabaseImportModule {
 	/**
 	 * Some driver may not report correctly (due to cursor setup, etc) the
 	 * number of the row currently being processed (ResultSet.getRow).
-	 * 
+	 *
 	 * If its known that a particular import module doesn't support it,
 	 * re-implement this method in that particular module to return false
-	 * 
+	 *
 	 * @return true if ResultSet.getRow reports correctly the number of the row
 	 *         being processed; false otherwise
-	 * 
+	 *
 	 * */
 	protected boolean isGetRowAvailable() {
 		return true;
@@ -239,7 +239,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 	/**
 	 * Checks if schema name matches the set of schemas to be ignored.
-	 * 
+	 *
 	 * @param schemaName
 	 *            the schema name
 	 * @return true if schema is ignored; false if it isn't
@@ -255,7 +255,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return the database schemas (not ignored by default and/or user)
 	 * @throws SQLException
 	 * @throws ClassNotFoundException
@@ -279,10 +279,10 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 	/**
 	 * Get schemas that won't be imported
-	 * 
+	 *
 	 * Accepts schemas names in as regular expressions I.e. SYS.* will ignore
 	 * SYSCAT, SYSFUN, etc
-	 * 
+	 *
 	 * @return the schema names not to be imported
 	 */
 	protected Set<String> getIgnoredImportedSchemas() {
@@ -290,7 +290,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param schemaName
 	 *            the schema name
 	 * @return the schema structure of a given schema name
@@ -310,7 +310,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param schema
 	 *            the schema structure
 	 * @return the database tables of a given schema
@@ -331,7 +331,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param schemaName
 	 *            the schema name
 	 * @return the database views of a given schema
@@ -355,7 +355,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param schemaName
 	 * @return
 	 * @throws SQLException
@@ -415,12 +415,27 @@ public class JDBCImportModule implements DatabaseImportModule {
 				tableName));
 		table.setTriggers(getTriggers(schema.getName(), tableName));
 
+		table.setRows(getRows(tableName));
+
 		return table;
+	}
+
+	private int getRows(String tableName) throws ClassNotFoundException, SQLException {
+		String query = sqlHelper.getRowsSQL(tableName);
+		logger.debug("count query: " + query);
+		ResultSet rs = getStatement().executeQuery(query);
+
+		int count = -1;
+		if(rs.next())
+			count = rs.getInt(1);
+		logger.debug("Counted " + count + " rows");
+
+		return count;
 	}
 
 	/**
 	 * Create the column structure
-	 * 
+	 *
 	 * @param tableName
 	 *            the name of the table which the column belongs to
 	 * @param columnName
@@ -468,7 +483,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return the database roles
 	 * @throws SQLException
 	 * @throws ClassNotFoundException
@@ -507,7 +522,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return the database privileges
 	 * @throws SQLException
 	 * @throws ClassNotFoundException
@@ -555,7 +570,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param schemaName
 	 *            the schema name
 	 * @param tableName
@@ -682,18 +697,18 @@ public class JDBCImportModule implements DatabaseImportModule {
 	/**
 	 * Map the original type to the normalized type model saving the appropriate
 	 * SQL:99 data type info
-	 * 
+	 *
 	 * @param schemaName
 	 *            The name of the associated schema, needed to resolve user
 	 *            defined data types
-	 * 
+	 *
 	 * @param tableName
 	 *            The name of the associated table, needed to resolve user
 	 *            defined data types
 	 * @param columnName
 	 *            The name of the associated column, needed to resolve user
 	 *            defined data types
-	 * 
+	 *
 	 * @param originalDataType
 	 *            the name of the original data type
 	 * @param originalMaxSize
@@ -949,13 +964,13 @@ public class JDBCImportModule implements DatabaseImportModule {
 	/**
 	 * Gets data types defined as Types.OTHER. The data type is inferred by
 	 * typeName, sometimes specific to each DBMS
-	 * 
+	 *
 	 * @param dataType
 	 * @param typeName
 	 * @param columnSize
 	 * @param numPrecRadix
 	 * @param decimalDigits
-	 * 
+	 *
 	 * @return the inferred data type
 	 * @throws UnknownTypeException
 	 */
@@ -967,13 +982,13 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 	/**
 	 * Gets specific DBMS data types. E.g.:OracleTypes.BINARY_DOUBLE
-	 * 
+	 *
 	 * @param dataType
 	 * @param typeName
 	 * @param columnSize
 	 * @param numPrecRadix
 	 * @param decimalDigits
-	 * 
+	 *
 	 * @return the inferred data type
 	 * @throws UnknownTypeException
 	 */
@@ -987,7 +1002,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 	/**
 	 * Gets the UnsupportedDataType. This data type is a placeholder for
 	 * unsupported data types
-	 * 
+	 *
 	 * @param dataType
 	 * @param typeName
 	 * @param columnSize
@@ -1010,7 +1025,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 	/**
 	 * Get the table primary key
-	 * 
+	 *
 	 * @param tableName
 	 *            the name of the table
 	 * @return the primary key
@@ -1044,7 +1059,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 	/**
 	 * Get the table foreign keys
-	 * 
+	 *
 	 * @param schemaName
 	 *            the name of the schema
 	 * @param tableName
@@ -1109,7 +1124,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 	/**
 	 * Gets the name of the update rule
-	 * 
+	 *
 	 * @param value
 	 * @return
 	 */
@@ -1140,7 +1155,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 	/**
 	 * Gets the name of the delete rule
-	 * 
+	 *
 	 * @param value
 	 * @return
 	 */
@@ -1150,7 +1165,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 	/**
 	 * Gets the candidate keys of a given schema table
-	 * 
+	 *
 	 * @param schemaName
 	 * @param tableName
 	 * @return
@@ -1193,7 +1208,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 	/**
 	 * Gets the check constraints of a given schema table
-	 * 
+	 *
 	 * @param schemaName
 	 * @param tableName
 	 * @return
@@ -1256,7 +1271,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 	/**
 	 * Gets the triggers of a given schema table
-	 * 
+	 *
 	 * @param schemaName
 	 * @param tableName
 	 * @return
@@ -1334,7 +1349,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 	/**
 	 * Sanitizes the trigger event data
-	 * 
+	 *
 	 * @param string
 	 * @return
 	 */
@@ -1344,7 +1359,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 	/**
 	 * Sanitizes the trigger action time data
-	 * 
+	 *
 	 * @param string
 	 * @return
 	 */
@@ -1587,10 +1602,10 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 	/**
 	 * Gets the schemas that won't be exported.
-	 * 
+	 *
 	 * Accepts schemas names in as regular expressions I.e. SYS.* will ignore
 	 * SYSCAT, SYSFUN, etc
-	 * 
+	 *
 	 * @return the schemas to be ignored at export
 	 */
 	protected Set<String> getIgnoredExportedSchemas() {
@@ -1598,6 +1613,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 		return new HashSet<String>();
 	}
 
+	@Override
 	public void getDatabase(DatabaseHandler handler) throws ModuleException,
 			UnknownTypeException, InvalidDataException {
 		try {
