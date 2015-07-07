@@ -51,7 +51,7 @@ public class MySqlTest {
 	}
 
 	@Test(groups={"mysql-siard1.0"})
-	public void atest() throws IOException, InterruptedException, URISyntaxException{
+	public void roundtrip() throws IOException, InterruptedException, URISyntaxException{
 		ProcessBuilder sql = new ProcessBuilder("bash", "-c",
 				String.format("mysql --user=\"%s\" --password=\"%s\" --database=\"%s\"",
 					db_tmp_username, db_tmp_password, db_source));
@@ -95,8 +95,10 @@ public class MySqlTest {
 		System.out.println("3td code: " + p.waitFor());
 
 
-		Scanner dump_source_reader = new Scanner(dump_source).useDelimiter("\\Z");
-		Scanner dump_target_reader = new Scanner(dump_target).useDelimiter("\\Z");
+		Scanner dump_source_reader = new Scanner(dump_source);
+		Scanner dump_target_reader = new Scanner(dump_target);
+		dump_source_reader.useDelimiter("\\Z");
+		dump_target_reader.useDelimiter("\\Z");
 
 		diff_match_patch diff = new diff_match_patch();
 		LinkedList<Diff> diffs = diff.diff_main(

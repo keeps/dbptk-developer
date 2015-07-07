@@ -10,36 +10,36 @@ TEST_DB_PASS=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-16};echo;)
 
 SIARD_TEMP_FILE=$(mktemp)
 
-function psql() {
+function sql() {
   echo "SQL $2> $1"
-  sudo -u postgres psql $2 -q --command="$1"
+  psql $2 -q -U postgres --command="$1"
 }
 
 echo "Creating test database"
 # Create test databases
-psql "CREATE DATABASE \"$TEST_DB_SOURCE\";"
-psql "CREATE DATABASE \"$TEST_DB_TARGET\";"
+sql "CREATE DATABASE \"$TEST_DB_SOURCE\";"
+sql "CREATE DATABASE \"$TEST_DB_TARGET\";"
 
 echo "Initialize test database"
-sudo -u postgres psql -q $TEST_DB_SOURCE < postgresql_test.sql
+psql -U postgres -q $TEST_DB_SOURCE < postgresql_test.sql
 
 # Create test user
-psql "CREATE USER \"$TEST_DB_USER\" WITH ENCRYPTED PASSWORD '$TEST_DB_PASS';"
-psql "GRANT ALL PRIVILEGES ON SCHEMA public to \"$TEST_DB_USER\";"
+sql "CREATE USER \"$TEST_DB_USER\" WITH ENCRYPTED PASSWORD '$TEST_DB_PASS';"
+sql "GRANT ALL PRIVILEGES ON SCHEMA public to \"$TEST_DB_USER\";"
 
 # Allow to access source database
-psql "GRANT ALL PRIVILEGES ON DATABASE \"$TEST_DB_SOURCE\" TO \"$TEST_DB_USER\";"
-psql "GRANT ALL PRIVILEGES ON SCHEMA public to \"$TEST_DB_USER\";" "$TEST_DB_SOURCE"
-psql "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \"$TEST_DB_USER\";" "$TEST_DB_SOURCE"
-psql "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO \"$TEST_DB_USER\";" "$TEST_DB_SOURCE"
-psql "GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO \"$TEST_DB_USER\";" "$TEST_DB_SOURCE"
+sql "GRANT ALL PRIVILEGES ON DATABASE \"$TEST_DB_SOURCE\" TO \"$TEST_DB_USER\";"
+sql "GRANT ALL PRIVILEGES ON SCHEMA public to \"$TEST_DB_USER\";" "$TEST_DB_SOURCE"
+sql "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \"$TEST_DB_USER\";" "$TEST_DB_SOURCE"
+sql "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO \"$TEST_DB_USER\";" "$TEST_DB_SOURCE"
+sql "GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO \"$TEST_DB_USER\";" "$TEST_DB_SOURCE"
 
 # Allow to write target database
-psql "GRANT ALL PRIVILEGES ON DATABASE \"$TEST_DB_TARGET\" TO \"$TEST_DB_TARGET\";"
-psql "GRANT ALL PRIVILEGES ON SCHEMA public to \"$TEST_DB_USER\";" "$TEST_DB_TARGET"
-psql "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \"$TEST_DB_USER\";" "$TEST_DB_TARGET"
-psql "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO \"$TEST_DB_USER\";" "$TEST_DB_TARGET"
-psql "GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO \"$TEST_DB_USER\";" "$TEST_DB_TARGET"
+sql "GRANT ALL PRIVILEGES ON DATABASE \"$TEST_DB_TARGET\" TO \"$TEST_DB_USER\";"
+sql "GRANT ALL PRIVILEGES ON SCHEMA public to \"$TEST_DB_USER\";" "$TEST_DB_TARGET"
+sql "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \"$TEST_DB_USER\";" "$TEST_DB_TARGET"
+sql "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO \"$TEST_DB_USER\";" "$TEST_DB_TARGET"
+sql "GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO \"$TEST_DB_USER\";" "$TEST_DB_TARGET"
 
 # Executing
 JAR=`ls ../../target/db-preservation-toolkit-?.?.?-jar-with-dependencies.jar`
@@ -64,19 +64,19 @@ DUMP_TARGET="$DUMP_FOLDER/target.sql"
 PG_DUMP_OPTIONS="--format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces"
 
 echo "Dumping original DB to $DUMP_SOURCE"
-sudo -u postgres pg_dump $TEST_DB_SOURCE $PG_DUMP_OPTIONS > $DUMP_SOURCE
+pg_dump -U postgres $TEST_DB_SOURCE $PG_DUMP_OPTIONS > $DUMP_SOURCE
 
 echo "Dumping target DB to $DUMP_TARGET"
-sudo -u postgres pg_dump $TEST_DB_TARGET $PG_DUMP_OPTIONS > $DUMP_TARGET
+pg_dump -U postgres $TEST_DB_TARGET $PG_DUMP_OPTIONS > $DUMP_TARGET
 
 diff -u $DUMP_SOURCE $DUMP_TARGET | wdiff -nd \
 -w $'\033[30;41m' -x $'\033[0m' \
 -y $'\033[30;42m' -z $'\033[0m'
 
 echo "Cleaning up"
-psql "DROP DATABASE \"$TEST_DB_SOURCE\";"
-psql "DROP DATABASE \"$TEST_DB_TARGET\";"
-psql "REVOKE ALL PRIVILEGES ON SCHEMA public FROM \"$TEST_DB_USER\";"
-psql "DROP ROLE \"$TEST_DB_USER\";"
+sql "DROP DATABASE \"$TEST_DB_SOURCE\";"
+sql "DROP DATABASE \"$TEST_DB_TARGET\";"
+sql "REVOKE ALL PRIVILEGES ON SCHEMA public FROM \"$TEST_DB_USER\";"
+sql "DROP ROLE \"$TEST_DB_USER\";"
 
 rm -f $SIARD_TEMP_FILE

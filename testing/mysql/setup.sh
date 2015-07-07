@@ -10,9 +10,6 @@
 # DPT_MYSQL_USER - mysql username for a user with permission to create a new user (defaults to "root")
 # DPT_MYSQL_PASS - mysql password for the DPT_MYSQL_USER user (defaults to empty)
 
-
-cd $(dirname $0)
-
 TEST_DB_SOURCE="$1"
 TEST_DB_TARGET="$2"
 TEST_DB_USER="$3"

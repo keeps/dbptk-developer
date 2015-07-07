@@ -1509,19 +1509,19 @@ public class diff_match_patch {
 		StringBuilder outputText = new StringBuilder();
 		int lineNumber = 1;
 		for (Diff aDiff : diffs) {
-			String text = aDiff.text.replace("\n", "¶\n");
+			String text = aDiff.text;
 			switch (aDiff.operation) {
 			case INSERT:
 				outputText
 				.append(ANSI_BLACK)
-				.append(ANSI_BG_RED)
+				.append(ANSI_BG_GREEN)
 				.append(text)
 				.append(ANSI_RESET);
 				break;
 			case DELETE:
 				outputText
 				.append(ANSI_BLACK)
-				.append(ANSI_BG_GREEN)
+				.append(ANSI_BG_RED)
 				.append(text)
 				.append(ANSI_RESET);
 				break;
