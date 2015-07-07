@@ -119,7 +119,7 @@ public class MySqlTest {
 		if( !sameText )
 			System.out.println(diff.diff_prettyCmd(diffs));
 
-		assert sameText : "MySQL dumps are equal.";
+		assert sameText : "MySQL dumps differ.";
 	}
 
 	@AfterGroups(groups={"mysql-siard1.0"})
