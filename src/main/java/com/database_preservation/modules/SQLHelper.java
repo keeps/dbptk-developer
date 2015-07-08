@@ -282,7 +282,8 @@ public class SQLHelper {
 			}
 			ret.append(")");
 		}
-		return ret.toString();
+		String result = ret.toString();
+		return result.equals("") ? null : result;
 	}
 
 	/**
