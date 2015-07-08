@@ -63,9 +63,8 @@ public class PostgreSqlTest {
 	}
 
 	@DataProvider
-	public Iterator<Object[]> smallExamples() {
+	public Iterator<Object[]> testQueriesProvider() {
 		String singleTypeAndValue = "CREATE TABLE datatypes (col1 %s);\nINSERT INTO datatypes(col1) VALUES(%s);";
-
 		ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
 		tests.add(new String[]{singleTypeAndValue, "\"char\"", "'a'",});
@@ -76,7 +75,7 @@ public class PostgreSqlTest {
 		return tests.iterator();
 	}
 
-	@Test(description="Tests small examples", groups={"postgresql-siard1.0"}, dataProvider = "smallExamples")
+	@Test(description="Tests small examples", groups={"postgresql-siard1.0"}, dataProvider="testQueriesProvider")
 	public void testQueries(String... args) throws IOException, InterruptedException{
 
 		String[] fields = new String[args.length-1];
@@ -85,8 +84,18 @@ public class PostgreSqlTest {
 		assert rt.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], fields);
 	}
 
-	@Test(description="Tests PostgreSQL files in src/test/resources", groups={"postgresql-siard1.0"})
-	public void testFiles() throws IOException, InterruptedException, URISyntaxException{
-		assert rt.testFile(Paths.get(getClass().getResource("/postgresql_1.sql").toURI()).toFile()) : "Failed to convert file postgresql_1.sql";
+
+	@DataProvider
+	public Iterator<Object[]> testFilesProvider() throws URISyntaxException {
+		ArrayList<Object[]> tests = new ArrayList<Object[]>();
+
+		tests.add(new Object[]{Paths.get(getClass().getResource("/postgresql_1.sql").toURI()).toFile()});
+
+		return tests.iterator();
+	}
+
+	@Test(description="Tests PostgreSQL files", groups={"postgresql-siard1.0"}, dataProvider="testFilesProvider")
+	public void testFiles(File... file) throws IOException, InterruptedException, URISyntaxException{
+		assert rt.testFile(file[0]) : "Failed to convert file: " + file[0].getAbsolutePath();
 	}
 }

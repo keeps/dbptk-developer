@@ -128,7 +128,7 @@ public class Roundtrip {
 
 		ProcessBuilder dump = new ProcessBuilder("bash", "-c",dump_source_command);
 		dump.redirectOutput(dump_source);
-		dump.redirectError(Redirect.INHERIT);
+		//dump.redirectError(Redirect.INHERIT);
 		for(Entry<String, String> entry : environment_variables_source.entrySet()) {
 		    dump.environment().put(entry.getKey(), entry.getValue());
 		}
@@ -147,7 +147,7 @@ public class Roundtrip {
 
 		dump = new ProcessBuilder("bash", "-c",dump_target_command);
 		dump.redirectOutput(dump_target);
-		dump.redirectError(Redirect.INHERIT);
+		//dump.redirectError(Redirect.INHERIT);
 		for(Entry<String, String> entry : environment_variables_target.entrySet()) {
 		    dump.environment().put(entry.getKey(), entry.getValue());
 		}

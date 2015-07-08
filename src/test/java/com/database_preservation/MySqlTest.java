@@ -10,6 +10,8 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Scanner;
 
@@ -43,17 +45,38 @@ public class MySqlTest {
 		System.out.println("setup complete for mysql-siard1.0");
 	}
 
-	@Test(description="Tests small examples", groups={"mysql-siard1.0"})
-	public void testQueries() throws IOException, InterruptedException{
-		String format ="CREATE TABLE datatypes (col1 %s);\nINSERT INTO datatypes(col1) VALUES(%s);";
+	@DataProvider
+	public Iterator<Object[]> testQueriesProvider() {
+		String singleTypeAndValue = "CREATE TABLE datatypes (col1 %s);\nINSERT INTO datatypes(col1) VALUES(%s);";
+		ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
-		assert rt.testTypeAndValue(format, "TINYINT", "1") : "TINYINT failed";
-		assert rt.testTypeAndValue(format, "SMALLINT", "1") : "SMALLINT failed";
-		assert rt.testTypeAndValue(format, "MEDIUMINT", "1") : "SMALLINT failed";
+		tests.add(new String[]{singleTypeAndValue, "TINYINT", "1",});
+		tests.add(new String[]{singleTypeAndValue, "SMALLINT", "1"});
+		tests.add(new String[]{singleTypeAndValue, "MEDIUMINT", "1"});
+
+		return tests.iterator();
 	}
 
-	@Test(description="Tests MySQL files in src/test/resources", groups={"mysql-siard1.0"})
-	public void testFiles() throws IOException, InterruptedException, URISyntaxException{
-		assert rt.testFile(Paths.get(getClass().getResource("/mysql_1.sql").toURI()).toFile()) : "Failed to convert file mysql_1.sql";
+	@Test(description="Tests small examples", groups={"mysql-siard1.0"}, dataProvider="testQueriesProvider")
+	public void testQueries(String... args) throws IOException, InterruptedException{
+
+		String[] fields = new String[args.length-1];
+		System.arraycopy(args, 1, fields, 0, args.length-1);
+
+		assert rt.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], fields);
+	}
+
+	@DataProvider
+	public Iterator<Object[]> testFilesProvider() throws URISyntaxException {
+		ArrayList<Object[]> tests = new ArrayList<Object[]>();
+
+		tests.add(new Object[]{Paths.get(getClass().getResource("/mysql_1.sql").toURI()).toFile()});
+
+		return tests.iterator();
+	}
+
+	@Test(description="Tests MySQL files", groups={"mysql-siard1.0"}, dataProvider="testFilesProvider")
+	public void testFiles(File... file) throws IOException, InterruptedException, URISyntaxException{
+		assert rt.testFile(file[0]) : "Failed to convert file: " + file[0].getAbsolutePath();
 	}
 }
