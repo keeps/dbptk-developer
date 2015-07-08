@@ -32,26 +32,30 @@ import com.database_preservation.modules.sqlServer.out.SQLServerJDBCExportModule
 
 /**
  * @author Luis Faria
- * 
+ *
  */
 public class Main {
 
-	public static final String APP_NAME = 
+	public static final String APP_NAME =
 			"db-preservation-toolkit - KEEP SOLUTIONS";
-	
+
 	public static final String NAME = "db-preservation-toolkit";
 
 	private static final Logger logger = Logger.getLogger(Main.class);
-	
-	
+
+
 	/**
 	 * @param args
 	 *            the console arguments
 	 */
-	public static void main(String... args) {		
+	public static void main(String... args) {
+		System.exit(internal_main(args));
+	}
+
+	protected static int internal_main(String... args) {
 		List<String> importModuleArgs = new Vector<String>();
 		List<String> exportModuleArgs = new Vector<String>();
-				
+
 		boolean parsingImportModule = false;
 		boolean parsingExportModule = false;
 
@@ -80,6 +84,7 @@ public class Main {
 			exportModule = getExportModule(exportModuleArgs);
 		}
 
+		int exitStatus = 1;
 		if (importModule != null && exportModule != null) {
 			try {
 				long startTime = System.currentTimeMillis();
@@ -90,6 +95,7 @@ public class Main {
 				long duration = System.currentTimeMillis() - startTime;
 				logger.info("Done in " + (duration / 60000) + "m "
 						+ (duration % 60000 / 1000) + "s");
+				exitStatus = 0;
 			} catch (ModuleException e) {
 				if (e.getCause() != null
 						&& e.getCause() instanceof ClassNotFoundException
@@ -118,7 +124,9 @@ public class Main {
 
 		} else {
 			printHelp();
+			exitStatus = 0;
 		}
+		return exitStatus;
 	}
 
 	private static DatabaseImportModule getImportModule(
@@ -173,9 +181,9 @@ public class Main {
 			}
 		} else if (importModuleArgs.get(0).equalsIgnoreCase("DB2JDBC")) {
 			if (importModuleArgs.size() == 6) {
-				importModule = new DB2JDBCImportModule(importModuleArgs.get(1), 
-						Integer.valueOf(importModuleArgs.get(2)), 
-						importModuleArgs.get(3), importModuleArgs.get(4), 
+				importModule = new DB2JDBCImportModule(importModuleArgs.get(1),
+						Integer.valueOf(importModuleArgs.get(2)),
+						importModuleArgs.get(3), importModuleArgs.get(4),
 						importModuleArgs.get(5));
 			} else {
 				logger.error("Wrong argument number for DB2JDBC import module: "
@@ -297,7 +305,7 @@ public class Main {
 			}
 		} else if (exportModuleArgs.get(0).equalsIgnoreCase("DB2JDBC")) {
 			if (exportModuleArgs.size() == 6) {
-				exportModule = new DB2JDBCExportModule(exportModuleArgs.get(1), 
+				exportModule = new DB2JDBCExportModule(exportModuleArgs.get(1),
 						Integer.valueOf(exportModuleArgs.get(2)),
 						exportModuleArgs.get(3), exportModuleArgs.get(4),
 						exportModuleArgs.get(5));
@@ -322,7 +330,7 @@ public class Main {
 				logger.error("Wrong argument number for "
 						+ "PostgreSQLJDBC export module: "
 						+ exportModuleArgs.size());
-			}			
+			}
 //		} else if (exportModuleArgs.get(0).equals("PostgreSQLFile")) {
 //			if (exportModuleArgs.size() == 2) {
 //				try {
@@ -444,7 +452,7 @@ public class Main {
 	}
 
 	private static void printHelp() {
-		System.out.println("Synopsys: java -jar " + NAME + ".jar" 
+		System.out.println("Synopsys: java -jar " + NAME + ".jar"
 				+ " -i IMPORT_MODULE [options...]"
 				+ " -o EXPORT_MODULE [options...]");
 		System.out.println("Available import modules:");

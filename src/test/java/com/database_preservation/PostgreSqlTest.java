@@ -10,6 +10,9 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.HashMap;
@@ -59,14 +62,27 @@ public class PostgreSqlTest {
 		System.out.println("setup complete for postgresql-siard1.0");
 	}
 
-	@Test(description="Tests small examples", groups={"postgresql-siard1.0"})
-	public void testQueries() throws IOException, InterruptedException{
-		String format ="CREATE TABLE datatypes (col1 %s);\nINSERT INTO datatypes(col1) VALUES(%s);";
+	@DataProvider
+	public Iterator<Object[]> smallExamples() {
+		String singleTypeAndValue = "CREATE TABLE datatypes (col1 %s);\nINSERT INTO datatypes(col1) VALUES(%s);";
 
-		assert rt.testTypeAndValue(format, "\"char\"", "'a'") : "CHAR failed";
-		assert rt.testTypeAndValue(format, "bigint", "1") : "BIGINT failed";
-		assert rt.testTypeAndValue(format, "boolean", "TRUE") : "BOOLEAN failed";
-		assert rt.testTypeAndValue(format, "bytea", "1") : "BYTEA failed";
+		ArrayList<Object[]> tests = new ArrayList<Object[]>();
+
+		tests.add(new String[]{singleTypeAndValue, "\"char\"", "'a'",});
+		tests.add(new String[]{singleTypeAndValue, "bigint", "1"});
+		tests.add(new String[]{singleTypeAndValue, "boolean", "TRUE"});
+		tests.add(new String[]{singleTypeAndValue, "bytea", "1"});
+
+		return tests.iterator();
+	}
+
+	@Test(description="Tests small examples", groups={"postgresql-siard1.0"}, dataProvider = "smallExamples")
+	public void testQueries(String... args) throws IOException, InterruptedException{
+
+		String[] fields = new String[args.length-1];
+		System.arraycopy(args, 1, fields, 0, args.length-1);
+
+		assert rt.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], fields);
 	}
 
 	@Test(description="Tests PostgreSQL files in src/test/resources", groups={"postgresql-siard1.0"})

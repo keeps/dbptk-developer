@@ -135,9 +135,15 @@ public class Roundtrip {
 		p = dump.start();
 		System.out.println("2td code: " + p.waitFor());
 
-		Main.main(reviewArguments(forward_conversion_arguments));
-		System.out.println("---------------------");
-		Main.main(reviewArguments(backward_conversion_arguments));
+		int mainExitStatus;
+
+		mainExitStatus = Main.internal_main(reviewArguments(forward_conversion_arguments));
+		if( mainExitStatus != 0 )
+			return false;
+
+		mainExitStatus = Main.internal_main(reviewArguments(backward_conversion_arguments));
+		if( mainExitStatus != 0 )
+			return false;
 
 		dump = new ProcessBuilder("bash", "-c",dump_target_command);
 		dump.redirectOutput(dump_target);
