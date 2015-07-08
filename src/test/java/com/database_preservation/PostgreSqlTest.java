@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.Scanner;
+import java.util.HashMap;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.testng.annotations.*;
@@ -26,124 +27,50 @@ public class PostgreSqlTest {
 	final String db_tmp_username = "dpttest";
 	final String db_tmp_password = RandomStringUtils.randomAlphabetic(10);
 
-	@BeforeGroups(groups={"postgresql-siard1.0"})
-	public void setUp() throws IOException, InterruptedException{
-		// clean up before setting up
-		ProcessBuilder teardown = new ProcessBuilder("bash", "-c",
-				String.format("./testing/postgresql/teardown.sh \"%s\" \"%s\" \"%s\"",
-						db_source, db_target, db_tmp_username));
-		teardown.redirectOutput(Redirect.INHERIT);
-		teardown.redirectError(Redirect.INHERIT);
-		Process p = teardown.start();
-		System.out.println("td code: " + p.waitFor());
+	Roundtrip rt;
 
-		// create siard 1.0 zip file
-		tmpFile = File.createTempFile("dptsiard", ".zip");
+	@BeforeClass
+	public void setup() throws IOException, InterruptedException, URISyntaxException{
+		HashMap<String, String> env_var_source = new HashMap<String, String>();
+		env_var_source.put("PGUSER", db_tmp_username);
+		env_var_source.put("PGPASSWORD", db_tmp_password);
+		env_var_source.put("PGDATABASE", db_source);
 
-		// create user, database and give permissions to the user
-		ProcessBuilder setup = new ProcessBuilder("bash", "-c",
+		HashMap<String, String> env_var_target = new HashMap<String, String>();
+		env_var_target.put("PGUSER", db_tmp_username);
+		env_var_target.put("PGPASSWORD", db_tmp_password);
+		env_var_target.put("PGDATABASE", db_target);
+
+		rt = new Roundtrip(
 				String.format("./testing/postgresql/setup.sh \"%s\" \"%s\" \"%s\" \"%s\"",
-						db_source, db_target, db_tmp_username, db_tmp_password));
-		setup.redirectOutput(Redirect.INHERIT);
-		setup.redirectError(Redirect.INHERIT);
-		p = setup.start();
-		System.out.println("td code: " + p.waitFor());
-	}
-
-	@Test(groups={"postgresql-siard1.0"})
-	public void roundtrip() throws IOException, InterruptedException, URISyntaxException{
-		ProcessBuilder sql = new ProcessBuilder("bash", "-c","psql -q");
-		sql.environment().put("PGUSER", db_tmp_username);
-		sql.environment().put("PGPASSWORD", db_tmp_password);
-		sql.environment().put("PGDATABASE", db_source);
-		sql.redirectOutput(Redirect.INHERIT);
-		sql.redirectError(Redirect.INHERIT);
-		sql.redirectInput(
-				Paths.get(
-						getClass().
-						getResource("/postgresql_1.sql").
-						toURI()
-						).toFile());
-
-		Process p = sql.start();
-		System.out.println("1td code: " + p.waitFor());
-
-
-		Path dumpsDir = Files.createTempDirectory("dpttest_dumps");
-
-		File dump_source = new File(dumpsDir.toFile().getAbsoluteFile() + "/source.sql");
-		File dump_target = new File(dumpsDir.toFile().getAbsoluteFile() + "/target.sql");
-
-		ProcessBuilder dump = new ProcessBuilder("bash", "-c",
-				"pg_dump --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces");
-		dump.environment().put("PGUSER", db_tmp_username);
-		dump.environment().put("PGPASSWORD", db_tmp_password);
-		dump.environment().put("PGDATABASE", db_source);
-		dump.redirectOutput(dump_source);
-		dump.redirectError(Redirect.INHERIT);
-		//dump.redirectOutput(Redirect.INHERIT);
-		p = dump.start();
-		System.out.println("2td code: " + p.waitFor());
-
-		Main.main(
-				"-i", "PostgreSQLJDBC", "localhost", db_source, db_tmp_username, db_tmp_password, "false",
-				"-o", "SIARD", tmpFile.getAbsolutePath(), "store");
-		Main.main(
-				"-i", "SIARD", tmpFile.getAbsolutePath(),
-				"-o", "PostgreSQLJDBC", "localhost", db_target, db_tmp_username, db_tmp_password, "false");
-
-
-		dump = new ProcessBuilder("bash", "-c",
-				"pg_dump --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces");
-		dump.environment().put("PGUSER", db_tmp_username);
-		dump.environment().put("PGPASSWORD", db_tmp_password);
-		dump.environment().put("PGDATABASE", db_target);
-		dump.redirectOutput(dump_target);
-		dump.redirectError(Redirect.INHERIT);
-		//dump.redirectOutput(Redirect.INHERIT);
-		p = dump.start();
-		System.out.println("3td code: " + p.waitFor());
-
-
-		Scanner dump_source_reader = new Scanner(dump_source);
-		Scanner dump_target_reader = new Scanner(dump_target);
-		dump_source_reader.useDelimiter("\\Z");
-		dump_target_reader.useDelimiter("\\Z");
-
-		diff_match_patch diff = new diff_match_patch();
-		LinkedList<Diff> diffs = diff.diff_main(
-				dump_source_reader.next(),
-				dump_target_reader.next()
-				);
-		dump_source_reader.close();
-		dump_target_reader.close();
-
-		//diff.diff_prettySimpleCmd(diffs);
-
-		boolean sameText = true;
-		for( Diff aDiff : diffs ){
-			if( aDiff.operation != diff_match_patch.Operation.EQUAL ){
-				sameText = false;
-				break;
-			}
-		}
-
-		if( !sameText )
-			System.out.println(diff.diff_prettyCmd(diffs));
-
-		assert sameText : "PostgreSQL dumps differ.";
-	}
-
-	@AfterGroups(groups={"postgresql-siard1.0"})
-	public void tearDown() throws IOException{
-		tmpFile.delete();
-
-		// clean up script
-		ProcessBuilder teardown = new ProcessBuilder("bash", "-c",
+						db_source, db_target, db_tmp_username, db_tmp_password),
 				String.format("./testing/postgresql/teardown.sh \"%s\" \"%s\" \"%s\"",
-						db_source, db_target, db_tmp_username));
-		teardown.redirectOutput(Redirect.INHERIT);
-		teardown.redirectError(Redirect.INHERIT);
-		Process p = teardown.start();
+						db_source, db_target, db_tmp_username),
+				"psql -q",
+				"pg_dump --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
+				"pg_dump --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
+				new String[]{"-i", "PostgreSQLJDBC", "localhost", db_source, db_tmp_username, db_tmp_password, "false",
+					"-o", "SIARD", Roundtrip.TMP_FILE_SIARD_VAR, "store"},
+				new String[]{"-i", "SIARD", Roundtrip.TMP_FILE_SIARD_VAR,
+					"-o", "PostgreSQLJDBC", "localhost", db_target, db_tmp_username, db_tmp_password, "false"},
+				env_var_source,
+				env_var_target);
+
+		System.out.println("setup complete for postgresql-siard1.0");
+	}
+
+	@Test(description="Tests small examples", groups={"postgresql-siard1.0"})
+	public void testQueries() throws IOException, InterruptedException{
+		String format ="CREATE TABLE datatypes (col1 %s);\nINSERT INTO datatypes(col1) VALUES(%s);";
+
+		assert rt.testTypeAndValue(format, "\"char\"", "'a'") : "CHAR failed";
+		assert rt.testTypeAndValue(format, "bigint", "1") : "BIGINT failed";
+		assert rt.testTypeAndValue(format, "boolean", "TRUE") : "BOOLEAN failed";
+		assert rt.testTypeAndValue(format, "bytea", "1") : "BYTEA failed";
+	}
+
+	@Test(description="Tests PostgreSQL files in src/test/resources", groups={"postgresql-siard1.0"})
+	public void testFiles() throws IOException, InterruptedException, URISyntaxException{
+		assert rt.testFile(Paths.get(getClass().getResource("/postgresql_1.sql").toURI()).toFile()) : "Failed to convert file postgresql_1.sql";
 	}
 }

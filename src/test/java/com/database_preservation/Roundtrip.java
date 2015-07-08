@@ -29,7 +29,8 @@ public class Roundtrip {
 	private String dump_target_command;
 	private String[] forward_conversion_arguments;
 	private String[] backward_conversion_arguments;
-	private HashMap<String, String> environment_variables;
+	private HashMap<String, String> environment_variables_source; //used in populate step and when dumping source database
+	private HashMap<String, String> environment_variables_target; //used when dumping target database
 
 	// set internally at runtime
 	private File tmpFileSIARD;
@@ -47,7 +48,7 @@ public class Roundtrip {
 	public Roundtrip(String setup_command, String teardown_command, String populate_command,
 			String dump_source_command, String dump_target_command,
 			String[] forward_conversion_arguments, String[] backward_conversion_arguments,
-			HashMap<String, String> environment_variables){
+			HashMap<String, String> environment_variables_source,HashMap<String, String> environment_variables_target){
 		this.setup_command = setup_command;
 		this.populate_command = populate_command;
 		this.teardown_command = teardown_command;
@@ -55,7 +56,8 @@ public class Roundtrip {
 		this.dump_target_command = dump_target_command;
 		this.forward_conversion_arguments = forward_conversion_arguments;
 		this.backward_conversion_arguments = backward_conversion_arguments;
-		this.environment_variables = environment_variables;
+		this.environment_variables_source = environment_variables_source;
+		this.environment_variables_target = environment_variables_target;
 	}
 
 	public Roundtrip(String setup_command, String teardown_command, String populate_command,
@@ -68,7 +70,8 @@ public class Roundtrip {
 		this.dump_target_command = dump_target_command;
 		this.forward_conversion_arguments = forward_conversion_arguments;
 		this.backward_conversion_arguments = backward_conversion_arguments;
-		this.environment_variables = new HashMap<String, String>();
+		this.environment_variables_source = new HashMap<String, String>();
+		this.environment_variables_target = new HashMap<String, String>();
 	}
 
 	public boolean testTypeAndValue(String template, String... args) throws IOException, InterruptedException{
@@ -111,7 +114,7 @@ public class Roundtrip {
 		sql.redirectOutput(Redirect.INHERIT);
 		sql.redirectError(Redirect.INHERIT);
 		sql.redirectInput(populate_file);
-		for(Entry<String, String> entry : environment_variables.entrySet()) {
+		for(Entry<String, String> entry : environment_variables_source.entrySet()) {
 		    sql.environment().put(entry.getKey(), entry.getValue());
 		}
 		Process p = sql.start();
@@ -126,7 +129,7 @@ public class Roundtrip {
 		ProcessBuilder dump = new ProcessBuilder("bash", "-c",dump_source_command);
 		dump.redirectOutput(dump_source);
 		dump.redirectError(Redirect.INHERIT);
-		for(Entry<String, String> entry : environment_variables.entrySet()) {
+		for(Entry<String, String> entry : environment_variables_source.entrySet()) {
 		    dump.environment().put(entry.getKey(), entry.getValue());
 		}
 		p = dump.start();
@@ -139,7 +142,7 @@ public class Roundtrip {
 		dump = new ProcessBuilder("bash", "-c",dump_target_command);
 		dump.redirectOutput(dump_target);
 		dump.redirectError(Redirect.INHERIT);
-		for(Entry<String, String> entry : environment_variables.entrySet()) {
+		for(Entry<String, String> entry : environment_variables_target.entrySet()) {
 		    dump.environment().put(entry.getKey(), entry.getValue());
 		}
 		p = dump.start();

@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.database_preservation.modules.jdbc.out;
 
@@ -52,7 +52,7 @@ import com.database_preservation.modules.SQLHelper;
 
 /**
  * @author Luis Faria
- * 
+ *
  */
 public class JDBCExportModule implements DatabaseHandler {
 
@@ -92,7 +92,7 @@ public class JDBCExportModule implements DatabaseHandler {
 
 	/**
 	 * Generic JDBC export module constructor
-	 * 
+	 *
 	 * @param driverClassName
 	 *            the name of the JDBC driver class
 	 * @param connectionURL
@@ -104,7 +104,7 @@ public class JDBCExportModule implements DatabaseHandler {
 
 	/**
 	 * Generic JDBC export module constructor with SQLHelper definition
-	 * 
+	 *
 	 * @param driverClassName
 	 *            the name of the JDBC driver class
 	 * @param connectionURL
@@ -134,9 +134,9 @@ public class JDBCExportModule implements DatabaseHandler {
 	/**
 	 * Connect to the server using the properties defined in the constructor, or
 	 * return the existing connection
-	 * 
+	 *
 	 * @return the connection
-	 * 
+	 *
 	 * @throws ModuleException
 	 *             This exception can be thrown if the JDBC driver class is not
 	 *             found or an SQL error occurs while connecting
@@ -164,10 +164,10 @@ public class JDBCExportModule implements DatabaseHandler {
 	/**
 	 * Get a connection to a database. This connection can be used to create the
 	 * database
-	 * 
+	 *
 	 * @param databaseName
 	 *            the name of the database to connect
-	 * 
+	 *
 	 * @return the JDBC connection
 	 * @throws ModuleException
 	 */
@@ -195,14 +195,14 @@ public class JDBCExportModule implements DatabaseHandler {
 
 	/**
 	 * Check if a database exists
-	 * 
+	 *
 	 * @param defaultConnectionDb
 	 *            an existing dbml database to establish the connection
 	 * @param database
 	 *            the name of the database to check
 	 * @param connectionURL
 	 *            the connection URL needed by getConnection
-	 * 
+	 *
 	 * @return true if exists, false otherwise
 	 * @throws ModuleException
 	 */
@@ -236,6 +236,7 @@ public class JDBCExportModule implements DatabaseHandler {
 		return statement;
 	}
 
+	@Override
 	public void initDatabase() throws ModuleException {
 		logger.debug("on init db");
 		getConnection();
@@ -244,7 +245,7 @@ public class JDBCExportModule implements DatabaseHandler {
 
 	/**
 	 * Override this method to create the database
-	 * 
+	 *
 	 * @param dbName
 	 *            the database name
 	 * @throws ModuleException
@@ -253,6 +254,7 @@ public class JDBCExportModule implements DatabaseHandler {
 		// nothing will be done by default
 	}
 
+	@Override
 	public void handleStructure(DatabaseStructure structure)
 			throws ModuleException, UnknownTypeException {
 		this.databaseStructure = structure;
@@ -337,11 +339,11 @@ public class JDBCExportModule implements DatabaseHandler {
 
 	/**
 	 * Checks if a schema with 'schemaName' already exists on the database.
-	 * 
+	 *
 	 * @param schemaName
 	 *            the schema name to be checked.
 	 * @return
-	 * 
+	 *
 	 * @throws SQLException
 	 * @throws ModuleException
 	 */
@@ -359,7 +361,7 @@ public class JDBCExportModule implements DatabaseHandler {
 
 	/**
 	 * Gets the list of names of the existing schemas on a database.
-	 * 
+	 *
 	 * @return The list of schemas names on a database.
 	 * @throws SQLException
 	 * @throws ModuleException
@@ -401,10 +403,11 @@ public class JDBCExportModule implements DatabaseHandler {
 	/**
 	 * Sets the schemas to be ignored on the export. These schemas won't be
 	 * exported
-	 * 
+	 *
 	 * @param ignoredSchemas
 	 *            ignored schemas name to be added to the list
 	 */
+	@Override
 	public void setIgnoredSchemas(Set<String> ignoredSchemas) {
 		for (String s : ignoredSchemas) {
 			this.ignoredSchemas.add(s);
@@ -413,7 +416,7 @@ public class JDBCExportModule implements DatabaseHandler {
 
 	/**
 	 * Checks if a given schema is set to be ignored
-	 * 
+	 *
 	 * @param schema
 	 *            The schema structure to be checked
 	 * @return
@@ -427,6 +430,7 @@ public class JDBCExportModule implements DatabaseHandler {
 		return false;
 	}
 
+	@Override
 	public void handleDataOpenTable(String tableId) throws ModuleException {
 		logger.debug("Started data open: " + tableId);
 		if (databaseStructure != null) {
@@ -460,6 +464,7 @@ public class JDBCExportModule implements DatabaseHandler {
 		}
 	}
 
+	@Override
 	public void handleDataCloseTable(String tableId) throws ModuleException {
 		currentTableStructure = null;
 		if (batch_index > 0) {
@@ -479,6 +484,7 @@ public class JDBCExportModule implements DatabaseHandler {
 		}
 	}
 
+	@Override
 	public void handleDataRow(Row row) throws InvalidDataException,
 			ModuleException {
 		if (!currentIsIgnoredSchema) {
@@ -526,6 +532,7 @@ public class JDBCExportModule implements DatabaseHandler {
 			int index, Cell cell, Type type) throws InvalidDataException,
 			ModuleException {
 		CleanResourcesInterface ret = new CleanResourcesInterface() {
+			@Override
 			public void clean() {
 
 			}
@@ -576,6 +583,7 @@ public class JDBCExportModule implements DatabaseHandler {
 					}
 					ret = new CleanResourcesInterface() {
 
+						@Override
 						public void clean() {
 							bin.cleanResources();
 						}
@@ -586,6 +594,7 @@ public class JDBCExportModule implements DatabaseHandler {
 
 					ret = new CleanResourcesInterface() {
 
+						@Override
 						public void clean() {
 							bin.cleanResources();
 						}
@@ -705,10 +714,24 @@ public class JDBCExportModule implements DatabaseHandler {
 				bin.getLength());
 	}
 
+	@Override
 	public void finishDatabase() throws ModuleException {
 		if (databaseStructure != null) {
 			handleForeignKeys();
 			commit();
+		}
+		closeConnection();
+	}
+
+	public void closeConnection() throws ModuleException {
+		if (connection != null) {
+			logger.debug("Closing connection");
+			try {
+				connection.close();
+				connection = null;
+			} catch (SQLException e) {
+				throw new ModuleException("Error while closing connection", e);
+			}
 		}
 	}
 
@@ -776,7 +799,7 @@ public class JDBCExportModule implements DatabaseHandler {
 
 	/**
 	 * Get the SQLHelper used by this instance
-	 * 
+	 *
 	 * @return the SQLHelper
 	 */
 	public SQLHelper getSqlHelper() {

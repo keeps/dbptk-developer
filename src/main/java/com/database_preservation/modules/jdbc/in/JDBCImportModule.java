@@ -1654,6 +1654,12 @@ public class JDBCImportModule implements DatabaseImportModule {
 			throw new ModuleException("SQL error while conecting", e);
 		} catch (ClassNotFoundException e) {
 			throw new ModuleException("JDBC driver class could not be found", e);
+		} finally {
+			try {
+				closeConnection();
+			} catch (SQLException e) {
+				throw new ModuleException("Error while closing connection", e);
+			}
 		}
 	}
 
