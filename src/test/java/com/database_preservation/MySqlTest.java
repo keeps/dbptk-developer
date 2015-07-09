@@ -20,6 +20,7 @@ import org.testng.annotations.*;
 
 import com.database_preservation.diff_match_patch.Diff;
 
+@Test(groups={"mysql-siard1.0"})
 public class MySqlTest {
 	final String db_source = "dpttest";
 	final String db_target = "dpttest_siard";
@@ -42,7 +43,6 @@ public class MySqlTest {
 						db_tmp_username, db_tmp_password, db_target),
 				new String[]{"-i", "MySQLJDBC", "localhost", db_source, db_tmp_username, db_tmp_password, "-o", "SIARD", Roundtrip.TMP_FILE_SIARD_VAR, "store"},
 				new String[]{"-i", "SIARD", Roundtrip.TMP_FILE_SIARD_VAR, "-o", "MySQLJDBC", "localhost", db_target, db_tmp_username, db_tmp_password});
-		System.out.println("setup complete for mysql-siard1.0");
 	}
 
 	@DataProvider
@@ -57,7 +57,7 @@ public class MySqlTest {
 		return tests.iterator();
 	}
 
-	@Test(description="Tests small examples", groups={"mysql-siard1.0"}, dataProvider="testQueriesProvider")
+	@Test(description="Tests small examples", dataProvider="testQueriesProvider")
 	public void testQueries(String... args) throws IOException, InterruptedException{
 
 		String[] fields = new String[args.length-1];
@@ -70,13 +70,13 @@ public class MySqlTest {
 	public Iterator<Object[]> testFilesProvider() throws URISyntaxException {
 		ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
-		tests.add(new Object[]{Paths.get(getClass().getResource("/mysql_1.sql").toURI()).toFile()});
+		tests.add(new File[]{Paths.get(getClass().getResource("/mysql_1.sql").toURI()).toFile()});
 
 		return tests.iterator();
 	}
 
-	@Test(description="Tests MySQL files", groups={"mysql-siard1.0"}, dataProvider="testFilesProvider")
+	@Test(description="Tests MySQL files", dataProvider="testFilesProvider")
 	public void testFiles(File... file) throws IOException, InterruptedException, URISyntaxException{
-		assert rt.testFile(file[0]) : "Failed to convert file: " + file[0].getAbsolutePath();
+		assert rt.testFile(file[0]) : "Roundtrip failed for file: " + file[0].getAbsolutePath();
 	}
 }

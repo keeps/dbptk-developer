@@ -1,0 +1,20 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+
+<suite name="TheSuite" verbose="0">
+	<test name="TheTest">
+		<groups>
+			<define name="all">
+				<include name="postgresql-siard1.0" />
+				<include name="mysql-siard1.0" />
+			</define>
+
+			<run>
+				<include name="all" />
+			</run>
+		</groups>
+		<classes>
+			<class name="com.database_preservation.MySqlTest" />
+			<class name="com.database_preservation.PostgreSqlTest" />
+		</classes>
+	</test>
+</suite>

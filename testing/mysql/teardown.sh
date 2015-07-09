@@ -21,6 +21,6 @@ function sql() {
   mysql -s --user="$user" --password="$pass" --database="mysql" --execute="$1"
 }
 
-sql "DROP DATABASE $TEST_DB_SOURCE;"
-sql "DROP DATABASE $TEST_DB_TARGET;"
 sql "DROP USER '$TEST_DB_USER'@'localhost';"
+sql "DROP DATABASE IF EXISTS $TEST_DB_SOURCE;"
+sql "DROP DATABASE IF EXISTS $TEST_DB_TARGET;"

@@ -136,8 +136,8 @@ public class Roundtrip {
 		    sql.environment().put(entry.getKey(), entry.getValue());
 		}
 		Process p = sql.start();
-		printTmpFileOnError(processSTDERR, p.waitFor(), System.err);
-		printTmpFileOnError(processSTDOUT, p.waitFor(), System.out);
+		printTmpFileOnError(processSTDERR, p.waitFor());
+		printTmpFileOnError(processSTDOUT, p.waitFor());
 
 
 		Path dumpsDir = Files.createTempDirectory("dpttest_dumps");
@@ -152,7 +152,7 @@ public class Roundtrip {
 		    dump.environment().put(entry.getKey(), entry.getValue());
 		}
 		p = dump.start();
-		printTmpFileOnError(processSTDERR, p.waitFor(), System.err);
+		printTmpFileOnError(processSTDERR, p.waitFor());
 
 		int mainExitStatus;
 
@@ -171,7 +171,7 @@ public class Roundtrip {
 		    dump.environment().put(entry.getKey(), entry.getValue());
 		}
 		p = dump.start();
-		printTmpFileOnError(processSTDERR, p.waitFor(), System.err);
+		printTmpFileOnError(processSTDERR, p.waitFor());
 
 
 		Scanner dump_source_reader = new Scanner(dump_source);
@@ -193,6 +193,7 @@ public class Roundtrip {
 
 		for( Diff aDiff : diffs ){
 			if( aDiff.operation != diff_match_patch.Operation.EQUAL ){
+				logger.warn("Dump files differ. Outputting differences");
 				System.out.println(diff.diff_prettyCmd(diffs));
 				return false;
 			}
@@ -209,8 +210,8 @@ public class Roundtrip {
 		Process p = teardown.start();
 		int code = p.waitFor();
 
-		printTmpFileOnError(processSTDERR, p.waitFor(), System.err);
-		printTmpFileOnError(processSTDOUT, p.waitFor(), System.out);
+		printTmpFileOnError(processSTDERR, p.waitFor());
+		printTmpFileOnError(processSTDOUT, p.waitFor());
 
 		// create siard 1.0 zip file
 		tmpFileSIARD = File.createTempFile("dptsiard", ".zip");
@@ -221,8 +222,8 @@ public class Roundtrip {
 		setup.redirectError(processSTDERR);
 		p = setup.start();
 
-		printTmpFileOnError(processSTDERR, p.waitFor(), System.err);
-		printTmpFileOnError(processSTDOUT, p.waitFor(), System.out);
+		printTmpFileOnError(processSTDERR, p.waitFor());
+		printTmpFileOnError(processSTDOUT, p.waitFor());
 		return p.waitFor();
 	}
 
@@ -235,8 +236,8 @@ public class Roundtrip {
 		teardown.redirectError(processSTDERR);
 
 		Process p = teardown.start();
-		printTmpFileOnError(processSTDERR, p.waitFor(), System.err);
-		printTmpFileOnError(processSTDOUT, p.waitFor(), System.out);
+		printTmpFileOnError(processSTDERR, p.waitFor());
+		printTmpFileOnError(processSTDOUT, p.waitFor());
 		return p.waitFor();
 	}
 
@@ -251,10 +252,14 @@ public class Roundtrip {
 		return copy;
 	}
 
-	private void printTmpFileOnError(File file_to_print, int status_code, PrintStream stream) throws IOException{
+	private void printTmpFileOnError(File file_to_print, int status_code) throws IOException{
 		if( status_code == 0 )
 			return;
 
+		if( file_to_print.length() <= 0L )
+			return;
+
+		logger.warn("non-zero exit code, printing process output from " + file_to_print.getName());
 		FileReader fr;
 		try {
 			fr = new FileReader(file_to_print);
@@ -262,7 +267,7 @@ public class Roundtrip {
 				BufferedReader br = new BufferedReader(fr);
 				String line;
 				while ((line = br.readLine()) != null) {
-					stream.println(line);
+					System.out.println(line);
 				}
 				br.close();
 			} catch (IOException e) {

@@ -22,6 +22,7 @@ import org.testng.annotations.*;
 
 import com.database_preservation.diff_match_patch.Diff;
 
+@Test(groups={"postgresql-siard1.0"})
 public class PostgreSqlTest {
 	File tmpFile;
 
@@ -58,8 +59,6 @@ public class PostgreSqlTest {
 					"-o", "PostgreSQLJDBC", "localhost", db_target, db_tmp_username, db_tmp_password, "false"},
 				env_var_source,
 				env_var_target);
-
-		System.out.println("setup complete for postgresql-siard1.0");
 	}
 
 	@DataProvider
@@ -75,7 +74,7 @@ public class PostgreSqlTest {
 		return tests.iterator();
 	}
 
-	@Test(description="Tests small examples", groups={"postgresql-siard1.0"}, dataProvider="testQueriesProvider")
+	@Test(description="Tests small examples", dataProvider="testQueriesProvider")
 	public void testQueries(String... args) throws IOException, InterruptedException{
 
 		String[] fields = new String[args.length-1];
@@ -89,13 +88,13 @@ public class PostgreSqlTest {
 	public Iterator<Object[]> testFilesProvider() throws URISyntaxException {
 		ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
-		tests.add(new Object[]{Paths.get(getClass().getResource("/postgresql_1.sql").toURI()).toFile()});
+		tests.add(new File[]{Paths.get(getClass().getResource("/postgresql_1.sql").toURI()).toFile()});
 
 		return tests.iterator();
 	}
 
-	@Test(description="Tests PostgreSQL files", groups={"postgresql-siard1.0"}, dataProvider="testFilesProvider")
+	@Test(description="Tests PostgreSQL files", dataProvider="testFilesProvider")
 	public void testFiles(File... file) throws IOException, InterruptedException, URISyntaxException{
-		assert rt.testFile(file[0]) : "Failed to convert file: " + file[0].getAbsolutePath();
+		assert rt.testFile(file[0]) : "Roundtrip failed for file: " + file[0].getAbsolutePath();
 	}
 }

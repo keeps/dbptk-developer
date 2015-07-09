@@ -18,7 +18,7 @@
     </appender>
 
 	<logger name="com.database_preservation" additivity="false">
-		<level value="DEBUG" />
+		<level value="WARN" />
 		<!-- 		<level value="TRACE" /> -->
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="default.file" />
