@@ -9,6 +9,7 @@ import java.util.Vector;
 
 import org.apache.log4j.Logger;
 
+import dk.magenta.siarddk.SIARDDKExportModule;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.InvalidDataException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
@@ -268,6 +269,7 @@ public class Main {
 
 	private static DatabaseHandler getExportModule(List<String> exportModuleArgs) {
 		DatabaseHandler exportModule = null;
+		
 		if (exportModuleArgs.get(0).equals("DBML")) {
 			if (exportModuleArgs.size() == 2) {
 				try {
@@ -295,7 +297,14 @@ public class Main {
 				logger.error("Wrong argument number for SIARD export module: "
 						+ exportModuleArgs.size());
 			}
-		} else if (exportModuleArgs.get(0).equalsIgnoreCase("DB2JDBC")) {
+		}
+		
+		else if (exportModuleArgs.get(0).equals("SIARDDK")) {
+			exportModule = new SIARDDKExportModule();
+		}
+
+		
+		else if (exportModuleArgs.get(0).equalsIgnoreCase("DB2JDBC")) {
 			if (exportModuleArgs.size() == 6) {
 				exportModule = new DB2JDBCExportModule(exportModuleArgs.get(1), 
 						Integer.valueOf(exportModuleArgs.get(2)),
