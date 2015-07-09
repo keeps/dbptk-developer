@@ -1,8 +1,12 @@
 package com.database_preservation;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,13 +17,18 @@ import java.util.Map.Entry;
 import java.util.Scanner;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.log4j.Logger;
 
 import antlr.collections.List;
 
 import com.database_preservation.diff_match_patch.Diff;
 
+import de.schlichtherle.io.FileInputStream;
+
 public class Roundtrip {
 	public static final String TMP_FILE_SIARD_VAR = "%TMP_FILE_SIARD%";
+
+	private static final Logger logger = Logger.getLogger(Roundtrip.class);
 
 	// set by constructor
 	private String setup_command;
@@ -35,6 +44,9 @@ public class Roundtrip {
 	// set internally at runtime
 	private File tmpFileSIARD;
 
+	private File processSTDERR;
+	private File processSTDOUT;
+
 	// constants
 	private final String db_source = "dpttest";
 	private final String db_target = "dpttest_siard";
@@ -48,7 +60,7 @@ public class Roundtrip {
 	public Roundtrip(String setup_command, String teardown_command, String populate_command,
 			String dump_source_command, String dump_target_command,
 			String[] forward_conversion_arguments, String[] backward_conversion_arguments,
-			HashMap<String, String> environment_variables_source,HashMap<String, String> environment_variables_target){
+			HashMap<String, String> environment_variables_source,HashMap<String, String> environment_variables_target) throws IOException{
 		this.setup_command = setup_command;
 		this.populate_command = populate_command;
 		this.teardown_command = teardown_command;
@@ -58,11 +70,16 @@ public class Roundtrip {
 		this.backward_conversion_arguments = backward_conversion_arguments;
 		this.environment_variables_source = environment_variables_source;
 		this.environment_variables_target = environment_variables_target;
+
+		processSTDERR = File.createTempFile("processSTDERR", ".tmp");
+		processSTDOUT = File.createTempFile("processSTDOUT", ".tmp");
+		processSTDERR.deleteOnExit();
+		processSTDOUT.deleteOnExit();
 	}
 
 	public Roundtrip(String setup_command, String teardown_command, String populate_command,
 			String dump_source_command, String dump_target_command,
-			String[] forward_conversion_arguments, String[] backward_conversion_arguments){
+			String[] forward_conversion_arguments, String[] backward_conversion_arguments) throws IOException{
 		this.setup_command = setup_command;
 		this.populate_command = populate_command;
 		this.teardown_command = teardown_command;
@@ -72,6 +89,11 @@ public class Roundtrip {
 		this.backward_conversion_arguments = backward_conversion_arguments;
 		this.environment_variables_source = new HashMap<String, String>();
 		this.environment_variables_target = new HashMap<String, String>();
+
+		processSTDERR = File.createTempFile("processSTDERR", ".tmp");
+		processSTDOUT = File.createTempFile("processSTDOUT", ".tmp");
+		processSTDERR.deleteOnExit();
+		processSTDOUT.deleteOnExit();
 	}
 
 	public boolean testTypeAndValue(String template, String... args) throws IOException, InterruptedException{
@@ -91,14 +113,10 @@ public class Roundtrip {
 	}
 
 	public boolean testFile(File populate_file) throws IOException, InterruptedException{
-		setup();
+		assert setup() == 0 : "Roundtrip setup exit status was not 0";
 		boolean result = roundtrip(populate_file);
-		teardown();
+		assert teardown() == 0 : "Roundtrip teardown exit status was not 0";
 		return result;
-	}
-
-	public File getTempFileSIARD(){
-		return tmpFileSIARD;
 	}
 
 	/**
@@ -111,14 +129,15 @@ public class Roundtrip {
 	 */
 	private boolean roundtrip(File populate_file) throws IOException, InterruptedException{
 		ProcessBuilder sql = new ProcessBuilder("bash", "-c", populate_command);
-		sql.redirectOutput(Redirect.INHERIT);
-		sql.redirectError(Redirect.INHERIT);
+		sql.redirectOutput(processSTDOUT);
+		sql.redirectError(processSTDERR);
 		sql.redirectInput(populate_file);
 		for(Entry<String, String> entry : environment_variables_source.entrySet()) {
 		    sql.environment().put(entry.getKey(), entry.getValue());
 		}
 		Process p = sql.start();
-		System.out.println("1td code: " + p.waitFor());
+		printTmpFileOnError(processSTDERR, p.waitFor(), System.err);
+		printTmpFileOnError(processSTDOUT, p.waitFor(), System.out);
 
 
 		Path dumpsDir = Files.createTempDirectory("dpttest_dumps");
@@ -128,12 +147,12 @@ public class Roundtrip {
 
 		ProcessBuilder dump = new ProcessBuilder("bash", "-c",dump_source_command);
 		dump.redirectOutput(dump_source);
-		//dump.redirectError(Redirect.INHERIT);
+		dump.redirectError(processSTDERR);
 		for(Entry<String, String> entry : environment_variables_source.entrySet()) {
 		    dump.environment().put(entry.getKey(), entry.getValue());
 		}
 		p = dump.start();
-		System.out.println("2td code: " + p.waitFor());
+		printTmpFileOnError(processSTDERR, p.waitFor(), System.err);
 
 		int mainExitStatus;
 
@@ -147,12 +166,12 @@ public class Roundtrip {
 
 		dump = new ProcessBuilder("bash", "-c",dump_target_command);
 		dump.redirectOutput(dump_target);
-		//dump.redirectError(Redirect.INHERIT);
+		dump.redirectError(processSTDERR);
 		for(Entry<String, String> entry : environment_variables_target.entrySet()) {
 		    dump.environment().put(entry.getKey(), entry.getValue());
 		}
 		p = dump.start();
-		System.out.println("3td code: " + p.waitFor());
+		printTmpFileOnError(processSTDERR, p.waitFor(), System.err);
 
 
 		Scanner dump_source_reader = new Scanner(dump_source);
@@ -168,6 +187,10 @@ public class Roundtrip {
 		dump_source_reader.close();
 		dump_target_reader.close();
 
+		dump_source.delete();
+		dump_target.delete();
+		dumpsDir.toFile().delete();
+
 		for( Diff aDiff : diffs ){
 			if( aDiff.operation != diff_match_patch.Operation.EQUAL ){
 				System.out.println(diff.diff_prettyCmd(diffs));
@@ -181,23 +204,26 @@ public class Roundtrip {
 	private int setup() throws IOException, InterruptedException{
 		// clean up before setting up
 		ProcessBuilder teardown = new ProcessBuilder("bash", "-c", teardown_command);
-		teardown.redirectOutput(Redirect.INHERIT);
-		teardown.redirectError(Redirect.INHERIT);
+		teardown.redirectOutput(processSTDOUT);
+		teardown.redirectError(processSTDERR);
 		Process p = teardown.start();
 		int code = p.waitFor();
-		System.out.println("td code: " + code);
+
+		printTmpFileOnError(processSTDERR, p.waitFor(), System.err);
+		printTmpFileOnError(processSTDOUT, p.waitFor(), System.out);
 
 		// create siard 1.0 zip file
 		tmpFileSIARD = File.createTempFile("dptsiard", ".zip");
 
 		// create user, database and give permissions to the user
 		ProcessBuilder setup = new ProcessBuilder("bash", "-c", setup_command);
-		setup.redirectOutput(Redirect.INHERIT);
-		setup.redirectError(Redirect.INHERIT);
+		setup.redirectOutput(processSTDOUT);
+		setup.redirectError(processSTDERR);
 		p = setup.start();
-		code = p.waitFor();
-		System.out.println("su code: " + code);
-		return code;
+
+		printTmpFileOnError(processSTDERR, p.waitFor(), System.err);
+		printTmpFileOnError(processSTDOUT, p.waitFor(), System.out);
+		return p.waitFor();
 	}
 
 	private int teardown() throws IOException, InterruptedException{
@@ -205,12 +231,13 @@ public class Roundtrip {
 
 		// clean up script
 		ProcessBuilder teardown = new ProcessBuilder("bash", "-c", teardown_command);
-		teardown.redirectOutput(Redirect.INHERIT);
-		teardown.redirectError(Redirect.INHERIT);
+		teardown.redirectOutput(processSTDOUT);
+		teardown.redirectError(processSTDERR);
+
 		Process p = teardown.start();
-		int code = p.waitFor();
-		System.out.println("td code: " + code);
-		return code;
+		printTmpFileOnError(processSTDERR, p.waitFor(), System.err);
+		printTmpFileOnError(processSTDOUT, p.waitFor(), System.out);
+		return p.waitFor();
 	}
 
 	private String[] reviewArguments(String[] args){
@@ -222,5 +249,30 @@ public class Roundtrip {
 				copy[i] = args[i];
 		}
 		return copy;
+	}
+
+	private void printTmpFileOnError(File file_to_print, int status_code, PrintStream stream) throws IOException{
+		if( status_code == 0 )
+			return;
+
+		FileReader fr;
+		try {
+			fr = new FileReader(file_to_print);
+			try {
+				BufferedReader br = new BufferedReader(fr);
+				String line;
+				while ((line = br.readLine()) != null) {
+					stream.println(line);
+				}
+				br.close();
+			} catch (IOException e) {
+				logger.error("Could not read file", e);
+			} finally {
+				fr.close();
+			}
+		} catch (FileNotFoundException e) {
+			logger.error("File not found", e);
+		}
+
 	}
 }
