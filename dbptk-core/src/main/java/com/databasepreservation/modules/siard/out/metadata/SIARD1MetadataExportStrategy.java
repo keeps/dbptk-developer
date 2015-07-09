@@ -81,8 +81,8 @@ import com.databasepreservation.utils.JodaUtils;
  */
 public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
   private static final String ENCODING = "UTF-8";
-  private static final String METADATA_XSD_RESOURCE_PATH = "/schema/siard1-metadata.xsd";
   private static final String METADATA_FILENAME = "metadata";
+  private static final String METADATA_RESOURCE_FILENAME = "siard1-metadata";
   private final Logger logger = Logger.getLogger(SIARD1MetadataExportStrategy.class);
   private final ContentPathExportStrategy contentPathStrategy;
   private final MetadataPathStrategy metadataPathStrategy;
@@ -105,11 +105,13 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
     Schema xsdSchema = null;
     try {
-      xsdSchema = schemaFactory.newSchema(new StreamSource(SiardArchive.class
-        .getResourceAsStream(METADATA_XSD_RESOURCE_PATH)));
+      xsdSchema = schemaFactory.newSchema(new StreamSource(SiardArchive.class.getResourceAsStream(metadataPathStrategy
+        .getXsdResourcePath(METADATA_RESOURCE_FILENAME))));
     } catch (SAXException e) {
-      throw new ModuleException("XSD file has errors: "
-        + SiardArchive.class.getResource(METADATA_XSD_RESOURCE_PATH).getPath(), e);
+      throw new ModuleException(
+        "XSD file has errors: "
+          + SiardArchive.class.getResource(metadataPathStrategy.getXsdResourcePath(METADATA_RESOURCE_FILENAME))
+            .getPath(), e);
     }
 
     SiardArchive xmlroot = jaxbSiardArchive(dbStructure);
@@ -143,7 +145,8 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
       metadataPathStrategy.getXsdFilePath(METADATA_FILENAME));
 
     // prepare to read
-    InputStream in = SiardArchive.class.getResourceAsStream(METADATA_XSD_RESOURCE_PATH);
+    InputStream in = SiardArchive.class.getResourceAsStream(metadataPathStrategy
+      .getXsdResourcePath(METADATA_RESOURCE_FILENAME));
 
     // read everything from reader into writer
     try {

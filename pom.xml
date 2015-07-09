@@ -143,6 +143,11 @@
                 <artifactId>dbptk-bindings-siard2</artifactId>
                 <version>1.1.1</version>
             </dependency>
+            <dependency>
+                <groupId>dk.magenta</groupId>
+                <artifactId>dbptk-bindings-siarddk</artifactId>
+                <version>1.0.0</version>
+            </dependency>
 
             <!-- normal -->
             <dependency>

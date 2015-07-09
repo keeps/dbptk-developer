@@ -20,6 +20,7 @@
     <modules>
         <module>dbptk-bindings-siard1</module>
         <module>dbptk-bindings-siard2</module>
+        <module>dbptk-bindings-siarddk</module>
     </modules>
     <build>
         <pluginManagement>
