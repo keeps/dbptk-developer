@@ -10,6 +10,7 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 
 import dk.magenta.siarddk.SIARDDKExportModule;
+import dk.magenta.siarddk.SIARDDKMetadataStrategy;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.InvalidDataException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
 import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
@@ -300,7 +301,7 @@ public class Main {
 		}
 		
 		else if (exportModuleArgs.get(0).equals("SIARDDK")) {
-			exportModule = new SIARDDKExportModule();
+			exportModule = new SIARDDKExportModule(new SIARDDKMetadataStrategy());
 		}
 
 		
@@ -474,6 +475,9 @@ public class Main {
 
 		System.out.println("Available export modules:");
 		System.out.println("\tSIARD dir");
+		
+		System.out.println("\tSIARDDK");
+		
 		System.out
 				.println("\tSQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt");
 		System.out
