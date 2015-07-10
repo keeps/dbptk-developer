@@ -18,6 +18,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,6 +29,7 @@ import org.w3c.util.DateParser;
 
 import pt.gov.dgarq.roda.common.FileFormat;
 import pt.gov.dgarq.roda.common.FormatUtility;
+
 import com.database_preservation.Main;
 import com.database_preservation.model.data.BinaryCell;
 import com.database_preservation.model.data.Cell;
@@ -774,6 +776,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 		case Types.DECIMAL:
 			type = getDecimalType(typeName, columnSize, decimalDigits,
 					numPrecRadix);
+			type.setOriginalTypeName(typeName, columnSize, decimalDigits);
 			break;
 		case Types.DOUBLE:
 			type = getDoubleType(typeName, columnSize, decimalDigits,
@@ -866,7 +869,10 @@ public class JDBCImportModule implements DatabaseImportModule {
 					decimalDigits, numPrecRadix);
 			break;
 		}
-		type.setOriginalTypeName(typeName);
+
+		if( !type.hasOriginalTypeName() )
+			type.setOriginalTypeName(typeName);
+
 		return type;
 	}
 

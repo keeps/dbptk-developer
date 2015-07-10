@@ -50,9 +50,38 @@ public class MySqlTest {
 		String singleTypeAndValue = "CREATE TABLE datatypes (col1 %s);\nINSERT INTO datatypes(col1) VALUES(%s);";
 		ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
-		tests.add(new String[]{singleTypeAndValue, "TINYINT", "1",});
-		tests.add(new String[]{singleTypeAndValue, "SMALLINT", "1"});
-		tests.add(new String[]{singleTypeAndValue, "MEDIUMINT", "1"});
+		//tests.add(new String[]{singleTypeAndValue, "TINYINT", "1"});
+		tests.add(new String[]{singleTypeAndValue, "SMALLINT", "123"});
+		//tests.add(new String[]{singleTypeAndValue, "MEDIUMINT", "123"});
+		tests.add(new String[]{singleTypeAndValue, "INT", "123"});
+		//tests.add(new String[]{singleTypeAndValue, "BIGINT", "123"});
+		tests.add(new String[]{singleTypeAndValue, "DECIMAL", "123"});
+		tests.add(new String[]{singleTypeAndValue, "NUMERIC", "123"});
+		tests.add(new String[]{singleTypeAndValue, "FLOAT", "12345.123"});
+		tests.add(new String[]{singleTypeAndValue, "FLOAT(12)", "12345.123"});
+		//tests.add(new String[]{singleTypeAndValue, "FLOAT(12,0)", "12345.123"});
+		//tests.add(new String[]{singleTypeAndValue, "FLOAT(8,3)", "12345.123"});
+		tests.add(new String[]{singleTypeAndValue, "DOUBLE", "1234567890.12345"});
+		tests.add(new String[]{singleTypeAndValue, "BIT(1)", "b'1'"});
+		tests.add(new String[]{singleTypeAndValue, "BIT(64)", "b'10101010101010101010101010101010101010101010101010101010101'"});
+		tests.add(new String[]{singleTypeAndValue, "DATE", "'9999-12-31'"});
+		tests.add(new String[]{singleTypeAndValue, "DATETIME", "'9999-12-31 23:59:59.999999'"});
+		tests.add(new String[]{singleTypeAndValue, "TIMESTAMP", "'2038-01-19 03:14:07.999999'"});
+		//tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "'2015'"});
+		//tests.add(new String[]{singleTypeAndValue, "CHAR(255)", "NULL"});
+		tests.add(new String[]{singleTypeAndValue, "VARCHAR(1024)", "NULL"});
+		tests.add(new String[]{singleTypeAndValue, "BINARY(255)", "NULL"});
+		tests.add(new String[]{singleTypeAndValue, "VARBINARY(1024)", "NULL"});
+		tests.add(new String[]{singleTypeAndValue, "TINYBLOB", "NULL"});
+		tests.add(new String[]{singleTypeAndValue, "BLOB", "NULL"});
+		tests.add(new String[]{singleTypeAndValue, "MEDIUMBLOB", "NULL"});
+		tests.add(new String[]{singleTypeAndValue, "LONGBLOB", "NULL"});
+		tests.add(new String[]{singleTypeAndValue, "TINYTEXT", "NULL"});
+		tests.add(new String[]{singleTypeAndValue, "TEXT", "NULL"});
+		tests.add(new String[]{singleTypeAndValue, "MEDIUMTEXT", "NULL"});
+		tests.add(new String[]{singleTypeAndValue, "LONGTEXT", "NULL"});
+		//tests.add(new String[]{singleTypeAndValue, "ENUM('small','medium','large')", "NULL"});
+		//tests.add(new String[]{singleTypeAndValue, "SET('one','two','three')", "NULL"});
 
 		return tests.iterator();
 	}
@@ -70,7 +99,7 @@ public class MySqlTest {
 	public Iterator<Object[]> testFilesProvider() throws URISyntaxException {
 		ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
-		tests.add(new File[]{Paths.get(getClass().getResource("/mysql_1.sql").toURI()).toFile()});
+		//tests.add(new File[]{Paths.get(getClass().getResource("/mysql_1.sql").toURI()).toFile()});
 
 		return tests.iterator();
 	}

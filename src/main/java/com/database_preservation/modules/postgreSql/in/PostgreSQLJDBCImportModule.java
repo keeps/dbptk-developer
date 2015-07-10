@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.database_preservation.modules.postgreSql.in;
 
@@ -7,21 +7,34 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.SimpleTimeZone;
+import java.util.TimeZone;
 
 import org.apache.log4j.Logger;
 import org.postgresql.PGConnection;
 import org.postgresql.util.PGobject;
+import org.w3c.util.DateParser;
 
 import pt.gov.dgarq.roda.common.FileFormat;
 import pt.gov.dgarq.roda.common.FormatUtility;
+
 import com.database_preservation.model.data.BinaryCell;
 import com.database_preservation.model.data.Cell;
 import com.database_preservation.model.data.FileItem;
@@ -43,7 +56,7 @@ import com.database_preservation.modules.siard.SIARDHelper;
  * driver. The postgresql-8.3-603.jdbc3.jar driver supports PostgreSQL version
  * 7.4 to 8.3.
  * </p>
- * 
+ *
  * <p>
  * To use this module, the PostgreSQL server must be configured:
  * </p>
@@ -57,9 +70,9 @@ import com.database_preservation.modules.siard.SIARDHelper;
  * <code>host all all 127.0.0.1 255.0.0.0 trust</code>. The JDBC driver supports
  * the trust, ident, password, md5, and crypt authentication methods.</li>
  * </ol>
- * 
+ *
  * @author Luis Faria
- * 
+ *
  */
 public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 
@@ -68,7 +81,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 
 	/**
 	 * Create a new PostgreSQL JDBC import module
-	 * 
+	 *
 	 * @param hostname
 	 *            the name of the PostgreSQL server host (e.g. localhost)
 	 * @param database
@@ -89,7 +102,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 
 	/**
 	 * Create a new PostgreSQL JDBC import module
-	 * 
+	 *
 	 * @param hostname
 	 *            the name of the PostgreSQL server host (e.g. localhost)
 	 * @param port
@@ -112,6 +125,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 				new PostgreSQLHelper());
 	}
 
+	@Override
 	public Connection getConnection() throws SQLException,
 			ClassNotFoundException {
 		if (connection == null) {
@@ -129,12 +143,13 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 	class PGTime extends PGobject {
 
 		/**
-		 * 
+		 *
 		 */
 		private static final long serialVersionUID = 1L;
 
 	}
 
+	@Override
 	protected Statement getStatement() throws SQLException,
 			ClassNotFoundException {
 		if (statement == null) {
@@ -143,6 +158,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 		return statement;
 	}
 
+	@Override
 	protected ResultSet getTableRawData(String tableId) throws SQLException,
 			ClassNotFoundException, ModuleException {
 		logger.debug("query: " + sqlHelper.selectTableSQL(tableId));
@@ -156,6 +172,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 	 * Gets the schemas that won't be exported. Defaults to PostgreSQL are
 	 * information_schema and all pg_XXX
 	 */
+	@Override
 	public Set<String> getIgnoredExportedSchemas() {
 		Set<String> ignoredSchemas = new HashSet<String>();
 		ignoredSchemas.add("information_schema");
@@ -176,6 +193,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 		return type;
 	}
 
+	@Override
 	protected Type getDoubleType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
 		if (typeName.equalsIgnoreCase("MONEY")
@@ -189,6 +207,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 		return type;
 	}
 
+	@Override
 	protected Type getTimeType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
 		Type type;
@@ -203,6 +222,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 		return type;
 	}
 
+	@Override
 	protected Type getTimestampType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
 		Type type;
@@ -254,6 +274,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 	/**
 	 * Drops money currency
 	 */
+	@Override
 	protected Cell rawToCellSimpleTypeNumericApproximate(String id,
 			String columnName, Type cellType, ResultSet rawData)
 			throws SQLException {
@@ -288,6 +309,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 	 * Treats bit strings, as the default behavior does not handle PostgreSQL
 	 * byte streams correctly
 	 */
+	@Override
 	protected Cell rawToCellSimpleTypeBinary(String id, String columnName,
 			Type cellType, ResultSet rawData) throws SQLException,
 			ModuleException {
@@ -316,5 +338,40 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 		}
 		return cell;
 	}
+
+/*	@Override
+	protected Cell rawToCellSimpleTypeDateTime(String id, String columnName,
+			Type cellType, ResultSet rawData) throws SQLException {
+		Cell cell = null;
+		SimpleTypeDateTime undefinedDate = (SimpleTypeDateTime) cellType;
+		if (undefinedDate.getTimeDefined()) {
+			if(cellType.getSql99TypeName().equalsIgnoreCase("TIME WITH TIME ZONE")){
+				String time_string = rawData.getString(columnName);
+				logger.warn("parsing string as time with time zone: " + time_string);
+				if(time_string.matches("^\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[+-]\\d{2}$")){
+					SimpleDateFormat sdf_in = new SimpleDateFormat("HH:mm:ss.SSSX");
+					SimpleDateFormat sdf_out = new SimpleDateFormat("HH:mm:ss.SSS'Z'");
+					sdf_out.setTimeZone(new SimpleTimeZone(SimpleTimeZone.UTC_TIME, "UTC"));
+					try {
+						java.util.Date timetz = sdf_in.parse(time_string);
+
+						cell = new SimpleCell(id, sdf_out.format(timetz).toString()
+						);
+						logger.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell)cell).getSimpledata()));
+					} catch (ParseException e) {
+						logger.warn("Parsing string as time with time zone failed for string: " + time_string);
+						cell = super.rawToCellSimpleTypeDateTime(id, columnName, cellType, rawData);
+					}
+				}else{
+					cell = super.rawToCellSimpleTypeDateTime(id, columnName, cellType, rawData);
+				}
+			}else{
+				cell = super.rawToCellSimpleTypeDateTime(id, columnName, cellType, rawData);
+			}
+		} else {
+			cell = super.rawToCellSimpleTypeDateTime(id, columnName, cellType, rawData);
+		}
+		return cell;
+	}*/
 
 }

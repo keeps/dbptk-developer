@@ -66,10 +66,24 @@ public class PostgreSqlTest {
 		String singleTypeAndValue = "CREATE TABLE datatypes (col1 %s);\nINSERT INTO datatypes(col1) VALUES(%s);";
 		ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
-		tests.add(new String[]{singleTypeAndValue, "\"char\"", "'a'",});
-		tests.add(new String[]{singleTypeAndValue, "bigint", "1"});
+		tests.add(new String[]{singleTypeAndValue, "\"char\" NOT NULL", "'a'"});
+		tests.add(new String[]{singleTypeAndValue, "bigint", "123"});
 		tests.add(new String[]{singleTypeAndValue, "boolean", "TRUE"});
-		tests.add(new String[]{singleTypeAndValue, "bytea", "1"});
+		tests.add(new String[]{singleTypeAndValue, "bytea", "(decode('013d7d16d7ad4fefb61bd95b765c8ceb', 'hex'))"});
+		tests.add(new String[]{singleTypeAndValue, "character(1)", "'a'"});
+		tests.add(new String[]{singleTypeAndValue, "character varying", "'abc'"});
+		tests.add(new String[]{singleTypeAndValue, "date", "'2015-01-01'"});
+		tests.add(new String[]{singleTypeAndValue, "double precision", "0.123456789012345"});
+		tests.add(new String[]{singleTypeAndValue, "integer", "2147483647"});
+		tests.add(new String[]{singleTypeAndValue, "name", "'abc'"});
+		tests.add(new String[]{singleTypeAndValue, "numeric", "2147483647"});
+		tests.add(new String[]{singleTypeAndValue, "real", "0.123456"});
+		tests.add(new String[]{singleTypeAndValue, "smallint", "32767"});
+		tests.add(new String[]{singleTypeAndValue, "text", "'abc'"});
+//		tests.add(new String[]{singleTypeAndValue, "time with time zone", "'23:59:59.999 PST'"});
+//		tests.add(new String[]{singleTypeAndValue, "time without time zone", "'23:59:59.999'"});
+//		tests.add(new String[]{singleTypeAndValue, "timestamp with time zone", "'2015-01-01 23:59:59.999+8'"});
+//		tests.add(new String[]{singleTypeAndValue, "timestamp without time zone", "'2015-01-01 23:59:59.999'"});
 
 		return tests.iterator();
 	}
@@ -83,12 +97,11 @@ public class PostgreSqlTest {
 		assert rt.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], fields);
 	}
 
-
 	@DataProvider
 	public Iterator<Object[]> testFilesProvider() throws URISyntaxException {
 		ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
-		tests.add(new File[]{Paths.get(getClass().getResource("/postgresql_1.sql").toURI()).toFile()});
+		//tests.add(new File[]{Paths.get(getClass().getResource("/postgresql_1.sql").toURI()).toFile()});
 
 		return tests.iterator();
 	}

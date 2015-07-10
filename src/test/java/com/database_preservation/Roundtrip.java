@@ -193,7 +193,7 @@ public class Roundtrip {
 
 		for( Diff aDiff : diffs ){
 			if( aDiff.operation != diff_match_patch.Operation.EQUAL ){
-				logger.warn("Dump files differ. Outputting differences");
+				logger.error("Dump files differ. Outputting differences");
 				System.out.println(diff.diff_prettyCmd(diffs));
 				return false;
 			}

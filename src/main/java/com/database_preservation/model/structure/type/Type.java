@@ -1,11 +1,11 @@
 /**
- * 
+ *
  */
 package com.database_preservation.model.structure.type;
 
 /**
  * @author Luis Faria
- * 
+ *
  * Abstract definition of column type. All column type implementations must
  * extend this class.
  */
@@ -14,12 +14,12 @@ public abstract class Type {
 	private String originalTypeName;
 
 	private String description;
-	
+
 	private String sql99TypeName;
 
 	/**
 	 * Type abstract empty constructor
-	 * 
+	 *
 	 */
 	public Type() {
 		description = null;
@@ -29,7 +29,7 @@ public abstract class Type {
 
 	/**
 	 * Type abstract constructor
-	 * 
+	 *
 	 * @param originalTypeName
 	 *            the name of the original type, null if not applicable
 	 * @param description
@@ -48,11 +48,35 @@ public abstract class Type {
 	}
 
 	/**
+	 * @return true if originalTypeName is set and is not empty, false otherwise
+	 */
+	public boolean hasOriginalTypeName(){
+		return originalTypeName != null && !originalTypeName.equals("");
+	}
+
+	/**
 	 * @param originalTypeName
 	 *            the name of the original type, null if not applicable
 	 */
 	public void setOriginalTypeName(String originalTypeName) {
 		this.originalTypeName = originalTypeName;
+	}
+
+	/**
+	 * @param originalTypeName The name of the original type
+	 * @param originalColumnSize Original column size
+	 * @param originalDecimalDigits Original decimal digits amount
+	 */
+	public void setOriginalTypeName(String originalTypeName, int originalColumnSize, int originalDecimalDigits) {
+		this.originalTypeName = String.format("%s(%d,%d)", originalTypeName, originalColumnSize, originalDecimalDigits);
+	}
+
+	/**
+	 * @param originalTypeName The name of the original type
+	 * @param originalColumnSize Original column size
+	 */
+	public void setOriginalTypeName(String originalTypeName, int originalColumnSize) {
+		this.originalTypeName = String.format("%s(%d)", originalTypeName, originalColumnSize);
 	}
 
 	/**
