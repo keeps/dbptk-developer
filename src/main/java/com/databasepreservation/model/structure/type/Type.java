@@ -3,6 +3,8 @@
  */
 package com.databasepreservation.model.structure.type;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * @author Luis Faria
  *
@@ -51,7 +53,7 @@ public abstract class Type {
 	 * @return true if originalTypeName is set and is not empty, false otherwise
 	 */
 	public boolean hasOriginalTypeName(){
-		return originalTypeName != null && !originalTypeName.equals("");
+		return StringUtils.isNotBlank(originalTypeName);
 	}
 
 	/**
