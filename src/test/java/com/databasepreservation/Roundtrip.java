@@ -6,11 +6,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintStream;
-import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map.Entry;
@@ -19,12 +16,7 @@ import java.util.Scanner;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.log4j.Logger;
 
-import antlr.collections.List;
-
-import com.databasepreservation.Main;
 import com.databasepreservation.diff_match_patch.Diff;
-
-import de.schlichtherle.io.FileInputStream;
 
 public class Roundtrip {
 	public static final String TMP_FILE_SIARD_VAR = "%TMP_FILE_SIARD%";
@@ -60,26 +52,6 @@ public class Roundtrip {
 
 	public Roundtrip(String setup_command, String teardown_command, String populate_command,
 			String dump_source_command, String dump_target_command,
-			String[] forward_conversion_arguments, String[] backward_conversion_arguments,
-			HashMap<String, String> environment_variables_source,HashMap<String, String> environment_variables_target) throws IOException{
-		this.setup_command = setup_command;
-		this.populate_command = populate_command;
-		this.teardown_command = teardown_command;
-		this.dump_source_command = dump_source_command;
-		this.dump_target_command = dump_target_command;
-		this.forward_conversion_arguments = forward_conversion_arguments;
-		this.backward_conversion_arguments = backward_conversion_arguments;
-		this.environment_variables_source = environment_variables_source;
-		this.environment_variables_target = environment_variables_target;
-
-		processSTDERR = File.createTempFile("processSTDERR", ".tmp");
-		processSTDOUT = File.createTempFile("processSTDOUT", ".tmp");
-		processSTDERR.deleteOnExit();
-		processSTDOUT.deleteOnExit();
-	}
-
-	public Roundtrip(String setup_command, String teardown_command, String populate_command,
-			String dump_source_command, String dump_target_command,
 			String[] forward_conversion_arguments, String[] backward_conversion_arguments) throws IOException{
 		this.setup_command = setup_command;
 		this.populate_command = populate_command;
@@ -95,6 +67,17 @@ public class Roundtrip {
 		processSTDOUT = File.createTempFile("processSTDOUT", ".tmp");
 		processSTDERR.deleteOnExit();
 		processSTDOUT.deleteOnExit();
+	}
+
+	public Roundtrip(String setup_command, String teardown_command, String populate_command,
+			String dump_source_command, String dump_target_command,
+			String[] forward_conversion_arguments, String[] backward_conversion_arguments,
+			HashMap<String, String> environment_variables_source,HashMap<String, String> environment_variables_target) throws IOException{
+		this(setup_command, teardown_command, populate_command,
+				dump_source_command, dump_target_command,
+				forward_conversion_arguments, backward_conversion_arguments);
+		this.environment_variables_source = environment_variables_source;
+		this.environment_variables_target = environment_variables_target;
 	}
 
 	public boolean testTypeAndValue(String template, String... args) throws IOException, InterruptedException{
