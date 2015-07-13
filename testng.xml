@@ -13,8 +13,8 @@
 			</run>
 		</groups>
 		<classes>
-			<class name="com.database_preservation.MySqlTest" />
-			<class name="com.database_preservation.PostgreSqlTest" />
+			<class name="com.databasepreservation.MySqlTest" />
+			<class name="com.databasepreservation.PostgreSqlTest" />
 		</classes>
 	</test>
 </suite>

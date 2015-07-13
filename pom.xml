@@ -27,7 +27,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.database_preservation.Main</mainClass>
+							<mainClass>com.databasepreservation.Main</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
