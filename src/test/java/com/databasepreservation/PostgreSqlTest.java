@@ -1,26 +1,17 @@
 package com.databasepreservation;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.ProcessBuilder.Redirect;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Scanner;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.testng.annotations.*;
-
-import com.databasepreservation.diff_match_patch.Diff;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 @Test(groups={"postgresql-siard1.0"})
 public class PostgreSqlTest {
@@ -101,13 +92,13 @@ public class PostgreSqlTest {
 	public Iterator<Object[]> testFilesProvider() throws URISyntaxException {
 		ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
-		//tests.add(new File[]{Paths.get(getClass().getResource("/postgresql_1.sql").toURI()).toFile()});
+		//tests.add(new Path[]{Paths.get(getClass().getResource("/postgresql_1.sql").toURI())});
 
 		return tests.iterator();
 	}
 
 	@Test(description="Tests PostgreSQL files", dataProvider="testFilesProvider")
-	public void testFiles(File... file) throws IOException, InterruptedException, URISyntaxException{
-		assert rt.testFile(file[0]) : "Roundtrip failed for file: " + file[0].getAbsolutePath();
+	public void testFiles(Path... file) throws IOException, InterruptedException, URISyntaxException{
+		assert rt.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
 	}
 }

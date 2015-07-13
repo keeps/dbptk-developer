@@ -1,22 +1,23 @@
 package com.databasepreservation;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map.Entry;
-import java.util.Scanner;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.log4j.Logger;
 
 import com.databasepreservation.diff_match_patch.Diff;
+import com.databasepreservation.utils.FileUtils;
 
 public class Roundtrip {
 	public static final String TMP_FILE_SIARD_VAR = "%TMP_FILE_SIARD%";
@@ -35,7 +36,7 @@ public class Roundtrip {
 	private HashMap<String, String> environment_variables_target; //used when dumping target database
 
 	// set internally at runtime
-	private File tmpFileSIARD;
+	private Path tmpFileSIARD;
 
 	private File processSTDERR;
 	private File processSTDOUT;
@@ -81,22 +82,24 @@ public class Roundtrip {
 	}
 
 	public boolean testTypeAndValue(String template, String... args) throws IOException, InterruptedException{
-		File populate_file = File.createTempFile("roundtrip_populate", ".sql");
+		//File populate_file = File.createTempFile("roundtrip_populate", ".sql");
 
-		FileWriter fw = new FileWriter(populate_file);
-		fw.write(String.format(template, args));
-		fw.write("\n");
-		fw.close();
+		Path populate_file = Files.createTempFile("roundtrip_populate", ".sql");
+
+		BufferedWriter bw = Files.newBufferedWriter(populate_file, StandardCharsets.UTF_8);
+
+		bw.append(String.format(template, args));
+		bw.newLine();
+		bw.close();
 
 		setup();
 		boolean result = roundtrip(populate_file);
 		teardown();
-		if( populate_file.exists() )
-			populate_file.delete();
+		Files.deleteIfExists(populate_file);
 		return result;
 	}
 
-	public boolean testFile(File populate_file) throws IOException, InterruptedException{
+	public boolean testFile(Path populate_file) throws IOException, InterruptedException{
 		assert setup() == 0 : "Roundtrip setup exit status was not 0";
 		boolean result = roundtrip(populate_file);
 		assert teardown() == 0 : "Roundtrip teardown exit status was not 0";
@@ -111,11 +114,11 @@ public class Roundtrip {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	private boolean roundtrip(File populate_file) throws IOException, InterruptedException{
+	private boolean roundtrip(Path populate_file) throws IOException, InterruptedException{
 		ProcessBuilder sql = new ProcessBuilder("bash", "-c", populate_command);
 		sql.redirectOutput(processSTDOUT);
 		sql.redirectError(processSTDERR);
-		sql.redirectInput(populate_file);
+		sql.redirectInput(populate_file.toFile());
 		for(Entry<String, String> entry : environment_variables_source.entrySet()) {
 		    sql.environment().put(entry.getKey(), entry.getValue());
 		}
@@ -126,11 +129,11 @@ public class Roundtrip {
 
 		Path dumpsDir = Files.createTempDirectory("dpttest_dumps");
 
-		File dump_source = new File(dumpsDir.toFile().getAbsoluteFile() + "/source.sql");
-		File dump_target = new File(dumpsDir.toFile().getAbsoluteFile() + "/target.sql");
+		Path dump_source = dumpsDir.resolve("source.sql");
+		Path dump_target = dumpsDir.resolve("target.sql");
 
 		ProcessBuilder dump = new ProcessBuilder("bash", "-c",dump_source_command);
-		dump.redirectOutput(dump_source);
+		dump.redirectOutput(dump_source.toFile());
 		dump.redirectError(processSTDERR);
 		for(Entry<String, String> entry : environment_variables_source.entrySet()) {
 		    dump.environment().put(entry.getKey(), entry.getValue());
@@ -149,7 +152,7 @@ public class Roundtrip {
 			return false;
 
 		dump = new ProcessBuilder("bash", "-c",dump_target_command);
-		dump.redirectOutput(dump_target);
+		dump.redirectOutput(dump_target.toFile());
 		dump.redirectError(processSTDERR);
 		for(Entry<String, String> entry : environment_variables_target.entrySet()) {
 		    dump.environment().put(entry.getKey(), entry.getValue());
@@ -157,23 +160,16 @@ public class Roundtrip {
 		p = dump.start();
 		printTmpFileOnError(processSTDERR, p.waitFor());
 
-
-		Scanner dump_source_reader = new Scanner(dump_source);
-		Scanner dump_target_reader = new Scanner(dump_target);
-		dump_source_reader.useDelimiter("\\Z");
-		dump_target_reader.useDelimiter("\\Z");
-
 		diff_match_patch diff = new diff_match_patch();
 		LinkedList<Diff> diffs = diff.diff_main(
-				dump_source_reader.next(),
-				dump_target_reader.next()
+				new String(Files.readAllBytes(dump_source), StandardCharsets.UTF_8),
+				new String(Files.readAllBytes(dump_target), StandardCharsets.UTF_8)
 				);
-		dump_source_reader.close();
-		dump_target_reader.close();
 
-		dump_source.delete();
-		dump_target.delete();
-		dumpsDir.toFile().delete();
+		Files.deleteIfExists(dump_source);
+		Files.deleteIfExists(dump_target);
+
+		FileUtils.deleteDirectoryRecursive(dumpsDir);
 
 		for( Diff aDiff : diffs ){
 			if( aDiff.operation != diff_match_patch.Operation.EQUAL ){
@@ -198,7 +194,7 @@ public class Roundtrip {
 		printTmpFileOnError(processSTDOUT, p.waitFor());
 
 		// create siard 1.0 zip file
-		tmpFileSIARD = File.createTempFile("dptsiard", ".zip");
+		tmpFileSIARD = Files.createTempFile("dptsiard", ".zip");
 
 		// create user, database and give permissions to the user
 		ProcessBuilder setup = new ProcessBuilder("bash", "-c", setup_command);
@@ -212,7 +208,7 @@ public class Roundtrip {
 	}
 
 	private int teardown() throws IOException, InterruptedException{
-		tmpFileSIARD.delete();
+		Files.deleteIfExists(tmpFileSIARD);
 
 		// clean up script
 		ProcessBuilder teardown = new ProcessBuilder("bash", "-c", teardown_command);
@@ -229,7 +225,7 @@ public class Roundtrip {
 		String[] copy = new String[args.length];
 		for(int i=0; i < args.length; i++){
 			if( args[i].equals(TMP_FILE_SIARD_VAR) )
-				copy[i] = tmpFileSIARD.getAbsolutePath();
+				copy[i] = tmpFileSIARD.toString();
 			else
 				copy[i] = args[i];
 		}
