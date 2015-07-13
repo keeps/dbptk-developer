@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.databasepreservation.modules.mySql;
 
@@ -25,7 +25,7 @@ import com.databasepreservation.modules.SQLHelper;
 
 /**
  * @author Luis Faria
- * 
+ *
  */
 public class MySQLHelper extends SQLHelper {
 
@@ -79,7 +79,7 @@ public class MySQLHelper extends SQLHelper {
 		if (MYSQL_TYPES.contains(type.getOriginalTypeName())) {
 			// TODO verify if original database is also mysql
 			ret = type.getOriginalTypeName();
-			logger.warn("Using MySQL original type " + ret);
+			logger.info("Using MySQL original type " + ret);
 		} else if (type instanceof SimpleTypeString) {
 			SimpleTypeString string = (SimpleTypeString) type;
 			if (isPkey) {
@@ -165,7 +165,7 @@ public class MySQLHelper extends SQLHelper {
 	/**
 	 * SQL to create a foreign key (relation), altering the already created
 	 * table
-	 * 
+	 *
 	 * @param tableName
 	 *            the name of the table
 	 * @param fkey

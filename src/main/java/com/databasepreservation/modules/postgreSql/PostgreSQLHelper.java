@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.databasepreservation.modules.postgreSql;
 
@@ -21,7 +21,7 @@ import com.databasepreservation.modules.SQLHelper;
 
 /**
  * @author Luis Faria
- * 
+ *
  */
 public class PostgreSQLHelper extends SQLHelper {
 
@@ -59,7 +59,7 @@ public class PostgreSQLHelper extends SQLHelper {
 
 	/**
 	 * Grant table read permissions to table schema
-	 * 
+	 *
 	 * @param tableName
 	 *            the table id
 	 * @return the SQL
@@ -85,7 +85,7 @@ public class PostgreSQLHelper extends SQLHelper {
 			if (ret.equals("char")) {
 				ret = "\"char\"";
 			}
-			logger.warn("Using PostgreSQL original type " + ret);
+			logger.info("Using PostgreSQL original type " + ret);
 		} else if (type instanceof SimpleTypeString) {
 			SimpleTypeString string = (SimpleTypeString) type;
 			if (string.getLength().intValue() >= 65535) {
