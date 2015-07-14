@@ -2,9 +2,14 @@ package com.databasepreservation;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Set;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.testng.annotations.BeforeClass;
@@ -21,10 +26,16 @@ public class MySqlTest {
 
 	@BeforeClass
 	public void setup() throws IOException, InterruptedException, URISyntaxException{
+		Set<PosixFilePermission> executablePermissions = PosixFilePermissions.fromString("rwxr-xr-x");
+		Files.setAttribute(Paths.get(getClass().getResource("/mySql/scripts/setup.sh").getPath()), "posix:permissions", executablePermissions);
+		Files.setAttribute(Paths.get(getClass().getResource("/mySql/scripts/teardown.sh").getPath()), "posix:permissions", executablePermissions);
+
 		rt = new Roundtrip(
-				String.format("./testing/mysql/setup.sh \"%s\" \"%s\" \"%s\" \"%s\"",
+				String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"",
+						getClass().getResource("/mySql/scripts/setup.sh").getPath(),
 						db_source, db_target, db_tmp_username, db_tmp_password),
-				String.format("./testing/mysql/teardown.sh \"%s\" \"%s\" \"%s\"",
+				String.format("%s \"%s\" \"%s\" \"%s\"",
+						getClass().getResource("/mySql/scripts/teardown.sh").getPath(),
 						db_source, db_target, db_tmp_username),
 				String.format("mysql --user=\"%s\" --password=\"%s\" --database=\"%s\"",
 						db_tmp_username, db_tmp_password, db_source),
@@ -34,6 +45,11 @@ public class MySqlTest {
 						db_tmp_username, db_tmp_password, db_target),
 				new String[]{"-i", "MySQLJDBC", "localhost", db_source, db_tmp_username, db_tmp_password, "-o", "SIARD", Roundtrip.TMP_FILE_SIARD_VAR, "store"},
 				new String[]{"-i", "SIARD", Roundtrip.TMP_FILE_SIARD_VAR, "-o", "MySQLJDBC", "localhost", db_target, db_tmp_username, db_tmp_password});
+	}
+
+	@Test(description="MySql server is available and accessible")
+	public void testConnection() throws IOException, InterruptedException{
+		rt.checkConnection();
 	}
 
 	@DataProvider
@@ -77,7 +93,7 @@ public class MySqlTest {
 		return tests.iterator();
 	}
 
-	@Test(description="Tests small examples", dataProvider="testQueriesProvider")
+	@Test(description="Tests small examples", dataProvider="testQueriesProvider",dependsOnMethods={"testConnection"})
 	public void testQueries(String... args) throws IOException, InterruptedException{
 
 		String[] fields = new String[args.length-1];
@@ -90,12 +106,12 @@ public class MySqlTest {
 	public Iterator<Object[]> testFilesProvider() throws URISyntaxException {
 		ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
-		//tests.add(new Path[]{Paths.get(getClass().getResource("/mysql_1.sql").toURI())});
+		//tests.add(new Path[]{Paths.get(getClass().getResource("/mySql/testfiles/datatypes.sql").toURI())});
 
 		return tests.iterator();
 	}
 
-	@Test(description="Tests MySQL files", dataProvider="testFilesProvider")
+	@Test(description="Tests MySQL files", dataProvider="testFilesProvider",dependsOnMethods={"testConnection"})
 	public void testFiles(Path... file) throws IOException, InterruptedException, URISyntaxException{
 		assert rt.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
 	}

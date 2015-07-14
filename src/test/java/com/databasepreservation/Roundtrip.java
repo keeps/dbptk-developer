@@ -64,8 +64,8 @@ public class Roundtrip {
 		this.environment_variables_source = new HashMap<String, String>();
 		this.environment_variables_target = new HashMap<String, String>();
 
-		processSTDERR = File.createTempFile("processSTDERR", ".tmp");
-		processSTDOUT = File.createTempFile("processSTDOUT", ".tmp");
+		processSTDERR = File.createTempFile("processSTDERR_", ".tmp");
+		processSTDOUT = File.createTempFile("processSTDOUT_", ".tmp");
 		processSTDERR.deleteOnExit();
 		processSTDOUT.deleteOnExit();
 	}
@@ -81,6 +81,16 @@ public class Roundtrip {
 		this.environment_variables_target = environment_variables_target;
 	}
 
+	/**
+	 * Sets up and tears down the roundtrip test environment. Asserting that everything works.
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public void checkConnection() throws IOException, InterruptedException{
+		assert setup() == 0 : "Roundtrip setup exit status was not 0";
+		assert teardown() == 0 : "Roundtrip teardown exit status was not 0";
+	}
+
 	public boolean testTypeAndValue(String template, String... args) throws IOException, InterruptedException{
 		//File populate_file = File.createTempFile("roundtrip_populate", ".sql");
 
@@ -88,7 +98,7 @@ public class Roundtrip {
 
 		BufferedWriter bw = Files.newBufferedWriter(populate_file, StandardCharsets.UTF_8);
 
-		bw.append(String.format(template, args));
+		bw.append(String.format(template, (Object[])args));
 		bw.newLine();
 		bw.close();
 
@@ -188,8 +198,6 @@ public class Roundtrip {
 		teardown.redirectOutput(processSTDOUT);
 		teardown.redirectError(processSTDERR);
 		Process p = teardown.start();
-		int code = p.waitFor();
-
 		printTmpFileOnError(processSTDERR, p.waitFor());
 		printTmpFileOnError(processSTDOUT, p.waitFor());
 
@@ -236,10 +244,11 @@ public class Roundtrip {
 		if( status_code == 0 )
 			return;
 
+		logger.error("non-zero exit code, printing process output from " + file_to_print.getName());
+
 		if( file_to_print.length() <= 0L )
 			return;
 
-		logger.warn("non-zero exit code, printing process output from " + file_to_print.getName());
 		FileReader fr;
 		try {
 			fr = new FileReader(file_to_print);

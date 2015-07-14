@@ -3,10 +3,15 @@ package com.databasepreservation;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.testng.annotations.BeforeClass;
@@ -36,10 +41,18 @@ public class PostgreSqlTest {
 		env_var_target.put("PGPASSWORD", db_tmp_password);
 		env_var_target.put("PGDATABASE", db_target);
 
+		Set<PosixFilePermission> executablePermissions = PosixFilePermissions.fromString("rwxr-xr-x");
+		Files.setAttribute(Paths.get(getClass().getResource("/postgreSql/scripts/setup.sh").getPath()), "posix:permissions", executablePermissions);
+		Files.setAttribute(Paths.get(getClass().getResource("/postgreSql/scripts/teardown.sh").getPath()), "posix:permissions", executablePermissions);
+
+		//Files.setAttribute(p, attribute, value, options)
+
 		rt = new Roundtrip(
-				String.format("./testing/postgresql/setup.sh \"%s\" \"%s\" \"%s\" \"%s\"",
+				String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"",
+						getClass().getResource("/postgreSql/scripts/setup.sh").getPath(),
 						db_source, db_target, db_tmp_username, db_tmp_password),
-				String.format("./testing/postgresql/teardown.sh \"%s\" \"%s\" \"%s\"",
+				String.format("%s \"%s\" \"%s\" \"%s\"",
+						getClass().getResource("/postgreSql/scripts/teardown.sh").getPath(),
 						db_source, db_target, db_tmp_username),
 				"psql -q",
 				"pg_dump --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
@@ -50,6 +63,11 @@ public class PostgreSqlTest {
 					"-o", "PostgreSQLJDBC", "localhost", db_target, db_tmp_username, db_tmp_password, "false"},
 				env_var_source,
 				env_var_target);
+	}
+
+	@Test(description="PostgreSql server is available and accessible")
+	public void testConnection() throws IOException, InterruptedException{
+		rt.checkConnection();
 	}
 
 	@DataProvider
@@ -79,7 +97,7 @@ public class PostgreSqlTest {
 		return tests.iterator();
 	}
 
-	@Test(description="Tests small examples", dataProvider="testQueriesProvider")
+	@Test(description="Tests small examples", dataProvider="testQueriesProvider",dependsOnMethods={"testConnection"})
 	public void testQueries(String... args) throws IOException, InterruptedException{
 
 		String[] fields = new String[args.length-1];
@@ -92,12 +110,13 @@ public class PostgreSqlTest {
 	public Iterator<Object[]> testFilesProvider() throws URISyntaxException {
 		ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
-		//tests.add(new Path[]{Paths.get(getClass().getResource("/postgresql_1.sql").toURI())});
+		//tests.add(new Path[]{Paths.get(getClass().getResource("/postgreSql/testfiles/datatypes.sql").toURI())});
+		//tests.add(new Path[]{Paths.get(getClass().getResource("/postgreSql/testfiles/datatypes_with_arrays.sql").toURI())});
 
 		return tests.iterator();
 	}
 
-	@Test(description="Tests PostgreSQL files", dataProvider="testFilesProvider")
+	@Test(description="Tests PostgreSQL files", dataProvider="testFilesProvider",dependsOnMethods={"testConnection"})
 	public void testFiles(Path... file) throws IOException, InterruptedException, URISyntaxException{
 		assert rt.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
 	}
