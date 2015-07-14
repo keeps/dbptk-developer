@@ -59,7 +59,7 @@ $ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar \
 
 1. Download the [latest stable release](https://github.com/keeps/db-preservation-toolkit/releases).
 2. Unzip and open the folder on a command-line terminal
-3. Build with Maven `mvn clean package`
+3. Build with Maven `mvn clean package -DskipTests`
 
 Binaries will be on the `target` folder
 
