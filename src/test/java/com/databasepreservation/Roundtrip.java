@@ -87,8 +87,8 @@ public class Roundtrip {
 	 * @throws InterruptedException
 	 */
 	public void checkConnection() throws IOException, InterruptedException{
-		assert setup() == 0 : "Roundtrip setup exit status was not 0";
-		assert teardown() == 0 : "Roundtrip teardown exit status was not 0";
+		assert setup() == 0 : "Roundtrip setup exit status was not 0 (setup failed)";
+		assert teardown() == 0 : "Roundtrip teardown exit status was not 0 (teardown failed)";
 	}
 
 	public boolean testTypeAndValue(String template, String... args) throws IOException, InterruptedException{
