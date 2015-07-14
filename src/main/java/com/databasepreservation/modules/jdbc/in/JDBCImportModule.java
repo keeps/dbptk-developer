@@ -18,7 +18,6 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -870,8 +869,9 @@ public class JDBCImportModule implements DatabaseImportModule {
 			break;
 		}
 
-		if( !type.hasOriginalTypeName() )
+		if( !type.hasOriginalTypeName() ){
 			type.setOriginalTypeName(typeName);
+		}
 
 		return type;
 	}
@@ -1516,7 +1516,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 		} else {
 			cell = new SimpleCell(id, stringValue);
 		}
-		logger.trace("rawToCellSimpleTypeNumericApproximate cell: " + (((SimpleCell)cell).getSimpledata()));
+		logger.trace("rawToCellSimpleTypeNumericApproximate cell: " + (cell.getSimpledata()));
 
 		return cell;
 	}

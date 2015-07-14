@@ -154,12 +154,14 @@ public class Roundtrip {
 		int mainExitStatus;
 
 		mainExitStatus = Main.internal_main(reviewArguments(forward_conversion_arguments));
-		if( mainExitStatus != 0 )
+		if( mainExitStatus != 0 ){
 			return false;
+		}
 
 		mainExitStatus = Main.internal_main(reviewArguments(backward_conversion_arguments));
-		if( mainExitStatus != 0 )
+		if( mainExitStatus != 0 ){
 			return false;
+		}
 
 		dump = new ProcessBuilder("bash", "-c",dump_target_command);
 		dump.redirectOutput(dump_target.toFile());
@@ -232,22 +234,25 @@ public class Roundtrip {
 	private String[] reviewArguments(String[] args){
 		String[] copy = new String[args.length];
 		for(int i=0; i < args.length; i++){
-			if( args[i].equals(TMP_FILE_SIARD_VAR) )
+			if( args[i].equals(TMP_FILE_SIARD_VAR) ){
 				copy[i] = tmpFileSIARD.toString();
-			else
+			}else{
 				copy[i] = args[i];
+			}
 		}
 		return copy;
 	}
 
 	private void printTmpFileOnError(File file_to_print, int status_code) throws IOException{
-		if( status_code == 0 )
+		if( status_code == 0 ){
 			return;
+		}
 
 		logger.error("non-zero exit code, printing process output from " + file_to_print.getName());
 
-		if( file_to_print.length() <= 0L )
+		if( file_to_print.length() <= 0L ){
 			return;
+		}
 
 		FileReader fr;
 		try {
