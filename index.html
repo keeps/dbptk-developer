@@ -84,15 +84,7 @@ Available <span class="pl-k">export</span> modules:
 <ol>
 <li>Download the <a href="https://github.com/keeps/db-preservation-toolkit/releases">latest stable release</a>.</li>
 <li>Unzip and open the folder on a command-line terminal</li>
-<li>Download Oracle Database 12.1.0.1 JDBC Driver for java 6 <a href="http://www.oracle.com/technetwork/database/features/jdbc/jdbc-drivers-12c-download-1958347.html">ojdbc6.jar</a>
-</li>
-<li>Install the jar with command:<code>mvn install:install-file -DgroupId=com.oracle -DartifactId=ojdbc6 -Dversion=12.1.0.1 -Dpackaging=jar -Dfile=ojdbc6.jar -DgeneratePom=true</code>
-</li>
-<li>Download DB2 JDBC driver <a href="https://www14.software.ibm.com/webapp/iwm/web/preLogin.do?source=swg-idsdjs">db2jcc4.jar</a>
-</li>
-<li>Extract the db2jcc4.jar from the downloaded zip and install with the command:<code>mvn install:install-file -DgroupId=com.ibm -DartifactId=db2jcc4 -Dversion=4.16.53 -Dpackaging=jar -Dfile=db2jcc4.jar -DgeneratePom=true</code>
-</li>
-<li>Build with Maven <code>mvn clean package</code>
+<li>Build with Maven <code>mvn clean package -DskipTests</code>
 </li>
 </ol>
 
@@ -149,6 +141,36 @@ Available <span class="pl-k">export</span> modules:
 <p>For more information or commercial support, contact <a href="http://www.keep.pt/contactos/?lang=en">KEEP SOLUTIONS</a>.</p>
 
 
+
+<h2>
+<a id="development-" class="anchor" href="#development-" aria-hidden="true"><span class="octicon octicon-link"></span></a>Development <a href="https://travis-ci.org/keeps/db-preservation-toolkit"><img src="https://travis-ci.org/keeps/db-preservation-toolkit.png?branch=master" alt="Build Status"></a>
+</h2>
+
+<p>To develop we recommend the use of Maven and Eclipse.</p>
+
+<p>The following plugins should be installed in Eclipse:</p>
+
+<ul>
+<li>
+<a href="http://marketplace.eclipse.org/content/ansi-escape-console">ANSI Escape in Console</a> to have coloured output in tests</li>
+</ul>
+
+<p>And the following environment variables should be set:</p>
+
+<ul>
+<li>
+<strong>DPT_MYSQL_USER</strong> - MySQL user that must be able to create new users and give them permissions (uses 'root' if not defined)</li>
+<li>
+<strong>DPT_MYSQL_PASS</strong> - MySQL user's password (uses blank password if not defined)</li>
+<li>
+<strong>DPT_POSTGRESQL_USER</strong> - PostgreSQL user that must be able to create new users and give them permissions (uses 'postgres' if not defined)</li>
+<li>
+<strong>DPT_POSTGRESQL_PASS</strong> - PostgreSQL user's password (uses blank password if not defined)</li>
+</ul>
+
+<p>To run PostgreSQL tests, a local PostgreSQL database is required and <em>postgres</em> user or another user with permission to create new databases and users can be used. This user must be accessible by IP connection on localhost. The access can be tested with <code>psql -U username -h localhost -d postgres -W</code>.</p>
+
+<p>To run MySQL tests, a local MySQL (or MariaDB) database is required and 'root' user or another user with permission to create new databases and users can be used. This user must be accessible by IP connection on localhost. The access can be tested with <code>mysql --user="username" -p --database="mysql" --host="localhost"</code>.</p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/keeps/db-preservation-toolkit">Db-preservation-toolkit</a> is maintained by <a href="https://github.com/keeps">keeps</a>.</span>
