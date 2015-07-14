@@ -151,47 +151,46 @@ public class Roundtrip {
 		p = dump.start();
 		printTmpFileOnError(processSTDERR, p.waitFor());
 
-		int mainExitStatus;
+		// convert from the database to siard
+		if( Main.internal_main(reviewArguments(forward_conversion_arguments)) == 0 ){
+			// and if that succeeded, convert back to the database
+			if( Main.internal_main(reviewArguments(backward_conversion_arguments)) == 0 ){
+				// both conversions succeeded. going to compare the database dumps
+				dump = new ProcessBuilder("bash", "-c",dump_target_command);
+				dump.redirectOutput(dump_target.toFile());
+				dump.redirectError(processSTDERR);
+				for(Entry<String, String> entry : environment_variables_target.entrySet()) {
+				    dump.environment().put(entry.getKey(), entry.getValue());
+				}
+				p = dump.start();
+				printTmpFileOnError(processSTDERR, p.waitFor());
 
-		mainExitStatus = Main.internal_main(reviewArguments(forward_conversion_arguments));
-		if( mainExitStatus != 0 ){
-			return false;
-		}
+				diff_match_patch diff = new diff_match_patch();
+				LinkedList<Diff> diffs = diff.diff_main(
+						new String(Files.readAllBytes(dump_source), StandardCharsets.UTF_8),
+						new String(Files.readAllBytes(dump_target), StandardCharsets.UTF_8)
+						);
 
-		mainExitStatus = Main.internal_main(reviewArguments(backward_conversion_arguments));
-		if( mainExitStatus != 0 ){
-			return false;
-		}
+				Files.deleteIfExists(dump_source);
+				Files.deleteIfExists(dump_target);
 
-		dump = new ProcessBuilder("bash", "-c",dump_target_command);
-		dump.redirectOutput(dump_target.toFile());
-		dump.redirectError(processSTDERR);
-		for(Entry<String, String> entry : environment_variables_target.entrySet()) {
-		    dump.environment().put(entry.getKey(), entry.getValue());
-		}
-		p = dump.start();
-		printTmpFileOnError(processSTDERR, p.waitFor());
+				FileUtils.deleteDirectoryRecursive(dumpsDir);
 
-		diff_match_patch diff = new diff_match_patch();
-		LinkedList<Diff> diffs = diff.diff_main(
-				new String(Files.readAllBytes(dump_source), StandardCharsets.UTF_8),
-				new String(Files.readAllBytes(dump_target), StandardCharsets.UTF_8)
-				);
+				boolean dumps_differ = true;
+				for( Diff aDiff : diffs ){
+					if( aDiff.operation != diff_match_patch.Operation.EQUAL ){
+						logger.error("Dump files differ. Outputting differences");
+						System.out.println(diff.diff_prettyCmd(diffs));
+						dumps_differ = false;
+						break;
+					}
+				}
 
-		Files.deleteIfExists(dump_source);
-		Files.deleteIfExists(dump_target);
-
-		FileUtils.deleteDirectoryRecursive(dumpsDir);
-
-		for( Diff aDiff : diffs ){
-			if( aDiff.operation != diff_match_patch.Operation.EQUAL ){
-				logger.error("Dump files differ. Outputting differences");
-				System.out.println(diff.diff_prettyCmd(diffs));
-				return false;
+				return dumps_differ;
 			}
 		}
 
-		return true;
+		return false;
 	}
 
 	private int setup() throws IOException, InterruptedException{
@@ -244,34 +243,31 @@ public class Roundtrip {
 	}
 
 	private void printTmpFileOnError(File file_to_print, int status_code) throws IOException{
-		if( status_code == 0 ){
-			return;
-		}
+		if( status_code != 0 ){
+			logger.error("non-zero exit code, printing process output from " + file_to_print.getName());
 
-		logger.error("non-zero exit code, printing process output from " + file_to_print.getName());
-
-		if( file_to_print.length() <= 0L ){
-			return;
-		}
-
-		FileReader fr;
-		try {
-			fr = new FileReader(file_to_print);
-			try {
-				BufferedReader br = new BufferedReader(fr);
-				String line;
-				while ((line = br.readLine()) != null) {
-					System.out.println(line);
+			if( file_to_print.length() > 0L ){
+				FileReader fr;
+				try {
+					fr = new FileReader(file_to_print);
+					try {
+						BufferedReader br = new BufferedReader(fr);
+						String line;
+						while ((line = br.readLine()) != null) {
+							System.out.println(line);
+						}
+						br.close();
+					} catch (IOException e) {
+						logger.error("Could not read file", e);
+					} finally {
+						fr.close();
+					}
+				} catch (FileNotFoundException e) {
+					logger.error("File not found", e);
 				}
-				br.close();
-			} catch (IOException e) {
-				logger.error("Could not read file", e);
-			} finally {
-				fr.close();
+			}else{
+				logger.warn("output file is empty." + file_to_print.getName());
 			}
-		} catch (FileNotFoundException e) {
-			logger.error("File not found", e);
 		}
-
 	}
 }
