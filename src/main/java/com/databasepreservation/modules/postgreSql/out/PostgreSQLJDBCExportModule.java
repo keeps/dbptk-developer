@@ -1,17 +1,20 @@
 package com.databasepreservation.modules.postgreSql.out;
 
-import java.io.InputStreamReader;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Time;
 import java.sql.Types;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
+import org.w3c.util.InvalidDateException;
 
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.out.JDBCExportModule;
 import com.databasepreservation.modules.postgreSql.PostgreSQLHelper;
@@ -22,7 +25,7 @@ import com.databasepreservation.modules.postgreSql.PostgreSQLHelper;
  * driver. The postgresql-8.3-603.jdbc3.jar driver supports PostgreSQL version
  * 7.4 to 8.3.
  * </p>
- * 
+ *
  * <p>
  * To use this module, the PostgreSQL server must be configured:
  * </p>
@@ -36,9 +39,9 @@ import com.databasepreservation.modules.postgreSql.PostgreSQLHelper;
  * <code>host all all 127.0.0.1 255.0.0.0 trust</code>. The JDBC driver supports
  * the trust, ident, password, md5, and crypt authentication methods.</li>
  * </ol>
- * 
+ *
  * @author Luis Faria
- * 
+ *
  */
 public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 
@@ -63,7 +66,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 
 	/**
 	 * Create a new PostgreSQL JDBC export module
-	 * 
+	 *
 	 * @param hostname
 	 *            the name of the PostgreSQL server host (e.g. localhost)
 	 * @param database
@@ -91,7 +94,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 
 	/**
 	 * Create a new PostgreSQL JDBC export module
-	 * 
+	 *
 	 * @param hostname
 	 *            the name of the PostgreSQL server host (e.g. localhost)
 	 * @param port
@@ -132,6 +135,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 				password, encrypt);
 	}
 
+	@Override
 	public void initDatabase() throws ModuleException {
 		String connectionURL = createConnectionURL(POSTGRES_CONNECTION_DATABASE);
 
@@ -168,6 +172,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 		}
 	}
 
+	@Override
 	public void handleDataCloseTable(String tableId) throws ModuleException {
 		try {
 			if (!currentIsIgnoredSchema) {
@@ -182,6 +187,30 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 		super.handleDataCloseTable(tableId);
 	}
 
+	@Override
+	protected void handleSimpleTypeDateTimeDataCell(String data,
+			PreparedStatement ps, int index, Cell cell, Type type)
+			throws InvalidDateException, SQLException {
+		SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
+		if (dateTime.getTimeDefined()) {
+			if (type.getSql99TypeName().equalsIgnoreCase("TIME WITH TIME ZONE")) {
+				if (data != null) {
+					Calendar cal = javax.xml.bind.DatatypeConverter.parseTime(data);
+					Time time = new Time(cal.getTimeInMillis());
+					logger.warn("time with timezone after: " + time.toString() + "; timezone: " + cal.getTimeZone().getID());
+					ps.setTime(index, time, cal);
+				} else {
+					ps.setNull(index, Types.TIME_WITH_TIMEZONE);
+				}
+			} else {
+				super.handleSimpleTypeDateTimeDataCell(data, ps, index, cell, type);
+			}
+		} else {
+			super.handleSimpleTypeDateTimeDataCell(data, ps, index, cell, type);
+		}
+	}
+
+	@Override
 	protected void handleSimpleTypeNumericApproximateDataCell(String data,
 			PreparedStatement ps, int index, Cell cell, Type type)
 			throws NumberFormatException, SQLException {
@@ -197,6 +226,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 		}
 	}
 
+	@Override
 	protected void handleSimpleTypeString(PreparedStatement ps, int index,
 			BinaryCell bin) throws SQLException, ModuleException {
 		ps.setBinaryStream(index, bin.getInputstream(), bin.getLength());

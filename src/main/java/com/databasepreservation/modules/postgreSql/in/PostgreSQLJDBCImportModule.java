@@ -326,7 +326,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 		return cell;
 	}
 
-/*	@Override
+	@Override
 	protected Cell rawToCellSimpleTypeDateTime(String id, String columnName,
 			Type cellType, ResultSet rawData) throws SQLException {
 		Cell cell = null;
@@ -334,21 +334,12 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 		if (undefinedDate.getTimeDefined()) {
 			if(cellType.getSql99TypeName().equalsIgnoreCase("TIME WITH TIME ZONE")){
 				String time_string = rawData.getString(columnName);
-				logger.warn("parsing string as time with time zone: " + time_string);
 				if(time_string.matches("^\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[+-]\\d{2}$")){
-					SimpleDateFormat sdf_in = new SimpleDateFormat("HH:mm:ss.SSSX");
-					SimpleDateFormat sdf_out = new SimpleDateFormat("HH:mm:ss.SSS'Z'");
-					sdf_out.setTimeZone(new SimpleTimeZone(SimpleTimeZone.UTC_TIME, "UTC"));
-					try {
-						java.util.Date timetz = sdf_in.parse(time_string);
-
-						cell = new SimpleCell(id, sdf_out.format(timetz).toString()
-						);
-						logger.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell)cell).getSimpledata()));
-					} catch (ParseException e) {
-						logger.warn("Parsing string as time with time zone failed for string: " + time_string);
-						cell = super.rawToCellSimpleTypeDateTime(id, columnName, cellType, rawData);
-					}
+					cell = new SimpleCell(id, time_string + ":00");
+					logger.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell)cell).getSimpledata()));
+				}else if(time_string.matches("^\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[+-]\\d{2}:\\d{2}$")){
+					cell = new SimpleCell(id, time_string);
+					logger.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell)cell).getSimpledata()));
 				}else{
 					cell = super.rawToCellSimpleTypeDateTime(id, columnName, cellType, rawData);
 				}
@@ -359,6 +350,6 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 			cell = super.rawToCellSimpleTypeDateTime(id, columnName, cellType, rawData);
 		}
 		return cell;
-	}*/
+	}
 
 }

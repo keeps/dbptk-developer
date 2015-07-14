@@ -89,7 +89,8 @@ public class PostgreSqlTest {
 		tests.add(new String[]{singleTypeAndValue, "real", "0.123456"});
 		tests.add(new String[]{singleTypeAndValue, "smallint", "32767"});
 		tests.add(new String[]{singleTypeAndValue, "text", "'abc'"});
-//		tests.add(new String[]{singleTypeAndValue, "time with time zone", "'23:59:59.999 PST'"});
+		tests.add(new String[]{singleTypeAndValue, "time with time zone", "'23:59:59.999 PST'"});
+		tests.add(new String[]{singleTypeAndValue, "time with time zone", "'23:59:59.999+05:30'"});
 //		tests.add(new String[]{singleTypeAndValue, "time without time zone", "'23:59:59.999'"});
 //		tests.add(new String[]{singleTypeAndValue, "timestamp with time zone", "'2015-01-01 23:59:59.999+8'"});
 //		tests.add(new String[]{singleTypeAndValue, "timestamp without time zone", "'2015-01-01 23:59:59.999'"});
