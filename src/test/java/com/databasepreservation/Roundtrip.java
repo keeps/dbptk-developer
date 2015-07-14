@@ -266,7 +266,7 @@ public class Roundtrip {
 					logger.error("File not found", e);
 				}
 			}else{
-				logger.warn("output file is empty." + file_to_print.getName());
+				logger.warn("output file is empty.");
 			}
 		}
 	}
