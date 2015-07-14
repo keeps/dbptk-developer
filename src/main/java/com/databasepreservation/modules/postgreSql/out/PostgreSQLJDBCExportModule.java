@@ -197,7 +197,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 				if (data != null) {
 					Calendar cal = javax.xml.bind.DatatypeConverter.parseTime(data);
 					Time time = new Time(cal.getTimeInMillis());
-					logger.warn("time with timezone after: " + time.toString() + "; timezone: " + cal.getTimeZone().getID());
+					logger.debug("time with timezone after: " + time.toString() + "; timezone: " + cal.getTimeZone().getID());
 					ps.setTime(index, time, cal);
 				} else {
 					ps.setNull(index, Types.TIME_WITH_TIMEZONE);
