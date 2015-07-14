@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<name>Database Preservation Toolkit</name>
 	<groupId>pt.keep</groupId>
@@ -26,7 +27,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>pt.gov.dgarq.roda.common.convert.db.Main</mainClass>
+							<mainClass>com.databasepreservation.Main</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
@@ -58,18 +59,37 @@
 				<executions>
 					<execution>
 						<id>enforce-victims-rule</id>
-							<goals>
-								<goal>enforce</goal>
-							</goals>
-							<configuration>
-								<rules>
-									<rule implementation="com.redhat.victims.VictimsRule">
-										<metadata>warning</metadata>
-										<fingerprint>warning</fingerprint>
-										<updates>daily</updates>
-									</rule>
-								</rules>
-							</configuration>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<rule implementation="com.redhat.victims.VictimsRule">
+									<metadata>warning</metadata>
+									<fingerprint>warning</fingerprint>
+									<updates>daily</updates>
+								</rule>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.18.1</version>
+				<configuration>
+					<suiteXmlFiles>
+						<suiteXmlFile>${basedir}/testng.xml</suiteXmlFile>
+					</suiteXmlFiles>
+				</configuration>
+				<executions>
+					<execution>
+						<id>surefire-test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>test</goal>
+						</goals>
 					</execution>
 				</executions>
 			</plugin>
@@ -115,10 +135,6 @@
 			<groupId>org.w3c</groupId>
 			<artifactId>w3c-utils</artifactId>
 			<version>1.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.solr</groupId>
-			<artifactId>solr-core</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>pt.keep</groupId>
@@ -177,11 +193,6 @@
 			<version>1.7.7</version>
 		</dependency>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.11</version>
-		</dependency>
-		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
 			<version>1.10</version>
@@ -200,7 +211,7 @@
 			<groupId>com.ibm</groupId>
 			<artifactId>db2jcc4</artifactId>
 			<version>4.16.53</version>
-		 </dependency>
+		</dependency>
 		<dependency>
 			<groupId>org.apache.lucene</groupId>
 			<artifactId>lucene-analyzers</artifactId>
@@ -222,9 +233,10 @@
 			<version>20140107</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.lucene</groupId>
-			<artifactId>lucene-analyzers-icu</artifactId>
-			<version>4.10.0</version>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>6.9.4</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 	<dependencyManagement>
