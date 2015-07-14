@@ -50,6 +50,9 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 
 	private static final String POSTGRES_CONNECTION_DATABASE = "postgres";
 
+	// same as Types.TIME_WITH_TIMEZONE. the type constant was only released in java 7
+	private static final int Types_TIME_WITH_TIMEZONE = 0x7dd;
+
 	private final String hostname;
 
 	private final int port;
@@ -200,7 +203,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 					logger.debug("time with timezone after: " + time.toString() + "; timezone: " + cal.getTimeZone().getID());
 					ps.setTime(index, time, cal);
 				} else {
-					ps.setNull(index, 0x7dd);
+					ps.setNull(index, Types_TIME_WITH_TIMEZONE);
 				}
 			} else {
 				super.handleSimpleTypeDateTimeDataCell(data, ps, index, cell, type);
