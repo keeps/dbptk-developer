@@ -200,7 +200,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 					logger.debug("time with timezone after: " + time.toString() + "; timezone: " + cal.getTimeZone().getID());
 					ps.setTime(index, time, cal);
 				} else {
-					ps.setNull(index, Types.TIME_WITH_TIMEZONE);
+					ps.setNull(index, 0x7dd);
 				}
 			} else {
 				super.handleSimpleTypeDateTimeDataCell(data, ps, index, cell, type);
