@@ -2,28 +2,30 @@ package com.databasepreservation.model.structure;
 
 import java.util.List;
 
+import com.databasepreservation.utils.ListUtils;
+
 /**
- * 
+ *
  * @author Miguel Coutada
  *
  */
 
 public class ViewStructure {
-	
+
 	private String name;
-	
+
 	private String query;
-	
+
 	private String queryOriginal;
-	
+
 	private String description;
-	
+
 	private List<ColumnStructure> columns;
-	
-	
+
+
 
 	/**
-	 * 
+	 *
 	 */
 	public ViewStructure() {
 	}
@@ -142,6 +144,70 @@ public class ViewStructure {
 		builder.append("]");
 		return builder.toString();
 	}
-	
-	
+
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((columns == null) ? 0 : columns.hashCode());
+		result = prime * result
+				+ ((description == null) ? 0 : description.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((query == null) ? 0 : query.hashCode());
+		result = prime * result
+				+ ((queryOriginal == null) ? 0 : queryOriginal.hashCode());
+		return result;
+	}
+
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		ViewStructure other = (ViewStructure) obj;
+		if (columns == null) {
+			if (other.columns != null) {
+				return false;
+			}
+		} else if (!ListUtils.equals(columns,other.columns)) {
+			return false;
+		}
+		if (description == null) {
+			if (other.description != null) {
+				return false;
+			}
+		} else if (!description.equals(other.description)) {
+			return false;
+		}
+		if (name == null) {
+			if (other.name != null) {
+				return false;
+			}
+		} else if (!name.equals(other.name)) {
+			return false;
+		}
+		if (query == null) {
+			if (other.query != null) {
+				return false;
+			}
+		} else if (!query.equals(other.query)) {
+			return false;
+		}
+		if (queryOriginal == null) {
+			if (other.queryOriginal != null) {
+				return false;
+			}
+		} else if (!queryOriginal.equals(other.queryOriginal)) {
+			return false;
+		}
+		return true;
+	}
 }

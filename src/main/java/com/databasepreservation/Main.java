@@ -52,7 +52,7 @@ public class Main {
 		System.exit(internal_main(args));
 	}
 
-	protected static int internal_main(String... args) {
+	public static int internal_main(String... args) {
 		List<String> importModuleArgs = new Vector<String>();
 		List<String> exportModuleArgs = new Vector<String>();
 

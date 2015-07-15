@@ -1,11 +1,11 @@
 /**
- * 
+ *
  */
 package com.databasepreservation.model.structure.type;
 
 /**
  * Time intervals according to ISO 8601.
- * 
+ *
  * @author Luis Faria
  */
 public class SimpleTypeInterval extends Type {
@@ -37,7 +37,7 @@ public class SimpleTypeInterval extends Type {
 
 	/**
 	 * Time Interval type constructor, all fields are required.
-	 * 
+	 *
 	 * @param type
 	 *            the type of the time interval according to ISO 8601
 	 */
@@ -58,6 +58,32 @@ public class SimpleTypeInterval extends Type {
 	 */
 	public void setType(IntervalType type) {
 		this.type = type;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!super.equals(obj)) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		SimpleTypeInterval other = (SimpleTypeInterval) obj;
+		if (type != other.type) {
+			return false;
+		}
+		return true;
 	}
 
 }

@@ -1,4 +1,4 @@
-package com.databasepreservation;
+package com.databasepreservation.integration.roundtrip;
 
 import java.io.IOException;
 import java.net.URISyntaxException;

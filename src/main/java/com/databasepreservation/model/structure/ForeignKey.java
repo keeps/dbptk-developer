@@ -3,44 +3,46 @@ package com.databasepreservation.model.structure;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.databasepreservation.utils.ListUtils;
+
 
 /**
- * 
+ *
  * @author Miguel Coutada
  *
  */
 
 public class ForeignKey {
-	
+
 	private String id;
 
 	private String name;
-	
+
 	private String referencedSchema;
-	
+
 	private String referencedTable;
-	
+
 	private List<Reference> references;
-	
+
 	private String matchType;
-	
+
 	private String deleteAction;
-	
+
 	private String updateAction;
-	
+
 	private String description;
-	
-	
+
+
 
 	/**
-	 * 
+	 *
 	 */
 	public ForeignKey() {
-		
+
 	}
 
 	/**
-	 * 
+	 *
 	 * @param id
 	 * @param name
 	 * @param refTable
@@ -81,7 +83,7 @@ public class ForeignKey {
 	}
 
 
-	
+
 	/**
 	 * @return the unique id of the foreign key
 	 */
@@ -91,7 +93,7 @@ public class ForeignKey {
 
 
 	/**
-	 * 
+	 *
 	 * @param id
 	 * 			  the unique id for the foreign key
 	 */
@@ -271,7 +273,109 @@ public class ForeignKey {
 		builder.append("]");
 		return builder.toString();
 	}
-	
-	
-	
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((deleteAction == null) ? 0 : deleteAction.hashCode());
+		result = prime * result
+				+ ((description == null) ? 0 : description.hashCode());
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result
+				+ ((matchType == null) ? 0 : matchType.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime
+				* result
+				+ ((referencedSchema == null) ? 0 : referencedSchema.hashCode());
+		result = prime * result
+				+ ((referencedTable == null) ? 0 : referencedTable.hashCode());
+		result = prime * result
+				+ ((references == null) ? 0 : references.hashCode());
+		result = prime * result
+				+ ((updateAction == null) ? 0 : updateAction.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		ForeignKey other = (ForeignKey) obj;
+		if (deleteAction == null) {
+			if (other.deleteAction != null) {
+				return false;
+			}
+		} else if (!deleteAction.equals(other.deleteAction)) {
+			return false;
+		}
+		if (description == null) {
+			if (other.description != null) {
+				return false;
+			}
+		} else if (!description.equals(other.description)) {
+			return false;
+		}
+		if (id == null) {
+			if (other.id != null) {
+				return false;
+			}
+		} else if (!id.equals(other.id)) {
+			return false;
+		}
+		if (matchType == null) {
+			if (other.matchType != null) {
+				return false;
+			}
+		} else if (!matchType.equals(other.matchType)) {
+			return false;
+		}
+		if (name == null) {
+			if (other.name != null) {
+				return false;
+			}
+		} else if (!name.equals(other.name)) {
+			return false;
+		}
+		if (referencedSchema == null) {
+			if (other.referencedSchema != null) {
+				return false;
+			}
+		} else if (!referencedSchema.equals(other.referencedSchema)) {
+			return false;
+		}
+		if (referencedTable == null) {
+			if (other.referencedTable != null) {
+				return false;
+			}
+		} else if (!referencedTable.equals(other.referencedTable)) {
+			return false;
+		}
+		if (references == null) {
+			if (other.references != null) {
+				return false;
+			}
+		} else if (!ListUtils.equals(references,other.references)) {
+			return false;
+		}
+		if (updateAction == null) {
+			if (other.updateAction != null) {
+				return false;
+			}
+		} else if (!updateAction.equals(other.updateAction)) {
+			return false;
+		}
+		return true;
+	}
+
+
+
 }

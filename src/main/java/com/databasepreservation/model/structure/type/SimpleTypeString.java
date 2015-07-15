@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.databasepreservation.model.structure.type;
 
@@ -7,9 +7,9 @@ package com.databasepreservation.model.structure.type;
  * Sequence of characters drawn from character repertoire (charset) This
  * sequence is is either of fixed length, or of variable length up to some
  * implementation-defined maximum.
- * 
+ *
  * @author Luis Faria
- * 
+ *
  */
 public class SimpleTypeString extends Type {
 	private Integer length;
@@ -20,12 +20,12 @@ public class SimpleTypeString extends Type {
 
 	/**
 	 * String type constructor with only required fields
-	 * 
+	 *
 	 * @param length
 	 *            true if the string size can vary up to the maximum length,
 	 *            false if it fixed to length
 	 * @param lengthVariable
-	 * 
+	 *
 	 */
 	public SimpleTypeString(Integer length, Boolean lengthVariable) {
 		this.length = length;
@@ -35,8 +35,8 @@ public class SimpleTypeString extends Type {
 	/**
 	 * String type constructor with required and optional fields. Insert null in
 	 * optional fields to make them undefined.
-	 * 
-	 * 
+	 *
+	 *
 	 * @param length
 	 *            the maximum string length (required)
 	 * @param lengthVariable
@@ -98,6 +98,53 @@ public class SimpleTypeString extends Type {
 	 */
 	public void setLengthVariable(Boolean lengthVariable) {
 		this.lengthVariable = lengthVariable;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((charset == null) ? 0 : charset.hashCode());
+		result = prime * result + ((length == null) ? 0 : length.hashCode());
+		result = prime * result
+				+ ((lengthVariable == null) ? 0 : lengthVariable.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!super.equals(obj)) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		SimpleTypeString other = (SimpleTypeString) obj;
+		if (charset == null) {
+			if (other.charset != null) {
+				return false;
+			}
+		} else if (!charset.equals(other.charset)) {
+			return false;
+		}
+		if (length == null) {
+			if (other.length != null) {
+				return false;
+			}
+		} else if (!length.equals(other.length)) {
+			return false;
+		}
+		if (lengthVariable == null) {
+			if (other.lengthVariable != null) {
+				return false;
+			}
+		} else if (!lengthVariable.equals(other.lengthVariable)) {
+			return false;
+		}
+		return true;
 	}
 
 }

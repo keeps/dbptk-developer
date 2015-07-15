@@ -6,15 +6,17 @@ import java.util.Vector;
 
 import org.apache.log4j.Logger;
 
+import com.databasepreservation.utils.ListUtils;
+
 /**
- * 
+ *
  * @author Luis Faria
  * @author Miguel Coutada
- * 
+ *
  */
 public class DatabaseStructure {
 
-	private static final Logger logger = 
+	private static final Logger logger =
 			Logger.getLogger(DatabaseStructure.class);
 
 	private String name;
@@ -90,7 +92,7 @@ public class DatabaseStructure {
 
 	/**
 	 * Create a new database
-	 * 
+	 *
 	 * @param name
 	 *            the database name
 	 * @param creationDate
@@ -224,7 +226,7 @@ public class DatabaseStructure {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param productName
 	 *            the DBMS name
 	 */
@@ -524,7 +526,7 @@ public class DatabaseStructure {
 
 	/**
 	 * Lookup a table structure by its table id
-	 * 
+	 *
 	 * @param tableId
 	 *            the table id
 	 * @return the table structure
@@ -545,7 +547,7 @@ public class DatabaseStructure {
 	 * Sort the tables topologically by its foreign key references. This method
 	 * is useful when inserting data into the database, so the foreign key
 	 * constrains will be respected
-	 * 
+	 *
 	 * @param tables
 	 * @return the sorted table list or null if the tables cannot be sorted
 	 *         topologically (recursive graph)
@@ -616,7 +618,7 @@ public class DatabaseStructure {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -671,5 +673,295 @@ public class DatabaseStructure {
 		builder.append("\n------ END SCHEMAS ------");
 		builder.append("\n****** END STRUCTURE ******");
 		return builder.toString();
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((archivalDate == null) ? 0 : archivalDate.hashCode());
+		result = prime * result
+				+ ((archiver == null) ? 0 : archiver.hashCode());
+		result = prime * result
+				+ ((archiverContact == null) ? 0 : archiverContact.hashCode());
+		result = prime * result
+				+ ((clientMachine == null) ? 0 : clientMachine.hashCode());
+		result = prime * result
+				+ ((creationDate == null) ? 0 : creationDate.hashCode());
+		result = prime
+				* result
+				+ ((dataOriginTimespan == null) ? 0 : dataOriginTimespan
+						.hashCode());
+		result = prime * result
+				+ ((dataOwner == null) ? 0 : dataOwner.hashCode());
+		result = prime * result
+				+ ((databaseUser == null) ? 0 : databaseUser.hashCode());
+		result = prime
+				* result
+				+ ((defaultTransactionIsolationLevel == null) ? 0
+						: defaultTransactionIsolationLevel.hashCode());
+		result = prime * result
+				+ ((description == null) ? 0 : description.hashCode());
+		result = prime
+				* result
+				+ ((extraNameCharacters == null) ? 0 : extraNameCharacters
+						.hashCode());
+		result = prime * result
+				+ ((messageDigest == null) ? 0 : messageDigest.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result
+				+ ((privileges == null) ? 0 : privileges.hashCode());
+		result = prime
+				* result
+				+ ((producerApplication == null) ? 0 : producerApplication
+						.hashCode());
+		result = prime * result
+				+ ((productName == null) ? 0 : productName.hashCode());
+		result = prime * result
+				+ ((productVersion == null) ? 0 : productVersion.hashCode());
+		result = prime * result + ((roles == null) ? 0 : roles.hashCode());
+		result = prime * result + ((schemas == null) ? 0 : schemas.hashCode());
+		result = prime * result
+				+ ((stringFunctions == null) ? 0 : stringFunctions.hashCode());
+		result = prime
+				* result
+				+ ((supportsANSI92EntryLevelSQL == null) ? 0
+						: supportsANSI92EntryLevelSQL.hashCode());
+		result = prime
+				* result
+				+ ((supportsANSI92FullSQL == null) ? 0 : supportsANSI92FullSQL
+						.hashCode());
+		result = prime
+				* result
+				+ ((supportsANSI92IntermediateSQL == null) ? 0
+						: supportsANSI92IntermediateSQL.hashCode());
+		result = prime
+				* result
+				+ ((supportsCoreSQLGrammar == null) ? 0
+						: supportsCoreSQLGrammar.hashCode());
+		result = prime * result
+				+ ((systemFunctions == null) ? 0 : systemFunctions.hashCode());
+		result = prime
+				* result
+				+ ((timeDateFunctions == null) ? 0 : timeDateFunctions
+						.hashCode());
+		result = prime * result + ((url == null) ? 0 : url.hashCode());
+		result = prime * result + ((users == null) ? 0 : users.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		DatabaseStructure other = (DatabaseStructure) obj;
+		if (archivalDate == null) {
+			if (other.archivalDate != null) {
+				return false;
+			}
+		} else if (!archivalDate.equals(other.archivalDate)) {
+			return false;
+		}
+		if (archiver == null) {
+			if (other.archiver != null) {
+				return false;
+			}
+		} else if (!archiver.equals(other.archiver)) {
+			return false;
+		}
+		if (archiverContact == null) {
+			if (other.archiverContact != null) {
+				return false;
+			}
+		} else if (!archiverContact.equals(other.archiverContact)) {
+			return false;
+		}
+		if (clientMachine == null) {
+			if (other.clientMachine != null) {
+				return false;
+			}
+		} else if (!clientMachine.equals(other.clientMachine)) {
+			return false;
+		}
+		if (creationDate == null) {
+			if (other.creationDate != null) {
+				return false;
+			}
+		} else if (!creationDate.equals(other.creationDate)) {
+			return false;
+		}
+		if (dataOriginTimespan == null) {
+			if (other.dataOriginTimespan != null) {
+				return false;
+			}
+		} else if (!dataOriginTimespan.equals(other.dataOriginTimespan)) {
+			return false;
+		}
+		if (dataOwner == null) {
+			if (other.dataOwner != null) {
+				return false;
+			}
+		} else if (!dataOwner.equals(other.dataOwner)) {
+			return false;
+		}
+		if (databaseUser == null) {
+			if (other.databaseUser != null) {
+				return false;
+			}
+		} else if (!databaseUser.equals(other.databaseUser)) {
+			return false;
+		}
+		if (defaultTransactionIsolationLevel == null) {
+			if (other.defaultTransactionIsolationLevel != null) {
+				return false;
+			}
+		} else if (!defaultTransactionIsolationLevel
+				.equals(other.defaultTransactionIsolationLevel)) {
+			return false;
+		}
+		if (description == null) {
+			if (other.description != null) {
+				return false;
+			}
+		} else if (!description.equals(other.description)) {
+			return false;
+		}
+		if (extraNameCharacters == null) {
+			if (other.extraNameCharacters != null) {
+				return false;
+			}
+		} else if (!extraNameCharacters.equals(other.extraNameCharacters)) {
+			return false;
+		}
+		if (messageDigest == null) {
+			if (other.messageDigest != null) {
+				return false;
+			}
+		} else if (!messageDigest.equals(other.messageDigest)) {
+			return false;
+		}
+		if (name == null) {
+			if (other.name != null) {
+				return false;
+			}
+		} else if (!name.equals(other.name)) {
+			return false;
+		}
+		if (privileges == null) {
+			if (other.privileges != null) {
+				return false;
+			}
+		} else if (!ListUtils.equals(privileges,other.privileges)) {
+			return false;
+		}
+		if (producerApplication == null) {
+			if (other.producerApplication != null) {
+				return false;
+			}
+		} else if (!producerApplication.equals(other.producerApplication)) {
+			return false;
+		}
+		if (productName == null) {
+			if (other.productName != null) {
+				return false;
+			}
+		} else if (!productName.equals(other.productName)) {
+			return false;
+		}
+		if (productVersion == null) {
+			if (other.productVersion != null) {
+				return false;
+			}
+		} else if (!productVersion.equals(other.productVersion)) {
+			return false;
+		}
+		if (roles == null) {
+			if (other.roles != null) {
+				return false;
+			}
+		} else if (!ListUtils.equals(roles,other.roles)) {
+			return false;
+		}
+		if (schemas == null) {
+			if (other.schemas != null) {
+				return false;
+			}
+		} else if (!ListUtils.equals(schemas,other.schemas)) {
+			return false;
+		}
+		if (stringFunctions == null) {
+			if (other.stringFunctions != null) {
+				return false;
+			}
+		} else if (!stringFunctions.equals(other.stringFunctions)) {
+			return false;
+		}
+		if (supportsANSI92EntryLevelSQL == null) {
+			if (other.supportsANSI92EntryLevelSQL != null) {
+				return false;
+			}
+		} else if (!supportsANSI92EntryLevelSQL
+				.equals(other.supportsANSI92EntryLevelSQL)) {
+			return false;
+		}
+		if (supportsANSI92FullSQL == null) {
+			if (other.supportsANSI92FullSQL != null) {
+				return false;
+			}
+		} else if (!supportsANSI92FullSQL.equals(other.supportsANSI92FullSQL)) {
+			return false;
+		}
+		if (supportsANSI92IntermediateSQL == null) {
+			if (other.supportsANSI92IntermediateSQL != null) {
+				return false;
+			}
+		} else if (!supportsANSI92IntermediateSQL
+				.equals(other.supportsANSI92IntermediateSQL)) {
+			return false;
+		}
+		if (supportsCoreSQLGrammar == null) {
+			if (other.supportsCoreSQLGrammar != null) {
+				return false;
+			}
+		} else if (!supportsCoreSQLGrammar.equals(other.supportsCoreSQLGrammar)) {
+			return false;
+		}
+		if (systemFunctions == null) {
+			if (other.systemFunctions != null) {
+				return false;
+			}
+		} else if (!systemFunctions.equals(other.systemFunctions)) {
+			return false;
+		}
+		if (timeDateFunctions == null) {
+			if (other.timeDateFunctions != null) {
+				return false;
+			}
+		} else if (!timeDateFunctions.equals(other.timeDateFunctions)) {
+			return false;
+		}
+		if (url == null) {
+			if (other.url != null) {
+				return false;
+			}
+		} else if (!url.equals(other.url)) {
+			return false;
+		}
+		if (users == null) {
+			if (other.users != null) {
+				return false;
+			}
+		} else if (!ListUtils.equals(users,other.users)) {
+			return false;
+		}
+		return true;
 	}
 }

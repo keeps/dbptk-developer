@@ -19,7 +19,7 @@
  * limitations under the License.
  */
 
-package com.databasepreservation;
+package com.databasepreservation.utils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;

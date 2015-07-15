@@ -122,4 +122,56 @@ public abstract class Type {
 		builder.append("]");
 		return builder.toString();
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((description == null) ? 0 : description.hashCode());
+		result = prime
+				* result
+				+ ((originalTypeName == null) ? 0 : originalTypeName.hashCode());
+		result = prime * result
+				+ ((sql99TypeName == null) ? 0 : sql99TypeName.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		Type other = (Type) obj;
+		if (description == null) {
+			if (other.description != null) {
+				return false;
+			}
+		} else if (!description.equals(other.description)) {
+			return false;
+		}
+		if (originalTypeName == null) {
+			if (other.originalTypeName != null) {
+				return false;
+			}
+		} else if (!originalTypeName.equals(other.originalTypeName)) {
+			return false;
+		}
+		if (sql99TypeName == null) {
+			if (other.sql99TypeName != null) {
+				return false;
+			}
+		} else if (!sql99TypeName.equals(other.sql99TypeName)) {
+			return false;
+		}
+		return true;
+	}
+
+
 }
