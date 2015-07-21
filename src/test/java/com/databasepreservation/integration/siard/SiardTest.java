@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -14,6 +15,7 @@ import org.apache.log4j.Logger;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
+import org.w3c.util.DateParser;
 
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.Row;
@@ -72,6 +74,8 @@ public class SiardTest {
 				supportsANSI92EntryLevelSQL, supportsANSI92IntermediateSQL,
 				supportsANSI92FullSQL, supportsCoreSQLGrammar, schemas,
 				users, roles, privileges);
+
+		dbStructure.setArchivalDate(DateParser.getIsoDate(new Date()));
 		Map<String, List<Row>> tableRows = new HashMap<String, List<Row>>();
 		ArrayList<Cell> cells = new ArrayList<Cell>();
 		cells.add(new SimpleCell("idwtf", "1"));
