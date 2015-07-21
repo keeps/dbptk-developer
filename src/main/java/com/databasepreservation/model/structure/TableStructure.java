@@ -37,7 +37,7 @@ public class TableStructure {
 
 	private int rows;
 
-	private SchemaStructure schema;
+	private String schema;
 
 	private int currentRow;
 
@@ -276,12 +276,16 @@ public class TableStructure {
 		this.rows = rows;
 	}
 
-	public SchemaStructure getSchema() {
+	public String getSchema() {
 		return schema;
 	}
 
-	public void setSchema(SchemaStructure schema) {
+	public void setSchema(String schema) {
 		this.schema = schema;
+	}
+
+	public void setSchema(SchemaStructure schema) {
+		this.schema = schema.getName();
 	}
 
 	protected void isValidId(String id) throws IllegalArgumentException {

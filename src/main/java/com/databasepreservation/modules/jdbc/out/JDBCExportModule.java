@@ -271,7 +271,7 @@ public class JDBCExportModule implements DatabaseHandler {
 				logger.info("Handling database structure");
 				for (SchemaStructure schema : structure.getSchemas()) {
 					// won't export ignored schemas
-					if (isIgnoredSchema(schema)) {
+					if (isIgnoredSchema(schema.getName())) {
 						logger.warn("Schema not exported because it's defined "
 								+ "as ignored (possibily is a system schema): "
 								+ schema.getName());
@@ -421,9 +421,9 @@ public class JDBCExportModule implements DatabaseHandler {
 	 *            The schema structure to be checked
 	 * @return
 	 */
-	protected boolean isIgnoredSchema(SchemaStructure schema) {
+	protected boolean isIgnoredSchema(String schema) {
 		for (String s : ignoredSchemas) {
-			if (schema.getName().matches(s)) {
+			if (schema.matches(s)) {
 				return true;
 			}
 		}
@@ -739,7 +739,7 @@ public class JDBCExportModule implements DatabaseHandler {
 		logger.debug("Creating foreign keys");
 		try {
 			for (SchemaStructure schema : databaseStructure.getSchemas()) {
-				if (isIgnoredSchema(schema)) {
+				if (isIgnoredSchema(schema.getName())) {
 					continue;
 				}
 				for (TableStructure table : schema.getTables()) {

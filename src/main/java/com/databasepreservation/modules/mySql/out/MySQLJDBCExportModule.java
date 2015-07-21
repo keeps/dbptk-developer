@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.databasepreservation.modules.mySql.out;
 
@@ -21,7 +21,7 @@ import com.databasepreservation.modules.mySql.MySQLHelper;
 
 /**
  * @author Luis Faria
- * 
+ *
  */
 public class MySQLJDBCExportModule extends JDBCExportModule {
 
@@ -42,7 +42,7 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 
 	/**
 	 * MySQL JDBC export module constructor
-	 * 
+	 *
 	 * @param hostname
 	 *            the hostname of the MySQL server
 	 * @param database
@@ -67,7 +67,7 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 
 	/**
 	 * MySQL JDBC export module constructor
-	 * 
+	 *
 	 * @param hostname
 	 *            the hostname of the MySQL server
 	 * @param port
@@ -94,14 +94,14 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 
 	/**
 	 * Check if a database exists
-	 * 
+	 *
 	 * @param defaultConnectionDb
 	 *            an existing dbml database to establish the connection
 	 * @param database
 	 *            the name of the database to check
 	 * @param connectionURL
 	 *            the connection URL needed by getConnection
-	 * 
+	 *
 	 * @return true if exists, false otherwise
 	 * @throws ModuleException
 	 */
@@ -134,11 +134,12 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 				password);
 	}
 
+	@Override
 	protected void handleForeignKeys() throws ModuleException {
 		logger.debug("Creating foreign keys");
 		try {
 			for (SchemaStructure schema : databaseStructure.getSchemas()) {
-				if (isIgnoredSchema(schema)) {
+				if (isIgnoredSchema(schema.getName())) {
 					continue;
 				}
 				for (TableStructure table : schema.getTables()) {
@@ -188,6 +189,7 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 		}
 	}
 
+	@Override
 	protected Set<String> getExistingSchemasNames() throws SQLException,
 			ModuleException {
 		if (existingSchemas == null) {

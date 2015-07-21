@@ -50,12 +50,13 @@ import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.siard.SIARDHelper;
+import com.databasepreservation.utils.FileUtils;
 
 /**
- * 
+ *
  * @author Miguel Coutada
  * @author Luis Faria <lfaria@keep.pt>
- * 
+ *
  */
 
 public class SIARDExportModule implements DatabaseHandler {
@@ -85,7 +86,7 @@ public class SIARDExportModule implements DatabaseHandler {
 	private MessageDigest digest;
 
 	/**
-	 * 
+	 *
 	 * @throws FileNotFoundException
 	 */
 	public SIARDExportModule(File siardPackage, boolean compressZip) throws FileNotFoundException {
@@ -146,7 +147,7 @@ public class SIARDExportModule implements DatabaseHandler {
 		}
 
 		ArchiveEntry archiveEntry = new ZipArchiveEntry("content/"
-				+ currentTable.getSchema().getFolder() + "/"
+				+ FileUtils.schemaNameToFilename(currentTable.getSchema()) + "/"
 				+ currentTable.getFolder() + "/" + currentTable.getFolder()
 				+ ".xml");
 
@@ -156,7 +157,7 @@ public class SIARDExportModule implements DatabaseHandler {
 		try {
 			zipOut.putArchiveEntry(archiveEntry);
 			isWritingContent = true;
-			exportDataOpenTable(currentTable.getSchema().getFolder(),
+			exportDataOpenTable(FileUtils.schemaNameToFilename(currentTable.getSchema()),
 					currentTable.getFolder());
 		} catch (IOException e) {
 			throw new ModuleException("Error handling data open table "
@@ -1052,7 +1053,7 @@ public class SIARDExportModule implements DatabaseHandler {
 	}
 
 	private String getPathFile(int colIndex, int cellIndex, String ext) {
-		return "content/" + currentTable.getSchema().getFolder() + "/"
+		return "content/" + FileUtils.schemaNameToFilename(currentTable.getSchema()) + "/"
 				+ currentTable.getFolder() + "/"
 				+ currentTable.getColumns().get(colIndex - 1).getFolder()
 				+ "/record" + cellIndex + "." + ext;
@@ -1101,7 +1102,7 @@ public class SIARDExportModule implements DatabaseHandler {
 
 	private void createTableXSD(TableStructure table) {
 		ArchiveEntry archiveEntry = new ZipArchiveEntry("content/"
-				+ table.getSchema().getFolder() + "/" + table.getFolder() + "/"
+				+ FileUtils.schemaNameToFilename(table.getSchema()) + "/" + table.getFolder() + "/"
 				+ table.getFolder() + ".xsd");
 
 		try {
@@ -1114,7 +1115,7 @@ public class SIARDExportModule implements DatabaseHandler {
 	}
 
 	private void exportTableXSD(TableStructure table) throws IOException {
-		String schemaFolder = table.getSchema().getFolder();
+		String schemaFolder = FileUtils.schemaNameToFilename(table.getSchema());
 		String tableFolder = table.getFolder();
 
 		print("<?xml version=\"1.0\" encoding=\"" + ENCODING + "\"?>\n");
