@@ -60,7 +60,9 @@ public class SiardTest {
 		ArrayList<TableStructure> tables = new ArrayList<TableStructure>();
 		ArrayList<ColumnStructure> columns = new ArrayList<ColumnStructure>();
 		columns.add(new ColumnStructure("colid", "colname", new SimpleTypeBoolean(), true, "column description", "1", false));
-		tables.add(new TableStructure("schemaName.tablename", "tablename", "table description", columns, null, null, null, null, null, 0));
+		TableStructure table = new TableStructure("schemaName.tablename", "tablename", "table description", columns, null, null, null, null, null, 1);
+		table.setIndex(1);
+		tables.add(table);
 		schemas.add(new SchemaStructure("schemaName", "schemaDescription", 1,
 				tables, new ArrayList<ViewStructure>(), new ArrayList<RoutineStructure>()));
 		ArrayList<UserStructure> users = new ArrayList<UserStructure>();
