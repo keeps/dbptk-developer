@@ -5,9 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -81,10 +78,6 @@ public class SIARDExportModule implements DatabaseHandler {
 
 	private SIARDExportHelper siardExportHelper;
 
-	private boolean isWritingContent;
-
-	private MessageDigest digest;
-
 	/**
 	 *
 	 * @throws FileNotFoundException
@@ -96,10 +89,8 @@ public class SIARDExportModule implements DatabaseHandler {
 		BLOBsToExport = new HashSet<Object[]>();
 		CLOBsToExport = new HashSet<Object[]>();
 		siardExportHelper = null;
-		isWritingContent = false;
 
 		try {
-			digest = MessageDigest.getInstance("MD5");
 			this.zipOut = new ZipArchiveOutputStream(siardPackage);
 			zipOut.setUseZip64(Zip64Mode.Always);
 			if(compressZip){
@@ -109,8 +100,6 @@ public class SIARDExportModule implements DatabaseHandler {
 			}
 		} catch (IOException e) {
 			logger.error("Error while creating SIARD archive file", e);
-		} catch (NoSuchAlgorithmException e) {
-			logger.error("Invalid digest algorithm");
 		}
 	}
 
@@ -157,7 +146,6 @@ public class SIARDExportModule implements DatabaseHandler {
 
 		try {
 			zipOut.putArchiveEntry(archiveEntry);
-			isWritingContent = true;
 			exportDataOpenTable(
 					SIARDExportHelper.getSchemaFolder(currentSchema),
 					SIARDExportHelper.getTableFolder(currentTable));
@@ -220,7 +208,6 @@ public class SIARDExportModule implements DatabaseHandler {
 		} catch (IOException e) {
 			throw new ModuleException("Error closing table " + tableId, e);
 		}
-		isWritingContent = false;
 		currentTable = null;
 		currentRow = 0;
 	}
@@ -313,7 +300,7 @@ public class SIARDExportModule implements DatabaseHandler {
 					+ "</producerApplication>\n");
 		}
 		print("\t<archivalDate>" + getArchivalDate() + "</archivalDate>\n");
-		print("\t<messageDigest>" + getMessageDigest() + "</messageDigest>\n");
+		print("\t<messageDigest/>\n");
 
 		if (structure.getClientMachine() != null) {
 			print("\t<clientMachine>" + structure.getClientMachine()
@@ -1079,7 +1066,6 @@ public class SIARDExportModule implements DatabaseHandler {
 		int length;
 		while ((length = inputStream.read(buffer)) >= 0) {
 			zipOut.write(buffer, 0, length);
-			digest.update(buffer, 0, length);
 		}
 		zipOut.closeArchiveEntry();
 		inputStream.close();
@@ -1096,7 +1082,6 @@ public class SIARDExportModule implements DatabaseHandler {
 		InputStream stream = fileItem.getInputStream();
 		while ((length = stream.read(buffer)) >= 0) {
 			zipOut.write(buffer, 0, length);
-			digest.update(buffer, 0, length);
 		}
 		zipOut.closeArchiveEntry();
 		stream.close();
@@ -1183,18 +1168,8 @@ public class SIARDExportModule implements DatabaseHandler {
 		return JodaUtils.xs_date_format(dbStructure.getArchivalDate(), true);
 	}
 
-	private String getMessageDigest() throws IOException {
-		byte[] digestBytes = digest.digest();
-		BigInteger holder = new BigInteger(1, digestBytes);
-		String md5Out = holder.toString(16);
-		return "MD5" + md5Out;
-	}
-
 	private void print(String s) throws IOException {
 		byte[] bytes = s.getBytes();
-		if (isWritingContent) {
-			digest.update(bytes);
-		}
 		zipOut.write(bytes);
 	}
 }

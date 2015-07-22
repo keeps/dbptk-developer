@@ -286,6 +286,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 		private RoleStructure role;
 		private List<PrivilegeStructure> privileges;
 		private PrivilegeStructure privilege;
+		private String messageDigest;
 
 		private Map<String,String> tableFolders = new HashMap<String,String>();
 		private Map<String,String> schemaFolders = new HashMap<String,String>();
@@ -445,7 +446,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 			} else if (tag.equalsIgnoreCase("archivalDate")) {
 				dbStructure.setArchivalDate(JodaUtils.xs_date_parse(trimmedVal));
 			} else if (tag.equalsIgnoreCase("messageDigest")) {
-				dbStructure.setMessageDigest(trimmedVal);
+				messageDigest = trimmedVal;
 			} else if (tag.equalsIgnoreCase("clientMachine")) {
 				dbStructure.setClientMachine(trimmedVal);
 			} else if (tag.equalsIgnoreCase("databaseProduct")) {

@@ -45,13 +45,12 @@ public class SiardTest {
 
 
 	@Test
-	public void HelloWorld() throws ModuleException, IOException, UnknownTypeException, InvalidDataException{
+	public void SIARD_Roundtrip() throws ModuleException, IOException, UnknownTypeException, InvalidDataException{
 		// siard module
 		Path tmpFile = Files.createTempFile("roundtripSIARD_", ".zip");
 		SIARDExportModule exporter = new SIARDExportModule(tmpFile.toFile(), false);
 
 		// create a dataset
-		int defaultTransactionIsolationLevel = -1;
 		Boolean supportsANSI92EntryLevelSQL = true;
 		Boolean supportsANSI92IntermediateSQL = true;
 		Boolean supportsANSI92FullSQL = true;
@@ -70,14 +69,33 @@ public class SiardTest {
 		ArrayList<RoleStructure> roles = new ArrayList<RoleStructure>();
 		ArrayList<PrivilegeStructure> privileges = new ArrayList<PrivilegeStructure>();
 		DatabaseStructure dbStructure = new DatabaseStructure(
-				"name", "description", "archiver", "archiverContact", "dataOwner",
-				"dataOriginTimespan", "producerApplication", JodaUtils.xs_date_rewrite(DateTime.now()),
-				"messageDigest", "clientMachine", "productName", "productVersion",
-				"databaseUser", defaultTransactionIsolationLevel, "extraNameCharacters",
-				"stringFunctions", "systemFunctions", "timeDateFunctions", "url",
-				supportsANSI92EntryLevelSQL, supportsANSI92IntermediateSQL,
-				supportsANSI92FullSQL, supportsCoreSQLGrammar, schemas,
-				users, roles, privileges);
+				"name", // String name
+				"description", // String description
+				"archiver", // String archiver
+				"archiverContact", // String archiverContact
+				"dataOwner", // String dataOwner
+				"dataOriginTimespan", // String dataOriginTimespan
+				"db-preservation-toolkit - KEEP SOLUTIONS", // String producerApplication
+				JodaUtils.xs_date_rewrite(DateTime.now()), // DateTime archivalDate
+				"clientMachine", // String clientMachine
+				"productName productVersion", // String productName
+				null, // String productVersion. this is null here because product name and version go together in SIARD
+				"databaseUser", // String databaseUser
+				null, // Integer defaultTransactionIsolationLevel
+				null, // String extraNameCharacters
+				null, // String stringFunctions
+				null, // String systemFunctions
+				null, // String timeDateFunctions
+				"url", // String url
+				null, // Boolean supportsANSI92EntryLevelSQL
+				null, // Boolean supportsANSI92IntermediateSQL
+				null, // Boolean supportsANSI92FullSQL
+				null, // Boolean supportsCoreSQLGrammar
+				schemas, // List<SchemaStructure> schemas
+				users, // List<UserStructure> users
+				roles, // List<RoleStructure> roles
+				privileges // List<PrivilegeStructure> privileges
+				);
 
 		Map<String, List<Row>> tableRows = new HashMap<String, List<Row>>();
 		ArrayList<Cell> cells = new ArrayList<Cell>();

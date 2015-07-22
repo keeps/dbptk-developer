@@ -36,8 +36,6 @@ public class DatabaseStructure {
 
 	private DateTime archivalDate; // date of creation of archive on SIARD
 
-	private String messageDigest;
-
 	private String clientMachine;
 
 	private String productName; // databaseProduct on SIARD
@@ -132,7 +130,7 @@ public class DatabaseStructure {
 	public DatabaseStructure(String name, String description, String archiver,
 			String archiverContact, String dataOwner,
 			String dataOriginTimespan, String producerApplication,
-			DateTime archivalDate, String messageDigest, String clientMachine,
+			DateTime archivalDate, String clientMachine,
 			String productName, String productVersion, String databaseUser,
 			Integer defaultTransactionIsolationLevel,
 			String extraNameCharacters, String stringFunctions,
@@ -151,7 +149,6 @@ public class DatabaseStructure {
 		this.dataOwner = dataOwner;
 		this.dataOriginTimespan = dataOriginTimespan;
 		this.producerApplication = producerApplication;
-		this.messageDigest = messageDigest;
 		this.clientMachine = clientMachine;
 		this.productName = productName;
 		this.productVersion = productVersion;
@@ -445,14 +442,6 @@ public class DatabaseStructure {
 		this.producerApplication = producerApplication;
 	}
 
-	public String getMessageDigest() {
-		return messageDigest;
-	}
-
-	public void setMessageDigest(String messageDigest) {
-		this.messageDigest = messageDigest;
-	}
-
 	public String getClientMachine() {
 		return clientMachine;
 	}
@@ -689,8 +678,6 @@ public class DatabaseStructure {
 				* result
 				+ ((extraNameCharacters == null) ? 0 : extraNameCharacters
 						.hashCode());
-		result = prime * result
-				+ ((messageDigest == null) ? 0 : messageDigest.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result
 				+ ((privileges == null) ? 0 : privileges.hashCode());
@@ -814,13 +801,6 @@ public class DatabaseStructure {
 				return false;
 			}
 		} else if (!extraNameCharacters.equals(other.extraNameCharacters)) {
-			return false;
-		}
-		if (messageDigest == null) {
-			if (other.messageDigest != null) {
-				return false;
-			}
-		} else if (!messageDigest.equals(other.messageDigest)) {
 			return false;
 		}
 		if (name == null) {
