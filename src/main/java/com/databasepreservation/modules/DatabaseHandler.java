@@ -56,7 +56,7 @@ public interface DatabaseHandler {
 	 *            the table id
 	 * @throws ModuleException
 	 */
-	public void handleDataOpenTable(String tableId) throws ModuleException;
+	public void handleDataOpenTable(String schemaName, String tableId) throws ModuleException;
 
 	/**
 	 * Finish handling the data of a table. This method will be called after all
@@ -66,7 +66,7 @@ public interface DatabaseHandler {
 	 *            the table id
 	 * @throws ModuleException
 	 */
-	public void handleDataCloseTable(String tableId) throws ModuleException;
+	public void handleDataCloseTable(String schemaName, String tableId) throws ModuleException;
 
 	/**
 	 * Handle a table row. This method will be called after the table was open

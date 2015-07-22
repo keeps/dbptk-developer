@@ -39,7 +39,7 @@ public final class FileUtils {
 		});
 	}
 
-	public static String schemaNameToFilename(String in){
+	public static String nameToFilename(String in){
 		Pattern PATTERN = Pattern.compile("[^A-Za-z0-9_\\-]");
 
 	    StringBuffer sb = new StringBuffer();

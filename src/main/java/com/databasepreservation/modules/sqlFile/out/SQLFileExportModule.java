@@ -116,7 +116,7 @@ public class SQLFileExportModule implements DatabaseHandler {
 	}
 
 	@Override
-	public void handleDataOpenTable(String tableId) throws ModuleException {
+	public void handleDataOpenTable(String schemaName, String tableId) throws ModuleException {
 		if (structure != null) {
 			currentTable = structure.lookupTableStructure(tableId);
 		} else {
@@ -188,7 +188,7 @@ public class SQLFileExportModule implements DatabaseHandler {
 	}
 
 	@Override
-	public void handleDataCloseTable(String tableId) throws ModuleException {
+	public void handleDataCloseTable(String schemaName, String tableId) throws ModuleException {
 		currentTable = null;
 	}
 

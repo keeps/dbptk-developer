@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -140,12 +141,12 @@ public class SIARDImportModule implements DatabaseImportModule {
 		}
 	}
 
-	protected void setCurrentInputStream(SchemaStructure schema,
-			TableStructure table) throws ModuleException {
+	protected void setCurrentInputStream(SchemaStructure schema, String schemaFolder,
+			TableStructure table, String tableFolder) throws ModuleException {
 		try {
 			ZipArchiveEntry content = zipFile.getEntry("content/"
-					+ schema.getFolder() + "/" + table.getFolder()
-					+ "/" + table.getFolder() + ".xml");
+					+ schemaFolder + "/" + tableFolder
+					+ "/" + tableFolder + ".xml");
 			if (content == null) {
 				throw new ModuleException("SIARD package is not well formed");
 			}
@@ -219,7 +220,9 @@ public class SIARDImportModule implements DatabaseImportModule {
 			dbStructure = siardHeaderSAXHandler.getDatabaseStructure();
 			for (SchemaStructure schema : dbStructure.getSchemas()) {
 				for (TableStructure table : schema.getTables()) {
-					setCurrentInputStream(schema, table);
+					setCurrentInputStream(
+							schema, siardHeaderSAXHandler.schemaFolders.get(schema.getName()),
+							table, siardHeaderSAXHandler.tableFolders.get(table.getId()));
 					// TODO siardContentSAXHandler.setCurrentSchema(schema)
 					siardContentSAXHandler.setCurrentTable(table);
 					saxParser.parse(currentInputStream, siardContentSAXHandler);
@@ -283,6 +286,12 @@ public class SIARDImportModule implements DatabaseImportModule {
 		private List<PrivilegeStructure> privileges;
 		private PrivilegeStructure privilege;
 
+		private Map<String,String> tableFolders = new HashMap<String,String>();
+		private Map<String,String> schemaFolders = new HashMap<String,String>();
+
+		private int schemaIndex = 1;
+		private int tableIndex = 1;
+
 		public SIARDHeaderSAXHandler(DatabaseHandler handler) {
 			this.handler = handler;
 			this.errors = new TreeMap<String, Throwable>();
@@ -290,6 +299,24 @@ public class SIARDImportModule implements DatabaseImportModule {
 
 		public Map<String, Throwable> getErrors() {
 			return errors;
+		}
+
+		/**
+		 * Gets the table's folder name from the table's id
+		 * @param tableId
+		 * @return
+		 */
+		public String getTableFolder(String tableId){
+			return tableFolders.get(tableId);
+		}
+
+		/**
+		 * Gets the schema's folder name from the schema's name
+		 * @param schemaName
+		 * @return
+		 */
+		public String getSchemaFolder(String schemaName){
+			return schemaFolders.get(schemaName);
 		}
 
 		@Override
@@ -329,14 +356,18 @@ public class SIARDImportModule implements DatabaseImportModule {
 				schemas = new ArrayList<SchemaStructure>();
 			} else if (qName.equalsIgnoreCase("schema")) {
 				schema = new SchemaStructure();
+				schema.setIndex(schemaIndex);
+				schemaIndex++;
 			} else if (qName.equalsIgnoreCase("tables")) {
 				tables = new ArrayList<TableStructure>();
 			} else if (qName.equalsIgnoreCase("table")) {
 				table = new TableStructure();
+				table.setIndex(tableIndex);
+				tableIndex++;
 			} else if (qName.equalsIgnoreCase("columns")) {
 				columns = new ArrayList<ColumnStructure>();
 			} else if (qName.equalsIgnoreCase("column")) {
-					column = new ColumnStructure();
+				column = new ColumnStructure();
 			} else if (qName.equalsIgnoreCase("primaryKey")) {
 				primaryKey = new PrimaryKey();
 				primaryKeyColumns = new ArrayList<String>();
@@ -461,11 +492,11 @@ public class SIARDImportModule implements DatabaseImportModule {
 				}
 			} else if (tag.equalsIgnoreCase("folder")) {
 				if (parentTag.equalsIgnoreCase("table")) {
-					table.setFolder(trimmedVal);
+					tableFolders.put(table.getId(), trimmedVal);
 				} else if (parentTag.equalsIgnoreCase("schema")) {
-					schema.setFolder(trimmedVal);
+					schemaFolders.put(schema.getName(), trimmedVal);
 				} else if (parentTag.equalsIgnoreCase("column")) {
-					column.setFolder(trimmedVal);
+					//columnFolders.put(column.getId(), trimmedVal);
 				}
 			} else if (tag.equalsIgnoreCase("description")) {
 				if (parentTag.equalsIgnoreCase("siardArchive")) {
@@ -901,7 +932,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 			if (qName.equalsIgnoreCase("table")) {
 				this.rowIndex = 0;
 				try {
-					handler.handleDataOpenTable(currentTable.getId());
+					handler.handleDataOpenTable(currentTable.getSchema(),currentTable.getId());
 				} catch (ModuleException e) {
 					logger.error("An error occurred "
 							+ "while handling data open table", e);
@@ -957,7 +988,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 			if (tag.equalsIgnoreCase("table")) {
 				try {
 					logger.debug("before handle data close");
-					handler.handleDataCloseTable(currentTable.getId());
+					handler.handleDataCloseTable(currentTable.getSchema(), currentTable.getId());
 				} catch (ModuleException e) {
 					logger.error("An error occurred "
 							+ "while handling data close table", e);

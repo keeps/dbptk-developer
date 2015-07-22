@@ -431,7 +431,7 @@ public class JDBCExportModule implements DatabaseHandler {
 	}
 
 	@Override
-	public void handleDataOpenTable(String tableId) throws ModuleException {
+	public void handleDataOpenTable(String schemaName, String tableId) throws ModuleException {
 		logger.debug("Started data open: " + tableId);
 		if (databaseStructure != null) {
 			TableStructure table = databaseStructure
@@ -465,7 +465,7 @@ public class JDBCExportModule implements DatabaseHandler {
 	}
 
 	@Override
-	public void handleDataCloseTable(String tableId) throws ModuleException {
+	public void handleDataCloseTable(String schemaName, String tableId) throws ModuleException {
 		currentTableStructure = null;
 		if (batch_index > 0) {
 			try {

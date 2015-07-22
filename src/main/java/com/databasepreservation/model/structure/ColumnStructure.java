@@ -288,5 +288,4 @@ public class ColumnStructure {
 		}
 		return true;
 	}
-
 }

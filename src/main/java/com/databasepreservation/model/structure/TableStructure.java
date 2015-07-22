@@ -19,8 +19,6 @@ public class TableStructure {
 
 	private String name;
 
-	private String folder;
-
 	private String description;
 
 	private List<ColumnStructure> columns;
@@ -40,6 +38,8 @@ public class TableStructure {
 	private String schema;
 
 	private int currentRow;
+
+	private int index;
 
 	/**
 	 * Empty table constructor. All fields are null except columns and foreign
@@ -171,22 +171,6 @@ public class TableStructure {
 	}
 
 	/**
-	 * @return the folder
-	 */
-	public String getFolder() {
-		return folder;
-	}
-
-	/**
-	 * @param folder
-	 *            the folder to set
-	 */
-	public void setFolder(String folder) {
-		folder = folder.replaceAll(" ", "-");
-		this.folder = folder;
-	}
-
-	/**
 	 * @return existing foreign keys
 	 */
 	public List<ForeignKey> getForeignKeys() {
@@ -302,10 +286,10 @@ public class TableStructure {
 		builder.append(id);
 		builder.append(", name=");
 		builder.append(name);
-		builder.append(", folder=");
-		builder.append(folder);
 		builder.append(", description=");
 		builder.append(description);
+		builder.append(", index=");
+		builder.append(index);
 		builder.append(", columns=");
 		builder.append(columns);
 		builder.append(", primaryKey=");
@@ -350,7 +334,6 @@ public class TableStructure {
 		result = prime * result + currentRow;
 		result = prime * result
 				+ ((description == null) ? 0 : description.hashCode());
-		result = prime * result + ((folder == null) ? 0 : folder.hashCode());
 		result = prime * result
 				+ ((foreignKeys == null) ? 0 : foreignKeys.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
@@ -361,6 +344,7 @@ public class TableStructure {
 		result = prime * result + ((schema == null) ? 0 : schema.hashCode());
 		result = prime * result
 				+ ((triggers == null) ? 0 : triggers.hashCode());
+		result = prime * result + index;
 		return result;
 	}
 
@@ -381,6 +365,9 @@ public class TableStructure {
 				return false;
 			}
 		} else if (!ListUtils.equals(candidateKeys,other.candidateKeys)) {
+			return false;
+		}
+		if (index != other.index) {
 			return false;
 		}
 		if (checkConstraints == null) {
@@ -405,13 +392,6 @@ public class TableStructure {
 				return false;
 			}
 		} else if (!description.equals(other.description)) {
-			return false;
-		}
-		if (folder == null) {
-			if (other.folder != null) {
-				return false;
-			}
-		} else if (!folder.equals(other.folder)) {
 			return false;
 		}
 		if (foreignKeys == null) {
@@ -460,5 +440,13 @@ public class TableStructure {
 			return false;
 		}
 		return true;
+	}
+
+	public int getIndex() {
+		return index;
+	}
+
+	public void setIndex(int index) {
+		this.index = index;
 	}
 }

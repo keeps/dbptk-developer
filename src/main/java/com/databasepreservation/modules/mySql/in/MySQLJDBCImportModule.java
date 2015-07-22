@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.databasepreservation.modules.mySql.in;
 
@@ -20,7 +20,7 @@ import com.databasepreservation.modules.mySql.MySQLHelper;
 
 /**
  * @author Luis Faria
- * 
+ *
  */
 public class MySQLJDBCImportModule extends JDBCImportModule {
 
@@ -28,7 +28,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 
 	/**
 	 * MySQL JDBC import module constructor
-	 * 
+	 *
 	 * @param hostname
 	 *            the hostname of the MySQL server
 	 * @param database
@@ -47,7 +47,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 
 	/**
 	 * MySQL JDBC import module constructor
-	 * 
+	 *
 	 * @param hostname
 	 *            the hostname of the MySQL server
 	 * @param port
@@ -66,23 +66,27 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 				+ password, new MySQLHelper());
 	}
 
+	@Override
 	protected boolean isGetRowAvailable() {
 		return false;
 	}
 
+	@Override
 	protected List<SchemaStructure> getSchemas() throws SQLException,
 			ClassNotFoundException, UnknownTypeException {
 		List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
 		String schemaName = getConnection().getCatalog();
-		schemas.add(getSchemaStructure(schemaName));
+		schemas.add(getSchemaStructure(schemaName, 1));
 		return schemas;
 	}
 
+	@Override
 	protected String getReferencedSchema(String s) throws SQLException,
 			ClassNotFoundException {
 		return (s == null) ? getConnection().getCatalog() : s;
 	}
 
+	@Override
 	protected List<UserStructure> getUsers() throws SQLException,
 			ClassNotFoundException {
 		List<UserStructure> users = new ArrayList<UserStructure>();
@@ -96,6 +100,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 		return users;
 	}
 
+	@Override
 	protected ResultSet getTableRawData(String tableId) throws SQLException,
 			ClassNotFoundException, ModuleException {
 		logger.debug("query: " + sqlHelper.selectTableSQL(tableId));
@@ -108,6 +113,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 		return set;
 	}
 
+	@Override
 	protected Statement getStatement() throws SQLException,
 			ClassNotFoundException {
 		if (statement == null) {

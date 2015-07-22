@@ -6,6 +6,8 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
+import com.databasepreservation.model.structure.SchemaStructure;
+import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.ComposedTypeArray;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
@@ -18,7 +20,7 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
 
 /**
- * 
+ *
  * @author Miguel Coutada
  * @author Luis Faria <lfaria@keep.pt>
  *
@@ -29,7 +31,7 @@ public class SIARDExportHelper {
 	/**
 	 * Gets the Type corresponding SQL:1999 data type string in order to be
 	 * exported to a SIARD package
-	 * 
+	 *
 	 * @param type
 	 * @return
 	 * @throws ModuleException
@@ -43,6 +45,24 @@ public class SIARDExportHelper {
 	public String exportXSDType(Type type) throws ModuleException,
 			UnknownTypeException {
 		return exportTypePair(type).getRight();
+	}
+
+	/**
+	 * Gets the appropriate folder name for the table structure
+	 * @param table
+	 * @return
+	 */
+	public static String getTableFolder(TableStructure table){
+		return "table" + table.getIndex();
+	}
+
+	/**
+	 * Gets the appropriate folder name for the schema structure
+	 * @param schema
+	 * @return
+	 */
+	public static String getSchemaFolder(SchemaStructure schema){
+		return "schema" + schema.getIndex();
 	}
 
 	protected Pair<String, String> exportTypePair(Type type)

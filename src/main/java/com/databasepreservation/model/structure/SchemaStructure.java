@@ -15,9 +15,9 @@ public class SchemaStructure {
 
 	private String name;
 
-	private String folder;
-
 	private String description;
+
+	private int index;
 
 	private List<TableStructure> tables;
 
@@ -26,29 +26,32 @@ public class SchemaStructure {
 	private List<RoutineStructure> routines;
 
 
-	public SchemaStructure() {
-		tables = new ArrayList<TableStructure>();
-		views = new ArrayList<ViewStructure>();
-		routines = new ArrayList<RoutineStructure>();
-	}
-
 	/**
+	 *
 	 * @param name
-	 * @param folder
 	 * @param description
+	 * @param index
 	 * @param tables
 	 * @param views
 	 * @param routines
 	 */
-	public SchemaStructure(String name, String folder, String description,
+	public SchemaStructure(String name, String description, int index,
 			List<TableStructure> tables, List<ViewStructure> views,
 			List<RoutineStructure> routines) {
+		super();
 		this.name = name;
-		this.folder = folder;
 		this.description = description;
+		this.index = index;
 		this.tables = tables;
 		this.views = views;
 		this.routines = routines;
+	}
+
+
+	public SchemaStructure() {
+		tables = new ArrayList<TableStructure>();
+		views = new ArrayList<ViewStructure>();
+		routines = new ArrayList<RoutineStructure>();
 	}
 
 
@@ -65,23 +68,6 @@ public class SchemaStructure {
 	 */
 	public void setName(String name) {
 		this.name = name;
-	}
-
-
-	/**
-	 * @return the folder
-	 */
-	public String getFolder() {
-		return folder;
-	}
-
-
-	/**
-	 * @param folder the folder to set
-	 */
-	public void setFolder(String folder) {
-		folder = folder.replaceAll("\\s+","-");
-		this.folder = folder;
 	}
 
 
@@ -158,11 +144,11 @@ public class SchemaStructure {
 		StringBuilder builder = new StringBuilder();
 		builder.append("\n****** SCHEMA: " + name + " ******");
 		builder.append("\n");
-		builder.append("folder : ");
-		builder.append(folder);
-		builder.append("\n");
 		builder.append("description=");
 		builder.append(description);
+		builder.append("\n");
+		builder.append("index=");
+		builder.append(index);
 		builder.append("\n");
 		builder.append("tables=");
 		builder.append(tables);
@@ -184,7 +170,7 @@ public class SchemaStructure {
 		int result = 1;
 		result = prime * result
 				+ ((description == null) ? 0 : description.hashCode());
-		result = prime * result + ((folder == null) ? 0 : folder.hashCode());
+		result = prime * result + index;
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result
 				+ ((routines == null) ? 0 : routines.hashCode());
@@ -214,11 +200,7 @@ public class SchemaStructure {
 		} else if (!description.equals(other.description)) {
 			return false;
 		}
-		if (folder == null) {
-			if (other.folder != null) {
-				return false;
-			}
-		} else if (!folder.equals(other.folder)) {
+		if (index != other.index) {
 			return false;
 		}
 		if (name == null) {
@@ -250,5 +232,13 @@ public class SchemaStructure {
 			return false;
 		}
 		return true;
+	}
+
+	public int getIndex() {
+		return index;
+	}
+
+	public void setIndex(int index) {
+		this.index = index;
 	}
 }

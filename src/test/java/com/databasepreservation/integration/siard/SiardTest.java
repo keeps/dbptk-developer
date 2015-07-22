@@ -59,7 +59,7 @@ public class SiardTest {
 		ArrayList<ColumnStructure> columns = new ArrayList<ColumnStructure>();
 		columns.add(new ColumnStructure("colid", "colname", new SimpleTypeBoolean(), true, "column description", "1", false));
 		tables.add(new TableStructure("schemaName.tablename", "tablename", "table description", columns, null, null, null, null, null, 0));
-		schemas.add(new SchemaStructure("schemaName", "schemaFolder", "schemaDescription",
+		schemas.add(new SchemaStructure("schemaName", "schemaDescription", 1,
 				tables, new ArrayList<ViewStructure>(), new ArrayList<RoutineStructure>()));
 		ArrayList<UserStructure> users = new ArrayList<UserStructure>();
 		users.add(new UserStructure("testUser", "TestUser description"));
@@ -95,8 +95,7 @@ public class SiardTest {
 			for (TableStructure thistable : thisschema.getTables()) {
 				logger.info("STARTED: Getting data of table: " + thistable.getId());
 				thistable.setSchema(thisschema);
-				thistable.setFolder(thistable.getName());
-				exporter.handleDataOpenTable(thistable.getId());
+				exporter.handleDataOpenTable(thisschema.getName(),thistable.getId());
 				int nRows = 0;
 				Iterator<Row> rowsIterator = tableRows.get(thistable.getId()).iterator();
 				while (rowsIterator.hasNext()) {
@@ -104,7 +103,7 @@ public class SiardTest {
 					nRows++;
 				}
 				logger.info("Total of " + nRows + " row(s) processed");
-				exporter.handleDataCloseTable(thistable.getId());
+				exporter.handleDataCloseTable(thisschema.getName(),thistable.getId());
 				logger.info("FINISHED: Getting data of table: " + thistable.getId());
 			}
 		}

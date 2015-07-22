@@ -50,7 +50,6 @@ import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.siard.SIARDHelper;
-import com.databasepreservation.utils.FileUtils;
 
 /**
  *
@@ -72,6 +71,8 @@ public class SIARDExportModule implements DatabaseHandler {
 	private DatabaseStructure dbStructure;
 
 	private TableStructure currentTable;
+
+	private SchemaStructure currentSchema;
 
 	private int currentRow;
 
@@ -135,21 +136,22 @@ public class SIARDExportModule implements DatabaseHandler {
 	}
 
 	@Override
-	public void handleDataOpenTable(String tableId) throws ModuleException {
+	public void handleDataOpenTable(String schemaName, String tableId) throws ModuleException {
 		if (dbStructure == null) {
 			throw new ModuleException(
 					"Database structure handling was not performed");
 		}
 
+		currentSchema = dbStructure.getSchemaByName(schemaName);
 		currentTable = dbStructure.lookupTableStructure(tableId);
 		if (currentTable == null) {
 			throw new ModuleException("Couldn't find table with id: " + tableId);
 		}
 
 		ArchiveEntry archiveEntry = new ZipArchiveEntry("content/"
-				+ FileUtils.schemaNameToFilename(currentTable.getSchema()) + "/"
-				+ currentTable.getFolder() + "/" + currentTable.getFolder()
-				+ ".xml");
+				+ SIARDExportHelper.getSchemaFolder(currentSchema) + "/"
+				+ SIARDExportHelper.getTableFolder(currentTable) + "/"
+				+ SIARDExportHelper.getTableFolder(currentTable) + ".xml");
 
 		BLOBsToExport = new HashSet<Object[]>();
 		CLOBsToExport = new HashSet<Object[]>();
@@ -157,8 +159,9 @@ public class SIARDExportModule implements DatabaseHandler {
 		try {
 			zipOut.putArchiveEntry(archiveEntry);
 			isWritingContent = true;
-			exportDataOpenTable(FileUtils.schemaNameToFilename(currentTable.getSchema()),
-					currentTable.getFolder());
+			exportDataOpenTable(
+					SIARDExportHelper.getSchemaFolder(currentSchema),
+					SIARDExportHelper.getTableFolder(currentTable));
 		} catch (IOException e) {
 			throw new ModuleException("Error handling data open table "
 					+ tableId, e);
@@ -166,7 +169,7 @@ public class SIARDExportModule implements DatabaseHandler {
 	}
 
 	@Override
-	public void handleDataCloseTable(String tableId) throws ModuleException {
+	public void handleDataCloseTable(String schemaName, String tableId) throws ModuleException {
 		try {
 			exportDataCloseTable();
 			zipOut.closeArchiveEntry();
@@ -180,7 +183,9 @@ public class SIARDExportModule implements DatabaseHandler {
 				Cell cell = (Cell) obj[0];
 				int colIndex = (Integer) obj[1];
 				int cellIndex = (Integer) obj[2];
-				createBLOB(cell, colIndex, cellIndex);
+				int tableIndex = (Integer) obj[3];
+				int schemaIndex = (Integer) obj[4];
+				createBLOB(cell, colIndex, cellIndex, tableIndex, schemaIndex);
 
 				iBlobs++;
 				if (iBlobs % 1000 == 0) {
@@ -197,7 +202,9 @@ public class SIARDExportModule implements DatabaseHandler {
 				FileItem fileItem = (FileItem) obj[0];
 				int colIndex = (Integer) obj[1];
 				int cellIndex = (Integer) obj[2];
-				createCLOB(fileItem, colIndex, cellIndex);
+				int tableIndex = (Integer) obj[3];
+				int schemaIndex = (Integer) obj[4];
+				createCLOB(fileItem, colIndex, cellIndex, tableIndex, schemaIndex);
 				// cleaning up file items temporary files
 				fileItem.delete();
 
@@ -374,17 +381,11 @@ public class SIARDExportModule implements DatabaseHandler {
 		print("\t\t<schema>\n");
 		if (schema.getName() != null) {
 			print("\t\t\t<name>" + schema.getName() + "</name>\n");
+			print("\t\t\t<folder>" + SIARDExportHelper.getSchemaFolder(schema) + "</folder>\n");
 		} else {
 			throw new ModuleException(
 					"Error while exporting schema structure: "
 							+ "schema name cannot be null");
-		}
-		if (schema.getFolder() != null) {
-			print("\t\t\t<folder>" + schema.getFolder() + "</folder>\n");
-		} else {
-			throw new ModuleException(
-					"Error while exporting schema structure: "
-							+ "schema folder cannot be null");
 		}
 		if (schema.getDescription() != null) {
 			print("\t\t\t<description>" + schema.getDescription()
@@ -426,15 +427,10 @@ public class SIARDExportModule implements DatabaseHandler {
 		print("\t\t\t\t<table>\n");
 		if (table.getName() != null) {
 			print("\t\t\t\t\t<name>" + table.getName() + "</name>\n");
+			print("\t\t\t\t\t<folder>" + SIARDExportHelper.getTableFolder(table) + "</folder>\n");
 		} else {
 			throw new ModuleException("Error while exporting table structure: "
 					+ "table name cannot be null");
-		}
-		if (table.getFolder() != null) {
-			print("\t\t\t\t\t<folder>" + table.getFolder() + "</folder>\n");
-		} else {
-			throw new ModuleException("Error while exporting table structure: "
-					+ "talbe folder cannot be null");
 		}
 		if (table.getDescription() != null) {
 			print("\t\t\t\t\t<description>" + table.getDescription()
@@ -504,9 +500,6 @@ public class SIARDExportModule implements DatabaseHandler {
 		} else {
 			throw new ModuleException("Error while exporting table structure: "
 					+ "column name cannot be null");
-		}
-		if (column.getFolder() != null) {
-			print("\t\t\t\t\t\t\t<folder>" + column.getFolder() + "</folder>\n");
 		}
 		if (column.getType() != null) {
 			print("\t\t\t\t\t\t\t<type>"
@@ -1029,10 +1022,10 @@ public class SIARDExportModule implements DatabaseHandler {
 			throws IOException {
 		print("<c" + cellIndex + " ");
 		if (cell instanceof BinaryCell) {
-			print(getLobHeader(cell, cellIndex, rowIndex, length, "bin"));
-			BLOBsToExport.add(new Object[] { cell, cellIndex, rowIndex });
+			print(getLobHeader(cellIndex, rowIndex+1, currentTable.getIndex(), currentSchema.getIndex(), length, "bin"));
+			BLOBsToExport.add(new Object[] { cell, cellIndex, rowIndex+1, currentTable.getIndex(), currentSchema.getIndex() });
 		} else {
-			print(getLobHeader(cell, cellIndex, rowIndex, length, "txt"));
+			print(getLobHeader(cellIndex, rowIndex+1, currentTable.getIndex(), currentSchema.getIndex(), length, "txt"));
 			// TODO change CLOB data type mapping to BinaryCell, so data is
 			// stored on a tmp file
 			String data = ((SimpleCell) cell).getSimpledata();
@@ -1041,7 +1034,7 @@ public class SIARDExportModule implements DatabaseHandler {
 						data.getBytes());
 				FileItem fileItem = new FileItem(inputStream);
 				CLOBsToExport
-						.add(new Object[] { fileItem, cellIndex, rowIndex });
+						.add(new Object[] { fileItem, cellIndex, rowIndex+1, currentTable.getIndex(), currentSchema.getIndex() });
 
 				inputStream.close();
 			} catch (ModuleException e) {
@@ -1052,23 +1045,33 @@ public class SIARDExportModule implements DatabaseHandler {
 		print("/>");
 	}
 
-	private String getPathFile(int colIndex, int cellIndex, String ext) {
-		return "content/" + FileUtils.schemaNameToFilename(currentTable.getSchema()) + "/"
-				+ currentTable.getFolder() + "/"
-				+ currentTable.getColumns().get(colIndex - 1).getFolder()
-				+ "/record" + cellIndex + "." + ext;
+	private String getPathFile(int colIndex, int cellIndex, int tableIndex, int schemaIndex, String ext) {
+		StringBuilder pathfile = new StringBuilder();
+
+		pathfile.append("content/schema")
+			.append(schemaIndex)
+			.append("/table")
+			.append(tableIndex)
+			.append("/col")
+			.append(colIndex)
+			.append("/record")
+			.append(cellIndex)
+			.append(".")
+			.append(ext);
+
+		return pathfile.toString();
 	}
 
-	private String getLobHeader(Cell cell, int colIndex, int cellIndex,
-			long length, String ext) {
-		return "file=\"" + getPathFile(colIndex, cellIndex, ext)
+	private String getLobHeader(int colIndex, int cellIndex,
+			int tableIndex, int schemaIndex, long length, String ext) {
+		return "file=\"" + getPathFile(colIndex, cellIndex, tableIndex, schemaIndex, ext)
 				+ "\" length=\"" + length + "\"";
 	}
 
-	private void createBLOB(Cell cell, int colIndex, int cellIndex)
+	private void createBLOB(Cell cell, int colIndex, int cellIndex, int tableIndex, int schemaIndex)
 			throws IOException, ModuleException {
 		ArchiveEntry binaryFile = new ZipArchiveEntry(getPathFile(colIndex,
-				cellIndex, "bin"));
+				cellIndex, tableIndex, schemaIndex, "bin"));
 
 		zipOut.putArchiveEntry(binaryFile);
 		InputStream inputStream = ((BinaryCell) cell).getInputstream();
@@ -1083,10 +1086,10 @@ public class SIARDExportModule implements DatabaseHandler {
 		inputStream.close();
 	}
 
-	private void createCLOB(FileItem fileItem, int colIndex, int cellIndex)
+	private void createCLOB(FileItem fileItem, int colIndex, int cellIndex, int tableIndex, int schemaIndex)
 			throws IOException, ModuleException {
 		ArchiveEntry file = new ZipArchiveEntry(getPathFile(colIndex,
-				cellIndex, "txt"));
+				cellIndex, tableIndex, schemaIndex, "txt"));
 
 		zipOut.putArchiveEntry(file);
 		byte[] buffer = new byte[1024];
@@ -1102,8 +1105,9 @@ public class SIARDExportModule implements DatabaseHandler {
 
 	private void createTableXSD(TableStructure table) {
 		ArchiveEntry archiveEntry = new ZipArchiveEntry("content/"
-				+ FileUtils.schemaNameToFilename(table.getSchema()) + "/" + table.getFolder() + "/"
-				+ table.getFolder() + ".xsd");
+				+ SIARDExportHelper.getSchemaFolder(currentSchema) + "/"
+				+ SIARDExportHelper.getTableFolder(currentTable) + "/"
+				+ SIARDExportHelper.getTableFolder(currentTable) + ".xsd");
 
 		try {
 			zipOut.putArchiveEntry(archiveEntry);
@@ -1115,8 +1119,8 @@ public class SIARDExportModule implements DatabaseHandler {
 	}
 
 	private void exportTableXSD(TableStructure table) throws IOException {
-		String schemaFolder = FileUtils.schemaNameToFilename(table.getSchema());
-		String tableFolder = table.getFolder();
+		String schemaFolder = SIARDExportHelper.getSchemaFolder(currentSchema);
+		String tableFolder = SIARDExportHelper.getTableFolder(currentTable);
 
 		print("<?xml version=\"1.0\" encoding=\"" + ENCODING + "\"?>\n");
 		print("<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" "
