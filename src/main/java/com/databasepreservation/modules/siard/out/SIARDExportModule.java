@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
@@ -1181,7 +1182,30 @@ public class SIARDExportModule implements DatabaseHandler {
 	}
 
 	private String getCurrentDate() {
-		return new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+
+		String originalDate = dbStructure.getArchivalDate();
+		String xsDate = new SimpleDateFormat("yyyy-MM-ddXXX").format(new Date());
+		boolean useOriginal = false;
+
+		if( StringUtils.isNotBlank(originalDate) ){
+			try {
+				new SimpleDateFormat("yyyy-MM-dd").parse(originalDate);
+				useOriginal = true;
+			} catch (ParseException e1) {
+				try {
+					new SimpleDateFormat("yyyy-MM-ddXXX").parse(originalDate);
+					useOriginal = true;
+				} catch (ParseException e2) {
+					logger.warn("Date '" + originalDate + "' is not a valid xs:date, using today's date instead: " + xsDate);
+				}
+			}
+		}
+
+		if( useOriginal ){
+			return originalDate;
+		}else{
+			return xsDate;
+		}
 	}
 
 	private String getMessageDigest() throws IOException {

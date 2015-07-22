@@ -3,6 +3,7 @@ package com.databasepreservation.integration.siard;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -15,7 +16,6 @@ import org.apache.log4j.Logger;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
-import org.w3c.util.DateParser;
 
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.Row;
@@ -75,7 +75,8 @@ public class SiardTest {
 				supportsANSI92FullSQL, supportsCoreSQLGrammar, schemas,
 				users, roles, privileges);
 
-		dbStructure.setArchivalDate(DateParser.getIsoDate(new Date()));
+		dbStructure.setArchivalDate(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+		//dbStructure.setArchivalDate(new SimpleDateFormat("yyyy-MM-ddXXX").format(new Date()));
 		Map<String, List<Row>> tableRows = new HashMap<String, List<Row>>();
 		ArrayList<Cell> cells = new ArrayList<Cell>();
 		cells.add(new SimpleCell("idwtf", "1"));
@@ -127,13 +128,8 @@ public class SiardTest {
 
 
 		DatabaseStructure x = dbStructureCaptor.getValue();
+
 		assert dbStructure.equals(x) : "The final structure (from SIARD) differs from the original structure";
-
-
-		//assertEquals("John", argument.getValue().getName());
-		//Assert.assertSomething(my.methodUnderTest());
-
-
 	}
 
 }
