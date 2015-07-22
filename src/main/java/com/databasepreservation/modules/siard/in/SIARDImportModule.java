@@ -62,6 +62,7 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.DatabaseImportModule;
 import com.databasepreservation.modules.siard.SIARDHelper;
+import com.databasepreservation.utils.JodaUtils;
 
 /**
  *
@@ -442,7 +443,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 			} else if (tag.equalsIgnoreCase("producerApplication")) {
 				dbStructure.setProducerApplication(trimmedVal);
 			} else if (tag.equalsIgnoreCase("archivalDate")) {
-				dbStructure.setArchivalDate(trimmedVal);
+				dbStructure.setArchivalDate(JodaUtils.xs_date_parse(trimmedVal));
 			} else if (tag.equalsIgnoreCase("messageDigest")) {
 				dbStructure.setMessageDigest(trimmedVal);
 			} else if (tag.equalsIgnoreCase("clientMachine")) {

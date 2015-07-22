@@ -8,9 +8,6 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -51,6 +48,7 @@ import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.siard.SIARDHelper;
+import com.databasepreservation.utils.JodaUtils;
 
 /**
  *
@@ -314,7 +312,7 @@ public class SIARDExportModule implements DatabaseHandler {
 			print("\t<producerApplication>" + Main.APP_NAME
 					+ "</producerApplication>\n");
 		}
-		print("\t<archivalDate>" + getCurrentDate() + "</archivalDate>\n");
+		print("\t<archivalDate>" + getArchivalDate() + "</archivalDate>\n");
 		print("\t<messageDigest>" + getMessageDigest() + "</messageDigest>\n");
 
 		if (structure.getClientMachine() != null) {
@@ -1181,31 +1179,8 @@ public class SIARDExportModule implements DatabaseHandler {
 				.exportXSDType(col.getType());
 	}
 
-	private String getCurrentDate() {
-
-		String originalDate = dbStructure.getArchivalDate();
-		String xsDate = new SimpleDateFormat("yyyy-MM-ddXXX").format(new Date());
-		boolean useOriginal = false;
-
-		if( StringUtils.isNotBlank(originalDate) ){
-			try {
-				new SimpleDateFormat("yyyy-MM-dd").parse(originalDate);
-				useOriginal = true;
-			} catch (ParseException e1) {
-				try {
-					new SimpleDateFormat("yyyy-MM-ddXXX").parse(originalDate);
-					useOriginal = true;
-				} catch (ParseException e2) {
-					logger.warn("Date '" + originalDate + "' is not a valid xs:date, using today's date instead: " + xsDate);
-				}
-			}
-		}
-
-		if( useOriginal ){
-			return originalDate;
-		}else{
-			return xsDate;
-		}
+	private String getArchivalDate() {
+		return JodaUtils.xs_date_format(dbStructure.getArchivalDate(), true);
 	}
 
 	private String getMessageDigest() throws IOException {

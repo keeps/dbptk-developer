@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 
 import com.databasepreservation.utils.ListUtils;
 
@@ -33,9 +34,7 @@ public class DatabaseStructure {
 
 	private String producerApplication;
 
-	private String creationDate;
-
-	private String archivalDate;
+	private DateTime archivalDate; // date of creation of archive on SIARD
 
 	private String messageDigest;
 
@@ -81,7 +80,7 @@ public class DatabaseStructure {
 	 */
 	public DatabaseStructure() {
 		name = null;
-		creationDate = null;
+		archivalDate = DateTime.now();
 		productName = null;
 		productVersion = null;
 		schemas = new ArrayList<SchemaStructure>();
@@ -133,7 +132,7 @@ public class DatabaseStructure {
 	public DatabaseStructure(String name, String description, String archiver,
 			String archiverContact, String dataOwner,
 			String dataOriginTimespan, String producerApplication,
-			String creationDate, String messageDigest, String clientMachine,
+			DateTime archivalDate, String messageDigest, String clientMachine,
 			String productName, String productVersion, String databaseUser,
 			Integer defaultTransactionIsolationLevel,
 			String extraNameCharacters, String stringFunctions,
@@ -146,12 +145,12 @@ public class DatabaseStructure {
 		super();
 		this.name = name;
 		this.description = description;
+		this.archivalDate = archivalDate;
 		this.archiver = archiver;
 		this.archiverContact = archiverContact;
 		this.dataOwner = dataOwner;
 		this.dataOriginTimespan = dataOriginTimespan;
 		this.producerApplication = producerApplication;
-		this.creationDate = creationDate;
 		this.messageDigest = messageDigest;
 		this.clientMachine = clientMachine;
 		this.productName = productName;
@@ -174,32 +173,17 @@ public class DatabaseStructure {
 	}
 
 	/**
-	 * @return the date when the database was created, ISO 8601 format
+	 * @return the date when the database was archived
 	 */
-	public String getCreationDate() {
-		return creationDate;
-	}
-
-	/**
-	 * @param creationDate
-	 *            the date when the database was created, ISO 8601 format
-	 */
-	public void setCreationDate(String creationDate) {
-		this.creationDate = creationDate;
-	}
-
-	/**
-	 * @return the date when the database was archived, ISO 8601 format
-	 */
-	public String getArchivalDate() {
+	public DateTime getArchivalDate() {
 		return archivalDate;
 	}
 
 	/**
-	 * @param creationDate
-	 *            the date when the database was archived, ISO 8601 format
+	 * @param archivalDate
+	 *            the date when the database was archived
 	 */
-	public void setArchivalDate(String archivalDate) {
+	public void setArchivalDate(DateTime archivalDate) {
 		this.archivalDate = archivalDate;
 	}
 
@@ -627,8 +611,8 @@ public class DatabaseStructure {
 		builder.append("DatabaseStructure [name=");
 		builder.append(name);
 		builder.append("\n");
-		builder.append("creationDate=");
-		builder.append(creationDate);
+		builder.append("archivalDate=");
+		builder.append(archivalDate);
 		builder.append("\n");
 		builder.append("productName=");
 		builder.append(productName);
@@ -687,8 +671,6 @@ public class DatabaseStructure {
 				+ ((archiverContact == null) ? 0 : archiverContact.hashCode());
 		result = prime * result
 				+ ((clientMachine == null) ? 0 : clientMachine.hashCode());
-		result = prime * result
-				+ ((creationDate == null) ? 0 : creationDate.hashCode());
 		result = prime
 				* result
 				+ ((dataOriginTimespan == null) ? 0 : dataOriginTimespan
@@ -789,13 +771,6 @@ public class DatabaseStructure {
 				return false;
 			}
 		} else if (!clientMachine.equals(other.clientMachine)) {
-			return false;
-		}
-		if (creationDate == null) {
-			if (other.creationDate != null) {
-				return false;
-			}
-		} else if (!creationDate.equals(other.creationDate)) {
 			return false;
 		}
 		if (dataOriginTimespan == null) {

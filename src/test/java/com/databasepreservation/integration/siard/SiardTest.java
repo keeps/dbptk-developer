@@ -3,9 +3,7 @@ package com.databasepreservation.integration.siard;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -13,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
@@ -36,11 +35,14 @@ import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
 import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.siard.in.SIARDImportModule;
 import com.databasepreservation.modules.siard.out.SIARDExportModule;
+import com.databasepreservation.utils.JodaUtils;
 
 @Test(groups={"siard-roundtrip"})
 public class SiardTest {
 
 	private static final Logger logger = Logger.getLogger(SiardTest.class);
+
+
 
 	@Test
 	public void HelloWorld() throws ModuleException, IOException, UnknownTypeException, InvalidDataException{
@@ -67,7 +69,7 @@ public class SiardTest {
 		ArrayList<PrivilegeStructure> privileges = new ArrayList<PrivilegeStructure>();
 		DatabaseStructure dbStructure = new DatabaseStructure(
 				"name", "description", "archiver", "archiverContact", "dataOwner",
-				"dataOriginTimespan", "producerApplication", "creationDate",
+				"dataOriginTimespan", "producerApplication", JodaUtils.xs_date_rewrite(DateTime.now()),
 				"messageDigest", "clientMachine", "productName", "productVersion",
 				"databaseUser", defaultTransactionIsolationLevel, "extraNameCharacters",
 				"stringFunctions", "systemFunctions", "timeDateFunctions", "url",
@@ -75,8 +77,6 @@ public class SiardTest {
 				supportsANSI92FullSQL, supportsCoreSQLGrammar, schemas,
 				users, roles, privileges);
 
-		dbStructure.setArchivalDate(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
-		//dbStructure.setArchivalDate(new SimpleDateFormat("yyyy-MM-ddXXX").format(new Date()));
 		Map<String, List<Row>> tableRows = new HashMap<String, List<Row>>();
 		ArrayList<Cell> cells = new ArrayList<Cell>();
 		cells.add(new SimpleCell("idwtf", "1"));
