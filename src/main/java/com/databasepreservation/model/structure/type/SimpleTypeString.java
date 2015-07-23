@@ -5,7 +5,7 @@ package com.databasepreservation.model.structure.type;
 
 /**
  * Sequence of characters drawn from character repertoire (charset) This
- * sequence is is either of fixed length, or of variable length up to some
+ * sequence is either of fixed length, or of variable length up to some
  * implementation-defined maximum.
  *
  * @author Luis Faria
@@ -22,9 +22,10 @@ public class SimpleTypeString extends Type {
 	 * String type constructor with only required fields
 	 *
 	 * @param length
-	 *            true if the string size can vary up to the maximum length,
-	 *            false if it fixed to length
+	 *            the maximum string length (required)
 	 * @param lengthVariable
+	 *            true if the string size can vary up to the maximum length,
+	 *            false if it fixed to length (required)
 	 *
 	 */
 	public SimpleTypeString(Integer length, Boolean lengthVariable) {
@@ -41,7 +42,7 @@ public class SimpleTypeString extends Type {
 	 *            the maximum string length (required)
 	 * @param lengthVariable
 	 *            true if the string size can vary up to the maximum length,
-	 *            false if it fixed to lenght (required)
+	 *            false if it fixed to length (required)
 	 * @param charset
 	 *            the character repertoire used to create the string, e.g. UTF-8
 	 *            (optional)
