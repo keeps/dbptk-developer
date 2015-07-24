@@ -70,8 +70,9 @@ public final class ListUtils {
 						break;
 					}
 				}
-				// could be asserted that both () lists are now empty
-				return true;
+				if(cfst.isEmpty()){
+					return true;
+				}
 			}
 		}else if( fst == null && snd == null ){
 			return true;
