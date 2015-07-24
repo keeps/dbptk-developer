@@ -104,7 +104,8 @@ public class SIARDExportHelper {
 		String dataType = null;
 		String xsdType = null;
 		SimpleTypeString stringType = (SimpleTypeString) type;
-		if (type.getSql99TypeName().equalsIgnoreCase("CHARACTER LARGE OBJECT")) {
+		if (type.getSql99TypeName().equalsIgnoreCase("CHARACTER LARGE OBJECT")
+				|| type.getSql99TypeName().equalsIgnoreCase("CLOB")) {
 			dataType = "CHARACTER LARGE OBJECT";
 			xsdType = "clobType";
 		} else {

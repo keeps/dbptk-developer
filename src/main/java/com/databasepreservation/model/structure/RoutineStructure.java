@@ -255,7 +255,7 @@ public class RoutineStructure {
 			if (other.parameters != null) {
 				return false;
 			}
-		} else if (!ListUtils.equals(parameters,other.parameters)) {
+		} else if (!ListUtils.equalsWithoutOrder(parameters,other.parameters)) {
 			return false;
 		}
 		if (returnType == null) {

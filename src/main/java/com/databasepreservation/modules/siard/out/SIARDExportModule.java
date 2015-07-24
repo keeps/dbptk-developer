@@ -551,6 +551,10 @@ public class SIARDExportModule implements DatabaseHandler {
 			throw new ModuleException("Error while exporting primary key: "
 					+ "name cannot be null");
 		}
+		if (primaryKey.getDescription() != null) {
+			print("\t\t\t\t\t\t<description>" + primaryKey.getDescription()
+					+ "</description>\n");
+		}
 		if (primaryKey.getColumnNames() != null) {
 			for (String column : primaryKey.getColumnNames()) {
 				print("\t\t\t\t\t\t<column>" + column + "</column>\n");
@@ -558,10 +562,6 @@ public class SIARDExportModule implements DatabaseHandler {
 		} else {
 			throw new ModuleException("Error while exporting primary key: "
 					+ "column list cannot be null");
-		}
-		if (primaryKey.getDescription() != null) {
-			print("\t\t\t\t\t\t<description>" + primaryKey.getDescription()
-					+ "</description>\n");
 		}
 	}
 
@@ -789,7 +789,7 @@ public class SIARDExportModule implements DatabaseHandler {
 			print("\t\t\t\t\t<body>" + routine.getBody() + "</body>\n");
 		}
 		if (routine.getCharacteristic() != null) {
-			print("\t\t\t\t\t<caracteristic>" + routine.getCharacteristic()
+			print("\t\t\t\t\t<characteristic>" + routine.getCharacteristic()
 					+ "</characteristic>\n");
 		}
 		if (routine.getReturnType() != null) {
@@ -798,24 +798,25 @@ public class SIARDExportModule implements DatabaseHandler {
 		}
 		if (routine.getParameters() != null
 				&& routine.getParameters().size() > 0) {
-			print("\t\t\t\t\t<parameters\n>");
+			print("\t\t\t\t\t<parameters>\n");
 			for (Parameter param : routine.getParameters()) {
+				print("\t\t\t\t\t\t\t<parameter>\n");
 				if (param.getName() != null) {
-					print("\t\t\t\t\t\t<name>" + param.getName() + "</name>\n");
+					print("\t\t\t\t\t\t\t<name>" + param.getName() + "</name>\n");
 				} else {
 					throw new ModuleException("Error while exporting "
 							+ "routine parameters: "
 							+ "parameter name cannot be null");
 				}
 				if (param.getMode() != null) {
-					print("\t\t\t\t\t\t<mode>" + param.getMode() + "</mode>\n");
+					print("\t\t\t\t\t\t\t<mode>" + param.getMode() + "</mode>\n");
 				} else {
 					throw new ModuleException("Error while exporting "
 							+ "routine parameters: "
 							+ "parameter mode cannot be null");
 				}
 				if (param.getType() != null) {
-					print("\t\t\t\t\t\t<type>"
+					print("\t\t\t\t\t\t\t<type>"
 							+ exportType(dbStructure.getProductName(),
 									param.getType()) + "</type>\n");
 				} else {
@@ -824,14 +825,15 @@ public class SIARDExportModule implements DatabaseHandler {
 							+ "parameter type cannot be null");
 				}
 				if (param.getType() != null) {
-					print("\t\t\t\t\t\t<typeOriginal>"
+					print("\t\t\t\t\t\t\t<typeOriginal>"
 							+ exportTypeOriginal(param.getType())
 							+ "</typeOriginal>\n");
 				}
 				if (param.getDescription() != null) {
-					print("\t\t\t\t\t\t<description>" + param.getDescription()
+					print("\t\t\t\t\t\t\t<description>" + param.getDescription()
 							+ "</description>\n");
 				}
+				print("\t\t\t\t\t\t</parameter>\n");
 			}
 			print("\t\t\t\t\t</parameters>\n");
 		}
@@ -872,7 +874,7 @@ public class SIARDExportModule implements DatabaseHandler {
 			// + "role admin cannot be null");
 		}
 		if (role.getDescription() != null) {
-			print("\t\t\t<description>" + role.getName() + "</description\n");
+			print("\t\t\t<description>" + role.getName() + "</description>\n");
 		}
 		print("\t\t</role>\n");
 	}

@@ -814,7 +814,7 @@ public class DatabaseStructure {
 			if (other.privileges != null) {
 				return false;
 			}
-		} else if (!ListUtils.equals(privileges,other.privileges)) {
+		} else if (!ListUtils.equalsWithoutOrder(privileges,other.privileges)) {
 			return false;
 		}
 		if (producerApplication == null) {
@@ -842,14 +842,14 @@ public class DatabaseStructure {
 			if (other.roles != null) {
 				return false;
 			}
-		} else if (!ListUtils.equals(roles,other.roles)) {
+		} else if (!ListUtils.equalsWithoutOrder(roles,other.roles)) {
 			return false;
 		}
 		if (schemas == null) {
 			if (other.schemas != null) {
 				return false;
 			}
-		} else if (!ListUtils.equals(schemas,other.schemas)) {
+		} else if (!ListUtils.equalsWithoutOrder(schemas,other.schemas)) {
 			return false;
 		}
 		if (stringFunctions == null) {
@@ -914,7 +914,7 @@ public class DatabaseStructure {
 			if (other.users != null) {
 				return false;
 			}
-		} else if (!ListUtils.equals(users,other.users)) {
+		} else if (!ListUtils.equalsWithoutOrder(users,other.users)) {
 			return false;
 		}
 		return true;

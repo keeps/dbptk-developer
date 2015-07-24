@@ -363,7 +363,7 @@ public class ForeignKey {
 			if (other.references != null) {
 				return false;
 			}
-		} else if (!ListUtils.equals(references,other.references)) {
+		} else if (!ListUtils.equalsWithoutOrder(references,other.references)) {
 			return false;
 		}
 		if (updateAction == null) {

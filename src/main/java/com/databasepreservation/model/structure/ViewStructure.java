@@ -177,7 +177,7 @@ public class ViewStructure {
 			if (other.columns != null) {
 				return false;
 			}
-		} else if (!ListUtils.equals(columns,other.columns)) {
+		} else if (!ListUtils.equalsWithoutOrder(columns,other.columns)) {
 			return false;
 		}
 		if (description == null) {

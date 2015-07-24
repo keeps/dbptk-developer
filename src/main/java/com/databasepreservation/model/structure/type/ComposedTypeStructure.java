@@ -74,7 +74,7 @@ public class ComposedTypeStructure extends Type {
 			if (other.elements != null) {
 				return false;
 			}
-		} else if (!ListUtils.equals(elements,other.elements)) {
+		} else if (!ListUtils.equalsWithoutOrder(elements,other.elements)) {
 			return false;
 		}
 		return true;

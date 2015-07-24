@@ -188,13 +188,13 @@ public class SIARDImportModule implements DatabaseImportModule {
 	        Source metadataSource = new StreamSource(metadataIS);
 
 	        validator.validate(metadataSource);
-	    } catch (IOException e) {
-	        logger.error("Exception: " + e.getMessage());
-		    return false;
+		} catch (IOException e) {
+			logger.error("Error validating schema", e);
+			return false;
 		} catch (SAXException e) {
-	        logger.error("Exception: " + e.getMessage());
-	        return false;
-        }
+			logger.error("Error validating schema", e);
+			return false;
+		}
 	    return true;
 	}
 

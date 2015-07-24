@@ -214,21 +214,21 @@ public class SchemaStructure {
 			if (other.routines != null) {
 				return false;
 			}
-		} else if (!ListUtils.equals(routines,other.routines)) {
+		} else if (!ListUtils.equalsWithoutOrder(routines,other.routines)) {
 			return false;
 		}
 		if (tables == null) {
 			if (other.tables != null) {
 				return false;
 			}
-		} else if (!ListUtils.equals(tables,other.tables)) {
+		} else if (!ListUtils.equalsWithoutOrder(tables,other.tables)) {
 			return false;
 		}
 		if (views == null) {
 			if (other.views != null) {
 				return false;
 			}
-		} else if (!ListUtils.equals(views,other.views)) {
+		} else if (!ListUtils.equalsWithoutOrder(views,other.views)) {
 			return false;
 		}
 		return true;

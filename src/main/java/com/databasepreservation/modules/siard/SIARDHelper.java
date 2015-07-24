@@ -100,7 +100,7 @@ public class SIARDHelper {
 				|| actionTime.equalsIgnoreCase("AFTER")
 				|| actionTime.equalsIgnoreCase("INSTEAD OF")) {
 			// Please note that INSTEAD OF was added as a valid action time even
-			// dough it is not suggested in the SIARD specification
+			// tough it is not suggested in the SIARD specification
 			return true;
 		}
 		return false;
