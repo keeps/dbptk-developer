@@ -360,6 +360,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 				schema = new SchemaStructure();
 				schema.setIndex(schemaIndex);
 				schemaIndex++;
+				tableIndex = 1;
 			} else if (qName.equalsIgnoreCase("tables")) {
 				tables = new ArrayList<TableStructure>();
 			} else if (qName.equalsIgnoreCase("table")) {

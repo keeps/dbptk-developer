@@ -851,7 +851,7 @@ public class SIARDExportModule implements DatabaseHandler {
 					+ "user name cannot be null");
 		}
 		if (user.getDescription() != null) {
-			print("\t\t\t<description>" + user.getName() + "</description>\n");
+			print("\t\t\t<description>" + user.getDescription() + "</description>\n");
 		}
 		print("\t\t</user>\n");
 	}
