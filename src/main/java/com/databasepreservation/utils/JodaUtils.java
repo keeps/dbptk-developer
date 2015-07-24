@@ -4,6 +4,11 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+/**
+ * Utilities involving Joda Time Library
+ * @author Bruno Ferreira <bferreira@keep.pt>
+ *
+ */
 public final class JodaUtils {
 	private JodaUtils(){}
 
@@ -38,7 +43,7 @@ public final class JodaUtils {
 	}
 
 	public static String xs_date_format(DateTime date){
-		return xs_date_format(date, false);
+		return xs_date_format(date, true);
 	}
 
 	public static DateTime xs_date_rewrite(DateTime date){

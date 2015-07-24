@@ -50,6 +50,7 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.siard.in.SIARDImportModule;
+import com.databasepreservation.modules.siard.metadata.MetadataStrategySIARD1;
 import com.databasepreservation.modules.siard.out.SIARDExportModule;
 import com.databasepreservation.utils.JodaUtils;
 
@@ -78,6 +79,9 @@ public class SiardTest {
 		Path tmpFile = Files.createTempFile("roundtripSIARD_", ".zip");
 
 		DatabaseStructure original = generateDatabaseStructure();
+
+		MetadataStrategySIARD1 m = new MetadataStrategySIARD1();
+		m.output(original);
 
 		// TODO: the original structure is passed to the roundtrip test, which means SIARD module can (and does)
 		//    change the original structure (example: makes some descriptions null, changes column folder if

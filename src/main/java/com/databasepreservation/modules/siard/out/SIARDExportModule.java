@@ -246,7 +246,7 @@ public class SIARDExportModule implements DatabaseHandler {
 		try {
 			zipOut.putArchiveEntry(metaXSD);
 			zipOut.write(IOUtils.toByteArray(getClass().getResourceAsStream(
-					"/schema/siard.xsd")));
+					"/schema/siard1.xsd")));
 			zipOut.closeArchiveEntry();
 		} catch (IOException e) {
 			logger.error("Error while writing metadata.xsd to SIARD package", e);
