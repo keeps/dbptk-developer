@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.databasepreservation.modules.sqlFile.out;
 
@@ -41,7 +41,7 @@ import com.databasepreservation.modules.SQLHelper.CellSQLHandler;
 
 /**
  * @author Luis Faria
- * 
+ *
  */
 public class SQLFileExportModule implements DatabaseHandler {
 	private static final Logger logger = Logger
@@ -61,7 +61,7 @@ public class SQLFileExportModule implements DatabaseHandler {
 
 	/**
 	 * Create a new SQLFile export module, specifying the SQL helper to use
-	 * 
+	 *
 	 * @param sqlFile
 	 *            the file where to dump the SQL
 	 * @param sqlHelper
@@ -82,14 +82,17 @@ public class SQLFileExportModule implements DatabaseHandler {
 		currentTable = null;
 	}
 
+	@Override
 	public void initDatabase() throws ModuleException {
 		// nothing to do
 	}
 
+	@Override
 	public void setIgnoredSchemas(Set<String> ignoredSchemas) {
 		// nothing to do
 	}
-	
+
+	@Override
 	public void handleStructure(DatabaseStructure structure)
 			throws ModuleException, UnknownTypeException {
 		try {
@@ -112,7 +115,8 @@ public class SQLFileExportModule implements DatabaseHandler {
 		}
 	}
 
-	public void handleDataOpenTable(String tableId) throws ModuleException {
+	@Override
+	public void handleDataOpenTable(String schemaName, String tableId) throws ModuleException {
 		if (structure != null) {
 			currentTable = structure.lookupTableStructure(tableId);
 		} else {
@@ -121,12 +125,14 @@ public class SQLFileExportModule implements DatabaseHandler {
 		}
 	}
 
+	@Override
 	public void handleDataRow(Row row) throws InvalidDataException,
 			ModuleException {
 		if (currentTable != null) {
 			byte[] rowSQL = sqlHelper.createRowSQL(currentTable, row,
 					new CellSQLHandler() {
 
+						@Override
 						public byte[] createCellSQL(Cell cell,
 								ColumnStructure column)
 								throws InvalidDataException, ModuleException {
@@ -181,16 +187,18 @@ public class SQLFileExportModule implements DatabaseHandler {
 		}
 	}
 
-	public void handleDataCloseTable(String tableId) throws ModuleException {
+	@Override
+	public void handleDataCloseTable(String schemaName, String tableId) throws ModuleException {
 		currentTable = null;
 	}
 
+	@Override
 	public void finishDatabase() throws ModuleException {
 		for (SchemaStructure schema : structure.getSchemas()) {
 			for (TableStructure table : schema.getTables()) {
 				for (ForeignKey fkey : table.getForeignKeys()) {
 					try {
-						String fkeySQL = 
+						String fkeySQL =
 								sqlHelper.createForeignKeySQL(table, fkey);
 						sqlWriter.write(fkeySQL + ";\n");
 						sqlWriter.flush();
@@ -200,7 +208,7 @@ public class SQLFileExportModule implements DatabaseHandler {
 					}
 				}
 			}
-		}		
+		}
 	}
 
 	/**
@@ -208,7 +216,7 @@ public class SQLFileExportModule implements DatabaseHandler {
 	 * <ul>
 	 * <li>'\\': '\\\\'</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param string
 	 *            the original string
 	 * @return the escaped string
@@ -222,7 +230,7 @@ public class SQLFileExportModule implements DatabaseHandler {
 
 	/**
 	 * Escape string literal
-	 * 
+	 *
 	 * @param in
 	 *            the original string input stream
 	 * @param out
@@ -233,7 +241,7 @@ public class SQLFileExportModule implements DatabaseHandler {
 			throws IOException {
 		// BufferedInputStream buffin = new BufferedInputStream(in);
 		// BufferedOutputStream buffout = new BufferedOutputStream(out);
- 
+
 		out.write("E'".getBytes());
 
 		int ibyte = in.read();
@@ -268,7 +276,7 @@ public class SQLFileExportModule implements DatabaseHandler {
 	 * <li>'\\': '\\\\'</li>
 	 * <li>0-31 and 127-255: \xxx</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param in
 	 *            the binary input stream where to read the original binary
 	 * @param out
@@ -313,7 +321,7 @@ public class SQLFileExportModule implements DatabaseHandler {
 
 	/**
 	 * Escape binary and then escape string literal
-	 * 
+	 *
 	 * @param in
 	 *            the binary input stream
 	 * @param out
@@ -327,6 +335,7 @@ public class SQLFileExportModule implements DatabaseHandler {
 		final PipedOutputStream bout = new PipedOutputStream(bin);
 
 		Runnable writerRunnable = new Runnable() {
+			@Override
 			public void run() {
 				try {
 					escapeBinary(in, bout);

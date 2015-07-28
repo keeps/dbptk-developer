@@ -2,8 +2,10 @@ package com.databasepreservation.model.structure;
 
 import java.util.List;
 
+import com.databasepreservation.utils.ListUtils;
+
 /**
- * 
+ *
  * @author Miguel Coutada
  *
  */
@@ -11,23 +13,23 @@ import java.util.List;
 public class RoutineStructure {
 
 	private String name;
-	
+
 	private String description;
-	
+
 	private String source;
-	
+
 	private String body;
-	
+
 	private String characteristic;
-	
+
 	private String returnType;
-	
+
 	private List<Parameter> parameters;
-	
-	
+
+
 
 	/**
-	 * 
+	 *
 	 */
 	public RoutineStructure() {
 	}
@@ -165,35 +167,9 @@ public class RoutineStructure {
 	public void setParameters(List<Parameter> parameters) {
 		this.parameters = parameters;
 	}
-	
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		return result;
-	}
 
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		RoutineStructure other = (RoutineStructure) obj;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		return true;
-	}
-	
-	
-	
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -213,5 +189,89 @@ public class RoutineStructure {
 		builder.append(parameters);
 		builder.append("]");
 		return builder.toString();
+	}
+
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((body == null) ? 0 : body.hashCode());
+		result = prime * result
+				+ ((characteristic == null) ? 0 : characteristic.hashCode());
+		result = prime * result
+				+ ((description == null) ? 0 : description.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result
+				+ ((parameters == null) ? 0 : parameters.hashCode());
+		result = prime * result
+				+ ((returnType == null) ? 0 : returnType.hashCode());
+		result = prime * result + ((source == null) ? 0 : source.hashCode());
+		return result;
+	}
+
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		RoutineStructure other = (RoutineStructure) obj;
+		if (body == null) {
+			if (other.body != null) {
+				return false;
+			}
+		} else if (!body.equals(other.body)) {
+			return false;
+		}
+		if (characteristic == null) {
+			if (other.characteristic != null) {
+				return false;
+			}
+		} else if (!characteristic.equals(other.characteristic)) {
+			return false;
+		}
+		if (description == null) {
+			if (other.description != null) {
+				return false;
+			}
+		} else if (!description.equals(other.description)) {
+			return false;
+		}
+		if (name == null) {
+			if (other.name != null) {
+				return false;
+			}
+		} else if (!name.equals(other.name)) {
+			return false;
+		}
+		if (parameters == null) {
+			if (other.parameters != null) {
+				return false;
+			}
+		} else if (!ListUtils.equalsWithoutOrder(parameters,other.parameters)) {
+			return false;
+		}
+		if (returnType == null) {
+			if (other.returnType != null) {
+				return false;
+			}
+		} else if (!returnType.equals(other.returnType)) {
+			return false;
+		}
+		if (source == null) {
+			if (other.source != null) {
+				return false;
+			}
+		} else if (!source.equals(other.source)) {
+			return false;
+		}
+		return true;
 	}
 }

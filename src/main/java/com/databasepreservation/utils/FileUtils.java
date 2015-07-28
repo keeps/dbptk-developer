@@ -6,6 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Bruno Ferreira
@@ -35,5 +37,25 @@ public final class FileUtils {
 			}
 
 		});
+	}
+
+	public static String nameToFilename(String in){
+		Pattern PATTERN = Pattern.compile("[^A-Za-z0-9_\\-]");
+
+	    StringBuffer sb = new StringBuffer();
+
+	    // Apply the regex.
+	    Matcher m = PATTERN.matcher(in);
+
+	    while (m.find()) {
+
+	        // Convert matched character to percent-encoded.
+	        String replacement = "%"+Integer.toHexString(m.group().charAt(0)).toUpperCase();
+
+	        m.appendReplacement(sb,replacement);
+	    }
+	    m.appendTail(sb);
+
+	    return sb.toString();
 	}
 }

@@ -176,7 +176,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 	}
 
 	@Override
-	public void handleDataCloseTable(String tableId) throws ModuleException {
+	public void handleDataCloseTable(String schemaName, String tableId) throws ModuleException {
 		try {
 			if (!currentIsIgnoredSchema) {
 				getStatement().executeUpdate(
@@ -187,7 +187,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 		} catch (SQLException e) {
 			throw new ModuleException("Error granting permissions to public", e);
 		}
-		super.handleDataCloseTable(tableId);
+		super.handleDataCloseTable(schemaName, tableId);
 	}
 
 	@Override

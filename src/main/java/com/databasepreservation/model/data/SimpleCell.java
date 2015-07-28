@@ -1,11 +1,11 @@
 /**
- * 
+ *
  */
 package com.databasepreservation.model.data;
 
 /**
  * @author Luis Faria
- * 
+ *
  * Container of simple data
  */
 public class SimpleCell extends Cell {
@@ -13,9 +13,9 @@ public class SimpleCell extends Cell {
 
 	/**
 	 * Simple cell constructor with empty data
-	 * @param id 
+	 * @param id
 	 * the cell id
-	 * 
+	 *
 	 */
 	public SimpleCell(String id) {
 		super(id);
@@ -23,10 +23,10 @@ public class SimpleCell extends Cell {
 
 	/**
 	 * Simple cell constructor
-	 * 
+	 *
 	 * @param id
-	 *            the cell id, equal to 'tableId.columnId.rowIndex'
-	 * 
+	 *            the cell id, equal to 'tableId.columnName.rowIndex'
+	 *
 	 * @param simpledata
 	 *            the content of the cell
 	 */

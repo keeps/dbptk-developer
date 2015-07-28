@@ -267,13 +267,15 @@ public class JDBCImportModule implements DatabaseImportModule {
 		List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
 
 		ResultSet rs = getMetadata().getSchemas();
+		int schemaIndex = 1;
 		while (rs.next()) {
 			String schemaName = rs.getString(1);
 			// does not import ignored schemas
 			if (isIgnoredImportedSchema(schemaName)) {
 				continue;
 			}
-			schemas.add(getSchemaStructure(schemaName));
+			schemas.add(getSchemaStructure(schemaName, schemaIndex));
+			schemaIndex++;
 		}
 		return schemas;
 	}
@@ -287,7 +289,10 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 * @return the schema names not to be imported
 	 */
 	protected Set<String> getIgnoredImportedSchemas() {
-		return new HashSet<String>();
+		HashSet ignore = new HashSet<String>();
+		ignore.add("information_schema");
+		ignore.add("pg_catalog");
+		return ignore;
 	}
 
 	/**
@@ -297,11 +302,11 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 * @return the schema structure of a given schema name
 	 * @throws ModuleException
 	 */
-	protected SchemaStructure getSchemaStructure(String schemaName)
+	protected SchemaStructure getSchemaStructure(String schemaName, int schemaIndex)
 			throws SQLException, UnknownTypeException, ClassNotFoundException {
 		SchemaStructure schema = new SchemaStructure();
 		schema.setName(schemaName);
-		schema.setFolder(schemaName);
+		schema.setIndex(schemaIndex);
 
 		schema.setTables(getTables(schema));
 		schema.setViews(getViews(schemaName));
@@ -324,9 +329,11 @@ public class JDBCImportModule implements DatabaseImportModule {
 		List<TableStructure> tables = new ArrayList<TableStructure>();
 		ResultSet rset = getMetadata().getTables(dbStructure.getName(),
 				schema.getName(), "%", new String[] { "TABLE" });
+		int tableIndex = 1;
 		while (rset.next()) {
 			logger.debug("getting table structure for: " + rset.getString(3));
-			tables.add(getTableStructure(schema, rset.getString(3)));
+			tables.add(getTableStructure(schema, rset.getString(3), tableIndex));
+			tableIndex++;
 		}
 		return tables;
 	}
@@ -399,14 +406,14 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 * @throws ModuleException
 	 */
 	protected TableStructure getTableStructure(SchemaStructure schema,
-			String tableName) throws SQLException, UnknownTypeException,
+			String tableName, int tableIndex) throws SQLException, UnknownTypeException,
 			ClassNotFoundException {
 
 		TableStructure table = new TableStructure();
 		table.setId(schema.getName() + "." + tableName);
 		table.setName(tableName);
-		table.setFolder(tableName);
 		table.setSchema(schema);
+		table.setIndex(tableIndex);
 
 		table.setColumns(getColumns(schema.getName(), tableName));
 		table.setPrimaryKey(getPrimaryKey(schema.getName(), tableName));
@@ -1615,8 +1622,10 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 * @return the schemas to be ignored at export
 	 */
 	protected Set<String> getIgnoredExportedSchemas() {
-		// no ignored schemas.
-		return new HashSet<String>();
+		HashSet ignore = new HashSet<String>();
+		ignore.add("information_schema");
+		ignore.add("pg_catalog");
+		return ignore;
 	}
 
 	@Override
@@ -1636,7 +1645,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 					logger.info("STARTED: Getting data of table: "
 							+ table.getId());
 					ResultSet tableRawData = getTableRawData(table.getId());
-					handler.handleDataOpenTable(table.getId());
+					handler.handleDataOpenTable(schema.getName(),table.getId());
 					int nRows = 0;
 					while (tableRawData.next()) {
 						handler.handleDataRow(convertRawToRow(tableRawData,
@@ -1649,7 +1658,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 					logger.info("Total of " + nRows + " row(s) processed");
 					getDatabaseStructure().lookupTableStructure(table.getId())
 							.setRows(nRows);
-					handler.handleDataCloseTable(table.getId());
+					handler.handleDataCloseTable(schema.getName(),table.getId());
 					logger.info("FINISHED: Getting data of table: "
 							+ table.getId());
 				}

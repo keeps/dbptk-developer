@@ -1,35 +1,35 @@
 /**
- * 
+ *
  */
 package com.databasepreservation.model.structure.type;
 
 /**
  * A value of binary string type (known as a binary large object, or BLOB) is a
  * variable length sequence of octets, up to an implementation-defined maximum.
- * 
+ *
  * @author Luis Faria
  */
 public class SimpleTypeBinary extends Type {
 	private String formatRegistryName;
 
 	private String formatRegistryKey;
-	
+
 	private Integer length;
 
 	/**
 	 * Binary type constructor, with no optional fields. Format registry name
 	 * and key will be null
-	 * 
+	 *
 	 */
 	public SimpleTypeBinary() {
 		formatRegistryName = null;
 		formatRegistryKey = null;
 		length = null;
 	}
-	
-	
+
+
 	/**
-	 * 
+	 *
 	 * @param length
 	 * 			  Column size
 	 */
@@ -41,7 +41,7 @@ public class SimpleTypeBinary extends Type {
 
 	/**
 	 * Binary type constructor, with optional fields
-	 * 
+	 *
 	 * @param formatRegistryName
 	 *            a file format registry, like MIME or PRONOM
 	 * @param formatRegistryKey
@@ -71,7 +71,7 @@ public class SimpleTypeBinary extends Type {
 
 	/**
 	 * The file format according to a designated registry
-	 * 
+	 *
 	 * @param name
 	 *            the name of the registry, like MIME or PRONOM
 	 * @param key
@@ -88,5 +88,59 @@ public class SimpleTypeBinary extends Type {
 
 	public void setLength(Integer length) {
 		this.length = length;
+	}
+
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime
+				* result
+				+ ((formatRegistryKey == null) ? 0 : formatRegistryKey
+						.hashCode());
+		result = prime
+				* result
+				+ ((formatRegistryName == null) ? 0 : formatRegistryName
+						.hashCode());
+		result = prime * result + ((length == null) ? 0 : length.hashCode());
+		return result;
+	}
+
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!super.equals(obj)) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		SimpleTypeBinary other = (SimpleTypeBinary) obj;
+		if (formatRegistryKey == null) {
+			if (other.formatRegistryKey != null) {
+				return false;
+			}
+		} else if (!formatRegistryKey.equals(other.formatRegistryKey)) {
+			return false;
+		}
+		if (formatRegistryName == null) {
+			if (other.formatRegistryName != null) {
+				return false;
+			}
+		} else if (!formatRegistryName.equals(other.formatRegistryName)) {
+			return false;
+		}
+		if (length == null) {
+			if (other.length != null) {
+				return false;
+			}
+		} else if (!length.equals(other.length)) {
+			return false;
+		}
+		return true;
 	}
 }

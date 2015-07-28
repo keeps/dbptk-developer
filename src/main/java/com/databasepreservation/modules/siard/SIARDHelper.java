@@ -4,9 +4,9 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.log4j.Logger;
 
 /**
- * 
+ *
  * @author Miguel Coutada
- * 
+ *
  */
 
 public class SIARDHelper {
@@ -15,7 +15,7 @@ public class SIARDHelper {
 
 	/**
 	 * Encodes a data string as defined by SIARD format
-	 * 
+	 *
 	 * @param text
 	 *            the text string to be encoded
 	 * @return the encoded text
@@ -33,7 +33,7 @@ public class SIARDHelper {
 
 	/**
 	 * Decodes an encoded string as defined by SIARD format
-	 * 
+	 *
 	 * @param xml
 	 *            the encoded string
 	 * @return the original string
@@ -75,7 +75,7 @@ public class SIARDHelper {
 	/**
 	 * Checks whether a check constraint condition string is valid to be
 	 * exported to SIARD format
-	 * 
+	 *
 	 * @param condition
 	 * @return
 	 */
@@ -91,7 +91,7 @@ public class SIARDHelper {
 	/**
 	 * Checks whether a trigger action time string is valid to be exported to
 	 * SIARD format
-	 * 
+	 *
 	 * @param actionTime
 	 * @return
 	 */
@@ -100,7 +100,7 @@ public class SIARDHelper {
 				|| actionTime.equalsIgnoreCase("AFTER")
 				|| actionTime.equalsIgnoreCase("INSTEAD OF")) {
 			// Please note that INSTEAD OF was added as a valid action time even
-			// dough it is not suggested in the SIARD specification
+			// tough it is not suggested in the SIARD specification
 			return true;
 		}
 		return false;
@@ -108,7 +108,7 @@ public class SIARDHelper {
 
 	/**
 	 * Checks whether a trigger event is valid to be exported to SIARD format
-	 * 
+	 *
 	 * @param triggerEvent
 	 * @return
 	 */
@@ -124,7 +124,7 @@ public class SIARDHelper {
 	/**
 	 * Checks whether a privilege option string is valid to be exported to SIARD
 	 * format
-	 * 
+	 *
 	 * @param option
 	 * @return
 	 */

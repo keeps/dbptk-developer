@@ -21,7 +21,7 @@ import com.databasepreservation.modules.oracle.OracleHelper;
 
 /**
  * Microsoft SQL Server JDBC import module.
- * 
+ *
  * @author Luis Faria
  */
 public class Oracle12cJDBCImportModule extends JDBCImportModule {
@@ -30,8 +30,8 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
 			.getLogger(Oracle12cJDBCImportModule.class);
 
 	/**
-	 * Create a new Oracle12c import module 
-	 * 
+	 * Create a new Oracle12c import module
+	 *
 	 * @param serverName
 	 *            the name (host name) of the server
 	 * @param database
@@ -45,13 +45,14 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
 			String database, String username, String password) {
 
 		super("oracle.jdbc.driver.OracleDriver", "jdbc:oracle:thin:" + username
-				+ "/" + password + "@" + serverName + ":" + port + "/" 
+				+ "/" + password + "@" + serverName + ":" + port + "/"
 				+ database, new OracleHelper());
 
-		logger.info("jdbc:oracle:thin:@//" 
+		logger.info("jdbc:oracle:thin:@//"
 				+ serverName + ":" + port + "/" + database);
 	}
-	
+
+	@Override
 	protected Statement getStatement() throws SQLException,
 			ClassNotFoundException {
 		if (statement == null) {
@@ -61,41 +62,43 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
 		}
 		return statement;
 	}
-	
+
+	@Override
 	protected String getDbName() throws SQLException, ClassNotFoundException {
 		return getMetadata().getUserName();
 	}
-	
-	protected List<SchemaStructure> getSchemas() throws SQLException, 
+
+	@Override
+	protected List<SchemaStructure> getSchemas() throws SQLException,
 			ClassNotFoundException, UnknownTypeException {
 		List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
 		String schemaName = getMetadata().getUserName();
-		schemas.add(getSchemaStructure(schemaName));
+		schemas.add(getSchemaStructure(schemaName, 1));
 		return schemas;
 	}
-	
+
 	@Override
 	protected Type getLongvarcharType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) throws UnknownTypeException {
-		throw new UnknownTypeException("Unsuported JDBC type, code: -1. Oracle " 
+		throw new UnknownTypeException("Unsuported JDBC type, code: -1. Oracle "
 				+ typeName + " data type is not supported.");
 	}
-	
+
 	@Override
-	protected Type getOtherType(int dataType, String typeName, int columnSize, 
+	protected Type getOtherType(int dataType, String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) throws UnknownTypeException {
 		Type type;
 		// TODO define charset
 		if (typeName.equalsIgnoreCase("NCHAR")) {
-			type = new SimpleTypeString(Integer.valueOf(columnSize), 
+			type = new SimpleTypeString(Integer.valueOf(columnSize),
 					Boolean.FALSE, "CHARSET");
 			type.setSql99TypeName("CHARACTER");
 		} else if (typeName.equalsIgnoreCase("NVARCHAR2")) {
-			type = new SimpleTypeString(Integer.valueOf(columnSize), 
+			type = new SimpleTypeString(Integer.valueOf(columnSize),
 					Boolean.TRUE, "CHARSET");
 			type.setSql99TypeName("CHARACTER VARYING");
 		} else if (typeName.equalsIgnoreCase("NCLOB")) {
-			type = new SimpleTypeString(Integer.valueOf(columnSize), 
+			type = new SimpleTypeString(Integer.valueOf(columnSize),
 					Boolean.TRUE, "CHARSET");
 			type.setSql99TypeName("CHARACTER LARGE OBJECT");
 		} else if (typeName.equalsIgnoreCase("ROWID")) {
@@ -106,16 +109,16 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
 			type = new SimpleTypeString(
 					Integer.valueOf(columnSize), Boolean.TRUE);
 			type.setSql99TypeName("CHARACTER VARYING");
-		} else {		
-			type = super.getOtherType(dataType, typeName, columnSize, 
+		} else {
+			type = super.getOtherType(dataType, typeName, columnSize,
 					decimalDigits, numPrecRadix);
 		}
-		return type; 
+		return type;
 	}
 
 	@Override
-	protected Type getSpecificType(int dataType, String typeName, 
-			int columnSize, int decimalDigits, int numPrecRadix) 
+	protected Type getSpecificType(int dataType, String typeName,
+			int columnSize, int decimalDigits, int numPrecRadix)
 					throws UnknownTypeException {
 		Type type;
 		switch (dataType) {
@@ -142,7 +145,7 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
 			type.setSql99TypeName("TIMESTAMP");
 			break;
 		default:
-			type = super.getSpecificType(dataType, typeName, columnSize, 
+			type = super.getSpecificType(dataType, typeName, columnSize,
 					decimalDigits, numPrecRadix);
 			break;
 		}

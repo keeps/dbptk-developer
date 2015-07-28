@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.databasepreservation.model.structure.type;
 
@@ -7,12 +7,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import com.databasepreservation.utils.MapUtils;
+
 /**
  * A list of possible values for this field. Each value is represented by a
  * string.
- * 
+ *
  * @author Luis Faria
- * 
+ *
  */
 public class SimpleTypeEnumeration extends Type {
 
@@ -29,10 +31,10 @@ public class SimpleTypeEnumeration extends Type {
 	public SimpleTypeEnumeration() {
 		this.options = new HashMap<String, String>();
 	}
-	
+
 	/**
 	 * Enumeration type contructor
-	 * 
+	 *
 	 * @param options
 	 *            the allowed options for values of columns of this type
 	 */
@@ -45,7 +47,7 @@ public class SimpleTypeEnumeration extends Type {
 
 	/**
 	 * Enumeration type constructor, with descriptions
-	 * 
+	 *
 	 * @param options
 	 *            A map where the keys are the possible options and the values
 	 *            are the descriptions of each option
@@ -63,7 +65,7 @@ public class SimpleTypeEnumeration extends Type {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return A map where the keys are the possible options and the values are
 	 *         the descriptions of each option
 	 */
@@ -83,7 +85,7 @@ public class SimpleTypeEnumeration extends Type {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param options
 	 *            A map where the keys are the possible options and the values
 	 *            are the descriptions of each option
@@ -94,7 +96,7 @@ public class SimpleTypeEnumeration extends Type {
 
 	/**
 	 * Get the description of an option
-	 * 
+	 *
 	 * @param option
 	 *            the option
 	 * @return the description or null if no description was set
@@ -106,7 +108,7 @@ public class SimpleTypeEnumeration extends Type {
 	/**
 	 * Set the description option. If the option doesn't exist, it will be
 	 * created
-	 * 
+	 *
 	 * @param option
 	 *            the option
 	 * @param description
@@ -115,6 +117,36 @@ public class SimpleTypeEnumeration extends Type {
 	public void setOptionDescription(String option, String description) {
 		options.remove(option);
 		options.put(option, description);
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((options == null) ? 0 : options.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!super.equals(obj)) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		SimpleTypeEnumeration other = (SimpleTypeEnumeration) obj;
+		if (options == null) {
+			if (other.options != null) {
+				return false;
+			}
+		} else if (! MapUtils.equals(options,other.options)) {
+			return false;
+		}
+		return true;
 	}
 
 }

@@ -1,4 +1,4 @@
-package com.databasepreservation;
+package com.databasepreservation.integration.roundtrip;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -16,8 +16,10 @@ import java.util.Map.Entry;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.log4j.Logger;
 
-import com.databasepreservation.diff_match_patch.Diff;
+import com.databasepreservation.Main;
 import com.databasepreservation.utils.FileUtils;
+import com.databasepreservation.utils.diff_match_patch;
+import com.databasepreservation.utils.diff_match_patch.Diff;
 
 public class Roundtrip {
 	public static final String TMP_FILE_SIARD_VAR = "%TMP_FILE_SIARD%";

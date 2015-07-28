@@ -2,7 +2,6 @@ package com.databasepreservation;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -16,8 +15,6 @@ import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.DatabaseImportModule;
 import com.databasepreservation.modules.db2.in.DB2JDBCImportModule;
 import com.databasepreservation.modules.db2.out.DB2JDBCExportModule;
-import com.databasepreservation.modules.dbml.in.DBMLImportModule;
-import com.databasepreservation.modules.dbml.out.DBMLExportModule;
 import com.databasepreservation.modules.msAccess.in.MsAccessUCanAccessImportModule;
 import com.databasepreservation.modules.mySql.in.MySQLJDBCImportModule;
 import com.databasepreservation.modules.mySql.out.MySQLJDBCExportModule;
@@ -52,7 +49,7 @@ public class Main {
 		System.exit(internal_main(args));
 	}
 
-	protected static int internal_main(String... args) {
+	public static int internal_main(String... args) {
 		List<String> importModuleArgs = new Vector<String>();
 		List<String> exportModuleArgs = new Vector<String>();
 
@@ -204,18 +201,6 @@ public class Main {
 				logger.error("Wrong argument number for "
 						+ "MySQLJDBC import module: " + importModuleArgs.size());
 			}
-		} else if (importModuleArgs.get(0).equals("DBML")) {
-			if (importModuleArgs.size() == 2) {
-				try {
-					importModule = new DBMLImportModule(new File(
-							importModuleArgs.get(1)));
-				} catch (ModuleException e) {
-					logger.error("Error creating DBML import module", e);
-				}
-			} else {
-				logger.error("Wrong argument number for "
-						+ "DBML import module: " + importModuleArgs.size());
-			}
 		} else if (importModuleArgs.get(0).equalsIgnoreCase("SIARD")) {
 			if (importModuleArgs.size() == 2) {
 				try {
@@ -276,21 +261,7 @@ public class Main {
 
 	private static DatabaseHandler getExportModule(List<String> exportModuleArgs) {
 		DatabaseHandler exportModule = null;
-		if (exportModuleArgs.get(0).equals("DBML")) {
-			if (exportModuleArgs.size() == 2) {
-				try {
-					exportModule = new DBMLExportModule(new File(
-							exportModuleArgs.get(1)));
-				} catch (FileNotFoundException e) {
-					logger.error("Could not find file for DBML export", e);
-				} catch (UnsupportedEncodingException e) {
-					logger.error("Unsupported encoding", e);
-				}
-			} else {
-				logger.error("Wrong argument number for "
-						+ "DBML export module: " + exportModuleArgs.size());
-			}
-		} else if (exportModuleArgs.get(0).equalsIgnoreCase("SIARD")) {
+		if (exportModuleArgs.get(0).equalsIgnoreCase("SIARD")) {
 			if (exportModuleArgs.size() == 3) {
 				try {
 					exportModule = new SIARDExportModule(new File(
