@@ -47,6 +47,22 @@ public class SIARDExportHelper {
 		return exportTypePair(type).getRight();
 	}
 
+	public static SIARDExportHelper getSIARDExportHelper(String product) {
+		SIARDExportHelper siardExportHelper = new SIARDExportHelper();
+
+		if (StringUtils.containsIgnoreCase(product, "MySQL")) {
+			siardExportHelper = new SIARDExportHelperMySQL();
+		} else if (StringUtils.containsIgnoreCase(product, "PostgreSQL")) {
+			siardExportHelper = new SIARDExportHelperPostgreSQL();
+		} else if (StringUtils.containsIgnoreCase(product, "Oracle")) {
+			siardExportHelper = new SIARDExportHelperOracle();
+		} else if (StringUtils.containsIgnoreCase(product, "SQL Server")) {
+			siardExportHelper = new SIARDExportHelperSQLServer();
+		}
+
+		return siardExportHelper;
+	}
+
 	/**
 	 * Gets the appropriate folder name for the table structure
 	 * @param table
@@ -100,6 +116,7 @@ public class SIARDExportHelper {
 				"unsupported");
 	}
 
+	// jdbc done
 	protected Pair<String, String> exportSimpleTypeString(Type type) {
 		String dataType = null;
 		String xsdType = null;
@@ -121,6 +138,7 @@ public class SIARDExportHelper {
 		return new ImmutablePair<String, String>(dataType, xsdType);
 	}
 
+	// jdbc done
 	protected Pair<String, String> exportSimpleTypeNumericExact(Type type) {
 		SimpleTypeNumericExact numExactType = (SimpleTypeNumericExact) type;
 		StringBuilder sb = new StringBuilder();
@@ -146,6 +164,7 @@ public class SIARDExportHelper {
 		return new ImmutablePair<String, String>(sb.toString(), xsdType);
 	}
 
+	// jdbc done
 	protected Pair<String, String> exportSimpleTypeNumericApproximate(Type type) {
 		SimpleTypeNumericApproximate numApproxType = (SimpleTypeNumericApproximate) type;
 		StringBuilder sb = new StringBuilder();

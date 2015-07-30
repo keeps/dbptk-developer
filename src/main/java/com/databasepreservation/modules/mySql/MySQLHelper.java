@@ -166,8 +166,8 @@ public class MySQLHelper extends SQLHelper {
 	 * SQL to create a foreign key (relation), altering the already created
 	 * table
 	 *
-	 * @param tableName
-	 *            the name of the table
+	 * @param table
+	 *            the table
 	 * @param fkey
 	 *            the foreign key
 	 * @param addConstraint

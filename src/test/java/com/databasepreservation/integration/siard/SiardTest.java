@@ -2,6 +2,7 @@ package com.databasepreservation.integration.siard;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.databasepreservation.modules.siard.path.PathStrategySIARD1;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.mockito.ArgumentCaptor;
@@ -52,6 +54,9 @@ import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.siard.in.SIARDImportModule;
 import com.databasepreservation.modules.siard.metadata.MetadataStrategySIARD1;
 import com.databasepreservation.modules.siard.out.SIARDExportModule;
+import com.databasepreservation.modules.siard.path.PathStrategy;
+import com.databasepreservation.modules.siard.write.OutputContainer;
+import com.databasepreservation.modules.siard.write.WriteStrategy;
 import com.databasepreservation.utils.JodaUtils;
 
 /**
@@ -80,8 +85,18 @@ public class SiardTest {
 
 		DatabaseStructure original = generateDatabaseStructure();
 
+		PathStrategy p = new PathStrategySIARD1();
+		WriteStrategy ws = new WriteStrategy() {
+
+			@Override
+			public void write(OutputContainer container, String path,
+					InputStream dataSource) throws ModuleException {
+				// TODO Auto-generated method stub
+
+			}
+		};
 		MetadataStrategySIARD1 m = new MetadataStrategySIARD1();
-		m.output(original);
+		m.output(original, p, ws);
 
 		// TODO: the original structure is passed to the roundtrip test, which means SIARD module can (and does)
 		//    change the original structure (example: makes some descriptions null, changes column folder if

@@ -163,7 +163,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 	public Set<String> getIgnoredExportedSchemas() {
 		Set<String> ignoredSchemas = new HashSet<String>();
 		ignoredSchemas.add("information_schema");
-		ignoredSchemas.add("pg_.*");
+		ignoredSchemas.add("pg_.*"); //TODO: is this working?
 
 		return ignoredSchemas;
 	}
@@ -171,7 +171,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 	@Override
 	protected Type getBinaryType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
-		Type type = new SimpleTypeBinary(Integer.valueOf(columnSize));
+		Type type = new SimpleTypeBinary(columnSize);
 		if (typeName.equalsIgnoreCase("bytea")) {
 			type.setSql99TypeName("BINARY LARGE OBJECT");
 		} else {
@@ -188,8 +188,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 			logger.warn("Setting Money column size to 53");
 			columnSize = 53;
 		}
-		Type type = new SimpleTypeNumericApproximate(
-				Integer.valueOf(columnSize));
+		Type type = new SimpleTypeNumericApproximate(columnSize);
 		type.setSql99TypeName("DOUBLE PRECISION");
 		return type;
 	}
@@ -199,10 +198,10 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 			int decimalDigits, int numPrecRadix) {
 		Type type;
 		if (typeName.equalsIgnoreCase("TIMETZ")) {
-			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.TRUE);
+			type = new SimpleTypeDateTime(true, true);
 			type.setSql99TypeName("TIME WITH TIME ZONE");
 		} else {
-			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+			type = new SimpleTypeDateTime(true, false);
 			type.setSql99TypeName("TIME");
 		}
 
@@ -214,10 +213,10 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 			int decimalDigits, int numPrecRadix) {
 		Type type;
 		if (typeName.equalsIgnoreCase("TIMESTAMPTZ")) {
-			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.TRUE);
+			type = new SimpleTypeDateTime(true, true);
 			type.setSql99TypeName("TIMESTAMP WITH TIME ZONE");
 		} else {
-			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+			type = new SimpleTypeDateTime(true, false);
 			type.setSql99TypeName("TIMESTAMP");
 		}
 
@@ -227,8 +226,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 	@Override
 	protected Type getVarcharType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
-		Type type = new SimpleTypeString(Integer.valueOf(columnSize),
-				Boolean.TRUE);
+		Type type = new SimpleTypeString(columnSize, true);
 		if (typeName.equalsIgnoreCase("text")) {
 			type.setSql99TypeName("CHARACTER LARGE OBJECT");
 		} else {
@@ -246,8 +244,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 		logger.debug("------\n");
 		switch (dataType) {
 		case 2009: // XML Data type
-			type = new SimpleTypeString(Integer.valueOf(columnSize),
-					Boolean.TRUE);
+			type = new SimpleTypeString(columnSize, true);
 			type.setSql99TypeName("CHARACTER LARGE OBJECT");
 			break;
 		default:

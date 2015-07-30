@@ -2,6 +2,8 @@ package com.databasepreservation.modules.siard.metadata;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.modules.siard.path.PathStrategy;
+import com.databasepreservation.modules.siard.write.WriteStrategy;
 
 /**
  *
@@ -9,6 +11,6 @@ import com.databasepreservation.model.structure.DatabaseStructure;
  *
  */
 public interface MetadataStrategy {
-	public void output(DatabaseStructure database)
+	public void output(DatabaseStructure database, PathStrategy paths, WriteStrategy writer)
 			throws ModuleException;
 }
