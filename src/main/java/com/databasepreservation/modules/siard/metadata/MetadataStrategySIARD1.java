@@ -1,40 +1,60 @@
 package com.databasepreservation.modules.siard.metadata;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Writer;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 
 import com.databasepreservation.model.structure.*;
 import com.databasepreservation.modules.siard.metadata.jaxb.siard1.*;
+import com.databasepreservation.modules.siard.write.OutputContainer;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.exception.UnknownTypeException;
-import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.SIARDHelper;
 import com.databasepreservation.modules.siard.out.SIARDExportHelper;
 import com.databasepreservation.modules.siard.path.PathStrategy;
 import com.databasepreservation.modules.siard.write.WriteStrategy;
+import org.xml.sax.SAXException;
 
+/**
+ * @author Bruno Ferreira <bferreira@keep.pt>
+ */
 public class MetadataStrategySIARD1 implements MetadataStrategy {
 	private final Logger logger = Logger.getLogger(MetadataStrategySIARD1.class);
-	private static final String ENCODING = "UTF-8";
 
-	private DatabaseStructure currentDatabaseStructure = null;
-	private PathStrategy currentPathStrategy = null;
-	private WriteStrategy currentWriteStrategy = null;
+	private static final String ENCODING = "UTF-8";
+	private static final String METADATA_XSD_RESOURCE_PATH = "/schema/siard1.xsd";
+
+	private DatabaseStructure dbStructure = null;
+	private PathStrategy pathStrategy = null;
+	private WriteStrategy writeStrategy = null;
 
 	//don't access this property directly, use getCurrentSIARDExportHelper() instead
 	private SIARDExportHelper siardExportHelper = null;
 
+	public MetadataStrategySIARD1(DatabaseStructure database, PathStrategy paths, WriteStrategy writer){
+		dbStructure = database;
+		pathStrategy = paths;
+		writeStrategy = writer;
+	}
+
 	@Override
-	public void output(DatabaseStructure database, PathStrategy paths, WriteStrategy writer)
-			throws ModuleException {
+	public void writeMetadataXML(OutputContainer container) throws ModuleException {
 
 		JAXBContext context;
 		try {
@@ -43,32 +63,51 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 			throw new ModuleException("Error loading JAXBContext", e);
 		}
 
-		currentDatabaseStructure = database;
-		currentPathStrategy = paths;
-		currentWriteStrategy = writer;
+		SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+		Schema xsdschema = null;
+		try {
+			xsdschema = schemaFactory.newSchema(Paths.get(getClass().getResource(METADATA_XSD_RESOURCE_PATH).getPath()).toFile());
+		} catch (SAXException e) {
+			throw new ModuleException("XSD file has errors: " + getClass().getResource(METADATA_XSD_RESOURCE_PATH).getPath(), e);
+		}
 
-		SiardArchive xmlroot = jaxbSiardArchive(database);
-
+		SiardArchive xmlroot = jaxbSiardArchive(dbStructure);
 		Marshaller m;
 		try {
 			m = context.createMarshaller();
+			m.setSchema(xsdschema);
 			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 		    m.setProperty(Marshaller.JAXB_ENCODING, ENCODING);
-	        m.marshal( xmlroot, System.out );
+			OutputStream out = writeStrategy.createOutputStream(container, pathStrategy.metadataXmlFile());
+	        m.marshal( xmlroot, out );
+			out.close();
 		} catch (JAXBException e) {
 			throw new ModuleException("Error while Marshalling JAXB", e);
+		} catch (IOException e){
+			throw new ModuleException("IO error while closing OutputStream for " + pathStrategy.metadataXmlFile(), e);
 		}
 	}
 
-	private String getSql99Type(Type type) throws ModuleException{
-		if( siardExportHelper == null ){
-			siardExportHelper = SIARDExportHelper.getSIARDExportHelper(currentDatabaseStructure.getProductName());
+	@Override
+	public void writeMetadataXSD(OutputContainer container) throws ModuleException {
+		// prepare to write
+		Writer writer = WriteStrategy.Utils.getWriterFromOutputStream(
+				writeStrategy.createOutputStream(container, pathStrategy.metadataXsdFile()));
+
+		// prepare to read
+		Path xsdSchema = Paths.get(getClass().getResource(METADATA_XSD_RESOURCE_PATH).getPath());
+		BufferedReader reader = null;
+		try {
+			 reader = Files.newBufferedReader(xsdSchema);
+		} catch (IOException e) {
+			throw new ModuleException("Could not read from " + getClass().getResource(METADATA_XSD_RESOURCE_PATH).getPath(), e);
 		}
 
+		// read everything from reader into writer
 		try {
-			return siardExportHelper.exportType(type);
-		} catch (UnknownTypeException e) {
-			throw new ModuleException(e);
+			IOUtils.copy(reader,writer);
+		} catch (IOException e) {
+			throw new ModuleException("Could not write " + pathStrategy.metadataXsdFile() + " in container " + container.toString() , e);
 		}
 	}
 
@@ -273,7 +312,7 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 
 		if(StringUtils.isNotBlank(schema.getName())){
 			schemaType.setName(schema.getName());
-			schemaType.setFolder(currentPathStrategy.schemaFolder(schema.getIndex()));
+			schemaType.setFolder(pathStrategy.schemaFolder(schema.getIndex()));
 		}else{
 			throw new ModuleException("Error while exporting schema structure: schema name cannot be blank");
 		}
@@ -363,7 +402,7 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 		}
 
 		if(parameter.getType() != null){
-			parameterType.setType(getSql99Type(parameter.getType()));
+			parameterType.setType(parameter.getType().getSql99TypeName());
 			parameterType.setTypeOriginal(parameter.getType().getOriginalTypeName());
 		}else{
 			throw new ModuleException("Error while exporting routine parameters: parameter type cannot be null");
@@ -436,7 +475,7 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 		}
 
 		if(column.getType() != null){
-			columnType.setType(getSql99Type(column.getType()));
+			columnType.setType(column.getType().getSql99TypeName());
 		}else{
 			throw new ModuleException("Error while exporting table structure: column type cannot be null");
 		}
@@ -477,7 +516,7 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 
 		if(StringUtils.isNotBlank(table.getName())){
 			tableType.setName(table.getName());
-			tableType.setFolder(currentPathStrategy.tableFolder(schema.getIndex(), table.getIndex()));
+			tableType.setFolder(pathStrategy.tableFolder(schema.getIndex(), table.getIndex()));
 		}else{
 			throw new ModuleException("Error while exporting table structure: table name cannot be blank");
 		}

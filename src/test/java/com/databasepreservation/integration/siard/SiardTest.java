@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.databasepreservation.modules.siard.outputStrategy.SIARD1ExportModule;
 import com.databasepreservation.modules.siard.path.PathStrategySIARD1;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -82,21 +83,9 @@ public class SiardTest {
 	@Test
 	public void SIARD_Roundtrip() throws ModuleException, IOException, UnknownTypeException, InvalidDataException{
 		Path tmpFile = Files.createTempFile("roundtripSIARD_", ".zip");
+		//Path tmpFile = Files.createTempDirectory("roundtripSIARD_");
 
 		DatabaseStructure original = generateDatabaseStructure();
-
-		PathStrategy p = new PathStrategySIARD1();
-		WriteStrategy ws = new WriteStrategy() {
-
-			@Override
-			public void write(OutputContainer container, String path,
-					InputStream dataSource) throws ModuleException {
-				// TODO Auto-generated method stub
-
-			}
-		};
-		MetadataStrategySIARD1 m = new MetadataStrategySIARD1();
-		m.output(original, p, ws);
 
 		// TODO: the original structure is passed to the roundtrip test, which means SIARD module can (and does)
 		//    change the original structure (example: makes some descriptions null, changes column folder if
@@ -492,6 +481,8 @@ public class SiardTest {
 	private DatabaseStructure roundtrip(DatabaseStructure dbStructure, Path tmpFile)
 			throws FileNotFoundException, ModuleException, UnknownTypeException, InvalidDataException{
 		SIARDExportModule exporter = new SIARDExportModule(tmpFile.toFile(), false);
+
+		//SIARD1ExportModule exporter = new SIARD1ExportModule(tmpFile, true);
 
 		// behaviour
 		logger.debug("initializing database");

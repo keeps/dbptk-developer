@@ -19,6 +19,9 @@ import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  *
  * @author Miguel Coutada
@@ -27,6 +30,47 @@ import com.databasepreservation.model.structure.type.UnsupportedDataType;
  */
 
 public class SIARDExportHelper {
+	private static final Map<String, String> sql99toXSDconstant = new HashMap<String, String>();
+	private static final Map<String, String> sql99toXSDregex = new HashMap<String, String>();
+	static {
+		// initialize sql99 conversion tables
+
+		// direct mapping
+		sql99toXSDconstant.put("BINARY LARGE OBJECT", "blobType");
+		sql99toXSDconstant.put("BIT VARYING", "xs:hexBinary");
+		sql99toXSDconstant.put("BIT", "xs:hexBinary");
+		sql99toXSDconstant.put("BLOB", "blobType");
+		sql99toXSDconstant.put("BOOLEAN", "xs:boolean");
+		sql99toXSDconstant.put("CHARACTER LARGE OBJECT", "clobType");
+		sql99toXSDconstant.put("CHARACTER VARYING", "xs:string");
+		sql99toXSDconstant.put("CHARACTER", "xs:string");
+		sql99toXSDconstant.put("CLOB", "clobType");
+		sql99toXSDconstant.put("DATE", "xs:date");
+		sql99toXSDconstant.put("DECIMAL", "xs:decimal");
+		sql99toXSDconstant.put("DOUBLE PRECISION", "xs:float");
+		sql99toXSDconstant.put("DOUBLE", "xs:float");
+		sql99toXSDconstant.put("FLOAT", "xs:float");
+		sql99toXSDconstant.put("INTEGER", "xs:integer");
+		sql99toXSDconstant.put("NATIONAL CHARACTER LARGE OBJECT", "clobType");
+		sql99toXSDconstant.put("NATIONAL CHARACTER VARYING", "xs:string");
+		sql99toXSDconstant.put("NATIONAL CHARACTER", "xs:string");
+		sql99toXSDconstant.put("NUMERIC", "xs:decimal");
+		sql99toXSDconstant.put("REAL", "xs:float");
+		sql99toXSDconstant.put("SMALLINT", "xs:integer");
+		sql99toXSDconstant.put("TIME WITH TIME ZONE", "xs:time");
+		sql99toXSDconstant.put("TIME", "xs:time");
+		sql99toXSDconstant.put("TIMESTAMP WITH TIME ZONE", "xs:dateTime");
+		sql99toXSDconstant.put("TIMESTAMP", "xs:dateTime");
+
+		// mapping using regex
+		sql99toXSDregex.put("^BIT VARYING\\(\\d+\\)$", "xs:hexBinary");
+		sql99toXSDregex.put("^BIT\\(\\d+\\)$", null);
+		sql99toXSDregex.put("^CHARACTER VARYING\\(\\d+\\)$", null);
+		sql99toXSDregex.put("^CHARACTER\\(\\d+\\)$", null);
+		sql99toXSDregex.put("^DECIMAL\\(\\d+(,\\d+)?\\)$", null);
+		sql99toXSDregex.put("^FLOAT\\(\\d+\\)$", null);
+		sql99toXSDregex.put("^NUMERIC\\(\\d+(,\\d+)?\\)$", null);
+	}
 
 	/**
 	 * Gets the Type corresponding SQL:1999 data type string in order to be
@@ -47,13 +91,45 @@ public class SIARDExportHelper {
 		return exportTypePair(type).getRight();
 	}
 
+	public String getXSDtype(Type type) throws ModuleException, UnknownTypeException {
+		String ret = null;
+		if (type instanceof SimpleTypeString
+				|| type instanceof SimpleTypeNumericExact
+				|| type instanceof SimpleTypeNumericApproximate
+				|| type instanceof SimpleTypeBoolean
+				|| type instanceof SimpleTypeDateTime
+				|| type instanceof SimpleTypeBinary ){
+
+			// try to find xsd corresponding to the sql99 type in the constants conversion table
+			ret = sql99toXSDconstant.get(type.getSql99TypeName());
+
+			// if that failed, try to find xsd corresponding to the sql99 type by using the regex in the regex conversion table
+			if( ret == null ){
+				for (Map.Entry<String, String> entry : sql99toXSDregex.entrySet()) {
+					if( type.getSql99TypeName().matches(entry.getKey()) ){
+						ret = entry.getValue();
+						break;
+					}
+				}
+			}
+
+		} else if (type instanceof UnsupportedDataType) {
+			ret = "unsupported";
+		} else if (type instanceof ComposedTypeArray) {
+			throw new ModuleException("Not yet supported type: ARRAY");
+		} else if (type instanceof ComposedTypeStructure) {
+			throw new ModuleException("Not yet supported type: ROW");
+		} else {
+			throw new UnknownTypeException(type.toString());
+		}
+		return ret;
+	}
+
 	public static SIARDExportHelper getSIARDExportHelper(String product) {
 		SIARDExportHelper siardExportHelper = new SIARDExportHelper();
 
 		if (StringUtils.containsIgnoreCase(product, "MySQL")) {
 			siardExportHelper = new SIARDExportHelperMySQL();
-		} else if (StringUtils.containsIgnoreCase(product, "PostgreSQL")) {
-			siardExportHelper = new SIARDExportHelperPostgreSQL();
 		} else if (StringUtils.containsIgnoreCase(product, "Oracle")) {
 			siardExportHelper = new SIARDExportHelperOracle();
 		} else if (StringUtils.containsIgnoreCase(product, "SQL Server")) {
@@ -116,7 +192,6 @@ public class SIARDExportHelper {
 				"unsupported");
 	}
 
-	// jdbc done
 	protected Pair<String, String> exportSimpleTypeString(Type type) {
 		String dataType = null;
 		String xsdType = null;
@@ -138,7 +213,6 @@ public class SIARDExportHelper {
 		return new ImmutablePair<String, String>(dataType, xsdType);
 	}
 
-	// jdbc done
 	protected Pair<String, String> exportSimpleTypeNumericExact(Type type) {
 		SimpleTypeNumericExact numExactType = (SimpleTypeNumericExact) type;
 		StringBuilder sb = new StringBuilder();
@@ -164,7 +238,6 @@ public class SIARDExportHelper {
 		return new ImmutablePair<String, String>(sb.toString(), xsdType);
 	}
 
-	// jdbc done
 	protected Pair<String, String> exportSimpleTypeNumericApproximate(Type type) {
 		SimpleTypeNumericApproximate numApproxType = (SimpleTypeNumericApproximate) type;
 		StringBuilder sb = new StringBuilder();

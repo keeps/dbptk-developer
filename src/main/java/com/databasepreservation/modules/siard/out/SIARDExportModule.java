@@ -521,8 +521,6 @@ public class SIARDExportModule implements DatabaseHandler {
 		if (siardExportHelper == null) {
 			if (StringUtils.containsIgnoreCase(product, "MySQL")) {
 				siardExportHelper = new SIARDExportHelperMySQL();
-			} else if (StringUtils.containsIgnoreCase(product, "PostgreSQL")) {
-				siardExportHelper = new SIARDExportHelperPostgreSQL();
 			} else if (StringUtils.containsIgnoreCase(product, "Oracle")) {
 				siardExportHelper = new SIARDExportHelperOracle();
 			} else if (StringUtils.containsIgnoreCase(product, "SQL Server")) {

@@ -753,8 +753,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			break;
 		case Types.BIT:
 			if (columnSize > 1) {
-				type = new SimpleTypeBinary(columnSize);
-				type.setSql99TypeName("BIT");
+				type = getBinaryType(typeName, columnSize, decimalDigits, numPrecRadix);
 			} else {
 				type = new SimpleTypeBoolean();
 				type.setSql99TypeName("BOOLEAN");
@@ -820,8 +819,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			type = getNumericType(typeName, columnSize, decimalDigits, numPrecRadix);
 			break;
 		case Types.REAL:
-			type = new SimpleTypeNumericApproximate(columnSize);
-			type.setSql99TypeName("REAL");
+			type = getRealType(typeName, columnSize, decimalDigits, numPrecRadix);
 			break;
 		case Types.SMALLINT:
 			type = new SimpleTypeNumericExact(columnSize, decimalDigits);
@@ -832,16 +830,14 @@ public class JDBCImportModule implements DatabaseImportModule {
 					numPrecRadix);
 			break;
 		case Types.TIMESTAMP:
-			type = getTimestampType(typeName, columnSize, decimalDigits,
-					numPrecRadix);
+			type = getTimestampType(typeName, columnSize, decimalDigits, numPrecRadix);
 			break;
 		case Types.TINYINT:
 			type = new SimpleTypeNumericExact(columnSize, decimalDigits);
 			type.setSql99TypeName("SMALLINT");
 			break;
 		case Types.VARBINARY:
-			type = new SimpleTypeBinary(columnSize);
-			type.setSql99TypeName("BIT VARYING");
+			type = getVarbinaryType(typeName, columnSize, decimalDigits, numPrecRadix);
 			break;
 		case Types.VARCHAR:
 			type = getVarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
@@ -881,6 +877,18 @@ public class JDBCImportModule implements DatabaseImportModule {
 			type.setOriginalTypeName(typeName);
 		}
 
+		return type;
+	}
+
+	protected Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+		Type type = new SimpleTypeBinary(columnSize);
+		type.setSql99TypeName("BIT VARYING");
+		return type;
+	}
+
+	protected Type getRealType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+		Type type = new SimpleTypeNumericApproximate(columnSize);
+		type.setSql99TypeName("REAL");
 		return type;
 	}
 
