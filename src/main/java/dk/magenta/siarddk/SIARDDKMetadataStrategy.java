@@ -44,9 +44,15 @@ public class SIARDDKMetadataStrategy implements MetadataStrategy {
 			tableIndex.setDatabaseProduct(dbStructure.getProductName());	
 		}
 		
-		// Set tables -- throws ModuleException??, Test passes??
+		// Set tables 
 		TablesType tables = new TablesType();
+		if (dbStructure.getSchemas() == null) {
+			throw new ModuleException("No schemas in database structure!");
+		}
 		for (SchemaStructure schemaStructure : dbStructure.getSchemas()) {
+			if (schemaStructure.getTables() == null) {
+				throw new ModuleException("No tables found!");
+			}
 			for (TableStructure tableStructure : schemaStructure.getTables()) {
 				TableType table = new TableType();
 				table.setName(tableStructure.getName());
