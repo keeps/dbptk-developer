@@ -141,6 +141,8 @@ public class SIARDExportModule implements DatabaseHandler {
 				+ SIARDExportHelper.getTableFolder(currentTable) + "/"
 				+ SIARDExportHelper.getTableFolder(currentTable) + ".xml");
 
+
+
 		BLOBsToExport = new HashSet<Object[]>();
 		CLOBsToExport = new HashSet<Object[]>();
 

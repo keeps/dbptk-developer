@@ -157,8 +157,8 @@ public class SiardTest {
 		columns_table11.get(1).getType().setSql99TypeName("BOOLEAN");
 		columns_table11.get(0).getType().setDescription("col112 description");
 
-		columns_table11.get(2).getType().setOriginalTypeName("float", 5, 2);
-		columns_table11.get(2).getType().setSql99TypeName("DECIMAL");
+		columns_table11.get(2).getType().setOriginalTypeName("decimal", 5, 2);
+		columns_table11.get(2).getType().setSql99TypeName("DECIMAL(5,2)");
 		columns_table11.get(2).getType().setDescription("col113 description");
 
 
@@ -179,14 +179,14 @@ public class SiardTest {
 		columns_table12.get(1).getType().setDescription("col122 description");
 
 		columns_table12.get(2).getType().setOriginalTypeName("VARCHAR", 250);
-		columns_table12.get(2).getType().setSql99TypeName("CHARACTER VARYING");
+		columns_table12.get(2).getType().setSql99TypeName("CHARACTER VARYING(250)");
 		((SimpleTypeString)columns_table12.get(2).getType()).setLength(250);
 		((SimpleTypeString)columns_table12.get(2).getType()).setLengthVariable(true);
 		//TODO: ((SimpleTypeString)columns_table12.get(2).getType()).setCharset("UTF-8");
 		columns_table12.get(2).getType().setDescription("col123 description");
 
 		columns_table12.get(3).getType().setOriginalTypeName("VARCHAR", 230);
-		columns_table12.get(3).getType().setSql99TypeName("CHARACTER VARYING");
+		columns_table12.get(3).getType().setSql99TypeName("CHARACTER VARYING(230)");
 		((SimpleTypeString)columns_table12.get(3).getType()).setLength(230);
 		((SimpleTypeString)columns_table12.get(3).getType()).setLengthVariable(true);
 		//TODO: ((SimpleTypeString)columns_table12.get(3).getType()).setCharset("UTF-8");
@@ -216,8 +216,8 @@ public class SiardTest {
 		columns_table21.get(1).getType().setSql99TypeName("BOOLEAN");
 		columns_table21.get(0).getType().setDescription("col212 description");
 
-		columns_table21.get(2).getType().setOriginalTypeName("float", 5, 2);
-		columns_table21.get(2).getType().setSql99TypeName("DECIMAL");
+		columns_table21.get(2).getType().setOriginalTypeName("decimal", 5, 2);
+		columns_table21.get(2).getType().setSql99TypeName("DECIMAL(5,2)");
 		columns_table21.get(2).getType().setDescription("col213 description");
 
 		// create columns for second table
@@ -235,14 +235,14 @@ public class SiardTest {
 		columns_table22.get(1).getType().setDescription("col222 description");
 
 		columns_table22.get(2).getType().setOriginalTypeName("VARCHAR", 250);
-		columns_table22.get(2).getType().setSql99TypeName("CHARACTER VARYING");
+		columns_table22.get(2).getType().setSql99TypeName("CHARACTER VARYING(250)");
 		((SimpleTypeString)columns_table22.get(2).getType()).setLength(250);
 		((SimpleTypeString)columns_table22.get(2).getType()).setLengthVariable(true);
 		//TODO: ((SimpleTypeString)columns_table22.get(2).getType()).setCharset("UTF-8");
 		columns_table22.get(2).getType().setDescription("col223 description");
 
 		columns_table22.get(3).getType().setOriginalTypeName("VARCHAR", 230);
-		columns_table22.get(3).getType().setSql99TypeName("CHARACTER VARYING");
+		columns_table22.get(3).getType().setSql99TypeName("CHARACTER VARYING(230)");
 		((SimpleTypeString)columns_table22.get(3).getType()).setLength(230);
 		((SimpleTypeString)columns_table22.get(3).getType()).setLengthVariable(true);
 		//TODO: ((SimpleTypeString)columns_table22.get(3).getType()).setCharset("UTF-8");
@@ -315,7 +315,7 @@ public class SiardTest {
 		param01.setMode("some mode 1");
 		param01.setType(new SimpleTypeString(50, false));
 		param01.getType().setOriginalTypeName("VARCHAR", 50);
-		param01.getType().setSql99TypeName("CHARACTER VARYING");
+		param01.getType().setSql99TypeName("CHARACTER VARYING(50)");
 		((SimpleTypeString)param01.getType()).setLength(50);
 		((SimpleTypeString)param01.getType()).setLengthVariable(true);
 		//TODO: ((SimpleTypeString)param01.getType()).setCharset("UTF-8");
@@ -480,9 +480,9 @@ public class SiardTest {
 	 */
 	private DatabaseStructure roundtrip(DatabaseStructure dbStructure, Path tmpFile)
 			throws FileNotFoundException, ModuleException, UnknownTypeException, InvalidDataException{
-		SIARDExportModule exporter = new SIARDExportModule(tmpFile.toFile(), false);
+//		DatabaseHandler exporter = new SIARDExportModule(tmpFile.toFile(), false);
 
-		//SIARD1ExportModule exporter = new SIARD1ExportModule(tmpFile, true);
+		DatabaseHandler exporter = new SIARD1ExportModule(tmpFile, true);
 
 		// behaviour
 		logger.debug("initializing database");

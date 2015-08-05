@@ -466,8 +466,8 @@ public class DatabaseStructure {
 	}
 
 	/**
-	 * @param tables
-	 *            this database tables
+	 * @param schemas
+	 *            this database schemas
 	 */
 	public void setSchemas(List<SchemaStructure> schemas) {
 		this.schemas = schemas;

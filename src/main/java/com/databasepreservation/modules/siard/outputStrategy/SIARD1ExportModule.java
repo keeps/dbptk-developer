@@ -48,20 +48,20 @@ public class SIARD1ExportModule implements DatabaseHandler {
 	private TableStructure currentTable;
 
 	public SIARD1ExportModule(Path siardPackage, boolean compressZip) {
-//		if(compressZip){
-//			writeStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.DEFLATE);
-//		}else{
-//			writeStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.STORE);
-//		}
-		writeStrategy = new FolderWriteStrategy();
+		if(compressZip){
+			writeStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.DEFLATE);
+		}else{
+			writeStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.STORE);
+		}
+		//writeStrategy = new FolderWriteStrategy();
 		mainContainer = new OutputContainer(siardPackage, OutputContainer.OutputContainerType.INSIDE_ARCHIVE);
 
-		contentStrategy = new ContentStrategySIARD1(pathStrategy, writeStrategy);
+		contentStrategy = new ContentStrategySIARD1(pathStrategy, writeStrategy,mainContainer);
 	}
 
 	@Override
 	public void initDatabase() throws ModuleException {
-		//nothing to do
+		writeStrategy.setup(mainContainer);
 	}
 
 	@Override
@@ -120,5 +120,6 @@ public class SIARD1ExportModule implements DatabaseHandler {
 	public void finishDatabase() throws ModuleException {
 		metadataStrategy.writeMetadataXML(mainContainer);
 		metadataStrategy.writeMetadataXSD(mainContainer);
+		writeStrategy.finish(mainContainer);
 	}
 }

@@ -1,9 +1,6 @@
 package com.databasepreservation.modules.siard.metadata;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Writer;
+import java.io.*;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,7 +23,6 @@ import org.apache.log4j.Logger;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.SIARDHelper;
-import com.databasepreservation.modules.siard.out.SIARDExportHelper;
 import com.databasepreservation.modules.siard.path.PathStrategy;
 import com.databasepreservation.modules.siard.write.WriteStrategy;
 import org.xml.sax.SAXException;
@@ -43,9 +39,6 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 	private DatabaseStructure dbStructure = null;
 	private PathStrategy pathStrategy = null;
 	private WriteStrategy writeStrategy = null;
-
-	//don't access this property directly, use getCurrentSIARDExportHelper() instead
-	private SIARDExportHelper siardExportHelper = null;
 
 	public MetadataStrategySIARD1(DatabaseStructure database, PathStrategy paths, WriteStrategy writer){
 		dbStructure = database;
@@ -64,9 +57,9 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 		}
 
 		SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-		Schema xsdschema = null;
+		Schema xsdSchema = null;
 		try {
-			xsdschema = schemaFactory.newSchema(Paths.get(getClass().getResource(METADATA_XSD_RESOURCE_PATH).getPath()).toFile());
+			xsdSchema = schemaFactory.newSchema(Paths.get(getClass().getResource(METADATA_XSD_RESOURCE_PATH).getPath()).toFile());
 		} catch (SAXException e) {
 			throw new ModuleException("XSD file has errors: " + getClass().getResource(METADATA_XSD_RESOURCE_PATH).getPath(), e);
 		}
@@ -75,28 +68,32 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 		Marshaller m;
 		try {
 			m = context.createMarshaller();
-			m.setSchema(xsdschema);
 			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 		    m.setProperty(Marshaller.JAXB_ENCODING, ENCODING);
-			OutputStream out = writeStrategy.createOutputStream(container, pathStrategy.metadataXmlFile());
-	        m.marshal( xmlroot, out );
-			out.close();
+			m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.bar.admin.ch/xmlns/siard/1.0/metadata.xsd metadata.xsd");
+
+			//m.marshal(xmlroot, System.out);
+
+			m.setSchema(xsdSchema);
+			OutputStream writer = writeStrategy.createOutputStream(container, pathStrategy.metadataXmlFile());
+			m.marshal(xmlroot, writer);
+			writer.close();
 		} catch (JAXBException e) {
 			throw new ModuleException("Error while Marshalling JAXB", e);
-		} catch (IOException e){
-			throw new ModuleException("IO error while closing OutputStream for " + pathStrategy.metadataXmlFile(), e);
+		} catch (IOException e) {
+			throw new ModuleException("Error while closing the data writer", e);
 		}
 	}
 
 	@Override
 	public void writeMetadataXSD(OutputContainer container) throws ModuleException {
 		// prepare to write
-		Writer writer = WriteStrategy.Utils.getWriterFromOutputStream(
-				writeStrategy.createOutputStream(container, pathStrategy.metadataXsdFile()));
+		OutputStream out = writeStrategy.createOutputStream(container, pathStrategy.metadataXsdFile());
+		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
 
 		// prepare to read
 		Path xsdSchema = Paths.get(getClass().getResource(METADATA_XSD_RESOURCE_PATH).getPath());
-		BufferedReader reader = null;
+		Reader reader = null;
 		try {
 			 reader = Files.newBufferedReader(xsdSchema);
 		} catch (IOException e) {
@@ -105,15 +102,31 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 
 		// read everything from reader into writer
 		try {
-			IOUtils.copy(reader,writer);
+			IOUtils.copy(reader, writer);
 		} catch (IOException e) {
 			throw new ModuleException("Could not write " + pathStrategy.metadataXsdFile() + " in container " + container.toString() , e);
+		}
+
+		// close input
+		try {
+			reader.close();
+		} catch (IOException e) {
+			throw new ModuleException("Could not close stream", e);
+		}
+
+		// close output
+		try {
+			writer.close();
+		} catch (IOException e) {
+			throw new ModuleException("Could not close stream", e);
 		}
 	}
 
 	private SiardArchive jaxbSiardArchive(DatabaseStructure db) throws ModuleException{
 		SiardArchive elem = new SiardArchive();
 		elem.setArchivalDate(db.getArchivalDate());
+
+		elem.setVersion("1.0");
 
 		if(StringUtils.isNotBlank(db.getName())){
 			elem.setDbname(db.getName());
@@ -174,7 +187,7 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 			elem.setClientMachine(db.getClientMachine());
 		}
 
-		elem.setSchemas(jabxSchemasType(db.getSchemas()));
+		elem.setSchemas(jaxbSchemasType(db.getSchemas()));
 		elem.setUsers(jaxbUsersType(db.getUsers()));
 		elem.setRoles(jaxbRolesType(db.getRoles()));
 		elem.setPrivileges(jaxbPrivilegesType(db.getPrivileges()));
@@ -183,13 +196,15 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 	}
 
 	private PrivilegesType jaxbPrivilegesType(List<PrivilegeStructure> privileges) throws ModuleException {
-		PrivilegesType privilegesType = new PrivilegesType();
-		if (privileges != null) {
+		if (privileges != null && !privileges.isEmpty()) {
+			PrivilegesType privilegesType = new PrivilegesType();
 			for (PrivilegeStructure privilege : privileges) {
 				privilegesType.getPrivilege().add(jaxbPrivilegeType(privilege));
 			}
+			return privilegesType;
+		}else{
+			return null;
 		}
-		return privilegesType;
 	}
 
 	private PrivilegeType jaxbPrivilegeType(PrivilegeStructure privilege) throws ModuleException {
@@ -234,14 +249,15 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 	}
 
 	private RolesType jaxbRolesType(List<RoleStructure> roles) throws ModuleException {
-		RolesType rolesType = new RolesType();
-
-		if(roles != null){
+		if(roles != null && !roles.isEmpty()){
+			RolesType rolesType = new RolesType();
 			for (RoleStructure role : roles) {
 				rolesType.getRole().add(jaxbRoleType(role));
 			}
+			return rolesType;
+		}else{
+			return null;
 		}
-		return rolesType;
 	}
 
 	private RoleType jaxbRoleType(RoleStructure role) throws ModuleException {
@@ -269,15 +285,15 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 	}
 
 	private UsersType jaxbUsersType(List<UserStructure> users) throws ModuleException {
-		UsersType usersType = new UsersType();
-
-		if(users != null){
+		if(users != null && !users.isEmpty()){
+			UsersType usersType = new UsersType();
 			for (UserStructure user : users) {
 				usersType.getUser().add(jaxbUserType(user));
 			}
+			return usersType;
+		}else{
+			return null;
 		}
-
-		return usersType;
 	}
 
 	private UserType jaxbUserType(UserStructure user) throws ModuleException {
@@ -296,15 +312,16 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 		return userType;
 	}
 
-	private SchemasType jabxSchemasType(List<SchemaStructure> schemas) throws ModuleException {
-		SchemasType schemasType = new SchemasType();
-		if(schemas != null){
+	private SchemasType jaxbSchemasType(List<SchemaStructure> schemas) throws ModuleException {
+		if(schemas != null && !schemas.isEmpty()){
+			SchemasType schemasType = new SchemasType();
 			for (SchemaStructure schema : schemas) {
 				schemasType.getSchema().add(jaxbSchemaType(schema));
 			}
-
+			return schemasType;
+		}else{
+			return null;
 		}
-		return schemasType;
 	}
 
 	private SchemaType jaxbSchemaType(SchemaStructure schema) throws ModuleException {
@@ -312,7 +329,7 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 
 		if(StringUtils.isNotBlank(schema.getName())){
 			schemaType.setName(schema.getName());
-			schemaType.setFolder(pathStrategy.schemaFolder(schema.getIndex()));
+			schemaType.setFolder(pathStrategy.schemaFolderName(schema.getIndex()));
 		}else{
 			throw new ModuleException("Error while exporting schema structure: schema name cannot be blank");
 		}
@@ -329,15 +346,15 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 	}
 
 	private RoutinesType jaxbRoutinesType(List<RoutineStructure> routines) throws ModuleException {
-		RoutinesType routinesType = new RoutinesType();
-
-		if(routines != null){
+		if(routines != null && !routines.isEmpty()){
+			RoutinesType routinesType = new RoutinesType();
 			for (RoutineStructure routineStructure : routines) {
 				routinesType.getRoutine().add(jaxbRoutineType(routineStructure));
 			}
+			return routinesType;
+		}else{
+			return null;
 		}
-
-		return routinesType;
 	}
 
 	private RoutineType jaxbRoutineType(RoutineStructure routine) throws ModuleException {
@@ -375,15 +392,15 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 	}
 
 	private ParametersType jaxbParametersType(List<Parameter> parameters) throws ModuleException {
-		ParametersType parametersType = new ParametersType();
-
-		if(parameters != null){
+		if(parameters != null && !parameters.isEmpty()){
+			ParametersType parametersType = new ParametersType();
 			for (Parameter parameter : parameters) {
 				parametersType.getParameter().add(jaxbParameterType(parameter));
 			}
+			return parametersType;
+		}else{
+			return null;
 		}
-
-		return parametersType;
 	}
 
 	private ParameterType jaxbParameterType(Parameter parameter) throws ModuleException {
@@ -416,15 +433,15 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 	}
 
 	private ViewsType jaxbViewsType(List<ViewStructure> views) throws ModuleException {
-		ViewsType viewsType = new ViewsType();
-
-		if(views != null){
+		if(views != null && !views.isEmpty()){
+			ViewsType viewsType = new ViewsType();
 			for (ViewStructure viewStructure : views) {
 				viewsType.getView().add(jaxbViewType(viewStructure));
 			}
+			return viewsType;
+		}else{
+			return null;
 		}
-
-		return viewsType;
 	}
 
 	private ViewType jaxbViewType(ViewStructure view) throws ModuleException {
@@ -454,18 +471,18 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 	}
 
 	private ColumnsType jaxbColumnsType(List<ColumnStructure> columns) throws ModuleException {
-		ColumnsType columnsType = new ColumnsType();
-
-		if(columns != null){
+		if(columns != null && !columns.isEmpty()){
+			ColumnsType columnsType = new ColumnsType();
 			for (ColumnStructure columnStructure : columns) {
-				columnsType.getColumn().add(jaxbcolumnType(columnStructure));
+				columnsType.getColumn().add(jaxbColumnType(columnStructure));
 			}
+			return columnsType;
+		}else{
+			return null;
 		}
-
-		return columnsType;
 	}
 
-	private ColumnType jaxbcolumnType(ColumnStructure column) throws ModuleException {
+	private ColumnType jaxbColumnType(ColumnStructure column) throws ModuleException {
 		ColumnType columnType = new ColumnType();
 
 		if(StringUtils.isNotBlank(column.getName())){
@@ -474,8 +491,9 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 			throw new ModuleException("Error while exporting table structure: column name cannot be null");
 		}
 
-		if(column.getType() != null){
+		if (column.getType() != null) {
 			columnType.setType(column.getType().getSql99TypeName());
+			columnType.setTypeOriginal(column.getType().getOriginalTypeName());
 		}else{
 			throw new ModuleException("Error while exporting table structure: column type cannot be null");
 		}
@@ -498,17 +516,16 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 	}
 
 	private TablesType jaxbTablesType(SchemaStructure schema, List<TableStructure> tables) throws ModuleException {
-		TablesType tablesType = new TablesType();
-
-		if(tables != null){
+		if(tables != null && !tables.isEmpty()){
+			TablesType tablesType = new TablesType();
 			for (TableStructure tableStructure : tables) {
 				tablesType.getTable().add(jaxbTableType(schema, tableStructure));
 			}
+			return tablesType;
 		}else{
 			logger.info(String.format("Schema %s does not have any tables.", schema.getName()));
+			return null;
 		}
-
-		return tablesType;
 	}
 
 	private TableType jaxbTableType(SchemaStructure schema, TableStructure table) throws ModuleException {
@@ -516,7 +533,7 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 
 		if(StringUtils.isNotBlank(table.getName())){
 			tableType.setName(table.getName());
-			tableType.setFolder(pathStrategy.tableFolder(schema.getIndex(), table.getIndex()));
+			tableType.setFolder(pathStrategy.tableFolderName(table.getIndex()));
 		}else{
 			throw new ModuleException("Error while exporting table structure: table name cannot be blank");
 		}
@@ -547,9 +564,8 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 	}
 
 	private PrimaryKeyType jaxbPrimaryKeyType(PrimaryKey primaryKey) throws ModuleException {
-		PrimaryKeyType primaryKeyType = new PrimaryKeyType();
-
 		if (primaryKey != null) {
+			PrimaryKeyType primaryKeyType = new PrimaryKeyType();
 			if(StringUtils.isNotBlank(primaryKey.getName())){
 				primaryKeyType.setName(primaryKey.getName());
 			}else{
@@ -566,21 +582,22 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 				//throw new ModuleException("Error while exporting primary key: column list cannot be empty");
 				logger.warn("Error while exporting primary key: column list cannot be empty");
 			}
+			return primaryKeyType;
+		}else{
+			return null;
 		}
-
-		return primaryKeyType;
 	}
 
 	private TriggersType jaxbTriggersType(List<Trigger> triggers) throws ModuleException {
-		TriggersType triggersType = new TriggersType();
-
-		if(triggers != null){
+		if(triggers != null && !triggers.isEmpty()){
+			TriggersType triggersType = new TriggersType();
 			for (Trigger trigger : triggers) {
 				triggersType.getTrigger().add(jaxbTriggerType(trigger));
 			}
+			return triggersType;
+		}else{
+			return null;
 		}
-
-		return triggersType;
 	}
 
 	private TriggerType jaxbTriggerType(Trigger trigger) throws ModuleException {
@@ -624,15 +641,15 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 	}
 
 	private CheckConstraintsType jaxbCheckConstraintsType(List<CheckConstraint> checkConstraints) throws ModuleException {
-		CheckConstraintsType checkConstraintsType = new CheckConstraintsType();
-
-		if(checkConstraints != null){
+		if(checkConstraints != null && !checkConstraints.isEmpty()){
+			CheckConstraintsType checkConstraintsType = new CheckConstraintsType();
 			for (CheckConstraint checkConstraint : checkConstraints) {
 				checkConstraintsType.getCheckConstraint().add(jaxbCheckConstraintType(checkConstraint));
 			}
+			return checkConstraintsType;
+		}else{
+			return null;
 		}
-
-		return checkConstraintsType;
 	}
 
 	private CheckConstraintType jaxbCheckConstraintType(CheckConstraint checkConstraint) throws ModuleException {
@@ -658,15 +675,15 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 	}
 
 	private CandidateKeysType jaxbCandidateKeysType(List<CandidateKey> candidateKeys) throws ModuleException {
-		CandidateKeysType candidateKeysType = new CandidateKeysType();
-
-		if(candidateKeys != null){
+		if(candidateKeys != null && !candidateKeys.isEmpty()){
+			CandidateKeysType candidateKeysType = new CandidateKeysType();
 			for (CandidateKey candidateKey : candidateKeys) {
 				candidateKeysType.getCandidateKey().add(jaxbCandidateKeyType(candidateKey));
 			}
+			return candidateKeysType;
+		}else{
+			return null;
 		}
-
-		return candidateKeysType;
 	}
 
 	private CandidateKeyType jaxbCandidateKeyType(CandidateKey candidateKey) throws ModuleException {
@@ -692,15 +709,15 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 	}
 
 	private ForeignKeysType jaxbForeignKeysType(List<ForeignKey> foreignKeys) throws ModuleException {
-		ForeignKeysType foreignKeysType = new ForeignKeysType();
-
-		if(foreignKeys != null){
+		if(foreignKeys != null && !foreignKeys.isEmpty()){
+			ForeignKeysType foreignKeysType = new ForeignKeysType();
 			for (ForeignKey foreignKey : foreignKeys) {
 				foreignKeysType.getForeignKey().add(jaxbForeignKeyType(foreignKey));
 			}
+			return foreignKeysType;
+		}else{
+			return null;
 		}
-
-		return foreignKeysType;
 	}
 
 	private ForeignKeyType jaxbForeignKeyType(ForeignKey foreignKey) throws ModuleException {
@@ -727,7 +744,7 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 
 		if (foreignKey.getReferences() != null && foreignKey.getReferences().size() > 0) {
 			for (Reference reference : foreignKey.getReferences()) {
-				foreignKeyType.getReference().add(jaxbReferencetype(reference));
+				foreignKeyType.getReference().add(jaxbReferenceType(reference));
 			}
 		} else {
 			throw new ModuleException("Error while exporting foreign key: reference cannot be null or empty");
@@ -752,7 +769,7 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 		return foreignKeyType;
 	}
 
-	private ReferenceType jaxbReferencetype(Reference reference) {
+	private ReferenceType jaxbReferenceType(Reference reference) {
 		ReferenceType referenceType = new ReferenceType();
 
 		if(StringUtils.isNotBlank(reference.getColumn())){

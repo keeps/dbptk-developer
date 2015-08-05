@@ -52,14 +52,6 @@ public class PathStrategySIARD1 implements PathStrategy{
 	}
 
 	@Override
-	public String metadataFolder() {
-		return new StringBuilder()
-				.append(HEADER_DIR)
-				.append(SLASH)
-				.toString();
-	}
-
-	@Override
 	public String clobFile(int schemaIndex, int tableIndex, int columnIndex, int rowIndex) {
 		return new StringBuilder()
 				.append(CONTENT_DIR)
@@ -102,27 +94,18 @@ public class PathStrategySIARD1 implements PathStrategy{
 	}
 
 	@Override
-	public String schemaFolder(int schemaIndex) {
+	public String schemaFolderName(int schemaIndex) {
 		return new StringBuilder()
-				.append(CONTENT_DIR)
-				.append(SLASH)
 				.append(SCHEMA_DIR)
 				.append(schemaIndex)
-				.append(SLASH)
 				.toString();
 	}
 
 	@Override
-	public String tableFolder(int schemaIndex, int tableIndex) {
+	public String tableFolderName(int tableIndex) {
 		return new StringBuilder()
-				.append(CONTENT_DIR)
-				.append(SLASH)
-				.append(SCHEMA_DIR)
-				.append(schemaIndex)
-				.append(SLASH)
 				.append(TABLE_DIR)
 				.append(tableIndex)
-				.append(SLASH)
 				.toString();
 	}
 
@@ -156,6 +139,29 @@ public class PathStrategySIARD1 implements PathStrategy{
 				.append(tableIndex)
 				.append(SLASH)
 				.append(TABLE_FILENAME)
+				.append(tableIndex)
+				.append(DOT)
+				.append(XML_EXTENSION)
+				.toString();
+	}
+
+	@Override
+	public String tableXsdNamespace(String base, int schemaIndex, int tableIndex) {
+		return new StringBuilder()
+				.append(base)
+				.append(SCHEMA_DIR)
+				.append(schemaIndex)
+				.append(SLASH)
+				.append(TABLE_FILENAME)
+				.append(tableIndex)
+				.append(DOT)
+				.append(XSD_EXTENSION)
+				.toString();
+	}
+
+	@Override
+	public String tableXsdName(int tableIndex) {
+		return new StringBuilder()
 				.append(tableIndex)
 				.append(DOT)
 				.append(XML_EXTENSION)

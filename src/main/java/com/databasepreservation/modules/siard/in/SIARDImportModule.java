@@ -705,11 +705,11 @@ public class SIARDImportModule implements DatabaseImportModule {
 			} else if (sqlType.startsWith("NUMERIC")) {
 				type = new SimpleTypeNumericExact(getPrecision(sqlType),
 						getScale(sqlType));
-				type.setSql99TypeName("NUMERIC");
+				type.setSql99TypeName(sqlType);
 			} else if (sqlType.startsWith("DEC")) {
 				type = new SimpleTypeNumericExact(getPrecision(sqlType),
 						getScale(sqlType));
-				type.setSql99TypeName("DECIMAL");
+				type.setSql99TypeName(sqlType); // TODO: for other types: don't change original sql99Types
 			} else if (sqlType.equals("FLOAT")) {
 				type = new SimpleTypeNumericApproximate(53);
 				type.setSql99TypeName("FLOAT");
@@ -748,7 +748,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 					if (isLengthVariable(sqlType)) {
 						type = new SimpleTypeString(getLength(sqlType),
 								Boolean.TRUE);
-								type.setSql99TypeName("CHARACTER VARYING");
+								type.setSql99TypeName(sqlType);
 					} else {
 						type = new SimpleTypeString(getLength(sqlType),
 								Boolean.FALSE);
