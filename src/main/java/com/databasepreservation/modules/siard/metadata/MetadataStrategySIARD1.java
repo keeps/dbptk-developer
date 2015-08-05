@@ -98,7 +98,7 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 		Path xsdSchema = Paths.get(getClass().getResource(METADATA_XSD_RESOURCE_PATH).getPath());
 		BufferedReader reader = null;
 		try {
-			 reader = Files.newBufferedReader(xsdSchema);
+			 reader = Files.newBufferedReader(xsdSchema, null);
 		} catch (IOException e) {
 			throw new ModuleException("Could not read from " + getClass().getResource(METADATA_XSD_RESOURCE_PATH).getPath(), e);
 		}

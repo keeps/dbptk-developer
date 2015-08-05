@@ -1,13 +1,14 @@
 package dk.magenta.siarddk;
 
-import static org.junit.Assert.*;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -214,7 +215,6 @@ public class TestSIARDDKMetadataStrategy {
 		
 	}
 
-	@Ignore
 	@Test(expected=ModuleException.class)
 	public void shouldThrowExceptionWhenColumnsTypeNotValid() throws ModuleException {
 		ColumnStructure columnStructure = new ColumnStructure();
