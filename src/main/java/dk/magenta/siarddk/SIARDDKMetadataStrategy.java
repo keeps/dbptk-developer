@@ -2,6 +2,8 @@ package dk.magenta.siarddk;
 
 import javax.xml.bind.JAXB;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
@@ -55,6 +57,8 @@ public class SIARDDKMetadataStrategy implements MetadataStrategy {
 				table.setName(tableStructure.getName());
 				
 				table.setFolder("table" + Integer.toString(tableCounter));
+				
+				// TO-DO: fix how description should be obtained
 				table.setDescription("Description should be entered manually");
 				
 				// Set columns
@@ -68,9 +72,24 @@ public class SIARDDKMetadataStrategy implements MetadataStrategy {
 					column.setName(columnStructure.getName());
 					column.setColumnID("c" + Integer.toString(columnCounter));
 					
-					// validateInput("SQL1999DataType", columnStructure.getType());
+					validateInput("SQL1999DataType", columnStructure.getType().getSql99TypeName());
+					column.setType(columnStructure.getType().getSql99TypeName());
 					
+					// TO-DO: get and set original type
 					
+					if (StringUtils.isNotBlank(columnStructure.getDefaultValue())) {
+						column.setDefaultValue(columnStructure.getDefaultValue());
+					}
+					
+					if (columnStructure.getNillable() != null) {
+						column.setNullable(columnStructure.getNillable());
+					}
+					
+					// TO-DO: get (how?) and set description
+					
+					// TO-DO: get (how?) and set functional description
+					
+					// columns.
 					columnCounter += 1;
 				}
 				

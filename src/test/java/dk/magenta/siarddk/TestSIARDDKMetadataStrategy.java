@@ -1,6 +1,6 @@
 package dk.magenta.siarddk;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +14,8 @@ import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.type.SimpleTypeString;
+import com.databasepreservation.model.structure.type.Type;
 
 import dk.magenta.common.MetadataStrategy;
 
@@ -214,12 +216,13 @@ public class TestSIARDDKMetadataStrategy {
 		
 	}
 
-	@Ignore
 	@Test(expected=ModuleException.class)
 	public void shouldThrowExceptionWhenColumnsTypeNotValid() throws ModuleException {
 		ColumnStructure columnStructure = new ColumnStructure();
 		columnStructure.setName("c1");
-		// To-do... set type
+		Type type = new SimpleTypeString(20, true);
+		type.setSql99TypeName("unknown");
+		columnStructure.setType(type);
 		List<ColumnStructure> columnList = new ArrayList<ColumnStructure>();
 		columnList.add(columnStructure);
 		TableStructure tableStructure = new TableStructure();
@@ -234,7 +237,6 @@ public class TestSIARDDKMetadataStrategy {
 		dbStructure.setName("test");
 		dbStructure.setSchemas(schemaList);
 		siarddkMetadataStrategy.generateMetaData(dbStructure);
-		
 	}
 
 	
