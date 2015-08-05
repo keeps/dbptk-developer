@@ -2,18 +2,14 @@ package dk.magenta.siarddk;
 
 import java.util.Set;
 
-import javax.xml.bind.JAXB;
-import javax.xml.bind.JAXBElement;
+import com.databasepreservation.model.data.Row;
+import com.databasepreservation.model.exception.InvalidDataException;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.UnknownTypeException;
+import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.modules.DatabaseHandler;
 
-import pt.gov.dgarq.roda.common.convert.db.model.data.Row;
-import pt.gov.dgarq.roda.common.convert.db.model.exception.InvalidDataException;
-import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
-import pt.gov.dgarq.roda.common.convert.db.model.exception.UnknownTypeException;
-import pt.gov.dgarq.roda.common.convert.db.model.structure.DatabaseStructure;
-import pt.gov.dgarq.roda.common.convert.db.modules.DatabaseHandler;
 import dk.magenta.common.MetadataStrategy;
-import dk.magenta.siarddk.tableindex.ObjectFactory;
-import dk.magenta.siarddk.tableindex.SiardDiark;
 
 public class SIARDDKExportModule implements DatabaseHandler {
 
@@ -45,13 +41,13 @@ public class SIARDDKExportModule implements DatabaseHandler {
 	}
 
 	@Override
-	public void handleDataOpenTable(String tableId) throws ModuleException {
+	public void handleDataOpenTable(String schemaName, String tableId) throws ModuleException {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void handleDataCloseTable(String tableId) throws ModuleException {
+	public void handleDataCloseTable(String schemaName, String tableId) throws ModuleException {
 		// TODO Auto-generated method stub
 
 	}

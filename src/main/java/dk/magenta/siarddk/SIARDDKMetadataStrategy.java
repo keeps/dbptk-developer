@@ -2,11 +2,12 @@ package dk.magenta.siarddk;
 
 import javax.xml.bind.JAXB;
 
-import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
-import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
-import pt.gov.dgarq.roda.common.convert.db.model.structure.DatabaseStructure;
-import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
-import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.structure.ColumnStructure;
+import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.model.structure.SchemaStructure;
+import com.databasepreservation.model.structure.TableStructure;
+
 import dk.magenta.common.MetadataStrategy;
 import dk.magenta.siarddk.tableindex.ColumnType;
 import dk.magenta.siarddk.tableindex.ColumnsType;
@@ -67,7 +68,7 @@ public class SIARDDKMetadataStrategy implements MetadataStrategy {
 					column.setName(columnStructure.getName());
 					column.setColumnID("c" + Integer.toString(columnCounter));
 					
-					validateInput("SQL1999DataType", columnStructure.getType());
+					// validateInput("SQL1999DataType", columnStructure.getType());
 					
 					
 					columnCounter += 1;

@@ -1,20 +1,15 @@
 package dk.magenta.siarddk;
 
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
 
-import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
-import pt.gov.dgarq.roda.common.convert.db.model.structure.ColumnStructure;
-import pt.gov.dgarq.roda.common.convert.db.model.structure.DatabaseStructure;
-import pt.gov.dgarq.roda.common.convert.db.model.structure.SchemaStructure;
-import pt.gov.dgarq.roda.common.convert.db.model.structure.TableStructure;
-import pt.gov.dgarq.roda.common.convert.db.model.structure.type.Type;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.structure.ColumnStructure;
+import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.model.structure.SchemaStructure;
+import com.databasepreservation.model.structure.TableStructure;
+
 import dk.magenta.common.MetadataStrategy;
 
 public class TestSIARDDKMetadataStrategy {

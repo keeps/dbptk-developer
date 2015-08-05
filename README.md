@@ -54,15 +54,12 @@ $ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar \
 -i MySQLJDBC localhost example_db username p4ssw0rd \
 -o SIARD example_db_siard_export
 ```
+
 ## How to build from source
 
 1. Download the [latest stable release](https://github.com/keeps/db-preservation-toolkit/releases).
 2. Unzip and open the folder on a command-line terminal
-3. Download Oracle Database 12.1.0.1 JDBC Driver for java 6 [ojdbc6.jar](http://www.oracle.com/technetwork/database/features/jdbc/jdbc-drivers-12c-download-1958347.html)
-4. Install the jar with command:`mvn install:install-file -DgroupId=com.oracle -DartifactId=ojdbc6 -Dversion=12.1.0.1 -Dpackaging=jar -Dfile=ojdbc6.jar -DgeneratePom=true`
-5. Download DB2 JDBC driver [db2jcc4.jar](https://www14.software.ibm.com/webapp/iwm/web/preLogin.do?source=swg-idsdjs)
-6. Extract the db2jcc4.jar from the downloaded zip and install with the command:`mvn install:install-file -DgroupId=com.ibm -DartifactId=db2jcc4 -Dversion=4.16.53 -Dpackaging=jar -Dfile=db2jcc4.jar -DgeneratePom=true`
-5. Build with Maven `mvn clean package`
+3. Build with Maven `mvn clean package -DskipTests`
 
 Binaries will be on the `target` folder
 
@@ -117,3 +114,22 @@ For more information or commercial support, contact [KEEP SOLUTIONS](http://www.
 <!-- Removing build status as some database library drivers cannot be distributed via maven
 [![Build Status](https://travis-ci.org/keeps/db-preservation-toolkit.png?branch=master)](https://travis-ci.org/keeps/db-preservation-toolkit)
 -->
+
+## Development [![Build Status](https://travis-ci.org/keeps/db-preservation-toolkit.png?branch=master)](https://travis-ci.org/keeps/db-preservation-toolkit)
+
+To develop we recommend the use of Maven and Eclipse.
+
+The following plugins should be installed in Eclipse:
+
+* [ANSI Escape in Console](http://marketplace.eclipse.org/content/ansi-escape-console) to have coloured output in tests
+
+And the following environment variables should be set:
+
+* **DPT_MYSQL_USER** - MySQL user that must be able to create new users and give them permissions (uses 'root' if not defined)
+* **DPT_MYSQL_PASS** - MySQL user's password (uses blank password if not defined)
+* **DPT_POSTGRESQL_USER** - PostgreSQL user that must be able to create new users and give them permissions (uses 'postgres' if not defined)
+* **DPT_POSTGRESQL_PASS** - PostgreSQL user's password (uses blank password if not defined)
+
+To run PostgreSQL tests, a local PostgreSQL database is required and *postgres* user or another user with permission to create new databases and users can be used. This user must be accessible by IP connection on localhost. The access can be tested with ```psql -U username -h localhost -d postgres -W```.
+
+To run MySQL tests, a local MySQL (or MariaDB) database is required and 'root' user or another user with permission to create new databases and users can be used. This user must be accessible by IP connection on localhost. The access can be tested with ```mysql --user="username" -p --database="mysql" --host="localhost"```.

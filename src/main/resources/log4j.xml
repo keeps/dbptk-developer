@@ -17,8 +17,8 @@
 		</layout>
     </appender>
 
-	<logger name="pt.gov.dgarq.roda.common.convert.db" additivity="false">
-		<level value="DEBUG" />
+	<logger name="com.databasepreservation" additivity="false">
+		<level value="INFO" />
 		<!-- 		<level value="TRACE" /> -->
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="default.file" />

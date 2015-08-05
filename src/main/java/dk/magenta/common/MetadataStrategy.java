@@ -1,7 +1,7 @@
 package dk.magenta.common;
 
-import pt.gov.dgarq.roda.common.convert.db.model.exception.ModuleException;
-import pt.gov.dgarq.roda.common.convert.db.model.structure.DatabaseStructure;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.structure.DatabaseStructure;
 
 public interface MetadataStrategy {
 	
