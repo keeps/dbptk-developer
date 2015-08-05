@@ -20,6 +20,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.io.*;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -93,7 +94,7 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 		Path xsdSchema = Paths.get(getClass().getResource(METADATA_XSD_RESOURCE_PATH).getPath());
 		Reader reader = null;
 		try {
-			 reader = Files.newBufferedReader(xsdSchema);
+			 reader = Files.newBufferedReader(xsdSchema, StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			throw new ModuleException("Could not read from " + getClass().getResource(METADATA_XSD_RESOURCE_PATH).getPath(), e);
 		}
