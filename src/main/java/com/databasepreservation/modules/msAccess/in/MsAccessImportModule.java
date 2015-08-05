@@ -1,21 +1,5 @@
 package com.databasepreservation.modules.msAccess.in;
 
-import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Vector;
-
-import org.apache.log4j.Logger;
-import org.w3c.util.DateParser;
-
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
@@ -27,6 +11,17 @@ import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.msAccess.MsAccessHelper;
 import com.databasepreservation.modules.odbc.in.ODBCImportModule;
+import org.apache.log4j.Logger;
+import org.w3c.util.DateParser;
+
+import java.io.File;
+import java.sql.*;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Vector;
 
 /**
  * 

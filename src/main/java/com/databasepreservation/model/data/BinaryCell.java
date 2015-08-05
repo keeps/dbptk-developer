@@ -3,13 +3,12 @@
  */
 package com.databasepreservation.model.data;
 
+import com.databasepreservation.model.exception.ModuleException;
+import pt.gov.dgarq.roda.common.FileFormat;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-
-import pt.gov.dgarq.roda.common.FileFormat;
-
-import com.databasepreservation.model.exception.ModuleException;
 
 /**
  * @author Luis Faria

@@ -1,13 +1,5 @@
 package com.databasepreservation.modules.db2.in;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.Vector;
-
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.ForeignKey;
@@ -16,6 +8,10 @@ import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.db2.DB2Helper;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
 
 /** 
  * @author Miguel Coutada

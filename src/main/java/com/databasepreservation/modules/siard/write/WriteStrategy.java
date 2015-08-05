@@ -1,11 +1,8 @@
 package com.databasepreservation.modules.siard.write;
 
-import java.io.*;
-
 import com.databasepreservation.model.exception.ModuleException;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
+import java.io.OutputStream;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>

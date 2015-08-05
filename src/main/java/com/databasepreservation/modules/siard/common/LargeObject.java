@@ -1,7 +1,5 @@
 package com.databasepreservation.modules.siard.common;
 
-import com.databasepreservation.model.data.FileItem;
-
 import java.io.InputStream;
 
 /**

@@ -3,11 +3,11 @@
  */
 package com.databasepreservation.model.structure.type;
 
+import com.databasepreservation.utils.MapUtils;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import com.databasepreservation.utils.MapUtils;
 
 /**
  * A list of possible values for this field. Each value is represented by a

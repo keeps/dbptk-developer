@@ -8,8 +8,9 @@
 
 package com.databasepreservation.modules.siard.metadata.jaxb.siard1;
 
-import javax.xml.bind.annotation.adapters.XmlAdapter;
 import org.joda.time.DateTime;
+
+import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 public class Adapter1
     extends XmlAdapter<String, DateTime>

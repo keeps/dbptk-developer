@@ -1,8 +1,5 @@
 package com.databasepreservation.modules.siard.path;
 
-import com.databasepreservation.model.structure.SchemaStructure;
-import com.databasepreservation.model.structure.TableStructure;
-
 /**
  * Interface to describe paths to folders and files for some SIARD archive.
  *

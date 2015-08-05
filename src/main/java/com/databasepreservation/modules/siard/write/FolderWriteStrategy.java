@@ -1,19 +1,11 @@
 package com.databasepreservation.modules.siard.write;
 
 import com.databasepreservation.model.exception.ModuleException;
-import com.sun.org.apache.xpath.internal.operations.Mod;
-import org.apache.commons.io.IOUtils;
-import sun.security.pkcs11.Secmod;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import java.io.*;
-import java.nio.file.FileAlreadyExistsException;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>

@@ -1,11 +1,16 @@
 package com.databasepreservation.modules.siard.metadata;
 
-import java.io.*;
-import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.structure.*;
+import com.databasepreservation.modules.siard.SIARDHelper;
+import com.databasepreservation.modules.siard.metadata.jaxb.siard1.*;
+import com.databasepreservation.modules.siard.path.PathStrategy;
+import com.databasepreservation.modules.siard.write.OutputContainer;
+import com.databasepreservation.modules.siard.write.WriteStrategy;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
@@ -13,19 +18,12 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-
-import com.databasepreservation.model.structure.*;
-import com.databasepreservation.modules.siard.metadata.jaxb.siard1.*;
-import com.databasepreservation.modules.siard.write.OutputContainer;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.modules.siard.SIARDHelper;
-import com.databasepreservation.modules.siard.path.PathStrategy;
-import com.databasepreservation.modules.siard.write.WriteStrategy;
-import org.xml.sax.SAXException;
+import java.io.*;
+import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>

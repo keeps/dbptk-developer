@@ -14,20 +14,13 @@ import com.databasepreservation.modules.siard.datatypeConversor.XMLDatatypeConve
 import com.databasepreservation.modules.siard.datatypeConversor.XMLDatatypeConverterSQL99;
 import com.databasepreservation.modules.siard.metadata.MetadataStrategy;
 import com.databasepreservation.modules.siard.metadata.MetadataStrategySIARD1;
-import com.databasepreservation.modules.siard.out.SIARDExportHelper;
 import com.databasepreservation.modules.siard.path.PathStrategy;
 import com.databasepreservation.modules.siard.path.PathStrategySIARD1;
-import com.databasepreservation.modules.siard.write.FolderWriteStrategy;
 import com.databasepreservation.modules.siard.write.OutputContainer;
 import com.databasepreservation.modules.siard.write.WriteStrategy;
 import com.databasepreservation.modules.siard.write.ZipWriteStrategy;
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.io.IOUtils;
 
-import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashSet;
 import java.util.Set;
 
 /**

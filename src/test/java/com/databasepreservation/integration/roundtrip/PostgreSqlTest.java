@@ -1,5 +1,10 @@
 package com.databasepreservation.integration.roundtrip;
 
+import org.apache.commons.lang3.RandomStringUtils;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -12,11 +17,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
-
-import org.apache.commons.lang3.RandomStringUtils;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
 
 @Test(groups={"postgresql-siard1.0"})
 public class PostgreSqlTest {

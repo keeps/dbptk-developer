@@ -3,16 +3,10 @@
  */
 package com.databasepreservation.model.data;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
+import com.databasepreservation.model.exception.ModuleException;
 import org.apache.commons.transaction.util.FileHelper;
 
-import com.databasepreservation.model.exception.ModuleException;
+import java.io.*;
 
 /**
  * @author Luis Faria

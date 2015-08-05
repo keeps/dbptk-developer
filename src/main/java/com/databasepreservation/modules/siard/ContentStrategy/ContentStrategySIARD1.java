@@ -16,7 +16,6 @@ import com.databasepreservation.utils.XMLUtils;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
-import sun.java2d.pipe.SpanShapeRenderer;
 
 import java.io.*;
 import java.util.HashSet;

@@ -1,64 +1,30 @@
 package com.databasepreservation.integration.siard;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
-import com.databasepreservation.modules.siard.outputStrategy.SIARD1ExportModule;
-import com.databasepreservation.modules.siard.path.PathStrategySIARD1;
-import org.apache.log4j.Logger;
-import org.joda.time.DateTime;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-import org.testng.annotations.Test;
-
-import com.databasepreservation.model.data.BinaryCell;
-import com.databasepreservation.model.data.Cell;
-import com.databasepreservation.model.data.FileItem;
-import com.databasepreservation.model.data.Row;
-import com.databasepreservation.model.data.SimpleCell;
+import com.databasepreservation.model.data.*;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
-import com.databasepreservation.model.structure.CandidateKey;
-import com.databasepreservation.model.structure.CheckConstraint;
-import com.databasepreservation.model.structure.ColumnStructure;
-import com.databasepreservation.model.structure.DatabaseStructure;
-import com.databasepreservation.model.structure.ForeignKey;
-import com.databasepreservation.model.structure.Parameter;
-import com.databasepreservation.model.structure.PrimaryKey;
-import com.databasepreservation.model.structure.PrivilegeStructure;
-import com.databasepreservation.model.structure.Reference;
-import com.databasepreservation.model.structure.RoleStructure;
-import com.databasepreservation.model.structure.RoutineStructure;
-import com.databasepreservation.model.structure.SchemaStructure;
-import com.databasepreservation.model.structure.TableStructure;
-import com.databasepreservation.model.structure.Trigger;
-import com.databasepreservation.model.structure.UserStructure;
-import com.databasepreservation.model.structure.ViewStructure;
+import com.databasepreservation.model.structure.*;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.siard.in.SIARDImportModule;
-import com.databasepreservation.modules.siard.metadata.MetadataStrategySIARD1;
-import com.databasepreservation.modules.siard.out.SIARDExportModule;
-import com.databasepreservation.modules.siard.path.PathStrategy;
-import com.databasepreservation.modules.siard.write.OutputContainer;
-import com.databasepreservation.modules.siard.write.WriteStrategy;
+import com.databasepreservation.modules.siard.outputStrategy.SIARD1ExportModule;
 import com.databasepreservation.utils.JodaUtils;
+import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import org.testng.annotations.Test;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.*;
 
 /**
  * Roundtrip test that tests SIARD without depending on a real database

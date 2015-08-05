@@ -1,21 +1,16 @@
 package com.databasepreservation.modules.db2.out;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.sql.Types;
-import java.util.Calendar;
-
-import org.apache.log4j.Logger;
-import org.w3c.util.InvalidDateException;
-
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.db2.DB2Helper;
 import com.databasepreservation.modules.jdbc.out.JDBCExportModule;
+import org.apache.log4j.Logger;
+import org.w3c.util.InvalidDateException;
+
+import java.sql.*;
+import java.util.Calendar;
 
 /**
  * @author Miguel Coutada

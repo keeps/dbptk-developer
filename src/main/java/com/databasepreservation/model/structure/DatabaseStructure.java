@@ -1,13 +1,12 @@
 package com.databasepreservation.model.structure;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
-
+import com.databasepreservation.utils.ListUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 
-import com.databasepreservation.utils.ListUtils;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
 
 /**
  *
