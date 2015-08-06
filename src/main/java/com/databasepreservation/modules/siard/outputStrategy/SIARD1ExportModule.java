@@ -10,8 +10,6 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.siard.ContentStrategy.ContentStrategy;
 import com.databasepreservation.modules.siard.ContentStrategy.ContentStrategySIARD1;
-import com.databasepreservation.modules.siard.datatypeConversor.XMLDatatypeConverter;
-import com.databasepreservation.modules.siard.datatypeConversor.XMLDatatypeConverterSQL99;
 import com.databasepreservation.modules.siard.metadata.MetadataStrategy;
 import com.databasepreservation.modules.siard.metadata.MetadataStrategySIARD1;
 import com.databasepreservation.modules.siard.path.PathStrategy;
@@ -27,7 +25,6 @@ import java.util.Set;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARD1ExportModule implements DatabaseHandler {
-	private final XMLDatatypeConverter xmlDatatypeConverter = new XMLDatatypeConverterSQL99();
 	private final PathStrategy pathStrategy = new PathStrategySIARD1();
 
 	private final OutputContainer mainContainer;
