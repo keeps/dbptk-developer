@@ -3,41 +3,20 @@
  */
 package com.databasepreservation.modules.sqlFile.out;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.util.Set;
-
-import org.apache.log4j.Logger;
-
-import com.databasepreservation.model.data.BinaryCell;
-import com.databasepreservation.model.data.Cell;
-import com.databasepreservation.model.data.ComposedCell;
-import com.databasepreservation.model.data.Row;
-import com.databasepreservation.model.data.SimpleCell;
+import com.databasepreservation.model.data.*;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
-import com.databasepreservation.model.structure.ColumnStructure;
-import com.databasepreservation.model.structure.DatabaseStructure;
-import com.databasepreservation.model.structure.ForeignKey;
-import com.databasepreservation.model.structure.SchemaStructure;
-import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.*;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.SQLHelper;
 import com.databasepreservation.modules.SQLHelper.CellSQLHandler;
+import org.apache.log4j.Logger;
+
+import java.io.*;
+import java.util.Set;
 
 /**
  * @author Luis Faria

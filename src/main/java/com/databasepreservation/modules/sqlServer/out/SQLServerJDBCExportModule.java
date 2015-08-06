@@ -3,12 +3,6 @@
  */
 package com.databasepreservation.modules.sqlServer.out;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Types;
-
-import org.apache.log4j.Logger;
-
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
@@ -19,6 +13,11 @@ import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.out.JDBCExportModule;
 import com.databasepreservation.modules.sqlServer.SQLServerHelper;
+import org.apache.log4j.Logger;
+
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Types;
 
 /**
  * @author Luis Faria

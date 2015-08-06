@@ -14,20 +14,13 @@ import com.databasepreservation.modules.siard.datatypeConversor.XMLDatatypeConve
 import com.databasepreservation.modules.siard.datatypeConversor.XMLDatatypeConverterSQL99;
 import com.databasepreservation.modules.siard.metadata.MetadataStrategy;
 import com.databasepreservation.modules.siard.metadata.MetadataStrategySIARD1;
-import com.databasepreservation.modules.siard.out.SIARDExportHelper;
 import com.databasepreservation.modules.siard.path.PathStrategy;
 import com.databasepreservation.modules.siard.path.PathStrategySIARD1;
-import com.databasepreservation.modules.siard.write.FolderWriteStrategy;
 import com.databasepreservation.modules.siard.write.OutputContainer;
 import com.databasepreservation.modules.siard.write.WriteStrategy;
 import com.databasepreservation.modules.siard.write.ZipWriteStrategy;
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.io.IOUtils;
 
-import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -48,20 +41,20 @@ public class SIARD1ExportModule implements DatabaseHandler {
 	private TableStructure currentTable;
 
 	public SIARD1ExportModule(Path siardPackage, boolean compressZip) {
-//		if(compressZip){
-//			writeStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.DEFLATE);
-//		}else{
-//			writeStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.STORE);
-//		}
-		writeStrategy = new FolderWriteStrategy();
+		if(compressZip){
+			writeStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.DEFLATE);
+		}else{
+			writeStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.STORE);
+		}
+		//writeStrategy = new FolderWriteStrategy();
 		mainContainer = new OutputContainer(siardPackage, OutputContainer.OutputContainerType.INSIDE_ARCHIVE);
 
-		contentStrategy = new ContentStrategySIARD1(pathStrategy, writeStrategy);
+		contentStrategy = new ContentStrategySIARD1(pathStrategy, writeStrategy,mainContainer);
 	}
 
 	@Override
 	public void initDatabase() throws ModuleException {
-		//nothing to do
+		writeStrategy.setup(mainContainer);
 	}
 
 	@Override
@@ -120,5 +113,6 @@ public class SIARD1ExportModule implements DatabaseHandler {
 	public void finishDatabase() throws ModuleException {
 		metadataStrategy.writeMetadataXML(mainContainer);
 		metadataStrategy.writeMetadataXSD(mainContainer);
+		writeStrategy.finish(mainContainer);
 	}
 }

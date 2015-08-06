@@ -1,16 +1,5 @@
 package com.databasepreservation.modules.postgreSql.out;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Time;
-import java.sql.Types;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.TreeSet;
-
-import org.apache.log4j.Logger;
-import org.w3c.util.InvalidDateException;
-
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.exception.ModuleException;
@@ -18,6 +7,16 @@ import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.out.JDBCExportModule;
 import com.databasepreservation.modules.postgreSql.PostgreSQLHelper;
+import org.apache.log4j.Logger;
+import org.w3c.util.InvalidDateException;
+
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Time;
+import java.sql.Types;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.TreeSet;
 
 /**
  * <p>

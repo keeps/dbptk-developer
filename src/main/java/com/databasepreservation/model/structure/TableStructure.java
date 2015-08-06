@@ -3,11 +3,11 @@
  */
 package com.databasepreservation.model.structure;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.utils.ListUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Luis Faria

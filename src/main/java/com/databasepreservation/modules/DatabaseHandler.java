@@ -3,13 +3,13 @@
  */
 package com.databasepreservation.modules;
 
-import java.util.Set;
-
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.DatabaseStructure;
+
+import java.util.Set;
 
 /**
  * @author Luis Faria

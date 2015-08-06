@@ -3,10 +3,10 @@
  */
 package com.databasepreservation.model.structure.type;
 
+import com.databasepreservation.utils.ListUtils;
+
 import java.util.List;
 import java.util.Vector;
-
-import com.databasepreservation.utils.ListUtils;
 
 /**
  * A type composed by structuring other type. Any complex type can be

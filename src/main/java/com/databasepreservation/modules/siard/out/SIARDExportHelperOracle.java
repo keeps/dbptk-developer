@@ -1,15 +1,9 @@
 package com.databasepreservation.modules.siard.out;
 
+import com.databasepreservation.model.structure.type.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-
-import com.databasepreservation.model.structure.type.SimpleTypeBinary;
-import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
-import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
-import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
-import com.databasepreservation.model.structure.type.SimpleTypeString;
-import com.databasepreservation.model.structure.type.Type;
 
 /**
  * 

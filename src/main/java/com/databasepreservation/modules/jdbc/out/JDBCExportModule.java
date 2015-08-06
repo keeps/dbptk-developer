@@ -3,52 +3,21 @@
  */
 package com.databasepreservation.modules.jdbc.out;
 
-import java.io.InputStreamReader;
-import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.log4j.Logger;
-import org.w3c.util.InvalidDateException;
-
-import com.databasepreservation.model.data.BinaryCell;
-import com.databasepreservation.model.data.Cell;
-import com.databasepreservation.model.data.ComposedCell;
-import com.databasepreservation.model.data.Row;
-import com.databasepreservation.model.data.SimpleCell;
+import com.databasepreservation.model.data.*;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
-import com.databasepreservation.model.structure.ColumnStructure;
-import com.databasepreservation.model.structure.DatabaseStructure;
-import com.databasepreservation.model.structure.ForeignKey;
-import com.databasepreservation.model.structure.SchemaStructure;
-import com.databasepreservation.model.structure.TableStructure;
-import com.databasepreservation.model.structure.type.SimpleTypeBinary;
-import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
-import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
-import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
-import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
-import com.databasepreservation.model.structure.type.SimpleTypeString;
-import com.databasepreservation.model.structure.type.Type;
-import com.databasepreservation.model.structure.type.UnsupportedDataType;
+import com.databasepreservation.model.structure.*;
+import com.databasepreservation.model.structure.type.*;
 import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.SQLHelper;
+import org.apache.log4j.Logger;
+import org.w3c.util.InvalidDateException;
+
+import java.io.InputStreamReader;
+import java.math.BigDecimal;
+import java.sql.*;
+import java.util.*;
 
 /**
  * @author Luis Faria

@@ -1,5 +1,15 @@
 package com.databasepreservation.modules.msAccess.in;
 
+import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.SimpleCell;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.UnknownTypeException;
+import com.databasepreservation.model.structure.RoutineStructure;
+import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
+import com.databasepreservation.modules.msAccess.MsAccessHelper;
+import org.apache.log4j.Logger;
+
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -9,17 +19,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import org.apache.log4j.Logger;
-
-import com.databasepreservation.model.data.Cell;
-import com.databasepreservation.model.data.SimpleCell;
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.exception.UnknownTypeException;
-import com.databasepreservation.model.structure.RoutineStructure;
-import com.databasepreservation.model.structure.type.Type;
-import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
-import com.databasepreservation.modules.msAccess.MsAccessHelper;
 
 public class MsAccessUCanAccessImportModule extends JDBCImportModule {
 	

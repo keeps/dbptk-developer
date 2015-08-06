@@ -1,15 +1,5 @@
 package com.databasepreservation.modules.oracle.in;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-
-import oracle.jdbc.OracleTypes;
-
-import org.apache.log4j.Logger;
-
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
@@ -18,6 +8,14 @@ import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.oracle.OracleHelper;
+import oracle.jdbc.OracleTypes;
+import org.apache.log4j.Logger;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Microsoft SQL Server JDBC import module.

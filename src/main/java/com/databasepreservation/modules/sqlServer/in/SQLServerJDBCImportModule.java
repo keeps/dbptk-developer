@@ -1,20 +1,5 @@
 package com.databasepreservation.modules.sqlServer.in;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.Vector;
-
-import org.apache.commons.transaction.util.FileHelper;
-import org.apache.log4j.Logger;
-
-import pt.gov.dgarq.roda.common.FileFormat;
-
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.FileItem;
@@ -26,6 +11,19 @@ import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.sqlServer.SQLServerHelper;
 import com.microsoft.sqlserver.jdbc.SQLServerConnection;
 import com.microsoft.sqlserver.jdbc.SQLServerResultSet;
+import org.apache.commons.transaction.util.FileHelper;
+import org.apache.log4j.Logger;
+import pt.gov.dgarq.roda.common.FileFormat;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.Vector;
 
 /**
  * Microsoft SQL Server JDBC import module.

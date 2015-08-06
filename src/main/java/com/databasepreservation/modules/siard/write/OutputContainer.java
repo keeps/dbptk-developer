@@ -1,11 +1,6 @@
 package com.databasepreservation.modules.siard.write;
 
-import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Iterator;
-
-import com.databasepreservation.model.exception.ModuleException;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
