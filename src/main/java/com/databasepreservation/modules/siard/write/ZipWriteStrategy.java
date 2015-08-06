@@ -37,7 +37,7 @@ public class ZipWriteStrategy implements WriteStrategy {
 	}
 
 	@Override
-	public boolean supportsSimultaneousWriting() {
+	public boolean isSimultaneousWritingSupported() {
 		return false;
 	}
 

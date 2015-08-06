@@ -80,7 +80,7 @@ public class ContentStrategySIARD1 implements ContentStrategy {
 
 		// write lobs if they have not been written yet
 		try {
-			if( !writeStrategy.supportsSimultaneousWriting() ){
+			if( !writeStrategy.isSimultaneousWritingSupported() ){
 				for (LargeObject largeObject : LOBsToExport) {
 					writeLOB(largeObject);
 				}
@@ -235,7 +235,7 @@ public class ContentStrategySIARD1 implements ContentStrategy {
 		}
 
 		// decide to whether write the LOB right away or later
-		if( writeStrategy.supportsSimultaneousWriting() ){
+		if( writeStrategy.isSimultaneousWritingSupported() ){
 			writeLOB(lob);
 		}else{
 			LOBsToExport.add(lob);

@@ -34,7 +34,7 @@ public class FolderWriteStrategy implements WriteStrategy {
 	}
 
 	@Override
-	public boolean supportsSimultaneousWriting() {
+	public boolean isSimultaneousWritingSupported() {
 		return true;
 	}
 

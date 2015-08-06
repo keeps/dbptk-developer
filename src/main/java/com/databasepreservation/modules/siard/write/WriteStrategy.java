@@ -21,7 +21,7 @@ public interface WriteStrategy {
 	/**
 	 * @return true if the WriteStrategy supports writing a to a new file before closing the previous one
 	 */
-	boolean supportsSimultaneousWriting();
+	boolean isSimultaneousWritingSupported();
 
 	/**
 	 * Handles closing of the underlying structure used by this WriteStrategy object
