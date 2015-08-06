@@ -75,7 +75,9 @@ public class SIARDDKMetadataStrategy implements MetadataStrategy {
 					validateInput("SQL1999DataType", columnStructure.getType().getSql99TypeName());
 					column.setType(columnStructure.getType().getSql99TypeName());
 					
-					// TO-DO: get and set original type
+					if (StringUtils.isNotBlank(columnStructure.getType().getOriginalTypeName())) {
+						column.setTypeOriginal(columnStructure.getType().getOriginalTypeName());
+					}
 					
 					if (StringUtils.isNotBlank(columnStructure.getDefaultValue())) {
 						column.setDefaultValue(columnStructure.getDefaultValue());
@@ -89,9 +91,13 @@ public class SIARDDKMetadataStrategy implements MetadataStrategy {
 					
 					// TO-DO: get (how?) and set functional description
 					
-					// columns.
+					columns.getColumn().add(column);
 					columnCounter += 1;
 				}
+				table.setColumns(columns);
+				
+				// Set primary key
+				
 				
 				tables.getTable().add(table);
 				
