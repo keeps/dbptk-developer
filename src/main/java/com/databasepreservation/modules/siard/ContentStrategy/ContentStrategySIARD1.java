@@ -54,7 +54,7 @@ public class ContentStrategySIARD1 implements ContentStrategy {
 
 	@Override
 	public void openTable(SchemaStructure schema, TableStructure table) throws ModuleException {
-		currentStream = writeStrategy.createOutputStream(baseContainer, pathStrategy.tableXmlFile(schema.getIndex(), table.getIndex()));
+		currentStream = writeStrategy.createOutputStream(baseContainer, pathStrategy.getTableXmlFilePath(schema.getIndex(), table.getIndex()));
 		currentWriter = new BufferedWriter(new OutputStreamWriter(currentStream));
 		currentSchema = schema;
 		currentTable = table;
@@ -194,7 +194,7 @@ public class ContentStrategySIARD1 implements ContentStrategy {
 		if (cell instanceof BinaryCell) {
 			BinaryCell binCell = (BinaryCell)cell;
 
-			String path = pathStrategy.blobFile(currentSchema.getIndex(),
+			String path = pathStrategy.getBlobFilePath(currentSchema.getIndex(),
 					currentTable.getIndex(), columnIndex, currentRowIndex + 1);
 
 			// blob header
@@ -212,7 +212,7 @@ public class ContentStrategySIARD1 implements ContentStrategy {
 		} else if (cell instanceof SimpleCell) {
 			SimpleCell txtCell = (SimpleCell) cell;
 
-			String path = pathStrategy.clobFile(currentSchema.getIndex(),
+			String path = pathStrategy.getClobFilePath(currentSchema.getIndex(),
 					currentTable.getIndex(), columnIndex, currentRowIndex + 1);
 
 			// blob header
@@ -251,11 +251,11 @@ public class ContentStrategySIARD1 implements ContentStrategy {
 				.append("\"?>\n")
 
 				.append("<table xsi:schemaLocation=\"")
-				.append(pathStrategy.tableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(), currentTable.getIndex()))
+				.append(pathStrategy.getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(), currentTable.getIndex()))
 				.append(" ")
-				.append(pathStrategy.tableXsdName(currentTable.getIndex()))
+				.append(pathStrategy.getTableXsdFileName(currentTable.getIndex()))
 				.append("\" xmlns=\"")
-				.append(pathStrategy.tableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(), currentTable.getIndex()))
+				.append(pathStrategy.getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(), currentTable.getIndex()))
 				.append("\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">")
 				.append("\n")
 				.toString();
@@ -281,7 +281,7 @@ public class ContentStrategySIARD1 implements ContentStrategy {
 
 	private void writeXsd() throws IOException, ModuleException {
 		OutputStream xsdStream = writeStrategy.createOutputStream(baseContainer,
-				pathStrategy.tableXsdFile(currentSchema.getIndex(), currentTable.getIndex()));
+				pathStrategy.getTableXsdFilePath(currentSchema.getIndex(), currentTable.getIndex()));
 		Writer xsdWriter = new BufferedWriter(new OutputStreamWriter(xsdStream));
 
 		xsdWriter
@@ -292,10 +292,10 @@ public class ContentStrategySIARD1 implements ContentStrategy {
 
 				// xs:schema tag
 				.append("<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"")
-				.append(pathStrategy.tableXsdNamespace(
+				.append(pathStrategy.getTableXsdNamespace(
 						"http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(), currentTable.getIndex()))
 				.append("\" attributeFormDefault=\"unqualified\" elementFormDefault=\"qualified\" targetNamespace=\"")
-				.append(pathStrategy.tableXsdNamespace(
+				.append(pathStrategy.getTableXsdNamespace(
 						"http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(), currentTable.getIndex()))
 				.append("\">\n")
 

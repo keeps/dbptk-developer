@@ -74,7 +74,7 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 			//m.marshal(xmlroot, System.out);
 
 			m.setSchema(xsdSchema);
-			OutputStream writer = writeStrategy.createOutputStream(container, pathStrategy.metadataXmlFile());
+			OutputStream writer = writeStrategy.createOutputStream(container, pathStrategy.getMetadataXmlFilePath());
 			m.marshal(xmlroot, writer);
 			writer.close();
 		} catch (JAXBException e) {
@@ -87,7 +87,7 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 	@Override
 	public void writeMetadataXSD(OutputContainer container) throws ModuleException {
 		// prepare to write
-		OutputStream out = writeStrategy.createOutputStream(container, pathStrategy.metadataXsdFile());
+		OutputStream out = writeStrategy.createOutputStream(container, pathStrategy.getMetadataXsdFilePath());
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
 
 		// prepare to read
@@ -103,7 +103,7 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 		try {
 			IOUtils.copy(reader, writer);
 		} catch (IOException e) {
-			throw new ModuleException("Could not write " + pathStrategy.metadataXsdFile() + " in container " + container.toString() , e);
+			throw new ModuleException("Could not write " + pathStrategy.getMetadataXsdFilePath() + " in container " + container.toString() , e);
 		}
 
 		// close input
@@ -328,7 +328,7 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 
 		if(StringUtils.isNotBlank(schema.getName())){
 			schemaType.setName(schema.getName());
-			schemaType.setFolder(pathStrategy.schemaFolderName(schema.getIndex()));
+			schemaType.setFolder(pathStrategy.getSchemaFolderName(schema.getIndex()));
 		}else{
 			throw new ModuleException("Error while exporting schema structure: schema name cannot be blank");
 		}
@@ -532,7 +532,7 @@ public class MetadataStrategySIARD1 implements MetadataStrategy {
 
 		if(StringUtils.isNotBlank(table.getName())){
 			tableType.setName(table.getName());
-			tableType.setFolder(pathStrategy.tableFolderName(table.getIndex()));
+			tableType.setFolder(pathStrategy.getTableFolderName(table.getIndex()));
 		}else{
 			throw new ModuleException("Error while exporting table structure: table name cannot be blank");
 		}

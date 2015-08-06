@@ -30,7 +30,7 @@ public class PathStrategySIARD1 implements PathStrategy{
 	private static final String DOT = ".";
 
 	@Override
-	public String metadataXmlFile() {
+	public String getMetadataXmlFilePath() {
 		return new StringBuilder()
 				.append(HEADER_DIR)
 				.append(SLASH)
@@ -41,7 +41,7 @@ public class PathStrategySIARD1 implements PathStrategy{
 	}
 
 	@Override
-	public String metadataXsdFile() {
+	public String getMetadataXsdFilePath() {
 		return new StringBuilder()
 				.append(HEADER_DIR)
 				.append(SLASH)
@@ -52,7 +52,7 @@ public class PathStrategySIARD1 implements PathStrategy{
 	}
 
 	@Override
-	public String clobFile(int schemaIndex, int tableIndex, int columnIndex, int rowIndex) {
+	public String getClobFilePath(int schemaIndex, int tableIndex, int columnIndex, int rowIndex) {
 		return new StringBuilder()
 				.append(CONTENT_DIR)
 				.append(SLASH)
@@ -73,7 +73,7 @@ public class PathStrategySIARD1 implements PathStrategy{
 	}
 
 	@Override
-	public String blobFile(int schemaIndex, int tableIndex, int columnIndex, int rowIndex) {
+	public String getBlobFilePath(int schemaIndex, int tableIndex, int columnIndex, int rowIndex) {
 		return new StringBuilder()
 				.append(CONTENT_DIR)
 				.append(SLASH)
@@ -94,7 +94,7 @@ public class PathStrategySIARD1 implements PathStrategy{
 	}
 
 	@Override
-	public String schemaFolderName(int schemaIndex) {
+	public String getSchemaFolderName(int schemaIndex) {
 		return new StringBuilder()
 				.append(SCHEMA_DIR)
 				.append(schemaIndex)
@@ -102,7 +102,7 @@ public class PathStrategySIARD1 implements PathStrategy{
 	}
 
 	@Override
-	public String tableFolderName(int tableIndex) {
+	public String getTableFolderName(int tableIndex) {
 		return new StringBuilder()
 				.append(TABLE_DIR)
 				.append(tableIndex)
@@ -110,7 +110,7 @@ public class PathStrategySIARD1 implements PathStrategy{
 	}
 
 	@Override
-	public String tableXsdFile(int schemaIndex, int tableIndex) {
+	public String getTableXsdFilePath(int schemaIndex, int tableIndex) {
 		return new StringBuilder()
 				.append(CONTENT_DIR)
 				.append(SLASH)
@@ -128,7 +128,7 @@ public class PathStrategySIARD1 implements PathStrategy{
 	}
 
 	@Override
-	public String tableXmlFile(int schemaIndex, int tableIndex) {
+	public String getTableXmlFilePath(int schemaIndex, int tableIndex) {
 		return new StringBuilder()
 				.append(CONTENT_DIR)
 				.append(SLASH)
@@ -146,7 +146,7 @@ public class PathStrategySIARD1 implements PathStrategy{
 	}
 
 	@Override
-	public String tableXsdNamespace(String base, int schemaIndex, int tableIndex) {
+	public String getTableXsdNamespace(String base, int schemaIndex, int tableIndex) {
 		return new StringBuilder()
 				.append(base)
 				.append(SCHEMA_DIR)
@@ -160,7 +160,7 @@ public class PathStrategySIARD1 implements PathStrategy{
 	}
 
 	@Override
-	public String tableXsdName(int tableIndex) {
+	public String getTableXsdFileName(int tableIndex) {
 		return new StringBuilder()
 				.append(tableIndex)
 				.append(DOT)
