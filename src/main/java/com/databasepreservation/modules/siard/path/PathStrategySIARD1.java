@@ -1,5 +1,7 @@
 package com.databasepreservation.modules.siard.path;
 
+import java.io.File;
+
 /**
  * Defines a SIARD 1.0 implementation to get paths to folders and files
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -26,16 +28,16 @@ public class PathStrategySIARD1 implements PathStrategy{
 	private static final String BLOB_EXTENSION = "bin";
 
 	// control characters
-	private static final String SLASH = "/";
-	private static final String DOT = ".";
+	private static final String FILE_SEPARATOR = File.separator; // is "/" on Unix and "\\" on Windows
+	private static final String FILE_EXTENSION_SEPARATOR = ".";
 
 	@Override
 	public String getMetadataXmlFilePath() {
 		return new StringBuilder()
 				.append(HEADER_DIR)
-				.append(SLASH)
+				.append(FILE_SEPARATOR)
 				.append(METADATA_FILENAME)
-				.append(DOT)
+				.append(FILE_EXTENSION_SEPARATOR)
 				.append(XML_EXTENSION)
 				.toString();
 	}
@@ -44,9 +46,9 @@ public class PathStrategySIARD1 implements PathStrategy{
 	public String getMetadataXsdFilePath() {
 		return new StringBuilder()
 				.append(HEADER_DIR)
-				.append(SLASH)
+				.append(FILE_SEPARATOR)
 				.append(METADATA_FILENAME)
-				.append(DOT)
+				.append(FILE_EXTENSION_SEPARATOR)
 				.append(XSD_EXTENSION)
 				.toString();
 	}
@@ -55,19 +57,19 @@ public class PathStrategySIARD1 implements PathStrategy{
 	public String getClobFilePath(int schemaIndex, int tableIndex, int columnIndex, int rowIndex) {
 		return new StringBuilder()
 				.append(CONTENT_DIR)
-				.append(SLASH)
+				.append(FILE_SEPARATOR)
 				.append(SCHEMA_DIR)
 				.append(schemaIndex)
-				.append(SLASH)
+				.append(FILE_SEPARATOR)
 				.append(TABLE_DIR)
 				.append(tableIndex)
-				.append(SLASH)
+				.append(FILE_SEPARATOR)
 				.append(LOB_DIR)
 				.append(columnIndex)
-				.append(SLASH)
+				.append(FILE_SEPARATOR)
 				.append(LOB_FILENAME)
 				.append(rowIndex)
-				.append(DOT)
+				.append(FILE_EXTENSION_SEPARATOR)
 				.append(CLOB_EXTENSION)
 				.toString();
 	}
@@ -76,19 +78,19 @@ public class PathStrategySIARD1 implements PathStrategy{
 	public String getBlobFilePath(int schemaIndex, int tableIndex, int columnIndex, int rowIndex) {
 		return new StringBuilder()
 				.append(CONTENT_DIR)
-				.append(SLASH)
+				.append(FILE_SEPARATOR)
 				.append(SCHEMA_DIR)
 				.append(schemaIndex)
-				.append(SLASH)
+				.append(FILE_SEPARATOR)
 				.append(TABLE_DIR)
 				.append(tableIndex)
-				.append(SLASH)
+				.append(FILE_SEPARATOR)
 				.append(LOB_DIR)
 				.append(columnIndex)
-				.append(SLASH)
+				.append(FILE_SEPARATOR)
 				.append(LOB_FILENAME)
 				.append(rowIndex)
-				.append(DOT)
+				.append(FILE_EXTENSION_SEPARATOR)
 				.append(BLOB_EXTENSION)
 				.toString();
 	}
@@ -113,16 +115,16 @@ public class PathStrategySIARD1 implements PathStrategy{
 	public String getTableXsdFilePath(int schemaIndex, int tableIndex) {
 		return new StringBuilder()
 				.append(CONTENT_DIR)
-				.append(SLASH)
+				.append(FILE_SEPARATOR)
 				.append(SCHEMA_DIR)
 				.append(schemaIndex)
-				.append(SLASH)
+				.append(FILE_SEPARATOR)
 				.append(TABLE_DIR)
 				.append(tableIndex)
-				.append(SLASH)
+				.append(FILE_SEPARATOR)
 				.append(TABLE_FILENAME)
 				.append(tableIndex)
-				.append(DOT)
+				.append(FILE_EXTENSION_SEPARATOR)
 				.append(XSD_EXTENSION)
 				.toString();
 	}
@@ -131,16 +133,16 @@ public class PathStrategySIARD1 implements PathStrategy{
 	public String getTableXmlFilePath(int schemaIndex, int tableIndex) {
 		return new StringBuilder()
 				.append(CONTENT_DIR)
-				.append(SLASH)
+				.append(FILE_SEPARATOR)
 				.append(SCHEMA_DIR)
 				.append(schemaIndex)
-				.append(SLASH)
+				.append(FILE_SEPARATOR)
 				.append(TABLE_DIR)
 				.append(tableIndex)
-				.append(SLASH)
+				.append(FILE_SEPARATOR)
 				.append(TABLE_FILENAME)
 				.append(tableIndex)
-				.append(DOT)
+				.append(FILE_EXTENSION_SEPARATOR)
 				.append(XML_EXTENSION)
 				.toString();
 	}
@@ -151,10 +153,10 @@ public class PathStrategySIARD1 implements PathStrategy{
 				.append(base)
 				.append(SCHEMA_DIR)
 				.append(schemaIndex)
-				.append(SLASH)
+				.append(FILE_SEPARATOR)
 				.append(TABLE_FILENAME)
 				.append(tableIndex)
-				.append(DOT)
+				.append(FILE_EXTENSION_SEPARATOR)
 				.append(XSD_EXTENSION)
 				.toString();
 	}
@@ -163,7 +165,7 @@ public class PathStrategySIARD1 implements PathStrategy{
 	public String getTableXsdFileName(int tableIndex) {
 		return new StringBuilder()
 				.append(tableIndex)
-				.append(DOT)
+				.append(FILE_EXTENSION_SEPARATOR)
 				.append(XML_EXTENSION)
 				.toString();
 	}
