@@ -1,17 +1,8 @@
 package dk.magenta.siarddk;
 
-import java.nio.file.Paths;
 import java.util.List;
 
-import javax.xml.XMLConstants;
-import javax.xml.bind.JAXB;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-
 import org.apache.commons.lang.StringUtils;
-import org.xml.sax.SAXException;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -19,6 +10,7 @@ import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.PrimaryKey;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.metadata.MetadataStrategy;
 import com.databasepreservation.modules.siard.write.OutputContainer;
 
@@ -44,122 +36,115 @@ public class SIARDDKMetadataStrategy implements MetadataStrategy {
 		
 		// TO-DO: all the JAXB stuff could be put in another interface...(?)
 		
-		JAXBContext context;
-		try {
-			context = JAXBContext.newInstance("dk.magenta.siarddk.tableindex");
-		} catch (JAXBException e) {
-			throw new ModuleException("Error loading JAXBContent", e);
-		}
-		
-		SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-		Schema xsdSchema = null;
-		try {
-			xsdSchema = schemaFactory.newSchema(Paths.get(getClass().getResource(SCHEMA_LOCATION).getPath()).toFile());
-		} catch (SAXException e) {
-			throw new ModuleException("XSD file has errors: " + getClass().getResource(SCHEMA_LOCATION).getPath(), e);
-		}
-		
-		
-		
-		SiardDiark tableIndex = new SiardDiark();
-		tableIndex.setVersion("1.0");
+		// Set version 
+		SiardDiark siardDiark = new SiardDiark();
+		siardDiark.setVersion("1.0");
 
 		// Set dbName
-		// Question: what is dbName is null?
-		String dbName = dbStructure.getName();
-		if (dbName != null) {
-			validateInput("SQLIdentifier", dbName);
-			tableIndex.setDbName(dbName);
-		} else {
-			throw new ModuleException("tableIndex metadata error: dbName cannot be null.");
-		}
+		siardDiark.setDbName(dbStructure.getName());
 		
 		// Set databaseProduct
-		if (dbStructure.getProductName() != null) {
-			tableIndex.setDatabaseProduct(dbStructure.getProductName());	
+		if (StringUtils.isNotBlank(dbStructure.getProductName())) {
+			siardDiark.setDatabaseProduct(dbStructure.getProductName());	
 		}
 		
 		// Set tables 
 		int tableCounter = 1;
 		TablesType tables = new TablesType();
-		if (dbStructure.getSchemas() == null) {
+		
+		List<SchemaStructure> schemas = dbStructure.getSchemas();
+		if (schemas != null && !schemas.isEmpty()) {
+			for (SchemaStructure schemaStructure : schemas) {
+				if (schemaStructure.getTables() == null) {
+					throw new ModuleException("No tables found in schema!");
+				} else {
+					for (TableStructure tableStructure : schemaStructure.getTables()) {
+					
+						TableType table = new TableType();
+						
+						table.setName(tableStructure.getName());
+						table.setFolder("table" + Integer.toString(tableCounter));
+						
+						// TO-DO: fix how description should be obtained
+						table.setDescription("Description should be entered manually");
+						
+						// Set columns
+						int columnCounter = 1;
+						// Do some DBs allow tables with no columns?
+						ColumnsType columns = new ColumnsType();
+						for (ColumnStructure columnStructure : tableStructure.getColumns()) {
+							ColumnType column = new ColumnType();
+							Type type = columnStructure.getType();
+							
+							column.setName(columnStructure.getName());
+							column.setColumnID("c" + Integer.toString(columnCounter));
+							column.setType(type.getSql99TypeName());
+							
+							if (StringUtils.isNotBlank(type.getOriginalTypeName())) {
+								column.setTypeOriginal(type.getOriginalTypeName());
+							}
+							
+							if (StringUtils.isNotBlank(columnStructure.getDefaultValue())) {
+								column.setDefaultValue(columnStructure.getDefaultValue());
+							}
+							
+							if (columnStructure.getNillable() != null) {
+								column.setNullable(columnStructure.getNillable());
+							}
+							
+							// TO-DO: get (how?) and set description
+							
+							// TO-DO: get (how?) and set functional description
+							
+							columns.getColumn().add(column);
+							columnCounter += 1;
+						}
+						table.setColumns(columns);
+						
+						// Set primary key
+						PrimaryKeyType primaryKeyType = new PrimaryKeyType(); // JAXB
+						PrimaryKey primaryKey = tableStructure.getPrimaryKey();
+						if (primaryKey != null) {
+							validateInput("SQLIdentifier", primaryKey.getName());
+							primaryKeyType.setName(primaryKey.getName());
+							List<String> columnNames = primaryKey.getColumnNames();
+							for (String columnName : columnNames) {
+								validateInput("SQLIdentifier", columnName);
+								primaryKeyType.getColumn().add(columnName);
+							}
+						} else {
+							throw new ModuleException("Primary key cannot be null.");
+						}
+						table.setPrimaryKey(primaryKeyType);
+						
+						tables.getTable().add(table);
+						
+						tableCounter += 1;
+					}
+				}
+			}
+			siardDiark.setTables(tables);
+		} else {
 			throw new ModuleException("No schemas in database structure!");
 		}
-		for (SchemaStructure schemaStructure : dbStructure.getSchemas()) {
-			if (schemaStructure.getTables() == null) {
-				throw new ModuleException("No tables found!");
-			}
-			for (TableStructure tableStructure : schemaStructure.getTables()) {
-				TableType table = new TableType();
-				
-				validateInput("SQLIdentifier", tableStructure.getName());
-				table.setName(tableStructure.getName());
-				
-				table.setFolder("table" + Integer.toString(tableCounter));
-				
-				// TO-DO: fix how description should be obtained
-				table.setDescription("Description should be entered manually");
-				
-				// Set columns
-				int columnCounter = 1;
-				// Do some DBs allow tables with no columns?
-				ColumnsType columns = new ColumnsType();
-				for (ColumnStructure columnStructure : tableStructure.getColumns()) {
-					ColumnType column = new ColumnType();
-					
-					validateInput("SQLIdentifier", columnStructure.getName());
-					column.setName(columnStructure.getName());
-					column.setColumnID("c" + Integer.toString(columnCounter));
-					
-					validateInput("SQL1999DataType", columnStructure.getType().getSql99TypeName());
-					column.setType(columnStructure.getType().getSql99TypeName());
-					
-					if (StringUtils.isNotBlank(columnStructure.getType().getOriginalTypeName())) {
-						column.setTypeOriginal(columnStructure.getType().getOriginalTypeName());
-					}
-					
-					if (StringUtils.isNotBlank(columnStructure.getDefaultValue())) {
-						column.setDefaultValue(columnStructure.getDefaultValue());
-					}
-					
-					if (columnStructure.getNillable() != null) {
-						column.setNullable(columnStructure.getNillable());
-					}
-					
-					// TO-DO: get (how?) and set description
-					
-					// TO-DO: get (how?) and set functional description
-					
-					columns.getColumn().add(column);
-					columnCounter += 1;
-				}
-				table.setColumns(columns);
-				
-				// Set primary key
-				PrimaryKeyType primaryKeyType = new PrimaryKeyType(); // JAXB
-				PrimaryKey primaryKey = tableStructure.getPrimaryKey();
-				if (primaryKey != null) {
-					validateInput("SQLIdentifier", primaryKey.getName());
-					primaryKeyType.setName(primaryKey.getName());
-					List<String> columnNames = primaryKey.getColumnNames();
-					for (String columnName : columnNames) {
-						validateInput("SQLIdentifier", columnName);
-						primaryKeyType.getColumn().add(columnName);
-					}
-				} else {
-					throw new ModuleException("Primary key cannot be null.");
-				}
-				table.setPrimaryKey(primaryKeyType);
-				
-				tables.getTable().add(table);
-				
-				tableCounter += 1;
-			}
-		}
-		tableIndex.setTables(tables);
 		
-        // create a Marshaller and marshal to System.out
-        JAXB.marshal( tableIndex, System.out );
+		
+		// Set up JAXB marshaller 
+		
+//		JAXBContext context;
+//		try {
+//			context = JAXBContext.newInstance("dk.magenta.siarddk.tableindex");
+//		} catch (JAXBException e) {
+//			throw new ModuleException("Error loading JAXBContent", e);
+//		}
+//		
+//		SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+//		Schema xsdSchema = null;
+//		try {
+//			xsdSchema = schemaFactory.newSchema(Paths.get(getClass().getResource(SCHEMA_LOCATION).getPath()).toFile());
+//		} catch (SAXException e) {
+//			throw new ModuleException("XSD file has errors: " + getClass().getResource(SCHEMA_LOCATION).getPath(), e);
+//		}
 
 		
 	}
