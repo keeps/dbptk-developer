@@ -11,7 +11,7 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.siard.in.SIARDImportModule;
-import com.databasepreservation.modules.siard.outputStrategy.SIARD1ExportModule;
+import com.databasepreservation.modules.siard.out.output.SIARD1ExportModule;
 import com.databasepreservation.utils.JodaUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
