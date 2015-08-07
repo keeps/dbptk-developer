@@ -11,8 +11,8 @@ import com.databasepreservation.model.structure.PrimaryKey;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.Type;
-import com.databasepreservation.modules.siard.metadata.MetadataStrategy;
-import com.databasepreservation.modules.siard.write.OutputContainer;
+import com.databasepreservation.modules.siard.out.metadata.MetadataStrategy;
+import com.databasepreservation.modules.siard.out.write.OutputContainer;
 
 import dk.magenta.siarddk.tableindex.ColumnType;
 import dk.magenta.siarddk.tableindex.ColumnsType;
@@ -25,22 +25,22 @@ public class SIARDDKMetadataStrategy implements MetadataStrategy {
 
 	private static final String ENCODING = "UTF-8";
 	private static final String SCHEMA_LOCATION = "/schema/tableIndex.xsd";
-	private DatabaseStructure dbStructure;
+	// private DatabaseStructure dbStructure;
 	
-	public SIARDDKMetadataStrategy(DatabaseStructure dbStructure) {
-		this.dbStructure = dbStructure;
-	}
+//	public SIARDDKMetadataStrategy(DatabaseStructure dbStructure) {
+//		this.dbStructure = dbStructure;
+//	}
 	
 	@Override
-	public void writeMetadataXML(OutputContainer outputContainer) throws ModuleException{
+	public void writeMetadataXML(DatabaseStructure dbStructure, OutputContainer outputContainer) throws ModuleException{
 		
 		// TO-DO: all the JAXB stuff could be put in another interface...(?)
 		
-		// Set version 
+		// Set version - mandatory 
 		SiardDiark siardDiark = new SiardDiark();
 		siardDiark.setVersion("1.0");
 
-		// Set dbName
+		// Set dbName - mandatory
 		siardDiark.setDbName(dbStructure.getName());
 		
 		// Set databaseProduct
@@ -150,7 +150,7 @@ public class SIARDDKMetadataStrategy implements MetadataStrategy {
 	}
 	
 	@Override
-	public void writeMetadataXSD(OutputContainer container)
+	public void writeMetadataXSD(DatabaseStructure dbStructure, OutputContainer container)
 			throws ModuleException {
 		// TODO Auto-generated method stub
 		

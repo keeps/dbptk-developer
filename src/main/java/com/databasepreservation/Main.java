@@ -1,9 +1,7 @@
 package com.databasepreservation;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -25,14 +23,9 @@ import com.databasepreservation.modules.oracle.in.Oracle12cJDBCImportModule;
 import com.databasepreservation.modules.postgreSql.in.PostgreSQLJDBCImportModule;
 import com.databasepreservation.modules.postgreSql.out.PostgreSQLJDBCExportModule;
 import com.databasepreservation.modules.siard.in.SIARDImportModule;
-import com.databasepreservation.modules.siard.out.SIARDExportModule;
+import com.databasepreservation.modules.siard.out.output.SIARD1ExportModule;
 import com.databasepreservation.modules.sqlServer.in.SQLServerJDBCImportModule;
 import com.databasepreservation.modules.sqlServer.out.SQLServerJDBCExportModule;
-
-import dk.magenta.siarddk.SIARDDKExportModule;
-import dk.magenta.siarddk.SIARDDKMetadataStrategy;
-
-
 /**
  * @author Luis Faria
  *
@@ -267,16 +260,12 @@ public class Main {
 
 	private static DatabaseHandler getExportModule(List<String> exportModuleArgs) {
 		DatabaseHandler exportModule = null;
-		if (exportModuleArgs.get(0).equalsIgnoreCase("SIARD")) {
+		if (exportModuleArgs.get(0).equalsIgnoreCase("SIARD1")) {
 
 			if (exportModuleArgs.size() == 3) {
-				try {
-					exportModule = new SIARDExportModule(new File(
-							exportModuleArgs.get(1)),
-							exportModuleArgs.get(2).equals("compress"));
-				} catch (FileNotFoundException e) {
-					logger.error("Could not find file for SIARD export", e);
-				}
+				exportModule = new SIARD1ExportModule(
+						Paths.get(exportModuleArgs.get(1)),
+						exportModuleArgs.get(2).equals("compress")).getDatabaseHandler();
 			} else {
 				logger.error("Wrong argument number for SIARD export module: "
 						+ exportModuleArgs.size());
