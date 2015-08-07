@@ -1,26 +1,65 @@
 package dk.magenta.siarddk;
 
+import java.nio.file.Paths;
+import java.util.List;
+
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXB;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 
 import org.apache.commons.lang.StringUtils;
+import org.xml.sax.SAXException;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.model.structure.PrimaryKey;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.modules.siard.metadata.MetadataStrategy;
+import com.databasepreservation.modules.siard.write.OutputContainer;
 
-import dk.magenta.common.MetadataStrategy;
 import dk.magenta.siarddk.tableindex.ColumnType;
 import dk.magenta.siarddk.tableindex.ColumnsType;
+import dk.magenta.siarddk.tableindex.PrimaryKeyType;
 import dk.magenta.siarddk.tableindex.SiardDiark;
 import dk.magenta.siarddk.tableindex.TableType;
 import dk.magenta.siarddk.tableindex.TablesType;
 
 public class SIARDDKMetadataStrategy implements MetadataStrategy {
 
+	private static final String ENCODING = "UTF-8";
+	private static final String SCHEMA_LOCATION = "/schema/tableIndex.xsd";
+	private DatabaseStructure dbStructure;
+	
+	public SIARDDKMetadataStrategy(DatabaseStructure dbStructure) {
+		this.dbStructure = dbStructure;
+	}
+	
 	@Override
-	public void generateMetaData(DatabaseStructure dbStructure) throws ModuleException{
+	public void writeMetadataXML(OutputContainer outputContainer) throws ModuleException{
+		
+		// TO-DO: all the JAXB stuff could be put in another interface...(?)
+		
+		JAXBContext context;
+		try {
+			context = JAXBContext.newInstance("dk.magenta.siarddk.tableindex");
+		} catch (JAXBException e) {
+			throw new ModuleException("Error loading JAXBContent", e);
+		}
+		
+		SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+		Schema xsdSchema = null;
+		try {
+			xsdSchema = schemaFactory.newSchema(Paths.get(getClass().getResource(SCHEMA_LOCATION).getPath()).toFile());
+		} catch (SAXException e) {
+			throw new ModuleException("XSD file has errors: " + getClass().getResource(SCHEMA_LOCATION).getPath(), e);
+		}
+		
+		
 		
 		SiardDiark tableIndex = new SiardDiark();
 		tableIndex.setVersion("1.0");
@@ -97,7 +136,20 @@ public class SIARDDKMetadataStrategy implements MetadataStrategy {
 				table.setColumns(columns);
 				
 				// Set primary key
-				
+				PrimaryKeyType primaryKeyType = new PrimaryKeyType(); // JAXB
+				PrimaryKey primaryKey = tableStructure.getPrimaryKey();
+				if (primaryKey != null) {
+					validateInput("SQLIdentifier", primaryKey.getName());
+					primaryKeyType.setName(primaryKey.getName());
+					List<String> columnNames = primaryKey.getColumnNames();
+					for (String columnName : columnNames) {
+						validateInput("SQLIdentifier", columnName);
+						primaryKeyType.getColumn().add(columnName);
+					}
+				} else {
+					throw new ModuleException("Primary key cannot be null.");
+				}
+				table.setPrimaryKey(primaryKeyType);
 				
 				tables.getTable().add(table);
 				
@@ -113,6 +165,12 @@ public class SIARDDKMetadataStrategy implements MetadataStrategy {
 	}
 	
 	@Override
+	public void writeMetadataXSD(OutputContainer container)
+			throws ModuleException {
+		// TODO Auto-generated method stub
+		
+	}
+	
 	public boolean validateInput(String type, String input) throws ModuleException {
 		
 		if (type.equals("SQLIdentifier")) {

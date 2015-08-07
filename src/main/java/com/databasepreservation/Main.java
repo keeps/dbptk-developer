@@ -1,5 +1,15 @@
 package com.databasepreservation;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
+
+import org.apache.log4j.Logger;
+
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
@@ -18,13 +28,6 @@ import com.databasepreservation.modules.siard.in.SIARDImportModule;
 import com.databasepreservation.modules.siard.out.SIARDExportModule;
 import com.databasepreservation.modules.sqlServer.in.SQLServerJDBCImportModule;
 import com.databasepreservation.modules.sqlServer.out.SQLServerJDBCExportModule;
-import org.apache.log4j.Logger;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
 
 import dk.magenta.siarddk.SIARDDKExportModule;
 import dk.magenta.siarddk.SIARDDKMetadataStrategy;
@@ -280,9 +283,11 @@ public class Main {
 			}
 		}
 		
-		else if (exportModuleArgs.get(0).equals("SIARDDK")) {
-			exportModule = new SIARDDKExportModule(new SIARDDKMetadataStrategy());
-		}
+//		else if (exportModuleArgs.get(0).equals("SIARDDK")) {
+//			// TO-DO: do not use hard-coded path
+//			Path path = FileSystems.getDefault().getPath("/tmp", "siarddk_test");
+//			exportModule = new SIARDDKExportModule(path, new SIARDDKMetadataStrategy());
+//		}
 
 		
 		else if (exportModuleArgs.get(0).equalsIgnoreCase("DB2JDBC")) {

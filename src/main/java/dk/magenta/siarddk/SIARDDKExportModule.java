@@ -1,5 +1,6 @@
 package dk.magenta.siarddk;
 
+import java.nio.file.Path;
 import java.util.Set;
 
 import com.databasepreservation.model.data.Row;
@@ -8,15 +9,19 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.modules.DatabaseHandler;
+import com.databasepreservation.modules.siard.metadata.MetadataStrategy;
+import com.databasepreservation.modules.siard.write.OutputContainer;
 
-import dk.magenta.common.MetadataStrategy;
+// import dk.magenta.common.MetadataStrategy;
 
 public class SIARDDKExportModule implements DatabaseHandler {
 
 	private MetadataStrategy metadataStrategy;
+	private OutputContainer mainContainer;
 	
-	public SIARDDKExportModule(MetadataStrategy metadataStrategy) {
+	public SIARDDKExportModule(Path siardPackage, MetadataStrategy metadataStrategy) {
 		this.metadataStrategy = metadataStrategy;
+		mainContainer = new OutputContainer(siardPackage, OutputContainer.OutputContainerType.INSIDE_ARCHIVE);
 	}
 	
 	@Override
@@ -34,10 +39,14 @@ public class SIARDDKExportModule implements DatabaseHandler {
 	@Override
 	public void handleStructure(DatabaseStructure dbStructure)
 			throws ModuleException, UnknownTypeException {
-		// System.out.println("This is a test");
+		
+		if (dbStructure == null) {
+			throw new ModuleException("Database structure must not be null");
+		}
+
 		
 		// Generate tableIndex.xml
-		metadataStrategy.generateMetaData(dbStructure);
+		// metadataStrategy.generateMetaData(dbStructure);
 	}
 
 	@Override
