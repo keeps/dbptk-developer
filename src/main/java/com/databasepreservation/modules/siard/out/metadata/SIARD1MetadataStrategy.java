@@ -35,18 +35,16 @@ public class SIARD1MetadataStrategy implements MetadataStrategy {
 	private static final String ENCODING = "UTF-8";
 	private static final String METADATA_XSD_RESOURCE_PATH = "/schema/siard1.xsd";
 
-	private DatabaseStructure dbStructure = null;
-	private PathStrategy pathStrategy = null;
-	private WriteStrategy writeStrategy = null;
+	private final PathStrategy pathStrategy;
+	private final WriteStrategy writeStrategy;
 
-	public SIARD1MetadataStrategy(DatabaseStructure database, PathStrategy paths, WriteStrategy writer){
-		dbStructure = database;
+	public SIARD1MetadataStrategy(PathStrategy paths, WriteStrategy writer){
 		pathStrategy = paths;
 		writeStrategy = writer;
 	}
 
 	@Override
-	public void writeMetadataXML(OutputContainer container) throws ModuleException {
+	public void writeMetadataXML(DatabaseStructure dbStructure, OutputContainer container) throws ModuleException {
 
 		JAXBContext context;
 		try {
@@ -85,7 +83,7 @@ public class SIARD1MetadataStrategy implements MetadataStrategy {
 	}
 
 	@Override
-	public void writeMetadataXSD(OutputContainer container) throws ModuleException {
+	public void writeMetadataXSD(DatabaseStructure dbStructure, OutputContainer container) throws ModuleException {
 		// prepare to write
 		OutputStream out = writeStrategy.createOutputStream(container, pathStrategy.getMetadataXsdFilePath());
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));

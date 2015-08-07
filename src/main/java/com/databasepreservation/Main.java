@@ -264,7 +264,7 @@ public class Main {
 			if (exportModuleArgs.size() == 3) {
 				exportModule = new SIARD1ExportModule(
 						Paths.get(exportModuleArgs.get(1)),
-						exportModuleArgs.get(2).equals("compress"));
+						exportModuleArgs.get(2).equals("compress")).getDatabaseHandler();
 			} else {
 				logger.error("Wrong argument number for SIARD export module: "
 						+ exportModuleArgs.size());
