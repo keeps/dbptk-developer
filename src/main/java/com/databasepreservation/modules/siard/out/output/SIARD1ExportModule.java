@@ -9,7 +9,7 @@ import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrateg
 import com.databasepreservation.modules.siard.out.metadata.SIARD1MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.path.SIARD1ContentPathExportStrategy;
-import com.databasepreservation.modules.siard.out.write.OutputContainer;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.modules.siard.out.write.ZipWriteStrategy;
 
@@ -22,7 +22,7 @@ public class SIARD1ExportModule {
 	private final ContentPathExportStrategy contentPathStrategy;
 	private final MetadataPathStrategy metadataPathStrategy;
 
-	private final OutputContainer mainContainer;
+	private final SIARDArchiveContainer mainContainer;
 	private final WriteStrategy writeStrategy;
 
 	private MetadataExportStrategy metadataStrategy;
@@ -36,7 +36,7 @@ public class SIARD1ExportModule {
 		}else{
 			writeStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.STORE);
 		}
-		mainContainer = new OutputContainer(siardPackage, OutputContainer.OutputContainerType.INSIDE_ARCHIVE);
+		mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.INSIDE_ARCHIVE);
 
 		metadataStrategy = new SIARD1MetadataExportStrategy(metadataPathStrategy, contentPathStrategy, writeStrategy);
 		contentStrategy = new SIARD1ContentExportStrategy(contentPathStrategy, writeStrategy,mainContainer);

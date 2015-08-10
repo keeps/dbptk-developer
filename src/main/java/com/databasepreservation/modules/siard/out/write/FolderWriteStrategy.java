@@ -1,6 +1,7 @@
 package com.databasepreservation.modules.siard.out.write;
 
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -12,7 +13,7 @@ import java.nio.file.Path;
  */
 public class FolderWriteStrategy implements WriteStrategy {
 	@Override
-	public OutputStream createOutputStream(OutputContainer container, String path) throws ModuleException {
+	public OutputStream createOutputStream(SIARDArchiveContainer container, String path) throws ModuleException {
 		Path filepath = container.getPath().resolve(path);
 
 		if( !Files.exists(filepath) ){
@@ -39,12 +40,12 @@ public class FolderWriteStrategy implements WriteStrategy {
 	}
 
 	@Override
-	public void finish(OutputContainer baseContainer) throws ModuleException {
+	public void finish(SIARDArchiveContainer baseContainer) throws ModuleException {
 		// nothing to do
 	}
 
 	@Override
-	public void setup(OutputContainer baseContainer) throws ModuleException {
+	public void setup(SIARDArchiveContainer baseContainer) throws ModuleException {
 		// nothing to do
 	}
 }

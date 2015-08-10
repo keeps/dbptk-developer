@@ -6,7 +6,7 @@ import com.databasepreservation.modules.siard.SIARDHelper;
 import com.databasepreservation.modules.siard.common.jaxb.siard1.*;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
-import com.databasepreservation.modules.siard.out.write.OutputContainer;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -48,7 +48,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 	}
 
 	@Override
-	public void writeMetadataXML(DatabaseStructure dbStructure, OutputContainer container) throws ModuleException {
+	public void writeMetadataXML(DatabaseStructure dbStructure, SIARDArchiveContainer container) throws ModuleException {
 
 		JAXBContext context;
 		try {
@@ -87,7 +87,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 	}
 
 	@Override
-	public void writeMetadataXSD(DatabaseStructure dbStructure, OutputContainer container) throws ModuleException {
+	public void writeMetadataXSD(DatabaseStructure dbStructure, SIARDArchiveContainer container) throws ModuleException {
 		// prepare to write
 		OutputStream out = writeStrategy.createOutputStream(container, metadataPathStrategy.getMetadataXsdFilePath());
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));

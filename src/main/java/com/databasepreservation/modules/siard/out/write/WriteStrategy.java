@@ -1,6 +1,7 @@
 package com.databasepreservation.modules.siard.out.write;
 
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 
 import java.io.OutputStream;
 
@@ -16,7 +17,7 @@ public interface WriteStrategy {
 	 *     an OutputStream that is able to write to the specified location in a way specific to the WriteStrategy,
 	 *     this stream should be closed after use by calling the close() method
 	 */
-	OutputStream createOutputStream(OutputContainer container, String path) throws ModuleException;
+	OutputStream createOutputStream(SIARDArchiveContainer container, String path) throws ModuleException;
 
 	/**
 	 * @return true if the WriteStrategy supports writing a to a new file before closing the previous one
@@ -27,11 +28,11 @@ public interface WriteStrategy {
 	 * Handles closing of the underlying structure used by this WriteStrategy object
 	 * @throws ModuleException
 	 */
-	void finish(OutputContainer container) throws ModuleException;
+	void finish(SIARDArchiveContainer container) throws ModuleException;
 
 	/**
 	 * Handles setting up the underlying structure used by this WriteStrategy object
 	 * @throws ModuleException
 	 */
-	void setup(OutputContainer container) throws ModuleException;
+	void setup(SIARDArchiveContainer container) throws ModuleException;
 }

@@ -1,11 +1,11 @@
-package com.databasepreservation.modules.siard.out.write;
+package com.databasepreservation.modules.siard.common;
 
 import java.nio.file.Path;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class OutputContainer {
+public class SIARDArchiveContainer {
 	public enum OutputContainerType {
 		INSIDE_ARCHIVE, OUTSIDE_ARCHIVE
 	}
@@ -13,7 +13,7 @@ public class OutputContainer {
 	private final Path path;
 	private final OutputContainerType type;
 
-	public OutputContainer(Path path, OutputContainerType type){
+	public SIARDArchiveContainer(Path path, OutputContainerType type){
 		this.path = path;
 		this.type = type;
 	}

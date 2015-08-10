@@ -10,7 +10,7 @@ import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.modules.siard.common.LargeObject;
 import com.databasepreservation.modules.siard.common.sql99toXSDType;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
-import com.databasepreservation.modules.siard.out.write.OutputContainer;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.XMLUtils;
 import org.apache.commons.codec.binary.Hex;
@@ -33,7 +33,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
 
 	private final ContentPathExportStrategy contentPathStrategy;
 	private final WriteStrategy writeStrategy;
-	private final OutputContainer baseContainer;
+	private final SIARDArchiveContainer baseContainer;
 
 	private Set<LargeObject> LOBsToExport;
 
@@ -43,7 +43,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
 	TableStructure currentTable;
 	int currentRowIndex;
 
-	public SIARD1ContentExportStrategy(ContentPathExportStrategy contentPathStrategy, WriteStrategy writeStrategy, OutputContainer baseContainer) {
+	public SIARD1ContentExportStrategy(ContentPathExportStrategy contentPathStrategy, WriteStrategy writeStrategy, SIARDArchiveContainer baseContainer) {
 		this.contentPathStrategy = contentPathStrategy;
 		this.writeStrategy = writeStrategy;
 		this.baseContainer = baseContainer;
