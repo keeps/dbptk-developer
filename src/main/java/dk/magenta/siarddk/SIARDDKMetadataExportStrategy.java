@@ -1,8 +1,20 @@
 package dk.magenta.siarddk;
 
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.XMLConstants;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.MarshalException;
+import javax.xml.bind.Marshaller;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+
 import org.apache.commons.lang.StringUtils;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -10,6 +22,7 @@ import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.PrimaryKey;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.write.OutputContainer;
@@ -33,6 +46,10 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 	
 	@Override
 	public void writeMetadataXML(DatabaseStructure dbStructure, OutputContainer outputContainer) throws ModuleException{
+
+		// For testing!
+		dbStructure = generateDatabaseStructure();		
+
 		
 		// TO-DO: all the JAXB stuff could be put in another interface...(?)
 		
@@ -66,7 +83,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 						table.setFolder("table" + Integer.toString(tableCounter));
 						
 						// TO-DO: fix how description should be obtained
-						table.setDescription("Description should be entered manually");
+						// table.setDescription("Description should be entered manually");
 						
 						// Set columns
 						int columnCounter = 1;
@@ -101,21 +118,21 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 						}
 						table.setColumns(columns);
 						
-						// Set primary key
-						PrimaryKeyType primaryKeyType = new PrimaryKeyType(); // JAXB
-						PrimaryKey primaryKey = tableStructure.getPrimaryKey();
-						if (primaryKey != null) {
-							validateInput("SQLIdentifier", primaryKey.getName());
-							primaryKeyType.setName(primaryKey.getName());
-							List<String> columnNames = primaryKey.getColumnNames();
-							for (String columnName : columnNames) {
-								validateInput("SQLIdentifier", columnName);
-								primaryKeyType.getColumn().add(columnName);
-							}
-						} else {
-							throw new ModuleException("Primary key cannot be null.");
-						}
-						table.setPrimaryKey(primaryKeyType);
+//						// Set primary key
+//						PrimaryKeyType primaryKeyType = new PrimaryKeyType(); // JAXB
+//						PrimaryKey primaryKey = tableStructure.getPrimaryKey();
+//						if (primaryKey != null) {
+//							validateInput("SQLIdentifier", primaryKey.getName());
+//							primaryKeyType.setName(primaryKey.getName());
+//							List<String> columnNames = primaryKey.getColumnNames();
+//							for (String columnName : columnNames) {
+//								validateInput("SQLIdentifier", columnName);
+//								primaryKeyType.getColumn().add(columnName);
+//							}
+//						} else {
+//							throw new ModuleException("Primary key cannot be null.");
+//						}
+//						table.setPrimaryKey(primaryKeyType);
 						
 						tables.getTable().add(table);
 						
@@ -131,20 +148,45 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 		
 		// Set up JAXB marshaller 
 		
-//		JAXBContext context;
-//		try {
-//			context = JAXBContext.newInstance("dk.magenta.siarddk.tableindex");
-//		} catch (JAXBException e) {
-//			throw new ModuleException("Error loading JAXBContent", e);
-//		}
-//		
-//		SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-//		Schema xsdSchema = null;
-//		try {
-//			xsdSchema = schemaFactory.newSchema(Paths.get(getClass().getResource(SCHEMA_LOCATION).getPath()).toFile());
-//		} catch (SAXException e) {
-//			throw new ModuleException("XSD file has errors: " + getClass().getResource(SCHEMA_LOCATION).getPath(), e);
-//		}
+		JAXBContext context;
+		try {
+			context = JAXBContext.newInstance("dk.magenta.siarddk.tableindex");
+		} catch (JAXBException e) {
+			throw new ModuleException("Error loading JAXBContent", e);
+		}
+		
+		SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+		Schema xsdSchema = null;
+		try {
+			xsdSchema = schemaFactory.newSchema(Paths.get(getClass().getResource(SCHEMA_LOCATION).getPath()).toFile());
+		} catch (SAXException e) {
+			throw new ModuleException("XSD file has errors: " + getClass().getResource(SCHEMA_LOCATION).getPath(), e);
+		}
+
+		Marshaller m;
+		
+		try {
+			m = context.createMarshaller();
+			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+		    m.setProperty(Marshaller.JAXB_ENCODING, ENCODING);
+			m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/tableIndex.xsd");
+
+			m.setSchema(xsdSchema);
+			m.marshal(siardDiark, System.out);
+			
+//		} catch (MarshalException e) {
+//
+//			if (e.getLinkedException() instanceof SAXParseException) {
+//				System.out.println("hurra");
+//				SAXParseException sax = (SAXParseException) e.getLinkedException();
+//				System.out.print(sax.getLineNumber());
+//			}
+//			// System.out.println(e.getLinkedException().getMessage());
+			
+		} catch (JAXBException e) {
+			throw new ModuleException("Error while Marshalling JAXB", e);
+		} 
+
 
 		
 	}
@@ -233,4 +275,37 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 		
 	}
 
+	private DatabaseStructure generateDatabaseStructure() {
+
+		// For testing marshaller
+		
+		//////////////////// Create database structure //////////////////////
+		
+		ColumnStructure columnStructure = new ColumnStructure();
+		columnStructure.setName("c1");
+		Type type = new SimpleTypeString(20, true);
+		type.setSql99TypeName("boolean");  // Giving a non-sql99 type will make marshaller fail
+		columnStructure.setType(type);
+		List<ColumnStructure> columnList = new ArrayList<ColumnStructure>();
+		columnList.add(columnStructure);
+		TableStructure tableStructure = new TableStructure();
+		tableStructure.setName("table1");
+		tableStructure.setColumns(columnList);
+		List<TableStructure> tableList = new ArrayList<TableStructure>();
+		tableList.add(tableStructure);
+		SchemaStructure schemaStructure = new SchemaStructure();
+		schemaStructure.setTables(tableList);
+		List<SchemaStructure> schemaList = new ArrayList<SchemaStructure>();
+		schemaList.add(schemaStructure);
+		DatabaseStructure dbStructure = new DatabaseStructure();
+		dbStructure.setName("test");
+		dbStructure.setSchemas(schemaList);
+		
+		return dbStructure;
+		
+		/////////////////////////////////////////////////////////////////////
+
+	}
+
+	
 }

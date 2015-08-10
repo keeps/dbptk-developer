@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- tableIndex.xsd version 0.9.2 -->
+<!-- Statens Arkiver 2013 -->
+<!-- -->
+<!-- Data definition language (DDL) for a relational database in XML Schema 1.0-->
+<!-- Platform : XML 1.0, XML Schema 2001 -->
+<!-- Description: This XML schema definition defines the data defintion language of a limited relational database -->
+<!-- This schema is inspired by the SIARD standard used in the EU project Planets as well as by SQL Fairy, XMLto DDL and ERW -->
+<!-- No attributes, only elements are used in this Schema in order to speed processing -->
+<!--  -->
+<xs:schema xmlns="http://www.sa.dk/xmlns/diark/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.sa.dk/xmlns/diark/1.0" elementFormDefault="qualified" attributeFormDefault="unqualified" blockDefault="#all" finalDefault="#all" version="0.9.2" id="tableIndex" xml:lang="en">
+	<!--The version is the version of this XML Schema, not the Schema language version (1.0) nor the version of the siardDiark archive rules -->
+	<xs:element name="siardDiark">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">Rodelement for DDL for en siardDiark arkiveringsversion</xs:documentation>
+			<xs:documentation xml:lang="en">Root element of DDL for a siardDiark information package</xs:documentation>
+		</xs:annotation>
+		<!-- local complexType for element siardDiark-->
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="version" type="xs:NMTOKEN" fixed="1.0">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Udgavenr. for dette regelsæt for en siardDiark arkiveringsversion, dette versionsnr. er ikke det samme som versionsnr. for skemaet eller for XML Schema standarden.</xs:documentation>
+						<xs:documentation xml:lang="en">Version number for the rules for a siardDiark information package, not for this XML Schema, nor the XML Schema Standard</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="dbName" type="SQLIdentifier" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Kort navn på databasen</xs:documentation>
+						<xs:documentation xml:lang="en">Short database name</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="databaseProduct" type="xs:string" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Produktnavn på det anvendte RDBMS></xs:documentation>
+						<xs:documentation xml:lang="en">Name of the RDBMS product used</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="tables" type="tablesType">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Liste over tabeller i databasen</xs:documentation>
+						<xs:documentation xml:lang="en">List of the tables in the database</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<!-- complex type tables -->
+	<xs:complexType name="tablesType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">type for a list of tables</xs:documentation>
+			<xs:documentation xml:lang="en">type for en tabelliste, bestående af én eller flere tabeller</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="table" type="tableType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<!-- complex type table -->
+	<xs:complexType name="tableType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">type for et tabelelement kaldet 'table' in siardDiark Archive</xs:documentation>
+			<xs:documentation xml:lang="en">type for table element in siardDiark Archive</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="name" type="SQLIdentifier">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">tabelnavn</xs:documentation>
+					<xs:documentation xml:lang="en">table name</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="folder" type="fsName">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">navn på mappen som indeholder tabellens data og dets tilhørende XML Schema</xs:documentation>
+					<xs:documentation xml:lang="en">name of the folder containing the table and its XML Schema</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="columns" type="columnsType">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Liste af kolonner i tabellen</xs:documentation>
+					<xs:documentation xml:lang="en">List of the columns in the table</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<!-- complex type columns -->
+	<xs:complexType name="columnsType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">Liste af kolonner</xs:documentation>
+			<xs:documentation xml:lang="en">List of columns</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="column" type="columnType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<!-- complex type column -->
+	<xs:complexType name="columnType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">Kolonneelement i siardDiark arkiveringsversion</xs:documentation>
+			<xs:documentation xml:lang="en">Column element in siardDiark Archive</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="name" type="SQLIdentifier">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Kolonnenavn</xs:documentation>
+					<xs:documentation xml:lang="en">Column name in the table</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="columnID">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Entydig identifikation af kolonne</xs:documentation>
+					<xs:documentation xml:lang="da">Begynder med bogstavet 'c' efterfulgt af nummeret på kolonnens plads i tabellen. Samme rækkefølge skal anvendes i den schemaet for den pågældende tabel.</xs:documentation>
+					<xs:documentation xml:lang="en">Column ID</xs:documentation>
+					<xs:documentation xml:lang="en">Begins with the letter 'c' followed by the number for the order of the column in the tabe. Same order must be used in the schema for the table</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:pattern value="c[1-9][0-9]*"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="type" type="SQL1999DataType">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">SQL:1999 datatype</xs:documentation>
+					<xs:documentation xml:lang="en">SQL:1999 column type</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="typeOriginal" type="xs:token" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Original datatype</xs:documentation>
+					<xs:documentation xml:lang="en">Original column type</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="defaultValue" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Kolonnens standardværdi</xs:documentation>
+					<xs:documentation xml:lang="en">Column default</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="nullable" type="xs:boolean">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Angivelse af, om kolonnen kan være NULL</xs:documentation>
+					<xs:documentation xml:lang="en">Defines if the column can be NULL</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<!-- simple type SQLIdentifier-->
+	<xs:simpleType name="SQLIdentifier">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">SQL Identifier i SQL:1999 som skal anvendes til navne for database, tabel, kolonner</xs:documentation>
+			<xs:documentation xml:lang="en">SQL Identifier i SQL:1999 to be used for database names, table names, column names</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:token">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="128"/>
+			<xs:pattern value="(\p{L}(_|\w)*)|(&quot;.*&quot;)">
+				<xs:annotation>
+					<xs:documentation xml:lang="en">SQL identifiers (except for delimited identifiers) must begin with a letter and may only contain letters, digits and _ unless they are delimited.</xs:documentation>
+				</xs:annotation>
+			</xs:pattern>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- simple type of a filesystem (file or folder) name -->
+	<xs:simpleType name="fsName">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">fsNames may only consist of ASCII characters and digits and must start with a non-digit</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:pattern value="([a-z]|[A-Z])([a-z]|[A-Z]|[0-9])*"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- SQL1999DataType -->
+	<xs:simpleType name="SQL1999DataType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">Uddrag af datatyper fra SQL:1999 data typer</xs:documentation>
+			<xs:documentation xml:lang="en">Except of data types from SQL:1999 data types</xs:documentation>
+			<xs:documentation xml:lang="en">Max amount of spaces between data type elements is limited</xs:documentation>
+			<xs:documentation xml:lang="en">Combinations of upper case/lower case are limited.</xs:documentation>
+			<!-- EXCEPT FROM SQL:1999 - NO BINARY DATA TYPES, BLOBS OR CLOBS ALLOWED
+			<predefined type> ::=
+				<character string type>
+			|	<national character string type>
+			|	<numeric type>
+			|	<boolean type>
+			|	<datetime type>
+			|	<interval type>
+
+			<numeric type> ::= <exact numeric type> | <approximate numeric type>
+			-->
+		</xs:annotation>
+		<xs:restriction base="xs:token">
+			<xs:pattern value="(character|CHARACTER)(\s?\(\s?[1-9][0-9]*\))?"/>
+			<xs:pattern value="(char|CHAR)(\s?\(\s?[1-9][0-9]*\))?"/>
+			<xs:pattern value="((character varying)|(CHARACTER VARYING))(\s?\(\s?[1-9][0-9]*\))"/>
+			<xs:pattern value="((char varying)|(CHAR VARYING))(\s?\(\s?[1-9][0-9]*\))"/>
+			<xs:pattern value="(varchar|VARCHAR)(\s?\(\s?[1-9][0-9]*\))"/>
+			<xs:pattern value="((national character)|(NATIONAL CHARACTER))(\s?\(\s?[1-9][0-9]*\))?"/>
+			<xs:pattern value="((national char)|(NATIONAL CHAR))(\s?\(\s?[1-9][0-9]*\))?"/>
+			<xs:pattern value="(nchar|NCHAR)(\s?\(\s?[1-9][0-9]*\))?"/>
+			<xs:pattern value="((national character varying)|(NATIONAL CHARACTER VARYING))(\s?\(\s?[1-9][0-9]*\))"/>
+			<xs:pattern value="((national char varying)|(NATIONAL CHAR VARYING))(\s?\(\s?[1-9][0-9]*\))"/>
+			<xs:pattern value="((nchar varying)|(NCHAR VARYING))(\s?\(\s?[1-9][0-9]*\))"/>
+			<xs:pattern value="(numeric|NUMERIC)(\s?\(\s?[1-9][0-9]*(\s?,\s?[1-9][0-9]*)?\))?"/>
+			<xs:pattern value="(decimal|DECIMAL)(\s?\(\s?[1-9][0-9]*(\s?,\s?[1-9][0-9]*)?\))?"/>
+			<xs:pattern value="(dec|DEC)(\s?\(\s?[1-9][0-9]*(\s?,\s?[1-9][0-9]*)?\))?"/>
+			<xs:pattern value="integer|INTEGER"/>
+			<xs:pattern value="int|INT"/>
+			<xs:pattern value="smallint|SMALLINT"/>
+			<xs:pattern value="(float|FLOAT)(\s?\(\s?[1-9][0-9]*\))?"/>
+			<xs:pattern value="real|REAL"/>
+			<xs:pattern value="(double precision)|(DOUBLE PRECISION)"/>
+			<xs:pattern value="boolean|BOOLEAN"/>
+			<xs:pattern value="date|DATE"/>
+			<xs:pattern value="(time|TIME)(\s?\([1-9][0-9]*\))?(\s?((WITH TIME ZONE)|(WITHOUT TIME ZONE)))?"/>
+			<xs:pattern value="(timestamp|TIMESTAMP)(\s?\([1-9][0-9]*\))?(\s?(WITH TIME ZONE)|(WITHOUT TIME ZONE))?"/>
+			<xs:pattern value="(interval|INTERVAL) (YEAR|MONTH|DAY|HOUR|MINUTE|year|month|day|hour|minute) (\([1-9][0-9]*\))? (TO|to) (YEAR|MONTH|DAY|HOUR|MINUTE|year|month|day|hour|minute)|(second|SECOND)(\([1-9][0-9]*(,[1-9][0-9]*)?\))?"/>
+			<!-- <character string type> ::=
+				CHARACTER [ <left paren> <length> <right paren> ]
+			|	CHAR [ <left paren> <length> <right paren> ]
+			|	CHARACTER VARYING <left paren> <length> <right paren>
+			|	CHAR VARYING <left paren> <length> <right paren>
+			|	VARCHAR <left paren> <length> <right paren>
+
+			<length> ::= <unsigned integer>
+			<unsigned integer> ::= <digit>...
+		 -->
+			<!-- <national character string type> ::=
+				NATIONAL CHARACTER [ <left paren> <length> <right paren> ]
+			|	NATIONAL CHAR [ <left paren> <length> <right paren> ]
+			|	NCHAR [ <left paren> <length> <right paren> ]
+			|	NATIONAL CHARACTER VARYING <left paren> <length> <right paren>
+			|	NATIONAL CHAR VARYING <left paren> <length> <right paren>
+			|	NCHAR VARYING <left paren> <length> <right paren>
+		-->
+			<!-- 	<exact numeric type> ::=
+				NUMERIC [ <left paren> <precision> [ <comma> <scale> ] <right paren> ]
+			|	DECIMAL [ <left paren> <precision> [ <comma> <scale> ] <right paren> ]
+			|	DEC [ <left paren> <precision> [ <comma> <scale> ] <right paren> ]
+			|	INTEGER
+			|	INT
+			|	SMALLINT
+
+			<precision> ::= <unsigned integer>
+			<scale> ::= <unsigned integer>numeric type - exact numeric type
+		-->
+			<!-- 	<approximate numeric type> ::=
+				FLOAT [ <left paren> <precision> <right paren> ]
+			|	REAL
+			|	DOUBLE PRECISION
+		-->
+			<!-- 	<boolean type> ::= BOOLEAN
+		-->
+			<!-- <datetime type> ::=
+				DATE
+			|	TIME [ <left paren> <time precision> <right paren> ] [ <with or without time zone> ]
+			|	TIMESTAMP [ <left paren> <timestamp precision> <right paren> ] [ <with or without time zone> ]
+
+			<time precision> ::= <time fractional seconds precision>
+			<time fractional seconds precision> ::= <unsigned integer>
+			<with or without time zone> ::= WITH TIME ZONE | WITHOUT TIME ZONE
+			<timestamp precision> ::= <time fractional seconds precision> 
+		-->
+			<!-- 	<interval type> ::= INTERVAL <interval qualifier>
+			<interval qualifier> ::= <start field> TO <end field> | <single datetime field>
+			<start field> ::=
+			<non-second primary datetime field> [ <left paren> <interval leading field precision> <right paren> ]
+			
+			<non-second primary datetime field> ::= YEAR | MONTH | DAY | HOUR | MINUTE
+			<interval leading field precision> ::= <unsigned integer>
+
+			<end field> ::=
+			<non-second primary datetime field>
+			|	SECOND [ <left paren> <interval fractional seconds precision> <right paren> ]
+
+			<interval fractional seconds precision> ::= <unsigned integer>
+
+			<single datetime field> ::=
+			<non-second primary datetime field> [ <left paren> <interval leading field precision> <right paren> ]
+			|	SECOND [ <left paren> <interval leading field precision> [ <comma> <interval fractional seconds precision> ] <right paren> ]
+		-->
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>
