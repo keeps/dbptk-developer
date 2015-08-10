@@ -12,7 +12,7 @@ public class TestSIARDDKMetadataExportStrategy {
 
 	@Test
 	public void testMarshaller() throws ModuleException {
-		MetadataExportStrategy metadataExportStrategy = new SIARDDKMetadataExportStrategy(null);
+		MetadataExportStrategy metadataExportStrategy = new SIARDDKMetadataExportStrategy();
 		metadataExportStrategy.writeMetadataXML(null, null);
 	}
 	

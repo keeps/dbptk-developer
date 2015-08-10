@@ -40,8 +40,8 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 	private static final String SCHEMA_LOCATION = "/schema/tableIndex.xsd";
 	private DatabaseStructure dbStructure;
 	
-	public SIARDDKMetadataExportStrategy(DatabaseStructure dbStructure) {
-		this.dbStructure = dbStructure;
+	public SIARDDKMetadataExportStrategy() {
+		
 	}
 	
 	@Override
