@@ -1,12 +1,14 @@
 package com.databasepreservation.modules.siard.in.read;
 
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.modules.siard.out.write.OutputContainer;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -18,7 +20,7 @@ public class ZipReadStrategy implements ReadStrategy {
 	public ZipFile zipFile;
 
 	@Override
-	public InputStream createInputStream(OutputContainer container, String path) throws ModuleException {
+	public InputStream createInputStream(SIARDArchiveContainer container, String path) throws ModuleException {
 		InputStream stream = null;
 		try {
 			ZipArchiveEntry entry = zipFile.getEntry(path);
@@ -38,7 +40,7 @@ public class ZipReadStrategy implements ReadStrategy {
 	}
 
 	@Override
-	public void finish(OutputContainer container) throws ModuleException {
+	public void finish(SIARDArchiveContainer container) throws ModuleException {
 		try {
 			zipFile.close();
 		} catch (IOException e) {
@@ -47,7 +49,7 @@ public class ZipReadStrategy implements ReadStrategy {
 	}
 
 	@Override
-	public void setup(OutputContainer container) throws ModuleException {
+	public void setup(SIARDArchiveContainer container) throws ModuleException {
 		try {
 			zipFile = new ZipFile(container.getPath().toAbsolutePath().toString());
 		} catch (IOException e) {
@@ -58,15 +60,21 @@ public class ZipReadStrategy implements ReadStrategy {
 	}
 
 	@Override
-	public List<String> listFiles(OutputContainer container, String directory) throws ModuleException {
+	public List<String> listFiles(SIARDArchiveContainer container, Path baseDirectory) throws ModuleException {
 		List<String> list = new ArrayList<String>();
 		Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
 
-		// TODO: return only files from the specified directory
 		while (entries.hasMoreElements()){
-			ZipArchiveEntry elem = entries.nextElement();
-			list.add(elem.getName());
-			System.out.println("elem.getName(): " + elem.getName()); //TODO: debug, remove this
+			String name = entries.nextElement().getName();
+
+			if(baseDirectory != null) {
+				Path file = Paths.get(name);
+				if(file.startsWith(baseDirectory)){
+					list.add(name);
+				}
+			}else{
+				list.add(name);
+			}
 		}
 		return list;
 	}

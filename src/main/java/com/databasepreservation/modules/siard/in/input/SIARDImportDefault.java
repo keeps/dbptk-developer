@@ -6,7 +6,12 @@ import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.DatabaseImportModule;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
+import com.databasepreservation.modules.siard.in.content.ContentImportStrategy;
+import com.databasepreservation.modules.siard.in.metadata.MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
+
+import java.nio.file.Paths;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -14,15 +19,19 @@ import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 public class SIARDImportDefault implements DatabaseImportModule {
 	private final ReadStrategy readStrategy;
 	private final SIARDArchiveContainer mainContainer;
+	private final ContentImportStrategy contentStrategy;
+	private final MetadataImportStrategy metadataStrategy;
 
-	public SIARDImportDefault(SIARDArchiveContainer mainContainer, ReadStrategy readStrategy) {
+	public SIARDImportDefault(ContentImportStrategy contentStrategy, SIARDArchiveContainer mainContainer,
+							  ReadStrategy readStrategy, MetadataImportStrategy metadataStrategy) {
 		this.readStrategy = readStrategy;
 		this.mainContainer = mainContainer;
+		this.contentStrategy = contentStrategy;
+		this.metadataStrategy = metadataStrategy;
 	}
 
 	@Override
 	public void getDatabase(DatabaseHandler databaseHandler) throws ModuleException, UnknownTypeException, InvalidDataException {
-		readStrategy.setup(mainContainer);
-		System.out.println(readStrategy.listFiles(mainContainer, ""));
+		//TODO: use code from import module
 	}
 }
