@@ -5,17 +5,17 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.DatabaseImportModule;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
-import com.databasepreservation.modules.siard.out.write.OutputContainer;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARDImportDefault implements DatabaseImportModule {
 	private final ReadStrategy readStrategy;
-	private final OutputContainer mainContainer;
+	private final SIARDArchiveContainer mainContainer;
 
-	public SIARDImportDefault(OutputContainer mainContainer, ReadStrategy readStrategy) {
+	public SIARDImportDefault(SIARDArchiveContainer mainContainer, ReadStrategy readStrategy) {
 		this.readStrategy = readStrategy;
 		this.mainContainer = mainContainer;
 	}
