@@ -448,7 +448,7 @@ public class SiardTest {
 			throws FileNotFoundException, ModuleException, UnknownTypeException, InvalidDataException{
 //		DatabaseHandler exporter = new SIARDExportModule(tmpFile.toFile(), false);
 
-		DatabaseHandler exporter = new SIARD1ExportModule(tmpFile, true);
+		DatabaseHandler exporter = new SIARD1ExportModule(tmpFile, true).getDatabaseHandler();
 
 		// behaviour
 		logger.debug("initializing database");
