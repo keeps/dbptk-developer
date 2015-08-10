@@ -11,8 +11,8 @@ import com.databasepreservation.model.structure.PrimaryKey;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.Type;
-import com.databasepreservation.modules.siard.metadata.MetadataStrategy;
-import com.databasepreservation.modules.siard.write.OutputContainer;
+import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
+import com.databasepreservation.modules.siard.out.write.OutputContainer;
 
 import dk.magenta.siarddk.tableindex.ColumnType;
 import dk.magenta.siarddk.tableindex.ColumnsType;
@@ -21,18 +21,18 @@ import dk.magenta.siarddk.tableindex.SiardDiark;
 import dk.magenta.siarddk.tableindex.TableType;
 import dk.magenta.siarddk.tableindex.TablesType;
 
-public class SIARDDKMetadataStrategy implements MetadataStrategy {
+public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
 	private static final String ENCODING = "UTF-8";
 	private static final String SCHEMA_LOCATION = "/schema/tableIndex.xsd";
 	private DatabaseStructure dbStructure;
 	
-	public SIARDDKMetadataStrategy(DatabaseStructure dbStructure) {
+	public SIARDDKMetadataExportStrategy(DatabaseStructure dbStructure) {
 		this.dbStructure = dbStructure;
 	}
 	
 	@Override
-	public void writeMetadataXML(OutputContainer outputContainer) throws ModuleException{
+	public void writeMetadataXML(DatabaseStructure dbStructure, OutputContainer outputContainer) throws ModuleException{
 		
 		// TO-DO: all the JAXB stuff could be put in another interface...(?)
 		
@@ -150,8 +150,7 @@ public class SIARDDKMetadataStrategy implements MetadataStrategy {
 	}
 	
 	@Override
-	public void writeMetadataXSD(OutputContainer container)
-			throws ModuleException {
+	public void writeMetadataXSD(DatabaseStructure dbStructure, OutputContainer container) throws ModuleException {
 		// TODO Auto-generated method stub
 		
 	}

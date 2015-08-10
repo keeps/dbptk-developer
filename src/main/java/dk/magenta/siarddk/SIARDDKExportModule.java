@@ -9,10 +9,9 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.modules.DatabaseHandler;
-import com.databasepreservation.modules.siard.metadata.MetadataStrategy;
-import com.databasepreservation.modules.siard.write.OutputContainer;
+import com.databasepreservation.modules.siard.out.write.OutputContainer;
 
-// import dk.magenta.common.MetadataStrategy;
+import dk.magenta.common.MetadataStrategy;
 
 public class SIARDDKExportModule implements DatabaseHandler {
 
