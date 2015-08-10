@@ -4,7 +4,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.*;
 import com.databasepreservation.modules.siard.SIARDHelper;
 import com.databasepreservation.modules.siard.common.jaxb.siard1.*;
-import com.databasepreservation.modules.siard.common.path.MetadataPathExportStrategy;
+import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.OutputContainer;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
@@ -37,10 +37,10 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 	private static final String METADATA_XSD_RESOURCE_PATH = "/schema/siard1.xsd";
 
 	private final ContentPathExportStrategy contentPathStrategy;
-	private final MetadataPathExportStrategy metadataPathStrategy;
+	private final MetadataPathStrategy metadataPathStrategy;
 	private final WriteStrategy writeStrategy;
 
-	public SIARD1MetadataExportStrategy(MetadataPathExportStrategy metadataPathStrategy,
+	public SIARD1MetadataExportStrategy(MetadataPathStrategy metadataPathStrategy,
 										ContentPathExportStrategy paths, WriteStrategy writer){
 		this.contentPathStrategy = paths;
 		this.writeStrategy = writer;

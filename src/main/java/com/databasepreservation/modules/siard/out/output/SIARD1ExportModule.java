@@ -1,8 +1,8 @@
 package com.databasepreservation.modules.siard.out.output;
 
 import com.databasepreservation.modules.DatabaseHandler;
-import com.databasepreservation.modules.siard.common.path.MetadataPathExportStrategy;
-import com.databasepreservation.modules.siard.common.path.SIARD1MetadataPathExportStrategy;
+import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
+import com.databasepreservation.modules.siard.common.path.SIARD1MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.content.ContentExportStrategy;
 import com.databasepreservation.modules.siard.out.content.SIARD1ContentExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
@@ -20,7 +20,7 @@ import java.nio.file.Path;
  */
 public class SIARD1ExportModule {
 	private final ContentPathExportStrategy contentPathStrategy;
-	private final MetadataPathExportStrategy metadataPathStrategy;
+	private final MetadataPathStrategy metadataPathStrategy;
 
 	private final OutputContainer mainContainer;
 	private final WriteStrategy writeStrategy;
@@ -30,7 +30,7 @@ public class SIARD1ExportModule {
 
 	public SIARD1ExportModule(Path siardPackage, boolean compressZip) {
 		contentPathStrategy = new SIARD1ContentPathExportStrategy();
-		metadataPathStrategy = new SIARD1MetadataPathExportStrategy();
+		metadataPathStrategy = new SIARD1MetadataPathStrategy();
 		if(compressZip){
 			writeStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.DEFLATE);
 		}else{

@@ -8,10 +8,8 @@ import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.modules.DatabaseHandler;
-import com.databasepreservation.modules.siard.common.path.MetadataPathExportStrategy;
 import com.databasepreservation.modules.siard.out.content.ContentExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
-import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.OutputContainer;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 

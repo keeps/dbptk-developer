@@ -5,7 +5,7 @@ import java.io.File;
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SIARD1MetadataPathExportStrategy implements MetadataPathExportStrategy {
+public class SIARD1MetadataPathStrategy implements MetadataPathStrategy {
 	// names for directories
 	private static final String HEADER_DIR = "header";
 
