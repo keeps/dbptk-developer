@@ -6,6 +6,7 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import java.io.OutputStream;
 
 /**
+ * Defines the behaviour for outputting data
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public interface WriteStrategy {
