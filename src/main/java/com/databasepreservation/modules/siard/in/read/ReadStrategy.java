@@ -30,5 +30,11 @@ public interface ReadStrategy {
 	 */
 	void setup(OutputContainer container) throws ModuleException;
 
+	/**
+	 * @param container The container to list the files
+	 * @param directory The directory (relative to container base path) to list the files
+	 * @return List of paths for files contained in the specified directory. The paths returned are suitable to be used in createInputStream
+	 * @throws ModuleException
+	 */
 	List<String> listFiles(OutputContainer container, String directory) throws ModuleException;
 }

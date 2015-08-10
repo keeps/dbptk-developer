@@ -10,7 +10,9 @@ import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.modules.DatabaseHandler;
+import com.databasepreservation.modules.DatabaseImportModule;
 import com.databasepreservation.modules.siard.in.SIARDImportModule;
+import com.databasepreservation.modules.siard.in.input.SIARD1ImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD1ExportModule;
 import com.databasepreservation.utils.JodaUtils;
 import org.apache.log4j.Logger;
@@ -486,7 +488,8 @@ public class SiardTest {
 		DatabaseHandler mocked = Mockito.mock(DatabaseHandler.class);
 
 		try{
-			SIARDImportModule importer = new SIARDImportModule(tmpFile.toFile());
+			//SIARDImportModule importer = new SIARDImportModule(tmpFile.toFile());
+			DatabaseImportModule importer = new SIARD1ImportModule(tmpFile).getDatabaseImportModule();
 
 			ArgumentCaptor<DatabaseStructure> dbStructureCaptor = ArgumentCaptor.forClass(DatabaseStructure.class);
 

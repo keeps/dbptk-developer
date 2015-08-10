@@ -2,14 +2,14 @@ package com.databasepreservation.modules.siard.in.read;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.out.write.OutputContainer;
-import jdk.internal.util.xml.impl.Input;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
-import java.util.zip.ZipEntry;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -64,8 +64,9 @@ public class ZipReadStrategy implements ReadStrategy {
 
 		// TODO: return only files from the specified directory
 		while (entries.hasMoreElements()){
-			list.add(entries.nextElement().getName());
-			System.out.println("entries.nextElement().getName(): " + entries.nextElement().getName()); //TODO: debug, remove this
+			ZipArchiveEntry elem = entries.nextElement();
+			list.add(elem.getName());
+			System.out.println("elem.getName(): " + elem.getName()); //TODO: debug, remove this
 		}
 		return list;
 	}
