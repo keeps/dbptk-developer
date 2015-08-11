@@ -8,7 +8,7 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public interface MetadataImportStrategy {
-	void readMetadata(SIARDArchiveContainer container) throws ModuleException;
+	void loadMetadata(SIARDArchiveContainer container) throws ModuleException;
 
 	DatabaseStructure getDatabaseStructure() throws ModuleException;
 }

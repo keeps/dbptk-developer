@@ -2,14 +2,12 @@ package com.databasepreservation.modules.siard.in.metadata;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.*;
-import com.databasepreservation.model.structure.type.*;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.jaxb.siard1.*;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.in.metadata.typeConverter.TypeConverterFactory;
-import com.databasepreservation.modules.siard.in.path.SIARD1ContentPathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.xml.sax.SAXException;
 
@@ -23,12 +21,8 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Method;
-import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.function.BiConsumer;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -42,17 +36,19 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 	private final MetadataPathStrategy metadataPathStrategy;
 	private DatabaseStructure databaseStructure;
 
-	private SIARD1ContentPathImportStrategy contentPathStrategy;
+	private final ContentPathImportStrategy contentPathStrategy;
 
 	private String messageDigest = null;
 
-	public SIARD1MetadataImportStrategy(ReadStrategy readStrategy, MetadataPathStrategy metadataPathStrategy) {
+	public SIARD1MetadataImportStrategy(ReadStrategy readStrategy, MetadataPathStrategy metadataPathStrategy,
+										ContentPathImportStrategy contentPathImportStrategy) {
 		this.readStrategy = readStrategy;
 		this.metadataPathStrategy = metadataPathStrategy;
+		this.contentPathStrategy = contentPathImportStrategy;
 	}
 
 	@Override
-	public void readMetadata(SIARDArchiveContainer container) throws ModuleException {
+	public void loadMetadata(SIARDArchiveContainer container) throws ModuleException {
 		JAXBContext context;
 		try {
 			context = JAXBContext.newInstance("com.databasepreservation.modules.siard.common.jaxb.siard1");
@@ -102,7 +98,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 		if(databaseStructure != null) {
 			return databaseStructure;
 		} else {
-			throw new ModuleException("getDatabaseStructure must not be called before readMetadata");
+			throw new ModuleException("getDatabaseStructure must not be called before loadMetadata");
 		}
 	}
 
@@ -222,7 +218,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 		result.setName(schema.getName());
 		result.setDescription(schema.getDescription());
 
-		contentPathStrategy.putSchemaFolder(schema.getName(), schema.getFolder());
+		contentPathStrategy.associateSchemaWithFolder(schema.getName(), schema.getFolder());
 
 		result.setTables(getTablesStructure(schema.getTables(), schema.getName()));
 		result.setViews(getViews(schema.getViews()));
@@ -324,7 +320,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 		result.setDescription(table.getDescription());
 		result.setId(String.format("%s.%s", result.getSchema(), result.getName()));
 
-		contentPathStrategy.putTableFolder(result.getId(), table.getFolder());
+		contentPathStrategy.associateTableWithFolder(result.getId(), table.getFolder());
 
 		result.setPrimaryKey(getPrimaryKey(table.getPrimaryKey()));
 
@@ -474,7 +470,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 
 		result.setName(column.getName());
 		result.setId(tableId + "." + result.getName());
-		contentPathStrategy.putColumnFolder(result.getId(), column.getFolder());
+		contentPathStrategy.associateColumnWithFolder(result.getId(), column.getFolder());
 
 		result.setType(TypeConverterFactory.getSQL99TypeConverter().getType(column.getTypeOriginal(), column.getType()));
 

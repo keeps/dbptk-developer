@@ -34,15 +34,15 @@ public class SIARD1ContentPathImportStrategy implements ContentPathImportStrateg
 
 	}
 
-	public void putSchemaFolder(String schemaName, String schemaFolder) {
+	public void associateSchemaWithFolder(String schemaName, String schemaFolder) {
 		schemaFolders.put(schemaName, schemaFolder);
 	}
 
-	public void putTableFolder(String tableName, String tableFolder) {
+	public void associateTableWithFolder(String tableName, String tableFolder) {
 		tableFolders.put(tableName, tableFolder);
 	}
 
-	public void putColumnFolder(String columnId, String columnFolder) {
+	public void associateColumnWithFolder(String columnId, String columnFolder) {
 		columnFolders.put(columnId, columnFolder);
 	}
 

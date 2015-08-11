@@ -129,7 +129,7 @@ public class MsAccessImportModule extends ODBCImportModule {
 
 	@Override
 	protected Cell convertRawToCell(String tableName, String columnName,
-			int columnIndex, int rowIndex, Type cellType, ResultSet rawData)
+			int columnIndex, long rowIndex, Type cellType, ResultSet rawData)
 			throws SQLException, InvalidDataException, ClassNotFoundException,
 			ModuleException {
 		Cell cell;

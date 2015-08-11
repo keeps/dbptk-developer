@@ -1356,7 +1356,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			List<Cell> cells = new ArrayList<Cell>(tableStructure.getColumns()
 					.size());
 
-			int currentRow = tableStructure.getCurrentRow();
+			long currentRow = tableStructure.getCurrentRow();
 			if (isGetRowAvailable()) {
 				currentRow = rawData.getRow();
 			}
@@ -1374,7 +1374,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 	}
 
 	protected Cell convertRawToCell(String tableName, String columnName,
-			int columnIndex, int rowIndex, Type cellType, ResultSet rawData)
+			int columnIndex, long rowIndex, Type cellType, ResultSet rawData)
 			throws SQLException, InvalidDataException, ClassNotFoundException,
 			ModuleException {
 		Cell cell;

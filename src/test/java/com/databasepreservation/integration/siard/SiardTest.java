@@ -11,7 +11,6 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.DatabaseImportModule;
-import com.databasepreservation.modules.siard.in.SIARDImportModule;
 import com.databasepreservation.modules.siard.in.input.SIARD1ImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD1ExportModule;
 import com.databasepreservation.utils.JodaUtils;
@@ -72,9 +71,6 @@ public class SiardTest {
 			for (TableStructure table : schema.getTables()) {
 				for (Trigger trigger : table.getTriggers()) {
 					trigger.setActionTime(null);
-				}
-				for (ColumnStructure column : table.getColumns()) {
-					column.setFolder(null);
 				}
 				for (ForeignKey fk : table.getForeignKeys()) {
 					fk.setId(null);

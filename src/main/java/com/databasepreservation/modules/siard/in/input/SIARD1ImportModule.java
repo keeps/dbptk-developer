@@ -5,7 +5,9 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD1MetadataPathStrategy;
 import com.databasepreservation.modules.siard.in.content.ContentImportStrategy;
+import com.databasepreservation.modules.siard.in.content.SIARD1ContentImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.MetadataImportStrategy;
+import com.databasepreservation.modules.siard.in.metadata.SIARD1MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.path.SIARD1ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
@@ -19,22 +21,18 @@ import java.nio.file.Path;
 public class SIARD1ImportModule {
 	private final ReadStrategy readStrategy;
 	private final SIARDArchiveContainer mainContainer;
-
-	private final MetadataPathStrategy metadataPathStrategy;
 	private final MetadataImportStrategy metadataStrategy;
-
-	private final ContentPathImportStrategy contentPathStrategy;
 	private final ContentImportStrategy contentStrategy;
 
 	public SIARD1ImportModule(Path siardPackage){
 		readStrategy = new ZipReadStrategy();
 		mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.INSIDE_ARCHIVE);
 
-		metadataPathStrategy = new SIARD1MetadataPathStrategy();
-		metadataStrategy = null; //TODO
+		ContentPathImportStrategy contentPathStrategy = new SIARD1ContentPathImportStrategy();
+		contentStrategy = new SIARD1ContentImportStrategy(readStrategy, contentPathStrategy);
 
-		contentPathStrategy = new SIARD1ContentPathImportStrategy();
-		contentStrategy = null; //TODO
+		MetadataPathStrategy metadataPathStrategy = new SIARD1MetadataPathStrategy();
+		metadataStrategy = new SIARD1MetadataImportStrategy(readStrategy, metadataPathStrategy, contentPathStrategy);
 	}
 
 	public DatabaseImportModule getDatabaseImportModule(){

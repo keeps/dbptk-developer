@@ -1,6 +1,7 @@
 package com.databasepreservation.modules.siard.out.output;
 
 import com.databasepreservation.modules.DatabaseHandler;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD1MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.content.ContentExportStrategy;
@@ -9,7 +10,6 @@ import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrateg
 import com.databasepreservation.modules.siard.out.metadata.SIARD1MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.path.SIARD1ContentPathExportStrategy;
-import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.modules.siard.out.write.ZipWriteStrategy;
 
