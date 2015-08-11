@@ -1,6 +1,7 @@
 package dk.magenta.siarddk;
 
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +22,9 @@ import org.xml.sax.SAXParseException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.model.structure.ForeignKey;
 import com.databasepreservation.model.structure.PrimaryKey;
+import com.databasepreservation.model.structure.Reference;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
@@ -31,10 +34,14 @@ import com.databasepreservation.modules.siard.out.write.OutputContainer;
 
 import dk.magenta.siarddk.tableindex.ColumnType;
 import dk.magenta.siarddk.tableindex.ColumnsType;
+import dk.magenta.siarddk.tableindex.ForeignKeyType;
+import dk.magenta.siarddk.tableindex.ForeignKeysType;
 import dk.magenta.siarddk.tableindex.PrimaryKeyType;
+import dk.magenta.siarddk.tableindex.ReferenceType;
 import dk.magenta.siarddk.tableindex.SiardDiark;
 import dk.magenta.siarddk.tableindex.TableType;
 import dk.magenta.siarddk.tableindex.TablesType;
+import dk.magenta.siarddk.tableindex.ViewsType;
 
 public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
@@ -50,7 +57,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 	public void writeMetadataXML(DatabaseStructure dbStructure, OutputContainer outputContainer) throws ModuleException{
 
 		// For testing!
-		dbStructure = generateDatabaseStructure();		
+		// dbStructure = generateDatabaseStructure();		
 		// TO-DO: all the JAXB stuff could be put in another interface...(?)
 		
 		// Set version - mandatory 
@@ -65,9 +72,9 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 			siardDiark.setDatabaseProduct(dbStructure.getProductName());	
 		}
 		
-		// Set tables 
+		// Set tables - mandatory 
 		int tableCounter = 1;
-		TablesType tables = new TablesType();
+		TablesType tablesType = new TablesType();
 		
 		List<SchemaStructure> schemas = dbStructure.getSchemas();
 		if (schemas != null && !schemas.isEmpty()) {
@@ -77,73 +84,128 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 				} else {
 					for (TableStructure tableStructure : schemaStructure.getTables()) {
 					
-						TableType table = new TableType();
+						// Set table - mandatory
 						
-						table.setName(tableStructure.getName());
-						table.setFolder("table" + Integer.toString(tableCounter));
+						TableType tableType = new TableType();
+						
+						// Set name - mandatory
+						tableType.setName(tableStructure.getName());
+						
+						// Set folder - mandatory
+						tableType.setFolder("table" + Integer.toString(tableCounter));
 						
 						// TO-DO: fix how description should be obtained
-						// table.setDescription("Description should be entered manually");
+						// Set description
+						tableType.setDescription("Description should be entered manually");
 						
-						// Set columns
+						// Set columns - mandatory
 						int columnCounter = 1;
-						// Do some DBs allow tables with no columns?
 						ColumnsType columns = new ColumnsType();
 						for (ColumnStructure columnStructure : tableStructure.getColumns()) {
+							
+							// Set column - mandatory
+							
 							ColumnType column = new ColumnType();
 							Type type = columnStructure.getType();
 							
+							// Set column name - mandatory
 							column.setName(columnStructure.getName());
+							
+							// Set columnID - mandatory
 							column.setColumnID("c" + Integer.toString(columnCounter));
+							
+							// Set type - mandatory
 							column.setType(type.getSql99TypeName());
 							
+							// Set typeOriginal
 							if (StringUtils.isNotBlank(type.getOriginalTypeName())) {
 								column.setTypeOriginal(type.getOriginalTypeName());
 							}
 							
+							// Set defaultValue
 							if (StringUtils.isNotBlank(columnStructure.getDefaultValue())) {
 								column.setDefaultValue(columnStructure.getDefaultValue());
 							}
 							
-							if (columnStructure.getNillable() != null) {
-								column.setNullable(columnStructure.getNillable());
-							}
+							// Set nullable
+							column.setNullable(columnStructure.getNillable());
 							
 							// TO-DO: get (how?) and set description
+							// Set description
+							column.setDescription("Description should be set");
 							
 							// TO-DO: get (how?) and set functional description
+							// Set functionalDescription
 							
 							columns.getColumn().add(column);
 							columnCounter += 1;
 						}
-						table.setColumns(columns);
+						tableType.setColumns(columns);
 						
-//						// Set primary key
-//						PrimaryKeyType primaryKeyType = new PrimaryKeyType(); // JAXB
-//						PrimaryKey primaryKey = tableStructure.getPrimaryKey();
-//						if (primaryKey != null) {
-//							validateInput("SQLIdentifier", primaryKey.getName());
-//							primaryKeyType.setName(primaryKey.getName());
-//							List<String> columnNames = primaryKey.getColumnNames();
-//							for (String columnName : columnNames) {
-//								validateInput("SQLIdentifier", columnName);
-//								primaryKeyType.getColumn().add(columnName);
-//							}
-//						} else {
-//							throw new ModuleException("Primary key cannot be null.");
-//						}
-//						table.setPrimaryKey(primaryKeyType);
+						// Set primary key - mandatory
+						PrimaryKeyType primaryKeyType = new PrimaryKeyType(); // JAXB
+						PrimaryKey primaryKey = tableStructure.getPrimaryKey();
 						
-						tables.getTable().add(table);
+						primaryKeyType.setName(primaryKey.getName());
+						List<String> columnNames = primaryKey.getColumnNames();
+						for (String columnName : columnNames) {
+							// Set column names for primary key
+							
+							primaryKeyType.getColumn().add(columnName);
+						}
+						tableType.setPrimaryKey(primaryKeyType);
+						
+						// Set foreignKeys
+						ForeignKeysType foreignKeysType = new ForeignKeysType();
+						List<ForeignKey> foreignKeys = tableStructure.getForeignKeys();
+						if (foreignKeys != null) {
+							for (ForeignKey key : foreignKeys) {
+								ForeignKeyType foreignKeyType = new ForeignKeyType();
+								
+								// Set key name - mandatory 
+								foreignKeyType.setName(key.getName());
+								
+								// Set referenced table - mandatory
+								foreignKeyType.setReferencedTable(key.getReferencedTable());
+								
+								// Set reference - mandatory
+								for (Reference ref : key.getReferences()) {
+									ReferenceType referenceType = new ReferenceType();
+									referenceType.setColumn(ref.getColumn());
+									referenceType.setReferenced(ref.getReferenced());
+									foreignKeyType.getReference().add(referenceType);
+								}
+								foreignKeysType.getForeignKey().add(foreignKeyType);
+							}
+							tableType.setForeignKeys(foreignKeysType);
+						}
+						
+						// Set rows
+						if (tableStructure.getRows() >= 0) {
+							tableType.setRows(BigInteger.valueOf(tableStructure.getRows()));
+						} else {
+							throw new ModuleException("Error while exporting table structure: number of table rows not set");
+						}
+												
+						tablesType.getTable().add(tableType);
 						
 						tableCounter += 1;
 					}
+					
+					// Set views
+					if (schemaStructure.getViews() != null && schemaStructure.getViews().size() > 0) {
+						ViewsType viewsType = new ViewsType();
+						
+					}
 				}
 			}
-			siardDiark.setTables(tables);
+			siardDiark.setTables(tablesType);
 		} else {
 			throw new ModuleException("No schemas in database structure!");
 		}
+		
+		
+		
 		
 		
 		// Set up JAXB marshaller 
