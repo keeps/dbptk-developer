@@ -99,7 +99,7 @@ public class MySqlTest {
 		String[] fields = new String[args.length-1];
 		System.arraycopy(args, 1, fields, 0, args.length-1);
 
-		assert rt.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], fields);
+		assert rt.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], (Object[])fields);
 	}
 
 	@DataProvider

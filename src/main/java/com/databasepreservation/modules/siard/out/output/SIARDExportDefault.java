@@ -8,11 +8,8 @@ import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.modules.DatabaseHandler;
-import com.databasepreservation.modules.siard.out.content.ContentStrategy;
-import com.databasepreservation.modules.siard.out.metadata.MetadataStrategy;
-import com.databasepreservation.modules.siard.out.metadata.SIARD1MetadataStrategy;
-import com.databasepreservation.modules.siard.out.path.PathStrategy;
-import com.databasepreservation.modules.siard.out.path.SIARD1PathStrategy;
+import com.databasepreservation.modules.siard.out.content.ContentExportStrategy;
+import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.write.OutputContainer;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
@@ -22,21 +19,18 @@ import java.util.Set;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARDExportDefault implements DatabaseHandler {
-	private final PathStrategy pathStrategy;
 	private final OutputContainer mainContainer;
 	private final WriteStrategy writeStrategy;
-	private final MetadataStrategy metadataStrategy;
-	private final ContentStrategy contentStrategy;
+	private final MetadataExportStrategy metadataStrategy;
+	private final ContentExportStrategy contentStrategy;
 
 	private DatabaseStructure dbStructure;
 	private SchemaStructure currentSchema;
 	private TableStructure currentTable;
 
-	public SIARDExportDefault(ContentStrategy contentStrategy, PathStrategy pathStrategy,
-							  OutputContainer mainContainer, WriteStrategy writeStrategy,
-							  MetadataStrategy metadataStrategy) {
+	public SIARDExportDefault(ContentExportStrategy contentStrategy, OutputContainer mainContainer,
+							  WriteStrategy writeStrategy, MetadataExportStrategy metadataStrategy) {
 		this.contentStrategy = contentStrategy;
-		this.pathStrategy = pathStrategy;
 		this.mainContainer = mainContainer;
 		this.writeStrategy = writeStrategy;
 		this.metadataStrategy = metadataStrategy;

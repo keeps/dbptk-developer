@@ -1,6 +1,8 @@
 package com.databasepreservation;
 
 import java.io.File;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +28,9 @@ import com.databasepreservation.modules.siard.in.SIARDImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD1ExportModule;
 import com.databasepreservation.modules.sqlServer.in.SQLServerJDBCImportModule;
 import com.databasepreservation.modules.sqlServer.out.SQLServerJDBCExportModule;
+
+import dk.magenta.siarddk.SIARDDKExportModule;
+
 /**
  * @author Luis Faria
  *
@@ -261,7 +266,6 @@ public class Main {
 	private static DatabaseHandler getExportModule(List<String> exportModuleArgs) {
 		DatabaseHandler exportModule = null;
 		if (exportModuleArgs.get(0).equalsIgnoreCase("SIARD1")) {
-
 			if (exportModuleArgs.size() == 3) {
 				exportModule = new SIARD1ExportModule(
 						Paths.get(exportModuleArgs.get(1)),
@@ -272,11 +276,11 @@ public class Main {
 			}
 		}
 		
-//		else if (exportModuleArgs.get(0).equals("SIARDDK")) {
-//			// TO-DO: do not use hard-coded path
-//			Path path = FileSystems.getDefault().getPath("/tmp", "siarddk_test");
-//			exportModule = new SIARDDKExportModule(path, new SIARDDKMetadataStrategy());
-//		}
+		else if (exportModuleArgs.get(0).equals("SIARDDK")) {
+			// TO-DO: do not use hard-coded path
+			Path path = FileSystems.getDefault().getPath("/tmp", "siarddk_test");
+			exportModule = new SIARDDKExportModule(path, false).getDatabaseHandler();
+		}
 
 		
 		else if (exportModuleArgs.get(0).equalsIgnoreCase("DB2JDBC")) {
