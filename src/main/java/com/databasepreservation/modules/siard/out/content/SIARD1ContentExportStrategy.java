@@ -8,7 +8,6 @@ import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.modules.siard.common.LargeObject;
-import com.databasepreservation.modules.siard.common.sql99toXSDType;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;

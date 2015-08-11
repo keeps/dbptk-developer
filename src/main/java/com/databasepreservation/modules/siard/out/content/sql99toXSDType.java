@@ -1,4 +1,4 @@
-package com.databasepreservation.modules.siard.common;
+package com.databasepreservation.modules.siard.out.content;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
