@@ -28,8 +28,8 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
-import com.databasepreservation.modules.siard.out.write.OutputContainer;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
 import dk.magenta.siarddk.tableindex.ColumnType;
@@ -55,7 +55,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 	}
 	
 	@Override
-	public void writeMetadataXML(DatabaseStructure dbStructure, OutputContainer outputContainer) throws ModuleException{
+	public void writeMetadataXML(DatabaseStructure dbStructure, SIARDArchiveContainer outputContainer) throws ModuleException{
 
 		// For testing!
 		// dbStructure = generateDatabaseStructure();		
@@ -281,7 +281,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 	}
 	
 	@Override
-	public void writeMetadataXSD(DatabaseStructure dbStructure, OutputContainer container) throws ModuleException {
+	public void writeMetadataXSD(DatabaseStructure dbStructure, SIARDArchiveContainer container) throws ModuleException {
 		// TODO Auto-generated method stub
 		
 	}
