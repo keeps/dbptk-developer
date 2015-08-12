@@ -166,18 +166,21 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
 	}
 
 	private void writeSimpleCellData(SimpleCell simpleCell, int columnIndex) throws IOException{
+		currentWriter
+				.append(TAB)
+				.append(TAB)
+				.append("<c")
+				.append(String.valueOf(columnIndex))
+				.append(">");
+
 		if (simpleCell.getSimpledata() != null) {
-			currentWriter
-					.append(TAB)
-					.append(TAB)
-					.append("<c")
-					.append(String.valueOf(columnIndex))
-					.append(">")
-					.append(XMLUtils.encode(simpleCell.getSimpledata()))
-					.append("</c")
-					.append(String.valueOf(columnIndex))
-					.append(">\n");
+			currentWriter.write(XMLUtils.encode(simpleCell.getSimpledata()));
 		}
+
+		currentWriter
+				.append("</c")
+				.append(String.valueOf(columnIndex))
+				.append(">\n");
 	}
 
 	private void writeLargeObjectData(Cell cell, int columnIndex) throws IOException, ModuleException {

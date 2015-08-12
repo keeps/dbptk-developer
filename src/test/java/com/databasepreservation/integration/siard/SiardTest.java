@@ -76,7 +76,7 @@ public class SiardTest {
 		if(differ) {
 			logger.debug(diff.diff_prettyCmd(diffs));
 		}else {
-			logger.info("toString() are equal!");
+			logger.debug("toString() are equal!");
 		}
 
 
@@ -446,8 +446,6 @@ public class SiardTest {
 	 */
 	private DatabaseStructure roundtrip(DatabaseStructure dbStructure, Path tmpFile)
 			throws FileNotFoundException, ModuleException, UnknownTypeException, InvalidDataException{
-//		DatabaseHandler exporter = new SIARDExportModule(tmpFile.toFile(), false);
-
 		DatabaseHandler exporter = new SIARD1ExportModule(tmpFile, true).getDatabaseHandler();
 
 		// behaviour
@@ -480,24 +478,11 @@ public class SiardTest {
 		logger.debug("getting the data back from SIARD");
 
 		logger.debug("SIARD file: " + tmpFile.toUri().toString());
-
-        //MyClass myInstance = mock(MyClass.class);
 		DatabaseHandler mocked = Mockito.mock(DatabaseHandler.class);
-
-		try{
-			//SIARDImportModule importer = new SIARDImportModule(tmpFile.toFile());
-			DatabaseImportModule importer = new SIARD1ImportModule(tmpFile).getDatabaseImportModule();
-
-			ArgumentCaptor<DatabaseStructure> dbStructureCaptor = ArgumentCaptor.forClass(DatabaseStructure.class);
-
-			importer.getDatabase(mocked);
-
-			Mockito.verify(mocked).handleStructure(dbStructureCaptor.capture());
-
-			return dbStructureCaptor.getValue();
-		}catch(ModuleException e){
-			// breakpoint the next line to debug before the temporary files are deleted
-			throw e;
-		}
+		DatabaseImportModule importer = new SIARD1ImportModule(tmpFile).getDatabaseImportModule();
+		ArgumentCaptor<DatabaseStructure> dbStructureCaptor = ArgumentCaptor.forClass(DatabaseStructure.class);
+		importer.getDatabase(mocked);
+		Mockito.verify(mocked).handleStructure(dbStructureCaptor.capture());
+		return dbStructureCaptor.getValue();
 	}
 }
