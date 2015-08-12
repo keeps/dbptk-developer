@@ -97,5 +97,8 @@ public class Reference {
 		return true;
 	}
 
-
+	@Override
+	public String toString() {
+		return String.format("Reference{column='%s', referenced='%s'}", column, referenced);
+	}
 }

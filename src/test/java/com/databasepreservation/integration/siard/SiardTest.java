@@ -57,40 +57,28 @@ public class SiardTest {
 
 		DatabaseStructure original = generateDatabaseStructure();
 
-		// fixme: the original structure is passed to the roundtrip test, which means SIARD module can (and does)
-		//    change the original structure (example: makes some descriptions null, changes column folder if
-		//    there are blobs to export) this can be avoided by creating clone constructors and providing
-		//    roundtrip test a cloned structure which will allow us to compare the result of the roundtrip
-		//    against the original (unaltered) database structure.
+		// fixme: the original structure is passed to the roundtrip test, which means SIARD module may still change the original structure
+		// solution: clone the database structure before passing it to the roundtrip test
 
 		DatabaseStructure other = roundtrip(original, tmpFile);
 
+		//debug
+		diff_match_patch diff = new diff_match_patch();
+		LinkedList<diff_match_patch.Diff> diffs = diff.diff_main(original.toString(), other.toString());
 
-		{ //debug
-			diff_match_patch diff = new diff_match_patch();
-			LinkedList<diff_match_patch.Diff> diffs = diff.diff_main(original.toString(), other.toString());
-
-			boolean differ = false;
-			for( diff_match_patch.Diff aDiff : diffs ){
-				if( aDiff.operation != diff_match_patch.Operation.EQUAL ){
-					System.out.println(diff.diff_prettyCmd(diffs));
-					differ = true;
-					break;
-				}
-			}
-			if(!differ) logger.info("toString() are equal!");
-		}
-
-		// fixme: these are used to make the test pass, and should be looked into and corrected
-		// these fixes are not in the generateDatabaseStructure() because they produce an invalid DatabaseStructure
-		// this also means that SIARD roundtrip is creating an invalid DatabaseStructure
-		for (SchemaStructure schema : original.getSchemas()) {
-			for (TableStructure table : schema.getTables()) {
-				for (Trigger trigger : table.getTriggers()) {
-					trigger.setActionTime(null);
-				}
+		boolean differ = false;
+		for( diff_match_patch.Diff aDiff : diffs ){
+			if( aDiff.operation != diff_match_patch.Operation.EQUAL ){
+				differ = true;
+				break;
 			}
 		}
+		if(differ) {
+			logger.debug(diff.diff_prettyCmd(diffs));
+		}else {
+			logger.info("toString() are equal!");
+		}
+
 
 		assert original.equals(other) : "The final structure (from SIARD) differs from the original structure";
 	}
