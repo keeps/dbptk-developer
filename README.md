@@ -26,7 +26,7 @@ To use the program, open a command-line and try out the following command (repla
 $ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar 
 Synopsys: java -jar db-preservation-toolkit.jar -i IMPORT_MODULE [options...] -o EXPORT_MODULE [options...]
 Available import modules:
-	SIARD dir
+	SIARD1 dir
 	SQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt
 	PostgreSQLJDBC hostName [port] database username password encrypt
 	MySQLJDBC hostName [port] database username password
