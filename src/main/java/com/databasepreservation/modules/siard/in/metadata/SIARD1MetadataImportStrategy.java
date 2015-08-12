@@ -532,6 +532,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 
 			result.setType(TypeConverterFactory.getSQL99TypeConverter().getType(column.getType(), column.getTypeOriginal()));
 
+			result.setNillable(column.isNullable());
 			result.setDefaultValue(column.getDefaultValue());
 			result.setDescription(column.getDescription());
 
