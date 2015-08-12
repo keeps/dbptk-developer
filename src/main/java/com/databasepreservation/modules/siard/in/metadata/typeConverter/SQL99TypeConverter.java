@@ -86,6 +86,7 @@ public class SQL99TypeConverter implements TypeConverter {
 		}
 
 		type.setSql99TypeName(sqlStandardType);
+		type.setOriginalTypeName(originalType);
 
 		return type;
 	}

@@ -40,6 +40,9 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 
 	private String messageDigest = null;
 
+	private int currentSchemaIndex = 1;
+	private int currentTableIndex;
+
 	public SIARD1MetadataImportStrategy(ReadStrategy readStrategy, MetadataPathStrategy metadataPathStrategy,
 										ContentPathImportStrategy contentPathImportStrategy) {
 		this.readStrategy = readStrategy;
@@ -228,11 +231,13 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 		if(schema != null) {
 			SchemaStructure result = new SchemaStructure();
 
+			result.setIndex(currentSchemaIndex++);
 			result.setName(schema.getName());
 			result.setDescription(schema.getDescription());
 
 			contentPathStrategy.associateSchemaWithFolder(schema.getName(), schema.getFolder());
 
+			currentTableIndex = 1;
 			result.setTables(getTablesStructure(schema.getTables(), schema.getName()));
 			result.setViews(getViews(schema.getViews()));
 			result.setRoutines(getRoutines(schema.getRoutines()));
@@ -344,6 +349,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 		if(table != null) {
 			TableStructure result = new TableStructure();
 
+			result.setIndex(currentTableIndex++);
 			result.setName(table.getName());
 			result.setSchema(schemaName);
 			result.setDescription(table.getDescription());
@@ -524,7 +530,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 			result.setId(tableId + "." + result.getName());
 			contentPathStrategy.associateColumnWithFolder(result.getId(), column.getFolder());
 
-			result.setType(TypeConverterFactory.getSQL99TypeConverter().getType(column.getTypeOriginal(), column.getType()));
+			result.setType(TypeConverterFactory.getSQL99TypeConverter().getType(column.getType(), column.getTypeOriginal()));
 
 			result.setDefaultValue(column.getDefaultValue());
 			result.setDescription(column.getDescription());
