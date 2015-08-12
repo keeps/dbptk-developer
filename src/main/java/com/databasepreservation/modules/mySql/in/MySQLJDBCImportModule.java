@@ -7,11 +7,13 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.UserStructure;
+import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.mySql.MySQLHelper;
+
 import org.apache.log4j.Logger;
 
 import java.sql.ResultSet;
@@ -88,6 +90,19 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 		return (s == null) ? getConnection().getCatalog() : s;
 	}
 
+	@Override
+	protected List<ViewStructure> getViews(String schemaName) throws SQLException, ClassNotFoundException, UnknownTypeException {
+		List<ViewStructure> views = super.getViews(schemaName);
+		for (ViewStructure v : views) {
+			Statement statement = getConnection().createStatement();
+			String query = "SHOW CREATE VIEW " + v.getName();
+			ResultSet rset = statement.executeQuery(query);
+			rset.next(); // Returns only one tuple
+			v.setQueryOriginal(rset.getString(2));
+		}
+		return views;
+	}
+	
 	@Override
 	protected List<UserStructure> getUsers() throws SQLException,
 			ClassNotFoundException {

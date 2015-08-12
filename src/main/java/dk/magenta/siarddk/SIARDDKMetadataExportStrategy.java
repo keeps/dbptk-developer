@@ -157,7 +157,6 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 						// Set foreignKeys
 						ForeignKeysType foreignKeysType = new ForeignKeysType();
 						List<ForeignKey> foreignKeys = tableStructure.getForeignKeys();
-						System.out.println("foreignKeys = " + foreignKeys);
 						if (foreignKeys != null && foreignKeys.size() > 0) {
 							for (ForeignKey key : foreignKeys) {
 								ForeignKeyType foreignKeyType = new ForeignKeyType();
@@ -280,83 +279,6 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 		
 	}
 	
-	public boolean validateInput(String type, String input) throws ModuleException {
-		
-		if (type.equals("SQLIdentifier")) {
-
-			if (input.length() == 0 || input.length() > 128) {
-				throw new ModuleException("Metadata error: input length is incorrect.");
-			}
-			
-			if (!input.matches("(\\p{L}(_|\\w)*)|(&quot;.*&quot;)")) {  // Should be tested more
-				throw new ModuleException("Metadata error: input should match SQLIdentifier.");
-			}
-			
-			return true;
-			
-		} else if (type.equals("SQL1999DataType")) {
-			if (input.matches("(character|CHARACTER)(\\s?\\(\\s?[1-9][0-9]*\\))?")) {
-				return true;
-			} else if (input.matches("(char|CHAR)(\\s?\\(\\s?[1-9][0-9]*\\))?")) {
-				return true;
-			} else if (input.matches("((character varying)|(CHARACTER VARYING))(\\s?\\(\\s?[1-9][0-9]*\\))")) {
-				return true;
-			} else if (input.matches("((char varying)|(CHAR VARYING))(\\s?\\(\\s?[1-9][0-9]*\\))")) {
-				return true;
-			} else if (input.matches("(varchar|VARCHAR)(\\s?\\(\\s?[1-9][0-9]*\\))")) {
-				return true;
-			} else if (input.matches("((national character)|(NATIONAL CHARACTER))(\\s?\\(\\s?[1-9][0-9]*\\))?")) {
-				return true;
-			} else if (input.matches("((national char)|(NATIONAL CHAR))(\\s?\\(\\s?[1-9][0-9]*\\))?")) {
-				return true;
-			} else if (input.matches("(nchar|NCHAR)(\\s?\\(\\s?[1-9][0-9]*\\))?")) {
-				return true;
-			} else if (input.matches("((national character varying)|(NATIONAL CHARACTER VARYING))(\\s?\\(\\s?[1-9][0-9]*\\))")) {
-				return true;
-			} else if (input.matches("((national char varying)|(NATIONAL CHAR VARYING))(\\s?\\(\\s?[1-9][0-9]*\\))")) {
-				return true;
-			} else if (input.matches("((nchar varying)|(NCHAR VARYING))(\\s?\\(\\s?[1-9][0-9]*\\))")) {
-				return true;
-			} else if (input.matches("(numeric|NUMERIC)(\\s?\\(\\s?[1-9][0-9]*(\\s?,\\s?[1-9][0-9]*)?\\))?")) {
-				return true;
-			} else if (input.matches("(decimal|DECIMAL)(\\s?\\(\\s?[1-9][0-9]*(\\s?,\\s?[1-9][0-9]*)?\\))?")) {
-				return true;
-			} else if (input.matches("(dec|DEC)(\\s?\\(\\s?[1-9][0-9]*(\\s?,\\s?[1-9][0-9]*)?\\))?")) {
-				return true;
-			} else if (input.matches("integer|INTEGER")) {
-				return true;
-			} else if (input.matches("int|INT")) {
-				return true;
-			} else if (input.matches("smallint|SMALLINT")) {
-				return true;
-			} else if (input.matches("(float|FLOAT)(\\s?\\(\\s?[1-9][0-9]*\\))?")) {
-				return true;
-			} else if (input.matches("real|REAL")) {
-				return true;
-			} else if (input.matches("(double precision)|(DOUBLE PRECISION)")) {
-				return true;
-			} else if (input.matches("boolean|BOOLEAN")) {
-				return true;
-			} else if (input.matches("date|DATE")) {
-				return true;
-			} else if (input.matches("(time|TIME)(\\s?\\([1-9][0-9]*\\))?(\\s?((WITH TIME ZONE)|(WITHOUT TIME ZONE)))?")) {
-				return true;
-			} else if (input.matches("(timestamp|TIMESTAMP)(\\s?\\([1-9][0-9]*\\))?(\\s?(WITH TIME ZONE)|(WITHOUT TIME ZONE))?")) {
-				return true;
-			} else if (input.matches("(interval|INTERVAL) (YEAR|MONTH|DAY|HOUR|MINUTE|year|month|day|hour|minute) (\\([1-9][0-9]*\\))? (TO|to) (YEAR|MONTH|DAY|HOUR|MINUTE|year|month|day|hour|minute)|(second|SECOND)(\\([1-9][0-9]*(,[1-9][0-9]*)?\\))?")) {
-				return true;
-			} 
-			else {
-				throw new ModuleException("SQL1999DataType incorrect.");
-			}
-		}
-		
-		else {
-			throw new ModuleException("Input type unknown.");
-		}
-		
-		
-	}
 
 	private DatabaseStructure generateDatabaseStructure() {
 
