@@ -28,7 +28,7 @@ public class SIARDDKExportModule {
 		mainContainer = new OutputContainer(siardPackage, OutputContainer.OutputContainerType.INSIDE_ARCHIVE);
 		contentExportStrategy = new SIARDDKContentExportStrategy();
 		writeStrategy = new FolderWriteStrategy();
-		metadataExportStrategy = new SIARDDKMetadataExportStrategy();
+		metadataExportStrategy = new SIARDDKMetadataExportStrategy(writeStrategy);
 		
 	}
 	

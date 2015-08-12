@@ -1,6 +1,7 @@
 package dk.magenta.siarddk;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,7 @@ import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.write.OutputContainer;
+import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
 import dk.magenta.siarddk.tableindex.ColumnType;
 import dk.magenta.siarddk.tableindex.ColumnsType;
@@ -46,10 +48,10 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
 	private static final String ENCODING = "UTF-8";
 	private static final String SCHEMA_LOCATION = "/schema/tableIndex.xsd";
-	// private DatabaseStructure dbStructure;
+	private WriteStrategy writeStrategy;
 	
-	public SIARDDKMetadataExportStrategy() {
-		
+	public SIARDDKMetadataExportStrategy(WriteStrategy writeStrategy) {
+		this.writeStrategy = writeStrategy;
 	}
 	
 	@Override
@@ -193,6 +195,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 					
 					// Set views
 					List<ViewStructure> viewStructures = schemaStructure.getViews();
+
 					if (viewStructures != null && viewStructures.size() > 0) {
 						ViewsType viewsType = new ViewsType();
 						for (ViewStructure viewStructure : viewStructures) {
@@ -254,7 +257,11 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 			m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/tableIndex.xsd");
 
 			m.setSchema(xsdSchema);
-			m.marshal(siardDiark, System.out);
+
+			// m.marshal(siardDiark, System.out);
+			
+			OutputStream writer = writeStrategy.createOutputStream(outputContainer, "tableIndex.xml");
+			m.marshal(siardDiark, writer);
 			
 //		} catch (MarshalException e) {
 //
