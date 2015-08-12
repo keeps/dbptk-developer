@@ -89,9 +89,6 @@ public class SiardTest {
 				for (Trigger trigger : table.getTriggers()) {
 					trigger.setActionTime(null);
 				}
-				for (ForeignKey fk : table.getForeignKeys()) {
-					fk.setId(null);
-				}
 			}
 		}
 

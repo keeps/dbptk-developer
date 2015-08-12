@@ -360,7 +360,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 			result.setPrimaryKey(getPrimaryKey(table.getPrimaryKey()));
 
 			result.setColumns(getColumns(table.getColumns(), result.getId()));
-			result.setForeignKeys(getForeignKeys(table.getForeignKeys()));
+			result.setForeignKeys(getForeignKeys(table.getForeignKeys(), result.getId()));
 			result.setCandidateKeys(getCandidateKeys(table.getCandidateKeys()));
 			result.setCheckConstraints(getCheckConstraints(table.getCheckConstraints()));
 			result.setTriggers(getTriggers(table.getTriggers()));
@@ -453,22 +453,23 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 		}
 	}
 
-	private List<ForeignKey> getForeignKeys(ForeignKeysType foreignKeys) {
+	private List<ForeignKey> getForeignKeys(ForeignKeysType foreignKeys, String tableId) {
 		List<ForeignKey> result = new ArrayList<ForeignKey>();
 
 		if(foreignKeys != null && !foreignKeys.getForeignKey().isEmpty()){
 			for (ForeignKeyType foreignKey : foreignKeys.getForeignKey()) {
-				result.add(getForeignKey(foreignKey));
+				result.add(getForeignKey(foreignKey, tableId));
 			}
 		}
 
 		return result;
 	}
 
-	private ForeignKey getForeignKey(ForeignKeyType foreignKey) {
+	private ForeignKey getForeignKey(ForeignKeyType foreignKey, String tableId) {
 		if(foreignKey != null) {
 			ForeignKey result = new ForeignKey();
 
+			result.setId(String.format("%s.%s", tableId, foreignKey.getName()));
 			result.setName(foreignKey.getName());
 			result.setReferencedSchema(foreignKey.getReferencedSchema());
 			result.setReferencedTable(foreignKey.getReferencedTable());
