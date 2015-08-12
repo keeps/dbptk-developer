@@ -45,12 +45,12 @@ public class sql99toXSDType {
 
 		// mapping using regex
 		sql99toXSDregex.put("^BIT VARYING\\(\\d+\\)$", "xs:hexBinary");
-		sql99toXSDregex.put("^BIT\\(\\d+\\)$", null);
-		sql99toXSDregex.put("^CHARACTER VARYING\\(\\d+\\)$", null);
-		sql99toXSDregex.put("^CHARACTER\\(\\d+\\)$", null);
-		sql99toXSDregex.put("^DECIMAL\\(\\d+(,\\d+)?\\)$", null);
-		sql99toXSDregex.put("^FLOAT\\(\\d+\\)$", null);
-		sql99toXSDregex.put("^NUMERIC\\(\\d+(,\\d+)?\\)$", null);
+		sql99toXSDregex.put("^BIT\\(\\d+\\)$", "xs:hexBinary");
+		sql99toXSDregex.put("^CHARACTER VARYING\\(\\d+\\)$", "xs:string");
+		sql99toXSDregex.put("^CHARACTER\\(\\d+\\)$", "xs:string");
+		sql99toXSDregex.put("^DECIMAL\\(\\d+(,\\d+)?\\)$", "xs:decimal");
+		sql99toXSDregex.put("^FLOAT\\(\\d+\\)$", "xs:float");
+		sql99toXSDregex.put("^NUMERIC\\(\\d+(,\\d+)?\\)$", "xs:decimal");
 	}
 
 	public static String convert(Type type) throws ModuleException, UnknownTypeException {
