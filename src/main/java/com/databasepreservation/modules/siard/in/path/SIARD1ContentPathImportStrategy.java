@@ -11,6 +11,9 @@ import java.util.Map;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARD1ContentPathImportStrategy implements ContentPathImportStrategy {
+	// constant directories
+	private static final String CONTENT_FOLDER = "content";
+
 	// extensions for files
 	private static final String XML_EXTENSION = "xml";
 	private static final String XSD_EXTENSION = "xsd";
@@ -65,7 +68,11 @@ public class SIARD1ContentPathImportStrategy implements ContentPathImportStrateg
 		}
 
 		return new StringBuilder()
+				.append(CONTENT_FOLDER)
+				.append(FILE_SEPARATOR)
 				.append(schemaFolder)
+				.append(FILE_SEPARATOR)
+				.append(tableFolder)
 				.append(FILE_SEPARATOR)
 				.append(tableFolder)
 				.append(FILE_EXTENSION_SEPARATOR)
@@ -92,7 +99,11 @@ public class SIARD1ContentPathImportStrategy implements ContentPathImportStrateg
 		}
 
 		return new StringBuilder()
+				.append(CONTENT_FOLDER)
+				.append(FILE_SEPARATOR)
 				.append(schemaFolder)
+				.append(FILE_SEPARATOR)
+				.append(tableFolder)
 				.append(FILE_SEPARATOR)
 				.append(tableFolder)
 				.append(FILE_EXTENSION_SEPARATOR)

@@ -138,9 +138,10 @@ public class SIARD1ContentPathExportStrategy implements ContentPathExportStrateg
 	@Override
 	public String getTableXsdFileName(int tableIndex) {
 		return new StringBuilder()
+				.append(TABLE_FILENAME)
 				.append(tableIndex)
 				.append(FILE_EXTENSION_SEPARATOR)
-				.append(XML_EXTENSION)
+				.append(XSD_EXTENSION)
 				.toString();
 	}
 

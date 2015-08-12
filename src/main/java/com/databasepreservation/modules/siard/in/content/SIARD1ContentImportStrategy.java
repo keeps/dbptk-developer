@@ -16,9 +16,9 @@ import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
+import org.xml.sax.*;
 import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.XMLConstants;
@@ -30,13 +30,9 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Stack;
-import java.util.TreeMap;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -54,23 +50,23 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
 	private final ContentPathImportStrategy contentPathStrategy;
 	private final ReadStrategy readStrategy;
 	private SIARDArchiveContainer contentContainer;
+	private DatabaseHandler databaseHandler;
 
-
-	// SAXHandler
+	// SAXHandler settings
+	static final String JAXP_SCHEMA_LANGUAGE = "http://java.sun.com/xml/jaxp/properties/schemaLanguage";
+	static final String W3C_XML_SCHEMA = "http://www.w3.org/2001/XMLSchema";
+	static final String JAXP_SCHEMA_SOURCE = "http://java.sun.com/xml/jaxp/properties/schemaSource";
+	private SAXErrorHandler errorHandler;
 	private SAXParser saxParser;
-	private Map<String, Throwable> errors = new TreeMap<String, Throwable>();
+
+	// SAXHandler state
 	private TableStructure currentTable;
 	private InputStream currentTableStream;
-
 	private BinaryCell currentBinaryCell;
-
 	private final Stack<String> tagsStack = new Stack<String>();
 	private final StringBuilder tempVal = new StringBuilder();
-
 	private Row row;
 	private int rowIndex;
-
-	private DatabaseHandler handler;
 
 	public SIARD1ContentImportStrategy(ReadStrategy readStrategy, ContentPathImportStrategy contentPathStrategy) {
 		this.contentPathStrategy = contentPathStrategy;
@@ -80,32 +76,60 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
 	@Override
 	public void importContent(DatabaseHandler handler, SIARDArchiveContainer container, DatabaseStructure databaseStructure) throws ModuleException {
 		// set instance state
-		this.handler = handler;
+		this.databaseHandler = handler;
 		this.contentContainer = container;
+
+		// pre-setup parser and validation
+		SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+		SAXParserFactory saxParserFactory = null;
+		saxParserFactory = SAXParserFactory.newInstance();
+		saxParserFactory.setValidating(true);
+		saxParserFactory.setNamespaceAware(true);
 		SAXParser saxParser = null;
-		try {
-			SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
-			saxParser = saxParserFactory.newSAXParser();
-		} catch (SAXException e) {
-			throw new ModuleException("Error initializing SAX parser", e);
-		} catch (ParserConfigurationException e) {
-			throw new ModuleException("Error initializing SAX parser", e);
-		}
 
 		// process tables
 		for (SchemaStructure schema : databaseStructure.getSchemas()) {
 			for (TableStructure table : schema.getTables()) {
 
-				// validate XML with XSD
-				InputStream xmlStream = readStrategy.createInputStream(container,
-						contentPathStrategy.getTableXMLFilePath(schema.getName(), table.getId()));
+				// setup a new validating parser
 				InputStream xsdStream = readStrategy.createInputStream(container,
 						contentPathStrategy.getTableXSDFilePath(schema.getName(), table.getId()));
 
-				validateSchema(xmlStream, xsdStream);
+				try {
+					saxParser = saxParserFactory.newSAXParser();
+					saxParser.setProperty(JAXP_SCHEMA_LANGUAGE, W3C_XML_SCHEMA);
+					saxParser.setProperty(JAXP_SCHEMA_SOURCE, xsdStream);
+				} catch (SAXException e) {
+					logger.error("Error validating schema", e);
+				} catch (ParserConfigurationException e) {
+					logger.error("Error creating XML SAXparser", e);
+				}
+
+				// import values from XML
+				currentTableStream = readStrategy.createInputStream(container,
+						contentPathStrategy.getTableXMLFilePath(schema.getName(), table.getId()));
+
+				currentTable = table;
+
+				SAXErrorHandler errorHandler = new SAXErrorHandler();
 
 				try {
-					xmlStream.close();
+					XMLReader xmlReader = saxParser.getXMLReader();
+					xmlReader.setContentHandler(this);
+					xmlReader.setErrorHandler(errorHandler);
+					xmlReader.parse(new InputSource(currentTableStream));
+				} catch (SAXException e) {
+					throw new ModuleException("A SAX error occurred during processing of XML table file", e);
+				} catch (IOException e) {
+					throw new ModuleException("Error while reading XML table file", e);
+				}
+
+				if(errorHandler.hasError()){
+					throw new ModuleException("Parsing or validation error occurred while reading XML table file (details are above)");
+				}
+
+				try {
+					currentTableStream.close();
 				} catch (IOException e) {
 					throw new ModuleException("Could not close XML table input stream");
 				}
@@ -115,59 +139,8 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
 				} catch (IOException e) {
 					throw new ModuleException("Could not close table XSD schema input stream");
 				}
-
-				// import values from XML
-				currentTableStream = readStrategy.createInputStream(container,
-						contentPathStrategy.getTableXMLFilePath(schema.getName(), table.getId()));
-
-				currentTable = table;
-
-				try {
-					saxParser.parse(currentTableStream, this);
-				} catch (SAXException e) {
-					throw new ModuleException("A SAX error occurred during processing of XML table file", e);
-				} catch (IOException e) {
-					throw new ModuleException("Error while reading XML table file", e);
-				}
-
-				if (errors.size() > 0) {
-					throw new ModuleException(errors);
-				}
-
-				try {
-					currentTableStream.close();
-				} catch (IOException e) {
-					throw new ModuleException("Could not close XML table input stream");
-				}
 			}
 		}
-	}
-
-	private boolean validateSchema(InputStream xml, InputStream xsd) throws ModuleException {
-		Validator validator = null;
-
-		// load schema into a validator
-		try {
-			SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-			Schema schema = factory.newSchema(new StreamSource(xsd));
-			validator = schema.newValidator();
-		} catch (SAXException e) {
-			logger.error("Error validating schema", e);
-			return false;
-		}
-
-		// validate the xml
-		try {
-			Source metadataSource = new StreamSource(xml);
-			validator.validate(metadataSource);
-		} catch (SAXException e) {
-			logger.error("Error validating table XML", e);
-			return false;
-		} catch (IOException e) {
-			throw new ModuleException("Could not read table XML file", e);
-		}
-
-		return true;
 	}
 
 	private void pushTag(String tag) {
@@ -201,7 +174,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
 		if (qName.equalsIgnoreCase(TABLE_KEYWORD)) {
 			this.rowIndex = 0;
 			try {
-				handler.handleDataOpenTable(currentTable.getSchema(),currentTable.getId());
+				databaseHandler.handleDataOpenTable(currentTable.getSchema(), currentTable.getId());
 			} catch (ModuleException e) {
 				logger.error("An error occurred while handling data open table", e);
 			}
@@ -222,7 +195,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
 							String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1).getId(), rowIndex),
 							fileItem);
 				} catch (ModuleException e) {
-					errors.put("Failed to open lob at " + lobDir, e);
+					errorHandler.error("Failed to open lob at " + lobDir, e);
 				}
 
 				logger.debug(String.format("Binary cell %s on row #%d with lob dir %s",
@@ -247,7 +220,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
 		if (tag.equalsIgnoreCase(TABLE_KEYWORD)) {
 			try {
 				logger.debug("before handle data close");
-				handler.handleDataCloseTable(currentTable.getSchema(), currentTable.getId());
+				databaseHandler.handleDataCloseTable(currentTable.getSchema(), currentTable.getId());
 			} catch (ModuleException e) {
 				logger.error("An error occurred while handling data close table", e);
 			}
@@ -255,7 +228,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
 			row.setIndex(rowIndex);
 			rowIndex++;
 			try {
-				handler.handleDataRow(row);
+				databaseHandler.handleDataRow(row);
 			} catch (InvalidDataException e) {
 				logger.error("An error occurred while handling data row", e);
 			} catch (ModuleException e) {
@@ -304,5 +277,65 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
 	@Override
 	public void characters(char buf[], int offset, int len) {
 		tempVal.append(buf, offset, len);
+	}
+
+	/**
+	 * Class to handle SAX Parsing errors
+	 */
+	private static class SAXErrorHandler implements ErrorHandler {
+		private boolean hasError = false;
+		private final Logger logger = Logger.getLogger(SAXErrorHandler.class);
+
+		public boolean hasError() {
+			return hasError;
+		}
+
+		private String getParseExceptionInfo(SAXParseException e) {
+			StringBuilder buf = new StringBuilder();
+
+			if (e.getPublicId() != null) {
+				buf.append("publicId: ").append(e.getPublicId()).append("; ");
+			}
+
+			if (e.getSystemId() != null) {
+				buf.append("systemId: ").append(e.getSystemId()).append("; ");
+			}
+
+			if (e.getLineNumber() != -1) {
+				buf.append("line: ").append(e.getLineNumber()).append("; ");
+			}
+
+			if (e.getColumnNumber() != -1) {
+				buf.append("column: ").append(e.getColumnNumber()).append("; ");
+			}
+
+			if (e.getLocalizedMessage() != null) {
+				buf.append(e.getLocalizedMessage());
+			}
+
+			return buf.toString();
+		}
+
+		@Override
+		public void warning(SAXParseException e) throws SAXException {
+			logger.warn(getParseExceptionInfo(e));
+		}
+
+		public void error(String message, Throwable e){
+			logger.error(message);
+			hasError = true;
+		}
+
+		@Override
+		public void error(SAXParseException e) throws SAXException {
+			logger.error(getParseExceptionInfo(e));
+			hasError = true;
+		}
+
+		@Override
+		public void fatalError(SAXParseException e) throws SAXException {
+			hasError = true;
+			throw new SAXException(String.format("Fatal Error: %s", getParseExceptionInfo(e)));
+		}
 	}
 }

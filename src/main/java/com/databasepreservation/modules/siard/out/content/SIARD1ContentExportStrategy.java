@@ -26,7 +26,7 @@ import java.util.Set;
 public class SIARD1ContentExportStrategy implements ContentExportStrategy {
 	private final Logger logger = Logger.getLogger(SIARD1ContentExportStrategy.class);
 
-	private final static String ENCODING = "utf-8";
+	private final static String ENCODING = "UTF-8";
 	private final static String TAB = "     ";
 	private final static String PAR = "\n";
 

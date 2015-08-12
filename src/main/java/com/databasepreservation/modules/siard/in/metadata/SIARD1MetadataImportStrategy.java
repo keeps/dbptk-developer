@@ -71,14 +71,14 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 		Unmarshaller unmarshaller;
 		try {
 			unmarshaller = context.createUnmarshaller();
-			unmarshaller.setProperty(Marshaller.JAXB_ENCODING, ENCODING);
-			unmarshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.bar.admin.ch/xmlns/siard/1.0/metadata.xsd metadata.xsd");
+			//unmarshaller.setProperty(Marshaller.JAXB_ENCODING, ENCODING);
+			//unmarshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.bar.admin.ch/xmlns/siard/1.0/metadata.xsd metadata.xsd");
 			unmarshaller.setSchema(xsdSchema);
 
 			reader = readStrategy.createInputStream(container, metadataPathStrategy.getMetadataXmlFilePath());
 			xmlRoot = (SiardArchive) unmarshaller.unmarshal(reader);
 		} catch (JAXBException e) {
-			throw new ModuleException("Error while Marshalling JAXB", e);
+			throw new ModuleException("Error while Unmarshalling JAXB", e);
 		}finally {
 			try {
 				xsdStream.close();
@@ -145,16 +145,20 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 	}
 
 	private PrivilegeStructure getPrivilegeStructure(PrivilegeType privilegeType) {
-		PrivilegeStructure result = new PrivilegeStructure();
+		if(privilegeType != null) {
+			PrivilegeStructure result = new PrivilegeStructure();
 
-		result.setType(privilegeType.getType());
-		result.setObject(privilegeType.getObject());
-		result.setGrantor(privilegeType.getGrantor());
-		result.setGrantee(privilegeType.getGrantee());
-		result.setOption(privilegeType.getOption().value());
-		result.setDescription(privilegeType.getDescription());
+			result.setType(privilegeType.getType());
+			result.setObject(privilegeType.getObject());
+			result.setGrantor(privilegeType.getGrantor());
+			result.setGrantee(privilegeType.getGrantee());
+			result.setOption(privilegeType.getOption().value());
+			result.setDescription(privilegeType.getDescription());
 
-		return result;
+			return result;
+		}else{
+			return null;
+		}
 	}
 
 	private List<RoleStructure> getRoles(RolesType roles) {
@@ -170,13 +174,17 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 	}
 
 	private RoleStructure getRoleStructure(RoleType roleType) {
-		RoleStructure result = new RoleStructure();
+		if(roleType != null) {
+			RoleStructure result = new RoleStructure();
 
-		result.setName(roleType.getName());
-		result.setAdmin(roleType.getAdmin());
-		result.setDescription(roleType.getDescription());
+			result.setName(roleType.getName());
+			result.setAdmin(roleType.getAdmin());
+			result.setDescription(roleType.getDescription());
 
-		return result;
+			return result;
+		}else{
+			return null;
+		}
 	}
 
 	private List<UserStructure> getUsers(UsersType users) {
@@ -192,12 +200,16 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 	}
 
 	private UserStructure getUserStructure(UserType userType) {
-		UserStructure result = new UserStructure();
+		if(userType != null) {
+			UserStructure result = new UserStructure();
 
-		result.setName(userType.getName());
-		result.setDescription(userType.getDescription());
+			result.setName(userType.getName());
+			result.setDescription(userType.getDescription());
 
-		return result;
+			return result;
+		}else{
+			return null;
+		}
 	}
 
 	private List<SchemaStructure> getSchemas(SchemasType schemas) throws ModuleException {
@@ -213,18 +225,22 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 	}
 
 	private SchemaStructure getSchemaStructure(SchemaType schema) throws ModuleException {
-		SchemaStructure result = new SchemaStructure();
+		if(schema != null) {
+			SchemaStructure result = new SchemaStructure();
 
-		result.setName(schema.getName());
-		result.setDescription(schema.getDescription());
+			result.setName(schema.getName());
+			result.setDescription(schema.getDescription());
 
-		contentPathStrategy.associateSchemaWithFolder(schema.getName(), schema.getFolder());
+			contentPathStrategy.associateSchemaWithFolder(schema.getName(), schema.getFolder());
 
-		result.setTables(getTablesStructure(schema.getTables(), schema.getName()));
-		result.setViews(getViews(schema.getViews()));
-		result.setRoutines(getRoutines(schema.getRoutines()));
+			result.setTables(getTablesStructure(schema.getTables(), schema.getName()));
+			result.setViews(getViews(schema.getViews()));
+			result.setRoutines(getRoutines(schema.getRoutines()));
 
-		return result;
+			return result;
+		}else{
+			return null;
+		}
 	}
 
 	private List<RoutineStructure> getRoutines(RoutinesType routines) throws ModuleException {
@@ -240,17 +256,21 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 	}
 
 	private RoutineStructure getRoutineStructure(RoutineType routineType) throws ModuleException {
-		RoutineStructure result = new RoutineStructure();
+		if(routineType != null) {
+			RoutineStructure result = new RoutineStructure();
 
-		result.setName(routineType.getName());
-		result.setDescription(routineType.getDescription());
-		result.setSource(routineType.getSource());
-		result.setBody(routineType.getBody());
-		result.setCharacteristic(routineType.getCharacteristic());
-		result.setReturnType(routineType.getReturnType());
-		result.setParameters(getParameters(routineType.getParameters()));
+			result.setName(routineType.getName());
+			result.setDescription(routineType.getDescription());
+			result.setSource(routineType.getSource());
+			result.setBody(routineType.getBody());
+			result.setCharacteristic(routineType.getCharacteristic());
+			result.setReturnType(routineType.getReturnType());
+			result.setParameters(getParameters(routineType.getParameters()));
 
-		return result;
+			return result;
+		}else{
+			return null;
+		}
 	}
 
 	private List<Parameter> getParameters(ParametersType parameters) throws ModuleException {
@@ -266,14 +286,18 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 	}
 
 	private Parameter getParameter(ParameterType parameterType) throws ModuleException {
-		Parameter result = new Parameter();
+		if (parameterType != null) {
+			Parameter result = new Parameter();
 
-		result.setName(parameterType.getName());
-		result.setMode(parameterType.getMode());
-		result.setType(TypeConverterFactory.getSQL99TypeConverter().getType(parameterType.getType(), parameterType.getTypeOriginal()));
-		result.setDescription(parameterType.getDescription());
+			result.setName(parameterType.getName());
+			result.setMode(parameterType.getMode());
+			result.setType(TypeConverterFactory.getSQL99TypeConverter().getType(parameterType.getType(), parameterType.getTypeOriginal()));
+			result.setDescription(parameterType.getDescription());
 
-		return result;
+			return result;
+		}else{
+			return null;
+		}
 	}
 
 	private List<ViewStructure> getViews(ViewsType views) throws ModuleException {
@@ -289,15 +313,19 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 	}
 
 	private ViewStructure getViewStructure(ViewType viewType) throws ModuleException {
-		ViewStructure result = new ViewStructure();
+		if(viewType != null) {
+			ViewStructure result = new ViewStructure();
 
-		result.setName(viewType.getName());
-		result.setQuery(viewType.getQuery());
-		result.setQueryOriginal(viewType.getQueryOriginal());
-		result.setDescription(viewType.getDescription());
-		result.setColumns(getColumns(viewType.getColumns(), "")); //TODO: decide what to put here as table name
+			result.setName(viewType.getName());
+			result.setQuery(viewType.getQuery());
+			result.setQueryOriginal(viewType.getQueryOriginal());
+			result.setDescription(viewType.getDescription());
+			result.setColumns(getColumns(viewType.getColumns(), "")); //TODO: decide what to put here as table name
 
-		return result;
+			return result;
+		}else{
+			return null;
+		}
 	}
 
 	private List<TableStructure> getTablesStructure(TablesType tables, String schemaName) throws ModuleException {
@@ -313,25 +341,29 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 	}
 
 	private TableStructure getTableStructure(TableType table, String schemaName) throws ModuleException {
-		TableStructure result = new TableStructure();
+		if(table != null) {
+			TableStructure result = new TableStructure();
 
-		result.setName(table.getName());
-		result.setSchema(schemaName);
-		result.setDescription(table.getDescription());
-		result.setId(String.format("%s.%s", result.getSchema(), result.getName()));
+			result.setName(table.getName());
+			result.setSchema(schemaName);
+			result.setDescription(table.getDescription());
+			result.setId(String.format("%s.%s", result.getSchema(), result.getName()));
 
-		contentPathStrategy.associateTableWithFolder(result.getId(), table.getFolder());
+			contentPathStrategy.associateTableWithFolder(result.getId(), table.getFolder());
 
-		result.setPrimaryKey(getPrimaryKey(table.getPrimaryKey()));
+			result.setPrimaryKey(getPrimaryKey(table.getPrimaryKey()));
 
-		result.setColumns(getColumns(table.getColumns(), result.getId()));
-		result.setForeignKeys(getForeignKeys(table.getForeignKeys()));
-		result.setCandidateKeys(getCandidateKeys(table.getCandidateKeys()));
-		result.setCheckConstraints(getCheckConstraints(table.getCheckConstraints()));
-		result.setTriggers(getTriggers(table.getTriggers()));
-		result.setRows(table.getRows().longValue());
+			result.setColumns(getColumns(table.getColumns(), result.getId()));
+			result.setForeignKeys(getForeignKeys(table.getForeignKeys()));
+			result.setCandidateKeys(getCandidateKeys(table.getCandidateKeys()));
+			result.setCheckConstraints(getCheckConstraints(table.getCheckConstraints()));
+			result.setTriggers(getTriggers(table.getTriggers()));
+			result.setRows(table.getRows().longValue());
 
-		return result;
+			return result;
+		}else{
+			return null;
+		}
 	}
 
 	private List<Trigger> getTriggers(TriggersType triggers) {
@@ -347,16 +379,20 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 	}
 
 	private Trigger getTrigger(TriggerType triggerType) {
-		Trigger result = new Trigger();
+		if(triggerType != null) {
+			Trigger result = new Trigger();
 
-		result.setName(triggerType.getName());
-		result.setActionTime(triggerType.getActionTime().value());
-		result.setTriggerEvent(triggerType.getTriggerEvent());
-		result.setAliasList(triggerType.getAliasList());
-		result.setTriggeredAction(triggerType.getTriggeredAction());
-		result.setDescription(triggerType.getDescription());
+			result.setName(triggerType.getName());
+			result.setActionTime(triggerType.getActionTime().value());
+			result.setTriggerEvent(triggerType.getTriggerEvent());
+			result.setAliasList(triggerType.getAliasList());
+			result.setTriggeredAction(triggerType.getTriggeredAction());
+			result.setDescription(triggerType.getDescription());
 
-		return result;
+			return result;
+		}else{
+			return null;
+		}
 	}
 
 	private List<CheckConstraint> getCheckConstraints(CheckConstraintsType checkConstraints) {
@@ -372,13 +408,17 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 	}
 
 	private CheckConstraint getCheckConstraint(CheckConstraintType checkConstraintType) {
-		CheckConstraint result = new CheckConstraint();
+		if(checkConstraintType != null) {
+			CheckConstraint result = new CheckConstraint();
 
-		result.setName(checkConstraintType.getName());
-		result.setCondition(checkConstraintType.getCondition());
-		result.setDescription(checkConstraintType.getDescription());
+			result.setName(checkConstraintType.getName());
+			result.setCondition(checkConstraintType.getCondition());
+			result.setDescription(checkConstraintType.getDescription());
 
-		return result;
+			return result;
+		}else{
+			return null;
+		}
 	}
 
 	private List<CandidateKey> getCandidateKeys(CandidateKeysType candidateKeys) {
@@ -394,13 +434,17 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 	}
 
 	private CandidateKey getCandidateKey(CandidateKeyType candidateKeyType) {
-		CandidateKey result = new CandidateKey();
+		if(candidateKeyType != null) {
+			CandidateKey result = new CandidateKey();
 
-		result.setName(candidateKeyType.getName());
-		result.setDescription(candidateKeyType.getDescription());
-		result.setColumns(candidateKeyType.getColumn());
+			result.setName(candidateKeyType.getName());
+			result.setDescription(candidateKeyType.getDescription());
+			result.setColumns(candidateKeyType.getColumn());
 
-		return result;
+			return result;
+		}else{
+			return null;
+		}
 	}
 
 	private List<ForeignKey> getForeignKeys(ForeignKeysType foreignKeys) {
@@ -416,20 +460,23 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 	}
 
 	private ForeignKey getForeignKey(ForeignKeyType foreignKey) {
-		ForeignKey result = new ForeignKey();
+		if(foreignKey != null) {
+			ForeignKey result = new ForeignKey();
 
+			result.setName(foreignKey.getName());
+			result.setReferencedSchema(foreignKey.getReferencedSchema());
+			result.setReferencedTable(foreignKey.getReferencedTable());
+			result.setMatchType(foreignKey.getMatchType().value());
+			result.setDeleteAction(foreignKey.getDeleteAction());
+			result.setUpdateAction(foreignKey.getUpdateAction());
+			result.setDescription(foreignKey.getDescription());
 
-		result.setName(foreignKey.getName());
-		result.setReferencedSchema(foreignKey.getReferencedSchema());
-		result.setReferencedTable(foreignKey.getReferencedTable());
-		result.setMatchType(foreignKey.getMatchType().value());
-		result.setDeleteAction(foreignKey.getDeleteAction());
-		result.setUpdateAction(foreignKey.getUpdateAction());
-		result.setDescription(foreignKey.getDescription());
+			result.setReferences(getReferences(foreignKey.getReference()));
 
-		result.setReferences(getReferences(foreignKey.getReference()));
-
-		return result;
+			return result;
+		}else{
+			return null;
+		}
 	}
 
 	private List<Reference> getReferences(List<ReferenceType> reference) {
@@ -445,12 +492,16 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 	}
 
 	private Reference getReference(ReferenceType referenceType) {
-		Reference result = new Reference();
+		if(referenceType != null) {
+			Reference result = new Reference();
 
-		result.setColumn(referenceType.getColumn());
-		result.setReferenced(referenceType.getReferenced());
+			result.setColumn(referenceType.getColumn());
+			result.setReferenced(referenceType.getReferenced());
 
-		return result;
+			return result;
+		}else{
+			return null;
+		}
 	}
 
 	private List<ColumnStructure> getColumns(ColumnsType columns, String tableId) throws ModuleException {
@@ -466,27 +517,35 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 	}
 
 	private ColumnStructure getColumnStructure(ColumnType column, String tableId) throws ModuleException {
-		ColumnStructure result = new ColumnStructure();
+		if(column != null) {
+			ColumnStructure result = new ColumnStructure();
 
-		result.setName(column.getName());
-		result.setId(tableId + "." + result.getName());
-		contentPathStrategy.associateColumnWithFolder(result.getId(), column.getFolder());
+			result.setName(column.getName());
+			result.setId(tableId + "." + result.getName());
+			contentPathStrategy.associateColumnWithFolder(result.getId(), column.getFolder());
 
-		result.setType(TypeConverterFactory.getSQL99TypeConverter().getType(column.getTypeOriginal(), column.getType()));
+			result.setType(TypeConverterFactory.getSQL99TypeConverter().getType(column.getTypeOriginal(), column.getType()));
 
-		result.setDefaultValue(column.getDefaultValue());
-		result.setDescription(column.getDescription());
+			result.setDefaultValue(column.getDefaultValue());
+			result.setDescription(column.getDescription());
 
-		return result;
+			return result;
+		}else{
+			return null;
+		}
 	}
 
 	private PrimaryKey getPrimaryKey(PrimaryKeyType primaryKey) {
-		PrimaryKey result = new PrimaryKey();
+		if(primaryKey != null) {
+			PrimaryKey result = new PrimaryKey();
 
-		result.setName(primaryKey.getName());
-		result.setDescription(primaryKey.getDescription());
-		result.setColumnNames(primaryKey.getColumn());
+			result.setName(primaryKey.getName());
+			result.setDescription(primaryKey.getDescription());
+			result.setColumnNames(primaryKey.getColumn());
 
-		return result;
+			return result;
+		}else{
+			return null;
+		}
 	}
 }

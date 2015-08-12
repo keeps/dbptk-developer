@@ -13,7 +13,9 @@ import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.DatabaseImportModule;
 import com.databasepreservation.modules.siard.in.input.SIARD1ImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD1ExportModule;
+import com.databasepreservation.utils.FileUtils;
 import com.databasepreservation.utils.JodaUtils;
+import com.databasepreservation.utils.diff_match_patch;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.mockito.ArgumentCaptor;
@@ -22,6 +24,7 @@ import org.testng.annotations.Test;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -54,7 +57,7 @@ public class SiardTest {
 
 		DatabaseStructure original = generateDatabaseStructure();
 
-		// TODO: the original structure is passed to the roundtrip test, which means SIARD module can (and does)
+		// fixme: the original structure is passed to the roundtrip test, which means SIARD module can (and does)
 		//    change the original structure (example: makes some descriptions null, changes column folder if
 		//    there are blobs to export) this can be avoided by creating clone constructors and providing
 		//    roundtrip test a cloned structure which will allow us to compare the result of the roundtrip
@@ -62,9 +65,23 @@ public class SiardTest {
 
 		DatabaseStructure other = roundtrip(original, tmpFile);
 
-		logger.debug("imported database structure:" + other.toString());
 
-		// TODO: these are used to make the test pass, and should be looked into and corrected
+		{ //debug
+			diff_match_patch diff = new diff_match_patch();
+			LinkedList<diff_match_patch.Diff> diffs = diff.diff_main(original.toString(), other.toString());
+
+			boolean differ = false;
+			for( diff_match_patch.Diff aDiff : diffs ){
+				if( aDiff.operation != diff_match_patch.Operation.EQUAL ){
+					System.out.println(diff.diff_prettyCmd(diffs));
+					differ = true;
+					break;
+				}
+			}
+			if(!differ) logger.info("toString() are equal!");
+		}
+
+		// fixme: these are used to make the test pass, and should be looked into and corrected
 		// these fixes are not in the generateDatabaseStructure() because they produce an invalid DatabaseStructure
 		// this also means that SIARD roundtrip is creating an invalid DatabaseStructure
 		for (SchemaStructure schema : original.getSchemas()) {
@@ -132,7 +149,7 @@ public class SiardTest {
 		columns_table12.add(new ColumnStructure("schema01.table02.col123", "col123", new SimpleTypeString(250, true), true, "just a 1string", "yey1", false));
 		columns_table12.add(new ColumnStructure("schema01.table02.col124", "col124", new SimpleTypeString(230, false), true, "just a 2string", "yey2", false));
 		columns_table12.add(new ColumnStructure("schema01.table02.col125", "col125", new SimpleTypeBinary(), false, "this one will be big", null, false));
-		columns_table12.add(new ColumnStructure("schema01.table02.col126", "col126", new SimpleTypeBinary(), false, "big text file", null, false));
+//		columns_table12.add(new ColumnStructure("schema01.table02.col126", "col126", new SimpleTypeBinary(), false, "big text file", null, false));//todo: use clobs
 
 		columns_table12.get(0).getType().setOriginalTypeName("int", 10, 0);
 		columns_table12.get(0).getType().setSql99TypeName("INTEGER");
@@ -161,10 +178,10 @@ public class SiardTest {
 		columns_table12.get(4).getType().setSql99TypeName("BINARY LARGE OBJECT");
 		columns_table12.get(4).getType().setDescription("col125 description");
 
-		columns_table12.get(5).getType().setOriginalTypeName("TEXT");
-		columns_table12.get(5).getType().setSql99TypeName("BINARY LARGE OBJECT");
-		//TODO: columns_table12.get(5).getType().setSql99TypeName("CLOB");
-		columns_table12.get(5).getType().setDescription("col126 description");
+//		columns_table12.get(5).getType().setOriginalTypeName("TEXT");
+//		columns_table12.get(5).getType().setSql99TypeName("BINARY LARGE OBJECT");
+//		//TODO: columns_table12.get(5).getType().setSql99TypeName("CLOB");
+//		columns_table12.get(5).getType().setDescription("col126 description");
 
 		// schema02
 		// create columns for first table
@@ -455,7 +472,6 @@ public class SiardTest {
 		logger.info("STARTED: Getting the database structure.");
 		exporter.handleStructure(dbStructure);
 		logger.info("FINISHED: Getting the database structure.");
-		logger.debug("db struct: " + dbStructure.toString());
 		for (SchemaStructure thisschema : dbStructure.getSchemas()) {
 			for (TableStructure thistable : thisschema.getTables()) {
 				logger.info("STARTED: Getting data of table: " + thistable.getId());
