@@ -1,6 +1,7 @@
 package com.databasepreservation.modules.siard.out.write;
 
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -26,7 +27,7 @@ public class ZipWriteStrategy implements WriteStrategy {
 	}
 
 	@Override
-	public OutputStream createOutputStream(OutputContainer container, String path) throws ModuleException {
+	public OutputStream createOutputStream(SIARDArchiveContainer container, String path) throws ModuleException {
 		ArchiveEntry archiveEntry = new ZipArchiveEntry(path);
 		try {
 			zipOut.putArchiveEntry(archiveEntry);
@@ -42,7 +43,7 @@ public class ZipWriteStrategy implements WriteStrategy {
 	}
 
 	@Override
-	public void finish(OutputContainer container) throws ModuleException {
+	public void finish(SIARDArchiveContainer container) throws ModuleException {
 		try {
 			zipOut.closeArchiveEntry();
 		}catch (IOException e){
@@ -59,7 +60,7 @@ public class ZipWriteStrategy implements WriteStrategy {
 	}
 
 	@Override
-	public void setup(OutputContainer container) throws ModuleException {
+	public void setup(SIARDArchiveContainer container) throws ModuleException {
 		try {
 			zipOut = new ProtectedZipArchiveOutputStream(
 					Files.newOutputStream(container.getPath(),

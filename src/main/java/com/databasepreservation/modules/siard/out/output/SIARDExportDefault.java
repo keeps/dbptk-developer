@@ -10,7 +10,7 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.siard.out.content.ContentExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
-import com.databasepreservation.modules.siard.out.write.OutputContainer;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
 import java.util.Set;
@@ -19,7 +19,7 @@ import java.util.Set;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARDExportDefault implements DatabaseHandler {
-	private final OutputContainer mainContainer;
+	private final SIARDArchiveContainer mainContainer;
 	private final WriteStrategy writeStrategy;
 	private final MetadataExportStrategy metadataStrategy;
 	private final ContentExportStrategy contentStrategy;
@@ -28,7 +28,7 @@ public class SIARDExportDefault implements DatabaseHandler {
 	private SchemaStructure currentSchema;
 	private TableStructure currentTable;
 
-	public SIARDExportDefault(ContentExportStrategy contentStrategy, OutputContainer mainContainer,
+	public SIARDExportDefault(ContentExportStrategy contentStrategy, SIARDArchiveContainer mainContainer,
 							  WriteStrategy writeStrategy, MetadataExportStrategy metadataStrategy) {
 		this.contentStrategy = contentStrategy;
 		this.mainContainer = mainContainer;
