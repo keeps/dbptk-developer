@@ -17,6 +17,7 @@ import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.xml.sax.*;
 import org.xml.sax.helpers.DefaultHandler;
@@ -250,7 +251,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
 			} else {
 				String id = String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1).getId(), rowIndex);
 
-				if (type instanceof SimpleTypeBinary) {
+				if (type instanceof SimpleTypeBinary && StringUtils.isNotBlank(trimmedVal)) {
 					// binary data with less than 2000 bytes does not have its own file
 					try {
 						InputStream is = new ByteArrayInputStream(Hex.decodeHex(trimmedVal.toCharArray()));

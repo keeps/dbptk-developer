@@ -10,7 +10,7 @@
 			</define>
 
 			<run>
-				<include name="all" />
+				<include name="mysql-siard1.0" />
 			</run>
 		</groups>
 		<classes>
