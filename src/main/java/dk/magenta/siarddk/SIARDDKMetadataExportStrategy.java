@@ -2,14 +2,12 @@ package dk.magenta.siarddk;
 
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.MarshalException;
 import javax.xml.bind.Marshaller;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
@@ -17,7 +15,6 @@ import javax.xml.validation.SchemaFactory;
 
 import org.apache.commons.lang.StringUtils;
 import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -27,6 +24,7 @@ import com.databasepreservation.model.structure.PrimaryKey;
 import com.databasepreservation.model.structure.Reference;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
@@ -41,6 +39,7 @@ import dk.magenta.siarddk.tableindex.ReferenceType;
 import dk.magenta.siarddk.tableindex.SiardDiark;
 import dk.magenta.siarddk.tableindex.TableType;
 import dk.magenta.siarddk.tableindex.TablesType;
+import dk.magenta.siarddk.tableindex.ViewType;
 import dk.magenta.siarddk.tableindex.ViewsType;
 
 public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
@@ -158,7 +157,8 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 						// Set foreignKeys
 						ForeignKeysType foreignKeysType = new ForeignKeysType();
 						List<ForeignKey> foreignKeys = tableStructure.getForeignKeys();
-						if (foreignKeys != null) {
+						System.out.println("foreignKeys = " + foreignKeys);
+						if (foreignKeys != null && foreignKeys.size() > 0) {
 							for (ForeignKey key : foreignKeys) {
 								ForeignKeyType foreignKeyType = new ForeignKeyType();
 								
@@ -193,9 +193,28 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 					}
 					
 					// Set views
-					if (schemaStructure.getViews() != null && schemaStructure.getViews().size() > 0) {
+					List<ViewStructure> viewStructures = schemaStructure.getViews();
+					if (viewStructures != null && viewStructures.size() > 0) {
 						ViewsType viewsType = new ViewsType();
-						
+						for (ViewStructure viewStructure : viewStructures) {
+							
+							// Set view - mandatory
+							ViewType viewType = new ViewType();
+							
+							// Set view name - mandatory
+							viewType.setName(viewStructure.getName());
+							
+							// Set queryOriginal - mandatory
+							viewType.setQueryOriginal(viewStructure.getQueryOriginal());
+							
+							// Set description
+							if (StringUtils.isNotBlank(viewStructure.getDescription())) {
+								viewType.setDescription(viewStructure.getDescription());
+							}
+							
+							viewsType.getView().add(viewType);
+						}
+						siardDiark.setViews(viewsType);
 					}
 				}
 			}
