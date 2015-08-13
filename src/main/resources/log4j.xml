@@ -2,33 +2,33 @@
 <!DOCTYPE log4j:configuration SYSTEM "http://logging.apache.org/log4j/docs/api/org/apache/log4j/xml/log4j.dtd">
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
 
-	<appender name="STDOUT" class="org.apache.log4j.ConsoleAppender">
-		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%p %d (%c{1}) %m%n" />
-		</layout>
-	</appender>
-
-	 <appender name="default.file" class="org.apache.log4j.FileAppender">
-        <param name="file" value="log/log.log" />
-        <param name="append" value="false" />
-        <param name="threshold" value="debug" />
+    <appender name="STDOUT" class="org.apache.log4j.ConsoleAppender">
         <layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%p %d (%c{1}) %m%n" />
-		</layout>
+            <param name="ConversionPattern" value="%p %d (%c{1}) %m%n"/>
+        </layout>
     </appender>
 
-	<logger name="com.databasepreservation" additivity="false">
-		<level value="INFO" />
-		<!-- 		<level value="TRACE" /> -->
-		<appender-ref ref="STDOUT" />
-		<appender-ref ref="default.file" />
-	</logger>
+    <appender name="default.file" class="org.apache.log4j.FileAppender">
+        <param name="file" value="log/log.log"/>
+        <param name="append" value="false"/>
+        <param name="threshold" value="debug"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%p %d (%c{1}) %m%n"/>
+        </layout>
+    </appender>
 
-	<root>
-		<level value="WARN" />
-		<!--<level value="DEBUG" />-->
-		<!-- <level value="TRACE" /> -->
-		<appender-ref ref="STDOUT" />
-	</root>
+    <logger name="com.databasepreservation" additivity="false">
+        <level value="INFO"/>
+        <!-- 		<level value="TRACE" /> -->
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="default.file"/>
+    </logger>
+
+    <root>
+        <level value="WARN"/>
+        <!--<level value="DEBUG" />-->
+        <!-- <level value="TRACE" /> -->
+        <appender-ref ref="STDOUT"/>
+    </root>
 
 </log4j:configuration>

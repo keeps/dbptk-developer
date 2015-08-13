@@ -5,5 +5,4 @@
 // Generated on: 2015.07.24 at 06:16:58 PM WEST 
 //
 
-@javax.xml.bind.annotation.XmlSchema(namespace = "http://www.bar.admin.ch/xmlns/siard/1.0/metadata.xsd", elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
-package com.databasepreservation.modules.siard.common.jaxb.siard1;
+@javax.xml.bind.annotation.XmlSchema(namespace = "http://www.bar.admin.ch/xmlns/siard/1.0/metadata.xsd", elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED) package com.databasepreservation.modules.siard.common.jaxb.siard1;

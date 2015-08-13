@@ -5,16 +5,14 @@
 // Generated on: 2015.07.24 at 06:16:58 PM WEST 
 //
 
-
 package com.databasepreservation.modules.siard.common.jaxb.siard1;
 
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
  * <p>Java class for privOptionType.
- * 
+ * <p>
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
@@ -26,21 +24,18 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/restriction>
  * &lt;/simpleType>
  * </pre>
- * 
  */
-@XmlType(name = "privOptionType")
-@XmlEnum
-public enum PrivOptionType {
+@XmlType(name = "privOptionType") @XmlEnum public enum PrivOptionType {
 
-    ADMIN,
-    GRANT;
+        ADMIN,
+        GRANT;
 
-    public String value() {
-        return name();
-    }
+        public static PrivOptionType fromValue(String v) {
+                return valueOf(v);
+        }
 
-    public static PrivOptionType fromValue(String v) {
-        return valueOf(v);
-    }
+        public String value() {
+                return name();
+        }
 
 }

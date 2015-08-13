@@ -5,7 +5,6 @@
 // Generated on: 2015.07.24 at 06:16:58 PM WEST 
 //
 
-
 package com.databasepreservation.modules.siard.common.jaxb.siard1;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -13,16 +12,14 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
- * 
- *         Column element in siardArchive
- *       
- * 
+ * Column element in siardArchive
+ * <p>
+ * <p>
  * <p>Java class for columnType complex type.
- * 
+ * <p>
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ * <p>
  * <pre>
  * &lt;complexType name="columnType">
  *   &lt;complexContent>
@@ -40,189 +37,150 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "columnType", propOrder = {
-    "name",
-    "folder",
-    "type",
-    "typeOriginal",
-    "defaultValue",
-    "nullable",
-    "description"
-})
-public class ColumnType {
+@XmlAccessorType(XmlAccessType.FIELD) @XmlType(name = "columnType", propOrder = {"name", "folder", "type",
+  "typeOriginal", "defaultValue", "nullable", "description"}) public class ColumnType {
 
-    @XmlElement(required = true)
-    protected String name;
-    protected String folder;
-    @XmlElement(required = true)
-    protected String type;
-    protected String typeOriginal;
-    protected String defaultValue;
-    protected boolean nullable;
-    protected String description;
+        @XmlElement(required = true) protected String name;
+        protected String folder;
+        @XmlElement(required = true) protected String type;
+        protected String typeOriginal;
+        protected String defaultValue;
+        protected boolean nullable;
+        protected String description;
 
-    /**
-     * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getName() {
-        return name;
-    }
+        /**
+         * Gets the value of the name property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getName() {
+                return name;
+        }
 
-    /**
-     * Sets the value of the name property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setName(String value) {
-        this.name = value;
-    }
+        /**
+         * Sets the value of the name property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setName(String value) {
+                this.name = value;
+        }
 
-    /**
-     * Gets the value of the folder property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getFolder() {
-        return folder;
-    }
+        /**
+         * Gets the value of the folder property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getFolder() {
+                return folder;
+        }
 
-    /**
-     * Sets the value of the folder property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setFolder(String value) {
-        this.folder = value;
-    }
+        /**
+         * Sets the value of the folder property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setFolder(String value) {
+                this.folder = value;
+        }
 
-    /**
-     * Gets the value of the type property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getType() {
-        return type;
-    }
+        /**
+         * Gets the value of the type property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getType() {
+                return type;
+        }
 
-    /**
-     * Sets the value of the type property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setType(String value) {
-        this.type = value;
-    }
+        /**
+         * Sets the value of the type property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setType(String value) {
+                this.type = value;
+        }
 
-    /**
-     * Gets the value of the typeOriginal property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getTypeOriginal() {
-        return typeOriginal;
-    }
+        /**
+         * Gets the value of the typeOriginal property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getTypeOriginal() {
+                return typeOriginal;
+        }
 
-    /**
-     * Sets the value of the typeOriginal property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setTypeOriginal(String value) {
-        this.typeOriginal = value;
-    }
+        /**
+         * Sets the value of the typeOriginal property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setTypeOriginal(String value) {
+                this.typeOriginal = value;
+        }
 
-    /**
-     * Gets the value of the defaultValue property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDefaultValue() {
-        return defaultValue;
-    }
+        /**
+         * Gets the value of the defaultValue property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getDefaultValue() {
+                return defaultValue;
+        }
 
-    /**
-     * Sets the value of the defaultValue property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDefaultValue(String value) {
-        this.defaultValue = value;
-    }
+        /**
+         * Sets the value of the defaultValue property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setDefaultValue(String value) {
+                this.defaultValue = value;
+        }
 
-    /**
-     * Gets the value of the nullable property.
-     * 
-     */
-    public boolean isNullable() {
-        return nullable;
-    }
+        /**
+         * Gets the value of the nullable property.
+         */
+        public boolean isNullable() {
+                return nullable;
+        }
 
-    /**
-     * Sets the value of the nullable property.
-     * 
-     */
-    public void setNullable(boolean value) {
-        this.nullable = value;
-    }
+        /**
+         * Sets the value of the nullable property.
+         */
+        public void setNullable(boolean value) {
+                this.nullable = value;
+        }
 
-    /**
-     * Gets the value of the description property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDescription() {
-        return description;
-    }
+        /**
+         * Gets the value of the description property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getDescription() {
+                return description;
+        }
 
-    /**
-     * Sets the value of the description property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDescription(String value) {
-        this.description = value;
-    }
+        /**
+         * Sets the value of the description property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setDescription(String value) {
+                this.description = value;
+        }
 
 }

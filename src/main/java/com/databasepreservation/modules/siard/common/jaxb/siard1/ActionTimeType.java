@@ -5,16 +5,14 @@
 // Generated on: 2015.07.24 at 06:16:58 PM WEST 
 //
 
-
 package com.databasepreservation.modules.siard.common.jaxb.siard1;
 
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
  * <p>Java class for actionTimeType.
- * 
+ * <p>
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
@@ -25,21 +23,18 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/restriction>
  * &lt;/simpleType>
  * </pre>
- * 
  */
-@XmlType(name = "actionTimeType")
-@XmlEnum
-public enum ActionTimeType {
+@XmlType(name = "actionTimeType") @XmlEnum public enum ActionTimeType {
 
-    BEFORE,
-    AFTER;
+        BEFORE,
+        AFTER;
 
-    public String value() {
-        return name();
-    }
+        public static ActionTimeType fromValue(String v) {
+                return valueOf(v);
+        }
 
-    public static ActionTimeType fromValue(String v) {
-        return valueOf(v);
-    }
+        public String value() {
+                return name();
+        }
 
 }

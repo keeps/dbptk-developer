@@ -5,7 +5,6 @@
 // Generated on: 2015.07.24 at 06:16:58 PM WEST 
 //
 
-
 package com.databasepreservation.modules.siard.common.jaxb.siard1;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -14,16 +13,14 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 import java.math.BigInteger;
 
-
 /**
- * 
- *         Table element in siardArchive
- *       
- * 
+ * Table element in siardArchive
+ * <p>
+ * <p>
  * <p>Java class for tableType complex type.
- * 
+ * <p>
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ * <p>
  * <pre>
  * &lt;complexType name="tableType">
  *   &lt;complexContent>
@@ -44,277 +41,220 @@ import java.math.BigInteger;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "tableType", propOrder = {
-    "name",
-    "folder",
-    "description",
-    "columns",
-    "primaryKey",
-    "foreignKeys",
-    "candidateKeys",
-    "checkConstraints",
-    "triggers",
-    "rows"
-})
-public class TableType {
+@XmlAccessorType(XmlAccessType.FIELD) @XmlType(name = "tableType", propOrder = {"name", "folder", "description",
+  "columns", "primaryKey", "foreignKeys", "candidateKeys", "checkConstraints", "triggers",
+  "rows"}) public class TableType {
 
-    @XmlElement(required = true)
-    protected String name;
-    @XmlElement(required = true)
-    protected String folder;
-    protected String description;
-    @XmlElement(required = true)
-    protected ColumnsType columns;
-    protected PrimaryKeyType primaryKey;
-    protected ForeignKeysType foreignKeys;
-    protected CandidateKeysType candidateKeys;
-    protected CheckConstraintsType checkConstraints;
-    protected TriggersType triggers;
-    @XmlElement(required = true)
-    protected BigInteger rows;
+        @XmlElement(required = true) protected String name;
+        @XmlElement(required = true) protected String folder;
+        protected String description;
+        @XmlElement(required = true) protected ColumnsType columns;
+        protected PrimaryKeyType primaryKey;
+        protected ForeignKeysType foreignKeys;
+        protected CandidateKeysType candidateKeys;
+        protected CheckConstraintsType checkConstraints;
+        protected TriggersType triggers;
+        @XmlElement(required = true) protected BigInteger rows;
 
-    /**
-     * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getName() {
-        return name;
-    }
+        /**
+         * Gets the value of the name property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getName() {
+                return name;
+        }
 
-    /**
-     * Sets the value of the name property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setName(String value) {
-        this.name = value;
-    }
+        /**
+         * Sets the value of the name property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setName(String value) {
+                this.name = value;
+        }
 
-    /**
-     * Gets the value of the folder property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getFolder() {
-        return folder;
-    }
+        /**
+         * Gets the value of the folder property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getFolder() {
+                return folder;
+        }
 
-    /**
-     * Sets the value of the folder property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setFolder(String value) {
-        this.folder = value;
-    }
+        /**
+         * Sets the value of the folder property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setFolder(String value) {
+                this.folder = value;
+        }
 
-    /**
-     * Gets the value of the description property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDescription() {
-        return description;
-    }
+        /**
+         * Gets the value of the description property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getDescription() {
+                return description;
+        }
 
-    /**
-     * Sets the value of the description property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDescription(String value) {
-        this.description = value;
-    }
+        /**
+         * Sets the value of the description property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setDescription(String value) {
+                this.description = value;
+        }
 
-    /**
-     * Gets the value of the columns property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link ColumnsType }
-     *     
-     */
-    public ColumnsType getColumns() {
-        return columns;
-    }
+        /**
+         * Gets the value of the columns property.
+         *
+         * @return possible object is
+         * {@link ColumnsType }
+         */
+        public ColumnsType getColumns() {
+                return columns;
+        }
 
-    /**
-     * Sets the value of the columns property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link ColumnsType }
-     *     
-     */
-    public void setColumns(ColumnsType value) {
-        this.columns = value;
-    }
+        /**
+         * Sets the value of the columns property.
+         *
+         * @param value allowed object is
+         *              {@link ColumnsType }
+         */
+        public void setColumns(ColumnsType value) {
+                this.columns = value;
+        }
 
-    /**
-     * Gets the value of the primaryKey property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link PrimaryKeyType }
-     *     
-     */
-    public PrimaryKeyType getPrimaryKey() {
-        return primaryKey;
-    }
+        /**
+         * Gets the value of the primaryKey property.
+         *
+         * @return possible object is
+         * {@link PrimaryKeyType }
+         */
+        public PrimaryKeyType getPrimaryKey() {
+                return primaryKey;
+        }
 
-    /**
-     * Sets the value of the primaryKey property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link PrimaryKeyType }
-     *     
-     */
-    public void setPrimaryKey(PrimaryKeyType value) {
-        this.primaryKey = value;
-    }
+        /**
+         * Sets the value of the primaryKey property.
+         *
+         * @param value allowed object is
+         *              {@link PrimaryKeyType }
+         */
+        public void setPrimaryKey(PrimaryKeyType value) {
+                this.primaryKey = value;
+        }
 
-    /**
-     * Gets the value of the foreignKeys property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link ForeignKeysType }
-     *     
-     */
-    public ForeignKeysType getForeignKeys() {
-        return foreignKeys;
-    }
+        /**
+         * Gets the value of the foreignKeys property.
+         *
+         * @return possible object is
+         * {@link ForeignKeysType }
+         */
+        public ForeignKeysType getForeignKeys() {
+                return foreignKeys;
+        }
 
-    /**
-     * Sets the value of the foreignKeys property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link ForeignKeysType }
-     *     
-     */
-    public void setForeignKeys(ForeignKeysType value) {
-        this.foreignKeys = value;
-    }
+        /**
+         * Sets the value of the foreignKeys property.
+         *
+         * @param value allowed object is
+         *              {@link ForeignKeysType }
+         */
+        public void setForeignKeys(ForeignKeysType value) {
+                this.foreignKeys = value;
+        }
 
-    /**
-     * Gets the value of the candidateKeys property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link CandidateKeysType }
-     *     
-     */
-    public CandidateKeysType getCandidateKeys() {
-        return candidateKeys;
-    }
+        /**
+         * Gets the value of the candidateKeys property.
+         *
+         * @return possible object is
+         * {@link CandidateKeysType }
+         */
+        public CandidateKeysType getCandidateKeys() {
+                return candidateKeys;
+        }
 
-    /**
-     * Sets the value of the candidateKeys property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link CandidateKeysType }
-     *     
-     */
-    public void setCandidateKeys(CandidateKeysType value) {
-        this.candidateKeys = value;
-    }
+        /**
+         * Sets the value of the candidateKeys property.
+         *
+         * @param value allowed object is
+         *              {@link CandidateKeysType }
+         */
+        public void setCandidateKeys(CandidateKeysType value) {
+                this.candidateKeys = value;
+        }
 
-    /**
-     * Gets the value of the checkConstraints property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link CheckConstraintsType }
-     *     
-     */
-    public CheckConstraintsType getCheckConstraints() {
-        return checkConstraints;
-    }
+        /**
+         * Gets the value of the checkConstraints property.
+         *
+         * @return possible object is
+         * {@link CheckConstraintsType }
+         */
+        public CheckConstraintsType getCheckConstraints() {
+                return checkConstraints;
+        }
 
-    /**
-     * Sets the value of the checkConstraints property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link CheckConstraintsType }
-     *     
-     */
-    public void setCheckConstraints(CheckConstraintsType value) {
-        this.checkConstraints = value;
-    }
+        /**
+         * Sets the value of the checkConstraints property.
+         *
+         * @param value allowed object is
+         *              {@link CheckConstraintsType }
+         */
+        public void setCheckConstraints(CheckConstraintsType value) {
+                this.checkConstraints = value;
+        }
 
-    /**
-     * Gets the value of the triggers property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TriggersType }
-     *     
-     */
-    public TriggersType getTriggers() {
-        return triggers;
-    }
+        /**
+         * Gets the value of the triggers property.
+         *
+         * @return possible object is
+         * {@link TriggersType }
+         */
+        public TriggersType getTriggers() {
+                return triggers;
+        }
 
-    /**
-     * Sets the value of the triggers property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TriggersType }
-     *     
-     */
-    public void setTriggers(TriggersType value) {
-        this.triggers = value;
-    }
+        /**
+         * Sets the value of the triggers property.
+         *
+         * @param value allowed object is
+         *              {@link TriggersType }
+         */
+        public void setTriggers(TriggersType value) {
+                this.triggers = value;
+        }
 
-    /**
-     * Gets the value of the rows property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link BigInteger }
-     *     
-     */
-    public BigInteger getRows() {
-        return rows;
-    }
+        /**
+         * Gets the value of the rows property.
+         *
+         * @return possible object is
+         * {@link BigInteger }
+         */
+        public BigInteger getRows() {
+                return rows;
+        }
 
-    /**
-     * Sets the value of the rows property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link BigInteger }
-     *     
-     */
-    public void setRows(BigInteger value) {
-        this.rows = value;
-    }
+        /**
+         * Sets the value of the rows property.
+         *
+         * @param value allowed object is
+         *              {@link BigInteger }
+         */
+        public void setRows(BigInteger value) {
+                this.rows = value;
+        }
 
 }

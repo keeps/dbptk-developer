@@ -5,7 +5,6 @@
 // Generated on: 2015.07.24 at 06:16:58 PM WEST 
 //
 
-
 package com.databasepreservation.modules.siard.common.jaxb.siard1;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -16,16 +15,14 @@ import javax.xml.bind.annotation.XmlType;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
- * 
- *         foreignKey element in siardArchive
- *       
- * 
+ * foreignKey element in siardArchive
+ * <p>
+ * <p>
  * <p>Java class for foreignKeyType complex type.
- * 
+ * <p>
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ * <p>
  * <pre>
  * &lt;complexType name="foreignKeyType">
  *   &lt;complexContent>
@@ -44,231 +41,185 @@ import java.util.List;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "foreignKeyType", propOrder = {
-    "name",
-    "referencedSchema",
-    "referencedTable",
-    "reference",
-    "matchType",
-    "deleteAction",
-    "updateAction",
-    "description"
-})
-public class ForeignKeyType {
+@XmlAccessorType(XmlAccessType.FIELD) @XmlType(name = "foreignKeyType", propOrder = {"name", "referencedSchema",
+  "referencedTable", "reference", "matchType", "deleteAction", "updateAction",
+  "description"}) public class ForeignKeyType {
 
-    @XmlElement(required = true)
-    protected String name;
-    @XmlElement(required = true)
-    protected String referencedSchema;
-    @XmlElement(required = true)
-    protected String referencedTable;
-    @XmlElement(required = true)
-    protected List<ReferenceType> reference;
-    @XmlSchemaType(name = "string")
-    protected MatchTypeType matchType;
-    protected String deleteAction;
-    protected String updateAction;
-    protected String description;
+        @XmlElement(required = true) protected String name;
+        @XmlElement(required = true) protected String referencedSchema;
+        @XmlElement(required = true) protected String referencedTable;
+        @XmlElement(required = true) protected List<ReferenceType> reference;
+        @XmlSchemaType(name = "string") protected MatchTypeType matchType;
+        protected String deleteAction;
+        protected String updateAction;
+        protected String description;
 
-    /**
-     * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Sets the value of the name property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setName(String value) {
-        this.name = value;
-    }
-
-    /**
-     * Gets the value of the referencedSchema property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getReferencedSchema() {
-        return referencedSchema;
-    }
-
-    /**
-     * Sets the value of the referencedSchema property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setReferencedSchema(String value) {
-        this.referencedSchema = value;
-    }
-
-    /**
-     * Gets the value of the referencedTable property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getReferencedTable() {
-        return referencedTable;
-    }
-
-    /**
-     * Sets the value of the referencedTable property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setReferencedTable(String value) {
-        this.referencedTable = value;
-    }
-
-    /**
-     * Gets the value of the reference property.
-     * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the reference property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getReference().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link ReferenceType }
-     * 
-     * 
-     */
-    public List<ReferenceType> getReference() {
-        if (reference == null) {
-            reference = new ArrayList<ReferenceType>();
+        /**
+         * Gets the value of the name property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getName() {
+                return name;
         }
-        return this.reference;
-    }
 
-    /**
-     * Gets the value of the matchType property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link MatchTypeType }
-     *     
-     */
-    public MatchTypeType getMatchType() {
-        return matchType;
-    }
+        /**
+         * Sets the value of the name property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setName(String value) {
+                this.name = value;
+        }
 
-    /**
-     * Sets the value of the matchType property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link MatchTypeType }
-     *     
-     */
-    public void setMatchType(MatchTypeType value) {
-        this.matchType = value;
-    }
+        /**
+         * Gets the value of the referencedSchema property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getReferencedSchema() {
+                return referencedSchema;
+        }
 
-    /**
-     * Gets the value of the deleteAction property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDeleteAction() {
-        return deleteAction;
-    }
+        /**
+         * Sets the value of the referencedSchema property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setReferencedSchema(String value) {
+                this.referencedSchema = value;
+        }
 
-    /**
-     * Sets the value of the deleteAction property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDeleteAction(String value) {
-        this.deleteAction = value;
-    }
+        /**
+         * Gets the value of the referencedTable property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getReferencedTable() {
+                return referencedTable;
+        }
 
-    /**
-     * Gets the value of the updateAction property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getUpdateAction() {
-        return updateAction;
-    }
+        /**
+         * Sets the value of the referencedTable property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setReferencedTable(String value) {
+                this.referencedTable = value;
+        }
 
-    /**
-     * Sets the value of the updateAction property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setUpdateAction(String value) {
-        this.updateAction = value;
-    }
+        /**
+         * Gets the value of the reference property.
+         * <p>
+         * <p>
+         * This accessor method returns a reference to the live list,
+         * not a snapshot. Therefore any modification you make to the
+         * returned list will be present inside the JAXB object.
+         * This is why there is not a <CODE>set</CODE> method for the reference property.
+         * <p>
+         * <p>
+         * For example, to add a new item, do as follows:
+         * <pre>
+         *    getReference().add(newItem);
+         * </pre>
+         * <p>
+         * <p>
+         * <p>
+         * Objects of the following type(s) are allowed in the list
+         * {@link ReferenceType }
+         */
+        public List<ReferenceType> getReference() {
+                if (reference == null) {
+                        reference = new ArrayList<ReferenceType>();
+                }
+                return this.reference;
+        }
 
-    /**
-     * Gets the value of the description property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDescription() {
-        return description;
-    }
+        /**
+         * Gets the value of the matchType property.
+         *
+         * @return possible object is
+         * {@link MatchTypeType }
+         */
+        public MatchTypeType getMatchType() {
+                return matchType;
+        }
 
-    /**
-     * Sets the value of the description property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDescription(String value) {
-        this.description = value;
-    }
+        /**
+         * Sets the value of the matchType property.
+         *
+         * @param value allowed object is
+         *              {@link MatchTypeType }
+         */
+        public void setMatchType(MatchTypeType value) {
+                this.matchType = value;
+        }
+
+        /**
+         * Gets the value of the deleteAction property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getDeleteAction() {
+                return deleteAction;
+        }
+
+        /**
+         * Sets the value of the deleteAction property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setDeleteAction(String value) {
+                this.deleteAction = value;
+        }
+
+        /**
+         * Gets the value of the updateAction property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getUpdateAction() {
+                return updateAction;
+        }
+
+        /**
+         * Sets the value of the updateAction property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setUpdateAction(String value) {
+                this.updateAction = value;
+        }
+
+        /**
+         * Gets the value of the description property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getDescription() {
+                return description;
+        }
+
+        /**
+         * Sets the value of the description property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setDescription(String value) {
+                this.description = value;
+        }
 
 }

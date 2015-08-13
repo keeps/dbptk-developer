@@ -9,5 +9,6 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public interface ContentImportStrategy {
-	void importContent(DatabaseHandler handler, SIARDArchiveContainer container, DatabaseStructure databaseStructure) throws ModuleException;
+        void importContent(DatabaseHandler handler, SIARDArchiveContainer container,
+          DatabaseStructure databaseStructure) throws ModuleException;
 }

@@ -5,7 +5,6 @@
 // Generated on: 2015.07.24 at 06:16:58 PM WEST 
 //
 
-
 package com.databasepreservation.modules.siard.common.jaxb.siard1;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -15,16 +14,14 @@ import javax.xml.bind.annotation.XmlType;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
- * 
- *         List of parameters of a routine
- *       
- * 
+ * List of parameters of a routine
+ * <p>
+ * <p>
  * <p>Java class for parametersType complex type.
- * 
+ * <p>
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ * <p>
  * <pre>
  * &lt;complexType name="parametersType">
  *   &lt;complexContent>
@@ -36,45 +33,37 @@ import java.util.List;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "parametersType", propOrder = {
-    "parameter"
-})
-public class ParametersType {
+@XmlAccessorType(XmlAccessType.FIELD) @XmlType(name = "parametersType", propOrder = {
+  "parameter"}) public class ParametersType {
 
-    @XmlElement(required = true)
-    protected List<ParameterType> parameter;
+        @XmlElement(required = true) protected List<ParameterType> parameter;
 
-    /**
-     * Gets the value of the parameter property.
-     * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the parameter property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getParameter().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link ParameterType }
-     * 
-     * 
-     */
-    public List<ParameterType> getParameter() {
-        if (parameter == null) {
-            parameter = new ArrayList<ParameterType>();
+        /**
+         * Gets the value of the parameter property.
+         * <p>
+         * <p>
+         * This accessor method returns a reference to the live list,
+         * not a snapshot. Therefore any modification you make to the
+         * returned list will be present inside the JAXB object.
+         * This is why there is not a <CODE>set</CODE> method for the parameter property.
+         * <p>
+         * <p>
+         * For example, to add a new item, do as follows:
+         * <pre>
+         *    getParameter().add(newItem);
+         * </pre>
+         * <p>
+         * <p>
+         * <p>
+         * Objects of the following type(s) are allowed in the list
+         * {@link ParameterType }
+         */
+        public List<ParameterType> getParameter() {
+                if (parameter == null) {
+                        parameter = new ArrayList<ParameterType>();
+                }
+                return this.parameter;
         }
-        return this.parameter;
-    }
 
 }

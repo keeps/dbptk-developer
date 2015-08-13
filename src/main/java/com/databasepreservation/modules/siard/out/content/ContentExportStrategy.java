@@ -9,7 +9,9 @@ import com.databasepreservation.model.structure.TableStructure;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public interface ContentExportStrategy {
-	void openTable(SchemaStructure schema, TableStructure table) throws ModuleException;
-	void closeTable(SchemaStructure schema, TableStructure table) throws ModuleException;
-	void tableRow(Row row) throws ModuleException;
+        void openTable(SchemaStructure schema, TableStructure table) throws ModuleException;
+
+        void closeTable(SchemaStructure schema, TableStructure table) throws ModuleException;
+
+        void tableRow(Row row) throws ModuleException;
 }

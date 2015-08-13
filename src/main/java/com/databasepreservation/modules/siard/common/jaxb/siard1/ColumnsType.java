@@ -5,7 +5,6 @@
 // Generated on: 2015.07.24 at 06:16:58 PM WEST 
 //
 
-
 package com.databasepreservation.modules.siard.common.jaxb.siard1;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -15,16 +14,14 @@ import javax.xml.bind.annotation.XmlType;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
- * 
- *         List of columns
- *       
- * 
+ * List of columns
+ * <p>
+ * <p>
  * <p>Java class for columnsType complex type.
- * 
+ * <p>
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ * <p>
  * <pre>
  * &lt;complexType name="columnsType">
  *   &lt;complexContent>
@@ -36,45 +33,36 @@ import java.util.List;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "columnsType", propOrder = {
-    "column"
-})
-public class ColumnsType {
+@XmlAccessorType(XmlAccessType.FIELD) @XmlType(name = "columnsType", propOrder = {"column"}) public class ColumnsType {
 
-    @XmlElement(required = true)
-    protected List<ColumnType> column;
+        @XmlElement(required = true) protected List<ColumnType> column;
 
-    /**
-     * Gets the value of the column property.
-     * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the column property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getColumn().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link ColumnType }
-     * 
-     * 
-     */
-    public List<ColumnType> getColumn() {
-        if (column == null) {
-            column = new ArrayList<ColumnType>();
+        /**
+         * Gets the value of the column property.
+         * <p>
+         * <p>
+         * This accessor method returns a reference to the live list,
+         * not a snapshot. Therefore any modification you make to the
+         * returned list will be present inside the JAXB object.
+         * This is why there is not a <CODE>set</CODE> method for the column property.
+         * <p>
+         * <p>
+         * For example, to add a new item, do as follows:
+         * <pre>
+         *    getColumn().add(newItem);
+         * </pre>
+         * <p>
+         * <p>
+         * <p>
+         * Objects of the following type(s) are allowed in the list
+         * {@link ColumnType }
+         */
+        public List<ColumnType> getColumn() {
+                if (column == null) {
+                        column = new ArrayList<ColumnType>();
+                }
+                return this.column;
         }
-        return this.column;
-    }
 
 }

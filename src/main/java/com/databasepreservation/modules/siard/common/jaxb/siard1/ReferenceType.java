@@ -5,7 +5,6 @@
 // Generated on: 2015.07.24 at 06:16:58 PM WEST 
 //
 
-
 package com.databasepreservation.modules.siard.common.jaxb.siard1;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -13,16 +12,14 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
- * 
- *         reference element in siardArchive
- *       
- * 
+ * reference element in siardArchive
+ * <p>
+ * <p>
  * <p>Java class for referenceType complex type.
- * 
+ * <p>
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ * <p>
  * <pre>
  * &lt;complexType name="referenceType">
  *   &lt;complexContent>
@@ -35,67 +32,51 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "referenceType", propOrder = {
-    "column",
-    "referenced"
-})
-public class ReferenceType {
+@XmlAccessorType(XmlAccessType.FIELD) @XmlType(name = "referenceType", propOrder = {"column",
+  "referenced"}) public class ReferenceType {
 
-    @XmlElement(required = true)
-    protected String column;
-    @XmlElement(required = true)
-    protected String referenced;
+        @XmlElement(required = true) protected String column;
+        @XmlElement(required = true) protected String referenced;
 
-    /**
-     * Gets the value of the column property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getColumn() {
-        return column;
-    }
+        /**
+         * Gets the value of the column property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getColumn() {
+                return column;
+        }
 
-    /**
-     * Sets the value of the column property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setColumn(String value) {
-        this.column = value;
-    }
+        /**
+         * Sets the value of the column property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setColumn(String value) {
+                this.column = value;
+        }
 
-    /**
-     * Gets the value of the referenced property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getReferenced() {
-        return referenced;
-    }
+        /**
+         * Gets the value of the referenced property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getReferenced() {
+                return referenced;
+        }
 
-    /**
-     * Sets the value of the referenced property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setReferenced(String value) {
-        this.referenced = value;
-    }
+        /**
+         * Sets the value of the referenced property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setReferenced(String value) {
+                this.referenced = value;
+        }
 
 }

@@ -1,22 +1,22 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
 <suite name="TheSuite" verbose="0">
-	<test name="Roundtrip">
-		<groups>
-			<define name="all">
-				<include name="postgresql-siard1.0" />
-				<include name="mysql-siard1.0" />
-				<include name="siard-roundtrip" />
-			</define>
+    <test name="Roundtrip">
+        <groups>
+            <define name="all">
+                <include name="postgresql-siard1.0"/>
+                <include name="mysql-siard1.0"/>
+                <include name="siard-roundtrip"/>
+            </define>
 
-			<run>
-				<include name="all" />
-			</run>
-		</groups>
-		<classes>
-			<class name="com.databasepreservation.integration.roundtrip.MySqlTest" />
-			<class name="com.databasepreservation.integration.roundtrip.PostgreSqlTest" />
-			<class name="com.databasepreservation.integration.siard.SiardTest" />
-		</classes>
-	</test>
+            <run>
+                <include name="all"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="com.databasepreservation.integration.roundtrip.MySqlTest"/>
+            <class name="com.databasepreservation.integration.roundtrip.PostgreSqlTest"/>
+            <class name="com.databasepreservation.integration.siard.SiardTest"/>
+        </classes>
+    </test>
 </suite>

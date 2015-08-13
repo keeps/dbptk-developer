@@ -5,16 +5,14 @@
 // Generated on: 2015.07.24 at 06:16:58 PM WEST 
 //
 
-
 package com.databasepreservation.modules.siard.common.jaxb.siard1;
 
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
  * <p>Java class for matchTypeType.
- * 
+ * <p>
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
@@ -26,22 +24,19 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/restriction>
  * &lt;/simpleType>
  * </pre>
- * 
  */
-@XmlType(name = "matchTypeType")
-@XmlEnum
-public enum MatchTypeType {
+@XmlType(name = "matchTypeType") @XmlEnum public enum MatchTypeType {
 
-    FULL,
-    PARTIAL,
-    SIMPLE;
+        FULL,
+        PARTIAL,
+        SIMPLE;
 
-    public String value() {
-        return name();
-    }
+        public static MatchTypeType fromValue(String v) {
+                return valueOf(v);
+        }
 
-    public static MatchTypeType fromValue(String v) {
-        return valueOf(v);
-    }
+        public String value() {
+                return name();
+        }
 
 }

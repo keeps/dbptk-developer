@@ -5,7 +5,6 @@
 // Generated on: 2015.07.24 at 06:16:58 PM WEST 
 //
 
-
 package com.databasepreservation.modules.siard.common.jaxb.siard1;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -13,16 +12,14 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
- * 
- *         Routine
- *       
- * 
+ * Routine
+ * <p>
+ * <p>
  * <p>Java class for routineType complex type.
- * 
+ * <p>
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ * <p>
  * <pre>
  * &lt;complexType name="routineType">
  *   &lt;complexContent>
@@ -40,196 +37,156 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "routineType", propOrder = {
-    "name",
-    "description",
-    "source",
-    "body",
-    "characteristic",
-    "returnType",
-    "parameters"
-})
-public class RoutineType {
+@XmlAccessorType(XmlAccessType.FIELD) @XmlType(name = "routineType", propOrder = {"name", "description", "source",
+  "body", "characteristic", "returnType", "parameters"}) public class RoutineType {
 
-    @XmlElement(required = true)
-    protected String name;
-    protected String description;
-    protected String source;
-    protected String body;
-    protected String characteristic;
-    protected String returnType;
-    protected ParametersType parameters;
+        @XmlElement(required = true) protected String name;
+        protected String description;
+        protected String source;
+        protected String body;
+        protected String characteristic;
+        protected String returnType;
+        protected ParametersType parameters;
 
-    /**
-     * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getName() {
-        return name;
-    }
+        /**
+         * Gets the value of the name property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getName() {
+                return name;
+        }
 
-    /**
-     * Sets the value of the name property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setName(String value) {
-        this.name = value;
-    }
+        /**
+         * Sets the value of the name property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setName(String value) {
+                this.name = value;
+        }
 
-    /**
-     * Gets the value of the description property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDescription() {
-        return description;
-    }
+        /**
+         * Gets the value of the description property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getDescription() {
+                return description;
+        }
 
-    /**
-     * Sets the value of the description property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDescription(String value) {
-        this.description = value;
-    }
+        /**
+         * Sets the value of the description property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setDescription(String value) {
+                this.description = value;
+        }
 
-    /**
-     * Gets the value of the source property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getSource() {
-        return source;
-    }
+        /**
+         * Gets the value of the source property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getSource() {
+                return source;
+        }
 
-    /**
-     * Sets the value of the source property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setSource(String value) {
-        this.source = value;
-    }
+        /**
+         * Sets the value of the source property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setSource(String value) {
+                this.source = value;
+        }
 
-    /**
-     * Gets the value of the body property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getBody() {
-        return body;
-    }
+        /**
+         * Gets the value of the body property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getBody() {
+                return body;
+        }
 
-    /**
-     * Sets the value of the body property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setBody(String value) {
-        this.body = value;
-    }
+        /**
+         * Sets the value of the body property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setBody(String value) {
+                this.body = value;
+        }
 
-    /**
-     * Gets the value of the characteristic property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getCharacteristic() {
-        return characteristic;
-    }
+        /**
+         * Gets the value of the characteristic property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getCharacteristic() {
+                return characteristic;
+        }
 
-    /**
-     * Sets the value of the characteristic property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setCharacteristic(String value) {
-        this.characteristic = value;
-    }
+        /**
+         * Sets the value of the characteristic property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setCharacteristic(String value) {
+                this.characteristic = value;
+        }
 
-    /**
-     * Gets the value of the returnType property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getReturnType() {
-        return returnType;
-    }
+        /**
+         * Gets the value of the returnType property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getReturnType() {
+                return returnType;
+        }
 
-    /**
-     * Sets the value of the returnType property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setReturnType(String value) {
-        this.returnType = value;
-    }
+        /**
+         * Sets the value of the returnType property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setReturnType(String value) {
+                this.returnType = value;
+        }
 
-    /**
-     * Gets the value of the parameters property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link ParametersType }
-     *     
-     */
-    public ParametersType getParameters() {
-        return parameters;
-    }
+        /**
+         * Gets the value of the parameters property.
+         *
+         * @return possible object is
+         * {@link ParametersType }
+         */
+        public ParametersType getParameters() {
+                return parameters;
+        }
 
-    /**
-     * Sets the value of the parameters property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link ParametersType }
-     *     
-     */
-    public void setParameters(ParametersType value) {
-        this.parameters = value;
-    }
+        /**
+         * Sets the value of the parameters property.
+         *
+         * @param value allowed object is
+         *              {@link ParametersType }
+         */
+        public void setParameters(ParametersType value) {
+                this.parameters = value;
+        }
 
 }

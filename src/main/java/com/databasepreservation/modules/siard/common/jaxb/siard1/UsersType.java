@@ -5,7 +5,6 @@
 // Generated on: 2015.07.24 at 06:16:58 PM WEST 
 //
 
-
 package com.databasepreservation.modules.siard.common.jaxb.siard1;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -15,16 +14,14 @@ import javax.xml.bind.annotation.XmlType;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
- * 
- *         List of users
- *       
- * 
+ * List of users
+ * <p>
+ * <p>
  * <p>Java class for usersType complex type.
- * 
+ * <p>
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ * <p>
  * <pre>
  * &lt;complexType name="usersType">
  *   &lt;complexContent>
@@ -36,45 +33,36 @@ import java.util.List;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "usersType", propOrder = {
-    "user"
-})
-public class UsersType {
+@XmlAccessorType(XmlAccessType.FIELD) @XmlType(name = "usersType", propOrder = {"user"}) public class UsersType {
 
-    @XmlElement(required = true)
-    protected List<UserType> user;
+        @XmlElement(required = true) protected List<UserType> user;
 
-    /**
-     * Gets the value of the user property.
-     * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the user property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getUser().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link UserType }
-     * 
-     * 
-     */
-    public List<UserType> getUser() {
-        if (user == null) {
-            user = new ArrayList<UserType>();
+        /**
+         * Gets the value of the user property.
+         * <p>
+         * <p>
+         * This accessor method returns a reference to the live list,
+         * not a snapshot. Therefore any modification you make to the
+         * returned list will be present inside the JAXB object.
+         * This is why there is not a <CODE>set</CODE> method for the user property.
+         * <p>
+         * <p>
+         * For example, to add a new item, do as follows:
+         * <pre>
+         *    getUser().add(newItem);
+         * </pre>
+         * <p>
+         * <p>
+         * <p>
+         * Objects of the following type(s) are allowed in the list
+         * {@link UserType }
+         */
+        public List<UserType> getUser() {
+                if (user == null) {
+                        user = new ArrayList<UserType>();
+                }
+                return this.user;
         }
-        return this.user;
-    }
 
 }
