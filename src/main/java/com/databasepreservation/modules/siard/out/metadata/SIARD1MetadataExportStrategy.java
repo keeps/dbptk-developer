@@ -54,7 +54,6 @@ import com.databasepreservation.modules.siard.common.jaxb.siard1.ViewsType;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.xml.sax.SAXException;
@@ -69,9 +68,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.Reader;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -144,28 +141,15 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
 		// prepare to read
 		Path xsdSchema = Paths.get(getClass().getResource(METADATA_XSD_RESOURCE_PATH).getPath());
-		Reader reader = null;
-		try {
-			 reader = Files.newBufferedReader(xsdSchema, StandardCharsets.UTF_8);
-		} catch (IOException e) {
-			throw new ModuleException("Could not read from " + getClass().getResource(METADATA_XSD_RESOURCE_PATH).getPath(), e);
-		}
 
 		// read everything from reader into writer
 		try {
-			IOUtils.copy(reader, writer);
+			Files.copy(xsdSchema, out);
 		} catch (IOException e) {
 			throw new ModuleException("Could not write " + metadataPathStrategy.getMetadataXsdFilePath() + " in container " + container.toString() , e);
 		}
 
-		// close input
-		try {
-			reader.close();
-		} catch (IOException e) {
-			throw new ModuleException("Could not close stream", e);
-		}
-
-		// close output
+		// close output (input is already closed)
 		try {
 			writer.close();
 		} catch (IOException e) {
