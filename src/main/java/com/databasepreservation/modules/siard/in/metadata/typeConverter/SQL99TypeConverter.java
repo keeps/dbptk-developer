@@ -87,7 +87,8 @@ public class SQL99TypeConverter implements TypeConverter {
 		} else if (sqlStandardType.equals("TIME")) {
 			type = new SimpleTypeDateTime(true, false);
 		} else {
-			type = new SimpleTypeString(255, true);
+			//type = new SimpleTypeString(255, true);
+			throw new ModuleException("unidentified sqlStandardType: " + sqlStandardType);
 		}
 
 		type.setSql99TypeName(sqlStandardType);

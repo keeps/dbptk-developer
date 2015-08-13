@@ -74,7 +74,7 @@ public class sql99toXSDType {
 			ret = convert(type.getSql99TypeName());
 
 		} else if (type instanceof UnsupportedDataType) {
-			ret = "unsupported";
+			throw new ModuleException("Unsupported datatype: " + type.toString());
 		} else if (type instanceof ComposedTypeArray) {
 			throw new ModuleException("Not yet supported type: ARRAY");
 		} else if (type instanceof ComposedTypeStructure) {
