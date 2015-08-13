@@ -15,7 +15,11 @@ import org.apache.log4j.Logger;
 import org.w3c.util.DateParser;
 
 import java.io.File;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -129,7 +133,7 @@ public class MsAccessImportModule extends ODBCImportModule {
 
 	@Override
 	protected Cell convertRawToCell(String tableName, String columnName,
-			int columnIndex, int rowIndex, Type cellType, ResultSet rawData)
+			int columnIndex, long rowIndex, Type cellType, ResultSet rawData)
 			throws SQLException, InvalidDataException, ClassNotFoundException,
 			ModuleException {
 		Cell cell;

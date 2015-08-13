@@ -122,4 +122,10 @@ public class CheckConstraint {
 		}
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return String.format("CheckConstraint{condition='%s', name='%s', description='%s'}",
+				condition, name, description);
+	}
 }

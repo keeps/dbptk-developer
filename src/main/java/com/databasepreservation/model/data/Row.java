@@ -13,7 +13,7 @@ import java.util.Vector;
  * 
  */
 public class Row {
-	private int index;
+	private long index;
 
 	private List<Cell> cells;
 	
@@ -33,7 +33,7 @@ public class Row {
 	 * @param cells
 	 *            the list of cell within this row
 	 */
-	public Row(int index, List<Cell> cells) {
+	public Row(long index, List<Cell> cells) {
 		this.index = index;
 		this.cells = cells;
 	}
@@ -41,7 +41,7 @@ public class Row {
 	/**
 	 * @return the sequence number of the row in the table
 	 */
-	public int getIndex() {
+	public long getIndex() {
 		return index;
 	}
 

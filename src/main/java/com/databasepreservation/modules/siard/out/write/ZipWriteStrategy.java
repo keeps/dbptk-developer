@@ -7,10 +7,9 @@ import org.apache.commons.compress.archivers.zip.Zip64Mode;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -62,11 +61,12 @@ public class ZipWriteStrategy implements WriteStrategy {
 	@Override
 	public void setup(SIARDArchiveContainer container) throws ModuleException {
 		try {
-			zipOut = new ProtectedZipArchiveOutputStream(
-					Files.newOutputStream(container.getPath(),
-							StandardOpenOption.CREATE,
-							StandardOpenOption.TRUNCATE_EXISTING,
-							StandardOpenOption.WRITE));
+//			zipOut = new ProtectedZipArchiveOutputStream(
+//					Files.newOutputStream(container.getPath(),
+//							StandardOpenOption.CREATE,
+//							StandardOpenOption.TRUNCATE_EXISTING,
+//							StandardOpenOption.WRITE));
+			zipOut = new ProtectedZipArchiveOutputStream(container.getPath().toFile());
 
 			zipOut.setUseZip64(Zip64Mode.Always);
 
@@ -86,8 +86,8 @@ public class ZipWriteStrategy implements WriteStrategy {
 	}
 
 	private class ProtectedZipArchiveOutputStream extends ZipArchiveOutputStream{
-		public ProtectedZipArchiveOutputStream(OutputStream out) {
-			super(out);
+		public ProtectedZipArchiveOutputStream(File file) throws IOException {
+			super(file);
 		}
 
 		@Override

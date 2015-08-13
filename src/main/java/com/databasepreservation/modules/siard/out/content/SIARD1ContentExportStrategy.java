@@ -1,6 +1,11 @@
 package com.databasepreservation.modules.siard.out.content;
 
-import com.databasepreservation.model.data.*;
+import com.databasepreservation.model.data.BinaryCell;
+import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.ComposedCell;
+import com.databasepreservation.model.data.FileItem;
+import com.databasepreservation.model.data.Row;
+import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -8,16 +13,21 @@ import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.modules.siard.common.LargeObject;
-import com.databasepreservation.modules.siard.common.sql99toXSDType;
-import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.XMLUtils;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,7 +37,7 @@ import java.util.Set;
 public class SIARD1ContentExportStrategy implements ContentExportStrategy {
 	private final Logger logger = Logger.getLogger(SIARD1ContentExportStrategy.class);
 
-	private final static String ENCODING = "utf-8";
+	private final static String ENCODING = "UTF-8";
 	private final static String TAB = "     ";
 	private final static String PAR = "\n";
 
@@ -167,18 +177,21 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
 	}
 
 	private void writeSimpleCellData(SimpleCell simpleCell, int columnIndex) throws IOException{
+		currentWriter
+				.append(TAB)
+				.append(TAB)
+				.append("<c")
+				.append(String.valueOf(columnIndex))
+				.append(">");
+
 		if (simpleCell.getSimpledata() != null) {
-			currentWriter
-					.append(TAB)
-					.append(TAB)
-					.append("<c")
-					.append(String.valueOf(columnIndex))
-					.append(">")
-					.append(XMLUtils.encode(simpleCell.getSimpledata()))
-					.append("</c")
-					.append(String.valueOf(columnIndex))
-					.append(">\n");
+			currentWriter.write(XMLUtils.encode(simpleCell.getSimpledata()));
 		}
+
+		currentWriter
+				.append("</c")
+				.append(String.valueOf(columnIndex))
+				.append(">\n");
 	}
 
 	private void writeLargeObjectData(Cell cell, int columnIndex) throws IOException, ModuleException {

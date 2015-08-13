@@ -58,8 +58,8 @@ public class PostgreSqlTest {
 				"pg_dump --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
 				"pg_dump --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
 				new String[]{"-i", "PostgreSQLJDBC", "localhost", db_source, db_tmp_username, db_tmp_password, "false",
-					"-o", "SIARD", Roundtrip.TMP_FILE_SIARD_VAR, "store"},
-				new String[]{"-i", "SIARD", Roundtrip.TMP_FILE_SIARD_VAR,
+					"-o", "SIARD1", Roundtrip.TMP_FILE_SIARD_VAR, "store"},
+				new String[]{"-i", "SIARD1", Roundtrip.TMP_FILE_SIARD_VAR,
 					"-o", "PostgreSQLJDBC", "localhost", db_target, db_tmp_username, db_tmp_password, "false"},
 				env_var_source,
 				env_var_target);
@@ -104,7 +104,7 @@ public class PostgreSqlTest {
 		String[] fields = new String[args.length-1];
 		System.arraycopy(args, 1, fields, 0, args.length-1);
 
-		assert rt.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], fields);
+		assert rt.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], (Object[])fields);
 	}
 
 	@DataProvider

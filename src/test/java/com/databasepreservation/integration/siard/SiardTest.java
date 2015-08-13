@@ -1,18 +1,39 @@
 package com.databasepreservation.integration.siard;
 
-import com.databasepreservation.model.data.*;
+import com.databasepreservation.model.data.BinaryCell;
+import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.FileItem;
+import com.databasepreservation.model.data.Row;
+import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
-import com.databasepreservation.model.structure.*;
+import com.databasepreservation.model.structure.CandidateKey;
+import com.databasepreservation.model.structure.CheckConstraint;
+import com.databasepreservation.model.structure.ColumnStructure;
+import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.model.structure.ForeignKey;
+import com.databasepreservation.model.structure.Parameter;
+import com.databasepreservation.model.structure.PrimaryKey;
+import com.databasepreservation.model.structure.PrivilegeStructure;
+import com.databasepreservation.model.structure.Reference;
+import com.databasepreservation.model.structure.RoleStructure;
+import com.databasepreservation.model.structure.RoutineStructure;
+import com.databasepreservation.model.structure.SchemaStructure;
+import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.Trigger;
+import com.databasepreservation.model.structure.UserStructure;
+import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.modules.DatabaseHandler;
-import com.databasepreservation.modules.siard.in.SIARDImportModule;
+import com.databasepreservation.modules.DatabaseImportModule;
+import com.databasepreservation.modules.siard.in.input.SIARD1ImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD1ExportModule;
 import com.databasepreservation.utils.JodaUtils;
+import com.databasepreservation.utils.diff_match_patch;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.mockito.ArgumentCaptor;
@@ -24,7 +45,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 /**
  * Roundtrip test that tests SIARD without depending on a real database
@@ -53,32 +82,28 @@ public class SiardTest {
 
 		DatabaseStructure original = generateDatabaseStructure();
 
-		// TODO: the original structure is passed to the roundtrip test, which means SIARD module can (and does)
-		//    change the original structure (example: makes some descriptions null, changes column folder if
-		//    there are blobs to export) this can be avoided by creating clone constructors and providing
-		//    roundtrip test a cloned structure which will allow us to compare the result of the roundtrip
-		//    against the original (unaltered) database structure.
+		// fixme: the original structure is passed to the roundtrip test, which means SIARD module may still change the original structure
+		// solution: clone the database structure before passing it to the roundtrip test
 
 		DatabaseStructure other = roundtrip(original, tmpFile);
 
-		logger.debug("imported database structure:" + other.toString());
+		//debug
+		diff_match_patch diff = new diff_match_patch();
+		LinkedList<diff_match_patch.Diff> diffs = diff.diff_main(original.toString(), other.toString());
 
-		// TODO: these are used to make the test pass, and should be looked into and corrected
-		// these fixes are not in the generateDatabaseStructure() because they produce an invalid DatabaseStructure
-		// this also means that SIARD roundtrip is creating an invalid DatabaseStructure
-		for (SchemaStructure schema : original.getSchemas()) {
-			for (TableStructure table : schema.getTables()) {
-				for (Trigger trigger : table.getTriggers()) {
-					trigger.setActionTime(null);
-				}
-				for (ColumnStructure column : table.getColumns()) {
-					column.setFolder(null);
-				}
-				for (ForeignKey fk : table.getForeignKeys()) {
-					fk.setId(null);
-				}
+		boolean differ = false;
+		for( diff_match_patch.Diff aDiff : diffs ){
+			if( aDiff.operation != diff_match_patch.Operation.EQUAL ){
+				differ = true;
+				break;
 			}
 		}
+		if(differ) {
+			logger.debug(diff.diff_prettyCmd(diffs));
+		}else {
+			logger.debug("toString() are equal!");
+		}
+
 
 		assert original.equals(other) : "The final structure (from SIARD) differs from the original structure";
 	}
@@ -134,7 +159,7 @@ public class SiardTest {
 		columns_table12.add(new ColumnStructure("schema01.table02.col123", "col123", new SimpleTypeString(250, true), true, "just a 1string", "yey1", false));
 		columns_table12.add(new ColumnStructure("schema01.table02.col124", "col124", new SimpleTypeString(230, false), true, "just a 2string", "yey2", false));
 		columns_table12.add(new ColumnStructure("schema01.table02.col125", "col125", new SimpleTypeBinary(), false, "this one will be big", null, false));
-		columns_table12.add(new ColumnStructure("schema01.table02.col126", "col126", new SimpleTypeBinary(), false, "big text file", null, false));
+//		columns_table12.add(new ColumnStructure("schema01.table02.col126", "col126", new SimpleTypeBinary(), false, "big text file", null, false));//todo: use clobs
 
 		columns_table12.get(0).getType().setOriginalTypeName("int", 10, 0);
 		columns_table12.get(0).getType().setSql99TypeName("INTEGER");
@@ -163,10 +188,10 @@ public class SiardTest {
 		columns_table12.get(4).getType().setSql99TypeName("BINARY LARGE OBJECT");
 		columns_table12.get(4).getType().setDescription("col125 description");
 
-		columns_table12.get(5).getType().setOriginalTypeName("TEXT");
-		columns_table12.get(5).getType().setSql99TypeName("BINARY LARGE OBJECT");
-		//TODO: columns_table12.get(5).getType().setSql99TypeName("CLOB");
-		columns_table12.get(5).getType().setDescription("col126 description");
+//		columns_table12.get(5).getType().setOriginalTypeName("TEXT");
+//		columns_table12.get(5).getType().setSql99TypeName("BINARY LARGE OBJECT");
+//		//TODO: columns_table12.get(5).getType().setSql99TypeName("CLOB");
+//		columns_table12.get(5).getType().setDescription("col126 description");
 
 		// schema02
 		// create columns for first table
@@ -446,8 +471,6 @@ public class SiardTest {
 	 */
 	private DatabaseStructure roundtrip(DatabaseStructure dbStructure, Path tmpFile)
 			throws FileNotFoundException, ModuleException, UnknownTypeException, InvalidDataException{
-//		DatabaseHandler exporter = new SIARDExportModule(tmpFile.toFile(), false);
-
 		DatabaseHandler exporter = new SIARD1ExportModule(tmpFile, true).getDatabaseHandler();
 
 		// behaviour
@@ -457,7 +480,6 @@ public class SiardTest {
 		logger.info("STARTED: Getting the database structure.");
 		exporter.handleStructure(dbStructure);
 		logger.info("FINISHED: Getting the database structure.");
-		logger.debug("db struct: " + dbStructure.toString());
 		for (SchemaStructure thisschema : dbStructure.getSchemas()) {
 			for (TableStructure thistable : thisschema.getTables()) {
 				logger.info("STARTED: Getting data of table: " + thistable.getId());
@@ -481,23 +503,11 @@ public class SiardTest {
 		logger.debug("getting the data back from SIARD");
 
 		logger.debug("SIARD file: " + tmpFile.toUri().toString());
-
-        //MyClass myInstance = mock(MyClass.class);
 		DatabaseHandler mocked = Mockito.mock(DatabaseHandler.class);
-
-		try{
-			SIARDImportModule importer = new SIARDImportModule(tmpFile.toFile());
-
-			ArgumentCaptor<DatabaseStructure> dbStructureCaptor = ArgumentCaptor.forClass(DatabaseStructure.class);
-
-			importer.getDatabase(mocked);
-
-			Mockito.verify(mocked).handleStructure(dbStructureCaptor.capture());
-
-			return dbStructureCaptor.getValue();
-		}catch(ModuleException e){
-			// breakpoint the next line to debug before the temporary files are deleted
-			throw e;
-		}
+		DatabaseImportModule importer = new SIARD1ImportModule(tmpFile).getDatabaseImportModule();
+		ArgumentCaptor<DatabaseStructure> dbStructureCaptor = ArgumentCaptor.forClass(DatabaseStructure.class);
+		importer.getDatabase(mocked);
+		Mockito.verify(mocked).handleStructure(dbStructureCaptor.capture());
+		return dbStructureCaptor.getValue();
 	}
 }

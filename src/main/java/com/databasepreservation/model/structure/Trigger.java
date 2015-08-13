@@ -163,6 +163,12 @@ public class Trigger {
 
 
 	@Override
+	public String toString() {
+		return String.format("Trigger{actionTime='%s', name='%s', triggerEvent='%s', aliasList='%s', triggeredAction='%s', description='%s'}",
+				actionTime, name, triggerEvent, aliasList, triggeredAction, description);
+	}
+
+	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
 			return true;

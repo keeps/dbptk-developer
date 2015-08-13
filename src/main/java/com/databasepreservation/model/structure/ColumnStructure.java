@@ -12,8 +12,6 @@ public class ColumnStructure {
 
 	private String name;
 
-	private String folder;
-
 	private Type type;
 
 	private String defaultValue;
@@ -105,21 +103,6 @@ public class ColumnStructure {
 	}
 
 	/**
-	 * @return the folder
-	 */
-	public String getFolder() {
-		return folder;
-	}
-
-	/**
-	 * @param folder
-	 *            the folder to set
-	 */
-	public void setFolder(String folder) {
-		this.folder = folder;
-	}
-
-	/**
 	 * @return the column type
 	 */
 	public Type getType() {
@@ -183,8 +166,6 @@ public class ColumnStructure {
 		builder.append(id);
 		builder.append(", name=");
 		builder.append(name);
-		builder.append(", folder=");
-		builder.append(folder);
 		builder.append(", type=");
 		builder.append(type);
 		builder.append(", defaultValue=");
@@ -207,7 +188,6 @@ public class ColumnStructure {
 				+ ((defaultValue == null) ? 0 : defaultValue.hashCode());
 		result = prime * result
 				+ ((description == null) ? 0 : description.hashCode());
-		result = prime * result + ((folder == null) ? 0 : folder.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		result = prime * result
 				+ ((isAutoIncrement == null) ? 0 : isAutoIncrement.hashCode());
@@ -242,13 +222,6 @@ public class ColumnStructure {
 				return false;
 			}
 		} else if (!description.equals(other.description)) {
-			return false;
-		}
-		if (folder == null) {
-			if (other.folder != null) {
-				return false;
-			}
-		} else if (!folder.equals(other.folder)) {
 			return false;
 		}
 		if (id == null) {

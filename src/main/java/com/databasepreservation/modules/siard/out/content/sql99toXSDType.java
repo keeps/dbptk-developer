@@ -1,8 +1,17 @@
-package com.databasepreservation.modules.siard.common;
+package com.databasepreservation.modules.siard.out.content;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
-import com.databasepreservation.model.structure.type.*;
+import com.databasepreservation.model.structure.type.ComposedTypeArray;
+import com.databasepreservation.model.structure.type.ComposedTypeStructure;
+import com.databasepreservation.model.structure.type.SimpleTypeBinary;
+import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
+import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
+import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
+import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
+import com.databasepreservation.model.structure.type.SimpleTypeString;
+import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.model.structure.type.UnsupportedDataType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,12 +54,12 @@ public class sql99toXSDType {
 
 		// mapping using regex
 		sql99toXSDregex.put("^BIT VARYING\\(\\d+\\)$", "xs:hexBinary");
-		sql99toXSDregex.put("^BIT\\(\\d+\\)$", null);
-		sql99toXSDregex.put("^CHARACTER VARYING\\(\\d+\\)$", null);
-		sql99toXSDregex.put("^CHARACTER\\(\\d+\\)$", null);
-		sql99toXSDregex.put("^DECIMAL\\(\\d+(,\\d+)?\\)$", null);
-		sql99toXSDregex.put("^FLOAT\\(\\d+\\)$", null);
-		sql99toXSDregex.put("^NUMERIC\\(\\d+(,\\d+)?\\)$", null);
+		sql99toXSDregex.put("^BIT\\(\\d+\\)$", "xs:hexBinary");
+		sql99toXSDregex.put("^CHARACTER VARYING\\(\\d+\\)$", "xs:string");
+		sql99toXSDregex.put("^CHARACTER\\(\\d+\\)$", "xs:string");
+		sql99toXSDregex.put("^DECIMAL\\(\\d+(,\\d+)?\\)$", "xs:decimal");
+		sql99toXSDregex.put("^FLOAT\\(\\d+\\)$", "xs:float");
+		sql99toXSDregex.put("^NUMERIC\\(\\d+(,\\d+)?\\)$", "xs:decimal");
 	}
 
 	public static String convert(Type type) throws ModuleException, UnknownTypeException {

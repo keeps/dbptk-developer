@@ -43,8 +43,8 @@ public class MySqlTest {
 						db_tmp_username, db_tmp_password, db_source),
 				String.format("mysqldump -v --user=\"%s\" --password=\"%s\" %s --compact",
 						db_tmp_username, db_tmp_password, db_target),
-				new String[]{"-i", "MySQLJDBC", "localhost", db_source, db_tmp_username, db_tmp_password, "-o", "SIARD", Roundtrip.TMP_FILE_SIARD_VAR, "store"},
-				new String[]{"-i", "SIARD", Roundtrip.TMP_FILE_SIARD_VAR, "-o", "MySQLJDBC", "localhost", db_target, db_tmp_username, db_tmp_password});
+				new String[]{"-i", "MySQLJDBC", "localhost", db_source, db_tmp_username, db_tmp_password, "-o", "SIARD1", Roundtrip.TMP_FILE_SIARD_VAR, "store"},
+				new String[]{"-i", "SIARD1", Roundtrip.TMP_FILE_SIARD_VAR, "-o", "MySQLJDBC", "localhost", db_target, db_tmp_username, db_tmp_password});
 	}
 
 	@Test(description="MySql server is available and accessible")

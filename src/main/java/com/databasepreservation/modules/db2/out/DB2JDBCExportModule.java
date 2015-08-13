@@ -9,7 +9,11 @@ import com.databasepreservation.modules.jdbc.out.JDBCExportModule;
 import org.apache.log4j.Logger;
 import org.w3c.util.InvalidDateException;
 
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.Calendar;
 
 /**

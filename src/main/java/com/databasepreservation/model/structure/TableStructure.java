@@ -33,11 +33,11 @@ public class TableStructure {
 
 	private List<Trigger> triggers;
 
-	private int rows;
+	private long rows;
 
 	private String schema;
 
-	private int currentRow;
+	private long currentRow;
 
 	private int index;
 
@@ -90,7 +90,7 @@ public class TableStructure {
 			List<ColumnStructure> columns, List<ForeignKey> foreignKeys,
 			PrimaryKey primaryKey, List<CandidateKey> candidateKeys,
 			List<CheckConstraint> checkConstraints, List<Trigger> triggers,
-			int rows) {
+			long rows) {
 		isValidId(id);
 		this.id = id;
 		this.name = name;
@@ -248,7 +248,7 @@ public class TableStructure {
 	/**
 	 * @return the rows
 	 */
-	public int getRows() {
+	public long getRows() {
 		return rows;
 	}
 
@@ -256,7 +256,7 @@ public class TableStructure {
 	 * @param rows
 	 *            the rows to set
 	 */
-	public void setRows(int rows) {
+	public void setRows(long rows) {
 		this.rows = rows;
 	}
 
@@ -308,44 +308,17 @@ public class TableStructure {
 		return builder.toString();
 	}
 
-	public int getCurrentRow() {
+	public long getCurrentRow() {
 		return currentRow;
 	}
 
-	public void setCurrentRow(int currentRow) {
+	public void setCurrentRow(long currentRow) {
 		this.currentRow = currentRow;
 	}
 
-	public int incrementCurrentRow() {
+	public long incrementCurrentRow() {
 		currentRow = currentRow + 1;
 		return currentRow;
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((candidateKeys == null) ? 0 : candidateKeys.hashCode());
-		result = prime
-				* result
-				+ ((checkConstraints == null) ? 0 : checkConstraints.hashCode());
-		result = prime * result + ((columns == null) ? 0 : columns.hashCode());
-		result = prime * result + currentRow;
-		result = prime * result
-				+ ((description == null) ? 0 : description.hashCode());
-		result = prime * result
-				+ ((foreignKeys == null) ? 0 : foreignKeys.hashCode());
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result
-				+ ((primaryKey == null) ? 0 : primaryKey.hashCode());
-		result = prime * result + rows;
-		result = prime * result + ((schema == null) ? 0 : schema.hashCode());
-		result = prime * result
-				+ ((triggers == null) ? 0 : triggers.hashCode());
-		result = prime * result + index;
-		return result;
 	}
 
 	@Override
@@ -440,6 +413,24 @@ public class TableStructure {
 			return false;
 		}
 		return true;
+	}
+
+	@Override
+	public int hashCode() {
+		int result = id != null ? id.hashCode() : 0;
+		result = 31 * result + (name != null ? name.hashCode() : 0);
+		result = 31 * result + (description != null ? description.hashCode() : 0);
+		result = 31 * result + (columns != null ? columns.hashCode() : 0);
+		result = 31 * result + (primaryKey != null ? primaryKey.hashCode() : 0);
+		result = 31 * result + (foreignKeys != null ? foreignKeys.hashCode() : 0);
+		result = 31 * result + (candidateKeys != null ? candidateKeys.hashCode() : 0);
+		result = 31 * result + (checkConstraints != null ? checkConstraints.hashCode() : 0);
+		result = 31 * result + (triggers != null ? triggers.hashCode() : 0);
+		result = 31 * result + (int) (rows ^ (rows >>> 32));
+		result = 31 * result + (schema != null ? schema.hashCode() : 0);
+		result = 31 * result + (int) (currentRow ^ (currentRow >>> 32));
+		result = 31 * result + index;
+		return result;
 	}
 
 	public int getIndex() {
