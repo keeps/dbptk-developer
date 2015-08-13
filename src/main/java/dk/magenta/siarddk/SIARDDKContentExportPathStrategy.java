@@ -18,9 +18,7 @@ public class SIARDDKContentExportPathStrategy implements ContentPathExportStrate
 	private static final String XSD_EXTENSION = "xsd";
 	
 	@Override
-	public String getClobFilePath(int schemaIndex, int tableIndex,
-			int columnIndex, int rowIndex) {
-		// TODO Auto-generated method stub
+	public String getClobFilePath(int schemaIndex, int tableIndex, int columnIndex, int rowIndex) {
 		return null;
 	}
 
@@ -31,9 +29,10 @@ public class SIARDDKContentExportPathStrategy implements ContentPathExportStrate
 		return null;
 	}
 
+
+	// Not used in SIARDDK
 	@Override
 	public String getSchemaFolderName(int schemaIndex) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -46,10 +45,22 @@ public class SIARDDKContentExportPathStrategy implements ContentPathExportStrate
 		
 	}
 
+	/**
+	 * @param schemaIndex not used in SIARDDK
+	 */
 	@Override
 	public String getTableXsdFilePath(int schemaIndex, int tableIndex) {
-		// TODO Auto-generated method stub
-		return null;
+		return new StringBuilder()
+		.append(CONTENT_DIR)
+		.append(FILE_SEPARATOR)
+		.append(getTableFolderName(tableIndex))
+		.append(FILE_SEPARATOR)
+		.append(TABLE_FILENAME)
+		.append(tableIndex)
+		.append(FILE_EXTENSION_SEPARATOR)
+		.append(XSD_EXTENSION)
+		.toString();
+
 	}
 
 	@Override

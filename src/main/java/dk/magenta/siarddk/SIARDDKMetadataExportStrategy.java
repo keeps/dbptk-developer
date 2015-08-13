@@ -130,7 +130,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 							
 							// Set nullable
 							column.setNullable(columnStructure.getNillable());
-							
+														
 							// TO-DO: get (how?) and set description
 							// Set description
 							column.setDescription("Description should be set");
@@ -140,6 +140,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 							
 							columns.getColumn().add(column);
 							columnCounter += 1;
+							
 						}
 						tableType.setColumns(columns);
 						

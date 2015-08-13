@@ -28,6 +28,11 @@ public class TestSIARDDKContentExportPathStrategy {
 	}
 	
 	@Test
+	public void shouldReturnCorrectTableXsdFilePath() {
+		assertEquals("Tables/table5/table5.xsd", c.getTableXsdFilePath(0, 5));
+	}
+	
+	@Test
 	public void shouldReturnCorrectTableXsdNamespace() {
 		assertEquals("http://www.sa.dk/xmlns/siard/1.0/schema9/table9.xsd", 
 				c.getTableXsdNamespace("http://www.sa.dk/xmlns/siard/1.0/", 9, 9));

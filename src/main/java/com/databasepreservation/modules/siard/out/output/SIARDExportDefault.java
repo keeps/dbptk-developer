@@ -53,6 +53,7 @@ public class SIARDExportDefault implements DatabaseHandler {
 		}
 
 		dbStructure = structure;
+		metadataStrategy.writeMetadataXML(dbStructure, mainContainer);
 	}
 
 	@Override
@@ -94,7 +95,6 @@ public class SIARDExportDefault implements DatabaseHandler {
 
 	@Override
 	public void finishDatabase() throws ModuleException {
-		metadataStrategy.writeMetadataXML(dbStructure, mainContainer);
 		metadataStrategy.writeMetadataXSD(dbStructure, mainContainer);
 		writeStrategy.finish(mainContainer);
 	}
