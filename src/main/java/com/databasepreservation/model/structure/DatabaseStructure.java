@@ -6,7 +6,6 @@ import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 /**
  *
@@ -546,7 +545,7 @@ public class DatabaseStructure {
 	private static List<TableStructure> filterReferencedTables(
 			List<TableStructure> allTables, List<TableStructure> insertedTables) {
 
-		List<TableStructure> referencedTables = new Vector<TableStructure>();
+		List<TableStructure> referencedTables = new ArrayList<TableStructure>();
 		for (TableStructure table : allTables) {
 			if (!insertedTables.contains(table)) {
 				boolean allReferredTablesInserted = true;

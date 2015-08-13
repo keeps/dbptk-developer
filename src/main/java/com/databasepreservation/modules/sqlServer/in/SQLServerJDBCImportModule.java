@@ -20,10 +20,10 @@ import java.io.InputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 
 /**
  * Microsoft SQL Server JDBC import module.
@@ -176,7 +176,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 					// List<FileFormat> formats = FileFormatHelper.getInstance()
 					// .identify(fileItem);
 					// logger.debug("cell '" + id + "' has formats " + formats);
-					List<FileFormat> formats = new Vector<FileFormat>();
+					List<FileFormat> formats = new ArrayList<FileFormat>();
 					cell = new BinaryCell(id, fileItem, formats);
 				} catch (IOException e) {
 					throw new ModuleException("Error getting binary stream", e);

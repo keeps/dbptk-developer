@@ -24,7 +24,6 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 /**
  * @author Luis Faria
@@ -49,8 +48,8 @@ public class Main {
 	}
 
 	public static int internal_main(String... args) {
-		List<String> importModuleArgs = new Vector<String>();
-		List<String> exportModuleArgs = new Vector<String>();
+		List<String> importModuleArgs = new ArrayList<String>();
+		List<String> exportModuleArgs = new ArrayList<String>();
 
 		boolean parsingImportModule = false;
 		boolean parsingExportModule = false;

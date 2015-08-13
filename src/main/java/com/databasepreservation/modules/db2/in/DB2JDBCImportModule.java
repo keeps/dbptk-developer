@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 
 /** 
  * @author Miguel Coutada
@@ -152,7 +151,7 @@ public class DB2JDBCImportModule extends JDBCImportModule {
 	// VERIFY Need of custom getForeignKeys
 	protected List<ForeignKey> getForeignKeys(String tableName)
 			throws SQLException, UnknownTypeException, ClassNotFoundException {
-		List<ForeignKey> foreignKeys = new Vector<ForeignKey>();
+		List<ForeignKey> foreignKeys = new ArrayList<ForeignKey>();
 		if (aliasTables == null) {
 			aliasTables = getAliasTables();
 		}

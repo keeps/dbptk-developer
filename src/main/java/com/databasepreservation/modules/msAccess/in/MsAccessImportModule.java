@@ -25,7 +25,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Vector;
 
 /**
  * 
@@ -99,7 +98,7 @@ public class MsAccessImportModule extends ODBCImportModule {
 			String tableName) 
 					throws SQLException, UnknownTypeException, 
 							ClassNotFoundException {
-		List<ForeignKey> fKeys = new Vector<ForeignKey>();
+		List<ForeignKey> fKeys = new ArrayList<ForeignKey>();
 
 		ResultSet foreignKeys = getStatement()
 				.executeQuery(

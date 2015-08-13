@@ -4,7 +4,6 @@
 package com.databasepreservation.model.data;
 
 import java.util.List;
-import java.util.Vector;
 
 /**
  * A table data row container.
@@ -22,7 +21,7 @@ public class Row {
 	 * 
 	 */
 	public Row() {
-		this.cells = new Vector<Cell>();
+		this.cells = new ArrayList<Cell>();
 	}
 
 	/**

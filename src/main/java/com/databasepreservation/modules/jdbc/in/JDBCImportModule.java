@@ -65,7 +65,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 
 /**
  * @author Luis Faria
@@ -1061,7 +1060,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 	protected PrimaryKey getPrimaryKey(String schemaName, String tableName)
 			throws SQLException, UnknownTypeException, ClassNotFoundException {
 		String pkName = null;
-		List<String> pkColumns = new Vector<String>();
+		List<String> pkColumns = new ArrayList<String>();
 
 		ResultSet rs = getMetadata().getPrimaryKeys(
 				getDatabaseStructure().getName(), schemaName, tableName);
@@ -1098,7 +1097,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			String tableName) throws SQLException, UnknownTypeException,
 			ClassNotFoundException {
 
-		List<ForeignKey> foreignKeys = new Vector<ForeignKey>();
+		List<ForeignKey> foreignKeys = new ArrayList<ForeignKey>();
 
 		ResultSet rs = getMetadata().getImportedKeys(
 				getDatabaseStructure().getName(), schemaName, tableName);

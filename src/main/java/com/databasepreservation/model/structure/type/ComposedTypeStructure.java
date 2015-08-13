@@ -6,7 +6,6 @@ package com.databasepreservation.model.structure.type;
 import com.databasepreservation.utils.ListUtils;
 
 import java.util.List;
-import java.util.Vector;
 
 /**
  * A type composed by structuring other type. Any complex type can be
@@ -21,7 +20,7 @@ public class ComposedTypeStructure extends Type {
 	 * Empty structured type constructor
 	 */
 	public ComposedTypeStructure() {
-		this.elements = new Vector<Type>();
+		this.elements = new ArrayList<Type>();
 	}
 
 	/**
