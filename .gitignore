@@ -9,3 +9,6 @@ target/
 log/
 exported-dbs/
 test-output/
+
+*.iml
+.idea

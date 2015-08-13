@@ -12,7 +12,6 @@ import com.databasepreservation.model.exception.UnknownTypeException;
  * 
  */
 public interface DatabaseImportModule {
-
 	/**
 	 * Import the database model.
 	 * 

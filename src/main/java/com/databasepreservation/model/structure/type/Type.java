@@ -4,6 +4,7 @@
 package com.databasepreservation.model.structure.type;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 
 /**
  * @author Luis Faria
@@ -12,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
  * extend this class.
  */
 public abstract class Type {
+	private final Logger logger = Logger.getLogger(Type.class);
 
 	private String originalTypeName;
 
@@ -19,27 +21,18 @@ public abstract class Type {
 
 	private String sql99TypeName;
 
-	/**
-	 * Type abstract empty constructor
-	 *
-	 */
-	public Type() {
-		description = null;
-		originalTypeName = null;
-		sql99TypeName = null;
-	}
+	// using the empty constructor is not advised
+	protected Type() {}
 
 	/**
 	 * Type abstract constructor
 	 *
-	 * @param originalTypeName
-	 *            the name of the original type, null if not applicable
-	 * @param description
-	 *            the type description, null if none
+	 * @param sql99TypeName the normalized SQL99 type name
+	 * @param originalTypeName the name of the original type, null if not applicable
 	 */
-	public Type(String originalTypeName, String description) {
+	public Type(String sql99TypeName, String originalTypeName){
 		this.originalTypeName = originalTypeName;
-		this.description = description;
+		this.sql99TypeName = sql99TypeName;
 	}
 
 	/**
@@ -47,13 +40,6 @@ public abstract class Type {
 	 */
 	public String getOriginalTypeName() {
 		return originalTypeName;
-	}
-
-	/**
-	 * @return true if originalTypeName is set and is not empty, false otherwise
-	 */
-	public boolean hasOriginalTypeName(){
-		return StringUtils.isNotBlank(originalTypeName);
 	}
 
 	/**
@@ -82,7 +68,44 @@ public abstract class Type {
 	}
 
 	/**
+	 * @return The name of the SQL99 normalized type. null if not applicable
+	 */
+	public String getSql99TypeName() {
+
+		if(StringUtils.isBlank(sql99TypeName)){
+			logger.warn("SQL99 type is not defined for type " + this.toString());
+		}
+		return sql99TypeName;
+	}
+
+	/**
+	 * @param sql99TypeName
+	 *            the name of the original type, null if not applicable
+	 */
+	public void setSql99TypeName(String sql99TypeName) {
+		this.sql99TypeName = sql99TypeName;
+	}
+
+	/**
+	 * @param typeName The name of the original type
+	 * @param originalColumnSize Original column size
+	 * @param originalDecimalDigits Original decimal digits amount
+	 */
+	public void setSql99TypeName(String typeName, int originalColumnSize, int originalDecimalDigits) {
+		this.sql99TypeName = String.format("%s(%d,%d)", typeName, originalColumnSize, originalDecimalDigits);
+	}
+
+	/**
+	 * @param typeName The name of the original type
+	 * @param originalColumnSize Original column size
+	 */
+	public void setSql99TypeName(String typeName, int originalColumnSize) {
+		this.sql99TypeName = String.format("%s(%d)", typeName, originalColumnSize);
+	}
+
+	/**
 	 * @return the type description, null if none
+
 	 */
 	public String getDescription() {
 		return description;
@@ -96,20 +119,6 @@ public abstract class Type {
 		this.description = description;
 	}
 
-	/**
-	 * @return the sql99TypeName
-	 */
-	public String getSql99TypeName() {
-		return sql99TypeName;
-	}
-
-	/**
-	 * @param sql99TypeName the sql99TypeName to set
-	 */
-	public void setSql99TypeName(String sql99TypeName) {
-		this.sql99TypeName = sql99TypeName;
-	}
-
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -121,57 +130,28 @@ public abstract class Type {
 		builder.append(sql99TypeName);
 		builder.append("]");
 		return builder.toString();
+
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		Type type = (Type) o;
+
+		if (originalTypeName != null ? !originalTypeName.equals(type.originalTypeName) : type.originalTypeName != null)
+			return false;
+		if (description != null ? !description.equals(type.description) : type.description != null) return false;
+		return !(sql99TypeName != null ? !sql99TypeName.equals(type.sql99TypeName) : type.sql99TypeName != null);
+
 	}
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((description == null) ? 0 : description.hashCode());
-		result = prime
-				* result
-				+ ((originalTypeName == null) ? 0 : originalTypeName.hashCode());
-		result = prime * result
-				+ ((sql99TypeName == null) ? 0 : sql99TypeName.hashCode());
+		int result = originalTypeName != null ? originalTypeName.hashCode() : 0;
+		result = 31 * result + (description != null ? description.hashCode() : 0);
+		result = 31 * result + (sql99TypeName != null ? sql99TypeName.hashCode() : 0);
 		return result;
 	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		Type other = (Type) obj;
-		if (description == null) {
-			if (other.description != null) {
-				return false;
-			}
-		} else if (!description.equals(other.description)) {
-			return false;
-		}
-		if (originalTypeName == null) {
-			if (other.originalTypeName != null) {
-				return false;
-			}
-		} else if (!originalTypeName.equals(other.originalTypeName)) {
-			return false;
-		}
-		if (sql99TypeName == null) {
-			if (other.sql99TypeName != null) {
-				return false;
-			}
-		} else if (!sql99TypeName.equals(other.sql99TypeName)) {
-			return false;
-		}
-		return true;
-	}
-
-
 }

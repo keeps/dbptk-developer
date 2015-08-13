@@ -1,9 +1,8 @@
 package com.databasepreservation.modules.oracle.out;
 
-import org.apache.log4j.Logger;
-
 import com.databasepreservation.modules.jdbc.out.JDBCExportModule;
 import com.databasepreservation.modules.oracle.OracleHelper;
+import org.apache.log4j.Logger;
 
 /**
  * 

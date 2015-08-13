@@ -10,7 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * @author Bruno Ferreira
+ * @author Bruno Ferreira <bferreira@keep.pt>
  *
  *
  */

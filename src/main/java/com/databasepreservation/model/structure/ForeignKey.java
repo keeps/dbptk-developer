@@ -1,9 +1,9 @@
 package com.databasepreservation.model.structure;
 
+import com.databasepreservation.utils.ListUtils;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import com.databasepreservation.utils.ListUtils;
 
 
 /**

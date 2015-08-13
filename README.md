@@ -35,7 +35,7 @@ Available import modules:
 	MSAccessUCanAccess database.mdb|accdb
 	DBML baseDir
 Available export modules:
-	SIARD dir
+	SIARD1 dir [compress]
 	SQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt
 	PostgreSQLJDBC [port] hostName database username password encrypt
 	MySQLJDBC hostName [port] database username password

@@ -1,72 +1,28 @@
 package com.databasepreservation.modules.jdbc.in;
 
+import com.databasepreservation.Main;
+import com.databasepreservation.model.data.*;
+import com.databasepreservation.model.exception.InvalidDataException;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.UnknownTypeException;
+import com.databasepreservation.model.structure.*;
+import com.databasepreservation.model.structure.type.*;
+import com.databasepreservation.modules.DatabaseHandler;
+import com.databasepreservation.modules.DatabaseImportModule;
+import com.databasepreservation.modules.SQLHelper;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.w3c.util.DateParser;
+import pt.gov.dgarq.roda.common.FileFormat;
+import pt.gov.dgarq.roda.common.FormatUtility;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.sql.Array;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
+import java.sql.*;
 import java.sql.Date;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
-import java.sql.Statement;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.Vector;
-
-import org.apache.log4j.Logger;
-import org.w3c.util.DateParser;
-
-import pt.gov.dgarq.roda.common.FileFormat;
-import pt.gov.dgarq.roda.common.FormatUtility;
-
-import com.databasepreservation.Main;
-import com.databasepreservation.model.data.BinaryCell;
-import com.databasepreservation.model.data.Cell;
-import com.databasepreservation.model.data.ComposedCell;
-import com.databasepreservation.model.data.FileItem;
-import com.databasepreservation.model.data.Row;
-import com.databasepreservation.model.data.SimpleCell;
-import com.databasepreservation.model.exception.InvalidDataException;
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.exception.UnknownTypeException;
-import com.databasepreservation.model.structure.CandidateKey;
-import com.databasepreservation.model.structure.CheckConstraint;
-import com.databasepreservation.model.structure.ColumnStructure;
-import com.databasepreservation.model.structure.DatabaseStructure;
-import com.databasepreservation.model.structure.ForeignKey;
-import com.databasepreservation.model.structure.PrimaryKey;
-import com.databasepreservation.model.structure.PrivilegeStructure;
-import com.databasepreservation.model.structure.Reference;
-import com.databasepreservation.model.structure.RoleStructure;
-import com.databasepreservation.model.structure.RoutineStructure;
-import com.databasepreservation.model.structure.SchemaStructure;
-import com.databasepreservation.model.structure.TableStructure;
-import com.databasepreservation.model.structure.Trigger;
-import com.databasepreservation.model.structure.UserStructure;
-import com.databasepreservation.model.structure.ViewStructure;
-import com.databasepreservation.model.structure.type.ComposedTypeArray;
-import com.databasepreservation.model.structure.type.ComposedTypeStructure;
-import com.databasepreservation.model.structure.type.SimpleTypeBinary;
-import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
-import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
-import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
-import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
-import com.databasepreservation.model.structure.type.SimpleTypeString;
-import com.databasepreservation.model.structure.type.Type;
-import com.databasepreservation.model.structure.type.UnsupportedDataType;
-import com.databasepreservation.modules.DatabaseHandler;
-import com.databasepreservation.modules.DatabaseImportModule;
-import com.databasepreservation.modules.SQLHelper;
+import java.util.*;
 
 /**
  * @author Luis Faria
@@ -351,7 +307,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			throws SQLException, ClassNotFoundException, UnknownTypeException {
 		List<ViewStructure> views = new ArrayList<ViewStructure>();
 		ResultSet rset = getMetadata().getTables(dbStructure.getName(),
-				schemaName, "%", new String[] { "VIEW" });
+				schemaName, "%", new String[]{"VIEW"});
 		while (rset.next()) {
 			String viewName = rset.getString(3);
 			ViewStructure view = new ViewStructure();
@@ -456,9 +412,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 *            the column index
 	 * @param description
 	 *            the column description
-	 * @param isGeneratedColumn
-	 * @param isAutoIncrement
 	 * @param defaultValue
+	 * @param isAutoIncrement
 	 * @return the column structure
 	 */
 	protected ColumnStructure getColumnStructure(String tableName,
@@ -628,38 +583,38 @@ public class JDBCImportModule implements DatabaseImportModule {
 			// bytes. Null is returned for data types where the column size is
 			// not applicable.
 			int columnSize = rs.getInt(7);
-			cLogMessage.append("Column size: " + columnSize + "\n");
+			cLogMessage.append("Column size: ").append(columnSize).append("\n");
 			// 8. BUFFER_LENGTH is not used.
 			// 9. the number of fractional digits. Null is returned for data
 			// types where DECIMAL_DIGITS is not applicable.
 			int decimalDigits = rs.getInt(9);
-			cLogMessage.append("Decimal digits: " + decimalDigits + "\n");
+			cLogMessage.append("Decimal digits: ").append(decimalDigits).append("\n");
 			// 10. Radix (typically either 10 or 2)
 			int numPrecRadix = rs.getInt(10);
-			cLogMessage.append("Radix: " + numPrecRadix + "\n");
+			cLogMessage.append("Radix: ").append(numPrecRadix).append("\n");
 			// 11. is NULL allowed (using 18. instead)
 
 			// 12. comment describing column (may be null)
 			String remarks = rs.getString(12);
-			cLogMessage.append("Remarks: " + remarks + "\n");
+			cLogMessage.append("Remarks: ").append(remarks).append("\n");
 			// 13. default value for the column, which should be interpreted as
 			// a string when the value is enclosed in single quotes (may be
 			// null)
 			String defaultValue = rs.getString(13);
-			cLogMessage.append("Default value: " + defaultValue + "\n");
+			cLogMessage.append("Default value: ").append(defaultValue).append("\n");
 			// 14. SQL_DATA_TYPE int => unused
 			// 15. SQL_DATETIME_SUB int => unused
 			// 16. CHAR_OCTET_LENGTH int => for char types the maximum number of
 			// bytes in the column
 			// 17. index of column in table (starting at 1)
 			int index = rs.getInt(17);
-			cLogMessage.append("Index: " + index + "\n");
+			cLogMessage.append("Index: ").append(index).append("\n");
 			// 18. ISO rules are used to determine the nullability for a column.
 			// YES --- if the column can include NULLs
 			// NO --- if the column cannot include NULLs
 			// empty string --- if the nullability for the column is unknown
 			Boolean isNullable = "YES".equals(rs.getString(18));
-			cLogMessage.append("Is Nullable: " + isNullable + "\n");
+			cLogMessage.append("Is Nullable: ").append(isNullable).append("\n");
 			// 20. SCOPE_SCHEMA String => schema of table that is the scope of a
 			// reference attribute (null if the DATA_TYPE isn't REF)
 			// 21. SCOPE_TABLE String => table name that this the scope of a
@@ -674,7 +629,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			// empty string --- if it cannot be determined whether the column is
 			// auto incremented
 			Boolean isAutoIncrement = "YES".equals(rs.getString(23));
-			cLogMessage.append("Is auto increment: " + isAutoIncrement + "\n");
+			cLogMessage.append("Is auto increment: ").append(isAutoIncrement).append("\n");
 			// 24. IS_GENERATEDCOLUMN String => Indicates whether this is a
 			// generated column
 			// YES --- if this a generated column
@@ -688,8 +643,9 @@ public class JDBCImportModule implements DatabaseImportModule {
 			Type columnType = getType(schemaName, tableName, columnName,
 					dataType, typeName, columnSize, decimalDigits, numPrecRadix);
 
-			cLogMessage.append("Calculated type: "
-					+ columnType.getClass().getSimpleName() + "\n");
+			cLogMessage.append("Calculated type: ")
+					.append(columnType.getClass().getSimpleName())
+					.append("\n");
 			logger.trace(cLogMessage);
 
 			ColumnStructure column = getColumnStructure(tableName, columnName,
@@ -717,10 +673,16 @@ public class JDBCImportModule implements DatabaseImportModule {
 	 *            The name of the associated column, needed to resolve user
 	 *            defined data types
 	 *
-	 * @param originalDataType
+	 * @param dataType
+	 *            the JDBC identifier of the original datatype
+	 * @param typeName
 	 *            the name of the original data type
-	 * @param originalMaxSize
-	 *            the max size of the original data type
+	 * @param columnSize
+	 *            the column size for the type
+	 * @param decimalDigits
+	 *            the number of decimal digits for the type
+	 * @param numPrecRadix
+	 *            Indicates the numeric radix of this data type, which is usually 2 or 10
 	 * @return the normalized type
 	 * @throws UnknownTypeException
 	 *             the original type is unknown and cannot be mapped
@@ -734,25 +696,26 @@ public class JDBCImportModule implements DatabaseImportModule {
 		Type type;
 		switch (dataType) {
 		case Types.BIGINT:
-			type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
-					Integer.valueOf(decimalDigits));
-			type.setSql99TypeName("NUMERIC");
+			type = new SimpleTypeNumericExact(columnSize, decimalDigits);
+			if(decimalDigits > 0){
+				type.setSql99TypeName("NUMERIC", columnSize, decimalDigits);
+			}else{
+				type.setSql99TypeName("NUMERIC", columnSize);
+			}
 			break;
 		case Types.BINARY:
-			type = getBinaryType(typeName, columnSize, decimalDigits,
-					numPrecRadix);
+			type = getBinaryType(typeName, columnSize, decimalDigits, numPrecRadix);
 			break;
 		case Types.BIT:
 			if (columnSize > 1) {
-				type = new SimpleTypeBinary(Integer.valueOf(columnSize));
-				type.setSql99TypeName("BIT");
+				type = getBinaryType(typeName, columnSize, decimalDigits, numPrecRadix);
 			} else {
 				type = new SimpleTypeBoolean();
 				type.setSql99TypeName("BOOLEAN");
 			}
 			break;
 		case Types.BLOB:
-			type = new SimpleTypeBinary(Integer.valueOf(columnSize));
+			type = new SimpleTypeBinary(columnSize);
 			type.setSql99TypeName("BINARY LARGE OBJECT");
 			break;
 		case Types.BOOLEAN:
@@ -760,41 +723,39 @@ public class JDBCImportModule implements DatabaseImportModule {
 			type.setSql99TypeName("BOOLEAN");
 			break;
 		case Types.CHAR:
-			type = new SimpleTypeString(Integer.valueOf(columnSize),
-					Boolean.FALSE);
-			type.setSql99TypeName("CHARACTER");
+			type = new SimpleTypeString(columnSize, false);
+			type.setSql99TypeName("CHARACTER", columnSize);
 			break;
 		case Types.NCHAR:
 			// TODO add charset
-			type = new SimpleTypeString(Integer.valueOf(columnSize),
-					Boolean.FALSE);
-			type.setSql99TypeName("CHARACTER");
+			type = new SimpleTypeString(columnSize, false);
+			type.setSql99TypeName("CHARACTER", columnSize);
 			break;
 		case Types.CLOB:
-			type = new SimpleTypeString(Integer.valueOf(columnSize),
-					Boolean.TRUE);
+			type = new SimpleTypeString(columnSize, true);
 			type.setSql99TypeName("CHARACTER LARGE OBJECT");
 			break;
 		case Types.DATE:
-			type = new SimpleTypeDateTime(Boolean.FALSE, Boolean.FALSE);
+			type = new SimpleTypeDateTime(false, false);
 			type.setSql99TypeName("DATE");
 			break;
 		case Types.DECIMAL:
-			type = getDecimalType(typeName, columnSize, decimalDigits,
-					numPrecRadix);
+			type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
 			type.setOriginalTypeName(typeName, columnSize, decimalDigits);
 			break;
 		case Types.DOUBLE:
-			type = getDoubleType(typeName, columnSize, decimalDigits,
-					numPrecRadix);
+			type = getDoubleType(typeName, columnSize, decimalDigits, numPrecRadix);
 			break;
 		case Types.FLOAT:
-			type = new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
-			type.setSql99TypeName("FLOAT");
+			type = new SimpleTypeNumericApproximate(columnSize);
+			if (columnSize > 1) {
+				type.setSql99TypeName("FLOAT", columnSize);
+			}else{
+				type.setSql99TypeName("FLOAT");
+			}
 			break;
 		case Types.INTEGER:
-			type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
-					Integer.valueOf(decimalDigits));
+			type = new SimpleTypeNumericExact(columnSize, decimalDigits);
 			type.setSql99TypeName("INTEGER");
 			break;
 		case Types.LONGVARBINARY:
@@ -806,21 +767,17 @@ public class JDBCImportModule implements DatabaseImportModule {
 					numPrecRadix);
 			break;
 		case Types.LONGNVARCHAR:
-			type = new SimpleTypeString(Integer.valueOf(columnSize),
-					Boolean.TRUE);
+			type = new SimpleTypeString(columnSize, true);
 			type.setSql99TypeName("CHARACTER LARGE OBJECT");
 			break;
 		case Types.NUMERIC:
-			type = getNumericType(typeName, columnSize, decimalDigits,
-					numPrecRadix);
+			type = getNumericType(typeName, columnSize, decimalDigits, numPrecRadix);
 			break;
 		case Types.REAL:
-			type = new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
-			type.setSql99TypeName("REAL");
+			type = getRealType(typeName, columnSize, decimalDigits, numPrecRadix);
 			break;
 		case Types.SMALLINT:
-			type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
-					Integer.valueOf(decimalDigits));
+			type = new SimpleTypeNumericExact(columnSize, decimalDigits);
 			type.setSql99TypeName("SMALLINT");
 			break;
 		case Types.TIME:
@@ -828,27 +785,22 @@ public class JDBCImportModule implements DatabaseImportModule {
 					numPrecRadix);
 			break;
 		case Types.TIMESTAMP:
-			type = getTimestampType(typeName, columnSize, decimalDigits,
-					numPrecRadix);
+			type = getTimestampType(typeName, columnSize, decimalDigits, numPrecRadix);
 			break;
 		case Types.TINYINT:
-			type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
-					Integer.valueOf(decimalDigits));
+			type = new SimpleTypeNumericExact(columnSize, decimalDigits);
 			type.setSql99TypeName("SMALLINT");
 			break;
 		case Types.VARBINARY:
-			type = new SimpleTypeBinary(Integer.valueOf(columnSize));
-			type.setSql99TypeName("BIT VARYING");
+			type = getVarbinaryType(typeName, columnSize, decimalDigits, numPrecRadix);
 			break;
 		case Types.VARCHAR:
-			type = getVarcharType(typeName, columnSize, decimalDigits,
-					numPrecRadix);
+			type = getVarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
 			break;
 		case Types.NVARCHAR:
 			// TODO add charset
-			type = new SimpleTypeString(Integer.valueOf(columnSize),
-					Boolean.TRUE);
-			type.setSql99TypeName("CHARACTER VARYING");
+			type = new SimpleTypeString(columnSize, true);
+			type.setSql99TypeName("CHARACTER VARYING", columnSize);
 			break;
 		case Types.ARRAY:
 			Type subtype = getArraySubTypeFromTypeName(typeName, columnSize,
@@ -876,10 +828,22 @@ public class JDBCImportModule implements DatabaseImportModule {
 			break;
 		}
 
-		if( !type.hasOriginalTypeName() ){
+		if(StringUtils.isBlank(type.getOriginalTypeName())){
 			type.setOriginalTypeName(typeName);
 		}
 
+		return type;
+	}
+
+	protected Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+		Type type = new SimpleTypeBinary(columnSize);
+		type.setSql99TypeName("BIT VARYING");
+		return type;
+	}
+
+	protected Type getRealType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+		Type type = new SimpleTypeNumericApproximate(columnSize);
+		type.setSql99TypeName("REAL");
 		return type;
 	}
 
@@ -887,8 +851,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 			int decimalDigits, int numPrecRadix) throws UnknownTypeException {
 		Type subtype;
 		if (typeName.equals("_char")) {
-			subtype = new SimpleTypeString(Integer.valueOf(columnSize),
-					Boolean.FALSE);
+			subtype = new SimpleTypeString(columnSize,
+					false);
 			subtype.setSql99TypeName("CHARACTER");
 
 		} else if (typeName.equals("_abstime")) {
@@ -908,69 +872,73 @@ public class JDBCImportModule implements DatabaseImportModule {
 
 	protected Type getBinaryType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
-		Type type = new SimpleTypeBinary(Integer.valueOf(columnSize));
+		Type type = new SimpleTypeBinary(columnSize);
 		type.setSql99TypeName("BIT");
 		return type;
 	}
 
 	protected Type getDecimalType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
-		Type type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
-				Integer.valueOf(decimalDigits));
-		type.setSql99TypeName("DECIMAL");
+		Type type = new SimpleTypeNumericExact(columnSize, decimalDigits);
+		if(decimalDigits > 0){
+			type.setSql99TypeName("DECIMAL", columnSize, decimalDigits);
+		}else{
+			type.setSql99TypeName("DECIMAL", columnSize);
+		}
 		return type;
 	}
 
 	protected Type getNumericType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
-		Type type = new SimpleTypeNumericExact(Integer.valueOf(columnSize),
-				Integer.valueOf(decimalDigits));
-		type.setSql99TypeName("NUMERIC");
+		Type type = new SimpleTypeNumericExact(columnSize,
+				decimalDigits);
+		if(decimalDigits > 0){
+			type.setSql99TypeName("NUMERIC", columnSize, decimalDigits);
+		}else{
+			type.setSql99TypeName("NUMERIC", columnSize);
+		}
 		return type;
 	}
 
 	protected Type getDoubleType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
-		Type type = new SimpleTypeNumericApproximate(
-				Integer.valueOf(columnSize));
+		Type type = new SimpleTypeNumericApproximate(columnSize);
 		type.setSql99TypeName("DOUBLE PRECISION");
 		return type;
 	}
 
 	protected Type getLongvarbinaryType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
-		Type type = new SimpleTypeBinary(Integer.valueOf(columnSize));
+		Type type = new SimpleTypeBinary(columnSize);
 		type.setSql99TypeName("BINARY LARGE OBJECT");
 		return type;
 	}
 
 	protected Type getLongvarcharType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) throws UnknownTypeException {
-		Type type = new SimpleTypeString(Integer.valueOf(columnSize),
-				Boolean.TRUE);
+		Type type = new SimpleTypeString(columnSize, true);
 		type.setSql99TypeName("CHARACTER LARGE OBJECT");
 		return type;
 	}
 
 	protected Type getTimeType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
-		Type type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+		Type type = new SimpleTypeDateTime(true, false);
 		type.setSql99TypeName("TIME");
 		return type;
 	}
 
 	protected Type getTimestampType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
-		Type type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+		Type type = new SimpleTypeDateTime(true, false);
 		type.setSql99TypeName("TIMESTAMP");
 		return type;
 	}
 
 	protected Type getVarcharType(String typeName, int columnSize,
 			int decimalDigits, int numPrecRadix) {
-		Type type = new SimpleTypeString(Integer.valueOf(columnSize),
-				Boolean.TRUE);
-		type.setSql99TypeName("CHARACTER VARYING");
+		Type type = new SimpleTypeString(columnSize, true);
+		type.setSql99TypeName("CHARACTER VARYING", columnSize);
 		return type;
 	}
 

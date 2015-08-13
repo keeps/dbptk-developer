@@ -1,15 +1,21 @@
 package com.databasepreservation.modules.siard.in;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
-import java.util.TreeMap;
+import com.databasepreservation.model.data.*;
+import com.databasepreservation.model.exception.InvalidDataException;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.UnknownTypeException;
+import com.databasepreservation.model.structure.*;
+import com.databasepreservation.model.structure.type.*;
+import com.databasepreservation.modules.DatabaseHandler;
+import com.databasepreservation.modules.DatabaseImportModule;
+import com.databasepreservation.modules.siard.SIARDHelper;
+import com.databasepreservation.utils.JodaUtils;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.log4j.Logger;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
@@ -20,49 +26,11 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
-
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.apache.log4j.Logger;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
-
-import com.databasepreservation.model.data.BinaryCell;
-import com.databasepreservation.model.data.Cell;
-import com.databasepreservation.model.data.FileItem;
-import com.databasepreservation.model.data.Row;
-import com.databasepreservation.model.data.SimpleCell;
-import com.databasepreservation.model.exception.InvalidDataException;
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.exception.UnknownTypeException;
-import com.databasepreservation.model.structure.CandidateKey;
-import com.databasepreservation.model.structure.CheckConstraint;
-import com.databasepreservation.model.structure.ColumnStructure;
-import com.databasepreservation.model.structure.DatabaseStructure;
-import com.databasepreservation.model.structure.ForeignKey;
-import com.databasepreservation.model.structure.Parameter;
-import com.databasepreservation.model.structure.PrimaryKey;
-import com.databasepreservation.model.structure.PrivilegeStructure;
-import com.databasepreservation.model.structure.Reference;
-import com.databasepreservation.model.structure.RoleStructure;
-import com.databasepreservation.model.structure.RoutineStructure;
-import com.databasepreservation.model.structure.SchemaStructure;
-import com.databasepreservation.model.structure.TableStructure;
-import com.databasepreservation.model.structure.Trigger;
-import com.databasepreservation.model.structure.UserStructure;
-import com.databasepreservation.model.structure.ViewStructure;
-import com.databasepreservation.model.structure.type.SimpleTypeBinary;
-import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
-import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
-import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
-import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
-import com.databasepreservation.model.structure.type.SimpleTypeString;
-import com.databasepreservation.model.structure.type.Type;
-import com.databasepreservation.modules.DatabaseHandler;
-import com.databasepreservation.modules.DatabaseImportModule;
-import com.databasepreservation.modules.siard.SIARDHelper;
-import com.databasepreservation.utils.JodaUtils;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 
 /**
  *
@@ -705,11 +673,11 @@ public class SIARDImportModule implements DatabaseImportModule {
 			} else if (sqlType.startsWith("NUMERIC")) {
 				type = new SimpleTypeNumericExact(getPrecision(sqlType),
 						getScale(sqlType));
-				type.setSql99TypeName("NUMERIC");
+				type.setSql99TypeName(sqlType);
 			} else if (sqlType.startsWith("DEC")) {
 				type = new SimpleTypeNumericExact(getPrecision(sqlType),
 						getScale(sqlType));
-				type.setSql99TypeName("DECIMAL");
+				type.setSql99TypeName(sqlType); // TODO: for other types: don't change original sql99Types
 			} else if (sqlType.equals("FLOAT")) {
 				type = new SimpleTypeNumericApproximate(53);
 				type.setSql99TypeName("FLOAT");
@@ -748,7 +716,7 @@ public class SIARDImportModule implements DatabaseImportModule {
 					if (isLengthVariable(sqlType)) {
 						type = new SimpleTypeString(getLength(sqlType),
 								Boolean.TRUE);
-								type.setSql99TypeName("CHARACTER VARYING");
+								type.setSql99TypeName(sqlType);
 					} else {
 						type = new SimpleTypeString(getLength(sqlType),
 								Boolean.FALSE);

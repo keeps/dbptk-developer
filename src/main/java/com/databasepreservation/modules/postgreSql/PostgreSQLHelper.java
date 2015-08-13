@@ -3,21 +3,16 @@
  */
 package com.databasepreservation.modules.postgreSql;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.UnknownTypeException;
+import com.databasepreservation.model.structure.type.*;
+import com.databasepreservation.modules.SQLHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.exception.UnknownTypeException;
-import com.databasepreservation.model.structure.type.SimpleTypeBinary;
-import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
-import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
-import com.databasepreservation.model.structure.type.SimpleTypeString;
-import com.databasepreservation.model.structure.type.Type;
-import com.databasepreservation.modules.SQLHelper;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Luis Faria

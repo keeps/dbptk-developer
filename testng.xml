@@ -10,7 +10,7 @@
 			</define>
 
 			<run>
-				<include name="all" />
+				<include name="siard-roundtrip" />
 			</run>
 		</groups>
 		<classes>
