@@ -82,6 +82,7 @@
                     <suiteXmlFiles>
                         <suiteXmlFile>${basedir}/testng.xml</suiteXmlFile>
                     </suiteXmlFiles>
+                    <groups>${testng.groups}</groups>
                 </configuration>
                 <executions>
                     <execution>
@@ -280,5 +281,4 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
 </project>

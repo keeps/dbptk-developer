@@ -1,16 +1,30 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
 <suite name="TheSuite" verbose="0">
-    <test name="Roundtrip">
+    <test name="Testing">
         <groups>
+            <!-- All the tests -->
             <define name="all">
                 <include name="postgresql-siard1.0"/>
                 <include name="mysql-siard1.0"/>
                 <include name="siard-roundtrip"/>
             </define>
 
+            <!-- Tests ran by Travis CI -->
+            <define name="travis-ci">
+                <include name="postgresql-siard1.0"/>
+                <include name="mysql-siard1.0"/>
+                <include name="siard-roundtrip"/>
+            </define>
+
+            <!-- Tests that don't have external dependencies -->
+            <define name="no-dependencies">
+                <include name="siard-roundtrip"/>
+            </define>
+
+            <!-- Default group of tests to run -->
             <run>
-                <include name="all"/>
+                <include name="no-dependencies"/>
             </run>
         </groups>
         <classes>

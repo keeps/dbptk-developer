@@ -1,2 +1,10 @@
 language: java
 sudo: false
+script: mvn -Dtestng.groups="travis-ci" verify
+jdk:
+  - oraclejdk8
+  - oraclejdk7
+  - openjdk7
+os:
+  - linux
+  - osx
