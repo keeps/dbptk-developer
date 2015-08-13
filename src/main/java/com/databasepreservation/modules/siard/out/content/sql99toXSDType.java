@@ -2,7 +2,16 @@ package com.databasepreservation.modules.siard.out.content;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
-import com.databasepreservation.model.structure.type.*;
+import com.databasepreservation.model.structure.type.ComposedTypeArray;
+import com.databasepreservation.model.structure.type.ComposedTypeStructure;
+import com.databasepreservation.model.structure.type.SimpleTypeBinary;
+import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
+import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
+import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
+import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
+import com.databasepreservation.model.structure.type.SimpleTypeString;
+import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.model.structure.type.UnsupportedDataType;
 
 import java.util.HashMap;
 import java.util.Map;

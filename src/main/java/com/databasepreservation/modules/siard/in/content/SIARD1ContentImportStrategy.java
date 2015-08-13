@@ -1,6 +1,10 @@
 package com.databasepreservation.modules.siard.in.content;
 
-import com.databasepreservation.model.data.*;
+import com.databasepreservation.model.data.BinaryCell;
+import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.FileItem;
+import com.databasepreservation.model.data.Row;
+import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.DatabaseStructure;
@@ -18,7 +22,12 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.xml.sax.*;
+import org.xml.sax.Attributes;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.XMLConstants;

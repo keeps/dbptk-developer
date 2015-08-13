@@ -11,7 +11,11 @@ import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.Vector;
 
 /** 
  * @author Miguel Coutada

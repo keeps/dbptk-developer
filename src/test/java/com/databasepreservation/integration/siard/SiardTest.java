@@ -1,10 +1,29 @@
 package com.databasepreservation.integration.siard;
 
-import com.databasepreservation.model.data.*;
+import com.databasepreservation.model.data.BinaryCell;
+import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.FileItem;
+import com.databasepreservation.model.data.Row;
+import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
-import com.databasepreservation.model.structure.*;
+import com.databasepreservation.model.structure.CandidateKey;
+import com.databasepreservation.model.structure.CheckConstraint;
+import com.databasepreservation.model.structure.ColumnStructure;
+import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.model.structure.ForeignKey;
+import com.databasepreservation.model.structure.Parameter;
+import com.databasepreservation.model.structure.PrimaryKey;
+import com.databasepreservation.model.structure.PrivilegeStructure;
+import com.databasepreservation.model.structure.Reference;
+import com.databasepreservation.model.structure.RoleStructure;
+import com.databasepreservation.model.structure.RoutineStructure;
+import com.databasepreservation.model.structure.SchemaStructure;
+import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.Trigger;
+import com.databasepreservation.model.structure.UserStructure;
+import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
@@ -26,7 +45,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 /**
  * Roundtrip test that tests SIARD without depending on a real database

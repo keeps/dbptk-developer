@@ -1,6 +1,11 @@
 package com.databasepreservation.modules.siard.out.content;
 
-import com.databasepreservation.model.data.*;
+import com.databasepreservation.model.data.BinaryCell;
+import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.ComposedCell;
+import com.databasepreservation.model.data.FileItem;
+import com.databasepreservation.model.data.Row;
+import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -16,7 +21,13 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.HashSet;
 import java.util.Set;
 

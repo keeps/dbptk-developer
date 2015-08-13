@@ -1,7 +1,13 @@
 package com.databasepreservation.modules.siard.in.metadata.typeConverter;
 
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.structure.type.*;
+import com.databasepreservation.model.structure.type.SimpleTypeBinary;
+import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
+import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
+import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
+import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
+import com.databasepreservation.model.structure.type.SimpleTypeString;
+import com.databasepreservation.model.structure.type.Type;
 
 /**
  * Converts a SQL99 normalized type to an internal type structure.
