@@ -89,23 +89,23 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
 		// TODO define charset
 		if (typeName.equalsIgnoreCase("NCHAR")) {
 			type = new SimpleTypeString(Integer.valueOf(columnSize),
-					Boolean.FALSE, "CHARSET");
+					false, "CHARSET");
 			type.setSql99TypeName("CHARACTER");
 		} else if (typeName.equalsIgnoreCase("NVARCHAR2")) {
 			type = new SimpleTypeString(Integer.valueOf(columnSize),
-					Boolean.TRUE, "CHARSET");
+					true, "CHARSET");
 			type.setSql99TypeName("CHARACTER VARYING");
 		} else if (typeName.equalsIgnoreCase("NCLOB")) {
 			type = new SimpleTypeString(Integer.valueOf(columnSize),
-					Boolean.TRUE, "CHARSET");
+					true, "CHARSET");
 			type.setSql99TypeName("CHARACTER LARGE OBJECT");
 		} else if (typeName.equalsIgnoreCase("ROWID")) {
 			type = new SimpleTypeString(
-					Integer.valueOf(columnSize), Boolean.TRUE);
+					Integer.valueOf(columnSize), true);
 			type.setSql99TypeName("CHARACTER VARYING");
 		} else if (typeName.equalsIgnoreCase("UROWID")) {
 			type = new SimpleTypeString(
-					Integer.valueOf(columnSize), Boolean.TRUE);
+					Integer.valueOf(columnSize), true);
 			type.setSql99TypeName("CHARACTER VARYING");
 		} else {
 			type = super.getOtherType(dataType, typeName, columnSize,
@@ -135,11 +135,11 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
 //			type = new SimpleTypeBinary();
 //			break;
 		case OracleTypes.TIMESTAMPTZ:
-			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.TRUE);
+			type = new SimpleTypeDateTime(true, true);
 			type.setSql99TypeName("TIMESTAMP");
 			break;
 		case OracleTypes.TIMESTAMPLTZ:
-			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.TRUE);
+			type = new SimpleTypeDateTime(true, true);
 			type.setSql99TypeName("TIMESTAMP");
 			break;
 		default:

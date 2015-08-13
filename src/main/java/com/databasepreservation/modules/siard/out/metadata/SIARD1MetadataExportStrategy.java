@@ -116,7 +116,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 		Marshaller m;
 		try {
 			m = context.createMarshaller();
-			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		    m.setProperty(Marshaller.JAXB_ENCODING, ENCODING);
 			m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.bar.admin.ch/xmlns/siard/1.0/metadata.xsd metadata.xsd");
 

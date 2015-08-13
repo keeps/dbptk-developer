@@ -52,42 +52,42 @@ public class SQL99TypeConverter implements TypeConverter {
 			type = new SimpleTypeBinary();
 		} else if (sqlStandardType.startsWith("CHAR")) {
 			if (isLargeObject(sqlStandardType)) {
-				type = new SimpleTypeString(getCLOBMinimum(), Boolean.TRUE);
+				type = new SimpleTypeString(getCLOBMinimum(), true);
 			} else {
 				if (isLengthVariable(sqlStandardType)) {
 					type = new SimpleTypeString(getLength(sqlStandardType),
-							Boolean.TRUE);
+							true);
 				} else {
 					type = new SimpleTypeString(getLength(sqlStandardType),
-							Boolean.FALSE);
+							false);
 				}
 			}
 		} else if (sqlStandardType.startsWith("VARCHAR")) {
-			type = new SimpleTypeString(getLength(sqlStandardType), Boolean.TRUE);
+			type = new SimpleTypeString(getLength(sqlStandardType), true);
 		} else if (sqlStandardType.startsWith("NATIONAL")) {
 			if (isLargeObject(sqlStandardType) || sqlStandardType.startsWith("NCLOB")) {
-				type = new SimpleTypeString(getCLOBMinimum(), Boolean.TRUE); // TODO: how to choose a charset?
+				type = new SimpleTypeString(getCLOBMinimum(), true); // TODO: how to choose a charset?
 			} else {
 				if (isLengthVariable(sqlStandardType)) {
-					type = new SimpleTypeString(getLength(sqlStandardType), Boolean.TRUE); // TODO: how to choose a charset?
+					type = new SimpleTypeString(getLength(sqlStandardType), true); // TODO: how to choose a charset?
 				} else {
-					type = new SimpleTypeString(getLength(sqlStandardType), Boolean.FALSE); // TODO: how to choose a charset?
+					type = new SimpleTypeString(getLength(sqlStandardType), false); // TODO: how to choose a charset?
 				}
 			}
 		} else if (sqlStandardType.equals("BOOLEAN")) {
 			type = new SimpleTypeBoolean();
 		} else if (sqlStandardType.equals("DATE")) {
-			type = new SimpleTypeDateTime(Boolean.FALSE, Boolean.FALSE);
+			type = new SimpleTypeDateTime(false, false);
 		}  else if (sqlStandardType.equals("TIMESTAMP WITH TIME ZONE")) {
-			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.TRUE);
+			type = new SimpleTypeDateTime(true, true);
 		}  else if (sqlStandardType.equals("TIMESTAMP")) {
-			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+			type = new SimpleTypeDateTime(true, false);
 		} else if (sqlStandardType.equals("TIME WITH TIME ZONE")) {
-			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.TRUE);
+			type = new SimpleTypeDateTime(true, true);
 		} else if (sqlStandardType.equals("TIME")) {
-			type = new SimpleTypeDateTime(Boolean.TRUE, Boolean.FALSE);
+			type = new SimpleTypeDateTime(true, false);
 		} else {
-			type = new SimpleTypeString(255, Boolean.TRUE);
+			type = new SimpleTypeString(255, true);
 		}
 
 		type.setSql99TypeName(sqlStandardType);

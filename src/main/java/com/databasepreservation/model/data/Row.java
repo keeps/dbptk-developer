@@ -3,6 +3,7 @@
  */
 package com.databasepreservation.model.data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
