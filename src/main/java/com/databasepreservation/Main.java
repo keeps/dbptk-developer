@@ -14,7 +14,6 @@ import com.databasepreservation.modules.mySql.out.PhpMyAdminExportModule;
 import com.databasepreservation.modules.oracle.in.Oracle12cJDBCImportModule;
 import com.databasepreservation.modules.postgreSql.in.PostgreSQLJDBCImportModule;
 import com.databasepreservation.modules.postgreSql.out.PostgreSQLJDBCExportModule;
-import com.databasepreservation.modules.siard.in.SIARDImportModule;
 import com.databasepreservation.modules.siard.in.input.SIARD1ImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD1ExportModule;
 import com.databasepreservation.modules.sqlServer.in.SQLServerJDBCImportModule;
@@ -22,7 +21,6 @@ import com.databasepreservation.modules.sqlServer.out.SQLServerJDBCExportModule;
 import org.apache.log4j.Logger;
 
 import java.io.File;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;

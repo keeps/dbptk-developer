@@ -13,7 +13,6 @@ import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.DatabaseImportModule;
 import com.databasepreservation.modules.siard.in.input.SIARD1ImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD1ExportModule;
-import com.databasepreservation.utils.FileUtils;
 import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.diff_match_patch;
 import org.apache.log4j.Logger;
@@ -24,7 +23,6 @@ import org.testng.annotations.Test;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;

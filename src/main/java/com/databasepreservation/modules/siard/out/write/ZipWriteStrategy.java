@@ -10,8 +10,6 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
