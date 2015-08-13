@@ -26,7 +26,7 @@ public class SIARD1ImportModule {
 
 	public SIARD1ImportModule(Path siardPackage){
 		readStrategy = new ZipReadStrategy();
-		mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.INSIDE_ARCHIVE);
+		mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.MAIN);
 
 		ContentPathImportStrategy contentPathStrategy = new SIARD1ContentPathImportStrategy();
 		contentStrategy = new SIARD1ContentImportStrategy(readStrategy, contentPathStrategy);

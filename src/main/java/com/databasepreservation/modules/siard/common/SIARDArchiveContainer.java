@@ -7,7 +7,7 @@ import java.nio.file.Path;
  */
 public class SIARDArchiveContainer {
 	public enum OutputContainerType {
-		INSIDE_ARCHIVE, OUTSIDE_ARCHIVE
+		MAIN, AUXILIARY
 	}
 
 	private final Path path;

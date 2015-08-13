@@ -36,7 +36,7 @@ public class SIARD1ExportModule {
 		}else{
 			writeStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.STORE);
 		}
-		mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.INSIDE_ARCHIVE);
+		mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.MAIN);
 
 		metadataStrategy = new SIARD1MetadataExportStrategy(metadataPathStrategy, contentPathStrategy, writeStrategy);
 		contentStrategy = new SIARD1ContentExportStrategy(contentPathStrategy, writeStrategy,mainContainer);
