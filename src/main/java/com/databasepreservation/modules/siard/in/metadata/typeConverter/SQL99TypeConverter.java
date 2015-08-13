@@ -17,8 +17,7 @@ public class SQL99TypeConverter implements TypeConverter {
 	@Override
 	public Type getType(String sqlStandardType, String originalType) throws ModuleException {
 		sqlStandardType = sqlStandardType.toUpperCase();
-		//logger.debug("sqlType: " + sql99Type);
-		Type type = null;
+		Type type;
 
 		if (sqlStandardType.startsWith("INT")) {
 			type = new SimpleTypeNumericExact(10, 0);
@@ -102,7 +101,7 @@ public class SQL99TypeConverter implements TypeConverter {
 	}
 
 	private static int getLength(String sqlStandardType) {
-		int length = -1;
+		int length;
 		int start = sqlStandardType.indexOf("(");
 		int end = sqlStandardType.indexOf(")");
 
@@ -115,7 +114,7 @@ public class SQL99TypeConverter implements TypeConverter {
 	}
 
 	private static int getPrecision(String sqlStandardType) {
-		int precision = -1;
+		int precision;
 		int start = sqlStandardType.indexOf("(");
 		int end = sqlStandardType.indexOf(",");
 
@@ -132,7 +131,7 @@ public class SQL99TypeConverter implements TypeConverter {
 	}
 
 	private static int getScale(String sqlStandardType) {
-		int scale = -1;
+		int scale;
 		int start = sqlStandardType.indexOf(",");
 		int end = sqlStandardType.indexOf(")");
 		if (start < 0) {
