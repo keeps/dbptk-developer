@@ -155,7 +155,9 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 			result.setObject(privilegeType.getObject());
 			result.setGrantor(privilegeType.getGrantor());
 			result.setGrantee(privilegeType.getGrantee());
-			result.setOption(privilegeType.getOption().value());
+			if(privilegeType.getOption() != null) {
+				result.setOption(privilegeType.getOption().value());
+			}
 			result.setDescription(privilegeType.getDescription());
 
 			return result;

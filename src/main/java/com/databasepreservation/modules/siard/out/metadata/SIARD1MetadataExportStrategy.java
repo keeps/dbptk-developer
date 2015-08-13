@@ -270,10 +270,9 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 			throw new ModuleException("Error while exporting users structure: user name cannot be blank");
 		}
 
-		if(StringUtils.isNotEmpty(role.getAdmin())){
+		if(role.getAdmin() != null){
 			roleType.setAdmin(role.getAdmin());
 		}else{
-			roleType.setAdmin("");
 			// TODO: check in which circumstances this happens
 			throw new ModuleException("Error while exporting users structure: role admin cannot be null");
 		}
