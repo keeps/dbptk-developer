@@ -9,11 +9,13 @@ public class SIARDDKContentExportPathStrategy implements ContentPathExportStrate
 	private static final String CONTENT_DIR = "Tables";
 	private static final String TABLE_DIR = "table";
 	private static final String TABLE_FILENAME = "table";
+	private static final String SCHEMA_DIR = "schema";
 	
 	private static final String FILE_SEPARATOR = File.separator;
 	private static final String FILE_EXTENSION_SEPARATOR = ".";
 	
-	private static final String XML_EXTENSION = "xml"; 
+	private static final String XML_EXTENSION = "xml";
+	private static final String XSD_EXTENSION = "xsd";
 	
 	@Override
 	public String getClobFilePath(int schemaIndex, int tableIndex,
@@ -65,16 +67,31 @@ public class SIARDDKContentExportPathStrategy implements ContentPathExportStrate
 	}
 
 	@Override
-	public String getTableXsdNamespace(String base, int schemaIndex,
-			int tableIndex) {
-		// TODO Auto-generated method stub
-		return null;
+	public String getTableXsdNamespace(String base, int schemaIndex, int tableIndex) {
+		return new StringBuilder()
+				.append(base)
+				.append(SCHEMA_DIR)
+				.append(schemaIndex)
+				.append(FILE_SEPARATOR)
+				.append(TABLE_FILENAME)
+				.append(tableIndex)
+				.append(FILE_EXTENSION_SEPARATOR)
+				.append(XSD_EXTENSION)
+				.toString();
 	}
 
 	@Override
 	public String getTableXsdFileName(int tableIndex) {
-		// TODO Auto-generated method stub
-		return null;
+		return new StringBuilder()
+				.append(TABLE_FILENAME)
+				.append(tableIndex)
+				.append(FILE_EXTENSION_SEPARATOR)
+				.append(XSD_EXTENSION)
+				.toString();
 	}
+				
+				
+				
+				
 
 }

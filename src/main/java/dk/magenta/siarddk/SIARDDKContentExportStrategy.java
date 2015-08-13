@@ -1,6 +1,7 @@
 package dk.magenta.siarddk;
 
 import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
@@ -15,6 +16,8 @@ import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
 public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
+	private final static String ENCODING = "utf-8";
+	
 	private ContentPathExportStrategy contentPathExportStrategy;
 	private WriteStrategy writeStrategy;
 	private SIARDArchiveContainer baseContainer;
@@ -34,14 +37,39 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 	public void openTable(SchemaStructure schema, TableStructure table)	throws ModuleException {
 		currentStream = writeStrategy.createOutputStream(baseContainer, contentPathExportStrategy.getTableXmlFilePath(0, table.getIndex()));
 		currentWriter = new BufferedWriter(new OutputStreamWriter(currentStream));
+		currentRowIndex = 0;
+		
+		StringBuilder builder = new StringBuilder();
+		builder.append("<?xml version=\"1.0\" encoding=\"")
+			.append(ENCODING)
+			.append("\"?>\n")
+			
+			.append("<table xsi:schemaLocation=\"")
+			.append(contentPathExportStrategy.getTableXsdNamespace("http://www.sa.dk/xmlns/siard/1.0/", table.getIndex(), table.getIndex()))
+			.append(" ")
+			.append(contentPathExportStrategy.getTableXsdFileName(table.getIndex()))
+			.append("\" ")
+			.append("xmlns=\"")
+			.append(contentPathExportStrategy.getTableXsdNamespace("http://www.sa.dk/xmlns/siard/1.0/", 0, table.getIndex()))
+			.append("\" ")
+			.append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">")
+			.append("\n");
+		
+		try {
+			currentWriter.write(builder.toString());
+		} catch (IOException e) {
+			throw new ModuleException("Error handling open table " + table.getId(), e);
+		}
 		
 	}
 
 	@Override
-	public void closeTable(SchemaStructure schema, TableStructure table)
-			throws ModuleException {
-		// TODO Auto-generated method stub
-
+	public void closeTable(SchemaStructure schema, TableStructure table) throws ModuleException {
+		try {
+			currentWriter.close();
+		} catch (IOException e) {
+			throw new ModuleException("Error handling close table " + table.getId(), e);
+		}
 	}
 
 	@Override
