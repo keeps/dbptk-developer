@@ -28,7 +28,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -45,7 +47,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
 	private final WriteStrategy writeStrategy;
 	private final SIARDArchiveContainer baseContainer;
 
-	private Set<LargeObject> LOBsToExport;
+	private List<LargeObject> LOBsToExport;
 
 	BufferedWriter currentWriter;
 	OutputStream currentStream;
@@ -58,7 +60,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
 		this.writeStrategy = writeStrategy;
 		this.baseContainer = baseContainer;
 
-		this.LOBsToExport = new HashSet<LargeObject>();
+		this.LOBsToExport = new ArrayList<LargeObject>();
 		currentRowIndex = -1;
 	}
 
@@ -69,7 +71,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
 		currentSchema = schema;
 		currentTable = table;
 		currentRowIndex = 0;
-		LOBsToExport = new HashSet<LargeObject>();
+		LOBsToExport = new ArrayList<LargeObject>();
 
 		try {
 			writeXmlOpenTable();
