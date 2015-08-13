@@ -113,8 +113,7 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
 				+ ". From "+ data + " -> " + parts[0]);
 			}
 			cell = new SimpleCell(id, parts[0]);
-		}
-		else {
+		} else {
 			String value;
 			if (cellType.getOriginalTypeName().equalsIgnoreCase("float4")) {
 				Float f = rawData.getFloat(columnName);

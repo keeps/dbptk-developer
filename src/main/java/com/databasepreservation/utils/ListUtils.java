@@ -31,7 +31,7 @@ public final class ListUtils {
 			if( !ifst.hasNext() && !isnd.hasNext()){
 				return true;
 			}
-		}else if( fst == null && snd == null ){
+		} else if( fst == null && snd == null ){
 			return true;
 		}
 		return false;
@@ -74,7 +74,7 @@ public final class ListUtils {
 					return true;
 				}
 			}
-		}else if( fst == null && snd == null ){
+		} else if( fst == null && snd == null ){
 			return true;
 		}
 		return false;

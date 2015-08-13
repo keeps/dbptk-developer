@@ -72,7 +72,7 @@ public class ZipReadStrategy implements ReadStrategy {
 				if(file.startsWith(baseDirectory)){
 					list.add(name);
 				}
-			}else{
+			} else {
 				list.add(name);
 			}
 		}

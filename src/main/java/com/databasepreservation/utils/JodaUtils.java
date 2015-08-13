@@ -36,7 +36,7 @@ public final class JodaUtils {
 		String x;
 		if( include_timezone ){
 			x = date.toString(xs_date_withtimezone);
-		}else{
+		} else {
 			x = date.toString(xs_date_withouttimezone);
 		}
 		return x;

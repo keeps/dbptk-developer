@@ -332,13 +332,13 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 				if(time_string.matches("^\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[+-]\\d{2}$")){
 					cell = new SimpleCell(id, time_string + ":00");
 					logger.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell)cell).getSimpledata()));
-				}else if(time_string.matches("^\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[+-]\\d{2}:\\d{2}$")){
+				} else if(time_string.matches("^\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[+-]\\d{2}:\\d{2}$")){
 					cell = new SimpleCell(id, time_string);
 					logger.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell)cell).getSimpledata()));
-				}else{
+				} else {
 					cell = super.rawToCellSimpleTypeDateTime(id, columnName, cellType, rawData);
 				}
-			}else{
+			} else {
 				cell = super.rawToCellSimpleTypeDateTime(id, columnName, cellType, rawData);
 			}
 		} else {

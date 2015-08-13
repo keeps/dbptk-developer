@@ -236,7 +236,7 @@ public class Roundtrip {
 		for(int i=0; i < args.length; i++){
 			if( args[i].equals(TMP_FILE_SIARD_VAR) ){
 				copy[i] = tmpFileSIARD.toString();
-			}else{
+			} else {
 				copy[i] = args[i];
 			}
 		}
@@ -266,7 +266,7 @@ public class Roundtrip {
 				} catch (FileNotFoundException e) {
 					logger.error("File not found", e);
 				}
-			}else{
+			} else {
 				logger.warn("output file is empty.");
 			}
 		}

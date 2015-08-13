@@ -250,7 +250,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
 		// decide to whether write the LOB right away or later
 		if( writeStrategy.isSimultaneousWritingSupported() ){
 			writeLOB(lob);
-		}else{
+		} else {
 			LOBsToExport.add(lob);
 		}
 

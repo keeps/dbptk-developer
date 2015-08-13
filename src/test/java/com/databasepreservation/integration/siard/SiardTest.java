@@ -100,7 +100,7 @@ public class SiardTest {
 		}
 		if(differ) {
 			logger.debug(diff.diff_prettyCmd(diffs));
-		}else {
+		} else {
 			logger.debug("toString() are equal!");
 		}
 

@@ -33,7 +33,7 @@ public class SIARD1ExportModule {
 		metadataPathStrategy = new SIARD1MetadataPathStrategy();
 		if(compressZip){
 			writeStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.DEFLATE);
-		}else{
+		} else {
 			writeStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.STORE);
 		}
 		mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.MAIN);

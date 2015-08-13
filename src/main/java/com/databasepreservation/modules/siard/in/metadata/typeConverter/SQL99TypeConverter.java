@@ -78,9 +78,9 @@ public class SQL99TypeConverter implements TypeConverter {
 			type = new SimpleTypeBoolean();
 		} else if (sqlStandardType.equals("DATE")) {
 			type = new SimpleTypeDateTime(false, false);
-		}  else if (sqlStandardType.equals("TIMESTAMP WITH TIME ZONE")) {
+		} else if (sqlStandardType.equals("TIMESTAMP WITH TIME ZONE")) {
 			type = new SimpleTypeDateTime(true, true);
-		}  else if (sqlStandardType.equals("TIMESTAMP")) {
+		} else if (sqlStandardType.equals("TIMESTAMP")) {
 			type = new SimpleTypeDateTime(true, false);
 		} else if (sqlStandardType.equals("TIME WITH TIME ZONE")) {
 			type = new SimpleTypeDateTime(true, true);

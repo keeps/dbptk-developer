@@ -741,7 +741,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			type = new SimpleTypeNumericExact(columnSize, decimalDigits);
 			if(decimalDigits > 0){
 				type.setSql99TypeName("NUMERIC", columnSize, decimalDigits);
-			}else{
+			} else {
 				type.setSql99TypeName("NUMERIC", columnSize);
 			}
 			break;
@@ -792,7 +792,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 			type = new SimpleTypeNumericApproximate(columnSize);
 			if (columnSize > 1) {
 				type.setSql99TypeName("FLOAT", columnSize);
-			}else{
+			} else {
 				type.setSql99TypeName("FLOAT");
 			}
 			break;
@@ -924,7 +924,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 		Type type = new SimpleTypeNumericExact(columnSize, decimalDigits);
 		if(decimalDigits > 0){
 			type.setSql99TypeName("DECIMAL", columnSize, decimalDigits);
-		}else{
+		} else {
 			type.setSql99TypeName("DECIMAL", columnSize);
 		}
 		return type;
@@ -936,7 +936,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 				decimalDigits);
 		if(decimalDigits > 0){
 			type.setSql99TypeName("NUMERIC", columnSize, decimalDigits);
-		}else{
+		} else {
 			type.setSql99TypeName("NUMERIC", columnSize);
 		}
 		return type;

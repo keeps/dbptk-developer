@@ -203,7 +203,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 			result.setDescription(privilegeType.getDescription());
 
 			return result;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -229,7 +229,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 			result.setDescription(roleType.getDescription());
 
 			return result;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -254,7 +254,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 			result.setDescription(userType.getDescription());
 
 			return result;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -287,7 +287,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 			result.setRoutines(getRoutines(schema.getRoutines()));
 
 			return result;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -317,7 +317,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 			result.setParameters(getParameters(routineType.getParameters()));
 
 			return result;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -344,7 +344,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 			result.setDescription(parameterType.getDescription());
 
 			return result;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -372,7 +372,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 			result.setColumns(getColumns(viewType.getColumns(), "")); //TODO: decide what to put here as table name
 
 			return result;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -411,7 +411,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 			result.setRows(table.getRows().longValue());
 
 			return result;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -440,7 +440,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 			result.setDescription(triggerType.getDescription());
 
 			return result;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -466,7 +466,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 			result.setDescription(checkConstraintType.getDescription());
 
 			return result;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -492,7 +492,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 			result.setColumns(candidateKeyType.getColumn());
 
 			return result;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -525,7 +525,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 			result.setReferences(getReferences(foreignKey.getReference()));
 
 			return result;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -550,7 +550,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 			result.setReferenced(referenceType.getReferenced());
 
 			return result;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -582,7 +582,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 			result.setDescription(column.getDescription());
 
 			return result;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -596,7 +596,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 			result.setColumnNames(primaryKey.getColumn());
 
 			return result;
-		}else{
+		} else {
 			return null;
 		}
 	}

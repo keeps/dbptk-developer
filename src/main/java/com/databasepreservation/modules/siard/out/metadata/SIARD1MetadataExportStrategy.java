@@ -165,7 +165,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
 		if(StringUtils.isNotBlank(db.getName())){
 			elem.setDbname(db.getName());
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting structure: dbname cannot be blank");
 		}
 
@@ -183,7 +183,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
 		if(StringUtils.isNotBlank(db.getDataOwner())){
 			elem.setDataOwner(db.getDataOwner());
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting structure: data owner cannot be blank");
 		}
 
@@ -205,7 +205,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 		if(StringUtils.isNotBlank(db.getProductName())){
 			if(StringUtils.isBlank(db.getProductVersion())){
 				elem.setDatabaseProduct(db.getProductName());
-			}else{
+			} else {
 				elem.setDatabaseProduct(db.getProductName() + " " + db.getProductVersion());
 			}
 		}
@@ -237,7 +237,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 				privilegesType.getPrivilege().add(jaxbPrivilegeType(privilege));
 			}
 			return privilegesType;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -253,7 +253,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
 		if(StringUtils.isNotEmpty(privilege.getObject())){
 			privilegeType.setObject(privilege.getObject());
-		}else{
+		} else {
 			privilegeType.setObject("unknown object");
 			// logger.warn("Could not export privilege object");
 			// TODO: check in which circumstances this happens
@@ -262,13 +262,13 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
 		if(StringUtils.isNotBlank(privilege.getGrantor())){
 			privilegeType.setGrantor(privilege.getGrantor());
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting users structure: privilege grantor cannot be blank");
 		}
 
 		if(StringUtils.isNotBlank(privilege.getGrantee())){
 			privilegeType.setGrantee(privilege.getGrantee());
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting users structure: privilege grantee cannot be blank");
 		}
 
@@ -290,7 +290,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 				rolesType.getRole().add(jaxbRoleType(role));
 			}
 			return rolesType;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -300,13 +300,13 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
 		if(StringUtils.isNotBlank(role.getName())){
 			roleType.setName(role.getName());
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting users structure: user name cannot be blank");
 		}
 
 		if(role.getAdmin() != null){
 			roleType.setAdmin(role.getAdmin());
-		}else{
+		} else {
 			// TODO: check in which circumstances this happens
 			throw new ModuleException("Error while exporting users structure: role admin cannot be null");
 		}
@@ -325,7 +325,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 				usersType.getUser().add(jaxbUserType(user));
 			}
 			return usersType;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -335,7 +335,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
 		if(StringUtils.isNotBlank(user.getName())){
 			userType.setName(user.getName());
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting users structure: user name cannot be blank");
 		}
 
@@ -353,7 +353,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 				schemasType.getSchema().add(jaxbSchemaType(schema));
 			}
 			return schemasType;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -364,7 +364,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 		if(StringUtils.isNotBlank(schema.getName())){
 			schemaType.setName(schema.getName());
 			schemaType.setFolder(contentPathStrategy.getSchemaFolderName(schema.getIndex()));
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting schema structure: schema name cannot be blank");
 		}
 
@@ -386,7 +386,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 				routinesType.getRoutine().add(jaxbRoutineType(routineStructure));
 			}
 			return routinesType;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -396,7 +396,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
 		if(StringUtils.isNotBlank(routine.getName())){
 			routineType.setName(routine.getName());
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting routine: routine name cannot be blank");
 		}
 
@@ -432,7 +432,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 				parametersType.getParameter().add(jaxbParameterType(parameter));
 			}
 			return parametersType;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -442,20 +442,20 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
 		if(StringUtils.isNotBlank(parameter.getName())){
 			parameterType.setName(parameter.getName());
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting routine parameters: parameter name cannot be blank");
 		}
 
 		if(StringUtils.isNotBlank(parameter.getMode())){
 			parameterType.setMode(parameter.getMode());
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting routine parameters: parameter mode cannot be blank");
 		}
 
 		if(parameter.getType() != null){
 			parameterType.setType(parameter.getType().getSql99TypeName());
 			parameterType.setTypeOriginal(parameter.getType().getOriginalTypeName());
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting routine parameters: parameter type cannot be null");
 		}
 
@@ -473,7 +473,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 				viewsType.getView().add(jaxbViewType(viewStructure));
 			}
 			return viewsType;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -483,7 +483,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
 		if(StringUtils.isNotBlank(view.getName())){
 			viewType.setName(view.getName());
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting view: view name cannot be null");
 		}
 
@@ -511,7 +511,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 				columnsType.getColumn().add(jaxbColumnType(columnStructure));
 			}
 			return columnsType;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -521,14 +521,14 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
 		if(StringUtils.isNotBlank(column.getName())){
 			columnType.setName(column.getName());
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting table structure: column name cannot be null");
 		}
 
 		if (column.getType() != null) {
 			columnType.setType(column.getType().getSql99TypeName());
 			columnType.setTypeOriginal(column.getType().getOriginalTypeName());
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting table structure: column type cannot be null");
 		}
 
@@ -538,7 +538,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
 		if(column.isNillable() != null){
 			columnType.setNullable(column.getNillable());
-		}else{
+		} else {
 			logger.warn("column nullable property was null. changed it to false");
 		}
 
@@ -556,7 +556,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 				tablesType.getTable().add(jaxbTableType(schema, tableStructure));
 			}
 			return tablesType;
-		}else{
+		} else {
 			logger.info(String.format("Schema %s does not have any tables.", schema.getName()));
 			return null;
 		}
@@ -568,7 +568,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 		if(StringUtils.isNotBlank(table.getName())){
 			tableType.setName(table.getName());
 			tableType.setFolder(contentPathStrategy.getTableFolderName(table.getIndex()));
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting table structure: table name cannot be blank");
 		}
 
@@ -590,7 +590,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
 		if(table.getRows() >= 0){
 			tableType.setRows(BigInteger.valueOf(table.getRows()));
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting table structure: number of table rows was not set (or was set to negative value)");
 		}
 
@@ -602,7 +602,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 			PrimaryKeyType primaryKeyType = new PrimaryKeyType();
 			if(StringUtils.isNotBlank(primaryKey.getName())){
 				primaryKeyType.setName(primaryKey.getName());
-			}else{
+			} else {
 				throw new ModuleException("Error while exporting primary key: name cannot be blank");
 			}
 
@@ -612,12 +612,12 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
 			if(primaryKey.getColumnNames() != null && primaryKey.getColumnNames().size() > 0){
 				primaryKeyType.getColumn().addAll(primaryKey.getColumnNames());
-			}else{
+			} else {
 				//throw new ModuleException("Error while exporting primary key: column list cannot be empty");
 				logger.warn("Error while exporting primary key: column list cannot be empty");
 			}
 			return primaryKeyType;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -629,7 +629,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 				triggersType.getTrigger().add(jaxbTriggerType(trigger));
 			}
 			return triggersType;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -639,7 +639,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
 		if( StringUtils.isNotBlank(trigger.getName())){
 			triggerType.setName(SIARDHelper.encode(trigger.getName()));
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting trigger: trigger name key name cannot be blank");
 		}
 
@@ -653,7 +653,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
 		if( StringUtils.isNotBlank(trigger.getTriggerEvent()) ){
 			triggerType.setTriggerEvent(SIARDHelper.encode(trigger.getTriggerEvent()));
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting trigger: trigger triggerEvent cannot be blank");
 		}
 
@@ -663,7 +663,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
 		if( StringUtils.isNotBlank(trigger.getTriggeredAction()) ){
 			triggerType.setTriggeredAction(SIARDHelper.encode(trigger.getTriggeredAction()));
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting trigger: trigger triggeredAction cannot be black");
 		}
 
@@ -681,7 +681,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 				checkConstraintsType.getCheckConstraint().add(jaxbCheckConstraintType(checkConstraint));
 			}
 			return checkConstraintsType;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -691,13 +691,13 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
 		if(StringUtils.isNotBlank(checkConstraint.getName())){
 			checkConstraintType.setName(checkConstraint.getName());
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting check constraint: check constraint key name cannot be null");
 		}
 
 		if(StringUtils.isNotBlank(checkConstraint.getCondition())){
 			checkConstraintType.setCondition(checkConstraint.getCondition());
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting candidate key: check constraint condition cannot be null");
 		}
 
@@ -715,7 +715,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 				candidateKeysType.getCandidateKey().add(jaxbCandidateKeyType(candidateKey));
 			}
 			return candidateKeysType;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -725,7 +725,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
 		if(StringUtils.isNotBlank(candidateKey.getName())){
 			candidateKeyType.setName(candidateKey.getName());
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting candidate key: candidate key name cannot be null");
 		}
 
@@ -749,7 +749,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 				foreignKeysType.getForeignKey().add(jaxbForeignKeyType(foreignKey));
 			}
 			return foreignKeysType;
-		}else{
+		} else {
 			return null;
 		}
 	}
@@ -759,19 +759,19 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
 		if(StringUtils.isNotBlank(foreignKey.getName())){
 			foreignKeyType.setName(foreignKey.getName());
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting foreign key: name cannot be blank");
 		}
 
 		if(StringUtils.isNotBlank(foreignKey.getReferencedSchema())){
 			foreignKeyType.setReferencedSchema(foreignKey.getReferencedSchema());
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting foreign key: referencedSchema cannot be blank");
 		}
 
 		if(StringUtils.isNotBlank(foreignKey.getReferencedTable())){
 			foreignKeyType.setReferencedTable(foreignKey.getReferencedTable());
-		}else{
+		} else {
 			throw new ModuleException("Error while exporting foreign key: referencedTable cannot be blank");
 		}
 

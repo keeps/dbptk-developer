@@ -130,10 +130,10 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 		Type type = new SimpleTypeNumericApproximate(columnSize);
 		if(columnSize == 12){
 			type.setSql99TypeName("REAL");
-		}else{
+		} else {
 			if (columnSize > 1) {
 				type.setSql99TypeName("FLOAT", columnSize);
-			}else{
+			} else {
 				type.setSql99TypeName("FLOAT");
 			}
 		}

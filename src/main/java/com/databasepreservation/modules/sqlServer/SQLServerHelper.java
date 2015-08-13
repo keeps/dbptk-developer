@@ -100,8 +100,7 @@ public class SQLServerHelper extends SQLHelper {
 				if (sql99TypeName.equals("BIT")) {
 					logger.debug("is BIT");
 					dataType = "binary";
-				}
-				else {
+				} else {
 					dataType = "varbinary";
 				}
 				Integer length = binType.getLength();
@@ -110,7 +109,7 @@ public class SQLServerHelper extends SQLHelper {
 				
 				if(dataType.equals("varbinary") && bytes <= 0) {
 					ret = "varbinary(max)";
-				} else if (bytes > 0 && bytes <= 8000 ) {  
+				} else if (bytes > 0 && bytes <= 8000 ) {
 					ret = dataType + "(" + bytes + ")";
 				} else {
 					ret = "image";

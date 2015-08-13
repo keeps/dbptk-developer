@@ -18,7 +18,7 @@ public final class MapUtils {
 			if( !ifst.hasNext() && !isnd.hasNext()){
 				return true;
 			}
-		}else if( fst == null && snd == null ){
+		} else if( fst == null && snd == null ){
 			return true;
 		}
 		return false;
