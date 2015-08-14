@@ -21,13 +21,10 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
-import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,7 +39,8 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
         private final ContentPathExportStrategy contentPathStrategy;
         private final WriteStrategy writeStrategy;
         private final SIARDArchiveContainer baseContainer;
-        BufferedWriter currentWriter;
+        private final boolean prettyXMLOutput;
+        XMLBufferedWriter currentWriter;
         OutputStream currentStream;
         SchemaStructure currentSchema;
         TableStructure currentTable;
@@ -50,19 +48,20 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
         private List<LargeObject> LOBsToExport;
 
         public SIARD1ContentExportStrategy(ContentPathExportStrategy contentPathStrategy, WriteStrategy writeStrategy,
-          SIARDArchiveContainer baseContainer) {
+          SIARDArchiveContainer baseContainer, boolean prettyXMLOutput) {
                 this.contentPathStrategy = contentPathStrategy;
                 this.writeStrategy = writeStrategy;
                 this.baseContainer = baseContainer;
 
                 this.LOBsToExport = new ArrayList<LargeObject>();
                 currentRowIndex = -1;
+                this.prettyXMLOutput = prettyXMLOutput;
         }
 
         @Override public void openTable(SchemaStructure schema, TableStructure table) throws ModuleException {
                 currentStream = writeStrategy.createOutputStream(baseContainer,
                   contentPathStrategy.getTableXmlFilePath(schema.getIndex(), table.getIndex()));
-                currentWriter = new BufferedWriter(new OutputStreamWriter(currentStream));
+                currentWriter = new XMLBufferedWriter(currentStream, prettyXMLOutput);
                 currentSchema = schema;
                 currentTable = table;
                 currentRowIndex = 0;
@@ -109,7 +108,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
 
         @Override public void tableRow(Row row) throws ModuleException {
                 try {
-                        currentWriter.append(TAB).append("<row>\n");
+                        currentWriter.openTag("row", 1);
 
                         // note about columnIndex: array columnIndex starts at 0 but column columnIndex starts at 1,
                         // that is why it is incremented halfway through the loop and not at the beginning nor at the end
@@ -127,7 +126,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
                                 // TODO add support for composed cell types
                         }
 
-                        currentWriter.append(TAB).append("</row>\n");
+                        currentWriter.closeTag("row", 1);
                         currentRowIndex++;
                 } catch (IOException e) {
                         throw new ModuleException("Could not write row" + row.toString(), e);
@@ -174,18 +173,17 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
         }
 
         private void writeSimpleCellData(SimpleCell simpleCell, int columnIndex) throws IOException {
-                currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">");
+                currentWriter.inlineOpenTag("c" + columnIndex, 2);
 
                 if (simpleCell.getSimpledata() != null) {
                         currentWriter.write(XMLUtils.encode(simpleCell.getSimpledata()));
                 }
 
-                currentWriter.append("</c").append(String.valueOf(columnIndex)).append(">\n");
+                currentWriter.closeTag("c" + columnIndex);
         }
 
         private void writeLargeObjectData(Cell cell, int columnIndex) throws IOException, ModuleException {
-                currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
-                  .append(" file=\"");
+                currentWriter.beginOpenTag("c" + columnIndex, 2).space().append("file=\"");
 
                 LargeObject lob = null;
 
@@ -197,8 +195,8 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
                             currentRowIndex + 1);
 
                         // blob header
-                        currentWriter.append(path).append("\" length=\"").append(String.valueOf(binCell.getLength()))
-                          .append("\"");
+                        currentWriter.append(path).append('"').space().append("length=\"")
+                          .append(String.valueOf(binCell.getLength())).append("\"");
 
                         try {
                                 lob = new LargeObject(binCell.getInputstream(), path);
@@ -213,7 +211,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
                             currentRowIndex + 1);
 
                         // blob header
-                        currentWriter.append(path).append("\" length=\"")
+                        currentWriter.append(path).append('"').space().append("length=\"")
                           .append(String.valueOf(txtCell.getSimpledata().length())).append("\"");
 
                         // workaround to have data from CLOBs saved as a temporary file to be read
@@ -235,24 +233,29 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
                         LOBsToExport.add(lob);
                 }
 
-                currentWriter.append("/>\n");
+                currentWriter.endShorthandTag();
         }
 
         private void writeXmlOpenTable() throws IOException {
-                currentWriter.append("<?xml version=\"1.0\" encoding=\"").append(ENCODING).append("\"?>\n")
+                currentWriter.append("<?xml version=\"1.0\" encoding=\"").append(ENCODING).append("\"?>").newline()
 
-                  .append("<table xsi:schemaLocation=\"").append(contentPathStrategy
-                  .getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(),
-                    currentTable.getIndex())).append(" ")
-                  .append(contentPathStrategy.getTableXsdFileName(currentTable.getIndex())).append("\" xmlns=\"")
-                  .append(contentPathStrategy
+                  .beginOpenTag("table", 0)
+
+                  .appendAttribute("xsi:schemaLocation", contentPathStrategy
                     .getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(),
-                      currentTable.getIndex())).append("\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">")
-                  .append("\n").toString();
+                      currentTable.getIndex()) + " " + contentPathStrategy.getTableXsdFileName(currentTable.getIndex()))
+
+                  .appendAttribute("xmlns", contentPathStrategy
+                    .getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(),
+                      currentTable.getIndex()))
+
+                  .appendAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
+
+                  .endOpenTag();
         }
 
         private void writeXmlCloseTable() throws IOException {
-                currentWriter.append("</table>").toString();
+                currentWriter.closeTag("table", 0);
         }
 
         private void writeLOB(LargeObject lob) throws ModuleException, IOException {
@@ -270,42 +273,51 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
         private void writeXsd() throws IOException, ModuleException {
                 OutputStream xsdStream = writeStrategy.createOutputStream(baseContainer,
                   contentPathStrategy.getTableXsdFilePath(currentSchema.getIndex(), currentTable.getIndex()));
-                Writer xsdWriter = new BufferedWriter(new OutputStreamWriter(xsdStream));
+                XMLBufferedWriter xsdWriter = new XMLBufferedWriter(xsdStream, prettyXMLOutput);
 
                 xsdWriter
                   // ?xml tag
-                  .append("<?xml version=\"1.0\" encoding=\"").append(ENCODING).append("\"?>\n")
+                  .append("<?xml version=\"1.0\" encoding=\"").append(ENCODING).append("\"?>").newline()
 
                   // xs:schema tag
-                  .append("<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"").append(
-                  contentPathStrategy
+                  .beginOpenTag("xs:schema", 0).appendAttribute("xmlns:xs", "http://www.w3.org/2001/XMLSchema")
+
+                  .appendAttribute("xmlns", contentPathStrategy
                     .getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(),
                       currentTable.getIndex()))
-                  .append("\" attributeFormDefault=\"unqualified\" elementFormDefault=\"qualified\" targetNamespace=\"")
-                  .append(contentPathStrategy
+
+                  .appendAttribute("attributeFormDefault", "unqualified")
+
+                  .appendAttribute("elementFormDefault", "qualified")
+
+                  .appendAttribute("targetNamespace", contentPathStrategy
                     .getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(),
-                      currentTable.getIndex())).append("\">\n")
+                      currentTable.getIndex()))
 
-                  // xs:element name="table"
-                  .append(TAB).append("<xs:element name=\"table\">\n")
+                  .endOpenTag()
 
-                  .append(TAB).append(TAB).append("<xs:complexType>\n")
+                    // xs:element name="table"
+                  .beginOpenTag("xs:element", 1).appendAttribute("name", "table").endOpenTag()
 
-                  .append(TAB).append(TAB).append(TAB).append("<xs:sequence>\n")
+                  .openTag("xs:complexType", 2)
 
-                  .append(TAB).append(TAB).append(TAB).append(TAB)
-                  .append("<xs:element maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"row\" type=\"rowType\" />\n")
+                  .openTag("xs:sequence", 3)
 
-                  .append(TAB).append(TAB).append(TAB).append("</xs:sequence>\n")
+                  .beginOpenTag("xs:element", 4).appendAttribute("maxOccurs", "unbounded")
+                  .appendAttribute("minOccurs", "0").appendAttribute("name", "row").appendAttribute("type", "rowType")
+                  .endShorthandTag()
 
-                  .append(TAB).append(TAB).append("</xs:complexType>\n")
+                  .closeTag("xs:sequence", 3)
 
-                  .append(TAB).append("</xs:element>\n")
+                  .closeTag("xs:complexType", 2)
 
-                  // xs:complexType name="rowType"
-                  .append(TAB).append("<xs:complexType name=\"rowType\">\n")
+                  .closeTag("xs:element", 1)
 
-                  .append(TAB).append(TAB).append("<xs:sequence>\n");
+                    // xs:complexType name="rowType"
+
+                  .beginOpenTag("xs:complexType", 1).appendAttribute("name", "rowType").endOpenTag()
+
+                  .openTag("xs:sequence", 2);
 
                 // insert all <xs:element> in <xs:complexType name="rowType">
                 int columnIndex = 1;
@@ -313,14 +325,14 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
                         try {
                                 String xsdType = sql99toXSDType.convert(col.getType());
 
-                                xsdWriter.append(TAB).append(TAB).append(TAB).append("<xs:element ");
+                                xsdWriter.beginOpenTag("xs:element", 4);
 
                                 if (col.isNillable()) {
-                                        xsdWriter.write("minOccurs=\"0\" ");
+                                        xsdWriter.appendAttribute("minOccurs", "0");
                                 }
 
-                                xsdWriter.append("name=\"c").append(String.valueOf(columnIndex)).append("\" type=\"")
-                                  .append(String.valueOf(xsdType)).append("\"/>\n");
+                                xsdWriter.appendAttribute("name", "c" + columnIndex).appendAttribute("type", xsdType)
+                                  .endShorthandTag();
                         } catch (ModuleException e) {
                                 logger.error(String
                                     .format("An error occurred while getting the XSD type of column c%d", columnIndex),
@@ -334,52 +346,53 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
                 }
 
                 xsdWriter
-                  // close tags <xs:complexType name="rowType">
-                  .append(TAB).append(TAB).append("</xs:sequence>").append(PAR)
+                  // close tags for xs:sequence and xs:complexType
+                  .closeTag("xs:sequence", 2)
 
-                  .append(TAB).append("</xs:complexType>").append(PAR)
+                  .closeTag("xs:complexType", 1)
 
-                  // xs:complexType name="clobType"
-                  .append(TAB).append("<xs:complexType name=\"clobType\">").append(PAR)
+                    // xs:complexType name="clobType"
+                  .beginOpenTag("xs:complexType", 1).appendAttribute("name", "clobType").endOpenTag()
 
-                  .append(TAB).append(TAB).append("<xs:simpleContent>").append(PAR)
+                  .openTag("xs:simpleContent", 2)
 
-                  .append(TAB).append(TAB).append(TAB).append("<xs:extension base=\"xs:string\">").append(PAR)
+                  .beginOpenTag("xs:extension", 3).appendAttribute("base", "xs:string").endOpenTag()
 
-                  .append(TAB).append(TAB).append(TAB).append(TAB)
-                  .append("<xs:attribute name=\"file\" type=\"xs:string\" />").append(PAR)
+                  .beginOpenTag("xs:attribute", 4).appendAttribute("name", "file").appendAttribute("type", "xs:string")
+                  .endShorthandTag()
 
-                  .append(TAB).append(TAB).append(TAB).append(TAB)
-                  .append("<xs:attribute name=\"length\" type=\"xs:integer\" />").append(PAR)
+                  .beginOpenTag("xs:attribute", 4).appendAttribute("name", "length")
+                  .appendAttribute("type", "xs:integer").endShorthandTag()
 
-                  .append(TAB).append(TAB).append(TAB).append("</xs:extension>").append(PAR)
+                  .closeTag("xs:extension", 3)
 
-                  .append(TAB).append(TAB).append("</xs:simpleContent>").append(PAR)
+                  .closeTag("xs:simpleContent", 2)
 
-                  .append(TAB).append("</xs:complexType>").append(PAR)
+                  .closeTag("xs:complexType", 1)
 
-                  // xs:complexType name="blobType"
-                  .append(TAB).append("<xs:complexType name=\"blobType\">").append(PAR)
+                    // xs:complexType name="blobType"
+                  .beginOpenTag("xs:complexType", 1).appendAttribute("name", "blobType").endOpenTag()
 
-                  .append(TAB).append(TAB).append("<xs:simpleContent>").append(PAR)
+                  .openTag("xs:simpleContent", 2)
 
-                  .append(TAB).append(TAB).append(TAB).append("<xs:extension base=\"xs:string\">").append(PAR)
+                  .beginOpenTag("xs:extension", 3).appendAttribute("base", "xs:string").endOpenTag()
 
-                  .append(TAB).append(TAB).append(TAB).append(TAB)
-                  .append("<xs:attribute name=\"file\" type=\"xs:string\" />").append(PAR)
+                  .beginOpenTag("xs:attribute", 4).appendAttribute("name", "file").appendAttribute("type", "xs:string")
+                  .endShorthandTag()
 
-                  .append(TAB).append(TAB).append(TAB).append(TAB)
-                  .append("<xs:attribute name=\"length\" type=\"xs:integer\" />").append(PAR)
+                  .beginOpenTag("xs:attribute", 4).appendAttribute("name", "length")
+                  .appendAttribute("type", "xs:integer").endShorthandTag()
 
-                  .append(TAB).append(TAB).append(TAB).append("</xs:extension>").append(PAR)
+                  .closeTag("xs:extension", 3)
 
-                  .append(TAB).append(TAB).append("</xs:simpleContent>").append(PAR)
+                  .closeTag("xs:simpleContent", 2)
 
-                  .append(TAB).append("</xs:complexType>").append(PAR)
+                  .closeTag("xs:complexType", 1)
 
-                  // close schema
-                  .append("</xs:schema>");
+                    // close schema
+                  .closeTag("xs:schema");
 
                 xsdWriter.close();
         }
+
 }

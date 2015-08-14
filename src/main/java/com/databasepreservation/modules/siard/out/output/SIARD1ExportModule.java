@@ -39,7 +39,9 @@ public class SIARD1ExportModule {
                 mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.MAIN);
 
                 metadataStrategy = new SIARD1MetadataExportStrategy(metadataPathStrategy, contentPathStrategy);
-                contentStrategy = new SIARD1ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer);
+                //TODO: change prettyXML from 'true' to a module argument
+                contentStrategy = new SIARD1ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer,
+                  true);
         }
 
         public DatabaseHandler getDatabaseHandler() {
