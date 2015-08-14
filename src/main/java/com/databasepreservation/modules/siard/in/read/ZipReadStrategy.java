@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -57,23 +58,28 @@ public class ZipReadStrategy implements ReadStrategy {
                 }
         }
 
-        @Override public List<String> listFiles(SIARDArchiveContainer container, Path baseDirectory)
+        @Override public CloseableIterable<String> getFilepathStream(SIARDArchiveContainer container,
+          Path baseDirectory)
           throws ModuleException {
                 List<String> list = new ArrayList<String>();
-                Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
+                final Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
 
-                while (entries.hasMoreElements()) {
-                        String name = entries.nextElement().getName();
-
-                        if (baseDirectory != null) {
-                                Path file = Paths.get(name);
-                                if (file.startsWith(baseDirectory)) {
-                                        list.add(name);
-                                }
-                        } else {
-                                list.add(name);
+                return new CloseableIterable<String>() {
+                        @Override public void close() throws IOException {
+                                // do nothing
                         }
-                }
-                return list;
+
+                        @Override public Iterator<String> iterator() {
+                                return new Iterator<String>() {
+                                        @Override public boolean hasNext() {
+                                                return entries.hasMoreElements();
+                                        }
+
+                                        @Override public String next() {
+                                                return entries.nextElement().getName();
+                                        }
+                                };
+                        }
+                };
         }
 }
