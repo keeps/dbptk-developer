@@ -5,6 +5,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.Namespace;
+import org.jdom2.output.XMLOutputter;
+
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -16,7 +21,6 @@ import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.content.ContentExportStrategy;
-import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.XMLUtils;
@@ -25,6 +29,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
 	private final static String ENCODING = "utf-8";
 	private final static String TAB = "  ";
+	private final static String namespaceBase = "http://www.sa.dk/xmlns/siard/1.0/";
 	
 	private ContentPathExportStrategy contentPathExportStrategy;
 	private WriteStrategy writeStrategy;
@@ -46,12 +51,14 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 	}
 	
 	@Override
-	public void openTable(SchemaStructure schema, TableStructure table)	throws ModuleException {
-		currentStream = writeStrategy.createOutputStream(baseContainer, contentPathExportStrategy.getTableXmlFilePath(0, table.getIndex()));
+	public void openTable(SchemaStructure schemaStructure, TableStructure tableStructure)	throws ModuleException {
+		currentStream = writeStrategy.createOutputStream(baseContainer, contentPathExportStrategy.getTableXmlFilePath(0, tableStructure.getIndex()));
 		currentWriter = new BufferedWriter(new OutputStreamWriter(currentStream));
-		currentTable = table;
+		currentTable = tableStructure;
 		
 		currentRowIndex = 0;
+		
+		// Note: cannot use JAXB or JDOM to generate XML for tables, since the actual tables are too large
 		
 		StringBuilder builder = new StringBuilder();
 		builder.append("<?xml version=\"1.0\" encoding=\"")
@@ -59,12 +66,12 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 			.append("\"?>\n")
 			
 			.append("<table xsi:schemaLocation=\"")
-			.append(contentPathExportStrategy.getTableXsdNamespace("http://www.sa.dk/xmlns/siard/1.0/", table.getIndex(), table.getIndex()))
+			.append(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, tableStructure.getIndex(), tableStructure.getIndex()))
 			.append(" ")
-			.append(contentPathExportStrategy.getTableXsdFileName(table.getIndex()))
+			.append(contentPathExportStrategy.getTableXsdFileName(tableStructure.getIndex()))
 			.append("\" ")
 			.append("xmlns=\"")
-			.append(contentPathExportStrategy.getTableXsdNamespace("http://www.sa.dk/xmlns/siard/1.0/", 0, table.getIndex()))
+			.append(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableStructure.getIndex()))
 			.append("\" ")
 			.append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"")
 			.append(">")
@@ -73,24 +80,79 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 		try {
 			currentWriter.write(builder.toString());
 		} catch (IOException e) {
-			throw new ModuleException("Error handling open table " + table.getId(), e);
+			throw new ModuleException("Error handling open table " + tableStructure.getId(), e);
 		}
 		
 	}
 
 	@Override
-	public void closeTable(SchemaStructure schema, TableStructure table) throws ModuleException {
+	public void closeTable(SchemaStructure schemaStructure, TableStructure tableStructure) throws ModuleException {
 		try {
 			currentWriter.write("</table>");
 			currentWriter.close();
 		} catch (IOException e) {
-			throw new ModuleException("Error handling close table " + table.getId(), e);
+			throw new ModuleException("Error handling close table " + tableStructure.getId(), e);
 		}
 		
 		// Code to write table XSDs
+
 		
-		currentStream = writeStrategy.createOutputStream(baseContainer, contentPathExportStrategy.getTableXsdFilePath(0, table.getIndex()));
-		currentWriter = new BufferedWriter(new OutputStreamWriter(currentStream));
+		// Set namespaces for schema
+		Namespace defaultNamespace = Namespace.getNamespace(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, tableStructure.getIndex(), tableStructure.getIndex()));
+		Namespace xs = Namespace.getNamespace("xs", "http://www.w3.org/2001/XMLSchema");
+		
+		// Create root element
+		Element schema = new Element("schema", defaultNamespace);
+		schema.addNamespaceDeclaration(xs);
+		schema.setAttribute("targetNamespace", contentPathExportStrategy.getTableXsdNamespace(namespaceBase, tableStructure.getIndex(), tableStructure.getIndex()));
+		schema.setAttribute("elementFormDefault", "qualified");
+		schema.setAttribute("attributeFormDefault", "unqualified");
+		
+		// Create table element
+		Element table = new Element("element", xs);
+		table.setAttribute("name", "table");
+		
+		// Create complex type for table
+		Element complexTypeTable = new Element("complexType", xs);
+		Element sequenceTable = new Element("sequence", xs);
+		Element element = new Element("element", xs);
+		element.setAttribute("minOccurs", "0");
+		element.setAttribute("maxOccurs", "unbounded");
+		element.setAttribute("name", "row");
+		element.setAttribute("type", "rowType");
+		
+		// Add elements to appropriate ancestors		
+		sequenceTable.addContent(element);
+		complexTypeTable.addContent(sequenceTable);
+		table.addContent(complexTypeTable);
+		schema.addContent(table);
+		
+		// Create complex type for rowType
+		Element complexTypeRowType = new Element("complexType", xs);
+		complexTypeRowType.setAttribute("name", "rowType");
+		Element sequenceRowType = new Element("sequence", xs);
+		
+		// Create elements containing column info
+		
+		
+		// Add elements to appropriate ancestors
+		complexTypeRowType.addContent(sequenceRowType);
+		schema.addContent(complexTypeRowType);
+		
+		
+		// For debugging
+		Document d = new Document(schema);
+		XMLOutputter outputter = new XMLOutputter();
+		try {
+			outputter.output(d, System.out);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+//		currentStream = writeStrategy.createOutputStream(baseContainer, contentPathExportStrategy.getTableXsdFilePath(0, table.getIndex()));
+//		currentWriter = new BufferedWriter(new OutputStreamWriter(currentStream));
 		
 //		currentWriter.append(<?xml version=\"1.0\" encoding=\"")
 //				.append(ENCODING)
