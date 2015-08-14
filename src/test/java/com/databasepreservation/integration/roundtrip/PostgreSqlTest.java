@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 
-@Test(groups = {"postgresql-siard1.0"}) public class PostgreSqlTest {
+@Test(groups = {"postgresql-siard1"}) public class PostgreSqlTest {
         final String db_source = "dpttest";
         final String db_target = "dpttest_siard";
         final String db_tmp_username = "dpttest";

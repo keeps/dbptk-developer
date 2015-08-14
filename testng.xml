@@ -1,19 +1,19 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="TheSuite" verbose="0">
+<suite name="TheSuite" verbose="0" parallel="methods" thread-count="5">
     <test name="Testing">
         <groups>
             <!-- All the tests -->
             <define name="all">
-                <include name="postgresql-siard1.0"/>
-                <include name="mysql-siard1.0"/>
+                <include name="postgresql-siard1"/>
+                <include name="mysql-siard1"/>
                 <include name="siard-roundtrip"/>
             </define>
 
             <!-- Tests ran by Travis CI -->
             <define name="travis-ci">
-                <include name="postgresql-siard1.0"/>
-                <include name="mysql-siard1.0"/>
+                <include name="postgresql-siard1"/>
+                <include name="mysql-siard1"/>
                 <include name="siard-roundtrip"/>
             </define>
 

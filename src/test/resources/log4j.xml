@@ -4,7 +4,7 @@
 
     <appender name="STDOUT" class="org.apache.log4j.ConsoleAppender">
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%p %d (%c{1}) %m%n"/>
+            <param name="ConversionPattern" value="[%t] %p %d (%c{1}) %m%n"/>
         </layout>
     </appender>
 
@@ -13,7 +13,7 @@
         <param name="append" value="false"/>
         <param name="threshold" value="debug"/>
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%p %d (%c{1}) %m%n"/>
+            <param name="ConversionPattern" value="[%t] %p %d (%c{1}) %m%n"/>
         </layout>
     </appender>
 
