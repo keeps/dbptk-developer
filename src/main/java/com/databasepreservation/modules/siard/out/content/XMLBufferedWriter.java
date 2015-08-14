@@ -13,8 +13,7 @@ import java.io.OutputStreamWriter;
 public class XMLBufferedWriter implements Appendable, Closeable, Flushable {
         private final static String INDENT = "    ";
         private final static char SPACE = ' ';
-        private final static String NEWLINE = java.security.AccessController
-          .doPrivileged(new sun.security.action.GetPropertyAction("line.separator"));
+        private final static String NEWLINE = System.getProperty("line.separator");
 
         private final static char OPEN_TAG_BEGIN = '<';
         private final static char OPEN_TAG_END = '>';
