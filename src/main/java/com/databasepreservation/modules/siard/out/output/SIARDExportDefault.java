@@ -53,13 +53,16 @@ public class SIARDExportDefault implements DatabaseHandler {
                 dbStructure = structure;
         }
 
-        @Override public void handleDataOpenTable(String schemaName, String tableId) throws ModuleException {
+        @Override public void handleDataOpenSchema(String schemaName) throws ModuleException {
                 currentSchema = dbStructure.getSchemaByName(schemaName);
-                currentTable = dbStructure.lookupTableStructure(tableId);
 
                 if (currentSchema == null) {
                         throw new ModuleException("Couldn't find schema with name: " + schemaName);
                 }
+        }
+
+        @Override public void handleDataOpenTable(String tableId) throws ModuleException {
+                currentTable = dbStructure.lookupTableStructure(tableId);
 
                 if (currentTable == null) {
                         throw new ModuleException("Couldn't find table with id: " + tableId);
@@ -68,19 +71,22 @@ public class SIARDExportDefault implements DatabaseHandler {
                 contentStrategy.openTable(currentSchema, currentTable);
         }
 
-        @Override public void handleDataCloseTable(String schemaName, String tableId) throws ModuleException {
-                currentSchema = dbStructure.getSchemaByName(schemaName);
+        @Override public void handleDataCloseTable(String tableId) throws ModuleException {
                 currentTable = dbStructure.lookupTableStructure(tableId);
-
-                if (currentSchema == null) {
-                        throw new ModuleException("Couldn't find schema with name: " + schemaName);
-                }
 
                 if (currentTable == null) {
                         throw new ModuleException("Couldn't find table with id: " + tableId);
                 }
 
                 contentStrategy.closeTable(currentSchema, currentTable);
+        }
+
+        @Override public void handleDataCloseSchema(String schemaName) throws ModuleException {
+                currentSchema = dbStructure.getSchemaByName(schemaName);
+
+                if (currentSchema == null) {
+                        throw new ModuleException("Couldn't find schema with name: " + schemaName);
+                }
         }
 
         @Override public void handleDataRow(Row row) throws InvalidDataException, ModuleException {

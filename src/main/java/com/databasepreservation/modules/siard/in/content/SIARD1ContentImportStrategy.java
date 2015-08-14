@@ -50,6 +50,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
         static final String W3C_XML_SCHEMA = "http://www.w3.org/2001/XMLSchema";
         static final String JAXP_SCHEMA_SOURCE = "http://java.sun.com/xml/jaxp/properties/schemaSource";
         // Keywords
+        private static final String SCHEMA_KEYWORD = "schema";
         private static final String TABLE_KEYWORD = "table";
         private static final String COLUMN_KEYWORD = "c";
         private static final String ROW_KEYWORD = "row";
@@ -66,6 +67,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
         private SAXParser saxParser;
         // SAXHandler state
         private TableStructure currentTable;
+        private SchemaStructure currentSchema;
         private InputStream currentTableStream;
         private BinaryCell currentBinaryCell;
         private Row row;
@@ -92,6 +94,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
 
                 // process tables
                 for (SchemaStructure schema : databaseStructure.getSchemas()) {
+                        currentSchema = schema;
                         for (TableStructure table : schema.getTables()) {
 
                                 // setup a new validating parser
@@ -172,10 +175,16 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
                 pushTag(qName);
                 tempVal.setLength(0);
 
-                if (qName.equalsIgnoreCase(TABLE_KEYWORD)) {
+                if (qName.equalsIgnoreCase(SCHEMA_KEYWORD)) {
+                        try {
+                                databaseHandler.handleDataOpenSchema(currentSchema.getName());
+                        } catch (ModuleException e) {
+                                logger.error("An error occurred while handling data open schema", e);
+                        }
+                } else if (qName.equalsIgnoreCase(TABLE_KEYWORD)) {
                         this.rowIndex = 0;
                         try {
-                                databaseHandler.handleDataOpenTable(currentTable.getSchema(), currentTable.getId());
+                                databaseHandler.handleDataOpenTable(currentTable.getId());
                         } catch (ModuleException e) {
                                 logger.error("An error occurred while handling data open table", e);
                         }
@@ -219,10 +228,16 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
                 popTag();
                 String trimmedVal = tempVal.toString().trim();
 
-                if (tag.equalsIgnoreCase(TABLE_KEYWORD)) {
+                if (tag.equalsIgnoreCase(SCHEMA_KEYWORD)) {
+                        try {
+                                databaseHandler.handleDataCloseSchema(currentSchema.getName());
+                        } catch (ModuleException e) {
+                                logger.error("An error occurred while handling data close schema", e);
+                        }
+                } else if (tag.equalsIgnoreCase(TABLE_KEYWORD)) {
                         try {
                                 logger.debug("before handle data close");
-                                databaseHandler.handleDataCloseTable(currentTable.getSchema(), currentTable.getId());
+                                databaseHandler.handleDataCloseTable(currentTable.getId());
                         } catch (ModuleException e) {
                                 logger.error("An error occurred while handling data close table", e);
                         }

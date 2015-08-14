@@ -384,13 +384,16 @@ public class JDBCExportModule implements DatabaseHandler {
                 return false;
         }
 
-        @Override public void handleDataOpenTable(String schemaName, String tableId) throws ModuleException {
+        @Override public void handleDataOpenSchema(String schemaName) throws ModuleException {
+                currentIsIgnoredSchema = isIgnoredSchema(schemaName);
+        }
+
+        @Override public void handleDataOpenTable(String tableId) throws ModuleException {
                 logger.debug("Started data open: " + tableId);
                 if (databaseStructure != null) {
                         TableStructure table = databaseStructure.lookupTableStructure(tableId);
                         this.currentTableStructure = table;
                         if (currentTableStructure != null) {
-                                currentIsIgnoredSchema = isIgnoredSchema(table.getSchema());
                                 if (!currentIsIgnoredSchema) {
                                         try {
                                                 logger.info("Exporting data for " + table.getId());
@@ -412,7 +415,7 @@ public class JDBCExportModule implements DatabaseHandler {
                 }
         }
 
-        @Override public void handleDataCloseTable(String schemaName, String tableId) throws ModuleException {
+        @Override public void handleDataCloseTable(String tableId) throws ModuleException {
                 currentTableStructure = null;
                 if (batch_index > 0) {
                         try {
@@ -429,6 +432,10 @@ public class JDBCExportModule implements DatabaseHandler {
                         currentRowInsertStatement = null;
                         currentIsIgnoredSchema = false;
                 }
+        }
+
+        @Override public void handleDataCloseSchema(String schemaName) throws ModuleException {
+                // do nothing
         }
 
         @Override public void handleDataRow(Row row) throws InvalidDataException, ModuleException {

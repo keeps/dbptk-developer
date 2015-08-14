@@ -497,10 +497,11 @@ import java.util.Random;
                 exporter.handleStructure(dbStructure);
                 logger.info("FINISHED: Getting the database structure.");
                 for (SchemaStructure thisschema : dbStructure.getSchemas()) {
+                        exporter.handleDataOpenSchema(thisschema.getName());
                         for (TableStructure thistable : thisschema.getTables()) {
                                 logger.info("STARTED: Getting data of table: " + thistable.getId());
                                 thistable.setSchema(thisschema);
-                                exporter.handleDataOpenTable(thisschema.getName(), thistable.getId());
+                                exporter.handleDataOpenTable(thistable.getId());
                                 int nRows = 0;
                                 Iterator<Row> rowsIterator = tableRows.get(thistable.getId()).iterator();
                                 while (rowsIterator.hasNext()) {
@@ -508,9 +509,10 @@ import java.util.Random;
                                         nRows++;
                                 }
                                 logger.info("Total of " + nRows + " row(s) processed");
-                                exporter.handleDataCloseTable(thisschema.getName(), thistable.getId());
+                                exporter.handleDataCloseTable(thistable.getId());
                                 logger.info("FINISHED: Getting data of table: " + thistable.getId());
                         }
+                        exporter.handleDataCloseSchema(thisschema.getName());
                 }
                 logger.debug("finishing database");
                 exporter.finishDatabase();

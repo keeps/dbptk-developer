@@ -1524,10 +1524,11 @@ public class JDBCImportModule implements DatabaseImportModule {
                         logger.info("FINISHED: Getting the database structure.");
                         // logger.debug("db struct: " + getDatabaseStructure().toString());
                         for (SchemaStructure schema : getDatabaseStructure().getSchemas()) {
+                                handler.handleDataOpenSchema(schema.getName());
                                 for (TableStructure table : schema.getTables()) {
                                         logger.info("STARTED: Getting data of table: " + table.getId());
                                         ResultSet tableRawData = getTableRawData(table.getId());
-                                        handler.handleDataOpenTable(schema.getName(), table.getId());
+                                        handler.handleDataOpenTable(table.getId());
                                         int nRows = 0;
                                         while (tableRawData.next()) {
                                                 handler.handleDataRow(convertRawToRow(tableRawData, table));
@@ -1538,9 +1539,10 @@ public class JDBCImportModule implements DatabaseImportModule {
                                         }
                                         logger.info("Total of " + nRows + " row(s) processed");
                                         getDatabaseStructure().lookupTableStructure(table.getId()).setRows(nRows);
-                                        handler.handleDataCloseTable(schema.getName(), table.getId());
+                                        handler.handleDataCloseTable(table.getId());
                                         logger.info("FINISHED: Getting data of table: " + table.getId());
                                 }
+                                handler.handleDataCloseSchema(schema.getName());
                         }
                         logger.debug("finishing database");
                         handler.finishDatabase();

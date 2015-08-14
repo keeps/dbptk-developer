@@ -43,23 +43,24 @@ public interface DatabaseHandler {
         public void handleStructure(DatabaseStructure structure) throws ModuleException, UnknownTypeException;
 
         /**
-         * Prepare to handle the data of a new table. This method will be called
-         * after the handleStructure, and before each table data will request to be
-         * handled.
+         * Prepare to handle the data of a new schema. This method will be called
+         * after handleStructure or handleDataCloseSchema.
          *
-         * @param tableId the table id
+         * @param schemaName the schema name
          * @throws ModuleException
          */
-        public void handleDataOpenTable(String schemaName, String tableId) throws ModuleException;
+        public void handleDataOpenSchema(String schemaName) throws ModuleException;
 
         /**
-         * Finish handling the data of a table. This method will be called after all
-         * table rows where requested to be handled.
+         * Prepare to handle the data of a new table. This method will be called
+         * after the handleDataOpenSchema, and before some calls to handleDataRow.
+         * If there are no rows in the table, then handleDataCloseTable is called
+         * after this method.
          *
          * @param tableId the table id
          * @throws ModuleException
          */
-        public void handleDataCloseTable(String schemaName, String tableId) throws ModuleException;
+        public void handleDataOpenTable(String tableId) throws ModuleException;
 
         /**
          * Handle a table row. This method will be called after the table was open
@@ -70,6 +71,24 @@ public interface DatabaseHandler {
          * @throws ModuleException
          */
         public void handleDataRow(Row row) throws InvalidDataException, ModuleException;
+
+        /**
+         * Finish handling the data of a table. This method will be called after all
+         * table rows for the table where requested to be handled.
+         *
+         * @param tableId the table id
+         * @throws ModuleException
+         */
+        public void handleDataCloseTable(String tableId) throws ModuleException;
+
+        /**
+         * Finish handling the data of a schema. This method will be called after all
+         * tables of the schema were requested to be handled.
+         *
+         * @param schemaName the schema name
+         * @throws ModuleException
+         */
+        public void handleDataCloseSchema(String schemaName) throws ModuleException;
 
         /**
          * Finish the database. This method will be called when all data was
