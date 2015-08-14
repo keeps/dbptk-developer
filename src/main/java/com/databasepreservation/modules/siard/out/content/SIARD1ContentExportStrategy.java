@@ -58,11 +58,18 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
                 this.prettyXMLOutput = prettyXMLOutput;
         }
 
-        @Override public void openTable(SchemaStructure schema, TableStructure table) throws ModuleException {
-                currentStream = writeStrategy.createOutputStream(baseContainer,
-                  contentPathStrategy.getTableXmlFilePath(schema.getIndex(), table.getIndex()));
-                currentWriter = new XMLBufferedWriter(currentStream, prettyXMLOutput);
+        @Override public void openSchema(SchemaStructure schema) throws ModuleException {
                 currentSchema = schema;
+        }
+
+        @Override public void closeSchema(SchemaStructure schema) throws ModuleException {
+                // do nothing
+        }
+
+        @Override public void openTable(TableStructure table) throws ModuleException {
+                currentStream = writeStrategy.createOutputStream(baseContainer,
+                  contentPathStrategy.getTableXmlFilePath(currentSchema.getIndex(), table.getIndex()));
+                currentWriter = new XMLBufferedWriter(currentStream, prettyXMLOutput);
                 currentTable = table;
                 currentRowIndex = 0;
                 LOBsToExport = new ArrayList<LargeObject>();
@@ -74,7 +81,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
                 }
         }
 
-        @Override public void closeTable(SchemaStructure schema, TableStructure table) throws ModuleException {
+        @Override public void closeTable(TableStructure table) throws ModuleException {
                 // finish writing the table
                 try {
                         writeXmlCloseTable();

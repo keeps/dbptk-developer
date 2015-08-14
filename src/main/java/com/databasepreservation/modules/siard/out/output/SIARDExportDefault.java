@@ -59,6 +59,8 @@ public class SIARDExportDefault implements DatabaseHandler {
                 if (currentSchema == null) {
                         throw new ModuleException("Couldn't find schema with name: " + schemaName);
                 }
+
+                contentStrategy.openSchema(currentSchema);
         }
 
         @Override public void handleDataOpenTable(String tableId) throws ModuleException {
@@ -68,7 +70,7 @@ public class SIARDExportDefault implements DatabaseHandler {
                         throw new ModuleException("Couldn't find table with id: " + tableId);
                 }
 
-                contentStrategy.openTable(currentSchema, currentTable);
+                contentStrategy.openTable(currentTable);
         }
 
         @Override public void handleDataCloseTable(String tableId) throws ModuleException {
@@ -78,7 +80,7 @@ public class SIARDExportDefault implements DatabaseHandler {
                         throw new ModuleException("Couldn't find table with id: " + tableId);
                 }
 
-                contentStrategy.closeTable(currentSchema, currentTable);
+                contentStrategy.closeTable(currentTable);
         }
 
         @Override public void handleDataCloseSchema(String schemaName) throws ModuleException {
@@ -87,6 +89,8 @@ public class SIARDExportDefault implements DatabaseHandler {
                 if (currentSchema == null) {
                         throw new ModuleException("Couldn't find schema with name: " + schemaName);
                 }
+
+                contentStrategy.closeSchema(currentSchema);
         }
 
         @Override public void handleDataRow(Row row) throws InvalidDataException, ModuleException {
