@@ -76,6 +76,11 @@ public class ZipReadStrategy implements ReadStrategy {
                                         @Override public String next() {
                                                 return entries.nextElement().getName();
                                         }
+
+                                        @Override public void remove() {
+                                                throw new UnsupportedOperationException(
+                                                  "remove() is not supported for this iterator");
+                                        }
                                 };
                         }
                 };
