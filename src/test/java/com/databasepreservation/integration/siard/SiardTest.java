@@ -33,7 +33,7 @@ import com.databasepreservation.modules.DatabaseImportModule;
 import com.databasepreservation.modules.siard.in.input.SIARD1ImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD1ExportModule;
 import com.databasepreservation.utils.JodaUtils;
-import com.databasepreservation.utils.diff_match_patch;
+import com.databasepreservation.integration.roundtrip.differences.TextDiff;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.mockito.ArgumentCaptor;
@@ -88,12 +88,12 @@ import java.util.Random;
                 DatabaseStructure other = roundtrip(original, tmpFile);
 
                 //debug
-                diff_match_patch diff = new diff_match_patch();
-                LinkedList<diff_match_patch.Diff> diffs = diff.diff_main(original.toString(), other.toString());
+                TextDiff diff = new TextDiff();
+                LinkedList<TextDiff.Diff> diffs = diff.diff_main(original.toString(), other.toString());
 
                 boolean differ = false;
-                for (diff_match_patch.Diff aDiff : diffs) {
-                        if (aDiff.operation != diff_match_patch.Operation.EQUAL) {
+                for (TextDiff.Diff aDiff : diffs) {
+                        if (aDiff.operation != TextDiff.Operation.EQUAL) {
                                 differ = true;
                                 break;
                         }

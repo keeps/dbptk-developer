@@ -1,5 +1,6 @@
 package com.databasepreservation.integration.roundtrip;
 
+import com.databasepreservation.integration.roundtrip.differences.PostgreSqlDumpDiffExpectations;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -55,7 +56,8 @@ import java.util.Set;
                   new String[] {"-i", "PostgreSQLJDBC", "localhost", db_source, db_tmp_username, db_tmp_password,
                     "false", "-o", "SIARD1", Roundtrip.TMP_FILE_SIARD_VAR, "store"},
                   new String[] {"-i", "SIARD1", Roundtrip.TMP_FILE_SIARD_VAR, "-o", "PostgreSQLJDBC", "localhost",
-                    db_target, db_tmp_username, db_tmp_password, "false"}, env_var_source, env_var_target);
+                    db_target, db_tmp_username, db_tmp_password, "false"}, new PostgreSqlDumpDiffExpectations(),
+                  env_var_source, env_var_target);
         }
 
         @Test(description = "PostgreSql server is available and accessible") public void testConnection()
