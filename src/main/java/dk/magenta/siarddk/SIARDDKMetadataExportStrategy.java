@@ -1,7 +1,10 @@
 package dk.magenta.siarddk;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +17,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.xml.sax.SAXException;
 
@@ -47,7 +51,7 @@ import dk.magenta.siarddk.tableindex.ViewsType;
 public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
 	private static final String ENCODING = "UTF-8";
-	private static final String SCHEMA_LOCATION = "/schema/tableIndex.xsd";
+	private static final String SCHEMA_LOCATION = "/siarddk/tableIndex.xsd";
 	private WriteStrategy writeStrategy;
 	
 	public SIARDDKMetadataExportStrategy(WriteStrategy writeStrategy) {
@@ -244,9 +248,12 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 		try {
 			InputStream in = this.getClass().getResourceAsStream(SCHEMA_LOCATION);
 			xsdSchema = schemaFactory.newSchema(new StreamSource(in));
+			in.close();
 			// xsdSchema = schemaFactory.newSchema(Paths.get(getClass().getResource(SCHEMA_LOCATION).getPath()).toFile());
 		} catch (SAXException e) {
 			throw new ModuleException("XSD file has errors: " + getClass().getResource(SCHEMA_LOCATION).getPath(), e);
+		} catch (IOException e) {
+			throw new ModuleException("Could not close inputstream", e);
 		}
 
 		Marshaller m;
@@ -261,8 +268,9 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
 			// m.marshal(siardDiark, System.out);
 			
-			OutputStream writer = writeStrategy.createOutputStream(outputContainer, "tableIndex.xml");
+			OutputStream writer = writeStrategy.createOutputStream(outputContainer, "Indices/tableIndex.xml");
 			m.marshal(siardDiark, writer);
+			writer.close();
 			
 //		} catch (MarshalException e) {
 //
@@ -275,15 +283,34 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 			
 		} catch (JAXBException e) {
 			throw new ModuleException("Error while Marshalling JAXB", e);
-		} 
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 
 		
 	}
 	
 	@Override
-	public void writeMetadataXSD(DatabaseStructure dbStructure, SIARDArchiveContainer container) throws ModuleException {
-		// TODO Auto-generated method stub
+	public void writeMetadataXSD(DatabaseStructure dbStructure, SIARDArchiveContainer outputContainer) throws ModuleException {
+		
+		// Write contents to Schemas/standard
+		writeSchemaFile(outputContainer, "XMLSchema.xsd");
+		writeSchemaFile(outputContainer, "tableIndex.xsd");
+
+	}
+	
+	private void writeSchemaFile(SIARDArchiveContainer container, String filename) throws ModuleException {
+		InputStream inputStream = this.getClass().getResourceAsStream("/siarddk/" + filename);
+		OutputStream outputStream = writeStrategy.createOutputStream(container, "Schemas/standard/" + filename);
+		
+		try {
+			IOUtils.copy(inputStream, outputStream);
+			inputStream.close();
+			outputStream.close();
+		} catch (IOException e) {
+			throw new ModuleException("There was an error writing " + filename, e);
+		}
 		
 	}
 	

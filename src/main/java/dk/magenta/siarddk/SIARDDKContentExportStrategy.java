@@ -35,10 +35,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 	private ContentPathExportStrategy contentPathExportStrategy;
 	private WriteStrategy writeStrategy;
 	private SIARDArchiveContainer baseContainer;
-	private int currentRowIndex;
 	private OutputStream currentStream;
 	private BufferedWriter currentWriter;
-	private TableStructure currentTable;
 	
 	public SIARDDKContentExportStrategy(ContentPathExportStrategy contentPathExportStrategy,
 			WriteStrategy writeStrategy,
@@ -47,17 +45,12 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 		this.contentPathExportStrategy = contentPathExportStrategy;
 		this.writeStrategy = writeStrategy;
 		this.baseContainer = baseContainer;
-		
-		currentRowIndex = -1;
 	}
 	
 	@Override
 	public void openTable(SchemaStructure schemaStructure, TableStructure tableStructure)	throws ModuleException {
 		currentStream = writeStrategy.createOutputStream(baseContainer, contentPathExportStrategy.getTableXmlFilePath(0, tableStructure.getIndex()));
 		currentWriter = new BufferedWriter(new OutputStreamWriter(currentStream));
-		currentTable = tableStructure;
-		
-		currentRowIndex = 0;
 		
 		// Note: cannot use JAXB or JDOM to generate XML for tables, since the actual tables are too large
 		
@@ -140,7 +133,6 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 			Element c = new Element("element", xs);
 			c.setAttribute("name", "c" + Integer.toString(columnIndex));
 			String sql99Type = columnStructure.getType().getSql99TypeName();
-			// System.out.println("sql99Type = " + sql99Type);
 			c.setAttribute("type", SIARDDKsql99ToXsdType.convert(sql99Type));
 			if (columnStructure.getNillable()) {
 				c.setAttribute("nillable", "true");
@@ -153,10 +145,10 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 		complexTypeRowType.addContent(sequenceRowType);
 		schema.addContent(complexTypeRowType);
 
+		// Write schema to archive
 		currentStream = writeStrategy.createOutputStream(baseContainer, contentPathExportStrategy.getTableXsdFilePath(0, tableStructure.getIndex()));
 		currentWriter = new BufferedWriter(new OutputStreamWriter(currentStream));
 		
-		// For debugging
 		Document d = new Document(schema);
 		XMLOutputter outputter = new XMLOutputter();
 		try {
@@ -166,9 +158,6 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 		} catch (IOException e) {
 			throw new ModuleException("Could not write table" + tableStructure.getIndex() + " to disk", e);
 		}
-		
-		currentTable = null;
-		currentRowIndex = 0;
 	}
 
 	@Override
@@ -179,7 +168,6 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 		
 			int columnIndex = 0;
 			for (Cell cell : row.getCells()) {
-				ColumnStructure columnStructure = currentTable.getColumns().get(columnIndex);
 				columnIndex++;
 				if (cell instanceof SimpleCell) {
 
@@ -213,7 +201,6 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 			}
 			
 			currentWriter.append(TAB).append("</row>\n");
-			currentRowIndex++;
 			
 		} catch (IOException e) {
 			throw new ModuleException("Could not write row " + row.toString(), e);
