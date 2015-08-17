@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.List;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -71,7 +72,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 			.append(contentPathExportStrategy.getTableXsdFileName(tableStructure.getIndex()))
 			.append("\" ")
 			.append("xmlns=\"")
-			.append(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableStructure.getIndex()))
+			.append(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, tableStructure.getIndex(), tableStructure.getIndex()))
 			.append("\" ")
 			.append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"")
 			.append(">")
@@ -102,8 +103,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 		Namespace xs = Namespace.getNamespace("xs", "http://www.w3.org/2001/XMLSchema");
 		
 		// Create root element
-		Element schema = new Element("schema", defaultNamespace);
-		schema.addNamespaceDeclaration(xs);
+		Element schema = new Element("schema", xs);
+		schema.addNamespaceDeclaration(defaultNamespace);
 		schema.setAttribute("targetNamespace", contentPathExportStrategy.getTableXsdNamespace(namespaceBase, tableStructure.getIndex(), tableStructure.getIndex()));
 		schema.setAttribute("elementFormDefault", "qualified");
 		schema.setAttribute("attributeFormDefault", "unqualified");
@@ -133,35 +134,38 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 		Element sequenceRowType = new Element("sequence", xs);
 		
 		// Create elements containing column info
-		
+		int columnIndex = 1;
+		List<ColumnStructure> columns = tableStructure.getColumns();
+		for (ColumnStructure columnStructure : columns) {
+			Element c = new Element("element", xs);
+			c.setAttribute("name", "c" + Integer.toString(columnIndex));
+			String sql99Type = columnStructure.getType().getSql99TypeName();
+			// System.out.println("sql99Type = " + sql99Type);
+			c.setAttribute("type", SIARDDKsql99ToXsdType.convert(sql99Type));
+			if (columnStructure.getNillable()) {
+				c.setAttribute("nillable", "true");
+			}
+			sequenceRowType.addContent(c);
+			columnIndex++;
+		}
 		
 		// Add elements to appropriate ancestors
 		complexTypeRowType.addContent(sequenceRowType);
 		schema.addContent(complexTypeRowType);
-		
+
+		currentStream = writeStrategy.createOutputStream(baseContainer, contentPathExportStrategy.getTableXsdFilePath(0, tableStructure.getIndex()));
+		currentWriter = new BufferedWriter(new OutputStreamWriter(currentStream));
 		
 		// For debugging
 		Document d = new Document(schema);
 		XMLOutputter outputter = new XMLOutputter();
 		try {
-			outputter.output(d, System.out);
+			// outputter.output(d, System.out);
+			outputter.output(d, currentWriter);
+			currentWriter.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new ModuleException("Could not write table" + tableStructure.getIndex() + " to disk", e);
 		}
-		
-		
-//		currentStream = writeStrategy.createOutputStream(baseContainer, contentPathExportStrategy.getTableXsdFilePath(0, table.getIndex()));
-//		currentWriter = new BufferedWriter(new OutputStreamWriter(currentStream));
-		
-//		currentWriter.append(<?xml version=\"1.0\" encoding=\"")
-//				.append(ENCODING)
-//				.append("\"?>\n")
-//				
-//				.append("<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"")
-//				.append("")
-		
-		
 		
 		currentTable = null;
 		currentRowIndex = 0;
