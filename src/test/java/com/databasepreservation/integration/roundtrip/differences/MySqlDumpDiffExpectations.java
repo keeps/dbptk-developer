@@ -25,6 +25,9 @@ public class MySqlDumpDiffExpectations extends DumpDiffExpectations {
 
                 directReplacements.add(
                   new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)mediumint\\(\\d+\\)(?=\\W)"), "int(11)"));
+
+                directReplacements.add(
+                  new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)bigint\\(\\d+\\)(?=\\W)"), "decimal(19,0)"));
         }
 
         @Override protected String expectedTargetDatabaseDump(String source) {
