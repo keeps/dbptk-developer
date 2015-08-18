@@ -194,7 +194,11 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 					}
 					
 				} else if (cell instanceof BinaryCell) {
-					throw new ModuleException("Cannot handle binary cells yet");
+					
+					BinaryCell binaryCell = (BinaryCell) cell;
+					
+					
+					// throw new ModuleException("Cannot handle binary cells yet");
 				} else if (cell instanceof ComposedCell) {
 					throw new ModuleException("Cannot handle composed cells yet");
 				}
