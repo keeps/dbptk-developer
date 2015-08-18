@@ -57,9 +57,10 @@ import java.util.Set;
                 String singleTypeAndValue = "CREATE TABLE datatypes (col1 %s);\nINSERT INTO datatypes(col1) VALUES(%s);";
                 ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
-                tests.add(new String[]{singleTypeAndValue, "TINYINT(5)", "1"}); // the number inside parentheses is the display width, does not affect datatype size
+//                tests.add(new String[]{singleTypeAndValue, "TINYINT(10)", "1"}); // the number inside parentheses is the display width, does not affect datatype size and is ignored
+//                tests.add(new String[]{singleTypeAndValue, "TINYINT", "1"});
 //                tests.add(new String[] {singleTypeAndValue, "SMALLINT", "123"});
-//                //tests.add(new String[]{singleTypeAndValue, "MEDIUMINT", "123"});
+                tests.add(new String[] {singleTypeAndValue, "MEDIUMINT", "123"});
 //                tests.add(new String[] {singleTypeAndValue, "INT", "123"});
 //                //tests.add(new String[]{singleTypeAndValue, "BIGINT", "123"});
 //                tests.add(new String[] {singleTypeAndValue, "DECIMAL", "123"});
