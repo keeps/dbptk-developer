@@ -1,19 +1,29 @@
 package com.databasepreservation.integration.roundtrip.differences;
 
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.ArrayList;
+import java.util.regex.Pattern;
+
 /**
+ * PostgreSQL specific implementation to convert the source database dump to an expected version of the database dump
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class PostgreSqlDumpDiffExpectations extends DumpDiffExpectations {
-        @Override protected void assertIsolatedInsertion(String insertion) {
-                assert false : "Unexpected insertion of text \"" + insertion + "\"";
+        private static final ArrayList<Pair<Pattern, String>> directReplacements;
+
+        static {
+                directReplacements = new ArrayList<Pair<Pattern, String>>();
         }
 
-        @Override protected void assertIsolatedDeletion(String deletion) {
-                assert false : "Unexpected deletion of text \"" + deletion + "\"";
-        }
+        @Override protected String expectedTargetDatabaseDump(String source) {
+                String expectedTarget = source;
+                for (Pair<Pattern, String> directReplacement : directReplacements) {
+                        Pattern regex = directReplacement.getLeft();
+                        String replacement = directReplacement.getRight();
 
-        @Override protected void assertSubstitution(String deletion, String insertion) {
-                assert false : String
-                  .format("Unexpected substitution of text from \"%s\" to \"%s\"", deletion, insertion);
+                        expectedTarget = regex.matcher(expectedTarget).replaceAll(replacement);
+                }
+                return expectedTarget;
         }
 }

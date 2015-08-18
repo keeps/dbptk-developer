@@ -60,9 +60,10 @@ import java.util.Set;
 //                tests.add(new String[]{singleTypeAndValue, "TINYINT(10)", "1"}); // the number inside parentheses is the display width, does not affect datatype size and is ignored
 //                tests.add(new String[]{singleTypeAndValue, "TINYINT", "1"});
 //                tests.add(new String[] {singleTypeAndValue, "SMALLINT", "123"});
-                tests.add(new String[] {singleTypeAndValue, "MEDIUMINT", "123"});
+//                tests.add(new String[] {singleTypeAndValue, "MEDIUMINT(10)", "123"});
+//                tests.add(new String[] {singleTypeAndValue, "MEDIUMINT", "123"});
 //                tests.add(new String[] {singleTypeAndValue, "INT", "123"});
-//                //tests.add(new String[]{singleTypeAndValue, "BIGINT", "123"});
+                //tests.add(new String[]{singleTypeAndValue, "BIGINT", "123"});
 //                tests.add(new String[] {singleTypeAndValue, "DECIMAL", "123"});
 //                tests.add(new String[] {singleTypeAndValue, "NUMERIC", "123"});
 //                //tests.add(new String[]{singleTypeAndValue, "FLOAT", "12345.123"});

@@ -1,52 +1,40 @@
 package com.databasepreservation.integration.roundtrip.differences;
 
-import java.util.HashMap;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 /**
+ * MySQL specific implementation to convert the source database dump to an expected version of the database dump
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class MySqlDumpDiffExpectations extends DumpDiffExpectations {
         /**
-         * Special cases and some number used to control the special case usage
+         * List of regular expressions to match and replacements to apply to the source database dump
          */
-        HashMap<Special, Integer> specialCase;
+        private static final ArrayList<Pair<Pattern, String>> directReplacements;
 
-        private enum Special {
-                TINY_REPLACED_BY_SMALL_THEN_ANY_NUMBER_REPLACED_BY_6
+        static {
+                directReplacements = new ArrayList<Pair<Pattern, String>>();
+
+                directReplacements.add(
+                  new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)tinyint\\(\\d+\\)(?=\\W)"),
+                    "smallint(6)"));
+
+                directReplacements.add(
+                  new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)mediumint\\(\\d+\\)(?=\\W)"), "int(11)"));
         }
 
-        public MySqlDumpDiffExpectations() {
-                this.specialCase = new HashMap<Special, Integer>();
+        @Override protected String expectedTargetDatabaseDump(String source) {
+                String expectedTarget = source;
+                for (Pair<Pattern, String> directReplacement : directReplacements) {
+                        Pattern regex = directReplacement.getLeft();
+                        String replacement = directReplacement.getRight();
 
-                for (Special special : Special.values()) {
-                        specialCase.put(special, 0);
+                        expectedTarget = regex.matcher(expectedTarget).replaceAll(replacement);
                 }
-        }
-
-        protected void assertIsolatedInsertion(String insertion){
-                assert false : "Unexpected insertion of text \"" + insertion + "\"";
-        }
-
-        protected void assertIsolatedDeletion(String deletion){
-                assert false : "Unexpected deletion of text \"" + deletion + "\"";
-        }
-
-        protected void assertSubstitution(String deletion, String insertion){
-                String assertMessage = String
-                  .format("Unexpected substitution of text from \"%s\" to \"%s\"", deletion, insertion);
-
-                boolean assertionResult = false;
-
-                if (deletion.matches("^\\d+$") && insertion.equals("6")
-                  && specialCase.get(Special.TINY_REPLACED_BY_SMALL_THEN_ANY_NUMBER_REPLACED_BY_6) == 1) {
-                        assertionResult = true;
-                } else if (deletion.equals("tiny") && insertion.equals("small")) {
-                        assertionResult = true;
-                        specialCase.put(Special.TINY_REPLACED_BY_SMALL_THEN_ANY_NUMBER_REPLACED_BY_6, 1);
-                } else {
-                        specialCase.put(Special.TINY_REPLACED_BY_SMALL_THEN_ANY_NUMBER_REPLACED_BY_6, 0);
-                }
-
-                assert assertionResult : assertMessage;
+                return expectedTarget;
         }
 }
