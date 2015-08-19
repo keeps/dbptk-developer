@@ -832,6 +832,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         protected Type getBinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
                 Type type = new SimpleTypeBinary(columnSize);
                 type.setSql99TypeName("BIT");
+                type.setOriginalTypeName(typeName, columnSize);
                 return type;
         }
 

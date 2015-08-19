@@ -1,6 +1,7 @@
 package com.databasepreservation.integration.roundtrip;
 
 import com.databasepreservation.integration.roundtrip.differences.MySqlDumpDiffExpectations;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -67,18 +68,21 @@ import java.util.Set;
 //                tests.add(new String[]{singleTypeAndValue, "BIGINT", "9223372036854775807"});
 //                tests.add(new String[] {singleTypeAndValue, "DECIMAL", "123"});
 //                tests.add(new String[] {singleTypeAndValue, "NUMERIC", "123"});
-                tests.add(new String[]{singleTypeAndValue, "FLOAT", "12345.123"});
-                tests.add(new String[]{singleTypeAndValue, "FLOAT", "123456789012"});
-                tests.add(new String[]{singleTypeAndValue, "FLOAT(9)", "12345.123"}); //in mysql, this creates a float(12,0)
-                tests.add(new String[]{singleTypeAndValue, "FLOAT(12)", "12345.123"}); //in mysql, this creates a float(12,0)
-                tests.add(new String[]{singleTypeAndValue, "FLOAT(12,0)", "12345.123"}); //in mysql, this creates a float(12,0)
-                tests.add(new String[]{singleTypeAndValue, "FLOAT(53)", "12345.123"}); //in mysql, this creates a double(22,0)
-                tests.add(new String[]{singleTypeAndValue, "FLOAT(8,3)", "12345.123"}); //in mysql, this creates a float(8,3)
-                tests.add(new String[]{singleTypeAndValue, "DOUBLE", "1234567890.12345"});
-                tests.add(new String[]{singleTypeAndValue, "DOUBLE(22,0)", "1234567890.12345"});
-                tests.add(new String[]{singleTypeAndValue, "DOUBLE(10,2)", "1234567890.12345"});
+//                tests.add(new String[]{singleTypeAndValue, "FLOAT", "12345.123"});
+//                tests.add(new String[]{singleTypeAndValue, "FLOAT", "123456789012"});
+//                tests.add(new String[]{singleTypeAndValue, "FLOAT(9)", "12345.123"}); //in mysql, this creates a float(12,0)
+//                tests.add(new String[]{singleTypeAndValue, "FLOAT(12)", "12345.123"}); //in mysql, this creates a float(12,0)
+//                tests.add(new String[]{singleTypeAndValue, "FLOAT(12,0)", "12345.123"}); //in mysql, this creates a float(12,0)
+//                tests.add(new String[]{singleTypeAndValue, "FLOAT(53)", "12345.123"}); //in mysql, this creates a double(22,0)
+//                tests.add(new String[]{singleTypeAndValue, "FLOAT(8,3)", "12345.123"}); //in mysql, this creates a float(8,3)
+//                tests.add(new String[]{singleTypeAndValue, "DOUBLE", "1234567890.12345"});
+//                tests.add(new String[]{singleTypeAndValue, "DOUBLE(22,0)", "1234567890.12345"});
+//                tests.add(new String[]{singleTypeAndValue, "DOUBLE(10,2)", "1234567890.12345"});
 //                tests.add(new String[] {singleTypeAndValue, "BIT(1)", "b'1'"});
-//                //tests.add(new String[]{singleTypeAndValue, "BIT(64)", "b'10101010101010101010101010101010101010101010101010101010101'"});
+                tests.add(new String[] {singleTypeAndValue, "BIT", "b'1'"});
+                tests.add(new String[] {singleTypeAndValue, "BIT(1)", "b'0'"});
+                tests.add(new String[] {singleTypeAndValue, "BIT(5)", "b'11111'"});
+                tests.add(new String[]{singleTypeAndValue, "BIT(64)", "b'" + StringUtils.repeat("1001", 16) + "'"});
 //                tests.add(new String[] {singleTypeAndValue, "DATE", "'9999-12-31'"});
 //                tests.add(new String[] {singleTypeAndValue, "DATETIME", "'9999-12-31 23:59:59.999999'"});
 //                tests.add(new String[] {singleTypeAndValue, "TIMESTAMP", "'2038-01-19 03:14:07.999999'"});

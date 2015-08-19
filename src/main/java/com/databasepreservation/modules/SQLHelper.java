@@ -96,8 +96,9 @@ public class SQLHelper {
          * @throws UnknownTypeException
          */
         public String createTableSQL(TableStructure table) throws UnknownTypeException, ModuleException {
-                return "CREATE TABLE " + escapeTableName(table.getName()) + " (" + createColumnsSQL(table.getColumns(),
-                  table.getPrimaryKey(), table.getForeignKeys()) + ")";
+                return new StringBuilder().append("CREATE TABLE ").append(escapeTableName(table.getName())).append(" (")
+                  .append(createColumnsSQL(table.getColumns(), table.getPrimaryKey(), table.getForeignKeys()))
+                  .append(")").toString();
         }
 
         protected String createColumnsSQL(List<ColumnStructure> columns, PrimaryKey pkey, List<ForeignKey> fkeys)
@@ -118,8 +119,16 @@ public class SQLHelper {
 
         protected String createColumnSQL(ColumnStructure column, boolean isPrimaryKey, boolean isForeignKey)
           throws UnknownTypeException {
-                return escapeColumnName(column.getName()) + " " + createTypeSQL(column.getType(), isPrimaryKey,
-                  isForeignKey) + (column.isNillable() == null || column.isNillable() ? " NULL" : " NOT NULL");
+                StringBuilder result = new StringBuilder().append(escapeColumnName(column.getName())).append(" ")
+                  .append(createTypeSQL(column.getType(), isPrimaryKey, isForeignKey));
+
+                if (column.isNillable() != null && !column.isNillable()) {
+                        result.append(" NOT");
+                }
+
+                result.append(" NULL");
+
+                return result.toString();
         }
 
         /**

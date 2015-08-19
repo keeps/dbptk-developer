@@ -136,6 +136,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
                         type.setSql99TypeName("BIT VARYING(2040)");
                 } else if (typeName.equalsIgnoreCase("BIT")) {
                         type.setSql99TypeName("BIT", columnSize);
+                        type.setOriginalTypeName(typeName, columnSize);
                 } else {
                         type.setSql99TypeName("BIT", columnSize * 8);
                 }
