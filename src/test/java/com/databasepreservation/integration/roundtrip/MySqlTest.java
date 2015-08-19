@@ -69,10 +69,14 @@ import java.util.Set;
 //                tests.add(new String[] {singleTypeAndValue, "NUMERIC", "123"});
                 tests.add(new String[]{singleTypeAndValue, "FLOAT", "12345.123"});
                 tests.add(new String[]{singleTypeAndValue, "FLOAT", "123456789012"});
-                tests.add(new String[]{singleTypeAndValue, "FLOAT(12)", "12345.123"});
-                tests.add(new String[]{singleTypeAndValue, "FLOAT(12,0)", "12345.123"});
-                tests.add(new String[]{singleTypeAndValue, "FLOAT(53)", "12345.123"});
-//                //tests.add(new String[]{singleTypeAndValue, "DOUBLE", "1234567890.12345"});
+                tests.add(new String[]{singleTypeAndValue, "FLOAT(9)", "12345.123"}); //in mysql, this creates a float(12,0)
+                tests.add(new String[]{singleTypeAndValue, "FLOAT(12)", "12345.123"}); //in mysql, this creates a float(12,0)
+                tests.add(new String[]{singleTypeAndValue, "FLOAT(12,0)", "12345.123"}); //in mysql, this creates a float(12,0)
+                tests.add(new String[]{singleTypeAndValue, "FLOAT(53)", "12345.123"}); //in mysql, this creates a double(22,0)
+                tests.add(new String[]{singleTypeAndValue, "FLOAT(8,3)", "12345.123"}); //in mysql, this creates a float(8,3)
+                tests.add(new String[]{singleTypeAndValue, "DOUBLE", "1234567890.12345"});
+                tests.add(new String[]{singleTypeAndValue, "DOUBLE(22,0)", "1234567890.12345"});
+                tests.add(new String[]{singleTypeAndValue, "DOUBLE(10,2)", "1234567890.12345"});
 //                tests.add(new String[] {singleTypeAndValue, "BIT(1)", "b'1'"});
 //                //tests.add(new String[]{singleTypeAndValue, "BIT(64)", "b'10101010101010101010101010101010101010101010101010101010101'"});
 //                tests.add(new String[] {singleTypeAndValue, "DATE", "'9999-12-31'"});

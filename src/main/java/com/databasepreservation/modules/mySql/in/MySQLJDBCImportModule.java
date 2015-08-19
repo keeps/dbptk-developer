@@ -9,6 +9,7 @@ import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
+import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.mySql.MySQLHelper;
@@ -103,16 +104,28 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
         }
 
         @Override protected Type getRealType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-                Type type = new SimpleTypeNumericApproximate(columnSize);
-                if (columnSize == 12) {
+                Type type;
+
+                if (columnSize == 12 && decimalDigits == 0) {
+                        type = new SimpleTypeNumericApproximate(columnSize);
                         type.setSql99TypeName("REAL");
                 } else {
-                        if (columnSize > 1) {
-                                type.setSql99TypeName("FLOAT", columnSize);
-                        } else {
-                                type.setSql99TypeName("FLOAT");
-                        }
+                        type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
                 }
+
+                return type;
+        }
+
+        @Override protected Type getDoubleType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+                Type type;
+
+                if (columnSize == 22 && decimalDigits == 0) {
+                        type = new SimpleTypeNumericApproximate(columnSize);
+                        type.setSql99TypeName("DOUBLE PRECISION");
+                } else {
+                        type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
+                }
+
                 return type;
         }
 
@@ -134,6 +147,19 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
           int numPrecRadix) {
                 Type type = new SimpleTypeBinary(columnSize);
                 type.setSql99TypeName("BIT VARYING", columnSize * 8);
+                return type;
+        }
+
+        @Override protected Type getFloatType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+                Type type;
+
+                if (columnSize == 12 && decimalDigits == 0) {
+                        type = new SimpleTypeNumericApproximate(columnSize);
+                        type.setSql99TypeName("FLOAT");
+                } else {
+                        type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
+                }
+
                 return type;
         }
 }

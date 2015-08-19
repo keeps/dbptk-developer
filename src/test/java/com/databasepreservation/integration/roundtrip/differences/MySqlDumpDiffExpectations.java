@@ -35,6 +35,21 @@ public class MySqlDumpDiffExpectations extends DumpDiffExpectations {
                 // float(12,0) -> float
                 directReplacements
                   .add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)float\\(12,0\\)(?=\\W)"), "float"));
+
+                // float(N,M) -> decimal(N,M)
+                //   where N != 12 and M != 0 (ensured by the order of the patterns in the ArrayList)
+                directReplacements
+                  .add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)float\\((\\d+),(\\d+)\\)(?=\\W)"),
+                    "decimal($1,$2)"));
+
+                // double(22,0) -> float
+                directReplacements
+                  .add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)double\\(22,0\\)(?=\\W)"), "double"));
+
+                // double(N,M) -> decimal(N,M)
+                //   where N != 22 and M != 0 (ensured by the order of the patterns in the ArrayList)
+                directReplacements
+                  .add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)double\\((\\d+),(\\d+)\\)(?=\\W)"), "decimal($1,$2)"));
         }
 
         @Override protected String expectedTargetDatabaseDump(String source) {

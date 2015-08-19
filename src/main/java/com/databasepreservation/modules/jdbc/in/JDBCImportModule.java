@@ -719,12 +719,7 @@ public class JDBCImportModule implements DatabaseImportModule {
                                 type = getDoubleType(typeName, columnSize, decimalDigits, numPrecRadix);
                                 break;
                         case Types.FLOAT:
-                                type = new SimpleTypeNumericApproximate(columnSize);
-                                if (columnSize > 1) {
-                                        type.setSql99TypeName("FLOAT", columnSize);
-                                } else {
-                                        type.setSql99TypeName("FLOAT");
-                                }
+                                type = getFloatType(typeName, columnSize, decimalDigits, numPrecRadix);
                                 break;
                         case Types.INTEGER:
                                 type = new SimpleTypeNumericExact(columnSize, decimalDigits);
@@ -863,6 +858,12 @@ public class JDBCImportModule implements DatabaseImportModule {
         protected Type getDoubleType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
                 Type type = new SimpleTypeNumericApproximate(columnSize);
                 type.setSql99TypeName("DOUBLE PRECISION");
+                return type;
+        }
+
+        protected Type getFloatType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+                Type type = new SimpleTypeNumericApproximate(columnSize);
+                type.setSql99TypeName("FLOAT");
                 return type;
         }
 
