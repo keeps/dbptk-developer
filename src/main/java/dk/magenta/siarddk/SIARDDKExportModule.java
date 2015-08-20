@@ -18,7 +18,7 @@ import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy
 import com.databasepreservation.modules.siard.out.write.FolderWriteStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
-import dk.magenta.common.StandardMarshallerGenerator;
+import dk.magenta.common.StandardSIARDMarshaller;
 
 public class SIARDDKExportModule {
 
@@ -32,7 +32,7 @@ public class SIARDDKExportModule {
 		mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.INSIDE_ARCHIVE);
 		writeStrategy = new FolderWriteStrategy();
 		contentPathExportStrategy = new SIARDDKContentExportPathStrategy();
-		metadataExportStrategy = new SIARDDKMetadataExportStrategy(writeStrategy, new StandardMarshallerGenerator());
+		metadataExportStrategy = new SIARDDKMetadataExportStrategy(writeStrategy, new StandardSIARDMarshaller());
 		contentExportStrategy = new SIARDDKContentExportStrategy(contentPathExportStrategy, writeStrategy, mainContainer);
 	}
 	

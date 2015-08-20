@@ -1,25 +1,17 @@
 package dk.magenta.siarddk;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.xml.sax.SAXException;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -36,7 +28,7 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
-import dk.magenta.common.MarshallerGenerator;
+import dk.magenta.common.SIARDMarshaller;
 import dk.magenta.siarddk.tableindex.ColumnType;
 import dk.magenta.siarddk.tableindex.ColumnsType;
 import dk.magenta.siarddk.tableindex.ForeignKeyType;
@@ -51,14 +43,12 @@ import dk.magenta.siarddk.tableindex.ViewsType;
 
 public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
-	private static final String ENCODING = "UTF-8";
-	private static final String SCHEMA_LOCATION = "/siarddk/tableIndex.xsd";
 	private WriteStrategy writeStrategy;
-	private MarshallerGenerator marshallerGenerator;
+	private SIARDMarshaller siardMarshaller;
 	
-	public SIARDDKMetadataExportStrategy(WriteStrategy writeStrategy, MarshallerGenerator marshallerGenerator) {
+	public SIARDDKMetadataExportStrategy(WriteStrategy writeStrategy, SIARDMarshaller siardMarshaller) {
 		this.writeStrategy = writeStrategy;
-		this.marshallerGenerator = marshallerGenerator;
+		this.siardMarshaller = siardMarshaller;
 	}
 	
 	@Override
@@ -233,21 +223,13 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 			throw new ModuleException("No schemas in database structure!");
 		}
 		
-		
-		Marshaller marshaller = marshallerGenerator.generateMarshaller("dk.magenta.siarddk.tableindex", 
+		OutputStream writer = writeStrategy.createOutputStream(outputContainer, "Indices/tableIndex.xml");		
+		siardMarshaller.marshal("dk.magenta.siarddk.tableindex", 
 				"/siarddk/tableIndex.xsd",
-				"http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/tableIndex.xsd");
-					
-		OutputStream writer = writeStrategy.createOutputStream(outputContainer, "Indices/tableIndex.xml");
-		try {
-			marshaller.marshal(siardDiark, writer);
-			writer.close();
-		} catch (JAXBException e) {
-			throw new ModuleException("Error while marshalling JAXB", e);
-		} catch (IOException e) {
-			throw new ModuleException("Could not close writer", e);
-		}
-	
+				"http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/tableIndex.xsd",
+				writer,
+				siardDiark);
+		
 	}
 	
 	@Override
