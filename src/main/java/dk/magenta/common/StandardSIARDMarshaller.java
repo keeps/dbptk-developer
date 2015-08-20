@@ -61,10 +61,7 @@ public class StandardSIARDMarshaller implements SIARDMarshaller {
 			m.setSchema(xsdSchema);
 
 			m.marshal(jaxbElement, writer);
-			writer.close();
 
-		} catch (IOException e) {
-			throw new ModuleException("Could not close writer", e);
 		} catch (JAXBException e) {
 			throw new ModuleException("Error while Marshalling JAXB", e);
 		}
