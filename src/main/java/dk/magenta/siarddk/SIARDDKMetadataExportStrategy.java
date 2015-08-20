@@ -36,6 +36,7 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
+import dk.magenta.common.MarshallerGenerator;
 import dk.magenta.siarddk.tableindex.ColumnType;
 import dk.magenta.siarddk.tableindex.ColumnsType;
 import dk.magenta.siarddk.tableindex.ForeignKeyType;
@@ -53,9 +54,11 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 	private static final String ENCODING = "UTF-8";
 	private static final String SCHEMA_LOCATION = "/siarddk/tableIndex.xsd";
 	private WriteStrategy writeStrategy;
+	private MarshallerGenerator marshallerGenerator;
 	
-	public SIARDDKMetadataExportStrategy(WriteStrategy writeStrategy) {
+	public SIARDDKMetadataExportStrategy(WriteStrategy writeStrategy, MarshallerGenerator marshallerGenerator) {
 		this.writeStrategy = writeStrategy;
+		this.marshallerGenerator = marshallerGenerator;
 	}
 	
 	@Override
@@ -231,64 +234,20 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 		}
 		
 		
-		
-		
-		
-		// Set up JAXB marshaller 
-		
-		JAXBContext context;
+		Marshaller marshaller = marshallerGenerator.generateMarshaller("dk.magenta.siarddk.tableindex", 
+				"/siarddk/tableIndex.xsd",
+				"http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/tableIndex.xsd");
+					
+		OutputStream writer = writeStrategy.createOutputStream(outputContainer, "Indices/tableIndex.xml");
 		try {
-			context = JAXBContext.newInstance("dk.magenta.siarddk.tableindex");
-		} catch (JAXBException e) {
-			throw new ModuleException("Error loading JAXBContent", e);
-		}
-		
-		SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-		Schema xsdSchema = null;
-		try {
-			InputStream in = this.getClass().getResourceAsStream(SCHEMA_LOCATION);
-			xsdSchema = schemaFactory.newSchema(new StreamSource(in));
-			in.close();
-			// xsdSchema = schemaFactory.newSchema(Paths.get(getClass().getResource(SCHEMA_LOCATION).getPath()).toFile());
-		} catch (SAXException e) {
-			throw new ModuleException("XSD file has errors: " + getClass().getResource(SCHEMA_LOCATION).getPath(), e);
-		} catch (IOException e) {
-			throw new ModuleException("Could not close inputstream", e);
-		}
-
-		Marshaller m;
-		
-		try {
-			m = context.createMarshaller();
-			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-		    m.setProperty(Marshaller.JAXB_ENCODING, ENCODING);
-			m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/tableIndex.xsd");
-
-			m.setSchema(xsdSchema);
-
-			// m.marshal(siardDiark, System.out);
-			
-			OutputStream writer = writeStrategy.createOutputStream(outputContainer, "Indices/tableIndex.xml");
-			m.marshal(siardDiark, writer);
+			marshaller.marshal(siardDiark, writer);
 			writer.close();
-			
-//		} catch (MarshalException e) {
-//
-//			if (e.getLinkedException() instanceof SAXParseException) {
-//				System.out.println("hurra");
-//				SAXParseException sax = (SAXParseException) e.getLinkedException();
-//				System.out.print(sax.getLineNumber());
-//			}
-//			// System.out.println(e.getLinkedException().getMessage());
-			
 		} catch (JAXBException e) {
-			throw new ModuleException("Error while Marshalling JAXB", e);
+			throw new ModuleException("Error while marshalling JAXB", e);
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new ModuleException("Could not close writer", e);
 		}
-
-
-		
+	
 	}
 	
 	@Override

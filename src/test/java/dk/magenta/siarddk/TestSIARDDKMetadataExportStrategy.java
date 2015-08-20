@@ -9,11 +9,13 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.write.FolderWriteStrategy;
 
+import dk.magenta.common.StandardMarshallerGenerator;
+
 public class TestSIARDDKMetadataExportStrategy {
 
 	@Test
 	public void testMarshaller() throws ModuleException {
-		MetadataExportStrategy metadataExportStrategy = new SIARDDKMetadataExportStrategy(new FolderWriteStrategy());
+		MetadataExportStrategy metadataExportStrategy = new SIARDDKMetadataExportStrategy(new FolderWriteStrategy(), new StandardMarshallerGenerator());
 		metadataExportStrategy.writeMetadataXML(null, null);
 	}
 	
