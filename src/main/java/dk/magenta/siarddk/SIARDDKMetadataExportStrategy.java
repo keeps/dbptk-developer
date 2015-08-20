@@ -25,16 +25,11 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
 	private WriteStrategy writeStrategy;
 	private SIARDMarshaller siardMarshaller;
-
-	// private List<IndexFileStrategy> indexFiles;
-
+	
 	public SIARDDKMetadataExportStrategy(WriteStrategy writeStrategy,
 			SIARDMarshaller siardMarshaller) {
 		this.writeStrategy = writeStrategy;
 		this.siardMarshaller = siardMarshaller;
-
-		// indexFiles = new ArrayList<IndexFileStrategy>();
-		// indexFiles.add(new TableIndexFileStrategy());
 	}
 
 	@Override

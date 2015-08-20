@@ -278,8 +278,9 @@ public class Main {
 		
 		else if (exportModuleArgs.get(0).equals("SIARDDK")) {
 			// TO-DO: do not use hard-coded path
-			Path path = FileSystems.getDefault().getPath("/tmp", "AVID.SA.19000.1");
-			exportModule = new SIARDDKExportModule(path, false).getDatabaseHandler();
+			Path rootPath = FileSystems.getDefault().getPath("/tmp", "AVID.SA.19000.1");
+			
+			exportModule = new SIARDDKExportModule(rootPath, exportModuleArgs).getDatabaseHandler();
 		}
 
 		

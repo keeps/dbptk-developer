@@ -8,6 +8,7 @@
 package dk.magenta.siarddk;
 
 import java.nio.file.Path;
+import java.util.List;
 
 import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
@@ -27,13 +28,16 @@ public class SIARDDKExportModule {
 	private ContentExportStrategy contentExportStrategy;
 	private WriteStrategy writeStrategy;
 	private ContentPathExportStrategy contentPathExportStrategy;
+	private List<String> exportModuleArgs;
 	
-	public SIARDDKExportModule(Path siardPackage, boolean compressZip) {
+	public SIARDDKExportModule(Path siardPackage, List<String> exportModuleArgs) {
 		mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.INSIDE_ARCHIVE);
 		writeStrategy = new FolderWriteStrategy();
 		contentPathExportStrategy = new SIARDDKContentExportPathStrategy();
 		metadataExportStrategy = new SIARDDKMetadataExportStrategy(writeStrategy, new StandardSIARDMarshaller());
 		contentExportStrategy = new SIARDDKContentExportStrategy(contentPathExportStrategy, writeStrategy, mainContainer);
+		
+		this.exportModuleArgs = exportModuleArgs;
 	}
 	
 	public DatabaseHandler getDatabaseHandler() {
