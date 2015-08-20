@@ -3,13 +3,14 @@
  */
 package com.databasepreservation.modules.mySql.in;
 
+import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
-import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.mySql.MySQLHelper;
@@ -162,5 +163,26 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
                 }
 
                 return type;
+        }
+
+        @Override protected Type getDateType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+                if (typeName.equals("YEAR")) {
+                        return getNumericType(typeName, 4, decimalDigits, numPrecRadix);
+                } else {
+                        return super.getDateType(typeName, columnSize, decimalDigits, numPrecRadix);
+                }
+        }
+
+        @Override protected Cell rawToCellSimpleTypeNumericExact(String id, String columnName, Type cellType,
+          ResultSet rawData) throws SQLException {
+                if (cellType.getOriginalTypeName().equals("YEAR")) {
+                        // for inputs 15, 2015, 99 and 1999
+                        // rawData.getInt returns numbers like 15, 2015, 99, 1999
+                        // rawData.getString returns dates like 2015-01-01, 2015-01-01, 1999-01-01, 1999-01-01
+                        // to get the "real" year value, using the first 4 characters from the date string
+                        return new SimpleCell(id, rawData.getString(columnName).substring(0, 4));
+                } else {
+                        return super.rawToCellSimpleTypeNumericExact(id, columnName, cellType, rawData);
+                }
         }
 }

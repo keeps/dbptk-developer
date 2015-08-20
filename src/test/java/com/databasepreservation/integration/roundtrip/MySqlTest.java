@@ -79,14 +79,27 @@ import java.util.Set;
 //                tests.add(new String[]{singleTypeAndValue, "DOUBLE(22,0)", "1234567890.12345"});
 //                tests.add(new String[]{singleTypeAndValue, "DOUBLE(10,2)", "1234567890.12345"});
 //                tests.add(new String[] {singleTypeAndValue, "BIT(1)", "b'1'"});
-                tests.add(new String[] {singleTypeAndValue, "BIT", "b'1'"});
-                tests.add(new String[] {singleTypeAndValue, "BIT(1)", "b'0'"});
-                tests.add(new String[] {singleTypeAndValue, "BIT(5)", "b'11111'"});
-                tests.add(new String[]{singleTypeAndValue, "BIT(64)", "b'" + StringUtils.repeat("1001", 16) + "'"});
+//                tests.add(new String[] {singleTypeAndValue, "BIT", "b'1'"});
+//                tests.add(new String[] {singleTypeAndValue, "BIT(1)", "b'0'"});
+//                tests.add(new String[] {singleTypeAndValue, "BIT(5)", "b'11111'"});
+//                tests.add(new String[]{singleTypeAndValue, "BIT(64)", "b'" + StringUtils.repeat("1001", 16) + "'"});
 //                tests.add(new String[] {singleTypeAndValue, "DATE", "'9999-12-31'"});
+//                tests.add(new String[] {singleTypeAndValue, "DATE", "'2015-01-01'"});
 //                tests.add(new String[] {singleTypeAndValue, "DATETIME", "'9999-12-31 23:59:59.999999'"});
 //                tests.add(new String[] {singleTypeAndValue, "TIMESTAMP", "'2038-01-19 03:14:07.999999'"});
-//                //tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "'2015'"});
+                //tests.add(new String[]{singleTypeAndValue, "YEAR(2)", "'15'"}); // difficult to make the test pass, because the value is changed from 15 to 2015
+                //tests.add(new String[]{singleTypeAndValue, "YEAR(2)", "5"}); // difficult to make the test pass, because the value is changed from 15 to 2015
+                //tests.add(new String[]{singleTypeAndValue, "YEAR(2)", "2015"}); // difficult to make the test pass, because the value is changed from 15 to 2015
+                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "2015"});
+                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "'0'"});// becomes 2000, zero is not allowed as number
+                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "1"}); // becomes 2001
+                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "'1'"});
+                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "99"}); // becomes 1999
+                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "'99'"});
+                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "70"}); // becomes 1970
+                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "'70'"});
+                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "69"}); // becomes 2069
+                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "'69'"});
 //                //tests.add(new String[]{singleTypeAndValue, "CHAR(255)", "NULL"});
 //                tests.add(new String[] {singleTypeAndValue, "VARCHAR(1024)", "NULL"});
 //                //tests.add(new String[]{singleTypeAndValue, "BINARY(255)", "NULL"});

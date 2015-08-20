@@ -708,8 +708,7 @@ public class JDBCImportModule implements DatabaseImportModule {
                                 type.setSql99TypeName("CHARACTER LARGE OBJECT");
                                 break;
                         case Types.DATE:
-                                type = new SimpleTypeDateTime(false, false);
-                                type.setSql99TypeName("DATE");
+                                type = getDateType(typeName, columnSize, decimalDigits, numPrecRadix);
                                 break;
                         case Types.DECIMAL:
                                 type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
@@ -833,6 +832,12 @@ public class JDBCImportModule implements DatabaseImportModule {
                 Type type = new SimpleTypeBinary(columnSize);
                 type.setSql99TypeName("BIT");
                 type.setOriginalTypeName(typeName, columnSize);
+                return type;
+        }
+
+        protected Type getDateType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+                Type type = new SimpleTypeDateTime(false, false);
+                type.setSql99TypeName("DATE");
                 return type;
         }
 
@@ -1338,10 +1343,17 @@ public class JDBCImportModule implements DatabaseImportModule {
                         cell = rawToCellSimpleTypeBinary(id, columnName, cellType, rawData);
                 } else if (cellType instanceof UnsupportedDataType) {
                         cell = new SimpleCell(id, rawData.getString(columnName));
+                } else if (cellType instanceof SimpleTypeNumericExact) {
+                        cell = rawToCellSimpleTypeNumericExact(id, columnName, cellType, rawData);
                 } else {
                         cell = new SimpleCell(id, rawData.getString(columnName));
                 }
                 return cell;
+        }
+
+        protected Cell rawToCellSimpleTypeNumericExact(String id, String columnName, Type cellType, ResultSet rawData)
+          throws SQLException {
+                return new SimpleCell(id, rawData.getString(columnName));
         }
 
         protected List<Cell> parseArray(String baseid, Array array) throws SQLException, InvalidDataException {
