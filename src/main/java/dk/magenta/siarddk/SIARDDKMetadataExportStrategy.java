@@ -25,11 +25,14 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
 	private WriteStrategy writeStrategy;
 	private SIARDMarshaller siardMarshaller;
-	
+	private SIARDDKExportModule siarddkExportModule;
+
 	public SIARDDKMetadataExportStrategy(WriteStrategy writeStrategy,
-			SIARDMarshaller siardMarshaller) {
+			SIARDMarshaller siardMarshaller,
+			SIARDDKExportModule siarddkExportModule) {
 		this.writeStrategy = writeStrategy;
 		this.siardMarshaller = siardMarshaller;
+		this.siarddkExportModule = siarddkExportModule;
 	}
 
 	@Override

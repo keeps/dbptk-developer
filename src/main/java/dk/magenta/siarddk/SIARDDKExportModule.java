@@ -34,7 +34,7 @@ public class SIARDDKExportModule {
 		mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.INSIDE_ARCHIVE);
 		writeStrategy = new FolderWriteStrategy();
 		contentPathExportStrategy = new SIARDDKContentExportPathStrategy();
-		metadataExportStrategy = new SIARDDKMetadataExportStrategy(writeStrategy, new StandardSIARDMarshaller());
+		metadataExportStrategy = new SIARDDKMetadataExportStrategy(writeStrategy, new StandardSIARDMarshaller(), this);
 		contentExportStrategy = new SIARDDKContentExportStrategy(contentPathExportStrategy, writeStrategy, mainContainer);
 		
 		this.exportModuleArgs = exportModuleArgs;
@@ -43,4 +43,9 @@ public class SIARDDKExportModule {
 	public DatabaseHandler getDatabaseHandler() {
 		return new SIARDExportDefault(contentExportStrategy, mainContainer, writeStrategy, metadataExportStrategy);
 	}
+	
+	public List<String> getExportModuleArgs() {
+		return exportModuleArgs;
+	}
+	
 }
