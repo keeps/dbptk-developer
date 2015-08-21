@@ -1,5 +1,6 @@
 package com.databasepreservation.integration.roundtrip.differences;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
@@ -14,6 +15,11 @@ public class PostgreSqlDumpDiffExpectations extends DumpDiffExpectations {
 
         static {
                 directReplacements = new ArrayList<Pair<Pattern, String>>();
+
+                // "char" -> character(1)
+                directReplacements.add(
+                  new ImmutablePair<Pattern, String>(Pattern.compile("(?<= )\"char\"(?= )"),
+                    "character(1)"));
         }
 
         @Override protected String expectedTargetDatabaseDump(String source) {
