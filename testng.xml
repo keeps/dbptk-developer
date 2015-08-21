@@ -1,7 +1,7 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="TheSuite" verbose="0" parallel="methods" thread-count="5">
-    <test name="Testing">
+<suite name="TheSuite" verbose="0">
+    <test name="Testing" parallel="classes" thread-count="5">
         <groups>
             <!-- All the tests -->
             <define name="all">

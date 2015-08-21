@@ -20,12 +20,12 @@ import java.util.Iterator;
 import java.util.Set;
 
 @Test(groups = {"postgresql-siard1"}) public class PostgreSqlTest {
-        final String db_source = "dpttest";
-        final String db_target = "dpttest_siard";
-        final String db_tmp_username = "dpttest";
-        final String db_tmp_password = RandomStringUtils.randomAlphabetic(10);
-        File tmpFile;
-        Roundtrip rt;
+        private final String db_source = "dpttest";
+        private final String db_target = "dpttest_siard";
+        private final String db_tmp_username = "dpttest";
+        private final String db_tmp_password = RandomStringUtils.randomAlphabetic(10);
+        private File tmpFile;
+        private Roundtrip rt;
 
         @BeforeClass public void setup() throws IOException, InterruptedException, URISyntaxException {
                 HashMap<String, String> env_var_source = new HashMap<String, String>();

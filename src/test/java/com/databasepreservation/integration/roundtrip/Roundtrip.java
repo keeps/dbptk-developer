@@ -24,7 +24,7 @@ import java.util.Map.Entry;
 public class Roundtrip {
         public static final String TMP_FILE_SIARD_VAR = "%TMP_FILE_SIARD%";
 
-        private static final Logger logger = Logger.getLogger(Roundtrip.class);
+        private final Logger logger = Logger.getLogger(Roundtrip.class);
         // constants
         private final String db_source = "dpttest";
         private final String db_target = "dpttest_siard";
