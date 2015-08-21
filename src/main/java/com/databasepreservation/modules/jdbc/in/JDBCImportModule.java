@@ -697,6 +697,7 @@ public class JDBCImportModule implements DatabaseImportModule {
                         case Types.CHAR:
                                 type = new SimpleTypeString(columnSize, false);
                                 type.setSql99TypeName("CHARACTER", columnSize);
+                                type.setOriginalTypeName("CHARACTER", columnSize);
                                 break;
                         case Types.NCHAR:
                                 // TODO add charset

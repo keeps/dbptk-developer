@@ -58,6 +58,7 @@ import java.util.Set;
                 String singleTypeAndValue = "CREATE TABLE datatypes (col1 %s);\nINSERT INTO datatypes(col1) VALUES(%s);";
                 ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
+                //TODO: test NULL
 //                tests.add(new String[]{singleTypeAndValue, "TINYINT(10)", "1"}); // the number inside parentheses is the display width, does not affect datatype size and is ignored
 //                tests.add(new String[]{singleTypeAndValue, "TINYINT", "1"});
 //                tests.add(new String[] {singleTypeAndValue, "SMALLINT", "123"});
@@ -90,20 +91,29 @@ import java.util.Set;
                 //tests.add(new String[]{singleTypeAndValue, "YEAR(2)", "'15'"}); // difficult to make the test pass, because the value is changed from 15 to 2015
                 //tests.add(new String[]{singleTypeAndValue, "YEAR(2)", "5"}); // difficult to make the test pass, because the value is changed from 15 to 2015
                 //tests.add(new String[]{singleTypeAndValue, "YEAR(2)", "2015"}); // difficult to make the test pass, because the value is changed from 15 to 2015
-                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "2015"});
-                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "'0'"});// becomes 2000, zero is not allowed as number
-                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "1"}); // becomes 2001
-                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "'1'"});
-                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "99"}); // becomes 1999
-                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "'99'"});
-                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "70"}); // becomes 1970
-                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "'70'"});
-                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "69"}); // becomes 2069
-                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "'69'"});
-//                //tests.add(new String[]{singleTypeAndValue, "CHAR(255)", "NULL"});
+//                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "2015"});
+//                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "'0'"});// becomes 2000, zero is not allowed as number
+//                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "1"}); // becomes 2001
+//                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "'1'"});
+//                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "99"}); // becomes 1999
+//                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "'99'"});
+//                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "70"}); // becomes 1970
+//                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "'70'"});
+//                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "69"}); // becomes 2069
+//                tests.add(new String[]{singleTypeAndValue, "YEAR(4)", "'69'"});
+                //TODO: tests character sets and collations
+                tests.add(new String[]{singleTypeAndValue, "CHAR(0)", "NULL"});
+                //tests.add(new String[]{singleTypeAndValue, "CHAR(0) NOT NULL", "''"}); //fixme: for empty strings, the value becomes null
+                tests.add(new String[]{singleTypeAndValue, "CHAR(3)", "'abc'"});
+                tests.add(new String[]{singleTypeAndValue, "CHAR(253)", "NULL"});
+                tests.add(new String[]{singleTypeAndValue, "CHAR(253) NOT NULL", "'" + StringUtils.repeat("asdf", 64) + "'"});
+                tests.add(new String[]{singleTypeAndValue, "CHAR(255)", "NULL"});
+                tests.add(new String[]{singleTypeAndValue, "CHAR(255) NOT NULL", "'" + StringUtils.repeat("asdf", 64) + "'"});
+                //tests.add(new String[]{singleTypeAndValue, "CHAR(255) NOT NULL", "''"}); //fixme: similar to CHAR(0) NOT NULL
 //                tests.add(new String[] {singleTypeAndValue, "VARCHAR(1024)", "NULL"});
 //                //tests.add(new String[]{singleTypeAndValue, "BINARY(255)", "NULL"});
 //                //tests.add(new String[]{singleTypeAndValue, "VARBINARY(1024)", "NULL"});
+                // http://stackoverflow.com/questions/6766781/maximum-length-for-mysql-type-text
 //                tests.add(new String[] {singleTypeAndValue, "TINYBLOB", "NULL"});
 //                tests.add(new String[] {singleTypeAndValue, "BLOB", "NULL"});
 //                tests.add(new String[] {singleTypeAndValue, "MEDIUMBLOB", "NULL"});

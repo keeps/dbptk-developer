@@ -84,7 +84,7 @@ public class MySQLHelper extends SQLHelper {
                                         ret = "varchar(" + string.getLength() + ")";
                                 }
                         } else {
-                                if (string.getLength().intValue() >= 255) {
+                                if (string.getLength().intValue() > 255) {
                                         ret = "text";
                                 } else {
                                         ret = "char(" + string.getLength() + ")";
