@@ -1,5 +1,37 @@
 package com.databasepreservation.modules.siard.out.metadata;
 
+import ch.admin.bar.xmlns.siard._1_0.metadata.ActionTimeType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.CandidateKeyType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.CandidateKeysType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.CheckConstraintType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.CheckConstraintsType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.ColumnType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.ColumnsType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.ForeignKeyType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.ForeignKeysType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.MatchTypeType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.ParameterType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.ParametersType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.PrimaryKeyType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.PrivOptionType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.PrivilegeType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.PrivilegesType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.ReferenceType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.RoleType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.RolesType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.RoutineType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.RoutinesType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.SchemaType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.SchemasType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.SiardArchive;
+import ch.admin.bar.xmlns.siard._1_0.metadata.TableType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.TablesType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.TriggerType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.TriggersType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.UserType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.UsersType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.ViewType;
+import ch.admin.bar.xmlns.siard._1_0.metadata.ViewsType;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
@@ -19,41 +51,10 @@ import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.modules.siard.SIARDHelper;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.ActionTimeType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.CandidateKeyType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.CandidateKeysType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.CheckConstraintType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.CheckConstraintsType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.ColumnType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.ColumnsType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.ForeignKeyType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.ForeignKeysType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.MatchTypeType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.ParameterType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.ParametersType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.PrimaryKeyType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.PrivOptionType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.PrivilegeType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.PrivilegesType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.ReferenceType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.RoleType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.RolesType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.RoutineType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.RoutinesType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.SchemaType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.SchemasType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.SiardArchive;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.TableType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.TablesType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.TriggerType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.TriggersType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.UserType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.UsersType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.ViewType;
-import com.databasepreservation.modules.siard.common.jaxb.siard1.ViewsType;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
+import com.databasepreservation.utils.JodaUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.xml.sax.SAXException;
@@ -79,7 +80,7 @@ import java.util.List;
  */
 public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
         private static final String ENCODING = "UTF-8";
-        private static final String METADATA_XSD_RESOURCE_PATH = "/schema/siard1.xsd";
+        private static final String METADATA_XSD_RESOURCE_PATH = "/schema/siard1-metadata.xsd";
         private final Logger logger = Logger.getLogger(SIARD1MetadataExportStrategy.class);
         private final ContentPathExportStrategy contentPathStrategy;
         private final MetadataPathStrategy metadataPathStrategy;
@@ -94,7 +95,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
           WriteStrategy writeStrategy) throws ModuleException {
                 JAXBContext context;
                 try {
-                        context = JAXBContext.newInstance("com.databasepreservation.modules.siard.common.jaxb.siard1");
+                        context = JAXBContext.newInstance(SiardArchive.class.getPackage().getName());
                 } catch (JAXBException e) {
                         throw new ModuleException("Error loading JAXBContext", e);
                 }
@@ -161,7 +162,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
         private SiardArchive jaxbSiardArchive(DatabaseStructure db) throws ModuleException {
                 SiardArchive elem = new SiardArchive();
-                elem.setArchivalDate(db.getArchivalDate());
+                elem.setArchivalDate(JodaUtils.xs_date_format(db.getArchivalDate()));
 
                 elem.setVersion("1.0");
 
@@ -198,7 +199,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
                 }
 
                 if (db.getArchivalDate() != null) {
-                        elem.setArchivalDate(db.getArchivalDate());
+                        elem.setArchivalDate(JodaUtils.xs_date_format(db.getArchivalDate()));
                 }
 
                 //TODO: use some kind of message digest

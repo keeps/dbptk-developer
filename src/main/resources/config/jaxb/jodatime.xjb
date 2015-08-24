@@ -4,8 +4,8 @@
               version="2.1">
     <jxb:globalBindings>
         <!-- use JODA-Time DateTime for xs:date -->
-        <jxb:javaType name="org.joda.time.DateTime" xmlType="xs:date"
-                      parseMethod="com.databasepreservation.utils.JodaUtils.xs_date_parse"
-                      printMethod="com.databasepreservation.utils.JodaUtils.xs_date_format"/>
+        <jxb:javaType name="java.lang.String" xmlType="xs:date"
+                      parseMethod="java.lang.String.valueOf"
+                      printMethod="java.lang.String.valueOf"/>
     </jxb:globalBindings>
 </jxb:bindings>
