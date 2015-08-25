@@ -7,7 +7,6 @@ import org.apache.commons.compress.archivers.zip.ZipFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -57,8 +56,8 @@ public class ZipReadStrategy implements ReadStrategy {
                 }
         }
 
-        @Override public CloseableIterable<String> getFilepathStream(SIARDArchiveContainer container,
-          Path baseDirectory) throws ModuleException {
+        @Override public CloseableIterable<String> getFilepathStream(SIARDArchiveContainer container)
+          throws ModuleException {
                 List<String> list = new ArrayList<String>();
                 final Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
 
