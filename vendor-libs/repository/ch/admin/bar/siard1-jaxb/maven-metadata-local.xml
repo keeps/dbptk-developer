@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata>
-    <groupId>ch.admin.bar</groupId>
-    <artifactId>siard1-jaxb</artifactId>
-    <versioning>
-        <release>1.0.0</release>
-        <versions>
-            <version>1.0.0</version>
-        </versions>
-        <lastUpdated>20150824165419</lastUpdated>
-    </versioning>
+  <groupId>ch.admin.bar</groupId>
+  <artifactId>siard1-jaxb</artifactId>
+  <versioning>
+    <release>1.0.1</release>
+    <versions>
+      <version>1.0.1</version>
+    </versions>
+    <lastUpdated>20150825105451</lastUpdated>
+  </versioning>
 </metadata>
