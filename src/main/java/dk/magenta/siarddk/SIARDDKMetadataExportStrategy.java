@@ -39,6 +39,8 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 	public void writeMetadataXML(DatabaseStructure dbStructure,
 			SIARDArchiveContainer outputContainer) throws ModuleException {
 
+		// Generate tableIndex.xml
+
 		try {
 			IndexFileStrategy tableIndexFileStrategy = new TableIndexFileStrategy();
 			OutputStream writer = writeStrategy.createOutputStream(
@@ -53,7 +55,21 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 			writer.close();
 		} catch (IOException e) {
 			throw new ModuleException(
-					"Error writing the metadata XML files to the archive.", e);
+					"Error writing tableIndex.xml to the archive.", e);
+		}
+
+		
+		// Generate archiveIndex.xml
+
+		try {
+			OutputStream writer = writeStrategy.createOutputStream(
+					outputContainer, "Indices/archiveIndex.xml");
+			IndexFileStrategy archiveIndexFileStrategy = new ArchiveIndexFileStrategy(
+					siarddkExportModule, writer);
+			archiveIndexFileStrategy.generateXML(null);
+			writer.close();
+		} catch (IOException e) {
+			throw new ModuleException("Error writing archiveIndex.xml to the archive");
 		}
 
 	}
