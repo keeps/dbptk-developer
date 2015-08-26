@@ -17,8 +17,6 @@ public class SIARD1ContentPathImportStrategy implements ContentPathImportStrateg
         // extensions for files
         private static final String XML_EXTENSION = "xml";
         private static final String XSD_EXTENSION = "xsd";
-        private static final String CLOB_EXTENSION = "txt";
-        private static final String BLOB_EXTENSION = "bin";
 
         // control characters
         private static final String FILE_SEPARATOR = File.separator; // is "/" on Unix and "\\" on Windows

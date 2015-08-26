@@ -334,6 +334,17 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
                           .getType(parameterType.getType(), parameterType.getTypeOriginal()));
                         result.setDescription(parameterType.getDescription());
 
+                        // todo: deal with these fields (related to complex types)
+
+                        // this is null except if the type is a complex datatype defined in a different schema
+                        //parameterType.getTypeSchema();
+
+                        // this is the name of the complex datatype
+                        //parameterType.getTypeName();
+
+                        // this is list of fields of the parameter
+                        //parameterType.getParameterFields();
+
                         return result;
                 } else {
                         return null;
@@ -574,7 +585,7 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
                         result.setDefaultValue(column.getDefaultValue());
                         result.setDescription(column.getDescription());
 
-                        // TODO: these fields are not being saved
+                        // todo: deal with these fields
                         //column.getLobFolder();
                         //column.getTypeSchema();
                         //column.getTypeName();

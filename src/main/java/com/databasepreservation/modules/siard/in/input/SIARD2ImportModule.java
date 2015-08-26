@@ -6,6 +6,7 @@ import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.in.content.ContentImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.modules.siard.in.read.ZipAndFolderReadStrategy;
 import com.databasepreservation.modules.siard.in.read.ZipReadStrategy;
@@ -42,7 +43,7 @@ public class SIARD2ImportModule {
                         readStrategy = new ZipAndFolderReadStrategy(mainContainer);
                 }
 
-                ContentPathImportStrategy contentPathStrategy = null;//new SIARD2ContentPathImportStrategy();
+                ContentPathImportStrategy contentPathStrategy = new SIARD2ContentPathImportStrategy();
                 contentStrategy = null;//new SIARD2ContentImportStrategy(readStrategy, contentPathStrategy);
 
                 MetadataPathStrategy metadataPathStrategy = null;//new SIARD2MetadataPathStrategy();
