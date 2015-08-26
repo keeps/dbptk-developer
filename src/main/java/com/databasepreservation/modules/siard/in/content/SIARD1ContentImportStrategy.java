@@ -23,10 +23,8 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
-import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -55,7 +53,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
         private static final String COLUMN_KEYWORD = "c";
         private static final String ROW_KEYWORD = "row";
         private static final String FILE_KEYWORD = "file";
-        private final Logger logger = Logger.getLogger(SIARD1ContentImportStrategy.class);
+        private final Logger logger = Logger.getLogger(SIARD2ContentImportStrategy.class);
         // ImportStrategy
         private final ContentPathImportStrategy contentPathStrategy;
         private final ReadStrategy readStrategy;
@@ -64,7 +62,6 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
         private SIARDArchiveContainer contentContainer;
         private DatabaseHandler databaseHandler;
         private SAXErrorHandler errorHandler;
-        private SAXParser saxParser;
         // SAXHandler state
         private TableStructure currentTable;
         private SchemaStructure currentSchema;
@@ -117,7 +114,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
 
                                 currentTable = table;
 
-                                SAXErrorHandler errorHandler = new SAXErrorHandler();
+                                errorHandler = new SAXErrorHandler();
 
                                 try {
                                         XMLReader xmlReader = saxParser.getXMLReader();
@@ -297,62 +294,5 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
 
         @Override public void characters(char buf[], int offset, int len) {
                 tempVal.append(buf, offset, len);
-        }
-
-        /**
-         * Class to handle SAX Parsing errors
-         */
-        private static class SAXErrorHandler implements ErrorHandler {
-                private final Logger logger = Logger.getLogger(SAXErrorHandler.class);
-                private boolean hasError = false;
-
-                public boolean hasError() {
-                        return hasError;
-                }
-
-                private String getParseExceptionInfo(SAXParseException e) {
-                        StringBuilder buf = new StringBuilder();
-
-                        if (e.getPublicId() != null) {
-                                buf.append("publicId: ").append(e.getPublicId()).append("; ");
-                        }
-
-                        if (e.getSystemId() != null) {
-                                buf.append("systemId: ").append(e.getSystemId()).append("; ");
-                        }
-
-                        if (e.getLineNumber() != -1) {
-                                buf.append("line: ").append(e.getLineNumber()).append("; ");
-                        }
-
-                        if (e.getColumnNumber() != -1) {
-                                buf.append("column: ").append(e.getColumnNumber()).append("; ");
-                        }
-
-                        if (e.getLocalizedMessage() != null) {
-                                buf.append(e.getLocalizedMessage());
-                        }
-
-                        return buf.toString();
-                }
-
-                @Override public void warning(SAXParseException e) throws SAXException {
-                        logger.warn(getParseExceptionInfo(e));
-                }
-
-                public void error(String message, Throwable e) {
-                        logger.error(message);
-                        hasError = true;
-                }
-
-                @Override public void error(SAXParseException e) throws SAXException {
-                        logger.error(getParseExceptionInfo(e));
-                        hasError = true;
-                }
-
-                @Override public void fatalError(SAXParseException e) throws SAXException {
-                        hasError = true;
-                        throw new SAXException(String.format("Fatal Error: %s", getParseExceptionInfo(e)));
-                }
         }
 }

@@ -41,7 +41,7 @@ public class SIARD2ContentPathImportStrategy implements ContentPathImportStrateg
         }
 
         public void associateColumnWithFolder(String columnId, String columnFolder) {
-                // TODO: used for lobs
+                // TODO: used for lobs (?)
         }
 
         @Override public String getTableXMLFilePath(String schemaName, String tableId) throws ModuleException {

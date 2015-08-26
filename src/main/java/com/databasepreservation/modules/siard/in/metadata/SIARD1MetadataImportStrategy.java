@@ -71,8 +71,6 @@ import java.util.List;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
-        private static final String ENCODING = "UTF-8";
-        private final Logger logger = Logger.getLogger(SIARD1MetadataImportStrategy.class);
         private final MetadataPathStrategy metadataPathStrategy;
         private final ContentPathImportStrategy contentPathStrategy;
         private DatabaseStructure databaseStructure;
