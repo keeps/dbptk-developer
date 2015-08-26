@@ -303,7 +303,36 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
                         result.setBody(routineType.getBody());
                         result.setCharacteristic(routineType.getCharacteristic());
                         result.setReturnType(routineType.getReturnType());
-                        //TODO: result.setAttributes(getAttributes(routineType.getAttributes()));
+                        //TODO: XSD has name attributes but has type ParametersType, find out if this is a typo
+                        result.setParameters(getParameters(routineType.getAttributes()));
+
+                        return result;
+                } else {
+                        return null;
+                }
+        }
+
+        private List<Parameter> getParameters(ParametersType parameters) throws ModuleException {
+                List<Parameter> result = new ArrayList<Parameter>();
+
+                if (parameters != null && !parameters.getParameter().isEmpty()) {
+                        for (ParameterType parameterType : parameters.getParameter()) {
+                                result.add(getParameter(parameterType));
+                        }
+                }
+
+                return result;
+        }
+
+        private Parameter getParameter(ParameterType parameterType) throws ModuleException {
+                if (parameterType != null) {
+                        Parameter result = new Parameter();
+
+                        result.setName(parameterType.getName());
+                        result.setMode(parameterType.getMode());
+                        result.setType(TypeConverterFactory.getSQL99TypeConverter()
+                          .getType(parameterType.getType(), parameterType.getTypeOriginal()));
+                        result.setDescription(parameterType.getDescription());
 
                         return result;
                 } else {
