@@ -92,7 +92,6 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
                 JAXBContext context;
                 try {
                         context = JAXBContext.newInstance(SiardArchive.class.getPackage().getName());
-                        //context = JAXBContext.newInstance("com.databasepreservation.modules.siard.common.jaxb.siard1");
                 } catch (JAXBException e) {
                         throw new ModuleException("Error loading JAXBContext", e);
                 }
