@@ -55,11 +55,6 @@ public class ZipWriteStrategy implements WriteStrategy {
 
         @Override public void setup(SIARDArchiveContainer container) throws ModuleException {
                 try {
-                        //			zipOut = new ProtectedZipArchiveOutputStream(
-                        //					Files.newOutputStream(container.getPath(),
-                        //							StandardOpenOption.CREATE,
-                        //							StandardOpenOption.TRUNCATE_EXISTING,
-                        //							StandardOpenOption.WRITE));
                         zipOut = new ProtectedZipArchiveOutputStream(container.getPath().toFile());
 
                         zipOut.setUseZip64(Zip64Mode.Always);

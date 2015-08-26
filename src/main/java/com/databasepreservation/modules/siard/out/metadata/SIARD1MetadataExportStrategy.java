@@ -192,6 +192,8 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
                 if (StringUtils.isNotBlank(db.getDataOriginTimespan())) {
                         elem.setDataOriginTimespan(db.getDataOriginTimespan());
+                } else {
+                        throw new ModuleException("Error while exporting structure: data origin timestamp cannot be blank");
                 }
 
                 if (StringUtils.isNotBlank(db.getProducerApplication())) {
@@ -215,7 +217,6 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
                 if (StringUtils.isNotBlank(db.getUrl())) {
                         elem.setConnection(db.getUrl());
-                        ;
                 }
 
                 if (StringUtils.isNotBlank(db.getDatabaseUser())) {
@@ -557,6 +558,8 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
                 if (StringUtils.isNotBlank(column.getDescription())) {
                         columnType.setDescription(column.getDescription());
                 }
+
+                //TODO: write folder element
 
                 return columnType;
         }

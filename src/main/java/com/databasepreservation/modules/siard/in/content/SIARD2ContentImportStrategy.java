@@ -192,27 +192,8 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
                                 row.getCells().add(null);
                         }
                 } else if (qName.startsWith(COLUMN_KEYWORD)) {
-                        if (attr.getValue(FILE_KEYWORD) != null) {
-                                String lobDir = attr.getValue(FILE_KEYWORD);
-                                int columnIndex = Integer.parseInt(qName.substring(1));
-
-                                try {
-                                        FileItem fileItem = new FileItem(
-                                          readStrategy.createInputStream(contentContainer, lobDir));
-                                        currentBinaryCell = new BinaryCell(
-                                          //TODO: what about CLOBs? are they also created as BinaryCells?
-                                          String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1).getId(),
-                                            rowIndex), fileItem);
-                                } catch (ModuleException e) {
-                                        errorHandler.error("Failed to open lob at " + lobDir, e);
-                                }
-
-                                logger.debug(String
-                                  .format("Binary cell %s on row #%d with lob dir %s", currentBinaryCell.getId(),
-                                    rowIndex, lobDir));
-                        } else {
-                                currentBinaryCell = null;
-                        }
+                        //TODO: process lobs
+                        currentBinaryCell = null;
                 }
         }
 
