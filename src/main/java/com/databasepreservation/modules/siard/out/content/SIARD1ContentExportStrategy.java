@@ -33,8 +33,6 @@ import java.util.List;
  */
 public class SIARD1ContentExportStrategy implements ContentExportStrategy {
         private final static String ENCODING = "UTF-8";
-        private final static String TAB = "     ";
-        private final static String PAR = "\n";
         private final Logger logger = Logger.getLogger(SIARD1ContentExportStrategy.class);
         private final ContentPathExportStrategy contentPathStrategy;
         private final WriteStrategy writeStrategy;

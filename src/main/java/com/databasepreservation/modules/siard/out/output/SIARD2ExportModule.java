@@ -5,6 +5,7 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD2MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.content.ContentExportStrategy;
+import com.databasepreservation.modules.siard.out.content.SIARD2ContentExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARD2MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
@@ -39,7 +40,7 @@ public class SIARD2ExportModule {
 
                 metadataStrategy = new SIARD2MetadataExportStrategy(metadataPathStrategy, contentPathStrategy);
                 //TODO: change prettyXML from 'true' to a module argument
-                contentStrategy = null;//new SIARD2ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer,true);
+                contentStrategy = new SIARD2ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer,true);
         }
 
         public DatabaseHandler getDatabaseHandler() {
