@@ -1,6 +1,6 @@
-package com.databasepreservation.integration.roundtrip;
+package com.databasepreservation.testing.integration.roundtrip;
 
-import com.databasepreservation.integration.roundtrip.differences.MySqlDumpDiffExpectations;
+import com.databasepreservation.testing.integration.roundtrip.differences.MySqlDumpDiffExpectations;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.testng.annotations.BeforeClass;

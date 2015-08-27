@@ -155,7 +155,8 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
                 databaseStructure.setArchivalDate(JodaUtils.xs_date_parse(siardArchive.getArchivalDate()));
                 //TODO: databaseStructure.setMessageDigest(siardArchive.getMessageDigest());
                 databaseStructure.setProductName(siardArchive.getDatabaseProduct());
-                databaseStructure.setProductVersion(siardArchive.getVersion());
+                //databaseStructure.setProductVersion(null); //TODO: SIARD has no field for product version
+
                 databaseStructure.setUrl(siardArchive.getConnection());
                 databaseStructure.setSchemas(getSchemas(siardArchive.getSchemas()));
                 databaseStructure.setUsers(getUsers(siardArchive.getUsers()));

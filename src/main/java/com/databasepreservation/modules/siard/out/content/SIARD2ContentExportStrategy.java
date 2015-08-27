@@ -251,11 +251,11 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
                   .beginOpenTag("table", 0)
 
                   .appendAttribute("xsi:schemaLocation", contentPathStrategy
-                    .getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(),
+                    .getTableXsdNamespace("http://www.admin.ch/xmlns/siard/2.0/", currentSchema.getIndex(),
                       currentTable.getIndex()) + " " + contentPathStrategy.getTableXsdFileName(currentTable.getIndex()))
 
                   .appendAttribute("xmlns", contentPathStrategy
-                    .getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(),
+                    .getTableXsdNamespace("http://www.admin.ch/xmlns/siard/2.0/", currentSchema.getIndex(),
                       currentTable.getIndex()))
 
                   .appendAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")

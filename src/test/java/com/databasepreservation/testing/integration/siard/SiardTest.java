@@ -1,4 +1,4 @@
-package com.databasepreservation.integration.siard;
+package com.databasepreservation.testing.integration.siard;
 
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
@@ -31,13 +31,17 @@ import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.DatabaseImportModule;
 import com.databasepreservation.modules.siard.in.input.SIARD1ImportModule;
+import com.databasepreservation.modules.siard.in.input.SIARD2ImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD1ExportModule;
+import com.databasepreservation.modules.siard.out.output.SIARD2ExportModule;
+import com.databasepreservation.testing.SIARDVersion;
+import com.databasepreservation.testing.integration.roundtrip.differences.TextDiff;
 import com.databasepreservation.utils.JodaUtils;
-import com.databasepreservation.integration.roundtrip.differences.TextDiff;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.FileNotFoundException;
@@ -67,6 +71,18 @@ import java.util.Random;
         private Map<String, List<Row>> tableRows;
 
         /**
+         * Provides all the SIARD versions that should be tested
+         */
+        @DataProvider public Iterator<Object[]> siardVersionsProvider() {
+                ArrayList<Object[]> tests = new ArrayList<Object[]>();
+
+                tests.add(new SIARDVersion[] {SIARDVersion.SIARD_1});
+                tests.add(new SIARDVersion[] {SIARDVersion.SIARD_2});
+
+                return tests.iterator();
+        }
+
+        /**
          * Sends a database structure through SIARD exporter and importer,
          * then verifies that the new database has the same data as the original.
          *
@@ -75,7 +91,7 @@ import java.util.Random;
          * @throws UnknownTypeException
          * @throws InvalidDataException
          */
-        @Test public void SIARD_Roundtrip()
+        @Test(dataProvider = "siardVersionsProvider") public void SIARD_Roundtrip(SIARDVersion version)
           throws ModuleException, IOException, UnknownTypeException, InvalidDataException {
                 Path tmpFile = Files.createTempFile("roundtripSIARD_", ".zip");
                 //Path tmpFile = Files.createTempDirectory("roundtripSIARD_");
@@ -85,7 +101,7 @@ import java.util.Random;
                 // fixme: the original structure is passed to the roundtrip test, which means SIARD module may still change the original structure
                 // solution: clone the database structure before passing it to the roundtrip test
 
-                DatabaseStructure other = roundtrip(original, tmpFile);
+                DatabaseStructure other = roundtrip(original, tmpFile, version);
 
                 //debug
                 TextDiff diff = new TextDiff();
@@ -115,15 +131,15 @@ import java.util.Random;
          * @throws IOException
          */
         private DatabaseStructure generateDatabaseStructure() throws ModuleException, IOException {
-    /*
-     * covered:
-		 * - all lists (schemas, tables, columns, rows, routines, parameters, views, etc) have more than one element
-		 * - more than one table per schema
-		 * - more than one column per table
-		 * - tables with and without rows
-		 * - users, roles and privileges
-		 * - most parameters are different so if anything is swapped the test fails
-		 */
+                /*
+                * covered:
+                * - all lists (schemas, tables, columns, rows, routines, parameters, views, etc) have more than one element
+                * - more than one table per schema
+                * - more than one column per table
+                * - tables with and without rows
+                * - users, roles and privileges
+                * - most parameters are different so if anything is swapped the test fails
+                */
 
                 // create lists
                 ArrayList<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
@@ -201,6 +217,7 @@ import java.util.Random;
                 //TODO: columns_table12.get(4).getType().setSql99TypeName("BLOB");
                 columns_table12.get(4).getType().setSql99TypeName("BINARY LARGE OBJECT");
                 columns_table12.get(4).getType().setDescription("col125 description");
+                columns_table12.get(4).setNillable(true); //fixme: fix siard2 lobs and change this to false
 
                 //		columns_table12.get(5).getType().setOriginalTypeName("TEXT");
                 //		columns_table12.get(5).getType().setSql99TypeName("BINARY LARGE OBJECT");
@@ -485,9 +502,18 @@ import java.util.Random;
          * @throws UnknownTypeException
          * @throws InvalidDataException
          */
-        private DatabaseStructure roundtrip(DatabaseStructure dbStructure, Path tmpFile)
+        private DatabaseStructure roundtrip(DatabaseStructure dbStructure, Path tmpFile, SIARDVersion version)
           throws FileNotFoundException, ModuleException, UnknownTypeException, InvalidDataException {
-                DatabaseHandler exporter = new SIARD1ExportModule(tmpFile, true).getDatabaseHandler();
+                DatabaseHandler exporter = null;
+
+                switch (version) {
+                        case SIARD_1:
+                                exporter = new SIARD1ExportModule(tmpFile, true).getDatabaseHandler();
+                                break;
+                        case SIARD_2:
+                                exporter = new SIARD2ExportModule(tmpFile, true).getDatabaseHandler();
+                                break;
+                }
 
                 // behaviour
                 logger.debug("initializing database");
@@ -522,7 +548,17 @@ import java.util.Random;
 
                 logger.debug("SIARD file: " + tmpFile.toUri().toString());
                 DatabaseHandler mocked = Mockito.mock(DatabaseHandler.class);
-                DatabaseImportModule importer = new SIARD1ImportModule(tmpFile).getDatabaseImportModule();
+
+                DatabaseImportModule importer = null;
+                switch (version) {
+                        case SIARD_1:
+                                importer = new SIARD1ImportModule(tmpFile).getDatabaseImportModule();
+                                break;
+                        case SIARD_2:
+                                importer = new SIARD2ImportModule(tmpFile).getDatabaseImportModule();
+                                break;
+                }
+
                 ArgumentCaptor<DatabaseStructure> dbStructureCaptor = ArgumentCaptor.forClass(DatabaseStructure.class);
                 importer.getDatabase(mocked);
                 Mockito.verify(mocked).handleStructure(dbStructureCaptor.capture());

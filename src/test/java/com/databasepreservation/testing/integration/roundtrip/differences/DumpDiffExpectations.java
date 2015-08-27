@@ -1,4 +1,4 @@
-package com.databasepreservation.integration.roundtrip.differences;
+package com.databasepreservation.testing.integration.roundtrip.differences;
 
 import org.apache.log4j.Logger;
 

@@ -19,7 +19,7 @@
  * limitations under the License.
  */
 
-package com.databasepreservation.integration.roundtrip.differences;
+package com.databasepreservation.testing.integration.roundtrip.differences;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;

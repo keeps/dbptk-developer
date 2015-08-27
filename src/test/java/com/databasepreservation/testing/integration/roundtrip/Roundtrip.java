@@ -1,9 +1,7 @@
-package com.databasepreservation.integration.roundtrip;
+package com.databasepreservation.testing.integration.roundtrip;
 
 import com.databasepreservation.Main;
-import com.databasepreservation.integration.roundtrip.differences.DumpDiffExpectations;
-import com.databasepreservation.integration.roundtrip.differences.TextDiff;
-import com.databasepreservation.integration.roundtrip.differences.TextDiff.Diff;
+import com.databasepreservation.testing.integration.roundtrip.differences.DumpDiffExpectations;
 import com.databasepreservation.utils.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.log4j.Logger;
@@ -18,7 +16,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map.Entry;
 
 public class Roundtrip {
