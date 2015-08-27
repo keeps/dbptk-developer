@@ -81,6 +81,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 		// Write contents to Schemas/standard
 		writeSchemaFile(outputContainer, "XMLSchema.xsd");
 		writeSchemaFile(outputContainer, "tableIndex.xsd");
+		writeSchemaFile(outputContainer, "archiveIndex.xsd");
 
 	}
 
