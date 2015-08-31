@@ -7,7 +7,7 @@ import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
-import com.databasepreservation.modules.DatabaseHandler;
+import com.databasepreservation.modules.DatabaseExportModule;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.content.ContentExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
@@ -18,7 +18,7 @@ import java.util.Set;
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SIARDExportDefault implements DatabaseHandler {
+public class SIARDExportDefault implements DatabaseExportModule {
         private final SIARDArchiveContainer mainContainer;
         private final WriteStrategy writeStrategy;
         private final MetadataExportStrategy metadataStrategy;

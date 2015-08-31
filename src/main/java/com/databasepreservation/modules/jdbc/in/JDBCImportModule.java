@@ -35,7 +35,7 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
-import com.databasepreservation.modules.DatabaseHandler;
+import com.databasepreservation.modules.DatabaseExportModule;
 import com.databasepreservation.modules.DatabaseImportModule;
 import com.databasepreservation.modules.SQLHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -1527,7 +1527,7 @@ public class JDBCImportModule implements DatabaseImportModule {
                 return ignore;
         }
 
-        @Override public void getDatabase(DatabaseHandler handler)
+        @Override public void getDatabase(DatabaseExportModule handler)
           throws ModuleException, UnknownTypeException, InvalidDataException {
                 try {
                         logger.debug("initializing database");

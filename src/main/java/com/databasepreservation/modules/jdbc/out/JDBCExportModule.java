@@ -24,7 +24,8 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
-import com.databasepreservation.modules.DatabaseHandler;
+import com.databasepreservation.modules.DatabaseExportModule;
+import com.databasepreservation.modules.DatabaseModuleFactory;
 import com.databasepreservation.modules.SQLHelper;
 import org.apache.log4j.Logger;
 import org.w3c.util.InvalidDateException;
@@ -52,8 +53,7 @@ import java.util.Set;
 /**
  * @author Luis Faria
  */
-public class JDBCExportModule implements DatabaseHandler {
-
+public class JDBCExportModule implements DatabaseExportModule {
         protected static final boolean DEFAULT_CAN_DROP_DATABASE = false;
         protected static int BATCH_SIZE = 100;
         protected final String driverClassName;

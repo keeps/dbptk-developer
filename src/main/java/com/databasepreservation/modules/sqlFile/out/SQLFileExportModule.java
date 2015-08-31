@@ -18,7 +18,7 @@ import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
-import com.databasepreservation.modules.DatabaseHandler;
+import com.databasepreservation.modules.DatabaseExportModule;
 import com.databasepreservation.modules.SQLHelper;
 import com.databasepreservation.modules.SQLHelper.CellSQLHandler;
 import org.apache.log4j.Logger;
@@ -41,7 +41,7 @@ import java.util.Set;
 /**
  * @author Luis Faria
  */
-public class SQLFileExportModule implements DatabaseHandler {
+public class SQLFileExportModule implements DatabaseExportModule {
         private static final Logger logger = Logger.getLogger(SQLFileExportModule.class);
 
         protected File sqlFile;

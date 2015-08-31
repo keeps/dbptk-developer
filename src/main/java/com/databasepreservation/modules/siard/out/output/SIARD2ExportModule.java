@@ -1,6 +1,6 @@
 package com.databasepreservation.modules.siard.out.output;
 
-import com.databasepreservation.modules.DatabaseHandler;
+import com.databasepreservation.modules.DatabaseExportModule;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD2MetadataPathStrategy;
@@ -43,7 +43,7 @@ public class SIARD2ExportModule {
                 contentStrategy = new SIARD2ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer,true);
         }
 
-        public DatabaseHandler getDatabaseHandler() {
+        public DatabaseExportModule getDatabaseHandler() {
                 return new SIARDExportDefault(contentStrategy, mainContainer, writeStrategy, metadataStrategy);
         }
 }

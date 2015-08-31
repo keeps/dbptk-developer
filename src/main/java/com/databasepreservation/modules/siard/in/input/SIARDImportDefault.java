@@ -4,7 +4,7 @@ import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.DatabaseStructure;
-import com.databasepreservation.modules.DatabaseHandler;
+import com.databasepreservation.modules.DatabaseExportModule;
 import com.databasepreservation.modules.DatabaseImportModule;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.in.content.ContentImportStrategy;
@@ -28,7 +28,7 @@ public class SIARDImportDefault implements DatabaseImportModule {
                 this.metadataStrategy = metadataStrategy;
         }
 
-        @Override public void getDatabase(DatabaseHandler handler)
+        @Override public void getDatabase(DatabaseExportModule handler)
           throws ModuleException, UnknownTypeException, InvalidDataException {
                 readStrategy.setup(mainContainer);
                 handler.initDatabase();
