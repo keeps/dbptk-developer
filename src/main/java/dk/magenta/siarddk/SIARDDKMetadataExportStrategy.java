@@ -3,8 +3,13 @@ package dk.magenta.siarddk;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.DigestOutputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.xml.bind.DatatypeConverter;
 
 import org.apache.commons.io.IOUtils;
 
@@ -61,17 +66,45 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 		
 		// Generate archiveIndex.xml
 
+//		try {
+//			OutputStream writer = writeStrategy.createOutputStream(
+//					outputContainer, "Indices/archiveIndex.xml");
+//			IndexFileStrategy archiveIndexFileStrategy = new ArchiveIndexFileStrategy(
+//					siarddkExportModule, writer);
+//			archiveIndexFileStrategy.generateXML(null);
+//			writer.close();
+//		} catch (IOException e) {
+//			throw new ModuleException("Error writing archiveIndex.xml to the archive");
+//		}
+
 		try {
-			OutputStream writer = writeStrategy.createOutputStream(
+			OutputStream writer2 = writeStrategy.createOutputStream(
 					outputContainer, "Indices/archiveIndex.xml");
-			IndexFileStrategy archiveIndexFileStrategy = new ArchiveIndexFileStrategy(
-					siarddkExportModule, writer);
-			archiveIndexFileStrategy.generateXML(null);
-			writer.close();
+			
+			try {
+				MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+				DigestOutputStream writer = new DigestOutputStream(writer2, messageDigest);
+				
+				IndexFileStrategy archiveIndexFileStrategy = new ArchiveIndexFileStrategy(
+						siarddkExportModule, writer);
+				archiveIndexFileStrategy.generateXML(null);
+				writer.close();
+
+				byte[] digest = messageDigest.digest();
+				System.out.println(DatatypeConverter.printHexBinary(digest).toLowerCase());
+			
+			} catch (NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			
+			
 		} catch (IOException e) {
 			throw new ModuleException("Error writing archiveIndex.xml to the archive");
 		}
-
+		
+		
 	}
 
 	@Override
