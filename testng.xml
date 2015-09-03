@@ -28,9 +28,9 @@
             </run>
         </groups>
         <classes>
-            <class name="com.databasepreservation.integration.roundtrip.MySqlTest"/>
-            <class name="com.databasepreservation.integration.roundtrip.PostgreSqlTest"/>
-            <class name="com.databasepreservation.integration.siard.SiardTest"/>
+            <class name="com.databasepreservation.testing.integration.roundtrip.MySqlTest"/>
+            <class name="com.databasepreservation.testing.integration.roundtrip.PostgreSqlTest"/>
+            <class name="com.databasepreservation.testing.integration.siard.SiardTest"/>
         </classes>
     </test>
 </suite>

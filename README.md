@@ -133,3 +133,16 @@ And the following environment variables should be set:
 To run PostgreSQL tests, a local PostgreSQL database is required and *postgres* user or another user with permission to create new databases and users can be used. This user must be accessible by IP connection on localhost. The access can be tested with ```psql -U username -h localhost -d postgres -W```.
 
 To run MySQL tests, a local MySQL (or MariaDB) database is required and 'root' user or another user with permission to create new databases and users can be used. This user must be accessible by IP connection on localhost. The access can be tested with ```mysql --user="username" -p --database="mysql" --host="localhost"```.
+
+### Changing XML Schema files
+
+After changing SIARD XML Schema files, maven must be used to compile a new artifact from the XML Schema (using JAXB).
+
+* For SIARD1 use: ```mvn clean install -P generate-siard1```
+
+* For SIARD2 use: ```mvn clean install -P generate-siard2```
+
+The jars should now be installed in ```<project_dir>/vendor-libs```.
+
+Note: to change the version of the generated jars, change the respective property in pom.xml.
+This may be needed for the new jar to be installed locally and for changes to take effect.

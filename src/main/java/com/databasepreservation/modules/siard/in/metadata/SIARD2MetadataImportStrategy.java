@@ -1,34 +1,34 @@
 package com.databasepreservation.modules.siard.in.metadata;
 
-import ch.admin.bar.xmlns.siard._1_0.metadata.CandidateKeyType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.CandidateKeysType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.CheckConstraintType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.CheckConstraintsType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.ColumnType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.ColumnsType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.ForeignKeyType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.ForeignKeysType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.ParameterType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.ParametersType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.PrimaryKeyType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.PrivilegeType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.PrivilegesType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.ReferenceType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.RoleType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.RolesType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.RoutineType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.RoutinesType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.SchemaType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.SchemasType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.SiardArchive;
-import ch.admin.bar.xmlns.siard._1_0.metadata.TableType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.TablesType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.TriggerType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.TriggersType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.UserType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.UsersType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.ViewType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.ViewsType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.CandidateKeyType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.CandidateKeysType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.CheckConstraintType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.CheckConstraintsType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.ColumnType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.ColumnsType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.ForeignKeyType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.ForeignKeysType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.ParameterType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.ParametersType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.PrimaryKeyType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.PrivilegeType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.PrivilegesType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.ReferenceType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.RoleType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.RolesType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.RoutineType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.RoutinesType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.SchemaType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.SchemasType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.SiardArchive;
+import ch.admin.bar.xmlns.siard._2_0.metadata.TableType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.TablesType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.TriggerType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.TriggersType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.UserType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.UsersType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.ViewType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.ViewsType;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
@@ -70,16 +70,15 @@ import java.util.List;
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
+public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
+        private DatabaseStructure databaseStructure;
         private final MetadataPathStrategy metadataPathStrategy;
         private final ContentPathImportStrategy contentPathStrategy;
-        private DatabaseStructure databaseStructure;
-        private String messageDigest = null;
 
         private int currentSchemaIndex = 1;
         private int currentTableIndex;
 
-        public SIARD1MetadataImportStrategy(MetadataPathStrategy metadataPathStrategy,
+        public SIARD2MetadataImportStrategy(MetadataPathStrategy metadataPathStrategy,
           ContentPathImportStrategy contentPathImportStrategy) {
                 this.metadataPathStrategy = metadataPathStrategy;
                 this.contentPathStrategy = contentPathImportStrategy;
@@ -110,8 +109,6 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
                 Unmarshaller unmarshaller;
                 try {
                         unmarshaller = context.createUnmarshaller();
-                        //unmarshaller.setProperty(Marshaller.JAXB_ENCODING, ENCODING);
-                        //unmarshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.bar.admin.ch/xmlns/siard/1.0/metadata.xsd metadata.xsd");
                         unmarshaller.setSchema(xsdSchema);
 
                         reader = readStrategy
@@ -150,19 +147,17 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
                 databaseStructure.setDataOwner(siardArchive.getDataOwner());
                 databaseStructure.setDataOriginTimespan(siardArchive.getDataOriginTimespan());
                 databaseStructure.setProducerApplication(siardArchive.getProducerApplication());
-                databaseStructure.setArchivalDate(JodaUtils.xs_date_parse(siardArchive.getArchivalDate()));
                 databaseStructure.setClientMachine(siardArchive.getClientMachine());
                 databaseStructure.setDatabaseUser(siardArchive.getDatabaseUser());
-
                 databaseStructure.setName(siardArchive.getDbname());
 
-                //TODO: validate files
-                messageDigest = siardArchive.getMessageDigest();
-
+                //TODO: databaseStructure.setLobFolder(siardArchive.getLobFolder());
+                databaseStructure.setArchivalDate(JodaUtils.xs_date_parse(siardArchive.getArchivalDate()));
+                //TODO: databaseStructure.setMessageDigest(siardArchive.getMessageDigest());
                 databaseStructure.setProductName(siardArchive.getDatabaseProduct());
-                databaseStructure.setUrl(siardArchive.getConnection());
                 //databaseStructure.setProductVersion(null); //TODO: SIARD has no field for product version
 
+                databaseStructure.setUrl(siardArchive.getConnection());
                 databaseStructure.setSchemas(getSchemas(siardArchive.getSchemas()));
                 databaseStructure.setUsers(getUsers(siardArchive.getUsers()));
                 databaseStructure.setRoles(getRoles(siardArchive.getRoles()));
@@ -191,9 +186,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
                         result.setObject(privilegeType.getObject());
                         result.setGrantor(privilegeType.getGrantor());
                         result.setGrantee(privilegeType.getGrantee());
-                        if (privilegeType.getOption() != null) {
-                                result.setOption(privilegeType.getOption().value());
-                        }
+                        result.setOption(privilegeType.getOption().value());
                         result.setDescription(privilegeType.getDescription());
 
                         return result;
@@ -265,15 +258,16 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
                 return result;
         }
 
-        private SchemaStructure getSchemaStructure(SchemaType schema) throws ModuleException {
+        private SchemaStructure getSchemaStructure(SchemaType schema) throws ModuleException{
                 if (schema != null) {
                         SchemaStructure result = new SchemaStructure();
 
-                        result.setIndex(currentSchemaIndex++);
                         result.setName(schema.getName());
                         result.setDescription(schema.getDescription());
-
+                        result.setIndex(currentSchemaIndex++);
                         contentPathStrategy.associateSchemaWithFolder(schema.getName(), schema.getFolder());
+
+                        //TODO: complex types: result.setTypes(getTypes(schema.getTypes()));
 
                         currentTableIndex = 1;
                         result.setTables(getTablesStructure(schema.getTables(), schema.getName()));
@@ -308,7 +302,8 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
                         result.setBody(routineType.getBody());
                         result.setCharacteristic(routineType.getCharacteristic());
                         result.setReturnType(routineType.getReturnType());
-                        result.setParameters(getParameters(routineType.getParameters()));
+                        //TODO: XSD has name attributes but has type ParametersType, find out if this is a typo
+                        result.setParameters(getParameters(routineType.getAttributes()));
 
                         return result;
                 } else {
@@ -338,6 +333,17 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
                           .getType(parameterType.getType(), parameterType.getTypeOriginal()));
                         result.setDescription(parameterType.getDescription());
 
+                        // todo: deal with these fields (related to complex types)
+
+                        // this is null except if the type is a complex datatype defined in a different schema
+                        //parameterType.getTypeSchema();
+
+                        // this is the name of the complex datatype
+                        //parameterType.getTypeName();
+
+                        // this is list of fields of the parameter
+                        //parameterType.getParameterFields();
+
                         return result;
                 } else {
                         return null;
@@ -364,8 +370,8 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
                         result.setQuery(viewType.getQuery());
                         result.setQueryOriginal(viewType.getQueryOriginal());
                         result.setDescription(viewType.getDescription());
-                        result.setColumns(
-                          getColumns(viewType.getColumns(), "")); //TODO: decide what to put here as table name
+                        result.setColumns(getColumns(viewType.getColumns(), "")); //TODO: decide what to put here as table name
+                        //TODO: result.setRows(getRows(viewType.getRows()));
 
                         return result;
                 } else {
@@ -577,6 +583,13 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
                         result.setNillable(column.isNullable());
                         result.setDefaultValue(column.getDefaultValue());
                         result.setDescription(column.getDescription());
+
+                        // todo: deal with these fields
+                        //column.getLobFolder();
+                        //column.getTypeSchema();
+                        //column.getTypeName();
+                        //column.getFields();
+                        //column.getMimeType();
 
                         return result;
                 } else {

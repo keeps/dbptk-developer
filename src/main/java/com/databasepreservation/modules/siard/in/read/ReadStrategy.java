@@ -20,14 +20,14 @@ public interface ReadStrategy {
         boolean isSimultaneousReadingSupported();
 
         /**
-         * Handles closing of the underlying structure used by this ReadStrategy object
+         * Handles closing of the underlying structure used by this ReadStrategy object for this container
          *
          * @throws ModuleException
          */
         void finish(SIARDArchiveContainer container) throws ModuleException;
 
         /**
-         * Handles setting up the underlying structure used by this ReadStrategy object
+         * Handles setting up the underlying structure used by this ReadStrategy object to use this container
          *
          * @throws ModuleException
          */
@@ -35,10 +35,9 @@ public interface ReadStrategy {
 
         /**
          * @param container The container to list the files
-         * @param parent    The directory (relative to container base path) which files should be listed. If null, the list will contain all file paths
          * @return Iterable of paths for files contained in the specified directory. The paths are suitable to be used in createInputStream. After use it should be closed.
          * @throws ModuleException
          */
-        CloseableIterable<String> getFilepathStream(SIARDArchiveContainer container, Path parent)
+        CloseableIterable<String> getFilepathStream(SIARDArchiveContainer container)
           throws ModuleException;
 }

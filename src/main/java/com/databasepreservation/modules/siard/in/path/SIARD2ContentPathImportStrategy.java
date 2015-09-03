@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SIARD1ContentPathImportStrategy implements ContentPathImportStrategy {
+public class SIARD2ContentPathImportStrategy implements ContentPathImportStrategy {
         // constant directories
         private static final String CONTENT_FOLDER = "content";
 
@@ -28,10 +28,7 @@ public class SIARD1ContentPathImportStrategy implements ContentPathImportStrateg
         // < table id , table folder >
         private Map<String, String> tableFolders = new HashMap<String, String>();
 
-        // < column id , column folder >
-        private Map<String, String> columnFolders = new HashMap<String, String>();
-
-        public SIARD1ContentPathImportStrategy() {
+        public SIARD2ContentPathImportStrategy() {
 
         }
 
@@ -44,7 +41,7 @@ public class SIARD1ContentPathImportStrategy implements ContentPathImportStrateg
         }
 
         public void associateColumnWithFolder(String columnId, String columnFolder) {
-                columnFolders.put(columnId, columnFolder);
+                // TODO: used for lobs (?)
         }
 
         @Override public String getTableXMLFilePath(String schemaName, String tableId) throws ModuleException {

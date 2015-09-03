@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SIARD1ContentExportStrategy implements ContentExportStrategy {
+public class SIARD2ContentExportStrategy implements ContentExportStrategy {
         private final static String ENCODING = "UTF-8";
         private final Logger logger = Logger.getLogger(SIARD1ContentExportStrategy.class);
         private final ContentPathExportStrategy contentPathStrategy;
@@ -45,7 +45,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
         int currentRowIndex;
         private List<LargeObject> LOBsToExport;
 
-        public SIARD1ContentExportStrategy(ContentPathExportStrategy contentPathStrategy, WriteStrategy writeStrategy,
+        public SIARD2ContentExportStrategy(ContentPathExportStrategy contentPathStrategy, WriteStrategy writeStrategy,
           SIARDArchiveContainer baseContainer, boolean prettyXMLOutput) {
                 this.contentPathStrategy = contentPathStrategy;
                 this.writeStrategy = writeStrategy;
@@ -188,6 +188,10 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
         }
 
         private void writeLargeObjectData(Cell cell, int columnIndex) throws IOException, ModuleException {
+                //TODO: add support for lobs
+                if (true)
+                        return;
+
                 currentWriter.beginOpenTag("c" + columnIndex, 2).space().append("file=\"");
 
                 LargeObject lob = null;
@@ -247,11 +251,11 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
                   .beginOpenTag("table", 0)
 
                   .appendAttribute("xsi:schemaLocation", contentPathStrategy
-                    .getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(),
+                    .getTableXsdNamespace("http://www.admin.ch/xmlns/siard/2.0/", currentSchema.getIndex(),
                       currentTable.getIndex()) + " " + contentPathStrategy.getTableXsdFileName(currentTable.getIndex()))
 
                   .appendAttribute("xmlns", contentPathStrategy
-                    .getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(),
+                    .getTableXsdNamespace("http://www.admin.ch/xmlns/siard/2.0/", currentSchema.getIndex(),
                       currentTable.getIndex()))
 
                   .appendAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
@@ -282,13 +286,14 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
 
                 xsdWriter
                   // ?xml tag
-                  .append("<?xml version=\"1.0\" encoding=\"").append(ENCODING).append("\"?>").newline()
+                  .append("<?xml version=\"1.0\" encoding=\"").append(ENCODING)
+                  .append("\" standalone=\"no\"?>").newline()
 
                   // xs:schema tag
                   .beginOpenTag("xs:schema", 0).appendAttribute("xmlns:xs", "http://www.w3.org/2001/XMLSchema")
 
                   .appendAttribute("xmlns", contentPathStrategy
-                    .getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(),
+                    .getTableXsdNamespace("http://www.admin.ch/xmlns/siard/2.0/", currentSchema.getIndex(),
                       currentTable.getIndex()))
 
                   .appendAttribute("attributeFormDefault", "unqualified")
@@ -296,7 +301,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
                   .appendAttribute("elementFormDefault", "qualified")
 
                   .appendAttribute("targetNamespace", contentPathStrategy
-                    .getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(),
+                    .getTableXsdNamespace("http://www.admin.ch/xmlns/siard/2.0/", currentSchema.getIndex(),
                       currentTable.getIndex()))
 
                   .endOpenTag()
@@ -319,7 +324,6 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
                   .closeTag("xs:element", 1)
 
                     // xs:complexType name="rowType"
-
                   .beginOpenTag("xs:complexType", 1).appendAttribute("name", "rowType").endOpenTag()
 
                   .openTag("xs:sequence", 2);
@@ -354,50 +358,123 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
                   // close tags for xs:sequence and xs:complexType
                   .closeTag("xs:sequence", 2)
 
-                  .closeTag("xs:complexType", 1)
+                  .closeTag("xs:complexType", 1);
 
-                    // xs:complexType name="clobType"
-                  .beginOpenTag("xs:complexType", 1).appendAttribute("name", "clobType").endOpenTag()
-
-                  .openTag("xs:simpleContent", 2)
-
-                  .beginOpenTag("xs:extension", 3).appendAttribute("base", "xs:string").endOpenTag()
-
-                  .beginOpenTag("xs:attribute", 4).appendAttribute("name", "file").appendAttribute("type", "xs:string")
-                  .endShorthandTag()
-
-                  .beginOpenTag("xs:attribute", 4).appendAttribute("name", "length")
-                  .appendAttribute("type", "xs:integer").endShorthandTag()
-
-                  .closeTag("xs:extension", 3)
-
-                  .closeTag("xs:simpleContent", 2)
-
-                  .closeTag("xs:complexType", 1)
-
-                    // xs:complexType name="blobType"
-                  .beginOpenTag("xs:complexType", 1).appendAttribute("name", "blobType").endOpenTag()
+                // xs:complexType name="clobType"
+                xsdWriter.beginOpenTag("xs:complexType", 1).appendAttribute("name", "clobType").endOpenTag()
 
                   .openTag("xs:simpleContent", 2)
 
                   .beginOpenTag("xs:extension", 3).appendAttribute("base", "xs:string").endOpenTag()
 
-                  .beginOpenTag("xs:attribute", 4).appendAttribute("name", "file").appendAttribute("type", "xs:string")
-                  .endShorthandTag()
+                  .beginOpenTag("xs:attribute", 4).appendAttribute("name", "file").appendAttribute("type", "xs:anyURI")
+                  .appendAttribute("use", "required").endShorthandTag()
 
                   .beginOpenTag("xs:attribute", 4).appendAttribute("name", "length")
-                  .appendAttribute("type", "xs:integer").endShorthandTag()
+                  .appendAttribute("type", "xs:integer").appendAttribute("use", "required").endShorthandTag()
+
+                  .beginOpenTag("xs:attribute", 4).appendAttribute("name", "messageDigest")
+                  .appendAttribute("type", "xs:string").endShorthandTag()
 
                   .closeTag("xs:extension", 3)
 
                   .closeTag("xs:simpleContent", 2)
 
-                  .closeTag("xs:complexType", 1)
+                  .closeTag("xs:complexType", 1);
 
-                    // close schema
-                  .closeTag("xs:schema");
+                // xs:complexType name="blobType"
+                xsdWriter.beginOpenTag("xs:complexType", 1).appendAttribute("name", "blobType").endOpenTag()
+
+                  .openTag("xs:simpleContent", 2)
+
+                  .beginOpenTag("xs:extension", 3).appendAttribute("base", "xs:hexBinary").endOpenTag()
+
+                  .beginOpenTag("xs:attribute", 4).appendAttribute("name", "file").appendAttribute("type", "xs:anyURI")
+                  .appendAttribute("use", "required").endShorthandTag()
+
+                  .beginOpenTag("xs:attribute", 4).appendAttribute("name", "length")
+                  .appendAttribute("type", "xs:integer").appendAttribute("use", "required").endShorthandTag()
+
+                  .beginOpenTag("xs:attribute", 4).appendAttribute("name", "messageDigest")
+                  .appendAttribute("type", "xs:string").endShorthandTag()
+
+                  .closeTag("xs:extension", 3)
+
+                  .closeTag("xs:simpleContent", 2)
+
+                  .closeTag("xs:complexType", 1);
+
+                // xs:simpleType name="dateType"
+                xsdWriter.beginOpenTag("xs:simpleType", 1).appendAttribute("name", "dateType").endOpenTag()
+
+                  .openTag("xs:annotation", 2)
+
+                  .openTag("xs:documentation", 3).append(
+                  "dateType restricts xs:date to dates between 0001 and 9999 and is in UTC (no +/- but an optional Z)")
+                  .closeTag("xs:documentation", 3)
+
+                  .closeTag("xs:annotation", 2)
+
+                  .beginOpenTag("xs:restriction", 2).appendAttribute("base", "xs:date").endOpenTag()
+
+                  .beginOpenTag("xs:minInclusive", 3).appendAttribute("value", "0001-01-01Z").endShorthandTag()
+
+                  .beginOpenTag("xs:maxExclusive", 3).appendAttribute("value", "10000-01-01Z").endShorthandTag()
+
+                  .beginOpenTag("xs:pattern", 3).appendAttribute("value", "\\d{4}-\\d{2}-\\d{2}Z?").endShorthandTag()
+
+                  .closeTag("xs:restriction", 2)
+
+                  .closeTag("xs:simpleType", 1);
+
+                // xs:simpleType name="timeType"
+                xsdWriter.beginOpenTag("xs:simpleType", 1).appendAttribute("name", "timeType").endOpenTag()
+
+                  .openTag("xs:annotation", 2)
+
+                  .openTag("xs:documentation", 3).append(
+                  "timeType restricts xs:date to dates between 0001 and 9999 and is in UTC (no +/- but an optional Z)")
+                  .closeTag("xs:documentation", 3)
+
+                  .closeTag("xs:annotation", 2)
+
+                  .beginOpenTag("xs:restriction", 2).appendAttribute("base", "xs:time").endOpenTag()
+
+                  .beginOpenTag("xs:pattern", 3).appendAttribute("value", "\\d{2}:\\d{2}:\\d{2}Z?").endShorthandTag()
+
+                  .closeTag("xs:restriction", 2)
+
+                  .closeTag("xs:simpleType", 1);
+
+                // xs:simpleType name="dateTimeType"
+                xsdWriter.beginOpenTag("xs:simpleType", 1).appendAttribute("name", "dateTimeType").endOpenTag()
+
+                  .openTag("xs:annotation", 2)
+
+                  .openTag("xs:documentation", 3).append(
+                  "dateTimeType restricts xs:dateTime to dates between 0001 and 9999 and is in UTC (no +/- after the T but an optional Z)")
+                  .closeTag("xs:documentation", 3)
+
+                  .closeTag("xs:annotation", 2)
+
+                  .beginOpenTag("xs:restriction", 2).appendAttribute("base", "xs:dateTime").endOpenTag()
+
+                  .beginOpenTag("xs:minInclusive", 3).appendAttribute("value", "0001-01-01T00:00:00.000000000Z")
+                  .endShorthandTag()
+
+                  .beginOpenTag("xs:maxExclusive", 3).appendAttribute("value", "10000-01-01T00:00:00.000000000Z")
+                  .endShorthandTag()
+
+                  .beginOpenTag("xs:pattern", 3)
+                  .appendAttribute("value", "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d*)Z?").endShorthandTag()
+
+                  .closeTag("xs:restriction", 2)
+
+                  .closeTag("xs:simpleType", 1);
+
+                // close schema
+                xsdWriter.closeTag("xs:schema");
 
                 xsdWriter.close();
         }
-
 }

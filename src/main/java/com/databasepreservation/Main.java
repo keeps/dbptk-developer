@@ -15,7 +15,9 @@ import com.databasepreservation.modules.oracle.in.Oracle12cJDBCImportModule;
 import com.databasepreservation.modules.postgreSql.in.PostgreSQLJDBCImportModule;
 import com.databasepreservation.modules.postgreSql.out.PostgreSQLJDBCExportModule;
 import com.databasepreservation.modules.siard.in.input.SIARD1ImportModule;
+import com.databasepreservation.modules.siard.in.input.SIARD2ImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD1ExportModule;
+import com.databasepreservation.modules.siard.out.output.SIARD2ExportModule;
 import com.databasepreservation.modules.sqlServer.in.SQLServerJDBCImportModule;
 import com.databasepreservation.modules.sqlServer.out.SQLServerJDBCExportModule;
 import org.apache.log4j.Logger;
@@ -181,7 +183,15 @@ public class Main {
                                   .getDatabaseImportModule();
                         } else {
                                 logger.error(
-                                  "Wrong argument number for " + "SIARD import module: " + importModuleArgs.size());
+                                  "Wrong argument number for " + "SIARD1 import module: " + importModuleArgs.size());
+                        }
+                } else if (importModuleArgs.get(0).equalsIgnoreCase("SIARD2")) {
+                        if (importModuleArgs.size() == 2) {
+                                importModule = new SIARD2ImportModule(Paths.get(importModuleArgs.get(1)))
+                                  .getDatabaseImportModule();
+                        } else {
+                                logger.error(
+                                  "Wrong argument number for " + "SIARD2 import module: " + importModuleArgs.size());
                         }
                 } else if (importModuleArgs.get(0).equalsIgnoreCase("Oracle12cJDBC")) {
                         if (importModuleArgs.size() == 6) {
@@ -232,7 +242,15 @@ public class Main {
                                   exportModuleArgs.get(2).equals("compress")).getDatabaseHandler();
                         } else {
                                 logger
-                                  .error("Wrong argument number for SIARD export module: " + exportModuleArgs.size());
+                                  .error("Wrong argument number for SIARD1 export module: " + exportModuleArgs.size());
+                        }
+                } else if (exportModuleArgs.get(0).equalsIgnoreCase("SIARD2")) {
+                        if (exportModuleArgs.size() == 3) {
+                                exportModule = new SIARD2ExportModule(Paths.get(exportModuleArgs.get(1)),
+                                  exportModuleArgs.get(2).equals("compress")).getDatabaseHandler();
+                        } else {
+                                logger
+                                  .error("Wrong argument number for SIARD2 export module: " + exportModuleArgs.size());
                         }
                 } else if (exportModuleArgs.get(0).equalsIgnoreCase("DB2JDBC")) {
                         if (exportModuleArgs.size() == 6) {
