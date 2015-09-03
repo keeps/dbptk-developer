@@ -5,7 +5,6 @@
 // Generated on: 2015.07.24 at 06:16:58 PM WEST 
 //
 
-
 package com.databasepreservation.modules.siard.common.jaxb.siard1;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -15,16 +14,14 @@ import javax.xml.bind.annotation.XmlType;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
- * 
- *         List of check constraints
- *       
- * 
+ * List of check constraints
+ * <p>
+ * <p>
  * <p>Java class for checkConstraintsType complex type.
- * 
+ * <p>
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ * <p>
  * <pre>
  * &lt;complexType name="checkConstraintsType">
  *   &lt;complexContent>
@@ -36,45 +33,37 @@ import java.util.List;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "checkConstraintsType", propOrder = {
-    "checkConstraint"
-})
-public class CheckConstraintsType {
+@XmlAccessorType(XmlAccessType.FIELD) @XmlType(name = "checkConstraintsType", propOrder = {
+  "checkConstraint"}) public class CheckConstraintsType {
 
-    @XmlElement(required = true)
-    protected List<CheckConstraintType> checkConstraint;
+        @XmlElement(required = true) protected List<CheckConstraintType> checkConstraint;
 
-    /**
-     * Gets the value of the checkConstraint property.
-     * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the checkConstraint property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getCheckConstraint().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link CheckConstraintType }
-     * 
-     * 
-     */
-    public List<CheckConstraintType> getCheckConstraint() {
-        if (checkConstraint == null) {
-            checkConstraint = new ArrayList<CheckConstraintType>();
+        /**
+         * Gets the value of the checkConstraint property.
+         * <p>
+         * <p>
+         * This accessor method returns a reference to the live list,
+         * not a snapshot. Therefore any modification you make to the
+         * returned list will be present inside the JAXB object.
+         * This is why there is not a <CODE>set</CODE> method for the checkConstraint property.
+         * <p>
+         * <p>
+         * For example, to add a new item, do as follows:
+         * <pre>
+         *    getCheckConstraint().add(newItem);
+         * </pre>
+         * <p>
+         * <p>
+         * <p>
+         * Objects of the following type(s) are allowed in the list
+         * {@link CheckConstraintType }
+         */
+        public List<CheckConstraintType> getCheckConstraint() {
+                if (checkConstraint == null) {
+                        checkConstraint = new ArrayList<CheckConstraintType>();
+                }
+                return this.checkConstraint;
         }
-        return this.checkConstraint;
-    }
 
 }

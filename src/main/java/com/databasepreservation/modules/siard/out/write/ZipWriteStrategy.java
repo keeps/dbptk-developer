@@ -15,89 +15,86 @@ import java.io.OutputStream;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class ZipWriteStrategy implements WriteStrategy {
-	public enum CompressionMethod {
-		DEFLATE, STORE
-	}
-	private final CompressionMethod compressionMethod;
-	private ProtectedZipArchiveOutputStream zipOut;
+        private final CompressionMethod compressionMethod;
+        private ProtectedZipArchiveOutputStream zipOut;
 
-	public ZipWriteStrategy(CompressionMethod compressionMethod){
-		this.compressionMethod = compressionMethod;
-	}
+        public ZipWriteStrategy(CompressionMethod compressionMethod) {
+                this.compressionMethod = compressionMethod;
+        }
 
-	@Override
-	public OutputStream createOutputStream(SIARDArchiveContainer container, String path) throws ModuleException {
-		ArchiveEntry archiveEntry = new ZipArchiveEntry(path);
-		try {
-			zipOut.putArchiveEntry(archiveEntry);
-		} catch (IOException e) {
-			throw new ModuleException("Error creating new entry in zip file", e);
-		}
-		return zipOut;
-	}
+        @Override public OutputStream createOutputStream(SIARDArchiveContainer container, String path)
+          throws ModuleException {
+                ArchiveEntry archiveEntry = new ZipArchiveEntry(path);
+                try {
+                        zipOut.putArchiveEntry(archiveEntry);
+                } catch (IOException e) {
+                        throw new ModuleException("Error creating new entry in zip file", e);
+                }
+                return zipOut;
+        }
 
-	@Override
-	public boolean isSimultaneousWritingSupported() {
-		return false;
-	}
+        @Override public boolean isSimultaneousWritingSupported() {
+                return false;
+        }
 
-	@Override
-	public void finish(SIARDArchiveContainer container) throws ModuleException {
-		try {
-			zipOut.closeArchiveEntry();
-		}catch (IOException e){
-			// the exception is thrown if the ArchiveEntry is already closed
-			// or the ZipArchiveOutputStream is already finished
-		}
+        @Override public void finish(SIARDArchiveContainer container) throws ModuleException {
+                try {
+                        zipOut.closeArchiveEntry();
+                } catch (IOException e) {
+                        // the exception is thrown if the ArchiveEntry is already closed
+                        // or the ZipArchiveOutputStream is already finished
+                }
 
-		try {
-			zipOut.finish();
-			zipOut.protectedClose();
-		} catch (IOException e) {
-			throw new ModuleException("Problem while finalizing zip output stream",e);
-		}
-	}
+                try {
+                        zipOut.finish();
+                        zipOut.protectedClose();
+                } catch (IOException e) {
+                        throw new ModuleException("Problem while finalizing zip output stream", e);
+                }
+        }
 
-	@Override
-	public void setup(SIARDArchiveContainer container) throws ModuleException {
-		try {
-//			zipOut = new ProtectedZipArchiveOutputStream(
-//					Files.newOutputStream(container.getPath(),
-//							StandardOpenOption.CREATE,
-//							StandardOpenOption.TRUNCATE_EXISTING,
-//							StandardOpenOption.WRITE));
-			zipOut = new ProtectedZipArchiveOutputStream(container.getPath().toFile());
+        @Override public void setup(SIARDArchiveContainer container) throws ModuleException {
+                try {
+                        //			zipOut = new ProtectedZipArchiveOutputStream(
+                        //					Files.newOutputStream(container.getPath(),
+                        //							StandardOpenOption.CREATE,
+                        //							StandardOpenOption.TRUNCATE_EXISTING,
+                        //							StandardOpenOption.WRITE));
+                        zipOut = new ProtectedZipArchiveOutputStream(container.getPath().toFile());
 
-			zipOut.setUseZip64(Zip64Mode.Always);
+                        zipOut.setUseZip64(Zip64Mode.Always);
 
-			switch (compressionMethod){
-				case DEFLATE:
-					zipOut.setMethod(ZipArchiveOutputStream.DEFLATED);
-					break;
-				case STORE:
-					zipOut.setMethod(ZipArchiveOutputStream.STORED);
-					break;
-				default:
-					throw new ModuleException("Invalid compression method: " + compressionMethod);
-			}
-		} catch (IOException e) {
-			throw new ModuleException("Error creating SIARD archive file: " + compressionMethod);
-		}
-	}
+                        switch (compressionMethod) {
+                                case DEFLATE:
+                                        zipOut.setMethod(ZipArchiveOutputStream.DEFLATED);
+                                        break;
+                                case STORE:
+                                        zipOut.setMethod(ZipArchiveOutputStream.STORED);
+                                        break;
+                                default:
+                                        throw new ModuleException("Invalid compression method: " + compressionMethod);
+                        }
+                } catch (IOException e) {
+                        throw new ModuleException("Error creating SIARD archive file: " + compressionMethod);
+                }
+        }
 
-	private class ProtectedZipArchiveOutputStream extends ZipArchiveOutputStream{
-		public ProtectedZipArchiveOutputStream(File file) throws IOException {
-			super(file);
-		}
+        public enum CompressionMethod {
+                DEFLATE, STORE
+        }
 
-		@Override
-		public void close() throws IOException {
-			flush();
-			zipOut.closeArchiveEntry();
-		}
+        private class ProtectedZipArchiveOutputStream extends ZipArchiveOutputStream {
+                public ProtectedZipArchiveOutputStream(File file) throws IOException {
+                        super(file);
+                }
 
-		private void protectedClose() throws IOException {
-			super.close();
-		}
-	}
+                @Override public void close() throws IOException {
+                        flush();
+                        zipOut.closeArchiveEntry();
+                }
+
+                private void protectedClose() throws IOException {
+                        super.close();
+                }
+        }
 }

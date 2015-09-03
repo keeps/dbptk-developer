@@ -5,7 +5,6 @@
 // Generated on: 2015.07.24 at 06:16:58 PM WEST 
 //
 
-
 package com.databasepreservation.modules.siard.common.jaxb.siard1;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -15,16 +14,14 @@ import javax.xml.bind.annotation.XmlType;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
- * 
- *         List of foreign key constraints
- *       
- * 
+ * List of foreign key constraints
+ * <p>
+ * <p>
  * <p>Java class for foreignKeysType complex type.
- * 
+ * <p>
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ * <p>
  * <pre>
  * &lt;complexType name="foreignKeysType">
  *   &lt;complexContent>
@@ -36,45 +33,37 @@ import java.util.List;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "foreignKeysType", propOrder = {
-    "foreignKey"
-})
-public class ForeignKeysType {
+@XmlAccessorType(XmlAccessType.FIELD) @XmlType(name = "foreignKeysType", propOrder = {
+  "foreignKey"}) public class ForeignKeysType {
 
-    @XmlElement(required = true)
-    protected List<ForeignKeyType> foreignKey;
+        @XmlElement(required = true) protected List<ForeignKeyType> foreignKey;
 
-    /**
-     * Gets the value of the foreignKey property.
-     * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the foreignKey property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getForeignKey().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link ForeignKeyType }
-     * 
-     * 
-     */
-    public List<ForeignKeyType> getForeignKey() {
-        if (foreignKey == null) {
-            foreignKey = new ArrayList<ForeignKeyType>();
+        /**
+         * Gets the value of the foreignKey property.
+         * <p>
+         * <p>
+         * This accessor method returns a reference to the live list,
+         * not a snapshot. Therefore any modification you make to the
+         * returned list will be present inside the JAXB object.
+         * This is why there is not a <CODE>set</CODE> method for the foreignKey property.
+         * <p>
+         * <p>
+         * For example, to add a new item, do as follows:
+         * <pre>
+         *    getForeignKey().add(newItem);
+         * </pre>
+         * <p>
+         * <p>
+         * <p>
+         * Objects of the following type(s) are allowed in the list
+         * {@link ForeignKeyType }
+         */
+        public List<ForeignKeyType> getForeignKey() {
+                if (foreignKey == null) {
+                        foreignKey = new ArrayList<ForeignKeyType>();
+                }
+                return this.foreignKey;
         }
-        return this.foreignKey;
-    }
 
 }

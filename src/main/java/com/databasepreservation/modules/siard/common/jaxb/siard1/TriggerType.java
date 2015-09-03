@@ -5,7 +5,6 @@
 // Generated on: 2015.07.24 at 06:16:58 PM WEST 
 //
 
-
 package com.databasepreservation.modules.siard.common.jaxb.siard1;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -14,16 +13,14 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
- * 
- *         Trigger element in siardArchive
- *       
- * 
+ * Trigger element in siardArchive
+ * <p>
+ * <p>
  * <p>Java class for triggerType complex type.
- * 
+ * <p>
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ * <p>
  * <pre>
  * &lt;complexType name="triggerType">
  *   &lt;complexContent>
@@ -40,174 +37,135 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "triggerType", propOrder = {
-    "name",
-    "actionTime",
-    "triggerEvent",
-    "aliasList",
-    "triggeredAction",
-    "description"
-})
-public class TriggerType {
+@XmlAccessorType(XmlAccessType.FIELD) @XmlType(name = "triggerType", propOrder = {"name", "actionTime", "triggerEvent",
+  "aliasList", "triggeredAction", "description"}) public class TriggerType {
 
-    @XmlElement(required = true)
-    protected String name;
-    @XmlElement(required = true)
-    @XmlSchemaType(name = "string")
-    protected ActionTimeType actionTime;
-    @XmlElement(required = true)
-    protected String triggerEvent;
-    protected String aliasList;
-    @XmlElement(required = true)
-    protected String triggeredAction;
-    protected String description;
+        @XmlElement(required = true) protected String name;
+        @XmlElement(required = true) @XmlSchemaType(name = "string") protected ActionTimeType actionTime;
+        @XmlElement(required = true) protected String triggerEvent;
+        protected String aliasList;
+        @XmlElement(required = true) protected String triggeredAction;
+        protected String description;
 
-    /**
-     * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getName() {
-        return name;
-    }
+        /**
+         * Gets the value of the name property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getName() {
+                return name;
+        }
 
-    /**
-     * Sets the value of the name property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setName(String value) {
-        this.name = value;
-    }
+        /**
+         * Sets the value of the name property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setName(String value) {
+                this.name = value;
+        }
 
-    /**
-     * Gets the value of the actionTime property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link ActionTimeType }
-     *     
-     */
-    public ActionTimeType getActionTime() {
-        return actionTime;
-    }
+        /**
+         * Gets the value of the actionTime property.
+         *
+         * @return possible object is
+         * {@link ActionTimeType }
+         */
+        public ActionTimeType getActionTime() {
+                return actionTime;
+        }
 
-    /**
-     * Sets the value of the actionTime property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link ActionTimeType }
-     *     
-     */
-    public void setActionTime(ActionTimeType value) {
-        this.actionTime = value;
-    }
+        /**
+         * Sets the value of the actionTime property.
+         *
+         * @param value allowed object is
+         *              {@link ActionTimeType }
+         */
+        public void setActionTime(ActionTimeType value) {
+                this.actionTime = value;
+        }
 
-    /**
-     * Gets the value of the triggerEvent property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getTriggerEvent() {
-        return triggerEvent;
-    }
+        /**
+         * Gets the value of the triggerEvent property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getTriggerEvent() {
+                return triggerEvent;
+        }
 
-    /**
-     * Sets the value of the triggerEvent property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setTriggerEvent(String value) {
-        this.triggerEvent = value;
-    }
+        /**
+         * Sets the value of the triggerEvent property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setTriggerEvent(String value) {
+                this.triggerEvent = value;
+        }
 
-    /**
-     * Gets the value of the aliasList property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getAliasList() {
-        return aliasList;
-    }
+        /**
+         * Gets the value of the aliasList property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getAliasList() {
+                return aliasList;
+        }
 
-    /**
-     * Sets the value of the aliasList property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setAliasList(String value) {
-        this.aliasList = value;
-    }
+        /**
+         * Sets the value of the aliasList property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setAliasList(String value) {
+                this.aliasList = value;
+        }
 
-    /**
-     * Gets the value of the triggeredAction property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getTriggeredAction() {
-        return triggeredAction;
-    }
+        /**
+         * Gets the value of the triggeredAction property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getTriggeredAction() {
+                return triggeredAction;
+        }
 
-    /**
-     * Sets the value of the triggeredAction property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setTriggeredAction(String value) {
-        this.triggeredAction = value;
-    }
+        /**
+         * Sets the value of the triggeredAction property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setTriggeredAction(String value) {
+                this.triggeredAction = value;
+        }
 
-    /**
-     * Gets the value of the description property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDescription() {
-        return description;
-    }
+        /**
+         * Gets the value of the description property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getDescription() {
+                return description;
+        }
 
-    /**
-     * Sets the value of the description property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDescription(String value) {
-        this.description = value;
-    }
+        /**
+         * Sets the value of the description property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setDescription(String value) {
+                this.description = value;
+        }
 
 }

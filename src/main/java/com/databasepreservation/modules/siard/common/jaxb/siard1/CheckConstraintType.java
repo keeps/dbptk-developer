@@ -5,7 +5,6 @@
 // Generated on: 2015.07.24 at 06:16:58 PM WEST 
 //
 
-
 package com.databasepreservation.modules.siard.common.jaxb.siard1;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -13,16 +12,14 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
- * 
- *         Check constraint element in siardArchive
- *       
- * 
+ * Check constraint element in siardArchive
+ * <p>
+ * <p>
  * <p>Java class for checkConstraintType complex type.
- * 
+ * <p>
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ * <p>
  * <pre>
  * &lt;complexType name="checkConstraintType">
  *   &lt;complexContent>
@@ -36,93 +33,72 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "checkConstraintType", propOrder = {
-    "name",
-    "condition",
-    "description"
-})
-public class CheckConstraintType {
+@XmlAccessorType(XmlAccessType.FIELD) @XmlType(name = "checkConstraintType", propOrder = {"name", "condition",
+  "description"}) public class CheckConstraintType {
 
-    @XmlElement(required = true)
-    protected String name;
-    @XmlElement(required = true)
-    protected String condition;
-    protected String description;
+        @XmlElement(required = true) protected String name;
+        @XmlElement(required = true) protected String condition;
+        protected String description;
 
-    /**
-     * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getName() {
-        return name;
-    }
+        /**
+         * Gets the value of the name property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getName() {
+                return name;
+        }
 
-    /**
-     * Sets the value of the name property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setName(String value) {
-        this.name = value;
-    }
+        /**
+         * Sets the value of the name property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setName(String value) {
+                this.name = value;
+        }
 
-    /**
-     * Gets the value of the condition property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getCondition() {
-        return condition;
-    }
+        /**
+         * Gets the value of the condition property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getCondition() {
+                return condition;
+        }
 
-    /**
-     * Sets the value of the condition property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setCondition(String value) {
-        this.condition = value;
-    }
+        /**
+         * Sets the value of the condition property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setCondition(String value) {
+                this.condition = value;
+        }
 
-    /**
-     * Gets the value of the description property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDescription() {
-        return description;
-    }
+        /**
+         * Gets the value of the description property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getDescription() {
+                return description;
+        }
 
-    /**
-     * Sets the value of the description property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDescription(String value) {
-        this.description = value;
-    }
+        /**
+         * Sets the value of the description property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setDescription(String value) {
+                this.description = value;
+        }
 
 }

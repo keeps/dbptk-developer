@@ -5,7 +5,6 @@
 // Generated on: 2015.07.24 at 06:16:58 PM WEST 
 //
 
-
 package com.databasepreservation.modules.siard.common.jaxb.siard1;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -14,16 +13,14 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
- * 
- *         Grant (incl. grant of role)
- *       
- * 
+ * Grant (incl. grant of role)
+ * <p>
+ * <p>
  * <p>Java class for privilegeType complex type.
- * 
+ * <p>
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ * <p>
  * <pre>
  * &lt;complexType name="privilegeType">
  *   &lt;complexContent>
@@ -40,173 +37,135 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "privilegeType", propOrder = {
-    "type",
-    "object",
-    "grantor",
-    "grantee",
-    "option",
-    "description"
-})
-public class PrivilegeType {
+@XmlAccessorType(XmlAccessType.FIELD) @XmlType(name = "privilegeType", propOrder = {"type", "object", "grantor",
+  "grantee", "option", "description"}) public class PrivilegeType {
 
-    @XmlElement(required = true)
-    protected String type;
-    protected String object;
-    @XmlElement(required = true)
-    protected String grantor;
-    @XmlElement(required = true)
-    protected String grantee;
-    @XmlSchemaType(name = "string")
-    protected PrivOptionType option;
-    protected String description;
+        @XmlElement(required = true) protected String type;
+        protected String object;
+        @XmlElement(required = true) protected String grantor;
+        @XmlElement(required = true) protected String grantee;
+        @XmlSchemaType(name = "string") protected PrivOptionType option;
+        protected String description;
 
-    /**
-     * Gets the value of the type property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getType() {
-        return type;
-    }
+        /**
+         * Gets the value of the type property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getType() {
+                return type;
+        }
 
-    /**
-     * Sets the value of the type property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setType(String value) {
-        this.type = value;
-    }
+        /**
+         * Sets the value of the type property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setType(String value) {
+                this.type = value;
+        }
 
-    /**
-     * Gets the value of the object property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getObject() {
-        return object;
-    }
+        /**
+         * Gets the value of the object property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getObject() {
+                return object;
+        }
 
-    /**
-     * Sets the value of the object property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setObject(String value) {
-        this.object = value;
-    }
+        /**
+         * Sets the value of the object property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setObject(String value) {
+                this.object = value;
+        }
 
-    /**
-     * Gets the value of the grantor property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getGrantor() {
-        return grantor;
-    }
+        /**
+         * Gets the value of the grantor property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getGrantor() {
+                return grantor;
+        }
 
-    /**
-     * Sets the value of the grantor property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setGrantor(String value) {
-        this.grantor = value;
-    }
+        /**
+         * Sets the value of the grantor property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setGrantor(String value) {
+                this.grantor = value;
+        }
 
-    /**
-     * Gets the value of the grantee property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getGrantee() {
-        return grantee;
-    }
+        /**
+         * Gets the value of the grantee property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getGrantee() {
+                return grantee;
+        }
 
-    /**
-     * Sets the value of the grantee property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setGrantee(String value) {
-        this.grantee = value;
-    }
+        /**
+         * Sets the value of the grantee property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setGrantee(String value) {
+                this.grantee = value;
+        }
 
-    /**
-     * Gets the value of the option property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link PrivOptionType }
-     *     
-     */
-    public PrivOptionType getOption() {
-        return option;
-    }
+        /**
+         * Gets the value of the option property.
+         *
+         * @return possible object is
+         * {@link PrivOptionType }
+         */
+        public PrivOptionType getOption() {
+                return option;
+        }
 
-    /**
-     * Sets the value of the option property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link PrivOptionType }
-     *     
-     */
-    public void setOption(PrivOptionType value) {
-        this.option = value;
-    }
+        /**
+         * Sets the value of the option property.
+         *
+         * @param value allowed object is
+         *              {@link PrivOptionType }
+         */
+        public void setOption(PrivOptionType value) {
+                this.option = value;
+        }
 
-    /**
-     * Gets the value of the description property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDescription() {
-        return description;
-    }
+        /**
+         * Gets the value of the description property.
+         *
+         * @return possible object is
+         * {@link String }
+         */
+        public String getDescription() {
+                return description;
+        }
 
-    /**
-     * Sets the value of the description property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDescription(String value) {
-        this.description = value;
-    }
+        /**
+         * Sets the value of the description property.
+         *
+         * @param value allowed object is
+         *              {@link String }
+         */
+        public void setDescription(String value) {
+                this.description = value;
+        }
 
 }

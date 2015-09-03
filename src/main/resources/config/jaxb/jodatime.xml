@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jxb:bindings version="2.1"
-              xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
-              xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<jxb:bindings xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+              xmlns:xs="http://www.w3.org/2001/XMLSchema"
+              version="2.1">
     <jxb:globalBindings>
         <!-- use JODA-Time DateTime for xs:date -->
         <jxb:javaType name="org.joda.time.DateTime" xmlType="xs:date"
-            parseMethod="com.databasepreservation.utils.JodaUtils.xs_date_parse"
-            printMethod="com.databasepreservation.utils.JodaUtils.xs_date_format" />
-    </jxb:globalBindings>        
+                      parseMethod="com.databasepreservation.utils.JodaUtils.xs_date_parse"
+                      printMethod="com.databasepreservation.utils.JodaUtils.xs_date_format"/>
+    </jxb:globalBindings>
 </jxb:bindings>

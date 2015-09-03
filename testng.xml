@@ -1,22 +1,36 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="TheSuite" verbose="0">
-	<test name="Roundtrip">
-		<groups>
-			<define name="all">
-				<include name="postgresql-siard1.0" />
-				<include name="mysql-siard1.0" />
-				<include name="siard-roundtrip" />
-			</define>
+<suite name="TheSuite" verbose="0" parallel="methods" thread-count="5">
+    <test name="Testing">
+        <groups>
+            <!-- All the tests -->
+            <define name="all">
+                <include name="postgresql-siard1"/>
+                <include name="mysql-siard1"/>
+                <include name="siard-roundtrip"/>
+            </define>
 
-			<run>
-				<include name="all" />
-			</run>
-		</groups>
-		<classes>
-			<class name="com.databasepreservation.integration.roundtrip.MySqlTest" />
-			<class name="com.databasepreservation.integration.roundtrip.PostgreSqlTest" />
-			<class name="com.databasepreservation.integration.siard.SiardTest" />
-		</classes>
-	</test>
+            <!-- Tests ran by Travis CI -->
+            <define name="travis-ci">
+                <include name="postgresql-siard1"/>
+                <include name="mysql-siard1"/>
+                <include name="siard-roundtrip"/>
+            </define>
+
+            <!-- Tests that don't have external dependencies -->
+            <define name="no-dependencies">
+                <include name="siard-roundtrip"/>
+            </define>
+
+            <!-- Default group of tests to run -->
+            <run>
+                <include name="no-dependencies"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="com.databasepreservation.integration.roundtrip.MySqlTest"/>
+            <class name="com.databasepreservation.integration.roundtrip.PostgreSqlTest"/>
+            <class name="com.databasepreservation.integration.siard.SiardTest"/>
+        </classes>
+    </test>
 </suite>

@@ -5,7 +5,6 @@
 // Generated on: 2015.07.24 at 06:16:58 PM WEST 
 //
 
-
 package com.databasepreservation.modules.siard.common.jaxb.siard1;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -15,16 +14,14 @@ import javax.xml.bind.annotation.XmlType;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
- * 
- *         List of triggers
- *       
- * 
+ * List of triggers
+ * <p>
+ * <p>
  * <p>Java class for triggersType complex type.
- * 
+ * <p>
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ * <p>
  * <pre>
  * &lt;complexType name="triggersType">
  *   &lt;complexContent>
@@ -36,45 +33,37 @@ import java.util.List;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "triggersType", propOrder = {
-    "trigger"
-})
-public class TriggersType {
+@XmlAccessorType(XmlAccessType.FIELD) @XmlType(name = "triggersType", propOrder = {
+  "trigger"}) public class TriggersType {
 
-    @XmlElement(required = true)
-    protected List<TriggerType> trigger;
+        @XmlElement(required = true) protected List<TriggerType> trigger;
 
-    /**
-     * Gets the value of the trigger property.
-     * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the trigger property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getTrigger().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link TriggerType }
-     * 
-     * 
-     */
-    public List<TriggerType> getTrigger() {
-        if (trigger == null) {
-            trigger = new ArrayList<TriggerType>();
+        /**
+         * Gets the value of the trigger property.
+         * <p>
+         * <p>
+         * This accessor method returns a reference to the live list,
+         * not a snapshot. Therefore any modification you make to the
+         * returned list will be present inside the JAXB object.
+         * This is why there is not a <CODE>set</CODE> method for the trigger property.
+         * <p>
+         * <p>
+         * For example, to add a new item, do as follows:
+         * <pre>
+         *    getTrigger().add(newItem);
+         * </pre>
+         * <p>
+         * <p>
+         * <p>
+         * Objects of the following type(s) are allowed in the list
+         * {@link TriggerType }
+         */
+        public List<TriggerType> getTrigger() {
+                if (trigger == null) {
+                        trigger = new ArrayList<TriggerType>();
+                }
+                return this.trigger;
         }
-        return this.trigger;
-    }
 
 }
