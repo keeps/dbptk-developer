@@ -3,6 +3,8 @@
  */
 package com.databasepreservation.modules.mySql.in;
 
+import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.SchemaStructure;
@@ -103,16 +105,28 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
         }
 
         @Override protected Type getRealType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-                Type type = new SimpleTypeNumericApproximate(columnSize);
-                if (columnSize == 12) {
+                Type type;
+
+                if (columnSize == 12 && decimalDigits == 0) {
+                        type = new SimpleTypeNumericApproximate(columnSize);
                         type.setSql99TypeName("REAL");
                 } else {
-                        if (columnSize > 1) {
-                                type.setSql99TypeName("FLOAT", columnSize);
-                        } else {
-                                type.setSql99TypeName("FLOAT");
-                        }
+                        type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
                 }
+
+                return type;
+        }
+
+        @Override protected Type getDoubleType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+                Type type;
+
+                if (columnSize == 22 && decimalDigits == 0) {
+                        type = new SimpleTypeNumericApproximate(columnSize);
+                        type.setSql99TypeName("DOUBLE PRECISION");
+                } else {
+                        type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
+                }
+
                 return type;
         }
 
@@ -123,6 +137,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
                         type.setSql99TypeName("BIT VARYING(2040)");
                 } else if (typeName.equalsIgnoreCase("BIT")) {
                         type.setSql99TypeName("BIT", columnSize);
+                        type.setOriginalTypeName(typeName, columnSize);
                 } else {
                         type.setSql99TypeName("BIT", columnSize * 8);
                 }
@@ -135,5 +150,39 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
                 Type type = new SimpleTypeBinary(columnSize);
                 type.setSql99TypeName("BIT VARYING", columnSize * 8);
                 return type;
+        }
+
+        @Override protected Type getFloatType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+                Type type;
+
+                if (columnSize == 12 && decimalDigits == 0) {
+                        type = new SimpleTypeNumericApproximate(columnSize);
+                        type.setSql99TypeName("FLOAT");
+                } else {
+                        type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
+                }
+
+                return type;
+        }
+
+        @Override protected Type getDateType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+                if (typeName.equals("YEAR")) {
+                        return getNumericType(typeName, 4, decimalDigits, numPrecRadix);
+                } else {
+                        return super.getDateType(typeName, columnSize, decimalDigits, numPrecRadix);
+                }
+        }
+
+        @Override protected Cell rawToCellSimpleTypeNumericExact(String id, String columnName, Type cellType,
+          ResultSet rawData) throws SQLException {
+                if (cellType.getOriginalTypeName().equals("YEAR")) {
+                        // for inputs 15, 2015, 99 and 1999
+                        // rawData.getInt returns numbers like 15, 2015, 99, 1999
+                        // rawData.getString returns dates like 2015-01-01, 2015-01-01, 1999-01-01, 1999-01-01
+                        // to get the "real" year value, using the first 4 characters from the date string
+                        return new SimpleCell(id, rawData.getString(columnName).substring(0, 4));
+                } else {
+                        return super.rawToCellSimpleTypeNumericExact(id, columnName, cellType, rawData);
+                }
         }
 }

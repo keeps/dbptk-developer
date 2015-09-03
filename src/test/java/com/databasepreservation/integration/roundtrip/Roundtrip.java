@@ -1,9 +1,10 @@
 package com.databasepreservation.integration.roundtrip;
 
 import com.databasepreservation.Main;
+import com.databasepreservation.integration.roundtrip.differences.DumpDiffExpectations;
+import com.databasepreservation.integration.roundtrip.differences.TextDiff;
+import com.databasepreservation.integration.roundtrip.differences.TextDiff.Diff;
 import com.databasepreservation.utils.FileUtils;
-import com.databasepreservation.utils.diff_match_patch;
-import com.databasepreservation.utils.diff_match_patch.Diff;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.log4j.Logger;
 
@@ -23,7 +24,7 @@ import java.util.Map.Entry;
 public class Roundtrip {
         public static final String TMP_FILE_SIARD_VAR = "%TMP_FILE_SIARD%";
 
-        private static final Logger logger = Logger.getLogger(Roundtrip.class);
+        private final Logger logger = Logger.getLogger(Roundtrip.class);
         // constants
         private final String db_source = "dpttest";
         private final String db_target = "dpttest_siard";
@@ -37,6 +38,7 @@ public class Roundtrip {
         private String dump_target_command;
         private String[] forward_conversion_arguments;
         private String[] backward_conversion_arguments;
+        private DumpDiffExpectations dumpDiffExpectations;
         private HashMap<String, String> environment_variables_source; //used in populate step and when dumping source database
         private HashMap<String, String> environment_variables_target; //used when dumping target database
         // set internally at runtime
@@ -44,13 +46,11 @@ public class Roundtrip {
         private File processSTDERR;
         private File processSTDOUT;
 
-        public Roundtrip() {
-                assert false : "Roundtrip() should never be called.";
-        }
-
         public Roundtrip(String setup_command, String teardown_command, String populate_command,
           String dump_source_command, String dump_target_command, String[] forward_conversion_arguments,
-          String[] backward_conversion_arguments) throws IOException {
+          String[] backward_conversion_arguments, DumpDiffExpectations dumpDiffExpectations,
+          HashMap<String, String> environment_variables_source, HashMap<String, String> environment_variables_target)
+          throws IOException {
                 this.setup_command = setup_command;
                 this.populate_command = populate_command;
                 this.teardown_command = teardown_command;
@@ -58,23 +58,16 @@ public class Roundtrip {
                 this.dump_target_command = dump_target_command;
                 this.forward_conversion_arguments = forward_conversion_arguments;
                 this.backward_conversion_arguments = backward_conversion_arguments;
-                this.environment_variables_source = new HashMap<String, String>();
-                this.environment_variables_target = new HashMap<String, String>();
+                this.dumpDiffExpectations = dumpDiffExpectations;
+                this.environment_variables_source =
+                  environment_variables_source != null ? environment_variables_source : new HashMap<String, String>();
+                this.environment_variables_target =
+                  environment_variables_target != null ? environment_variables_target : new HashMap<String, String>();
 
                 processSTDERR = File.createTempFile("processSTDERR_", ".tmp");
                 processSTDOUT = File.createTempFile("processSTDOUT_", ".tmp");
                 processSTDERR.deleteOnExit();
                 processSTDOUT.deleteOnExit();
-        }
-
-        public Roundtrip(String setup_command, String teardown_command, String populate_command,
-          String dump_source_command, String dump_target_command, String[] forward_conversion_arguments,
-          String[] backward_conversion_arguments, HashMap<String, String> environment_variables_source,
-          HashMap<String, String> environment_variables_target) throws IOException {
-                this(setup_command, teardown_command, populate_command, dump_source_command, dump_target_command,
-                  forward_conversion_arguments, backward_conversion_arguments);
-                this.environment_variables_source = environment_variables_source;
-                this.environment_variables_target = environment_variables_target;
         }
 
         /**
@@ -122,6 +115,8 @@ public class Roundtrip {
          * @throws InterruptedException
          */
         private boolean roundtrip(Path populate_file) throws IOException, InterruptedException {
+                boolean returnValue = false;
+
                 ProcessBuilder sql = new ProcessBuilder("bash", "-c", populate_command);
                 sql.redirectOutput(processSTDOUT);
                 sql.redirectError(processSTDERR);
@@ -161,31 +156,24 @@ public class Roundtrip {
                                 p = dump.start();
                                 printTmpFileOnError(processSTDERR, p.waitFor());
 
-                                diff_match_patch diff = new diff_match_patch();
-                                LinkedList<Diff> diffs = diff
-                                  .diff_main(new String(Files.readAllBytes(dump_source), StandardCharsets.UTF_8),
-                                    new String(Files.readAllBytes(dump_target), StandardCharsets.UTF_8));
-
-                                Files.deleteIfExists(dump_source);
-                                Files.deleteIfExists(dump_target);
-
-                                FileUtils.deleteDirectoryRecursive(dumpsDir);
-
-                                boolean dumps_differ = true;
-                                for (Diff aDiff : diffs) {
-                                        if (aDiff.operation != diff_match_patch.Operation.EQUAL) {
-                                                logger.error("Dump files differ. Outputting differences");
-                                                System.out.println(diff.diff_prettyCmd(diffs));
-                                                dumps_differ = false;
-                                                break;
-                                        }
+                                // this asserts that both dumps represent the same information
+                                try {
+                                        dumpDiffExpectations.dumpsRepresentTheSameInformation(dump_source, dump_target);
+                                }catch (AssertionError e){
+                                        Files.deleteIfExists(dump_source);
+                                        Files.deleteIfExists(dump_target);
+                                        FileUtils.deleteDirectoryRecursive(dumpsDir);
+                                        throw e;
                                 }
 
-                                return dumps_differ;
+                                returnValue = true;
                         }
                 }
+                Files.deleteIfExists(dump_source);
+                Files.deleteIfExists(dump_target);
+                FileUtils.deleteDirectoryRecursive(dumpsDir);
 
-                return false;
+                return returnValue;
         }
 
         private int setup() throws IOException, InterruptedException {

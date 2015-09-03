@@ -697,6 +697,7 @@ public class JDBCImportModule implements DatabaseImportModule {
                         case Types.CHAR:
                                 type = new SimpleTypeString(columnSize, false);
                                 type.setSql99TypeName("CHARACTER", columnSize);
+                                type.setOriginalTypeName("CHARACTER", columnSize);
                                 break;
                         case Types.NCHAR:
                                 // TODO add charset
@@ -708,8 +709,7 @@ public class JDBCImportModule implements DatabaseImportModule {
                                 type.setSql99TypeName("CHARACTER LARGE OBJECT");
                                 break;
                         case Types.DATE:
-                                type = new SimpleTypeDateTime(false, false);
-                                type.setSql99TypeName("DATE");
+                                type = getDateType(typeName, columnSize, decimalDigits, numPrecRadix);
                                 break;
                         case Types.DECIMAL:
                                 type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
@@ -719,12 +719,7 @@ public class JDBCImportModule implements DatabaseImportModule {
                                 type = getDoubleType(typeName, columnSize, decimalDigits, numPrecRadix);
                                 break;
                         case Types.FLOAT:
-                                type = new SimpleTypeNumericApproximate(columnSize);
-                                if (columnSize > 1) {
-                                        type.setSql99TypeName("FLOAT", columnSize);
-                                } else {
-                                        type.setSql99TypeName("FLOAT");
-                                }
+                                type = getFloatType(typeName, columnSize, decimalDigits, numPrecRadix);
                                 break;
                         case Types.INTEGER:
                                 type = new SimpleTypeNumericExact(columnSize, decimalDigits);
@@ -837,6 +832,13 @@ public class JDBCImportModule implements DatabaseImportModule {
         protected Type getBinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
                 Type type = new SimpleTypeBinary(columnSize);
                 type.setSql99TypeName("BIT");
+                type.setOriginalTypeName(typeName, columnSize);
+                return type;
+        }
+
+        protected Type getDateType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+                Type type = new SimpleTypeDateTime(false, false);
+                type.setSql99TypeName("DATE");
                 return type;
         }
 
@@ -863,6 +865,12 @@ public class JDBCImportModule implements DatabaseImportModule {
         protected Type getDoubleType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
                 Type type = new SimpleTypeNumericApproximate(columnSize);
                 type.setSql99TypeName("DOUBLE PRECISION");
+                return type;
+        }
+
+        protected Type getFloatType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+                Type type = new SimpleTypeNumericApproximate(columnSize);
+                type.setSql99TypeName("FLOAT");
                 return type;
         }
 
@@ -1336,10 +1344,17 @@ public class JDBCImportModule implements DatabaseImportModule {
                         cell = rawToCellSimpleTypeBinary(id, columnName, cellType, rawData);
                 } else if (cellType instanceof UnsupportedDataType) {
                         cell = new SimpleCell(id, rawData.getString(columnName));
+                } else if (cellType instanceof SimpleTypeNumericExact) {
+                        cell = rawToCellSimpleTypeNumericExact(id, columnName, cellType, rawData);
                 } else {
                         cell = new SimpleCell(id, rawData.getString(columnName));
                 }
                 return cell;
+        }
+
+        protected Cell rawToCellSimpleTypeNumericExact(String id, String columnName, Type cellType, ResultSet rawData)
+          throws SQLException {
+                return new SimpleCell(id, rawData.getString(columnName));
         }
 
         protected List<Cell> parseArray(String baseid, Array array) throws SQLException, InvalidDataException {
