@@ -1,6 +1,7 @@
 package com.databasepreservation.cli;
 
 import com.sun.istack.internal.Nullable;
+import org.apache.commons.cli.Options;
 
 import java.util.Collections;
 import java.util.List;
@@ -24,5 +25,13 @@ public class Parameters {
                 } else {
                         this.groups = Collections.emptyList();
                 }
+        }
+
+        public List<ParameterGroup> getGroups() {
+                return groups;
+        }
+
+        public List<Parameter> getParameters() {
+                return parameters;
         }
 }

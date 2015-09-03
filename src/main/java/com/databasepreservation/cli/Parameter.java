@@ -1,5 +1,9 @@
 package com.databasepreservation.cli;
 
+import org.apache.commons.cli.Option;
+
+import java.util.HashMap;
+
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
@@ -8,9 +12,12 @@ public class Parameter {
         private String longName = null;
         private String description = null;
         private boolean hasArgument = false;
+        private boolean optionalArgument = false;
         private boolean required = false;
         private String valueIfSet = null; //for parameters without argument
         private String valueIfNotSet = null; //for optional parameters that were not set
+
+        private HashMap<String, Option> options = new HashMap<String, Option>();
 
         public Parameter() {
         }
@@ -30,6 +37,15 @@ public class Parameter {
 
         public Parameter hasArgument(boolean hasArgument) {
                 this.hasArgument = hasArgument;
+                return this;
+        }
+
+        public boolean isOptionalArgument() {
+                return optionalArgument;
+        }
+
+        public Parameter setOptionalArgument(boolean optionalArgument) {
+                this.optionalArgument = optionalArgument;
                 return this;
         }
 
@@ -76,5 +92,21 @@ public class Parameter {
         public Parameter valueIfSet(String valueIfSet) {
                 this.valueIfSet = valueIfSet;
                 return this;
+        }
+
+        public Option toOption(String prefix) {
+                Option option = null;
+                if ((option = options.get(prefix)) == null) {
+                        if(shortName != null){
+                                option = Option.builder(prefix + shortName).longOpt(prefix + longName).desc(description)
+                                  .hasArg(hasArgument).required(required).optionalArg(optionalArgument).build();
+                        }else{
+                                option = Option.builder().longOpt(prefix + longName).desc(description)
+                                  .hasArg(hasArgument).required(required).optionalArg(optionalArgument).build();
+                        }
+
+                        options.put(prefix, option);
+                }
+                return option;
         }
 }

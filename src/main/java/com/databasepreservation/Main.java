@@ -1,5 +1,6 @@
 package com.databasepreservation;
 
+import com.databasepreservation.cli.CLI;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
@@ -18,6 +19,7 @@ import com.databasepreservation.modules.siard.in.input.SIARD1ImportModule;
 import com.databasepreservation.modules.siard.in.input.SIARD2ImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD1ExportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD2ExportModule;
+import com.databasepreservation.modules.sqlServer.SQLServerJDBCModuleFactory;
 import com.databasepreservation.modules.sqlServer.in.SQLServerJDBCImportModule;
 import com.databasepreservation.modules.sqlServer.out.SQLServerJDBCExportModule;
 import org.apache.commons.cli.CommandLine;
@@ -34,6 +36,7 @@ import org.apache.log4j.Logger;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -53,195 +56,6 @@ public class Main {
 
         private static final Logger logger = Logger.getLogger(Main.class);
 
-        // related to parsing command line arguments
-        private static final CommandLineParser commandLineParser = new DefaultParser();
-        private static final Options commandLineOptions = new Options();
-        private static final HashMap<String, Object> importModuleParameters = new HashMap<String, Object>();
-        private static final HashMap<String, Object> exportModuleParameters = new HashMap<String, Object>();
-
-        static {
-                OptionGroup exclusiveImportModulesGroup = new OptionGroup();
-
-                // SIARD1 import module
-                exclusiveImportModulesGroup.addOption(
-                  Option.builder("iSIARD1").longOpt("import=SIARD1").argName("file=path/to/file.siard").hasArgs()
-                    .valueSeparator().desc("Export module for SIARD1").build());
-
-                // SIARD2 import module
-                exclusiveImportModulesGroup.addOption(
-                  Option.builder("iSIARD2").longOpt("import=SIARD2").argName("file=path/to/file.siard").hasArgs()
-                    .valueSeparator().desc("Export module for SIARD2").build());
-
-                // SQLServerJDBC import module
-                exclusiveImportModulesGroup.addOption(Option.builder("iSQLServerJDBC").longOpt("import=SQLServerJDBC")
-                  .argName(
-                    "server=ServerName [port=PortNumber|instance=InstanceName] database=DatabaseName username=UserName"
-                      + " password=Password [security|useIntegratedSecurity]=[true|false] encrypt=[true|false]")
-                  .hasArgs().valueSeparator().desc("Export module for SQLServerJDBC").build());
-
-                // PostgreSQLJDBC import module
-                exclusiveImportModulesGroup.addOption(Option.builder("iPostgreSQLJDBC").longOpt("import=PostgreSQLJDBC")
-                  .argName("host=HostName [port=PortNumber] database=DatabaseName username=UserName "
-                    + "password=Password encrypt=[true|false]").hasArgs().valueSeparator()
-                  .desc("Export module for PostgreSQLJDBC").build());
-
-                // MySQLJDBC import module
-                exclusiveImportModulesGroup.addOption(Option.builder("iMySQLJDBC").longOpt("import=MySQLJDBC")
-                  .argName("host=HostName [port=PortNumber] database=DatabaseName username=UserName password=Password")
-                  .hasArgs().valueSeparator().desc("Export module for MySQLJDBC").build());
-
-                // DB2JDBC import module
-                exclusiveImportModulesGroup.addOption(Option.builder("iDB2JDBC").longOpt("import=DB2JDBC")
-                  .argName("host=HostName port=PortNumber database=DatabaseName username=UserName password=Password")
-                  .hasArgs().valueSeparator().desc("Export module for DB2JDBC").build());
-
-                // Oracle12c import module
-                exclusiveImportModulesGroup.addOption(Option.builder("iOracle12c").longOpt("import=Oracle12c")
-                  .argName("host=HostName port=PortNumber database=DatabaseName username=UserName password=Password")
-                  .hasArgs().valueSeparator().desc("Export module for Oracle12c").build());
-
-                // MSAccessUCanAccess import module
-                exclusiveImportModulesGroup.addOption(
-                  Option.builder("iMSAccessUCanAccess").longOpt("import=MSAccessUCanAccess")
-                    .argName("file=path/to/database.[mdb|accdb]").hasArgs().valueSeparator()
-                    .desc("Export module for MSAccessUCanAccess").build());
-
-                commandLineOptions.addOptionGroup(exclusiveImportModulesGroup);
-                OptionGroup exclusiveExportModulesGroup = new OptionGroup();
-
-                // SIARD1 export module
-                exclusiveImportModulesGroup.addOption(Option.builder("eSIARD1").longOpt("export=SIARD1")
-                  .argName("directory=path/to/directory/ [compress=[true|false]] [prettyXML=[true|false]]").hasArgs()
-                  .valueSeparator().desc("Export module for SIARD1").build());
-
-                // SIARD2 export module
-                exclusiveImportModulesGroup.addOption(Option.builder("eSIARD2").longOpt("export=SIARD2").argName(
-                  "directory=path/to/directory/ [compress=[true|false]] [prettyXML=[true|false]] "
-                    + "[externalLOBs=[no|folder|zipstore|zipdeflate]]").hasArgs().valueSeparator()
-                  .desc("Export module for SIARD2").build());
-
-                // SQLServerJDBC export module
-                exclusiveImportModulesGroup.addOption(Option.builder("eSQLServerJDBC").longOpt("export=SQLServerJDBC")
-                  .argName(
-                    "server=ServerName [port=PortNumber|instance=InstanceName] database=DatabaseName username=UserName"
-                      + " password=Password [security|useIntegratedSecurity]=[true|false] encrypt=[true|false]")
-                  .hasArgs().valueSeparator().desc("Export module for SQLServerJDBC").build());
-
-                // PostgreSQLJDBC export module
-                exclusiveImportModulesGroup.addOption(Option.builder("ePostgreSQLJDBC").longOpt("export=PostgreSQLJDBC")
-                  .argName("host=HostName [port=PortNumber] database=DatabaseName username=UserName "
-                    + "password=Password encrypt=[true|false]").hasArgs().valueSeparator()
-                  .desc("Export module for PostgreSQLJDBC").build());
-
-                // MySQLJDBC export module
-                exclusiveImportModulesGroup.addOption(Option.builder("eMySQLJDBC").longOpt("export=MySQLJDBC")
-                  .argName("host=HostName [port=PortNumber] database=DatabaseName username=UserName password=Password")
-                  .hasArgs().valueSeparator().desc("Export module for MySQLJDBC").build());
-
-                // DB2JDBC export module
-                exclusiveImportModulesGroup.addOption(Option.builder("eDB2JDBC").longOpt("export=DB2JDBC")
-                  .argName("host=HostName port=PortNumber database=DatabaseName username=UserName password=Password")
-                  .hasArgs().valueSeparator().desc("Export module for DB2JDBC").build());
-
-                // PhpMyAdmin export module
-                exclusiveImportModulesGroup.addOption(Option.builder("ePhpMyAdmin").longOpt("export=PhpMyAdmin")
-                  .argName("host=HostName [port=PortNumber] database=DatabaseName username=UserName password=Password")
-                  .hasArgs().valueSeparator().desc("Export module for PhpMyAdmin").build());
-
-                commandLineOptions.addOptionGroup(exclusiveExportModulesGroup);
-
-                commandLineOptions.addOption("h", "help", false, "Display usage help");
-
-//                HelpFormatter formatter = new HelpFormatter();
-//                formatter.setNewLine("\n\n");
-//                //formatter.setWidth(160);
-//                formatter.printHelp(80, "dbptk", "\nModule Options:", commandLineOptions, "footer?", true);
-//                formatter.printHelp("dbptk", commandLineOptions);
-//                System.exit(0);
-
-        }
-
-        private static void commandLineOptionsValidator(CommandLine commandLine) throws ParseException {
-                Iterator<Option> optionIterator = commandLine.iterator();
-                while (optionIterator.hasNext()) {
-                        commandLineOptionValidator(optionIterator.next());
-                }
-        }
-
-        private static void commandLineOptionValidator(Option option) throws ParseException {
-                List<String> propertiesList = option.getValuesList();
-                HashMap<String, Object> properties = new HashMap<String, Object>();
-
-                // get properties into a <property, value> hash
-                try {
-                        for (int i = 0; i < propertiesList.size(); i += 2) {
-                                properties.put(propertiesList.get(i), propertiesList.get(i + 1));
-                        }
-                }catch (IndexOutOfBoundsException e){
-                        throw new ParseException("Properties must be in format property=value");
-                }
-
-                // merge aliased properties
-                if(properties.containsKey("useIntegratedSecurity")){
-                        properties.put("security", properties.get("useIntegratedSecurity"));
-                }
-
-                if (option.getOpt().equals("iSIARD1")) {
-                        // "file=path/to/file.siard"
-                        if(StringUtils.isBlank((String)properties.get("file"))){
-                                throw new ParseException("SIARD import module must have a 'file' property");
-                        }
-                } else if (option.getOpt().equals("iSIARD2")) {
-                        // "file=path/to/file.siard"
-                } else if (option.getOpt().equals("iSQLServerJDBC")) {
-                        // "server=ServerName [port=PortNumber|instance=InstanceName] database=DatabaseName username=UserName"
-                        // + " password=Password [security|useIntegratedSecurity]=[true|false] encrypt=[true|false]"
-                        if(StringUtils.isBlank((String)properties.get("server"))){
-                                throw new ParseException("SQLServerJDBC import module must have a 'server' property");
-                        }
-                        if(StringUtils.isBlank((String)properties.get("database"))){
-                                throw new ParseException("SQLServerJDBC import module must have a 'database' property");
-                        }
-                        if(StringUtils.isBlank((String)properties.get("username"))){
-                                throw new ParseException("SQLServerJDBC import module must have a 'username' property");
-                        }
-                        if(StringUtils.isBlank((String)properties.get("password"))){
-                                throw new ParseException("SQLServerJDBC import module must have a 'password' property");
-                        }
-                        if(StringUtils.isBlank((String)properties.get("security"))){
-                                throw new ParseException("SQLServerJDBC import module must have a 'encrypt' property");
-                        }
-                } else if (option.getOpt().equals("iPostgreSQLJDBC")) {
-                        // "host=HostName [port=PortNumber] database=DatabaseName username=UserName "
-                        // + "password=Password encrypt=[true|false]"
-                } else if (option.getOpt().equals("iMySQLJDBC")) {
-                        // "host=HostName [port=PortNumber] database=DatabaseName username=UserName password=Password"
-                } else if (option.getOpt().equals("iDB2JDBC")) {
-                        // "host=HostName port=PortNumber database=DatabaseName username=UserName password=Password"
-                } else if (option.getOpt().equals("iOracle12c")) {
-                        // "host=HostName port=PortNumber database=DatabaseName username=UserName password=Password"
-                } else if (option.getOpt().equals("iMSAccessUCanAccess")) {
-                        // "file=path/to/database.[mdb|accdb]"
-                } else if (option.getOpt().equals("eSIARD1")) {
-                        // "directory=path/to/directory/ [compress=[true|false]] [prettyXML=[true|false]]"
-                } else if (option.getOpt().equals("eSIARD2")) {
-                        // "directory=path/to/directory/ [compress=[true|false]] [prettyXML=[true|false]] "
-                        // + "[externalLOBs=[no|folder|zipstore|zipdeflate]]"
-                } else if (option.getOpt().equals("eSQLServerJDBC")) {
-                        // "server=ServerName [port=PortNumber|instance=InstanceName] database=DatabaseName username=UserName"
-                        // + " password=Password [security|useIntegratedSecurity]=[true|false] encrypt=[true|false]"
-                } else if (option.getOpt().equals("ePostgreSQLJDBC")) {
-                        // "host=HostName [port=PortNumber] database=DatabaseName username=UserName "
-                        // + "password=Password encrypt=[true|false]"
-                } else if (option.getOpt().equals("eMySQLJDBC")) {
-                        // "host=HostName [port=PortNumber] database=DatabaseName username=UserName password=Password"
-                } else if (option.getOpt().equals("eDB2JDBC")) {
-                        // "host=HostName port=PortNumber database=DatabaseName username=UserName password=Password"
-                } else if (option.getOpt().equals("ePhpMyAdmin")) {
-                        // "host=HostName [port=PortNumber] database=DatabaseName username=UserName password=Password"
-                }
-        }
-
         /**
          * @param args the console arguments
          */
@@ -251,11 +65,12 @@ public class Main {
 
         public static int internal_main(String... args) {
 
+                CLI cli = new CLI(new SQLServerJDBCModuleFactory());
                 try {
-                        commandLineOptionsValidator(commandLineParser.parse(commandLineOptions, args, true));
+                        cli.parse(Arrays.asList(args));
                 } catch (ParseException e) {
                         logger.fatal(e.getMessage());
-                        printHelp();
+                        cli.printHelp();
                         return EXIT_CODE_COMMAND_PARSE_ERROR;
                 }
 
@@ -596,7 +411,7 @@ public class Main {
         }
 
         private static void printHelp() {
-                new HelpFormatter().printHelp(80, "dbptk", "\nModule Options:", commandLineOptions, null, true);
+//                new HelpFormatter().printHelp(80, "dbptk", "\nModule Options:", commandLineOptions, null, true);
 
 //                System.out.println("Synopsys: java -jar " + NAME + ".jar" + " -i IMPORT_MODULE [options...]"
 //                  + " -o EXPORT_MODULE [options...]");
