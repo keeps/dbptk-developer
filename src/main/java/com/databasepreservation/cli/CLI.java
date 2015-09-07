@@ -1,11 +1,12 @@
 package com.databasepreservation.cli;
 
+import com.databasepreservation.modules.DatabaseExportModule;
+import com.databasepreservation.modules.DatabaseImportModule;
 import com.databasepreservation.modules.DatabaseModuleFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
@@ -30,6 +31,9 @@ import java.util.NoSuchElementException;
  */
 public class CLI {
         private final ArrayList<DatabaseModuleFactory> factories;
+        private final List<String> commandLineArguments;
+        private DatabaseImportModule importModule;
+        private DatabaseExportModule exportModule;
 
         //        private static Class<? extends DatabaseModuleFactory>[] getModuleFactoriesFromConfiguration(){
         //                InputStream cliPropertiesStream = CLI.class.getResourceAsStream("/config/cli.properties");
@@ -64,9 +68,9 @@ public class CLI {
         //                this(getModuleFactoriesFromConfiguration());
         //        }
 
-        public CLI(Class<? extends DatabaseModuleFactory>... databaseModuleFactories) {
+        public CLI(List<String> commandLineArguments, Class<? extends DatabaseModuleFactory>... databaseModuleFactories) {
                 factories = new ArrayList<DatabaseModuleFactory>();
-
+                this.commandLineArguments = commandLineArguments;
                 try {
                         for (Class<? extends DatabaseModuleFactory> factoryClass : databaseModuleFactories) {
                                 factories.add(factoryClass.newInstance());
@@ -78,11 +82,30 @@ public class CLI {
                 }
         }
 
-        public CLI(DatabaseModuleFactory... databaseModuleFactories) {
+        public CLI(List<String> commandLineArguments, DatabaseModuleFactory... databaseModuleFactories) {
                 factories = new ArrayList<DatabaseModuleFactory>(Arrays.asList(databaseModuleFactories));
+                this.commandLineArguments = commandLineArguments;
         }
 
-        public void parse(List<String> args) throws ParseException {
+        public DatabaseImportModule getImportModule() throws ParseException {
+                if(importModule == null){
+                        parse(commandLineArguments);
+                }
+                return importModule;
+        }
+
+        public DatabaseExportModule getExportModule() throws ParseException {
+                if(exportModule == null){
+                        parse(commandLineArguments);
+                }
+                return exportModule;
+        }
+
+        public void printHelp() {
+                printHelp(System.out);
+        }
+
+        private void parse(List<String> args) throws ParseException {
                 // check if args contains exactly one import and one export module
                 String importModuleName = null;
                 String exportModuleName = null;
@@ -136,32 +159,32 @@ public class CLI {
                 CommandLine commandLine;
                 Options options = new Options();
 
-                HashMap<Option, Parameter> mapOptionToParameter = new HashMap<Option, Parameter>();
+                HashMap<String, Parameter> mapOptionToParameter = new HashMap<String, Parameter>();
 
                 for (Parameter parameter : importModuleFactory.getImportModuleParameters().getParameters()) {
                         Option option = parameter.toOption("i");
                         options.addOption(option);
-                        mapOptionToParameter.put(option, parameter);
+                        mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
                 }
                 for (ParameterGroup parameterGroup : importModuleFactory.getImportModuleParameters().getGroups()) {
                         OptionGroup optionGroup = parameterGroup.toOptionGroup("i");
                         options.addOptionGroup(optionGroup);
 
                         for (Parameter parameter : parameterGroup.getParameters()) {
-                                mapOptionToParameter.put(parameter.toOption("i"), parameter);
+                                mapOptionToParameter.put(getUniqueOptionIdentifier(parameter.toOption("i")), parameter);
                         }
                 }
                 for (Parameter parameter : exportModuleFactory.getExportModuleParameters().getParameters()) {
                         Option option = parameter.toOption("e");
                         options.addOption(option);
-                        mapOptionToParameter.put(option, parameter);
+                        mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
                 }
                 for (ParameterGroup parameterGroup : exportModuleFactory.getExportModuleParameters().getGroups()) {
                         OptionGroup optionGroup = parameterGroup.toOptionGroup("e");
                         options.addOptionGroup(optionGroup);
 
                         for (Parameter parameter : parameterGroup.getParameters()) {
-                                mapOptionToParameter.put(parameter.toOption("e"), parameter);
+                                mapOptionToParameter.put(getUniqueOptionIdentifier(parameter.toOption("e")), parameter);
                         }
                 }
 
@@ -175,7 +198,7 @@ public class CLI {
                 // parse the command line arguments with those options
                 try {
                         commandLine = commandLineParser.parse(options, args.toArray(new String[] {}), false);
-                } catch (MissingOptionException e){
+                } catch (MissingOptionException e) {
                         // use long names instead of short names in the error message
                         List<String> missingShort = e.getMissingOptions();
                         List<String> missingLong = new ArrayList<String>();
@@ -187,16 +210,34 @@ public class CLI {
 
                 // create arguments to pass to factory
                 HashMap<Parameter, String> importModuleArguments = new HashMap<Parameter, String>();
+                HashMap<Parameter, String> exportModuleArguments = new HashMap<Parameter, String>();
                 for (Option option : commandLine.getOptions()) {
-                        System.out.print("...");
+                        Parameter p = mapOptionToParameter.get(getUniqueOptionIdentifier(option));
+                        if(p != null){
+                                if(isImportModuleOption(option)){
+                                        if(p.hasArgument()){
+                                                importModuleArguments.put(p, option.getValue(p.valueIfNotSet()));
+                                        }else{
+                                                importModuleArguments.put(p, p.valueIfSet());
+                                        }
+                                }else if(isExportModuleOption(option)){
+                                        if(p.hasArgument()){
+                                                exportModuleArguments.put(p, option.getValue(p.valueIfNotSet()));
+                                        }else{
+                                                exportModuleArguments.put(p, p.valueIfSet());
+                                        }
+                                }else{
+                                        throw new ParseException("Unexpected parse exception occurred.");
+                                }
+                        }
                 }
+
+                // set import and export modules
+                importModule = importModuleFactory.buildImportModule(importModuleArguments);
+                exportModule = exportModuleFactory.buildExportModule(exportModuleArguments);
         }
 
-        public void printHelp() {
-                printHelp(System.out);
-        }
-
-        public void printHelp(PrintStream printStream) {
+        private void printHelp(PrintStream printStream) {
                 StringBuilder out = new StringBuilder();
 
                 out.append(
@@ -225,5 +266,31 @@ public class CLI {
                 @Override public int compare(DatabaseModuleFactory o1, DatabaseModuleFactory o2) {
                         return o1.getModuleName().compareTo(o2.getModuleName());
                 }
+        }
+
+        private static String getUniqueOptionIdentifier(Option option) {
+                final String delimiter = "\r\f\n"; // some string that should never occur in option shortName nor longName
+                return new StringBuilder().append(delimiter).append(option.getOpt()).append(delimiter)
+                  .append(option.getLongOpt()).append(delimiter).toString();
+        }
+
+        private static boolean isImportModuleOption(Option option){
+                final String type = "i";
+                if(StringUtils.isNotBlank(option.getOpt())){
+                        return option.getOpt().startsWith(type);
+                }else if(StringUtils.isNotBlank(option.getLongOpt())){
+                        return option.getLongOpt().startsWith(type);
+                }
+                return false;
+        }
+
+        private static boolean isExportModuleOption(Option option){
+                final String type = "e";
+                if(StringUtils.isNotBlank(option.getOpt())){
+                        return option.getOpt().startsWith(type);
+                }else if(StringUtils.isNotBlank(option.getLongOpt())){
+                        return option.getLongOpt().startsWith(type);
+                }
+                return false;
         }
 }

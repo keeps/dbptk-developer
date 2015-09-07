@@ -64,45 +64,17 @@ public class Main {
         }
 
         public static int internal_main(String... args) {
+                final DatabaseImportModule importModule;
+                final DatabaseExportModule exportModule;
 
-                CLI cli = new CLI(new SQLServerJDBCModuleFactory());
+                CLI cli = new CLI(Arrays.asList(args), new SQLServerJDBCModuleFactory());
                 try {
-                        cli.parse(Arrays.asList(args));
+                        importModule = cli.getImportModule();
+                        exportModule = cli.getExportModule();
                 } catch (ParseException e) {
                         logger.fatal(e.getMessage());
                         cli.printHelp();
                         return EXIT_CODE_COMMAND_PARSE_ERROR;
-                }
-
-                List<String> importModuleArgs = new ArrayList<String>();
-                List<String> exportModuleArgs = new ArrayList<String>();
-
-                boolean parsingImportModule = false;
-                boolean parsingExportModule = false;
-
-                for (String arg : args) {
-                        if (arg.equals("-i")) {
-                                parsingImportModule = true;
-                                parsingExportModule = false;
-                        } else if (arg.equals("-o")) {
-                                parsingImportModule = false;
-                                parsingExportModule = true;
-                        } else if (parsingImportModule) {
-                                importModuleArgs.add(arg);
-                        } else if (parsingExportModule) {
-                                exportModuleArgs.add(arg);
-                        }
-                }
-
-                DatabaseImportModule importModule = null;
-                DatabaseExportModule exportModule = null;
-
-                if (importModuleArgs.size() > 0) {
-                        importModule = getImportModule(importModuleArgs);
-                }
-
-                if (exportModuleArgs.size() > 0) {
-                        exportModule = getExportModule(exportModuleArgs);
                 }
 
                 int exitStatus = EXIT_CODE_GENERIC_ERROR;
