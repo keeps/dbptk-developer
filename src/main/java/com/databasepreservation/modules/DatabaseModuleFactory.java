@@ -18,6 +18,8 @@ public interface DatabaseModuleFactory {
 
         String getModuleName();
 
+        Map<String, Parameter> getAllParameters();
+
         Parameters getImportModuleParameters();
 
         Parameters getExportModuleParameters();

@@ -13,6 +13,7 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -68,7 +69,8 @@ public class CLI {
         //                this(getModuleFactoriesFromConfiguration());
         //        }
 
-        public CLI(List<String> commandLineArguments, Class<? extends DatabaseModuleFactory>... databaseModuleFactories) {
+        public CLI(List<String> commandLineArguments,
+          Class<? extends DatabaseModuleFactory>... databaseModuleFactories) {
                 factories = new ArrayList<DatabaseModuleFactory>();
                 this.commandLineArguments = commandLineArguments;
                 try {
@@ -88,14 +90,14 @@ public class CLI {
         }
 
         public DatabaseImportModule getImportModule() throws ParseException {
-                if(importModule == null){
+                if (importModule == null) {
                         parse(commandLineArguments);
                 }
                 return importModule;
         }
 
         public DatabaseExportModule getExportModule() throws ParseException {
-                if(exportModule == null){
+                if (exportModule == null) {
                         parse(commandLineArguments);
                 }
                 return exportModule;
@@ -105,7 +107,32 @@ public class CLI {
                 printHelp(System.out);
         }
 
+        /**
+         * Parses the argument list and creates new import and export modules
+         *
+         * @param args The command line arguments
+         * @throws ParseException If the arguments could not be parsed or are invalid
+         */
         private void parse(List<String> args) throws ParseException {
+                DatabaseModuleFactoriesPair databaseModuleFactoriesPair = getModuleFactories(args);
+                DatabaseModuleFactoriesArguments databaseModuleFactoriesArguments = getModuleArguments(
+                  databaseModuleFactoriesPair, args);
+
+                // set import and export modules
+                importModule = databaseModuleFactoriesPair.getImportModuleFactory()
+                  .buildImportModule(databaseModuleFactoriesArguments.getImportModuleArguments());
+                exportModule = databaseModuleFactoriesPair.getExportModuleFactory()
+                  .buildExportModule(databaseModuleFactoriesArguments.getExportModuleArguments());
+        }
+
+        /**
+         * Given the arguments, determines the DatabaseModuleFactory objects that should be used to create the import and export modules
+         *
+         * @param args The command line arguments
+         * @return A pair of DatabaseModuleFactory objects containing the selected import and export module factories
+         * @throws ParseException If the arguments could not be parsed or are invalid
+         */
+        private DatabaseModuleFactoriesPair getModuleFactories(List<String> args) throws ParseException {
                 // check if args contains exactly one import and one export module
                 String importModuleName = null;
                 String exportModuleName = null;
@@ -153,6 +180,21 @@ public class CLI {
                 } else if (exportModuleFactory == null) {
                         throw new ParseException("Invalid export module.");
                 }
+                return new DatabaseModuleFactoriesPair(importModuleFactory, exportModuleFactory);
+        }
+
+        /**
+         * Obtains the arguments needed to create new import and export modules
+         *
+         * @param factoriesPair A pair of DatabaseModuleFactory objects containing the selected import and export module factories
+         * @param args          The command line arguments
+         * @return A DatabaseModuleFactoriesArguments containing the arguments to create the import and export modules
+         * @throws ParseException If the arguments could not be parsed or are invalid
+         */
+        private DatabaseModuleFactoriesArguments getModuleArguments(DatabaseModuleFactoriesPair factoriesPair,
+          List<String> args) throws ParseException {
+                DatabaseModuleFactory importModuleFactory = factoriesPair.getImportModuleFactory();
+                DatabaseModuleFactory exportModuleFactory = factoriesPair.getExportModuleFactory();
 
                 // get appropriate command line options
                 CommandLineParser commandLineParser = new DefaultParser();
@@ -213,28 +255,25 @@ public class CLI {
                 HashMap<Parameter, String> exportModuleArguments = new HashMap<Parameter, String>();
                 for (Option option : commandLine.getOptions()) {
                         Parameter p = mapOptionToParameter.get(getUniqueOptionIdentifier(option));
-                        if(p != null){
-                                if(isImportModuleOption(option)){
-                                        if(p.hasArgument()){
+                        if (p != null) {
+                                if (isImportModuleOption(option)) {
+                                        if (p.hasArgument()) {
                                                 importModuleArguments.put(p, option.getValue(p.valueIfNotSet()));
-                                        }else{
+                                        } else {
                                                 importModuleArguments.put(p, p.valueIfSet());
                                         }
-                                }else if(isExportModuleOption(option)){
-                                        if(p.hasArgument()){
+                                } else if (isExportModuleOption(option)) {
+                                        if (p.hasArgument()) {
                                                 exportModuleArguments.put(p, option.getValue(p.valueIfNotSet()));
-                                        }else{
+                                        } else {
                                                 exportModuleArguments.put(p, p.valueIfSet());
                                         }
-                                }else{
+                                } else {
                                         throw new ParseException("Unexpected parse exception occurred.");
                                 }
                         }
                 }
-
-                // set import and export modules
-                importModule = importModuleFactory.buildImportModule(importModuleArguments);
-                exportModule = exportModuleFactory.buildExportModule(exportModuleArguments);
+                return new DatabaseModuleFactoriesArguments(importModuleArguments, exportModuleArguments);
         }
 
         private void printHelp(PrintStream printStream) {
@@ -274,23 +313,67 @@ public class CLI {
                   .append(option.getLongOpt()).append(delimiter).toString();
         }
 
-        private static boolean isImportModuleOption(Option option){
+        private static boolean isImportModuleOption(Option option) {
                 final String type = "i";
-                if(StringUtils.isNotBlank(option.getOpt())){
+                if (StringUtils.isNotBlank(option.getOpt())) {
                         return option.getOpt().startsWith(type);
-                }else if(StringUtils.isNotBlank(option.getLongOpt())){
+                } else if (StringUtils.isNotBlank(option.getLongOpt())) {
                         return option.getLongOpt().startsWith(type);
                 }
                 return false;
         }
 
-        private static boolean isExportModuleOption(Option option){
+        private static boolean isExportModuleOption(Option option) {
                 final String type = "e";
-                if(StringUtils.isNotBlank(option.getOpt())){
+                if (StringUtils.isNotBlank(option.getOpt())) {
                         return option.getOpt().startsWith(type);
-                }else if(StringUtils.isNotBlank(option.getLongOpt())){
+                } else if (StringUtils.isNotBlank(option.getLongOpt())) {
                         return option.getLongOpt().startsWith(type);
                 }
                 return false;
+        }
+
+        /**
+         * Pair containing the import and export module factories
+         */
+        public class DatabaseModuleFactoriesPair {
+                // left: import, right: export
+                private final ImmutablePair<DatabaseModuleFactory, DatabaseModuleFactory> factories;
+
+                public DatabaseModuleFactoriesPair(DatabaseModuleFactory importModuleFactory,
+                  DatabaseModuleFactory exportModuleFactory) {
+                        factories = new ImmutablePair<DatabaseModuleFactory, DatabaseModuleFactory>(importModuleFactory,
+                          exportModuleFactory);
+                }
+
+                public DatabaseModuleFactory getImportModuleFactory() {
+                        return factories.getLeft();
+                }
+
+                public DatabaseModuleFactory getExportModuleFactory() {
+                        return factories.getRight();
+                }
+        }
+
+        /**
+         * Pair containing the arguments to create the import and export modules
+         */
+        public class DatabaseModuleFactoriesArguments {
+                // left: import, right: export
+                private final ImmutablePair<HashMap<Parameter, String>, HashMap<Parameter, String>> factories;
+
+                public DatabaseModuleFactoriesArguments(HashMap<Parameter, String> importModuleArguments,
+                  HashMap<Parameter, String> exportModuleArguments) {
+                        factories = new ImmutablePair<HashMap<Parameter, String>, HashMap<Parameter, String>>(
+                          importModuleArguments, exportModuleArguments);
+                }
+
+                public HashMap<Parameter, String> getImportModuleArguments() {
+                        return factories.getLeft();
+                }
+
+                public HashMap<Parameter, String> getExportModuleArguments() {
+                        return factories.getRight();
+                }
         }
 }

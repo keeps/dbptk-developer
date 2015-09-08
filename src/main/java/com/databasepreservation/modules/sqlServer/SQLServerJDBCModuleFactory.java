@@ -11,6 +11,7 @@ import com.databasepreservation.modules.sqlServer.out.SQLServerJDBCExportModule;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -18,16 +19,20 @@ import java.util.Map;
  */
 public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
         private static final Parameter serverName = new Parameter().shortName("s").longName("server-name")
-          .description("the name (host name) of the server").hasArgument(true).setOptionalArgument(false).required(true);
+          .description("the name (host name) of the server").hasArgument(true).setOptionalArgument(false)
+          .required(true);
 
         private static final Parameter database = new Parameter().shortName("db").longName("database")
-          .description("the name of the database we'll be accessing").hasArgument(true).setOptionalArgument(false).required(true);
+          .description("the name of the database we'll be accessing").hasArgument(true).setOptionalArgument(false)
+          .required(true);
 
         private static final Parameter username = new Parameter().shortName("u").longName("username")
-          .description("the name of the user to use in the connection").hasArgument(true).setOptionalArgument(false).required(true);
+          .description("the name of the user to use in the connection").hasArgument(true).setOptionalArgument(false)
+          .required(true);
 
         private static final Parameter password = new Parameter().shortName("p").longName("password")
-          .description("the password of the user to use in the connection").hasArgument(true).setOptionalArgument(false).required(true);
+          .description("the password of the user to use in the connection").hasArgument(true).setOptionalArgument(false)
+          .required(true);
 
         private static final Parameter useIntegratedLogin = new Parameter().shortName("l")
           .longName("use-integrated-login").description("use windows login; by default the SQL Server login is used")
@@ -41,8 +46,8 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
           .description("").hasArgument(true).setOptionalArgument(false).required(false);
 
         private static final Parameter portNumber = new Parameter().shortName("pn").longName("port-number")
-          .description("the port number of the server instance, default is 1433").hasArgument(true).setOptionalArgument(false).required(false)
-          .valueIfNotSet("1433");
+          .description("the port number of the server instance, default is 1433").hasArgument(true)
+          .setOptionalArgument(false).required(false).valueIfNotSet("1433");
 
         private static final ParameterGroup instanceName_portNumber = new ParameterGroup(false, instanceName,
           portNumber);
@@ -57,6 +62,19 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
 
         @Override public String getModuleName() {
                 return "SQLServerJDBC";
+        }
+
+        @Override public Map<String, Parameter> getAllParameters() {
+                HashMap<String, Parameter> parameterHashMap = new HashMap<String, Parameter>();
+                parameterHashMap.put(serverName.longName(), serverName);
+                parameterHashMap.put(database.longName(), database);
+                parameterHashMap.put(username.longName(), username);
+                parameterHashMap.put(password.longName(), password);
+                parameterHashMap.put(useIntegratedLogin.longName(), useIntegratedLogin);
+                parameterHashMap.put(dontEncrypt.longName(), dontEncrypt);
+                parameterHashMap.put(instanceName.longName(), instanceName);
+                parameterHashMap.put(portNumber.longName(), portNumber);
+                return parameterHashMap;
         }
 
         @Override public Parameters getImportModuleParameters() {
