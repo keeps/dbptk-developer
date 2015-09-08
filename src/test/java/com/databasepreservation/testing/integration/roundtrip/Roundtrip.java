@@ -156,7 +156,7 @@ public class Roundtrip {
                                 // this asserts that both dumps represent the same information
                                 try {
                                         dumpDiffExpectations.dumpsRepresentTheSameInformation(dump_source, dump_target);
-                                }catch (AssertionError e){
+                                } catch (AssertionError e) {
                                         Files.deleteIfExists(dump_source);
                                         Files.deleteIfExists(dump_target);
                                         FileUtils.deleteDirectoryRecursive(dumpsDir);

@@ -15,7 +15,7 @@ public interface DatabaseImportModule {
          * Import the database model.
          *
          * @param databaseExportModule The database model handler to be called when importing the
-         *                        database.
+         *                             database.
          * @throws UnknownTypeException a type used in the original database structure is unknown and
          *                              cannot be mapped
          * @throws InvalidDataException the database data is not valid

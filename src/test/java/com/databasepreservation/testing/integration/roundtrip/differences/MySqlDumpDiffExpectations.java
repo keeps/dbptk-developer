@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 /**
  * MySQL specific implementation to convert the source database dump to an expected version of the database dump
+ *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class MySqlDumpDiffExpectations extends DumpDiffExpectations {
@@ -39,13 +40,13 @@ public class MySqlDumpDiffExpectations extends DumpDiffExpectations {
 
                 // float(N,M) -> decimal(N,M)
                 //   where N != 12 and M != 0 (ensured by the order of the patterns in the ArrayList)
-                directReplacements
-                  .add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)float\\((\\d+),(\\d+)\\)(?=\\W)"),
+                directReplacements.add(
+                  new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)float\\((\\d+),(\\d+)\\)(?=\\W)"),
                     "decimal($1,$2)"));
 
                 // double(22,0) -> float
-                directReplacements
-                  .add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)double\\(22,0\\)(?=\\W)"), "double"));
+                directReplacements.add(
+                  new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)double\\(22,0\\)(?=\\W)"), "double"));
 
                 // double(N,M) -> decimal(N,M)
                 //   where N != 22 and M != 0 (ensured by the order of the patterns in the ArrayList)

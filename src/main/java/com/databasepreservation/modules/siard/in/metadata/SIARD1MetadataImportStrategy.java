@@ -52,7 +52,6 @@ import com.databasepreservation.modules.siard.in.metadata.typeConverter.TypeConv
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.utils.JodaUtils;
-import org.apache.log4j.Logger;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;

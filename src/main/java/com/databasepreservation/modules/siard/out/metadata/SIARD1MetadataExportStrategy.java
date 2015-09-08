@@ -193,7 +193,8 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
                 if (StringUtils.isNotBlank(db.getDataOriginTimespan())) {
                         elem.setDataOriginTimespan(db.getDataOriginTimespan());
                 } else {
-                        throw new ModuleException("Error while exporting structure: data origin timestamp cannot be blank");
+                        throw new ModuleException(
+                          "Error while exporting structure: data origin timestamp cannot be blank");
                 }
 
                 if (StringUtils.isNotBlank(db.getProducerApplication())) {

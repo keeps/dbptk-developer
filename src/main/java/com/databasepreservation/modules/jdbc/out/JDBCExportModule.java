@@ -25,7 +25,6 @@ import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
 import com.databasepreservation.modules.DatabaseExportModule;
-import com.databasepreservation.modules.DatabaseModuleFactory;
 import com.databasepreservation.modules.SQLHelper;
 import org.apache.log4j.Logger;
 import org.w3c.util.InvalidDateException;

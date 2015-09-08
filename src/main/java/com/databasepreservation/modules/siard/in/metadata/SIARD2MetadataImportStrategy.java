@@ -52,7 +52,6 @@ import com.databasepreservation.modules.siard.in.metadata.typeConverter.TypeConv
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.utils.JodaUtils;
-import org.apache.log4j.Logger;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
@@ -258,7 +257,7 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
                 return result;
         }
 
-        private SchemaStructure getSchemaStructure(SchemaType schema) throws ModuleException{
+        private SchemaStructure getSchemaStructure(SchemaType schema) throws ModuleException {
                 if (schema != null) {
                         SchemaStructure result = new SchemaStructure();
 
@@ -370,7 +369,8 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
                         result.setQuery(viewType.getQuery());
                         result.setQueryOriginal(viewType.getQueryOriginal());
                         result.setDescription(viewType.getDescription());
-                        result.setColumns(getColumns(viewType.getColumns(), "")); //TODO: decide what to put here as table name
+                        result.setColumns(
+                          getColumns(viewType.getColumns(), "")); //TODO: decide what to put here as table name
                         //TODO: result.setRows(getRows(viewType.getRows()));
 
                         return result;

@@ -97,10 +97,10 @@ public class Parameter {
         public Option toOption(String prefix) {
                 Option option = null;
                 if ((option = options.get(prefix)) == null) {
-                        if(shortName != null){
+                        if (shortName != null) {
                                 option = Option.builder(prefix + shortName).longOpt(prefix + longName).desc(description)
                                   .hasArg(hasArgument).required(required).optionalArg(optionalArgument).build();
-                        }else{
+                        } else {
                                 option = Option.builder().longOpt(prefix + longName).desc(description)
                                   .hasArg(hasArgument).required(required).optionalArg(optionalArgument).build();
                         }

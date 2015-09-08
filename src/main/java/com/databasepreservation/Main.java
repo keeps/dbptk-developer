@@ -22,23 +22,12 @@ import com.databasepreservation.modules.siard.out.output.SIARD2ExportModule;
 import com.databasepreservation.modules.sqlServer.SQLServerJDBCModuleFactory;
 import com.databasepreservation.modules.sqlServer.in.SQLServerJDBCImportModule;
 import com.databasepreservation.modules.sqlServer.out.SQLServerJDBCExportModule;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionGroup;
-import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -91,7 +80,7 @@ public class Main {
                                 if (e.getCause() != null && e.getCause() instanceof ClassNotFoundException && e
                                   .getCause().getMessage().equals("sun.jdbc.odbc.JdbcOdbcDriver")) {
                                         logger.error("Could not find the Java ODBC driver, "
-                                            + "please run this program under Windows " + "to use the JDBC-ODBC bridge.",
+                                            + "please run this program under Windows to use the JDBC-ODBC bridge.",
                                           e.getCause());
                                 } else if (e.getModuleErrors() != null) {
                                         for (Map.Entry<String, Throwable> entry : e.getModuleErrors().entrySet()) {
@@ -383,38 +372,38 @@ public class Main {
         }
 
         private static void printHelp() {
-//                new HelpFormatter().printHelp(80, "dbptk", "\nModule Options:", commandLineOptions, null, true);
+                //                new HelpFormatter().printHelp(80, "dbptk", "\nModule Options:", commandLineOptions, null, true);
 
-//                System.out.println("Synopsys: java -jar " + NAME + ".jar" + " -i IMPORT_MODULE [options...]"
-//                  + " -o EXPORT_MODULE [options...]");
-//                System.out.println("Available import modules:");
-//                System.out.println("\tSIARD dir compress|store");
-//                System.out.println(
-//                  "\tSQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt");
-//                System.out.println("\tPostgreSQLJDBC hostName [port] database username password encrypt");
-//                System.out.println("\tMySQLJDBC hostName [port] database username password");
-//                System.out.println("\tDB2JDBC hostname port database username password");
-//                System.out.println("\tOracle12c hostName port database username password");
-//                //		System.out.println("\tMSAccess database.mdb|accdb");
-//                System.out.println("\tMSAccessUCanAccess database.mdb|accdb");
-//                // System.out.println("\tODBC source [username password]");
-//                System.out.println("\tDBML baseDir");
-//
-//                System.out.println("Available export modules:");
-//                System.out.println("\tSIARD dir");
-//                System.out.println(
-//                  "\tSQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt");
-//                System.out.println("\tPostgreSQLJDBC [port] hostName database username password encrypt");
-//                System.out.println("\tMySQLJDBC hostName [port] database username password");
-//                System.out.println("\tDB2JDBC hostname port database username password");
-//                System.out.println("\tPhpMyAdmin hostName [port] database username password");
-//                System.out.println("\tDBML baseDir");
-//                //		System.out
-//                //				.println("\tPostgreSQLFile sqlFile <- SQL file optimized for PostgreSQL");
-//                //		System.out
-//                //				.println("\tMySQLFile sqlFile <- SQL file optimized for MySQL");
-//                //		System.out
-//                //				.println("\tSQLServerFile sqlFile <- SQL file optimized for SQL Server");
-//                //		System.out.println("\tGenericSQLFile sqlFile <- generic SQL file");
+                //                System.out.println("Synopsys: java -jar " + NAME + ".jar" + " -i IMPORT_MODULE [options...]"
+                //                  + " -o EXPORT_MODULE [options...]");
+                //                System.out.println("Available import modules:");
+                //                System.out.println("\tSIARD dir compress|store");
+                //                System.out.println(
+                //                  "\tSQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt");
+                //                System.out.println("\tPostgreSQLJDBC hostName [port] database username password encrypt");
+                //                System.out.println("\tMySQLJDBC hostName [port] database username password");
+                //                System.out.println("\tDB2JDBC hostname port database username password");
+                //                System.out.println("\tOracle12c hostName port database username password");
+                //                //		System.out.println("\tMSAccess database.mdb|accdb");
+                //                System.out.println("\tMSAccessUCanAccess database.mdb|accdb");
+                //                // System.out.println("\tODBC source [username password]");
+                //                System.out.println("\tDBML baseDir");
+                //
+                //                System.out.println("Available export modules:");
+                //                System.out.println("\tSIARD dir");
+                //                System.out.println(
+                //                  "\tSQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt");
+                //                System.out.println("\tPostgreSQLJDBC [port] hostName database username password encrypt");
+                //                System.out.println("\tMySQLJDBC hostName [port] database username password");
+                //                System.out.println("\tDB2JDBC hostname port database username password");
+                //                System.out.println("\tPhpMyAdmin hostName [port] database username password");
+                //                System.out.println("\tDBML baseDir");
+                //                //		System.out
+                //                //				.println("\tPostgreSQLFile sqlFile <- SQL file optimized for PostgreSQL");
+                //                //		System.out
+                //                //				.println("\tMySQLFile sqlFile <- SQL file optimized for MySQL");
+                //                //		System.out
+                //                //				.println("\tSQLServerFile sqlFile <- SQL file optimized for SQL Server");
+                //                //		System.out.println("\tGenericSQLFile sqlFile <- generic SQL file");
         }
 }

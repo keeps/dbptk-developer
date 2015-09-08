@@ -40,7 +40,8 @@ public class SIARD2ExportModule {
 
                 metadataStrategy = new SIARD2MetadataExportStrategy(metadataPathStrategy, contentPathStrategy);
                 //TODO: change prettyXML from 'true' to a module argument
-                contentStrategy = new SIARD2ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer,true);
+                contentStrategy = new SIARD2ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer,
+                  true);
         }
 
         public DatabaseExportModule getDatabaseHandler() {
