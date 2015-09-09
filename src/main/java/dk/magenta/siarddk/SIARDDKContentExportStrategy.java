@@ -38,13 +38,11 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 	private OutputStream currentStream;
 	private BufferedWriter currentWriter;
 	
-	public SIARDDKContentExportStrategy(ContentPathExportStrategy contentPathExportStrategy,
-			WriteStrategy writeStrategy,
-			SIARDArchiveContainer baseContainer) {
+	public SIARDDKContentExportStrategy(SIARDDKExportModule siarddkExportModule) {
 		
-		this.contentPathExportStrategy = contentPathExportStrategy;
-		this.writeStrategy = writeStrategy;
-		this.baseContainer = baseContainer;
+		contentPathExportStrategy = siarddkExportModule.getContentExportStrategy();
+		writeStrategy = siarddkExportModule.getWriteStrategy();
+		baseContainer = siarddkExportModule.getMainContainer();
 	}
 	
 	@Override

@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.databasepreservation.modules.DatabaseHandler;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.content.ContentExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.output.SIARDExportDefault;
@@ -19,6 +20,7 @@ import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy
 import com.databasepreservation.modules.siard.out.write.FolderWriteStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
+import dk.magenta.common.SIARDMarshaller;
 import dk.magenta.common.StandardSIARDMarshaller;
 
 public class SIARDDKExportModule {
@@ -28,20 +30,23 @@ public class SIARDDKExportModule {
 	private ContentExportStrategy contentExportStrategy;
 	private WriteStrategy writeStrategy;
 	private ContentPathExportStrategy contentPathExportStrategy;
+	private MetadataPathStrategy metadataPathStrategy;
+	private SIARDMarshaller siardMarshaller;
+	
 	private List<String> exportModuleArgs;
 	private FileIndexFileStrategy fileIndexFileStrategy;
-	private Path siardPackage;
 	
 	public SIARDDKExportModule(Path siardPackage, List<String> exportModuleArgs) {
+		this.exportModuleArgs = exportModuleArgs;
+		
 		mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.INSIDE_ARCHIVE);
 		writeStrategy = new FolderWriteStrategy();
-		fileIndexFileStrategy = new FileIndexFileStrategy(writeStrategy);
+		siardMarshaller = new StandardSIARDMarshaller();
+		fileIndexFileStrategy = new FileIndexFileStrategy(this);
 		contentPathExportStrategy = new SIARDDKContentExportPathStrategy();
-		metadataExportStrategy = new SIARDDKMetadataExportStrategy(writeStrategy, new StandardSIARDMarshaller(), this);
-		contentExportStrategy = new SIARDDKContentExportStrategy(contentPathExportStrategy, writeStrategy, mainContainer);
-		
-		this.exportModuleArgs = exportModuleArgs;
-		this.siardPackage = siardPackage;
+		metadataPathStrategy = new SIARDDKMetadataPathStrategy();
+		metadataExportStrategy = new SIARDDKMetadataExportStrategy(this);
+		contentExportStrategy = new SIARDDKContentExportStrategy(this);
 	}
 	
 	public DatabaseHandler getDatabaseHandler() {
@@ -52,11 +57,27 @@ public class SIARDDKExportModule {
 		return exportModuleArgs;
 	}
 
+	public WriteStrategy getWriteStrategy() {
+		return writeStrategy;
+	}
+	
 	public FileIndexFileStrategy getFileIndexFileStrategy() {
 		return fileIndexFileStrategy;
 	}
 	
-	public Path getSiardPackage() {
-		return siardPackage;
+	public SIARDMarshaller getSiardMarshaller() {
+		return siardMarshaller;
+	}
+	
+	public MetadataPathStrategy getMetadataPathStrategy() {
+		return metadataPathStrategy;
+	}
+	
+	public ContentPathExportStrategy getContentExportStrategy() {
+		return contentPathExportStrategy;
+	}
+	
+	public SIARDArchiveContainer getMainContainer() {
+		return mainContainer;
 	}
 }

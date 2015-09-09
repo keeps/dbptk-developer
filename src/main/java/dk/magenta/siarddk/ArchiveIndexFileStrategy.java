@@ -26,21 +26,17 @@ import com.databasepreservation.model.structure.DatabaseStructure;
 
 public class ArchiveIndexFileStrategy implements IndexFileStrategy {
 
-	private SIARDDKExportModule siarddkExportModule;
+	private List<String> exportModuleArgs;
 	private OutputStream writer;
 
-	public ArchiveIndexFileStrategy(SIARDDKExportModule siarddkExportModule,
-			OutputStream writer) {
-		this.siarddkExportModule = siarddkExportModule;
+	public ArchiveIndexFileStrategy(List<String> exportModuleArgs, OutputStream writer) {
+		this.exportModuleArgs = exportModuleArgs;
 		this.writer = writer;
 	}
 
 	@Override
 	public Object generateXML(DatabaseStructure dbStructure)
 			throws ModuleException {
-
-		List<String> exportModuleArgs = siarddkExportModule
-				.getExportModuleArgs();
 
 		int idx = exportModuleArgs.indexOf("-ai");
 		if (idx != -1) {
@@ -49,7 +45,7 @@ public class ArchiveIndexFileStrategy implements IndexFileStrategy {
 				pathStr = exportModuleArgs.get(idx + 1);
 
 				// Create SAXBuilder from schema factory with archiveIndex.xsd
-				// as sschema
+				// as schema
 				InputStream in = this.getClass().getResourceAsStream(
 						"/siarddk/archiveIndex.xsd");
 				XMLReaderJDOMFactory schemaFactory = new XMLReaderXSDFactory(
