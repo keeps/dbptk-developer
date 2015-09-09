@@ -21,7 +21,7 @@ public class SIARD1MetadataPathStrategy implements MetadataPathStrategy {
 	private static final String FILE_EXTENSION_SEPARATOR = ".";
 
 	@Override
-	public String getMetadataXmlFilePath() {
+	public String getXmlFilePath(String filename) {
 		return new StringBuilder()
 				.append(HEADER_DIR)
 				.append(FILE_SEPARATOR)
@@ -32,7 +32,7 @@ public class SIARD1MetadataPathStrategy implements MetadataPathStrategy {
 	}
 
 	@Override
-	public String getMetadataXsdFilePath() {
+	public String getXsdFilePath(String filename) {
 		return new StringBuilder()
 				.append(HEADER_DIR)
 				.append(FILE_SEPARATOR)

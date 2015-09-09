@@ -20,6 +20,8 @@ import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
+import dk.magenta.siarddk.fileindex.FileIndexType;
+
 public class FileIndexFileStrategy implements IndexFileStrategy {
 
 	private WriteStrategy writeStrategy;
@@ -34,7 +36,14 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
 	@Override
 	public Object generateXML(DatabaseStructure dbStructure)
 			throws ModuleException {
-		// TODO Auto-generated method stub
+
+		FileIndexType fileIndexType = new FileIndexType();
+		
+		for (Map.Entry<String, String> entry : md5sums.entrySet()) {
+			
+			System.out.println(entry.getKey() + " " + entry.getValue());
+		}
+		
 		return null;
 	}
 	
@@ -66,5 +75,12 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
 		
 		return md5sum;
 	}
+	
+//	public void print() {
+//		md5sums.
+//		for (String key : md5sums) {
+//			System.out.println(key + " " + md5sums.get(key));
+//		}
+//	}
 
 }

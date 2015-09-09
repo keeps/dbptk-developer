@@ -44,12 +44,36 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 	public void writeMetadataXML(DatabaseStructure dbStructure,
 			SIARDArchiveContainer outputContainer) throws ModuleException {
 
+		// Get FileIndexFileStrategy from SIARDDKExportModule
+		// This should be done before writing any files, since the files need 
+		// to be added to fileIndex.xml
+		
+		FileIndexFileStrategy fileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
+		
+		
 		// Generate tableIndex.xml
+
+//		try {
+//			IndexFileStrategy tableIndexFileStrategy = new TableIndexFileStrategy();
+//			OutputStream writer = writeStrategy.createOutputStream(
+//					outputContainer, "Indices/tableIndex.xml");
+//			siardMarshaller
+//					.marshal(
+//							"dk.magenta.siarddk.tableindex",
+//							"/siarddk/tableIndex.xsd",
+//							"http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/tableIndex.xsd",
+//							writer,
+//							tableIndexFileStrategy.generateXML(dbStructure));
+//			writer.close();
+//		} catch (IOException e) {
+//			throw new ModuleException(
+//					"Error writing tableIndex.xml to the archive.", e);
+//		}
 
 		try {
 			IndexFileStrategy tableIndexFileStrategy = new TableIndexFileStrategy();
-			OutputStream writer = writeStrategy.createOutputStream(
-					outputContainer, "Indices/tableIndex.xml");
+			String path = "Indices/tableIndex.xml";
+			OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path);
 			siardMarshaller
 					.marshal(
 							"dk.magenta.siarddk.tableindex",
@@ -58,53 +82,36 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 							writer,
 							tableIndexFileStrategy.generateXML(dbStructure));
 			writer.close();
+			
+			fileIndexFileStrategy.addFile(path);
+			
 		} catch (IOException e) {
 			throw new ModuleException(
 					"Error writing tableIndex.xml to the archive.", e);
 		}
-
+		
 		
 		// Generate archiveIndex.xml
 
-//		try {
-//			OutputStream writer = writeStrategy.createOutputStream(
-//					outputContainer, "Indices/archiveIndex.xml");
-//			IndexFileStrategy archiveIndexFileStrategy = new ArchiveIndexFileStrategy(
-//					siarddkExportModule, writer);
-//			archiveIndexFileStrategy.generateXML(null);
-//			writer.close();
-//		} catch (IOException e) {
-//			throw new ModuleException("Error writing archiveIndex.xml to the archive");
-//		}
-
 		try {
-			OutputStream writer2 = writeStrategy.createOutputStream(
-					outputContainer, "Indices/archiveIndex.xml");
+			String path = "Indices/archiveIndex.xml";
+			OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path);
+			IndexFileStrategy archiveIndexFileStrategy = new ArchiveIndexFileStrategy(
+					siarddkExportModule, writer);
+			archiveIndexFileStrategy.generateXML(null);
+			writer.close();
 			
-			try {
-				MessageDigest messageDigest = MessageDigest.getInstance("MD5");
-				DigestOutputStream writer = new DigestOutputStream(writer2, messageDigest);
-				
-				IndexFileStrategy archiveIndexFileStrategy = new ArchiveIndexFileStrategy(
-						siarddkExportModule, writer);
-				archiveIndexFileStrategy.generateXML(null);
-				writer.close();
-
-				byte[] digest = messageDigest.digest();
-				System.out.println(DatatypeConverter.printHexBinary(digest).toLowerCase());
-			
-			} catch (NoSuchAlgorithmException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			
+			fileIndexFileStrategy.addFile(path);
 			
 		} catch (IOException e) {
 			throw new ModuleException("Error writing archiveIndex.xml to the archive");
 		}
 		
-		
+		try {
+			fileIndexFileStrategy.generateXML(null);
+		} catch (ModuleException e) {
+			throw new ModuleException("Error writing fileIndex.xml", e);
+		}
 	}
 
 	@Override

@@ -5,12 +5,12 @@ package com.databasepreservation.modules.siard.common.path;
  */
 public interface MetadataPathStrategy {
 	/**
-	 * Returns the path to the metadata.xml file
+	 * Returns the path to the metedata XML-file with name filename
 	 */
-	public String getMetadataXmlFilePath();
+	public String getXmlFilePath(String filename);
 
 	/**
-	 * Returns the path to the metadata.xsd file
+	 * Returns the path to the metadata XSD-file with name filename
 	 */
-	public String getMetadataXsdFilePath();
+	public String getXsdFilePath(String filename);
 }

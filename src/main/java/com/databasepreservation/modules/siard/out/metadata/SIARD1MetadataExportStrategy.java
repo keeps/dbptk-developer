@@ -76,7 +76,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 			//m.marshal(xmlroot, System.out);
 
 			m.setSchema(xsdSchema);
-			OutputStream writer = writeStrategy.createOutputStream(container, metadataPathStrategy.getMetadataXmlFilePath());
+			OutputStream writer = writeStrategy.createOutputStream(container, metadataPathStrategy.getXmlFilePath(null));
 			m.marshal(xmlroot, writer);
 			writer.close();
 		} catch (JAXBException e) {
@@ -89,7 +89,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 	@Override
 	public void writeMetadataXSD(DatabaseStructure dbStructure, SIARDArchiveContainer container) throws ModuleException {
 		// prepare to write
-		OutputStream out = writeStrategy.createOutputStream(container, metadataPathStrategy.getMetadataXsdFilePath());
+		OutputStream out = writeStrategy.createOutputStream(container, metadataPathStrategy.getXsdFilePath(null));
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
 
 		// prepare to read
@@ -105,7 +105,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 		try {
 			IOUtils.copy(reader, writer);
 		} catch (IOException e) {
-			throw new ModuleException("Could not write " + metadataPathStrategy.getMetadataXsdFilePath() + " in container " + container.toString() , e);
+			throw new ModuleException("Could not write " + metadataPathStrategy.getXsdFilePath(null) + " in container " + container.toString() , e);
 		}
 
 		// close input
