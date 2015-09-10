@@ -1,6 +1,5 @@
 package dk.magenta.siarddk;
 
-import com.databasepreservation.modules.siard.common.sql99toXSDType;
 
 public class SIARDDKsql99ToXsdType {
 

@@ -84,12 +84,6 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 					"Error writing archiveIndex.xml to the archive");
 		}
 
-		try {
-			fileIndexFileStrategy.generateXML(null);
-		} catch (ModuleException e) {
-			throw new ModuleException("Error writing fileIndex.xml", e);
-		}
-
 	}
 
 	
@@ -105,6 +99,12 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 		
 		// Generate fileIndex.xml
 
+		try {
+			fileIndexFileStrategy.generateXML(null);
+		} catch (ModuleException e) {
+			throw new ModuleException("Error writing fileIndex.xml", e);
+		}
+		
 		try {
 			String path = metadataPathStrategy.getXmlFilePath("fileIndex");
 			OutputStream writer = fileIndexFileStrategy.getWriter(
