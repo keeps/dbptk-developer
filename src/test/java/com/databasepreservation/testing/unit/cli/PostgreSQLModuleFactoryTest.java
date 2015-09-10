@@ -23,8 +23,8 @@ import java.util.List;
 
         @Test public void arguments_required_long() {
                 List<String> args = Arrays
-                  .asList("--import=PostgreSQL", "--iusername=name-user", "--ipassword=abc1 23=456",
-                    "--ihostname=the-server-name", "--idatabase=dbname", "--export=PostgreSQL",
+                  .asList("--import=PostgreSQLJDBC", "--iusername=name-user", "--ipassword=abc1 23=456",
+                    "--ihostname=the-server-name", "--idatabase=dbname", "--export=PostgreSQLJDBC",
                     "--eusername=name-another-user", "--epassword=2bcd123=456", "--ehostname=another-server",
                     "--edatabase=another-db-name", "--ido-not-encrypt");
 
@@ -49,8 +49,8 @@ import java.util.List;
 
         @Test public void arguments_required_short() {
                 List<String> args = Arrays
-                  .asList("-i", "PostgreSQL", "-iu", "name-user", "-ip", "abc1 23=456", "-ih", "the-server-name",
-                    "-idb", "dbname", "-e", "PostgreSQL", "-eu", "name-another-user", "-ep", "2bcd123=456", "-eh",
+                  .asList("-i", "PostgreSQLJDBC", "-iu", "name-user", "-ip", "abc1 23=456", "-ih", "the-server-name",
+                    "-idb", "dbname", "-e", "PostgreSQLJDBC", "-eu", "name-another-user", "-ep", "2bcd123=456", "-eh",
                     "another-server", "-edb", "another-db-name", "-ene");
 
                 // test parameters for import module
@@ -75,8 +75,8 @@ import java.util.List;
 
         @Test public void arguments_portNumber_long() {
                 List<String> args = Arrays
-                  .asList("--import=PostgreSQL", "--iusername=name-user", "--ipassword=abc1 23=456",
-                    "--ihostname=the-server-name", "--idatabase=dbname", "--export=PostgreSQL",
+                  .asList("--import=PostgreSQLJDBC", "--iusername=name-user", "--ipassword=abc1 23=456",
+                    "--ihostname=the-server-name", "--idatabase=dbname", "--export=PostgreSQLJDBC",
                     "--eusername=name-another-user", "--epassword=2bcd123=456", "--ehostname=another-server",
                     "--edatabase=another-db-name", "--ido-not-encrypt", "--iport-number=1234", "--eport-number=4321");
 
@@ -103,8 +103,8 @@ import java.util.List;
 
         @Test public void arguments_portNumber_short() {
                 List<String> args = Arrays
-                  .asList("-i", "PostgreSQL", "-iu", "name-user", "-ip", "abc1 23=456", "-ih", "the-server-name",
-                    "-idb", "dbname", "-e", "PostgreSQL", "-eu", "name-another-user", "-ep", "2bcd123=456", "-eh",
+                  .asList("-i", "PostgreSQLJDBC", "-iu", "name-user", "-ip", "abc1 23=456", "-ih", "the-server-name",
+                    "-idb", "dbname", "-e", "PostgreSQLJDBC", "-eu", "name-another-user", "-ep", "2bcd123=456", "-eh",
                     "another-server", "-edb", "another-db-name", "-ene", "-ipn", "4567", "-epn", "7654");
 
                 // test parameters for import module
