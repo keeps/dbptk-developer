@@ -36,41 +36,8 @@ public class CLI {
         private DatabaseImportModule importModule;
         private DatabaseExportModule exportModule;
 
-        //        private static Class<? extends DatabaseModuleFactory>[] getModuleFactoriesFromConfiguration(){
-        //                InputStream cliPropertiesStream = CLI.class.getResourceAsStream("/config/cli.properties");
-        //                Properties cliProperties = new Properties();
-        //                try {
-        //                        cliProperties.load(cliPropertiesStream);
-        //                } catch (IOException e) {
-        //                        e.printStackTrace();
-        //                }
-        //                String module = (String)cliProperties.get("modules");
-        //
-        //                Class<?> aClass = null;
-        //                try {
-        //                        aClass = Class.forName(module);
-        //                } catch (ClassNotFoundException e) {
-        //                        e.printStackTrace();
-        //                }
-        //
-        //                Class<? extends DatabaseModuleFactory> aClass1 = null;
-        //                if(aClass.isAssignableFrom(DatabaseModuleFactory.class)){
-        //                        aClass1 = aClass.asSubclass(DatabaseModuleFactory.class);
-        //                }
-        //
-        //                ArrayList<Class<? extends DatabaseModuleFactory>> list = new ArrayList<Class<? extends DatabaseModuleFactory>>();
-        //                list.add(aClass1);
-        //
-        //                //return list.toArray(new Class<? extends DatabaseModuleFactory>[]{});
-        //                return null;
-        //        }
-        //
-        //        public CLI(){
-        //                this(getModuleFactoriesFromConfiguration());
-        //        }
-
         public CLI(List<String> commandLineArguments,
-          Class<? extends DatabaseModuleFactory>... databaseModuleFactories) {
+          List<Class<? extends DatabaseModuleFactory>> databaseModuleFactories) {
                 factories = new ArrayList<DatabaseModuleFactory>();
                 this.commandLineArguments = commandLineArguments;
                 try {
@@ -294,14 +261,14 @@ public class CLI {
                 out.append("Available import modules: -i <module>, --import=module\n");
                 for (DatabaseModuleFactory factory : modulesList) {
                         if (factory.producesImportModules()) {
-
+                                //TODO: describe arguments
                         }
                 }
 
                 out.append("Available export modules: -e <module>, --export=module\n");
                 for (DatabaseModuleFactory factory : modulesList) {
                         if (factory.producesExportModules()) {
-
+                                //TODO: describe arguments
                         }
                 }
         }

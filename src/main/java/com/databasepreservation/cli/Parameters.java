@@ -1,6 +1,5 @@
 package com.databasepreservation.cli;
 
-
 import java.util.Collections;
 import java.util.List;
 
@@ -13,8 +12,9 @@ public class Parameters {
 
         /**
          * Used to store a list of parameters and parameter groups
+         *
          * @param parameters the (nullable) parameter list
-         * @param groups the (nullable) parameter group list
+         * @param groups     the (nullable) parameter group list
          */
         public Parameters(List<Parameter> parameters, List<ParameterGroup> groups) {
                 if (parameters != null) {

@@ -9,6 +9,7 @@ import org.apache.commons.cli.ParseException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,14 +25,15 @@ import static org.hamcrest.Matchers.equalTo;
  */
 //TODO: incomplete because default values of optional parameters are not tested
 public class ModuleFactoryTestHelper {
-        private final Class<? extends DatabaseModuleFactory> module;
+        private final List<Class<? extends DatabaseModuleFactory>> module;
         private final Class<? extends DatabaseImportModule> importModuleClass;
         private final Class<? extends DatabaseExportModule> exportModuleClass;
 
         protected ModuleFactoryTestHelper(Class<? extends DatabaseModuleFactory> module,
           Class<? extends DatabaseImportModule> importModuleClass,
           Class<? extends DatabaseExportModule> exportModuleClass) {
-                this.module = module;
+                this.module = new ArrayList<Class<? extends DatabaseModuleFactory>>();
+                this.module.add(module);
                 this.importModuleClass = importModuleClass;
                 this.exportModuleClass = exportModuleClass;
         }
