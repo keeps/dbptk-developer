@@ -25,7 +25,8 @@ import dk.magenta.siarddk.fileindex.FileIndexType;
 
 public class FileIndexFileStrategy implements IndexFileStrategy {
 
-	private static final String FILE_SEPERATOR = File.separator; 
+	private static final String FILE_SEPERATOR = File.separator;
+	private static final String SIARDDK_FILE_SEPERATOR = "\\";   // This is determined by the Schema!!
 	
 	private WriteStrategy writeStrategy;
 	private MessageDigest messageDigest;
@@ -59,15 +60,15 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
 			// System.out.println(fiN);
 			
 			StringBuilder pathBuilder = new StringBuilder();
-			pathBuilder.append(foNbase).append(FILE_SEPERATOR);
+			pathBuilder.append(foNbase).append(SIARDDK_FILE_SEPERATOR);
 			for (int i = 0; i < splitPath.length - 2; i++) {
 				pathBuilder
 					.append(splitPath[i])
-					.append(FILE_SEPERATOR);
+					.append(SIARDDK_FILE_SEPERATOR);
 			}
 			pathBuilder.append(splitPath[splitPath.length - 2]);
 			String foN = pathBuilder.toString();
-			// System.out.println(foN);
+			System.out.println(foN);
 			
 			FileIndexType.F f = new FileIndexType.F();
 			f.setFoN(foN);
