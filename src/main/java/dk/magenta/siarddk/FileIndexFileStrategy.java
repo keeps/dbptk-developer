@@ -52,7 +52,7 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
 		
 		for (Map.Entry<String, byte[]> entry : md5sums.entrySet()) {
 			
-			System.out.println(entry.getKey() + " " + entry.getValue());
+			// System.out.println(entry.getKey() + " " + entry.getValue());
 			
 			String path = entry.getKey();
 			String[] splitPath = path.split(FILE_SEPERATOR);
@@ -68,7 +68,7 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
 			}
 			pathBuilder.append(splitPath[splitPath.length - 2]);
 			String foN = pathBuilder.toString();
-			System.out.println(foN);
+			// System.out.println(foN);
 			
 			FileIndexType.F f = new FileIndexType.F();
 			f.setFoN(foN);
@@ -77,11 +77,6 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
 			
 			fList.add(f);
 		}
-		
-//		List<FileIndexType.F> fList = fileIndexType.getF();
-//		FileIndexType.F f = new FileIndexType.F();
-//		f.setFoN(null);
-//		fList.add(f);
 		
 		return fileIndexType;
 	}
@@ -119,12 +114,4 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
 		
 		// return md5sum;
 	}
-	
-//	public void print() {
-//		md5sums.
-//		for (String key : md5sums) {
-//			System.out.println(key + " " + md5sums.get(key));
-//		}
-//	}
-
 }
