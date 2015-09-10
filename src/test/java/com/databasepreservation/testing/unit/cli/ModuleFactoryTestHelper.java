@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 /**
  * Helper class to help test ModuleFactories
+ *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 //TODO: incomplete because default values of optional parameters are not tested

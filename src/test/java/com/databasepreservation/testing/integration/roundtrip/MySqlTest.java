@@ -43,10 +43,16 @@ import java.util.Set;
                     db_source), String
                   .format("mysqldump -v --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username, db_tmp_password,
                     db_target),
-                  new String[] {"-i", "MySQLJDBC", "localhost", db_source, db_tmp_username, db_tmp_password, "-o",
-                    "SIARD1", Roundtrip.TMP_FILE_SIARD_VAR, "store"},
-                  new String[] {"-i", "SIARD1", Roundtrip.TMP_FILE_SIARD_VAR, "-o", "MySQLJDBC", "localhost", db_target,
-                    db_tmp_username, db_tmp_password}, new MySqlDumpDiffExpectations(), null, null);
+
+                  new String[] {"--import=MySQLJDBC", "--ihostname=localhost", "--idatabase", db_source, "--iusername",
+                    db_tmp_username, "--ipassword", db_tmp_password, "--export=SIARD1", "--ecompress", "--efile",
+                    Roundtrip.TMP_FILE_SIARD_VAR},
+
+                  new String[] {"--import=SIARD1", "--ifile", Roundtrip.TMP_FILE_SIARD_VAR, "--export=MySQLJDBC",
+                    "--ehostname=localhost", "--edatabase", db_target, "--eusername", db_tmp_username, "--epassword",
+                    db_tmp_password},
+
+                  new MySqlDumpDiffExpectations(), null, null);
         }
 
         @Test(description = "MySql server is available and accessible") public void testConnection()

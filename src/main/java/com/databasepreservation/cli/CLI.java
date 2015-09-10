@@ -6,7 +6,6 @@ import com.databasepreservation.modules.DatabaseModuleFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
@@ -241,7 +240,7 @@ public class CLI {
                 options.addOption(importOption);
                 options.addOption(exportOption);
 
-                new HelpFormatter().printHelp(80, "dbptk", "\nModule Options:", options, null, true);
+                //new HelpFormatter().printHelp(80, "dbptk", "\nModule Options:", options, null, true);
 
                 // parse the command line arguments with those options
                 try {

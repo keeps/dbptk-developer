@@ -25,9 +25,8 @@ import java.util.List;
                 List<String> args = Arrays
                   .asList("--import=SQLServerJDBC", "--iusername=name-user", "--ipassword=abc1 23=456",
                     "--iserver-name=the-server-name", "--idatabase=dbname", "--ido-not-encrypt",
-                    "--export=SQLServerJDBC",
-                    "--eusername=name-another-user", "--epassword=2bcd123=456", "--eserver-name=another-server",
-                    "--edatabase=another-db-name");
+                    "--export=SQLServerJDBC", "--eusername=name-another-user", "--epassword=2bcd123=456",
+                    "--eserver-name=another-server", "--edatabase=another-db-name");
 
                 // test parameters for import module
                 HashMap<String, String> expectedValuesImport = new HashMap<String, String>();

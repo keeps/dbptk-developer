@@ -423,11 +423,6 @@
     </repositories>
     <dependencies>
         <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-integration</artifactId>
-            <version>1.3</version>
-        </dependency>
-        <dependency>
             <groupId>ch.admin.bar</groupId>
             <artifactId>siard1-jaxb</artifactId>
             <version>${siard1.version}</version>

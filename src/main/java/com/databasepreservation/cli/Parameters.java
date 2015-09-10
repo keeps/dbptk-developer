@@ -1,6 +1,5 @@
 package com.databasepreservation.cli;
 
-import com.sun.istack.internal.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -12,7 +11,12 @@ public class Parameters {
         private final List<Parameter> parameters;
         private final List<ParameterGroup> groups;
 
-        public Parameters(@Nullable List<Parameter> parameters, @Nullable List<ParameterGroup> groups) {
+        /**
+         * Used to store a list of parameters and parameter groups
+         * @param parameters the (nullable) parameter list
+         * @param groups the (nullable) parameter group list
+         */
+        public Parameters(List<Parameter> parameters, List<ParameterGroup> groups) {
                 if (parameters != null) {
                         this.parameters = parameters;
                 } else {
