@@ -1,5 +1,6 @@
 package dk.magenta.siarddk;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -18,20 +19,19 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
-import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
 import dk.magenta.common.SIARDMarshaller;
 
 public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
-	private WriteStrategy writeStrategy;
+	private static final String FILE_SEPERATOR = File.separator;
+	
 	private SIARDMarshaller siardMarshaller;
 	private MetadataPathStrategy metadataPathStrategy;
 	private FileIndexFileStrategy fileIndexFileStrategy;
 	private List<String> exportModuleArgs;
 
 	public SIARDDKMetadataExportStrategy(SIARDDKExportModule siarddkExportModule) {
-		writeStrategy = siarddkExportModule.getWriteStrategy();
 		siardMarshaller = siarddkExportModule.getSiardMarshaller();
 		fileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
 		metadataPathStrategy = siarddkExportModule.getMetadataPathStrategy();
@@ -90,6 +90,18 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 			throw new ModuleException("Error writing fileIndex.xml", e);
 		}
 
+	}
+
+	
+	@Override
+	public void writeMetadataXSD(DatabaseStructure dbStructure,
+			SIARDArchiveContainer outputContainer) throws ModuleException {
+
+		// Write contents to Schemas/standard
+		writeSchemaFile(outputContainer, "XMLSchema.xsd");
+		writeSchemaFile(outputContainer, "tableIndex.xsd");
+		writeSchemaFile(outputContainer, "archiveIndex.xsd");
+		writeSchemaFile(outputContainer, "fileIndex.xsd");
 		
 		// Generate fileIndex.xml
 
@@ -108,33 +120,24 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 			throw new ModuleException(
 					"Error writing fileIndex to the archive.", e);
 		}
-	}
 
-	
-	@Override
-	public void writeMetadataXSD(DatabaseStructure dbStructure,
-			SIARDArchiveContainer outputContainer) throws ModuleException {
-
-		// Write contents to Schemas/standard
-		writeSchemaFile(outputContainer, "XMLSchema.xsd");
-		writeSchemaFile(outputContainer, "tableIndex.xsd");
-		writeSchemaFile(outputContainer, "archiveIndex.xsd");
-
-		// Remember to add files
-
+		
 	}
 
 	private void writeSchemaFile(SIARDArchiveContainer container,
 			String filename) throws ModuleException {
 		InputStream inputStream = this.getClass().getResourceAsStream(
 				"/siarddk/" + filename);
-		OutputStream outputStream = writeStrategy.createOutputStream(container,
-				"Schemas/standard/" + filename);
+		String path = "Schemas" + FILE_SEPERATOR + "standard" + FILE_SEPERATOR + filename;
+		OutputStream outputStream = fileIndexFileStrategy.getWriter(container,	path); 
 
 		try {
 			IOUtils.copy(inputStream, outputStream);
 			inputStream.close();
 			outputStream.close();
+			
+			fileIndexFileStrategy.addFile(path);
+			
 		} catch (IOException e) {
 			throw new ModuleException("There was an error writing " + filename,
 					e);

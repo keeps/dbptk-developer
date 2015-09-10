@@ -23,7 +23,6 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.content.ContentExportStrategy;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
-import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.XMLUtils;
 
 public class SIARDDKContentExportStrategy implements ContentExportStrategy {
@@ -33,7 +32,6 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 	private final static String namespaceBase = "http://www.sa.dk/xmlns/siard/1.0/";
 	
 	private ContentPathExportStrategy contentPathExportStrategy;
-	private WriteStrategy writeStrategy;
 	private FileIndexFileStrategy fileIndexFileStrategy;
 	private SIARDArchiveContainer baseContainer;
 	private OutputStream currentStream;
@@ -42,14 +40,13 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 	public SIARDDKContentExportStrategy(SIARDDKExportModule siarddkExportModule) {
 		
 		contentPathExportStrategy = siarddkExportModule.getContentExportStrategy();
-		writeStrategy = siarddkExportModule.getWriteStrategy();
 		fileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
 		baseContainer = siarddkExportModule.getMainContainer();
 	}
 	
 	@Override
 	public void openTable(SchemaStructure schemaStructure, TableStructure tableStructure)	throws ModuleException {
-		//currentStream = writeStrategy.createOutputStream(baseContainer, contentPathExportStrategy.getTableXmlFilePath(0, tableStructure.getIndex()));
+
 		currentStream = fileIndexFileStrategy.getWriter(baseContainer, contentPathExportStrategy.getTableXmlFilePath(0, tableStructure.getIndex()));
 		currentWriter = new BufferedWriter(new OutputStreamWriter(currentStream));
 		
@@ -151,7 +148,6 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
 		// Write schema to archive
 		currentStream = fileIndexFileStrategy.getWriter(baseContainer, contentPathExportStrategy.getTableXsdFilePath(0, tableStructure.getIndex()));
-		// currentStream = writeStrategy.createOutputStream(baseContainer, contentPathExportStrategy.getTableXsdFilePath(0, tableStructure.getIndex()));
 		currentWriter = new BufferedWriter(new OutputStreamWriter(currentStream));
 		
 		Document d = new Document(schema);
