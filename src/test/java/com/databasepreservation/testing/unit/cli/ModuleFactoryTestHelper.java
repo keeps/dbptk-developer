@@ -18,14 +18,16 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 /**
+ * Helper class to help test ModuleFactories
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class ModuleFactoryTestFactory {
+//TODO: incomplete because default values of optional parameters are not tested
+public class ModuleFactoryTestHelper {
         private final Class<? extends DatabaseModuleFactory> module;
         private final Class<? extends DatabaseImportModule> importModuleClass;
         private final Class<? extends DatabaseExportModule> exportModuleClass;
 
-        protected ModuleFactoryTestFactory(Class<? extends DatabaseModuleFactory> module,
+        protected ModuleFactoryTestHelper(Class<? extends DatabaseModuleFactory> module,
           Class<? extends DatabaseImportModule> importModuleClass,
           Class<? extends DatabaseExportModule> exportModuleClass) {
                 this.module = module;
@@ -112,7 +114,7 @@ public class ModuleFactoryTestFactory {
                   instanceOf(exportModuleClass));
         }
 
-        protected static void validate_arguments(ModuleFactoryTestFactory testFactory, List<String> args,
+        protected static void validate_arguments(ModuleFactoryTestHelper testFactory, List<String> args,
           HashMap<String, String> expectedImportValues, HashMap<String, String> expectedExportValues) {
                 // verify that arguments create the correct import and export modules
                 testFactory.assertCorrectModuleClass(args);

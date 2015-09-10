@@ -15,6 +15,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
+import javax.naming.OperationNotSupportedException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -115,14 +116,19 @@ public class CLI {
          */
         private void parse(List<String> args) throws ParseException {
                 DatabaseModuleFactoriesPair databaseModuleFactoriesPair = getModuleFactories(args);
-                DatabaseModuleFactoriesArguments databaseModuleFactoriesArguments = getModuleArguments(
-                  databaseModuleFactoriesPair, args);
 
-                // set import and export modules
-                importModule = databaseModuleFactoriesPair.getImportModuleFactory()
-                  .buildImportModule(databaseModuleFactoriesArguments.getImportModuleArguments());
-                exportModule = databaseModuleFactoriesPair.getExportModuleFactory()
-                  .buildExportModule(databaseModuleFactoriesArguments.getExportModuleArguments());
+                try {
+                        DatabaseModuleFactoriesArguments databaseModuleFactoriesArguments = getModuleArguments(
+                          databaseModuleFactoriesPair, args);
+
+                        // set import and export modules
+                        importModule = databaseModuleFactoriesPair.getImportModuleFactory()
+                          .buildImportModule(databaseModuleFactoriesArguments.getImportModuleArguments());
+                        exportModule = databaseModuleFactoriesPair.getExportModuleFactory()
+                          .buildExportModule(databaseModuleFactoriesArguments.getExportModuleArguments());
+                } catch (OperationNotSupportedException e) {
+                        throw new ParseException("Module does not support the requested mode.");
+                }
         }
 
         /**
@@ -192,7 +198,7 @@ public class CLI {
          * @throws ParseException If the arguments could not be parsed or are invalid
          */
         private DatabaseModuleFactoriesArguments getModuleArguments(DatabaseModuleFactoriesPair factoriesPair,
-          List<String> args) throws ParseException {
+          List<String> args) throws ParseException, OperationNotSupportedException {
                 DatabaseModuleFactory importModuleFactory = factoriesPair.getImportModuleFactory();
                 DatabaseModuleFactory exportModuleFactory = factoriesPair.getExportModuleFactory();
 

@@ -43,7 +43,7 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
           .valueIfNotSet("false").valueIfSet("true");
 
         private static final Parameter instanceName = new Parameter().shortName("in").longName("instance-name")
-          .description("").hasArgument(true).setOptionalArgument(false).required(false);
+          .description("the name of the instance").hasArgument(true).setOptionalArgument(false).required(false);
 
         private static final Parameter portNumber = new Parameter().shortName("pn").longName("port-number")
           .description("the port number of the server instance, default is 1433").hasArgument(true)
@@ -137,20 +137,19 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
                 Integer pPortNumber = null;
                 if (StringUtils.isNotBlank(parameters.get(portNumber))) {
                         pPortNumber = Integer.parseInt(parameters.get(portNumber));
+                } else {
+                        pPortNumber = Integer.parseInt(portNumber.valueIfNotSet());
                 }
                 String pInstanceName = null;
                 if (StringUtils.isNotBlank(parameters.get(instanceName))) {
                         pInstanceName = parameters.get(instanceName);
                 }
 
-                if (pPortNumber != null) {
-                        return new SQLServerJDBCExportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword,
-                          pUseIntegratedLogin, pEncrypt);
-                } else if (pInstanceName != null) {
+                if (pInstanceName != null) {
                         return new SQLServerJDBCExportModule(pServerName, pInstanceName, pDatabase, pUsername,
                           pPassword, pUseIntegratedLogin, pEncrypt);
                 } else {
-                        return new SQLServerJDBCExportModule(pServerName, pDatabase, pUsername, pPassword,
+                        return new SQLServerJDBCExportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword,
                           pUseIntegratedLogin, pEncrypt);
                 }
         }

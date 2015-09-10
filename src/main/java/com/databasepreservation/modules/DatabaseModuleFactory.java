@@ -3,6 +3,7 @@ package com.databasepreservation.modules;
 import com.databasepreservation.cli.Parameter;
 import com.databasepreservation.cli.Parameters;
 
+import javax.naming.OperationNotSupportedException;
 import java.util.Map;
 
 /**
@@ -20,11 +21,21 @@ public interface DatabaseModuleFactory {
 
         Map<String, Parameter> getAllParameters();
 
-        Parameters getImportModuleParameters();
+        Parameters getImportModuleParameters() throws OperationNotSupportedException;
 
-        Parameters getExportModuleParameters();
+        Parameters getExportModuleParameters() throws OperationNotSupportedException;
 
-        DatabaseImportModule buildImportModule(Map<Parameter, String> parameters);
+        DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws OperationNotSupportedException;
 
-        DatabaseExportModule buildExportModule(Map<Parameter, String> parameters);
+        DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws OperationNotSupportedException;
+
+        class ExceptionBuilder {
+                public static OperationNotSupportedException OperationNotSupportedExceptionForImportModule() {
+                        return new OperationNotSupportedException("Import module not available");
+                }
+
+                public static OperationNotSupportedException OperationNotSupportedExceptionForExportModule() {
+                        return new OperationNotSupportedException("Export module not available");
+                }
+        }
 }
