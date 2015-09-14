@@ -258,19 +258,83 @@ public class CLI {
                 Collections.sort(modulesList, new DatabaseModuleFactoryNameComparator());
                 int textOffset = 0;
 
-                out.append("Available import modules: -i <module>, --import=module\n");
+                out.append("## Available import modules: -i <module>, --import=module\n");
                 for (DatabaseModuleFactory factory : modulesList) {
                         if (factory.producesImportModules()) {
-                                //TODO: describe arguments
+                                try {
+                                        out.append(printModuleHelp("Import module: " + factory.getModuleName(), factory.getImportModuleParameters()));
+                                } catch (OperationNotSupportedException e) {
+                                        //this should never happen
+                                }
                         }
                 }
 
-                out.append("Available export modules: -e <module>, --export=module\n");
+                out.append("\n## Available export modules: -e <module>, --export=module\n");
                 for (DatabaseModuleFactory factory : modulesList) {
                         if (factory.producesExportModules()) {
-                                //TODO: describe arguments
+                                try {
+                                        out.append(printModuleHelp("Export module: " + factory.getModuleName(), factory.getExportModuleParameters()));
+                                } catch (OperationNotSupportedException e) {
+                                        //this should never happen
+                                }
                         }
                 }
+
+                printStream.append(out).flush();
+        }
+
+        private String printModuleHelp(String moduleDesignation, Parameters moduleParameters){
+                StringBuilder out = new StringBuilder();
+
+                String space = "    ";
+
+                out.append("\n").append(moduleDesignation);
+
+                for (Parameter parameter : moduleParameters.getParameters()) {
+                        out.append(printParameterHelp(space, parameter));
+                }
+
+                for (ParameterGroup parameterGroup : moduleParameters.getGroups()) {
+                        for (Parameter parameter : parameterGroup.getParameters()) {
+                                out.append(printParameterHelp(space, parameter));
+                        }
+                }
+                out.append("\n");
+
+                return out.toString();
+        }
+
+        private String printParameterHelp(String space, Parameter parameter){
+                StringBuilder out = new StringBuilder();
+
+                out.append("\n").append(space);
+
+                if(StringUtils.isNotBlank(parameter.shortName())){
+                        out.append("-").append(parameter.shortName()).append(", ");
+                }
+
+                out.append("--").append(parameter.longName());
+
+                if(parameter.hasArgument()){
+                        out.append("=");
+                        if(parameter.isOptionalArgument()){
+                                out.append("[");
+                        }
+                        out.append("value");
+                        if(parameter.isOptionalArgument()){
+                                out.append("]");
+                        }
+                }
+
+                out.append(space);
+                if(parameter.required()){
+                        out.append("(required) ");
+                }else{
+                        out.append("(optional) ");
+                }
+                out.append(parameter.description());
+
+                return out.toString();
         }
 
         private static class DatabaseModuleFactoryNameComparator implements Comparator<DatabaseModuleFactory> {
