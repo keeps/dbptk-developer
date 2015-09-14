@@ -55,12 +55,12 @@ import java.util.Set;
                   "pg_dump --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
 
                   new String[] {"--import=PostgreSQLJDBC", "--ihostname=localhost", "--idatabase", db_source,
-                    "--iusername", db_tmp_username, "--ipassword", db_tmp_password, "--ido-not-encrypt",
+                    "--iusername", db_tmp_username, "--ipassword", db_tmp_password, "--idisable-encryption",
                     "--export=SIARD1", "--efile", Roundtrip.TMP_FILE_SIARD_VAR},
 
                   new String[] {"--import=SIARD1", "--ifile", Roundtrip.TMP_FILE_SIARD_VAR, "--export=PostgreSQLJDBC",
                     "--ehostname=localhost", "--edatabase", db_target, "--eusername", db_tmp_username, "--epassword",
-                    db_tmp_password, "--edo-not-encrypt"}, new PostgreSqlDumpDiffExpectations(), env_var_source,
+                    db_tmp_password, "--edisable-encryption"}, new PostgreSqlDumpDiffExpectations(), env_var_source,
                   env_var_target);
         }
 
