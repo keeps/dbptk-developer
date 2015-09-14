@@ -34,9 +34,9 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
           .description("the password of the user to use in connection").hasArgument(true).setOptionalArgument(false)
           .required(true);
 
-        private static final Parameter disableEncryption = new Parameter().shortName("de").longName("disable-encryption")
-          .description("use to turn off encryption in the connection").hasArgument(false).required(false)
-          .valueIfNotSet("false").valueIfSet("true");
+        private static final Parameter disableEncryption = new Parameter().shortName("de")
+          .longName("disable-encryption").description("use to turn off encryption in the connection").hasArgument(false)
+          .required(false).valueIfNotSet("false").valueIfSet("true");
 
         private static final Parameter portNumber = new Parameter().shortName("pn").longName("port-number")
           .description("the port of where the PostgreSQL server is listening, default is 5432").hasArgument(true)
@@ -66,13 +66,13 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
         }
 
         @Override public Parameters getImportModuleParameters() throws OperationNotSupportedException {
-                return new Parameters(Arrays.asList(hostname, database, username, password, disableEncryption, portNumber),
-                  null);
+                return new Parameters(
+                  Arrays.asList(hostname, database, username, password, disableEncryption, portNumber), null);
         }
 
         @Override public Parameters getExportModuleParameters() throws OperationNotSupportedException {
-                return new Parameters(Arrays.asList(hostname, database, username, password, disableEncryption, portNumber),
-                  null);
+                return new Parameters(
+                  Arrays.asList(hostname, database, username, password, disableEncryption, portNumber), null);
         }
 
         @Override public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters)

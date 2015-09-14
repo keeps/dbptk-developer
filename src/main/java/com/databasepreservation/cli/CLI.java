@@ -254,11 +254,9 @@ public class CLI {
         private void printHelp(PrintStream printStream) {
                 StringBuilder out = new StringBuilder();
 
-                out.append("Database Preservation Toolkit, v")
-                  .append(getApplicationVersion())
-                  .append("\nMore info: http://www.database-preservation.com").append("\n")
-                  .append(
-                    "Usage: dbptk <importModule> [import module options] <exportModule> [export module options]\n\n");
+                out.append("Database Preservation Toolkit, v").append(getApplicationVersion())
+                  .append("\nMore info: http://www.database-preservation.com").append("\n").append(
+                  "Usage: dbptk <importModule> [import module options] <exportModule> [export module options]\n\n");
 
                 ArrayList<DatabaseModuleFactory> modulesList = new ArrayList<DatabaseModuleFactory>(factories);
                 Collections.sort(modulesList, new DatabaseModuleFactoryNameComparator());
@@ -268,7 +266,8 @@ public class CLI {
                 for (DatabaseModuleFactory factory : modulesList) {
                         if (factory.producesImportModules()) {
                                 try {
-                                        out.append(printModuleHelp("Import module: " + factory.getModuleName(), "i", factory.getImportModuleParameters()));
+                                        out.append(printModuleHelp("Import module: " + factory.getModuleName(), "i",
+                                          factory.getImportModuleParameters()));
                                 } catch (OperationNotSupportedException e) {
                                         //this should never happen
                                 }
@@ -279,7 +278,8 @@ public class CLI {
                 for (DatabaseModuleFactory factory : modulesList) {
                         if (factory.producesExportModules()) {
                                 try {
-                                        out.append(printModuleHelp("Export module: " + factory.getModuleName(), "e", factory.getExportModuleParameters()));
+                                        out.append(printModuleHelp("Export module: " + factory.getModuleName(), "e",
+                                          factory.getExportModuleParameters()));
                                 } catch (OperationNotSupportedException e) {
                                         //this should never happen
                                 }
@@ -289,7 +289,7 @@ public class CLI {
                 printStream.append(out).flush();
         }
 
-        private String printModuleHelp(String moduleDesignation, String parameterPrefix, Parameters moduleParameters){
+        private String printModuleHelp(String moduleDesignation, String parameterPrefix, Parameters moduleParameters) {
                 StringBuilder out = new StringBuilder();
 
                 String space = "    ";
@@ -310,32 +310,32 @@ public class CLI {
                 return out.toString();
         }
 
-        private String printParameterHelp(String space, String prefix, Parameter parameter){
+        private String printParameterHelp(String space, String prefix, Parameter parameter) {
                 StringBuilder out = new StringBuilder();
 
                 out.append("\n").append(space);
 
-                if(StringUtils.isNotBlank(parameter.shortName())){
+                if (StringUtils.isNotBlank(parameter.shortName())) {
                         out.append("-").append(prefix).append(parameter.shortName()).append(", ");
                 }
 
                 out.append("--").append(prefix).append(parameter.longName());
 
-                if(parameter.hasArgument()){
+                if (parameter.hasArgument()) {
                         out.append("=");
-                        if(parameter.isOptionalArgument()){
+                        if (parameter.isOptionalArgument()) {
                                 out.append("[");
                         }
                         out.append("value");
-                        if(parameter.isOptionalArgument()){
+                        if (parameter.isOptionalArgument()) {
                                 out.append("]");
                         }
                 }
 
                 out.append(space);
-                if(parameter.required()){
+                if (parameter.required()) {
                         out.append("(required) ");
-                }else{
+                } else {
                         out.append("(optional) ");
                 }
                 out.append(parameter.description());
@@ -343,7 +343,7 @@ public class CLI {
                 return out.toString();
         }
 
-        public static String getApplicationVersion(){
+        public static String getApplicationVersion() {
                 InputStream resourceAsStream = CLI.class
                   .getResourceAsStream("/META-INF/maven/pt.keep/db-preservation-toolkit/pom.properties");
                 Properties properties = new Properties();

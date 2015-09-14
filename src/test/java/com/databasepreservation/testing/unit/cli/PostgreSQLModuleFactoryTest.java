@@ -78,7 +78,8 @@ import java.util.List;
                   .asList("--import=PostgreSQLJDBC", "--iusername=name-user", "--ipassword=abc1 23=456",
                     "--ihostname=the-server-name", "--idatabase=dbname", "--export=PostgreSQLJDBC",
                     "--eusername=name-another-user", "--epassword=2bcd123=456", "--ehostname=another-server",
-                    "--edatabase=another-db-name", "--idisable-encryption", "--iport-number=1234", "--eport-number=4321");
+                    "--edatabase=another-db-name", "--idisable-encryption", "--iport-number=1234",
+                    "--eport-number=4321");
 
                 // test parameters for import module
                 HashMap<String, String> expectedValuesImport = new HashMap<String, String>();

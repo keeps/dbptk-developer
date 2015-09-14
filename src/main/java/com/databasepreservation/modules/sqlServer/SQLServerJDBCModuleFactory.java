@@ -38,9 +38,9 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
           .longName("use-integrated-login").description("use windows login; by default the SQL Server login is used")
           .hasArgument(false).required(false).valueIfNotSet("false").valueIfSet("true");
 
-        private static final Parameter disableEncryption = new Parameter().shortName("de").longName("disable-encryption")
-          .description("use to turn off encryption in the connection").hasArgument(false).required(false)
-          .valueIfNotSet("false").valueIfSet("true");
+        private static final Parameter disableEncryption = new Parameter().shortName("de")
+          .longName("disable-encryption").description("use to turn off encryption in the connection").hasArgument(false)
+          .required(false).valueIfNotSet("false").valueIfSet("true");
 
         private static final Parameter instanceName = new Parameter().shortName("in").longName("instance-name")
           .description("the name of the instance").hasArgument(true).setOptionalArgument(false).required(false);
