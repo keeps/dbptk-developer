@@ -24,7 +24,7 @@ import java.util.List;
         @Test public void arguments_required_long() {
                 List<String> args = Arrays
                   .asList("--import=SQLServerJDBC", "--iusername=name-user", "--ipassword=abc1 23=456",
-                    "--iserver-name=the-server-name", "--idatabase=dbname", "--ido-not-encrypt",
+                    "--iserver-name=the-server-name", "--idatabase=dbname", "--idisable-encryption",
                     "--export=SQLServerJDBC", "--eusername=name-another-user", "--epassword=2bcd123=456",
                     "--eserver-name=another-server", "--edatabase=another-db-name");
 
@@ -34,7 +34,7 @@ import java.util.List;
                 expectedValuesImport.put("password", "abc1 23=456");
                 expectedValuesImport.put("server-name", "the-server-name");
                 expectedValuesImport.put("database", "dbname");
-                expectedValuesImport.put("do-not-encrypt", "true");
+                expectedValuesImport.put("disable-encryption", "true");
 
                 // test parameters for export module
                 HashMap<String, String> expectedValuesExport = new HashMap<String, String>();
@@ -51,7 +51,7 @@ import java.util.List;
                 List<String> args = Arrays
                   .asList("-i", "SQLServerJDBC", "-iu", "name-user", "-ip", "abc1 23=456", "-is", "the-server-name",
                     "-idb", "dbname", "-e", "SQLServerJDBC", "-eu", "name-another-user", "-ep", "2bcd123=456", "-es",
-                    "another-server", "-ene", "-edb", "another-db-name");
+                    "another-server", "-ede", "-edb", "another-db-name");
 
                 // test parameters for import module
                 HashMap<String, String> expectedValuesImport = new HashMap<String, String>();
@@ -66,7 +66,7 @@ import java.util.List;
                 expectedValuesExport.put("password", "2bcd123=456");
                 expectedValuesExport.put("server-name", "another-server");
                 expectedValuesExport.put("database", "another-db-name");
-                expectedValuesExport.put("do-not-encrypt", "true");
+                expectedValuesExport.put("disable-encryption", "true");
 
                 ModuleFactoryTestHelper
                   .validate_arguments(testHelper, args, expectedValuesImport, expectedValuesExport);

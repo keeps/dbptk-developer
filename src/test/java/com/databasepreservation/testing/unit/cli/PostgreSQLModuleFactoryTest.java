@@ -26,7 +26,7 @@ import java.util.List;
                   .asList("--import=PostgreSQLJDBC", "--iusername=name-user", "--ipassword=abc1 23=456",
                     "--ihostname=the-server-name", "--idatabase=dbname", "--export=PostgreSQLJDBC",
                     "--eusername=name-another-user", "--epassword=2bcd123=456", "--ehostname=another-server",
-                    "--edatabase=another-db-name", "--ido-not-encrypt");
+                    "--edatabase=another-db-name", "--idisable-encryption");
 
                 // test parameters for import module
                 HashMap<String, String> expectedValuesImport = new HashMap<String, String>();
@@ -34,7 +34,7 @@ import java.util.List;
                 expectedValuesImport.put("database", "dbname");
                 expectedValuesImport.put("username", "name-user");
                 expectedValuesImport.put("password", "abc1 23=456");
-                expectedValuesImport.put("do-not-encrypt", "true");
+                expectedValuesImport.put("disable-encryption", "true");
 
                 // test parameters for export module
                 HashMap<String, String> expectedValuesExport = new HashMap<String, String>();
@@ -51,7 +51,7 @@ import java.util.List;
                 List<String> args = Arrays
                   .asList("-i", "PostgreSQLJDBC", "-iu", "name-user", "-ip", "abc1 23=456", "-ih", "the-server-name",
                     "-idb", "dbname", "-e", "PostgreSQLJDBC", "-eu", "name-another-user", "-ep", "2bcd123=456", "-eh",
-                    "another-server", "-edb", "another-db-name", "-ene");
+                    "another-server", "-edb", "another-db-name", "-ede");
 
                 // test parameters for import module
                 HashMap<String, String> expectedValuesImport = new HashMap<String, String>();
@@ -59,7 +59,7 @@ import java.util.List;
                 expectedValuesImport.put("database", "dbname");
                 expectedValuesImport.put("username", "name-user");
                 expectedValuesImport.put("password", "abc1 23=456");
-                //expectedValuesImport.put("do-not-encrypt", "");
+                //expectedValuesImport.put("disable-encryption", "");
 
                 // test parameters for export module
                 HashMap<String, String> expectedValuesExport = new HashMap<String, String>();
@@ -67,7 +67,7 @@ import java.util.List;
                 expectedValuesExport.put("database", "another-db-name");
                 expectedValuesExport.put("username", "name-another-user");
                 expectedValuesExport.put("password", "2bcd123=456");
-                expectedValuesExport.put("do-not-encrypt", "true");
+                expectedValuesExport.put("disable-encryption", "true");
 
                 ModuleFactoryTestHelper
                   .validate_arguments(testHelper, args, expectedValuesImport, expectedValuesExport);
@@ -78,7 +78,7 @@ import java.util.List;
                   .asList("--import=PostgreSQLJDBC", "--iusername=name-user", "--ipassword=abc1 23=456",
                     "--ihostname=the-server-name", "--idatabase=dbname", "--export=PostgreSQLJDBC",
                     "--eusername=name-another-user", "--epassword=2bcd123=456", "--ehostname=another-server",
-                    "--edatabase=another-db-name", "--ido-not-encrypt", "--iport-number=1234", "--eport-number=4321");
+                    "--edatabase=another-db-name", "--idisable-encryption", "--iport-number=1234", "--eport-number=4321");
 
                 // test parameters for import module
                 HashMap<String, String> expectedValuesImport = new HashMap<String, String>();
@@ -86,7 +86,7 @@ import java.util.List;
                 expectedValuesImport.put("database", "dbname");
                 expectedValuesImport.put("username", "name-user");
                 expectedValuesImport.put("password", "abc1 23=456");
-                expectedValuesImport.put("do-not-encrypt", "true");
+                expectedValuesImport.put("disable-encryption", "true");
                 expectedValuesImport.put("port-number", "1234");
 
                 // test parameters for export module
@@ -105,7 +105,7 @@ import java.util.List;
                 List<String> args = Arrays
                   .asList("-i", "PostgreSQLJDBC", "-iu", "name-user", "-ip", "abc1 23=456", "-ih", "the-server-name",
                     "-idb", "dbname", "-e", "PostgreSQLJDBC", "-eu", "name-another-user", "-ep", "2bcd123=456", "-eh",
-                    "another-server", "-edb", "another-db-name", "-ene", "-ipn", "4567", "-epn", "7654");
+                    "another-server", "-edb", "another-db-name", "-ede", "-ipn", "4567", "-epn", "7654");
 
                 // test parameters for import module
                 HashMap<String, String> expectedValuesImport = new HashMap<String, String>();
@@ -121,7 +121,7 @@ import java.util.List;
                 expectedValuesExport.put("database", "another-db-name");
                 expectedValuesExport.put("username", "name-another-user");
                 expectedValuesExport.put("password", "2bcd123=456");
-                expectedValuesExport.put("do-not-encrypt", "true");
+                expectedValuesExport.put("disable-encryption", "true");
                 expectedValuesExport.put("port-number", "7654");
 
                 ModuleFactoryTestHelper

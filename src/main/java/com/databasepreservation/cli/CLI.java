@@ -257,7 +257,8 @@ public class CLI {
                 out.append("Database Preservation Toolkit, v")
                   .append(getApplicationVersion())
                   .append("\nMore info: http://www.database-preservation.com").append("\n")
-                  .append("Usage: dbptk <importModule> [import module options] <exportModule> [export module options]\n\n");
+                  .append(
+                    "Usage: dbptk <importModule> [import module options] <exportModule> [export module options]\n\n");
 
                 ArrayList<DatabaseModuleFactory> modulesList = new ArrayList<DatabaseModuleFactory>(factories);
                 Collections.sort(modulesList, new DatabaseModuleFactoryNameComparator());
@@ -267,7 +268,7 @@ public class CLI {
                 for (DatabaseModuleFactory factory : modulesList) {
                         if (factory.producesImportModules()) {
                                 try {
-                                        out.append(printModuleHelp("Import module: " + factory.getModuleName(), factory.getImportModuleParameters()));
+                                        out.append(printModuleHelp("Import module: " + factory.getModuleName(), "i", factory.getImportModuleParameters()));
                                 } catch (OperationNotSupportedException e) {
                                         //this should never happen
                                 }
@@ -278,7 +279,7 @@ public class CLI {
                 for (DatabaseModuleFactory factory : modulesList) {
                         if (factory.producesExportModules()) {
                                 try {
-                                        out.append(printModuleHelp("Export module: " + factory.getModuleName(), factory.getExportModuleParameters()));
+                                        out.append(printModuleHelp("Export module: " + factory.getModuleName(), "e", factory.getExportModuleParameters()));
                                 } catch (OperationNotSupportedException e) {
                                         //this should never happen
                                 }
@@ -288,7 +289,7 @@ public class CLI {
                 printStream.append(out).flush();
         }
 
-        private String printModuleHelp(String moduleDesignation, Parameters moduleParameters){
+        private String printModuleHelp(String moduleDesignation, String parameterPrefix, Parameters moduleParameters){
                 StringBuilder out = new StringBuilder();
 
                 String space = "    ";
@@ -296,12 +297,12 @@ public class CLI {
                 out.append("\n").append(moduleDesignation);
 
                 for (Parameter parameter : moduleParameters.getParameters()) {
-                        out.append(printParameterHelp(space, parameter));
+                        out.append(printParameterHelp(space, parameterPrefix, parameter));
                 }
 
                 for (ParameterGroup parameterGroup : moduleParameters.getGroups()) {
                         for (Parameter parameter : parameterGroup.getParameters()) {
-                                out.append(printParameterHelp(space, parameter));
+                                out.append(printParameterHelp(space, parameterPrefix, parameter));
                         }
                 }
                 out.append("\n");
@@ -309,16 +310,16 @@ public class CLI {
                 return out.toString();
         }
 
-        private String printParameterHelp(String space, Parameter parameter){
+        private String printParameterHelp(String space, String prefix, Parameter parameter){
                 StringBuilder out = new StringBuilder();
 
                 out.append("\n").append(space);
 
                 if(StringUtils.isNotBlank(parameter.shortName())){
-                        out.append("-").append(parameter.shortName()).append(", ");
+                        out.append("-").append(prefix).append(parameter.shortName()).append(", ");
                 }
 
-                out.append("--").append(parameter.longName());
+                out.append("--").append(prefix).append(parameter.longName());
 
                 if(parameter.hasArgument()){
                         out.append("=");
