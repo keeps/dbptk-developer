@@ -15,6 +15,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import javax.naming.OperationNotSupportedException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +26,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Properties;
 
 /**
  * Handles command line interface
@@ -251,8 +254,10 @@ public class CLI {
         private void printHelp(PrintStream printStream) {
                 StringBuilder out = new StringBuilder();
 
-                out.append(
-                  "Usage: dbptk <importModule> [import module options] <exportModule> [export module options]\n\n");
+                out.append("Database Preservation Toolkit, v")
+                  .append(getApplicationVersion())
+                  .append("\nMore info: http://www.database-preservation.com").append("\n")
+                  .append("Usage: dbptk <importModule> [import module options] <exportModule> [export module options]\n\n");
 
                 ArrayList<DatabaseModuleFactory> modulesList = new ArrayList<DatabaseModuleFactory>(factories);
                 Collections.sort(modulesList, new DatabaseModuleFactoryNameComparator());
@@ -335,6 +340,20 @@ public class CLI {
                 out.append(parameter.description());
 
                 return out.toString();
+        }
+
+        public static String getApplicationVersion(){
+                InputStream resourceAsStream = CLI.class
+                  .getResourceAsStream("/META-INF/maven/pt.keep/db-preservation-toolkit/pom.properties");
+                Properties properties = new Properties();
+
+                try {
+                        properties.load(resourceAsStream);
+                } catch (IOException e) {
+                        // ignore the error
+                }
+
+                return properties.getProperty("version", "?");
         }
 
         private static class DatabaseModuleFactoryNameComparator implements Comparator<DatabaseModuleFactory> {
