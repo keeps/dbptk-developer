@@ -38,7 +38,7 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
           .longName("use-integrated-login").description("use windows login; by default the SQL Server login is used")
           .hasArgument(false).required(false).valueIfNotSet("false").valueIfSet("true");
 
-        private static final Parameter dontEncrypt = new Parameter().shortName("ne").longName("do-not-encrypt")
+        private static final Parameter disableEncryption = new Parameter().shortName("de").longName("disable-encryption")
           .description("use to turn off encryption in the connection").hasArgument(false).required(false)
           .valueIfNotSet("false").valueIfSet("true");
 
@@ -71,7 +71,7 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
                 parameterHashMap.put(username.longName(), username);
                 parameterHashMap.put(password.longName(), password);
                 parameterHashMap.put(useIntegratedLogin.longName(), useIntegratedLogin);
-                parameterHashMap.put(dontEncrypt.longName(), dontEncrypt);
+                parameterHashMap.put(disableEncryption.longName(), disableEncryption);
                 parameterHashMap.put(instanceName.longName(), instanceName);
                 parameterHashMap.put(portNumber.longName(), portNumber);
                 return parameterHashMap;
@@ -79,13 +79,13 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
 
         @Override public Parameters getImportModuleParameters() {
                 return new Parameters(
-                  Arrays.asList(serverName, database, username, password, useIntegratedLogin, dontEncrypt),
+                  Arrays.asList(serverName, database, username, password, useIntegratedLogin, disableEncryption),
                   Arrays.asList(instanceName_portNumber));
         }
 
         @Override public Parameters getExportModuleParameters() {
                 return new Parameters(
-                  Arrays.asList(serverName, database, username, password, useIntegratedLogin, dontEncrypt),
+                  Arrays.asList(serverName, database, username, password, useIntegratedLogin, disableEncryption),
                   Arrays.asList(instanceName_portNumber));
         }
 
@@ -98,7 +98,7 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
 
                 // boolean
                 boolean pUseIntegratedLogin = Boolean.parseBoolean(parameters.get(useIntegratedLogin));
-                boolean pEncrypt = !Boolean.parseBoolean(parameters.get(dontEncrypt));
+                boolean pEncrypt = !Boolean.parseBoolean(parameters.get(disableEncryption));
 
                 // optional
                 Integer pPortNumber = null;
@@ -131,7 +131,7 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
 
                 // boolean
                 boolean pUseIntegratedLogin = Boolean.parseBoolean(parameters.get(useIntegratedLogin));
-                boolean pEncrypt = !Boolean.parseBoolean(parameters.get(dontEncrypt));
+                boolean pEncrypt = !Boolean.parseBoolean(parameters.get(disableEncryption));
 
                 // optional
                 Integer pPortNumber = null;

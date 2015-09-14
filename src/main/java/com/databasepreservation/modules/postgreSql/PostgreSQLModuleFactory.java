@@ -34,7 +34,7 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
           .description("the password of the user to use in connection").hasArgument(true).setOptionalArgument(false)
           .required(true);
 
-        private static final Parameter dontEncrypt = new Parameter().shortName("ne").longName("do-not-encrypt")
+        private static final Parameter disableEncryption = new Parameter().shortName("de").longName("disable-encryption")
           .description("use to turn off encryption in the connection").hasArgument(false).required(false)
           .valueIfNotSet("false").valueIfSet("true");
 
@@ -60,18 +60,18 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
                 parameterHashMap.put(database.longName(), database);
                 parameterHashMap.put(username.longName(), username);
                 parameterHashMap.put(password.longName(), password);
-                parameterHashMap.put(dontEncrypt.longName(), dontEncrypt);
+                parameterHashMap.put(disableEncryption.longName(), disableEncryption);
                 parameterHashMap.put(portNumber.longName(), portNumber);
                 return parameterHashMap;
         }
 
         @Override public Parameters getImportModuleParameters() throws OperationNotSupportedException {
-                return new Parameters(Arrays.asList(hostname, database, username, password, dontEncrypt, portNumber),
+                return new Parameters(Arrays.asList(hostname, database, username, password, disableEncryption, portNumber),
                   null);
         }
 
         @Override public Parameters getExportModuleParameters() throws OperationNotSupportedException {
-                return new Parameters(Arrays.asList(hostname, database, username, password, dontEncrypt, portNumber),
+                return new Parameters(Arrays.asList(hostname, database, username, password, disableEncryption, portNumber),
                   null);
         }
 
@@ -83,7 +83,7 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
                 String pPassword = parameters.get(password);
 
                 // boolean
-                boolean pEncrypt = !Boolean.parseBoolean(parameters.get(dontEncrypt));
+                boolean pEncrypt = !Boolean.parseBoolean(parameters.get(disableEncryption));
 
                 // optional
                 Integer pPortNumber = null;
@@ -105,7 +105,7 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
                 String pPassword = parameters.get(password);
 
                 // boolean
-                boolean pEncrypt = !Boolean.parseBoolean(parameters.get(dontEncrypt));
+                boolean pEncrypt = !Boolean.parseBoolean(parameters.get(disableEncryption));
 
                 // optional
                 Integer pPortNumber = null;
