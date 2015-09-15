@@ -70,6 +70,8 @@ import java.util.List;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
+        private static final String METADATA_FILENAME = "metadata";
+
         private final MetadataPathStrategy metadataPathStrategy;
         private final ContentPathImportStrategy contentPathStrategy;
         private DatabaseStructure databaseStructure;
@@ -96,12 +98,12 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
                 SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
                 Schema xsdSchema = null;
                 InputStream xsdStream = readStrategy
-                  .createInputStream(container, metadataPathStrategy.getMetadataXsdFilePath());
+                  .createInputStream(container, metadataPathStrategy.getXsdFilePath(METADATA_FILENAME));
                 try {
                         xsdSchema = schemaFactory.newSchema(new StreamSource(xsdStream));
                 } catch (SAXException e) {
                         throw new ModuleException(
-                          "Error reading metadata XSD file: " + metadataPathStrategy.getMetadataXsdFilePath(), e);
+                          "Error reading metadata XSD file: " + metadataPathStrategy.getXsdFilePath(METADATA_FILENAME), e);
                 }
 
                 InputStream reader = null;
@@ -114,7 +116,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
                         unmarshaller.setSchema(xsdSchema);
 
                         reader = readStrategy
-                          .createInputStream(container, metadataPathStrategy.getMetadataXmlFilePath());
+                          .createInputStream(container, metadataPathStrategy.getXmlFilePath(METADATA_FILENAME));
                         xmlRoot = (SiardArchive) unmarshaller.unmarshal(reader);
                 } catch (JAXBException e) {
                         throw new ModuleException("Error while Unmarshalling JAXB", e);
