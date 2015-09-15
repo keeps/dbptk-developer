@@ -62,6 +62,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -285,11 +286,71 @@ public class JDBCImportModule implements DatabaseImportModule {
                 schema.setName(schemaName);
                 schema.setIndex(schemaIndex);
 
+
+
+                getUDTs(schema);
                 schema.setTables(getTables(schema));
                 schema.setViews(getViews(schemaName));
                 schema.setRoutines(getRoutines(schemaName));
 
                 return schema;
+        }
+
+        private void getUDTs(SchemaStructure schema) throws SQLException, ClassNotFoundException, UnknownTypeException {
+                ResultSet types = getMetadata().getUDTs(dbStructure.getName(), schema.getName(), null, null);
+
+                // "possible" because it may also be a table name
+                ArrayList<String> possibleUDTs = new ArrayList<String>();
+
+                while (types.next()){
+                        int dataType = types.getInt(5);
+                        if( dataType == Types.STRUCT){
+                                possibleUDTs.add(types.getString(3));
+                        }else {
+                                StringBuilder debug = new StringBuilder();
+                                debug.append("Possible UDT is not a STRUCT. ");
+
+                                //1. TYPE_CAT String => the type's catalog (may be null)
+                                debug.append("\nTYPE_CAT: ").append(types.getString(1));
+                                //2. TYPE_SCHEM String => type's schema (may be null)
+                                debug.append("\nTYPE_SCHEM: ").append(types.getString(2));
+                                //3. TYPE_NAME String => type name
+                                debug.append("\nTYPE_NAME: ").append(types.getString(3));
+                                //4. CLASS_NAME String => Java class name
+                                debug.append("\nCLASS_NAME: ").append(types.getString(4)).append("\n");
+                                //5. DATA_TYPE int => type value defined in java.sql.Types. One of JAVA_OBJECT, STRUCT, or DISTINCT
+                                switch (dataType) {
+                                        case Types.JAVA_OBJECT:
+                                                debug.append("DATA_TYPE: JAVA_OBJECT");
+                                                break;
+                                        case Types.STRUCT:
+                                                debug.append("DATA_TYPE: STRUCT");
+                                                break;
+                                        case Types.DISTINCT:
+                                                debug.append("DATA_TYPE: DISTINCT");
+                                                break;
+                                        default:
+                                                debug.append("DATA_TYPE: " + dataType + "(unknown)");
+                                }
+                                //6. REMARKS String => explanatory comment on the type
+                                debug.append("\nREMARKS: ").append(types.getString(6));
+                                /*7. BASE_TYPE short => type code of the source type of a DISTINCT type or the type that implements
+                                        the user-generated reference type of the SELF_REFERENCING_COLUMN of a structured type as
+                                        defined in java.sql.Types (null if DATA_TYPE is not DISTINCT or not STRUCT with
+                                        REFERENCE_GENERATION = USER_DEFINED)*/
+                                debug.append("\nBASE_TYPE: ").append(types.getShort(7));
+                                logger.info(debug.toString());
+                        }
+                }
+
+                if(!possibleUDTs.isEmpty()){
+                        for (String possibleUDT : possibleUDTs) {
+                                StringBuilder debug = new StringBuilder();
+                                ResultSet fields = getMetadata().getColumns(dbStructure.getName(), schema.getName(), possibleUDT, null);
+
+                                List<ColumnStructure> columns = getColumns(schema.getName(), possibleUDT);
+                        }
+                }
         }
 
         /**
@@ -776,8 +837,8 @@ public class JDBCImportModule implements DatabaseImportModule {
                                 type = new ComposedTypeStructure();
                                 logger.error(
                                   "Struct type not yet supported! Data type: " + dataType + ", type name=" + typeName);
-                                throw new UnknownTypeException("Struct type not yet supported");
-                                // break;
+                                //throw new UnknownTypeException("Struct type not yet supported");
+                                break;
 
                         case Types.OTHER:
                                 logger.debug("Got an OTHER type, beware!");

@@ -111,6 +111,7 @@ import java.util.Set;
                 ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
                 //tests.add(new Path[]{Paths.get(getClass().getResource("/postgreSql/testfiles/datatypes.sql").toURI())});
+                //tests.add(new Path[]{Paths.get(getClass().getResource("/postgreSql/testfiles/datatypes_udt.sql").toURI())});
                 //tests.add(new Path[]{Paths.get(getClass().getResource("/postgreSql/testfiles/datatypes_with_arrays.sql").toURI())});
 
                 return tests.iterator();
