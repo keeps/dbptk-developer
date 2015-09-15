@@ -10,6 +10,7 @@ import com.databasepreservation.modules.mySql.MySQLModuleFactory;
 import com.databasepreservation.modules.postgreSql.PostgreSQLModuleFactory;
 import com.databasepreservation.modules.siard.SIARD1ModuleFactory;
 import com.databasepreservation.modules.siard.SIARD2ModuleFactory;
+import com.databasepreservation.modules.sqlServer.SQLServerJDBCModuleFactory;
 import org.apache.commons.cli.ParseException;
 import org.apache.log4j.Logger;
 
@@ -41,7 +42,7 @@ public class Main {
                 final DatabaseImportModule importModule;
                 final DatabaseExportModule exportModule;
 
-                CLI cli = new CLI(Arrays.asList(args), new MySQLModuleFactory(), new PostgreSQLModuleFactory(),
+                CLI cli = new CLI(Arrays.asList(args), new MySQLModuleFactory(), new SQLServerJDBCModuleFactory(), new PostgreSQLModuleFactory(),
                   new SIARD1ModuleFactory(), new SIARD2ModuleFactory());
                 try {
                         importModule = cli.getImportModule();
