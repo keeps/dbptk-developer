@@ -28,7 +28,7 @@ import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
-import com.databasepreservation.modules.DatabaseHandler;
+import com.databasepreservation.modules.DatabaseExportModule;
 import com.databasepreservation.modules.DatabaseImportModule;
 import com.databasepreservation.modules.siard.in.input.SIARD1ImportModule;
 import com.databasepreservation.modules.siard.in.input.SIARD2ImportModule;
@@ -504,7 +504,7 @@ import java.util.Random;
          */
         private DatabaseStructure roundtrip(DatabaseStructure dbStructure, Path tmpFile, SIARDVersion version)
           throws FileNotFoundException, ModuleException, UnknownTypeException, InvalidDataException {
-                DatabaseHandler exporter = null;
+                DatabaseExportModule exporter = null;
 
                 switch (version) {
                         case SIARD_1:
@@ -547,7 +547,7 @@ import java.util.Random;
                 logger.debug("getting the data back from SIARD");
 
                 logger.debug("SIARD file: " + tmpFile.toUri().toString());
-                DatabaseHandler mocked = Mockito.mock(DatabaseHandler.class);
+                DatabaseExportModule mocked = Mockito.mock(DatabaseExportModule.class);
 
                 DatabaseImportModule importer = null;
                 switch (version) {

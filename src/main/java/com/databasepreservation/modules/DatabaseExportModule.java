@@ -14,8 +14,7 @@ import java.util.Set;
 /**
  * @author Luis Faria
  */
-public interface DatabaseHandler {
-
+public interface DatabaseExportModule {
         /**
          * Initialize the database, this will be the first method called
          *

@@ -4,7 +4,6 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 
 import java.io.InputStream;
-import java.nio.file.Path;
 
 /**
  * Defines the behaviour for reading data
@@ -38,6 +37,5 @@ public interface ReadStrategy {
          * @return Iterable of paths for files contained in the specified directory. The paths are suitable to be used in createInputStream. After use it should be closed.
          * @throws ModuleException
          */
-        CloseableIterable<String> getFilepathStream(SIARDArchiveContainer container)
-          throws ModuleException;
+        CloseableIterable<String> getFilepathStream(SIARDArchiveContainer container) throws ModuleException;
 }

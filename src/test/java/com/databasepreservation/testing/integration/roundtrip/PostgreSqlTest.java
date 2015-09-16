@@ -53,11 +53,15 @@ import java.util.Set;
                   db_tmp_username), "psql -q",
                   "pg_dump --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
                   "pg_dump --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
-                  new String[] {"-i", "PostgreSQLJDBC", "localhost", db_source, db_tmp_username, db_tmp_password,
-                    "false", "-o", "SIARD1", Roundtrip.TMP_FILE_SIARD_VAR, "store"},
-                  new String[] {"-i", "SIARD1", Roundtrip.TMP_FILE_SIARD_VAR, "-o", "PostgreSQLJDBC", "localhost",
-                    db_target, db_tmp_username, db_tmp_password, "false"}, new PostgreSqlDumpDiffExpectations(),
-                  env_var_source, env_var_target);
+
+                  new String[] {"--import=PostgreSQLJDBC", "--ihostname=localhost", "--idatabase", db_source,
+                    "--iusername", db_tmp_username, "--ipassword", db_tmp_password, "--idisable-encryption",
+                    "--export=SIARD1", "--efile", Roundtrip.TMP_FILE_SIARD_VAR},
+
+                  new String[] {"--import=SIARD1", "--ifile", Roundtrip.TMP_FILE_SIARD_VAR, "--export=PostgreSQLJDBC",
+                    "--ehostname=localhost", "--edatabase", db_target, "--eusername", db_tmp_username, "--epassword",
+                    db_tmp_password, "--edisable-encryption"}, new PostgreSqlDumpDiffExpectations(), env_var_source,
+                  env_var_target);
         }
 
         @Test(description = "PostgreSql server is available and accessible") public void testConnection()

@@ -35,7 +35,7 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
-import com.databasepreservation.modules.DatabaseHandler;
+import com.databasepreservation.modules.DatabaseExportModule;
 import com.databasepreservation.modules.DatabaseImportModule;
 import com.databasepreservation.modules.SQLHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -599,7 +599,7 @@ public class JDBCImportModule implements DatabaseImportModule {
                         // YES --- if the column can include NULLs
                         // NO --- if the column cannot include NULLs
                         // empty string --- if the nullability for the column is unknown
-                        Boolean isNullable = "YES" .equals(rs.getString(18));
+                        Boolean isNullable = "YES".equals(rs.getString(18));
                         cLogMessage.append("Is Nullable: ").append(isNullable).append("\n");
                         // 20. SCOPE_SCHEMA String => schema of table that is the scope of a
                         // reference attribute (null if the DATA_TYPE isn't REF)
@@ -614,7 +614,7 @@ public class JDBCImportModule implements DatabaseImportModule {
                         // NO --- if the column is not auto incremented
                         // empty string --- if it cannot be determined whether the column is
                         // auto incremented
-                        Boolean isAutoIncrement = "YES" .equals(rs.getString(23));
+                        Boolean isAutoIncrement = "YES".equals(rs.getString(23));
                         cLogMessage.append("Is auto increment: ").append(isAutoIncrement).append("\n");
                         // 24. IS_GENERATEDCOLUMN String => Indicates whether this is a
                         // generated column
@@ -1527,7 +1527,7 @@ public class JDBCImportModule implements DatabaseImportModule {
                 return ignore;
         }
 
-        @Override public void getDatabase(DatabaseHandler handler)
+        @Override public void getDatabase(DatabaseExportModule handler)
           throws ModuleException, UnknownTypeException, InvalidDataException {
                 try {
                         logger.debug("initializing database");

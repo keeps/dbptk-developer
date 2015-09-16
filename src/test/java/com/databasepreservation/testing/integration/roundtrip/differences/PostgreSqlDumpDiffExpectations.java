@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 /**
  * PostgreSQL specific implementation to convert the source database dump to an expected version of the database dump
+ *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class PostgreSqlDumpDiffExpectations extends DumpDiffExpectations {
@@ -17,9 +18,8 @@ public class PostgreSqlDumpDiffExpectations extends DumpDiffExpectations {
                 directReplacements = new ArrayList<Pair<Pattern, String>>();
 
                 // "char" -> character(1)
-                directReplacements.add(
-                  new ImmutablePair<Pattern, String>(Pattern.compile("(?<= )\"char\"(?= )"),
-                    "character(1)"));
+                directReplacements
+                  .add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<= )\"char\"(?= )"), "character(1)"));
         }
 
         @Override protected String expectedTargetDatabaseDump(String source) {
