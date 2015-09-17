@@ -2,7 +2,7 @@
 
 #ARGS:
 # source database name
-# destination deatabase name
+# destination database name
 # temporary user username
 # temporary user password
 

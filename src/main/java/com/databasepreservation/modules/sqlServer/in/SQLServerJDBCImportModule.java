@@ -114,6 +114,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
                 ignored.add("db_.*");
                 ignored.add("sys");
                 ignored.add("INFORMATION_SCHEMA");
+                ignored.add("guest");
                 return ignored;
         }
 
