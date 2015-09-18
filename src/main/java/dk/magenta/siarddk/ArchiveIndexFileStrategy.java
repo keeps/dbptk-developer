@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
+import java.util.Map;
 
 import javax.xml.transform.stream.StreamSource;
 
@@ -26,10 +26,10 @@ import com.databasepreservation.model.structure.DatabaseStructure;
 
 public class ArchiveIndexFileStrategy implements IndexFileStrategy {
 
-  private List<String> exportModuleArgs;
+  private Map<String, String> exportModuleArgs;
   private OutputStream writer;
 
-  public ArchiveIndexFileStrategy(List<String> exportModuleArgs, OutputStream writer) {
+  public ArchiveIndexFileStrategy(Map<String, String> exportModuleArgs, OutputStream writer) {
     this.exportModuleArgs = exportModuleArgs;
     this.writer = writer;
   }
@@ -37,41 +37,37 @@ public class ArchiveIndexFileStrategy implements IndexFileStrategy {
   @Override
   public Object generateXML(DatabaseStructure dbStructure) throws ModuleException {
 
-    int idx = exportModuleArgs.indexOf("-ai");
-    if (idx != -1) {
-      String pathStr = "";
+    String pathStr = exportModuleArgs.get("ai");
+    try {
+
+      // Create SAXBuilder from schema factory with archiveIndex.xsd
+      // as schema
+      InputStream in = this.getClass().getResourceAsStream("/siarddk/archiveIndex.xsd");
+      XMLReaderJDOMFactory schemaFactory = new XMLReaderXSDFactory(new StreamSource(in));
+      SAXBuilder builder = new SAXBuilder(schemaFactory);
+
+      // Read archiveIndex.xml given on command line and validate
+      // against schema
+      File archiveIndexXmlFile = new File(pathStr);
+      Document document = builder.build(archiveIndexXmlFile);
+
+      // TO-DO: for now this class will write to the archive, but this
+      // responsibility should may be moved
+      XMLOutputter xmlOutputter = new XMLOutputter();
       try {
-        pathStr = exportModuleArgs.get(idx + 1);
-
-        // Create SAXBuilder from schema factory with archiveIndex.xsd
-        // as schema
-        InputStream in = this.getClass().getResourceAsStream("/siarddk/archiveIndex.xsd");
-        XMLReaderJDOMFactory schemaFactory = new XMLReaderXSDFactory(new StreamSource(in));
-        SAXBuilder builder = new SAXBuilder(schemaFactory);
-
-        // Read archiveIndex.xml given on command line and validate
-        // against schema
-        File archiveIndexXmlFile = new File(pathStr);
-        Document document = builder.build(archiveIndexXmlFile);
-
-        // TO-DO: for now this class will write to the archive, but this
-        // responsibility should may be moved
-        XMLOutputter xmlOutputter = new XMLOutputter();
-        try {
-          xmlOutputter.output(document, writer);
-        } catch (IOException e) {
-          throw new ModuleException("Could not write archiveIndex.xml to archive", e);
-        }
-
-      } catch (IndexOutOfBoundsException e) {
-        throw new ModuleException("Must supply valid argument after -ai flag.", e);
-      } catch (JDOMParseException e) {
-        throw new ModuleException("The given archiveIndex.xml file is not valid according to archiveIndex.xsd", e);
-      } catch (JDOMException e) {
-        throw new ModuleException("Problem creating JDOM schema factory", e);
+        xmlOutputter.output(document, writer);
       } catch (IOException e) {
-        throw new ModuleException("There was a problem reading the file " + pathStr, e);
+        throw new ModuleException("Could not write archiveIndex.xml to archive", e);
       }
+
+    } catch (IndexOutOfBoundsException e) {
+      throw new ModuleException("Must supply valid argument after -ai flag.", e);
+    } catch (JDOMParseException e) {
+      throw new ModuleException("The given archiveIndex.xml file is not valid according to archiveIndex.xsd", e);
+    } catch (JDOMException e) {
+      throw new ModuleException("Problem creating JDOM schema factory", e);
+    } catch (IOException e) {
+      throw new ModuleException("There was a problem reading the file " + pathStr, e);
     }
 
     return null;

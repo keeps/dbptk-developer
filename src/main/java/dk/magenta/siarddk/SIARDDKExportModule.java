@@ -7,8 +7,9 @@
 
 package dk.magenta.siarddk;
 
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Map;
 
 import com.databasepreservation.modules.DatabaseExportModule;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
@@ -25,61 +26,63 @@ import dk.magenta.common.StandardSIARDMarshaller;
 
 public class SIARDDKExportModule {
 
-	private MetadataExportStrategy metadataExportStrategy;
-	private SIARDArchiveContainer mainContainer;
-	private ContentExportStrategy contentExportStrategy;
-	private WriteStrategy writeStrategy;
-	private ContentPathExportStrategy contentPathExportStrategy;
-	private MetadataPathStrategy metadataPathStrategy;
-	private SIARDMarshaller siardMarshaller;
+  private MetadataExportStrategy metadataExportStrategy;
+  private SIARDArchiveContainer mainContainer;
+  private ContentExportStrategy contentExportStrategy;
+  private WriteStrategy writeStrategy;
+  private ContentPathExportStrategy contentPathExportStrategy;
+  private MetadataPathStrategy metadataPathStrategy;
+  private SIARDMarshaller siardMarshaller;
 
-	private List<String> exportModuleArgs;
-	private FileIndexFileStrategy fileIndexFileStrategy;
+  private Map<String, String> exportModuleArgs;
+  private FileIndexFileStrategy fileIndexFileStrategy;
 
-	public SIARDDKExportModule(Path siardPackage, List<String> exportModuleArgs) {
-		this.exportModuleArgs = exportModuleArgs;
+  // public SIARDDKExportModule(Path siardPackage, List<String>
+  // exportModuleArgs) {
+  public SIARDDKExportModule(Map<String, String> exportModuleArgs) {
+    this.exportModuleArgs = exportModuleArgs;
 
-		mainContainer = new SIARDArchiveContainer(siardPackage,
-				SIARDArchiveContainer.OutputContainerType.MAIN);
-		writeStrategy = new FolderWriteStrategy();
-		siardMarshaller = new StandardSIARDMarshaller();
-		fileIndexFileStrategy = new FileIndexFileStrategy(this);
-		contentPathExportStrategy = new SIARDDKContentExportPathStrategy();
-		metadataPathStrategy = new SIARDDKMetadataPathStrategy();
-		metadataExportStrategy = new SIARDDKMetadataExportStrategy(this);
-		contentExportStrategy = new SIARDDKContentExportStrategy(this);
-	}
+    Path rootPath = FileSystems.getDefault().getPath(exportModuleArgs.get("f"));
 
-	public DatabaseExportModule getDatabaseExportModule() {
-		return new SIARDExportDefault(contentExportStrategy, mainContainer,
-				writeStrategy, metadataExportStrategy);
-	}
+    mainContainer = new SIARDArchiveContainer(rootPath, SIARDArchiveContainer.OutputContainerType.MAIN);
+    writeStrategy = new FolderWriteStrategy();
+    siardMarshaller = new StandardSIARDMarshaller();
+    fileIndexFileStrategy = new FileIndexFileStrategy(this);
+    contentPathExportStrategy = new SIARDDKContentExportPathStrategy();
+    metadataPathStrategy = new SIARDDKMetadataPathStrategy();
+    metadataExportStrategy = new SIARDDKMetadataExportStrategy(this);
+    contentExportStrategy = new SIARDDKContentExportStrategy(this);
+  }
 
-	public List<String> getExportModuleArgs() {
-		return exportModuleArgs;
-	}
+  public DatabaseExportModule getDatabaseExportModule() {
+    return new SIARDExportDefault(contentExportStrategy, mainContainer, writeStrategy, metadataExportStrategy);
+  }
 
-	public WriteStrategy getWriteStrategy() {
-		return writeStrategy;
-	}
+  public Map<String, String> getExportModuleArgs() {
+    return exportModuleArgs;
+  }
 
-	public FileIndexFileStrategy getFileIndexFileStrategy() {
-		return fileIndexFileStrategy;
-	}
+  public WriteStrategy getWriteStrategy() {
+    return writeStrategy;
+  }
 
-	public SIARDMarshaller getSiardMarshaller() {
-		return siardMarshaller;
-	}
+  public FileIndexFileStrategy getFileIndexFileStrategy() {
+    return fileIndexFileStrategy;
+  }
 
-	public MetadataPathStrategy getMetadataPathStrategy() {
-		return metadataPathStrategy;
-	}
+  public SIARDMarshaller getSiardMarshaller() {
+    return siardMarshaller;
+  }
 
-	public ContentPathExportStrategy getContentExportStrategy() {
-		return contentPathExportStrategy;
-	}
+  public MetadataPathStrategy getMetadataPathStrategy() {
+    return metadataPathStrategy;
+  }
 
-	public SIARDArchiveContainer getMainContainer() {
-		return mainContainer;
-	}
+  public ContentPathExportStrategy getContentExportStrategy() {
+    return contentPathExportStrategy;
+  }
+
+  public SIARDArchiveContainer getMainContainer() {
+    return mainContainer;
+  }
 }

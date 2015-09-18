@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 
@@ -30,7 +31,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
   private SIARDMarshaller siardMarshaller;
   private MetadataPathStrategy metadataPathStrategy;
   private FileIndexFileStrategy fileIndexFileStrategy;
-  private List<String> exportModuleArgs;
+  private Map<String, String> exportModuleArgs;
 
   public SIARDDKMetadataExportStrategy(SIARDDKExportModule siarddkExportModule) {
     siardMarshaller = siarddkExportModule.getSiardMarshaller();
