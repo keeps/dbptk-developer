@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <name>dbptk-bindings</name>
+    <groupId>com.databasepreservation</groupId>
+    <artifactId>dbptk-bindings</artifactId>
+    <version>1.1.0</version>
+    <parent>
+        <groupId>com.databasepreservation</groupId>
+        <artifactId>dbptk</artifactId>
+        <version>2.1.0-SNAPSHOT</version>
+        <relativePath>..</relativePath>
+    </parent>
+    <packaging>pom</packaging>
+    <properties>
+        <projectLocalRepository>${project.basedir}/../../vendor-libs/repository</projectLocalRepository>
+    </properties>
+    <modules>
+        <module>dbptk-bindings-siard1</module>
+        <module>dbptk-bindings-siard2</module>
+    </modules>
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.jvnet.jaxb2.maven2</groupId>
+                    <artifactId>maven-jaxb2-plugin</artifactId>
+                    <version>0.12.3</version>
+                    <executions>
+                        <execution>
+                            <id>generate-jaxb-siard</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>generate</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <strict>false</strict>
+
+                        <!-- specify the schema to convert -->
+                        <schemaDirectory>${basedir}/src/main/resources/schema</schemaDirectory>
+                        <schemaIncludes>
+                            <include>*.xsd</include>
+                        </schemaIncludes>
+
+                        <!-- specifically specify each binding to use in conversion -->
+                        <bindingDirectory>${basedir}/src/main/resources/config/jaxb</bindingDirectory>
+                        <bindingIncludes>
+                            <include>*.xjb</include>
+                        </bindingIncludes>
+                        <!--generate java classes-->
+                        <generateDirectory>${project.build.directory}/generated-sources/xjc/siard1
+                        </generateDirectory>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>2.5.2</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.jvnet.jaxb2.maven2</groupId>
+                <artifactId>maven-jaxb2-plugin</artifactId>
+                <version>0.12.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>2.5.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
