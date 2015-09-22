@@ -92,7 +92,7 @@ $ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar \
 
 1. Download the [latest stable release](https://github.com/keeps/db-preservation-toolkit/releases).
 2. Unzip and open the folder on a command-line terminal
-3. Build with Maven `mvn clean package -DskipTests`
+3. Build with Maven `mvn clean package`
 
 Binaries will be on the `target` folder
 
@@ -169,13 +169,6 @@ To run MySQL tests, a local MySQL (or MariaDB) database is required and 'root' u
 
 ### Changing XML Schema files
 
-After changing SIARD XML Schema files, maven must be used to compile a new artifact from the XML Schema (using JAXB).
+After changing SIARD XML Schema files, maven must be used to compile a new artifact from the XML Schema (using JAXB). To do this, run ```mvn clean install -Pdbptk-bindings``` from project root folder.
 
-* For SIARD1 use: ```mvn clean install -P generate-siard1```
-
-* For SIARD2 use: ```mvn clean install -P generate-siard2```
-
-The jars should now be installed in ```<project_dir>/vendor-libs```.
-
-Note: to change the version of the generated jars, change the respective property in pom.xml.
-This may be needed for the new jar to be installed locally and for changes to take effect.
+The jars should now be installed in ```<project_dir>/vendor-libs``` (and also in your local maven repository).
