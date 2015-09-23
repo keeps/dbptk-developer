@@ -1,5 +1,7 @@
 package dk.magenta.siarddk;
 
+import java.util.Map;
+
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.out.output.SIARDExportDefault;
 
@@ -21,8 +23,8 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
     // super(contentExportStrategy, mainContainer, writeStrategy,
     // metadataExportStrategy);
 
-    super(siarddkExportModule.getContentExportStrategy(), siarddkExportModule.getMainContainer(), siarddkExportModule
-      .getWriteStrategy(), siarddkExportModule.getMetadataExportStrategy());
+    super(siarddkExportModule.getContentExportStrategy(), siarddkExportModule.getMainContainer(),
+      siarddkExportModule.getWriteStrategy(), siarddkExportModule.getMetadataExportStrategy());
 
     this.siarddkExportModule = siarddkExportModule;
     // this.mainContainer = mainContainer;
@@ -35,11 +37,15 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
 
     // Write ContextDocumentation to archive
 
-    ContextDocumentationWriter contextDocumentationWriter = new ContextDocumentationWriter(
-      siarddkExportModule.getMainContainer(), siarddkExportModule.getWriteStrategy(),
-      siarddkExportModule.getFileIndexFileStrategy(), siarddkExportModule.getExportModuleArgs());
+    Map<String, String> exportModuleArgs = siarddkExportModule.getExportModuleArgs();
 
-    contextDocumentationWriter.writeContextDocumentation();
+    if (exportModuleArgs.get(Constants.CONTEXT_DOCUMENTATION_FOLDER) != null) {
 
+      ContextDocumentationWriter contextDocumentationWriter = new ContextDocumentationWriter(
+        siarddkExportModule.getMainContainer(), siarddkExportModule.getWriteStrategy(),
+        siarddkExportModule.getFileIndexFileStrategy(), siarddkExportModule.getExportModuleArgs());
+
+      contextDocumentationWriter.writeContextDocumentation();
+    }
   }
 }

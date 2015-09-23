@@ -34,10 +34,14 @@ public class ContextDocumentationWriter {
     String pathStr = exportModuleArgs.get(Constants.CONTEXT_DOCUMENTATION_FOLDER);
     File[] files = new File(pathStr).listFiles();
 
+    // Get path to main container
     mainContainerPath = mainContainer.getPath();
     System.out.println(mainContainer.getPath());
 
-    writeFile(files);
+    // Absolute path to the ContextDocumentation folder within the archive
+    Path path = mainContainerPath.resolve(Constants.CONTEXT_DOCUMENTATION_RELATIVE_PATH);
+
+    writeFile(files, path);
 
     // try {
     //
@@ -64,16 +68,20 @@ public class ContextDocumentationWriter {
    * @precondition files must only contain files or folder - not symbolic links
    *               etc.
    */
-  private void writeFile(File[] files) throws ModuleException {
+  private void writeFile(File[] files, Path path) throws ModuleException {
+
     for (File file : files) {
       // System.out.println(file.getAbsoluteFile());
       // System.out.println(file.getName());
-      String name = file.getName();
-      Path path = mainContainerPath.resolve(Constants.CONTEXT_DOCUMENTATION_RELATIVE_PATH);
-      path = path.resolve(name);
-      System.out.println(path);
-      System.out.println("---------");
+
       if (file.isFile()) {
+
+        String name = file.getName();
+
+        path = path.resolve(name);
+        System.out.println(path);
+        System.out.println("---------");
+        path = path.getParent();
 
         // Get a hold of the path tree
 
@@ -90,10 +98,13 @@ public class ContextDocumentationWriter {
         // throw new ModuleException("There was a problem closing the file " +
         // file.toString(), e);
         // }
-      } else {
-        // Create appropriate folder
 
-        writeFile(file.listFiles());
+      } else {
+
+        path = path.resolve(file.getName());
+        writeFile(file.listFiles(), path);
+        path = path.getParent();
+
       }
     }
   }

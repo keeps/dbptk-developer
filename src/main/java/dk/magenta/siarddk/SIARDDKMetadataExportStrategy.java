@@ -70,37 +70,39 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
     // Generate archiveIndex.xml
 
-    try {
-      String path = metadataPathStrategy.getXmlFilePath(ARCHIVE_INDEX);
-      OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
-      IndexFileStrategy archiveIndexFileStrategy = new CommandLineIndexFileStrategy(ARCHIVE_INDEX, exportModuleArgs,
-        writer);
-      archiveIndexFileStrategy.generateXML(null);
-      writer.close();
+    if (exportModuleArgs.get(ARCHIVE_INDEX) != null) {
+      try {
+        String path = metadataPathStrategy.getXmlFilePath(ARCHIVE_INDEX);
+        OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
+        IndexFileStrategy archiveIndexFileStrategy = new CommandLineIndexFileStrategy(ARCHIVE_INDEX, exportModuleArgs,
+          writer);
+        archiveIndexFileStrategy.generateXML(null);
+        writer.close();
 
-      fileIndexFileStrategy.addFile(path);
+        fileIndexFileStrategy.addFile(path);
 
-    } catch (IOException e) {
-      throw new ModuleException("Error writing archiveIndex.xml to the archive");
+      } catch (IOException e) {
+        throw new ModuleException("Error writing archiveIndex.xml to the archive");
+      }
     }
-
     // Generate contextDocumentationIndex.xml
 
-    try {
+    if (exportModuleArgs.get(CONTEXT_DOCUMENTATION_INDEX) != null) {
+      try {
 
-      String path = metadataPathStrategy.getXmlFilePath(CONTEXT_DOCUMENTATION_INDEX);
-      OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
-      IndexFileStrategy contextDocumentationIndexFileStrategy = new CommandLineIndexFileStrategy(
-        CONTEXT_DOCUMENTATION_INDEX, exportModuleArgs, writer);
-      contextDocumentationIndexFileStrategy.generateXML(null);
-      writer.close();
+        String path = metadataPathStrategy.getXmlFilePath(CONTEXT_DOCUMENTATION_INDEX);
+        OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
+        IndexFileStrategy contextDocumentationIndexFileStrategy = new CommandLineIndexFileStrategy(
+          CONTEXT_DOCUMENTATION_INDEX, exportModuleArgs, writer);
+        contextDocumentationIndexFileStrategy.generateXML(null);
+        writer.close();
 
-      fileIndexFileStrategy.addFile(path);
+        fileIndexFileStrategy.addFile(path);
 
-    } catch (IOException e) {
-      throw new ModuleException("Error writing contextDocumentationIndex.xml to the archive");
+      } catch (IOException e) {
+        throw new ModuleException("Error writing contextDocumentationIndex.xml to the archive");
+      }
     }
-
   }
 
   @Override

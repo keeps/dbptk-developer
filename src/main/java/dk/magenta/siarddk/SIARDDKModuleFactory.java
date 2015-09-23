@@ -18,16 +18,16 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     .description("Path to SIARDDK archive folder").hasArgument(true).setOptionalArgument(false).required(true);
 
   private static final Parameter archiveIndex = new Parameter().shortName("ai").longName("archiveIndex")
-    .description("Path to archiveIndex.xml input file").hasArgument(true).setOptionalArgument(false).required(true);
+    .description("Path to archiveIndex.xml input file").hasArgument(true).setOptionalArgument(false).required(false);
 
   private static final Parameter contextDocumentationIndex = new Parameter().shortName("ci")
     .longName("contextDocumentationIndex").description("Path to contextDocumentationIndex.xml input file")
-    .hasArgument(true).setOptionalArgument(false).required(true);
+    .hasArgument(true).setOptionalArgument(false).required(false);
 
   private static final Parameter contextDocmentationFolder = new Parameter().shortName("cf")
     .longName(Constants.CONTEXT_DOCUMENTATION_FOLDER)
     .description("Path to contextDocumentation folder which should contain the context documentation for the archive")
-    .hasArgument(true).setOptionalArgument(false).required(true);
+    .hasArgument(true).setOptionalArgument(false).required(false);
 
   @Override
   public boolean producesImportModules() {
