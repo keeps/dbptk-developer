@@ -16,7 +16,6 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.content.ContentExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
-import com.databasepreservation.modules.siard.out.output.SIARDExportDefault;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.FolderWriteStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
@@ -37,8 +36,6 @@ public class SIARDDKExportModule {
   private Map<String, String> exportModuleArgs;
   private FileIndexFileStrategy fileIndexFileStrategy;
 
-  // public SIARDDKExportModule(Path siardPackage, List<String>
-  // exportModuleArgs) {
   public SIARDDKExportModule(Map<String, String> exportModuleArgs) {
     this.exportModuleArgs = exportModuleArgs;
 
@@ -55,7 +52,9 @@ public class SIARDDKExportModule {
   }
 
   public DatabaseExportModule getDatabaseExportModule() {
-    return new SIARDExportDefault(contentExportStrategy, mainContainer, writeStrategy, metadataExportStrategy);
+    // return new SIARDExportDefault(contentExportStrategy, mainContainer,
+    // writeStrategy, metadataExportStrategy);
+    return new SIARDDKDatabaseExportModule(this);
   }
 
   public Map<String, String> getExportModuleArgs() {
@@ -74,11 +73,19 @@ public class SIARDDKExportModule {
     return siardMarshaller;
   }
 
+  public MetadataExportStrategy getMetadataExportStrategy() {
+    return metadataExportStrategy;
+  }
+
   public MetadataPathStrategy getMetadataPathStrategy() {
     return metadataPathStrategy;
   }
 
-  public ContentPathExportStrategy getContentExportStrategy() {
+  public ContentExportStrategy getContentExportStrategy() {
+    return contentExportStrategy;
+  }
+
+  public ContentPathExportStrategy getContentPathExportStrategy() {
     return contentPathExportStrategy;
   }
 

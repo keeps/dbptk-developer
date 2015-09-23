@@ -1,8 +1,8 @@
 /**
  * The methods should be called in this order from the SIARDDKMetadataExportStrategy
  * 1) getWriter
- * 2) addFile (should not be called until writer obtained from the above is closed)
- * 3) generateXML
+ * 2) generateXML 
+ * 3) addFile (should not be called until writer obtained from getWriter is closed) 
  */
 package dk.magenta.siarddk;
 

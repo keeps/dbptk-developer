@@ -41,7 +41,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
   public SIARDDKContentExportStrategy(SIARDDKExportModule siarddkExportModule) {
 
-    contentPathExportStrategy = siarddkExportModule.getContentExportStrategy();
+    contentPathExportStrategy = siarddkExportModule.getContentPathExportStrategy();
     fileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
     baseContainer = siarddkExportModule.getMainContainer();
     writeStrategy = siarddkExportModule.getWriteStrategy();

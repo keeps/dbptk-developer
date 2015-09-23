@@ -73,8 +73,6 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     try {
       String path = metadataPathStrategy.getXmlFilePath(ARCHIVE_INDEX);
       OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
-      // IndexFileStrategy archiveIndexFileStrategy = new
-      // ArchiveIndexFileStrategy(exportModuleArgs, writer);
       IndexFileStrategy archiveIndexFileStrategy = new CommandLineIndexFileStrategy(ARCHIVE_INDEX, exportModuleArgs,
         writer);
       archiveIndexFileStrategy.generateXML(null);
