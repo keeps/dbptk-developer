@@ -23,6 +23,7 @@ public class SIARDDKMetadataPathStrategy implements MetadataPathStrategy {
   private static final String INDICES_DIR = "Indices";
   private static final String SCHEMA_DIR = "Schemas" + FILE_SEPARATOR + "standard";
 
+  // TO-DO: take all of this into constants
   // Valid filenames
   private static final String[] VALID_FILENAMES = {"tableIndex", "archiveIndex", "docIndex",
     "contextDocumentationIndex", "fileIndex"};

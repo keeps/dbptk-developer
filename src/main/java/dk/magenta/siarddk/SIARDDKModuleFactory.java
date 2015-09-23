@@ -20,6 +20,10 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
   private static final Parameter archiveIndex = new Parameter().shortName("ai").longName("archiveIndex")
     .description("Path to archiveIndex.xml input file").hasArgument(true).setOptionalArgument(false).required(true);
 
+  private static final Parameter contextDocumentationIndex = new Parameter().shortName("ci")
+    .longName("contextDocumentationIndex").description("Path to contextDocumentationIndex.xml input file")
+    .hasArgument(true).setOptionalArgument(false).required(true);
+
   @Override
   public boolean producesImportModules() {
     return false;
@@ -40,6 +44,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     HashMap<String, Parameter> parameterMap = new HashMap<String, Parameter>();
     parameterMap.put(folder.longName(), folder);
     parameterMap.put(archiveIndex.longName(), archiveIndex);
+    parameterMap.put(contextDocumentationIndex.longName(), contextDocumentationIndex);
     return parameterMap;
   }
 
@@ -50,7 +55,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Parameters getExportModuleParameters() throws OperationNotSupportedException {
-    return new Parameters(Arrays.asList(folder, archiveIndex), null);
+    return new Parameters(Arrays.asList(folder, archiveIndex, contextDocumentationIndex), null);
   }
 
   @Override
@@ -67,10 +72,12 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
 
     String pFolder = parameters.get(folder);
     String pArchiveIndex = parameters.get(archiveIndex);
+    String pContextDocumentationIndex = parameters.get(contextDocumentationIndex);
 
     Map<String, String> exportModuleArgs = new HashMap<String, String>();
-    exportModuleArgs.put(folder.shortName(), pFolder);
-    exportModuleArgs.put(archiveIndex.shortName(), pArchiveIndex);
+    exportModuleArgs.put(folder.longName(), pFolder);
+    exportModuleArgs.put(archiveIndex.longName(), pArchiveIndex);
+    exportModuleArgs.put(contextDocumentationIndex.longName(), pContextDocumentationIndex);
 
     return new SIARDDKExportModule(exportModuleArgs).getDatabaseExportModule();
   }

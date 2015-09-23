@@ -42,7 +42,7 @@ public class SIARDDKExportModule {
   public SIARDDKExportModule(Map<String, String> exportModuleArgs) {
     this.exportModuleArgs = exportModuleArgs;
 
-    Path rootPath = FileSystems.getDefault().getPath(exportModuleArgs.get("f"));
+    Path rootPath = FileSystems.getDefault().getPath(exportModuleArgs.get("folder"));
 
     mainContainer = new SIARDArchiveContainer(rootPath, SIARDArchiveContainer.OutputContainerType.MAIN);
     writeStrategy = new FolderWriteStrategy();
