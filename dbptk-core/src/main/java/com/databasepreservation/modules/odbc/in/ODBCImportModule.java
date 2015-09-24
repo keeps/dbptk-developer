@@ -11,22 +11,22 @@ import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
  */
 public class ODBCImportModule extends JDBCImportModule {
 
-        /**
-         * @param source
-         */
-        public ODBCImportModule(String source) {
-                super("sun.jdbc.odbc.JdbcOdbcDriver", "jdbc:odbc:" + source);
-        }
+  /**
+   * @param source
+   */
+  public ODBCImportModule(String source) {
+    super("sun.jdbc.odbc.JdbcOdbcDriver", "jdbc:odbc:" + source);
+  }
 
-        public ODBCImportModule(String source, String username, String password) {
-                super("sun.jdbc.odbc.JdbcOdbcDriver", "jdbc:odbc:" + source + ";UID=" + username + ";PWD=" + password);
-        }
+  public ODBCImportModule(String source, String username, String password) {
+    super("sun.jdbc.odbc.JdbcOdbcDriver", "jdbc:odbc:" + source + ";UID=" + username + ";PWD=" + password);
+  }
 
-        /**
-         * @param source
-         * @param sqlHelper
-         */
-        public ODBCImportModule(String source, SQLHelper sqlHelper) {
-                super("sun.jdbc.odbc.JdbcOdbcDriver", "jdbc:odbc:" + source, sqlHelper);
-        }
+  /**
+   * @param source
+   * @param sqlHelper
+   */
+  public ODBCImportModule(String source, SQLHelper sqlHelper) {
+    super("sun.jdbc.odbc.JdbcOdbcDriver", "jdbc:odbc:" + source, sqlHelper);
+  }
 }

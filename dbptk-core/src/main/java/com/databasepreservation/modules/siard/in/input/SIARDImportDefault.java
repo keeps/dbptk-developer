@@ -15,37 +15,38 @@ import com.databasepreservation.modules.siard.in.read.ReadStrategy;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARDImportDefault implements DatabaseImportModule {
-        private final ReadStrategy readStrategy;
-        private final SIARDArchiveContainer mainContainer;
-        private final ContentImportStrategy contentStrategy;
-        private final MetadataImportStrategy metadataStrategy;
+  private final ReadStrategy readStrategy;
+  private final SIARDArchiveContainer mainContainer;
+  private final ContentImportStrategy contentStrategy;
+  private final MetadataImportStrategy metadataStrategy;
 
-        public SIARDImportDefault(ContentImportStrategy contentStrategy, SIARDArchiveContainer mainContainer,
-          ReadStrategy readStrategy, MetadataImportStrategy metadataStrategy) {
-                this.readStrategy = readStrategy;
-                this.mainContainer = mainContainer;
-                this.contentStrategy = contentStrategy;
-                this.metadataStrategy = metadataStrategy;
-        }
+  public SIARDImportDefault(ContentImportStrategy contentStrategy, SIARDArchiveContainer mainContainer,
+    ReadStrategy readStrategy, MetadataImportStrategy metadataStrategy) {
+    this.readStrategy = readStrategy;
+    this.mainContainer = mainContainer;
+    this.contentStrategy = contentStrategy;
+    this.metadataStrategy = metadataStrategy;
+  }
 
-        @Override public void getDatabase(DatabaseExportModule handler)
-          throws ModuleException, UnknownTypeException, InvalidDataException {
-                readStrategy.setup(mainContainer);
-                handler.initDatabase();
-                try {
-                        metadataStrategy.loadMetadata(readStrategy, mainContainer);
+  @Override
+  public void getDatabase(DatabaseExportModule handler) throws ModuleException, UnknownTypeException,
+    InvalidDataException {
+    readStrategy.setup(mainContainer);
+    handler.initDatabase();
+    try {
+      metadataStrategy.loadMetadata(readStrategy, mainContainer);
 
-                        DatabaseStructure dbStructure = metadataStrategy.getDatabaseStructure();
+      DatabaseStructure dbStructure = metadataStrategy.getDatabaseStructure();
 
-                        //handler.setIgnoredSchemas(null);
+      // handler.setIgnoredSchemas(null);
 
-                        handler.handleStructure(dbStructure);
+      handler.handleStructure(dbStructure);
 
-                        contentStrategy.importContent(handler, mainContainer, dbStructure);
+      contentStrategy.importContent(handler, mainContainer, dbStructure);
 
-                        handler.finishDatabase();
-                } finally {
-                        readStrategy.finish(mainContainer);
-                }
-        }
+      handler.finishDatabase();
+    } finally {
+      readStrategy.finish(mainContainer);
+    }
+  }
 }
