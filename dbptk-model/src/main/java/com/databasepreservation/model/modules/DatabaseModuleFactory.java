@@ -2,6 +2,7 @@ package com.databasepreservation.model.modules;
 
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
+import net.xeoh.plugins.base.Plugin;
 
 import javax.naming.OperationNotSupportedException;
 import java.util.Map;
@@ -12,7 +13,7 @@ import java.util.Map;
  *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public interface DatabaseModuleFactory {
+public interface DatabaseModuleFactory extends Plugin {
         boolean producesImportModules();
 
         boolean producesExportModules();

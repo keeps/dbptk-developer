@@ -6,6 +6,8 @@ import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.ParameterGroup;
 import com.databasepreservation.model.parameters.Parameters;
+import net.xeoh.plugins.base.PluginManager;
+import net.xeoh.plugins.base.impl.PluginManagerFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -16,11 +18,14 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.log4j.Logger;
 
 import javax.naming.OperationNotSupportedException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,6 +42,8 @@ import java.util.Properties;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class CLI {
+        private static final Logger logger = Logger.getLogger(CLI.class);
+
         private final ArrayList<DatabaseModuleFactory> factories;
         private final List<String> commandLineArguments;
         private DatabaseImportModule importModule;
@@ -55,11 +62,45 @@ public class CLI {
                 } catch (IllegalAccessException e) {
                         e.printStackTrace();
                 }
+                includePluginModules();
         }
 
         public CLI(List<String> commandLineArguments, DatabaseModuleFactory... databaseModuleFactories) {
                 factories = new ArrayList<DatabaseModuleFactory>(Arrays.asList(databaseModuleFactories));
                 this.commandLineArguments = commandLineArguments;
+                includePluginModules();
+        }
+
+        private void includePluginModules() {
+                // find plugins in command line arguments
+                String pluginString = null;
+                Iterator<String> argsIterator = commandLineArguments.iterator();
+                while (argsIterator.hasNext()) {
+                        String arg = argsIterator.next();
+                        if (arg.equals("-p") || arg.equals("--plugin")) {
+                                pluginString = argsIterator.next();
+                                break;
+                        } else if (StringUtils.startsWith(arg, "--plugin=")) {
+                                pluginString = arg.substring(9); // 9 is the size of the string "--plugin="
+                                break;
+                        }
+                }
+
+                if (pluginString != null) {
+                        for (String plugin : pluginString.split(";")) {
+                                PluginManager pm = PluginManagerFactory.createPluginManager();
+                                try {
+                                        URI pluginURI = new URI(plugin);
+                                        if (pluginURI.getScheme() == null) {
+                                                pluginURI = new URI("file://" + plugin);
+                                        }
+                                        pm.addPluginsFrom(pluginURI);
+                                } catch (URISyntaxException e) {
+                                        logger.warn("Plugin not found: " + plugin);
+                                }
+                                factories.add(pm.getPlugin(DatabaseModuleFactory.class));
+                        }
+                }
         }
 
         public DatabaseImportModule getImportModule() throws ParseException {
@@ -210,14 +251,19 @@ public class CLI {
 
                 Option importOption = Option.builder("i").longOpt("import").hasArg().optionalArg(false).build();
                 Option exportOption = Option.builder("e").longOpt("export").hasArg().optionalArg(false).build();
+                Option pluginOption = Option.builder("p").longOpt("plugin").hasArg().optionalArg(false).build();
                 options.addOption(importOption);
                 options.addOption(exportOption);
+                options.addOption(pluginOption);
 
                 //new HelpFormatter().printHelp(80, "dbptk", "\nModule Options:", options, null, true);
 
                 // parse the command line arguments with those options
                 try {
                         commandLine = commandLineParser.parse(options, args.toArray(new String[] {}), false);
+                        if(!commandLine.getArgList().isEmpty()){
+                                throw new ParseException("Unrecognized option: " + commandLine.getArgList().get(0));
+                        }
                 } catch (MissingOptionException e) {
                         // use long names instead of short names in the error message
                         List<String> missingShort = e.getMissingOptions();
@@ -259,13 +305,14 @@ public class CLI {
 
                 out.append("Database Preservation Toolkit, v").append(getApplicationVersion())
                   .append("\nMore info: http://www.database-preservation.com").append("\n").append(
-                  "Usage: dbptk <importModule> [import module options] <exportModule> [export module options]\n\n");
+                  "Usage: dbptk [plugin] <importModule> [import module options] <exportModule> [export module options]\n\n");
 
                 ArrayList<DatabaseModuleFactory> modulesList = new ArrayList<DatabaseModuleFactory>(factories);
                 Collections.sort(modulesList, new DatabaseModuleFactoryNameComparator());
-                int textOffset = 0;
+                out.append("## Plugin:\n");
+                out.append("    -p, --plugin=plugin.jar    (optional) the file containing a plugin module. Several plugins can be specified, separated by a semi-colon (;)\n");
 
-                out.append("## Available import modules: -i <module>, --import=module\n");
+                out.append("\n## Available import modules: -i <module>, --import=module\n");
                 for (DatabaseModuleFactory factory : modulesList) {
                         if (factory.producesImportModules()) {
                                 try {
@@ -325,11 +372,10 @@ public class CLI {
                 out.append("--").append(prefix).append(parameter.longName());
 
                 if (parameter.hasArgument()) {
-                        out.append("=");
                         if (parameter.isOptionalArgument()) {
                                 out.append("[");
                         }
-                        out.append("value");
+                        out.append("=value");
                         if (parameter.isOptionalArgument()) {
                                 out.append("]");
                         }
@@ -348,7 +394,7 @@ public class CLI {
 
         public static String getApplicationVersion() {
                 InputStream resourceAsStream = CLI.class
-                  .getResourceAsStream("/META-INF/maven/pt.keep/db-preservation-toolkit/pom.properties");
+                  .getResourceAsStream("/META-INF/maven/com.databasepreservation/dbptk-core/pom.properties");
                 Properties properties = new Properties();
 
                 try {

@@ -42,13 +42,13 @@ public class Main {
                 final DatabaseImportModule importModule;
                 final DatabaseExportModule exportModule;
 
-                CLI cli = new CLI(Arrays.asList(args), new MySQLModuleFactory(), new SQLServerJDBCModuleFactory(), new PostgreSQLModuleFactory(),
-                  new SIARD1ModuleFactory(), new SIARD2ModuleFactory());
+                CLI cli = new CLI(Arrays.asList(args), new MySQLModuleFactory(), new SQLServerJDBCModuleFactory(),
+                  new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(), new SIARD2ModuleFactory());
                 try {
                         importModule = cli.getImportModule();
                         exportModule = cli.getExportModule();
                 } catch (ParseException e) {
-                        System.out.println("error: " + e.getMessage());
+                        System.out.println("error: " + e.getMessage() + "\n");
                         cli.printHelp();
                         return EXIT_CODE_COMMAND_PARSE_ERROR;
                 }

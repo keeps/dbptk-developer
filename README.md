@@ -23,8 +23,11 @@ Binaries with all dependencies included:
 To use the program, open a command-line and try out the following command (replace x.y.z accordingly to the version of the binary in use):
 
 ```bash
-$ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar 
+$ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar
 Usage: dbptk <importModule> [import module options] <exportModule> [export module options]
+
+## Plugin:
+    -p, --plugin=plugin.jar    (optional) the file containing a plugin module. Several plugins can be specified, separated by a semi-colon (;)
 
 ## Available import modules: -i <module>, --import=module
 
@@ -143,10 +146,6 @@ $ java -Djava.io.tmpdir=/media/BIGHD/tmp -jar db-preservation-toolkit-x.y.z-jar-
 ## Information & Commercial support
 
 For more information or commercial support, contact [KEEP SOLUTIONS](http://www.keep.pt/contactos/?lang=en).
-
-<!-- Removing build status as some database library drivers cannot be distributed via maven
-[![Build Status](https://travis-ci.org/keeps/db-preservation-toolkit.png?branch=master)](https://travis-ci.org/keeps/db-preservation-toolkit)
--->
 
 ## Development [![Build Status](https://travis-ci.org/keeps/db-preservation-toolkit.png?branch=master)](https://travis-ci.org/keeps/db-preservation-toolkit)
 
