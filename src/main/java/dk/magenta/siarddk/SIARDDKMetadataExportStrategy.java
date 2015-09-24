@@ -27,11 +27,6 @@ import dk.magenta.common.SIARDMarshaller;
 public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
   private static final String FILE_SEPERATOR = File.separator;
-  private static final String CONTEXT_DOCUMENTATION_INDEX = "contextDocumentationIndex";
-  private static final String ARCHIVE_INDEX = "archiveIndex";
-  private static final String TABLE_INDEX = "tableIndex";
-  private static final String FILE_INDEX = "fileIndex";
-  private static final String XML_SCHEMA = "XMLSchema";
 
   private SIARDMarshaller siardMarshaller;
   private MetadataPathStrategy metadataPathStrategy;
@@ -55,7 +50,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
     try {
       IndexFileStrategy tableIndexFileStrategy = new TableIndexFileStrategy();
-      String path = metadataPathStrategy.getXmlFilePath(TABLE_INDEX);
+      String path = metadataPathStrategy.getXmlFilePath(Constants.TABLE_INDEX);
       OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
       siardMarshaller.marshal("dk.magenta.siarddk.tableindex", "/siarddk/tableIndex.xsd",
         "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/tableIndex.xsd", writer,
@@ -70,12 +65,12 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
     // Generate archiveIndex.xml
 
-    if (exportModuleArgs.get(ARCHIVE_INDEX) != null) {
+    if (exportModuleArgs.get(Constants.ARCHIVE_INDEX) != null) {
       try {
-        String path = metadataPathStrategy.getXmlFilePath(ARCHIVE_INDEX);
+        String path = metadataPathStrategy.getXmlFilePath(Constants.ARCHIVE_INDEX);
         OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
-        IndexFileStrategy archiveIndexFileStrategy = new CommandLineIndexFileStrategy(ARCHIVE_INDEX, exportModuleArgs,
-          writer);
+        IndexFileStrategy archiveIndexFileStrategy = new CommandLineIndexFileStrategy(Constants.ARCHIVE_INDEX,
+          exportModuleArgs, writer);
         archiveIndexFileStrategy.generateXML(null);
         writer.close();
 
@@ -85,15 +80,16 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
         throw new ModuleException("Error writing archiveIndex.xml to the archive");
       }
     }
+
     // Generate contextDocumentationIndex.xml
 
-    if (exportModuleArgs.get(CONTEXT_DOCUMENTATION_INDEX) != null) {
+    if (exportModuleArgs.get(Constants.CONTEXT_DOCUMENTATION_INDEX) != null) {
       try {
 
-        String path = metadataPathStrategy.getXmlFilePath(CONTEXT_DOCUMENTATION_INDEX);
+        String path = metadataPathStrategy.getXmlFilePath(Constants.CONTEXT_DOCUMENTATION_INDEX);
         OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
         IndexFileStrategy contextDocumentationIndexFileStrategy = new CommandLineIndexFileStrategy(
-          CONTEXT_DOCUMENTATION_INDEX, exportModuleArgs, writer);
+          Constants.CONTEXT_DOCUMENTATION_INDEX, exportModuleArgs, writer);
         contextDocumentationIndexFileStrategy.generateXML(null);
         writer.close();
 
@@ -110,30 +106,11 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     WriteStrategy writeStrategy) throws ModuleException {
 
     // Write contents to Schemas/standard
-    writeSchemaFile(outputContainer, XML_SCHEMA, writeStrategy);
-    writeSchemaFile(outputContainer, TABLE_INDEX, writeStrategy);
-    writeSchemaFile(outputContainer, ARCHIVE_INDEX, writeStrategy);
-    writeSchemaFile(outputContainer, CONTEXT_DOCUMENTATION_INDEX, writeStrategy);
-    writeSchemaFile(outputContainer, FILE_INDEX, writeStrategy);
-
-    // Generate fileIndex.xml
-
-    try {
-      fileIndexFileStrategy.generateXML(null);
-    } catch (ModuleException e) {
-      throw new ModuleException("Error writing fileIndex.xml", e);
-    }
-
-    try {
-      String path = metadataPathStrategy.getXmlFilePath(FILE_INDEX);
-      OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
-      siardMarshaller.marshal("dk.magenta.siarddk.fileindex", "/siarddk/fileIndex.xsd",
-        "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/fileIndex.xsd", writer,
-        fileIndexFileStrategy.generateXML(null));
-      writer.close();
-    } catch (IOException e) {
-      throw new ModuleException("Error writing fileIndex to the archive.", e);
-    }
+    writeSchemaFile(outputContainer, Constants.XML_SCHEMA, writeStrategy);
+    writeSchemaFile(outputContainer, Constants.TABLE_INDEX, writeStrategy);
+    writeSchemaFile(outputContainer, Constants.ARCHIVE_INDEX, writeStrategy);
+    writeSchemaFile(outputContainer, Constants.CONTEXT_DOCUMENTATION_INDEX, writeStrategy);
+    writeSchemaFile(outputContainer, Constants.FILE_INDEX, writeStrategy);
 
   }
 

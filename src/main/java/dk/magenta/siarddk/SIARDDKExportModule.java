@@ -52,8 +52,6 @@ public class SIARDDKExportModule {
   }
 
   public DatabaseExportModule getDatabaseExportModule() {
-    // return new SIARDExportDefault(contentExportStrategy, mainContainer,
-    // writeStrategy, metadataExportStrategy);
     return new SIARDDKDatabaseExportModule(this);
   }
 

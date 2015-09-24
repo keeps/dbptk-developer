@@ -1,34 +1,49 @@
 package dk.magenta.siarddk;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
+
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.output.SIARDExportDefault;
+
+import dk.magenta.common.SIARDMarshaller;
 
 public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
 
-  // Could we add getters and setters for this in the super class?
-
-  // private SIARDArchiveContainer mainContainer;
-  // private WriteStrategy writeStrategy;
-
   private SIARDDKExportModule siarddkExportModule;
-
-  // public SIARDDKDatabaseExportModule(ContentExportStrategy
-  // contentExportStrategy, SIARDArchiveContainer mainContainer,
-  // WriteStrategy writeStrategy, MetadataExportStrategy metadataExportStrategy)
-  // {
+  private final Logger logger = Logger.getLogger(SIARDDKDatabaseExportModule.class);
 
   public SIARDDKDatabaseExportModule(SIARDDKExportModule siarddkExportModule) {
-    // super(contentExportStrategy, mainContainer, writeStrategy,
-    // metadataExportStrategy);
-
-    super(siarddkExportModule.getContentExportStrategy(), siarddkExportModule.getMainContainer(),
-      siarddkExportModule.getWriteStrategy(), siarddkExportModule.getMetadataExportStrategy());
+    super(siarddkExportModule.getContentExportStrategy(), siarddkExportModule.getMainContainer(), siarddkExportModule
+      .getWriteStrategy(), siarddkExportModule.getMetadataExportStrategy());
 
     this.siarddkExportModule = siarddkExportModule;
-    // this.mainContainer = mainContainer;
-    // this.writeStrategy = writeStrategy;
+  }
+
+  @Override
+  public void initDatabase() throws ModuleException {
+    super.initDatabase();
+
+    // Delete output folder if it already exists
+
+    File outputFolder = siarddkExportModule.getMainContainer().getPath().toFile();
+    if (outputFolder.isDirectory()) {
+      try {
+        FileUtils.deleteDirectory(outputFolder);
+
+        // TO-DO: not logging ?
+
+        logger.info("Deleted the already existing folder: " + outputFolder);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
   }
 
   @Override
@@ -38,14 +53,38 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
     // Write ContextDocumentation to archive
 
     Map<String, String> exportModuleArgs = siarddkExportModule.getExportModuleArgs();
+    FileIndexFileStrategy fileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
+    MetadataPathStrategy metadataPathStrategy = siarddkExportModule.getMetadataPathStrategy();
+    SIARDMarshaller siardMarshaller = siarddkExportModule.getSiardMarshaller();
 
     if (exportModuleArgs.get(Constants.CONTEXT_DOCUMENTATION_FOLDER) != null) {
 
       ContextDocumentationWriter contextDocumentationWriter = new ContextDocumentationWriter(
-        siarddkExportModule.getMainContainer(), siarddkExportModule.getWriteStrategy(),
-        siarddkExportModule.getFileIndexFileStrategy(), siarddkExportModule.getExportModuleArgs());
+        siarddkExportModule.getMainContainer(), siarddkExportModule.getWriteStrategy(), fileIndexFileStrategy,
+        siarddkExportModule.getExportModuleArgs());
 
       contextDocumentationWriter.writeContextDocumentation();
     }
+
+    // Create fileIndex.xml
+
+    try {
+      fileIndexFileStrategy.generateXML(null);
+    } catch (ModuleException e) {
+      throw new ModuleException("Error writing fileIndex.xml", e);
+    }
+
+    try {
+      String path = metadataPathStrategy.getXmlFilePath(Constants.FILE_INDEX);
+      OutputStream writer = fileIndexFileStrategy.getWriter(siarddkExportModule.getMainContainer(), path,
+        siarddkExportModule.getWriteStrategy());
+      siardMarshaller.marshal("dk.magenta.siarddk.fileindex", "/siarddk/fileIndex.xsd",
+        "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/fileIndex.xsd", writer,
+        fileIndexFileStrategy.generateXML(null));
+      writer.close();
+    } catch (IOException e) {
+      throw new ModuleException("Error writing fileIndex to the archive.", e);
+    }
+
   }
 }
