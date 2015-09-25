@@ -52,7 +52,6 @@ import com.databasepreservation.modules.siard.in.metadata.typeConverter.TypeConv
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.utils.JodaUtils;
-import org.apache.log4j.Logger;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
@@ -71,6 +70,8 @@ import java.util.List;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
+        private static final String METADATA_FILENAME = "metadata";
+
         private DatabaseStructure databaseStructure;
         private final MetadataPathStrategy metadataPathStrategy;
         private final ContentPathImportStrategy contentPathStrategy;
@@ -96,12 +97,12 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
                 SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
                 Schema xsdSchema = null;
                 InputStream xsdStream = readStrategy
-                  .createInputStream(container, metadataPathStrategy.getMetadataXsdFilePath());
+                  .createInputStream(container, metadataPathStrategy.getXsdFilePath(METADATA_FILENAME));
                 try {
                         xsdSchema = schemaFactory.newSchema(new StreamSource(xsdStream));
                 } catch (SAXException e) {
                         throw new ModuleException(
-                          "Error reading metadata XSD file: " + metadataPathStrategy.getMetadataXsdFilePath(), e);
+                          "Error reading metadata XSD file: " + metadataPathStrategy.getXsdFilePath(METADATA_FILENAME), e);
                 }
 
                 InputStream reader = null;
@@ -112,7 +113,7 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
                         unmarshaller.setSchema(xsdSchema);
 
                         reader = readStrategy
-                          .createInputStream(container, metadataPathStrategy.getMetadataXmlFilePath());
+                          .createInputStream(container, metadataPathStrategy.getXmlFilePath(METADATA_FILENAME));
                         xmlRoot = (SiardArchive) unmarshaller.unmarshal(reader);
                 } catch (JAXBException e) {
                         throw new ModuleException("Error while Unmarshalling JAXB", e);
@@ -258,7 +259,7 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
                 return result;
         }
 
-        private SchemaStructure getSchemaStructure(SchemaType schema) throws ModuleException{
+        private SchemaStructure getSchemaStructure(SchemaType schema) throws ModuleException {
                 if (schema != null) {
                         SchemaStructure result = new SchemaStructure();
 
@@ -370,7 +371,8 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
                         result.setQuery(viewType.getQuery());
                         result.setQueryOriginal(viewType.getQueryOriginal());
                         result.setDescription(viewType.getDescription());
-                        result.setColumns(getColumns(viewType.getColumns(), "")); //TODO: decide what to put here as table name
+                        result.setColumns(
+                          getColumns(viewType.getColumns(), "")); //TODO: decide what to put here as table name
                         //TODO: result.setRows(getRows(viewType.getRows()));
 
                         return result;

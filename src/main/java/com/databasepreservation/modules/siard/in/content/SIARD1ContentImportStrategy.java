@@ -13,7 +13,7 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
-import com.databasepreservation.modules.DatabaseHandler;
+import com.databasepreservation.modules.DatabaseExportModule;
 import com.databasepreservation.modules.siard.SIARDHelper;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
@@ -60,7 +60,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
         private final Stack<String> tagsStack = new Stack<String>();
         private final StringBuilder tempVal = new StringBuilder();
         private SIARDArchiveContainer contentContainer;
-        private DatabaseHandler databaseHandler;
+        private DatabaseExportModule databaseExportModule;
         private SAXErrorHandler errorHandler;
         // SAXHandler state
         private TableStructure currentTable;
@@ -75,10 +75,10 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
                 this.readStrategy = readStrategy;
         }
 
-        @Override public void importContent(DatabaseHandler handler, SIARDArchiveContainer container,
+        @Override public void importContent(DatabaseExportModule handler, SIARDArchiveContainer container,
           DatabaseStructure databaseStructure) throws ModuleException {
                 // set instance state
-                this.databaseHandler = handler;
+                this.databaseExportModule = handler;
                 this.contentContainer = container;
 
                 // pre-setup parser and validation
@@ -174,14 +174,14 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
 
                 if (qName.equalsIgnoreCase(SCHEMA_KEYWORD)) {
                         try {
-                                databaseHandler.handleDataOpenSchema(currentSchema.getName());
+                                databaseExportModule.handleDataOpenSchema(currentSchema.getName());
                         } catch (ModuleException e) {
                                 logger.error("An error occurred while handling data open schema", e);
                         }
                 } else if (qName.equalsIgnoreCase(TABLE_KEYWORD)) {
                         this.rowIndex = 0;
                         try {
-                                databaseHandler.handleDataOpenTable(currentTable.getId());
+                                databaseExportModule.handleDataOpenTable(currentTable.getId());
                         } catch (ModuleException e) {
                                 logger.error("An error occurred while handling data open table", e);
                         }
@@ -227,14 +227,14 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
 
                 if (tag.equalsIgnoreCase(SCHEMA_KEYWORD)) {
                         try {
-                                databaseHandler.handleDataCloseSchema(currentSchema.getName());
+                                databaseExportModule.handleDataCloseSchema(currentSchema.getName());
                         } catch (ModuleException e) {
                                 logger.error("An error occurred while handling data close schema", e);
                         }
                 } else if (tag.equalsIgnoreCase(TABLE_KEYWORD)) {
                         try {
                                 logger.debug("before handle data close");
-                                databaseHandler.handleDataCloseTable(currentTable.getId());
+                                databaseExportModule.handleDataCloseTable(currentTable.getId());
                         } catch (ModuleException e) {
                                 logger.error("An error occurred while handling data close table", e);
                         }
@@ -242,7 +242,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
                         row.setIndex(rowIndex);
                         rowIndex++;
                         try {
-                                databaseHandler.handleDataRow(row);
+                                databaseExportModule.handleDataRow(row);
                         } catch (InvalidDataException e) {
                                 logger.error("An error occurred while handling data row", e);
                         } catch (ModuleException e) {

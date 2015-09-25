@@ -14,10 +14,10 @@ import static org.hamcrest.Matchers.is;
 /**
  * Roundtrip testing generates a textual database dump before converting the data to SIARD format and
  * after importing it from the SIARD archive back to the database.
- *
+ * <p>
  * This interface provides an API to check if everything that should differ between the dumps is really
  * different and that the rest of the text did not change.
- *
+ * <p>
  * The implementations should be specific to some DBMS.
  *
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -27,6 +27,7 @@ public abstract class DumpDiffExpectations {
 
         /**
          * Creates a modified version of the source database dump that should equal to the target database dump
+         *
          * @param source the source database dump
          * @return the expected target database dump
          */

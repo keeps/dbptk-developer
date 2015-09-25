@@ -23,7 +23,6 @@ import java.sql.Types;
  * @author Luis Faria
  */
 public class SQLServerJDBCExportModule extends JDBCExportModule {
-
         private final Logger logger = Logger.getLogger(SQLServerJDBCExportModule.class);
 
         /**

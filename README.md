@@ -24,35 +24,68 @@ To use the program, open a command-line and try out the following command (repla
 
 ```bash
 $ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar 
-Synopsys: java -jar db-preservation-toolkit.jar -i IMPORT_MODULE [options...] -o EXPORT_MODULE [options...]
-Available import modules:
-	SIARD1 dir
-	SQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt
-	PostgreSQLJDBC hostName [port] database username password encrypt
-	MySQLJDBC hostName [port] database username password
-	DB2JDBC hostname port database username password
-	Oracle12c hostName port database username password
-	MSAccessUCanAccess database.mdb|accdb
-	DBML baseDir
-Available export modules:
-	SIARD1 dir [compress]
-	SQLServerJDBC serverName [port|instance] database username password useIntegratedSecurity encrypt
-	PostgreSQLJDBC [port] hostName database username password encrypt
-	MySQLJDBC hostName [port] database username password
-	DB2JDBC hostname port database username password
-	PhpMyAdmin hostName [port] database username password
-	DBML baseDir
+Usage: dbptk <importModule> [import module options] <exportModule> [export module options]
+
+## Available import modules: -i <module>, --import=module
+
+Import module: MySQLJDBC
+    -ih, --ihostname=value    (required) the hostname of the MySQL server
+    -idb, --idatabase=value    (required) the name of the database to import from
+    -iu, --iusername=value    (required) the name of the user to use in connection
+    -ip, --ipassword=value    (required) the password of the user to use in connection
+    -ipn, --iport-number=value    (optional) the port that the MySQL server is listening
+
+Import module: PostgreSQLJDBC
+    -ih, --ihostname=value    (required) the name of the PostgreSQL server host (e.g. localhost)
+    -idb, --idatabase=value    (required) the name of the database to connect to
+    -iu, --iusername=value    (required) the name of the user to use in connection
+    -ip, --ipassword=value    (required) the password of the user to use in connection
+    -ide, --idisable-encryption    (optional) use to turn off encryption in the connection
+    -ipn, --iport-number=value    (optional) the port of where the PostgreSQL server is listening, default is 5432
+
+Import module: SIARD1
+    -if, --ifile=value    (required) Path to SIARD1 archive file
+
+Import module: SIARD2
+    -if, --ifile=value    (required) Path to SIARD2 archive file
+
+## Available export modules: -e <module>, --export=module
+
+Export module: MySQLJDBC
+    -eh, --ehostname=value    (required) the hostname of the MySQL server
+    -edb, --edatabase=value    (required) the name of the database to import from
+    -eu, --eusername=value    (required) the name of the user to use in connection
+    -ep, --epassword=value    (required) the password of the user to use in connection
+    -epn, --eport-number=value    (optional) the port that the MySQL server is listening
+
+Export module: PostgreSQLJDBC
+    -eh, --ehostname=value    (required) the name of the PostgreSQL server host (e.g. localhost)
+    -edb, --edatabase=value    (required) the name of the database to connect to
+    -eu, --eusername=value    (required) the name of the user to use in connection
+    -ep, --epassword=value    (required) the password of the user to use in connection
+    -ede, --edisable-encryption    (optional) use to turn off encryption in the connection
+    -epn, --eport-number=value    (optional) the port of where the PostgreSQL server is listening, default is 5432
+
+Export module: SIARD1
+    -ef, --efile=value    (required) Path to SIARD1 archive file
+    -ec, --ecompress    (optional) use to compress the SIARD1 archive file with deflate method
+    -ep, --epretty-xml    (optional) write human-readable XML
+
+Export module: SIARD2
+    -ef, --efile=value    (required) Path to SIARD2 archive file
+    -ec, --ecompress    (optional) use to compress the SIARD2 archive file with deflate method
+    -ep, --epretty-xml    (optional) write human-readable XML
 ```
 
 You have to select an input and an output module, providing for each its configuration.
 
 
-For example, if you want to connect to a live MySQL database and export its content to DBML format, you can use the following command.
+For example, if you want to connect to a live MySQL database and export its content to SIARD 1.0 format, you can use the following command.
 
 ```bash
 $ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar \
--i MySQLJDBC localhost example_db username p4ssw0rd \
--o SIARD example_db_siard_export
+-i MySQLJDBC -ihostname=localhost -idb example_db -iu username -ip p4ssw0rd \
+-o SIARD1 example.siard
 ```
 
 ## How to build from source

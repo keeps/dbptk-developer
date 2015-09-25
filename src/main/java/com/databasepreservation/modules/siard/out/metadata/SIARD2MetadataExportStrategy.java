@@ -81,6 +81,7 @@ import java.util.List;
 public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
         private static final String ENCODING = "UTF-8";
         private static final String METADATA_XSD_RESOURCE_PATH = "/schema/siard2-metadata.xsd";
+        private static final String METADATA_FILENAME = "metadata";
         private final Logger logger = Logger.getLogger(SIARD1MetadataExportStrategy.class);
         private final ContentPathExportStrategy contentPathStrategy;
         private final MetadataPathStrategy metadataPathStrategy;
@@ -123,7 +124,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
 
                         m.setSchema(xsdSchema);
                         OutputStream writer = writeStrategy
-                          .createOutputStream(container, metadataPathStrategy.getMetadataXmlFilePath());
+                          .createOutputStream(container, metadataPathStrategy.getXmlFilePath(METADATA_FILENAME));
                         m.marshal(xmlroot, writer);
                         writer.close();
                 } catch (JAXBException e) {
@@ -139,7 +140,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
           WriteStrategy writeStrategy) throws ModuleException {
                 // prepare to write
                 OutputStream out = writeStrategy
-                  .createOutputStream(container, metadataPathStrategy.getMetadataXsdFilePath());
+                  .createOutputStream(container, metadataPathStrategy.getXsdFilePath(METADATA_FILENAME));
                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
 
                 // prepare to read
@@ -150,7 +151,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
                         Files.copy(xsdSchema, out);
                 } catch (IOException e) {
                         throw new ModuleException(
-                          "Could not write " + metadataPathStrategy.getMetadataXsdFilePath() + " in container "
+                          "Could not write " + metadataPathStrategy.getXsdFilePath(METADATA_FILENAME) + " in container "
                             + container.toString(), e);
                 }
 

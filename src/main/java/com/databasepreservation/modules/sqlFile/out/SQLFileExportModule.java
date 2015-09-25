@@ -18,7 +18,7 @@ import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
-import com.databasepreservation.modules.DatabaseHandler;
+import com.databasepreservation.modules.DatabaseExportModule;
 import com.databasepreservation.modules.SQLHelper;
 import com.databasepreservation.modules.SQLHelper.CellSQLHandler;
 import org.apache.log4j.Logger;
@@ -41,7 +41,7 @@ import java.util.Set;
 /**
  * @author Luis Faria
  */
-public class SQLFileExportModule implements DatabaseHandler {
+public class SQLFileExportModule implements DatabaseExportModule {
         private static final Logger logger = Logger.getLogger(SQLFileExportModule.class);
 
         protected File sqlFile;
@@ -103,16 +103,16 @@ public class SQLFileExportModule implements DatabaseHandler {
                 // BufferedInputStream buffin = new BufferedInputStream(in);
                 // BufferedOutputStream buffout = new BufferedOutputStream(out);
 
-                out.write("E'" .getBytes());
+                out.write("E'".getBytes());
 
                 int ibyte = in.read();
                 while (ibyte != -1) {
                         switch (ibyte) {
                                 case '\'':
-                                        out.write("''" .getBytes());
+                                        out.write("''".getBytes());
                                         break;
                                 case '\\':
-                                        out.write("\\\\" .getBytes());
+                                        out.write("\\\\".getBytes());
                                         break;
                                 default:
                                         if (ibyte > 0 && ibyte < 31 || ibyte > 127 && ibyte <= 255) {
@@ -126,7 +126,7 @@ public class SQLFileExportModule implements DatabaseHandler {
                         ibyte = in.read();
                 }
 
-                out.write("'" .getBytes());
+                out.write("'".getBytes());
         }
 
         /**
@@ -147,19 +147,19 @@ public class SQLFileExportModule implements DatabaseHandler {
                 BufferedInputStream bin = new BufferedInputStream(in);
                 BufferedOutputStream bout = new BufferedOutputStream(out);
 
-                bout.write("E'" .getBytes());
+                bout.write("E'".getBytes());
                 int ibyte = bin.read();
                 while (ibyte != -1) {
 
                         switch (ibyte) {
                                 case 0:
-                                        bout.write("\\\\000" .getBytes());
+                                        bout.write("\\\\000".getBytes());
                                         break;
                                 case '\'':
-                                        bout.write("''''" .getBytes());
+                                        bout.write("''''".getBytes());
                                         break;
                                 case '\\':
-                                        bout.write("\\\\\\\\" .getBytes());
+                                        bout.write("\\\\\\\\".getBytes());
                                         break;
                                 default:
                                         if (ibyte > 0 && ibyte < 31 || ibyte > 127 && ibyte <= 255) {
@@ -172,7 +172,7 @@ public class SQLFileExportModule implements DatabaseHandler {
 
                         ibyte = bin.read();
                 }
-                bout.write("'::bytea" .getBytes());
+                bout.write("'::bytea".getBytes());
                 bout.flush();
 
         }
@@ -256,7 +256,7 @@ public class SQLFileExportModule implements DatabaseHandler {
                                         if (cell instanceof SimpleCell) {
                                                 SimpleCell simple = (SimpleCell) cell;
                                                 if (simple.getSimpledata() == null) {
-                                                        ret = "NULL" .getBytes();
+                                                        ret = "NULL".getBytes();
                                                 } else if (column.getType() instanceof SimpleTypeNumericExact || column
                                                   .getType() instanceof SimpleTypeNumericApproximate) {
                                                         ret = simple.getSimpledata().getBytes();
@@ -289,7 +289,7 @@ public class SQLFileExportModule implements DatabaseHandler {
                         });
                         byte[] rowSQLCollon = new byte[rowSQL.length + 2];
                         System.arraycopy(rowSQL, 0, rowSQLCollon, 0, rowSQL.length);
-                        System.arraycopy(";\n" .getBytes(), 0, rowSQLCollon, rowSQL.length, 2);
+                        System.arraycopy(";\n".getBytes(), 0, rowSQLCollon, rowSQL.length, 2);
                         try {
                                 sqlOutput.write(rowSQLCollon);
                         } catch (IOException e) {

@@ -323,11 +323,11 @@ public class SQLHelper {
                         for (Cell cell : row.getCells()) {
                                 ColumnStructure column = columnIt.next();
                                 if (i++ > 0) {
-                                        sqlOut.write(", " .getBytes());
+                                        sqlOut.write(", ".getBytes());
                                 }
                                 sqlOut.write(cellSQLHandler.createCellSQL(cell, column));
                         }
-                        sqlOut.write(")" .getBytes());
+                        sqlOut.write(")".getBytes());
                 } catch (IOException e) {
                         throw new ModuleException("Error creating row SQL", e);
                 }

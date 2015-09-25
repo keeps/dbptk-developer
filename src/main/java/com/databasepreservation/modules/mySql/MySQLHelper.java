@@ -122,8 +122,10 @@ public class MySQLHelper extends SQLHelper {
                         SimpleTypeBinary binary = (SimpleTypeBinary) type;
                         Integer length = binary.getLength();
                         if (length != null) {
-                                if (type.getSql99TypeName().equalsIgnoreCase("BIT") || StringUtils.startsWithIgnoreCase(type.getSql99TypeName(),"BIT(")) {
-                                        if (type.getOriginalTypeName().equalsIgnoreCase("BIT") || StringUtils.startsWithIgnoreCase(type.getOriginalTypeName(),"BIT(")) {
+                                if (type.getSql99TypeName().equalsIgnoreCase("BIT") || StringUtils
+                                  .startsWithIgnoreCase(type.getSql99TypeName(), "BIT(")) {
+                                        if (type.getOriginalTypeName().equalsIgnoreCase("BIT") || StringUtils
+                                          .startsWithIgnoreCase(type.getOriginalTypeName(), "BIT(")) {
                                                 ret = "bit(" + length + ")";
                                         } else {
                                                 ret = "binary(" + (((length / 8.0) % 1 == 0) ?
