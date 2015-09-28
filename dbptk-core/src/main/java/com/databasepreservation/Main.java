@@ -50,7 +50,7 @@ public class Main {
       importModule = cli.getImportModule();
       exportModule = cli.getExportModule();
     } catch (ParseException e) {
-      System.out.println("error: " + e.getMessage() + "\n");
+      System.err.println("error: " + e.getMessage() + "\n");
       cli.printHelp();
       return EXIT_CODE_COMMAND_PARSE_ERROR;
     }
