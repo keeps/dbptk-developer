@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <name>dbptk-plugin-example</name>
+    <groupId>com.databasepreservation</groupId>
+    <artifactId>dbptk-plugin-example</artifactId>
+    <version>2.1.1</version>
+    <packaging>jar</packaging>
+    <dependencies>
+        <dependency>
+            <groupId>jspf.core</groupId>
+            <artifactId>jspf.core</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-model</artifactId>
+            <version>2.1.1</version>
+        </dependency>
+    </dependencies>
+</project>
