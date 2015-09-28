@@ -22,7 +22,7 @@ Binaries with all dependencies included:
 
 To use the program, open a command-line and try out the following command (replace x.y.z accordingly to the version of the binary in use):
 
-```bash
+```text
 $ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar
 Usage: dbptk <importModule> [import module options] <exportModule> [export module options]
 
