@@ -14,7 +14,7 @@ A new version of the this tool, together with a [new version of the SIARD preser
 ## Download pre-compiled version
 
 Binaries with all dependencies included:
-* [db-preservation-toolkit v2.0-rc2](https://github.com/keeps/db-preservation-toolkit/releases/download/2.0-rc2/db-preservation-toolkit-2.0.0-jar-with-dependencies.jar) (release candidate, [see issues](https://github.com/keeps/db-preservation-toolkit/milestones/2.0.0))
+* [db-preservation-toolkit v2.1.1](https://github.com/keeps/db-preservation-toolkit/releases/download/2.1.1/db-preservation-toolkit-2.1.1-jar-with-dependencies.jar) (pre-release, SIARD still lacks LOBs and UDTs)
 * [db-preservation-toolkit v1.0.1](https://github.com/keeps/db-preservation-toolkit/releases/download/v1.0.1/db-preservation-toolkit-1.0.1-jar-with-dependencies.jar)
 * [db-preservation-toolkit v1.0.0](http://keeps.github.io/db-preservation-toolkit/db-preservation-toolkit-1.0.0-jar-with-dependencies.jar)
 
