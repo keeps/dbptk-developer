@@ -7,6 +7,38 @@
     <artifactId>dbptk-plugin-example</artifactId>
     <version>2.1.1</version>
     <packaging>jar</packaging>
+    <properties>
+        <version.java>1.7</version.java>
+    </properties>
+    <repositories>
+        <repository>
+            <id>KEEPS-Artifacts</id>
+            <name>KEEP Artifacts-releases</name>
+            <url>http://artifactory.keep.pt/keep</url>
+        </repository>
+    </repositories>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <source>${version.java}</source>
+                    <target>${version.java}</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     <dependencies>
         <dependency>
             <groupId>jspf.core</groupId>
