@@ -7,15 +7,15 @@ import org.junit.Test;
 
 public class TestSIARDDKContentExportStrategy {
 
-	@Test
-	public void openTableShouldWriteSimpleString() {
-		// assertEquals("hurra", )
-	}
-	
-	@Ignore
-	@Test
-	public void fail() {
-		assertTrue(false);
-	}
-	
+  @Test
+  public void openTableShouldWriteSimpleString() {
+    // assertEquals("hurra", )
+  }
+
+  @Ignore
+  @Test
+  public void fail() {
+    assertTrue(false);
+  }
+
 }

@@ -4,6 +4,10 @@ import java.io.File;
 
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 
+/**
+ * @author Andreas Kring <andreas@magenta.dk>
+ *
+ */
 public class SIARDDKContentExportPathStrategy implements ContentPathExportStrategy {
 
   private static final String CONTENT_DIR = "Tables";

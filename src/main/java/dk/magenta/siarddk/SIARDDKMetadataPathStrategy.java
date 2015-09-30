@@ -7,6 +7,10 @@ import java.util.Arrays;
 
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 
+/**
+ * @author Andreas Kring <andreas@magenta.dk>
+ *
+ */
 public class SIARDDKMetadataPathStrategy implements MetadataPathStrategy {
 
   // Extensions for files

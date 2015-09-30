@@ -3,6 +3,10 @@ package dk.magenta.siarddk;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 
+/**
+ * @author Andreas Kring <andreas@magenta.dk>
+ *
+ */
 public interface IndexFileStrategy {
   /**
    * Generates the jaxbElement to be marshalled by the SIARDMarshaller.

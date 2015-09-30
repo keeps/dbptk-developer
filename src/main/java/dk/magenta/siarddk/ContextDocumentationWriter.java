@@ -15,6 +15,10 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
+/**
+ * @author Andreas Kring <andreas@magenta.dk>
+ *
+ */
 public class ContextDocumentationWriter {
 
   private Map<String, String> exportModuleArgs;

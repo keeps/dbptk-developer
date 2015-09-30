@@ -25,6 +25,10 @@ import org.jdom2.output.XMLOutputter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 
+/**
+ * @author Andreas Kring <andreas@magenta.dk>
+ *
+ */
 public class CommandLineIndexFileStrategy implements IndexFileStrategy {
 
   private Map<String, String> exportModuleArgs;

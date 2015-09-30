@@ -4,6 +4,10 @@ import java.io.OutputStream;
 
 import com.databasepreservation.model.exception.ModuleException;
 
+/**
+ * @author Andreas Kring <andreas@magenta.dk>
+ *
+ */
 public interface SIARDMarshaller {
 
   /**

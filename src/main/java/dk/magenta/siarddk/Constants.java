@@ -1,5 +1,9 @@
 package dk.magenta.siarddk;
 
+/**
+ * @author Andreas Kring <andreas@magenta.dk>
+ *
+ */
 public class Constants {
 
   // Name of the context documentation folder in the archive

@@ -23,6 +23,10 @@ import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import dk.magenta.common.SIARDMarshaller;
 import dk.magenta.common.StandardSIARDMarshaller;
 
+/**
+ * @author Andreas Kring <andreas@magenta.dk>
+ *
+ */
 public class SIARDDKExportModule {
 
   private MetadataExportStrategy metadataExportStrategy;

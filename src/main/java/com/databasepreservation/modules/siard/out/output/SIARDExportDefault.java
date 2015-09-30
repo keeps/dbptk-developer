@@ -19,87 +19,95 @@ import java.util.Set;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARDExportDefault implements DatabaseExportModule {
-        private final SIARDArchiveContainer mainContainer;
-        private final WriteStrategy writeStrategy;
-        private final MetadataExportStrategy metadataStrategy;
-        private final ContentExportStrategy contentStrategy;
+  private final SIARDArchiveContainer mainContainer;
+  private final WriteStrategy writeStrategy;
+  private final MetadataExportStrategy metadataStrategy;
+  private final ContentExportStrategy contentStrategy;
 
-        private DatabaseStructure dbStructure;
-        private SchemaStructure currentSchema;
-        private TableStructure currentTable;
+  private DatabaseStructure dbStructure;
+  private SchemaStructure currentSchema;
+  private TableStructure currentTable;
 
-        public SIARDExportDefault(ContentExportStrategy contentStrategy, SIARDArchiveContainer mainContainer,
-          WriteStrategy writeStrategy, MetadataExportStrategy metadataStrategy) {
-                this.contentStrategy = contentStrategy;
-                this.mainContainer = mainContainer;
-                this.writeStrategy = writeStrategy;
-                this.metadataStrategy = metadataStrategy;
-        }
+  public SIARDExportDefault(ContentExportStrategy contentStrategy, SIARDArchiveContainer mainContainer,
+    WriteStrategy writeStrategy, MetadataExportStrategy metadataStrategy) {
+    this.contentStrategy = contentStrategy;
+    this.mainContainer = mainContainer;
+    this.writeStrategy = writeStrategy;
+    this.metadataStrategy = metadataStrategy;
+  }
 
-        @Override public void initDatabase() throws ModuleException {
-                writeStrategy.setup(mainContainer);
-        }
+  @Override
+  public void initDatabase() throws ModuleException {
+    writeStrategy.setup(mainContainer);
+  }
 
-        @Override public void setIgnoredSchemas(Set<String> ignoredSchemas) {
-                // nothing to do
-        }
+  @Override
+  public void setIgnoredSchemas(Set<String> ignoredSchemas) {
+    // nothing to do
+  }
 
-        @Override public void handleStructure(DatabaseStructure structure)
-          throws ModuleException, UnknownTypeException {
-                if (structure == null) {
-                        throw new ModuleException("Database structure must not be null");
-                }
+  @Override
+  public void handleStructure(DatabaseStructure structure) throws ModuleException, UnknownTypeException {
+    if (structure == null) {
+      throw new ModuleException("Database structure must not be null");
+    }
 
-                dbStructure = structure;
-        }
+    dbStructure = structure;
+  }
 
-        @Override public void handleDataOpenSchema(String schemaName) throws ModuleException {
-                currentSchema = dbStructure.getSchemaByName(schemaName);
+  @Override
+  public void handleDataOpenSchema(String schemaName) throws ModuleException {
+    currentSchema = dbStructure.getSchemaByName(schemaName);
 
-                if (currentSchema == null) {
-                        throw new ModuleException("Couldn't find schema with name: " + schemaName);
-                }
+    if (currentSchema == null) {
+      throw new ModuleException("Couldn't find schema with name: " + schemaName);
+    }
 
-                contentStrategy.openSchema(currentSchema);
-        }
+    contentStrategy.openSchema(currentSchema);
+  }
 
-        @Override public void handleDataOpenTable(String tableId) throws ModuleException {
-                currentTable = dbStructure.lookupTableStructure(tableId);
+  @Override
+  public void handleDataOpenTable(String tableId) throws ModuleException {
+    currentTable = dbStructure.lookupTableStructure(tableId);
 
-                if (currentTable == null) {
-                        throw new ModuleException("Couldn't find table with id: " + tableId);
-                }
+    if (currentTable == null) {
+      throw new ModuleException("Couldn't find table with id: " + tableId);
+    }
 
-                contentStrategy.openTable(currentTable);
-        }
+    contentStrategy.openTable(currentTable);
+  }
 
-        @Override public void handleDataCloseTable(String tableId) throws ModuleException {
-                currentTable = dbStructure.lookupTableStructure(tableId);
+  @Override
+  public void handleDataCloseTable(String tableId) throws ModuleException {
+    currentTable = dbStructure.lookupTableStructure(tableId);
 
-                if (currentTable == null) {
-                        throw new ModuleException("Couldn't find table with id: " + tableId);
-                }
+    if (currentTable == null) {
+      throw new ModuleException("Couldn't find table with id: " + tableId);
+    }
 
-                contentStrategy.closeTable(currentTable);
-        }
+    contentStrategy.closeTable(currentTable);
+  }
 
-        @Override public void handleDataCloseSchema(String schemaName) throws ModuleException {
-                currentSchema = dbStructure.getSchemaByName(schemaName);
+  @Override
+  public void handleDataCloseSchema(String schemaName) throws ModuleException {
+    currentSchema = dbStructure.getSchemaByName(schemaName);
 
-                if (currentSchema == null) {
-                        throw new ModuleException("Couldn't find schema with name: " + schemaName);
-                }
+    if (currentSchema == null) {
+      throw new ModuleException("Couldn't find schema with name: " + schemaName);
+    }
 
-                contentStrategy.closeSchema(currentSchema);
-        }
+    contentStrategy.closeSchema(currentSchema);
+  }
 
-        @Override public void handleDataRow(Row row) throws InvalidDataException, ModuleException {
-                contentStrategy.tableRow(row);
-        }
+  @Override
+  public void handleDataRow(Row row) throws InvalidDataException, ModuleException {
+    contentStrategy.tableRow(row);
+  }
 
-        @Override public void finishDatabase() throws ModuleException {
-                metadataStrategy.writeMetadataXML(dbStructure, mainContainer, writeStrategy);
-                metadataStrategy.writeMetadataXSD(dbStructure, mainContainer, writeStrategy);
-                writeStrategy.finish(mainContainer);
-        }
+  @Override
+  public void finishDatabase() throws ModuleException {
+    metadataStrategy.writeMetadataXML(dbStructure, mainContainer, writeStrategy);
+    metadataStrategy.writeMetadataXSD(dbStructure, mainContainer, writeStrategy);
+    writeStrategy.finish(mainContainer);
+  }
 }

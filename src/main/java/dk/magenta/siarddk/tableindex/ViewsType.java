@@ -5,7 +5,6 @@
 // Generated on: 2015.07.09 at 03:01:43 PM CEST 
 //
 
-
 package dk.magenta.siarddk.tableindex;
 
 import java.util.ArrayList;
@@ -15,13 +14,15 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
  * Type for a list of views
  * 
- * <p>Java class for viewsType complex type.
+ * <p>
+ * Java class for viewsType complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType name="viewsType"&gt;
@@ -38,41 +39,39 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "viewsType", propOrder = {
-    "view"
-})
+@XmlType(name = "viewsType", propOrder = {"view"})
 public class ViewsType {
 
-    @XmlElement(required = true)
-    protected List<ViewType> view;
+  @XmlElement(required = true)
+  protected List<ViewType> view;
 
-    /**
-     * Gets the value of the view property.
-     * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the view property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getView().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link ViewType }
-     * 
-     * 
-     */
-    public List<ViewType> getView() {
-        if (view == null) {
-            view = new ArrayList<ViewType>();
-        }
-        return this.view;
+  /**
+   * Gets the value of the view property.
+   * 
+   * <p>
+   * This accessor method returns a reference to the live list, not a snapshot.
+   * Therefore any modification you make to the returned list will be present
+   * inside the JAXB object. This is why there is not a <CODE>set</CODE> method
+   * for the view property.
+   * 
+   * <p>
+   * For example, to add a new item, do as follows:
+   * 
+   * <pre>
+   * getView().add(newItem);
+   * </pre>
+   * 
+   * 
+   * <p>
+   * Objects of the following type(s) are allowed in the list {@link ViewType }
+   * 
+   * 
+   */
+  public List<ViewType> getView() {
+    if (view == null) {
+      view = new ArrayList<ViewType>();
     }
+    return this.view;
+  }
 
 }

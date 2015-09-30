@@ -28,6 +28,10 @@ import dk.magenta.siarddk.tableindex.TablesType;
 import dk.magenta.siarddk.tableindex.ViewType;
 import dk.magenta.siarddk.tableindex.ViewsType;
 
+/**
+ * @author Andreas Kring <andreas@magenta.dk>
+ *
+ */
 public class TableIndexFileStrategy implements IndexFileStrategy {
 
   @Override

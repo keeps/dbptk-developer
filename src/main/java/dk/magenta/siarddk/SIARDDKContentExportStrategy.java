@@ -26,6 +26,10 @@ import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.XMLUtils;
 
+/**
+ * @author Andreas Kring <andreas@magenta.dk>
+ *
+ */
 public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
   private final static String ENCODING = "utf-8";

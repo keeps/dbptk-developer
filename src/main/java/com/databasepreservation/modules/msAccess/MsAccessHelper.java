@@ -10,7 +10,7 @@ import com.databasepreservation.modules.SQLHelper;
  */
 public class MsAccessHelper extends SQLHelper {
 
-        public String selectTableSQL(String tableName) {
-                return "SELECT * FROM [" + tableName + "]";
-        }
+  public String selectTableSQL(String tableName) {
+    return "SELECT * FROM [" + tableName + "]";
+  }
 }

@@ -14,6 +14,10 @@ import com.databasepreservation.modules.siard.out.output.SIARDExportDefault;
 
 import dk.magenta.common.SIARDMarshaller;
 
+/**
+ * @author Andreas Kring <andreas@magenta.dk>
+ *
+ */
 public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
 
   private SIARDDKExportModule siarddkExportModule;

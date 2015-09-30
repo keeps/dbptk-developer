@@ -23,6 +23,10 @@ import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
 import dk.magenta.siarddk.fileindex.FileIndexType;
 
+/**
+ * @author Andreas Kring <andreas@magenta.dk>
+ *
+ */
 public class FileIndexFileStrategy implements IndexFileStrategy {
 
   private static final String FILE_SEPERATOR = File.separator;

@@ -16,6 +16,10 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.model.exception.ModuleException;
 
+/**
+ * @author Andreas Kring <andreas@magenta.dk>
+ *
+ */
 public class StandardSIARDMarshaller implements SIARDMarshaller {
 
   private static final String ENCODING = "UTF-8";

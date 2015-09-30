@@ -5,7 +5,6 @@
 // Generated on: 2015.07.09 at 03:01:43 PM CEST 
 //
 
-
 package dk.magenta.siarddk.tableindex;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -17,11 +16,13 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-
 /**
- * <p>Java class for anonymous complex type.
+ * <p>
+ * Java class for anonymous complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType&gt;
@@ -42,146 +43,125 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {
-    "version",
-    "dbName",
-    "databaseProduct",
-    "tables",
-    "views"
-})
+@XmlType(name = "", propOrder = {"version", "dbName", "databaseProduct", "tables", "views"})
 @XmlRootElement(name = "siardDiark")
 public class SiardDiark {
 
-    @XmlElement(required = true)
-    @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
-    @XmlSchemaType(name = "NMTOKEN")
-    protected String version;
-    @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
-    @XmlSchemaType(name = "token")
-    protected String dbName;
-    protected String databaseProduct;
-    @XmlElement(required = true)
-    protected TablesType tables;
-    protected ViewsType views;
+  @XmlElement(required = true)
+  @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
+  @XmlSchemaType(name = "NMTOKEN")
+  protected String version;
+  @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
+  @XmlSchemaType(name = "token")
+  protected String dbName;
+  protected String databaseProduct;
+  @XmlElement(required = true)
+  protected TablesType tables;
+  protected ViewsType views;
 
-    /**
-     * Gets the value of the version property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getVersion() {
-        return version;
-    }
+  /**
+   * Gets the value of the version property.
+   * 
+   * @return possible object is {@link String }
+   * 
+   */
+  public String getVersion() {
+    return version;
+  }
 
-    /**
-     * Sets the value of the version property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setVersion(String value) {
-        this.version = value;
-    }
+  /**
+   * Sets the value of the version property.
+   * 
+   * @param value
+   *          allowed object is {@link String }
+   * 
+   */
+  public void setVersion(String value) {
+    this.version = value;
+  }
 
-    /**
-     * Gets the value of the dbName property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDbName() {
-        return dbName;
-    }
+  /**
+   * Gets the value of the dbName property.
+   * 
+   * @return possible object is {@link String }
+   * 
+   */
+  public String getDbName() {
+    return dbName;
+  }
 
-    /**
-     * Sets the value of the dbName property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDbName(String value) {
-        this.dbName = value;
-    }
+  /**
+   * Sets the value of the dbName property.
+   * 
+   * @param value
+   *          allowed object is {@link String }
+   * 
+   */
+  public void setDbName(String value) {
+    this.dbName = value;
+  }
 
-    /**
-     * Gets the value of the databaseProduct property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDatabaseProduct() {
-        return databaseProduct;
-    }
+  /**
+   * Gets the value of the databaseProduct property.
+   * 
+   * @return possible object is {@link String }
+   * 
+   */
+  public String getDatabaseProduct() {
+    return databaseProduct;
+  }
 
-    /**
-     * Sets the value of the databaseProduct property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDatabaseProduct(String value) {
-        this.databaseProduct = value;
-    }
+  /**
+   * Sets the value of the databaseProduct property.
+   * 
+   * @param value
+   *          allowed object is {@link String }
+   * 
+   */
+  public void setDatabaseProduct(String value) {
+    this.databaseProduct = value;
+  }
 
-    /**
-     * Gets the value of the tables property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TablesType }
-     *     
-     */
-    public TablesType getTables() {
-        return tables;
-    }
+  /**
+   * Gets the value of the tables property.
+   * 
+   * @return possible object is {@link TablesType }
+   * 
+   */
+  public TablesType getTables() {
+    return tables;
+  }
 
-    /**
-     * Sets the value of the tables property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TablesType }
-     *     
-     */
-    public void setTables(TablesType value) {
-        this.tables = value;
-    }
+  /**
+   * Sets the value of the tables property.
+   * 
+   * @param value
+   *          allowed object is {@link TablesType }
+   * 
+   */
+  public void setTables(TablesType value) {
+    this.tables = value;
+  }
 
-    /**
-     * Gets the value of the views property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link ViewsType }
-     *     
-     */
-    public ViewsType getViews() {
-        return views;
-    }
+  /**
+   * Gets the value of the views property.
+   * 
+   * @return possible object is {@link ViewsType }
+   * 
+   */
+  public ViewsType getViews() {
+    return views;
+  }
 
-    /**
-     * Sets the value of the views property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link ViewsType }
-     *     
-     */
-    public void setViews(ViewsType value) {
-        this.views = value;
-    }
+  /**
+   * Sets the value of the views property.
+   * 
+   * @param value
+   *          allowed object is {@link ViewsType }
+   * 
+   */
+  public void setViews(ViewsType value) {
+    this.views = value;
+  }
 
 }

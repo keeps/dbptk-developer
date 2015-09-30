@@ -11,9 +11,9 @@ package com.databasepreservation.model.structure.type;
  */
 public class SimpleTypeBoolean extends Type {
 
-        /**
-         * Boolean type constructor
-         */
-        public SimpleTypeBoolean() {
-        }
+  /**
+   * Boolean type constructor
+   */
+  public SimpleTypeBoolean() {
+  }
 }

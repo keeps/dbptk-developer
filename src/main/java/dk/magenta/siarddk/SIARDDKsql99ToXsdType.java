@@ -1,5 +1,9 @@
 package dk.magenta.siarddk;
 
+/**
+ * @author Andreas Kring <andreas@magenta.dk>
+ *
+ */
 public class SIARDDKsql99ToXsdType {
 
   public static String convert(String sql99Type) {

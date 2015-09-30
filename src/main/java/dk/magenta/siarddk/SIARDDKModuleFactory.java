@@ -12,6 +12,10 @@ import com.databasepreservation.modules.DatabaseExportModule;
 import com.databasepreservation.modules.DatabaseImportModule;
 import com.databasepreservation.modules.DatabaseModuleFactory;
 
+/**
+ * @author Andreas Kring <andreas@magenta.dk>
+ *
+ */
 public class SIARDDKModuleFactory implements DatabaseModuleFactory {
 
   private static final Parameter folder = new Parameter().shortName("f").longName("folder")
