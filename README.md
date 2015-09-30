@@ -14,7 +14,7 @@ A new version of the this tool, together with a [new version of the SIARD preser
 ## Download pre-compiled version
 
 Binaries with all dependencies included:
-* [db-preservation-toolkit v2.0-rc2](https://github.com/keeps/db-preservation-toolkit/releases/download/2.0-rc2/db-preservation-toolkit-2.0.0-jar-with-dependencies.jar) (release candidate, [see issues](https://github.com/keeps/db-preservation-toolkit/milestones/2.0.0))
+* [db-preservation-toolkit v2.1.1](https://github.com/keeps/db-preservation-toolkit/releases/download/2.1.1/db-preservation-toolkit-2.1.1-jar-with-dependencies.jar) (pre-release, SIARD still lacks LOBs and UDTs)
 * [db-preservation-toolkit v1.0.1](https://github.com/keeps/db-preservation-toolkit/releases/download/v1.0.1/db-preservation-toolkit-1.0.1-jar-with-dependencies.jar)
 * [db-preservation-toolkit v1.0.0](http://keeps.github.io/db-preservation-toolkit/db-preservation-toolkit-1.0.0-jar-with-dependencies.jar)
 
@@ -22,9 +22,12 @@ Binaries with all dependencies included:
 
 To use the program, open a command-line and try out the following command (replace x.y.z accordingly to the version of the binary in use):
 
-```bash
-$ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar 
+```text
+$ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar
 Usage: dbptk <importModule> [import module options] <exportModule> [export module options]
+
+## Plugin:
+    -p, --plugin=plugin.jar    (optional) the file containing a plugin module. Several plugins can be specified, separated by a semi-colon (;)
 
 ## Available import modules: -i <module>, --import=module
 
@@ -92,7 +95,7 @@ $ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar \
 
 1. Download the [latest stable release](https://github.com/keeps/db-preservation-toolkit/releases).
 2. Unzip and open the folder on a command-line terminal
-3. Build with Maven `mvn clean package -DskipTests`
+3. Build with Maven `mvn clean package`
 
 Binaries will be on the `target` folder
 
@@ -144,10 +147,6 @@ $ java -Djava.io.tmpdir=/media/BIGHD/tmp -jar db-preservation-toolkit-x.y.z-jar-
 
 For more information or commercial support, contact [KEEP SOLUTIONS](http://www.keep.pt/contactos/?lang=en).
 
-<!-- Removing build status as some database library drivers cannot be distributed via maven
-[![Build Status](https://travis-ci.org/keeps/db-preservation-toolkit.png?branch=master)](https://travis-ci.org/keeps/db-preservation-toolkit)
--->
-
 ## Development [![Build Status](https://travis-ci.org/keeps/db-preservation-toolkit.png?branch=master)](https://travis-ci.org/keeps/db-preservation-toolkit)
 
 To develop we recommend the use of Maven and Eclipse.
@@ -169,13 +168,6 @@ To run MySQL tests, a local MySQL (or MariaDB) database is required and 'root' u
 
 ### Changing XML Schema files
 
-After changing SIARD XML Schema files, maven must be used to compile a new artifact from the XML Schema (using JAXB).
+After changing SIARD XML Schema files, maven must be used to compile a new artifact from the XML Schema (using JAXB). To do this, run ```mvn clean install -Pdbptk-bindings``` from project root folder.
 
-* For SIARD1 use: ```mvn clean install -P generate-siard1```
-
-* For SIARD2 use: ```mvn clean install -P generate-siard2```
-
-The jars should now be installed in ```<project_dir>/vendor-libs```.
-
-Note: to change the version of the generated jars, change the respective property in pom.xml.
-This may be needed for the new jar to be installed locally and for changes to take effect.
+The jars should now be installed in ```<project_dir>/vendor-libs``` (and also in your local maven repository).
