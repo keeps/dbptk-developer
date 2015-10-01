@@ -49,7 +49,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
       IndexFileStrategy tableIndexFileStrategy = new TableIndexFileStrategy();
       String path = metadataPathStrategy.getXmlFilePath(Constants.TABLE_INDEX);
       OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
-      siardMarshaller.marshal("dk.magenta.siarddk.tableindex", "/siarddk/tableIndex.xsd",
+      siardMarshaller.marshal("dk.magenta.siarddk.tableindex", "/schema/tableIndex.xsd",
         "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/tableIndex.xsd", writer,
         tableIndexFileStrategy.generateXML(dbStructure));
       writer.close();
@@ -116,7 +116,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
     String filename = indexFile + ".xsd";
 
-    InputStream inputStream = this.getClass().getResourceAsStream("/siarddk/" + filename);
+    InputStream inputStream = this.getClass().getResourceAsStream("/schema/" + filename);
     String path = "Schemas" + FILE_SEPERATOR + "standard" + FILE_SEPERATOR + filename;
     OutputStream outputStream = fileIndexFileStrategy.getWriter(container, path, writeStrategy);
 
