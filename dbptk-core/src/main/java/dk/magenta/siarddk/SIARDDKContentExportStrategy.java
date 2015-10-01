@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,7 +44,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   private int LOBcounter;
 
   // Maps which columns are LOBs in a given table
-  private Map<Integer, List> LOBsTracker;
+  private Map<Integer, List<Integer>> LOBsTracker;
 
   // The list of the columns to put into the LOBsTracker above
   private List<Integer> LOBsColumns;
@@ -61,7 +60,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
     tableCounter = 1;
     LOBcounter = 1;
-    LOBsTracker = new HashMap<Integer, List>();
+    LOBsTracker = siarddkExportModule.getLOBsTracker();
 
     contentPathExportStrategy = siarddkExportModule.getContentPathExportStrategy();
     fileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
@@ -266,5 +265,4 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
       throw new ModuleException("Could not write row " + row.toString(), e);
     }
   }
-
 }

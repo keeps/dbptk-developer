@@ -2,6 +2,7 @@ package dk.magenta.siarddk;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -33,6 +34,12 @@ import dk.magenta.siarddk.tableindex.ViewsType;
  *
  */
 public class TableIndexFileStrategy implements IndexFileStrategy {
+
+  private Map<Integer, List<Integer>> LOBsTracker;
+
+  public TableIndexFileStrategy(Map<Integer, List<Integer>> LOBsTracker) {
+    this.LOBsTracker = LOBsTracker;
+  }
 
   @Override
   public Object generateXML(DatabaseStructure dbStructure) throws ModuleException {
