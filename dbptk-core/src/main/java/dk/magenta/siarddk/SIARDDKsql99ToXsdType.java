@@ -20,7 +20,8 @@ public class SIARDDKsql99ToXsdType {
       return "xs:string";
     } else if (sql99Type.startsWith("DATE")) {
       return "xs:date";
-    } else if (sql99Type.startsWith("INTEGER") || sql99Type.startsWith("SMALLINT")) {
+    } else if (sql99Type.startsWith("INTEGER") || sql99Type.startsWith("SMALLINT")
+      || sql99Type.equals("BINARY LARGE OBJECT")) {
       return "xs:integer";
     } else if (sql99Type.equals("TIME") || sql99Type.equals("TIME WITH TIME ZONE")) {
       return "xs:time";

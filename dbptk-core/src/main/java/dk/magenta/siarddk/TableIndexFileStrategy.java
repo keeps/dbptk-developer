@@ -92,7 +92,12 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
               column.setColumnID("c" + Integer.toString(columnCounter));
 
               // Set type - mandatory
-              column.setType(type.getSql99TypeName());
+              String sql99DataType = type.getSql99TypeName();
+              if (sql99DataType.equals("BINARY LARGE OBJECT")) {
+                column.setType("INTEGER");
+              } else {
+                column.setType(type.getSql99TypeName());
+              }
 
               // Set typeOriginal
               if (StringUtils.isNotBlank(type.getOriginalTypeName())) {

@@ -36,6 +36,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   private final static String TAB = "  ";
   private final static String namespaceBase = "http://www.sa.dk/xmlns/siard/1.0/";
 
+  private int LOBcounter = 1;
+
   private ContentPathExportStrategy contentPathExportStrategy;
   private FileIndexFileStrategy fileIndexFileStrategy;
   private SIARDArchiveContainer baseContainer;
@@ -214,9 +216,16 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
         } else if (cell instanceof BinaryCell) {
 
+          // TO-DO: should it be checked if cell content is null?
+          // TO-DO: should LOBcounter be encoded? (probably not)
+
+          currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
+            .append(Integer.toString(LOBcounter)).append("</c").append(String.valueOf(columnIndex)).append(">\n");
+
+          LOBcounter += 1;
+
           // BinaryCell binaryCell = (BinaryCell) cell;
 
-          throw new ModuleException("Cannot handle binary cells yet");
         } else if (cell instanceof ComposedCell) {
           throw new ModuleException("Cannot handle composed cells yet");
         }
