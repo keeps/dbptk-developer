@@ -4,7 +4,10 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -36,7 +39,16 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   private final static String TAB = "  ";
   private final static String namespaceBase = "http://www.sa.dk/xmlns/siard/1.0/";
 
-  private int LOBcounter = 1;
+  private int tableCounter;
+
+  // Count how many LOBs have been collected
+  private int LOBcounter;
+
+  // Maps which columns are LOBs in a given table
+  private Map<Integer, List> LOBsTracker;
+
+  // The list of the columns to put into the LOBsTracker above
+  private List<Integer> LOBsColumns;
 
   private ContentPathExportStrategy contentPathExportStrategy;
   private FileIndexFileStrategy fileIndexFileStrategy;
@@ -46,6 +58,10 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   private WriteStrategy writeStrategy;
 
   public SIARDDKContentExportStrategy(SIARDDKExportModule siarddkExportModule) {
+
+    tableCounter = 1;
+    LOBcounter = 1;
+    LOBsTracker = new HashMap<Integer, List>();
 
     contentPathExportStrategy = siarddkExportModule.getContentPathExportStrategy();
     fileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
@@ -100,6 +116,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
       throw new ModuleException("Error handling open table " + tableStructure.getId(), e);
     }
 
+    // List for the LOBs tracker
+    LOBsColumns = new ArrayList<Integer>();
   }
 
   @Override
@@ -109,6 +127,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
       currentWriter.close();
 
       fileIndexFileStrategy.addFile(contentPathExportStrategy.getTableXmlFilePath(0, tableStructure.getIndex()));
+
+      tableCounter += 1;
 
     } catch (IOException e) {
       throw new ModuleException("Error handling close table " + tableStructure.getId(), e);
@@ -222,6 +242,15 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
           currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
             .append(Integer.toString(LOBcounter)).append("</c").append(String.valueOf(columnIndex)).append(">\n");
 
+          // Check if table is not in LOBsTracker
+
+          if (!LOBsTracker.containsKey(tableCounter)) {
+            LOBsTracker.put(tableCounter, LOBsColumns);
+          }
+
+          if (!LOBsColumns.contains(columnIndex)) {
+            LOBsColumns.add(columnIndex);
+          }
           LOBcounter += 1;
 
           // BinaryCell binaryCell = (BinaryCell) cell;
