@@ -239,29 +239,29 @@ public class CLI {
     HashMap<String, Parameter> mapOptionToParameter = new HashMap<String, Parameter>();
 
     for (Parameter parameter : importModuleFactory.getImportModuleParameters().getParameters()) {
-      Option option = parameter.toOption("i");
+      Option option = parameter.toOption("i", "import");
       options.addOption(option);
       mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
     }
     for (ParameterGroup parameterGroup : importModuleFactory.getImportModuleParameters().getGroups()) {
-      OptionGroup optionGroup = parameterGroup.toOptionGroup("i");
+      OptionGroup optionGroup = parameterGroup.toOptionGroup("i", "import");
       options.addOptionGroup(optionGroup);
 
       for (Parameter parameter : parameterGroup.getParameters()) {
-        mapOptionToParameter.put(getUniqueOptionIdentifier(parameter.toOption("i")), parameter);
+        mapOptionToParameter.put(getUniqueOptionIdentifier(parameter.toOption("i", "import")), parameter);
       }
     }
     for (Parameter parameter : exportModuleFactory.getExportModuleParameters().getParameters()) {
-      Option option = parameter.toOption("e");
+      Option option = parameter.toOption("e", "export");
       options.addOption(option);
       mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
     }
     for (ParameterGroup parameterGroup : exportModuleFactory.getExportModuleParameters().getGroups()) {
-      OptionGroup optionGroup = parameterGroup.toOptionGroup("e");
+      OptionGroup optionGroup = parameterGroup.toOptionGroup("e", "export");
       options.addOptionGroup(optionGroup);
 
       for (Parameter parameter : parameterGroup.getParameters()) {
-        mapOptionToParameter.put(getUniqueOptionIdentifier(parameter.toOption("e")), parameter);
+        mapOptionToParameter.put(getUniqueOptionIdentifier(parameter.toOption("e", "export")), parameter);
       }
     }
 
@@ -337,7 +337,7 @@ public class CLI {
     for (DatabaseModuleFactory factory : modulesList) {
       if (factory.producesImportModules()) {
         try {
-          out.append(printModuleHelp("Import module: " + factory.getModuleName(), "i",
+          out.append(printModuleHelp("Import module: " + factory.getModuleName(), "i", "import",
             factory.getImportModuleParameters()));
         } catch (OperationNotSupportedException e) {
           // this should never happen
@@ -349,7 +349,7 @@ public class CLI {
     for (DatabaseModuleFactory factory : modulesList) {
       if (factory.producesExportModules()) {
         try {
-          out.append(printModuleHelp("Export module: " + factory.getModuleName(), "e",
+          out.append(printModuleHelp("Export module: " + factory.getModuleName(), "e", "export",
             factory.getExportModuleParameters()));
         } catch (OperationNotSupportedException e) {
           // this should never happen
@@ -360,7 +360,8 @@ public class CLI {
     printStream.append(out).flush();
   }
 
-  private String printModuleHelp(String moduleDesignation, String parameterPrefix, Parameters moduleParameters) {
+  private String printModuleHelp(String moduleDesignation, String shortParameterPrefix, String longParameterPrefix,
+    Parameters moduleParameters) {
     StringBuilder out = new StringBuilder();
 
     String space = "    ";
@@ -368,12 +369,12 @@ public class CLI {
     out.append("\n").append(moduleDesignation);
 
     for (Parameter parameter : moduleParameters.getParameters()) {
-      out.append(printParameterHelp(space, parameterPrefix, parameter));
+      out.append(printParameterHelp(space, shortParameterPrefix, longParameterPrefix, parameter));
     }
 
     for (ParameterGroup parameterGroup : moduleParameters.getGroups()) {
       for (Parameter parameter : parameterGroup.getParameters()) {
-        out.append(printParameterHelp(space, parameterPrefix, parameter));
+        out.append(printParameterHelp(space, shortParameterPrefix, longParameterPrefix, parameter));
       }
     }
     out.append("\n");
@@ -381,16 +382,16 @@ public class CLI {
     return out.toString();
   }
 
-  private String printParameterHelp(String space, String prefix, Parameter parameter) {
+  private String printParameterHelp(String space, String shortPrefix, String longPrefix, Parameter parameter) {
     StringBuilder out = new StringBuilder();
 
     out.append("\n").append(space);
 
     if (StringUtils.isNotBlank(parameter.shortName())) {
-      out.append("-").append(prefix).append(parameter.shortName()).append(", ");
+      out.append("-").append(shortPrefix).append(parameter.shortName()).append(", ");
     }
 
-    out.append("--").append(prefix).append(parameter.longName());
+    out.append("--").append(longPrefix).append("-").append(parameter.longName());
 
     if (parameter.hasArgument()) {
       if (parameter.isOptionalArgument()) {

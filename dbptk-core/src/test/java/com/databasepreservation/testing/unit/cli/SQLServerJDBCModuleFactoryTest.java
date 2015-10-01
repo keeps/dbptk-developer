@@ -25,10 +25,10 @@ public class SQLServerJDBCModuleFactoryTest {
 
   @Test
   public void arguments_required_long() {
-    List<String> args = Arrays.asList("--import=SQLServerJDBC", "--iusername=name-user", "--ipassword=abc1 23=456",
-      "--iserver-name=the-server-name", "--idatabase=dbname", "--idisable-encryption", "--export=SQLServerJDBC",
-      "--eusername=name-another-user", "--epassword=2bcd123=456", "--eserver-name=another-server",
-      "--edatabase=another-db-name");
+    List<String> args = Arrays.asList("--import=SQLServerJDBC", "--import-username=name-user",
+      "--import-password=abc1 23=456", "--import-server-name=the-server-name", "--import-database=dbname",
+      "--import-disable-encryption", "--export=SQLServerJDBC", "--export-username=name-another-user",
+      "--export-password=2bcd123=456", "--export-server-name=another-server", "--export-database=another-db-name");
 
     // test parameters for import module
     HashMap<String, String> expectedValuesImport = new HashMap<String, String>();
@@ -100,10 +100,11 @@ public class SQLServerJDBCModuleFactoryTest {
 
   @Test
   public void arguments_instanceName_long() {
-    List<String> args = Arrays.asList("--import=SQLServerJDBC", "--iusername=name-user", "--ipassword=abc1 23=456",
-      "--iserver-name=the-server-name", "--idatabase=dbname", "--iinstance-name=name-for-the-instance",
-      "--export=SQLServerJDBC", "--eusername=name-another-user", "--epassword=2bcd123=456",
-      "--eserver-name=another-server", "--edatabase=another-db-name", "--einstance-name=name-for-another-instance");
+    List<String> args = Arrays.asList("--import=SQLServerJDBC", "--import-username=name-user",
+      "--import-password=abc1 23=456", "--import-server-name=the-server-name", "--import-database=dbname",
+      "--import-instance-name=name-for-the-instance", "--export=SQLServerJDBC", "--export-username=name-another-user",
+      "--export-password=2bcd123=456", "--export-server-name=another-server", "--export-database=another-db-name",
+      "--export-instance-name=name-for-another-instance");
 
     // test parameters for import module
     HashMap<String, String> expectedValuesImport = new HashMap<String, String>();
@@ -151,10 +152,11 @@ public class SQLServerJDBCModuleFactoryTest {
 
   @Test
   public void arguments_portNumber_long() {
-    List<String> args = Arrays.asList("--import=SQLServerJDBC", "--iusername=name-user", "--ipassword=abc1 23=456",
-      "--iserver-name=the-server-name", "--idatabase=dbname", "--iport-number=1234", "--export=SQLServerJDBC",
-      "--eusername=name-another-user", "--epassword=2bcd123=456", "--eserver-name=another-server",
-      "--edatabase=another-db-name", "--eport-number=4321");
+    List<String> args = Arrays.asList("--import=SQLServerJDBC", "--import-username=name-user",
+      "--import-password=abc1 23=456", "--import-server-name=the-server-name", "--import-database=dbname",
+      "--import-port-number=1234", "--export=SQLServerJDBC", "--export-username=name-another-user",
+      "--export-password=2bcd123=456", "--export-server-name=another-server", "--export-database=another-db-name",
+      "--export-port-number=4321");
 
     // test parameters for import module
     HashMap<String, String> expectedValuesImport = new HashMap<String, String>();
