@@ -60,7 +60,7 @@ public class CommandLineIndexFileStrategy implements IndexFileStrategy {
 
       // Create SAXBuilder from schema factory with relevant xsd-file as schema
 
-      InputStream in = this.getClass().getResourceAsStream("/siarddk/" + fileTypeFlag + ".xsd");
+      InputStream in = this.getClass().getResourceAsStream("/schema/" + fileTypeFlag + ".xsd");
       XMLReaderJDOMFactory schemaFactory = new XMLReaderXSDFactory(new StreamSource(in));
       SAXBuilder builder = new SAXBuilder(schemaFactory);
 
