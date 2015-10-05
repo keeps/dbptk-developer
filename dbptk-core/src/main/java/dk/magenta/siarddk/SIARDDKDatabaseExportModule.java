@@ -86,10 +86,8 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
       OutputStream writer = fileIndexFileStrategy.getWriter(siarddkExportModule.getMainContainer(), path,
         siarddkExportModule.getWriteStrategy());
 
-      String schemaLocation = Constants.FILE_SEPARATOR + Constants.SCHEMA_RESOURCE_FOLDER + Constants.FILE_SEPARATOR
-        + Constants.FILE_INDEX + Constants.FILE_EXTENSION_SEPARATOR + Constants.XSD_EXTENSION;
-
-      siardMarshaller.marshal("dk.magenta.siarddk.fileindex", schemaLocation,
+      siardMarshaller.marshal("dk.magenta.siarddk.fileindex",
+        metadataPathStrategy.getXsdResourcePath(Constants.FILE_INDEX),
         "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/fileIndex.xsd", writer,
         fileIndexFileStrategy.generateXML(null));
 

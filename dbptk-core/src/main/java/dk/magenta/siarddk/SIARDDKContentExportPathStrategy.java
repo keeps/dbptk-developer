@@ -1,7 +1,5 @@
 package dk.magenta.siarddk;
 
-import java.io.File;
-
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 
 /**
@@ -14,12 +12,6 @@ public class SIARDDKContentExportPathStrategy implements ContentPathExportStrate
   private static final String TABLE_DIR = "table";
   private static final String TABLE_FILENAME = "table";
   private static final String SCHEMA_DIR = "schema";
-
-  private static final String FILE_SEPARATOR = File.separator;
-  private static final String FILE_EXTENSION_SEPARATOR = ".";
-
-  private static final String XML_EXTENSION = "xml";
-  private static final String XSD_EXTENSION = "xsd";
 
   @Override
   public String getClobFilePath(int schemaIndex, int tableIndex, int columnIndex, int rowIndex) {
@@ -50,29 +42,30 @@ public class SIARDDKContentExportPathStrategy implements ContentPathExportStrate
    */
   @Override
   public String getTableXsdFilePath(int schemaIndex, int tableIndex) {
-    return new StringBuilder().append(CONTENT_DIR).append(FILE_SEPARATOR).append(getTableFolderName(tableIndex))
-      .append(FILE_SEPARATOR).append(TABLE_FILENAME).append(tableIndex).append(FILE_EXTENSION_SEPARATOR)
-      .append(XSD_EXTENSION).toString();
+    return new StringBuilder().append(CONTENT_DIR).append(Constants.FILE_SEPARATOR)
+      .append(getTableFolderName(tableIndex)).append(Constants.FILE_SEPARATOR).append(TABLE_FILENAME)
+      .append(tableIndex).append(Constants.FILE_EXTENSION_SEPARATOR).append(Constants.XSD_EXTENSION).toString();
 
   }
 
   @Override
   public String getTableXmlFilePath(int schemaIndex, int tableIndex) {
-    return new StringBuilder().append(CONTENT_DIR).append(FILE_SEPARATOR).append(getTableFolderName(tableIndex))
-      .append(FILE_SEPARATOR).append(TABLE_FILENAME).append(tableIndex).append(FILE_EXTENSION_SEPARATOR)
-      .append(XML_EXTENSION).toString();
+    return new StringBuilder().append(CONTENT_DIR).append(Constants.FILE_SEPARATOR)
+      .append(getTableFolderName(tableIndex)).append(Constants.FILE_SEPARATOR).append(TABLE_FILENAME)
+      .append(tableIndex).append(Constants.FILE_EXTENSION_SEPARATOR).append(Constants.XML_EXTENSION).toString();
   }
 
   @Override
   public String getTableXsdNamespace(String base, int schemaIndex, int tableIndex) {
-    return new StringBuilder().append(base).append(SCHEMA_DIR).append(schemaIndex).append(FILE_SEPARATOR)
-      .append(TABLE_FILENAME).append(tableIndex).append(FILE_EXTENSION_SEPARATOR).append(XSD_EXTENSION).toString();
+    return new StringBuilder().append(base).append(SCHEMA_DIR).append(schemaIndex).append(Constants.FILE_SEPARATOR)
+      .append(TABLE_FILENAME).append(tableIndex).append(Constants.FILE_EXTENSION_SEPARATOR)
+      .append(Constants.XSD_EXTENSION).toString();
   }
 
   @Override
   public String getTableXsdFileName(int tableIndex) {
-    return new StringBuilder().append(TABLE_FILENAME).append(tableIndex).append(FILE_EXTENSION_SEPARATOR)
-      .append(XSD_EXTENSION).toString();
+    return new StringBuilder().append(TABLE_FILENAME).append(tableIndex).append(Constants.FILE_EXTENSION_SEPARATOR)
+      .append(Constants.XSD_EXTENSION).toString();
   }
 
 }

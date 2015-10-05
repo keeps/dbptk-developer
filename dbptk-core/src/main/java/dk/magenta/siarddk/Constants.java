@@ -8,12 +8,11 @@ import java.io.File;
  */
 public class Constants {
 
-  // System dependent file seperator: "/" on Linux and "\" on Windows
+  // System dependent file seperator etc. ("/" on Linux and "\" on Windows)
   public static final String FILE_SEPARATOR = File.separator;
-
   public static final String FILE_EXTENSION_SEPARATOR = ".";
 
-  // Extensions for files
+  // File extensions
   public static final String XML_EXTENSION = "xml";
   public static final String XSD_EXTENSION = "xsd";
 
@@ -21,7 +20,7 @@ public class Constants {
   public static final String CONTEXT_DOCUMENTATION_RELATIVE_PATH = "ContextDocumentation";
 
   // Path to schemas in the /src/main/resources folder
-  public static final String SCHEMA_RESOURCE_FOLDER = "schema";
+  public static final String SCHEMA_RESOURCE_DIR = "schema";
 
   // Key for context documentation folder (given on command line)
   public static final String CONTEXT_DOCUMENTATION_FOLDER = "contextDocumentationFolder";

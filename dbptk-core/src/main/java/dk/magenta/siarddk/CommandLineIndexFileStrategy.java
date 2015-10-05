@@ -24,6 +24,7 @@ import org.jdom2.output.XMLOutputter;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
@@ -33,6 +34,7 @@ public class CommandLineIndexFileStrategy implements IndexFileStrategy {
 
   private Map<String, String> exportModuleArgs;
   private OutputStream writer;
+  private MetadataPathStrategy metadataPathStrategy;
   private String fileTypeFlag;
 
   /**
@@ -46,10 +48,12 @@ public class CommandLineIndexFileStrategy implements IndexFileStrategy {
    * @precondition: fileTypeFlag should be either "archiveIndex" or
    *                "contextDocumentationIndex"
    */
-  public CommandLineIndexFileStrategy(String fileTypeFlag, Map<String, String> exportModuleArgs, OutputStream writer) {
+  public CommandLineIndexFileStrategy(String fileTypeFlag, Map<String, String> exportModuleArgs, OutputStream writer,
+    MetadataPathStrategy metadataPathStrategy) {
     this.fileTypeFlag = fileTypeFlag;
     this.exportModuleArgs = exportModuleArgs;
     this.writer = writer;
+    this.metadataPathStrategy = metadataPathStrategy;
   }
 
   @Override
@@ -60,10 +64,7 @@ public class CommandLineIndexFileStrategy implements IndexFileStrategy {
 
       // Create SAXBuilder from schema factory with relevant xsd-file as schema
 
-      String schemaLocation = Constants.FILE_SEPARATOR + Constants.SCHEMA_RESOURCE_FOLDER + Constants.FILE_SEPARATOR
-        + fileTypeFlag + Constants.FILE_EXTENSION_SEPARATOR + Constants.XSD_EXTENSION;
-
-      InputStream in = this.getClass().getResourceAsStream(schemaLocation);
+      InputStream in = this.getClass().getResourceAsStream(metadataPathStrategy.getXsdResourcePath(fileTypeFlag));
       XMLReaderJDOMFactory schemaFactory = new XMLReaderXSDFactory(new StreamSource(in));
       SAXBuilder builder = new SAXBuilder(schemaFactory);
 

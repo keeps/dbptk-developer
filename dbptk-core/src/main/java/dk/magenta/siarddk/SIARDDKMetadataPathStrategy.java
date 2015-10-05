@@ -40,11 +40,23 @@ public class SIARDDKMetadataPathStrategy implements MetadataPathStrategy {
     }
   }
 
+  @Override
+  public String getXsdResourcePath(String filename) throws InvalidParameterException {
+
+    if (checkFilename(filename)) {
+      return new StringBuilder().append(Constants.FILE_SEPARATOR).append(Constants.SCHEMA_RESOURCE_DIR)
+        .append(Constants.FILE_SEPARATOR).append(filename).append(Constants.FILE_EXTENSION_SEPARATOR)
+        .append(Constants.XSD_EXTENSION).toString();
+    } else {
+      throw new InvalidParameterException("Invalid filename for metadata file");
+    }
+  }
+
   private boolean checkFilename(String filename) {
 
     // Valid filenames
     String[] validFileNames = {Constants.TABLE_INDEX, Constants.ARCHIVE_INDEX, Constants.DOC_INDEX,
-      Constants.CONTEXT_DOCUMENTATION_INDEX, Constants.FILE_INDEX};
+      Constants.CONTEXT_DOCUMENTATION_INDEX, Constants.FILE_INDEX, Constants.XML_SCHEMA};
 
     ArrayList<String> validFilenames = new ArrayList<String>(Arrays.asList(validFileNames));
     if (validFilenames.contains(filename)) {
@@ -52,5 +64,4 @@ public class SIARDDKMetadataPathStrategy implements MetadataPathStrategy {
     }
     return false;
   }
-
 }

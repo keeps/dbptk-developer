@@ -38,7 +38,8 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
   public void writeMetadataXML(DatabaseStructure dbStructure, SIARDArchiveContainer outputContainer,
     WriteStrategy writeStrategy) throws ModuleException {
 
-    // TO-DO: Refactor this into one method
+    // TO-DO: Refactor this into one method in class that can be used by
+    // SIARDDKDatabaseExportModule also
 
     // Generate tableIndex.xml
 
@@ -47,10 +48,8 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
       String path = metadataPathStrategy.getXmlFilePath(Constants.TABLE_INDEX);
       OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
 
-      String schemaLocation = Constants.FILE_SEPARATOR + Constants.SCHEMA_RESOURCE_FOLDER + Constants.FILE_SEPARATOR
-        + Constants.TABLE_INDEX + Constants.FILE_EXTENSION_SEPARATOR + Constants.XSD_EXTENSION;
-
-      siardMarshaller.marshal("dk.magenta.siarddk.tableindex", schemaLocation,
+      siardMarshaller.marshal("dk.magenta.siarddk.tableindex",
+        metadataPathStrategy.getXsdResourcePath(Constants.TABLE_INDEX),
         "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/tableIndex.xsd", writer,
         tableIndexFileStrategy.generateXML(dbStructure));
 
@@ -69,7 +68,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
         String path = metadataPathStrategy.getXmlFilePath(Constants.ARCHIVE_INDEX);
         OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
         IndexFileStrategy archiveIndexFileStrategy = new CommandLineIndexFileStrategy(Constants.ARCHIVE_INDEX,
-          exportModuleArgs, writer);
+          exportModuleArgs, writer, metadataPathStrategy);
         archiveIndexFileStrategy.generateXML(null);
         writer.close();
 
@@ -88,7 +87,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
         String path = metadataPathStrategy.getXmlFilePath(Constants.CONTEXT_DOCUMENTATION_INDEX);
         OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
         IndexFileStrategy contextDocumentationIndexFileStrategy = new CommandLineIndexFileStrategy(
-          Constants.CONTEXT_DOCUMENTATION_INDEX, exportModuleArgs, writer);
+          Constants.CONTEXT_DOCUMENTATION_INDEX, exportModuleArgs, writer, metadataPathStrategy);
         contextDocumentationIndexFileStrategy.generateXML(null);
         writer.close();
 
@@ -116,13 +115,9 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
   private void writeSchemaFile(SIARDArchiveContainer container, String indexFile, WriteStrategy writeStrategy)
     throws ModuleException {
 
-    String schemaInputLocation = Constants.FILE_SEPARATOR + Constants.SCHEMA_RESOURCE_FOLDER + Constants.FILE_SEPARATOR
-      + indexFile + Constants.FILE_EXTENSION_SEPARATOR + Constants.XSD_EXTENSION;
+    InputStream inputStream = this.getClass().getResourceAsStream(metadataPathStrategy.getXsdResourcePath(indexFile));
 
-    InputStream inputStream = this.getClass().getResourceAsStream(schemaInputLocation);
-
-    String path = "Schemas" + Constants.FILE_SEPARATOR + "standard" + Constants.FILE_SEPARATOR + indexFile
-      + Constants.FILE_EXTENSION_SEPARATOR + Constants.XSD_EXTENSION;
+    String path = metadataPathStrategy.getXsdFilePath(indexFile);
 
     OutputStream outputStream = fileIndexFileStrategy.getWriter(container, path, writeStrategy);
 
@@ -134,8 +129,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
       fileIndexFileStrategy.addFile(path);
 
     } catch (IOException e) {
-      throw new ModuleException("There was an error writing " + indexFile + Constants.FILE_EXTENSION_SEPARATOR
-        + Constants.XSD_EXTENSION, e);
+      throw new ModuleException("There was an error writing " + indexFile + ".xsd", e);
     }
   }
 }
