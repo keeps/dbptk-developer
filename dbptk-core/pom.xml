@@ -87,7 +87,7 @@
 			<artifactId>dbptk-bindings-siard2</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.databasepreservation</groupId>
+			<groupId>dk.magenta</groupId>
 			<artifactId>dbptk-bindings-siarddk</artifactId>
 		</dependency>
 
