@@ -1,6 +1,5 @@
 package dk.magenta.siarddk;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -22,8 +21,6 @@ import dk.magenta.common.SIARDMarshaller;
  *
  */
 public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
-
-  private static final String FILE_SEPERATOR = File.separator;
 
   private SIARDMarshaller siardMarshaller;
   private MetadataPathStrategy metadataPathStrategy;
@@ -49,9 +46,14 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
       IndexFileStrategy tableIndexFileStrategy = new TableIndexFileStrategy();
       String path = metadataPathStrategy.getXmlFilePath(Constants.TABLE_INDEX);
       OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
-      siardMarshaller.marshal("dk.magenta.siarddk.tableindex", "/schema/tableIndex.xsd",
+
+      String schemaLocation = Constants.FILE_SEPARATOR + Constants.SCHEMA_RESOURCE_FOLDER + Constants.FILE_SEPARATOR
+        + Constants.TABLE_INDEX + Constants.FILE_EXTENSION_SEPARATOR + Constants.XSD_EXTENSION;
+
+      siardMarshaller.marshal("dk.magenta.siarddk.tableindex", schemaLocation,
         "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/tableIndex.xsd", writer,
         tableIndexFileStrategy.generateXML(dbStructure));
+
       writer.close();
 
       fileIndexFileStrategy.addFile(path);
@@ -114,10 +116,14 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
   private void writeSchemaFile(SIARDArchiveContainer container, String indexFile, WriteStrategy writeStrategy)
     throws ModuleException {
 
-    String filename = indexFile + ".xsd";
+    String schemaInputLocation = Constants.FILE_SEPARATOR + Constants.SCHEMA_RESOURCE_FOLDER + Constants.FILE_SEPARATOR
+      + indexFile + Constants.FILE_EXTENSION_SEPARATOR + Constants.XSD_EXTENSION;
 
-    InputStream inputStream = this.getClass().getResourceAsStream("/schema/" + filename);
-    String path = "Schemas" + FILE_SEPERATOR + "standard" + FILE_SEPERATOR + filename;
+    InputStream inputStream = this.getClass().getResourceAsStream(schemaInputLocation);
+
+    String path = "Schemas" + Constants.FILE_SEPARATOR + "standard" + Constants.FILE_SEPARATOR + indexFile
+      + Constants.FILE_EXTENSION_SEPARATOR + Constants.XSD_EXTENSION;
+
     OutputStream outputStream = fileIndexFileStrategy.getWriter(container, path, writeStrategy);
 
     try {
@@ -128,7 +134,8 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
       fileIndexFileStrategy.addFile(path);
 
     } catch (IOException e) {
-      throw new ModuleException("There was an error writing " + filename, e);
+      throw new ModuleException("There was an error writing " + indexFile + Constants.FILE_EXTENSION_SEPARATOR
+        + Constants.XSD_EXTENSION, e);
     }
   }
 }

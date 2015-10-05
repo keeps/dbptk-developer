@@ -72,6 +72,9 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
 
     // Create fileIndex.xml
 
+    // TO-DO: refactor the stuff below into separate class (also to be used by
+    // the MetadataExportStrategy)
+
     try {
       fileIndexFileStrategy.generateXML(null);
     } catch (ModuleException e) {
@@ -82,9 +85,14 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
       String path = metadataPathStrategy.getXmlFilePath(Constants.FILE_INDEX);
       OutputStream writer = fileIndexFileStrategy.getWriter(siarddkExportModule.getMainContainer(), path,
         siarddkExportModule.getWriteStrategy());
-      siardMarshaller.marshal("dk.magenta.siarddk.fileindex", "/schema/fileIndex.xsd",
+
+      String schemaLocation = Constants.FILE_SEPARATOR + Constants.SCHEMA_RESOURCE_FOLDER + Constants.FILE_SEPARATOR
+        + Constants.FILE_INDEX + Constants.FILE_EXTENSION_SEPARATOR + Constants.XSD_EXTENSION;
+
+      siardMarshaller.marshal("dk.magenta.siarddk.fileindex", schemaLocation,
         "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/fileIndex.xsd", writer,
         fileIndexFileStrategy.generateXML(null));
+
       writer.close();
     } catch (IOException e) {
       throw new ModuleException("Error writing fileIndex to the archive.", e);

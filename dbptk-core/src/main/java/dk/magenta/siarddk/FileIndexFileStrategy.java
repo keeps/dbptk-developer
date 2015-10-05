@@ -6,7 +6,6 @@
  */
 package dk.magenta.siarddk;
 
-import java.io.File;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.security.DigestOutputStream;
@@ -29,18 +28,14 @@ import dk.magenta.siarddk.fileindex.FileIndexType;
  */
 public class FileIndexFileStrategy implements IndexFileStrategy {
 
-  private static final String FILE_SEPERATOR = File.separator;
-  private static final String SIARDDK_FILE_SEPERATOR = "\\"; // This is
-                                                             // determined by
-                                                             // the Schema!!
+  // This is determined by the fileIndex schema
+  private static final String SIARDDK_FILE_SEPERATOR = "\\";
 
-  // private WriteStrategy writeStrategy;
   private MessageDigest messageDigest;
   private Map<String, byte[]> md5sums;
   private SIARDArchiveContainer outputContainer;
 
   public FileIndexFileStrategy(SIARDDKExportModule siarddkExportModule) {
-    // writeStrategy = siarddkExportModule.getWriteStrategy();
     md5sums = new HashMap<String, byte[]>();
     outputContainer = null;
   }
@@ -61,7 +56,7 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
       // System.out.println(entry.getKey() + " " + entry.getValue());
 
       String path = entry.getKey();
-      String[] splitPath = path.split(FILE_SEPERATOR);
+      String[] splitPath = path.split(Constants.FILE_SEPARATOR);
       String fiN = splitPath[splitPath.length - 1];
       // System.out.println(fiN);
 
