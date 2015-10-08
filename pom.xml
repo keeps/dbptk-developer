@@ -5,7 +5,7 @@
     <name>Database Preservation Toolkit</name>
     <groupId>com.databasepreservation</groupId>
     <artifactId>dbptk</artifactId>
-    <version>2.1.1</version>
+    <version>2.0.0-rc3.0.0</version>
     <packaging>pom</packaging>
     <description>A toolkit that allows data migration and conversion between database management systems formats and
         digital preservation formats.
@@ -18,7 +18,7 @@
         <url>http://www.keep.pt</url>
     </organization>
     <properties>
-        <version.java>1.6</version.java>
+        <version.java>1.7</version.java>
         <projectLocalRepository>${project.basedir}/vendor-libs/repository</projectLocalRepository>
     </properties>
     <repositories>
@@ -131,17 +131,17 @@
             <dependency>
                 <groupId>com.databasepreservation</groupId>
                 <artifactId>dbptk-model</artifactId>
-                <version>2.1.1</version>
+                <version>2.0.0-rc3.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.databasepreservation</groupId>
                 <artifactId>dbptk-bindings-siard1</artifactId>
-                <version>1.1.0</version>
+                <version>1.1.1</version>
             </dependency>
             <dependency>
                 <groupId>com.databasepreservation</groupId>
                 <artifactId>dbptk-bindings-siard2</artifactId>
-                <version>1.1.0</version>
+                <version>1.1.1</version>
             </dependency>
 
             <!-- normal -->

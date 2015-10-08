@@ -95,19 +95,27 @@ public class Parameter {
     return this;
   }
 
-  public Option toOption(String prefix) {
+  public Option toOption(String shortNamePrefix, String longNamePrefix) {
     Option option = null;
-    if ((option = options.get(prefix)) == null) {
+    String optionID = shortNamePrefix + " " + longNamePrefix;
+
+    if (longName == null) {
+      throw new RuntimeException("Parameter has no long name. All Parameter instances must have a long name.");
+    }
+
+    if ((option = options.get(optionID)) == null) {
+      Option.Builder optionBuilder = Option.builder();
+
       if (shortName != null) {
-        option = Option.builder(prefix + shortName).longOpt(prefix + longName).desc(description).hasArg(hasArgument)
-          .required(required).optionalArg(optionalArgument).build();
-      } else {
-        option = Option.builder().longOpt(prefix + longName).desc(description).hasArg(hasArgument).required(required)
-          .optionalArg(optionalArgument).build();
+        optionBuilder = Option.builder(shortNamePrefix + shortName);
       }
 
-      options.put(prefix, option);
+      option = optionBuilder.longOpt(longNamePrefix + "-" + longName).desc(description).hasArg(hasArgument)
+        .required(required).optionalArg(optionalArgument).build();
+
+      options.put(optionID, option);
     }
+
     return option;
   }
 }
