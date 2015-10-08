@@ -14,7 +14,7 @@ A new version of the this tool, together with a [new version of the SIARD preser
 ## Download pre-compiled version
 
 Binaries with all dependencies included:
-* [db-preservation-toolkit v2.0.0-rc2](https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-rc2.1.1/dbptk-core-2.0.0-rc2.1.1-jar-with-dependencies.jar) (pre-release, SIARD still lacks LOBs and UDTs)
+* [db-preservation-toolkit v2.0.0-rc3.0.1](https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-rc3.0.1/dbptk-core-2.0.0-rc3.0.1-jar-with-dependencies.jar) (pre-release, SIARD still lacks LOBs and UDTs)
 * [db-preservation-toolkit v1.0.1](https://github.com/keeps/db-preservation-toolkit/releases/download/v1.0.1/db-preservation-toolkit-1.0.1-jar-with-dependencies.jar)
 * [db-preservation-toolkit v1.0.0](http://keeps.github.io/db-preservation-toolkit/db-preservation-toolkit-1.0.0-jar-with-dependencies.jar)
 
@@ -23,7 +23,7 @@ Binaries with all dependencies included:
 To use the program, open a command-line and try out the following command (replace x.y.z accordingly to the version of the binary in use):
 
 ```text
-$ java -jar db-preservation-toolkit-X.Y.Z-jar-with-dependencies.jar
+$ java -jar dbptk-core-X.Y.Z-jar-with-dependencies.jar
 Database Preservation Toolkit, vX.Y.Z
 More info: http://www.database-preservation.com
 Usage: dbptk [plugin] <importModule> [import module options] <exportModule> [export module options]
@@ -108,7 +108,7 @@ You have to select an input and an output module, providing for each its configu
 For example, if you want to connect to a live MySQL database and export its content to SIARD 1.0 format, you can use the following command.
 
 ```bash
-$ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar \
+$ java -jar dbptk-core-x.y.z-jar-with-dependencies.jar \
 -i MySQLJDBC -ihostname=localhost -idb example_db -iu username -ip p4ssw0rd \
 -o SIARD1 example.siard
 ```
@@ -151,7 +151,7 @@ Furthermore, in order to extract DB structures we need to have access to the int
 The toolkit might need more memory than it is available by default (normally 64MB). To increase the available memory use the `-Xmx` option. For example, the following command will increase the heap size to 3 GB.
 
 ```bash
-$ java -Xmx3g -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar ...
+$ java -Xmx3g -jar dbptk-core-x.y.z-jar-with-dependencies.jar ...
 ```
 
 The toolkit needs enough memory to put the table structure definition in memory (not the data) and to load each data row or row set, which might include having some BLOBs completely in memory, but this depends on the database driver implementation.
@@ -161,7 +161,7 @@ The toolkit needs enough memory to put the table structure definition in memory 
 Due to the structure of some export modules (e.g. SIARD) and because we only want to pass throught the database once with minimum amount of used memory, all BLOBs and CLOBs of a database table must be kept on temporary files during the export of a table. This can cause your main disk to get full and the execution to fail. To select a diferent folder for the temporary files, e.g. on a bigger hard drive, use the option `-Djava.io.tmpdir=/path/to/tmpdir`. For example, the following command will use the folder `/media/BIGHD/tmp` as the temporary folder:
 
 ```bash
-$ java -Djava.io.tmpdir=/media/BIGHD/tmp -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar ...
+$ java -Djava.io.tmpdir=/media/BIGHD/tmp -jar dbptk-core-x.y.z-jar-with-dependencies.jar ...
 ```
 
 
