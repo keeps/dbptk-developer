@@ -5,7 +5,7 @@
 // Generated on: 2015.07.09 at 03:01:43 PM CEST 
 //
 
-package dk.magenta.siarddk.tableindex;
+package dk.sa.xmlns.diark._1_0.tableindex;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -16,23 +16,22 @@ import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
- * View element in siardDiark Archive
+ * reference element in siardDiark Archive
  * 
  * <p>
- * Java class for viewType complex type.
+ * Java class for referenceType complex type.
  * 
  * <p>
  * The following schema fragment specifies the expected content contained within
  * this class.
  * 
  * <pre>
- * &lt;complexType name="viewType"&gt;
+ * &lt;complexType name="referenceType"&gt;
  *   &lt;complexContent&gt;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
  *       &lt;sequence&gt;
- *         &lt;element name="name" type="{http://www.sa.dk/xmlns/diark/1.0}SQLIdentifier"/&gt;
- *         &lt;element name="queryOriginal" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
- *         &lt;element name="description" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+ *         &lt;element name="column" type="{http://www.sa.dk/xmlns/diark/1.0}SQLIdentifier"/&gt;
+ *         &lt;element name="referenced" type="{http://www.sa.dk/xmlns/diark/1.0}SQLIdentifier"/&gt;
  *       &lt;/sequence&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
@@ -42,78 +41,58 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "viewType", propOrder = {"name", "queryOriginal", "description"})
-public class ViewType {
+@XmlType(name = "referenceType", propOrder = {"column", "referenced"})
+public class ReferenceType {
 
   @XmlElement(required = true)
   @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
   @XmlSchemaType(name = "token")
-  protected String name;
+  protected String column;
   @XmlElement(required = true)
-  protected String queryOriginal;
-  protected String description;
+  @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
+  @XmlSchemaType(name = "token")
+  protected String referenced;
 
   /**
-   * Gets the value of the name property.
+   * Gets the value of the column property.
    * 
    * @return possible object is {@link String }
    * 
    */
-  public String getName() {
-    return name;
+  public String getColumn() {
+    return column;
   }
 
   /**
-   * Sets the value of the name property.
+   * Sets the value of the column property.
    * 
    * @param value
    *          allowed object is {@link String }
    * 
    */
-  public void setName(String value) {
-    this.name = value;
+  public void setColumn(String value) {
+    this.column = value;
   }
 
   /**
-   * Gets the value of the queryOriginal property.
+   * Gets the value of the referenced property.
    * 
    * @return possible object is {@link String }
    * 
    */
-  public String getQueryOriginal() {
-    return queryOriginal;
+  public String getReferenced() {
+    return referenced;
   }
 
   /**
-   * Sets the value of the queryOriginal property.
+   * Sets the value of the referenced property.
    * 
    * @param value
    *          allowed object is {@link String }
    * 
    */
-  public void setQueryOriginal(String value) {
-    this.queryOriginal = value;
-  }
-
-  /**
-   * Gets the value of the description property.
-   * 
-   * @return possible object is {@link String }
-   * 
-   */
-  public String getDescription() {
-    return description;
-  }
-
-  /**
-   * Sets the value of the description property.
-   * 
-   * @param value
-   *          allowed object is {@link String }
-   * 
-   */
-  public void setDescription(String value) {
-    this.description = value;
+  public void setReferenced(String value) {
+    this.referenced = value;
   }
 
 }

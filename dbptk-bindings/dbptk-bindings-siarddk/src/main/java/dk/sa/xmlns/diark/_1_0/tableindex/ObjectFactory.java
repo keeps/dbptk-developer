@@ -5,7 +5,7 @@
 // Generated on: 2015.07.09 at 03:01:43 PM CEST 
 //
 
-package dk.magenta.siarddk.tableindex;
+package dk.sa.xmlns.diark._1_0.tableindex;
 
 import javax.xml.bind.annotation.XmlRegistry;
 

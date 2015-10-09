@@ -5,7 +5,7 @@
 // Generated on: 2015.07.09 at 03:01:43 PM CEST 
 //
 
-package dk.magenta.siarddk.tableindex;
+package dk.sa.xmlns.diark._1_0.tableindex;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,21 +16,21 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 /**
- * Type for a list of views
+ * List of columns
  * 
  * <p>
- * Java class for viewsType complex type.
+ * Java class for columnsType complex type.
  * 
  * <p>
  * The following schema fragment specifies the expected content contained within
  * this class.
  * 
  * <pre>
- * &lt;complexType name="viewsType"&gt;
+ * &lt;complexType name="columnsType"&gt;
  *   &lt;complexContent&gt;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
  *       &lt;sequence&gt;
- *         &lt;element name="view" type="{http://www.sa.dk/xmlns/diark/1.0}viewType" maxOccurs="unbounded"/&gt;
+ *         &lt;element name="column" type="{http://www.sa.dk/xmlns/diark/1.0}columnType" maxOccurs="unbounded"/&gt;
  *       &lt;/sequence&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
@@ -40,39 +40,39 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "viewsType", propOrder = {"view"})
-public class ViewsType {
+@XmlType(name = "columnsType", propOrder = {"column"})
+public class ColumnsType {
 
   @XmlElement(required = true)
-  protected List<ViewType> view;
+  protected List<ColumnType> column;
 
   /**
-   * Gets the value of the view property.
+   * Gets the value of the column property.
    * 
    * <p>
    * This accessor method returns a reference to the live list, not a snapshot.
    * Therefore any modification you make to the returned list will be present
    * inside the JAXB object. This is why there is not a <CODE>set</CODE> method
-   * for the view property.
+   * for the column property.
    * 
    * <p>
    * For example, to add a new item, do as follows:
    * 
    * <pre>
-   * getView().add(newItem);
+   * getColumn().add(newItem);
    * </pre>
    * 
    * 
    * <p>
-   * Objects of the following type(s) are allowed in the list {@link ViewType }
+   * Objects of the following type(s) are allowed in the list {@link ColumnType }
    * 
    * 
    */
-  public List<ViewType> getView() {
-    if (view == null) {
-      view = new ArrayList<ViewType>();
+  public List<ColumnType> getColumn() {
+    if (column == null) {
+      column = new ArrayList<ColumnType>();
     }
-    return this.view;
+    return this.column;
   }
 
 }

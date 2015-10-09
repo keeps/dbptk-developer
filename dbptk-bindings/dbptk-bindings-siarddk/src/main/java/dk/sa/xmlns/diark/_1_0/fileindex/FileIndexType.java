@@ -5,7 +5,7 @@
 // Generated on: 2015.09.09 at 10:41:04 AM CEST 
 //
 
-package dk.magenta.siarddk.fileindex;
+package dk.sa.xmlns.diark._1_0.fileindex;
 
 import java.util.ArrayList;
 import java.util.List;

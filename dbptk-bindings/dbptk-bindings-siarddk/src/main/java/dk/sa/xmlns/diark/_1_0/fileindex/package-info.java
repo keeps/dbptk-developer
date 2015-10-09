@@ -6,5 +6,5 @@
 //
 
 @javax.xml.bind.annotation.XmlSchema(namespace = "http://www.sa.dk/xmlns/diark/1.0", elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
-package dk.magenta.siarddk.fileindex;
+package dk.sa.xmlns.diark._1_0.fileindex;
 

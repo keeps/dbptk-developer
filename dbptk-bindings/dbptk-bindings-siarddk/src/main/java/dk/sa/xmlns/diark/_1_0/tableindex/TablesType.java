@@ -5,7 +5,7 @@
 // Generated on: 2015.07.09 at 03:01:43 PM CEST 
 //
 
-package dk.magenta.siarddk.tableindex;
+package dk.sa.xmlns.diark._1_0.tableindex;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,21 +16,21 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 /**
- * List of foreign keys
+ * type for en tabelliste, bestående af én eller flere tabeller
  * 
  * <p>
- * Java class for foreignKeysType complex type.
+ * Java class for tablesType complex type.
  * 
  * <p>
  * The following schema fragment specifies the expected content contained within
  * this class.
  * 
  * <pre>
- * &lt;complexType name="foreignKeysType"&gt;
+ * &lt;complexType name="tablesType"&gt;
  *   &lt;complexContent&gt;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
  *       &lt;sequence&gt;
- *         &lt;element name="foreignKey" type="{http://www.sa.dk/xmlns/diark/1.0}foreignKeyType" maxOccurs="unbounded"/&gt;
+ *         &lt;element name="table" type="{http://www.sa.dk/xmlns/diark/1.0}tableType" maxOccurs="unbounded"/&gt;
  *       &lt;/sequence&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
@@ -40,40 +40,39 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "foreignKeysType", propOrder = {"foreignKey"})
-public class ForeignKeysType {
+@XmlType(name = "tablesType", propOrder = {"table"})
+public class TablesType {
 
   @XmlElement(required = true)
-  protected List<ForeignKeyType> foreignKey;
+  protected List<TableType> table;
 
   /**
-   * Gets the value of the foreignKey property.
+   * Gets the value of the table property.
    * 
    * <p>
    * This accessor method returns a reference to the live list, not a snapshot.
    * Therefore any modification you make to the returned list will be present
    * inside the JAXB object. This is why there is not a <CODE>set</CODE> method
-   * for the foreignKey property.
+   * for the table property.
    * 
    * <p>
    * For example, to add a new item, do as follows:
    * 
    * <pre>
-   * getForeignKey().add(newItem);
+   * getTable().add(newItem);
    * </pre>
    * 
    * 
    * <p>
-   * Objects of the following type(s) are allowed in the list
-   * {@link ForeignKeyType }
+   * Objects of the following type(s) are allowed in the list {@link TableType }
    * 
    * 
    */
-  public List<ForeignKeyType> getForeignKey() {
-    if (foreignKey == null) {
-      foreignKey = new ArrayList<ForeignKeyType>();
+  public List<TableType> getTable() {
+    if (table == null) {
+      table = new ArrayList<TableType>();
     }
-    return this.foreignKey;
+    return this.table;
   }
 
 }
