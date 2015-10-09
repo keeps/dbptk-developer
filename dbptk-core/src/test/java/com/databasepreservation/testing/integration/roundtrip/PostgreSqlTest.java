@@ -57,13 +57,14 @@ public class PostgreSqlTest {
       "pg_dump --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
       "pg_dump --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
 
-      new String[] {"--import=PostgreSQLJDBC", "--ihostname=localhost", "--idatabase", db_source, "--iusername",
-        db_tmp_username, "--ipassword", db_tmp_password, "--idisable-encryption", "--export=SIARD1", "--efile",
-        Roundtrip.TMP_FILE_SIARD_VAR},
+      new String[] {"--import=PostgreSQLJDBC", "--import-hostname=localhost", "--import-database", db_source,
+        "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--import-disable-encryption",
+        "--export=SIARD1", "--export-file", Roundtrip.TMP_FILE_SIARD_VAR},
 
-      new String[] {"--import=SIARD1", "--ifile", Roundtrip.TMP_FILE_SIARD_VAR, "--export=PostgreSQLJDBC",
-        "--ehostname=localhost", "--edatabase", db_target, "--eusername", db_tmp_username, "--epassword",
-        db_tmp_password, "--edisable-encryption"}, new PostgreSqlDumpDiffExpectations(), env_var_source, env_var_target);
+      new String[] {"--import=SIARD1", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=PostgreSQLJDBC",
+        "--export-hostname=localhost", "--export-database", db_target, "--export-username", db_tmp_username,
+        "--export-password", db_tmp_password, "--export-disable-encryption"}, new PostgreSqlDumpDiffExpectations(),
+      env_var_source, env_var_target);
   }
 
   @Test(description = "PostgreSql server is available and accessible")

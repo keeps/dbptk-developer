@@ -25,9 +25,10 @@ public class PostgreSQLModuleFactoryTest {
 
   @Test
   public void arguments_required_long() {
-    List<String> args = Arrays.asList("--import=PostgreSQLJDBC", "--iusername=name-user", "--ipassword=abc1 23=456",
-      "--ihostname=the-server-name", "--idatabase=dbname", "--export=PostgreSQLJDBC", "--eusername=name-another-user",
-      "--epassword=2bcd123=456", "--ehostname=another-server", "--edatabase=another-db-name", "--idisable-encryption");
+    List<String> args = Arrays.asList("--import=PostgreSQLJDBC", "--import-username=name-user",
+      "--import-password=abc1 23=456", "--import-hostname=the-server-name", "--import-database=dbname",
+      "--export=PostgreSQLJDBC", "--export-username=name-another-user", "--export-password=2bcd123=456",
+      "--export-hostname=another-server", "--export-database=another-db-name", "--import-disable-encryption");
 
     // test parameters for import module
     HashMap<String, String> expectedValuesImport = new HashMap<String, String>();
@@ -74,10 +75,11 @@ public class PostgreSQLModuleFactoryTest {
 
   @Test
   public void arguments_portNumber_long() {
-    List<String> args = Arrays.asList("--import=PostgreSQLJDBC", "--iusername=name-user", "--ipassword=abc1 23=456",
-      "--ihostname=the-server-name", "--idatabase=dbname", "--export=PostgreSQLJDBC", "--eusername=name-another-user",
-      "--epassword=2bcd123=456", "--ehostname=another-server", "--edatabase=another-db-name", "--idisable-encryption",
-      "--iport-number=1234", "--eport-number=4321");
+    List<String> args = Arrays.asList("--import=PostgreSQLJDBC", "--import-username=name-user",
+      "--import-password=abc1 23=456", "--import-hostname=the-server-name", "--import-database=dbname",
+      "--export=PostgreSQLJDBC", "--export-username=name-another-user", "--export-password=2bcd123=456",
+      "--export-hostname=another-server", "--export-database=another-db-name", "--import-disable-encryption",
+      "--import-port-number=1234", "--export-port-number=4321");
 
     // test parameters for import module
     HashMap<String, String> expectedValuesImport = new HashMap<String, String>();

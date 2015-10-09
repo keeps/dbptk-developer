@@ -13,7 +13,6 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
-
 import dk.magenta.common.SIARDMarshaller;
 
 /**

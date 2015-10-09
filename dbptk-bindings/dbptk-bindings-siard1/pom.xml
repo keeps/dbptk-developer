@@ -5,18 +5,31 @@
     <name>dbptk-bindings-siard1</name>
     <groupId>com.databasepreservation</groupId>
     <artifactId>dbptk-bindings-siard1</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <parent>
         <groupId>com.databasepreservation</groupId>
         <artifactId>dbptk-bindings</artifactId>
-        <version>1.1.0</version>
+        <version>1.1.1</version>
         <relativePath>..</relativePath>
     </parent>
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <source>${version.java}</source>
+                    <target>${version.java}</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.jvnet.jaxb2.maven2</groupId>

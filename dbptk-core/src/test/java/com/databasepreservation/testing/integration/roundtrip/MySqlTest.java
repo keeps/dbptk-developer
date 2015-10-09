@@ -44,13 +44,13 @@ public class MySqlTest {
         db_source), String.format("mysqldump -v --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
         db_tmp_password, db_target),
 
-      new String[] {"--import=MySQLJDBC", "--ihostname=localhost", "--idatabase", db_source, "--iusername",
-        db_tmp_username, "--ipassword", db_tmp_password, "--export=SIARD1", "--ecompress", "--efile",
-        Roundtrip.TMP_FILE_SIARD_VAR},
+      new String[] {"--import=MySQLJDBC", "--import-hostname=localhost", "--import-database", db_source,
+        "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--export=SIARD1",
+        "--export-compress", "--export-file", Roundtrip.TMP_FILE_SIARD_VAR},
 
-      new String[] {"--import=SIARD1", "--ifile", Roundtrip.TMP_FILE_SIARD_VAR, "--export=MySQLJDBC",
-        "--ehostname=localhost", "--edatabase", db_target, "--eusername", db_tmp_username, "--epassword",
-        db_tmp_password},
+      new String[] {"--import=SIARD1", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=MySQLJDBC",
+        "--export-hostname=localhost", "--export-database", db_target, "--export-username", db_tmp_username,
+        "--export-password", db_tmp_password},
 
       new MySqlDumpDiffExpectations(), null, null);
   }

@@ -23,13 +23,15 @@ public class ParameterGroup {
     return parameters;
   }
 
-  public OptionGroup toOptionGroup(String prefix) {
+  public OptionGroup toOptionGroup(String shortNamePrefix, String longNamePrefix) {
     OptionGroup optionGroup = null;
-    if ((optionGroup = optionGroups.get(prefix)) == null) {
+    String optionGroupID = shortNamePrefix + " " + longNamePrefix;
+
+    if ((optionGroup = optionGroups.get(optionGroupID)) == null) {
       optionGroup = new OptionGroup();
       optionGroup.setRequired(required);
       for (Parameter parameter : parameters) {
-        optionGroup.addOption(parameter.toOption(prefix));
+        optionGroup.addOption(parameter.toOption(shortNamePrefix, longNamePrefix));
       }
     }
     return optionGroup;

@@ -11,7 +11,6 @@ import org.apache.log4j.Logger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.output.SIARDExportDefault;
-
 import dk.magenta.common.SIARDMarshaller;
 
 /**

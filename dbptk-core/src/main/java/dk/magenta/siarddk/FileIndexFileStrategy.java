@@ -19,7 +19,6 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
-
 import dk.magenta.siarddk.fileindex.FileIndexType;
 
 /**
