@@ -16,10 +16,8 @@ import com.databasepreservation.modules.mySql.MySQLModuleFactory;
 import com.databasepreservation.modules.postgreSql.PostgreSQLModuleFactory;
 import com.databasepreservation.modules.siard.SIARD1ModuleFactory;
 import com.databasepreservation.modules.siard.SIARD2ModuleFactory;
+import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
 import com.databasepreservation.modules.sqlServer.SQLServerJDBCModuleFactory;
-import dk.magenta.siarddk.SIARDDKModuleFactory;
-
-import dk.magenta.siarddk.SIARDDKModuleFactory;
 
 /**
  * @author Luis Faria

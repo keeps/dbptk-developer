@@ -5,6 +5,8 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import org.testng.annotations.Test;
 
+import com.databasepreservation.modules.siard.out.content.SIARDDKsql99ToXsdType;
+
 public class TestSIARDDKsql99ToXsdType {
 
   @Test

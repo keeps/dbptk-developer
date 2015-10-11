@@ -1,4 +1,4 @@
-package dk.magenta.common;
+package com.databasepreservation.modules.siard.out.metadata;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,10 +16,6 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.model.exception.ModuleException;
 
-/**
- * @author Andreas Kring <andreas@magenta.dk>
- *
- */
 public class StandardSIARDMarshaller implements SIARDMarshaller {
 
   private static final String ENCODING = "UTF-8";

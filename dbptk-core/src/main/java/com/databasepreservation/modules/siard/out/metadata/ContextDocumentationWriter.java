@@ -1,4 +1,4 @@
-package dk.magenta.siarddk;
+package com.databasepreservation.modules.siard.out.metadata;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,6 +13,7 @@ import org.apache.commons.io.IOUtils;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
 /**
@@ -39,14 +40,14 @@ public class ContextDocumentationWriter {
 
   public void writeContextDocumentation() throws ModuleException {
 
-    String pathStr = exportModuleArgs.get(Constants.CONTEXT_DOCUMENTATION_FOLDER);
+    String pathStr = exportModuleArgs.get(SIARDDKConstants.CONTEXT_DOCUMENTATION_FOLDER);
     File[] files = new File(pathStr).listFiles();
 
     // Get path to main container
     mainContainerPath = mainContainer.getPath();
 
     // Absolute path to the ContextDocumentation folder within the archive
-    Path path = mainContainerPath.resolve(Constants.CONTEXT_DOCUMENTATION_RELATIVE_PATH);
+    Path path = mainContainerPath.resolve(SIARDDKConstants.CONTEXT_DOCUMENTATION_RELATIVE_PATH);
 
     writeFile(files, path);
 

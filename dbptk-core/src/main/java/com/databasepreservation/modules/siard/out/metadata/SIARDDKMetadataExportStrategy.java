@@ -1,4 +1,4 @@
-package dk.magenta.siarddk;
+package com.databasepreservation.modules.siard.out.metadata;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,10 +11,9 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
-
-import dk.magenta.common.SIARDMarshaller;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
@@ -45,11 +44,11 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
     try {
       IndexFileStrategy tableIndexFileStrategy = new TableIndexFileStrategy();
-      String path = metadataPathStrategy.getXmlFilePath(Constants.TABLE_INDEX);
+      String path = metadataPathStrategy.getXmlFilePath(SIARDDKConstants.TABLE_INDEX);
       OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
 
-      siardMarshaller.marshal(Constants.JAXB_CONTEXT_TABLEINDEX,
-        metadataPathStrategy.getXsdResourcePath(Constants.TABLE_INDEX),
+      siardMarshaller.marshal(SIARDDKConstants.JAXB_CONTEXT_TABLEINDEX,
+        metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.TABLE_INDEX),
         "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/tableIndex.xsd", writer,
         tableIndexFileStrategy.generateXML(dbStructure));
 
@@ -63,11 +62,11 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
     // Generate archiveIndex.xml
 
-    if (exportModuleArgs.get(Constants.ARCHIVE_INDEX) != null) {
+    if (exportModuleArgs.get(SIARDDKConstants.ARCHIVE_INDEX) != null) {
       try {
-        String path = metadataPathStrategy.getXmlFilePath(Constants.ARCHIVE_INDEX);
+        String path = metadataPathStrategy.getXmlFilePath(SIARDDKConstants.ARCHIVE_INDEX);
         OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
-        IndexFileStrategy archiveIndexFileStrategy = new CommandLineIndexFileStrategy(Constants.ARCHIVE_INDEX,
+        IndexFileStrategy archiveIndexFileStrategy = new CommandLineIndexFileStrategy(SIARDDKConstants.ARCHIVE_INDEX,
           exportModuleArgs, writer, metadataPathStrategy);
         archiveIndexFileStrategy.generateXML(null);
         writer.close();
@@ -81,13 +80,13 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
     // Generate contextDocumentationIndex.xml
 
-    if (exportModuleArgs.get(Constants.CONTEXT_DOCUMENTATION_INDEX) != null) {
+    if (exportModuleArgs.get(SIARDDKConstants.CONTEXT_DOCUMENTATION_INDEX) != null) {
       try {
 
-        String path = metadataPathStrategy.getXmlFilePath(Constants.CONTEXT_DOCUMENTATION_INDEX);
+        String path = metadataPathStrategy.getXmlFilePath(SIARDDKConstants.CONTEXT_DOCUMENTATION_INDEX);
         OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
         IndexFileStrategy contextDocumentationIndexFileStrategy = new CommandLineIndexFileStrategy(
-          Constants.CONTEXT_DOCUMENTATION_INDEX, exportModuleArgs, writer, metadataPathStrategy);
+          SIARDDKConstants.CONTEXT_DOCUMENTATION_INDEX, exportModuleArgs, writer, metadataPathStrategy);
         contextDocumentationIndexFileStrategy.generateXML(null);
         writer.close();
 
@@ -104,11 +103,11 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     WriteStrategy writeStrategy) throws ModuleException {
 
     // Write contents to Schemas/standard
-    writeSchemaFile(outputContainer, Constants.XML_SCHEMA, writeStrategy);
-    writeSchemaFile(outputContainer, Constants.TABLE_INDEX, writeStrategy);
-    writeSchemaFile(outputContainer, Constants.ARCHIVE_INDEX, writeStrategy);
-    writeSchemaFile(outputContainer, Constants.CONTEXT_DOCUMENTATION_INDEX, writeStrategy);
-    writeSchemaFile(outputContainer, Constants.FILE_INDEX, writeStrategy);
+    writeSchemaFile(outputContainer, SIARDDKConstants.XML_SCHEMA, writeStrategy);
+    writeSchemaFile(outputContainer, SIARDDKConstants.TABLE_INDEX, writeStrategy);
+    writeSchemaFile(outputContainer, SIARDDKConstants.ARCHIVE_INDEX, writeStrategy);
+    writeSchemaFile(outputContainer, SIARDDKConstants.CONTEXT_DOCUMENTATION_INDEX, writeStrategy);
+    writeSchemaFile(outputContainer, SIARDDKConstants.FILE_INDEX, writeStrategy);
 
   }
 

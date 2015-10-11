@@ -1,4 +1,4 @@
-package dk.magenta.siarddk;
+package com.databasepreservation.modules.siard.out.metadata;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.DatabaseStructure;

@@ -4,7 +4,7 @@
  * The two files contains data which are enter manually. 
  */
 
-package dk.magenta.siarddk;
+package com.databasepreservation.modules.siard.out.metadata;
 
 import java.io.File;
 import java.io.IOException;

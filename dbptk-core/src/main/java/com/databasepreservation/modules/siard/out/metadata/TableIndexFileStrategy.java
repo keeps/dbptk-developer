@@ -1,4 +1,4 @@
-package dk.magenta.siarddk;
+package com.databasepreservation.modules.siard.out.metadata;
 
 import java.math.BigInteger;
 import java.util.List;

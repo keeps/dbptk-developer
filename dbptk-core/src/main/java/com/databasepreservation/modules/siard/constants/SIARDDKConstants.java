@@ -1,4 +1,4 @@
-package dk.magenta.siarddk;
+package com.databasepreservation.modules.siard.constants;
 
 import java.io.File;
 
@@ -6,7 +6,7 @@ import java.io.File;
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public class Constants {
+public class SIARDDKConstants {
 
   // System dependent file seperator etc. ("/" on Linux and "\" on Windows)
   public static final String FILE_SEPARATOR = File.separator;

@@ -1,4 +1,4 @@
-package dk.magenta.siarddk;
+package com.databasepreservation.modules.siard;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -11,6 +11,8 @@ import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
@@ -29,7 +31,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     .hasArgument(true).setOptionalArgument(false).required(false);
 
   private static final Parameter contextDocmentationFolder = new Parameter().shortName("cf")
-    .longName(Constants.CONTEXT_DOCUMENTATION_FOLDER)
+    .longName(SIARDDKConstants.CONTEXT_DOCUMENTATION_FOLDER)
     .description("Path to contextDocumentation folder which should contain the context documentation for the archive")
     .hasArgument(true).setOptionalArgument(false).required(false);
 

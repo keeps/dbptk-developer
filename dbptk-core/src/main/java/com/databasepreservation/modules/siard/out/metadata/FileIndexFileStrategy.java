@@ -4,7 +4,7 @@
  * 2) generateXML 
  * 3) addFile (should not be called until writer obtained from getWriter is closed) 
  */
-package dk.magenta.siarddk;
+package com.databasepreservation.modules.siard.out.metadata;
 
 import java.io.OutputStream;
 import java.nio.file.Path;
@@ -18,9 +18,14 @@ import java.util.Map;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
 // import dk.magenta.siarddk.fileindex.FileIndexType;
+
+
+
 
 import dk.sa.xmlns.diark._1_0.fileindex.FileIndexType;
 
@@ -58,7 +63,7 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
       // System.out.println(entry.getKey() + " " + entry.getValue());
 
       String path = entry.getKey();
-      String[] splitPath = path.split(Constants.FILE_SEPARATOR);
+      String[] splitPath = path.split(SIARDDKConstants.FILE_SEPARATOR);
       String fiN = splitPath[splitPath.length - 1];
       // System.out.println(fiN);
 

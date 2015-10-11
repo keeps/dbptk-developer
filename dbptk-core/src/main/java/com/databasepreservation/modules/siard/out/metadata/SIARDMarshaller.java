@@ -1,4 +1,4 @@
-package dk.magenta.common;
+package com.databasepreservation.modules.siard.out.metadata;
 
 import java.io.OutputStream;
 

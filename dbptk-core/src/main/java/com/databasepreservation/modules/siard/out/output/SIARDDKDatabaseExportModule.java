@@ -1,4 +1,4 @@
-package dk.magenta.siarddk;
+package com.databasepreservation.modules.siard.out.output;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,9 +10,10 @@ import org.apache.log4j.Logger;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.out.output.SIARDExportDefault;
-
-import dk.magenta.common.SIARDMarshaller;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.out.metadata.ContextDocumentationWriter;
+import com.databasepreservation.modules.siard.out.metadata.FileIndexFileStrategy;
+import com.databasepreservation.modules.siard.out.metadata.SIARDMarshaller;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
@@ -61,7 +62,7 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
     MetadataPathStrategy metadataPathStrategy = siarddkExportModule.getMetadataPathStrategy();
     SIARDMarshaller siardMarshaller = siarddkExportModule.getSiardMarshaller();
 
-    if (exportModuleArgs.get(Constants.CONTEXT_DOCUMENTATION_FOLDER) != null) {
+    if (exportModuleArgs.get(SIARDDKConstants.CONTEXT_DOCUMENTATION_FOLDER) != null) {
 
       ContextDocumentationWriter contextDocumentationWriter = new ContextDocumentationWriter(
         siarddkExportModule.getMainContainer(), siarddkExportModule.getWriteStrategy(), fileIndexFileStrategy,
@@ -82,12 +83,12 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
     }
 
     try {
-      String path = metadataPathStrategy.getXmlFilePath(Constants.FILE_INDEX);
+      String path = metadataPathStrategy.getXmlFilePath(SIARDDKConstants.FILE_INDEX);
       OutputStream writer = fileIndexFileStrategy.getWriter(siarddkExportModule.getMainContainer(), path,
         siarddkExportModule.getWriteStrategy());
 
-      siardMarshaller.marshal(Constants.JAXB_CONTEXT_FILEINDEX,
-        metadataPathStrategy.getXsdResourcePath(Constants.FILE_INDEX),
+      siardMarshaller.marshal(SIARDDKConstants.JAXB_CONTEXT_FILEINDEX,
+        metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.FILE_INDEX),
         "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/fileIndex.xsd", writer,
         fileIndexFileStrategy.generateXML(null));
 
