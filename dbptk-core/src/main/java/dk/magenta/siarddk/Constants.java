@@ -22,6 +22,10 @@ public class Constants {
   // Path to schemas in the /src/main/resources folder
   public static final String SCHEMA_RESOURCE_DIR = "schema";
 
+  // JAXB context for tableIndex and fileIndex
+  public static final String JAXB_CONTEXT_TABLEINDEX = "dk.sa.xmlns.diark._1_0.tableindex";
+  public static final String JAXB_CONTEXT_FILEINDEX = "dk.sa.xmlns.diark._1_0.fileindex";
+
   // Key for context documentation folder (given on command line)
   public static final String CONTEXT_DOCUMENTATION_FOLDER = "contextDocumentationFolder";
 

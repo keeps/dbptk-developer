@@ -13,6 +13,7 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
+
 import dk.magenta.common.SIARDMarshaller;
 
 /**
@@ -47,7 +48,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
       String path = metadataPathStrategy.getXmlFilePath(Constants.TABLE_INDEX);
       OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
 
-      siardMarshaller.marshal("dk.magenta.siarddk.tableindex",
+      siardMarshaller.marshal(Constants.JAXB_CONTEXT_TABLEINDEX,
         metadataPathStrategy.getXsdResourcePath(Constants.TABLE_INDEX),
         "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/tableIndex.xsd", writer,
         tableIndexFileStrategy.generateXML(dbStructure));

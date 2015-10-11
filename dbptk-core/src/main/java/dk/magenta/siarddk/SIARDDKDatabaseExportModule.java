@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.output.SIARDExportDefault;
+
 import dk.magenta.common.SIARDMarshaller;
 
 /**
@@ -85,7 +86,7 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
       OutputStream writer = fileIndexFileStrategy.getWriter(siarddkExportModule.getMainContainer(), path,
         siarddkExportModule.getWriteStrategy());
 
-      siardMarshaller.marshal("dk.magenta.siarddk.fileindex",
+      siardMarshaller.marshal(Constants.JAXB_CONTEXT_FILEINDEX,
         metadataPathStrategy.getXsdResourcePath(Constants.FILE_INDEX),
         "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/fileIndex.xsd", writer,
         fileIndexFileStrategy.generateXML(null));
