@@ -44,7 +44,8 @@ public class SIARDDKContentPathExportStrategy implements ContentPathExportStrate
   public String getTableXsdFilePath(int schemaIndex, int tableIndex) {
     return new StringBuilder().append(CONTENT_DIR).append(SIARDDKConstants.FILE_SEPARATOR)
       .append(getTableFolderName(tableIndex)).append(SIARDDKConstants.FILE_SEPARATOR).append(TABLE_FILENAME)
-      .append(tableIndex).append(SIARDDKConstants.FILE_EXTENSION_SEPARATOR).append(SIARDDKConstants.XSD_EXTENSION).toString();
+      .append(tableIndex).append(SIARDDKConstants.FILE_EXTENSION_SEPARATOR).append(SIARDDKConstants.XSD_EXTENSION)
+      .toString();
 
   }
 
@@ -52,20 +53,21 @@ public class SIARDDKContentPathExportStrategy implements ContentPathExportStrate
   public String getTableXmlFilePath(int schemaIndex, int tableIndex) {
     return new StringBuilder().append(CONTENT_DIR).append(SIARDDKConstants.FILE_SEPARATOR)
       .append(getTableFolderName(tableIndex)).append(SIARDDKConstants.FILE_SEPARATOR).append(TABLE_FILENAME)
-      .append(tableIndex).append(SIARDDKConstants.FILE_EXTENSION_SEPARATOR).append(SIARDDKConstants.XML_EXTENSION).toString();
+      .append(tableIndex).append(SIARDDKConstants.FILE_EXTENSION_SEPARATOR).append(SIARDDKConstants.XML_EXTENSION)
+      .toString();
   }
 
   @Override
   public String getTableXsdNamespace(String base, int schemaIndex, int tableIndex) {
-    return new StringBuilder().append(base).append(SCHEMA_DIR).append(schemaIndex).append(SIARDDKConstants.FILE_SEPARATOR)
-      .append(TABLE_FILENAME).append(tableIndex).append(SIARDDKConstants.FILE_EXTENSION_SEPARATOR)
-      .append(SIARDDKConstants.XSD_EXTENSION).toString();
+    return new StringBuilder().append(base).append(SCHEMA_DIR).append(schemaIndex)
+      .append(SIARDDKConstants.FILE_SEPARATOR).append(TABLE_FILENAME).append(tableIndex)
+      .append(SIARDDKConstants.FILE_EXTENSION_SEPARATOR).append(SIARDDKConstants.XSD_EXTENSION).toString();
   }
 
   @Override
   public String getTableXsdFileName(int tableIndex) {
-    return new StringBuilder().append(TABLE_FILENAME).append(tableIndex).append(SIARDDKConstants.FILE_EXTENSION_SEPARATOR)
-      .append(SIARDDKConstants.XSD_EXTENSION).toString();
+    return new StringBuilder().append(TABLE_FILENAME).append(tableIndex)
+      .append(SIARDDKConstants.FILE_EXTENSION_SEPARATOR).append(SIARDDKConstants.XSD_EXTENSION).toString();
   }
 
 }

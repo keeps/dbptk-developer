@@ -11,7 +11,7 @@ import javax.xml.bind.annotation.XmlRegistry;
 
 /**
  * This object contains factory methods for each Java content interface and Java
- * element interface generated in the dk.magenta.siarddk.tableindex package.
+ * element interface generated in the dk.sa.xmlns.diark._1_0.tableindex package.
  * <p>
  * An ObjectFactory allows you to programatically construct new instances of the
  * Java representation for XML content. The Java representation of XML content
@@ -25,7 +25,7 @@ public class ObjectFactory {
 
   /**
    * Create a new ObjectFactory that can be used to create new instances of
-   * schema derived classes for package: dk.magenta.siarddk.tableindex
+   * schema derived classes for package: dk.sa.xmlns.diark._1_0.tableindex
    * 
    */
   public ObjectFactory() {

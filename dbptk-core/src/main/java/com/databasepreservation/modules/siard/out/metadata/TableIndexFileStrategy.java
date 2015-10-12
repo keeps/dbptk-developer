@@ -28,18 +28,6 @@ import dk.sa.xmlns.diark._1_0.tableindex.TablesType;
 import dk.sa.xmlns.diark._1_0.tableindex.ViewType;
 import dk.sa.xmlns.diark._1_0.tableindex.ViewsType;
 
-//import dk.magenta.siarddk.tableindex.ColumnType;
-//import dk.magenta.siarddk.tableindex.ColumnsType;
-//import dk.magenta.siarddk.tableindex.ForeignKeyType;
-//import dk.magenta.siarddk.tableindex.ForeignKeysType;
-//import dk.magenta.siarddk.tableindex.PrimaryKeyType;
-//import dk.magenta.siarddk.tableindex.ReferenceType;
-//import dk.magenta.siarddk.tableindex.SiardDiark;
-//import dk.magenta.siarddk.tableindex.TableType;
-//import dk.magenta.siarddk.tableindex.TablesType;
-//import dk.magenta.siarddk.tableindex.ViewType;
-//import dk.magenta.siarddk.tableindex.ViewsType;
-
 /**
  * @author Andreas Kring <andreas@magenta.dk>
  *

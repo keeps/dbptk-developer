@@ -22,11 +22,6 @@ import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
-// import dk.magenta.siarddk.fileindex.FileIndexType;
-
-
-
-
 import dk.sa.xmlns.diark._1_0.fileindex.FileIndexType;
 
 /**
