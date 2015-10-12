@@ -1,4 +1,4 @@
-package dk.magenta.siarddk;
+package com.databasepreservation.siarddk;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;

@@ -1,4 +1,4 @@
-package dk.magenta.siarddk;
+package com.databasepreservation.siarddk;
 
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
