@@ -44,7 +44,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   // Count how many LOBs have been collected
   private int LOBcounter;
 
-  // Maps which columns are LOBs in a given table
+  // Maps which columns are LOBs in a given table specified by the Integer value
+  // (the key of the map)
   private Map<Integer, List<Integer>> LOBsTracker;
 
   // The list of the columns to put into the LOBsTracker above
@@ -252,6 +253,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
             LOBsColumns.add(columnIndex);
           }
           LOBcounter += 1;
+
+          // Check, if datatype is BLOB or CLOB
 
           // BinaryCell binaryCell = (BinaryCell) cell;
 

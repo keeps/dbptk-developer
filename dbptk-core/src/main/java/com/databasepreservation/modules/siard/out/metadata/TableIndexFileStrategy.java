@@ -21,6 +21,7 @@ import dk.sa.xmlns.diark._1_0.tableindex.ColumnType;
 import dk.sa.xmlns.diark._1_0.tableindex.ColumnsType;
 import dk.sa.xmlns.diark._1_0.tableindex.ForeignKeyType;
 import dk.sa.xmlns.diark._1_0.tableindex.ForeignKeysType;
+import dk.sa.xmlns.diark._1_0.tableindex.FunctionalDescriptionType;
 import dk.sa.xmlns.diark._1_0.tableindex.PrimaryKeyType;
 import dk.sa.xmlns.diark._1_0.tableindex.ReferenceType;
 import dk.sa.xmlns.diark._1_0.tableindex.SiardDiark;
@@ -102,6 +103,9 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
               String sql99DataType = type.getSql99TypeName();
               if (sql99DataType.equals("BINARY LARGE OBJECT")) {
                 column.setType("INTEGER");
+
+                FunctionalDescriptionType functionalDescriptionType = FunctionalDescriptionType.DOKUMENTIDENTIFIKATION;
+                column.getFunctionalDescription().add(functionalDescriptionType);
               } else {
                 column.setType(type.getSql99TypeName());
               }
