@@ -3,6 +3,7 @@ package com.databasepreservation.modules.siard.out.metadata;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
@@ -25,12 +26,14 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
   private MetadataPathStrategy metadataPathStrategy;
   private FileIndexFileStrategy fileIndexFileStrategy;
   private Map<String, String> exportModuleArgs;
+  private Map<Integer, List<Integer>> LOBsTracker;
 
   public SIARDDKMetadataExportStrategy(SIARDDKExportModule siarddkExportModule) {
     siardMarshaller = siarddkExportModule.getSiardMarshaller();
     fileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
     metadataPathStrategy = siarddkExportModule.getMetadataPathStrategy();
     exportModuleArgs = siarddkExportModule.getExportModuleArgs();
+    LOBsTracker = siarddkExportModule.getLOBsTracker();
   }
 
   @Override
@@ -43,7 +46,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     // Generate tableIndex.xml
 
     try {
-      IndexFileStrategy tableIndexFileStrategy = new TableIndexFileStrategy();
+      IndexFileStrategy tableIndexFileStrategy = new TableIndexFileStrategy(LOBsTracker);
       String path = metadataPathStrategy.getXmlFilePath(SIARDDKConstants.TABLE_INDEX);
       OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
 

@@ -2,6 +2,7 @@ package com.databasepreservation.modules.siard.out.metadata;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -33,6 +34,12 @@ import dk.sa.xmlns.diark._1_0.tableindex.ViewsType;
  *
  */
 public class TableIndexFileStrategy implements IndexFileStrategy {
+
+  private Map<Integer, List<Integer>> LOBsTracker;
+
+  public TableIndexFileStrategy(Map<Integer, List<Integer>> LOBsTracker) {
+    this.LOBsTracker = LOBsTracker;
+  }
 
   @Override
   public Object generateXML(DatabaseStructure dbStructure) throws ModuleException {
@@ -92,7 +99,12 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
               column.setColumnID("c" + Integer.toString(columnCounter));
 
               // Set type - mandatory
-              column.setType(type.getSql99TypeName());
+              String sql99DataType = type.getSql99TypeName();
+              if (sql99DataType.equals("BINARY LARGE OBJECT")) {
+                column.setType("INTEGER");
+              } else {
+                column.setType(type.getSql99TypeName());
+              }
 
               // Set typeOriginal
               if (StringUtils.isNotBlank(type.getOriginalTypeName())) {
