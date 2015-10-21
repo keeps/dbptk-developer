@@ -1,6 +1,8 @@
 package com.databasepreservation.modules.siard.out.path;
 
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.out.content.LOBsTracker;
+import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
@@ -12,16 +14,37 @@ public class SIARDDKContentPathExportStrategy implements ContentPathExportStrate
   private static final String TABLE_DIR = "table";
   private static final String TABLE_FILENAME = "table";
   private static final String SCHEMA_DIR = "schema";
+  private static final String DOCUMENT_DIR = "Documents";
+  private static final String DOC_COLLECTION = "docCollection";
+
+  private LOBsTracker lobsTracker;
+
+  public SIARDDKContentPathExportStrategy(SIARDDKExportModule siarddkExportModule) {
+    lobsTracker = siarddkExportModule.getLobsTracker();
+  }
 
   @Override
   public String getClobFilePath(int schemaIndex, int tableIndex, int columnIndex, int rowIndex) {
     return null;
   }
 
+  /**
+   * @return File path of the BLOB but without the file extension since this has
+   *         to be determined from the BLOB inputstream
+   */
   @Override
   public String getBlobFilePath(int schemaIndex, int tableIndex, int columnIndex, int rowIndex) {
-    // TODO Auto-generated method stub
-    return null;
+
+    // TO-DO: add test case
+
+    int docCollectionCount = lobsTracker.getDocCollectionCount();
+    int folderCount = lobsTracker.getFolderCount();
+
+    // Note: code assumes one file in each folder
+    return new StringBuilder().append(DOCUMENT_DIR).append(SIARDDKConstants.FILE_SEPARATOR).append(DOC_COLLECTION)
+      .append(docCollectionCount).append(SIARDDKConstants.FILE_SEPARATOR).append(folderCount)
+      .append(SIARDDKConstants.FILE_SEPARATOR).append(folderCount).append(SIARDDKConstants.FILE_EXTENSION_SEPARATOR)
+      .toString();
   }
 
   // Not used in SIARDDK

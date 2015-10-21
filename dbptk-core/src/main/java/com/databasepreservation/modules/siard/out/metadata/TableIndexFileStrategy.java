@@ -36,6 +36,7 @@ import dk.sa.xmlns.diark._1_0.tableindex.ViewsType;
  */
 public class TableIndexFileStrategy implements IndexFileStrategy {
 
+  // Should be removed - not used!!
   private Map<Integer, List<Integer>> LOBsTracker;
 
   public TableIndexFileStrategy(Map<Integer, List<Integer>> LOBsTracker) {

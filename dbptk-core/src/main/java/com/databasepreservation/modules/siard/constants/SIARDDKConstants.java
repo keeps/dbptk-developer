@@ -36,4 +36,7 @@ public class SIARDDKConstants {
   public static final String FILE_INDEX = "fileIndex";
   public static final String DOC_INDEX = "docIndex";
   public static final String XML_SCHEMA = "XMLSchema";
+
+  // Maximum number of files that can be stored in folder
+  public static final int MAX_NUMBER_OF_FILES = 10000;
 }

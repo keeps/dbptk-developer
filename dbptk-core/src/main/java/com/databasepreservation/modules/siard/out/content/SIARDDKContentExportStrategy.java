@@ -1,13 +1,16 @@
 package com.databasepreservation.modules.siard.out.content;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
+import org.apache.log4j.Logger;
+import org.apache.tika.Tika;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
@@ -40,16 +43,19 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   private final static String namespaceBase = "http://www.sa.dk/xmlns/siard/1.0/";
 
   private int tableCounter;
+  // private int LOBcounter; // Count how many LOBs have been collected
 
-  // Count how many LOBs have been collected
-  private int LOBcounter;
+  // private Map<Integer, List<Integer>> LOBsTracker; // Maps which columns are
+  // LOBs in a given table
+  // specified by the Integer
+  // value (the key of the map)
 
-  // Maps which columns are LOBs in a given table specified by the Integer value
-  // (the key of the map)
-  private Map<Integer, List<Integer>> LOBsTracker;
+  // private List<Integer> LOBsColumns; // The list of the columns to put into
+  // the
+  // LOBsTracker above
 
-  // The list of the columns to put into the LOBsTracker above
-  private List<Integer> LOBsColumns;
+  private List<String> acceptedMimetypes; // Accepted mimetypes in BLOBs
+  private static final Logger logger = Logger.getLogger(SIARDDKContentExportStrategy.class);
 
   private ContentPathExportStrategy contentPathExportStrategy;
   private FileIndexFileStrategy fileIndexFileStrategy;
@@ -57,17 +63,23 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   private OutputStream currentStream;
   private BufferedWriter currentWriter;
   private WriteStrategy writeStrategy;
+  private LOBsTracker lobsTracker;
 
   public SIARDDKContentExportStrategy(SIARDDKExportModule siarddkExportModule) {
 
     tableCounter = 1;
-    LOBcounter = 1;
-    LOBsTracker = siarddkExportModule.getLOBsTracker();
+    // LOBcounter = 1;
+    // LOBsTracker = siarddkExportModule.getLOBsTracker();
+
+    acceptedMimetypes = new ArrayList<String>();
+    acceptedMimetypes.add("image/tiff");
+    acceptedMimetypes.add("image/jpeg");
 
     contentPathExportStrategy = siarddkExportModule.getContentPathExportStrategy();
     fileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
     baseContainer = siarddkExportModule.getMainContainer();
     writeStrategy = siarddkExportModule.getWriteStrategy();
+    lobsTracker = siarddkExportModule.getLobsTracker();
   }
 
   @Override
@@ -118,7 +130,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     }
 
     // List for the LOBs tracker
-    LOBsColumns = new ArrayList<Integer>();
+    // LOBsColumns = new ArrayList<Integer>();
   }
 
   @Override
@@ -130,6 +142,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
       fileIndexFileStrategy.addFile(contentPathExportStrategy.getTableXmlFilePath(0, tableStructure.getIndex()));
 
       tableCounter += 1;
+      // lobsTracker.incrementTableCount();
 
     } catch (IOException e) {
       throw new ModuleException("Error handling close table " + tableStructure.getId(), e);
@@ -241,22 +254,39 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
           // TO-DO: should LOBcounter be encoded? (probably not)
 
           currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-            .append(Integer.toString(LOBcounter)).append("</c").append(String.valueOf(columnIndex)).append(">\n");
+            .append(Integer.toString(lobsTracker.getLOBsCount())).append("</c").append(String.valueOf(columnIndex))
+            .append(">\n");
+
+          lobsTracker.addLOB(tableCounter, columnIndex);
 
           // Check if table is not in LOBsTracker
 
-          if (!LOBsTracker.containsKey(tableCounter)) {
-            LOBsTracker.put(tableCounter, LOBsColumns);
+          // if (!LOBsTracker.containsKey(tableCounter)) {
+          // LOBsTracker.put(tableCounter, LOBsColumns);
+          // }
+          //
+          // if (!LOBsColumns.contains(columnIndex)) {
+          // LOBsColumns.add(columnIndex);
+          // }
+          // LOBcounter += 1;
+
+          BinaryCell binaryCell = (BinaryCell) cell;
+
+          // Determine the mimetype (Tika should use an inputstream which
+          // supports marks)
+          InputStream is = new BufferedInputStream(binaryCell.getInputstream());
+          Tika tika = new Tika();
+          String mimeType = tika.detect(is); // Resets the inputstream after use
+
+          // In SIARDDK the only accepted mimetypes are image/tiff and JPEG2000
+          if (acceptedMimetypes.contains(mimeType)) {
+            // Archive BLOB - simultaneous writing always supported for SIARDDK
+            // Create LargeObject (lob)
+            // Lav BLOB path strategy
+
+          } else {
+            logger.error("Unaccepted mimetype for BLOB!");
           }
-
-          if (!LOBsColumns.contains(columnIndex)) {
-            LOBsColumns.add(columnIndex);
-          }
-          LOBcounter += 1;
-
-          // Check, if datatype is BLOB or CLOB
-
-          // BinaryCell binaryCell = (BinaryCell) cell;
 
         } else if (cell instanceof ComposedCell) {
           throw new ModuleException("Cannot handle composed cells yet");
