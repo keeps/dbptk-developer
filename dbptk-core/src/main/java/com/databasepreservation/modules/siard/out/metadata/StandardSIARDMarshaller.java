@@ -59,6 +59,7 @@ public class StandardSIARDMarshaller implements SIARDMarshaller {
       m.marshal(jaxbElement, writer);
 
     } catch (JAXBException e) {
+      System.out.println(localeSchemaLocation);
       throw new ModuleException("Error while Marshalling JAXB", e);
     }
   }

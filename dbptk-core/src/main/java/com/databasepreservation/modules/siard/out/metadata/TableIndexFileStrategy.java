@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -20,6 +21,7 @@ import dk.sa.xmlns.diark._1_0.tableindex.ColumnType;
 import dk.sa.xmlns.diark._1_0.tableindex.ColumnsType;
 import dk.sa.xmlns.diark._1_0.tableindex.ForeignKeyType;
 import dk.sa.xmlns.diark._1_0.tableindex.ForeignKeysType;
+import dk.sa.xmlns.diark._1_0.tableindex.FunctionalDescriptionType;
 import dk.sa.xmlns.diark._1_0.tableindex.PrimaryKeyType;
 import dk.sa.xmlns.diark._1_0.tableindex.ReferenceType;
 import dk.sa.xmlns.diark._1_0.tableindex.SiardDiark;
@@ -33,6 +35,8 @@ import dk.sa.xmlns.diark._1_0.tableindex.ViewsType;
  *
  */
 public class TableIndexFileStrategy implements IndexFileStrategy {
+
+  private static final Logger logger = Logger.getLogger(TableIndexFileStrategy.class);
 
   @Override
   public Object generateXML(DatabaseStructure dbStructure) throws ModuleException {
@@ -92,7 +96,18 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
               column.setColumnID("c" + Integer.toString(columnCounter));
 
               // Set type - mandatory
-              column.setType(type.getSql99TypeName());
+              String sql99DataType = type.getSql99TypeName();
+              if (sql99DataType.equals("BINARY LARGE OBJECT")) {
+                column.setType("INTEGER");
+
+                FunctionalDescriptionType functionalDescriptionType = FunctionalDescriptionType.DOKUMENTIDENTIFIKATION;
+                column.getFunctionalDescription().add(functionalDescriptionType);
+              } else if (sql99DataType.equals("CHARACTER LARGE OBJECT")) {
+                column.setType("CHARACTER");
+                logger.error("Cannot handle CLOBs yet. Error in table" + tableCounter + ", column " + columnCounter);
+              } else {
+                column.setType(type.getSql99TypeName());
+              }
 
               // Set typeOriginal
               if (StringUtils.isNotBlank(type.getOriginalTypeName())) {
