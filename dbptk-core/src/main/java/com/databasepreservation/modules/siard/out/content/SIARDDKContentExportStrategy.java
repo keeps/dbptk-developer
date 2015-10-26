@@ -11,6 +11,10 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.apache.tika.Tika;
+import org.apache.tika.config.TikaConfig;
+import org.apache.tika.mime.MimeType;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
@@ -277,6 +281,20 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
           InputStream is = new BufferedInputStream(binaryCell.getInputstream());
           Tika tika = new Tika();
           String mimeType = tika.detect(is); // Resets the inputstream after use
+          System.out.println(mimeType);
+
+          TikaConfig config = TikaConfig.getDefaultConfig();
+          MimeTypes allTypes = config.getMimeRepository();
+
+          // MimeTypes allTypes = MimeTypes.getDefaultMimeTypes();
+          MimeType mt = null;
+          try {
+            mt = allTypes.forName(mimeType);
+          } catch (MimeTypeException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
+          System.out.println(mt.getExtension());
 
           // In SIARDDK the only accepted mimetypes are image/tiff and JPEG2000
           if (acceptedMimetypes.contains(mimeType)) {
@@ -284,7 +302,14 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
             // Create LargeObject (lob)
             // Lav BLOB path strategy
 
+            // String path = contentPathExportStrategy.getBlobFilePath(-1, -1,
+            // -1, -1) + extension;
+
+            // LargeObject blob = new LargeObject(binaryCell.getInputstream(),
+            // );
+
           } else {
+            System.out.println("Detected mimetype: " + mimeType);
             logger.error("Unaccepted mimetype for BLOB!");
           }
 
