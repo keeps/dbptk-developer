@@ -6,15 +6,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.apache.tika.Tika;
-import org.apache.tika.config.TikaConfig;
-import org.apache.tika.mime.MimeType;
-import org.apache.tika.mime.MimeTypeException;
-import org.apache.tika.mime.MimeTypes;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
@@ -29,6 +25,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.modules.siard.common.LargeObject;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.metadata.FileIndexFileStrategy;
 import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
@@ -47,18 +44,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   private final static String namespaceBase = "http://www.sa.dk/xmlns/siard/1.0/";
 
   private int tableCounter;
-  // private int LOBcounter; // Count how many LOBs have been collected
 
-  // private Map<Integer, List<Integer>> LOBsTracker; // Maps which columns are
-  // LOBs in a given table
-  // specified by the Integer
-  // value (the key of the map)
-
-  // private List<Integer> LOBsColumns; // The list of the columns to put into
-  // the
-  // LOBsTracker above
-
-  private List<String> acceptedMimetypes; // Accepted mimetypes in BLOBs
   private static final Logger logger = Logger.getLogger(SIARDDKContentExportStrategy.class);
 
   private ContentPathExportStrategy contentPathExportStrategy;
@@ -68,16 +54,13 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   private BufferedWriter currentWriter;
   private WriteStrategy writeStrategy;
   private LOBsTracker lobsTracker;
+  private MimetypeHandler mimetypeHandler;
 
   public SIARDDKContentExportStrategy(SIARDDKExportModule siarddkExportModule) {
 
     tableCounter = 1;
-    // LOBcounter = 1;
-    // LOBsTracker = siarddkExportModule.getLOBsTracker();
 
-    acceptedMimetypes = new ArrayList<String>();
-    acceptedMimetypes.add("image/tiff");
-    acceptedMimetypes.add("image/jpeg");
+    mimetypeHandler = new SIARDDKMimetypeHandler();
 
     contentPathExportStrategy = siarddkExportModule.getContentPathExportStrategy();
     fileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
@@ -262,18 +245,6 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
             .append(">\n");
 
           lobsTracker.addLOB(tableCounter, columnIndex);
-
-          // Check if table is not in LOBsTracker
-
-          // if (!LOBsTracker.containsKey(tableCounter)) {
-          // LOBsTracker.put(tableCounter, LOBsColumns);
-          // }
-          //
-          // if (!LOBsColumns.contains(columnIndex)) {
-          // LOBsColumns.add(columnIndex);
-          // }
-          // LOBcounter += 1;
-
           BinaryCell binaryCell = (BinaryCell) cell;
 
           // Determine the mimetype (Tika should use an inputstream which
@@ -283,30 +254,30 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
           String mimeType = tika.detect(is); // Resets the inputstream after use
           System.out.println(mimeType);
 
-          TikaConfig config = TikaConfig.getDefaultConfig();
-          MimeTypes allTypes = config.getMimeRepository();
-
-          // MimeTypes allTypes = MimeTypes.getDefaultMimeTypes();
-          MimeType mt = null;
-          try {
-            mt = allTypes.forName(mimeType);
-          } catch (MimeTypeException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          }
-          System.out.println(mt.getExtension());
-
           // In SIARDDK the only accepted mimetypes are image/tiff and JPEG2000
-          if (acceptedMimetypes.contains(mimeType)) {
+          if (mimetypeHandler.isMimetypeAllowed(mimeType)) {
             // Archive BLOB - simultaneous writing always supported for SIARDDK
             // Create LargeObject (lob)
             // Lav BLOB path strategy
 
-            // String path = contentPathExportStrategy.getBlobFilePath(-1, -1,
-            // -1, -1) + extension;
+            String path = contentPathExportStrategy.getBlobFilePath(-1, -1, -1, -1)
+              + mimetypeHandler.getFileExtension(mimeType);
+            System.out.println(path);
 
-            // LargeObject blob = new LargeObject(binaryCell.getInputstream(),
-            // );
+            LargeObject blob = null;
+
+            try {
+              blob = new LargeObject(binaryCell.getInputstream(), path);
+            } catch (ModuleException e) {
+              throw new ModuleException("Error getting blob data");
+            }
+
+            // Write the BLOB
+            OutputStream out = writeStrategy.createOutputStream(baseContainer, blob.getPath());
+            InputStream in = blob.getDatasource();
+            IOUtils.copy(in, out);
+            in.close();
+            out.close();
 
           } else {
             System.out.println("Detected mimetype: " + mimeType);
