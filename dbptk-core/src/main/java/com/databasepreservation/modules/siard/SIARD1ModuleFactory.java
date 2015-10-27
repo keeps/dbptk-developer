@@ -89,7 +89,6 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
       pPrettyPrintXML = Boolean.parseBoolean(prettyPrintXML.valueIfSet());
     }
 
-    // TODO: prettyXML
-    return new SIARD1ExportModule(Paths.get(pFile), pCompress).getDatabaseHandler();
+    return new SIARD1ExportModule(Paths.get(pFile), pCompress, pPrettyPrintXML).getDatabaseHandler();
   }
 }

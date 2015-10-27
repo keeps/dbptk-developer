@@ -28,7 +28,7 @@ public class SIARD2ExportModule {
   private MetadataExportStrategy metadataStrategy;
   private ContentExportStrategy contentStrategy;
 
-  public SIARD2ExportModule(Path siardPackage, boolean compressZip) {
+  public SIARD2ExportModule(Path siardPackage, boolean compressZip, boolean prettyXML) {
     contentPathStrategy = new SIARD2ContentPathExportStrategy();
     metadataPathStrategy = new SIARD2MetadataPathStrategy();
     if (compressZip) {
@@ -39,8 +39,7 @@ public class SIARD2ExportModule {
     mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.MAIN);
 
     metadataStrategy = new SIARD2MetadataExportStrategy(metadataPathStrategy, contentPathStrategy);
-    // TODO: change prettyXML from 'true' to a module argument
-    contentStrategy = new SIARD2ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer, true);
+    contentStrategy = new SIARD2ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer, prettyXML);
   }
 
   public DatabaseExportModule getDatabaseHandler() {
