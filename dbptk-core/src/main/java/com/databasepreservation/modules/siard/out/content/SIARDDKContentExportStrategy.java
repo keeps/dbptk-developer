@@ -183,6 +183,10 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
       Element c = new Element("element", xs);
       c.setAttribute("name", "c" + Integer.toString(columnIndex));
       String sql99Type = columnStructure.getType().getSql99TypeName();
+
+      // Register LOB in the LOBsTracker
+      lobsTracker.addLOBLocationAndType(tableCounter, columnIndex, sql99Type);
+
       c.setAttribute("type", SIARDDKsql99ToXsdType.convert(sql99Type));
       if (columnStructure.getNillable()) {
         c.setAttribute("nillable", "true");
@@ -225,6 +229,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
         columnIndex++;
         if (cell instanceof SimpleCell) {
 
+          // Note: CLOBs are also contained in SimpleCells
+
           SimpleCell simpleCell = (SimpleCell) cell;
           if (simpleCell.getSimpledata() != null) {
             currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
@@ -244,7 +250,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
             .append(Integer.toString(lobsTracker.getLOBsCount())).append("</c").append(String.valueOf(columnIndex))
             .append(">\n");
 
-          lobsTracker.addLOB(tableCounter, columnIndex);
+          lobsTracker.addLOBLocationAndType(tableCounter, columnIndex, null); // FIX
+                                                                              // THIS!!!
           BinaryCell binaryCell = (BinaryCell) cell;
 
           // Determine the mimetype (Tika should use an inputstream which

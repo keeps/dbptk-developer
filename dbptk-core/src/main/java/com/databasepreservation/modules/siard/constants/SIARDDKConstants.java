@@ -39,4 +39,8 @@ public class SIARDDKConstants {
 
   // Maximum number of files that can be stored in folder
   public static final int MAX_NUMBER_OF_FILES = 10000;
+
+  // Constants for LOBs
+  public static final String BINARY_LARGE_OBJECT = "BINARY LARGE OBJECT";
+  public static final String CHARACTER_LARGE_OBJECT = "CHARACTER LARGE OBJECT";
 }

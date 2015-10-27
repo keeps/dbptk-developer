@@ -18,26 +18,29 @@ public class LOBsTracker {
   private int docCollectionCount;
   private int folderCount; // Folder within docCollection
   private int currentTable;
-  private Map<Integer, List<Integer>> LOBsLocations;
-  private List<Integer> LOBsColumns;
+  private Map<Integer, List<Integer>> columnIndicesOfLOBsInTables; // Info like:
+                                                                   // table 7
+                                                                   // has LOBs
+                                                                   // in columns
+                                                                   // 3, 4 and 7
+  private List<Integer> lobColumnsIndices;
+  private Map<Integer, Map<Integer, String>> lobTypes; // Info like: table 7,
+                                                       // column 2 is a "BLOB"
+  private Map<Integer, String> lobTypeInColumn;
 
   public LOBsTracker() {
-    // tableCount = 0;
-    LOBsCount = 1;
+    LOBsCount = 0;
     docCollectionCount = 1;
-    folderCount = 1;
+    folderCount = 0;
     currentTable = 0;
-    LOBsLocations = new HashMap<Integer, List<Integer>>();
+    columnIndicesOfLOBsInTables = new HashMap<Integer, List<Integer>>();
+    lobTypes = new HashMap<Integer, Map<Integer, String>>();
   }
 
-  // public int getTableCount() {
-  // return tableCount;
-  // }
-
-  // public void incrementTableCount() {
-  // tableCount += 1;
-  // }
-
+  /**
+   * 
+   * @return The total number of LOBs in the archive
+   */
   public int getLOBsCount() {
     return LOBsCount;
   }
@@ -56,27 +59,36 @@ public class LOBsTracker {
     return folderCount;
   }
 
-  public void addLOB(int table, int column) {
+  public String getLOBsType(int table, int column) {
+    return lobTypes.get(table).get(column);
+  }
+
+  public void addLOBLocationAndType(int table, int column, String typeOfLOB) {
 
     if (table > currentTable) {
-      LOBsColumns = new ArrayList<Integer>();
+      lobColumnsIndices = new ArrayList<Integer>();
+      lobTypeInColumn = new HashMap<Integer, String>();
       currentTable = table;
     }
 
-    if (!LOBsLocations.containsKey(table)) {
-      LOBsLocations.put(table, LOBsColumns);
+    if (!columnIndicesOfLOBsInTables.containsKey(table)) {
+      columnIndicesOfLOBsInTables.put(table, lobColumnsIndices);
+      lobTypes.put(table, lobTypeInColumn);
     }
 
-    if (!LOBsColumns.contains(column)) {
-      LOBsColumns.add(column);
+    if (!lobColumnsIndices.contains(column)) {
+      lobColumnsIndices.add(column);
+      lobTypeInColumn.put(column, typeOfLOB);
     }
+  }
 
+  public void addLOB() {
     LOBsCount += 1;
     folderCount += 1;
 
     // Note: code assumes one file in each folder
 
-    if (folderCount == SIARDDKConstants.MAX_NUMBER_OF_FILES) {
+    if (folderCount == SIARDDKConstants.MAX_NUMBER_OF_FILES + 1) {
       docCollectionCount += 1;
       folderCount = 1;
     }
