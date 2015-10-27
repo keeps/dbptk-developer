@@ -227,7 +227,10 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
       int columnIndex = 0;
       for (Cell cell : row.getCells()) {
         columnIndex++;
-        if (cell instanceof SimpleCell) {
+
+        if (lobsTracker.getLOBsType(tableCounter, columnIndex) == null) {
+          // cell must be a SimpleCell since it is not registered in the
+          // LOBsTracker
 
           // Note: CLOBs are also contained in SimpleCells
 
@@ -237,62 +240,79 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
               .append(XMLUtils.encode(simpleCell.getSimpledata())).append("</c").append(String.valueOf(columnIndex))
               .append(">\n");
           } else {
+
+            // IMPORTANT: BLOBs that are NULL are also handlede in this
+            // condition
+
             currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
               .append(" xsi:nil=\"true\"/>").append("\n");
           }
+        } else {
+          // cell must contain BLOB or CLOB
 
-        } else if (cell instanceof BinaryCell) {
+          // Remember to call addLOB() !!
 
-          // TO-DO: should it be checked if cell content is null?
-          // TO-DO: should LOBcounter be encoded? (probably not)
+          if (cell instanceof SimpleCell) {
 
-          currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-            .append(Integer.toString(lobsTracker.getLOBsCount())).append("</c").append(String.valueOf(columnIndex))
-            .append(">\n");
-
-          lobsTracker.addLOBLocationAndType(tableCounter, columnIndex, null); // FIX
-                                                                              // THIS!!!
-          BinaryCell binaryCell = (BinaryCell) cell;
-
-          // Determine the mimetype (Tika should use an inputstream which
-          // supports marks)
-          InputStream is = new BufferedInputStream(binaryCell.getInputstream());
-          Tika tika = new Tika();
-          String mimeType = tika.detect(is); // Resets the inputstream after use
-          System.out.println(mimeType);
-
-          // In SIARDDK the only accepted mimetypes are image/tiff and JPEG2000
-          if (mimetypeHandler.isMimetypeAllowed(mimeType)) {
-            // Archive BLOB - simultaneous writing always supported for SIARDDK
-            // Create LargeObject (lob)
-            // Lav BLOB path strategy
-
-            String path = contentPathExportStrategy.getBlobFilePath(-1, -1, -1, -1)
-              + mimetypeHandler.getFileExtension(mimeType);
-            System.out.println(path);
-
-            LargeObject blob = null;
-
-            try {
-              blob = new LargeObject(binaryCell.getInputstream(), path);
-            } catch (ModuleException e) {
-              throw new ModuleException("Error getting blob data");
+            SimpleCell simpleCell = (SimpleCell) cell;
+            if (simpleCell.getSimpledata() == null) {
+              currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
+                .append(" xsi:nil=\"true\"/>").append("\n");
             }
 
-            // Write the BLOB
-            OutputStream out = writeStrategy.createOutputStream(baseContainer, blob.getPath());
-            InputStream in = blob.getDatasource();
-            IOUtils.copy(in, out);
-            in.close();
-            out.close();
+          } else if (cell instanceof BinaryCell) {
 
-          } else {
-            System.out.println("Detected mimetype: " + mimeType);
-            logger.error("Unaccepted mimetype for BLOB!");
+            // TO-DO: should LOBcounter be encoded? (probably not)
+
+            currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
+              .append(Integer.toString(lobsTracker.getLOBsCount())).append("</c").append(String.valueOf(columnIndex))
+              .append(">\n");
+
+            BinaryCell binaryCell = (BinaryCell) cell;
+
+            // Determine the mimetype (Tika should use an inputstream which
+            // supports marks)
+            InputStream is = new BufferedInputStream(binaryCell.getInputstream());
+            Tika tika = new Tika();
+            String mimeType = tika.detect(is); // Resets the inputstream after
+                                               // use
+            System.out.println(mimeType);
+
+            // In SIARDDK the only accepted mimetypes are image/tiff and
+            // JPEG2000
+            if (mimetypeHandler.isMimetypeAllowed(mimeType)) {
+              // Archive BLOB - simultaneous writing always supported for
+              // SIARDDK
+              // Create LargeObject (lob)
+              // Lav BLOB path strategy
+
+              String path = contentPathExportStrategy.getBlobFilePath(-1, -1, -1, -1)
+                + mimetypeHandler.getFileExtension(mimeType);
+              System.out.println(path);
+
+              LargeObject blob = null;
+
+              try {
+                blob = new LargeObject(binaryCell.getInputstream(), path);
+              } catch (ModuleException e) {
+                throw new ModuleException("Error getting blob data");
+              }
+
+              // Write the BLOB
+              OutputStream out = writeStrategy.createOutputStream(baseContainer, blob.getPath());
+              InputStream in = blob.getDatasource();
+              IOUtils.copy(in, out);
+              in.close();
+              out.close();
+
+            } else {
+              System.out.println("Detected mimetype: " + mimeType);
+              logger.error("Unaccepted mimetype for BLOB!");
+            }
+
+          } else if (cell instanceof ComposedCell) {
+            throw new ModuleException("Cannot handle composed cells yet");
           }
-
-        } else if (cell instanceof ComposedCell) {
-          throw new ModuleException("Cannot handle composed cells yet");
         }
       }
 

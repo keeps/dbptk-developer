@@ -60,7 +60,10 @@ public class LOBsTracker {
   }
 
   public String getLOBsType(int table, int column) {
-    return lobTypes.get(table).get(column);
+    if (lobTypes.get(table) != null) {
+      return lobTypes.get(table).get(column);
+    }
+    return null;
   }
 
   public void addLOBLocationAndType(int table, int column, String typeOfLOB) {

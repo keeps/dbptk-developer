@@ -1,6 +1,7 @@
 package com.databasepreservation.siarddk;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import org.testng.annotations.BeforeMethod;
@@ -31,6 +32,11 @@ public class TestLOBsTracker {
     lobsTracker.addLOBLocationAndType(7, 6, SIARDDKConstants.CHARACTER_LARGE_OBJECT);
 
     lobsTracker.addLOBLocationAndType(9, 5, SIARDDKConstants.BINARY_LARGE_OBJECT);
+  }
+
+  @Test
+  public void shouldReturnNullWhenKeyNotInMap() {
+    assertNull(lobsTracker.getLOBsType(10, 10));
   }
 
   @Test
