@@ -217,7 +217,6 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     } catch (IOException e) {
       throw new ModuleException("Error handling close table " + tableStructure.getId(), e);
     }
-
   }
 
   @Override
@@ -238,18 +237,12 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
           // cell must be a SimpleCell since it is not registered in the
           // LOBsTracker
 
-          // Note: CLOBs are also contained in SimpleCells
-
           SimpleCell simpleCell = (SimpleCell) cell;
           if (simpleCell.getSimpledata() != null) {
             currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
               .append(XMLUtils.encode(simpleCell.getSimpledata())).append("</c").append(String.valueOf(columnIndex))
               .append(">\n");
           } else {
-
-            // IMPORTANT: BLOBs that are NULL are also handlede in this
-            // condition
-
             currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
               .append(" xsi:nil=\"true\"/>").append("\n");
           }
@@ -262,12 +255,15 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
             // CLOB case - save as string
             // TO-DO: handle case, where CLOB is archived as tiff
 
-            lobsTracker.addLOB(); // Only if LOB not NULL
-
             SimpleCell simpleCell = (SimpleCell) cell;
             if (simpleCell.getSimpledata() == null) {
               currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
                 .append(" xsi:nil=\"true\"/>").append("\n");
+            } else {
+              // lobsTracker.addLOB(); // Only if LOB not NULL
+              currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
+                .append(XMLUtils.encode(simpleCell.getSimpledata())).append("</c").append(String.valueOf(columnIndex))
+                .append(">\n");
             }
 
           } else if (cell instanceof BinaryCell) {
@@ -280,12 +276,12 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
               // BLOB is NULL
 
-              lobsTracker.addLOB(); // Only if LOB not NULL
-
               currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
                 .append(" xsi:nil=\"true\"/>").append("\n");
 
             } else {
+
+              lobsTracker.addLOB(); // Only if LOB not NULL
 
               currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
                 .append(Integer.toString(lobsTracker.getLOBsCount())).append("</c").append(String.valueOf(columnIndex))
@@ -295,10 +291,9 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
               // supports marks)
 
               InputStream is = new BufferedInputStream(binaryCell.getInputstream());
-              Tika tika = new Tika();
+              Tika tika = new Tika(); // Move this to constructor
               String mimeType = tika.detect(is); // Resets the inputstream after
                                                  // use
-              System.out.println(mimeType);
 
               // In SIARDDK the only accepted mimetypes for documents are
               // image/tiff and JPEG2000
@@ -310,7 +305,6 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
                 String path = contentPathExportStrategy.getBlobFilePath(-1, -1, -1, -1)
                   + mimetypeHandler.getFileExtension(mimeType);
-                System.out.println(path);
 
                 LargeObject blob = null;
 
@@ -319,6 +313,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
                 } catch (ModuleException e) {
                   throw new ModuleException("Error getting blob data");
                 }
+
+                // remember fileIndex !!!
 
                 // Write the BLOB
                 OutputStream out = writeStrategy.createOutputStream(baseContainer, blob.getPath());
@@ -341,5 +337,9 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     } catch (IOException e) {
       throw new ModuleException("Could not write row " + row.toString(), e);
     }
+  }
+
+  private void writeColumnElement(int columnIndex, Object value) {
+    // TO-DO: implement this
   }
 }

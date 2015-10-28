@@ -22,7 +22,6 @@ import dk.sa.xmlns.diark._1_0.tableindex.ColumnType;
 import dk.sa.xmlns.diark._1_0.tableindex.ColumnsType;
 import dk.sa.xmlns.diark._1_0.tableindex.ForeignKeyType;
 import dk.sa.xmlns.diark._1_0.tableindex.ForeignKeysType;
-import dk.sa.xmlns.diark._1_0.tableindex.FunctionalDescriptionType;
 import dk.sa.xmlns.diark._1_0.tableindex.PrimaryKeyType;
 import dk.sa.xmlns.diark._1_0.tableindex.ReferenceType;
 import dk.sa.xmlns.diark._1_0.tableindex.SiardDiark;
@@ -106,8 +105,10 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
               if (sql99DataType.equals(SIARDDKConstants.BINARY_LARGE_OBJECT)) {
                 column.setType("INTEGER");
 
-                FunctionalDescriptionType functionalDescriptionType = FunctionalDescriptionType.DOKUMENTIDENTIFIKATION;
-                column.getFunctionalDescription().add(functionalDescriptionType);
+                // FunctionalDescriptionType functionalDescriptionType =
+                // FunctionalDescriptionType.DOKUMENTIDENTIFIKATION;
+                // column.getFunctionalDescription().add(functionalDescriptionType);
+
               } else if (sql99DataType.equals(SIARDDKConstants.CHARACTER_LARGE_OBJECT)) {
                 column.setType("CHARACTER(1)");
               } else {
