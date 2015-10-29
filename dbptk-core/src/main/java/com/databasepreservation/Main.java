@@ -59,8 +59,7 @@ public class Main {
 
     try {
       long startTime = System.currentTimeMillis();
-      logger.info("Translating database: " + importModule.getClass().getSimpleName() + " to "
-        + exportModule.getClass().getSimpleName());
+      logger.info("Translating database: " + cli.getImportModuleName() + " to " + cli.getExportModuleName());
       importModule.getDatabase(exportModule);
       long duration = System.currentTimeMillis() - startTime;
       logger.info("Done in " + (duration / 60000) + "m " + (duration % 60000 / 1000) + "s");
