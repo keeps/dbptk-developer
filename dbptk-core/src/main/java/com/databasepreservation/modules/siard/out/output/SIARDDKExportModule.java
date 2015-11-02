@@ -59,7 +59,7 @@ public class SIARDDKExportModule {
     writeStrategy = new FolderWriteStrategy();
     siardMarshaller = new StandardSIARDMarshaller();
     fileIndexFileStrategy = new FileIndexFileStrategy(this);
-    lobsTracker = new LOBsTracker();
+    lobsTracker = new LOBsTracker(this);
     contentPathExportStrategy = new SIARDDKContentPathExportStrategy(this);
     metadataPathStrategy = new SIARDDKMetadataPathStrategy();
     metadataExportStrategy = new SIARDDKMetadataExportStrategy(this);

@@ -3,7 +3,6 @@ package com.databasepreservation.modules.siard.out.metadata;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
@@ -13,6 +12,7 @@ import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.out.content.LOBsTracker;
 import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
@@ -26,14 +26,14 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
   private MetadataPathStrategy metadataPathStrategy;
   private FileIndexFileStrategy fileIndexFileStrategy;
   private Map<String, String> exportModuleArgs;
-  private Map<Integer, List<Integer>> LOBsTracker;
+  private LOBsTracker lobsTracker;
 
   public SIARDDKMetadataExportStrategy(SIARDDKExportModule siarddkExportModule) {
     siardMarshaller = siarddkExportModule.getSiardMarshaller();
     fileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
     metadataPathStrategy = siarddkExportModule.getMetadataPathStrategy();
     exportModuleArgs = siarddkExportModule.getExportModuleArgs();
-    LOBsTracker = siarddkExportModule.getLOBsTracker();
+    lobsTracker = siarddkExportModule.getLobsTracker();
   }
 
   @Override
@@ -46,7 +46,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     // Generate tableIndex.xml
 
     try {
-      IndexFileStrategy tableIndexFileStrategy = new TableIndexFileStrategy(LOBsTracker);
+      IndexFileStrategy tableIndexFileStrategy = new TableIndexFileStrategy(lobsTracker);
       String path = metadataPathStrategy.getXmlFilePath(SIARDDKConstants.TABLE_INDEX);
       OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
 

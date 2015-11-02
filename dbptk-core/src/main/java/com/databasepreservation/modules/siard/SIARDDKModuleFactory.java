@@ -35,6 +35,11 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     .description("Path to contextDocumentation folder which should contain the context documentation for the archive")
     .hasArgument(true).setOptionalArgument(false).required(false);
 
+  private static final Parameter docIDFile = new Parameter().shortName("docID")
+    .longName(SIARDDKConstants.DOCUMENT_IDENTIFICATION)
+    .description("XML file containing list of document identifications").hasArgument(true).setOptionalArgument(false)
+    .required(true);
+
   @Override
   public boolean producesImportModules() {
     return false;
@@ -58,6 +63,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     parameterMap.put(archiveIndex.longName(), archiveIndex);
     parameterMap.put(contextDocumentationIndex.longName(), contextDocumentationIndex);
     parameterMap.put(contextDocmentationFolder.longName(), contextDocmentationFolder);
+    parameterMap.put(docIDFile.longName(), docIDFile);
 
     return parameterMap;
   }
@@ -69,8 +75,8 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Parameters getExportModuleParameters() throws OperationNotSupportedException {
-    return new Parameters(Arrays.asList(folder, archiveIndex, contextDocumentationIndex, contextDocmentationFolder),
-      null);
+    return new Parameters(Arrays.asList(folder, archiveIndex, contextDocumentationIndex, contextDocmentationFolder,
+      docIDFile), null);
   }
 
   @Override
@@ -89,12 +95,14 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     String pArchiveIndex = parameters.get(archiveIndex);
     String pContextDocumentationIndex = parameters.get(contextDocumentationIndex);
     String pContextDocumentationFolder = parameters.get(contextDocmentationFolder);
+    String pDocIdFile = parameters.get(docIDFile);
 
     Map<String, String> exportModuleArgs = new HashMap<String, String>();
     exportModuleArgs.put(folder.longName(), pFolder);
     exportModuleArgs.put(archiveIndex.longName(), pArchiveIndex);
     exportModuleArgs.put(contextDocumentationIndex.longName(), pContextDocumentationIndex);
     exportModuleArgs.put(contextDocmentationFolder.longName(), pContextDocumentationFolder);
+    exportModuleArgs.put(docIDFile.longName(), pDocIdFile);
 
     return new SIARDDKExportModule(exportModuleArgs).getDatabaseExportModule();
   }

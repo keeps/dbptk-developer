@@ -35,6 +35,7 @@ public class SIARDDKConstants {
   public static final String TABLE_INDEX = "tableIndex";
   public static final String FILE_INDEX = "fileIndex";
   public static final String DOC_INDEX = "docIndex";
+  public static final String DOCUMENT_IDENTIFICATION = "documentIdentification";
   public static final String XML_SCHEMA = "XMLSchema";
 
   // Maximum number of files that can be stored in folder
@@ -43,4 +44,7 @@ public class SIARDDKConstants {
   // Constants for LOBs
   public static final String BINARY_LARGE_OBJECT = "BINARY LARGE OBJECT";
   public static final String CHARACTER_LARGE_OBJECT = "CHARACTER LARGE OBJECT";
+
+  // Namespaces
+  public static final String DBPTK_NS = "http://www.databasepreservation.com/xmlns/1.0";
 }

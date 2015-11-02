@@ -1,12 +1,14 @@
 package com.databasepreservation.siarddk;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.out.content.LOBsTracker;
 
@@ -21,7 +23,7 @@ public class TestLOBsTracker {
 
   @BeforeMethod
   public void setUp() {
-    lobsTracker = new LOBsTracker();
+    lobsTracker = new LOBsTracker(null);
 
     lobsTracker.addLOBLocationAndType(1, 1, SIARDDKConstants.BINARY_LARGE_OBJECT);
     lobsTracker.addLOBLocationAndType(1, 3, SIARDDKConstants.BINARY_LARGE_OBJECT);
@@ -100,6 +102,32 @@ public class TestLOBsTracker {
     assertEquals(3, lobsTracker.getDocCollectionCount());
     assertEquals(1, lobsTracker.getFolderCount());
   }
+
+  @Test
+  public void shouldReturnTrueWhenOneColumnAdded() throws ModuleException {
+    lobsTracker.addDocID("table1", "name");
+    assertTrue(lobsTracker.isDocID("table1", "name"));
+  }
+
+  @Test(expectedExceptions = ModuleException.class)
+  public void shouldThrowExceptionWhenDocIDinputFileHasErrors() throws ModuleException {
+    lobsTracker.addDocID("table1", "name");
+    lobsTracker.addDocID("table1", "name");
+  }
+
+  @Test
+  public void shouldReturnFalseWhenTableNotKnownAsDocIDkey() {
+    assertFalse(lobsTracker.isDocID("table1", "name"));
+  }
+
+  @Test
+  public void shouldReturnFalse_() throws ModuleException {
+    lobsTracker.addDocID("table1", "name");
+    assertFalse(lobsTracker.isDocID("table1", "name2"));
+  }
+
+  // @Test
+  // public void
 
   private void addLOB() {
     lobsTracker.addLOB();

@@ -2,7 +2,6 @@ package com.databasepreservation.modules.siard.out.metadata;
 
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -17,11 +16,13 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.out.content.LOBsTracker;
 
 import dk.sa.xmlns.diark._1_0.tableindex.ColumnType;
 import dk.sa.xmlns.diark._1_0.tableindex.ColumnsType;
 import dk.sa.xmlns.diark._1_0.tableindex.ForeignKeyType;
 import dk.sa.xmlns.diark._1_0.tableindex.ForeignKeysType;
+import dk.sa.xmlns.diark._1_0.tableindex.FunctionalDescriptionType;
 import dk.sa.xmlns.diark._1_0.tableindex.PrimaryKeyType;
 import dk.sa.xmlns.diark._1_0.tableindex.ReferenceType;
 import dk.sa.xmlns.diark._1_0.tableindex.SiardDiark;
@@ -36,11 +37,11 @@ import dk.sa.xmlns.diark._1_0.tableindex.ViewsType;
  */
 public class TableIndexFileStrategy implements IndexFileStrategy {
 
-  // Should be removed - not used!!
-  private Map<Integer, List<Integer>> LOBsTracker;
+  // LOBsTracker used to get the locations of functionalDescriptions
+  private LOBsTracker lobsTracker;
 
-  public TableIndexFileStrategy(Map<Integer, List<Integer>> LOBsTracker) {
-    this.LOBsTracker = LOBsTracker;
+  public TableIndexFileStrategy(LOBsTracker lobsTracker) {
+    this.lobsTracker = lobsTracker;
   }
 
   @Override
@@ -104,11 +105,6 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
               String sql99DataType = type.getSql99TypeName();
               if (sql99DataType.equals(SIARDDKConstants.BINARY_LARGE_OBJECT)) {
                 column.setType("INTEGER");
-
-                // FunctionalDescriptionType functionalDescriptionType =
-                // FunctionalDescriptionType.DOKUMENTIDENTIFIKATION;
-                // column.getFunctionalDescription().add(functionalDescriptionType);
-
               } else if (sql99DataType.equals(SIARDDKConstants.CHARACTER_LARGE_OBJECT)) {
                 column.setType("CHARACTER(1)");
               } else {
@@ -132,8 +128,12 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
               // Set description
               column.setDescription("Description should be set");
 
-              // TO-DO: get (how?) and set functional description
               // Set functionalDescription
+              if (lobsTracker.isDocID(tableStructure.getName(), columnStructure.getName())) {
+
+                FunctionalDescriptionType functionalDescriptionType = FunctionalDescriptionType.DOKUMENTIDENTIFIKATION;
+                column.getFunctionalDescription().add(functionalDescriptionType);
+              }
 
               columns.getColumn().add(column);
               columnCounter += 1;
