@@ -115,8 +115,8 @@ For example, if you want to connect to a live MySQL database and export its cont
 
 ```bash
 $ java -jar dbptk-core-x.y.z-jar-with-dependencies.jar \
--i MySQLJDBC -ihostname=localhost -idb example_db -iu username -ip p4ssw0rd \
--o SIARD1 example.siard
+-i mysql --import-hostname=localhost -idb example_db -iu username -ip p4ssw0rd \
+-e siard-1 -ef example.siard
 ```
 
 ## How to build from source
