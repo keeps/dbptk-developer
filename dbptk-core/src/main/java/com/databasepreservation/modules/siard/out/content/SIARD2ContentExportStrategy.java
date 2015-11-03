@@ -25,7 +25,7 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.modules.siard.common.LargeObject;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.XMLUtils;
 
@@ -35,7 +35,7 @@ import com.databasepreservation.utils.XMLUtils;
 public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   private final static String ENCODING = "UTF-8";
   private final Logger logger = Logger.getLogger(SIARD1ContentExportStrategy.class);
-  private final ContentPathExportStrategy contentPathStrategy;
+  private final SIARD2ContentPathExportStrategy contentPathStrategy;
   private final WriteStrategy writeStrategy;
   private final SIARDArchiveContainer baseContainer;
   private final boolean prettyXMLOutput;
@@ -46,7 +46,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   int currentRowIndex;
   private List<LargeObject> LOBsToExport;
 
-  public SIARD2ContentExportStrategy(ContentPathExportStrategy contentPathStrategy, WriteStrategy writeStrategy,
+  public SIARD2ContentExportStrategy(SIARD2ContentPathExportStrategy contentPathStrategy, WriteStrategy writeStrategy,
     SIARDArchiveContainer baseContainer, boolean prettyXMLOutput) {
     this.contentPathStrategy = contentPathStrategy;
     this.writeStrategy = writeStrategy;
@@ -197,10 +197,6 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   }
 
   private void writeLargeObjectData(Cell cell, int columnIndex) throws IOException, ModuleException {
-    // TODO: add support for lobs
-    if (true)
-      return;
-
     currentWriter.beginOpenTag("c" + columnIndex, 2).space().append("file=\"");
 
     LargeObject lob = null;
@@ -208,26 +204,23 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     if (cell instanceof BinaryCell) {
       BinaryCell binCell = (BinaryCell) cell;
 
-      String path = contentPathStrategy.getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
-        currentRowIndex + 1);
-
       // blob header
-      currentWriter.append(path).append('"').space().append("length=\"").append(String.valueOf(binCell.getLength()))
+      currentWriter.append(contentPathStrategy.getBlobFileName(currentRowIndex + 1)).append('"').space()
+        .append("length=\"").append(String.valueOf(binCell.getLength()))
         .append("\"");
 
       try {
-        lob = new LargeObject(binCell.getInputstream(), path);
+        lob = new LargeObject(binCell.getInputstream(), contentPathStrategy.getBlobFilePath(currentSchema.getIndex(),
+          currentTable.getIndex(), columnIndex, currentRowIndex + 1));
       } catch (ModuleException e) {
         throw new ModuleException("Error getting blob data");
       }
     } else if (cell instanceof SimpleCell) {
       SimpleCell txtCell = (SimpleCell) cell;
 
-      String path = contentPathStrategy.getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
-        currentRowIndex + 1);
-
-      // blob header
-      currentWriter.append(path).append('"').space().append("length=\"")
+      // clob header
+      currentWriter.append(contentPathStrategy.getClobFileName(currentRowIndex + 1)).append('"').space()
+        .append("length=\"")
         .append(String.valueOf(txtCell.getSimpledata().length())).append("\"");
 
       // workaround to have data from CLOBs saved as a temporary file to be read
@@ -236,7 +229,8 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
         FileItem fileItem = new FileItem(inputStream);
         inputStream.close();
-        lob = new LargeObject(fileItem.getInputStream(), path);
+        lob = new LargeObject(fileItem.getInputStream(), contentPathStrategy.getClobFilePath(currentSchema.getIndex(),
+          currentTable.getIndex(), columnIndex, currentRowIndex + 1));
       } catch (ModuleException e) {
         throw new ModuleException("Error getting clob data");
       }
@@ -283,6 +277,8 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   private void writeLOB(LargeObject lob) throws ModuleException, IOException {
     OutputStream out = writeStrategy.createOutputStream(baseContainer, lob.getPath());
     InputStream in = lob.getDatasource();
+
+    logger.info("Writing lob to " + lob.getPath());
 
     // copy lob to output
     IOUtils.copy(in, out);
