@@ -17,6 +17,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.UserStructure;
+import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
 import com.databasepreservation.model.structure.type.Type;
@@ -164,6 +165,23 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
     Type type = new SimpleTypeBinary(columnSize);
     type.setSql99TypeName("BIT VARYING", columnSize * 8);
     return type;
+  }
+
+  @Override
+  protected List<ViewStructure> getViews(String schemaName) throws SQLException, ClassNotFoundException,
+    UnknownTypeException {
+    List<ViewStructure> views = super.getViews(schemaName);
+    for (ViewStructure v : views) {
+      Statement statement = getConnection().createStatement();
+      String query = "SHOW CREATE VIEW " + v.getName();
+      ResultSet rset = statement.executeQuery(query);
+      rset.next(); // Returns only one tuple
+
+      // TO-DO: the string given below by rset.getString(2) has to be parsed a
+      // little before it is set to as the view
+      v.setQueryOriginal(rset.getString(2));
+    }
+    return views;
   }
 
   @Override

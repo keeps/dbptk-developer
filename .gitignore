@@ -1,3 +1,5 @@
+
+.gitignore
 target/
 *~
 .classpath
@@ -8,6 +10,9 @@ target/
 
 log/
 exported-dbs/
+
+
+
 test-output/
 
 *.iml

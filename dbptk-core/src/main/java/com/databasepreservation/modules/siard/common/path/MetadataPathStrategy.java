@@ -22,4 +22,12 @@ public interface MetadataPathStrategy {
    * Returns the path to the metadata XSD-file with name filename
    */
   public String getXsdFilePath(String filename) throws InvalidParameterException;
+
+  /**
+   * 
+   * @param filename
+   * @return path of the relevant schema file in the resource folder
+   * @throws InvalidParameterException
+   */
+  public String getXsdResourcePath(String filename) throws InvalidParameterException;
 }

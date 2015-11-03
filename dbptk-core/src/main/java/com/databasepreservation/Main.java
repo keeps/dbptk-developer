@@ -16,6 +16,7 @@ import com.databasepreservation.modules.mySql.MySQLModuleFactory;
 import com.databasepreservation.modules.postgreSql.PostgreSQLModuleFactory;
 import com.databasepreservation.modules.siard.SIARD1ModuleFactory;
 import com.databasepreservation.modules.siard.SIARD2ModuleFactory;
+import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
 import com.databasepreservation.modules.sqlServer.SQLServerJDBCModuleFactory;
 
 /**
@@ -45,7 +46,7 @@ public class Main {
     final DatabaseExportModule exportModule;
 
     CLI cli = new CLI(Arrays.asList(args), new MySQLModuleFactory(), new SQLServerJDBCModuleFactory(),
-      new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(), new SIARD2ModuleFactory());
+      new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(), new SIARD2ModuleFactory(), new SIARDDKModuleFactory());
     try {
       importModule = cli.getImportModule();
       exportModule = cli.getExportModule();
