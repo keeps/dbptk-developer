@@ -60,9 +60,9 @@ public class CLI {
         factories.add(factoryClass.newInstance());
       }
     } catch (InstantiationException e) {
-      e.printStackTrace();
+      logger.error("Error initializing CLI", e);
     } catch (IllegalAccessException e) {
-      e.printStackTrace();
+      logger.error("Error initializing CLI", e);
     }
     includePluginModules();
   }

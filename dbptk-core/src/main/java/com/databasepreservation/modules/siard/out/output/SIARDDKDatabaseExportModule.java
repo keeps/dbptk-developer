@@ -46,7 +46,7 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
 
         logger.info("Deleted the already existing folder: " + outputFolder);
       } catch (IOException e) {
-        e.printStackTrace();
+        throw new ModuleException("Error deleting existing directory", e);
       }
     }
   }

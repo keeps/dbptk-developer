@@ -137,11 +137,11 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     // create subfolder header/version/2.0
+    OutputStream writer = writeStrategy.createOutputStream(container, "header/version/2.0/");
     try {
-      OutputStream writer = writeStrategy.createOutputStream(container, "header/version/2.0/");
       writer.close();
     } catch (IOException e) {
-      e.printStackTrace();
+      throw new ModuleException("Error while closing the data writer", e);
     }
   }
 

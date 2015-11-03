@@ -93,7 +93,7 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
     try {
       messageDigest = MessageDigest.getInstance("MD5");
     } catch (NoSuchAlgorithmException e) {
-      e.printStackTrace();
+      throw new ModuleException("Error writing output", e);
     }
 
     return new DigestOutputStream(writerFromWriteStrategy, messageDigest);
