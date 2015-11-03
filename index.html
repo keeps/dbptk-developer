@@ -140,8 +140,8 @@ Export module: siard-dk
 <p>For example, if you want to connect to a live MySQL database and export its content to SIARD 1.0 format, you can use the following command.</p>
 
 <div class="highlight highlight-source-shell"><pre>$ java -jar dbptk-core-x.y.z-jar-with-dependencies.jar \
--i MySQLJDBC -ihostname=localhost -idb example_db -iu username -ip p4ssw0rd \
--o SIARD1 example.siard</pre></div>
+-i mysql --import-hostname=localhost -idb example_db -iu username -ip p4ssw0rd \
+-e siard-1 -ef example.siard</pre></div>
 
 <h2>
 <a id="how-to-build-from-source" class="anchor" href="#how-to-build-from-source" aria-hidden="true"><span class="octicon octicon-link"></span></a>How to build from source</h2>
