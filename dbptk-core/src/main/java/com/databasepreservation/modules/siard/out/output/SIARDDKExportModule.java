@@ -58,7 +58,7 @@ public class SIARDDKExportModule {
     mainContainer = new SIARDArchiveContainer(rootPath, SIARDArchiveContainer.OutputContainerType.MAIN);
     writeStrategy = new FolderWriteStrategy();
     siardMarshaller = new StandardSIARDMarshaller();
-    fileIndexFileStrategy = new FileIndexFileStrategy(this);
+    fileIndexFileStrategy = new FileIndexFileStrategy();
     lobsTracker = new LOBsTracker(this);
     contentPathExportStrategy = new SIARDDKContentPathExportStrategy(this);
     metadataPathStrategy = new SIARDDKMetadataPathStrategy();

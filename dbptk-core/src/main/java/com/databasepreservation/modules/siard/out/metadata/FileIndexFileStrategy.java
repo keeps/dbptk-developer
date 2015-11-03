@@ -1,8 +1,8 @@
 /**
  * The methods should be called in this order from the SIARDDKMetadataExportStrategy
  * 1) getWriter
- * 2) generateXML 
- * 3) addFile (should not be called until writer obtained from getWriter is closed) 
+ * 2) addFile (should not be called until writer obtained from getWriter is closed)
+ * 3) generateXML 
  */
 package com.databasepreservation.modules.siard.out.metadata;
 
@@ -19,7 +19,6 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
-import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
 import dk.sa.xmlns.diark._1_0.fileindex.FileIndexType;
@@ -34,12 +33,15 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
   private static final String SIARDDK_FILE_SEPERATOR = "\\";
 
   private MessageDigest messageDigest;
+  private MessageDigest lobMessageDigest;
+  private boolean currentlyDigestingLOB;
   private Map<String, byte[]> md5sums;
   private SIARDArchiveContainer outputContainer;
 
-  public FileIndexFileStrategy(SIARDDKExportModule siarddkExportModule) {
+  public FileIndexFileStrategy() {
     md5sums = new HashMap<String, byte[]>();
     outputContainer = null;
+    currentlyDigestingLOB = false;
   }
 
   @Override
@@ -82,8 +84,8 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
     return fileIndexType;
   }
 
-  public OutputStream getWriter(SIARDArchiveContainer outputContainer, String path, WriteStrategy writeStrategy)
-    throws ModuleException {
+  private OutputStream getWriter(SIARDArchiveContainer outputContainer, String path, WriteStrategy writeStrategy,
+    boolean writingLOB) throws ModuleException {
 
     if (this.outputContainer == null) {
       this.outputContainer = outputContainer;
@@ -91,12 +93,46 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
 
     OutputStream writerFromWriteStrategy = writeStrategy.createOutputStream(outputContainer, path);
     try {
-      messageDigest = MessageDigest.getInstance("MD5");
+      if (writingLOB) {
+        currentlyDigestingLOB = true;
+        lobMessageDigest = MessageDigest.getInstance(SIARDDKConstants.DIGEST_ALGORITHM);
+        return new DigestOutputStream(writerFromWriteStrategy, lobMessageDigest);
+      } else {
+        messageDigest = MessageDigest.getInstance(SIARDDKConstants.DIGEST_ALGORITHM);
+        return new DigestOutputStream(writerFromWriteStrategy, messageDigest);
+      }
     } catch (NoSuchAlgorithmException e) {
       e.printStackTrace();
+      return null;
     }
+  }
 
-    return new DigestOutputStream(writerFromWriteStrategy, messageDigest);
+  /**
+   * Writer to be used when not writing LOBs
+   * 
+   * @param outputContainer
+   * @param path
+   * @param writeStrategy
+   * @return The OutputStream to write to
+   * @throws ModuleException
+   */
+  public OutputStream getWriter(SIARDArchiveContainer outputContainer, String path, WriteStrategy writeStrategy)
+    throws ModuleException {
+    return getWriter(outputContainer, path, writeStrategy, false);
+  }
+
+  /**
+   * Write to be used when writing LOBs
+   * 
+   * @param outputContainer
+   * @param path
+   * @param writeStrategy
+   * @return The OutputStream to write to
+   * @throws ModuleException
+   */
+  public OutputStream getLOBWriter(SIARDArchiveContainer outputContainer, String path, WriteStrategy writeStrategy)
+    throws ModuleException {
+    return getWriter(outputContainer, path, writeStrategy, true);
   }
 
   /**
@@ -108,14 +144,23 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
    * @return md5sum of file Pre-condition: writer to calculate md5sum from
    *         should be finished and closed.
    */
-  public void addFile(String path) {
+  public byte[] addFile(String path) {
+
     // Calculate md5sum
-    byte[] digest = messageDigest.digest();
-    // String md5sum = DatatypeConverter.printHexBinary(digest).toLowerCase();
+
+    byte[] digest;
+    if (currentlyDigestingLOB) {
+      digest = lobMessageDigest.digest();
+      currentlyDigestingLOB = false;
+    } else {
+      digest = messageDigest.digest();
+      // String md5sum = DatatypeConverter.printHexBinary(digest).toLowerCase();
+    }
 
     // Add file to map
+
     md5sums.put(path, digest);
 
-    // return md5sum;
+    return digest;
   }
 }

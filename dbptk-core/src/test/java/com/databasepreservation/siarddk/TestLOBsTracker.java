@@ -120,15 +120,6 @@ public class TestLOBsTracker {
     assertFalse(lobsTracker.isDocID("table1", "name"));
   }
 
-  @Test
-  public void shouldReturnFalse_() throws ModuleException {
-    lobsTracker.addDocID("table1", "name");
-    assertFalse(lobsTracker.isDocID("table1", "name2"));
-  }
-
-  // @Test
-  // public void
-
   private void addLOB() {
     lobsTracker.addLOB();
   }

@@ -51,8 +51,9 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   private ContentPathExportStrategy contentPathExportStrategy;
   private FileIndexFileStrategy fileIndexFileStrategy;
   private SIARDArchiveContainer baseContainer;
-  private OutputStream currentStream;
-  private BufferedWriter currentWriter;
+  private OutputStream tableXmlOutputStream;
+  private OutputStream tableXsdOutputStream;
+  private BufferedWriter tableXmlWriter;
   private WriteStrategy writeStrategy;
   private LOBsTracker lobsTracker;
   private MimetypeHandler mimetypeHandler;
@@ -85,9 +86,9 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   @Override
   public void openTable(TableStructure tableStructure) throws ModuleException {
 
-    currentStream = fileIndexFileStrategy.getWriter(baseContainer,
+    tableXmlOutputStream = fileIndexFileStrategy.getWriter(baseContainer,
       contentPathExportStrategy.getTableXmlFilePath(0, tableStructure.getIndex()), writeStrategy);
-    currentWriter = new BufferedWriter(new OutputStreamWriter(currentStream));
+    tableXmlWriter = new BufferedWriter(new OutputStreamWriter(tableXmlOutputStream));
 
     // Note: cannot use JAXB or JDOM to generate XML for tables, since the
     // actual tables are too large
@@ -112,7 +113,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
       .append(">").append("\n");
 
     try {
-      currentWriter.write(builder.toString());
+      tableXmlWriter.write(builder.toString());
     } catch (IOException e) {
       throw new ModuleException("Error handling open table " + tableStructure.getId(), e);
     }
@@ -186,9 +187,9 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     schema.addContent(complexTypeRowType);
 
     // Write schema to archive
-    currentStream = fileIndexFileStrategy.getWriter(baseContainer,
+    tableXsdOutputStream = fileIndexFileStrategy.getLOBWriter(baseContainer,
       contentPathExportStrategy.getTableXsdFilePath(0, tableStructure.getIndex()), writeStrategy);
-    BufferedWriter xsdWriter = new BufferedWriter(new OutputStreamWriter(currentStream));
+    BufferedWriter xsdWriter = new BufferedWriter(new OutputStreamWriter(tableXsdOutputStream));
 
     Document d = new Document(schema);
     XMLOutputter outputter = new XMLOutputter();
@@ -207,8 +208,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   @Override
   public void closeTable(TableStructure tableStructure) throws ModuleException {
     try {
-      currentWriter.write("</table>");
-      currentWriter.close();
+      tableXmlWriter.write("</table>");
+      tableXmlWriter.close();
 
       fileIndexFileStrategy.addFile(contentPathExportStrategy.getTableXmlFilePath(0, tableStructure.getIndex()));
 
@@ -223,7 +224,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   public void tableRow(Row row) throws ModuleException {
     try {
 
-      currentWriter.append(TAB).append("<row>\n");
+      tableXmlWriter.append(TAB).append("<row>\n");
 
       int columnIndex = 0;
       for (Cell cell : row.getCells()) {
@@ -239,11 +240,11 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
           SimpleCell simpleCell = (SimpleCell) cell;
           if (simpleCell.getSimpledata() != null) {
-            currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
+            tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
               .append(XMLUtils.encode(simpleCell.getSimpledata())).append("</c").append(String.valueOf(columnIndex))
               .append(">\n");
           } else {
-            currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
+            tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
               .append(" xsi:nil=\"true\"/>").append("\n");
           }
 
@@ -257,11 +258,11 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
             SimpleCell simpleCell = (SimpleCell) cell;
             if (simpleCell.getSimpledata() == null) {
-              currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
+              tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
                 .append(" xsi:nil=\"true\"/>").append("\n");
             } else {
               // lobsTracker.addLOB(); // Only if LOB not NULL
-              currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
+              tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
                 .append(XMLUtils.encode(simpleCell.getSimpledata())).append("</c").append(String.valueOf(columnIndex))
                 .append(">\n");
             }
@@ -276,14 +277,14 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
               // BLOB is NULL
 
-              currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
+              tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
                 .append(" xsi:nil=\"true\"/>").append("\n");
 
             } else {
 
               lobsTracker.addLOB(); // Only if LOB not NULL
 
-              currentWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
+              tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
                 .append(Integer.toString(lobsTracker.getLOBsCount())).append("</c").append(String.valueOf(columnIndex))
                 .append(">\n");
 
@@ -314,14 +315,17 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
                   throw new ModuleException("Error getting blob data");
                 }
 
-                // remember fileIndex !!!
+                // Create new FileIndexFileStrategy
 
                 // Write the BLOB
-                OutputStream out = writeStrategy.createOutputStream(baseContainer, blob.getPath());
+                OutputStream out = fileIndexFileStrategy.getLOBWriter(baseContainer, blob.getPath(), writeStrategy);
                 InputStream in = blob.getDatasource();
                 IOUtils.copy(in, out);
                 in.close();
                 out.close();
+
+                // Add file to fileIndex
+                fileIndexFileStrategy.addFile(blob.getPath());
 
               } else {
                 System.out.println("Detected mimetype: " + mimeType);
@@ -332,7 +336,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
         }
       }
 
-      currentWriter.append(TAB).append("</row>\n");
+      tableXmlWriter.append(TAB).append("</row>\n");
 
     } catch (IOException e) {
       throw new ModuleException("Could not write row " + row.toString(), e);

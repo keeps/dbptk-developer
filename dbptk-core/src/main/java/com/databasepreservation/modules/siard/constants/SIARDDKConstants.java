@@ -38,13 +38,18 @@ public class SIARDDKConstants {
   public static final String DOCUMENT_IDENTIFICATION = "documentIdentification";
   public static final String XML_SCHEMA = "XMLSchema";
 
-  // Maximum number of files that can be stored in folder
+  // Maximum number of files that can be stored in a folder
   public static final int MAX_NUMBER_OF_FILES = 10000;
 
   // Constants for LOBs
   public static final String BINARY_LARGE_OBJECT = "BINARY LARGE OBJECT";
   public static final String CHARACTER_LARGE_OBJECT = "CHARACTER LARGE OBJECT";
+  public static final String DEFAULT_MAX_CLOB_LENGTH = "2048";
+  public static final String DEFAULT_CLOB_TYPE = "NATIONAL CHARACTER VARYING";
 
   // Namespaces
   public static final String DBPTK_NS = "http://www.databasepreservation.com/xmlns/1.0";
+
+  // Digest algorithms
+  public static final String DIGEST_ALGORITHM = "MD5";
 }

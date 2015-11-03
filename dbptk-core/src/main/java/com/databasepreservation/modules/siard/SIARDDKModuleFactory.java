@@ -40,6 +40,14 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     .description("XML file containing list of document identifications").hasArgument(true).setOptionalArgument(false)
     .required(true);
 
+  private static final Parameter clobType = new Parameter().shortName("ct").longName("clobtype")
+    .description("Specify the type for CLOBs").hasArgument(true).setOptionalArgument(false).required(false)
+    .valueIfNotSet(SIARDDKConstants.DEFAULT_CLOB_TYPE);
+
+  private static final Parameter clobLength = new Parameter().shortName("cl").longName("cloblength")
+    .description("The threshold length of CLOBs before converting to tiff").hasArgument(true)
+    .setOptionalArgument(false).required(false).valueIfNotSet(SIARDDKConstants.DEFAULT_MAX_CLOB_LENGTH);
+
   @Override
   public boolean producesImportModules() {
     return false;
@@ -64,6 +72,8 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     parameterMap.put(contextDocumentationIndex.longName(), contextDocumentationIndex);
     parameterMap.put(contextDocmentationFolder.longName(), contextDocmentationFolder);
     parameterMap.put(docIDFile.longName(), docIDFile);
+    parameterMap.put(clobType.longName(), clobType);
+    parameterMap.put(clobLength.longName(), clobLength);
 
     return parameterMap;
   }
@@ -76,7 +86,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
   @Override
   public Parameters getExportModuleParameters() throws OperationNotSupportedException {
     return new Parameters(Arrays.asList(folder, archiveIndex, contextDocumentationIndex, contextDocmentationFolder,
-      docIDFile), null);
+      docIDFile, clobType, clobLength), null);
   }
 
   @Override
@@ -96,6 +106,8 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     String pContextDocumentationIndex = parameters.get(contextDocumentationIndex);
     String pContextDocumentationFolder = parameters.get(contextDocmentationFolder);
     String pDocIdFile = parameters.get(docIDFile);
+    String pClobType = parameters.get(clobType);
+    String pClobLength = parameters.get(clobLength);
 
     Map<String, String> exportModuleArgs = new HashMap<String, String>();
     exportModuleArgs.put(folder.longName(), pFolder);
@@ -103,6 +115,8 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     exportModuleArgs.put(contextDocumentationIndex.longName(), pContextDocumentationIndex);
     exportModuleArgs.put(contextDocmentationFolder.longName(), pContextDocumentationFolder);
     exportModuleArgs.put(docIDFile.longName(), pDocIdFile);
+    exportModuleArgs.put(clobType.longName(), pClobType);
+    exportModuleArgs.put(clobLength.longName(), pClobLength);
 
     return new SIARDDKExportModule(exportModuleArgs).getDatabaseExportModule();
   }
