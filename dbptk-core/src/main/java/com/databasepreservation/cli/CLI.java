@@ -210,10 +210,10 @@ public class CLI {
     DatabaseModuleFactory exportModuleFactory = null;
     for (DatabaseModuleFactory factory : factories) {
       String moduleName = factory.getModuleName();
-      if (moduleName.equals(importModuleName) && factory.producesImportModules()) {
+      if (moduleName.equalsIgnoreCase(importModuleName) && factory.producesImportModules()) {
         importModuleFactory = factory;
       }
-      if (moduleName.equals(exportModuleName) && factory.producesExportModules()) {
+      if (moduleName.equalsIgnoreCase(exportModuleName) && factory.producesExportModules()) {
         exportModuleFactory = factory;
       }
     }

@@ -25,9 +25,9 @@ public class SQLServerJDBCModuleFactoryTest {
 
   @Test
   public void arguments_required_long() {
-    List<String> args = Arrays.asList("--import=SQLServerJDBC", "--import-username=name-user",
+    List<String> args = Arrays.asList("--import=microsoft-sql-server", "--import-username=name-user",
       "--import-password=abc1 23=456", "--import-server-name=the-server-name", "--import-database=dbname",
-      "--import-disable-encryption", "--export=SQLServerJDBC", "--export-username=name-another-user",
+      "--import-disable-encryption", "--export=microsoft-sql-server", "--export-username=name-another-user",
       "--export-password=2bcd123=456", "--export-server-name=another-server", "--export-database=another-db-name");
 
     // test parameters for import module
@@ -50,8 +50,8 @@ public class SQLServerJDBCModuleFactoryTest {
 
   @Test
   public void arguments_required_short() {
-    List<String> args = Arrays.asList("-i", "SQLServerJDBC", "-iu", "name-user", "-ip", "abc1 23=456", "-is",
-      "the-server-name", "-idb", "dbname", "-e", "SQLServerJDBC", "-eu", "name-another-user", "-ep", "2bcd123=456",
+    List<String> args = Arrays.asList("-i", "microsoft-sql-server", "-iu", "name-user", "-ip", "abc1 23=456", "-is",
+      "the-server-name", "-idb", "dbname", "-e", "microsoft-sql-server", "-eu", "name-another-user", "-ep", "2bcd123=456",
       "-es", "another-server", "-ede", "-edb", "another-db-name");
 
     // test parameters for import module
@@ -74,8 +74,8 @@ public class SQLServerJDBCModuleFactoryTest {
 
   @Test
   public void arguments_instanceName_short() {
-    List<String> args = Arrays.asList("-i", "SQLServerJDBC", "-iu", "name-user", "-ip", "abc1 23=456", "-is",
-      "the-server-name", "-idb", "dbname", "-iin", "name-for-the-instance", "-e", "SQLServerJDBC", "-eu",
+    List<String> args = Arrays.asList("-i", "microsoft-sql-server", "-iu", "name-user", "-ip", "abc1 23=456", "-is",
+      "the-server-name", "-idb", "dbname", "-iin", "name-for-the-instance", "-e", "microsoft-sql-server", "-eu",
       "name-another-user", "-ep", "2bcd123=456", "-es", "another-server", "-edb", "another-db-name", "-ein",
       "name-for-another-instance");
 
@@ -100,9 +100,9 @@ public class SQLServerJDBCModuleFactoryTest {
 
   @Test
   public void arguments_instanceName_long() {
-    List<String> args = Arrays.asList("--import=SQLServerJDBC", "--import-username=name-user",
+    List<String> args = Arrays.asList("--import=microsoft-sql-server", "--import-username=name-user",
       "--import-password=abc1 23=456", "--import-server-name=the-server-name", "--import-database=dbname",
-      "--import-instance-name=name-for-the-instance", "--export=SQLServerJDBC", "--export-username=name-another-user",
+      "--import-instance-name=name-for-the-instance", "--export=microsoft-sql-server", "--export-username=name-another-user",
       "--export-password=2bcd123=456", "--export-server-name=another-server", "--export-database=another-db-name",
       "--export-instance-name=name-for-another-instance");
 
@@ -127,8 +127,8 @@ public class SQLServerJDBCModuleFactoryTest {
 
   @Test
   public void arguments_portNumber_short() {
-    List<String> args = Arrays.asList("-i", "SQLServerJDBC", "-iu", "name-user", "-ip", "abc1 23=456", "-is",
-      "the-server-name", "-idb", "dbname", "-ipn", "1234", "-e", "SQLServerJDBC", "-eu", "name-another-user", "-ep",
+    List<String> args = Arrays.asList("-i", "microsoft-sql-server", "-iu", "name-user", "-ip", "abc1 23=456", "-is",
+      "the-server-name", "-idb", "dbname", "-ipn", "1234", "-e", "microsoft-sql-server", "-eu", "name-another-user", "-ep",
       "2bcd123=456", "-es", "another-server", "-edb", "another-db-name", "-epn", "4321");
 
     // test parameters for import module
@@ -152,9 +152,9 @@ public class SQLServerJDBCModuleFactoryTest {
 
   @Test
   public void arguments_portNumber_long() {
-    List<String> args = Arrays.asList("--import=SQLServerJDBC", "--import-username=name-user",
+    List<String> args = Arrays.asList("--import=microsoft-sql-server", "--import-username=name-user",
       "--import-password=abc1 23=456", "--import-server-name=the-server-name", "--import-database=dbname",
-      "--import-port-number=1234", "--export=SQLServerJDBC", "--export-username=name-another-user",
+      "--import-port-number=1234", "--export=microsoft-sql-server", "--export-username=name-another-user",
       "--export-password=2bcd123=456", "--export-server-name=another-server", "--export-database=another-db-name",
       "--export-port-number=4321");
 

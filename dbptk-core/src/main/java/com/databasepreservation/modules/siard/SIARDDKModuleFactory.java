@@ -47,7 +47,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public String getModuleName() {
-    return "SIARDDK";
+    return "siard-dk";
   }
 
   @Override

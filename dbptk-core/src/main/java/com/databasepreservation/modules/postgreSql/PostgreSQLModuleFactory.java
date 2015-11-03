@@ -55,7 +55,7 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public String getModuleName() {
-    return "PostgreSQLJDBC";
+    return "postgresql";
   }
 
   @Override

@@ -55,7 +55,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public String getModuleName() {
-    return "SIARD2";
+    return "siard-2";
   }
 
   @Override
