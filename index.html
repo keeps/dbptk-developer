@@ -60,28 +60,7 @@ Usage: dbptk [plugin] &lt;importModule&gt; [import module options] &lt;exportMod
 
 ## Available import modules: -i &lt;module&gt;, --import=module
 
-Import module: MySQLJDBC
-    -ih, --import-hostname=value    (required) the hostname of the MySQL server
-    -idb, --import-database=value    (required) the name of the database to import from
-    -iu, --import-username=value    (required) the name of the user to use in connection
-    -ip, --import-password=value    (required) the password of the user to use in connection
-    -ipn, --import-port-number=value    (optional) the port that the MySQL server is listening
-
-Import module: PostgreSQLJDBC
-    -ih, --import-hostname=value    (required) the name of the PostgreSQL server host (e.g. localhost)
-    -idb, --import-database=value    (required) the name of the database to connect to
-    -iu, --import-username=value    (required) the name of the user to use in connection
-    -ip, --import-password=value    (required) the password of the user to use in connection
-    -ide, --import-disable-encryption    (optional) use to turn off encryption in the connection
-    -ipn, --import-port-number=value    (optional) the port of where the PostgreSQL server is listening, default is 5432
-
-Import module: SIARD1
-    -if, --import-file=value    (required) Path to SIARD1 archive file
-
-Import module: SIARD2
-    -if, --import-file=value    (required) Path to SIARD2 archive file
-
-Import module: SQLServerJDBC
+Import module: microsoft-sql-server
     -is, --import-server-name=value    (required) the name (host name) of the server
     -idb, --import-database=value    (required) the name of the database we'll be accessing
     -iu, --import-username=value    (required) the name of the user to use in the connection
@@ -91,40 +70,30 @@ Import module: SQLServerJDBC
     -iin, --import-instance-name=value    (optional) the name of the instance
     -ipn, --import-port-number=value    (optional) the port number of the server instance, default is 1433
 
+Import module: mysql
+    -ih, --import-hostname=value    (required) the hostname of the MySQL server
+    -idb, --import-database=value    (required) the name of the database to import from
+    -iu, --import-username=value    (required) the name of the user to use in connection
+    -ip, --import-password=value    (required) the password of the user to use in connection
+    -ipn, --import-port-number=value    (optional) the port that the MySQL server is listening
+
+Import module: postgresql
+    -ih, --import-hostname=value    (required) the name of the PostgreSQL server host (e.g. localhost)
+    -idb, --import-database=value    (required) the name of the database to connect to
+    -iu, --import-username=value    (required) the name of the user to use in connection
+    -ip, --import-password=value    (required) the password of the user to use in connection
+    -ide, --import-disable-encryption    (optional) use to turn off encryption in the connection
+    -ipn, --import-port-number=value    (optional) the port of where the PostgreSQL server is listening, default is 5432
+
+Import module: siard-1
+    -if, --import-file=value    (required) Path to SIARD1 archive file
+
+Import module: siard-2
+    -if, --import-file=value    (required) Path to SIARD2 archive file
+
 ## Available export modules: -e &lt;module&gt;, --export=module
 
-Export module: MySQLJDBC
-    -eh, --export-hostname=value    (required) the hostname of the MySQL server
-    -edb, --export-database=value    (required) the name of the database to import from
-    -eu, --export-username=value    (required) the name of the user to use in connection
-    -ep, --export-password=value    (required) the password of the user to use in connection
-    -epn, --export-port-number=value    (optional) the port that the MySQL server is listening
-
-Export module: PostgreSQLJDBC
-    -eh, --export-hostname=value    (required) the name of the PostgreSQL server host (e.g. localhost)
-    -edb, --export-database=value    (required) the name of the database to connect to
-    -eu, --export-username=value    (required) the name of the user to use in connection
-    -ep, --export-password=value    (required) the password of the user to use in connection
-    -ede, --export-disable-encryption    (optional) use to turn off encryption in the connection
-    -epn, --export-port-number=value    (optional) the port of where the PostgreSQL server is listening, default is 5432
-
-Export module: SIARD1
-    -ef, --export-file=value    (required) Path to SIARD1 archive file
-    -ec, --export-compress    (optional) use to compress the SIARD1 archive file with deflate method
-    -ep, --export-pretty-xml    (optional) write human-readable XML
-
-Export module: SIARD2
-    -ef, --export-file=value    (required) Path to SIARD2 archive file
-    -ec, --export-compress    (optional) use to compress the SIARD2 archive file with deflate method
-    -ep, --export-pretty-xml    (optional) write human-readable XML
-
-Export module: SIARDDK
-    -ef, --export-folder=value    (required) Path to SIARDDK archive folder
-    -eai, --export-archiveIndex=value    (optional) Path to archiveIndex.xml input file
-    -eci, --export-contextDocumentationIndex=value    (optional) Path to contextDocumentationIndex.xml input file
-    -ecf, --export-contextDocumentationFolder=value    (optional) Path to contextDocumentation folder which should contain the context documentation for the archive
-
-Export module: SQLServerJDBC
+Export module: microsoft-sql-server
     -es, --export-server-name=value    (required) the name (host name) of the server
     -edb, --export-database=value    (required) the name of the database we'll be accessing
     -eu, --export-username=value    (required) the name of the user to use in the connection
@@ -133,6 +102,37 @@ Export module: SQLServerJDBC
     -ede, --export-disable-encryption    (optional) use to turn off encryption in the connection
     -ein, --export-instance-name=value    (optional) the name of the instance
     -epn, --export-port-number=value    (optional) the port number of the server instance, default is 1433
+
+Export module: mysql
+    -eh, --export-hostname=value    (required) the hostname of the MySQL server
+    -edb, --export-database=value    (required) the name of the database to import from
+    -eu, --export-username=value    (required) the name of the user to use in connection
+    -ep, --export-password=value    (required) the password of the user to use in connection
+    -epn, --export-port-number=value    (optional) the port that the MySQL server is listening
+
+Export module: postgresql
+    -eh, --export-hostname=value    (required) the name of the PostgreSQL server host (e.g. localhost)
+    -edb, --export-database=value    (required) the name of the database to connect to
+    -eu, --export-username=value    (required) the name of the user to use in connection
+    -ep, --export-password=value    (required) the password of the user to use in connection
+    -ede, --export-disable-encryption    (optional) use to turn off encryption in the connection
+    -epn, --export-port-number=value    (optional) the port of where the PostgreSQL server is listening, default is 5432
+
+Export module: siard-1
+    -ef, --export-file=value    (required) Path to SIARD1 archive file
+    -ec, --export-compress    (optional) use to compress the SIARD1 archive file with deflate method
+    -ep, --export-pretty-xml    (optional) write human-readable XML
+
+Export module: siard-2
+    -ef, --export-file=value    (required) Path to SIARD2 archive file
+    -ec, --export-compress    (optional) use to compress the SIARD2 archive file with deflate method
+    -ep, --export-pretty-xml    (optional) write human-readable XML
+
+Export module: siard-dk
+    -ef, --export-folder=value    (required) Path to SIARDDK archive folder
+    -eai, --export-archiveIndex=value    (optional) Path to archiveIndex.xml input file
+    -eci, --export-contextDocumentationIndex=value    (optional) Path to contextDocumentationIndex.xml input file
+    -ecf, --export-contextDocumentationFolder=value    (optional) Path to contextDocumentation folder which should contain the context documentation for the archive
 </code></pre>
 
 <p>You have to select an input and an output module, providing for each its configuration.</p>
