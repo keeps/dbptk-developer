@@ -14,7 +14,7 @@ A new version of the this tool, together with a [new version of the SIARD preser
 ## Download pre-compiled version
 
 Binaries with all dependencies included:
-* [db-preservation-toolkit v2.0.0-rc3.0.1](https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-rc3.0.1/dbptk-core-2.0.0-rc3.0.1-jar-with-dependencies.jar) (pre-release, SIARD still lacks LOBs and UDTs)
+* [db-preservation-toolkit v2.0.0-rc3.1.0](https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-rc3.1.0/dbptk-core-2.0.0-rc3.1.0-jar-with-dependencies.jar) (pre-release, SIARD still lacks LOBs and UDTs)
 * [db-preservation-toolkit v1.0.1](https://github.com/keeps/db-preservation-toolkit/releases/download/v1.0.1/db-preservation-toolkit-1.0.1-jar-with-dependencies.jar)
 * [db-preservation-toolkit v1.0.0](http://keeps.github.io/db-preservation-toolkit/db-preservation-toolkit-1.0.0-jar-with-dependencies.jar)
 
@@ -90,6 +90,12 @@ Export module: SIARD2
     -ef, --export-file=value    (required) Path to SIARD2 archive file
     -ec, --export-compress    (optional) use to compress the SIARD2 archive file with deflate method
     -ep, --export-pretty-xml    (optional) write human-readable XML
+
+Export module: SIARDDK
+    -ef, --export-folder=value    (required) Path to SIARDDK archive folder
+    -eai, --export-archiveIndex=value    (optional) Path to archiveIndex.xml input file
+    -eci, --export-contextDocumentationIndex=value    (optional) Path to contextDocumentationIndex.xml input file
+    -ecf, --export-contextDocumentationFolder=value    (optional) Path to contextDocumentation folder which should contain the context documentation for the archive
 
 Export module: SQLServerJDBC
     -es, --export-server-name=value    (required) the name (host name) of the server
