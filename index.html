@@ -2,7 +2,7 @@
 <html lang="en-us">
   <head>
     <meta charset="UTF-8">
-    <title>Db-preservation-toolkit by keeps</title>
+    <title>db-preservation-toolkit by keeps</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
@@ -11,7 +11,7 @@
   </head>
   <body>
     <section class="page-header">
-      <h1 class="project-name">Db-preservation-toolkit</h1>
+      <h1 class="project-name">db-preservation-toolkit</h1>
       <h2 class="project-tagline">Database Preservation Toolkit</h2>
       <a href="https://github.com/keeps/db-preservation-toolkit" class="btn">View on GitHub</a>
       <a href="https://github.com/keeps/db-preservation-toolkit/zipball/master" class="btn">Download .zip</a>
@@ -40,7 +40,7 @@
 
 <ul>
 <li>
-<a href="https://github.com/keeps/db-preservation-toolkit/releases/download/2.1.1/db-preservation-toolkit-2.1.1-jar-with-dependencies.jar">db-preservation-toolkit v2.1.1</a> (pre-release, SIARD still lacks LOBs and UDTs)</li>
+<a href="https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-rc3.1.0/dbptk-core-2.0.0-rc3.1.0-jar-with-dependencies.jar">db-preservation-toolkit v2.0.0-rc3.1.0</a> (pre-release, SIARD still lacks LOBs and UDTs)</li>
 <li><a href="https://github.com/keeps/db-preservation-toolkit/releases/download/v1.0.1/db-preservation-toolkit-1.0.1-jar-with-dependencies.jar">db-preservation-toolkit v1.0.1</a></li>
 <li><a href="http://keeps.github.io/db-preservation-toolkit/db-preservation-toolkit-1.0.0-jar-with-dependencies.jar">db-preservation-toolkit v1.0.0</a></li>
 </ul>
@@ -50,8 +50,10 @@
 
 <p>To use the program, open a command-line and try out the following command (replace x.y.z accordingly to the version of the binary in use):</p>
 
-<pre lang="text"><code>$ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar
-Usage: dbptk &lt;importModule&gt; [import module options] &lt;exportModule&gt; [export module options]
+<pre lang="text"><code>$ java -jar dbptk-core-X.Y.Z-jar-with-dependencies.jar
+Database Preservation Toolkit, vX.Y.Z
+More info: http://www.database-preservation.com
+Usage: dbptk [plugin] &lt;importModule&gt; [import module options] &lt;exportModule&gt; [export module options]
 
 ## Plugin:
     -p, --plugin=plugin.jar    (optional) the file containing a plugin module. Several plugins can be specified, separated by a semi-colon (;)
@@ -59,59 +61,85 @@ Usage: dbptk &lt;importModule&gt; [import module options] &lt;exportModule&gt; [
 ## Available import modules: -i &lt;module&gt;, --import=module
 
 Import module: MySQLJDBC
-    -ih, --ihostname=value    (required) the hostname of the MySQL server
-    -idb, --idatabase=value    (required) the name of the database to import from
-    -iu, --iusername=value    (required) the name of the user to use in connection
-    -ip, --ipassword=value    (required) the password of the user to use in connection
-    -ipn, --iport-number=value    (optional) the port that the MySQL server is listening
+    -ih, --import-hostname=value    (required) the hostname of the MySQL server
+    -idb, --import-database=value    (required) the name of the database to import from
+    -iu, --import-username=value    (required) the name of the user to use in connection
+    -ip, --import-password=value    (required) the password of the user to use in connection
+    -ipn, --import-port-number=value    (optional) the port that the MySQL server is listening
 
 Import module: PostgreSQLJDBC
-    -ih, --ihostname=value    (required) the name of the PostgreSQL server host (e.g. localhost)
-    -idb, --idatabase=value    (required) the name of the database to connect to
-    -iu, --iusername=value    (required) the name of the user to use in connection
-    -ip, --ipassword=value    (required) the password of the user to use in connection
-    -ide, --idisable-encryption    (optional) use to turn off encryption in the connection
-    -ipn, --iport-number=value    (optional) the port of where the PostgreSQL server is listening, default is 5432
+    -ih, --import-hostname=value    (required) the name of the PostgreSQL server host (e.g. localhost)
+    -idb, --import-database=value    (required) the name of the database to connect to
+    -iu, --import-username=value    (required) the name of the user to use in connection
+    -ip, --import-password=value    (required) the password of the user to use in connection
+    -ide, --import-disable-encryption    (optional) use to turn off encryption in the connection
+    -ipn, --import-port-number=value    (optional) the port of where the PostgreSQL server is listening, default is 5432
 
 Import module: SIARD1
-    -if, --ifile=value    (required) Path to SIARD1 archive file
+    -if, --import-file=value    (required) Path to SIARD1 archive file
 
 Import module: SIARD2
-    -if, --ifile=value    (required) Path to SIARD2 archive file
+    -if, --import-file=value    (required) Path to SIARD2 archive file
+
+Import module: SQLServerJDBC
+    -is, --import-server-name=value    (required) the name (host name) of the server
+    -idb, --import-database=value    (required) the name of the database we'll be accessing
+    -iu, --import-username=value    (required) the name of the user to use in the connection
+    -ip, --import-password=value    (required) the password of the user to use in the connection
+    -il, --import-use-integrated-login    (optional) use windows login; by default the SQL Server login is used
+    -ide, --import-disable-encryption    (optional) use to turn off encryption in the connection
+    -iin, --import-instance-name=value    (optional) the name of the instance
+    -ipn, --import-port-number=value    (optional) the port number of the server instance, default is 1433
 
 ## Available export modules: -e &lt;module&gt;, --export=module
 
 Export module: MySQLJDBC
-    -eh, --ehostname=value    (required) the hostname of the MySQL server
-    -edb, --edatabase=value    (required) the name of the database to import from
-    -eu, --eusername=value    (required) the name of the user to use in connection
-    -ep, --epassword=value    (required) the password of the user to use in connection
-    -epn, --eport-number=value    (optional) the port that the MySQL server is listening
+    -eh, --export-hostname=value    (required) the hostname of the MySQL server
+    -edb, --export-database=value    (required) the name of the database to import from
+    -eu, --export-username=value    (required) the name of the user to use in connection
+    -ep, --export-password=value    (required) the password of the user to use in connection
+    -epn, --export-port-number=value    (optional) the port that the MySQL server is listening
 
 Export module: PostgreSQLJDBC
-    -eh, --ehostname=value    (required) the name of the PostgreSQL server host (e.g. localhost)
-    -edb, --edatabase=value    (required) the name of the database to connect to
-    -eu, --eusername=value    (required) the name of the user to use in connection
-    -ep, --epassword=value    (required) the password of the user to use in connection
-    -ede, --edisable-encryption    (optional) use to turn off encryption in the connection
-    -epn, --eport-number=value    (optional) the port of where the PostgreSQL server is listening, default is 5432
+    -eh, --export-hostname=value    (required) the name of the PostgreSQL server host (e.g. localhost)
+    -edb, --export-database=value    (required) the name of the database to connect to
+    -eu, --export-username=value    (required) the name of the user to use in connection
+    -ep, --export-password=value    (required) the password of the user to use in connection
+    -ede, --export-disable-encryption    (optional) use to turn off encryption in the connection
+    -epn, --export-port-number=value    (optional) the port of where the PostgreSQL server is listening, default is 5432
 
 Export module: SIARD1
-    -ef, --efile=value    (required) Path to SIARD1 archive file
-    -ec, --ecompress    (optional) use to compress the SIARD1 archive file with deflate method
-    -ep, --epretty-xml    (optional) write human-readable XML
+    -ef, --export-file=value    (required) Path to SIARD1 archive file
+    -ec, --export-compress    (optional) use to compress the SIARD1 archive file with deflate method
+    -ep, --export-pretty-xml    (optional) write human-readable XML
 
 Export module: SIARD2
-    -ef, --efile=value    (required) Path to SIARD2 archive file
-    -ec, --ecompress    (optional) use to compress the SIARD2 archive file with deflate method
-    -ep, --epretty-xml    (optional) write human-readable XML
+    -ef, --export-file=value    (required) Path to SIARD2 archive file
+    -ec, --export-compress    (optional) use to compress the SIARD2 archive file with deflate method
+    -ep, --export-pretty-xml    (optional) write human-readable XML
+
+Export module: SIARDDK
+    -ef, --export-folder=value    (required) Path to SIARDDK archive folder
+    -eai, --export-archiveIndex=value    (optional) Path to archiveIndex.xml input file
+    -eci, --export-contextDocumentationIndex=value    (optional) Path to contextDocumentationIndex.xml input file
+    -ecf, --export-contextDocumentationFolder=value    (optional) Path to contextDocumentation folder which should contain the context documentation for the archive
+
+Export module: SQLServerJDBC
+    -es, --export-server-name=value    (required) the name (host name) of the server
+    -edb, --export-database=value    (required) the name of the database we'll be accessing
+    -eu, --export-username=value    (required) the name of the user to use in the connection
+    -ep, --export-password=value    (required) the password of the user to use in the connection
+    -el, --export-use-integrated-login    (optional) use windows login; by default the SQL Server login is used
+    -ede, --export-disable-encryption    (optional) use to turn off encryption in the connection
+    -ein, --export-instance-name=value    (optional) the name of the instance
+    -epn, --export-port-number=value    (optional) the port number of the server instance, default is 1433
 </code></pre>
 
 <p>You have to select an input and an output module, providing for each its configuration.</p>
 
 <p>For example, if you want to connect to a live MySQL database and export its content to SIARD 1.0 format, you can use the following command.</p>
 
-<div class="highlight highlight-source-shell"><pre>$ java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar \
+<div class="highlight highlight-source-shell"><pre>$ java -jar dbptk-core-x.y.z-jar-with-dependencies.jar \
 -i MySQLJDBC -ihostname=localhost -idb example_db -iu username -ip p4ssw0rd \
 -o SIARD1 example.siard</pre></div>
 
@@ -162,7 +190,7 @@ Export module: SIARD2
 
 <p>The toolkit might need more memory than it is available by default (normally 64MB). To increase the available memory use the <code>-Xmx</code> option. For example, the following command will increase the heap size to 3 GB.</p>
 
-<div class="highlight highlight-source-shell"><pre>$ java -Xmx3g -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar ...</pre></div>
+<div class="highlight highlight-source-shell"><pre>$ java -Xmx3g -jar dbptk-core-x.y.z-jar-with-dependencies.jar ...</pre></div>
 
 <p>The toolkit needs enough memory to put the table structure definition in memory (not the data) and to load each data row or row set, which might include having some BLOBs completely in memory, but this depends on the database driver implementation.</p>
 
@@ -170,7 +198,7 @@ Export module: SIARD2
 
 <p>Due to the structure of some export modules (e.g. SIARD) and because we only want to pass throught the database once with minimum amount of used memory, all BLOBs and CLOBs of a database table must be kept on temporary files during the export of a table. This can cause your main disk to get full and the execution to fail. To select a diferent folder for the temporary files, e.g. on a bigger hard drive, use the option <code>-Djava.io.tmpdir=/path/to/tmpdir</code>. For example, the following command will use the folder <code>/media/BIGHD/tmp</code> as the temporary folder:</p>
 
-<div class="highlight highlight-source-shell"><pre>$ java -Djava.io.tmpdir=/media/BIGHD/tmp -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar ...</pre></div>
+<div class="highlight highlight-source-shell"><pre>$ java -Djava.io.tmpdir=/media/BIGHD/tmp -jar dbptk-core-x.y.z-jar-with-dependencies.jar ...</pre></div>
 
 <h2>
 <a id="information--commercial-support" class="anchor" href="#information--commercial-support" aria-hidden="true"><span class="octicon octicon-link"></span></a>Information &amp; Commercial support</h2>
@@ -215,7 +243,7 @@ Export module: SIARD2
 <p>The jars should now be installed in <code>&lt;project_dir&gt;/vendor-libs</code> (and also in your local maven repository).</p>
 
       <footer class="site-footer">
-        <span class="site-footer-owner"><a href="https://github.com/keeps/db-preservation-toolkit">Db-preservation-toolkit</a> is maintained by <a href="https://github.com/keeps">keeps</a>.</span>
+        <span class="site-footer-owner"><a href="https://github.com/keeps/db-preservation-toolkit">db-preservation-toolkit</a> is maintained by <a href="https://github.com/keeps">keeps</a>.</span>
 
         <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
       </footer>
