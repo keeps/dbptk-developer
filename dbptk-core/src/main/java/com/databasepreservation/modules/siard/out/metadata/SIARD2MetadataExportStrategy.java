@@ -14,7 +14,6 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
-import com.databasepreservation.modules.siard.out.content.sql99toXSDType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -73,6 +72,7 @@ import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.modules.siard.SIARDHelper;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
+import com.databasepreservation.modules.siard.out.content.sql99toXSDType;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.JodaUtils;
@@ -587,7 +587,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
 
     // specific fields for lobs
     String xsdTypeFromColumnSql99Type = sql99toXSDType.convert(column.getType().getSql99TypeName());
-    if(xsdTypeFromColumnSql99Type.equals("clobType") || xsdTypeFromColumnSql99Type.equals("blobType")){
+    if (xsdTypeFromColumnSql99Type.equals("clobType") || xsdTypeFromColumnSql99Type.equals("blobType")) {
       columnType.setFolder(contentPathStrategy.getColumnFolderName(columnIndex));
     }
 

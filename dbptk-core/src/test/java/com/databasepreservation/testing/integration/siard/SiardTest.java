@@ -217,8 +217,7 @@ public class SiardTest {
     // TODO: columns_table12.get(4).getType().setSql99TypeName("BLOB");
     columns_table12.get(4).getType().setSql99TypeName("BINARY LARGE OBJECT");
     columns_table12.get(4).getType().setDescription("col125 description");
-    columns_table12.get(4).setNillable(true); // fixme: fix siard2 lobs and
-                                              // change this to false
+    columns_table12.get(4).setNillable(false);
 
     // columns_table12.get(5).getType().setOriginalTypeName("TEXT");
     // columns_table12.get(5).getType().setSql99TypeName("BINARY LARGE OBJECT");

@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.exception.ModuleException;
@@ -36,6 +37,11 @@ public class SIARD1ContentPathImportStrategy implements ContentPathImportStrateg
 
   public SIARD1ContentPathImportStrategy() {
 
+  }
+
+  @Override
+  public String getLobPath(String basePath, String schemaName, String tableId, String columnId, String lobFileName) {
+    throw new NotImplementedException("getLobPath in ContentPathImportStrategy method is not needed for SIARD1");
   }
 
   public void associateSchemaWithFolder(String schemaName, String schemaFolder) {
