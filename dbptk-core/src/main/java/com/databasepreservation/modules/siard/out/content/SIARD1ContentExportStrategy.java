@@ -24,6 +24,7 @@ import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.modules.siard.common.LargeObject;
+import com.databasepreservation.modules.siard.common.ProvidesInputStream;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
@@ -94,14 +95,10 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     }
 
     // write lobs if they have not been written yet
-    try {
-      if (!writeStrategy.isSimultaneousWritingSupported()) {
-        for (LargeObject largeObject : LOBsToExport) {
-          writeLOB(largeObject);
-        }
+    if (!writeStrategy.isSimultaneousWritingSupported()) {
+      for (LargeObject largeObject : LOBsToExport) {
+        writeLOB(largeObject);
       }
-    } catch (IOException e) {
-      throw new ModuleException("Error writing LOBs", e);
     }
 
     // export table XSD
@@ -177,7 +174,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
       if (length == 0) {
         simpleCell.setSimpledata(null);
       } else {
-        InputStream inputStream = binaryCell.getInputstream();
+        InputStream inputStream = binaryCell.createInputstream();
         byte[] bytes = IOUtils.toByteArray(inputStream);
         inputStream.close();
         simpleCell.setSimpledata(Hex.encodeHexString(bytes));
@@ -202,7 +199,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     LargeObject lob = null;
 
     if (cell instanceof BinaryCell) {
-      BinaryCell binCell = (BinaryCell) cell;
+      final BinaryCell binCell = (BinaryCell) cell;
 
       String path = contentPathStrategy.getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
         currentRowIndex + 1);
@@ -211,11 +208,12 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
       currentWriter.append(path).append('"').space().append("length=\"").append(String.valueOf(binCell.getLength()))
         .append("\"");
 
-      try {
-        lob = new LargeObject(binCell.getInputstream(), path);
-      } catch (ModuleException e) {
-        throw new ModuleException("Error getting blob data");
-      }
+      lob = new LargeObject(new ProvidesInputStream() {
+        @Override
+        public InputStream createInputStream() throws ModuleException {
+          return binCell.createInputstream();
+        }
+      }, path);
     } else if (cell instanceof SimpleCell) {
       SimpleCell txtCell = (SimpleCell) cell;
 
@@ -228,13 +226,17 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
 
       // workaround to have data from CLOBs saved as a temporary file to be read
       String data = txtCell.getSimpledata();
+      ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
       try {
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
-        FileItem fileItem = new FileItem(inputStream);
+        final FileItem fileItem = new FileItem(inputStream);
+        lob = new LargeObject(new ProvidesInputStream() {
+          @Override
+          public InputStream createInputStream() throws ModuleException {
+            return fileItem.createInputStream();
+          }
+        }, path);
+      } finally {
         inputStream.close();
-        lob = new LargeObject(fileItem.getInputStream(), path);
-      } catch (ModuleException e) {
-        throw new ModuleException("Error getting clob data");
       }
     }
 
@@ -276,16 +278,24 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     currentWriter.closeTag("table", 0);
   }
 
-  private void writeLOB(LargeObject lob) throws ModuleException, IOException {
-    OutputStream out = writeStrategy.createOutputStream(baseContainer, lob.getPath());
-    InputStream in = lob.getDatasource();
+  private void writeLOB(LargeObject lob) throws ModuleException {
+    OutputStream out = writeStrategy.createOutputStream(baseContainer, lob.getOutputPath());
+    InputStream in = lob.getInputStreamProvider().createInputStream();
 
     // copy lob to output
-    IOUtils.copy(in, out);
-
-    // close resources
-    in.close();
-    out.close();
+    try {
+      IOUtils.copy(in, out);
+    } catch (IOException e) {
+      throw new ModuleException("Could not write lob", e);
+    } finally {
+      // close resources
+      try {
+        in.close();
+        out.close();
+      } catch (IOException e) {
+        logger.warn("Could not cleanup lob resources", e);
+      }
+    }
   }
 
   private void writeXsd() throws IOException, ModuleException {

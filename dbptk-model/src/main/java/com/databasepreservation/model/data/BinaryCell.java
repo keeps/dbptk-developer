@@ -63,11 +63,11 @@ public class BinaryCell extends Cell {
   }
 
   /**
-   * @return the inputstream to fetch the binary data
+   * @return create an inputstream to fetch the binary data
    * @throws ModuleException
    */
-  public InputStream getInputstream() throws ModuleException {
-    return fileItem != null ? fileItem.getInputStream() : null;
+  public InputStream createInputstream() throws ModuleException {
+    return fileItem != null ? fileItem.createInputStream() : null;
   }
 
   /**

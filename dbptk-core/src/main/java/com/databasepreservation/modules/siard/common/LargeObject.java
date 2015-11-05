@@ -1,24 +1,24 @@
 package com.databasepreservation.modules.siard.common;
 
-import java.io.InputStream;
+import java.nio.file.Path;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class LargeObject {
-  private final InputStream datasource;
-  private final String path;
+  private final ProvidesInputStream inputStream;
+  private final String outputPath;
 
-  public LargeObject(InputStream datasource, String path) {
-    this.datasource = datasource;
-    this.path = path;
+  public LargeObject(ProvidesInputStream inputStream, String outputPath) {
+    this.inputStream = inputStream;
+    this.outputPath = outputPath;
   }
 
-  public InputStream getDatasource() {
-    return datasource;
+  public ProvidesInputStream getInputStreamProvider() {
+    return inputStream;
   }
 
-  public String getPath() {
-    return path;
+  public String getOutputPath() {
+    return outputPath;
   }
 }

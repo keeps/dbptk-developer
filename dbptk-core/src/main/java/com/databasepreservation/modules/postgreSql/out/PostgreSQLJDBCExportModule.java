@@ -208,6 +208,6 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
   @Override
   protected void handleSimpleTypeString(PreparedStatement ps, int index, BinaryCell bin) throws SQLException,
     ModuleException {
-    ps.setBinaryStream(index, bin.getInputstream(), bin.getLength());
+    ps.setBinaryStream(index, bin.createInputstream(), bin.getLength());
   }
 }

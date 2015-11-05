@@ -529,8 +529,8 @@ public class JDBCExportModule implements DatabaseExportModule {
         final BinaryCell bin = (BinaryCell) cell;
 
         if (type instanceof SimpleTypeBinary) {
-          if (bin.getInputstream() != null) {
-            ps.setBinaryStream(index, bin.getInputstream(), (int) bin.getLength());
+          if (bin.createInputstream() != null) {
+            ps.setBinaryStream(index, bin.createInputstream(), (int) bin.getLength());
           } else {
             logger.debug("is null");
             ps.setNull(index, Types.BINARY);
@@ -652,7 +652,7 @@ public class JDBCExportModule implements DatabaseExportModule {
 
   protected void handleSimpleTypeString(PreparedStatement ps, int index, BinaryCell bin) throws SQLException,
     ModuleException {
-    ps.setClob(index, new InputStreamReader(bin.getInputstream()), bin.getLength());
+    ps.setClob(index, new InputStreamReader(bin.createInputstream()), bin.getLength());
   }
 
   @Override

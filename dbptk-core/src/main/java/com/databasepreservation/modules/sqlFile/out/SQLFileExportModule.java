@@ -281,7 +281,7 @@ public class SQLFileExportModule implements DatabaseExportModule {
             BinaryCell bin = (BinaryCell) cell;
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             try {
-              escapeBinary(bin.getInputstream(), bout);
+              escapeBinary(bin.createInputstream(), bout);
             } catch (IOException e) {
               throw new ModuleException("Error getting binary from binary cell", e);
             }
