@@ -1,6 +1,7 @@
 package com.databasepreservation.modules.siard.in.path;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,26 +26,56 @@ public class SIARD2ContentPathImportStrategy implements ContentPathImportStrateg
                                                                // Windows
   private static final String FILE_EXTENSION_SEPARATOR = ".";
 
+  private static final String defaultBasePath = "content";
+
   // < schema name , schema folder >
   private Map<String, String> schemaFolders = new HashMap<String, String>();
 
   // < table id , table folder >
   private Map<String, String> tableFolders = new HashMap<String, String>();
 
+  // < column id , column folder >
+  private Map<String, String> columnFolders = new HashMap<String, String>();
+
   public SIARD2ContentPathImportStrategy() {
 
+  }
+
+  @Override
+  public String getLobPath(String basePath, String schemaName, String tableId, String columnId, String lobFileName) {
+    if (StringUtils.isBlank(basePath)) {
+      basePath = defaultBasePath;
+    }
+
+    String schemaPart = schemaFolders.get(schemaName);
+    String tablePart = tableFolders.get(tableId);
+    String columnPart = columnFolders.get(columnId);
+
+    // from SIARD2 specification: these path parts default to "." (current
+    // directory) if not specified
+    if(schemaPart == null){
+      schemaPart = ".";
+    }
+    if(tablePart == null){
+      tablePart = ".";
+    }
+    if(columnPart == null){
+      columnPart = ".";
+    }
+
+    return Paths.get(basePath, schemaPart, tablePart, columnPart, lobFileName).toString();
   }
 
   public void associateSchemaWithFolder(String schemaName, String schemaFolder) {
     schemaFolders.put(schemaName, schemaFolder);
   }
 
-  public void associateTableWithFolder(String tableName, String tableFolder) {
-    tableFolders.put(tableName, tableFolder);
+  public void associateTableWithFolder(String tableId, String tableFolder) {
+    tableFolders.put(tableId, tableFolder);
   }
 
   public void associateColumnWithFolder(String columnId, String columnFolder) {
-    // TODO: used for lobs (?)
+    columnFolders.put(columnId, columnFolder);
   }
 
   @Override
