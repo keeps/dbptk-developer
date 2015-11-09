@@ -10,12 +10,12 @@ import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 
 /**
- * Converts a SQL99 normalized type to an internal type structure.
+ * Converts a SQL2003 normalized type to an internal type structure.
  *
  * @author Miguel Coutada
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SQL99TypeConverter implements TypeConverter {
+public class SQL2003TypeConverter implements TypeConverter {
   private static int getCLOBMinimum() {
     return 65535;
   }
@@ -93,8 +93,6 @@ public class SQL99TypeConverter implements TypeConverter {
       type = new SimpleTypeNumericApproximate(53);
     } else if (sqlStandardType.equals("BIT")) {
       type = new SimpleTypeBoolean();
-    } else if (sqlStandardType.startsWith("BIT VARYING")) {
-      type = new SimpleTypeBinary(getLength(sqlStandardType));
     } else if (sqlStandardType.startsWith("BIT")) {
       if (getLength(sqlStandardType) == 1) {
         type = new SimpleTypeBoolean();

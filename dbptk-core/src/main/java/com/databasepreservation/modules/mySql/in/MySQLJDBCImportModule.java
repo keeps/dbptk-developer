@@ -25,7 +25,8 @@ import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.mySql.MySQLHelper;
 
 /**
- * @author Luis Faria
+ * @author Luis Faria <lfaria@keep.pt>
+ * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class MySQLJDBCImportModule extends JDBCImportModule {
 
@@ -123,6 +124,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
     if (columnSize == 12 && decimalDigits == 0) {
       type = new SimpleTypeNumericApproximate(columnSize);
       type.setSql99TypeName("REAL");
+      type.setSql2003TypeName("REAL");
     } else {
       type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
     }
@@ -137,6 +139,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
     if (columnSize == 22 && decimalDigits == 0) {
       type = new SimpleTypeNumericApproximate(columnSize);
       type.setSql99TypeName("DOUBLE PRECISION");
+      type.setSql2003TypeName("DOUBLE PRECISION");
     } else {
       type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
     }
@@ -149,12 +152,15 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
     Type type = new SimpleTypeBinary(columnSize);
 
     if (typeName.equalsIgnoreCase("TINYBLOB")) {
-      type.setSql99TypeName("BIT VARYING(2040)");
+      type.setSql99TypeName("BIT VARYING", 2040);
+      type.setSql2003TypeName("BINARY LARGE OBJECT");
     } else if (typeName.equalsIgnoreCase("BIT")) {
       type.setSql99TypeName("BIT", columnSize);
+      type.setSql2003TypeName("BIT", columnSize);
       type.setOriginalTypeName(typeName, columnSize);
     } else {
       type.setSql99TypeName("BIT", columnSize * 8);
+      type.setSql2003TypeName("BIT", columnSize * 8);
     }
 
     return type;
@@ -164,6 +170,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   protected Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeBinary(columnSize);
     type.setSql99TypeName("BIT VARYING", columnSize * 8);
+    type.setSql2003TypeName("BIT VARYING", columnSize * 8);
     return type;
   }
 
@@ -191,6 +198,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
     if (columnSize == 12 && decimalDigits == 0) {
       type = new SimpleTypeNumericApproximate(columnSize);
       type.setSql99TypeName("FLOAT");
+      type.setSql2003TypeName("FLOAT");
     } else {
       type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
     }

@@ -85,18 +85,23 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
     if (typeName.equalsIgnoreCase("NCHAR")) {
       type = new SimpleTypeString(Integer.valueOf(columnSize), false, "CHARSET");
       type.setSql99TypeName("CHARACTER");
+      type.setSql2003TypeName("CHARACTER");
     } else if (typeName.equalsIgnoreCase("NVARCHAR2")) {
       type = new SimpleTypeString(Integer.valueOf(columnSize), true, "CHARSET");
-      type.setSql99TypeName("CHARACTER VARYING");
+      type.setSql99TypeName("CHARACTER VARYING", columnSize);
+      type.setSql2003TypeName("CHARACTER VARYING", columnSize);
     } else if (typeName.equalsIgnoreCase("NCLOB")) {
       type = new SimpleTypeString(Integer.valueOf(columnSize), true, "CHARSET");
       type.setSql99TypeName("CHARACTER LARGE OBJECT");
+      type.setSql2003TypeName("CHARACTER LARGE OBJECT");
     } else if (typeName.equalsIgnoreCase("ROWID")) {
       type = new SimpleTypeString(Integer.valueOf(columnSize), true);
-      type.setSql99TypeName("CHARACTER VARYING");
+      type.setSql99TypeName("CHARACTER VARYING", columnSize);
+      type.setSql2003TypeName("CHARACTER VARYING", columnSize);
     } else if (typeName.equalsIgnoreCase("UROWID")) {
       type = new SimpleTypeString(Integer.valueOf(columnSize), true);
-      type.setSql99TypeName("CHARACTER VARYING");
+      type.setSql99TypeName("CHARACTER VARYING", columnSize);
+      type.setSql2003TypeName("CHARACTER VARYING", columnSize);
     } else {
       type = super.getOtherType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
     }
@@ -110,11 +115,13 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
     switch (dataType) {
       case OracleTypes.BINARY_DOUBLE:
         type = new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
-        type.setSql99TypeName("BIT VARYING");
+        type.setSql99TypeName("BIT VARYING", columnSize); //todo: not sure if columnSize is the correct value here
+        type.setSql2003TypeName("BIT VARYING", columnSize); //todo: not sure if columnSize is the correct value here
         break;
       case OracleTypes.BINARY_FLOAT:
         type = new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
-        type.setSql99TypeName("BIT VARYING");
+        type.setSql99TypeName("BIT VARYING", columnSize); //todo: not sure if columnSize is the correct value here
+        type.setSql2003TypeName("BIT VARYING", columnSize); //todo: not sure if columnSize is the correct value here
         break;
       // TODO add support to BFILEs
       // case OracleTypes.BFILE:
@@ -123,10 +130,12 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
       case OracleTypes.TIMESTAMPTZ:
         type = new SimpleTypeDateTime(true, true);
         type.setSql99TypeName("TIMESTAMP");
+        type.setSql2003TypeName("TIMESTAMP");
         break;
       case OracleTypes.TIMESTAMPLTZ:
         type = new SimpleTypeDateTime(true, true);
         type.setSql99TypeName("TIMESTAMP");
+        type.setSql2003TypeName("TIMESTAMP");
         break;
       default:
         type = super.getSpecificType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
