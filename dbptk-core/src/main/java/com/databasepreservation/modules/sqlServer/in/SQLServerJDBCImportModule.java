@@ -142,6 +142,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
       type = new SimpleTypeBinary();
     }
     type.setSql99TypeName("BINARY LARGE OBJECT");
+    type.setSql2003TypeName("BINARY LARGE OBJECT");
     return type;
   }
 

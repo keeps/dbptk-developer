@@ -21,6 +21,8 @@ public abstract class Type {
 
   private String sql99TypeName;
 
+  private String sql2003TypeName;
+
   // using the empty constructor is not advised
   protected Type() {
   }
@@ -114,6 +116,47 @@ public abstract class Type {
    */
   public void setSql99TypeName(String typeName, int originalColumnSize) {
     this.sql99TypeName = String.format("%s(%d)", typeName, originalColumnSize);
+  }
+
+  /**
+   * @return The name of the SQL2003 normalized type. null if not applicable
+   */
+  public String getSql2003TypeName() {
+
+    if (StringUtils.isBlank(sql2003TypeName)) {
+      logger.warn("SQL2003 type is not defined for type " + this.toString());
+    }
+    return sql2003TypeName;
+  }
+
+  /**
+   * @param sql2003TypeName
+   *          the name of the original type, null if not applicable
+   */
+  public void setSql2003TypeName(String sql2003TypeName) {
+    this.sql2003TypeName = sql2003TypeName;
+  }
+
+  /**
+   * @param typeName
+   *          The name of the original type
+   * @param originalColumnSize
+   *          Original column size
+   * @param originalDecimalDigits
+   *          Original decimal digits amount
+   */
+  public void setSql2003TypeName(String typeName, int originalColumnSize, int originalDecimalDigits) {
+    this.sql2003TypeName = String.format("%s(%d,%d)", typeName, originalColumnSize, originalDecimalDigits);
+  }
+
+  /**
+   * @param typeName
+   *          The name of the original type
+   * @param originalColumnSize
+   *          Original column size
+   */
+  public void setSql2003TypeName(String typeName, int originalColumnSize) {
+    this.sql2003TypeName = String.format("%s(%d)", typeName, originalColumnSize);
   }
 
   /**

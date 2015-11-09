@@ -155,8 +155,10 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     Type type = new SimpleTypeBinary(columnSize);
     if (typeName.equalsIgnoreCase("bytea")) {
       type.setSql99TypeName("BINARY LARGE OBJECT");
+      type.setSql2003TypeName("BINARY LARGE OBJECT");
     } else {
       type.setSql99TypeName("BIT");
+      type.setSql2003TypeName("BIT");
     }
     return type;
   }
@@ -169,6 +171,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     }
     Type type = new SimpleTypeNumericApproximate(columnSize);
     type.setSql99TypeName("DOUBLE PRECISION");
+    type.setSql2003TypeName("DOUBLE PRECISION");
     return type;
   }
 
@@ -178,9 +181,11 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     if (typeName.equalsIgnoreCase("TIMETZ")) {
       type = new SimpleTypeDateTime(true, true);
       type.setSql99TypeName("TIME WITH TIME ZONE");
+      type.setSql2003TypeName("TIME WITH TIME ZONE");
     } else {
       type = new SimpleTypeDateTime(true, false);
       type.setSql99TypeName("TIME");
+      type.setSql2003TypeName("TIME");
     }
 
     return type;
@@ -192,9 +197,11 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     if (typeName.equalsIgnoreCase("TIMESTAMPTZ")) {
       type = new SimpleTypeDateTime(true, true);
       type.setSql99TypeName("TIMESTAMP WITH TIME ZONE");
+      type.setSql2003TypeName("TIMESTAMP WITH TIME ZONE");
     } else {
       type = new SimpleTypeDateTime(true, false);
       type.setSql99TypeName("TIMESTAMP");
+      type.setSql2003TypeName("TIMESTAMP");
     }
 
     return type;
@@ -205,8 +212,10 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     Type type = new SimpleTypeString(columnSize, true);
     if (typeName.equalsIgnoreCase("text")) {
       type.setSql99TypeName("CHARACTER LARGE OBJECT");
+      type.setSql2003TypeName("CHARACTER LARGE OBJECT");
     } else {
-      type.setSql99TypeName("CHARACTER VARYING");
+      type.setSql99TypeName("CHARACTER VARYING",columnSize);
+      type.setSql2003TypeName("CHARACTER VARYING",columnSize);
     }
     return type;
   }
@@ -221,6 +230,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       case 2009: // XML Data type
         type = new SimpleTypeString(columnSize, true);
         type.setSql99TypeName("CHARACTER LARGE OBJECT");
+        type.setSql2003TypeName("CHARACTER LARGE OBJECT");
         break;
       default:
         type = super.getSpecificType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);

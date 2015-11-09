@@ -87,9 +87,11 @@ public class DB2JDBCImportModule extends JDBCImportModule {
     if (typeName.equalsIgnoreCase("XML")) {
       type = new SimpleTypeString(31457280, true);
       type.setSql99TypeName("CHARACTER LARGE OBJECT");
+      type.setSql2003TypeName("CHARACTER LARGE OBJECT");
     } else if (typeName.equalsIgnoreCase("DECFLOAT")) {
       type = new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
-      type.setSql99TypeName("DOUBLE");
+      type.setSql99TypeName("DOUBLE PRECISION");
+      type.setSql2003TypeName("DOUBLE PRECISION");
     } else {
       type = super.getOtherType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
     }
