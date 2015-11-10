@@ -21,7 +21,8 @@ import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
 import com.databasepreservation.modules.sqlServer.SQLServerJDBCModuleFactory;
 
 /**
- * @author Luis Faria
+ * @author Luis Faria <lfaria@keep.pt>
+ * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class Main {
   public static final int EXIT_CODE_OK = 0;
