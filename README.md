@@ -131,13 +131,14 @@ $ java -jar dbptk-app-x.y.z.jar \
 
 To use Database Preservation Toolkit with an unsupported database, one can connect by providing the name of the the JDBC driver class (and adding the JDBC driver to the classpath) and the JDBC connection string. The steps to run Database Preservation Toolkit this way are as follows:
 
-1. Obtain Database Preservation Toolkit app;
-2. Obtain the JDBC driver for the database you want to use (this is typically a file with `jar` extension);
-3. Identify the driver class. For Oracle 12C this would be something like `oracle.jdbc.driver.OracleDriver`;
-4. Prepare the connection string. For Oracle 12C this could be something like `jdbc:oracle:thin:username/password@serverName:port/database`;
-5. Run Database Preservation Toolkit by providing files to add to the classpath and the main entry point.
+1. Obtain the JDBC driver for the database you want to use (this is typically a file with `jar` extension). For Oracle12C this file can be downloaded from http://www.oracle.com/technetwork/database/features/jdbc/index-091264.html;
+2. Identify the driver class. For Oracle 12C this would be something like `oracle.jdbc.driver.OracleDriver`;
+3. Prepare the connection string. For Oracle 12C this could be something like `jdbc:oracle:thin:username/password@serverName:port/database`;
+4. Run Database Preservation Toolkit by providing files to add to the classpath and the main entry point.
 
-Please note that this method is likely to produce errors.
+Please be aware that using this method the conversion quality cannot be assured, as it depends on the used driver.
+Furthermore, non-tested drivers are more prone to possible errors during the conversion.
+A specialized module for the database, if available, would always be preferable to this generic JDBC module.
 
 #### Example to convert from Oracle to SIARD2:
 
