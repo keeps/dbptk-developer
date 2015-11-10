@@ -33,6 +33,10 @@ Usage: dbptk [plugin] <importModule> [import module options] <exportModule> [exp
 
 ## Available import modules: -i <module>, --import=module
 
+Import module: jdbc
+    -id, --import-driver=value    (required) the name of the the JDBC driver class. For more info about this refer to the website or the README file
+    -ic, --import-connection=value    (required) the connection url to use in the connection
+
 Import module: microsoft-sql-server
     -is, --import-server-name=value    (required) the name (host name) of the server
     -idb, --import-database=value    (required) the name of the database we'll be accessing
@@ -65,6 +69,10 @@ Import module: siard-2
     -if, --import-file=value    (required) Path to SIARD2 archive file
 
 ## Available export modules: -e <module>, --export=module
+
+Export module: jdbc
+    -ed, --export-driver=value    (required) the name of the the JDBC driver class. For more info about this refer to the website or the README file
+    -ec, --export-connection=value    (required) the connection url to use in the connection
 
 Export module: microsoft-sql-server
     -es, --export-server-name=value    (required) the name (host name) of the server
@@ -129,9 +137,11 @@ To use Database Preservation Toolkit with an unsupported database, one can conne
 4. Prepare the connection string. For Oracle 12C this could be something like `jdbc:oracle:thin:username/password@serverName:port/database`;
 5. Run Database Preservation Toolkit by providing files to add to the classpath and the main entry point.
 
-#### Example to convert from Oracle to SIARD1:
+Please note that this method is likely to produce errors.
 
-Assuming that all the files have been obtained, on Windows Database Preservation Toolkit could be used with:
+#### Example to convert from Oracle to SIARD2:
+
+Assuming that all the files have been obtained, on Windows the command to start Database Preservation Toolkit could be something like:
 
 ```text
 java -cp "C:\path\to\dbptk-app-x.y.z.jar;C:\path\to\jdbc_driver.jar" com.databasepreservation.Main \
