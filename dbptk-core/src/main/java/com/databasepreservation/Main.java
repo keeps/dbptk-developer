@@ -8,12 +8,14 @@ import org.apache.log4j.Logger;
 
 import com.databasepreservation.cli.CLI;
 import com.databasepreservation.model.exception.InvalidDataException;
+import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.modules.jdbc.JDBCModuleFactory;
 import com.databasepreservation.modules.mySql.MySQLModuleFactory;
+import com.databasepreservation.modules.oracle.Oracle12cModuleFactory;
 import com.databasepreservation.modules.postgreSql.PostgreSQLModuleFactory;
 import com.databasepreservation.modules.siard.SIARD1ModuleFactory;
 import com.databasepreservation.modules.siard.SIARD2ModuleFactory;
@@ -28,6 +30,7 @@ public class Main {
   public static final int EXIT_CODE_OK = 0;
   public static final int EXIT_CODE_GENERIC_ERROR = 1;
   public static final int EXIT_CODE_COMMAND_PARSE_ERROR = 2;
+  public static final int EXIT_CODE_LICENSE_NOT_ACCEPTED = 3;
 
   public static final String APP_NAME = "db-preservation-toolkit - KEEP SOLUTIONS";
 
@@ -48,15 +51,22 @@ public class Main {
     final DatabaseExportModule exportModule;
 
     CLI cli = new CLI(Arrays.asList(args), new JDBCModuleFactory(), new MySQLModuleFactory(),
-      new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(), new SIARD2ModuleFactory(), new SIARDDKModuleFactory(),
+      new Oracle12cModuleFactory(), new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(),
+      new SIARD2ModuleFactory(), new SIARDDKModuleFactory(),
       new SQLServerJDBCModuleFactory());
     try {
       importModule = cli.getImportModule();
       exportModule = cli.getExportModule();
     } catch (ParseException e) {
-      System.err.println("error: " + e.getMessage() + "\n");
+      System.err.println("Error: " + e.getMessage() + "\n");
       cli.printHelp();
       return EXIT_CODE_COMMAND_PARSE_ERROR;
+    } catch (LicenseNotAcceptedException e) {
+      System.err.println("Error: The license must be accepted to use this module.");
+      System.err.println("==================================================");
+      cli.printLicense(e.getLicense());
+      System.err.println("==================================================");
+      return EXIT_CODE_LICENSE_NOT_ACCEPTED;
     }
 
     int exitStatus = EXIT_CODE_GENERIC_ERROR;

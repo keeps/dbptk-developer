@@ -17,6 +17,7 @@ import java.util.Properties;
 
 import javax.naming.OperationNotSupportedException;
 
+import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import net.xeoh.plugins.base.PluginManager;
 import net.xeoh.plugins.base.impl.PluginManagerFactory;
 
@@ -108,14 +109,14 @@ public class CLI {
     }
   }
 
-  public DatabaseImportModule getImportModule() throws ParseException {
+  public DatabaseImportModule getImportModule() throws ParseException, LicenseNotAcceptedException {
     if (importModule == null) {
       parse(commandLineArguments);
     }
     return importModule;
   }
 
-  public DatabaseExportModule getExportModule() throws ParseException {
+  public DatabaseExportModule getExportModule() throws ParseException, LicenseNotAcceptedException {
     if (exportModule == null) {
       parse(commandLineArguments);
     }
@@ -142,7 +143,7 @@ public class CLI {
    * @throws ParseException
    *           If the arguments could not be parsed or are invalid
    */
-  private void parse(List<String> args) throws ParseException {
+  private void parse(List<String> args) throws ParseException, LicenseNotAcceptedException {
     DatabaseModuleFactoriesPair databaseModuleFactoriesPair = getModuleFactories(args);
 
     try {
@@ -438,6 +439,10 @@ public class CLI {
     }
 
     return properties.getProperty("version", "?");
+  }
+
+  public void printLicense(String license) {
+    System.err.println(license);
   }
 
   private static class DatabaseModuleFactoryNameComparator implements Comparator<DatabaseModuleFactory> {
