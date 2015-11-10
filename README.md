@@ -121,7 +121,7 @@ You have to select an input and an output module, providing for each its configu
 
 For example, if you want to connect to a live MySQL database and export its content to SIARD 1.0 format, you can use the following command.
 
-```bash
+```text
 $ java -jar dbptk-app-x.y.z.jar \
 -i mysql --import-hostname=localhost -idb example_db -iu username -ip p4ssw0rd \
 -e siard-1 -ef example.siard
@@ -142,7 +142,7 @@ A specialized module for the database, if available, would always be preferable 
 
 #### Example to convert from Oracle to SIARD2:
 
-Assuming that all the files have been obtained, on Windows the command to start Database Preservation Toolkit could be something like:
+Using the method described above, the Windows command to extract a database from an Oracle database to SIARD 2 is as the following:
 
 ```text
 java -cp "C:\path\to\dbptk-app-x.y.z.jar;C:\path\to\jdbc_driver.jar" com.databasepreservation.Main \
@@ -199,7 +199,7 @@ Furthermore, in order to extract DB structures we need to have access to the int
 
 The toolkit might need more memory than it is available by default (normally 64MB). To increase the available memory use the `-Xmx` option. For example, the following command will increase the heap size to 3 GB.
 
-```bash
+```text
 $ java -Xmx3g -jar dbptk-app-x.y.z.jar ...
 ```
 
@@ -209,7 +209,7 @@ The toolkit needs enough memory to put the table structure definition in memory 
 
 Due to the structure of some export modules (e.g. SIARD) and because we only want to pass throught the database once with minimum amount of used memory, all BLOBs and CLOBs of a database table must be kept on temporary files during the export of a table. This can cause your main disk to get full and the execution to fail. To select a diferent folder for the temporary files, e.g. on a bigger hard drive, use the option `-Djava.io.tmpdir=/path/to/tmpdir`. For example, the following command will use the folder `/media/BIGHD/tmp` as the temporary folder:
 
-```bash
+```text
 $ java -Djava.io.tmpdir=/media/BIGHD/tmp -jar dbptk-app-x.y.z.jar ...
 ```
 
