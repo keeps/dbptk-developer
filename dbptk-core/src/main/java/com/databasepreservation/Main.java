@@ -12,6 +12,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
+import com.databasepreservation.modules.jdbc.JDBCModuleFactory;
 import com.databasepreservation.modules.mySql.MySQLModuleFactory;
 import com.databasepreservation.modules.postgreSql.PostgreSQLModuleFactory;
 import com.databasepreservation.modules.siard.SIARD1ModuleFactory;
@@ -45,8 +46,9 @@ public class Main {
     final DatabaseImportModule importModule;
     final DatabaseExportModule exportModule;
 
-    CLI cli = new CLI(Arrays.asList(args), new MySQLModuleFactory(), new SQLServerJDBCModuleFactory(),
-      new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(), new SIARD2ModuleFactory(), new SIARDDKModuleFactory());
+    CLI cli = new CLI(Arrays.asList(args), new JDBCModuleFactory(), new MySQLModuleFactory(),
+      new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(), new SIARD2ModuleFactory(), new SIARDDKModuleFactory(),
+      new SQLServerJDBCModuleFactory());
     try {
       importModule = cli.getImportModule();
       exportModule = cli.getExportModule();

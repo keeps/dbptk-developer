@@ -119,6 +119,38 @@ $ java -jar dbptk-app-x.y.z.jar \
 -e siard-1 -ef example.siard
 ```
 
+### How to use JDBC import and export modules
+
+To use Database Preservation Toolkit with an unsupported database, one can connect by providing the name of the the JDBC driver class (and adding the JDBC driver to the classpath) and the JDBC connection string. The steps to run Database Preservation Toolkit this way are as follows:
+
+1. Obtain Database Preservation Toolkit app;
+2. Obtain the JDBC driver for the database you want to use (this is typically a file with `jar` extension);
+3. Identify the driver class. For Oracle 12C this would be something like `oracle.jdbc.driver.OracleDriver`;
+4. Prepare the connection string. For Oracle 12C this could be something like `jdbc:oracle:thin:username/password@serverName:port/database`;
+5. Run Database Preservation Toolkit by providing files to add to the classpath and the main entry point.
+
+#### Example to convert from Oracle to SIARD1:
+
+Assuming that all the files have been obtained, on Windows Database Preservation Toolkit could be used with:
+
+```text
+java -cp "C:\path\to\dbptk-app-x.y.z.jar;C:\path\to\jdbc_driver.jar" com.databasepreservation.Main \
+  --import=jdbc --driver=oracle.jdbc.driver.OracleDriver \
+    --connection="jdbc:oracle:thin:username/password@serverName:port/database" \
+  -e siard-2 -ef C:\path\to\output.siard
+```
+
+And on Linux the equivalent command would be (note that the jarfile separator is `:` instead of `;`):
+
+```text
+java -cp "/path/to/dbptk-app-x.y.z.jar:/path/to/jdbc_driver.jar" com.databasepreservation.Main \
+  --import=jdbc --driver=oracle.jdbc.driver.OracleDriver \
+    --connection="jdbc:oracle:thin:username/password@serverName:port/database" \
+  -e siard-2 -ef /path/to/output.siard
+```
+
+
+
 ## How to build from source
 
 1. Download the [latest stable release](https://github.com/keeps/db-preservation-toolkit/releases).
