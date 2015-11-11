@@ -20,8 +20,11 @@ import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
  */
 public class SIARDDKModuleFactory implements DatabaseModuleFactory {
 
-  private static final Parameter folder = new Parameter().shortName("f").longName("folder")
-    .description("Path to SIARDDK archive folder").hasArgument(true).setOptionalArgument(false).required(true);
+  private static final Parameter folder = new Parameter()
+    .shortName("f")
+    .longName("folder")
+    .description("Path to SIARDDK archive folder. Archive folder must match the pattern AVID.[A-ZÆØÅ]{2,4}.[1-9][0-9]*")
+    .hasArgument(true).setOptionalArgument(false).required(true);
 
   private static final Parameter archiveIndex = new Parameter().shortName("ai").longName("archiveIndex")
     .description("Path to archiveIndex.xml input file").hasArgument(true).setOptionalArgument(false).required(false);

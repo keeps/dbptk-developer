@@ -187,6 +187,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     schema.addContent(complexTypeRowType);
 
     // Write schema to archive
+    // TO-DO: unfotunate name below: getLOBWriter (change the
+    // FileIndexFileStrategy)
     tableXsdOutputStream = fileIndexFileStrategy.getLOBWriter(baseContainer,
       contentPathExportStrategy.getTableXsdFilePath(0, tableStructure.getIndex()), writeStrategy);
     BufferedWriter xsdWriter = new BufferedWriter(new OutputStreamWriter(tableXsdOutputStream));

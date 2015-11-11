@@ -2,7 +2,10 @@
  * The methods should be called in this order from the SIARDDKMetadataExportStrategy
  * 1) getWriter
  * 2) addFile (should not be called until writer obtained from getWriter is closed)
- * 3) generateXML 
+ * 3) generateXML
+ * 
+ *  TO-DO:
+ *  NOTE: this class should be rewritten: the getLOBwriter part should be made smarter (more generic)
  */
 package com.databasepreservation.modules.siard.out.metadata;
 
