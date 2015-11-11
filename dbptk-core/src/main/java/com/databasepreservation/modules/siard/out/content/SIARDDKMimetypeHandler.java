@@ -19,6 +19,10 @@ public class SIARDDKMimetypeHandler implements MimetypeHandler {
 
     mimetypeMap = new HashMap<String, String>();
     mimetypeMap.put("image/tiff", "tif");
+    mimetypeMap.put("image/jp2", "jp2");
+    mimetypeMap.put("audio/wav", "wav");
+    mimetypeMap.put("audio/x-wav", "wav");
+    mimetypeMap.put("audio/mpeg", "mp3");
   }
 
   /*

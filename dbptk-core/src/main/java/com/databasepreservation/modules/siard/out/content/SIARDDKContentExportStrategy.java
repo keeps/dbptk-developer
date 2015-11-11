@@ -187,7 +187,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     schema.addContent(complexTypeRowType);
 
     // Write schema to archive
-    // TO-DO: unfotunate name below: getLOBWriter (change the
+    // TO-DO: unfortunate name below: getLOBWriter (change the
     // FileIndexFileStrategy)
     tableXsdOutputStream = fileIndexFileStrategy.getLOBWriter(baseContainer,
       contentPathExportStrategy.getTableXsdFilePath(0, tableStructure.getIndex()), writeStrategy);
@@ -297,6 +297,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
               Tika tika = new Tika(); // Move this to constructor
               String mimeType = tika.detect(is); // Resets the inputstream after
                                                  // use
+
+              System.out.println(mimeType);
 
               // In SIARDDK the only accepted mimetypes for documents are
               // image/tiff and JPEG2000
