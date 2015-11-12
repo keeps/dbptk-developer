@@ -14,7 +14,6 @@ import org.apache.log4j.Logger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
-import com.databasepreservation.modules.siard.out.content.LOBsTracker;
 import com.databasepreservation.modules.siard.out.metadata.ContextDocumentationWriter;
 import com.databasepreservation.modules.siard.out.metadata.FileIndexFileStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARDMarshaller;
@@ -26,7 +25,7 @@ import com.databasepreservation.modules.siard.out.metadata.SIARDMarshaller;
 public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
 
   private SIARDDKExportModule siarddkExportModule;
-  private LOBsTracker lobsTracker;
+  // private LOBsTracker lobsTracker;
   private final Logger logger = Logger.getLogger(SIARDDKDatabaseExportModule.class);
 
   public SIARDDKDatabaseExportModule(SIARDDKExportModule siarddkExportModule) {
@@ -34,7 +33,7 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
       .getWriteStrategy(), siarddkExportModule.getMetadataExportStrategy());
 
     this.siarddkExportModule = siarddkExportModule;
-    this.lobsTracker = siarddkExportModule.getLobsTracker();
+    // this.lobsTracker = siarddkExportModule.getLobsTracker();
   }
 
   @Override
@@ -43,7 +42,7 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
 
     // Get docID info from the command line and add these to the LOBsTracker
 
-    lobsTracker.getDocIDsFromCommandLine();
+    // lobsTracker.getDocIDsFromCommandLine();
 
     Path pathToArchive = siarddkExportModule.getMainContainer().getPath();
 

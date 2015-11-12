@@ -22,9 +22,10 @@ public class SIARDDKConstants {
   // Path to schemas in the /src/main/resources folder
   public static final String SCHEMA_RESOURCE_DIR = "schema";
 
-  // JAXB context for tableIndex and fileIndex
+  // JAXB context for tableIndex, fileIndex and docIndex
   public static final String JAXB_CONTEXT_TABLEINDEX = "dk.sa.xmlns.diark._1_0.tableindex";
   public static final String JAXB_CONTEXT_FILEINDEX = "dk.sa.xmlns.diark._1_0.fileindex";
+  public static final String JAXB_CONTEXT_DOCINDEX = "dk.sa.xmlns.diark._1_0.docindex";
 
   // Key for context documentation folder (given on command line)
   public static final String CONTEXT_DOCUMENTATION_FOLDER = "contextDocumentationFolder";

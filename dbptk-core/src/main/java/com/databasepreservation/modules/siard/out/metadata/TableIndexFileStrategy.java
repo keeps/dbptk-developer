@@ -129,10 +129,12 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
               column.setDescription("Description should be set");
 
               // Set functionalDescription
-              if (lobsTracker.isDocID(tableStructure.getName(), columnStructure.getName())) {
-
-                FunctionalDescriptionType functionalDescriptionType = FunctionalDescriptionType.DOKUMENTIDENTIFIKATION;
-                column.getFunctionalDescription().add(functionalDescriptionType);
+              String lobType = lobsTracker.getLOBsType(tableCounter, columnCounter);
+              if (lobType != null) {
+                if (lobType.equals(SIARDDKConstants.BINARY_LARGE_OBJECT)) {
+                  FunctionalDescriptionType functionalDescriptionType = FunctionalDescriptionType.DOKUMENTIDENTIFIKATION;
+                  column.getFunctionalDescription().add(functionalDescriptionType);
+                }
               }
 
               columns.getColumn().add(column);

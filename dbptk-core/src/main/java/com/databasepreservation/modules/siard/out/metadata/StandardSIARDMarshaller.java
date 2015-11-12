@@ -24,9 +24,6 @@ public class StandardSIARDMarshaller implements SIARDMarshaller {
   public void marshal(String contextStr, String localeSchemaLocation, String JAXBSchemaLocation, OutputStream writer,
     Object jaxbElement) throws ModuleException {
 
-    // Put in logger instead...
-    System.out.println("Marshalling " + localeSchemaLocation);
-
     // Set up JAXB marshaller
 
     JAXBContext context;

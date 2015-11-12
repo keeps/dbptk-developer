@@ -38,10 +38,11 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     .description("Path to contextDocumentation folder which should contain the context documentation for the archive")
     .hasArgument(true).setOptionalArgument(false).required(false);
 
+  // This should probably be removed
   private static final Parameter docIDFile = new Parameter().shortName("docID")
     .longName(SIARDDKConstants.DOCUMENT_IDENTIFICATION)
     .description("XML file containing list of document identifications").hasArgument(true).setOptionalArgument(false)
-    .required(true);
+    .required(false);
 
   private static final Parameter clobType = new Parameter().shortName("ct").longName("clobtype")
     .description("Specify the type for CLOBs").hasArgument(true).setOptionalArgument(false).required(false)

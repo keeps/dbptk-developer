@@ -28,6 +28,7 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.modules.siard.common.LargeObject;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.out.metadata.DocIndexFileStrategy;
 import com.databasepreservation.modules.siard.out.metadata.FileIndexFileStrategy;
 import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
@@ -50,6 +51,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
   private ContentPathExportStrategy contentPathExportStrategy;
   private FileIndexFileStrategy fileIndexFileStrategy;
+  private DocIndexFileStrategy docIndexFileStrategy;
   private SIARDArchiveContainer baseContainer;
   private OutputStream tableXmlOutputStream;
   private OutputStream tableXsdOutputStream;
@@ -66,6 +68,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
     contentPathExportStrategy = siarddkExportModule.getContentPathExportStrategy();
     fileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
+    docIndexFileStrategy = siarddkExportModule.getDocIndexFileStrategy();
     baseContainer = siarddkExportModule.getMainContainer();
     writeStrategy = siarddkExportModule.getWriteStrategy();
     lobsTracker = siarddkExportModule.getLobsTracker();
@@ -187,6 +190,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     schema.addContent(complexTypeRowType);
 
     // Write schema to archive
+
     // TO-DO: unfortunate name below: getLOBWriter (change the
     // FileIndexFileStrategy)
     tableXsdOutputStream = fileIndexFileStrategy.getLOBWriter(baseContainer,
@@ -295,10 +299,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
               InputStream is = new BufferedInputStream(binaryCell.getInputstream());
               Tika tika = new Tika(); // Move this to constructor
-              String mimeType = tika.detect(is); // Resets the inputstream after
-                                                 // use
-
-              System.out.println(mimeType);
+              String mimeType = tika.detect(is); // Automatically resets the
+                                                 // inputstream after use
 
               // In SIARDDK the only accepted mimetypes for documents are
               // image/tiff and JPEG2000
@@ -327,6 +329,13 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
                 IOUtils.copy(in, out);
                 in.close();
                 out.close();
+
+                // Add file to docIndex (a lot easier to do here even though we
+                // are dealing with metadata)
+
+                // TO-DO: obtain (how?) hardcoded values
+                docIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1, lobsTracker.getDocCollectionCount(),
+                  "originalFilename", mimetypeHandler.getFileExtension(mimeType), null);
 
                 // Add file to fileIndex
                 fileIndexFileStrategy.addFile(blob.getPath());

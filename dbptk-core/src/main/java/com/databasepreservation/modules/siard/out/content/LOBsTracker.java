@@ -117,69 +117,69 @@ public class LOBsTracker {
     }
   }
 
-  public void addDocID(String tableName, String columnName) throws ModuleException {
-
-    if (isDocID(tableName, columnName)) {
-      throw new ModuleException("Same documentIdebtification added twice");
-    }
-
-    docIDs.put(tableName, columnName);
-  }
-
-  public boolean isDocID(String tableName, String columnName) {
-    if (docIDs.get(tableName) != null) {
-      return docIDs.get(tableName).equals(columnName);
-    }
-    return false;
-  }
-
-  public void getDocIDsFromCommandLine() throws ModuleException {
-
-    MetadataPathStrategy metadataPathStrategy = siarddkExportModule.getMetadataPathStrategy();
-    Map<String, String> exportModuleArgs = siarddkExportModule.getExportModuleArgs();
-    String pathStr = exportModuleArgs.get(SIARDDKConstants.DOCUMENT_IDENTIFICATION);
-
-    InputStream in = this.getClass().getResourceAsStream(
-      metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.DOCUMENT_IDENTIFICATION));
-    XMLReaderJDOMFactory schemaFactory;
-    try {
-      schemaFactory = new XMLReaderXSDFactory(new StreamSource(in));
-    } catch (JDOMException e) {
-      throw new ModuleException("Problem creating JDOM schema factory", e);
-    }
-
-    SAXBuilder builder = new SAXBuilder(schemaFactory);
-
-    try {
-      in.close();
-    } catch (IOException e) {
-      throw new ModuleException("Could not close resource inputstream", e);
-    }
-
-    // Read index xml-file given on command line and validate against schema
-
-    File indexXmlFile = new File(pathStr);
-    try {
-      Document document = builder.build(indexXmlFile);
-
-      // Namespace ns = Namespace.getNamespace(SIARDDKConstants.DBPTK_NS);
-
-      Element rootElement = document.getRootElement();
-      List<Element> docIDList = rootElement.getChildren();
-      String tableName;
-      String columnName;
-      for (Element docID : docIDList) {
-        tableName = docID.getAttributeValue("tableName");
-        columnName = docID.getAttributeValue("columnName");
-        addDocID(tableName, columnName);
-      }
-    } catch (JDOMException e) {
-      throw new ModuleException("There was a problem building the JDOM document for " + pathStr, e);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-
-  }
+//  public void addDocID(String tableName, String columnName) throws ModuleException {
+//
+//    if (isDocID(tableName, columnName)) {
+//      throw new ModuleException("Same documentIdebtification added twice");
+//    }
+//
+//    docIDs.put(tableName, columnName);
+//  }
+//
+//  public boolean isDocID(String tableName, String columnName) {
+//    if (docIDs.get(tableName) != null) {
+//      return docIDs.get(tableName).equals(columnName);
+//    }
+//    return false;
+//  }
+//
+//  public void getDocIDsFromCommandLine() throws ModuleException {
+//
+//    MetadataPathStrategy metadataPathStrategy = siarddkExportModule.getMetadataPathStrategy();
+//    Map<String, String> exportModuleArgs = siarddkExportModule.getExportModuleArgs();
+//    String pathStr = exportModuleArgs.get(SIARDDKConstants.DOCUMENT_IDENTIFICATION);
+//
+//    InputStream in = this.getClass().getResourceAsStream(
+//      metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.DOCUMENT_IDENTIFICATION));
+//    XMLReaderJDOMFactory schemaFactory;
+//    try {
+//      schemaFactory = new XMLReaderXSDFactory(new StreamSource(in));
+//    } catch (JDOMException e) {
+//      throw new ModuleException("Problem creating JDOM schema factory", e);
+//    }
+//
+//    SAXBuilder builder = new SAXBuilder(schemaFactory);
+//
+//    try {
+//      in.close();
+//    } catch (IOException e) {
+//      throw new ModuleException("Could not close resource inputstream", e);
+//    }
+//
+//    // Read index xml-file given on command line and validate against schema
+//
+//    File indexXmlFile = new File(pathStr);
+//    try {
+//      Document document = builder.build(indexXmlFile);
+//
+//      // Namespace ns = Namespace.getNamespace(SIARDDKConstants.DBPTK_NS);
+//
+//      Element rootElement = document.getRootElement();
+//      List<Element> docIDList = rootElement.getChildren();
+//      String tableName;
+//      String columnName;
+//      for (Element docID : docIDList) {
+//        tableName = docID.getAttributeValue("tableName");
+//        columnName = docID.getAttributeValue("columnName");
+//        addDocID(tableName, columnName);
+//      }
+//    } catch (JDOMException e) {
+//      throw new ModuleException("There was a problem building the JDOM document for " + pathStr, e);
+//    } catch (IOException e) {
+//      e.printStackTrace();
+//    }
+//
+//  }
 
 }
 
