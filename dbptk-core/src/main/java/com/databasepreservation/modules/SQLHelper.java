@@ -437,7 +437,7 @@ public class SQLHelper {
    * @return the SQL to get table triggers
    */
   public String getRowsSQL(String tableName) {
-    StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(escapeTableName(tableName)).append(";");
+    StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(escapeTableName(tableName));
     return sb.toString();
   }
 
