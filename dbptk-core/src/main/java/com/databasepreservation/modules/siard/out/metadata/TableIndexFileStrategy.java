@@ -106,7 +106,13 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
               if (sql99DataType.equals(SIARDDKConstants.BINARY_LARGE_OBJECT)) {
                 column.setType("INTEGER");
               } else if (sql99DataType.equals(SIARDDKConstants.CHARACTER_LARGE_OBJECT)) {
-                column.setType("CHARACTER(1)");
+
+                if (lobsTracker.getMaxClobLength(tableCounter, columnCounter) > 0) {
+                  column.setType(SIARDDKConstants.DEFAULT_CLOB_TYPE + "("
+                    + lobsTracker.getMaxClobLength(tableCounter, columnCounter) + ")");
+                } else {
+                  column.setType(SIARDDKConstants.DEFAULT_CLOB_TYPE + "(1)");
+                }
               } else {
                 column.setType(type.getSql99TypeName());
               }

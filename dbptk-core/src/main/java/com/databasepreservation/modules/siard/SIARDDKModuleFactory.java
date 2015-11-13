@@ -44,10 +44,12 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     .description("XML file containing list of document identifications").hasArgument(true).setOptionalArgument(false)
     .required(false);
 
+  // This is not used now, but will be used later
   private static final Parameter clobType = new Parameter().shortName("ct").longName("clobtype")
     .description("Specify the type for CLOBs").hasArgument(true).setOptionalArgument(false).required(false)
     .valueIfNotSet(SIARDDKConstants.DEFAULT_CLOB_TYPE);
 
+  // This is not used now, but will be used later
   private static final Parameter clobLength = new Parameter().shortName("cl").longName("cloblength")
     .description("The threshold length of CLOBs before converting to tiff").hasArgument(true)
     .setOptionalArgument(false).required(false).valueIfNotSet(SIARDDKConstants.DEFAULT_MAX_CLOB_LENGTH);

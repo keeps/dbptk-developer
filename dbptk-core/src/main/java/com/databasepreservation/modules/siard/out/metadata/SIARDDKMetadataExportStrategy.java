@@ -102,21 +102,23 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
       }
     }
 
-    try {
-      String path = metadataPathStrategy.getXmlFilePath(SIARDDKConstants.DOC_INDEX);
-      OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
+    if (lobsTracker.getLOBsCount() > 0) {
+      try {
+        String path = metadataPathStrategy.getXmlFilePath(SIARDDKConstants.DOC_INDEX);
+        OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
 
-      siardMarshaller.marshal(SIARDDKConstants.JAXB_CONTEXT_DOCINDEX,
-        metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.DOC_INDEX),
-        "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/docIndex.xsd", writer,
-        docIndexFileStrategy.generateXML(dbStructure));
+        siardMarshaller.marshal(SIARDDKConstants.JAXB_CONTEXT_DOCINDEX,
+          metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.DOC_INDEX),
+          "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/docIndex.xsd", writer,
+          docIndexFileStrategy.generateXML(dbStructure));
 
-      writer.close();
+        writer.close();
 
-      fileIndexFileStrategy.addFile(path);
+        fileIndexFileStrategy.addFile(path);
 
-    } catch (IOException e) {
-      throw new ModuleException("Error writing docIndex.xml to the archive.", e);
+      } catch (IOException e) {
+        throw new ModuleException("Error writing docIndex.xml to the archive.", e);
+      }
     }
   }
 
@@ -130,7 +132,9 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     writeSchemaFile(outputContainer, SIARDDKConstants.ARCHIVE_INDEX, writeStrategy);
     writeSchemaFile(outputContainer, SIARDDKConstants.CONTEXT_DOCUMENTATION_INDEX, writeStrategy);
     writeSchemaFile(outputContainer, SIARDDKConstants.FILE_INDEX, writeStrategy);
-    writeSchemaFile(outputContainer, SIARDDKConstants.DOC_INDEX, writeStrategy);
+    if (lobsTracker.getLOBsCount() > 0) {
+      writeSchemaFile(outputContainer, SIARDDKConstants.DOC_INDEX, writeStrategy);
+    }
   }
 
   private void writeSchemaFile(SIARDArchiveContainer container, String indexFile, WriteStrategy writeStrategy)

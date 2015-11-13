@@ -21,7 +21,7 @@ public class TestLOBsTracker {
 
   @BeforeMethod
   public void setUp() {
-    lobsTracker = new LOBsTracker(null);
+    lobsTracker = new LOBsTracker();
 
     lobsTracker.addLOBLocationAndType(1, 1, SIARDDKConstants.BINARY_LARGE_OBJECT);
     lobsTracker.addLOBLocationAndType(1, 3, SIARDDKConstants.BINARY_LARGE_OBJECT);
@@ -101,23 +101,32 @@ public class TestLOBsTracker {
     assertEquals(1, lobsTracker.getFolderCount());
   }
 
-  // @Test
-  // public void shouldReturnTrueWhenOneColumnAdded() throws ModuleException {
-  // lobsTracker.addDocID("table1", "name");
-  // assertTrue(lobsTracker.isDocID("table1", "name"));
-  // }
-  //
-  // @Test(expectedExceptions = ModuleException.class)
-  // public void shouldThrowExceptionWhenDocIDinputFileHasErrors() throws
-  // ModuleException {
-  // lobsTracker.addDocID("table1", "name");
-  // lobsTracker.addDocID("table1", "name");
-  // }
-  //
-  // @Test
-  // public void shouldReturnFalseWhenTableNotKnownAsDocIDkey() {
-  // assertFalse(lobsTracker.isDocID("table1", "name"));
-  // }
+  @Test
+  public void shouldReturnMunusOneWhenCLOBsTableNotSet() {
+    assertEquals(-1, lobsTracker.getMaxClobLength(2, 7));
+  }
+
+  @Test
+  public void shouldReturnMinusOneWhenCLOBsTableSetButColumnNotSet() {
+    lobsTracker.updateMaxClobLength(2, 6, 100);
+    assertEquals(-1, lobsTracker.getMaxClobLength(2, 7));
+  }
+
+  @Test
+  public void shouldReturn100AsMaxClobLengthWhenOnlyUpdatedOnce() {
+    lobsTracker.updateMaxClobLength(2, 7, 100);
+    assertEquals(100, lobsTracker.getMaxClobLength(2, 7));
+  }
+
+  @Test
+  public void shouldReturnCorrectMaxClobLengthValuesWhenUpdatedMultipleTimes() {
+    lobsTracker.updateMaxClobLength(2, 7, 100);
+    assertEquals(100, lobsTracker.getMaxClobLength(2, 7));
+    lobsTracker.updateMaxClobLength(2, 7, 200);
+    assertEquals(200, lobsTracker.getMaxClobLength(2, 7));
+    lobsTracker.updateMaxClobLength(2, 7, 150);
+    assertEquals(200, lobsTracker.getMaxClobLength(2, 7));
+  }
 
   private void addLOB() {
     lobsTracker.addLOB();

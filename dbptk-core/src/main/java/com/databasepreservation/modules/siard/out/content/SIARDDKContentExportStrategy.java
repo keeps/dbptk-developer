@@ -264,13 +264,21 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
             SimpleCell simpleCell = (SimpleCell) cell;
             if (simpleCell.getSimpledata() == null) {
+
+              // CLOB is NULL
+
               tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
                 .append(" xsi:nil=\"true\"/>").append("\n");
             } else {
+
+              // CLOB is not NULL
+
+              String clobsData = simpleCell.getSimpledata();
+              lobsTracker.updateMaxClobLength(tableCounter, columnIndex, clobsData.length());
+
               // lobsTracker.addLOB(); // Only if LOB not NULL
               tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-                .append(XMLUtils.encode(simpleCell.getSimpledata())).append("</c").append(String.valueOf(columnIndex))
-                .append(">\n");
+                .append(XMLUtils.encode(clobsData)).append("</c").append(String.valueOf(columnIndex)).append(">\n");
             }
 
           } else if (cell instanceof BinaryCell) {
@@ -288,6 +296,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
             } else {
 
+              // BLOB is not NULL
+
               lobsTracker.addLOB(); // Only if LOB not NULL
 
               // Determine the mimetype (Tika should use an inputstream which
@@ -297,9 +307,6 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
               Tika tika = new Tika(); // Move this to constructor
               String mimeType = tika.detect(is); // Automatically resets the
                                                  // inputstream after use
-
-              // In SIARDDK the only accepted mimetypes for documents are
-              // image/tiff and JPEG2000
 
               if (mimetypeHandler.isMimetypeAllowed(mimeType)) {
 
