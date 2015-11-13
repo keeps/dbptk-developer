@@ -33,6 +33,10 @@ Usage: dbptk [plugin] <importModule> [import module options] <exportModule> [exp
 
 ## Available import modules: -i <module>, --import=module
 
+Import module: jdbc
+    -id, --import-driver=value    (required) the name of the the JDBC driver class. For more info about this refer to the website or the README file
+    -ic, --import-connection=value    (required) the connection url to use in the connection
+
 Import module: microsoft-sql-server
     -is, --import-server-name=value    (required) the name (host name) of the server
     -idb, --import-database=value    (required) the name of the database we'll be accessing
@@ -65,6 +69,10 @@ Import module: siard-2
     -if, --import-file=value    (required) Path to SIARD2 archive file
 
 ## Available export modules: -e <module>, --export=module
+
+Export module: jdbc
+    -ed, --export-driver=value    (required) the name of the the JDBC driver class. For more info about this refer to the website or the README file
+    -ec, --export-connection=value    (required) the connection url to use in the connection
 
 Export module: microsoft-sql-server
     -es, --export-server-name=value    (required) the name (host name) of the server
@@ -113,11 +121,46 @@ You have to select an input and an output module, providing for each its configu
 
 For example, if you want to connect to a live MySQL database and export its content to SIARD 1.0 format, you can use the following command.
 
-```bash
+```text
 $ java -jar dbptk-app-x.y.z.jar \
 -i mysql --import-hostname=localhost -idb example_db -iu username -ip p4ssw0rd \
 -e siard-1 -ef example.siard
 ```
+
+### How to use JDBC import and export modules
+
+To use Database Preservation Toolkit with an unsupported database, one can connect by providing the name of the the JDBC driver class (and adding the JDBC driver to the classpath) and the JDBC connection string. The steps to run Database Preservation Toolkit this way are as follows:
+
+1. Obtain the JDBC driver for the database you want to use (this is typically a file with `jar` extension). For Oracle12C this file can be downloaded from http://www.oracle.com/technetwork/database/features/jdbc/index-091264.html;
+2. Identify the driver class. For Oracle 12C this would be something like `oracle.jdbc.driver.OracleDriver`;
+3. Prepare the connection string. For Oracle 12C this could be something like `jdbc:oracle:thin:username/password@serverName:port/database`;
+4. Run Database Preservation Toolkit by providing files to add to the classpath and the main entry point.
+
+Please be aware that using this method the conversion quality cannot be assured, as it depends on the used driver.
+Furthermore, non-tested drivers are more prone to possible errors during the conversion.
+A specialized module for the database, if available, would always be preferable to this generic JDBC module.
+
+#### Example to convert from Oracle to SIARD2:
+
+Using the method described above, the Windows command to extract a database from an Oracle database to SIARD 2 is as the following:
+
+```text
+java -cp "C:\path\to\dbptk-app-x.y.z.jar;C:\path\to\jdbc_driver.jar" com.databasepreservation.Main \
+  --import=jdbc --driver=oracle.jdbc.driver.OracleDriver \
+    --connection="jdbc:oracle:thin:username/password@serverName:port/database" \
+  -e siard-2 -ef C:\path\to\output.siard
+```
+
+And on Linux the equivalent command would be (note that the jarfile separator is `:` instead of `;`):
+
+```text
+java -cp "/path/to/dbptk-app-x.y.z.jar:/path/to/jdbc_driver.jar" com.databasepreservation.Main \
+  --import=jdbc --driver=oracle.jdbc.driver.OracleDriver \
+    --connection="jdbc:oracle:thin:username/password@serverName:port/database" \
+  -e siard-2 -ef /path/to/output.siard
+```
+
+
 
 ## How to build from source
 
@@ -156,7 +199,7 @@ Furthermore, in order to extract DB structures we need to have access to the int
 
 The toolkit might need more memory than it is available by default (normally 64MB). To increase the available memory use the `-Xmx` option. For example, the following command will increase the heap size to 3 GB.
 
-```bash
+```text
 $ java -Xmx3g -jar dbptk-app-x.y.z.jar ...
 ```
 
@@ -166,7 +209,7 @@ The toolkit needs enough memory to put the table structure definition in memory 
 
 Due to the structure of some export modules (e.g. SIARD) and because we only want to pass throught the database once with minimum amount of used memory, all BLOBs and CLOBs of a database table must be kept on temporary files during the export of a table. This can cause your main disk to get full and the execution to fail. To select a diferent folder for the temporary files, e.g. on a bigger hard drive, use the option `-Djava.io.tmpdir=/path/to/tmpdir`. For example, the following command will use the folder `/media/BIGHD/tmp` as the temporary folder:
 
-```bash
+```text
 $ java -Djava.io.tmpdir=/media/BIGHD/tmp -jar dbptk-app-x.y.z.jar ...
 ```
 
