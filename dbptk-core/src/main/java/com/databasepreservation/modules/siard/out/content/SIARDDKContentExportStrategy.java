@@ -290,10 +290,6 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
               lobsTracker.addLOB(); // Only if LOB not NULL
 
-              tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-                .append(Integer.toString(lobsTracker.getLOBsCount())).append("</c").append(String.valueOf(columnIndex))
-                .append(">\n");
-
               // Determine the mimetype (Tika should use an inputstream which
               // supports marks)
 
@@ -309,6 +305,10 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
                 // Archive BLOB - simultaneous writing always supported for
                 // SIARDDK
+
+                tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
+                  .append(Integer.toString(lobsTracker.getLOBsCount())).append("</c")
+                  .append(String.valueOf(columnIndex)).append(">\n");
 
                 String path = contentPathExportStrategy.getBlobFilePath(-1, -1, -1, -1)
                   + mimetypeHandler.getFileExtension(mimeType);
@@ -341,8 +341,11 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
                 fileIndexFileStrategy.addFile(blob.getPath());
 
               } else {
-                System.out.println("Detected mimetype: " + mimeType);
-                logger.error("Unaccepted mimetype for BLOB!");
+                tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
+                  .append(" xsi:nil=\"true\"/>").append("\n");
+
+                logger.error("Unaccepted mimetype (" + mimeType + " detected) for BLOB in table" + tableCounter
+                  + ", column " + columnIndex + " - value set to NULL!");
               }
             }
           }
