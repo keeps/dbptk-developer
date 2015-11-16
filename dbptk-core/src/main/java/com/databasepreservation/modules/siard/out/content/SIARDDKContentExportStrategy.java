@@ -351,6 +351,9 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
                 tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
                   .append(" xsi:nil=\"true\"/>").append("\n");
 
+                // Decrement LOBs counter since the LOB is not "used" anyway
+                lobsTracker.decrementLOBsCount();
+
                 logger.error("Unaccepted mimetype (" + mimeType + " detected) for BLOB in table" + tableCounter
                   + ", column " + columnIndex + " - value set to NULL!");
               }

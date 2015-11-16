@@ -128,6 +128,29 @@ public class TestLOBsTracker {
     assertEquals(200, lobsTracker.getMaxClobLength(2, 7));
   }
 
+  @Test
+  public void decrementByOneLOBshouldBeCorrect() {
+    addLOB();
+    addLOB();
+    lobsTracker.decrementLOBsCount();
+    assertEquals(1, lobsTracker.getLOBsCount());
+  }
+
+  @Test
+  public void countsShouldBeCorrectAfter20001LOBsAddsAnd1Decrement() {
+    for (int i = 0; i < 20001; i++) {
+      addLOB();
+    }
+    lobsTracker.decrementLOBsCount();
+    assertEquals(20000, lobsTracker.getLOBsCount());
+    assertEquals(2, lobsTracker.getDocCollectionCount());
+    assertEquals(10000, lobsTracker.getFolderCount());
+    lobsTracker.decrementLOBsCount();
+    assertEquals(19999, lobsTracker.getLOBsCount());
+    assertEquals(2, lobsTracker.getDocCollectionCount());
+    assertEquals(9999, lobsTracker.getFolderCount());
+  }
+
   private void addLOB() {
     lobsTracker.addLOB();
   }

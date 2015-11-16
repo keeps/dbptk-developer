@@ -136,6 +136,20 @@ public class LOBsTracker {
       return -1;
     }
   }
+
+  /**
+   * Must only be called after addLOB method has be called
+   */
+  public void decrementLOBsCount() {
+    LOBsCount -= 1;
+
+    if (folderCount == 1) {
+      folderCount = SIARDDKConstants.MAX_NUMBER_OF_FILES;
+      docCollectionCount -= 1;
+    } else {
+      folderCount -= 1;
+    }
+  }
 }
 
 // TO-DO: add comment to methods
