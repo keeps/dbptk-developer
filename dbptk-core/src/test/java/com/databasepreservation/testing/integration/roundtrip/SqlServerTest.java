@@ -123,8 +123,8 @@ public class SqlServerTest {
   public void testConnection() throws IOException, InterruptedException, SQLException {
     setup();
 
-    Main.internal_main("-i", "SQLServerJDBC", "-is", SERVER_NAME, "-iin", INSTANCE_NAME, "-idb", db_source, "-iu",
-      USERNAME, "-ip", PASSWORD, "-e", "SIARD1", "-ef", SIARD_FILE, "-ide");
+    Main.internal_main("-i", "microsoft-sql-server", "-is", SERVER_NAME, "-iin", INSTANCE_NAME, "-idb", db_source, "-iu",
+      USERNAME, "-ip", PASSWORD, "-e", "siard-1", "-ef", SIARD_FILE, "-ide");
 
   }
 }

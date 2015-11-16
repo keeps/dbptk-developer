@@ -142,6 +142,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
       type = new SimpleTypeBinary();
     }
     type.setSql99TypeName("BINARY LARGE OBJECT");
+    type.setSql2003TypeName("BINARY LARGE OBJECT");
     return type;
   }
 
@@ -155,7 +156,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
         logger.debug("SQL ServerbinaryStream: " + columnName);
         FileItem fileItem = new FileItem();
         try {
-          FileHelper.copy(input, fileItem.getOutputStream());
+          FileHelper.copy(input, fileItem.createOutputStream());
           // List<FileFormat> formats = FileFormatHelper.getInstance()
           // .identify(fileItem);
           // logger.debug("cell '" + id + "' has formats " + formats);

@@ -50,6 +50,8 @@ public class CLI {
   private final ArrayList<DatabaseModuleFactory> factories;
   private final List<String> commandLineArguments;
   private DatabaseImportModule importModule;
+  private String importModuleName;
+  private String exportModuleName;
   private DatabaseExportModule exportModule;
 
   public CLI(List<String> commandLineArguments, List<Class<? extends DatabaseModuleFactory>> databaseModuleFactories) {
@@ -60,9 +62,9 @@ public class CLI {
         factories.add(factoryClass.newInstance());
       }
     } catch (InstantiationException e) {
-      e.printStackTrace();
+      logger.error("Error initializing CLI", e);
     } catch (IllegalAccessException e) {
-      e.printStackTrace();
+      logger.error("Error initializing CLI", e);
     }
     includePluginModules();
   }
@@ -120,6 +122,14 @@ public class CLI {
     return exportModule;
   }
 
+  public String getExportModuleName() {
+    return exportModuleName;
+  }
+
+  public String getImportModuleName() {
+    return importModuleName;
+  }
+
   public void printHelp() {
     printHelp(System.out);
   }
@@ -136,6 +146,8 @@ public class CLI {
     DatabaseModuleFactoriesPair databaseModuleFactoriesPair = getModuleFactories(args);
 
     try {
+      importModuleName = databaseModuleFactoriesPair.getImportModuleFactory().getModuleName();
+      exportModuleName = databaseModuleFactoriesPair.getExportModuleFactory().getModuleName();
       DatabaseModuleFactoriesArguments databaseModuleFactoriesArguments = getModuleArguments(
         databaseModuleFactoriesPair, args);
 
@@ -198,10 +210,10 @@ public class CLI {
     DatabaseModuleFactory exportModuleFactory = null;
     for (DatabaseModuleFactory factory : factories) {
       String moduleName = factory.getModuleName();
-      if (moduleName.equals(importModuleName) && factory.producesImportModules()) {
+      if (moduleName.equalsIgnoreCase(importModuleName) && factory.producesImportModules()) {
         importModuleFactory = factory;
       }
-      if (moduleName.equals(exportModuleName) && factory.producesExportModules()) {
+      if (moduleName.equalsIgnoreCase(exportModuleName) && factory.producesExportModules()) {
         exportModuleFactory = factory;
       }
     }

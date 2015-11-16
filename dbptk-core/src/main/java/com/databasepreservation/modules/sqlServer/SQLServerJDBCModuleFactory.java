@@ -63,7 +63,7 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public String getModuleName() {
-    return "SQLServerJDBC";
+    return "microsoft-sql-server";
   }
 
   @Override

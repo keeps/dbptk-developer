@@ -50,7 +50,7 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public String getModuleName() {
-    return "MySQLJDBC";
+    return "mysql";
   }
 
   @Override

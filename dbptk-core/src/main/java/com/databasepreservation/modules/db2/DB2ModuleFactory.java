@@ -48,7 +48,7 @@ public class DB2ModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public String getModuleName() {
-    return "DB2JDBC";
+    return "db2";
   }
 
   @Override

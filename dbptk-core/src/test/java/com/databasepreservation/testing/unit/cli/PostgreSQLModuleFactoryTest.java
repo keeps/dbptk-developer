@@ -25,9 +25,9 @@ public class PostgreSQLModuleFactoryTest {
 
   @Test
   public void arguments_required_long() {
-    List<String> args = Arrays.asList("--import=PostgreSQLJDBC", "--import-username=name-user",
+    List<String> args = Arrays.asList("--import=postgresql", "--import-username=name-user",
       "--import-password=abc1 23=456", "--import-hostname=the-server-name", "--import-database=dbname",
-      "--export=PostgreSQLJDBC", "--export-username=name-another-user", "--export-password=2bcd123=456",
+      "--export=postgresql", "--export-username=name-another-user", "--export-password=2bcd123=456",
       "--export-hostname=another-server", "--export-database=another-db-name", "--import-disable-encryption");
 
     // test parameters for import module
@@ -50,8 +50,8 @@ public class PostgreSQLModuleFactoryTest {
 
   @Test
   public void arguments_required_short() {
-    List<String> args = Arrays.asList("-i", "PostgreSQLJDBC", "-iu", "name-user", "-ip", "abc1 23=456", "-ih",
-      "the-server-name", "-idb", "dbname", "-e", "PostgreSQLJDBC", "-eu", "name-another-user", "-ep", "2bcd123=456",
+    List<String> args = Arrays.asList("-i", "postgresql", "-iu", "name-user", "-ip", "abc1 23=456", "-ih",
+      "the-server-name", "-idb", "dbname", "-e", "postgresql", "-eu", "name-another-user", "-ep", "2bcd123=456",
       "-eh", "another-server", "-edb", "another-db-name", "-ede");
 
     // test parameters for import module
@@ -75,9 +75,9 @@ public class PostgreSQLModuleFactoryTest {
 
   @Test
   public void arguments_portNumber_long() {
-    List<String> args = Arrays.asList("--import=PostgreSQLJDBC", "--import-username=name-user",
+    List<String> args = Arrays.asList("--import=postgresql", "--import-username=name-user",
       "--import-password=abc1 23=456", "--import-hostname=the-server-name", "--import-database=dbname",
-      "--export=PostgreSQLJDBC", "--export-username=name-another-user", "--export-password=2bcd123=456",
+      "--export=postgresql", "--export-username=name-another-user", "--export-password=2bcd123=456",
       "--export-hostname=another-server", "--export-database=another-db-name", "--import-disable-encryption",
       "--import-port-number=1234", "--export-port-number=4321");
 
@@ -103,8 +103,8 @@ public class PostgreSQLModuleFactoryTest {
 
   @Test
   public void arguments_portNumber_short() {
-    List<String> args = Arrays.asList("-i", "PostgreSQLJDBC", "-iu", "name-user", "-ip", "abc1 23=456", "-ih",
-      "the-server-name", "-idb", "dbname", "-e", "PostgreSQLJDBC", "-eu", "name-another-user", "-ep", "2bcd123=456",
+    List<String> args = Arrays.asList("-i", "postgresql", "-iu", "name-user", "-ip", "abc1 23=456", "-ih",
+      "the-server-name", "-idb", "dbname", "-e", "postgresql", "-eu", "name-another-user", "-ep", "2bcd123=456",
       "-eh", "another-server", "-edb", "another-db-name", "-ede", "-ipn", "4567", "-epn", "7654");
 
     // test parameters for import module

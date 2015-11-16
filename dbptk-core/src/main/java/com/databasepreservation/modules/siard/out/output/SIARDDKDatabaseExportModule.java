@@ -68,7 +68,7 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
 
         logger.info("Backed up an already existing archive folder to: " + oldArchiveDir);
       } catch (IOException e) {
-        e.printStackTrace();
+        throw new ModuleException("Error deleting existing directory", e);
       }
     }
   }

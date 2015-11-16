@@ -12,6 +12,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
+import com.databasepreservation.modules.jdbc.JDBCModuleFactory;
 import com.databasepreservation.modules.mySql.MySQLModuleFactory;
 import com.databasepreservation.modules.postgreSql.PostgreSQLModuleFactory;
 import com.databasepreservation.modules.siard.SIARD1ModuleFactory;
@@ -20,7 +21,8 @@ import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
 import com.databasepreservation.modules.sqlServer.SQLServerJDBCModuleFactory;
 
 /**
- * @author Luis Faria
+ * @author Luis Faria <lfaria@keep.pt>
+ * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class Main {
   public static final int EXIT_CODE_OK = 0;
@@ -45,8 +47,9 @@ public class Main {
     final DatabaseImportModule importModule;
     final DatabaseExportModule exportModule;
 
-    CLI cli = new CLI(Arrays.asList(args), new MySQLModuleFactory(), new SQLServerJDBCModuleFactory(),
-      new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(), new SIARD2ModuleFactory(), new SIARDDKModuleFactory());
+    CLI cli = new CLI(Arrays.asList(args), new JDBCModuleFactory(), new MySQLModuleFactory(),
+      new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(), new SIARD2ModuleFactory(), new SIARDDKModuleFactory(),
+      new SQLServerJDBCModuleFactory());
     try {
       importModule = cli.getImportModule();
       exportModule = cli.getExportModule();
@@ -60,8 +63,7 @@ public class Main {
 
     try {
       long startTime = System.currentTimeMillis();
-      logger.info("Translating database: " + importModule.getClass().getSimpleName() + " to "
-        + exportModule.getClass().getSimpleName());
+      logger.info("Translating database: " + cli.getImportModuleName() + " to " + cli.getExportModuleName());
       importModule.getDatabase(exportModule);
       long duration = System.currentTimeMillis() - startTime;
       logger.info("Done in " + (duration / 60000) + "m " + (duration % 60000 / 1000) + "s");

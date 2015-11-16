@@ -26,6 +26,7 @@ import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.modules.siard.common.LargeObject;
+import com.databasepreservation.modules.siard.common.ProvidesInputStream;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.out.metadata.DocIndexFileStrategy;
@@ -294,9 +295,9 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
             // BLOB case
 
-            BinaryCell binaryCell = (BinaryCell) cell;
+            final BinaryCell binaryCell = (BinaryCell) cell;
 
-            if (binaryCell.getInputstream() == null) {
+            if (binaryCell.createInputstream() == null) {
 
               // BLOB is NULL
 
@@ -312,7 +313,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
               // Determine the mimetype (Tika should use an inputstream which
               // supports marks)
 
-              InputStream is = new BufferedInputStream(binaryCell.getInputstream());
+              InputStream is = new BufferedInputStream(binaryCell.createInputstream());
               String mimeType = tika.detect(is); // Automatically resets the
                                                  // inputstream after use
 
@@ -328,19 +329,19 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
                 String path = contentPathExportStrategy.getBlobFilePath(-1, -1, -1, -1)
                   + mimetypeHandler.getFileExtension(mimeType);
 
-                LargeObject blob = null;
-
-                try {
-                  blob = new LargeObject(binaryCell.getInputstream(), path);
-                } catch (ModuleException e) {
-                  throw new ModuleException("Error getting blob data");
-                }
+                LargeObject blob = new LargeObject(new ProvidesInputStream() {
+                  @Override
+                  public InputStream createInputStream() throws ModuleException {
+                    return binaryCell.createInputstream();
+                  }
+                }, path);
 
                 // Create new FileIndexFileStrategy
 
                 // Write the BLOB
-                OutputStream out = fileIndexFileStrategy.getLOBWriter(baseContainer, blob.getPath(), writeStrategy);
-                InputStream in = blob.getDatasource();
+                OutputStream out = fileIndexFileStrategy.getLOBWriter(baseContainer, blob.getOutputPath(),
+                  writeStrategy);
+                InputStream in = blob.getInputStreamProvider().createInputStream();
                 IOUtils.copy(in, out);
                 in.close();
                 out.close();
@@ -353,7 +354,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
                   "originalFilename", mimetypeHandler.getFileExtension(mimeType), null);
 
                 // Add file to fileIndex
-                fileIndexFileStrategy.addFile(blob.getPath());
+                fileIndexFileStrategy.addFile(blob.getOutputPath());
 
               } else {
                 tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))

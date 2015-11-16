@@ -55,7 +55,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public String getModuleName() {
-    return "SIARD2";
+    return "siard-2";
   }
 
   @Override
@@ -100,7 +100,6 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
       pPrettyPrintXML = Boolean.parseBoolean(prettyPrintXML.valueIfSet());
     }
 
-    // TODO: prettyXML
-    return new SIARD2ExportModule(Paths.get(pFile), pCompress).getDatabaseHandler();
+    return new SIARD2ExportModule(Paths.get(pFile), pCompress, pPrettyPrintXML).getDatabaseHandler();
   }
 }

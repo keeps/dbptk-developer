@@ -56,12 +56,12 @@ public class FileItem {
   }
 
   /**
-   * Get an output stream to insert content to file item
+   * Creates an output stream to insert content to file item
    *
    * @return an output stream
    * @throws ModuleException
    */
-  public FileOutputStream getOutputStream() throws ModuleException {
+  public FileOutputStream createOutputStream() throws ModuleException {
     try {
       return new FileOutputStream(file);
     } catch (FileNotFoundException e) {
@@ -70,12 +70,12 @@ public class FileItem {
   }
 
   /**
-   * Get an input stream to retrieve the content from the file item
+   * Creates an input stream to retrieve the content from the file item
    *
    * @return an input stream
    * @throws ModuleException
    */
-  public FileInputStream getInputStream() throws ModuleException {
+  public FileInputStream createInputStream() throws ModuleException {
     try {
       return new FileInputStream(file);
     } catch (FileNotFoundException e) {

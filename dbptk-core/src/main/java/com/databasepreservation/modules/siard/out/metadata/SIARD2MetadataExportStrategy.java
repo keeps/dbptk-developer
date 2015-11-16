@@ -72,7 +72,8 @@ import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.modules.siard.SIARDHelper;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.content.sql99toXSDType;
+import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.JodaUtils;
 
@@ -83,11 +84,11 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
   private static final String ENCODING = "UTF-8";
   private static final String METADATA_FILENAME = "metadata";
   private static final String METADATA_RESOURCE_FILENAME = "siard2-metadata";
-  private final Logger logger = Logger.getLogger(SIARD1MetadataExportStrategy.class);
-  private final ContentPathExportStrategy contentPathStrategy;
+  private final Logger logger = Logger.getLogger(SIARD2MetadataExportStrategy.class);
+  private final SIARD2ContentPathExportStrategy contentPathStrategy;
   private final MetadataPathStrategy metadataPathStrategy;
 
-  public SIARD2MetadataExportStrategy(MetadataPathStrategy metadataPathStrategy, ContentPathExportStrategy paths) {
+  public SIARD2MetadataExportStrategy(MetadataPathStrategy metadataPathStrategy, SIARD2ContentPathExportStrategy paths) {
     this.contentPathStrategy = paths;
     this.metadataPathStrategy = metadataPathStrategy;
   }
@@ -137,11 +138,11 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     // create subfolder header/version/2.0
+    OutputStream writer = writeStrategy.createOutputStream(container, "header/version/2.0/");
     try {
-      OutputStream writer = writeStrategy.createOutputStream(container, "header/version/2.0/");
       writer.close();
     } catch (IOException e) {
-      e.printStackTrace();
+      throw new ModuleException("Error while closing the data writer", e);
     }
   }
 
@@ -251,7 +252,10 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     siardArchive.setRoles(jaxbRolesType(dbStructure.getRoles()));
     siardArchive.setPrivileges(jaxbPrivilegesType(dbStructure.getPrivileges()));
 
-    // TODO: set lobFolder: siardArchive.setLobFolder(...)
+    // siardArchive.setLobFolder(omitted);
+    // database level lobFolder is ommited, meaning the root file inside SIARD
+    // archive
+    // fixme: allow storing lobs outside of siard archive
 
     return siardArchive;
   }
@@ -538,8 +542,10 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
   private ColumnsType jaxbColumnsType(List<ColumnStructure> columns) throws ModuleException {
     if (columns != null && !columns.isEmpty()) {
       ColumnsType columnsType = new ColumnsType();
-      for (ColumnStructure columnStructure : columns) {
-        columnsType.getColumn().add(jaxbColumnType(columnStructure));
+      for (int index = 0; index < columns.size(); index++) {
+        ColumnStructure columnStructure = columns.get(index); // 0-based index
+        columnsType.getColumn().add(jaxbColumnType(columnStructure, index + 1)); // 1-based
+                                                                                 // index
       }
       return columnsType;
     } else {
@@ -547,7 +553,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     }
   }
 
-  private ColumnType jaxbColumnType(ColumnStructure column) throws ModuleException {
+  private ColumnType jaxbColumnType(ColumnStructure column, int columnIndex) throws ModuleException {
     ColumnType columnType = new ColumnType();
 
     if (StringUtils.isNotBlank(column.getName())) {
@@ -578,7 +584,13 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     // TODO: set fields related to lob and complex types
-    // columnType.setFolder(null);
+
+    // specific fields for lobs
+    String xsdTypeFromColumnSql99Type = sql99toXSDType.convert(column.getType().getSql99TypeName());
+    if (xsdTypeFromColumnSql99Type.equals("clobType") || xsdTypeFromColumnSql99Type.equals("blobType")) {
+      columnType.setFolder(contentPathStrategy.getColumnFolderName(columnIndex));
+    }
+
     // columnType.setLobFolder(null);
     // columnType.setTypeSchema(null);
     // columnType.setTypeName(null);

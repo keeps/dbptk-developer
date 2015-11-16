@@ -13,6 +13,10 @@ This information is only for building plugins for Database Preservation Toolkit.
 
 4. Start Database Preservation Toolkit with the plugin: `java -jar db-preservation-toolkit-x.y.z-jar-with-dependencies.jar -p dbptk-plugin-example.jar`. You will then see the usage information, including the usage for the plugin module.
 
+## Development
+
+The plugin system is very unstable and it's very easy to end up in a *"classpath hell"*. This will change in a future release.
+
 ## Information & Commercial support
 
 For more information or commercial support, contact [KEEP SOLUTIONS](http://www.keep.pt/contactos/?lang=en).
