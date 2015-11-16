@@ -13,7 +13,7 @@ public class TestSIARDDKContentExportPathStrategy {
 
   @BeforeMethod
   public void setUp() {
-    c = new SIARDDKContentPathExportStrategy();
+    c = new SIARDDKContentPathExportStrategy(null);
   }
 
   @Test

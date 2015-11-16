@@ -9,6 +9,8 @@ package com.databasepreservation.modules.siard.out.output;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.databasepreservation.model.modules.DatabaseExportModule;
@@ -16,7 +18,9 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARDDKMetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.content.ContentExportStrategy;
+import com.databasepreservation.modules.siard.out.content.LOBsTracker;
 import com.databasepreservation.modules.siard.out.content.SIARDDKContentExportStrategy;
+import com.databasepreservation.modules.siard.out.metadata.DocIndexFileStrategy;
 import com.databasepreservation.modules.siard.out.metadata.FileIndexFileStrategy;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARDDKMetadataExportStrategy;
@@ -40,20 +44,26 @@ public class SIARDDKExportModule {
   private ContentPathExportStrategy contentPathExportStrategy;
   private MetadataPathStrategy metadataPathStrategy;
   private SIARDMarshaller siardMarshaller;
+  private LOBsTracker lobsTracker;
 
   private Map<String, String> exportModuleArgs;
+  private Map<Integer, List<Integer>> LOBsTracker;
   private FileIndexFileStrategy fileIndexFileStrategy;
+  private DocIndexFileStrategy docIndexFileStrategy;
 
   public SIARDDKExportModule(Map<String, String> exportModuleArgs) {
     this.exportModuleArgs = exportModuleArgs;
+    LOBsTracker = new HashMap<Integer, List<Integer>>();
 
     Path rootPath = FileSystems.getDefault().getPath(exportModuleArgs.get("folder"));
 
     mainContainer = new SIARDArchiveContainer(rootPath, SIARDArchiveContainer.OutputContainerType.MAIN);
     writeStrategy = new FolderWriteStrategy();
     siardMarshaller = new StandardSIARDMarshaller();
-    fileIndexFileStrategy = new FileIndexFileStrategy(this);
-    contentPathExportStrategy = new SIARDDKContentPathExportStrategy();
+    fileIndexFileStrategy = new FileIndexFileStrategy();
+    docIndexFileStrategy = new DocIndexFileStrategy();
+    lobsTracker = new LOBsTracker();
+    contentPathExportStrategy = new SIARDDKContentPathExportStrategy(this);
     metadataPathStrategy = new SIARDDKMetadataPathStrategy();
     metadataExportStrategy = new SIARDDKMetadataExportStrategy(this);
     contentExportStrategy = new SIARDDKContentExportStrategy(this);
@@ -73,6 +83,13 @@ public class SIARDDKExportModule {
 
   public FileIndexFileStrategy getFileIndexFileStrategy() {
     return fileIndexFileStrategy;
+  }
+
+  /**
+   * @return the docIndexFileStrategy
+   */
+  public DocIndexFileStrategy getDocIndexFileStrategy() {
+    return docIndexFileStrategy;
   }
 
   public SIARDMarshaller getSiardMarshaller() {
@@ -97,5 +114,16 @@ public class SIARDDKExportModule {
 
   public SIARDArchiveContainer getMainContainer() {
     return mainContainer;
+  }
+
+  public Map<Integer, List<Integer>> getLOBsTracker() {
+    return LOBsTracker;
+  }
+
+  /**
+   * @return the lobsTracker
+   */
+  public LOBsTracker getLobsTracker() {
+    return lobsTracker;
   }
 }

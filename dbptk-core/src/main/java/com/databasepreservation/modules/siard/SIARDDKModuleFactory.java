@@ -20,8 +20,11 @@ import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
  */
 public class SIARDDKModuleFactory implements DatabaseModuleFactory {
 
-  private static final Parameter folder = new Parameter().shortName("f").longName("folder")
-    .description("Path to SIARDDK archive folder").hasArgument(true).setOptionalArgument(false).required(true);
+  private static final Parameter folder = new Parameter()
+    .shortName("f")
+    .longName("folder")
+    .description("Path to SIARDDK archive folder. Archive folder must match the pattern AVID.[A-ZÆØÅ]{2,4}.[1-9][0-9]*")
+    .hasArgument(true).setOptionalArgument(false).required(true);
 
   private static final Parameter archiveIndex = new Parameter().shortName("ai").longName("archiveIndex")
     .description("Path to archiveIndex.xml input file").hasArgument(true).setOptionalArgument(false).required(false);
@@ -34,6 +37,18 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     .longName(SIARDDKConstants.CONTEXT_DOCUMENTATION_FOLDER)
     .description("Path to contextDocumentation folder which should contain the context documentation for the archive")
     .hasArgument(true).setOptionalArgument(false).required(false);
+
+  // This is not used now, but will be used later
+  // private static final Parameter clobType = new
+  // Parameter().shortName("ct").longName("clobtype")
+  // .description("Specify the type for CLOBs").hasArgument(true).setOptionalArgument(false).required(false)
+  // .valueIfNotSet(SIARDDKConstants.DEFAULT_CLOB_TYPE);
+
+  // This is not used now, but will be used later
+  // private static final Parameter clobLength = new
+  // Parameter().shortName("cl").longName("cloblength")
+  // .description("The threshold length of CLOBs before converting to tiff").hasArgument(true)
+  // .setOptionalArgument(false).required(false).valueIfNotSet(SIARDDKConstants.DEFAULT_MAX_CLOB_LENGTH);
 
   @Override
   public boolean producesImportModules() {
@@ -59,6 +74,10 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     parameterMap.put(contextDocumentationIndex.longName(), contextDocumentationIndex);
     parameterMap.put(contextDocmentationFolder.longName(), contextDocmentationFolder);
 
+    // to be used later...
+    // parameterMap.put(clobType.longName(), clobType);
+    // parameterMap.put(clobLength.longName(), clobLength);
+
     return parameterMap;
   }
 
@@ -69,8 +88,13 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Parameters getExportModuleParameters() throws OperationNotSupportedException {
+    // return new Parameters(Arrays.asList(folder, archiveIndex,
+    // contextDocumentationIndex, contextDocmentationFolder,
+    // clobType, clobLength), null);
+
     return new Parameters(Arrays.asList(folder, archiveIndex, contextDocumentationIndex, contextDocmentationFolder),
       null);
+
   }
 
   @Override
@@ -90,11 +114,19 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     String pContextDocumentationIndex = parameters.get(contextDocumentationIndex);
     String pContextDocumentationFolder = parameters.get(contextDocmentationFolder);
 
+    // to be used later...
+    // String pClobType = parameters.get(clobType);
+    // String pClobLength = parameters.get(clobLength);
+
     Map<String, String> exportModuleArgs = new HashMap<String, String>();
     exportModuleArgs.put(folder.longName(), pFolder);
     exportModuleArgs.put(archiveIndex.longName(), pArchiveIndex);
     exportModuleArgs.put(contextDocumentationIndex.longName(), pContextDocumentationIndex);
     exportModuleArgs.put(contextDocmentationFolder.longName(), pContextDocumentationFolder);
+
+    // to be used later...
+    // exportModuleArgs.put(clobType.longName(), pClobType);
+    // exportModuleArgs.put(clobLength.longName(), pClobLength);
 
     return new SIARDDKExportModule(exportModuleArgs).getDatabaseExportModule();
   }
