@@ -60,6 +60,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   private WriteStrategy writeStrategy;
   private LOBsTracker lobsTracker;
   private MimetypeHandler mimetypeHandler;
+  private Tika tika;
 
   public SIARDDKContentExportStrategy(SIARDDKExportModule siarddkExportModule) {
 
@@ -67,6 +68,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     foundClob = false;
 
     mimetypeHandler = new SIARDDKMimetypeHandler();
+    tika = new Tika();
 
     contentPathExportStrategy = siarddkExportModule.getContentPathExportStrategy();
     fileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
@@ -311,7 +313,6 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
               // supports marks)
 
               InputStream is = new BufferedInputStream(binaryCell.getInputstream());
-              Tika tika = new Tika(); // Move this to constructor
               String mimeType = tika.detect(is); // Automatically resets the
                                                  // inputstream after use
 
