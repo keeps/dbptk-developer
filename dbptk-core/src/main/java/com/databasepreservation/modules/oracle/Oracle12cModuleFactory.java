@@ -29,7 +29,8 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
     .required(true);
 
   private static final Parameter database = new Parameter().shortName("db").longName("database")
-    .description("the name of the database to import from").hasArgument(true).setOptionalArgument(false).required(true);
+    .description("the name of the database to use in the connection").hasArgument(true).setOptionalArgument(false)
+    .required(true);
 
   private static final Parameter username = new Parameter().shortName("u").longName("username")
     .description("the name of the user to use in connection").hasArgument(true).setOptionalArgument(false)
@@ -39,9 +40,21 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
     .description("the password of the user to use in connection").hasArgument(true).setOptionalArgument(false)
     .required(true);
 
+  private static final Parameter sourceSchema = new Parameter()
+    .shortName("sc")
+    .longName("source-schema")
+    .hasArgument(true)
+    .setOptionalArgument(false)
+    .required(false)
+    .description(
+      "the name of the source schema to export to the Oracle database. A schema with this name must exist in"
+        + " the Oracle database and it must be the default tablespace for the specified user. If omitted, the name of"
+        + " the first schema will be used");
+
   private static final Parameter acceptLicense = new Parameter().shortName("al").longName("accept-license")
     .description("declare that you accept OTN License Agreement, which is necessary to use this module")
     .hasArgument(false).valueIfSet("true").valueIfNotSet("false").required(false);
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -66,6 +79,7 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(password.longName(), password);
     parameterHashMap.put(portNumber.longName(), portNumber);
     parameterHashMap.put(acceptLicense.longName(), acceptLicense);
+    parameterHashMap.put(sourceSchema.longName(), sourceSchema);
     return parameterHashMap;
   }
 
@@ -76,7 +90,8 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Parameters getExportModuleParameters() throws OperationNotSupportedException {
-    return new Parameters(Arrays.asList(serverName, database, username, password, portNumber, acceptLicense), null);
+    return new Parameters(Arrays.asList(serverName, database, username, password, portNumber, acceptLicense,
+      sourceSchema), null);
   }
 
   @Override
@@ -105,6 +120,7 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
     String pDatabase = parameters.get(database);
     String pUsername = parameters.get(username);
     String pPassword = parameters.get(password);
+    String pSourceSchema = parameters.get(sourceSchema);
 
     boolean pAcceptLicense = Boolean.parseBoolean(parameters.get(acceptLicense));
 
@@ -114,7 +130,7 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
 
     Integer pPortNumber = Integer.parseInt(parameters.get(portNumber));
 
-    return new Oracle12cJDBCExportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword);
+    return new Oracle12cJDBCExportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword, pSourceSchema);
   }
 
   private String getLicenseText(String parameter) {
