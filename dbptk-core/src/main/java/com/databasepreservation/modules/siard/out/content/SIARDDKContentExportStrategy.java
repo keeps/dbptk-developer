@@ -46,6 +46,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   private final static String namespaceBase = "http://www.sa.dk/xmlns/siard/1.0/";
 
   private int tableCounter;
+  private boolean foundClob;
 
   private static final Logger logger = Logger.getLogger(SIARDDKContentExportStrategy.class);
 
@@ -63,6 +64,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   public SIARDDKContentExportStrategy(SIARDDKExportModule siarddkExportModule) {
 
     tableCounter = 1;
+    foundClob = false;
 
     mimetypeHandler = new SIARDDKMimetypeHandler();
 
@@ -219,6 +221,10 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
       fileIndexFileStrategy.addFile(contentPathExportStrategy.getTableXmlFilePath(0, tableStructure.getIndex()));
 
+      if (foundClob) {
+        logger.info("CLOB(s) found in table " + tableCounter + ". Archived as string");
+      }
+      foundClob = false;
       tableCounter += 1;
 
     } catch (IOException e) {
@@ -273,6 +279,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
               // CLOB is not NULL
 
+              foundClob = true;
               String clobsData = simpleCell.getSimpledata();
               lobsTracker.updateMaxClobLength(tableCounter, columnIndex, clobsData.length());
 
