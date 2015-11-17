@@ -51,6 +51,7 @@ import com.databasepreservation.model.structure.type.UnsupportedDataType;
 import com.databasepreservation.modules.SQLHelper;
 
 /**
+ * @author Bruno Ferreira <bferreira@keep.pt>
  * @author Luis Faria
  */
 public class JDBCExportModule implements DatabaseExportModule {
@@ -243,7 +244,7 @@ public class JDBCExportModule implements DatabaseExportModule {
     try {
       this.existingSchemas = getExistingSchemasNames();
     } catch (SQLException e) {
-      logger.error("An error occurred while getting the name " + "of existing schemas");
+      logger.error("An error occurred while getting the name of existing schemas");
     }
     createDatabase(structure.getName());
     int[] batchResult = null;

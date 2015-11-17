@@ -6,6 +6,7 @@ import javax.naming.OperationNotSupportedException;
 
 import net.xeoh.plugins.base.Plugin;
 
+import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
 
@@ -29,9 +30,11 @@ public interface DatabaseModuleFactory extends Plugin {
 
   Parameters getExportModuleParameters() throws OperationNotSupportedException;
 
-  DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws OperationNotSupportedException;
+  DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws OperationNotSupportedException,
+    LicenseNotAcceptedException;
 
-  DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws OperationNotSupportedException;
+  DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws OperationNotSupportedException,
+    LicenseNotAcceptedException;
 
   class ExceptionBuilder {
     public static OperationNotSupportedException OperationNotSupportedExceptionForImportModule() {

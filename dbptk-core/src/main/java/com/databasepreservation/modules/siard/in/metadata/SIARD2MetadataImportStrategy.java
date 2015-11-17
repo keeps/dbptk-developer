@@ -192,7 +192,9 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
       result.setObject(privilegeType.getObject());
       result.setGrantor(privilegeType.getGrantor());
       result.setGrantee(privilegeType.getGrantee());
-      result.setOption(privilegeType.getOption().value());
+      if (privilegeType.getOption() != null) {
+        result.setOption(privilegeType.getOption().value());
+      }
       result.setDescription(privilegeType.getDescription());
 
       return result;
@@ -530,7 +532,9 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
       result.setName(foreignKey.getName());
       result.setReferencedSchema(foreignKey.getReferencedSchema());
       result.setReferencedTable(foreignKey.getReferencedTable());
-      result.setMatchType(foreignKey.getMatchType().value());
+      if (foreignKey.getMatchType() != null) {
+        result.setMatchType(foreignKey.getMatchType().value());
+      }
       result.setDeleteAction(foreignKey.getDeleteAction());
       result.setUpdateAction(foreignKey.getUpdateAction());
       result.setDescription(foreignKey.getDescription());
