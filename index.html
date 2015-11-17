@@ -14,15 +14,15 @@
       <h1 class="project-name">db-preservation-toolkit</h1>
       <h2 class="project-tagline">Database Preservation Toolkit</h2>
       <a href="https://github.com/keeps/db-preservation-toolkit" class="btn">View on GitHub</a>
-      <a href="https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-rc3.1.0/dbptk-core-2.0.0-rc3.1.0-jar-with-dependencies.jar" class="btn">Download 2.0.0-rc3.1.0 (beta)</a>
-      <a href="https://github.com/keeps/db-preservation-toolkit/releases/download/v1.0.1/db-preservation-toolkit-1.0.1-jar-with-dependencies.jar" class="btn">Download 1.0.1</a>
+      <a href="https://github.com/keeps/db-preservation-toolkit/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/keeps/db-preservation-toolkit/tarball/master" class="btn">Download .tar.gz</a>
     </section>
 
     <section class="main-content">
       <h1>
 <a id="database-preservation-toolkit" class="anchor" href="#database-preservation-toolkit" aria-hidden="true"><span class="octicon octicon-link"></span></a>Database Preservation Toolkit</h1>
 
-<p>The Database Preservation Toolkit allows conversion between Database formats, including connection to live systems, for purposes of digitally preserving databases. The toolkit allows conversion of live or backed-up databases into preservation formats such as <strong>DBML</strong> or <strong>SIARD</strong>, XML-based formats created for the purpose of database preservation. The toolkit also allows conversion of the preservation formats back into live systems to allow the full functionality of databases. For example, it supports a specialized export into MySQL, optimized for PhpMyAdmin, so the database can be fully  experimented using a web interface.</p>
+<p>The Database Preservation Toolkit allows conversion between Database formats, including connection to live systems, for purposes of digitally preserving databases. The toolkit allows conversion of live or backed-up databases into preservation formats such as <strong>SIARD</strong>, a XML-based format created for the purpose of database preservation. The toolkit also allows conversion of the preservation formats back into live systems to allow the full functionality of databases. For example, it supports a specialized export into MySQL, optimized for PhpMyAdmin, so the database can be fully  experimented using a web interface.</p>
 
 <p>This toolkit was part of the <a href="http://www.roda-community.org">RODA project</a> and now has been released as a project by its own due to the increasing interest on this particular feature. It is now being further developed in the <a href="http://www.eark-project.com/">EARK project</a> together with a new version of the SIARD preservation format.</p>
 
@@ -40,7 +40,9 @@
 
 <ul>
 <li>
-<a href="https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-rc3.1.0/dbptk-core-2.0.0-rc3.1.0-jar-with-dependencies.jar">db-preservation-toolkit v2.0.0-rc3.1.0</a> (pre-release, SIARD still lacks LOBs and UDTs)</li>
+<a href="https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-rc3.2.0/dbptk-app-2.0.0-rc3.2.0.jar">dbptk-app v2.0.0-rc3.2.0</a> (pre-release, SIARD LOBs are supported, added Oracle support)</li>
+<li>
+<a href="https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-rc3.1.0/dbptk-app-2.0.0-rc3.1.0.jar">dbptk-app v2.0.0-rc3.1.0</a> (pre-release, SIARD still lacks LOBs and UDTs)</li>
 <li><a href="https://github.com/keeps/db-preservation-toolkit/releases/download/v1.0.1/db-preservation-toolkit-1.0.1-jar-with-dependencies.jar">db-preservation-toolkit v1.0.1</a></li>
 <li><a href="http://keeps.github.io/db-preservation-toolkit/db-preservation-toolkit-1.0.0-jar-with-dependencies.jar">db-preservation-toolkit v1.0.0</a></li>
 </ul>
@@ -50,7 +52,7 @@
 
 <p>To use the program, open a command-line and try out the following command (replace x.y.z accordingly to the version of the binary in use):</p>
 
-<pre lang="text"><code>$ java -jar dbptk-core-X.Y.Z-jar-with-dependencies.jar
+<pre lang="text"><code>$ java -jar dbptk-app-X.Y.Z.jar
 Database Preservation Toolkit, vX.Y.Z
 More info: http://www.database-preservation.com
 Usage: dbptk [plugin] &lt;importModule&gt; [import module options] &lt;exportModule&gt; [export module options]
@@ -59,6 +61,10 @@ Usage: dbptk [plugin] &lt;importModule&gt; [import module options] &lt;exportMod
     -p, --plugin=plugin.jar    (optional) the file containing a plugin module. Several plugins can be specified, separated by a semi-colon (;)
 
 ## Available import modules: -i &lt;module&gt;, --import=module
+
+Import module: jdbc
+    -id, --import-driver=value    (required) the name of the the JDBC driver class. For more info about this refer to the website or the README file
+    -ic, --import-connection=value    (required) the connection url to use in the connection
 
 Import module: microsoft-sql-server
     -is, --import-server-name=value    (required) the name (host name) of the server
@@ -77,6 +83,14 @@ Import module: mysql
     -ip, --import-password=value    (required) the password of the user to use in connection
     -ipn, --import-port-number=value    (optional) the port that the MySQL server is listening
 
+Import module: oracle
+    -is, --import-server-name=value    (required) the name (or IP address) of the Oracle server
+    -idb, --import-database=value    (required) the name of the database to use in the connection
+    -iu, --import-username=value    (required) the name of the user to use in connection
+    -ip, --import-password=value    (required) the password of the user to use in connection
+    -ipn, --import-port-number=value    (required) the port that the Oracle server is listening
+    -ial, --import-accept-license    (optional) declare that you accept OTN License Agreement, which is necessary to use this module
+
 Import module: postgresql
     -ih, --import-hostname=value    (required) the name of the PostgreSQL server host (e.g. localhost)
     -idb, --import-database=value    (required) the name of the database to connect to
@@ -92,6 +106,10 @@ Import module: siard-2
     -if, --import-file=value    (required) Path to SIARD2 archive file
 
 ## Available export modules: -e &lt;module&gt;, --export=module
+
+Export module: jdbc
+    -ed, --export-driver=value    (required) the name of the the JDBC driver class. For more info about this refer to the website or the README file
+    -ec, --export-connection=value    (required) the connection url to use in the connection
 
 Export module: microsoft-sql-server
     -es, --export-server-name=value    (required) the name (host name) of the server
@@ -109,6 +127,15 @@ Export module: mysql
     -eu, --export-username=value    (required) the name of the user to use in connection
     -ep, --export-password=value    (required) the password of the user to use in connection
     -epn, --export-port-number=value    (optional) the port that the MySQL server is listening
+
+Export module: oracle
+    -es, --export-server-name=value    (required) the name (or IP address) of the Oracle server
+    -edb, --export-database=value    (required) the name of the database to use in the connection
+    -eu, --export-username=value    (required) the name of the user to use in connection
+    -ep, --export-password=value    (required) the password of the user to use in connection
+    -epn, --export-port-number=value    (required) the port that the Oracle server is listening
+    -eal, --export-accept-license    (optional) declare that you accept OTN License Agreement, which is necessary to use this module
+    -esc, --export-source-schema=value    (optional) the name of the source schema to export to the Oracle database. A schema with this name must exist in the Oracle database and it must be the default tablespace for the specified user. If omitted, the name of the first schema will be used
 
 Export module: postgresql
     -eh, --export-hostname=value    (required) the name of the PostgreSQL server host (e.g. localhost)
@@ -139,9 +166,45 @@ Export module: siard-dk
 
 <p>For example, if you want to connect to a live MySQL database and export its content to SIARD 1.0 format, you can use the following command.</p>
 
-<div class="highlight highlight-source-shell"><pre>$ java -jar dbptk-core-x.y.z-jar-with-dependencies.jar \
+<pre lang="text"><code>$ java -jar dbptk-app-x.y.z.jar \
 -i mysql --import-hostname=localhost -idb example_db -iu username -ip p4ssw0rd \
--e siard-1 -ef example.siard</pre></div>
+-e siard-1 -ef example.siard
+</code></pre>
+
+<h3>
+<a id="how-to-use-jdbc-import-and-export-modules" class="anchor" href="#how-to-use-jdbc-import-and-export-modules" aria-hidden="true"><span class="octicon octicon-link"></span></a>How to use JDBC import and export modules</h3>
+
+<p>To use Database Preservation Toolkit with an unsupported database, one can connect by providing the name of the the JDBC driver class (and adding the JDBC driver to the classpath) and the JDBC connection string. The steps to run Database Preservation Toolkit this way are as follows:</p>
+
+<ol>
+<li>Obtain the JDBC driver for the database you want to use (this is typically a file with <code>jar</code> extension). For Oracle12C this file can be downloaded from <a href="http://www.oracle.com/technetwork/database/features/jdbc/index-091264.html">http://www.oracle.com/technetwork/database/features/jdbc/index-091264.html</a>;</li>
+<li>Identify the driver class. For Oracle 12C this would be something like <code>oracle.jdbc.driver.OracleDriver</code>;</li>
+<li>Prepare the connection string. For Oracle 12C this could be something like <code>jdbc:oracle:thin:username/password@serverName:port/database</code>;</li>
+<li>Run Database Preservation Toolkit by providing files to add to the classpath and the main entry point.</li>
+</ol>
+
+<p>Please be aware that using this method the conversion quality cannot be assured, as it depends on the used driver.
+Furthermore, non-tested drivers are more prone to possible errors during the conversion.
+A specialized module for the database, if available, would always be preferable to this generic JDBC module.</p>
+
+<h4>
+<a id="example-to-convert-from-oracle-to-siard2" class="anchor" href="#example-to-convert-from-oracle-to-siard2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Example to convert from Oracle to SIARD2:</h4>
+
+<p>Using the method described above, the Windows command to extract a database from an Oracle database to SIARD 2 is as the following:</p>
+
+<pre lang="text"><code>java -cp "C:\path\to\dbptk-app-x.y.z.jar;C:\path\to\jdbc_driver.jar" com.databasepreservation.Main \
+  --import=jdbc --driver=oracle.jdbc.driver.OracleDriver \
+    --connection="jdbc:oracle:thin:username/password@serverName:port/database" \
+  -e siard-2 -ef C:\path\to\output.siard
+</code></pre>
+
+<p>And on Linux the equivalent command would be (note that the jarfile separator is <code>:</code> instead of <code>;</code>):</p>
+
+<pre lang="text"><code>java -cp "/path/to/dbptk-app-x.y.z.jar:/path/to/jdbc_driver.jar" com.databasepreservation.Main \
+  --import=jdbc --driver=oracle.jdbc.driver.OracleDriver \
+    --connection="jdbc:oracle:thin:username/password@serverName:port/database" \
+  -e siard-2 -ef /path/to/output.siard
+</code></pre>
 
 <h2>
 <a id="how-to-build-from-source" class="anchor" href="#how-to-build-from-source" aria-hidden="true"><span class="octicon octicon-link"></span></a>How to build from source</h2>
@@ -190,7 +253,8 @@ Export module: siard-dk
 
 <p>The toolkit might need more memory than it is available by default (normally 64MB). To increase the available memory use the <code>-Xmx</code> option. For example, the following command will increase the heap size to 3 GB.</p>
 
-<div class="highlight highlight-source-shell"><pre>$ java -Xmx3g -jar dbptk-core-x.y.z-jar-with-dependencies.jar ...</pre></div>
+<pre lang="text"><code>$ java -Xmx3g -jar dbptk-app-x.y.z.jar ...
+</code></pre>
 
 <p>The toolkit needs enough memory to put the table structure definition in memory (not the data) and to load each data row or row set, which might include having some BLOBs completely in memory, but this depends on the database driver implementation.</p>
 
@@ -198,7 +262,8 @@ Export module: siard-dk
 
 <p>Due to the structure of some export modules (e.g. SIARD) and because we only want to pass throught the database once with minimum amount of used memory, all BLOBs and CLOBs of a database table must be kept on temporary files during the export of a table. This can cause your main disk to get full and the execution to fail. To select a diferent folder for the temporary files, e.g. on a bigger hard drive, use the option <code>-Djava.io.tmpdir=/path/to/tmpdir</code>. For example, the following command will use the folder <code>/media/BIGHD/tmp</code> as the temporary folder:</p>
 
-<div class="highlight highlight-source-shell"><pre>$ java -Djava.io.tmpdir=/media/BIGHD/tmp -jar dbptk-core-x.y.z-jar-with-dependencies.jar ...</pre></div>
+<pre lang="text"><code>$ java -Djava.io.tmpdir=/media/BIGHD/tmp -jar dbptk-app-x.y.z.jar ...
+</code></pre>
 
 <h2>
 <a id="information--commercial-support" class="anchor" href="#information--commercial-support" aria-hidden="true"><span class="octicon octicon-link"></span></a>Information &amp; Commercial support</h2>
