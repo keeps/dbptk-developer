@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Map;
 
 import org.apache.commons.cli.ParseException;
-import org.apache.log4j.Logger;
 
 import com.databasepreservation.cli.CLI;
 import com.databasepreservation.model.exception.InvalidDataException;
@@ -36,7 +35,7 @@ public class Main {
 
   public static final String NAME = "db-preservation-toolkit";
 
-  private static final Logger logger = Logger.getLogger(Main.class);
+  private static final CustomLogger logger = CustomLogger.getLogger(Main.class);
 
   /**
    * @param args

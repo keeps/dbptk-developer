@@ -17,7 +17,6 @@ import java.util.Properties;
 
 import javax.naming.OperationNotSupportedException;
 
-import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import net.xeoh.plugins.base.PluginManager;
 import net.xeoh.plugins.base.impl.PluginManagerFactory;
 
@@ -31,8 +30,9 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.log4j.Logger;
 
+import com.databasepreservation.CustomLogger;
+import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
@@ -46,7 +46,7 @@ import com.databasepreservation.model.parameters.Parameters;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class CLI {
-  private static final Logger logger = Logger.getLogger(CLI.class);
+  private static final CustomLogger logger = CustomLogger.getLogger(CLI.class);
 
   private final ArrayList<DatabaseModuleFactory> factories;
   private final List<String> commandLineArguments;

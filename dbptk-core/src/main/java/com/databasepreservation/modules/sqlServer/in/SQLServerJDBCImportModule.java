@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.transaction.util.FileHelper;
-import org.apache.log4j.Logger;
 
 import pt.gov.dgarq.roda.common.FileFormat;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.FileItem;
@@ -34,7 +34,7 @@ import com.microsoft.sqlserver.jdbc.SQLServerResultSet;
  */
 public class SQLServerJDBCImportModule extends JDBCImportModule {
 
-  private final Logger logger = Logger.getLogger(SQLServerJDBCImportModule.class);
+  private final CustomLogger logger = CustomLogger.getLogger(SQLServerJDBCImportModule.class);
 
   /**
    * Create a new Microsoft SQL Server import module using the default instance.

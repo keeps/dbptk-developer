@@ -6,12 +6,12 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
 import org.jdom2.output.XMLOutputter;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -37,7 +37,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   private static final String ENCODING = "utf-8";
   private static final String TAB = "  ";
   private static final String namespaceBase = "http://www.sa.dk/xmlns/siard/1.0/";
-  private static final Logger logger = Logger.getLogger(SIARDDKContentExportStrategy.class);
+  private static final CustomLogger logger = CustomLogger.getLogger(SIARDDKContentExportStrategy.class);
 
   private int tableCounter;
   private boolean LOBsError;

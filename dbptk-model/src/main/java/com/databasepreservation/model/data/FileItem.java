@@ -19,8 +19,6 @@ import com.databasepreservation.model.exception.ModuleException;
  */
 public class FileItem {
 
-  // private final Logger logger = Logger.getLogger(FileItem.class);
-
   private File file;
 
   /**

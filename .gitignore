@@ -9,6 +9,7 @@ target/
 **/.DS_Store
 
 log/
+dbptk-app.log
 exported-dbs/
 
 

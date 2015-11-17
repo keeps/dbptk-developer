@@ -4,8 +4,8 @@
 package com.databasepreservation.modules.db2;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
@@ -18,7 +18,7 @@ import com.databasepreservation.modules.SQLHelper;
  */
 public class DB2Helper extends SQLHelper {
 
-  private final Logger logger = Logger.getLogger(DB2Helper.class);
+  private final CustomLogger logger = CustomLogger.getLogger(DB2Helper.class);
 
   protected String createTypeSQL(Type type, boolean isPkey, boolean isFkey) throws UnknownTypeException {
     String ret;

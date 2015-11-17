@@ -1,9 +1,10 @@
 package com.databasepreservation.modules.siard.in.content;
 
-import org.apache.log4j.Logger;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+
+import com.databasepreservation.CustomLogger;
 
 /**
  * Class to handle SAX Parsing errors
@@ -11,7 +12,7 @@ import org.xml.sax.SAXParseException;
  * @author bferreira
  */
 class SAXErrorHandler implements ErrorHandler {
-  private final Logger logger = Logger.getLogger(SAXErrorHandler.class);
+  private final CustomLogger logger = CustomLogger.getLogger(SAXErrorHandler.class);
   private boolean hasError = false;
 
   public boolean hasError() {

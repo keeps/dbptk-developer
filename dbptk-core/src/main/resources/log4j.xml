@@ -3,13 +3,14 @@
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
 
     <appender name="STDOUT" class="org.apache.log4j.ConsoleAppender">
+        <param name="threshold" value="info"/>
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%p %d (%c{1}) %m%n"/>
+            <param name="ConversionPattern" value="%p [%d{HH:mm:ss}] %m%n"/>
         </layout>
     </appender>
 
     <appender name="default.file" class="org.apache.log4j.FileAppender">
-        <param name="file" value="log/log.log"/>
+        <param name="file" value="dbptk-app.log"/>
         <param name="append" value="false"/>
         <param name="threshold" value="debug"/>
         <layout class="org.apache.log4j.PatternLayout">
@@ -18,7 +19,7 @@
     </appender>
 
     <logger name="com.databasepreservation" additivity="false">
-        <level value="INFO"/>
+        <level value="DEBUG"/>
         <!-- 		<level value="TRACE" /> -->
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="default.file"/>

@@ -23,12 +23,12 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.w3c.util.DateParser;
 
 import pt.gov.dgarq.roda.common.FileFormat;
 import pt.gov.dgarq.roda.common.FormatUtility;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.Main;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
@@ -81,7 +81,7 @@ public class JDBCImportModule implements DatabaseImportModule {
   protected static final boolean IGNORE_UNSUPPORTED_DATA_TYPES = true;
   protected final String driverClassName;
   protected final String connectionURL;
-  private final Logger logger = Logger.getLogger(JDBCImportModule.class);
+  private final CustomLogger logger = CustomLogger.getLogger(JDBCImportModule.class);
   protected Connection connection;
 
   protected Statement statement;
@@ -566,7 +566,16 @@ public class JDBCImportModule implements DatabaseImportModule {
 
     for (SchemaStructure schema : dbStructure.getSchemas()) {
       for (TableStructure table : schema.getTables()) {
-        ResultSet rs = getMetadata().getTablePrivileges(dbStructure.getName(), schema.getName(), table.getName());
+        ResultSet rs;
+        try {
+          rs = getMetadata().getTablePrivileges(dbStructure.getName(), schema.getName(), table.getName());
+        } catch (SQLException e) {
+          logger
+            .error(
+              "It was not possible to retrieve the list of all database permissions. Please ensure the current user has permissions to list all database permissions.",
+              e);
+          break;
+        }
         while (rs.next()) {
           PrivilegeStructure privilege = new PrivilegeStructure();
           String grantor = rs.getString("GRANTOR");
