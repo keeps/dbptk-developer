@@ -30,6 +30,7 @@ import com.databasepreservation.modules.mySql.MySQLHelper;
 public class MySQLJDBCImportModule extends JDBCImportModule {
 
   private final CustomLogger logger = CustomLogger.getLogger(MySQLJDBCImportModule.class);
+  private final String username;
 
   /**
    * MySQL JDBC import module constructor
@@ -46,6 +47,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   public MySQLJDBCImportModule(String hostname, String database, String username, String password) {
     super("com.mysql.jdbc.Driver", "jdbc:mysql://" + hostname + "/" + database + "?" + "user=" + username
       + "&password=" + password, new MySQLHelper());
+    this.username = username;
   }
 
   /**
@@ -65,6 +67,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   public MySQLJDBCImportModule(String hostname, int port, String database, String username, String password) {
     super("com.mysql.jdbc.Driver", "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?" + "user=" + username
       + "&password=" + password, new MySQLHelper());
+    this.username = username;
   }
 
   @Override
@@ -87,11 +90,33 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 
   @Override
   protected List<UserStructure> getUsers() throws SQLException, ClassNotFoundException {
-    List<UserStructure> users = new ArrayList<UserStructure>();
-    ResultSet rs = getStatement().executeQuery(sqlHelper.getUsersSQL(null));
-    while (rs.next()) {
-      UserStructure user = new UserStructure(rs.getString(2) + "@" + rs.getString(1), null);
-      users.add(user);
+    List<UserStructure> users = new ArrayList<>();
+
+    String query = sqlHelper.getUsersSQL(null);
+    Statement statement = getStatement();
+    if (query != null) {
+      ResultSet rs = null;
+
+      try {
+        rs = statement.executeQuery(sqlHelper.getUsersSQL(null));
+
+        while (rs.next()) {
+          UserStructure user = new UserStructure(rs.getString(2) + "@" + rs.getString(1), null);
+          users.add(user);
+        }
+      } catch (SQLException e) {
+        if (e.getMessage().startsWith("SELECT command denied to user ") && e.getMessage().endsWith(" for table 'user'")) {
+          logger
+            .warn("The selected MySQL user does not have permissions to list database users. This permission can be granted with the command \"GRANT SELECT ON mysql.user TO 'username'@'localhost' IDENTIFIED BY 'password';\"");
+        } else {
+          logger.error("It was not possible to retrieve the list of database users.", e);
+        }
+      }
+    }
+
+    if (users.isEmpty()) {
+      users.add(new UserStructure(username, ""));
+      logger.warn("Users were not imported. '" + username + "' will be set as the user name.");
     }
 
     return users;

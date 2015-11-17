@@ -171,8 +171,10 @@ public class CustomLogger {
 
     for (Throwable t : throwables) {
       String msg = t.getMessage();
-      String formattedMessage = t.getMessage().replaceAll("[ ]*[\\r\\n]+", NEWLINE+INDENT);
-      message.append(NEWLINE).append(INDENT).append(formattedMessage);
+      if (StringUtils.isNotBlank(msg)) {
+        String formattedMessage = msg.replaceAll("[ ]*[\\r\\n]+", NEWLINE + INDENT);
+        message.append(NEWLINE).append(INDENT).append(formattedMessage);
+      }
     }
 
     return message.toString();

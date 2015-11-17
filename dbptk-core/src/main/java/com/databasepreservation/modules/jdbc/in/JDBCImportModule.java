@@ -566,7 +566,16 @@ public class JDBCImportModule implements DatabaseImportModule {
 
     for (SchemaStructure schema : dbStructure.getSchemas()) {
       for (TableStructure table : schema.getTables()) {
-        ResultSet rs = getMetadata().getTablePrivileges(dbStructure.getName(), schema.getName(), table.getName());
+        ResultSet rs;
+        try {
+          rs = getMetadata().getTablePrivileges(dbStructure.getName(), schema.getName(), table.getName());
+        } catch (SQLException e) {
+          logger
+            .error(
+              "It was not possible to retrieve the list of all database permissions. Please ensure the current user has permissions to list all database permissions.",
+              e);
+          break;
+        }
         while (rs.next()) {
           PrivilegeStructure privilege = new PrivilegeStructure();
           String grantor = rs.getString("GRANTOR");
