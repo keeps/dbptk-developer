@@ -15,13 +15,13 @@ import javax.xml.validation.SchemaFactory;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.FileItem;
@@ -55,7 +55,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
   private static final String COLUMN_KEYWORD = "c";
   private static final String ROW_KEYWORD = "row";
   private static final String FILE_KEYWORD = "file";
-  private final Logger logger = Logger.getLogger(SIARD1ContentImportStrategy.class);
+  private final CustomLogger logger = CustomLogger.getLogger(SIARD1ContentImportStrategy.class);
   // ImportStrategy
   private final ContentPathImportStrategy contentPathStrategy;
   private final ReadStrategy readStrategy;

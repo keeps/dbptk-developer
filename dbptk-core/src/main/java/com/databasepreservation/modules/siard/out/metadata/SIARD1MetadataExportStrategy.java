@@ -16,7 +16,6 @@ import javax.xml.validation.SchemaFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.xml.sax.SAXException;
 
 import ch.admin.bar.xmlns.siard._1_0.metadata.ActionTimeType;
@@ -52,6 +51,7 @@ import ch.admin.bar.xmlns.siard._1_0.metadata.UsersType;
 import ch.admin.bar.xmlns.siard._1_0.metadata.ViewType;
 import ch.admin.bar.xmlns.siard._1_0.metadata.ViewsType;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
@@ -83,7 +83,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
   private static final String ENCODING = "UTF-8";
   private static final String METADATA_FILENAME = "metadata";
   private static final String METADATA_RESOURCE_FILENAME = "siard1-metadata";
-  private final Logger logger = Logger.getLogger(SIARD1MetadataExportStrategy.class);
+  private final CustomLogger logger = CustomLogger.getLogger(SIARD1MetadataExportStrategy.class);
   private final ContentPathExportStrategy contentPathStrategy;
   private final MetadataPathStrategy metadataPathStrategy;
 

@@ -13,9 +13,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.w3c.util.DateParser;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
@@ -33,7 +33,7 @@ import com.databasepreservation.modules.odbc.in.ODBCImportModule;
  */
 public class MsAccessImportModule extends ODBCImportModule {
 
-  private final Logger logger = Logger.getLogger(MsAccessImportModule.class);
+  private final CustomLogger logger = CustomLogger.getLogger(MsAccessImportModule.class);
   private final DateFormat accessDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
   /**

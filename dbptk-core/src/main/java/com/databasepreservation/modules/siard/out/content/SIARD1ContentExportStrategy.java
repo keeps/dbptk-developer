@@ -9,8 +9,8 @@ import java.util.List;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -35,7 +35,7 @@ import com.databasepreservation.utils.XMLUtils;
  */
 public class SIARD1ContentExportStrategy implements ContentExportStrategy {
   private final static String ENCODING = "UTF-8";
-  private final Logger logger = Logger.getLogger(SIARD1ContentExportStrategy.class);
+  private final CustomLogger logger = CustomLogger.getLogger(SIARD1ContentExportStrategy.class);
   private final ContentPathExportStrategy contentPathStrategy;
   private final WriteStrategy writeStrategy;
   private final SIARDArchiveContainer baseContainer;

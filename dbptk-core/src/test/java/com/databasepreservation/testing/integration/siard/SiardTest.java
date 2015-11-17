@@ -15,13 +15,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.FileItem;
@@ -68,7 +68,7 @@ import com.databasepreservation.utils.JodaUtils;
 @Test(groups = {"siard-roundtrip"})
 public class SiardTest {
 
-  private static final Logger logger = Logger.getLogger(SiardTest.class);
+  private static final CustomLogger logger = CustomLogger.getLogger(SiardTest.class);
 
   private Map<String, List<Row>> tableRows;
 

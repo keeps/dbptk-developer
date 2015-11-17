@@ -1,5 +1,6 @@
 package com.databasepreservation.modules.oracle;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.PrimaryKey;
@@ -17,7 +18,7 @@ public class OracleHelper extends SQLHelper {
   private static final int MAX_SIZE_VARCHAR = 4000;
   private static final int MAX_SIZE_CHAR = 2000;
 
-  // private final Logger logger = Logger.getLogger(OracleHelper.class);
+  private final CustomLogger logger = CustomLogger.getLogger(OracleHelper.class);
 
   private String startQuote = "";
 

@@ -4,8 +4,8 @@ import java.math.BigInteger;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
@@ -36,7 +36,7 @@ import dk.sa.xmlns.diark._1_0.tableindex.ViewsType;
  */
 public class TableIndexFileStrategy implements IndexFileStrategy {
 
-  private static final Logger logger = Logger.getLogger(TableIndexFileStrategy.class);
+  private static final CustomLogger logger = CustomLogger.getLogger(TableIndexFileStrategy.class);
 
   @Override
   public Object generateXML(DatabaseStructure dbStructure) throws ModuleException {

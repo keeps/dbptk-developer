@@ -3,8 +3,7 @@ package com.databasepreservation.modules.oracle.out;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.apache.log4j.Logger;
-
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.SchemaStructure;
@@ -18,7 +17,7 @@ import com.databasepreservation.modules.oracle.OracleHelper;
  */
 
 public class Oracle12cJDBCExportModule extends JDBCExportModule {
-  private final Logger logger = Logger.getLogger(Oracle12cJDBCExportModule.class);
+  private final CustomLogger logger = CustomLogger.getLogger(Oracle12cJDBCExportModule.class);
 
   private final String username;
   private String sourceSchema = null;

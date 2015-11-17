@@ -11,8 +11,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -32,7 +31,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
    */
   private static final String DEFAULT_PHPMYADMIN_DATABASE = "phpmyadmin";
   private static final String DEFAULT_COLUMN_INFO_TABLE = "pma__column_info";
-  private final Logger logger = Logger.getLogger(PhpMyAdminExportModule.class);
+  private final CustomLogger logger = CustomLogger.getLogger(PhpMyAdminExportModule.class);
   private String phpmyadmin_database;
 
   private String column_info_table;

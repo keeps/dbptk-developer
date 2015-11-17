@@ -16,12 +16,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.postgresql.util.PGobject;
 
 import pt.gov.dgarq.roda.common.FileFormat;
 import pt.gov.dgarq.roda.common.FormatUtility;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.FileItem;
@@ -62,7 +62,7 @@ import com.databasepreservation.modules.siard.SIARDHelper;
  */
 public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 
-  private final Logger logger = Logger.getLogger(PostgreSQLJDBCImportModule.class);
+  private final CustomLogger logger = CustomLogger.getLogger(PostgreSQLJDBCImportModule.class);
 
   /**
    * Create a new PostgreSQL JDBC import module

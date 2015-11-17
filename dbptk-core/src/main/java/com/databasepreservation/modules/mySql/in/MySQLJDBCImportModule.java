@@ -9,8 +9,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
@@ -30,7 +29,7 @@ import com.databasepreservation.modules.mySql.MySQLHelper;
  */
 public class MySQLJDBCImportModule extends JDBCImportModule {
 
-  private final Logger logger = Logger.getLogger(MySQLJDBCImportModule.class);
+  private final CustomLogger logger = CustomLogger.getLogger(MySQLJDBCImportModule.class);
 
   /**
    * MySQL JDBC import module constructor

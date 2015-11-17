@@ -7,8 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 
-import org.apache.log4j.Logger;
-
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
@@ -24,7 +23,7 @@ import com.databasepreservation.modules.sqlServer.SQLServerHelper;
  * @author Luis Faria
  */
 public class SQLServerJDBCExportModule extends JDBCExportModule {
-  private final Logger logger = Logger.getLogger(SQLServerJDBCExportModule.class);
+  private final CustomLogger logger = CustomLogger.getLogger(SQLServerJDBCExportModule.class);
 
   /**
    * Create a new Microsoft SQL Server export module using the default instance.

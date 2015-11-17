@@ -10,8 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
-
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
@@ -23,7 +22,7 @@ import com.databasepreservation.modules.msAccess.MsAccessHelper;
 
 public class MsAccessUCanAccessImportModule extends JDBCImportModule {
 
-  private final Logger logger = Logger.getLogger(MsAccessUCanAccessImportModule.class);
+  private final CustomLogger logger = CustomLogger.getLogger(MsAccessUCanAccessImportModule.class);
 
   public MsAccessUCanAccessImportModule(File msAccessFile) {
     super("net.ucanaccess.jdbc.UcanaccessDriver", "jdbc:ucanaccess://" + msAccessFile.getAbsolutePath()

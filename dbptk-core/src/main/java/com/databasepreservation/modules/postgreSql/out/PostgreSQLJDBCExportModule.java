@@ -8,9 +8,9 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.TreeSet;
 
-import org.apache.log4j.Logger;
 import org.w3c.util.InvalidDateException;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.exception.ModuleException;
@@ -49,7 +49,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
   // java 7
   private static final int Types_TIME_WITH_TIMEZONE = 0x7dd;
   private static final String[] IGNORED_SCHEMAS = {};
-  private final Logger logger = Logger.getLogger(PostgreSQLJDBCExportModule.class);
+  private final CustomLogger logger = CustomLogger.getLogger(PostgreSQLJDBCExportModule.class);
   private final String hostname;
   private final int port;
   private final String database;

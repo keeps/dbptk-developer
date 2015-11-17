@@ -10,8 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.log4j.Logger;
-
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ForeignKey;
 import com.databasepreservation.model.structure.SchemaStructure;
@@ -34,7 +33,7 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
   protected final String username;
 
   protected final String password;
-  private final Logger logger = Logger.getLogger(MySQLJDBCExportModule.class);
+  private final CustomLogger logger = CustomLogger.getLogger(MySQLJDBCExportModule.class);
 
   /**
    * MySQL JDBC export module constructor

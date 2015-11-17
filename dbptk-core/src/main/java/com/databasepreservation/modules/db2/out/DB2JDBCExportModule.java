@@ -7,9 +7,9 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Calendar;
 
-import org.apache.log4j.Logger;
 import org.w3c.util.InvalidDateException;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
@@ -22,7 +22,7 @@ import com.databasepreservation.modules.jdbc.out.JDBCExportModule;
  */
 public class DB2JDBCExportModule extends JDBCExportModule {
 
-  private final Logger logger = Logger.getLogger(DB2JDBCExportModule.class);
+  private final CustomLogger logger = CustomLogger.getLogger(DB2JDBCExportModule.class);
 
   /**
    * Db2 JDBC export module constructor
