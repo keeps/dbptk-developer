@@ -14,6 +14,7 @@ A new version of the this tool, together with a [new version of the SIARD preser
 ## Download pre-compiled version
 
 Binaries with all dependencies included:
+* [dbptk-app v2.0.0-rc3.2.0](https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-rc3.2.0/dbptk-app-2.0.0-rc3.2.0.jar) (pre-release, SIARD LOBs are supported, added Oracle support)
 * [dbptk-app v2.0.0-rc3.1.0](https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-rc3.1.0/dbptk-app-2.0.0-rc3.1.0.jar) (pre-release, SIARD still lacks LOBs and UDTs)
 * [db-preservation-toolkit v1.0.1](https://github.com/keeps/db-preservation-toolkit/releases/download/v1.0.1/db-preservation-toolkit-1.0.1-jar-with-dependencies.jar)
 * [db-preservation-toolkit v1.0.0](http://keeps.github.io/db-preservation-toolkit/db-preservation-toolkit-1.0.0-jar-with-dependencies.jar)
@@ -54,6 +55,14 @@ Import module: mysql
     -ip, --import-password=value    (required) the password of the user to use in connection
     -ipn, --import-port-number=value    (optional) the port that the MySQL server is listening
 
+Import module: oracle
+    -is, --import-server-name=value    (required) the name (or IP address) of the Oracle server
+    -idb, --import-database=value    (required) the name of the database to use in the connection
+    -iu, --import-username=value    (required) the name of the user to use in connection
+    -ip, --import-password=value    (required) the password of the user to use in connection
+    -ipn, --import-port-number=value    (required) the port that the Oracle server is listening
+    -ial, --import-accept-license    (optional) declare that you accept OTN License Agreement, which is necessary to use this module
+
 Import module: postgresql
     -ih, --import-hostname=value    (required) the name of the PostgreSQL server host (e.g. localhost)
     -idb, --import-database=value    (required) the name of the database to connect to
@@ -90,6 +99,15 @@ Export module: mysql
     -eu, --export-username=value    (required) the name of the user to use in connection
     -ep, --export-password=value    (required) the password of the user to use in connection
     -epn, --export-port-number=value    (optional) the port that the MySQL server is listening
+
+Export module: oracle
+    -es, --export-server-name=value    (required) the name (or IP address) of the Oracle server
+    -edb, --export-database=value    (required) the name of the database to use in the connection
+    -eu, --export-username=value    (required) the name of the user to use in connection
+    -ep, --export-password=value    (required) the password of the user to use in connection
+    -epn, --export-port-number=value    (required) the port that the Oracle server is listening
+    -eal, --export-accept-license    (optional) declare that you accept OTN License Agreement, which is necessary to use this module
+    -esc, --export-source-schema=value    (optional) the name of the source schema to export to the Oracle database. A schema with this name must exist in the Oracle database and it must be the default tablespace for the specified user. If omitted, the name of the first schema will be used
 
 Export module: postgresql
     -eh, --export-hostname=value    (required) the name of the PostgreSQL server host (e.g. localhost)

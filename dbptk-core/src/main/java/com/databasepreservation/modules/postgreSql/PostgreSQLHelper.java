@@ -8,8 +8,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
@@ -27,7 +27,7 @@ public class PostgreSQLHelper extends SQLHelper {
   private static final Set<String> POSTGRESQL_TYPES = new HashSet<String>(Arrays.asList("char", "int8", "varchar",
     "bigserial", "name", "numeric"));
 
-  private final Logger logger = Logger.getLogger(getClass());
+  private final CustomLogger logger = CustomLogger.getLogger(getClass());
 
   private String startQuote = "\"";
 

@@ -9,13 +9,13 @@ import java.io.OutputStreamWriter;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
 import org.apache.tika.Tika;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
 import org.jdom2.output.XMLOutputter;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -42,14 +42,13 @@ import com.databasepreservation.utils.XMLUtils;
  */
 public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
-  private final static String ENCODING = "utf-8";
-  private final static String TAB = "  ";
-  private final static String namespaceBase = "http://www.sa.dk/xmlns/siard/1.0/";
+  private static final String ENCODING = "utf-8";
+  private static final String TAB = "  ";
+  private static final String namespaceBase = "http://www.sa.dk/xmlns/siard/1.0/";
+  private static final CustomLogger logger = CustomLogger.getLogger(SIARDDKContentExportStrategy.class);
 
   private int tableCounter;
   private boolean foundClob;
-
-  private static final Logger logger = Logger.getLogger(SIARDDKContentExportStrategy.class);
 
   private ContentPathExportStrategy contentPathExportStrategy;
   private FileIndexFileStrategy fileIndexFileStrategy;

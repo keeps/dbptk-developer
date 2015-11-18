@@ -1,7 +1,8 @@
 package com.databasepreservation.modules.siard;
 
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.log4j.Logger;
+
+import com.databasepreservation.CustomLogger;
 
 /**
  * @author Miguel Coutada
@@ -9,7 +10,7 @@ import org.apache.log4j.Logger;
 
 public class SIARDHelper {
 
-  private static final Logger logger = Logger.getLogger(SIARDHelper.class);
+  private static final CustomLogger logger = CustomLogger.getLogger(SIARDHelper.class);
 
   /**
    * Encodes a data string as defined by SIARD format

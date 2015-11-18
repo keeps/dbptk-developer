@@ -18,8 +18,7 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
-
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -43,7 +42,7 @@ import com.databasepreservation.modules.SQLHelper.CellSQLHandler;
  * @author Luis Faria
  */
 public class SQLFileExportModule implements DatabaseExportModule {
-  private static final Logger logger = Logger.getLogger(SQLFileExportModule.class);
+  private static final CustomLogger logger = CustomLogger.getLogger(SQLFileExportModule.class);
 
   protected File sqlFile;
 

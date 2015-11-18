@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import org.apache.commons.cli.ParseException;
 
 import com.databasepreservation.cli.CLI;
@@ -107,6 +108,8 @@ public class ModuleFactoryTestHelper {
       databaseImportModule = cli.getImportModule();
       databaseExportModule = cli.getExportModule();
     } catch (ParseException e) {
+      throw new RuntimeException(e);
+    } catch (LicenseNotAcceptedException e) {
       throw new RuntimeException(e);
     }
 

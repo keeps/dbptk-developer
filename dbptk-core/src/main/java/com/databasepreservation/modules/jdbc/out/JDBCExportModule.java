@@ -23,9 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.w3c.util.InvalidDateException;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -51,6 +51,7 @@ import com.databasepreservation.model.structure.type.UnsupportedDataType;
 import com.databasepreservation.modules.SQLHelper;
 
 /**
+ * @author Bruno Ferreira <bferreira@keep.pt>
  * @author Luis Faria
  */
 public class JDBCExportModule implements DatabaseExportModule {
@@ -60,7 +61,7 @@ public class JDBCExportModule implements DatabaseExportModule {
   protected final String connectionURL;
   protected final Map<String, Connection> connections;
   protected final boolean canDropDatabase;
-  private final Logger logger = Logger.getLogger(JDBCExportModule.class);
+  private final CustomLogger logger = CustomLogger.getLogger(JDBCExportModule.class);
   protected Connection connection;
 
   protected Statement statement;
@@ -243,7 +244,7 @@ public class JDBCExportModule implements DatabaseExportModule {
     try {
       this.existingSchemas = getExistingSchemasNames();
     } catch (SQLException e) {
-      logger.error("An error occurred while getting the name " + "of existing schemas");
+      logger.error("An error occurred while getting the name of existing schemas");
     }
     createDatabase(structure.getName());
     int[] batchResult = null;

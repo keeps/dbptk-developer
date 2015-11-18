@@ -7,9 +7,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.springframework.util.StringUtils;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -30,7 +30,7 @@ public class MySQLHelper extends SQLHelper {
 
   private static final Set<String> MYSQL_TYPES = new HashSet<String>(Arrays.asList("BLOB", "MEDIUMBLOB", "LONGBLOB",
     "TIMESTAMP", "TINYBLOB", "TINYTEXT", "TEXT", "MEDIUMTEXT"));
-  private final Logger logger = Logger.getLogger(MySQLHelper.class);
+  private final CustomLogger logger = CustomLogger.getLogger(MySQLHelper.class);
   private String name = "MySQL";
 
   private String startQuote = "`";

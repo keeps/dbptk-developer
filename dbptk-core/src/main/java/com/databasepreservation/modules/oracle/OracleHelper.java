@@ -1,5 +1,12 @@
 package com.databasepreservation.modules.oracle;
 
+import com.databasepreservation.CustomLogger;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.UnknownTypeException;
+import com.databasepreservation.model.structure.PrimaryKey;
+import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
+import com.databasepreservation.model.structure.type.SimpleTypeString;
+import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.SQLHelper;
 
 /**
@@ -8,7 +15,10 @@ import com.databasepreservation.modules.SQLHelper;
 
 public class OracleHelper extends SQLHelper {
 
-  // private final Logger logger = Logger.getLogger(OracleHelper.class);
+  private static final int MAX_SIZE_VARCHAR = 4000;
+  private static final int MAX_SIZE_CHAR = 2000;
+
+  private final CustomLogger logger = CustomLogger.getLogger(OracleHelper.class);
 
   private String startQuote = "";
 
@@ -49,4 +59,40 @@ public class OracleHelper extends SQLHelper {
     return null;
   }
 
+  @Override
+  public String createPrimaryKeySQL(String tableId, PrimaryKey pkey) throws ModuleException {
+    PrimaryKey replacementPkey = pkey;
+    // if the name is primary, conflicts will occur. avoid creating a named
+    // constraint for those cases
+    if (pkey.getName().equalsIgnoreCase("primary")) {
+      replacementPkey = new PrimaryKey(null, pkey.getColumnNames(), pkey.getDescription());
+    }
+    return super.createPrimaryKeySQL(tableId, replacementPkey);
+  }
+
+  @Override
+  protected String createTypeSQL(Type type, boolean isPrimaryKey, boolean isForeignKey) throws UnknownTypeException {
+    String ret;
+    if (type instanceof SimpleTypeString) {
+      SimpleTypeString string = (SimpleTypeString) type;
+      if (string.isLengthVariable()) {
+        if (string.getLength() > MAX_SIZE_VARCHAR) {
+          ret = "clob";
+        } else {
+          ret = "varchar(" + string.getLength() + ")";
+        }
+      } else {
+        if (string.getLength() > MAX_SIZE_CHAR) {
+          ret = "clob";
+        } else {
+          ret = "char(" + string.getLength() + ")";
+        }
+      }
+    } else if (type instanceof SimpleTypeBoolean) {
+      ret = "NUMBER(1)";
+    } else {
+      ret = super.createTypeSQL(type, isPrimaryKey, isForeignKey);
+    }
+    return ret;
+  }
 }

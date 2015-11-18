@@ -13,8 +13,8 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.log4j.Logger;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.Main;
 import com.databasepreservation.testing.integration.roundtrip.differences.DumpDiffExpectations;
 import com.databasepreservation.utils.FileUtils;
@@ -22,7 +22,7 @@ import com.databasepreservation.utils.FileUtils;
 public class Roundtrip {
   public static final String TMP_FILE_SIARD_VAR = "%TMP_FILE_SIARD%";
 
-  private final Logger logger = Logger.getLogger(Roundtrip.class);
+  private final CustomLogger logger = CustomLogger.getLogger(Roundtrip.class);
   // constants
   private final String db_source = "dpttest";
   private final String db_target = "dpttest_siard";

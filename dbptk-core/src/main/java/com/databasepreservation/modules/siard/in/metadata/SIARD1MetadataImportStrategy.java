@@ -521,7 +521,9 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
       result.setName(foreignKey.getName());
       result.setReferencedSchema(foreignKey.getReferencedSchema());
       result.setReferencedTable(foreignKey.getReferencedTable());
-      result.setMatchType(foreignKey.getMatchType().value());
+      if (foreignKey.getMatchType() != null) {
+        result.setMatchType(foreignKey.getMatchType().value());
+      }
       result.setDeleteAction(foreignKey.getDeleteAction());
       result.setUpdateAction(foreignKey.getUpdateAction());
       result.setDescription(foreignKey.getDescription());

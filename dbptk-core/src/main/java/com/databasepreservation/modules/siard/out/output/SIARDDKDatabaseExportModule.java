@@ -9,8 +9,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
@@ -25,7 +25,7 @@ import com.databasepreservation.modules.siard.out.metadata.SIARDMarshaller;
 public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
 
   private SIARDDKExportModule siarddkExportModule;
-  private final Logger logger = Logger.getLogger(SIARDDKDatabaseExportModule.class);
+  private final CustomLogger logger = CustomLogger.getLogger(SIARDDKDatabaseExportModule.class);
 
   public SIARDDKDatabaseExportModule(SIARDDKExportModule siarddkExportModule) {
     super(siarddkExportModule.getContentExportStrategy(), siarddkExportModule.getMainContainer(), siarddkExportModule

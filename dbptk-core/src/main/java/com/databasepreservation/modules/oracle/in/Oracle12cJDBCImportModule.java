@@ -8,8 +8,7 @@ import java.util.List;
 
 import oracle.jdbc.OracleTypes;
 
-import org.apache.log4j.Logger;
-
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
@@ -26,7 +25,7 @@ import com.databasepreservation.modules.oracle.OracleHelper;
  */
 public class Oracle12cJDBCImportModule extends JDBCImportModule {
 
-  private final Logger logger = Logger.getLogger(Oracle12cJDBCImportModule.class);
+  private final CustomLogger logger = CustomLogger.getLogger(Oracle12cJDBCImportModule.class);
 
   /**
    * Create a new Oracle12c import module

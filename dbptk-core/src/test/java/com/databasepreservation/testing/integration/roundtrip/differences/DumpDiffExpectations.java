@@ -9,7 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedList;
 
-import org.apache.log4j.Logger;
+import com.databasepreservation.CustomLogger;
 
 /**
  * Roundtrip testing generates a textual database dump before converting the
@@ -25,7 +25,7 @@ import org.apache.log4j.Logger;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public abstract class DumpDiffExpectations {
-  private static final Logger logger = Logger.getLogger(DumpDiffExpectations.class);
+  private static final CustomLogger logger = CustomLogger.getLogger(DumpDiffExpectations.class);
 
   /**
    * Creates a modified version of the source database dump that should equal to

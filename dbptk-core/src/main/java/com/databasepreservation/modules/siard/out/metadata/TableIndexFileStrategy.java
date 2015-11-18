@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
@@ -43,6 +44,8 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
   public TableIndexFileStrategy(LOBsTracker lobsTracker) {
     this.lobsTracker = lobsTracker;
   }
+
+  private static final CustomLogger logger = CustomLogger.getLogger(TableIndexFileStrategy.class);
 
   @Override
   public Object generateXML(DatabaseStructure dbStructure) throws ModuleException {

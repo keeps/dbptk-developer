@@ -30,8 +30,9 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.log4j.Logger;
 
+import com.databasepreservation.CustomLogger;
+import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
@@ -45,7 +46,7 @@ import com.databasepreservation.model.parameters.Parameters;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class CLI {
-  private static final Logger logger = Logger.getLogger(CLI.class);
+  private static final CustomLogger logger = CustomLogger.getLogger(CLI.class);
 
   private final ArrayList<DatabaseModuleFactory> factories;
   private final List<String> commandLineArguments;
@@ -108,14 +109,14 @@ public class CLI {
     }
   }
 
-  public DatabaseImportModule getImportModule() throws ParseException {
+  public DatabaseImportModule getImportModule() throws ParseException, LicenseNotAcceptedException {
     if (importModule == null) {
       parse(commandLineArguments);
     }
     return importModule;
   }
 
-  public DatabaseExportModule getExportModule() throws ParseException {
+  public DatabaseExportModule getExportModule() throws ParseException, LicenseNotAcceptedException {
     if (exportModule == null) {
       parse(commandLineArguments);
     }
@@ -142,7 +143,7 @@ public class CLI {
    * @throws ParseException
    *           If the arguments could not be parsed or are invalid
    */
-  private void parse(List<String> args) throws ParseException {
+  private void parse(List<String> args) throws ParseException, LicenseNotAcceptedException {
     DatabaseModuleFactoriesPair databaseModuleFactoriesPair = getModuleFactories(args);
 
     try {
@@ -438,6 +439,10 @@ public class CLI {
     }
 
     return properties.getProperty("version", "?");
+  }
+
+  public void printLicense(String license) {
+    System.err.println(license);
   }
 
   private static class DatabaseModuleFactoryNameComparator implements Comparator<DatabaseModuleFactory> {
