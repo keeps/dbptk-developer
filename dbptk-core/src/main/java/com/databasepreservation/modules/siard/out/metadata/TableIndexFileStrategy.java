@@ -16,6 +16,8 @@ import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.out.content.LOBsTracker;
 
 import dk.sa.xmlns.diark._1_0.tableindex.ColumnType;
 import dk.sa.xmlns.diark._1_0.tableindex.ColumnsType;
@@ -35,6 +37,13 @@ import dk.sa.xmlns.diark._1_0.tableindex.ViewsType;
  *
  */
 public class TableIndexFileStrategy implements IndexFileStrategy {
+
+  // LOBsTracker used to get the locations of functionalDescriptions
+  private LOBsTracker lobsTracker;
+
+  public TableIndexFileStrategy(LOBsTracker lobsTracker) {
+    this.lobsTracker = lobsTracker;
+  }
 
   private static final CustomLogger logger = CustomLogger.getLogger(TableIndexFileStrategy.class);
 
@@ -97,14 +106,16 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
 
               // Set type - mandatory
               String sql99DataType = type.getSql99TypeName();
-              if (sql99DataType.equals("BINARY LARGE OBJECT")) {
+              if (sql99DataType.equals(SIARDDKConstants.BINARY_LARGE_OBJECT)) {
                 column.setType("INTEGER");
+              } else if (sql99DataType.equals(SIARDDKConstants.CHARACTER_LARGE_OBJECT)) {
 
-                FunctionalDescriptionType functionalDescriptionType = FunctionalDescriptionType.DOKUMENTIDENTIFIKATION;
-                column.getFunctionalDescription().add(functionalDescriptionType);
-              } else if (sql99DataType.equals("CHARACTER LARGE OBJECT")) {
-                column.setType("CHARACTER");
-                logger.error("Cannot handle CLOBs yet. Error in table" + tableCounter + ", column " + columnCounter);
+                if (lobsTracker.getMaxClobLength(tableCounter, columnCounter) > 0) {
+                  column.setType(SIARDDKConstants.DEFAULT_CLOB_TYPE + "("
+                    + lobsTracker.getMaxClobLength(tableCounter, columnCounter) + ")");
+                } else {
+                  column.setType(SIARDDKConstants.DEFAULT_CLOB_TYPE + "(1)");
+                }
               } else {
                 column.setType(type.getSql99TypeName());
               }
@@ -126,8 +137,14 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
               // Set description
               column.setDescription("Description should be set");
 
-              // TO-DO: get (how?) and set functional description
               // Set functionalDescription
+              String lobType = lobsTracker.getLOBsType(tableCounter, columnCounter);
+              if (lobType != null) {
+                if (lobType.equals(SIARDDKConstants.BINARY_LARGE_OBJECT)) {
+                  FunctionalDescriptionType functionalDescriptionType = FunctionalDescriptionType.DOKUMENTIDENTIFIKATION;
+                  column.getFunctionalDescription().add(functionalDescriptionType);
+                }
+              }
 
               columns.getColumn().add(column);
               columnCounter += 1;
@@ -219,5 +236,4 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
 
     return siardDiark;
   }
-
 }

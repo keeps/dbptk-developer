@@ -1,5 +1,7 @@
 package com.databasepreservation.modules.siard.out.content;
 
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+
 /**
  * @author Andreas Kring <andreas@magenta.dk>
  *
@@ -16,12 +18,12 @@ public class SIARDDKsql99ToXsdType {
       return "xs:hexBinary";
     } else if (sql99Type.startsWith("BOOLEAN")) {
       return "xs:boolean";
-    } else if (sql99Type.startsWith("CHARACTER") || sql99Type.equals("CHARACTER LARGE OBJECT")) {
+    } else if (sql99Type.startsWith("CHARACTER") || sql99Type.equals(SIARDDKConstants.CHARACTER_LARGE_OBJECT)) {
       return "xs:string";
     } else if (sql99Type.startsWith("DATE")) {
       return "xs:date";
     } else if (sql99Type.startsWith("INTEGER") || sql99Type.startsWith("SMALLINT")
-      || sql99Type.equals("BINARY LARGE OBJECT")) {
+      || sql99Type.equals(SIARDDKConstants.BINARY_LARGE_OBJECT)) {
       return "xs:integer";
     } else if (sql99Type.equals("TIME") || sql99Type.equals("TIME WITH TIME ZONE")) {
       return "xs:time";

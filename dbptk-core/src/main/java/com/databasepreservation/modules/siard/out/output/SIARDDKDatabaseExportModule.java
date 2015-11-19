@@ -3,6 +3,9 @@ package com.databasepreservation.modules.siard.out.output;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
@@ -35,16 +38,35 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
   public void initDatabase() throws ModuleException {
     super.initDatabase();
 
-    // Delete output folder if it already exists
+    // Get docID info from the command line and add these to the LOBsTracker
 
-    File outputFolder = siarddkExportModule.getMainContainer().getPath().toFile();
+    Path pathToArchive = siarddkExportModule.getMainContainer().getPath();
+
+    // Check if the archive folder name is correct (must match
+    // AVID.[A-ZÆØÅ]{2,4}.[1-9][0-9]*)
+
+    String regex = "AVID.[A-ZÆØÅ]{2,4}.[1-9][0-9]*.[1-9][0-9]*";
+    String folderName = pathToArchive.getFileName().toString();
+    if (!folderName.matches(regex)) {
+      throw new ModuleException("Archive folder name must match the expression " + regex);
+    }
+
+    // Backup output folder if it already exists
+
+    File outputFolder = pathToArchive.toFile();
+
     if (outputFolder.isDirectory()) {
       try {
-        FileUtils.deleteDirectory(outputFolder);
 
-        // TO-DO: not logging ?
+        // Get the creation time of the old archive folder
+        BasicFileAttributes basicFileAttributes = Files.readAttributes(pathToArchive, BasicFileAttributes.class);
+        String creationTimeStamp = basicFileAttributes.creationTime().toString();
 
-        logger.info("Deleted the already existing folder: " + outputFolder);
+        // Rename the old folder
+        File oldArchiveDir = new File(pathToArchive.toString() + "_backup_" + creationTimeStamp);
+        FileUtils.moveDirectory(outputFolder, oldArchiveDir);
+
+        logger.info("Backed up an already existing archive folder to: " + oldArchiveDir);
       } catch (IOException e) {
         throw new ModuleException("Error deleting existing directory", e);
       }

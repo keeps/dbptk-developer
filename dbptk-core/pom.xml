@@ -144,8 +144,11 @@
             <artifactId>jdom2</artifactId>
             <version>2.0.6</version>
         </dependency>
-
-
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+            <version>1.10</version>
+        </dependency>
 
 		<!-- database connectors -->
 		<dependency>
