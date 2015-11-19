@@ -103,7 +103,7 @@ public class Main {
       logger.error("Unexpected exception", e);
     }
 
-    logProgramFinish();
+    logProgramFinish(exitStatus);
 
     return exitStatus;
   }
@@ -115,10 +115,11 @@ public class Main {
     logger.debug("#########################################################");
   }
 
-  private static void logProgramFinish() {
+  private static void logProgramFinish(int exitStatus) {
     logger.debug("#########################################################");
     logger.debug("#   FINISH-ID-" + execID);
     logger.debug("#   FINISH v" + APP_VERSION);
+    logger.debug("#   EXIT CODE: " + exitStatus);
     logger.debug("#########################################################");
   }
 
