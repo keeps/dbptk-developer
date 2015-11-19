@@ -32,6 +32,8 @@
                     <archive>
                         <manifest>
                             <mainClass>com.databasepreservation.Main</mainClass>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                         </manifest>
                     </archive>
                     <descriptorRefs>

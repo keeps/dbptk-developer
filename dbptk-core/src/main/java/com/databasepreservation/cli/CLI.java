@@ -1,7 +1,5 @@
 package com.databasepreservation.cli;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -13,7 +11,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Properties;
 
 import javax.naming.OperationNotSupportedException;
 
@@ -32,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import com.databasepreservation.CustomLogger;
+import com.databasepreservation.Main;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
@@ -334,7 +332,7 @@ public class CLI {
     StringBuilder out = new StringBuilder();
 
     out
-      .append("Database Preservation Toolkit, v")
+      .append("Database Preservation Toolkit")
       .append(getApplicationVersion())
       .append("\nMore info: http://www.database-preservation.com")
       .append("\n")
@@ -428,17 +426,11 @@ public class CLI {
   }
 
   public static String getApplicationVersion() {
-    InputStream resourceAsStream = CLI.class
-      .getResourceAsStream("/META-INF/maven/com.databasepreservation/dbptk-core/pom.properties");
-    Properties properties = new Properties();
-
-    try {
-      properties.load(resourceAsStream);
-    } catch (IOException e) {
-      // ignore the error
+    if (Main.APP_VERSION != null) {
+      return ", v" + Main.APP_VERSION;
+    } else {
+      return ""; // omit version if it is not known
     }
-
-    return properties.getProperty("version", "?");
   }
 
   public void printLicense(String license) {
