@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE log4j:configuration SYSTEM "http://logging.apache.org/log4j/docs/api/org/apache/log4j/xml/log4j.dtd">
-<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+<log4j:configuration>
 
     <appender name="STDOUT" class="org.apache.log4j.ConsoleAppender">
         <param name="threshold" value="info"/>
@@ -9,10 +9,13 @@
         </layout>
     </appender>
 
-    <appender name="default.file" class="org.apache.log4j.FileAppender">
+    <appender name="default.file" class="org.apache.log4j.RollingFileAppender">
         <param name="file" value="dbptk-app.log"/>
-        <param name="append" value="false"/>
+        <param name="maxFileSize" value="36700160"/><!-- 36700160 bytes = 35MB -->
+        <param name="maxBackupIndex" value="3"/>
+        <param name="append" value="true"/>
         <param name="threshold" value="debug"/>
+        <param name="encoding" value="UTF-8"/>
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%p %d (%c{1}) %m%n"/>
         </layout>
