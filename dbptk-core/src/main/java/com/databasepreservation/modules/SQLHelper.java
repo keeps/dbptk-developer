@@ -9,8 +9,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.exception.InvalidDataException;
@@ -38,7 +38,7 @@ import com.databasepreservation.model.structure.type.Type;
  */
 public class SQLHelper {
 
-  private Logger logger = Logger.getLogger(SQLHelper.class);
+  private CustomLogger logger = CustomLogger.getLogger(SQLHelper.class);
 
   private String name = "";
 

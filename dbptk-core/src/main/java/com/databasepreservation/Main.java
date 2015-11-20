@@ -2,6 +2,7 @@ package com.databasepreservation;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.cli.ParseException;
 
@@ -31,6 +32,9 @@ public class Main {
   public static final int EXIT_CODE_COMMAND_PARSE_ERROR = 2;
   public static final int EXIT_CODE_LICENSE_NOT_ACCEPTED = 3;
 
+  private static final String execID = UUID.randomUUID().toString();
+  public static final String APP_VERSION = getProgramVersion();
+
   public static final String APP_NAME = "db-preservation-toolkit - KEEP SOLUTIONS";
 
   public static final String NAME = "db-preservation-toolkit";
@@ -46,6 +50,8 @@ public class Main {
   }
 
   public static int internal_main(String... args) {
+    logProgramStart();
+
     final DatabaseImportModule importModule;
     final DatabaseExportModule exportModule;
 
@@ -97,6 +103,32 @@ public class Main {
       logger.error("Unexpected exception", e);
     }
 
+    logProgramFinish(exitStatus);
+
     return exitStatus;
+  }
+
+  private static void logProgramStart() {
+    logger.debug("#########################################################");
+    logger.debug("#   START-ID-" + execID);
+    logger.debug("#   START v" + APP_VERSION);
+    logger.debug("#########################################################");
+  }
+
+  private static void logProgramFinish(int exitStatus) {
+    logger.debug("#########################################################");
+    logger.debug("#   FINISH-ID-" + execID);
+    logger.debug("#   FINISH v" + APP_VERSION);
+    logger.debug("#   EXIT CODE: " + exitStatus);
+    logger.debug("#########################################################");
+  }
+
+  private static String getProgramVersion(){
+    try {
+      return Main.class.getPackage().getImplementationVersion();
+    }catch (Throwable e){
+      logger.debug("Problem getting program version", e);
+      return null;
+    }
   }
 }

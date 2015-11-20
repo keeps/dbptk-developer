@@ -35,11 +35,11 @@ public class Oracle12cJDBCExportModule extends JDBCExportModule {
    *          the password of the user to use in the connection
    */
   public Oracle12cJDBCExportModule(String serverName, int port, String database, String username, String password) {
-    super("oracle.jdbc.driver.OracleDriver", "jdbc:oracle:thin:" + username + "/" + password + "@" + serverName + ":"
+    super("oracle.jdbc.driver.OracleDriver", "jdbc:oracle:thin:" + username + "/" + password + "@//" + serverName + ":"
       + port + "/" + database, new OracleHelper());
 
     this.username = username;
-    logger.info("jdbc:oracle:thin:@//" + serverName + ":" + port + "/" + database);
+    logger.info("jdbc:oracle:thin:<username>/<password>@//" + serverName + ":" + port + "/" + database);
   }
 
   public Oracle12cJDBCExportModule(String serverName, int port, String database, String username, String password,

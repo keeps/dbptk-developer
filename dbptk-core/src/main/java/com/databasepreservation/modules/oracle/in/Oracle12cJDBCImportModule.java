@@ -41,10 +41,10 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
    */
   public Oracle12cJDBCImportModule(String serverName, int port, String database, String username, String password) {
 
-    super("oracle.jdbc.driver.OracleDriver", "jdbc:oracle:thin:" + username + "/" + password + "@" + serverName + ":"
+    super("oracle.jdbc.driver.OracleDriver", "jdbc:oracle:thin:" + username + "/" + password + "@//" + serverName + ":"
       + port + "/" + database, new OracleHelper());
 
-    logger.info("jdbc:oracle:thin:@//" + serverName + ":" + port + "/" + database);
+    logger.info("jdbc:oracle:thin:<username>/<password>@//" + serverName + ":" + port + "/" + database);
   }
 
   @Override
