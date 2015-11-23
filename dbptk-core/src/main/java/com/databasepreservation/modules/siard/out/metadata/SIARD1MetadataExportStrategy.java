@@ -108,10 +108,8 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
       xsdSchema = schemaFactory.newSchema(new StreamSource(SiardArchive.class.getResourceAsStream(metadataPathStrategy
         .getXsdResourcePath(METADATA_RESOURCE_FILENAME))));
     } catch (SAXException e) {
-      throw new ModuleException(
-        "XSD file has errors: "
-          + SiardArchive.class.getResource(metadataPathStrategy.getXsdResourcePath(METADATA_RESOURCE_FILENAME))
-            .getPath(), e);
+      throw new ModuleException("XSD file has errors: "
+        + metadataPathStrategy.getXsdResourcePath(METADATA_RESOURCE_FILENAME), e);
     }
 
     SiardArchive xmlroot = jaxbSiardArchive(dbStructure);
