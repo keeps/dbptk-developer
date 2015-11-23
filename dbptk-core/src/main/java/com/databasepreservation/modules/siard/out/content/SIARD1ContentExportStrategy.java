@@ -356,7 +356,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     int columnIndex = 1;
     for (ColumnStructure col : currentTable.getColumns()) {
       try {
-        String xsdType = sql99toXSDType.convert(col.getType());
+        String xsdType = Sql99toXSDType.convert(col.getType());
 
         xsdWriter.beginOpenTag("xs:element", 4);
 

@@ -636,7 +636,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       // String tableName = rs.getString(3);
       // 4. Column name
       String columnName = rs.getString(4);
-      cLogMessage.append("Column name: " + columnName + "\n");
+      //cLogMessage.append("Column name: " + columnName + "\n");
       // 5. SQL type from java.sql.Types
       int dataType = rs.getInt(5);
       cLogMessage.append("Data type: " + dataType + "\n");
@@ -716,10 +716,12 @@ public class JDBCImportModule implements DatabaseImportModule {
         numPrecRadix);
 
       cLogMessage.append("Calculated type: ").append(columnType.getClass().getSimpleName()).append("\n");
-      logger.trace(cLogMessage);
 
       ColumnStructure column = getColumnStructure(tableName, columnName, columnType, isNullable, index, remarks,
         defaultValue, isAutoIncrement);
+
+      cLogMessage.append("ColumnType hash: ").append(column.getType().hashCode()).append("\n");
+      logger.debug(cLogMessage);
 
       columns.add(column);
     }

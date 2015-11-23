@@ -540,6 +540,8 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (column.getType() != null) {
+      logger.debug("Saving type '" + column.getType().getOriginalTypeName() + "'(internal_id:"+column.getType().hashCode()+") as " + column.getType().getSql99TypeName());
+      logger.info("Saving type '" + column.getType().getOriginalTypeName() + "' as '" + column.getType().getSql99TypeName() + "'");
       columnType.setType(column.getType().getSql99TypeName());
       columnType.setTypeOriginal(column.getType().getOriginalTypeName());
     } else {

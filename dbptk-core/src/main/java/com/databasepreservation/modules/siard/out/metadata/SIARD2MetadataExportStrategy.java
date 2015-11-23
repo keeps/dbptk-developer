@@ -14,6 +14,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import com.databasepreservation.modules.siard.out.content.Sql2003toXSDType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.SAXException;
@@ -72,7 +73,6 @@ import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.modules.siard.SIARDHelper;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.out.content.sql99toXSDType;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.JodaUtils;
@@ -481,7 +481,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (parameter.getType() != null) {
-      parameterType.setType(parameter.getType().getSql99TypeName());
+      parameterType.setType(parameter.getType().getSql2003TypeName());
       parameterType.setTypeOriginal(parameter.getType().getOriginalTypeName());
     } else {
       throw new ModuleException("Error while exporting routine parameters: parameter type cannot be null");
@@ -561,7 +561,9 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (column.getType() != null) {
-      columnType.setType(column.getType().getSql99TypeName());
+      logger.debug("Saving type '" + column.getType().getOriginalTypeName() + "'(internal_id:"+column.getType().hashCode()+") as " + column.getType().getSql2003TypeName());
+      logger.info("Saving type '" + column.getType().getOriginalTypeName() + "' as '" + column.getType().getSql2003TypeName() + "'");
+      columnType.setType(column.getType().getSql2003TypeName());
       columnType.setTypeOriginal(column.getType().getOriginalTypeName());
     } else {
       throw new ModuleException("Error while exporting table structure: column type cannot be null");
@@ -584,8 +586,8 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     // TODO: set fields related to lob and complex types
 
     // specific fields for lobs
-    String xsdTypeFromColumnSql99Type = sql99toXSDType.convert(column.getType().getSql99TypeName());
-    if (xsdTypeFromColumnSql99Type.equals("clobType") || xsdTypeFromColumnSql99Type.equals("blobType")) {
+    String xsdTypeFromColumnSql2003Type = Sql2003toXSDType.convert(column.getType().getSql2003TypeName());
+    if (xsdTypeFromColumnSql2003Type.equals("clobType") || xsdTypeFromColumnSql2003Type.equals("blobType")) {
       columnType.setFolder(contentPathStrategy.getColumnFolderName(columnIndex));
     }
 
