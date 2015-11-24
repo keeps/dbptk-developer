@@ -12,7 +12,7 @@ log/
 dbptk-app.log
 exported-dbs/
 
-
+**/pom.xml.versionsBackup
 
 test-output/
 
