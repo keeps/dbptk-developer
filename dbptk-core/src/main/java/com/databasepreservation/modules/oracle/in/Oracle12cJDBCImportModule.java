@@ -6,6 +6,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import oracle.jdbc.OracleTypes;
 
 import com.databasepreservation.CustomLogger;
@@ -74,6 +75,29 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
     throws UnknownTypeException {
     throw new UnknownTypeException("Unsuported JDBC type, code: -1. Oracle " + typeName
       + " data type is not supported.");
+  }
+
+  @Override protected Type getDecimalType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+    Type type;
+
+    // special case when NUMBER is defined without specifying precision nor scale
+    if( columnSize == 0 && decimalDigits == -127 && numPrecRadix == 10 ){
+      type = new SimpleTypeNumericApproximate(columnSize);
+      type.setSql99TypeName("DOUBLE PRECISION");
+      type.setSql2003TypeName("DOUBLE PRECISION");
+    }
+    // for all other cases NUMBER is a DECIMAL
+    else{
+      type = new SimpleTypeNumericExact(columnSize, decimalDigits);
+      if (decimalDigits > 0) {
+        type.setSql99TypeName("DECIMAL", columnSize, decimalDigits);
+        type.setSql2003TypeName("DECIMAL", columnSize, decimalDigits);
+      } else {
+        type.setSql99TypeName("DECIMAL", columnSize);
+        type.setSql2003TypeName("DECIMAL", columnSize);
+      }
+    }
+    return type;
   }
 
   @Override
