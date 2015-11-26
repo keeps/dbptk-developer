@@ -19,7 +19,7 @@ import com.databasepreservation.model.structure.type.UnsupportedDataType;
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class sql99toXSDType {
+public class Sql99toXSDType {
   private static final Map<String, String> sql99toXSDconstant = new HashMap<String, String>();
   private static final Map<String, String> sql99toXSDregex = new HashMap<String, String>();
 

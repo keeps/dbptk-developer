@@ -571,7 +571,9 @@ public class JDBCImportModule implements DatabaseImportModule {
           rs = getMetadata().getTablePrivileges(dbStructure.getName(), schema.getName(), table.getName());
         } catch (SQLException e) {
           logger
-            .error(
+            .warn("It was not possible to retrieve the list of all database permissions. Please ensure the current user has permissions to list all database permissions.");
+          logger
+            .debug(
               "It was not possible to retrieve the list of all database permissions. Please ensure the current user has permissions to list all database permissions.",
               e);
           break;
@@ -636,7 +638,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       // String tableName = rs.getString(3);
       // 4. Column name
       String columnName = rs.getString(4);
-      cLogMessage.append("Column name: " + columnName + "\n");
+      //cLogMessage.append("Column name: " + columnName + "\n");
       // 5. SQL type from java.sql.Types
       int dataType = rs.getInt(5);
       cLogMessage.append("Data type: " + dataType + "\n");
@@ -716,10 +718,12 @@ public class JDBCImportModule implements DatabaseImportModule {
         numPrecRadix);
 
       cLogMessage.append("Calculated type: ").append(columnType.getClass().getSimpleName()).append("\n");
-      logger.trace(cLogMessage);
 
       ColumnStructure column = getColumnStructure(tableName, columnName, columnType, isNullable, index, remarks,
         defaultValue, isAutoIncrement);
+
+      cLogMessage.append("ColumnType hash: ").append(column.getType().hashCode()).append("\n");
+      logger.debug(cLogMessage);
 
       columns.add(column);
     }
@@ -815,7 +819,9 @@ public class JDBCImportModule implements DatabaseImportModule {
         break;
       case Types.DECIMAL:
         type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
-        type.setOriginalTypeName(typeName, columnSize, decimalDigits);
+        if(StringUtils.isBlank(type.getOriginalTypeName())) {
+          type.setOriginalTypeName(typeName, columnSize, decimalDigits);
+        }
         break;
       case Types.DOUBLE:
         type = getDoubleType(typeName, columnSize, decimalDigits, numPrecRadix);
