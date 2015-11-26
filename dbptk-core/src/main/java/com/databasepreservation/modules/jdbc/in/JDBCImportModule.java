@@ -398,7 +398,12 @@ public class JDBCImportModule implements DatabaseImportModule {
       ViewStructure view = new ViewStructure();
       view.setName(viewName);
       view.setColumns(getColumns(schemaName, viewName));
-      views.add(view);
+
+      if (view.getColumns().isEmpty()) {
+        logger.info("View " + viewName + " in schema " + schemaName + " was ignored because it contains no columns.");
+      } else {
+        views.add(view);
+      }
     }
     return views;
   }
@@ -801,6 +806,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       case Types.CHAR:
         type = new SimpleTypeString(columnSize, false);
         type.setSql99TypeName("CHARACTER", columnSize);
+        type.setSql2003TypeName("CHARACTER", columnSize);
         type.setOriginalTypeName("CHARACTER", columnSize);
         break;
       case Types.NCHAR:

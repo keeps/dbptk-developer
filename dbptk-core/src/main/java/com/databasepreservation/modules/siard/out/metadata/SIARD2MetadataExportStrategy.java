@@ -378,7 +378,11 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     if (schemas != null && !schemas.isEmpty()) {
       SchemasType schemasType = new SchemasType();
       for (SchemaStructure schema : schemas) {
-        schemasType.getSchema().add(jaxbSchemaType(schema));
+        if(schema.getTables().isEmpty()){
+          logger.warn("Schema " + schema.getName() + " was not exported because it does not contain tables.");
+        }else{
+          schemasType.getSchema().add(jaxbSchemaType(schema));
+        }
       }
       return schemasType;
     } else {

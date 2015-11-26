@@ -3,6 +3,7 @@ package com.databasepreservation.modules.siard.out.content;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.type.ComposedTypeArray;
@@ -22,6 +23,8 @@ import com.databasepreservation.model.structure.type.UnsupportedDataType;
 public class Sql99toXSDType {
   private static final Map<String, String> sql99toXSDconstant = new HashMap<String, String>();
   private static final Map<String, String> sql99toXSDregex = new HashMap<String, String>();
+
+  private static final CustomLogger logger = CustomLogger.getLogger(Sql99toXSDType.class);
 
   static {
     // initialize sql99 conversion tables
@@ -72,7 +75,8 @@ public class Sql99toXSDType {
       ret = convert(type.getSql99TypeName());
 
     } else if (type instanceof UnsupportedDataType) {
-      throw new ModuleException("Unsupported datatype: " + type.toString());
+      logger.warn("Unsupported datatype: " + type.toString() + ". Using xs:string as xml type.");
+      return "xs:string";
     } else if (type instanceof ComposedTypeArray) {
       throw new ModuleException("Not yet supported type: ARRAY");
     } else if (type instanceof ComposedTypeStructure) {

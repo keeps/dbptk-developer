@@ -146,4 +146,24 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
     logger.info("Roles were not imported: not supported yet on " + getClass().getSimpleName());
     return new ArrayList<PrivilegeStructure>();
   }
+
+  /**
+   * Gets the UnsupportedDataType. This data type is a placeholder for
+   * unsupported data types
+   *
+   * @param dataType
+   * @param typeName
+   * @param columnSize
+   * @param decimalDigits
+   * @param numPrecRadix
+   * @return
+   * @throws UnknownTypeException
+   */
+  @Override protected Type getUnsupportedDataType(int dataType, String typeName, int columnSize, int decimalDigits,
+    int numPrecRadix) throws UnknownTypeException {
+    Type unsupported = super.getUnsupportedDataType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
+    unsupported.setSql99TypeName("CHARACTER VARYING(50)"); //fixme: map the unsupported datatype to some known type
+    unsupported.setSql2003TypeName("CHARACTER VARYING(50)"); //fixme: map the unsupported datatype to some known type
+    return unsupported;
+  }
 }
