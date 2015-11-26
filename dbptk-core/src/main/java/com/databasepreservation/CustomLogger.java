@@ -28,8 +28,11 @@ import org.apache.log4j.spi.LoggingEvent;
  * DEBUG - delegated to log4j
  * 
  * INFO - delegated to log4j
- * 
- * WARN - delegated to log4j
+ *
+ * WARN (non-throwable) - delegated to log4j
+ *
+ * WARN (message and throwable) - logs twice: first an user-friendly WARN
+ * message and then logs stack traces and other info as DEBUG
  *
  * ERROR (non-throwable) - delegated to log4j
  *
@@ -63,6 +66,43 @@ public class CustomLogger {
    */
   private CustomLogger(Logger logger) {
     this.logger = logger;
+  }
+
+  /**
+   * If message is a throwable object: Logs WARN with throwable message and
+   * then logs DEBUG with throwable
+   *
+   * If message is not a throwable object: delegates method call to log4j
+   *
+   * @param message
+   *          the message object to log.
+   */
+  public void warn(Object message) {
+    if (message instanceof Throwable) {
+      Throwable throwable = (Throwable) message;
+      this.warn(throwable, throwable);
+    } else {
+      logger.warn(message);
+    }
+  }
+
+  /**
+   * Logs WARN with message and then logs DEBUG with message and throwable
+   *
+   * @param message
+   *          the message object to log.
+   * @param t
+   *          the exception to log, including its stack trace.
+   */
+  public void warn(Object message, Throwable t) {
+    if (message instanceof Throwable) {
+      Throwable badMessage = (Throwable) message;
+      message = badMessage.getMessage();
+    } else {
+      message = message.toString();
+    }
+    logger.warn(message);
+    logger.debug(message, t);
   }
 
   /**
@@ -736,31 +776,6 @@ public class CustomLogger {
   }
 
   /**
-   * Log a message object with the {@link Level#WARN WARN} Level.
-   * 
-   * <p>
-   * This method first checks if this category is <code>WARN</code> enabled by
-   * comparing the level of this category with {@link Level#WARN WARN} Level. If
-   * the category is <code>WARN</code> enabled, then it converts the message
-   * object passed as parameter to a string by invoking the appropriate
-   * {@link ObjectRenderer}. It proceeds to call all the registered appenders in
-   * this category and also higher in the hieararchy depending on the value of
-   * the additivity flag.
-   * 
-   * <p>
-   * <b>WARNING</b> Note that passing a {@link Throwable} to this method will
-   * print the name of the Throwable but no stack trace. To print a stack trace
-   * use the {@link #warn(Object, Throwable)} form instead.
-   * <p>
-   * 
-   * @param message
-   *          the message object to log.
-   */
-  public void warn(Object message) {
-    logger.warn(message);
-  }
-
-  /**
    * @deprecated Please use {@link #getLevel} instead.
    */
   public Level getPriority() {
@@ -809,22 +824,6 @@ public class CustomLogger {
    */
   public void callAppenders(LoggingEvent event) {
     logger.callAppenders(event);
-  }
-
-  /**
-   * Log a message with the <code>WARN</code> level including the stack trace of
-   * the {@link Throwable} <code>t</code> passed as parameter.
-   * 
-   * <p>
-   * See {@link #warn(Object)} for more detailed information.
-   * 
-   * @param message
-   *          the message object to log.
-   * @param t
-   *          the exception to log, including its stack trace.
-   */
-  public void warn(Object message, Throwable t) {
-    logger.warn(message, t);
   }
 
   /**

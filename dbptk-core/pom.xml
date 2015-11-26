@@ -179,6 +179,10 @@
 			<groupId>com.ibm</groupId>
 			<artifactId>db2jcc4</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>net.sf.ucanaccess</groupId>
+            <artifactId>ucanaccess</artifactId>
+        </dependency>
 
 		<!-- test -->
 		<dependency>

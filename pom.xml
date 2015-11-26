@@ -246,6 +246,11 @@
                 <artifactId>db2jcc4</artifactId>
                 <version>4.16.53</version>
             </dependency>
+            <dependency>
+                <groupId>net.sf.ucanaccess</groupId>
+                <artifactId>ucanaccess</artifactId>
+                <version>3.0.2</version>
+            </dependency>
 
             <!-- test -->
             <dependency>

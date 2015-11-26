@@ -1,6 +1,7 @@
 package com.databasepreservation.modules.msAccess.in;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -15,11 +16,16 @@ import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
+import com.databasepreservation.model.structure.PrivilegeStructure;
 import com.databasepreservation.model.structure.RoutineStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.msAccess.MsAccessHelper;
 
+/**
+ * @author Bruno Ferreira <bferreira@keep.pt>
+ * @author Luis Faria <lfaria@keep.pt>
+ */
 public class MsAccessUCanAccessImportModule extends JDBCImportModule {
 
   private final CustomLogger logger = CustomLogger.getLogger(MsAccessUCanAccessImportModule.class);
@@ -27,6 +33,10 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
   public MsAccessUCanAccessImportModule(File msAccessFile) {
     super("net.ucanaccess.jdbc.UcanaccessDriver", "jdbc:ucanaccess://" + msAccessFile.getAbsolutePath()
       + ";showSchema=true;", new MsAccessHelper());
+  }
+
+  public MsAccessUCanAccessImportModule(String accessFilePath){
+    this(new File(accessFilePath));
   }
 
   public Connection getConnection() throws SQLException, ClassNotFoundException {
@@ -46,8 +56,8 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
     ResultSet set = null;
     try {
       tableName = getDatabaseStructure().lookupTableStructure(tableId).getName();
-      logger.debug("query: " + sqlHelper.selectTableSQL(tableName));
-      set = getStatement().executeQuery(sqlHelper.selectTableSQL(tableName));
+      logger.debug("query: " + sqlHelper.selectTableSQL(tableId));
+      set = getStatement().executeQuery(sqlHelper.selectTableSQL(tableId));
       set.setFetchSize(ROW_FETCH_BLOCK_SIZE);
     } catch (UnknownTypeException e) {
       logger.debug("");
@@ -95,7 +105,7 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
     if (cellType.getOriginalTypeName().equalsIgnoreCase("DOUBLE")) {
       String data = rawData.getString(columnName);
       String parts[] = data.split("E");
-      if (parts[1] != null) {
+      if (parts.length > 1 && parts[1] != null) {
         logger.warn("Double exponent lost: " + parts[1] + ". From " + data + " -> " + parts[0]);
       }
       cell = new SimpleCell(id, parts[0]);
@@ -125,5 +135,15 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
     // ignoredSchemas.add("INFORMATION_SCHEMA.*");
 
     return ignoredSchemas;
+  }
+
+  /**
+   * @return the database privileges
+   * @throws SQLException
+   * @throws ClassNotFoundException
+   */
+  @Override protected List<PrivilegeStructure> getPrivileges() throws SQLException, ClassNotFoundException {
+    logger.info("Roles were not imported: not supported yet on " + getClass().getSimpleName());
+    return new ArrayList<PrivilegeStructure>();
   }
 }
