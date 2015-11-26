@@ -10,6 +10,7 @@ public class SIARDDKConstants {
 
   // System dependent file seperator etc. ("/" on Linux and "\" on Windows)
   public static final String FILE_SEPARATOR = File.separator;
+  public static final String RESOURCE_FILE_SEPARATOR = "/";
   public static final String FILE_EXTENSION_SEPARATOR = ".";
 
   // File extensions
