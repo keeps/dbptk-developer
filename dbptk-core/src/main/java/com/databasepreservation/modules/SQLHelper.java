@@ -46,6 +46,8 @@ public class SQLHelper {
 
   private String endQuote = "";
 
+  private String separatorSchemaTable = ".";
+
   public String getName() {
     return name;
   }
@@ -58,11 +60,15 @@ public class SQLHelper {
     return endQuote;
   }
 
+  public String getSeparatorSchemaTable() {
+    return separatorSchemaTable;
+  }
+
   /**
    * SQL to get all rows from a table
    *
-   * @param tableName
-   *          the table name
+   * @param tableId
+   *          the table ID
    * @return the SQL
    * @throws ModuleException
    */
@@ -244,8 +250,8 @@ public class SQLHelper {
   /**
    * SQL to create the primary key, altering the already created table
    *
-   * @param tableName
-   *          the name of the table
+   * @param tableId
+   *          the ID of the table
    * @param pkey
    *          the primary key
    * @return the SQL
@@ -279,8 +285,8 @@ public class SQLHelper {
   /**
    * SQL to create a foreign key (relation), altering the already created table
    *
-   * @param tableName
-   *          the name of the table
+   * @param table
+   *          the table structure
    * @param fkey
    *          the foreign key
    * @return the SQL
@@ -436,8 +442,9 @@ public class SQLHelper {
    *          The table name
    * @return the SQL to get table triggers
    */
-  public String getRowsSQL(String tableName) {
-    StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(escapeTableName(tableName));
+  public String getRowsSQL(String schemaName, String tableName) {
+    StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(escapeSchemaName(schemaName))
+      .append(getSeparatorSchemaTable()).append(escapeTableName(tableName));
     return sb.toString();
   }
 

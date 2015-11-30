@@ -398,7 +398,12 @@ public class JDBCImportModule implements DatabaseImportModule {
       ViewStructure view = new ViewStructure();
       view.setName(viewName);
       view.setColumns(getColumns(schemaName, viewName));
-      views.add(view);
+
+      if (view.getColumns().isEmpty()) {
+        logger.info("View " + viewName + " in schema " + schemaName + " was ignored because it contains no columns.");
+      } else {
+        views.add(view);
+      }
     }
     return views;
   }
@@ -458,13 +463,13 @@ public class JDBCImportModule implements DatabaseImportModule {
     table.setCheckConstraints(getCheckConstraints(schema.getName(), tableName));
     table.setTriggers(getTriggers(schema.getName(), tableName));
 
-    table.setRows(getRows(tableName));
+    table.setRows(getRows(schema.getName(), tableName));
 
     return table;
   }
 
-  private int getRows(String tableName) throws ClassNotFoundException, SQLException {
-    String query = sqlHelper.getRowsSQL(tableName);
+  private int getRows(String schemaName, String tableName) throws ClassNotFoundException, SQLException {
+    String query = sqlHelper.getRowsSQL(schemaName, tableName);
     logger.debug("count query: " + query);
     ResultSet rs = getStatement().executeQuery(query);
 
@@ -801,6 +806,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       case Types.CHAR:
         type = new SimpleTypeString(columnSize, false);
         type.setSql99TypeName("CHARACTER", columnSize);
+        type.setSql2003TypeName("CHARACTER", columnSize);
         type.setOriginalTypeName("CHARACTER", columnSize);
         break;
       case Types.NCHAR:
@@ -1466,11 +1472,21 @@ public class JDBCImportModule implements DatabaseImportModule {
     } else if (cellType instanceof SimpleTypeBinary) {
       cell = rawToCellSimpleTypeBinary(id, columnName, cellType, rawData);
     } else if (cellType instanceof UnsupportedDataType) {
-      cell = new SimpleCell(id, rawData.getString(columnName));
+      try {
+        cell = new SimpleCell(id, rawData.getString(columnName));
+      } catch (SQLException e) {
+        logger.warn("Could not export cell of unsupported datatype: OTHER", e);
+        cell = new SimpleCell(id);
+      }
     } else if (cellType instanceof SimpleTypeNumericExact) {
       cell = rawToCellSimpleTypeNumericExact(id, columnName, cellType, rawData);
     } else {
-      cell = new SimpleCell(id, rawData.getString(columnName));
+      try {
+        cell = new SimpleCell(id, rawData.getString(columnName));
+      } catch (SQLException e) {
+        logger.warn("Could not export cell of unknown/undefined datatype", e);
+        cell = new SimpleCell(id);
+      }
     }
     return cell;
   }

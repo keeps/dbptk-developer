@@ -14,6 +14,7 @@ import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.modules.jdbc.JDBCModuleFactory;
+import com.databasepreservation.modules.msAccess.MsAccessUCanAccessModuleFactory;
 import com.databasepreservation.modules.mySql.MySQLModuleFactory;
 import com.databasepreservation.modules.oracle.Oracle12cModuleFactory;
 import com.databasepreservation.modules.postgreSql.PostgreSQLModuleFactory;
@@ -55,22 +56,23 @@ public class Main {
     final DatabaseImportModule importModule;
     final DatabaseExportModule exportModule;
 
-    CLI cli = new CLI(Arrays.asList(args), new JDBCModuleFactory(), new MySQLModuleFactory(),
-      new Oracle12cModuleFactory(), new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(),
-      new SIARD2ModuleFactory(), new SIARDDKModuleFactory(),
-      new SQLServerJDBCModuleFactory());
+    CLI cli = new CLI(Arrays.asList(args), new JDBCModuleFactory(), new MsAccessUCanAccessModuleFactory(),
+      new MySQLModuleFactory(), new Oracle12cModuleFactory(), new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(),
+      new SIARD2ModuleFactory(), new SIARDDKModuleFactory(), new SQLServerJDBCModuleFactory());
     try {
       importModule = cli.getImportModule();
       exportModule = cli.getExportModule();
     } catch (ParseException e) {
       System.err.println("Error: " + e.getMessage() + "\n");
       cli.printHelp();
+      logProgramFinish(EXIT_CODE_COMMAND_PARSE_ERROR);
       return EXIT_CODE_COMMAND_PARSE_ERROR;
     } catch (LicenseNotAcceptedException e) {
       System.err.println("Error: The license must be accepted to use this module.");
       System.err.println("==================================================");
       cli.printLicense(e.getLicense());
       System.err.println("==================================================");
+      logProgramFinish(EXIT_CODE_LICENSE_NOT_ACCEPTED);
       return EXIT_CODE_LICENSE_NOT_ACCEPTED;
     }
 

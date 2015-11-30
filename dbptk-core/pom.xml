@@ -6,11 +6,11 @@
     <name>dbptk-core</name>
     <groupId>com.databasepreservation</groupId>
     <artifactId>dbptk-core</artifactId>
-    <version>2.0.0-rc3.2.0</version>
+    <version>2.0.0-rc3.2.4</version>
     <parent>
         <groupId>com.databasepreservation</groupId>
         <artifactId>dbptk</artifactId>
-        <version>2.0.0-rc3.2.0</version>
+        <version>2.0.0-rc3.2.4</version>
         <relativePath>..</relativePath>
     </parent>
     <properties>
@@ -179,6 +179,10 @@
 			<groupId>com.ibm</groupId>
 			<artifactId>db2jcc4</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>net.sf.ucanaccess</groupId>
+            <artifactId>ucanaccess</artifactId>
+        </dependency>
 
 		<!-- test -->
 		<dependency>

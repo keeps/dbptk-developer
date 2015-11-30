@@ -44,8 +44,8 @@ public class SIARDDKMetadataPathStrategy implements MetadataPathStrategy {
   public String getXsdResourcePath(String filename) throws InvalidParameterException {
 
     if (checkFilename(filename)) {
-      return new StringBuilder().append(SIARDDKConstants.FILE_SEPARATOR).append(SIARDDKConstants.SCHEMA_RESOURCE_DIR)
-        .append(SIARDDKConstants.FILE_SEPARATOR).append(filename).append(SIARDDKConstants.FILE_EXTENSION_SEPARATOR)
+      return new StringBuilder().append(SIARDDKConstants.RESOURCE_FILE_SEPARATOR).append(SIARDDKConstants.SCHEMA_RESOURCE_DIR)
+        .append(SIARDDKConstants.RESOURCE_FILE_SEPARATOR).append(filename).append(SIARDDKConstants.FILE_EXTENSION_SEPARATOR)
         .append(SIARDDKConstants.XSD_EXTENSION).toString();
     } else {
       throw new InvalidParameterException("Invalid filename for metadata file");
