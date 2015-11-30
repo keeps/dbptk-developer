@@ -14,10 +14,7 @@ A new version of the this tool, together with a [new version of the SIARD preser
 ## Download pre-compiled version
 
 Binaries with all dependencies included:
-* [dbptk-app v2.0.0-rc3.2.0](https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-rc3.2.0/dbptk-app-2.0.0-rc3.2.0.jar) (pre-release, SIARD LOBs are supported, added Oracle support)
-* [dbptk-app v2.0.0-rc3.1.0](https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-rc3.1.0/dbptk-app-2.0.0-rc3.1.0.jar) (pre-release, SIARD still lacks LOBs and UDTs)
-* [db-preservation-toolkit v1.0.1](https://github.com/keeps/db-preservation-toolkit/releases/download/v1.0.1/db-preservation-toolkit-1.0.1-jar-with-dependencies.jar)
-* [db-preservation-toolkit v1.0.0](http://keeps.github.io/db-preservation-toolkit/db-preservation-toolkit-1.0.0-jar-with-dependencies.jar)
+* [dbptk-app v2.0.0-rc3.2.4](https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-rc3.2.4/dbptk-app-2.0.0-rc3.2.4.jar) (pre-release)
 
 ## How to use
 
@@ -37,6 +34,9 @@ Usage: dbptk [plugin] <importModule> [import module options] <exportModule> [exp
 Import module: jdbc
     -id, --import-driver=value    (required) the name of the the JDBC driver class. For more info about this refer to the website or the README file
     -ic, --import-connection=value    (required) the connection url to use in the connection
+
+Import module: microsoft-access
+    -if, --import-file=value    (required) path to the Microsoft Access file
 
 Import module: microsoft-sql-server
     -is, --import-server-name=value    (required) the name (host name) of the server
@@ -128,7 +128,7 @@ Export module: siard-2
     -ep, --export-pretty-xml    (optional) write human-readable XML
 
 Export module: siard-dk
-    -ef, --export-folder=value    (required) Path to SIARDDK archive folder
+    -ef, --export-folder=value    (required) Path to SIARDDK archive folder. Archive folder must match the pattern AVID.[A-ZÆØÅ]{2,4}.[1-9][0-9]*
     -eai, --export-archiveIndex=value    (optional) Path to archiveIndex.xml input file
     -eci, --export-contextDocumentationIndex=value    (optional) Path to contextDocumentationIndex.xml input file
     -ecf, --export-contextDocumentationFolder=value    (optional) Path to contextDocumentation folder which should contain the context documentation for the archive
