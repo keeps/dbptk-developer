@@ -4,13 +4,15 @@
 package com.databasepreservation.model.structure;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.utils.ListUtils;
 
 /**
- * @author Luis Faria
+ * @author Luis Faria <lfaria@keep.pt>
+ * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class TableStructure {
 
@@ -40,6 +42,8 @@ public class TableStructure {
 
   private int index;
 
+  private HashMap<String, String> udtAlias;
+
   /**
    * Empty table constructor. All fields are null except columns and foreign
    * keys, which are empty lists
@@ -56,6 +60,7 @@ public class TableStructure {
     triggers = new ArrayList<Trigger>();
     rows = -1;
     schema = null;
+    udtAlias = new HashMap<>();
 
     currentRow = 1;
   }
@@ -98,6 +103,7 @@ public class TableStructure {
     this.checkConstraints = checkConstraints;
     this.triggers = triggers;
     this.rows = rows;
+    this.udtAlias = new HashMap<>();
   }
 
   /**
@@ -433,5 +439,17 @@ public class TableStructure {
 
   public void setIndex(int index) {
     this.index = index;
+  }
+
+  public void addUDTAlias(String columnName, String alias) {
+    udtAlias.put(columnName, alias);
+  }
+
+  public String getUDTAlias(String columnName) {
+    if (udtAlias.containsKey(columnName)) {
+      return udtAlias.get(columnName);
+    } else {
+      return columnName;
+    }
   }
 }

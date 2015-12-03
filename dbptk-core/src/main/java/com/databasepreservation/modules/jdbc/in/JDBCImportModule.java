@@ -18,11 +18,13 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.transaction.memory.HashMapFactory;
 import org.w3c.util.DateParser;
 
 import pt.gov.dgarq.roda.common.FileFormat;
@@ -69,7 +71,8 @@ import com.databasepreservation.model.structure.type.UnsupportedDataType;
 import com.databasepreservation.modules.SQLHelper;
 
 /**
- * @author Luis Faria
+ * @author Luis Faria <lfaria@keep.pt>
+ * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class JDBCImportModule implements DatabaseImportModule {
 
@@ -89,6 +92,10 @@ public class JDBCImportModule implements DatabaseImportModule {
   protected DatabaseMetaData dbMetadata;
 
   protected DatabaseStructure dbStructure;
+
+  // the schema object being built
+  protected SchemaStructure actualSchema;
+
 
   protected SQLHelper sqlHelper;
 
@@ -211,6 +218,8 @@ public class JDBCImportModule implements DatabaseImportModule {
       dbStructure.setClientMachine(clientMachine);
 
       dbStructure.setSchemas(getSchemas());
+      actualSchema = null;
+
       dbStructure.setUsers(getUsers());
       dbStructure.setRoles(getRoles());
       dbStructure.setPrivileges(getPrivileges());
@@ -287,40 +296,41 @@ public class JDBCImportModule implements DatabaseImportModule {
    */
   protected SchemaStructure getSchemaStructure(String schemaName, int schemaIndex) throws SQLException,
     UnknownTypeException, ClassNotFoundException {
-    SchemaStructure schema = new SchemaStructure();
-    schema.setName(schemaName);
-    schema.setIndex(schemaIndex);
+    actualSchema = new SchemaStructure();
+    actualSchema.setName(schemaName);
+    actualSchema.setIndex(schemaIndex);
+    actualSchema.setUserDefinedTypes(getUDTs(actualSchema));
+    actualSchema.setTables(getTables(actualSchema));
+    actualSchema.setViews(getViews(schemaName));
+    actualSchema.setRoutines(getRoutines(schemaName));
 
-    getUDTs(schema);
-    schema.setTables(getTables(schema));
-    schema.setViews(getViews(schemaName));
-    schema.setRoutines(getRoutines(schemaName));
-
-    return schema;
+    return actualSchema;
   }
 
-  private void getUDTs(SchemaStructure schema) throws SQLException, ClassNotFoundException, UnknownTypeException {
-    ResultSet types = getMetadata().getUDTs(dbStructure.getName(), schema.getName(), null, null);
+  protected ArrayList<ComposedTypeStructure> getUDTs(SchemaStructure schema) throws SQLException,
+    ClassNotFoundException, UnknownTypeException {
+    ResultSet udtTypes = getMetadata().getUDTs(dbStructure.getName(), schema.getName(), null, null);
 
-    // "possible" because it may also be a table name
-    ArrayList<String> possibleUDTs = new ArrayList<String>();
+    // possibleUDT because it may also be a table name, which in some cases may
+    // also be used as a type
+    ArrayList<String> possibleUDTs = new ArrayList<>();
 
-    while (types.next()) {
-      int dataType = types.getInt(5);
+    while (udtTypes.next()) {
+      int dataType = udtTypes.getInt(5);
       if (dataType == Types.STRUCT) {
-        possibleUDTs.add(types.getString(3));
+        possibleUDTs.add(udtTypes.getString(3));
       } else {
         StringBuilder debug = new StringBuilder();
         debug.append("Possible UDT is not a STRUCT. ");
 
         // 1. TYPE_CAT String => the type's catalog (may be null)
-        debug.append("\nTYPE_CAT: ").append(types.getString(1));
+        debug.append("\nTYPE_CAT: ").append(udtTypes.getString(1));
         // 2. TYPE_SCHEM String => type's schema (may be null)
-        debug.append("\nTYPE_SCHEM: ").append(types.getString(2));
+        debug.append("\nTYPE_SCHEM: ").append(udtTypes.getString(2));
         // 3. TYPE_NAME String => type name
-        debug.append("\nTYPE_NAME: ").append(types.getString(3));
+        debug.append("\nTYPE_NAME: ").append(udtTypes.getString(3));
         // 4. CLASS_NAME String => Java class name
-        debug.append("\nCLASS_NAME: ").append(types.getString(4)).append("\n");
+        debug.append("\nCLASS_NAME: ").append(udtTypes.getString(4)).append("\n");
         // 5. DATA_TYPE int => type value defined in java.sql.Types. One of
         // JAVA_OBJECT, STRUCT, or DISTINCT
         switch (dataType) {
@@ -337,7 +347,7 @@ public class JDBCImportModule implements DatabaseImportModule {
             debug.append("DATA_TYPE: " + dataType + "(unknown)");
         }
         // 6. REMARKS String => explanatory comment on the type
-        debug.append("\nREMARKS: ").append(types.getString(6));
+        debug.append("\nREMARKS: ").append(udtTypes.getString(6));
         /*
          * 7. BASE_TYPE short => type code of the source type of a DISTINCT type
          * or the type that implements the user-generated reference type of the
@@ -345,19 +355,27 @@ public class JDBCImportModule implements DatabaseImportModule {
          * java.sql.Types (null if DATA_TYPE is not DISTINCT or not STRUCT with
          * REFERENCE_GENERATION = USER_DEFINED)
          */
-        debug.append("\nBASE_TYPE: ").append(types.getShort(7));
+        debug.append("\nBASE_TYPE: ").append(udtTypes.getShort(7));
         logger.info(debug.toString());
       }
     }
 
-    if (!possibleUDTs.isEmpty()) {
-      for (String possibleUDT : possibleUDTs) {
-        StringBuilder debug = new StringBuilder();
-        ResultSet fields = getMetadata().getColumns(dbStructure.getName(), schema.getName(), possibleUDT, null);
+    ArrayList<ComposedTypeStructure> udts = new ArrayList<>();
+    for (String possibleUDT : possibleUDTs) {
+      ComposedTypeStructure type = new ComposedTypeStructure(possibleUDT);
+      for (ColumnStructure column : getUDTColumns(schema.getName(), possibleUDT)) {
+        type.addType(column.getName(), column.getType());
+      }
+      udts.add(type);
+    }
 
-        List<ColumnStructure> columns = getColumns(schema.getName(), possibleUDT);
+    for (ComposedTypeStructure base : udts) {
+      for (ComposedTypeStructure addition : udts) {
+        base.completeExistingType(addition);
       }
     }
+
+    return udts;
   }
 
   /**
@@ -613,6 +631,127 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
     }
     return privileges;
+  }
+
+  /**
+   * @param schemaName
+   *          the schema name
+   * @param udtName
+   *          the UDT name
+   * @return the columns of a given schema.table
+   * @throws SQLException
+   * @throws ClassNotFoundException
+   * @throws UnknownTypeException
+   */
+  protected List<ColumnStructure> getUDTColumns(String schemaName, String udtName) throws SQLException,
+    ClassNotFoundException, UnknownTypeException {
+
+    // logger.debug("id: " + schemaName + "." + udtName);
+    List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
+    ResultSet rs = getMetadata().getColumns(dbStructure.getName(), schemaName, udtName, "%");
+    logger.debug("Getting structure of (possible) UDT " + schemaName + "." + udtName);
+
+    while (rs.next()) {
+      StringBuilder cLogMessage = new StringBuilder();
+      // 1. Table catalog (may be null)
+      // String tableCatalog = rs.getString(1);
+      // 2. Table schema (may be null)
+      // String tableSchema = rs.getString(2);
+      // 3. Table name
+      // String udtName = rs.getString(3);
+      // 4. Column name
+      String columnName = rs.getString(4);
+      // cLogMessage.append("Column name: " + columnName + "\n");
+      // 5. SQL type from java.sql.Types
+      int dataType = rs.getInt(5);
+      cLogMessage.append("Data type: " + dataType + "\n");
+      // 6. Data source dependent type name, for a UDT the type name is
+      // fully qualified
+      String typeName = rs.getString(6);
+      cLogMessage.append("Type name: " + typeName + "\n");
+      // 7. Column size
+      // The COLUMN_SIZE column specifies the column size for the given
+      // column. For numeric data, this is the maximum precision. For
+      // character data, this is the length in characters. For datetime
+      // datatypes, this is the length in characters of the String
+      // representation (assuming the maximum allowed precision of the
+      // fractional seconds component). For binary data, this is the
+      // length in bytes. For the ROWID datatype, this is the length in
+      // bytes. Null is returned for data types where the column size is
+      // not applicable.
+      int columnSize = rs.getInt(7);
+      cLogMessage.append("Column size: ").append(columnSize).append("\n");
+      // 8. BUFFER_LENGTH is not used.
+      // 9. the number of fractional digits. Null is returned for data
+      // types where DECIMAL_DIGITS is not applicable.
+      int decimalDigits = rs.getInt(9);
+      cLogMessage.append("Decimal digits: ").append(decimalDigits).append("\n");
+      // 10. Radix (typically either 10 or 2)
+      int numPrecRadix = rs.getInt(10);
+      cLogMessage.append("Radix: ").append(numPrecRadix).append("\n");
+      // 11. is NULL allowed (using 18. instead)
+
+      // 12. comment describing column (may be null)
+      String remarks = rs.getString(12);
+      cLogMessage.append("Remarks: ").append(remarks).append("\n");
+      // 13. default value for the column, which should be interpreted as
+      // a string when the value is enclosed in single quotes (may be
+      // null)
+      String defaultValue = rs.getString(13);
+      cLogMessage.append("Default value: ").append(defaultValue).append("\n");
+      // 14. SQL_DATA_TYPE int => unused
+      // 15. SQL_DATETIME_SUB int => unused
+      // 16. CHAR_OCTET_LENGTH int => for char types the maximum number of
+      // bytes in the column
+      // 17. index of column in table (starting at 1)
+      int index = rs.getInt(17);
+      cLogMessage.append("Index: ").append(index).append("\n");
+      // 18. ISO rules are used to determine the nullability for a column.
+      // YES --- if the column can include NULLs
+      // NO --- if the column cannot include NULLs
+      // empty string --- if the nullability for the column is unknown
+      Boolean isNullable = "YES".equals(rs.getString(18));
+      cLogMessage.append("Is Nullable: ").append(isNullable).append("\n");
+      // 20. SCOPE_SCHEMA String => schema of table that is the scope of a
+      // reference attribute (null if the DATA_TYPE isn't REF)
+      // 21. SCOPE_TABLE String => table name that this the scope of a
+      // reference attribute (null if the DATA_TYPE isn't REF)
+      // 22. SOURCE_DATA_TYPE short => source type of a distinct type or
+      // user-generated Ref type, SQL type from java.sql.Types (null if
+      // DATA_TYPE isn't DISTINCT or user-generated REF)
+      // 23. IS_AUTOINCREMENT String => Indicates whether this column is
+      // auto incremented
+      // YES --- if the column is auto incremented
+      // NO --- if the column is not auto incremented
+      // empty string --- if it cannot be determined whether the column is
+      // auto incremented
+      Boolean isAutoIncrement = "YES".equals(rs.getString(23));
+      cLogMessage.append("Is auto increment: ").append(isAutoIncrement).append("\n");
+      // 24. IS_GENERATEDCOLUMN String => Indicates whether this is a
+      // generated column
+      // YES --- if this a generated column
+      // NO --- if this not a generated column
+      // empty string --- if it cannot be determined whether this is a
+      // generated column
+      // Boolean isGeneratedColumn = rs.getString(24) == "YES";
+
+      // cLog.append("(" + udtName + ") " + "colName: " + columnName
+      // + "; dataType: " + dataType + "; typeName: " + typeName);
+      Type columnType = getType(schemaName, udtName, columnName, dataType, typeName, columnSize, decimalDigits,
+        numPrecRadix);
+
+      cLogMessage.append("Calculated type: ").append(columnType.getClass().getSimpleName()).append("\n");
+
+      ColumnStructure column = getColumnStructure(udtName, columnName, columnType, isNullable, index, remarks,
+        defaultValue, isAutoIncrement);
+
+      cLogMessage.append("ColumnType hash: ").append(column.getType().hashCode()).append("\n");
+      logger.debug(cLogMessage);
+
+      columns.add(column);
+    }
+
+    return columns;
   }
 
   /**
@@ -891,9 +1030,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         break;
 
       case Types.STRUCT:
-        type = new ComposedTypeStructure();
-        logger.error("Struct type not yet supported! Data type: " + dataType + ", type name=" + typeName);
-        // throw new UnknownTypeException("Struct type not yet supported");
+        type = getComposedTypeStructure(schemaName, dataType, typeName);
         break;
 
       case Types.OTHER:
@@ -912,6 +1049,32 @@ public class JDBCImportModule implements DatabaseImportModule {
     }
 
     return type;
+  }
+
+  protected ComposedTypeStructure getComposedTypeStructure(String schemaName, int dataType, String typeName) {
+    ComposedTypeStructure type = null;
+
+    SchemaStructure schema = actualSchema;
+    if (schema == null) {
+      schema = dbStructure.getSchemaByName(schemaName);
+    }
+
+    if (schema != null) {
+      for (ComposedTypeStructure udt : schema.getUserDefinedTypes()) {
+        if (udt.getOriginalTypeName().equalsIgnoreCase(typeName)) {
+          type = udt;
+          break;
+        }
+      }
+    }
+
+    if (type == null) {
+      logger.warn("Struct type could not be identified! Schema name: " + schemaName + ", data type: " + dataType
+        + ", type name=" + typeName);
+      return new ComposedTypeStructure();
+    } else {
+      return type;
+    }
   }
 
   protected Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
@@ -1454,8 +1617,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       List<Cell> cells = parseArray(id, array);
       cell = new ComposedCell(id, cells);
     } else if (cellType instanceof ComposedTypeStructure) {
-      // TODO get structure and convert to cell
-      throw new InvalidDataException("Convert data of struct type not yet supported");
+      cell = rawToCellComposedTypeStructure(id, columnName, cellType, rawData);
     } else if (cellType instanceof SimpleTypeBoolean) {
       boolean booleanValue = rawData.getBoolean(columnName);
       boolean wasNull = rawData.wasNull();
@@ -1489,6 +1651,11 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
     }
     return cell;
+  }
+
+  protected Cell rawToCellComposedTypeStructure(String id, String columnName, Type cellType, ResultSet rawData)
+    throws InvalidDataException {
+    throw new InvalidDataException("Convert data of struct type not yet supported");
   }
 
   protected Cell rawToCellSimpleTypeNumericExact(String id, String columnName, Type cellType, ResultSet rawData)
@@ -1642,9 +1809,9 @@ public class JDBCImportModule implements DatabaseImportModule {
     return ret;
   }
 
-  protected ResultSet getTableRawData(String tableId) throws SQLException, ClassNotFoundException, ModuleException {
-    logger.debug("query: " + sqlHelper.selectTableSQL(tableId));
-    ResultSet set = getStatement().executeQuery(sqlHelper.selectTableSQL(tableId));
+  protected ResultSet getTableRawData(TableStructure table) throws SQLException, ClassNotFoundException, ModuleException {
+    logger.debug("query: " + sqlHelper.selectTableSQL(table.getId()));
+    ResultSet set = getStatement().executeQuery(sqlHelper.selectTableSQL(table.getId()));
     set.setFetchSize(ROW_FETCH_BLOCK_SIZE);
     return set;
   }
@@ -1680,7 +1847,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         handler.handleDataOpenSchema(schema.getName());
         for (TableStructure table : schema.getTables()) {
           logger.info("STARTED: Getting data of table: " + table.getId());
-          ResultSet tableRawData = getTableRawData(table.getId());
+          ResultSet tableRawData = getTableRawData(table);
           handler.handleDataOpenTable(table.getId());
           int nRows = 0;
           while (tableRawData.next()) {

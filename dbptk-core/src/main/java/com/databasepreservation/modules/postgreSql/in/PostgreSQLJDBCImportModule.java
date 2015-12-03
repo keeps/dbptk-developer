@@ -6,9 +6,11 @@ package com.databasepreservation.modules.postgreSql.in;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -16,6 +18,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.databasepreservation.model.data.ComposedCell;
+import com.databasepreservation.model.structure.type.ComposedTypeArray;
+import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
+import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
+import com.databasepreservation.model.structure.type.UnsupportedDataType;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.postgresql.util.PGobject;
 
 import pt.gov.dgarq.roda.common.FileFormat;
@@ -25,9 +33,15 @@ import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.FileItem;
+import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
+import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
+import com.databasepreservation.model.structure.ColumnStructure;
+import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.type.ComposedTypeStructure;
+import com.databasepreservation.model.structure.type.ComposedTypeStructure.SubType;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
@@ -58,7 +72,8 @@ import com.databasepreservation.modules.siard.SIARDHelper;
  * the trust, ident, password, md5, and crypt authentication methods.</li>
  * </ol>
  *
- * @author Luis Faria
+ * @author Luis Faria <lfaria@keep.pt>
+ * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 
@@ -129,12 +144,160 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected ResultSet getTableRawData(String tableId) throws SQLException, ClassNotFoundException, ModuleException {
-    logger.debug("query: " + sqlHelper.selectTableSQL(tableId));
+  protected ResultSet getTableRawData(TableStructure table) throws SQLException, ClassNotFoundException,
+    ModuleException {
+
+    // builds a query like "SELECT field1, field2, field3 FROM table"
+    HashSet<String> columnNames = new HashSet<>();
+    StringBuilder query = new StringBuilder("SELECT ");
+    ArrayList<ColumnStructure> udtColumns = new ArrayList<>();
+    String separator = "";
+    for (ColumnStructure column : table.getColumns()) {
+      if (column.getType() instanceof ComposedTypeStructure) {
+        udtColumns.add(column);
+      }
+      columnNames.add(column.getName().toLowerCase());
+      query.append(separator).append(column.getName());
+      separator = ", ";
+    }
+
+    for (ColumnStructure column : udtColumns) {
+      query.append(separator).append(
+        getFieldNamesFromComposedTypeStructure(column.getId(), (ComposedTypeStructure) column.getType(), table, columnNames));
+    }
+
+    query.append(" FROM ").append(table.getId());
+
+    logger.debug("query: " + query.toString());
+
     Statement st = getStatement();
     st.setFetchSize(200);
-    ResultSet set = st.executeQuery(sqlHelper.selectTableSQL(tableId));
+    ResultSet set = st.executeQuery(query.toString());
     return set;
+  }
+
+  private String getFieldNamesFromComposedTypeStructure(String columnId,
+    ComposedTypeStructure baseComposedTypeStructure, TableStructure table, HashSet<String> columnNames) {
+    ArrayList<SubType> subtypes = baseComposedTypeStructure.getNonComposedSubTypes(columnId);
+
+    StringBuilder sb = new StringBuilder();
+    String separator = "";
+    for (SubType subtype : subtypes) {
+      ArrayList<String> names = subtype.getPath();
+
+      if (names.size() < 2) {
+        logger.debug("UDT type hierarchy is too small. columnId: " + columnId + ", " + subtype.toString());
+      }
+
+      sb.append(separator);
+
+      StringBuilder name = new StringBuilder();
+      name.append("(").append(names.get(0)).append(")");
+      for (int i = 1; i < names.size(); i++) {
+        name.append(".").append(names.get(i));
+      }
+      sb.append(name);
+
+      String alias = RandomStringUtils.random(15, "abcdefghijklmnopqrstuvwxyz");
+      while (columnNames.contains(alias)){
+        logger.debug("random alias: column name '" + alias + "' exists.");
+        alias = RandomStringUtils.random(15, "abcdefghijklmnopqrstuvwxyz");
+      }
+      columnNames.add(alias);
+      table.addUDTAlias(name.toString(), alias);
+
+      sb.append(" AS " + alias);
+
+      separator = ", ";
+    }
+
+    return sb.toString();
+  }
+
+  @Override
+  protected Row convertRawToRow(ResultSet rawData, TableStructure tableStructure) throws InvalidDataException,
+    SQLException, ClassNotFoundException, ModuleException {
+    Row row = null;
+    if (isRowValid(rawData, tableStructure)) {
+      List<Cell> cells = new ArrayList<Cell>(tableStructure.getColumns().size());
+
+      long currentRow = tableStructure.getCurrentRow();
+      if (isGetRowAvailable()) {
+        currentRow = rawData.getRow();
+      }
+
+      ArrayList<Integer> udtColumnsIndexes = new ArrayList<>();
+      int i;
+      for (i = 0; i < tableStructure.getColumns().size(); i++) {
+        ColumnStructure colStruct = tableStructure.getColumns().get(i);
+
+        if (colStruct.getType() instanceof ComposedTypeStructure) {
+          // handle composed types later
+          udtColumnsIndexes.add(i);
+          cells.add(null);
+        } else {
+          cells.add(convertRawToCell(tableStructure.getName(), colStruct.getName(), i + 1, currentRow,
+            colStruct.getType(), rawData));
+        }
+      }
+
+      // handle composed types
+      for (Integer udtColumnIndex : udtColumnsIndexes) {
+        List<Cell> udtCells = new ArrayList<>();
+        ColumnStructure udtColumn = tableStructure.getColumns().get(udtColumnIndex);
+        ComposedTypeStructure udtType = (ComposedTypeStructure) udtColumn.getType();
+        ArrayList<SubType> subtypes = udtType.getNonComposedSubTypes(udtColumn.getId());
+
+        for (SubType subtype : subtypes) {
+          ArrayList<String> names = subtype.getPath();
+          StringBuilder extraColumnName = new StringBuilder();
+          extraColumnName.append("(").append(names.get(0)).append(")");
+          for (int namesIndex = 1; namesIndex < names.size(); namesIndex++) {
+            extraColumnName.append(".").append(names.get(namesIndex));
+          }
+
+          String aliasColumnName = tableStructure.getUDTAlias(extraColumnName.toString());
+
+          udtCells.add(convertRawToCell(tableStructure.getName(), aliasColumnName, udtColumnIndex + 1,
+            currentRow, subtype.getType(), rawData));
+
+          i++;
+        }
+
+        cells.set(udtColumnIndex, new ComposedCell(tableStructure.getName() + "." + udtColumn.getName() + "." + currentRow, udtCells));
+      }
+
+      row = new Row(currentRow, cells);
+    }
+    tableStructure.incrementCurrentRow();
+    return row;
+  }
+
+  @Override
+  protected boolean isRowValid(ResultSet raw, TableStructure structure) throws InvalidDataException, SQLException {
+    boolean ret;
+    ResultSetMetaData metadata = raw.getMetaData();
+
+    // number of columns is not enough because UDTs are expanded into fields
+    List<ColumnStructure> columns = structure.getColumns();
+    int colNumber = columns.size();
+
+    for (ColumnStructure column : columns) {
+      if (column.getType() instanceof ComposedTypeStructure) {
+        ComposedTypeStructure type = (ComposedTypeStructure) column.getType();
+        colNumber += type.getNonComposedSubTypes(column.getName()).size();
+      }
+    }
+
+    if (metadata.getColumnCount() == colNumber) {
+      ret = true;
+    } else {
+      ret = false;
+      throw new InvalidDataException("table: " + structure.getName() + " row number: " + raw.getRow()
+        + " error: different column number from structure. Got " + metadata.getColumnCount() + " columns and expected "
+        + structure.getColumns().size() + " (or " + colNumber + " with UDT fields)");
+    }
+    return ret;
   }
 
   /**
@@ -145,7 +308,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
   public Set<String> getIgnoredExportedSchemas() {
     Set<String> ignoredSchemas = new HashSet<String>();
     ignoredSchemas.add("information_schema");
-    ignoredSchemas.add("pg_.*"); // TODO: is this working?
+    ignoredSchemas.add("pg_.*");
 
     return ignoredSchemas;
   }
@@ -328,6 +491,13 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       cell = super.rawToCellSimpleTypeDateTime(id, columnName, cellType, rawData);
     }
     return cell;
+  }
+
+  @Override
+  protected Cell rawToCellComposedTypeStructure(String id, String columnName, Type cellType, ResultSet rawData)
+    throws InvalidDataException {
+    logger.debug("postgresql, rawToCellComposedTypeStructure, ignored composed type cell");
+    return null;
   }
 
   class PGTime extends PGobject {

@@ -15,6 +15,7 @@ import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.SchemaStructure;
+import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
@@ -123,13 +124,13 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected ResultSet getTableRawData(String tableId) throws SQLException, ClassNotFoundException, ModuleException {
-    logger.debug("query: " + sqlHelper.selectTableSQL(tableId));
+  protected ResultSet getTableRawData(TableStructure table) throws SQLException, ClassNotFoundException, ModuleException {
+    logger.debug("query: " + sqlHelper.selectTableSQL(table.getId()));
 
     Statement statement = getStatement();
     statement.setFetchSize(Integer.MIN_VALUE);
 
-    ResultSet set = statement.executeQuery(sqlHelper.selectTableSQL(tableId));
+    ResultSet set = statement.executeQuery(sqlHelper.selectTableSQL(table.getId()));
     return set;
   }
 

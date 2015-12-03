@@ -1,7 +1,6 @@
 package com.databasepreservation.modules.msAccess.in;
 
 import java.io.File;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -18,6 +17,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.PrivilegeStructure;
 import com.databasepreservation.model.structure.RoutineStructure;
+import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.msAccess.MsAccessHelper;
@@ -51,17 +51,14 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
     return connection;
   }
 
-  protected ResultSet getTableRawData(String tableId) throws SQLException, ClassNotFoundException, ModuleException {
-    String tableName;
+  protected ResultSet getTableRawData(TableStructure table) throws SQLException, ClassNotFoundException,
+    ModuleException {
+    String tableId;
     ResultSet set = null;
-    try {
-      tableName = getDatabaseStructure().lookupTableStructure(tableId).getName();
-      logger.debug("query: " + sqlHelper.selectTableSQL(tableId));
-      set = getStatement().executeQuery(sqlHelper.selectTableSQL(tableId));
-      set.setFetchSize(ROW_FETCH_BLOCK_SIZE);
-    } catch (UnknownTypeException e) {
-      logger.debug("");
-    }
+    tableId = table.getId();
+    logger.debug("query: " + sqlHelper.selectTableSQL(tableId));
+    set = getStatement().executeQuery(sqlHelper.selectTableSQL(tableId));
+    set.setFetchSize(ROW_FETCH_BLOCK_SIZE);
 
     return set;
   }

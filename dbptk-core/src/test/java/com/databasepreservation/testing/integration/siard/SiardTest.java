@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import org.joda.time.DateTime;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -397,10 +398,10 @@ public class SiardTest {
     // create schemas with tables, views and routines
     schemas.add(new SchemaStructure("schema01", "the first schema", 1, Arrays.asList(table01, table02),
       new ArrayList<ViewStructure>(),// TODO: Arrays.asList(view01, view02),
-      new ArrayList<RoutineStructure>()));// TODO: Arrays.asList(routine01,
+      new ArrayList<RoutineStructure>(), new ArrayList<ComposedTypeStructure>()));// TODO: Arrays.asList(routine01,
                                           // routine02)));
     schemas.add(new SchemaStructure("schema02", "the second schema", 2, Arrays.asList(table03, table04),
-      new ArrayList<ViewStructure>(), new ArrayList<RoutineStructure>()));
+      new ArrayList<ViewStructure>(), new ArrayList<RoutineStructure>(), new ArrayList<ComposedTypeStructure>()));
 
     // create users
     List<UserStructure> users = Arrays.asList(new UserStructure("testUser1", "first TestUser description"),

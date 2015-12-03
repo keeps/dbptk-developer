@@ -9,8 +9,9 @@ import org.joda.time.DateTime;
 import com.databasepreservation.utils.ListUtils;
 
 /**
- * @author Luis Faria
+ * @author Luis Faria <lfaria@keep.pt>
  * @author Miguel Coutada
+ * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class DatabaseStructure {
 

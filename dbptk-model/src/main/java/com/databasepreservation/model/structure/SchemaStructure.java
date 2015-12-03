@@ -3,10 +3,12 @@ package com.databasepreservation.model.structure;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.utils.ListUtils;
 
 /**
  * @author Miguel Coutada
+ * @author Bruno Ferreira <bferreira@keep.pt>
  */
 
 public class SchemaStructure {
@@ -23,6 +25,8 @@ public class SchemaStructure {
 
   private List<RoutineStructure> routines;
 
+  private List<ComposedTypeStructure> userDefinedTypes;
+
   /**
    * @param name
    * @param description
@@ -30,9 +34,10 @@ public class SchemaStructure {
    * @param tables
    * @param views
    * @param routines
+   * @param userDefinedTypes
    */
   public SchemaStructure(String name, String description, int index, List<TableStructure> tables,
-    List<ViewStructure> views, List<RoutineStructure> routines) {
+    List<ViewStructure> views, List<RoutineStructure> routines, List<ComposedTypeStructure> userDefinedTypes) {
     super();
     this.name = name;
     this.description = description;
@@ -40,12 +45,14 @@ public class SchemaStructure {
     this.tables = tables;
     this.views = views;
     this.routines = routines;
+    this.userDefinedTypes = userDefinedTypes;
   }
 
   public SchemaStructure() {
-    tables = new ArrayList<TableStructure>();
-    views = new ArrayList<ViewStructure>();
-    routines = new ArrayList<RoutineStructure>();
+    tables = new ArrayList<>();
+    views = new ArrayList<>();
+    routines = new ArrayList<>();
+    userDefinedTypes = new ArrayList<>();
   }
 
   /**
@@ -123,6 +130,21 @@ public class SchemaStructure {
     this.routines = routines;
   }
 
+  /**
+   * @return the user defined types
+   */
+  public List<ComposedTypeStructure> getUserDefinedTypes() {
+    return userDefinedTypes;
+  }
+
+  /**
+   * @param userDefinedTypes
+   *          the user defined types to set
+   */
+  public void setUserDefinedTypes(List<ComposedTypeStructure> userDefinedTypes) {
+    this.userDefinedTypes = userDefinedTypes;
+  }
+
   /*
    * (non-Javadoc)
    * 
@@ -148,6 +170,9 @@ public class SchemaStructure {
     builder.append("routines=");
     builder.append(routines);
     builder.append("\n");
+    builder.append("udts=");
+    builder.append(userDefinedTypes);
+    builder.append("\n");
     builder.append("****** END SCHEMA ******");
     builder.append("\n");
     return builder.toString();
@@ -163,6 +188,7 @@ public class SchemaStructure {
     result = prime * result + ((routines == null) ? 0 : routines.hashCode());
     result = prime * result + ((tables == null) ? 0 : tables.hashCode());
     result = prime * result + ((views == null) ? 0 : views.hashCode());
+    result = prime * result + ((userDefinedTypes == null) ? 0 : userDefinedTypes.hashCode());
     return result;
   }
 
@@ -214,6 +240,13 @@ public class SchemaStructure {
         return false;
       }
     } else if (!ListUtils.equalsWithoutOrder(views, other.views)) {
+      return false;
+    }
+    if (userDefinedTypes == null) {
+      if (other.userDefinedTypes != null) {
+        return false;
+      }
+    } else if (!ListUtils.equalsWithoutOrder(userDefinedTypes, other.userDefinedTypes)) {
       return false;
     }
     return true;
