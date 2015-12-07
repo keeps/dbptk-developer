@@ -80,7 +80,7 @@ public class Sql2003toXSDType {
     } else if (type instanceof ComposedTypeArray) {
       throw new ModuleException("Not yet supported type: ARRAY");
     } else if (type instanceof ComposedTypeStructure) {
-      throw new ModuleException("Not yet supported type: ROW");
+      ret = null;
     } else {
       throw new UnknownTypeException(type.toString());
     }

@@ -35,7 +35,7 @@ import com.databasepreservation.utils.XMLUtils;
  */
 public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   private final static String ENCODING = "UTF-8";
-  private final CustomLogger logger = CustomLogger.getLogger(SIARD1ContentExportStrategy.class);
+  private final CustomLogger logger = CustomLogger.getLogger(SIARD2ContentExportStrategy.class);
   private final SIARD2ContentPathExportStrategy contentPathStrategy;
   private final WriteStrategy writeStrategy;
   private final SIARDArchiveContainer baseContainer;
@@ -149,7 +149,54 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
   private void writeComposedCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException,
     IOException {
-    logger.error("Composed cell writing is not yet implemented");
+
+    ComposedCell composedCell = (ComposedCell) cell;
+
+    currentWriter.openTag("c" + columnIndex, 2);
+
+    int subCellIndex = 1;
+    for (Cell subCell : composedCell.getComposedData()) {
+      if(subCell instanceof SimpleCell) {
+        SimpleCell simpleCell = (SimpleCell) subCell;
+        if (simpleCell.getSimpledata() != null) {
+          currentWriter.inlineOpenTag("u" + subCellIndex, 3);
+          currentWriter.write(XMLUtils.encode(simpleCell.getSimpledata()));
+          currentWriter.closeTag("u" + subCellIndex);
+        }
+      }else if(subCell instanceof ComposedCell){
+        currentWriter.inlineOpenTag("u" + subCellIndex, 3);
+        currentWriter.closeTag("u" + subCellIndex);
+
+        logger.warn("UDT inside UDT not yet fully supported. Saving as null.");
+      }else if(subCell instanceof BinaryCell){
+        BinaryCell binaryCell = (BinaryCell) subCell;
+
+        long length = binaryCell.getLength();
+        if (length < 2000) {
+          SimpleCell simpleCell = new SimpleCell(binaryCell.getId());
+          if (length == 0) {
+            simpleCell.setSimpledata(null);
+          } else {
+            InputStream inputStream = binaryCell.createInputstream();
+            byte[] bytes = IOUtils.toByteArray(inputStream);
+            inputStream.close();
+            simpleCell.setSimpledata(Hex.encodeHexString(bytes));
+          }
+          currentWriter.inlineOpenTag("u" + subCellIndex, 3);
+          if (simpleCell.getSimpledata() != null) {
+            currentWriter.write(XMLUtils.encode(simpleCell.getSimpledata()));
+          }
+          currentWriter.closeTag("u" + subCellIndex);
+        }else{
+          logger.warn("SIARD2 does not yet support LOBs inside UDT");
+        }
+      }else{
+        logger.error("Unexpected cell type");
+      }
+
+      subCellIndex++;
+    }
+    currentWriter.closeTag("c" + columnIndex, 2);
   }
 
   private void writeSimpleCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException, IOException {
@@ -359,7 +406,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     int columnIndex = 1;
     for (ColumnStructure col : currentTable.getColumns()) {
       try {
-        String xsdType = Sql99toXSDType.convert(col.getType());
+        String xsdType = Sql2003toXSDType.convert(col.getType());
 
         xsdWriter.beginOpenTag("xs:element", 4);
 

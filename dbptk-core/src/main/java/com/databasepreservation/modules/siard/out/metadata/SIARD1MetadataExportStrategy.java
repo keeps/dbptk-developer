@@ -14,6 +14,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.SAXException;
@@ -544,22 +545,26 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (column.getType() != null) {
-      logger.debug("Saving type '" + column.getType().getOriginalTypeName() + "'(internal_id:"+column.getType().hashCode()+") as " + column.getType().getSql99TypeName());
-      logger.info("Saving type '" + column.getType().getOriginalTypeName() + "' as '" + column.getType().getSql99TypeName() + "'");
-      columnType.setType(column.getType().getSql99TypeName());
-      columnType.setTypeOriginal(column.getType().getOriginalTypeName());
+      if(column.getType() instanceof ComposedTypeStructure){
+        logger.warn("ignoring composed type '" + column.getType().getOriginalTypeName() + "'");
+      }else{
+        logger.debug("Saving type '" + column.getType().getOriginalTypeName() + "'(internal_id:"+column.getType().hashCode()+") as " + column.getType().getSql2003TypeName());
+        logger.info("Saving type '" + column.getType().getOriginalTypeName() + "' as '" + column.getType().getSql2003TypeName() + "'");
+        columnType.setType(column.getType().getSql2003TypeName());
+        columnType.setTypeOriginal(column.getType().getOriginalTypeName());
+
+        if (column.isNillable() != null) {
+          columnType.setNullable(column.getNillable());
+        } else {
+          logger.warn("column nullable property was null. changed it to false");
+        }
+      }
     } else {
       throw new ModuleException("Error while exporting table structure: column type cannot be null");
     }
 
     if (StringUtils.isNotBlank(column.getDefaultValue())) {
       columnType.setDefaultValue(column.getDefaultValue());
-    }
-
-    if (column.isNillable() != null) {
-      columnType.setNullable(column.getNillable());
-    } else {
-      logger.warn("column nullable property was null. changed it to false");
     }
 
     if (StringUtils.isNotBlank(column.getDescription())) {

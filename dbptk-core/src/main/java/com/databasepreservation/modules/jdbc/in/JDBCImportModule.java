@@ -18,13 +18,11 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.transaction.memory.HashMapFactory;
 import org.w3c.util.DateParser;
 
 import pt.gov.dgarq.roda.common.FileFormat;

@@ -47,6 +47,20 @@ public class ComposedTypeStructure extends Type {
   }
 
   /**
+   * @return The name of the SQL2003 normalized type. null if not applicable
+   */
+  @Override public String getSql2003TypeName() {
+    return null;
+  }
+
+  /**
+   * @return The name of the SQL99 normalized type. null if not applicable
+   */
+  @Override public String getSql99TypeName() {
+    return null;
+  }
+
+  /**
    * Adds a subtype to the composed type
    * 
    * @param name
