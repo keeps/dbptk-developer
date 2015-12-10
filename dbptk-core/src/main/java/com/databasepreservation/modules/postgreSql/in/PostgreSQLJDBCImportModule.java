@@ -6,7 +6,6 @@ package com.databasepreservation.modules.postgreSql.in;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -18,11 +17,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.databasepreservation.model.data.ComposedCell;
-import com.databasepreservation.model.structure.type.ComposedTypeArray;
-import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
-import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
-import com.databasepreservation.model.structure.type.UnsupportedDataType;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.postgresql.util.PGobject;
 
@@ -32,6 +26,7 @@ import pt.gov.dgarq.roda.common.FormatUtility;
 import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.ComposedCell;
 import com.databasepreservation.model.data.FileItem;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
@@ -176,6 +171,11 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     return set;
   }
 
+  /**
+   * Explores a composed type and retrieves complete names for all simple types
+   * inside the composed type, using those complete names in a query allows the
+   * lossless retrieval of all the data contained inside the UDT cell
+   */
   private String getFieldNamesFromComposedTypeStructure(String columnId,
     ComposedTypeStructure baseComposedTypeStructure, TableStructure table, HashSet<String> columnNames) {
     ArrayList<SubType> subtypes = baseComposedTypeStructure.getNonComposedSubTypes(columnId);
