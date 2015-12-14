@@ -373,6 +373,13 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
     }
 
+    for (ComposedTypeStructure udt : udts) {
+      if (udt.isRecursive()) {
+        logger.warn("Recursive UDTs are not supported yet. UDT " + udt.getOriginalTypeName()
+          + " detected as recursive.", new ModuleException("recursive UDT:" + udt.toString()));
+      }
+    }
+
     return udts;
   }
 

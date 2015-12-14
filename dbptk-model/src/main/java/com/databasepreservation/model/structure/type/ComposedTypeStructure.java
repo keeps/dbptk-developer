@@ -198,6 +198,30 @@ public class ComposedTypeStructure extends Type {
   }
 
   /**
+   * Determines if the composited type structure contains itself somewhere down
+   * in its hierarchy.
+   * 
+   * @return true if the ComposedTypeStructure is recursive
+   */
+  public boolean isRecursive() {
+    return isRecursiveInternal(this);
+  }
+
+  private boolean isRecursiveInternal(ComposedTypeStructure self) {
+    for (Type subType : containedTypes.values()) {
+      if (this == self) {
+        return true;
+      } else if (subType instanceof ComposedTypeStructure) {
+        ComposedTypeStructure composedSubType = (ComposedTypeStructure) subType;
+        if (composedSubType.isRecursiveInternal(self)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
    * Helper class to help handling the types inside the composedTypeStructure
    */
   public static class SubType {
