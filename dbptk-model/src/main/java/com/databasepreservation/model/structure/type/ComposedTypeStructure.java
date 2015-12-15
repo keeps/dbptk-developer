@@ -4,8 +4,10 @@
 package com.databasepreservation.model.structure.type;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -25,6 +27,8 @@ import org.apache.commons.lang3.tuple.Pair;
  */
 // TODO: protect against recursive types
 public class ComposedTypeStructure extends Type {
+  public static final ComposedTypeStructure empty = new ComposedTypeStructure();
+
   private HashMap<String, ArrayList<SubType>> leafsByColumnId;
   private HashMap<String, Type> containedTypes;
 
@@ -107,6 +111,28 @@ public class ComposedTypeStructure extends Type {
    */
   public HashMap<String, Type> getDirectDescendantSubTypes() {
     return containedTypes;
+  }
+
+  /**
+   * Gets the direct subtypes (direct children) of this composed type that are
+   * not ComposedTypes (ie: if this ComposedType is an hierarchy with more
+   * ComposedTypes, only the first level of the hierarchy is returned and all
+   * ComposedTypes are ignored)
+   *
+   * @param columnId
+   *          ID of the column which type is this ComposedType (ie:
+   *          schema.table.columnName)
+   *
+   * @return List of first-level subtypes that are not ComposedTypes
+   */
+  public ArrayList<SubType> getDirectDescendantSubTypes(String columnId) {
+    ArrayList<SubType> children = new ArrayList<>();
+
+    for ( Map.Entry<String, Type> entry : containedTypes.entrySet() ) {
+      children.add(new SubType(columnId, new ArrayList<>(Arrays.asList(columnId, entry.getKey())), entry.getValue()));
+    }
+
+    return children;
   }
 
   /**
@@ -204,18 +230,36 @@ public class ComposedTypeStructure extends Type {
    * @return true if the ComposedTypeStructure is recursive
    */
   public boolean isRecursive() {
-    return isRecursiveInternal(this);
+    return isRecursiveInternal(true, this);
   }
 
-  private boolean isRecursiveInternal(ComposedTypeStructure self) {
-    for (Type subType : containedTypes.values()) {
-      if (this == self) {
+  private boolean isRecursiveInternal(boolean firstIteration, ComposedTypeStructure self) {
+    for (Type subType : this.containedTypes.values()) {
+      if (!firstIteration && this == self) {
         return true;
       } else if (subType instanceof ComposedTypeStructure) {
         ComposedTypeStructure composedSubType = (ComposedTypeStructure) subType;
-        if (composedSubType.isRecursiveInternal(self)) {
+        if (composedSubType.isRecursiveInternal(false, self)) {
           return true;
         }
+      }
+    }
+    return false;
+  }
+
+  public boolean isHierarchical() {
+    for (Type subType : containedTypes.values()) {
+      if (subType instanceof ComposedTypeStructure) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean containsLOBs() {
+    for (Type subType : containedTypes.values()) {
+      if (subType instanceof SimpleTypeBinary) {
+        return true;
       }
     }
     return false;

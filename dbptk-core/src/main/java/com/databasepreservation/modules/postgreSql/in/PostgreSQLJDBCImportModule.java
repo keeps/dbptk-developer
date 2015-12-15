@@ -178,7 +178,11 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
    */
   private String getFieldNamesFromComposedTypeStructure(String columnId,
     ComposedTypeStructure baseComposedTypeStructure, TableStructure table, HashSet<String> columnNames) {
-    ArrayList<SubType> subtypes = baseComposedTypeStructure.getNonComposedSubTypes(columnId);
+    // TODO: use getNonComposedSubTypes to get all non-composed subtypes in
+    // a hierarchy
+    // ArrayList<SubType> subtypes =
+    // baseComposedTypeStructure.getNonComposedSubTypes(columnId);
+    ArrayList<SubType> subtypes = baseComposedTypeStructure.getDirectDescendantSubTypes(columnId);
 
     StringBuilder sb = new StringBuilder();
     String separator = "";
@@ -246,8 +250,10 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
         List<Cell> udtCells = new ArrayList<>();
         ColumnStructure udtColumn = tableStructure.getColumns().get(udtColumnIndex);
         ComposedTypeStructure udtType = (ComposedTypeStructure) udtColumn.getType();
-        ArrayList<SubType> subtypes = udtType.getNonComposedSubTypes(udtColumn.getId());
 
+        // TODO: use getNonComposedSubTypes to get all non-composed subtypes in
+        // a hierarchy
+        ArrayList<SubType> subtypes = udtType.getDirectDescendantSubTypes(udtColumn.getId());
         for (SubType subtype : subtypes) {
           ArrayList<String> names = subtype.getPath();
           StringBuilder extraColumnName = new StringBuilder();
@@ -282,10 +288,13 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     List<ColumnStructure> columns = structure.getColumns();
     int colNumber = columns.size();
 
+
     for (ColumnStructure column : columns) {
       if (column.getType() instanceof ComposedTypeStructure) {
         ComposedTypeStructure type = (ComposedTypeStructure) column.getType();
-        colNumber += type.getNonComposedSubTypes(column.getName()).size();
+        // TODO: use getNonComposedSubTypes to get all non-composed subtypes in
+        // a hierarchy
+        colNumber += type.getDirectDescendantSubTypes(column.getName()).size();
       }
     }
 

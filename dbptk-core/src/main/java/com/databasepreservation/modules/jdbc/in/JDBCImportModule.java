@@ -319,7 +319,6 @@ public class JDBCImportModule implements DatabaseImportModule {
         possibleUDTs.add(udtTypes.getString(3));
       } else {
         StringBuilder debug = new StringBuilder();
-        debug.append("Possible UDT is not a STRUCT. ");
 
         // 1. TYPE_CAT String => the type's catalog (may be null)
         debug.append("\nTYPE_CAT: ").append(udtTypes.getString(1));
@@ -354,7 +353,8 @@ public class JDBCImportModule implements DatabaseImportModule {
          * REFERENCE_GENERATION = USER_DEFINED)
          */
         debug.append("\nBASE_TYPE: ").append(udtTypes.getShort(7));
-        logger.info(debug.toString());
+        logger.debug("Possible UDT is not a STRUCT. " + debug.toString());
+        logger.warn("Unsupported UDT found: " + debug.toString());
       }
     }
 
@@ -373,9 +373,26 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
     }
 
+
     for (ComposedTypeStructure udt : udts) {
+      // TODO: remove after adding support for LOBs inside UDTs
+      if (udt.containsLOBs()) {
+        logger.warn("LOBs inside UDTs are not supported yet. Only the first level of hierarchy will be exported. UDT "
+            + udt.getOriginalTypeName() + " detected as containing LOBs.",
+          new ModuleException("UDT containing LOBs:" + udt.toString()));
+      }
+
+      // TODO: remove after adding support for hierarchical UDTs
+      if (udt.isHierarchical()) {
+        logger.warn("UDTs inside UDTs are not supported yet. Only the first level of hierarchy will be exported. UDT "
+            + udt.getOriginalTypeName() + " detected as hierarchical.",
+          new ModuleException("hierarchical UDT:" + udt.toString()));
+      }
+
+      // all recursive UDTs are hierarchical, so two warnings are expected on recursive types
+      // TODO: remove after adding support for recursive UDTs
       if (udt.isRecursive()) {
-        logger.warn("Recursive UDTs are not supported yet. UDT " + udt.getOriginalTypeName()
+        logger.warn("Recursive UDTs are not supported yet. Only the first level of data will be exported. UDT " + udt.getOriginalTypeName()
           + " detected as recursive.", new ModuleException("recursive UDT:" + udt.toString()));
       }
     }
@@ -1074,9 +1091,9 @@ public class JDBCImportModule implements DatabaseImportModule {
     }
 
     if (type == null) {
-      logger.warn("Struct type could not be identified! Schema name: " + schemaName + ", data type: " + dataType
+      logger.warn("Struct type could not be identified! Note that it may still be found later on. Schema name: " + schemaName + ", data type: " + dataType
         + ", type name=" + typeName);
-      return new ComposedTypeStructure();
+      return ComposedTypeStructure.empty;
     } else {
       return type;
     }

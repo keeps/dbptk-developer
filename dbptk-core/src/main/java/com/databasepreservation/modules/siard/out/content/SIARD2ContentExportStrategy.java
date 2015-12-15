@@ -22,7 +22,9 @@ import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
+import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.common.LargeObject;
 import com.databasepreservation.modules.siard.common.ProvidesInputStream;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
@@ -156,7 +158,9 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
     int subCellIndex = 1;
     for (Cell subCell : composedCell.getComposedData()) {
-      if(subCell instanceof SimpleCell) {
+      if(subCell == null){
+        // silently ignore
+      }else if(subCell instanceof SimpleCell) {
         SimpleCell simpleCell = (SimpleCell) subCell;
         if (simpleCell.getSimpledata() != null) {
           currentWriter.inlineOpenTag("u" + subCellIndex, 3);
@@ -164,32 +168,15 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
           currentWriter.closeTag("u" + subCellIndex);
         }
       }else if(subCell instanceof ComposedCell){
-        currentWriter.inlineOpenTag("u" + subCellIndex, 3);
-        currentWriter.closeTag("u" + subCellIndex);
+        // currentWriter.inlineOpenTag("u" + subCellIndex, 3);
+        // currentWriter.closeTag("u" + subCellIndex);
 
-        logger.warn("UDT inside UDT not yet fully supported. Saving as null.");
+        logger.warn("UDT inside UDT not yet supported. Saving as null.");
       }else if(subCell instanceof BinaryCell){
-        BinaryCell binaryCell = (BinaryCell) subCell;
+        // currentWriter.inlineOpenTag("u" + subCellIndex, 3);
+        // currentWriter.closeTag("u" + subCellIndex);
 
-        long length = binaryCell.getLength();
-        if (length < 2000) {
-          SimpleCell simpleCell = new SimpleCell(binaryCell.getId());
-          if (length == 0) {
-            simpleCell.setSimpledata(null);
-          } else {
-            InputStream inputStream = binaryCell.createInputstream();
-            byte[] bytes = IOUtils.toByteArray(inputStream);
-            inputStream.close();
-            simpleCell.setSimpledata(Hex.encodeHexString(bytes));
-          }
-          currentWriter.inlineOpenTag("u" + subCellIndex, 3);
-          if (simpleCell.getSimpledata() != null) {
-            currentWriter.write(XMLUtils.encode(simpleCell.getSimpledata()));
-          }
-          currentWriter.closeTag("u" + subCellIndex);
-        }else{
-          logger.warn("SIARD2 does not yet support LOBs inside UDT");
-        }
+        logger.warn("LOBs inside UDT not yet supported. Saving as null.");
       }else{
         logger.error("Unexpected cell type");
       }
@@ -405,22 +392,31 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     // insert all <xs:element> in <xs:complexType name="rowType">
     int columnIndex = 1;
     for (ColumnStructure col : currentTable.getColumns()) {
-      try {
-        String xsdType = Sql2003toXSDType.convert(col.getType());
+      if (col.getType() instanceof ComposedTypeStructure) {
+        Type composedType = (ComposedTypeStructure) col.getType();
 
-        xsdWriter.beginOpenTag("xs:element", 4);
+        // FIXME: if the same table contains two columns of different UDTs which
+        // subtypes differ then there would exist conflicting definitions for
+        // elements u1, u2, u3, etc
+        logger.warn("XSD validation of tables containing UDT is not yet supported.");
+      } else {
+        try {
+          String xsdType = Sql2003toXSDType.convert(col.getType());
 
-        if (col.isNillable()) {
-          xsdWriter.appendAttribute("minOccurs", "0");
+          xsdWriter.beginOpenTag("xs:element", 4);
+
+          if (col.isNillable()) {
+            xsdWriter.appendAttribute("minOccurs", "0");
+          }
+
+          xsdWriter.appendAttribute("name", "c" + columnIndex).appendAttribute("type", xsdType).endShorthandTag();
+        } catch (ModuleException e) {
+          logger.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
+        } catch (UnknownTypeException e) {
+          logger.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
         }
-
-        xsdWriter.appendAttribute("name", "c" + columnIndex).appendAttribute("type", xsdType).endShorthandTag();
-      } catch (ModuleException e) {
-        logger.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
-      } catch (UnknownTypeException e) {
-        logger.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
+        columnIndex++;
       }
-      columnIndex++;
     }
 
     xsdWriter
