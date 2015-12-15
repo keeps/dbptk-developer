@@ -92,7 +92,8 @@ public class Sql2003toXSDType {
     // conversion table
     String ret = sql2003toXSDconstant.get(sql2003Type);
 
-    // if that failed, try to find xsd corresponding to the sql2003 type by using
+    // if that failed, try to find xsd corresponding to the sql2003 type by
+    // using
     // the regex in the regex conversion table
     if (ret == null) {
       for (Map.Entry<String, String> entry : sql2003toXSDregex.entrySet()) {

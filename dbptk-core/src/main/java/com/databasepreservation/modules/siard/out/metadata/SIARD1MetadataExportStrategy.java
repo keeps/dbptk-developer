@@ -14,7 +14,6 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
-import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.SAXException;
@@ -70,6 +69,7 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.Trigger;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
+import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.modules.siard.SIARDHelper;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
@@ -121,8 +121,6 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
       m.setProperty(Marshaller.JAXB_ENCODING, ENCODING);
       m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
         "http://www.bar.admin.ch/xmlns/siard/1.0/metadata.xsd metadata.xsd");
-
-      // m.marshal(xmlroot, System.out);
 
       m.setSchema(xsdSchema);
       OutputStream writer = writeStrategy.createOutputStream(container,
@@ -365,9 +363,9 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     if (schemas != null && !schemas.isEmpty()) {
       SchemasType schemasType = new SchemasType();
       for (SchemaStructure schema : schemas) {
-        if(schema.getTables().isEmpty()){
+        if (schema.getTables().isEmpty()) {
           logger.warn("Schema " + schema.getName() + " was not exported because it does not contain tables.");
-        }else{
+        } else {
           schemasType.getSchema().add(jaxbSchemaType(schema));
         }
       }
@@ -545,12 +543,18 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (column.getType() != null) {
-      if(column.getType() instanceof ComposedTypeStructure){
+      if (column.getType() instanceof ComposedTypeStructure) {
         logger.warn("ignoring composed type '" + column.getType().getOriginalTypeName() + "'");
-      }else{
-        logger.debug("Saving type '" + column.getType().getOriginalTypeName() + "'(internal_id:"+column.getType().hashCode()+") as " + column.getType().getSql2003TypeName());
-        logger.info("Saving type '" + column.getType().getOriginalTypeName() + "' as '" + column.getType().getSql2003TypeName() + "'");
-        columnType.setType(column.getType().getSql2003TypeName());
+        columnType.setType("SMALLINT");
+        columnType.setNullable(true);
+
+        columnType.setTypeOriginal(column.getType().getOriginalTypeName());
+      } else {
+        logger.debug("Saving type '" + column.getType().getOriginalTypeName() + "'(internal_id:"
+          + column.getType().hashCode() + ") as " + column.getType().getSql99TypeName());
+        logger.info("Saving type '" + column.getType().getOriginalTypeName() + "' as '"
+          + column.getType().getSql99TypeName() + "'");
+        columnType.setType(column.getType().getSql99TypeName());
         columnType.setTypeOriginal(column.getType().getOriginalTypeName());
 
         if (column.isNillable() != null) {

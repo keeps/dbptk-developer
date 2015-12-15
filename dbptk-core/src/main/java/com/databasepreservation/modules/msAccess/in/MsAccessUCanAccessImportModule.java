@@ -35,7 +35,7 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
       + ";showSchema=true;", new MsAccessHelper());
   }
 
-  public MsAccessUCanAccessImportModule(String accessFilePath){
+  public MsAccessUCanAccessImportModule(String accessFilePath) {
     this(new File(accessFilePath));
   }
 
@@ -139,7 +139,8 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
    * @throws SQLException
    * @throws ClassNotFoundException
    */
-  @Override protected List<PrivilegeStructure> getPrivileges() throws SQLException, ClassNotFoundException {
+  @Override
+  protected List<PrivilegeStructure> getPrivileges() throws SQLException, ClassNotFoundException {
     logger.info("Roles were not imported: not supported yet on " + getClass().getSimpleName());
     return new ArrayList<PrivilegeStructure>();
   }
@@ -156,11 +157,18 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
    * @return
    * @throws UnknownTypeException
    */
-  @Override protected Type getUnsupportedDataType(int dataType, String typeName, int columnSize, int decimalDigits,
+  @Override
+  protected Type getUnsupportedDataType(int dataType, String typeName, int columnSize, int decimalDigits,
     int numPrecRadix) throws UnknownTypeException {
     Type unsupported = super.getUnsupportedDataType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
-    unsupported.setSql99TypeName("CHARACTER VARYING(50)"); //fixme: map the unsupported datatype to some known type
-    unsupported.setSql2003TypeName("CHARACTER VARYING(50)"); //fixme: map the unsupported datatype to some known type
+    unsupported.setSql99TypeName("CHARACTER VARYING(50)"); // fixme: map the
+                                                           // unsupported
+                                                           // datatype to some
+                                                           // known type
+    unsupported.setSql2003TypeName("CHARACTER VARYING(50)"); // fixme: map the
+                                                             // unsupported
+                                                             // datatype to some
+                                                             // known type
     return unsupported;
   }
 }

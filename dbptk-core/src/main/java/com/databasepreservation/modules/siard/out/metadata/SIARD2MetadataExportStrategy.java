@@ -16,7 +16,6 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
-import com.databasepreservation.model.exception.UnknownTypeException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.SAXException;
@@ -61,6 +60,7 @@ import ch.admin.bar.xmlns.siard._2_0.metadata.ViewsType;
 
 import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -388,9 +388,9 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     if (schemas != null && !schemas.isEmpty()) {
       SchemasType schemasType = new SchemasType();
       for (SchemaStructure schema : schemas) {
-        if(schema.getTables().isEmpty()){
+        if (schema.getTables().isEmpty()) {
           logger.warn("Schema " + schema.getName() + " was not exported because it does not contain tables.");
-        }else{
+        } else {
           schemasType.getSchema().add(jaxbSchemaType(schema));
         }
       }
@@ -446,9 +446,9 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     typeType.setInstantiable(true);
     typeType.setFinal(false);
 
-    if(StringUtils.isNotBlank(userDefinedType.getOriginalTypeName())){
+    if (StringUtils.isNotBlank(userDefinedType.getOriginalTypeName())) {
       typeType.setName(userDefinedType.getOriginalTypeName());
-    }else{
+    } else {
       throw new ModuleException("Error while exporting UDT structure: type name cannot be null");
     }
 
@@ -479,10 +479,10 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (type != null) {
-      if(type instanceof ComposedTypeStructure){
+      if (type instanceof ComposedTypeStructure) {
         logger.debug("Saving UDT type '" + type.getOriginalTypeName() + "'(internal_id:" + type.hashCode() + ")");
         attributeType.setTypeName(type.getOriginalTypeName());
-      }else{
+      } else {
         logger.debug("Saving type '" + type.getOriginalTypeName() + "'(internal_id:" + type.hashCode() + ") as "
           + type.getSql2003TypeName());
         logger.info("Saving type '" + type.getOriginalTypeName() + "' as '" + type.getSql2003TypeName() + "'");
@@ -657,13 +657,16 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (column.getType() != null) {
-      if(column.getType() instanceof ComposedTypeStructure){
-        logger.debug("Saving composed type '" + column.getType().getOriginalTypeName() + "'(internal_id:"+column.getType().hashCode()+")");
+      if (column.getType() instanceof ComposedTypeStructure) {
+        logger.debug("Saving composed type '" + column.getType().getOriginalTypeName() + "'(internal_id:"
+          + column.getType().hashCode() + ")");
         logger.info("Saving composed type '" + column.getType().getOriginalTypeName() + "'");
         columnType.setTypeName(column.getType().getOriginalTypeName());
-      }else{
-        logger.debug("Saving type '" + column.getType().getOriginalTypeName() + "'(internal_id:"+column.getType().hashCode()+") as " + column.getType().getSql2003TypeName());
-        logger.info("Saving type '" + column.getType().getOriginalTypeName() + "' as '" + column.getType().getSql2003TypeName() + "'");
+      } else {
+        logger.debug("Saving type '" + column.getType().getOriginalTypeName() + "'(internal_id:"
+          + column.getType().hashCode() + ") as " + column.getType().getSql2003TypeName());
+        logger.info("Saving type '" + column.getType().getOriginalTypeName() + "' as '"
+          + column.getType().getSql2003TypeName() + "'");
         columnType.setType(column.getType().getSql2003TypeName());
         columnType.setTypeOriginal(column.getType().getOriginalTypeName());
 
@@ -694,7 +697,8 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     } catch (UnknownTypeException e) {
       throw new ModuleException("Could not get SQL2003 type", e);
     }
-    if (xsdTypeFromColumnSql2003Type != null && (xsdTypeFromColumnSql2003Type.equals("clobType") || xsdTypeFromColumnSql2003Type.equals("blobType"))) {
+    if (xsdTypeFromColumnSql2003Type != null
+      && (xsdTypeFromColumnSql2003Type.equals("clobType") || xsdTypeFromColumnSql2003Type.equals("blobType"))) {
       columnType.setFolder(contentPathStrategy.getColumnFolderName(columnIndex));
     }
 

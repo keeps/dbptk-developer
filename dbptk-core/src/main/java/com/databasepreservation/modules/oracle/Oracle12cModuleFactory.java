@@ -22,7 +22,8 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
   private static final String licenseURL = "http://www.oracle.com/technetwork/licenses/distribution-license-152002.html";
 
   private static final Parameter serverName = new Parameter().shortName("s").longName("server-name")
-    .description("the name (or IP address) of the Oracle server").hasArgument(true).setOptionalArgument(false).required(true);
+    .description("the name (or IP address) of the Oracle server").hasArgument(true).setOptionalArgument(false)
+    .required(true);
 
   private static final Parameter portNumber = new Parameter().shortName("pn").longName("port-number")
     .description("the port that the Oracle server is listening").hasArgument(true).setOptionalArgument(false)

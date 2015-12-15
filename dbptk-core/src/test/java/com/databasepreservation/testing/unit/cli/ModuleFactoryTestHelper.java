@@ -11,10 +11,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import org.apache.commons.cli.ParseException;
 
 import com.databasepreservation.cli.CLI;
+import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;

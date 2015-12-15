@@ -124,7 +124,8 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected ResultSet getTableRawData(TableStructure table) throws SQLException, ClassNotFoundException, ModuleException {
+  protected ResultSet getTableRawData(TableStructure table) throws SQLException, ClassNotFoundException,
+    ModuleException {
     logger.debug("query: " + sqlHelper.selectTableSQL(table.getId()));
 
     Statement statement = getStatement();

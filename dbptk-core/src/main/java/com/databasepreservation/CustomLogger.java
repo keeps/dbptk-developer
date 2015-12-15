@@ -69,8 +69,8 @@ public class CustomLogger {
   }
 
   /**
-   * If message is a throwable object: Logs WARN with throwable message and
-   * then logs DEBUG with throwable
+   * If message is a throwable object: Logs WARN with throwable message and then
+   * logs DEBUG with throwable
    *
    * If message is not a throwable object: delegates method call to log4j
    *
@@ -180,9 +180,13 @@ public class CustomLogger {
   }
 
   /**
-   * Given a message and a Throwable, produces an user-friendly (yet detailed) message describing the problem
-   * @param message a short description of the problem
-   * @param throwable the throwable to extract the message from
+   * Given a message and a Throwable, produces an user-friendly (yet detailed)
+   * message describing the problem
+   * 
+   * @param message
+   *          a short description of the problem
+   * @param throwable
+   *          the throwable to extract the message from
    * @return the user-friendly message
    */
   private String getUserFriendlyMessage(Object message, Throwable throwable) {
@@ -190,8 +194,11 @@ public class CustomLogger {
   }
 
   /**
-   * Given some Throwable, produces an user-friendly (yet detailed) message describing the problem
-   * @param throwable the throwable to extract the message from
+   * Given some Throwable, produces an user-friendly (yet detailed) message
+   * describing the problem
+   * 
+   * @param throwable
+   *          the throwable to extract the message from
    * @return the user-friendly message
    */
   private String getUserFriendlyMessage(Throwable throwable) {
@@ -200,10 +207,10 @@ public class CustomLogger {
     // get all throwables inside this throwable (through "getCause()")
     Throwable actual = throwable;
     ArrayList<Throwable> throwables = new ArrayList<>();
-    while(actual != null){
-      if( throwables.contains(actual) ){
+    while (actual != null) {
+      if (throwables.contains(actual)) {
         actual = null;
-      }else{
+      } else {
         throwables.add(actual);
         actual = actual.getCause();
       }

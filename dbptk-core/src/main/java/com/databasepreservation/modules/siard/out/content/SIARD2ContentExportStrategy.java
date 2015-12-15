@@ -158,26 +158,26 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
     int subCellIndex = 1;
     for (Cell subCell : composedCell.getComposedData()) {
-      if(subCell == null){
+      if (subCell == null) {
         // silently ignore
-      }else if(subCell instanceof SimpleCell) {
+      } else if (subCell instanceof SimpleCell) {
         SimpleCell simpleCell = (SimpleCell) subCell;
         if (simpleCell.getSimpledata() != null) {
           currentWriter.inlineOpenTag("u" + subCellIndex, 3);
           currentWriter.write(XMLUtils.encode(simpleCell.getSimpledata()));
           currentWriter.closeTag("u" + subCellIndex);
         }
-      }else if(subCell instanceof ComposedCell){
+      } else if (subCell instanceof ComposedCell) {
         // currentWriter.inlineOpenTag("u" + subCellIndex, 3);
         // currentWriter.closeTag("u" + subCellIndex);
 
         logger.warn("UDT inside UDT not yet supported. Saving as null.");
-      }else if(subCell instanceof BinaryCell){
+      } else if (subCell instanceof BinaryCell) {
         // currentWriter.inlineOpenTag("u" + subCellIndex, 3);
         // currentWriter.closeTag("u" + subCellIndex);
 
         logger.warn("LOBs inside UDT not yet supported. Saving as null.");
-      }else{
+      } else {
         logger.error("Unexpected cell type");
       }
 
@@ -241,8 +241,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
       // blob header
       currentWriter.append(contentPathStrategy.getBlobFileName(currentRowIndex + 1)).append('"').space()
-        .append("length=\"").append(String.valueOf(binCell.getLength()))
-        .append("\"");
+        .append("length=\"").append(String.valueOf(binCell.getLength())).append("\"");
 
       lob = new LargeObject(new ProvidesInputStream() {
         @Override
@@ -257,8 +256,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
       // clob header
       currentWriter.append(contentPathStrategy.getClobFileName(currentRowIndex + 1)).append('"').space()
-        .append("length=\"")
-        .append(String.valueOf(txtCell.getSimpledata().length())).append("\"");
+        .append("length=\"").append(String.valueOf(txtCell.getSimpledata().length())).append("\"");
 
       // workaround to have data from CLOBs saved as a temporary file to be read
       String data = txtCell.getSimpledata();
@@ -266,11 +264,12 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       try {
         final FileItem fileItem = new FileItem(inputStream);
         lob = new LargeObject(new ProvidesInputStream() {
-          @Override public InputStream createInputStream() throws ModuleException {
+          @Override
+          public InputStream createInputStream() throws ModuleException {
             return fileItem.createInputStream();
           }
-        }, contentPathStrategy
-          .getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
+        }, contentPathStrategy.getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
+          currentRowIndex + 1));
       } finally {
         inputStream.close();
       }

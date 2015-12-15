@@ -94,7 +94,6 @@ public class JDBCImportModule implements DatabaseImportModule {
   // the schema object being built
   protected SchemaStructure actualSchema;
 
-
   protected SQLHelper sqlHelper;
 
   protected FormatUtility formatUtility;
@@ -373,27 +372,29 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
     }
 
-
     for (ComposedTypeStructure udt : udts) {
       // TODO: remove after adding support for LOBs inside UDTs
       if (udt.containsLOBs()) {
         logger.warn("LOBs inside UDTs are not supported yet. Only the first level of hierarchy will be exported. UDT "
-            + udt.getOriginalTypeName() + " detected as containing LOBs.",
-          new ModuleException("UDT containing LOBs:" + udt.toString()));
+          + udt.getOriginalTypeName() + " detected as containing LOBs.", new ModuleException("UDT containing LOBs:"
+          + udt.toString()));
       }
 
       // TODO: remove after adding support for hierarchical UDTs
       if (udt.isHierarchical()) {
         logger.warn("UDTs inside UDTs are not supported yet. Only the first level of hierarchy will be exported. UDT "
-            + udt.getOriginalTypeName() + " detected as hierarchical.",
+          + udt.getOriginalTypeName() + " detected as hierarchical.",
           new ModuleException("hierarchical UDT:" + udt.toString()));
       }
 
-      // all recursive UDTs are hierarchical, so two warnings are expected on recursive types
+      // all recursive UDTs are hierarchical, so two warnings are expected on
+      // recursive types
       // TODO: remove after adding support for recursive UDTs
       if (udt.isRecursive()) {
-        logger.warn("Recursive UDTs are not supported yet. Only the first level of data will be exported. UDT " + udt.getOriginalTypeName()
-          + " detected as recursive.", new ModuleException("recursive UDT:" + udt.toString()));
+        logger.warn(
+          "Recursive UDTs are not supported yet. Only the first level of data will be exported. UDT "
+            + udt.getOriginalTypeName() + " detected as recursive.",
+          new ModuleException("recursive UDT:" + udt.toString()));
       }
     }
 
@@ -804,7 +805,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       // String tableName = rs.getString(3);
       // 4. Column name
       String columnName = rs.getString(4);
-      //cLogMessage.append("Column name: " + columnName + "\n");
+      // cLogMessage.append("Column name: " + columnName + "\n");
       // 5. SQL type from java.sql.Types
       int dataType = rs.getInt(5);
       cLogMessage.append("Data type: " + dataType + "\n");
@@ -986,7 +987,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         break;
       case Types.DECIMAL:
         type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
-        if(StringUtils.isBlank(type.getOriginalTypeName())) {
+        if (StringUtils.isBlank(type.getOriginalTypeName())) {
           type.setOriginalTypeName(typeName, columnSize, decimalDigits);
         }
         break;
@@ -1091,8 +1092,8 @@ public class JDBCImportModule implements DatabaseImportModule {
     }
 
     if (type == null) {
-      logger.warn("Struct type could not be identified! Note that it may still be found later on. Schema name: " + schemaName + ", data type: " + dataType
-        + ", type name=" + typeName);
+      logger.warn("Struct type could not be identified! Note that it may still be found later on. Schema name: "
+        + schemaName + ", data type: " + dataType + ", type name=" + typeName);
       return ComposedTypeStructure.empty;
     } else {
       return type;
@@ -1101,7 +1102,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   protected Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeBinary(columnSize);
-    type.setSql99TypeName("BIT VARYING",columnSize);
+    type.setSql99TypeName("BIT VARYING", columnSize);
     type.setSql2003TypeName("BINARY LARGE OBJECT");
     logger.info("using BIT VARYING(" + columnSize + ")");
     return type;
@@ -1831,7 +1832,8 @@ public class JDBCImportModule implements DatabaseImportModule {
     return ret;
   }
 
-  protected ResultSet getTableRawData(TableStructure table) throws SQLException, ClassNotFoundException, ModuleException {
+  protected ResultSet getTableRawData(TableStructure table) throws SQLException, ClassNotFoundException,
+    ModuleException {
     logger.debug("query: " + sqlHelper.selectTableSQL(table.getId()));
     ResultSet set = getStatement().executeQuery(sqlHelper.selectTableSQL(table.getId()));
     set.setFetchSize(ROW_FETCH_BLOCK_SIZE);

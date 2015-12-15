@@ -137,7 +137,7 @@ public class JDBCExportModule implements DatabaseExportModule {
         logger.debug("Loading JDBC Driver " + driverClassName);
         Class.forName(driverClassName);
         logger.debug("Getting connection");
-        //logger.debug("Connection URL: " + connectionURL);
+        // logger.debug("Connection URL: " + connectionURL);
         connection = DriverManager.getConnection(connectionURL);
         connection.setAutoCommit(true);
         logger.debug("Connected");
@@ -166,7 +166,7 @@ public class JDBCExportModule implements DatabaseExportModule {
       logger.debug("Loading JDBC Driver " + driverClassName);
       Class.forName(driverClassName);
       logger.debug("Getting admin connection");
-      //logger.debug("Connection URL: " + connectionURL);
+      // logger.debug("Connection URL: " + connectionURL);
       connection = DriverManager.getConnection(connectionURL);
       connection.setAutoCommit(true);
       logger.debug("Connected");

@@ -53,13 +53,13 @@ public class SIARD2ContentPathImportStrategy implements ContentPathImportStrateg
 
     // from SIARD2 specification: these path parts default to "." (current
     // directory) if not specified
-    if(schemaPart == null){
+    if (schemaPart == null) {
       schemaPart = ".";
     }
-    if(tablePart == null){
+    if (tablePart == null) {
       tablePart = ".";
     }
-    if(columnPart == null){
+    if (columnPart == null) {
       columnPart = ".";
     }
 

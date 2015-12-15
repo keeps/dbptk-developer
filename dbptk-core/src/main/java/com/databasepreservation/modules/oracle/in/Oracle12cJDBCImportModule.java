@@ -6,7 +6,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import oracle.jdbc.OracleTypes;
 
 import com.databasepreservation.CustomLogger;
@@ -14,6 +13,7 @@ import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
+import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
@@ -77,17 +77,19 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
       + " data type is not supported.");
   }
 
-  @Override protected Type getDecimalType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+  @Override
+  protected Type getDecimalType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type;
 
-    // special case when NUMBER is defined without specifying precision nor scale
-    if( columnSize == 0 && decimalDigits == -127 && numPrecRadix == 10 ){
+    // special case when NUMBER is defined without specifying precision nor
+    // scale
+    if (columnSize == 0 && decimalDigits == -127 && numPrecRadix == 10) {
       type = new SimpleTypeNumericApproximate(columnSize);
       type.setSql99TypeName("DOUBLE PRECISION");
       type.setSql2003TypeName("DOUBLE PRECISION");
     }
     // for all other cases NUMBER is a DECIMAL
-    else{
+    else {
       type = new SimpleTypeNumericExact(columnSize, decimalDigits);
       if (decimalDigits > 0) {
         type.setSql99TypeName("DECIMAL", columnSize, decimalDigits);
@@ -138,13 +140,23 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
     switch (dataType) {
       case OracleTypes.BINARY_DOUBLE:
         type = new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
-        type.setSql99TypeName("BIT VARYING", columnSize); //todo: not sure if columnSize is the correct value here
-        type.setSql2003TypeName("BIT VARYING", columnSize); //todo: not sure if columnSize is the correct value here
+        type.setSql99TypeName("BIT VARYING", columnSize); // todo: not sure if
+                                                          // columnSize is the
+                                                          // correct value here
+        type.setSql2003TypeName("BIT VARYING", columnSize); // todo: not sure if
+                                                            // columnSize is the
+                                                            // correct value
+                                                            // here
         break;
       case OracleTypes.BINARY_FLOAT:
         type = new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
-        type.setSql99TypeName("BIT VARYING", columnSize); //todo: not sure if columnSize is the correct value here
-        type.setSql2003TypeName("BIT VARYING", columnSize); //todo: not sure if columnSize is the correct value here
+        type.setSql99TypeName("BIT VARYING", columnSize); // todo: not sure if
+                                                          // columnSize is the
+                                                          // correct value here
+        type.setSql2003TypeName("BIT VARYING", columnSize); // todo: not sure if
+                                                            // columnSize is the
+                                                            // correct value
+                                                            // here
         break;
       // TODO add support to BFILEs
       // case OracleTypes.BFILE:

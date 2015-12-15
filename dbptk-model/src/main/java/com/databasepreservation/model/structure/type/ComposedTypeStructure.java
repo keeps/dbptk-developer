@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -53,14 +52,16 @@ public class ComposedTypeStructure extends Type {
   /**
    * @return The name of the SQL2003 normalized type. null if not applicable
    */
-  @Override public String getSql2003TypeName() {
+  @Override
+  public String getSql2003TypeName() {
     return null;
   }
 
   /**
    * @return The name of the SQL99 normalized type. null if not applicable
    */
-  @Override public String getSql99TypeName() {
+  @Override
+  public String getSql99TypeName() {
     return null;
   }
 
@@ -128,7 +129,7 @@ public class ComposedTypeStructure extends Type {
   public ArrayList<SubType> getDirectDescendantSubTypes(String columnId) {
     ArrayList<SubType> children = new ArrayList<>();
 
-    for ( Map.Entry<String, Type> entry : containedTypes.entrySet() ) {
+    for (Map.Entry<String, Type> entry : containedTypes.entrySet()) {
       children.add(new SubType(columnId, new ArrayList<>(Arrays.asList(columnId, entry.getKey())), entry.getValue()));
     }
 

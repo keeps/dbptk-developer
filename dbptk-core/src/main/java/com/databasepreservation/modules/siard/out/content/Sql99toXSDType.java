@@ -80,7 +80,8 @@ public class Sql99toXSDType {
     } else if (type instanceof ComposedTypeArray) {
       throw new ModuleException("Not yet supported type: ARRAY");
     } else if (type instanceof ComposedTypeStructure) {
-      throw new ModuleException("Not yet supported type: ROW");
+      logger.error("User Defined Types are not supported by SIARD 1.");
+      ret = null;
     } else {
       throw new UnknownTypeException(type.toString());
     }

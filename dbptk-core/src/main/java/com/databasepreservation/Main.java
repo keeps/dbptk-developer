@@ -125,10 +125,10 @@ public class Main {
     logger.debug("#########################################################");
   }
 
-  private static String getProgramVersion(){
+  private static String getProgramVersion() {
     try {
       return Main.class.getPackage().getImplementationVersion();
-    }catch (Throwable e){
+    } catch (Throwable e) {
       logger.debug("Problem getting program version", e);
       return null;
     }

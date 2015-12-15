@@ -146,7 +146,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
 
   private void writeComposedCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException,
     IOException {
-    if(!warnedAboutLOBs){
+    if (!warnedAboutLOBs) {
       warnedAboutLOBs = true;
       logger.warn("User Defined Types are not supported in SIARD1");
     }

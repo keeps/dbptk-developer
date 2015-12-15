@@ -158,7 +158,8 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 
     for (ColumnStructure column : udtColumns) {
       query.append(separator).append(
-        getFieldNamesFromComposedTypeStructure(column.getId(), (ComposedTypeStructure) column.getType(), table, columnNames));
+        getFieldNamesFromComposedTypeStructure(column.getId(), (ComposedTypeStructure) column.getType(), table,
+          columnNames));
     }
 
     query.append(" FROM ").append(table.getId());
@@ -203,7 +204,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       sb.append(name);
 
       String alias = RandomStringUtils.random(15, "abcdefghijklmnopqrstuvwxyz");
-      while (columnNames.contains(alias)){
+      while (columnNames.contains(alias)) {
         logger.debug("random alias: column name '" + alias + "' exists.");
         alias = RandomStringUtils.random(15, "abcdefghijklmnopqrstuvwxyz");
       }
@@ -264,13 +265,14 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 
           String aliasColumnName = tableStructure.getUDTAlias(extraColumnName.toString());
 
-          udtCells.add(convertRawToCell(tableStructure.getName(), aliasColumnName, udtColumnIndex + 1,
-            currentRow, subtype.getType(), rawData));
+          udtCells.add(convertRawToCell(tableStructure.getName(), aliasColumnName, udtColumnIndex + 1, currentRow,
+            subtype.getType(), rawData));
 
           i++;
         }
 
-        cells.set(udtColumnIndex, new ComposedCell(tableStructure.getName() + "." + udtColumn.getName() + "." + currentRow, udtCells));
+        cells.set(udtColumnIndex, new ComposedCell(tableStructure.getName() + "." + udtColumn.getName() + "."
+          + currentRow, udtCells));
       }
 
       row = new Row(currentRow, cells);
@@ -287,7 +289,6 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     // number of columns is not enough because UDTs are expanded into fields
     List<ColumnStructure> columns = structure.getColumns();
     int colNumber = columns.size();
-
 
     for (ColumnStructure column : columns) {
       if (column.getType() instanceof ComposedTypeStructure) {
@@ -386,8 +387,8 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       type.setSql99TypeName("CHARACTER LARGE OBJECT");
       type.setSql2003TypeName("CHARACTER LARGE OBJECT");
     } else {
-      type.setSql99TypeName("CHARACTER VARYING",columnSize);
-      type.setSql2003TypeName("CHARACTER VARYING",columnSize);
+      type.setSql99TypeName("CHARACTER VARYING", columnSize);
+      type.setSql2003TypeName("CHARACTER VARYING", columnSize);
     }
     return type;
   }
