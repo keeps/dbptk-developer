@@ -15,6 +15,9 @@ class SAXErrorHandler implements ErrorHandler {
   private final CustomLogger logger = CustomLogger.getLogger(SAXErrorHandler.class);
   private boolean hasError = false;
 
+  /**
+   * @return true if the error handler contains error information
+   */
   public boolean hasError() {
     return hasError;
   }
@@ -45,25 +48,41 @@ class SAXErrorHandler implements ErrorHandler {
     return buf.toString();
   }
 
+  /**
+   * Logs SAX warnings with the custom logger.
+   * 
+   * @param e
+   *          the original exception
+   */
   @Override
-  public void warning(SAXParseException e) throws SAXException {
-    logger.warn(getParseExceptionInfo(e));
+  public void warning(SAXParseException e) {
+    logger.warn(getParseExceptionInfo(e), e);
   }
 
-  public void error(String message, Throwable e) {
-    logger.error(message);
+  /**
+   * Logs SAX errors with the custom logger.
+   * 
+   * @param e
+   *          the original exception
+   */
+  @Override
+  public void error(SAXParseException e) {
+    logger.error(getParseExceptionInfo(e), e);
     hasError = true;
   }
 
-  @Override
-  public void error(SAXParseException e) throws SAXException {
-    logger.error(getParseExceptionInfo(e));
-    hasError = true;
-  }
-
+  /**
+   * Rethrows fatal SAX errors with a better error message
+   * 
+   * @param e
+   *          The original exception
+   * @throws SAXException
+   *           An exception with a better error message. The cause attribute of
+   *           this exception is the original exception
+   */
   @Override
   public void fatalError(SAXParseException e) throws SAXException {
     hasError = true;
-    throw new SAXException(String.format("Fatal Error: %s", getParseExceptionInfo(e)));
+    throw new SAXException(String.format("Fatal Error: %s", getParseExceptionInfo(e)), e);
   }
 }

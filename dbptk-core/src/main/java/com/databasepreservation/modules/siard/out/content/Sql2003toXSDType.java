@@ -18,6 +18,8 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
 
 /**
+ * Convert sql2003 types into XML or XSD types
+ *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class Sql2003toXSDType {
@@ -66,6 +68,14 @@ public class Sql2003toXSDType {
     sql2003toXSDregex.put("^NUMERIC\\(\\d+(,\\d+)?\\)$", "xs:decimal");
   }
 
+  /**
+   * Gets the XML type that corresponds to the provided Type
+   *
+   * @param type the type
+   * @return the XML type string
+   * @throws ModuleException if the conversion is not supported
+   * @throws UnknownTypeException if the type is not known
+   */
   public static String convert(Type type) throws ModuleException, UnknownTypeException {
     String ret = null;
     if (type instanceof SimpleTypeString || type instanceof SimpleTypeNumericExact
@@ -87,6 +97,12 @@ public class Sql2003toXSDType {
     return ret;
   }
 
+  /**
+   * Gets the XSD type that corresponds to the provided SQL99 type
+   *
+   * @param sql2003Type the SQL2003 type
+   * @return the XSD type string
+   */
   public static String convert(String sql2003Type) {
     // try to find xsd corresponding to the sql2003 type in the constants
     // conversion table

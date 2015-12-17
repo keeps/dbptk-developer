@@ -210,7 +210,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
           // TODO: what about CLOBs? should they also created as BinaryCells?
             String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1).getId(), rowIndex), fileItem);
         } catch (ModuleException e) {
-          errorHandler.error("Failed to open lob at " + lobPath, e);
+          logger.error("Failed to open lob at " + lobPath, e);
         }
 
         logger.debug(String.format("Binary cell %s on row #%d with lob dir %s", currentBinaryCell.getId(), rowIndex,

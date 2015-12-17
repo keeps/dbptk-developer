@@ -40,7 +40,11 @@ import com.databasepreservation.model.parameters.ParameterGroup;
 import com.databasepreservation.model.parameters.Parameters;
 
 /**
- * Handles command line interface
+ * Handles command line interface.
+ * 
+ * Uses lazy parsing of parameters. Which means that the parameters are parsed
+ * implicitly when something is requested that required them to be processed
+ * (example: get the specified import or export modules).
  *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
@@ -54,6 +58,14 @@ public class CLI {
   private String exportModuleName;
   private DatabaseExportModule exportModule;
 
+  /**
+   * Create a new CLI handler
+   * 
+   * @param commandLineArguments
+   *          List of command line parameters as they are received by Main.main
+   * @param databaseModuleFactories
+   *          List of available module factories
+   */
   public CLI(List<String> commandLineArguments, List<Class<? extends DatabaseModuleFactory>> databaseModuleFactories) {
     factories = new ArrayList<DatabaseModuleFactory>();
     this.commandLineArguments = commandLineArguments;
@@ -69,6 +81,14 @@ public class CLI {
     includePluginModules();
   }
 
+  /**
+   * Create a new CLI handler
+   * 
+   * @param commandLineArguments
+   *          List of command line parameters as they are received by Main.main
+   * @param databaseModuleFactories
+   *          Array of available module factories
+   */
   public CLI(List<String> commandLineArguments, DatabaseModuleFactory... databaseModuleFactories) {
     factories = new ArrayList<DatabaseModuleFactory>(Arrays.asList(databaseModuleFactories));
     this.commandLineArguments = commandLineArguments;
@@ -108,6 +128,15 @@ public class CLI {
     }
   }
 
+  /**
+   * Gets the database import module, obtained by parsing the parameters
+   * 
+   * @return The database import module specified in the parameters
+   * @throws ParseException
+   *           if there was an error parsing the command line parameters
+   * @throws LicenseNotAcceptedException
+   *           if the license for using a module was not accepted
+   */
   public DatabaseImportModule getImportModule() throws ParseException, LicenseNotAcceptedException {
     if (importModule == null) {
       parse(commandLineArguments);
@@ -115,6 +144,15 @@ public class CLI {
     return importModule;
   }
 
+  /**
+   * Gets the database export module, obtained by parsing the parameters
+   *
+   * @return The database import module specified in the parameters
+   * @throws ParseException
+   *           if there was an error parsing the command line parameters
+   * @throws LicenseNotAcceptedException
+   *           if the license for using a module was not accepted
+   */
   public DatabaseExportModule getExportModule() throws ParseException, LicenseNotAcceptedException {
     if (exportModule == null) {
       parse(commandLineArguments);
@@ -122,14 +160,33 @@ public class CLI {
     return exportModule;
   }
 
+  /**
+   * Gets the name of the export module. Note that this method does not trigger
+   * the lazy loading mechanism for parsing the parameters, so the value may be
+   * null if no calls to getImportModule() or getExportModule() were made.
+   * 
+   * @return The export module name. null if the command line parameters have
+   *         not been parsed yet
+   */
   public String getExportModuleName() {
     return exportModuleName;
   }
 
+  /**
+   * Gets the name of the import module. Note that this method does not trigger
+   * the lazy loading mechanism for parsing the parameters, so the value may be
+   * null if no calls to getImportModule() or getExportModule() were made.
+   *
+   * @return The import module name. null if the command line parameters have
+   *         not been parsed yet
+   */
   public String getImportModuleName() {
     return importModuleName;
   }
 
+  /**
+   * Outputs the help text to STDOUT
+   */
   public void printHelp() {
     printHelp(System.out);
   }
@@ -429,6 +486,12 @@ public class CLI {
     return out.toString();
   }
 
+  /**
+   * Gets the application version, as string with a prefix, ready to be included
+   * in the header part of the command line help text
+   * 
+   * @return the application version
+   */
   public static String getApplicationVersion() {
     if (Main.APP_VERSION != null) {
       return ", v" + Main.APP_VERSION;
@@ -437,8 +500,15 @@ public class CLI {
     }
   }
 
+  /**
+   * Prints the license text to STDOUT
+   * 
+   * @param license
+   *          the whole license text or some information and a link to read the
+   *          full license
+   */
   public void printLicense(String license) {
-    System.err.println(license);
+    System.out.println(license);
   }
 
   private static class DatabaseModuleFactoryNameComparator implements Comparator<DatabaseModuleFactory> {
@@ -482,16 +552,31 @@ public class CLI {
     // left: import, right: export
     private final ImmutablePair<DatabaseModuleFactory, DatabaseModuleFactory> factories;
 
+    /**
+     * Create a new pair with an import module factory and an export module
+     * factory
+     * 
+     * @param importModuleFactory
+     *          the import module factory
+     * @param exportModuleFactory
+     *          the export module factory
+     */
     public DatabaseModuleFactoriesPair(DatabaseModuleFactory importModuleFactory,
       DatabaseModuleFactory exportModuleFactory) {
       factories = new ImmutablePair<DatabaseModuleFactory, DatabaseModuleFactory>(importModuleFactory,
         exportModuleFactory);
     }
 
+    /**
+     * @return the import module
+     */
     public DatabaseModuleFactory getImportModuleFactory() {
       return factories.getLeft();
     }
 
+    /**
+     * @return the import module
+     */
     public DatabaseModuleFactory getExportModuleFactory() {
       return factories.getRight();
     }
@@ -504,16 +589,35 @@ public class CLI {
     // left: import, right: export
     private final ImmutablePair<Map<Parameter, String>, Map<Parameter, String>> factories;
 
+    /**
+     * Create a new pair with the import module arguments and the export module
+     * arguments
+     * 
+     * @param importModuleArguments
+     *          import module arguments in the form Map<parameter, value parsed
+     *          from the command line>
+     * @param exportModuleArguments
+     *          export module arguments in the form Map<parameter, value parsed
+     *          from the command line>
+     */
     public DatabaseModuleFactoriesArguments(Map<Parameter, String> importModuleArguments,
       Map<Parameter, String> exportModuleArguments) {
       factories = new ImmutablePair<Map<Parameter, String>, Map<Parameter, String>>(importModuleArguments,
         exportModuleArguments);
     }
 
+    /**
+     * @return import module arguments in the form Map<parameter, value parsed
+     *         from the command line>
+     */
     public Map<Parameter, String> getImportModuleArguments() {
       return factories.getLeft();
     }
 
+    /**
+     * @return export module arguments in the form Map<parameter, value parsed
+     *         from the command line>
+     */
     public Map<Parameter, String> getExportModuleArguments() {
       return factories.getRight();
     }
