@@ -128,7 +128,7 @@ public class Main {
   private static String getProgramVersion() {
     try {
       return Main.class.getPackage().getImplementationVersion();
-    } catch (Throwable e) {
+    } catch (Exception e) {
       logger.debug("Problem getting program version", e);
       return null;
     }
