@@ -211,6 +211,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       try {
         clientMachine = InetAddress.getLocalHost().getHostName();
       } catch (UnknownHostException e) {
+        logger.debug("UnknownHostException", e);
       }
       dbStructure.setClientMachine(clientMachine);
 
@@ -582,6 +583,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         try {
           roleName = rs.getString("ROLE_NAME");
         } catch (SQLException e) {
+          logger.debug("handled SQLException", e);
           roleName = "";
         }
         role.setName(roleName);
@@ -590,6 +592,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         try {
           admin = rs.getString("ADMIN");
         } catch (SQLException e) {
+          logger.debug("handled SQLException", e);
           admin = "";
         }
         role.setAdmin(admin);
@@ -1477,6 +1480,7 @@ public class JDBCImportModule implements DatabaseImportModule {
           try {
             checkName = rs.getString("CHECK_NAME");
           } catch (SQLException e) {
+            logger.debug("handled SQLException", e);
             checkName = "";
           }
           checkConst.setName(checkName);
@@ -1485,6 +1489,7 @@ public class JDBCImportModule implements DatabaseImportModule {
           try {
             checkCondition = rs.getString("CHECK_CONDITION");
           } catch (SQLException e) {
+            logger.debug("handled SQLException", e);
             checkCondition = "UNKNOWN";
           }
           checkConst.setCondition(checkCondition);
@@ -1493,6 +1498,7 @@ public class JDBCImportModule implements DatabaseImportModule {
           try {
             checkDescription = rs.getString("CHECK_DESCRIPTION");
           } catch (SQLException e) {
+            logger.debug("handled SQLException", e);
             checkDescription = null;
           }
           if (checkDescription != null) {
@@ -1507,7 +1513,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         } else {
           message += "An error occurred!";
         }
-        logger.info(message);
+        logger.debug(message, e);
       }
     } else {
       logger.info("Check constraints were not imported: not supported yet on " + getClass().getSimpleName());
@@ -1538,6 +1544,7 @@ public class JDBCImportModule implements DatabaseImportModule {
           try {
             triggerName = rs.getString("TRIGGER_NAME");
           } catch (SQLException e) {
+            logger.debug("handled SQLException", e);
             triggerName = "";
           }
           trigger.setName(triggerName);
@@ -1546,6 +1553,7 @@ public class JDBCImportModule implements DatabaseImportModule {
           try {
             actionTime = processActionTime(rs.getString("ACTION_TIME"));
           } catch (SQLException e) {
+            logger.debug("handled SQLException", e);
             actionTime = "";
           }
           trigger.setActionTime(actionTime);
@@ -1554,6 +1562,7 @@ public class JDBCImportModule implements DatabaseImportModule {
           try {
             triggerEvent = processTriggerEvent(rs.getString("TRIGGER_EVENT"));
           } catch (SQLException e) {
+            logger.debug("handled SQLException", e);
             triggerEvent = "";
           }
           trigger.setTriggerEvent(triggerEvent);
@@ -1562,6 +1571,7 @@ public class JDBCImportModule implements DatabaseImportModule {
           try {
             triggeredAction = rs.getString("TRIGGERED_ACTION");
           } catch (SQLException e) {
+            logger.debug("handled SQLException", e);
             triggeredAction = "";
           }
           trigger.setTriggeredAction(triggeredAction);
@@ -1570,6 +1580,7 @@ public class JDBCImportModule implements DatabaseImportModule {
           try {
             description = rs.getString("REMARKS");
           } catch (SQLException e) {
+            logger.debug("handled SQLException", e);
             description = null;
           }
           if (description != null) {
@@ -1579,10 +1590,10 @@ public class JDBCImportModule implements DatabaseImportModule {
           triggers.add(trigger);
         }
       } catch (SQLException e) {
-        logger.info("No triggers imported for " + schemaName + "." + tableName);
+        logger.debug("No triggers imported for " + schemaName + "." + tableName, e);
       }
     } else {
-      logger.info("Triggers were not imported: not supported yet on " + getClass().getSimpleName());
+      logger.debug("Triggers were not imported: not supported yet on " + getClass().getSimpleName());
     }
     return triggers;
   }
@@ -1734,7 +1745,7 @@ public class JDBCImportModule implements DatabaseImportModule {
             + "' not yet supported! Java class type is " + items.getClass());
       }
     } catch (SQLFeatureNotSupportedException e) {
-      logger.warn("Got a problem getting Array value: " + e.getMessage());
+      logger.warn("Got a problem getting Array value: " + e.getMessage(), e);
       logger.warn("Trying via result set, string representations will not be controlled!");
       ResultSet rs = array.getResultSet();
       while (rs.next()) {

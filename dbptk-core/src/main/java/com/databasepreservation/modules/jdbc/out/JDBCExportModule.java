@@ -244,7 +244,7 @@ public class JDBCExportModule implements DatabaseExportModule {
     try {
       this.existingSchemas = getExistingSchemasNames();
     } catch (SQLException e) {
-      logger.error("An error occurred while getting the name of existing schemas");
+      logger.error("An error occurred while getting the name of existing schemas", e);
     }
     createDatabase(structure.getName());
     int[] batchResult = null;
@@ -570,6 +570,7 @@ public class JDBCExportModule implements DatabaseExportModule {
     } catch (SQLException e) {
       throw new ModuleException("SQL error while handling cell " + cell.getId(), e);
     } catch (InvalidDateException e) {
+      logger.debug("Original InvalidDateException (for debug)", e);
       throw new InvalidDataException("Error handling cell " + cell.getId() + ":" + e.getMessage());
     }
     return ret;

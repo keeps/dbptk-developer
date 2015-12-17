@@ -100,7 +100,7 @@ public class CLI {
           }
           pm.addPluginsFrom(pluginURI);
         } catch (URISyntaxException e) {
-          logger.warn("Plugin not found: " + plugin);
+          logger.warn("Plugin not found: " + plugin, e);
         }
         factories.add(pm.getPlugin(DatabaseModuleFactory.class));
       }
@@ -156,6 +156,7 @@ public class CLI {
       exportModule = databaseModuleFactoriesPair.getExportModuleFactory().buildExportModule(
         databaseModuleFactoriesArguments.getExportModuleArguments());
     } catch (OperationNotSupportedException e) {
+      logger.debug("OperationNotSupportedException", e);
       throw new ParseException("Module does not support the requested mode.");
     }
   }
@@ -198,6 +199,7 @@ public class CLI {
         }
       }
     } catch (NoSuchElementException e) {
+      logger.debug("NoSuchElementException", e);
       throw new ParseException("Missing module name.");
     }
     if (importModulesFound != 1 || exportModulesFound != 1) {
@@ -299,6 +301,7 @@ public class CLI {
       for (String shortOption : missingShort) {
         missingLong.add(options.getOption(shortOption).getLongOpt());
       }
+      logger.debug("MissingOptionException (the original, unmodified exception)", e);
       throw new MissingOptionException(missingLong);
     }
 
@@ -351,7 +354,7 @@ public class CLI {
           out.append(printModuleHelp("Import module: " + factory.getModuleName(), "i", "import",
             factory.getImportModuleParameters()));
         } catch (OperationNotSupportedException e) {
-          // this should never happen
+          logger.debug("This should not occur a this point", e);
         }
       }
     }
@@ -363,7 +366,7 @@ public class CLI {
           out.append(printModuleHelp("Export module: " + factory.getModuleName(), "e", "export",
             factory.getExportModuleParameters()));
         } catch (OperationNotSupportedException e) {
-          // this should never happen
+          logger.debug("This should not occur a this point", e);
         }
       }
     }

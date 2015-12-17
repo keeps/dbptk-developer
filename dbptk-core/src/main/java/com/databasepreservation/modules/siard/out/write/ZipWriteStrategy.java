@@ -9,6 +9,7 @@ import org.apache.commons.compress.archivers.zip.Zip64Mode;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 
+import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 
@@ -16,6 +17,8 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class ZipWriteStrategy implements WriteStrategy {
+  private final CustomLogger logger = CustomLogger.getLogger(ZipWriteStrategy.class);
+
   private final CompressionMethod compressionMethod;
   private ProtectedZipArchiveOutputStream zipOut;
 
@@ -44,8 +47,7 @@ public class ZipWriteStrategy implements WriteStrategy {
     try {
       zipOut.closeArchiveEntry();
     } catch (IOException e) {
-      // the exception is thrown if the ArchiveEntry is already closed
-      // or the ZipArchiveOutputStream is already finished
+      logger.debug("the ArchiveEntry is already closed or the ZipArchiveOutputStream is already finished", e);
     }
 
     try {
@@ -74,7 +76,7 @@ public class ZipWriteStrategy implements WriteStrategy {
           throw new ModuleException("Invalid compression method: " + compressionMethod);
       }
     } catch (IOException e) {
-      throw new ModuleException("Error creating SIARD archive file: " + compressionMethod);
+      throw new ModuleException("Error creating SIARD archive file: " + compressionMethod, e);
     }
   }
 
