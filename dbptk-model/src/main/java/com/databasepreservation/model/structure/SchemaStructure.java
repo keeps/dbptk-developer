@@ -225,28 +225,28 @@ public class SchemaStructure {
       if (other.routines != null) {
         return false;
       }
-    } else if (!ListUtils.equalsWithoutOrder(routines, other.routines)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(routines, other.routines)) {
       return false;
     }
     if (tables == null) {
       if (other.tables != null) {
         return false;
       }
-    } else if (!ListUtils.equalsWithoutOrder(tables, other.tables)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(tables, other.tables)) {
       return false;
     }
     if (views == null) {
       if (other.views != null) {
         return false;
       }
-    } else if (!ListUtils.equalsWithoutOrder(views, other.views)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(views, other.views)) {
       return false;
     }
     if (userDefinedTypes == null) {
       if (other.userDefinedTypes != null) {
         return false;
       }
-    } else if (!ListUtils.equalsWithoutOrder(userDefinedTypes, other.userDefinedTypes)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(userDefinedTypes, other.userDefinedTypes)) {
       return false;
     }
     return true;

@@ -124,7 +124,7 @@ public class CandidateKey {
       if (other.columns != null) {
         return false;
       }
-    } else if (!ListUtils.equalsWithoutOrder(columns, other.columns)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(columns, other.columns)) {
       return false;
     }
     if (description == null) {

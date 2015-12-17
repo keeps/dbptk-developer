@@ -337,7 +337,7 @@ public class TableStructure {
       if (other.candidateKeys != null) {
         return false;
       }
-    } else if (!ListUtils.equalsWithoutOrder(candidateKeys, other.candidateKeys)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(candidateKeys, other.candidateKeys)) {
       return false;
     }
     if (index != other.index) {
@@ -347,14 +347,14 @@ public class TableStructure {
       if (other.checkConstraints != null) {
         return false;
       }
-    } else if (!ListUtils.equalsWithoutOrder(checkConstraints, other.checkConstraints)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(checkConstraints, other.checkConstraints)) {
       return false;
     }
     if (columns == null) {
       if (other.columns != null) {
         return false;
       }
-    } else if (!ListUtils.equalsWithoutOrder(columns, other.columns)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(columns, other.columns)) {
       return false;
     }
     if (currentRow != other.currentRow) {
@@ -371,7 +371,7 @@ public class TableStructure {
       if (other.foreignKeys != null) {
         return false;
       }
-    } else if (!ListUtils.equalsWithoutOrder(foreignKeys, other.foreignKeys)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(foreignKeys, other.foreignKeys)) {
       return false;
     }
     if (id == null) {
@@ -409,7 +409,7 @@ public class TableStructure {
       if (other.triggers != null) {
         return false;
       }
-    } else if (!ListUtils.equalsWithoutOrder(triggers, other.triggers)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(triggers, other.triggers)) {
       return false;
     }
     return true;

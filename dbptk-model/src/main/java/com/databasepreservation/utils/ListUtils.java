@@ -20,7 +20,7 @@ public final class ListUtils {
    * @param snd
    * @return
    */
-  public static boolean equals(List<?> fst, List<?> snd) {
+  public static boolean listEquals(List<?> fst, List<?> snd) {
     if (fst != null && snd != null) {
       Iterator<?> ifst = fst.iterator();
       Iterator<?> isnd = snd.iterator();
@@ -47,7 +47,7 @@ public final class ListUtils {
    * @param snd
    * @return
    */
-  public static boolean equalsWithoutOrder(List<?> fst, List<?> snd) {
+  public static boolean listEqualsWithoutOrder(List<?> fst, List<?> snd) {
     if (fst != null && snd != null) {
       int size = fst.size();
       if (size == snd.size()) {
