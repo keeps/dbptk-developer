@@ -44,15 +44,15 @@ public class SIARD1ContentPathImportStrategy implements ContentPathImportStrateg
     throw new NotImplementedException("getLobPath in ContentPathImportStrategy method is not needed for SIARD1");
   }
 
-  public void associateSchemaWithFolder(String schemaName, String schemaFolder) {
+  @Override public void associateSchemaWithFolder(String schemaName, String schemaFolder) {
     schemaFolders.put(schemaName, schemaFolder);
   }
 
-  public void associateTableWithFolder(String tableName, String tableFolder) {
+  @Override public void associateTableWithFolder(String tableName, String tableFolder) {
     tableFolders.put(tableName, tableFolder);
   }
 
-  public void associateColumnWithFolder(String columnId, String columnFolder) {
+  @Override public void associateColumnWithFolder(String columnId, String columnFolder) {
     columnFolders.put(columnId, columnFolder);
   }
 

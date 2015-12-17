@@ -348,6 +348,7 @@ public class CustomLogger {
    * @deprecated Make sure to use {@link Logger#getLogger(String)} instead.
    * @param name
    */
+  @Deprecated
   public static Category getInstance(String name) {
     return Category.getInstance(name);
   }
@@ -366,6 +367,7 @@ public class CustomLogger {
   /**
    * @deprecated Please use {@link Logger#getRootLogger()} instead.
    */
+  @Deprecated
   public static Category getRoot() {
     return Category.getRoot();
   }
@@ -542,6 +544,7 @@ public class CustomLogger {
    *
    * @deprecated Please use the the {@link #getEffectiveLevel} method instead.
    * */
+  @Deprecated
   public Priority getChainedPriority() {
     return logger.getChainedPriority();
   }
@@ -566,6 +569,7 @@ public class CustomLogger {
    * @deprecated Please use {@link #setLevel} instead.
    * @param priority
    */
+  @Deprecated
   public void setPriority(Priority priority) {
     logger.setPriority(priority);
   }
@@ -576,6 +580,7 @@ public class CustomLogger {
    * @deprecated Please use {@link LogManager#getLoggerRepository()} instead.
    * @since 1.0
    */
+  @Deprecated
   public static LoggerRepository getDefaultHierarchy() {
     return Category.getDefaultHierarchy();
   }
@@ -588,6 +593,7 @@ public class CustomLogger {
    * @since 0.8.5
    * @param name
    */
+  @Deprecated
   public static Logger exists(String name) {
     return Category.exists(name);
   }
@@ -609,6 +615,7 @@ public class CustomLogger {
    * @deprecated Please use {@link LogManager#shutdown()} instead.
    * @since 1.0
    */
+  @Deprecated
   public static void shutdown() {
     Category.shutdown();
   }
@@ -663,6 +670,7 @@ public class CustomLogger {
    *             instead.
    * @param clazz
    */
+  @Deprecated
   public static Category getInstance(Class clazz) {
     return Category.getInstance(clazz);
   }
@@ -785,6 +793,7 @@ public class CustomLogger {
   /**
    * @deprecated Please use {@link #getLevel} instead.
    */
+  @Deprecated
   public Level getPriority() {
     return logger.getPriority();
   }
@@ -799,6 +808,7 @@ public class CustomLogger {
    * 
    * @deprecated Please use {@link LogManager#getCurrentLoggers()} instead.
    */
+  @Deprecated
   public static Enumeration getCurrentCategories() {
     return Category.getCurrentCategories();
   }
@@ -896,6 +906,7 @@ public class CustomLogger {
    * @deprecated Please use {@link #getLoggerRepository} instead.
    * @since 1.1
    */
+  @Deprecated
   public LoggerRepository getHierarchy() {
     return logger.getHierarchy();
   }

@@ -78,8 +78,8 @@ public class SIARDHelper {
    * @return
    */
   public static boolean isValidConstrainstCondition(String condition) {
-    if (condition.equalsIgnoreCase("TRUE") || condition.equalsIgnoreCase("FALSE")
-      || condition.equalsIgnoreCase("UNKNOWN")) {
+    if ("TRUE".equalsIgnoreCase(condition) || "FALSE".equalsIgnoreCase(condition)
+      || "UNKNOWN".equalsIgnoreCase(condition)) {
       return true;
     }
     return false;
@@ -93,8 +93,8 @@ public class SIARDHelper {
    * @return
    */
   public static boolean isValidActionTime(String actionTime) {
-    if (actionTime.equalsIgnoreCase("BEFORE") || actionTime.equalsIgnoreCase("AFTER")
-      || actionTime.equalsIgnoreCase("INSTEAD OF")) {
+    if ("BEFORE".equalsIgnoreCase(actionTime) || "AFTER".equalsIgnoreCase(actionTime)
+      || "INSTEAD OF".equalsIgnoreCase(actionTime)) {
       // Please note that INSTEAD OF was added as a valid action time even
       // though it is not suggested in the SIARD specification
       return true;
@@ -109,8 +109,8 @@ public class SIARDHelper {
    * @return
    */
   public static boolean isValidTriggerEvent(String triggerEvent) {
-    if (triggerEvent.equalsIgnoreCase("INSERT") || triggerEvent.equalsIgnoreCase("DELETE")
-      || triggerEvent.equalsIgnoreCase("UPDATE")) {
+    if ("INSERT".equalsIgnoreCase(triggerEvent) || "DELETE".equalsIgnoreCase(triggerEvent)
+      || "UPDATE".equalsIgnoreCase(triggerEvent)) {
       return true;
     }
     return false;
@@ -124,7 +124,7 @@ public class SIARDHelper {
    * @return
    */
   public static boolean isValidOption(String option) {
-    if (option.equalsIgnoreCase("GRANT") || option.equalsIgnoreCase("ADMIN")) {
+    if ("GRANT".equalsIgnoreCase(option) || "ADMIN".equalsIgnoreCase(option)) {
       return true;
     }
     return false;

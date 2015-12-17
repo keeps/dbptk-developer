@@ -116,7 +116,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 
   }
 
-  protected Statement getStatement() throws SQLException, ClassNotFoundException {
+  @Override protected Statement getStatement() throws SQLException, ClassNotFoundException {
     if (statement == null) {
       statement = ((SQLServerConnection) getConnection()).createStatement(
         SQLServerResultSet.TYPE_SS_SERVER_CURSOR_FORWARD_ONLY, SQLServerResultSet.CONCUR_READ_ONLY);
@@ -134,9 +134,9 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
     return ignored;
   }
 
-  protected Type getLongvarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+  @Override protected Type getLongvarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type;
-    if (typeName.equals("image")) {
+    if ("image".equals(typeName)) {
       type = new SimpleTypeBinary("MIME", "image");
     } else {
       type = new SimpleTypeBinary();
@@ -186,14 +186,14 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
     }
 
     if (charArray.length > 1 && charArray[1] == '1') {
-      if (!res.equals("")) {
+      if (!"".equals(res)) {
         res += " OR ";
       }
       res = "UPDATE";
     }
 
     if (charArray.length > 2 && charArray[2] == '1') {
-      if (!res.equals("")) {
+      if (!"".equals(res)) {
         res += " OR ";
       }
       res = "DELETE";
@@ -211,7 +211,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
       res = "AFTER";
     }
     if (charArray.length > 1 && charArray[1] == '1') {
-      if (!res.equals("")) {
+      if (!"".equals(res)) {
         res += " OR ";
       }
       res = "INSTEAD OF";

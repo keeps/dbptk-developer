@@ -158,26 +158,26 @@ public class XMLBufferedWriter implements Appendable, Closeable, Flushable {
     writer.write(str, off, len);
   }
 
-  public XMLBufferedWriter append(CharSequence csq) throws IOException {
+  @Override public XMLBufferedWriter append(CharSequence csq) throws IOException {
     writer.append(csq);
     return this;
   }
 
-  public XMLBufferedWriter append(CharSequence csq, int start, int end) throws IOException {
+  @Override public XMLBufferedWriter append(CharSequence csq, int start, int end) throws IOException {
     writer.append(csq, start, end);
     return this;
   }
 
-  public XMLBufferedWriter append(char c) throws IOException {
+  @Override public XMLBufferedWriter append(char c) throws IOException {
     writer.append(c);
     return this;
   }
 
-  public void flush() throws IOException {
+  @Override public void flush() throws IOException {
     writer.flush();
   }
 
-  public void close() throws IOException {
+  @Override public void close() throws IOException {
     writer.close();
   }
 }

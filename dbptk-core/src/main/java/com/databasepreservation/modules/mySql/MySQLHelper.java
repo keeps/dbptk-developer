@@ -97,7 +97,7 @@ public class MySQLHelper extends SQLHelper {
       }
     } else if (type instanceof SimpleTypeNumericApproximate) {
       SimpleTypeNumericApproximate numericApprox = (SimpleTypeNumericApproximate) type;
-      if (type.getSql99TypeName().equalsIgnoreCase("REAL")) {
+      if ("REAL".equalsIgnoreCase(type.getSql99TypeName())) {
         ret = "float";
       } else if (StringUtils.startsWithIgnoreCase(type.getSql99TypeName(), "DOUBLE")) {
         ret = "double";
@@ -111,7 +111,7 @@ public class MySQLHelper extends SQLHelper {
       SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
       if (!dateTime.getTimeDefined() && !dateTime.getTimeZoneDefined()) {
         ret = "date";
-      } else if (type.getSql99TypeName().equalsIgnoreCase("TIME")) {
+      } else if ("TIME".equalsIgnoreCase(type.getSql99TypeName())) {
         if (dateTime.getTimeZoneDefined()) {
           logger.warn("Timezone not supported on MySQL: " + "defining type as 'time'");
         }
@@ -126,15 +126,15 @@ public class MySQLHelper extends SQLHelper {
       SimpleTypeBinary binary = (SimpleTypeBinary) type;
       Integer length = binary.getLength();
       if (length != null) {
-        if (type.getSql99TypeName().equalsIgnoreCase("BIT")
+        if ("BIT".equalsIgnoreCase(type.getSql99TypeName())
           || StringUtils.startsWithIgnoreCase(type.getSql99TypeName(), "BIT(")) {
-          if (type.getOriginalTypeName().equalsIgnoreCase("BIT")
+          if ("BIT".equalsIgnoreCase(type.getOriginalTypeName())
             || StringUtils.startsWithIgnoreCase(type.getOriginalTypeName(), "BIT(")) {
             ret = "bit(" + length + ")";
           } else {
             ret = "binary(" + (((length / 8.0) % 1 == 0) ? (length / 8) : ((length / 8) + 1)) + ")";
           }
-        } else if (type.getSql99TypeName().equalsIgnoreCase("BIT VARYING")) {
+        } else if ("BIT VARYING".equalsIgnoreCase(type.getSql99TypeName())) {
           ret = "varbinary(" + (((length / 8.0) % 1 == 0) ? (length / 8) : ((length / 8) + 1)) + ")";
         } else {
           ret = "longblob";
@@ -228,7 +228,7 @@ public class MySQLHelper extends SQLHelper {
 
   @Override
   protected String escapePrimaryKeyName(String pkey_name) {
-    if (pkey_name.equals("PRIMARY")) {
+    if ("PRIMARY".equals(pkey_name)) {
       logger.warn("Cannot set primary key name to reserved name PRIMARY, renaming it");
       pkey_name += "_pkey";
     }

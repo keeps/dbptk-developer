@@ -173,7 +173,7 @@ public class DatabaseStructure {
     boolean canSortTopologically = true;
     while (sortedTables.size() != tables.size() && canSortTopologically) {
       List<TableStructure> filtered = filterReferencedTables(tables, sortedTables);
-      if (filtered.size() > 0) {
+      if (!filtered.isEmpty()) {
         sortedTables.addAll(filtered);
       } else {
         canSortTopologically = false;

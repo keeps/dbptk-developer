@@ -194,7 +194,7 @@ public class SQLFileExportModule implements DatabaseExportModule {
    * @throws IOException
    * @deprecated use escape binary instead
    */
-  public static void escapeBinaryAsStringLiteral(final InputStream in, final OutputStream out) throws IOException {
+  @Deprecated public static void escapeBinaryAsStringLiteral(final InputStream in, final OutputStream out) throws IOException {
     final PipedInputStream bin = new PipedInputStream();
     final PipedOutputStream bout = new PipedOutputStream(bin);
 

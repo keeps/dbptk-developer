@@ -63,15 +63,15 @@ public class Main {
       importModule = cli.getImportModule();
       exportModule = cli.getExportModule();
     } catch (ParseException e) {
-      System.err.println("Error: " + e.getMessage() + "\n");
+      logger.error(e.getMessage(), e);
       cli.printHelp();
       logProgramFinish(EXIT_CODE_COMMAND_PARSE_ERROR);
       return EXIT_CODE_COMMAND_PARSE_ERROR;
     } catch (LicenseNotAcceptedException e) {
-      System.err.println("Error: The license must be accepted to use this module.");
-      System.err.println("==================================================");
+      logger.error("The license must be accepted to use this module.");
+      logger.error("==================================================");
       cli.printLicense(e.getLicense());
-      System.err.println("==================================================");
+      logger.error("==================================================");
       logProgramFinish(EXIT_CODE_LICENSE_NOT_ACCEPTED);
       return EXIT_CODE_LICENSE_NOT_ACCEPTED;
     }
@@ -87,7 +87,7 @@ public class Main {
       exitStatus = EXIT_CODE_OK;
     } catch (ModuleException e) {
       if (e.getCause() != null && e.getCause() instanceof ClassNotFoundException
-        && e.getCause().getMessage().equals("sun.jdbc.odbc.JdbcOdbcDriver")) {
+        && "sun.jdbc.odbc.JdbcOdbcDriver".equals(e.getCause().getMessage())) {
         logger.error("Could not find the Java ODBC driver, "
           + "please run this program under Windows to use the JDBC-ODBC bridge.", e.getCause());
       } else if (e.getModuleErrors() != null) {

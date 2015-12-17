@@ -177,10 +177,10 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   protected Type getBinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeBinary(columnSize);
 
-    if (typeName.equalsIgnoreCase("TINYBLOB")) {
+    if ("TINYBLOB".equalsIgnoreCase(typeName)) {
       type.setSql99TypeName("BIT VARYING", 2040);
       type.setSql2003TypeName("BINARY LARGE OBJECT");
-    } else if (typeName.equalsIgnoreCase("BIT")) {
+    } else if ("BIT".equalsIgnoreCase(typeName)) {
       type.setSql99TypeName("BIT", columnSize);
       type.setSql2003TypeName("BIT", columnSize);
       type.setOriginalTypeName(typeName, columnSize);
@@ -234,7 +234,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 
   @Override
   protected Type getDateType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    if (typeName.equals("YEAR")) {
+    if ("YEAR".equals(typeName)) {
       return getNumericType(typeName, 4, decimalDigits, numPrecRadix);
     } else {
       return super.getDateType(typeName, columnSize, decimalDigits, numPrecRadix);
@@ -244,7 +244,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   @Override
   protected Cell rawToCellSimpleTypeNumericExact(String id, String columnName, Type cellType, ResultSet rawData)
     throws SQLException {
-    if (cellType.getOriginalTypeName().equals("YEAR")) {
+    if ("YEAR".equals(cellType.getOriginalTypeName())) {
       // for inputs 15, 2015, 99 and 1999
       // rawData.getInt returns numbers like 15, 2015, 99, 1999
       // rawData.getString returns dates like 2015-01-01, 2015-01-01,

@@ -78,7 +78,7 @@ public class PostgreSQLHelper extends SQLHelper {
     if (POSTGRESQL_TYPES.contains(type.getOriginalTypeName())) {
       // TODO verify if original database is also postgresql
       ret = type.getOriginalTypeName();
-      if (ret.equals("char")) {
+      if ("char".equals(ret)) {
         ret = "\"char\"";
       }
       logger.info("Using PostgreSQL original type " + ret);
@@ -93,7 +93,7 @@ public class PostgreSQLHelper extends SQLHelper {
       }
     } else if (type instanceof SimpleTypeNumericApproximate) {
       SimpleTypeNumericApproximate numericApproximate = (SimpleTypeNumericApproximate) type;
-      if (type.getSql99TypeName().equalsIgnoreCase("REAL")) {
+      if ("REAL".equalsIgnoreCase(type.getSql99TypeName())) {
         ret = "real";
       } else if (StringUtils.startsWithIgnoreCase(type.getSql99TypeName(), "DOUBLE")) {
         ret = "double precision";
@@ -105,13 +105,13 @@ public class PostgreSQLHelper extends SQLHelper {
       if (!dateTime.getTimeDefined() && !dateTime.getTimeZoneDefined()) {
         ret = "date";
       } else {
-        if (type.getSql99TypeName().equalsIgnoreCase("TIMESTAMP")) {
+        if ("TIMESTAMP".equalsIgnoreCase(type.getSql99TypeName())) {
           ret = "timestamp without time zone";
-        } else if (type.getSql99TypeName().equalsIgnoreCase("TIMESTAMP WITH TIME ZONE")) {
+        } else if ("TIMESTAMP WITH TIME ZONE".equalsIgnoreCase(type.getSql99TypeName())) {
           ret = "timestamp with time zone";
-        } else if (type.getSql99TypeName().equalsIgnoreCase("TIME")) {
+        } else if ("TIME".equalsIgnoreCase(type.getSql99TypeName())) {
           ret = "time without time zone";
-        } else if (type.getSql99TypeName().equalsIgnoreCase("TIME WITH TIME ZONE")) {
+        } else if ("TIME WITH TIME ZONE".equalsIgnoreCase(type.getSql99TypeName())) {
           ret = "time with time zone";
         } else {
           throw new UnknownTypeException(type.toString());

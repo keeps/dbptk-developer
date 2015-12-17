@@ -645,7 +645,7 @@ public class JDBCImportModule implements DatabaseImportModule {
           String option = "false";
           String isGrantable = rs.getString("IS_GRANTABLE");
           if (isGrantable != null) {
-            if (isGrantable.equalsIgnoreCase("yes")) {
+            if ("yes".equalsIgnoreCase(isGrantable)) {
               option = "true";
             }
           }
@@ -1121,12 +1121,12 @@ public class JDBCImportModule implements DatabaseImportModule {
   private Type getArraySubTypeFromTypeName(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
     throws UnknownTypeException {
     Type subtype;
-    if (typeName.equals("_char")) {
+    if ("_char".equals(typeName)) {
       subtype = new SimpleTypeString(columnSize, false);
       subtype.setSql99TypeName("CHARACTER");
       subtype.setSql2003TypeName("CHARACTER");
 
-    } else if (typeName.equals("_abstime")) {
+    } else if ("_abstime".equals(typeName)) {
       subtype = getTimeType(typeName, columnSize, decimalDigits, numPrecRadix);
     } else {
       if (IGNORE_UNSUPPORTED_DATA_TYPES) {
@@ -1508,7 +1508,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         }
       } catch (SQLException e) {
         String message = "Check constraints were not imported for " + schemaName + "." + tableName + ". ";
-        if (query.equals("")) {
+        if (StringUtils.isBlank(query)) {
           message += "Not supported by " + sqlHelper.getName();
         } else {
           message += "An error occurred!";
@@ -1778,8 +1778,8 @@ public class JDBCImportModule implements DatabaseImportModule {
     Cell cell = null;
     SimpleTypeDateTime undefinedDate = (SimpleTypeDateTime) cellType;
     if (undefinedDate.getTimeDefined()) {
-      if (cellType.getSql99TypeName().equalsIgnoreCase("TIME")
-        || cellType.getSql99TypeName().equalsIgnoreCase("TIME WITH TIME ZONE")) {
+      if ("TIME".equalsIgnoreCase(cellType.getSql99TypeName())
+        || "TIME WITH TIME ZONE".equalsIgnoreCase(cellType.getSql99TypeName())) {
         Time time = rawData.getTime(columnName);
         if (time != null) {
           cell = new SimpleCell(id, time.toString());

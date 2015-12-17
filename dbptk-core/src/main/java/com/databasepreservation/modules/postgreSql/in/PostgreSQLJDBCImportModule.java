@@ -183,12 +183,12 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     // a hierarchy
     // ArrayList<SubType> subtypes =
     // baseComposedTypeStructure.getNonComposedSubTypes(columnId);
-    ArrayList<SubType> subtypes = baseComposedTypeStructure.getDirectDescendantSubTypes(columnId);
+    List<SubType> subtypes = baseComposedTypeStructure.getDirectDescendantSubTypes(columnId);
 
     StringBuilder sb = new StringBuilder();
     String separator = "";
     for (SubType subtype : subtypes) {
-      ArrayList<String> names = subtype.getPath();
+      List<String> names = subtype.getPath();
 
       if (names.size() < 2) {
         logger.debug("UDT type hierarchy is too small. columnId: " + columnId + ", " + subtype.toString());
@@ -254,9 +254,9 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 
         // TODO: use getNonComposedSubTypes to get all non-composed subtypes in
         // a hierarchy
-        ArrayList<SubType> subtypes = udtType.getDirectDescendantSubTypes(udtColumn.getId());
+        List<SubType> subtypes = udtType.getDirectDescendantSubTypes(udtColumn.getId());
         for (SubType subtype : subtypes) {
-          ArrayList<String> names = subtype.getPath();
+          List<String> names = subtype.getPath();
           StringBuilder extraColumnName = new StringBuilder();
           extraColumnName.append("(").append(names.get(0)).append(")");
           for (int namesIndex = 1; namesIndex < names.size(); namesIndex++) {
@@ -326,7 +326,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
   @Override
   protected Type getBinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeBinary(columnSize);
-    if (typeName.equalsIgnoreCase("bytea")) {
+    if ("bytea".equalsIgnoreCase(typeName)) {
       type.setSql99TypeName("BINARY LARGE OBJECT");
       type.setSql2003TypeName("BINARY LARGE OBJECT");
     } else {
@@ -338,7 +338,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 
   @Override
   protected Type getDoubleType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    if (typeName.equalsIgnoreCase("MONEY") || typeName.equalsIgnoreCase("FLOAT8")) {
+    if ("MONEY".equalsIgnoreCase(typeName) || "FLOAT8".equalsIgnoreCase(typeName)) {
       logger.warn("Setting Money column size to 53");
       columnSize = 53;
     }
@@ -351,7 +351,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
   @Override
   protected Type getTimeType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type;
-    if (typeName.equalsIgnoreCase("TIMETZ")) {
+    if ("TIMETZ".equalsIgnoreCase(typeName)) {
       type = new SimpleTypeDateTime(true, true);
       type.setSql99TypeName("TIME WITH TIME ZONE");
       type.setSql2003TypeName("TIME WITH TIME ZONE");
@@ -367,7 +367,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
   @Override
   protected Type getTimestampType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type;
-    if (typeName.equalsIgnoreCase("TIMESTAMPTZ")) {
+    if ("TIMESTAMPTZ".equalsIgnoreCase(typeName)) {
       type = new SimpleTypeDateTime(true, true);
       type.setSql99TypeName("TIMESTAMP WITH TIME ZONE");
       type.setSql2003TypeName("TIMESTAMP WITH TIME ZONE");
@@ -383,7 +383,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
   @Override
   protected Type getVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeString(columnSize, true);
-    if (typeName.equalsIgnoreCase("text")) {
+    if ("text".equalsIgnoreCase(typeName)) {
       type.setSql99TypeName("CHARACTER LARGE OBJECT");
       type.setSql2003TypeName("CHARACTER LARGE OBJECT");
     } else {
@@ -419,7 +419,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
   protected Cell rawToCellSimpleTypeNumericApproximate(String id, String columnName, Type cellType, ResultSet rawData)
     throws SQLException {
     Cell cell = null;
-    if (cellType.getOriginalTypeName().equalsIgnoreCase("MONEY")) {
+    if ("MONEY".equalsIgnoreCase(cellType.getOriginalTypeName())) {
       String data = rawData.getString(columnName);
       if (data != null) {
         String parts[] = data.split(" ");
@@ -433,7 +433,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 
     } else {
       String value;
-      if (cellType.getOriginalTypeName().equalsIgnoreCase("float4")) {
+      if ("float4".equalsIgnoreCase(cellType.getOriginalTypeName())) {
         Float f = rawData.getFloat(columnName);
         value = rawData.wasNull() ? null : f.toString();
       } else {
@@ -454,7 +454,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     throws SQLException, ModuleException {
     Cell cell;
     InputStream binaryStream;
-    if (cellType.getOriginalTypeName().equalsIgnoreCase("bit")) {
+    if ("bit".equalsIgnoreCase(cellType.getOriginalTypeName())) {
       String bitString = rawData.getString(columnName);
       String hexString = new BigInteger(bitString, 2).toString(16);
       if ((hexString.length() % 2) != 0) {
@@ -483,7 +483,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     Cell cell = null;
     SimpleTypeDateTime undefinedDate = (SimpleTypeDateTime) cellType;
     if (undefinedDate.getTimeDefined()) {
-      if (cellType.getSql99TypeName().equalsIgnoreCase("TIME WITH TIME ZONE")) {
+      if ("TIME WITH TIME ZONE".equalsIgnoreCase(cellType.getSql99TypeName())) {
         String time_string = rawData.getString(columnName);
         if (time_string.matches("^\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[+-]\\d{2}$")) {
           cell = new SimpleCell(id, time_string + ":00");

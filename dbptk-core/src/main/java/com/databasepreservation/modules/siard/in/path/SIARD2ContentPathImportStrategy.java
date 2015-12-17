@@ -66,15 +66,15 @@ public class SIARD2ContentPathImportStrategy implements ContentPathImportStrateg
     return Paths.get(basePath, schemaPart, tablePart, columnPart, lobFileName).toString();
   }
 
-  public void associateSchemaWithFolder(String schemaName, String schemaFolder) {
+  @Override public void associateSchemaWithFolder(String schemaName, String schemaFolder) {
     schemaFolders.put(schemaName, schemaFolder);
   }
 
-  public void associateTableWithFolder(String tableId, String tableFolder) {
+  @Override public void associateTableWithFolder(String tableId, String tableFolder) {
     tableFolders.put(tableId, tableFolder);
   }
 
-  public void associateColumnWithFolder(String columnId, String columnFolder) {
+  @Override public void associateColumnWithFolder(String columnId, String columnFolder) {
     columnFolders.put(columnId, columnFolder);
   }
 

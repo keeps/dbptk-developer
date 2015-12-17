@@ -107,23 +107,23 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
     throws UnknownTypeException {
     Type type;
     // TODO define charset
-    if (typeName.equalsIgnoreCase("NCHAR")) {
+    if ("NCHAR".equalsIgnoreCase(typeName)) {
       type = new SimpleTypeString(Integer.valueOf(columnSize), false, "CHARSET");
       type.setSql99TypeName("CHARACTER");
       type.setSql2003TypeName("CHARACTER");
-    } else if (typeName.equalsIgnoreCase("NVARCHAR2")) {
+    } else if ("NVARCHAR2".equalsIgnoreCase(typeName)) {
       type = new SimpleTypeString(Integer.valueOf(columnSize), true, "CHARSET");
       type.setSql99TypeName("CHARACTER VARYING", columnSize);
       type.setSql2003TypeName("CHARACTER VARYING", columnSize);
-    } else if (typeName.equalsIgnoreCase("NCLOB")) {
+    } else if ("NCLOB".equalsIgnoreCase(typeName)) {
       type = new SimpleTypeString(Integer.valueOf(columnSize), true, "CHARSET");
       type.setSql99TypeName("CHARACTER LARGE OBJECT");
       type.setSql2003TypeName("CHARACTER LARGE OBJECT");
-    } else if (typeName.equalsIgnoreCase("ROWID")) {
+    } else if ("ROWID".equalsIgnoreCase(typeName)) {
       type = new SimpleTypeString(Integer.valueOf(columnSize), true);
       type.setSql99TypeName("CHARACTER VARYING", columnSize);
       type.setSql2003TypeName("CHARACTER VARYING", columnSize);
-    } else if (typeName.equalsIgnoreCase("UROWID")) {
+    } else if ("UROWID".equalsIgnoreCase(typeName)) {
       type = new SimpleTypeString(Integer.valueOf(columnSize), true);
       type.setSql99TypeName("CHARACTER VARYING", columnSize);
       type.setSql2003TypeName("CHARACTER VARYING", columnSize);
@@ -183,7 +183,7 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
   protected String processActionTime(String string) {
     String[] parts = string.split("\\s+");
     String res = parts[0];
-    if (res.equalsIgnoreCase("INSTEAD")) {
+    if ("INSTEAD".equalsIgnoreCase(res)) {
       res += " OF";
     }
     return res;

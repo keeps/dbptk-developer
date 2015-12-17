@@ -20,7 +20,7 @@ public interface DatabaseExportModule {
    *
    * @throws ModuleException
    */
-  public void initDatabase() throws ModuleException;
+  void initDatabase() throws ModuleException;
 
   /**
    * Set ignored schemas. Ignored schemas won't be exported. This method should
@@ -30,7 +30,7 @@ public interface DatabaseExportModule {
    * @param ignoredSchemas
    *          the set of schemas to ignored
    */
-  public void setIgnoredSchemas(Set<String> ignoredSchemas);
+  void setIgnoredSchemas(Set<String> ignoredSchemas);
 
   /**
    * Handle the database structure. This method will called after
@@ -41,7 +41,7 @@ public interface DatabaseExportModule {
    * @throws ModuleException
    * @throws UnknownTypeException
    */
-  public void handleStructure(DatabaseStructure structure) throws ModuleException, UnknownTypeException;
+  void handleStructure(DatabaseStructure structure) throws ModuleException, UnknownTypeException;
 
   /**
    * Prepare to handle the data of a new schema. This method will be called
@@ -51,7 +51,7 @@ public interface DatabaseExportModule {
    *          the schema name
    * @throws ModuleException
    */
-  public void handleDataOpenSchema(String schemaName) throws ModuleException;
+  void handleDataOpenSchema(String schemaName) throws ModuleException;
 
   /**
    * Prepare to handle the data of a new table. This method will be called after
@@ -63,7 +63,7 @@ public interface DatabaseExportModule {
    *          the table id
    * @throws ModuleException
    */
-  public void handleDataOpenTable(String tableId) throws ModuleException;
+  void handleDataOpenTable(String tableId) throws ModuleException;
 
   /**
    * Handle a table row. This method will be called after the table was open and
@@ -74,7 +74,7 @@ public interface DatabaseExportModule {
    * @throws InvalidDataException
    * @throws ModuleException
    */
-  public void handleDataRow(Row row) throws InvalidDataException, ModuleException;
+  void handleDataRow(Row row) throws InvalidDataException, ModuleException;
 
   /**
    * Finish handling the data of a table. This method will be called after all
@@ -84,7 +84,7 @@ public interface DatabaseExportModule {
    *          the table id
    * @throws ModuleException
    */
-  public void handleDataCloseTable(String tableId) throws ModuleException;
+  void handleDataCloseTable(String tableId) throws ModuleException;
 
   /**
    * Finish handling the data of a schema. This method will be called after all
@@ -94,7 +94,7 @@ public interface DatabaseExportModule {
    *          the schema name
    * @throws ModuleException
    */
-  public void handleDataCloseSchema(String schemaName) throws ModuleException;
+  void handleDataCloseSchema(String schemaName) throws ModuleException;
 
   /**
    * Finish the database. This method will be called when all data was requested
@@ -102,5 +102,5 @@ public interface DatabaseExportModule {
    *
    * @throws ModuleException
    */
-  public void finishDatabase() throws ModuleException;
+  void finishDatabase() throws ModuleException;
 }

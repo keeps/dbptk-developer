@@ -457,7 +457,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     return typeType;
   }
 
-  private AttributesType jaxbAttributesType(HashMap<String, Type> directDescendantSubTypes) throws ModuleException {
+  private AttributesType jaxbAttributesType(Map<String, Type> directDescendantSubTypes) throws ModuleException {
     if (directDescendantSubTypes != null && !directDescendantSubTypes.isEmpty()) {
       AttributesType attributesType = new AttributesType();
       for (Map.Entry<String, Type> nameAndType : directDescendantSubTypes.entrySet()) {
@@ -698,7 +698,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
       throw new ModuleException("Could not get SQL2003 type", e);
     }
     if (xsdTypeFromColumnSql2003Type != null
-      && (xsdTypeFromColumnSql2003Type.equals("clobType") || xsdTypeFromColumnSql2003Type.equals("blobType"))) {
+      && ("clobType".equals(xsdTypeFromColumnSql2003Type) || "blobType".equals(xsdTypeFromColumnSql2003Type))) {
       columnType.setFolder(contentPathStrategy.getColumnFolderName(columnIndex));
     }
 

@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 import javax.naming.OperationNotSupportedException;
@@ -80,7 +81,7 @@ public class CLI {
     Iterator<String> argsIterator = commandLineArguments.iterator();
     while (argsIterator.hasNext()) {
       String arg = argsIterator.next();
-      if (arg.equals("-p") || arg.equals("--plugin")) {
+      if ("-p".equals(arg) || "--plugin".equals(arg)) {
         pluginString = argsIterator.next();
         break;
       } else if (StringUtils.startsWith(arg, "--plugin=")) {
@@ -182,10 +183,10 @@ public class CLI {
     try {
       while (argsIterator.hasNext()) {
         String arg = argsIterator.next();
-        if (arg.equals("-i") || arg.equals("--import")) {
+        if ("-i".equals(arg) || "--import".equals(arg)) {
           importModuleName = argsIterator.next();
           importModulesFound++;
-        } else if (arg.equals("-e") || arg.equals("--export")) {
+        } else if ("-e".equals(arg) || "--export".equals(arg)) {
           exportModuleName = argsIterator.next();
           exportModulesFound++;
         } else if (StringUtils.startsWith(arg, "--import=")) {
@@ -501,19 +502,19 @@ public class CLI {
    */
   public class DatabaseModuleFactoriesArguments {
     // left: import, right: export
-    private final ImmutablePair<HashMap<Parameter, String>, HashMap<Parameter, String>> factories;
+    private final ImmutablePair<Map<Parameter, String>, Map<Parameter, String>> factories;
 
-    public DatabaseModuleFactoriesArguments(HashMap<Parameter, String> importModuleArguments,
-      HashMap<Parameter, String> exportModuleArguments) {
-      factories = new ImmutablePair<HashMap<Parameter, String>, HashMap<Parameter, String>>(importModuleArguments,
+    public DatabaseModuleFactoriesArguments(Map<Parameter, String> importModuleArguments,
+      Map<Parameter, String> exportModuleArguments) {
+      factories = new ImmutablePair<Map<Parameter, String>, Map<Parameter, String>>(importModuleArguments,
         exportModuleArguments);
     }
 
-    public HashMap<Parameter, String> getImportModuleArguments() {
+    public Map<Parameter, String> getImportModuleArguments() {
       return factories.getLeft();
     }
 
-    public HashMap<Parameter, String> getExportModuleArguments() {
+    public Map<Parameter, String> getExportModuleArguments() {
       return factories.getRight();
     }
   }

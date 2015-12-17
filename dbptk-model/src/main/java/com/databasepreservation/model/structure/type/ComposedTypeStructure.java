@@ -6,6 +6,7 @@ package com.databasepreservation.model.structure.type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -110,7 +111,7 @@ public class ComposedTypeStructure extends Type {
    * @return an HashMap with the names and types that have been added with
    *         addType
    */
-  public HashMap<String, Type> getDirectDescendantSubTypes() {
+  public Map<String, Type> getDirectDescendantSubTypes() {
     return containedTypes;
   }
 
@@ -126,7 +127,7 @@ public class ComposedTypeStructure extends Type {
    *
    * @return List of first-level subtypes that are not ComposedTypes
    */
-  public ArrayList<SubType> getDirectDescendantSubTypes(String columnId) {
+  public List<SubType> getDirectDescendantSubTypes(String columnId) {
     ArrayList<SubType> children = new ArrayList<>();
 
     for (Map.Entry<String, Type> entry : containedTypes.entrySet()) {
@@ -148,7 +149,7 @@ public class ComposedTypeStructure extends Type {
    *
    * @return List of subtypes that are not ComposedTypes
    */
-  public ArrayList<SubType> getNonComposedSubTypes(String columnId) {
+  public List<SubType> getNonComposedSubTypes(String columnId) {
     if (!leafsByColumnId.containsKey(columnId)) {
       ArrayList<SubType> leafs = new ArrayList<>();
       getLeafTypesFromComposedTypeTree(leafs, new ImmutablePair<String, ComposedTypeStructure>(columnId, this),
@@ -296,7 +297,7 @@ public class ComposedTypeStructure extends Type {
       return name;
     }
 
-    public ArrayList<String> getPath() {
+    public List<String> getPath() {
       return path;
     }
 
