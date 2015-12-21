@@ -22,6 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import oracle.sql.STRUCT;
+
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.util.DateParser;
 
@@ -297,7 +299,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     actualSchema = new SchemaStructure();
     actualSchema.setName(schemaName);
     actualSchema.setIndex(schemaIndex);
-    //actualSchema.setUserDefinedTypes(getUDTs(actualSchema));
+    // actualSchema.setUserDefinedTypes(getUDTs(actualSchema));
     actualSchema.setUserDefinedTypes(new ArrayList<ComposedTypeStructure>());
     actualSchema.setTables(getTables(actualSchema));
     actualSchema.setViews(getViews(schemaName));
@@ -1683,6 +1685,23 @@ public class JDBCImportModule implements DatabaseImportModule {
       } catch (SQLException e) {
         logger.warn("Could not export cell of unknown/undefined datatype", e);
         cell = new SimpleCell(id);
+      } catch (NoClassDefFoundError e) {
+        try {
+          Object[] aStruct = ((STRUCT) rawData.getObject(columnName)).getAttributes();
+
+          StringBuilder value = new StringBuilder("(");
+          String separator = "";
+          for (Object o : aStruct) {
+            value.append(separator).append(o.toString());
+            separator = ",";
+          }
+          value.append(")");
+
+          cell = new SimpleCell(id, value.toString());
+        } catch (SQLException e1) {
+          logger.warn("Could not export cell of unknown/undefined datatype", e);
+          cell = new SimpleCell(id);
+        }
       }
     }
     return cell;

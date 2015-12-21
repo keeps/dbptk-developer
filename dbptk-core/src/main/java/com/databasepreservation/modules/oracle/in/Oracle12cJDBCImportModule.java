@@ -128,7 +128,11 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
       type.setSql99TypeName("CHARACTER VARYING", columnSize);
       type.setSql2003TypeName("CHARACTER VARYING", columnSize);
     } else {
-      type = super.getOtherType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
+      // try to get everything else as string
+      type = new SimpleTypeString(65535, true);
+      type.setSql99TypeName("CHARACTER LARGE OBJECT");
+      type.setSql2003TypeName("CHARACTER LARGE OBJECT");
+      //type = super.getOtherType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
     }
     return type;
   }
