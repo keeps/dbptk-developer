@@ -39,7 +39,8 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
     this(new File(accessFilePath));
   }
 
-  @Override public Connection getConnection() throws SQLException, ClassNotFoundException {
+  @Override
+  public Connection getConnection() throws SQLException, ClassNotFoundException {
     if (connection == null) {
       logger.debug("Loading JDBC Driver " + driverClassName);
       Class.forName(driverClassName);
@@ -51,7 +52,8 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
     return connection;
   }
 
-  @Override protected ResultSet getTableRawData(TableStructure table) throws SQLException, ClassNotFoundException,
+  @Override
+  protected ResultSet getTableRawData(TableStructure table) throws SQLException, ClassNotFoundException,
     ModuleException {
     String tableId;
     ResultSet set = null;
@@ -69,7 +71,8 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
    * @throws SQLException
    * @throws ClassNotFoundException
    */
-  @Override protected List<RoutineStructure> getRoutines(String schemaName) throws SQLException, ClassNotFoundException {
+  @Override
+  protected List<RoutineStructure> getRoutines(String schemaName) throws SQLException, ClassNotFoundException {
     // TODO add optional fields to routine (use getProcedureColumns)
     Set<RoutineStructure> routines = new HashSet<RoutineStructure>();
 
@@ -96,7 +99,8 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
   /**
    * Drops money currency
    */
-  @Override protected Cell rawToCellSimpleTypeNumericApproximate(String id, String columnName, Type cellType, ResultSet rawData)
+  @Override
+  protected Cell rawToCellSimpleTypeNumericApproximate(String id, String columnName, Type cellType, ResultSet rawData)
     throws SQLException {
     Cell cell = null;
     if ("DOUBLE".equalsIgnoreCase(cellType.getOriginalTypeName())) {

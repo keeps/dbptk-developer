@@ -132,7 +132,8 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
       type = new SimpleTypeString(65535, true);
       type.setSql99TypeName("CHARACTER LARGE OBJECT");
       type.setSql2003TypeName("CHARACTER LARGE OBJECT");
-      //type = super.getOtherType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
+      // type = super.getOtherType(dataType, typeName, columnSize,
+      // decimalDigits, numPrecRadix);
     }
     return type;
   }

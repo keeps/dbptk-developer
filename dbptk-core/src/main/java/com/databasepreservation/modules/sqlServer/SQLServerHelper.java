@@ -26,15 +26,18 @@ public class SQLServerHelper extends SQLHelper {
 
   private String endQuote = "]";
 
-  @Override public String getStartQuote() {
+  @Override
+  public String getStartQuote() {
     return startQuote;
   }
 
-  @Override public String getEndQuote() {
+  @Override
+  public String getEndQuote() {
     return endQuote;
   }
 
-  @Override protected String createTypeSQL(Type type, boolean isPkey, boolean isFkey) throws UnknownTypeException {
+  @Override
+  protected String createTypeSQL(Type type, boolean isPkey, boolean isFkey) throws UnknownTypeException {
     String ret = null;
     if (type instanceof SimpleTypeString) {
       SimpleTypeString string = (SimpleTypeString) type;
@@ -134,7 +137,8 @@ public class SQLServerHelper extends SQLHelper {
 
   }
 
-  @Override public String getTriggersSQL(String schemaName, String tableName) {
+  @Override
+  public String getTriggersSQL(String schemaName, String tableName) {
     return "SELECT o.name AS TRIGGER_NAME, " + "CAST(OBJECTPROPERTY(id, 'ExecIsAfterTrigger') AS char(1)) "
       + "+ CAST(OBJECTPROPERTY(id, 'ExecIsInsteadOfTrigger') " + "AS char(1)) AS ACTION_TIME, "
       + "CAST(OBJECTPROPERTY(id, 'ExecIsInsertTrigger') AS char(1)) "

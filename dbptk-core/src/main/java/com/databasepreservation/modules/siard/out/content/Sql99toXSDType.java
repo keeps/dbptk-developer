@@ -71,10 +71,13 @@ public class Sql99toXSDType {
   /**
    * Gets the XML type that corresponds to the provided Type
    * 
-   * @param type the type
+   * @param type
+   *          the type
    * @return the XML type string
-   * @throws ModuleException if the conversion is not supported
-   * @throws UnknownTypeException if the type is not known
+   * @throws ModuleException
+   *           if the conversion is not supported
+   * @throws UnknownTypeException
+   *           if the type is not known
    */
   public static String convert(Type type) throws ModuleException, UnknownTypeException {
     String ret = null;
@@ -101,7 +104,8 @@ public class Sql99toXSDType {
   /**
    * Gets the XSD type that corresponds to the provided SQL99 type
    *
-   * @param sql99Type the SQL99 type
+   * @param sql99Type
+   *          the SQL99 type
    * @return the XSD type string
    */
   public static String convert(String sql99Type) {

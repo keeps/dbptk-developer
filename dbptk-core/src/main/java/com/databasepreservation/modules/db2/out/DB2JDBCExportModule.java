@@ -44,7 +44,8 @@ public class DB2JDBCExportModule extends JDBCExportModule {
 
   }
 
-  @Override public void finishDatabase() throws ModuleException {
+  @Override
+  public void finishDatabase() throws ModuleException {
     if (databaseStructure != null) {
       logger.info("Handling foreign keys is not yet supported!");
       // handleForeignKeys();
@@ -52,7 +53,8 @@ public class DB2JDBCExportModule extends JDBCExportModule {
     }
   }
 
-  @Override protected void handleSimpleTypeDateTimeDataCell(String data, PreparedStatement ps, int index, Cell cell, Type type)
+  @Override
+  protected void handleSimpleTypeDateTimeDataCell(String data, PreparedStatement ps, int index, Cell cell, Type type)
     throws InvalidDateException, SQLException {
     SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
     if (dateTime.getTimeDefined()) {

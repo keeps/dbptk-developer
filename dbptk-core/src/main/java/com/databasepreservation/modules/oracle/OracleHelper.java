@@ -24,11 +24,13 @@ public class OracleHelper extends SQLHelper {
 
   private String endQuote = "";
 
-  @Override public String getStartQuote() {
+  @Override
+  public String getStartQuote() {
     return startQuote;
   }
 
-  @Override public String getEndQuote() {
+  @Override
+  public String getEndQuote() {
     return endQuote;
   }
 

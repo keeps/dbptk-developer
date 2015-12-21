@@ -52,7 +52,8 @@ public class DB2JDBCImportModule extends JDBCImportModule {
    *           the original data type is unknown
    * @throws ClassNotFoundException
    */
-  @Override protected DatabaseStructure getDatabaseStructure() throws SQLException, UnknownTypeException, ClassNotFoundException {
+  @Override
+  protected DatabaseStructure getDatabaseStructure() throws SQLException, UnknownTypeException, ClassNotFoundException {
     if (dbStructure == null) {
       dbStructure = super.getDatabaseStructure();
       dbStructure.setName(dbName);
@@ -63,7 +64,8 @@ public class DB2JDBCImportModule extends JDBCImportModule {
   /**
    * Returns the default ignored schemas for DB2 These schemas won't be imported
    */
-  @Override protected Set<String> getIgnoredImportedSchemas() {
+  @Override
+  protected Set<String> getIgnoredImportedSchemas() {
     Set<String> ignored = new HashSet<String>();
     ignored.add("SQLJ");
     ignored.add("NULLID");

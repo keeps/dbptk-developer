@@ -102,7 +102,8 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
     column_info_table = columnInfoTable;
   }
 
-  @Override public void initDatabase() throws ModuleException {
+  @Override
+  public void initDatabase() throws ModuleException {
     try {
       logger.debug("Cleaning...");
       super.initDatabase();
@@ -127,7 +128,8 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
     return connection;
   }
 
-  @Override public void handleStructure(DatabaseStructure structure) throws ModuleException, UnknownTypeException {
+  @Override
+  public void handleStructure(DatabaseStructure structure) throws ModuleException, UnknownTypeException {
     super.handleStructure(structure);
     if (getStatement() != null) {
       logger.debug("Exporting columns info into PhpMyAdmin" + " extended features database");
@@ -287,7 +289,8 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
     }
   }
 
-  @Override public void finishDatabase() throws ModuleException {
+  @Override
+  public void finishDatabase() throws ModuleException {
     super.finishDatabase();
     logger.debug("Setting guest permissions");
     setUserPermissions("guest", "localhost", "", database);
