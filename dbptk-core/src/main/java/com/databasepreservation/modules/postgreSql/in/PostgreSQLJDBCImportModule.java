@@ -412,6 +412,13 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     return type;
   }
 
+  @Override protected Type getComposedTypeStructure(String schemaName, int dataType, String typeName) {
+    Type type = new SimpleTypeString(65535, true);
+    type.setSql99TypeName("CHARACTER LARGE OBJECT");
+    type.setSql2003TypeName("CHARACTER LARGE OBJECT");
+    return type;
+  }
+
   /**
    * Drops money currency
    */

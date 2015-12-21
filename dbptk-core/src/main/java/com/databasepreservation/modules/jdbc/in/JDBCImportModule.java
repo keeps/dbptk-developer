@@ -297,7 +297,8 @@ public class JDBCImportModule implements DatabaseImportModule {
     actualSchema = new SchemaStructure();
     actualSchema.setName(schemaName);
     actualSchema.setIndex(schemaIndex);
-    actualSchema.setUserDefinedTypes(getUDTs(actualSchema));
+    //actualSchema.setUserDefinedTypes(getUDTs(actualSchema));
+    actualSchema.setUserDefinedTypes(new ArrayList<ComposedTypeStructure>());
     actualSchema.setTables(getTables(actualSchema));
     actualSchema.setViews(getViews(schemaName));
     actualSchema.setRoutines(getRoutines(schemaName));
@@ -592,7 +593,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         try {
           admin = rs.getString("ADMIN");
         } catch (SQLException e) {
-          logger.debug("handled SQLException", e);
+          logger.trace("handled SQLException", e);
           admin = "";
         }
         role.setAdmin(admin);
@@ -1077,7 +1078,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     return type;
   }
 
-  protected ComposedTypeStructure getComposedTypeStructure(String schemaName, int dataType, String typeName) {
+  protected Type getComposedTypeStructure(String schemaName, int dataType, String typeName) {
     ComposedTypeStructure type = null;
 
     SchemaStructure schema = actualSchema;
