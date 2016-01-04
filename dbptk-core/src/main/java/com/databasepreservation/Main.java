@@ -13,6 +13,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
+import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.modules.jdbc.JDBCModuleFactory;
 import com.databasepreservation.modules.msAccess.MsAccessUCanAccessModuleFactory;
 import com.databasepreservation.modules.mySql.MySQLModuleFactory;
@@ -42,23 +43,32 @@ public class Main {
 
   private static final CustomLogger logger = CustomLogger.getLogger(Main.class);
 
+  public static final DatabaseModuleFactory[] databaseModuleFactories = new DatabaseModuleFactory[] {
+    new JDBCModuleFactory(), new MsAccessUCanAccessModuleFactory(), new MySQLModuleFactory(),
+    new Oracle12cModuleFactory(), new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(), new SIARD2ModuleFactory(),
+    new SIARDDKModuleFactory(), new SQLServerJDBCModuleFactory()};
+
   /**
    * @param args
    *          the console arguments
    */
   public static void main(String[] args) {
-    System.exit(internal_main(args));
+    CLI cli = new CLI(Arrays.asList(args), databaseModuleFactories);
+    System.exit(internal_main(cli));
   }
 
+  // used in testing
   public static int internal_main(String... args) {
+    CLI cli = new CLI(Arrays.asList(args), databaseModuleFactories);
+    return internal_main(cli);
+  }
+
+  public static int internal_main(CLI cli) {
     logProgramStart();
 
     final DatabaseImportModule importModule;
     final DatabaseExportModule exportModule;
 
-    CLI cli = new CLI(Arrays.asList(args), new JDBCModuleFactory(), new MsAccessUCanAccessModuleFactory(),
-      new MySQLModuleFactory(), new Oracle12cModuleFactory(), new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(),
-      new SIARD2ModuleFactory(), new SIARDDKModuleFactory(), new SQLServerJDBCModuleFactory());
     try {
       importModule = cli.getImportModule();
       exportModule = cli.getExportModule();
