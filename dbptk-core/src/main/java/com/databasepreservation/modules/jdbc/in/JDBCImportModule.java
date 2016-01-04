@@ -1699,7 +1699,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 
           cell = new SimpleCell(id, value.toString());
         } catch (SQLException e1) {
-          logger.warn("Could not export cell of unknown/undefined datatype", e);
+          logger.debug("No Class Def Found when trying to getString", e);
+          logger.warn("Could not export cell of unknown/undefined datatype", e1);
           cell = new SimpleCell(id);
         }
       }
