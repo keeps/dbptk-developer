@@ -18,6 +18,8 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
 
 /**
+ * Convert sql2003 types into XML or XSD types
+ *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class Sql2003toXSDType {
@@ -66,6 +68,17 @@ public class Sql2003toXSDType {
     sql2003toXSDregex.put("^NUMERIC\\(\\d+(,\\d+)?\\)$", "xs:decimal");
   }
 
+  /**
+   * Gets the XML type that corresponds to the provided Type
+   *
+   * @param type
+   *          the type
+   * @return the XML type string
+   * @throws ModuleException
+   *           if the conversion is not supported
+   * @throws UnknownTypeException
+   *           if the type is not known
+   */
   public static String convert(Type type) throws ModuleException, UnknownTypeException {
     String ret = null;
     if (type instanceof SimpleTypeString || type instanceof SimpleTypeNumericExact
@@ -80,19 +93,27 @@ public class Sql2003toXSDType {
     } else if (type instanceof ComposedTypeArray) {
       throw new ModuleException("Not yet supported type: ARRAY");
     } else if (type instanceof ComposedTypeStructure) {
-      throw new ModuleException("Not yet supported type: ROW");
+      ret = null;
     } else {
       throw new UnknownTypeException(type.toString());
     }
     return ret;
   }
 
+  /**
+   * Gets the XSD type that corresponds to the provided SQL99 type
+   *
+   * @param sql2003Type
+   *          the SQL2003 type
+   * @return the XSD type string
+   */
   public static String convert(String sql2003Type) {
     // try to find xsd corresponding to the sql2003 type in the constants
     // conversion table
     String ret = sql2003toXSDconstant.get(sql2003Type);
 
-    // if that failed, try to find xsd corresponding to the sql2003 type by using
+    // if that failed, try to find xsd corresponding to the sql2003 type by
+    // using
     // the regex in the regex conversion table
     if (ret == null) {
       for (Map.Entry<String, String> entry : sql2003toXSDregex.entrySet()) {

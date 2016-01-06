@@ -70,7 +70,7 @@ public class MsAccessImportModule extends ODBCImportModule {
       if (idx != null) {
         // Note: index "PrimaryKey" is Access DB specific
         // other db server has diff. index syntax.
-        if (idx.equalsIgnoreCase("PrimaryKey")) {
+        if ("PrimaryKey".equalsIgnoreCase(idx)) {
           key_colname = rset.getString(9);
         }
       }

@@ -103,9 +103,11 @@ public class SQLServerJDBCExportModule extends JDBCExportModule {
 
   }
 
+  @Override
   protected CleanResourcesInterface handleDataCell(PreparedStatement ps, int index, Cell cell, Type type)
     throws InvalidDataException, ModuleException {
     CleanResourcesInterface ret = new CleanResourcesInterface() {
+      @Override
       public void clean() {
 
       }
@@ -133,9 +135,10 @@ public class SQLServerJDBCExportModule extends JDBCExportModule {
    * Although a it's not a schema, a 'public' object exists on SQLServer. A new
    * schema name is assigned.
    */
+  @Override
   protected void handleSchemaStructure(SchemaStructure schema) throws ModuleException, UnknownTypeException {
     logger.debug("Handling schema structure " + schema.getName());
-    if (schema.getName().equalsIgnoreCase("public")) {
+    if ("public".equalsIgnoreCase(schema.getName())) {
       existingSchemas.add("public");
     }
     super.handleSchemaStructure(schema);

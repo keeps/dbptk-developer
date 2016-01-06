@@ -77,21 +77,21 @@ public class SQL99TypeConverter implements TypeConverter {
 
     if (sqlStandardType.startsWith("INT")) {
       type = new SimpleTypeNumericExact(10, 0);
-    } else if (sqlStandardType.equals("SMALLINT")) {
+    } else if ("SMALLINT".equals(sqlStandardType)) {
       type = new SimpleTypeNumericExact(5, 0);
     } else if (sqlStandardType.startsWith("NUMERIC")) {
       type = new SimpleTypeNumericExact(getPrecision(sqlStandardType), getScale(sqlStandardType));
     } else if (sqlStandardType.startsWith("DEC")) {
       type = new SimpleTypeNumericExact(getPrecision(sqlStandardType), getScale(sqlStandardType));
-    } else if (sqlStandardType.equals("FLOAT")) {
+    } else if ("FLOAT".equals(sqlStandardType)) {
       type = new SimpleTypeNumericApproximate(53);
     } else if (sqlStandardType.startsWith("FLOAT")) {
       type = new SimpleTypeNumericApproximate(getPrecision(sqlStandardType));
-    } else if (sqlStandardType.equals("REAL")) {
+    } else if ("REAL".equals(sqlStandardType)) {
       type = new SimpleTypeNumericApproximate(24);
     } else if (sqlStandardType.startsWith("DOUBLE")) {
       type = new SimpleTypeNumericApproximate(53);
-    } else if (sqlStandardType.equals("BIT")) {
+    } else if ("BIT".equals(sqlStandardType)) {
       type = new SimpleTypeBoolean();
     } else if (sqlStandardType.startsWith("BIT VARYING")) {
       type = new SimpleTypeBinary(getLength(sqlStandardType));
@@ -137,17 +137,17 @@ public class SQL99TypeConverter implements TypeConverter {
                                                                           // charset?
         }
       }
-    } else if (sqlStandardType.equals("BOOLEAN")) {
+    } else if ("BOOLEAN".equals(sqlStandardType)) {
       type = new SimpleTypeBoolean();
-    } else if (sqlStandardType.equals("DATE")) {
+    } else if ("DATE".equals(sqlStandardType)) {
       type = new SimpleTypeDateTime(false, false);
-    } else if (sqlStandardType.equals("TIMESTAMP WITH TIME ZONE")) {
+    } else if ("TIMESTAMP WITH TIME ZONE".equals(sqlStandardType)) {
       type = new SimpleTypeDateTime(true, true);
-    } else if (sqlStandardType.equals("TIMESTAMP")) {
+    } else if ("TIMESTAMP".equals(sqlStandardType)) {
       type = new SimpleTypeDateTime(true, false);
-    } else if (sqlStandardType.equals("TIME WITH TIME ZONE")) {
+    } else if ("TIME WITH TIME ZONE".equals(sqlStandardType)) {
       type = new SimpleTypeDateTime(true, true);
-    } else if (sqlStandardType.equals("TIME")) {
+    } else if ("TIME".equals(sqlStandardType)) {
       type = new SimpleTypeDateTime(true, false);
     } else {
       // type = new SimpleTypeString(255, true);

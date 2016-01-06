@@ -11,10 +11,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import org.apache.commons.cli.ParseException;
 
 import com.databasepreservation.cli.CLI;
+import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
@@ -43,15 +43,15 @@ public class ModuleFactoryTestHelper {
     return new CLI(args, module);
   }
 
-  private HashMap<Parameter, String> getImportModuleArguments(List<String> args) {
+  private Map<Parameter, String> getImportModuleArguments(List<String> args) {
     return getModuleArguments(true, args);
   }
 
-  private HashMap<Parameter, String> getExportModuleArguments(List<String> args) {
+  private Map<Parameter, String> getExportModuleArguments(List<String> args) {
     return getModuleArguments(false, args);
   }
 
-  private HashMap<Parameter, String> getModuleArguments(boolean forImportModule, List<String> args) {
+  private Map<Parameter, String> getModuleArguments(boolean forImportModule, List<String> args) {
     try {
       CLI cli = new CLI(args, module);
 
@@ -127,8 +127,8 @@ public class ModuleFactoryTestHelper {
 
     // get information needed to test the actual parameters
     Map<String, Parameter> parameters = testFactory.getModuleParameters(args);
-    HashMap<Parameter, String> importModuleArguments = testFactory.getImportModuleArguments(args);
-    HashMap<Parameter, String> exportModuleArguments = testFactory.getExportModuleArguments(args);
+    Map<Parameter, String> importModuleArguments = testFactory.getImportModuleArguments(args);
+    Map<Parameter, String> exportModuleArguments = testFactory.getExportModuleArguments(args);
 
     for (Map.Entry<String, String> entry : expectedImportValues.entrySet()) {
       String property = entry.getKey();

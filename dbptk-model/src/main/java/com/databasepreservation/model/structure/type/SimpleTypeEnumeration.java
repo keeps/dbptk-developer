@@ -138,7 +138,7 @@ public class SimpleTypeEnumeration extends Type {
       if (other.options != null) {
         return false;
       }
-    } else if (!MapUtils.equals(options, other.options)) {
+    } else if (!MapUtils.mapEquals(options, other.options)) {
       return false;
     }
     return true;

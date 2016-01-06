@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
@@ -14,14 +15,16 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
-import com.databasepreservation.modules.siard.out.content.Sql2003toXSDType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.SAXException;
 
 import ch.admin.bar.xmlns.siard._2_0.metadata.ActionTimeType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.AttributeType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.AttributesType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.CandidateKeyType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.CandidateKeysType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.CategoryType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.CheckConstraintType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.CheckConstraintsType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.ColumnType;
@@ -47,6 +50,8 @@ import ch.admin.bar.xmlns.siard._2_0.metadata.TableType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.TablesType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.TriggerType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.TriggersType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.TypeType;
+import ch.admin.bar.xmlns.siard._2_0.metadata.TypesType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.UserType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.UsersType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.ViewType;
@@ -54,6 +59,7 @@ import ch.admin.bar.xmlns.siard._2_0.metadata.ViewsType;
 
 import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -70,9 +76,12 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.Trigger;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
+import com.databasepreservation.model.structure.type.ComposedTypeStructure;
+import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.SIARDHelper;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
+import com.databasepreservation.modules.siard.out.content.Sql2003toXSDType;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.JodaUtils;
@@ -378,9 +387,9 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     if (schemas != null && !schemas.isEmpty()) {
       SchemasType schemasType = new SchemasType();
       for (SchemaStructure schema : schemas) {
-        if(schema.getTables().isEmpty()){
+        if (schema.getTables().isEmpty()) {
           logger.warn("Schema " + schema.getName() + " was not exported because it does not contain tables.");
-        }else{
+        } else {
           schemasType.getSchema().add(jaxbSchemaType(schema));
         }
       }
@@ -407,8 +416,90 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     schemaType.setTables(jaxbTablesType(schema, schema.getTables()));
     schemaType.setViews(jaxbViewsType(schema.getViews()));
     schemaType.setRoutines(jaxbRoutinesType(schema.getRoutines()));
+    schemaType.setTypes(jaxbTypesType(schema.getUserDefinedTypes()));
 
     return schemaType;
+  }
+
+  private TypesType jaxbTypesType(List<ComposedTypeStructure> userDefinedTypes) throws ModuleException {
+    if (userDefinedTypes != null && !userDefinedTypes.isEmpty()) {
+      TypesType typesType = new TypesType();
+      for (ComposedTypeStructure userDefinedType : userDefinedTypes) {
+        typesType.getType().add(jaxbTypeType(userDefinedType));
+      }
+      return typesType;
+    } else {
+      return null;
+    }
+  }
+
+  private TypeType jaxbTypeType(ComposedTypeStructure userDefinedType) throws ModuleException {
+    TypeType typeType = new TypeType();
+
+    // TODO: support type hierarchy
+
+    // TODO: support other kinds of UDT
+    typeType.setCategory(CategoryType.UDT);
+
+    // TODO: this is the common case; support other options
+    typeType.setInstantiable(true);
+    typeType.setFinal(false);
+
+    if (StringUtils.isNotBlank(userDefinedType.getOriginalTypeName())) {
+      typeType.setName(userDefinedType.getOriginalTypeName());
+    } else {
+      throw new ModuleException("Error while exporting UDT structure: type name cannot be null");
+    }
+
+    typeType.setAttributes(jaxbAttributesType(userDefinedType.getDirectDescendantSubTypes()));
+
+    return typeType;
+  }
+
+  private AttributesType jaxbAttributesType(Map<String, Type> directDescendantSubTypes) throws ModuleException {
+    if (directDescendantSubTypes != null && !directDescendantSubTypes.isEmpty()) {
+      AttributesType attributesType = new AttributesType();
+      for (Map.Entry<String, Type> nameAndType : directDescendantSubTypes.entrySet()) {
+        attributesType.getAttribute().add(jaxbAttributeType(nameAndType.getKey(), nameAndType.getValue()));
+      }
+      return attributesType;
+    } else {
+      return null;
+    }
+  }
+
+  private AttributeType jaxbAttributeType(String name, Type type) throws ModuleException {
+    AttributeType attributeType = new AttributeType();
+
+    if (StringUtils.isNotBlank(name)) {
+      attributeType.setName(name);
+    } else {
+      throw new ModuleException("Error while exporting attribute structure: type name cannot be null");
+    }
+
+    if (type != null) {
+      if (type instanceof ComposedTypeStructure) {
+        logger.debug("Saving UDT type '" + type.getOriginalTypeName() + "'(internal_id:" + type.hashCode() + ")");
+        attributeType.setTypeName(type.getOriginalTypeName());
+      } else {
+        logger.debug("Saving type '" + type.getOriginalTypeName() + "'(internal_id:" + type.hashCode() + ") as "
+          + type.getSql2003TypeName());
+        logger.info("Saving type '" + type.getOriginalTypeName() + "' as '" + type.getSql2003TypeName() + "'");
+        attributeType.setType(type.getSql2003TypeName());
+        attributeType.setTypeOriginal(type.getOriginalTypeName());
+      }
+    } else {
+      throw new ModuleException("Error while exporting table structure: column type cannot be null");
+    }
+
+    // TODO: default value for type
+    // if (StringUtils.isNotBlank(type.get)) {
+    // columnType.setDefaultValue(type.getDefaultValue());
+    // }
+
+    // TODO: somehow set fields related to lob and complex types
+
+    return attributeType;
   }
 
   private RoutinesType jaxbRoutinesType(List<RoutineStructure> routines) throws ModuleException {
@@ -565,22 +656,31 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (column.getType() != null) {
-      logger.debug("Saving type '" + column.getType().getOriginalTypeName() + "'(internal_id:"+column.getType().hashCode()+") as " + column.getType().getSql2003TypeName());
-      logger.info("Saving type '" + column.getType().getOriginalTypeName() + "' as '" + column.getType().getSql2003TypeName() + "'");
-      columnType.setType(column.getType().getSql2003TypeName());
-      columnType.setTypeOriginal(column.getType().getOriginalTypeName());
+      if (column.getType() instanceof ComposedTypeStructure) {
+        logger.debug("Saving composed type '" + column.getType().getOriginalTypeName() + "'(internal_id:"
+          + column.getType().hashCode() + ")");
+        logger.info("Saving composed type '" + column.getType().getOriginalTypeName() + "'");
+        columnType.setTypeName(column.getType().getOriginalTypeName());
+      } else {
+        logger.debug("Saving type '" + column.getType().getOriginalTypeName() + "'(internal_id:"
+          + column.getType().hashCode() + ") as " + column.getType().getSql2003TypeName());
+        logger.info("Saving type '" + column.getType().getOriginalTypeName() + "' as '"
+          + column.getType().getSql2003TypeName() + "'");
+        columnType.setType(column.getType().getSql2003TypeName());
+        columnType.setTypeOriginal(column.getType().getOriginalTypeName());
+
+        if (column.isNillable() != null) {
+          columnType.setNullable(column.getNillable());
+        } else {
+          logger.warn("column nullable property was null. changed it to false");
+        }
+      }
     } else {
       throw new ModuleException("Error while exporting table structure: column type cannot be null");
     }
 
     if (StringUtils.isNotBlank(column.getDefaultValue())) {
       columnType.setDefaultValue(column.getDefaultValue());
-    }
-
-    if (column.isNillable() != null) {
-      columnType.setNullable(column.getNillable());
-    } else {
-      logger.warn("column nullable property was null. changed it to false");
     }
 
     if (StringUtils.isNotBlank(column.getDescription())) {
@@ -590,8 +690,14 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     // TODO: set fields related to lob and complex types
 
     // specific fields for lobs
-    String xsdTypeFromColumnSql2003Type = Sql2003toXSDType.convert(column.getType().getSql2003TypeName());
-    if (xsdTypeFromColumnSql2003Type.equals("clobType") || xsdTypeFromColumnSql2003Type.equals("blobType")) {
+    String xsdTypeFromColumnSql2003Type = null;
+    try {
+      xsdTypeFromColumnSql2003Type = Sql2003toXSDType.convert(column.getType());
+    } catch (UnknownTypeException e) {
+      throw new ModuleException("Could not get SQL2003 type", e);
+    }
+    if (xsdTypeFromColumnSql2003Type != null
+      && ("clobType".equals(xsdTypeFromColumnSql2003Type) || "blobType".equals(xsdTypeFromColumnSql2003Type))) {
       columnType.setFolder(contentPathStrategy.getColumnFolderName(columnIndex));
     }
 

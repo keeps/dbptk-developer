@@ -52,6 +52,7 @@ public class DB2JDBCImportModule extends JDBCImportModule {
    *           the original data type is unknown
    * @throws ClassNotFoundException
    */
+  @Override
   protected DatabaseStructure getDatabaseStructure() throws SQLException, UnknownTypeException, ClassNotFoundException {
     if (dbStructure == null) {
       dbStructure = super.getDatabaseStructure();
@@ -63,6 +64,7 @@ public class DB2JDBCImportModule extends JDBCImportModule {
   /**
    * Returns the default ignored schemas for DB2 These schemas won't be imported
    */
+  @Override
   protected Set<String> getIgnoredImportedSchemas() {
     Set<String> ignored = new HashSet<String>();
     ignored.add("SQLJ");
@@ -84,11 +86,11 @@ public class DB2JDBCImportModule extends JDBCImportModule {
   protected Type getOtherType(int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
     throws UnknownTypeException {
     Type type;
-    if (typeName.equalsIgnoreCase("XML")) {
+    if ("XML".equalsIgnoreCase(typeName)) {
       type = new SimpleTypeString(31457280, true);
       type.setSql99TypeName("CHARACTER LARGE OBJECT");
       type.setSql2003TypeName("CHARACTER LARGE OBJECT");
-    } else if (typeName.equalsIgnoreCase("DECFLOAT")) {
+    } else if ("DECFLOAT".equalsIgnoreCase(typeName)) {
       type = new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
       type.setSql99TypeName("DOUBLE PRECISION");
       type.setSql2003TypeName("DOUBLE PRECISION");
@@ -162,11 +164,11 @@ public class DB2JDBCImportModule extends JDBCImportModule {
   @Override
   protected String processTriggerEvent(String string) {
     String res = "";
-    if (string.equals("I")) {
+    if ("I".equals(string)) {
       res = "INSERT";
-    } else if (string.equals("U")) {
+    } else if ("U".equals(string)) {
       res = "UPDATE";
-    } else if (string.equals("D")) {
+    } else if ("D".equals(string)) {
       res = "DELETE";
     }
     return res;
@@ -175,11 +177,11 @@ public class DB2JDBCImportModule extends JDBCImportModule {
   @Override
   protected String processActionTime(String string) {
     String res = "";
-    if (string.equals("B")) {
+    if ("B".equals(string)) {
       res = "BEFORE";
-    } else if (string.equals("A")) {
+    } else if ("A".equals(string)) {
       res = "AFTER";
-    } else if (string.equals("I")) {
+    } else if ("I".equals(string)) {
       res = "INSTEAD OF";
     }
     return res;

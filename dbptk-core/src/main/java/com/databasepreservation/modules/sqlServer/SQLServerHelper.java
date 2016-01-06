@@ -26,14 +26,17 @@ public class SQLServerHelper extends SQLHelper {
 
   private String endQuote = "]";
 
+  @Override
   public String getStartQuote() {
     return startQuote;
   }
 
+  @Override
   public String getEndQuote() {
     return endQuote;
   }
 
+  @Override
   protected String createTypeSQL(Type type, boolean isPkey, boolean isFkey) throws UnknownTypeException {
     String ret = null;
     if (type instanceof SimpleTypeString) {
@@ -62,9 +65,9 @@ public class SQLServerHelper extends SQLHelper {
       String sql99TypeName = type.getSql99TypeName();
       Integer precision = ((SimpleTypeNumericExact) type).getPrecision();
       Integer scale = ((SimpleTypeNumericExact) type).getScale();
-      if (sql99TypeName.equals("INTEGER")) {
+      if ("INTEGER".equals(sql99TypeName)) {
         ret = "int";
-      } else if (sql99TypeName.equals("SMALLINT")) {
+      } else if ("SMALLINT".equals(sql99TypeName)) {
         ret = "smallint";
       } else {
         ret = "decimal(";
@@ -77,11 +80,11 @@ public class SQLServerHelper extends SQLHelper {
       }
     } else if (type instanceof SimpleTypeDateTime) {
       String sql99TypeName = type.getSql99TypeName();
-      if (sql99TypeName.equals("TIME")) {
+      if ("TIME".equals(sql99TypeName)) {
         ret = "time";
-      } else if (sql99TypeName.equals("DATE")) {
+      } else if ("DATE".equals(sql99TypeName)) {
         ret = "date";
-      } else if (sql99TypeName.equals("TIMESTAMP")) {
+      } else if ("TIMESTAMP".equals(sql99TypeName)) {
         ret = "datetime2";
       } else {
         logger.warn("Using string instead of datetime type because "
@@ -93,7 +96,7 @@ public class SQLServerHelper extends SQLHelper {
       String sql99TypeName = binType.getSql99TypeName();
       if (sql99TypeName.startsWith("BIT")) {
         String dataType = null;
-        if (sql99TypeName.equals("BIT")) {
+        if ("BIT".equals(sql99TypeName)) {
           logger.debug("is BIT");
           dataType = "binary";
         } else {
@@ -102,14 +105,14 @@ public class SQLServerHelper extends SQLHelper {
         Integer length = binType.getLength();
         Integer bytes = (((length / 8.0) % 1 == 0) ? (length / 8) : ((length / 8) + 1));
 
-        if (dataType.equals("varbinary") && bytes <= 0) {
+        if ("varbinary".equals(dataType) && bytes <= 0) {
           ret = "varbinary(max)";
         } else if (bytes > 0 && bytes <= 8000) {
           ret = dataType + "(" + bytes + ")";
         } else {
           ret = "image";
         }
-      } else if (sql99TypeName.equals("BINARY LARGE OBJECT")) {
+      } else if ("BINARY LARGE OBJECT".equals(sql99TypeName)) {
         ret = "image";
       } else {
         ret = "image";
@@ -134,6 +137,7 @@ public class SQLServerHelper extends SQLHelper {
 
   }
 
+  @Override
   public String getTriggersSQL(String schemaName, String tableName) {
     return "SELECT o.name AS TRIGGER_NAME, " + "CAST(OBJECTPROPERTY(id, 'ExecIsAfterTrigger') AS char(1)) "
       + "+ CAST(OBJECTPROPERTY(id, 'ExecIsInsteadOfTrigger') " + "AS char(1)) AS ACTION_TIME, "

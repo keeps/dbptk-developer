@@ -12,8 +12,6 @@ public class SimpleTypeInterval extends Type {
 
   private IntervalType type;
 
-  ;
-
   /**
    * Time Interval type constructor, all fields are required.
    *

@@ -22,7 +22,9 @@ import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
+import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.common.LargeObject;
 import com.databasepreservation.modules.siard.common.ProvidesInputStream;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
@@ -35,7 +37,7 @@ import com.databasepreservation.utils.XMLUtils;
  */
 public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   private final static String ENCODING = "UTF-8";
-  private final CustomLogger logger = CustomLogger.getLogger(SIARD1ContentExportStrategy.class);
+  private final CustomLogger logger = CustomLogger.getLogger(SIARD2ContentExportStrategy.class);
   private final SIARD2ContentPathExportStrategy contentPathStrategy;
   private final WriteStrategy writeStrategy;
   private final SIARDArchiveContainer baseContainer;
@@ -149,7 +151,39 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
   private void writeComposedCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException,
     IOException {
-    logger.error("Composed cell writing is not yet implemented");
+
+    ComposedCell composedCell = (ComposedCell) cell;
+
+    currentWriter.openTag("c" + columnIndex, 2);
+
+    int subCellIndex = 1;
+    for (Cell subCell : composedCell.getComposedData()) {
+      if (subCell == null) {
+        // silently ignore
+      } else if (subCell instanceof SimpleCell) {
+        SimpleCell simpleCell = (SimpleCell) subCell;
+        if (simpleCell.getSimpledata() != null) {
+          currentWriter.inlineOpenTag("u" + subCellIndex, 3);
+          currentWriter.write(XMLUtils.encode(simpleCell.getSimpledata()));
+          currentWriter.closeTag("u" + subCellIndex);
+        }
+      } else if (subCell instanceof ComposedCell) {
+        // currentWriter.inlineOpenTag("u" + subCellIndex, 3);
+        // currentWriter.closeTag("u" + subCellIndex);
+
+        logger.warn("UDT inside UDT not yet supported. Saving as null.");
+      } else if (subCell instanceof BinaryCell) {
+        // currentWriter.inlineOpenTag("u" + subCellIndex, 3);
+        // currentWriter.closeTag("u" + subCellIndex);
+
+        logger.warn("LOBs inside UDT not yet supported. Saving as null.");
+      } else {
+        logger.error("Unexpected cell type");
+      }
+
+      subCellIndex++;
+    }
+    currentWriter.closeTag("c" + columnIndex, 2);
   }
 
   private void writeSimpleCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException, IOException {
@@ -207,8 +241,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
       // blob header
       currentWriter.append(contentPathStrategy.getBlobFileName(currentRowIndex + 1)).append('"').space()
-        .append("length=\"").append(String.valueOf(binCell.getLength()))
-        .append("\"");
+        .append("length=\"").append(String.valueOf(binCell.getLength())).append("\"");
 
       lob = new LargeObject(new ProvidesInputStream() {
         @Override
@@ -223,8 +256,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
       // clob header
       currentWriter.append(contentPathStrategy.getClobFileName(currentRowIndex + 1)).append('"').space()
-        .append("length=\"")
-        .append(String.valueOf(txtCell.getSimpledata().length())).append("\"");
+        .append("length=\"").append(String.valueOf(txtCell.getSimpledata().length())).append("\"");
 
       // workaround to have data from CLOBs saved as a temporary file to be read
       String data = txtCell.getSimpledata();
@@ -232,11 +264,12 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       try {
         final FileItem fileItem = new FileItem(inputStream);
         lob = new LargeObject(new ProvidesInputStream() {
-          @Override public InputStream createInputStream() throws ModuleException {
+          @Override
+          public InputStream createInputStream() throws ModuleException {
             return fileItem.createInputStream();
           }
-        }, contentPathStrategy
-          .getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
+        }, contentPathStrategy.getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
+          currentRowIndex + 1));
       } finally {
         inputStream.close();
       }
@@ -358,22 +391,31 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     // insert all <xs:element> in <xs:complexType name="rowType">
     int columnIndex = 1;
     for (ColumnStructure col : currentTable.getColumns()) {
-      try {
-        String xsdType = Sql99toXSDType.convert(col.getType());
+      if (col.getType() instanceof ComposedTypeStructure) {
+        Type composedType = (ComposedTypeStructure) col.getType();
 
-        xsdWriter.beginOpenTag("xs:element", 4);
+        // FIXME: if the same table contains two columns of different UDTs which
+        // subtypes differ then there would exist conflicting definitions for
+        // elements u1, u2, u3, etc
+        logger.warn("XSD validation of tables containing UDT is not yet supported.");
+      } else {
+        try {
+          String xsdType = Sql2003toXSDType.convert(col.getType());
 
-        if (col.isNillable()) {
-          xsdWriter.appendAttribute("minOccurs", "0");
+          xsdWriter.beginOpenTag("xs:element", 4);
+
+          if (col.isNillable()) {
+            xsdWriter.appendAttribute("minOccurs", "0");
+          }
+
+          xsdWriter.appendAttribute("name", "c" + columnIndex).appendAttribute("type", xsdType).endShorthandTag();
+        } catch (ModuleException e) {
+          logger.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
+        } catch (UnknownTypeException e) {
+          logger.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
         }
-
-        xsdWriter.appendAttribute("name", "c" + columnIndex).appendAttribute("type", xsdType).endShorthandTag();
-      } catch (ModuleException e) {
-        logger.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
-      } catch (UnknownTypeException e) {
-        logger.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
+        columnIndex++;
       }
-      columnIndex++;
     }
 
     xsdWriter

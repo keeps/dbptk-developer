@@ -20,11 +20,13 @@ public class MsAccessHelper extends SQLHelper {
     return "SELECT * FROM " + escapeTableId(tableId);
   }
 
-  @Override public String getStartQuote() {
+  @Override
+  public String getStartQuote() {
     return startQuote;
   }
 
-  @Override public String getEndQuote() {
+  @Override
+  public String getEndQuote() {
     return endQuote;
   }
 }

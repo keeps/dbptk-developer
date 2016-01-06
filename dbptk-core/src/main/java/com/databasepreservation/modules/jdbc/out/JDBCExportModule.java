@@ -137,7 +137,7 @@ public class JDBCExportModule implements DatabaseExportModule {
         logger.debug("Loading JDBC Driver " + driverClassName);
         Class.forName(driverClassName);
         logger.debug("Getting connection");
-        //logger.debug("Connection URL: " + connectionURL);
+        // logger.debug("Connection URL: " + connectionURL);
         connection = DriverManager.getConnection(connectionURL);
         connection.setAutoCommit(true);
         logger.debug("Connected");
@@ -166,7 +166,7 @@ public class JDBCExportModule implements DatabaseExportModule {
       logger.debug("Loading JDBC Driver " + driverClassName);
       Class.forName(driverClassName);
       logger.debug("Getting admin connection");
-      //logger.debug("Connection URL: " + connectionURL);
+      // logger.debug("Connection URL: " + connectionURL);
       connection = DriverManager.getConnection(connectionURL);
       connection.setAutoCommit(true);
       logger.debug("Connected");
@@ -244,7 +244,7 @@ public class JDBCExportModule implements DatabaseExportModule {
     try {
       this.existingSchemas = getExistingSchemasNames();
     } catch (SQLException e) {
-      logger.error("An error occurred while getting the name of existing schemas");
+      logger.error("An error occurred while getting the name of existing schemas", e);
     }
     createDatabase(structure.getName());
     int[] batchResult = null;
@@ -570,6 +570,7 @@ public class JDBCExportModule implements DatabaseExportModule {
     } catch (SQLException e) {
       throw new ModuleException("SQL error while handling cell " + cell.getId(), e);
     } catch (InvalidDateException e) {
+      logger.debug("Original InvalidDateException (for debug)", e);
       throw new InvalidDataException("Error handling cell " + cell.getId() + ":" + e.getMessage());
     }
     return ret;
@@ -608,8 +609,8 @@ public class JDBCExportModule implements DatabaseExportModule {
     throws InvalidDateException, SQLException {
     SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
     if (dateTime.getTimeDefined()) {
-      if (type.getSql99TypeName().equalsIgnoreCase("TIMESTAMP")
-        || type.getSql99TypeName().equalsIgnoreCase("TIMESTAMP WITH TIME ZONE")) {
+      if ("TIMESTAMP".equalsIgnoreCase(type.getSql99TypeName())
+        || "TIMESTAMP WITH TIME ZONE".equalsIgnoreCase(type.getSql99TypeName())) {
         if (data != null) {
           // logger.debug("timestamp before: " + data);
           Calendar cal = javax.xml.bind.DatatypeConverter.parseDateTime(data);

@@ -18,6 +18,8 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
 
 /**
+ * Convert sql99 types into XML or XSD types
+ *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class Sql99toXSDType {
@@ -66,6 +68,17 @@ public class Sql99toXSDType {
     sql99toXSDregex.put("^NUMERIC\\(\\d+(,\\d+)?\\)$", "xs:decimal");
   }
 
+  /**
+   * Gets the XML type that corresponds to the provided Type
+   * 
+   * @param type
+   *          the type
+   * @return the XML type string
+   * @throws ModuleException
+   *           if the conversion is not supported
+   * @throws UnknownTypeException
+   *           if the type is not known
+   */
   public static String convert(Type type) throws ModuleException, UnknownTypeException {
     String ret = null;
     if (type instanceof SimpleTypeString || type instanceof SimpleTypeNumericExact
@@ -80,13 +93,21 @@ public class Sql99toXSDType {
     } else if (type instanceof ComposedTypeArray) {
       throw new ModuleException("Not yet supported type: ARRAY");
     } else if (type instanceof ComposedTypeStructure) {
-      throw new ModuleException("Not yet supported type: ROW");
+      logger.error("User Defined Types are not supported by SIARD 1.");
+      ret = null;
     } else {
       throw new UnknownTypeException(type.toString());
     }
     return ret;
   }
 
+  /**
+   * Gets the XSD type that corresponds to the provided SQL99 type
+   *
+   * @param sql99Type
+   *          the SQL99 type
+   * @return the XSD type string
+   */
   public static String convert(String sql99Type) {
     // try to find xsd corresponding to the sql99 type in the constants
     // conversion table

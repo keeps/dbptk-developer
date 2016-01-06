@@ -48,6 +48,7 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.Trigger;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
+import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
@@ -173,8 +174,8 @@ public class SiardTest {
     columns_table11.get(0).getType().setDescription("col112 description");
 
     columns_table11.get(2).getType().setOriginalTypeName("decimal", 5, 2);
-    columns_table11.get(2).getType().setSql99TypeName("DECIMAL",5,2);
-    columns_table11.get(2).getType().setSql2003TypeName("DECIMAL",5,2);
+    columns_table11.get(2).getType().setSql99TypeName("DECIMAL", 5, 2);
+    columns_table11.get(2).getType().setSql2003TypeName("DECIMAL", 5, 2);
     columns_table11.get(2).getType().setDescription("col113 description");
 
     // create columns for second table
@@ -203,8 +204,8 @@ public class SiardTest {
     columns_table12.get(1).getType().setDescription("col122 description");
 
     columns_table12.get(2).getType().setOriginalTypeName("VARCHAR", 250);
-    columns_table12.get(2).getType().setSql99TypeName("CHARACTER VARYING",250);
-    columns_table12.get(2).getType().setSql2003TypeName("CHARACTER VARYING",250);
+    columns_table12.get(2).getType().setSql99TypeName("CHARACTER VARYING", 250);
+    columns_table12.get(2).getType().setSql2003TypeName("CHARACTER VARYING", 250);
     ((SimpleTypeString) columns_table12.get(2).getType()).setLength(250);
     ((SimpleTypeString) columns_table12.get(2).getType()).setLengthVariable(true);
     // TODO:
@@ -212,8 +213,8 @@ public class SiardTest {
     columns_table12.get(2).getType().setDescription("col123 description");
 
     columns_table12.get(3).getType().setOriginalTypeName("VARCHAR", 230);
-    columns_table12.get(3).getType().setSql99TypeName("CHARACTER VARYING",230);
-    columns_table12.get(3).getType().setSql2003TypeName("CHARACTER VARYING",230);
+    columns_table12.get(3).getType().setSql99TypeName("CHARACTER VARYING", 230);
+    columns_table12.get(3).getType().setSql2003TypeName("CHARACTER VARYING", 230);
     ((SimpleTypeString) columns_table12.get(3).getType()).setLength(230);
     ((SimpleTypeString) columns_table12.get(3).getType()).setLengthVariable(true);
     // TODO:
@@ -255,8 +256,8 @@ public class SiardTest {
     columns_table21.get(0).getType().setDescription("col212 description");
 
     columns_table21.get(2).getType().setOriginalTypeName("decimal", 5, 2);
-    columns_table21.get(2).getType().setSql99TypeName("DECIMAL",5,2);
-    columns_table21.get(2).getType().setSql2003TypeName("DECIMAL",5,2);
+    columns_table21.get(2).getType().setSql99TypeName("DECIMAL", 5, 2);
+    columns_table21.get(2).getType().setSql2003TypeName("DECIMAL", 5, 2);
     columns_table21.get(2).getType().setDescription("col213 description");
 
     // create columns for second table
@@ -280,8 +281,8 @@ public class SiardTest {
     columns_table22.get(1).getType().setDescription("col222 description");
 
     columns_table22.get(2).getType().setOriginalTypeName("VARCHAR", 250);
-    columns_table22.get(2).getType().setSql99TypeName("CHARACTER VARYING",250);
-    columns_table22.get(2).getType().setSql2003TypeName("CHARACTER VARYING",250);
+    columns_table22.get(2).getType().setSql99TypeName("CHARACTER VARYING", 250);
+    columns_table22.get(2).getType().setSql2003TypeName("CHARACTER VARYING", 250);
     ((SimpleTypeString) columns_table22.get(2).getType()).setLength(250);
     ((SimpleTypeString) columns_table22.get(2).getType()).setLengthVariable(true);
     // TODO:
@@ -289,8 +290,8 @@ public class SiardTest {
     columns_table22.get(2).getType().setDescription("col223 description");
 
     columns_table22.get(3).getType().setOriginalTypeName("VARCHAR", 230);
-    columns_table22.get(3).getType().setSql99TypeName("CHARACTER VARYING",230);
-    columns_table22.get(3).getType().setSql2003TypeName("CHARACTER VARYING",230);
+    columns_table22.get(3).getType().setSql99TypeName("CHARACTER VARYING", 230);
+    columns_table22.get(3).getType().setSql2003TypeName("CHARACTER VARYING", 230);
     ((SimpleTypeString) columns_table22.get(3).getType()).setLength(230);
     ((SimpleTypeString) columns_table22.get(3).getType()).setLengthVariable(true);
     // TODO:
@@ -365,8 +366,8 @@ public class SiardTest {
     param01.setMode("some mode 1");
     param01.setType(new SimpleTypeString(50, false));
     param01.getType().setOriginalTypeName("VARCHAR", 50);
-    param01.getType().setSql99TypeName("CHARACTER VARYING",50);
-    param01.getType().setSql2003TypeName("CHARACTER VARYING",50);
+    param01.getType().setSql99TypeName("CHARACTER VARYING", 50);
+    param01.getType().setSql2003TypeName("CHARACTER VARYING", 50);
     ((SimpleTypeString) param01.getType()).setLength(50);
     ((SimpleTypeString) param01.getType()).setLengthVariable(true);
     // TODO: ((SimpleTypeString)param01.getType()).setCharset("UTF-8");
@@ -397,10 +398,11 @@ public class SiardTest {
     // create schemas with tables, views and routines
     schemas.add(new SchemaStructure("schema01", "the first schema", 1, Arrays.asList(table01, table02),
       new ArrayList<ViewStructure>(),// TODO: Arrays.asList(view01, view02),
-      new ArrayList<RoutineStructure>()));// TODO: Arrays.asList(routine01,
-                                          // routine02)));
+      new ArrayList<RoutineStructure>(), new ArrayList<ComposedTypeStructure>()));// TODO:
+                                                                                  // Arrays.asList(routine01,
+    // routine02)));
     schemas.add(new SchemaStructure("schema02", "the second schema", 2, Arrays.asList(table03, table04),
-      new ArrayList<ViewStructure>(), new ArrayList<RoutineStructure>()));
+      new ArrayList<ViewStructure>(), new ArrayList<RoutineStructure>(), new ArrayList<ComposedTypeStructure>()));
 
     // create users
     List<UserStructure> users = Arrays.asList(new UserStructure("testUser1", "first TestUser description"),

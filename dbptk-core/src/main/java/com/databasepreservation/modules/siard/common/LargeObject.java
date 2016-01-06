@@ -1,7 +1,5 @@
 package com.databasepreservation.modules.siard.common;
 
-import java.nio.file.Path;
-
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */

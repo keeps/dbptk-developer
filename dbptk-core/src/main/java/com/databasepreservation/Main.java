@@ -13,6 +13,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
+import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.modules.jdbc.JDBCModuleFactory;
 import com.databasepreservation.modules.msAccess.MsAccessUCanAccessModuleFactory;
 import com.databasepreservation.modules.mySql.MySQLModuleFactory;
@@ -42,36 +43,45 @@ public class Main {
 
   private static final CustomLogger logger = CustomLogger.getLogger(Main.class);
 
+  public static final DatabaseModuleFactory[] databaseModuleFactories = new DatabaseModuleFactory[] {
+    new JDBCModuleFactory(), new MsAccessUCanAccessModuleFactory(), new MySQLModuleFactory(),
+    new Oracle12cModuleFactory(), new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(), new SIARD2ModuleFactory(),
+    new SIARDDKModuleFactory(), new SQLServerJDBCModuleFactory()};
+
   /**
    * @param args
    *          the console arguments
    */
-  public static void main(String... args) {
-    System.exit(internal_main(args));
+  public static void main(String[] args) {
+    CLI cli = new CLI(Arrays.asList(args), databaseModuleFactories);
+    System.exit(internal_main(cli));
   }
 
+  // used in testing
   public static int internal_main(String... args) {
+    CLI cli = new CLI(Arrays.asList(args), databaseModuleFactories);
+    return internal_main(cli);
+  }
+
+  public static int internal_main(CLI cli) {
     logProgramStart();
 
     final DatabaseImportModule importModule;
     final DatabaseExportModule exportModule;
 
-    CLI cli = new CLI(Arrays.asList(args), new JDBCModuleFactory(), new MsAccessUCanAccessModuleFactory(),
-      new MySQLModuleFactory(), new Oracle12cModuleFactory(), new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(),
-      new SIARD2ModuleFactory(), new SIARDDKModuleFactory(), new SQLServerJDBCModuleFactory());
     try {
       importModule = cli.getImportModule();
       exportModule = cli.getExportModule();
     } catch (ParseException e) {
-      System.err.println("Error: " + e.getMessage() + "\n");
+      logger.error(e.getMessage(), e);
       cli.printHelp();
       logProgramFinish(EXIT_CODE_COMMAND_PARSE_ERROR);
       return EXIT_CODE_COMMAND_PARSE_ERROR;
     } catch (LicenseNotAcceptedException e) {
-      System.err.println("Error: The license must be accepted to use this module.");
-      System.err.println("==================================================");
+      logger.error("The license must be accepted to use this module.");
+      logger.error("==================================================");
       cli.printLicense(e.getLicense());
-      System.err.println("==================================================");
+      logger.error("==================================================");
       logProgramFinish(EXIT_CODE_LICENSE_NOT_ACCEPTED);
       return EXIT_CODE_LICENSE_NOT_ACCEPTED;
     }
@@ -87,7 +97,7 @@ public class Main {
       exitStatus = EXIT_CODE_OK;
     } catch (ModuleException e) {
       if (e.getCause() != null && e.getCause() instanceof ClassNotFoundException
-        && e.getCause().getMessage().equals("sun.jdbc.odbc.JdbcOdbcDriver")) {
+        && "sun.jdbc.odbc.JdbcOdbcDriver".equals(e.getCause().getMessage())) {
         logger.error("Could not find the Java ODBC driver, "
           + "please run this program under Windows to use the JDBC-ODBC bridge.", e.getCause());
       } else if (e.getModuleErrors() != null) {
@@ -125,10 +135,10 @@ public class Main {
     logger.debug("#########################################################");
   }
 
-  private static String getProgramVersion(){
+  private static String getProgramVersion() {
     try {
       return Main.class.getPackage().getImplementationVersion();
-    }catch (Throwable e){
+    } catch (Exception e) {
       logger.debug("Problem getting program version", e);
       return null;
     }

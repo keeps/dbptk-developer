@@ -44,6 +44,7 @@ public class DB2JDBCExportModule extends JDBCExportModule {
 
   }
 
+  @Override
   public void finishDatabase() throws ModuleException {
     if (databaseStructure != null) {
       logger.info("Handling foreign keys is not yet supported!");
@@ -52,11 +53,12 @@ public class DB2JDBCExportModule extends JDBCExportModule {
     }
   }
 
+  @Override
   protected void handleSimpleTypeDateTimeDataCell(String data, PreparedStatement ps, int index, Cell cell, Type type)
     throws InvalidDateException, SQLException {
     SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
     if (dateTime.getTimeDefined()) {
-      if (type.getSql99TypeName().equalsIgnoreCase("TIMESTAMP")) {
+      if ("TIMESTAMP".equalsIgnoreCase(type.getSql99TypeName())) {
         if (data != null) {
           logger.debug("timestamp before: " + data);
           Calendar cal = javax.xml.bind.DatatypeConverter.parseDateTime(data);

@@ -53,27 +53,30 @@ public class SIARD2ContentPathImportStrategy implements ContentPathImportStrateg
 
     // from SIARD2 specification: these path parts default to "." (current
     // directory) if not specified
-    if(schemaPart == null){
+    if (schemaPart == null) {
       schemaPart = ".";
     }
-    if(tablePart == null){
+    if (tablePart == null) {
       tablePart = ".";
     }
-    if(columnPart == null){
+    if (columnPart == null) {
       columnPart = ".";
     }
 
     return Paths.get(basePath, schemaPart, tablePart, columnPart, lobFileName).toString();
   }
 
+  @Override
   public void associateSchemaWithFolder(String schemaName, String schemaFolder) {
     schemaFolders.put(schemaName, schemaFolder);
   }
 
+  @Override
   public void associateTableWithFolder(String tableId, String tableFolder) {
     tableFolders.put(tableId, tableFolder);
   }
 
+  @Override
   public void associateColumnWithFolder(String columnId, String columnFolder) {
     columnFolders.put(columnId, columnFolder);
   }

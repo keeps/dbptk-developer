@@ -7,7 +7,7 @@ public final class MapUtils {
   private MapUtils() {
   }
 
-  public static boolean equals(Map<?, ?> fst, Map<?, ?> snd) {
+  public static boolean mapEquals(Map<?, ?> fst, Map<?, ?> snd) {
     if (fst != null && snd != null) {
       Iterator<?> ifst = fst.keySet().iterator();
       Iterator<?> isnd = fst.keySet().iterator();

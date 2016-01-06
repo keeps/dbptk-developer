@@ -138,13 +138,13 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
         try {
           currentTableStream.close();
         } catch (IOException e) {
-          throw new ModuleException("Could not close XML table input stream");
+          throw new ModuleException("Could not close XML table input stream", e);
         }
 
         try {
           xsdStream.close();
         } catch (IOException e) {
-          throw new ModuleException("Could not close table XSD schema input stream");
+          throw new ModuleException("Could not close table XSD schema input stream", e);
         }
       }
     }
@@ -207,7 +207,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
           // TODO: what about CLOBs? are they also created as BinaryCells?
             String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1).getId(), rowIndex), fileItem);
         } catch (ModuleException e) {
-          errorHandler.error("Failed to open lob at " + lobDir, e);
+          logger.error("Failed to open lob at " + lobDir, e);
         }
 
         logger.debug(String.format("Binary cell %s on row #%d with lob dir %s", currentBinaryCell.getId(), rowIndex,
@@ -273,7 +273,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
             InputStream is = new ByteArrayInputStream(Hex.decodeHex(trimmedVal.toCharArray()));
             cell = new BinaryCell(id, new FileItem(is));
           } catch (ModuleException e) {
-            logger.error("An error occurred while importing in-table binary cell");
+            logger.error("An error occurred while importing in-table binary cell", e);
           } catch (DecoderException e) {
             logger.error(String.format("Illegal characters in hexadecimal string \"%s\"", trimmedVal), e);
           }

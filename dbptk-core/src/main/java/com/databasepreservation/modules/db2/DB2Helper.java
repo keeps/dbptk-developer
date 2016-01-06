@@ -20,6 +20,7 @@ public class DB2Helper extends SQLHelper {
 
   private final CustomLogger logger = CustomLogger.getLogger(DB2Helper.class);
 
+  @Override
   protected String createTypeSQL(Type type, boolean isPkey, boolean isFkey) throws UnknownTypeException {
     String ret;
     if (type instanceof SimpleTypeString) {
@@ -32,7 +33,7 @@ public class DB2Helper extends SQLHelper {
         }
         ret = "varchar(" + length + ")";
       } else if (StringUtils.endsWithIgnoreCase(string.getSql99TypeName(), "CHARACTER LARGE OBJECT")) {
-        if (string.getOriginalTypeName().equalsIgnoreCase("xml")) {
+        if ("xml".equalsIgnoreCase(string.getOriginalTypeName())) {
           ret = "xml";
         } else {
           ret = "clob";
@@ -54,6 +55,7 @@ public class DB2Helper extends SQLHelper {
     return ret;
   }
 
+  @Override
   protected String escapeColumnName(String column) {
     return column;
   }

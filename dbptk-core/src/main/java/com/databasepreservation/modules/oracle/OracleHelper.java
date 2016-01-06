@@ -24,10 +24,12 @@ public class OracleHelper extends SQLHelper {
 
   private String endQuote = "";
 
+  @Override
   public String getStartQuote() {
     return startQuote;
   }
 
+  @Override
   public String getEndQuote() {
     return endQuote;
   }
@@ -64,7 +66,7 @@ public class OracleHelper extends SQLHelper {
     PrimaryKey replacementPkey = pkey;
     // if the name is primary, conflicts will occur. avoid creating a named
     // constraint for those cases
-    if (pkey.getName().equalsIgnoreCase("primary")) {
+    if ("primary".equalsIgnoreCase(pkey.getName())) {
       replacementPkey = new PrimaryKey(null, pkey.getColumnNames(), pkey.getDescription());
     }
     return super.createPrimaryKeySQL(tableId, replacementPkey);

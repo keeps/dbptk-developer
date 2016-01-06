@@ -25,6 +25,6 @@ public interface DatabaseImportModule {
    * @throws ModuleException
    *           generic module exception
    */
-  public void getDatabase(DatabaseExportModule databaseExportModule) throws ModuleException, UnknownTypeException,
+  void getDatabase(DatabaseExportModule databaseExportModule) throws ModuleException, UnknownTypeException,
     InvalidDataException;
 }

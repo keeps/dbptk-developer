@@ -162,11 +162,11 @@ public class SQLHelper {
         ret = "char(" + string.getLength() + ")";
       }
     } else if (type instanceof SimpleTypeNumericExact) {
-      if (type.getSql99TypeName().equalsIgnoreCase("INTEGER")) {
+      if ("INTEGER".equalsIgnoreCase(type.getSql99TypeName())) {
         ret = "integer";
-      } else if (type.getSql99TypeName().equalsIgnoreCase("SMALLINT")) {
+      } else if ("SMALLINT".equalsIgnoreCase(type.getSql99TypeName())) {
         ret = "smallint";
-      } else if (type.getSql99TypeName().equalsIgnoreCase("DECIMAL")) {
+      } else if ("DECIMAL".equalsIgnoreCase(type.getSql99TypeName())) {
         ret = "decimal";
         if (getNumericExactPrecision(type, 30) > 0) {
           ret += "(" + getNumericExactPrecision(type, 30);
@@ -199,7 +199,7 @@ public class SQLHelper {
       if (!dateTime.getTimeDefined() && !dateTime.getTimeZoneDefined()) {
         ret = "date";
       } else {
-        if (type.getSql99TypeName().equalsIgnoreCase("TIME")) {
+        if ("TIME".equalsIgnoreCase(type.getSql99TypeName())) {
           ret = "time";
         } else {
           ret = "timestamp";
@@ -279,7 +279,7 @@ public class SQLHelper {
       ret.append(")");
     }
     String result = ret.toString();
-    return result.equals("") ? null : result;
+    return StringUtils.isBlank(result) ? null : result;
   }
 
   /**

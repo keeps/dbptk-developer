@@ -102,6 +102,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
     column_info_table = columnInfoTable;
   }
 
+  @Override
   public void initDatabase() throws ModuleException {
     try {
       logger.debug("Cleaning...");
@@ -127,6 +128,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
     return connection;
   }
 
+  @Override
   public void handleStructure(DatabaseStructure structure) throws ModuleException, UnknownTypeException {
     super.handleStructure(structure);
     if (getStatement() != null) {
@@ -146,9 +148,9 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
               String transformation_options = "";
               if (type instanceof SimpleTypeBinary) {
                 SimpleTypeBinary bin = (SimpleTypeBinary) type;
-                if (bin.getFormatRegistryKey() != null && bin.getFormatRegistryKey().equals("MIME")) {
+                if (bin.getFormatRegistryKey() != null && "MIME".equals(bin.getFormatRegistryKey())) {
                   mimetype = bin.getFormatRegistryName().replace('/', '_');
-                  if (mimetype.equals("image_jpeg")) {
+                  if ("image_jpeg".equals(mimetype)) {
                     transformation = "image_jpeg__link.inc.php";
                   } else {
                     transformation = "application_octetstream__download.inc.php";
@@ -287,6 +289,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
     }
   }
 
+  @Override
   public void finishDatabase() throws ModuleException {
     super.finishDatabase();
     logger.debug("Setting guest permissions");

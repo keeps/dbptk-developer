@@ -29,7 +29,7 @@ public class DevelopmentDebugTest {
    */
   @Test
   public void Run() throws ModuleException {
-    String args[] = new String[]{/*arguments*/};
+    String args[] = new String[] {/* arguments */};
 
     assert Main.internal_main(args) == Main.EXIT_CODE_OK : "Test was unsuccessful. Exit status was not success";
   }

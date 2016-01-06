@@ -173,7 +173,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
     throws InvalidDateException, SQLException {
     SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
     if (dateTime.getTimeDefined()) {
-      if (type.getSql99TypeName().equalsIgnoreCase("TIME WITH TIME ZONE")) {
+      if ("TIME WITH TIME ZONE".equalsIgnoreCase(type.getSql99TypeName())) {
         if (data != null) {
           Calendar cal = javax.xml.bind.DatatypeConverter.parseTime(data);
           Time time = new Time(cal.getTimeInMillis());
@@ -195,7 +195,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
     Type type) throws NumberFormatException, SQLException {
     if (data != null) {
       logger.debug("set approx: " + data);
-      if (type.getSql99TypeName().equalsIgnoreCase("FLOAT")) {
+      if ("FLOAT".equalsIgnoreCase(type.getSql99TypeName())) {
         ps.setFloat(index, Float.valueOf(data));
       } else {
         ps.setDouble(index, Double.valueOf(data));

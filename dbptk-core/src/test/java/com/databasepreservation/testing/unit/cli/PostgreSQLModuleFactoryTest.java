@@ -51,8 +51,8 @@ public class PostgreSQLModuleFactoryTest {
   @Test
   public void arguments_required_short() {
     List<String> args = Arrays.asList("-i", "postgresql", "-iu", "name-user", "-ip", "abc1 23=456", "-ih",
-      "the-server-name", "-idb", "dbname", "-e", "postgresql", "-eu", "name-another-user", "-ep", "2bcd123=456",
-      "-eh", "another-server", "-edb", "another-db-name", "-ede");
+      "the-server-name", "-idb", "dbname", "-e", "postgresql", "-eu", "name-another-user", "-ep", "2bcd123=456", "-eh",
+      "another-server", "-edb", "another-db-name", "-ede");
 
     // test parameters for import module
     HashMap<String, String> expectedValuesImport = new HashMap<String, String>();
@@ -104,8 +104,8 @@ public class PostgreSQLModuleFactoryTest {
   @Test
   public void arguments_portNumber_short() {
     List<String> args = Arrays.asList("-i", "postgresql", "-iu", "name-user", "-ip", "abc1 23=456", "-ih",
-      "the-server-name", "-idb", "dbname", "-e", "postgresql", "-eu", "name-another-user", "-ep", "2bcd123=456",
-      "-eh", "another-server", "-edb", "another-db-name", "-ede", "-ipn", "4567", "-epn", "7654");
+      "the-server-name", "-idb", "dbname", "-e", "postgresql", "-eu", "name-another-user", "-ep", "2bcd123=456", "-eh",
+      "another-server", "-edb", "another-db-name", "-ede", "-ipn", "4567", "-epn", "7654");
 
     // test parameters for import module
     HashMap<String, String> expectedValuesImport = new HashMap<String, String>();

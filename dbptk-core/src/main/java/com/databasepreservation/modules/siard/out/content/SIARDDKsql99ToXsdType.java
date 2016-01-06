@@ -25,9 +25,9 @@ public class SIARDDKsql99ToXsdType {
     } else if (sql99Type.startsWith("INTEGER") || sql99Type.startsWith("SMALLINT")
       || sql99Type.equals(SIARDDKConstants.BINARY_LARGE_OBJECT)) {
       return "xs:integer";
-    } else if (sql99Type.equals("TIME") || sql99Type.equals("TIME WITH TIME ZONE")) {
+    } else if ("TIME".equals(sql99Type) || "TIME WITH TIME ZONE".equals(sql99Type)) {
       return "xs:time";
-    } else if (sql99Type.equals("TIMESTAMP") || sql99Type.equals("TIMESTAMP WITH TIME ZONE")) {
+    } else if ("TIMESTAMP".equals(sql99Type) || "TIMESTAMP WITH TIME ZONE".equals(sql99Type)) {
       return "xs:dateTime";
     }
 

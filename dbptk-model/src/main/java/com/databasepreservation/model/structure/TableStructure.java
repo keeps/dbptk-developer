@@ -4,13 +4,15 @@
 package com.databasepreservation.model.structure;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.utils.ListUtils;
 
 /**
- * @author Luis Faria
+ * @author Luis Faria <lfaria@keep.pt>
+ * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class TableStructure {
 
@@ -40,6 +42,8 @@ public class TableStructure {
 
   private int index;
 
+  private HashMap<String, String> udtAlias;
+
   /**
    * Empty table constructor. All fields are null except columns and foreign
    * keys, which are empty lists
@@ -56,6 +60,7 @@ public class TableStructure {
     triggers = new ArrayList<Trigger>();
     rows = -1;
     schema = null;
+    udtAlias = new HashMap<>();
 
     currentRow = 1;
   }
@@ -98,6 +103,7 @@ public class TableStructure {
     this.checkConstraints = checkConstraints;
     this.triggers = triggers;
     this.rows = rows;
+    this.udtAlias = new HashMap<>();
   }
 
   /**
@@ -331,7 +337,7 @@ public class TableStructure {
       if (other.candidateKeys != null) {
         return false;
       }
-    } else if (!ListUtils.equalsWithoutOrder(candidateKeys, other.candidateKeys)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(candidateKeys, other.candidateKeys)) {
       return false;
     }
     if (index != other.index) {
@@ -341,14 +347,14 @@ public class TableStructure {
       if (other.checkConstraints != null) {
         return false;
       }
-    } else if (!ListUtils.equalsWithoutOrder(checkConstraints, other.checkConstraints)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(checkConstraints, other.checkConstraints)) {
       return false;
     }
     if (columns == null) {
       if (other.columns != null) {
         return false;
       }
-    } else if (!ListUtils.equalsWithoutOrder(columns, other.columns)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(columns, other.columns)) {
       return false;
     }
     if (currentRow != other.currentRow) {
@@ -365,7 +371,7 @@ public class TableStructure {
       if (other.foreignKeys != null) {
         return false;
       }
-    } else if (!ListUtils.equalsWithoutOrder(foreignKeys, other.foreignKeys)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(foreignKeys, other.foreignKeys)) {
       return false;
     }
     if (id == null) {
@@ -403,7 +409,7 @@ public class TableStructure {
       if (other.triggers != null) {
         return false;
       }
-    } else if (!ListUtils.equalsWithoutOrder(triggers, other.triggers)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(triggers, other.triggers)) {
       return false;
     }
     return true;
@@ -433,5 +439,17 @@ public class TableStructure {
 
   public void setIndex(int index) {
     this.index = index;
+  }
+
+  public void addUDTAlias(String columnName, String alias) {
+    udtAlias.put(columnName, alias);
+  }
+
+  public String getUDTAlias(String columnName) {
+    if (udtAlias.containsKey(columnName)) {
+      return udtAlias.get(columnName);
+    } else {
+      return columnName;
+    }
   }
 }

@@ -51,8 +51,8 @@ public class SQLServerJDBCModuleFactoryTest {
   @Test
   public void arguments_required_short() {
     List<String> args = Arrays.asList("-i", "microsoft-sql-server", "-iu", "name-user", "-ip", "abc1 23=456", "-is",
-      "the-server-name", "-idb", "dbname", "-e", "microsoft-sql-server", "-eu", "name-another-user", "-ep", "2bcd123=456",
-      "-es", "another-server", "-ede", "-edb", "another-db-name");
+      "the-server-name", "-idb", "dbname", "-e", "microsoft-sql-server", "-eu", "name-another-user", "-ep",
+      "2bcd123=456", "-es", "another-server", "-ede", "-edb", "another-db-name");
 
     // test parameters for import module
     HashMap<String, String> expectedValuesImport = new HashMap<String, String>();
@@ -102,9 +102,9 @@ public class SQLServerJDBCModuleFactoryTest {
   public void arguments_instanceName_long() {
     List<String> args = Arrays.asList("--import=microsoft-sql-server", "--import-username=name-user",
       "--import-password=abc1 23=456", "--import-server-name=the-server-name", "--import-database=dbname",
-      "--import-instance-name=name-for-the-instance", "--export=microsoft-sql-server", "--export-username=name-another-user",
-      "--export-password=2bcd123=456", "--export-server-name=another-server", "--export-database=another-db-name",
-      "--export-instance-name=name-for-another-instance");
+      "--import-instance-name=name-for-the-instance", "--export=microsoft-sql-server",
+      "--export-username=name-another-user", "--export-password=2bcd123=456", "--export-server-name=another-server",
+      "--export-database=another-db-name", "--export-instance-name=name-for-another-instance");
 
     // test parameters for import module
     HashMap<String, String> expectedValuesImport = new HashMap<String, String>();
@@ -128,8 +128,8 @@ public class SQLServerJDBCModuleFactoryTest {
   @Test
   public void arguments_portNumber_short() {
     List<String> args = Arrays.asList("-i", "microsoft-sql-server", "-iu", "name-user", "-ip", "abc1 23=456", "-is",
-      "the-server-name", "-idb", "dbname", "-ipn", "1234", "-e", "microsoft-sql-server", "-eu", "name-another-user", "-ep",
-      "2bcd123=456", "-es", "another-server", "-edb", "another-db-name", "-epn", "4321");
+      "the-server-name", "-idb", "dbname", "-ipn", "1234", "-e", "microsoft-sql-server", "-eu", "name-another-user",
+      "-ep", "2bcd123=456", "-es", "another-server", "-edb", "another-db-name", "-epn", "4321");
 
     // test parameters for import module
     HashMap<String, String> expectedValuesImport = new HashMap<String, String>();

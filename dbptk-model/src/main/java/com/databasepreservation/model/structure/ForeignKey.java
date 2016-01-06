@@ -321,7 +321,7 @@ public class ForeignKey {
       if (other.references != null) {
         return false;
       }
-    } else if (!ListUtils.equalsWithoutOrder(references, other.references)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(references, other.references)) {
       return false;
     }
     if (updateAction == null) {

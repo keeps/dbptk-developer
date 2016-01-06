@@ -9,8 +9,9 @@ import org.joda.time.DateTime;
 import com.databasepreservation.utils.ListUtils;
 
 /**
- * @author Luis Faria
+ * @author Luis Faria <lfaria@keep.pt>
  * @author Miguel Coutada
+ * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class DatabaseStructure {
 
@@ -172,7 +173,7 @@ public class DatabaseStructure {
     boolean canSortTopologically = true;
     while (sortedTables.size() != tables.size() && canSortTopologically) {
       List<TableStructure> filtered = filterReferencedTables(tables, sortedTables);
-      if (filtered.size() > 0) {
+      if (!filtered.isEmpty()) {
         sortedTables.addAll(filtered);
       } else {
         canSortTopologically = false;
@@ -752,7 +753,7 @@ public class DatabaseStructure {
       if (other.privileges != null) {
         return false;
       }
-    } else if (!ListUtils.equalsWithoutOrder(privileges, other.privileges)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(privileges, other.privileges)) {
       return false;
     }
     if (producerApplication == null) {
@@ -780,14 +781,14 @@ public class DatabaseStructure {
       if (other.roles != null) {
         return false;
       }
-    } else if (!ListUtils.equalsWithoutOrder(roles, other.roles)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(roles, other.roles)) {
       return false;
     }
     if (schemas == null) {
       if (other.schemas != null) {
         return false;
       }
-    } else if (!ListUtils.equalsWithoutOrder(schemas, other.schemas)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(schemas, other.schemas)) {
       return false;
     }
     if (stringFunctions == null) {
@@ -850,7 +851,7 @@ public class DatabaseStructure {
       if (other.users != null) {
         return false;
       }
-    } else if (!ListUtils.equalsWithoutOrder(users, other.users)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(users, other.users)) {
       return false;
     }
     return true;
