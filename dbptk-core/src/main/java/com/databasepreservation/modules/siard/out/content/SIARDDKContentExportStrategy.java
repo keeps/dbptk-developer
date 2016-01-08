@@ -49,6 +49,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
   private int tableCounter;
   private boolean foundClob;
+  private boolean foundUnknownMimetype;
 
   private ContentPathExportStrategy contentPathExportStrategy;
   private FileIndexFileStrategy fileIndexFileStrategy;
@@ -66,6 +67,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
     tableCounter = 1;
     foundClob = false;
+    foundUnknownMimetype = false;
 
     mimetypeHandler = new SIARDDKMimetypeHandler();
     tika = new Tika();
@@ -213,6 +215,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     } catch (IOException e) {
       throw new ModuleException("Could not write table" + tableStructure.getIndex() + " to disk", e);
     }
+    foundUnknownMimetype = false;
   }
 
   @Override
@@ -231,6 +234,12 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
     } catch (IOException e) {
       throw new ModuleException("Error handling close table " + tableStructure.getId(), e);
+    }
+
+    if (foundUnknownMimetype) {
+      String warning = new StringBuilder().append("Found BLOB(s) with unknown mimetype in table: ")
+        .append(tableStructure.getName()).append(". ").append("File(s) archived with extension '.bin'").toString();
+      logger.warn(warning);
     }
   }
 
@@ -316,55 +325,50 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
               String mimeType = tika.detect(is); // Automatically resets the
                                                  // inputstream after use
 
+              // Archive BLOB - simultaneous writing always supported for
+              // SIARDDK
+
+              tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
+                .append(Integer.toString(lobsTracker.getLOBsCount())).append("</c").append(String.valueOf(columnIndex))
+                .append(">\n");
+
+              String path = contentPathExportStrategy.getBlobFilePath(-1, -1, -1, -1);
+              String fileExtension;
               if (mimetypeHandler.isMimetypeAllowed(mimeType)) {
-
-                // Archive BLOB - simultaneous writing always supported for
-                // SIARDDK
-
-                tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-                  .append(Integer.toString(lobsTracker.getLOBsCount())).append("</c")
-                  .append(String.valueOf(columnIndex)).append(">\n");
-
-                String path = contentPathExportStrategy.getBlobFilePath(-1, -1, -1, -1)
-                  + mimetypeHandler.getFileExtension(mimeType);
-
-                LargeObject blob = new LargeObject(new ProvidesInputStream() {
-                  @Override
-                  public InputStream createInputStream() throws ModuleException {
-                    return binaryCell.createInputstream();
-                  }
-                }, path);
-
-                // Create new FileIndexFileStrategy
-
-                // Write the BLOB
-                OutputStream out = fileIndexFileStrategy.getLOBWriter(baseContainer, blob.getOutputPath(),
-                  writeStrategy);
-                InputStream in = blob.getInputStreamProvider().createInputStream();
-                IOUtils.copy(in, out);
-                in.close();
-                out.close();
-
-                // Add file to docIndex (a lot easier to do here even though we
-                // are dealing with metadata)
-
-                // TO-DO: obtain (how?) hardcoded values
-                docIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1, lobsTracker.getDocCollectionCount(),
-                  "originalFilename", mimetypeHandler.getFileExtension(mimeType), null);
-
-                // Add file to fileIndex
-                fileIndexFileStrategy.addFile(blob.getOutputPath());
-
+                fileExtension = mimetypeHandler.getFileExtension(mimeType);
               } else {
-                tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
-                  .append(" xsi:nil=\"true\"/>").append("\n");
-
-                // Decrement LOBs counter since the LOB is not "used" anyway
-                lobsTracker.decrementLOBsCount();
-
-                logger.error("Unaccepted mimetype (" + mimeType + " detected) for BLOB in table" + tableCounter
-                  + ", column " + columnIndex + " - value set to NULL!");
+                fileExtension = SIARDDKConstants.UNKNOWN_MIMETYPE_BLOB_EXTENSION;
+                // Log (table level) that unknown BLOB mimetype was detected
+                foundUnknownMimetype = true;
               }
+              path += fileExtension;
+
+              LargeObject blob = new LargeObject(new ProvidesInputStream() {
+                @Override
+                public InputStream createInputStream() throws ModuleException {
+                  return binaryCell.createInputstream();
+                }
+              }, path);
+
+              // Create new FileIndexFileStrategy
+
+              // Write the BLOB
+              OutputStream out = fileIndexFileStrategy.getLOBWriter(baseContainer, blob.getOutputPath(), writeStrategy);
+              InputStream in = blob.getInputStreamProvider().createInputStream();
+              IOUtils.copy(in, out);
+              in.close();
+              out.close();
+
+              // Add file to docIndex (a lot easier to do here even though we
+              // are dealing with metadata)
+
+              // TO-DO: obtain (how?) hardcoded values
+              docIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1, lobsTracker.getDocCollectionCount(),
+                "originalFilename", fileExtension, null);
+
+              // Add file to fileIndex
+              fileIndexFileStrategy.addFile(blob.getOutputPath());
+
             }
           }
         }
