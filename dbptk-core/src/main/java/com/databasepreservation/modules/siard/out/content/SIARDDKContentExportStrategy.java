@@ -237,8 +237,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     }
 
     if (foundUnknownMimetype) {
-      String warning = new StringBuilder().append("Found BLOB(s) with unknown mimetype in table: ")
-        .append(tableStructure.getName()).append(". ").append("File(s) archived with extension '.bin'").toString();
+      String warning = new StringBuilder().append("Found BLOB(s) with unknown mimetype(s) in table '")
+        .append(tableStructure.getName()).append("'. ").append("File(s) archived with extension '.bin'").toString();
       logger.warn(warning);
     }
   }
