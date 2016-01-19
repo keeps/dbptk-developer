@@ -105,12 +105,16 @@ public class LOBsTracker {
     Map<Integer, Integer> maxClobLengthInColumn = maxCLOBlength.get(table);
     if (maxClobLengthInColumn == null) {
       maxClobLengthInColumn = new HashMap<Integer, Integer>();
-      maxClobLengthInColumn.put(column, length);
       maxCLOBlength.put(table, maxClobLengthInColumn);
     }
 
-    if (maxClobLengthInColumn.get(column) < length) {
-      maxClobLengthInColumn.put(column, length);
+    if (!maxClobLengthInColumn.containsKey(column)) {
+		maxClobLengthInColumn.put(column, length);
+    }
+    else {
+	    if (maxClobLengthInColumn.get(column) < length) {
+	      maxClobLengthInColumn.put(column, length);
+	    }
     }
   }
 
