@@ -109,12 +109,11 @@ public class LOBsTracker {
     }
 
     if (!maxClobLengthInColumn.containsKey(column)) {
-		maxClobLengthInColumn.put(column, length);
-    }
-    else {
-	    if (maxClobLengthInColumn.get(column) < length) {
-	      maxClobLengthInColumn.put(column, length);
-	    }
+      maxClobLengthInColumn.put(column, length);
+    } else {
+      if (maxClobLengthInColumn.get(column) < length) {
+        maxClobLengthInColumn.put(column, length);
+      }
     }
   }
 
