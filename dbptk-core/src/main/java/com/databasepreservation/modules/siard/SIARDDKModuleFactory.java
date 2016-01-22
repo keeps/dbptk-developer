@@ -1,5 +1,6 @@
 package com.databasepreservation.modules.siard;
 
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +22,9 @@ import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
  *
  */
 public class SIARDDKModuleFactory implements DatabaseModuleFactory {
-
+  // TODO: As things are now, are we not always generating the '.1' version of
+  // the archive (indicating that the last .[1-9][0-9] should perhaps not be
+  // inputed by the user - but added by the code automatically? )
   private static final Parameter folder = new Parameter().shortName("f").longName("folder")
     .description(
       "Path to SIARDDK archive folder. Archive folder name must match the expression AVID.[A-ZÆØÅ]{2,4}.[1-9][0-9]*.[1-9][0-9]")
@@ -41,10 +44,11 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
 
   // TODO: Supplement description with default choice for schema for PostgreSQL,
   // MS SQL etc.
-  public static final Parameter PARAM_IMPORT_AS_SCHEMA = new Parameter().shortName("ias").longName("as-schema")
-    .description("Name of the database schema to use when importing the SIARDDK archive").required(true);
+  private static final Parameter PARAM_IMPORT_AS_SCHEMA = new Parameter().shortName("as").longName("as-schema")
+    .description("Name of the database schema to use when importing the SIARDDK archive").required(true)
+    .hasArgument(true);
 
-  public static final Parameter PARAM_IMPORT_FOLDER = new Parameter().shortName("f").longName("folder")
+  private static final Parameter PARAM_IMPORT_FOLDER = new Parameter().shortName("f").longName("folder")
     .description(
       "Path to (the first) SIARDDK archive folder. Archive folder name must match the expression AVID.[A-ZÆØÅ]{2,4}.[1-9][0-9]*.1 .Any subsequent folders in the identified serie will also be processed (eg. with suffixes .2 .3 etc)")
     .hasArgument(true).setOptionalArgument(false).required(true);
@@ -113,7 +117,8 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) {
-    return new SIARDDKImportModule(parameters).getDatabaseImportModule();
+    return new SIARDDKImportModule(Paths.get(parameters.get(PARAM_IMPORT_FOLDER)),
+      parameters.get(PARAM_IMPORT_AS_SCHEMA)).getDatabaseImportModule();
   }
 
   @Override

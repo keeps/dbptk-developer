@@ -29,6 +29,7 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.in.metadata.typeConverter.TypeConverterFactory;
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
@@ -48,7 +49,6 @@ import dk.sa.xmlns.diark._1_0.tableindex.TableType;
  */
 public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
 
-  protected static String METADATA_FILENAME = "tabelIndex";
   protected final CustomLogger logger = CustomLogger.getLogger(SIARDDKMetadataImportStrategy.class);
 
   protected final MetadataPathStrategy metadataPathStrategy;
@@ -76,12 +76,12 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
     SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
     Schema xsdSchema = null;
     InputStream xsdStream = readStrategy.createInputStream(container,
-      metadataPathStrategy.getXsdFilePath(METADATA_FILENAME));
+      metadataPathStrategy.getXsdFilePath(SIARDDKConstants.TABLE_INDEX));
     try {
       xsdSchema = schemaFactory.newSchema(new StreamSource(xsdStream));
     } catch (SAXException e) {
       throw new ModuleException(
-        "Error reading metadata XSD file: " + metadataPathStrategy.getXsdFilePath(METADATA_FILENAME), e);
+        "Error reading metadata XSD file: " + metadataPathStrategy.getXsdFilePath(SIARDDKConstants.TABLE_INDEX), e);
     }
     InputStream reader = null;
     SiardDiark xmlRoot;
@@ -92,7 +92,8 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
       // unmarshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
       unmarshaller.setSchema(xsdSchema);
       // TODO: Validate file md5sum
-      reader = readStrategy.createInputStream(container, metadataPathStrategy.getXmlFilePath(METADATA_FILENAME));
+      reader = readStrategy.createInputStream(container,
+        metadataPathStrategy.getXmlFilePath(SIARDDKConstants.TABLE_INDEX));
       xmlRoot = (SiardDiark) unmarshaller.unmarshal(reader);
     } catch (JAXBException e) {
       throw new ModuleException("Error while Unmarshalling JAXB", e);
@@ -147,7 +148,7 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
 
   protected List<SchemaStructure> getSchemas(SiardDiark siardArchive) throws ModuleException {
     SchemaStructure schemaImportAs = new SchemaStructure();
-    schemaImportAs.setName(importAsSchameName);
+    schemaImportAs.setName(getImportAsSchameName());
     schemaImportAs.setTables(getTables(siardArchive));
     List<SchemaStructure> list = new LinkedList<SchemaStructure>();
     list.add(schemaImportAs);
@@ -189,7 +190,6 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
         // merged into this as well.
         columnDptkl.setDescription(columnXml.getDescription());
         columnDptkl.setDefaultValue(columnXml.getDefaultValue());
-        columnDptkl.setType(getType(columnXml.getType()));
         columnDptkl.setNillable(columnXml.isNullable());
         
         // TODO
