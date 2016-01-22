@@ -39,6 +39,8 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     .description("Path to contextDocumentation folder which should contain the context documentation for the archive")
     .hasArgument(true).setOptionalArgument(false).required(false);
 
+  // TODO: Supplement description with default choice for schema for PostgreSQL,
+  // MS SQL etc.
   public static final Parameter PARAM_IMPORT_AS_SCHEMA = new Parameter().shortName("ias").longName("as-schema")
     .description("Name of the database schema to use when importing the SIARDDK archive").required(true);
 

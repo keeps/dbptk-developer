@@ -3,6 +3,9 @@ package com.databasepreservation.modules.siard.in.metadata;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
@@ -16,13 +19,28 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.model.structure.ForeignKey;
+import com.databasepreservation.model.structure.PrimaryKey;
+import com.databasepreservation.model.structure.Reference;
+import com.databasepreservation.model.structure.SchemaStructure;
+import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
+import com.databasepreservation.modules.siard.in.metadata.typeConverter.TypeConverterFactory;
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 
+import dk.sa.xmlns.diark._1_0.tableindex.ColumnType;
+import dk.sa.xmlns.diark._1_0.tableindex.ColumnsType;
+import dk.sa.xmlns.diark._1_0.tableindex.ForeignKeyType;
+import dk.sa.xmlns.diark._1_0.tableindex.ForeignKeysType;
+import dk.sa.xmlns.diark._1_0.tableindex.PrimaryKeyType;
+import dk.sa.xmlns.diark._1_0.tableindex.ReferenceType;
 import dk.sa.xmlns.diark._1_0.tableindex.SiardDiark;
+import dk.sa.xmlns.diark._1_0.tableindex.TableType;
 
 /**
  * @author Thomas Kristensen <tk@bithuset.dk>
@@ -36,11 +54,13 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
   protected final MetadataPathStrategy metadataPathStrategy;
   protected final ContentPathImportStrategy contentPathStrategy;
   protected DatabaseStructure databaseStructure;
+  protected final String importAsSchameName;
 
   public SIARDDKMetadataImportStrategy(MetadataPathStrategy metadataPathStrategy,
-    ContentPathImportStrategy contentPathImportStrategy) {
+    ContentPathImportStrategy contentPathImportStrategy, String importAsSchameName) {
     this.metadataPathStrategy = metadataPathStrategy;
     this.contentPathStrategy = contentPathImportStrategy;
+    this.importAsSchameName = importAsSchameName;
   }
 
   @Override
@@ -119,10 +139,121 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
      */
     databaseStructure.setName(siardArchive.getDbName());
     databaseStructure.setProductName(siardArchive.getDatabaseProduct());
-    // TODO: Continue here (set schema according to input param)
+    databaseStructure.setSchemas(getSchemas(siardArchive));
 
     return databaseStructure;
 
+  }
+
+  protected List<SchemaStructure> getSchemas(SiardDiark siardArchive) throws ModuleException {
+    SchemaStructure schemaImportAs = new SchemaStructure();
+    schemaImportAs.setName(importAsSchameName);
+    schemaImportAs.setTables(getTables(siardArchive));
+    List<SchemaStructure> list = new LinkedList<SchemaStructure>();
+    list.add(schemaImportAs);
+    // TODO: Views
+    return list;
+
+  }
+
+  protected List<TableStructure> getTables(SiardDiark siardArchive) throws ModuleException {
+    List<TableStructure> lstTblsDptkl = new LinkedList<TableStructure>();
+
+    if (siardArchive.getTables() != null && siardArchive.getTables().getTable() != null) {
+      for (TableType tblXml : siardArchive.getTables().getTable()) {
+        TableStructure tblDptkl = new TableStructure();
+        tblDptkl.setSchema(getImportAsSchameName());
+        tblDptkl.setName(tblXml.getName());
+        tblDptkl.setId(String.format("%s.%s", tblDptkl.getSchema(), tblDptkl.getName()));
+        tblDptkl.setDescription(tblXml.getDescription());
+        tblDptkl.setPrimaryKey(getPrimaryKey(tblXml.getPrimaryKey()));
+        tblDptkl.setForeignKeys(getForeignKeys(tblXml.getForeignKeys(), tblDptkl.getId()));
+        tblDptkl.setRows(getNumberOfTblRows(tblXml.getRows(), tblXml.getName()));
+        tblDptkl.setColumns(getTblColumns(tblXml.getColumns(), tblDptkl.getId()));
+        lstTblsDptkl.add(tblDptkl);
+      }
+    }
+    return lstTblsDptkl;
+  }
+
+  protected List<ColumnStructure> getTblColumns(ColumnsType columnsXml, String tableId) throws ModuleException {
+    List<ColumnStructure> lstColumnsDptkl = new LinkedList<ColumnStructure>();
+    if (columnsXml != null && columnsXml.getColumn() != null) {
+      for (ColumnType columnXml : columnsXml.getColumn()) {
+        ColumnStructure columnDptkl = new ColumnStructure();
+        columnDptkl.setName(columnXml.getName());
+        columnDptkl.setId(String.format("%s.%s", tableId, columnDptkl.getName()));
+        columnDptkl.setType(
+          TypeConverterFactory.getSQL99TypeConverter().getType(columnXml.getType(), columnXml.getTypeOriginal()));
+        // TODO: Consider if columnXml.getFunctionalDescription() should be
+        // merged into this as well.
+        columnDptkl.setDescription(columnXml.getDescription());
+        columnDptkl.setDefaultValue(columnXml.getDefaultValue());
+        columnDptkl.setType(getType(columnXml.getType()));
+        columnDptkl.setNillable(columnXml.isNullable());
+        
+        // TODO
+        // contentPathStrategy.associateColumnWithFolder(columnDptkl.getId(),);
+        lstColumnsDptkl.add(columnDptkl);
+      }
+    }
+    return lstColumnsDptkl;
+  }
+
+  protected Type getType(String type) {
+
+    return null;
+  }
+
+  protected long getNumberOfTblRows(BigInteger numRows, String tableName) throws ModuleException {
+    try {
+      return numRows.longValueExact();
+    } catch (ArithmeticException e) {
+      throw new ModuleException(
+        "Unable to import table [" + tableName + "], as the number of rows [" + numRows
+          + "] exceeds the max value of the long datatype used to store the number.(Consult the vendor/a programmer for a fix of this problem, if needed)",
+        e);
+    }
+  }
+
+  protected PrimaryKey getPrimaryKey(PrimaryKeyType primaryKeyXml) {
+    PrimaryKey keyDptkl = new PrimaryKey();
+    keyDptkl.setName(primaryKeyXml.getName());
+    keyDptkl.setColumnNames(primaryKeyXml.getColumn());
+    return keyDptkl;
+  }
+
+  protected List<ForeignKey> getForeignKeys(ForeignKeysType foreignKeysXml, String tableId) {
+    List<ForeignKey> lstForeignKeyDptkl = new LinkedList<ForeignKey>();
+    if (foreignKeysXml != null) {
+      for (ForeignKeyType foreignKeyXml : foreignKeysXml.getForeignKey()) {
+        ForeignKey foreignKeyDptkl = new ForeignKey();
+        foreignKeyDptkl.setReferencedSchema(getImportAsSchameName());
+        foreignKeyDptkl.setName(foreignKeyXml.getName());
+        foreignKeyDptkl.setReferencedTable(foreignKeyXml.getReferencedTable());
+        foreignKeyDptkl.setReferences(getReferences(foreignKeyXml.getReference()));
+        foreignKeyDptkl.setId(String.format("%s.%s", tableId, foreignKeyDptkl.getName()));
+        lstForeignKeyDptkl.add(foreignKeyDptkl);
+      }
+    }
+    return lstForeignKeyDptkl;
+  }
+
+  protected List<Reference> getReferences(List<ReferenceType> referencesXml) {
+    List<Reference> refsDptkld = new LinkedList<Reference>();
+    if (referencesXml != null) {
+      for (ReferenceType referenceTypeXml : referencesXml) {
+        Reference refDptkld = new Reference();
+        refDptkld.setColumn(referenceTypeXml.getColumn());
+        refDptkld.setReferenced(referenceTypeXml.getReferenced());
+        refsDptkld.add(refDptkld);
+      }
+    }
+    return refsDptkld;
+  }
+
+  public String getImportAsSchameName() {
+    return importAsSchameName;
   }
 
 }

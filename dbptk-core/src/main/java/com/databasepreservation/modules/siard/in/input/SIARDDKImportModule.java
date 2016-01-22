@@ -11,7 +11,7 @@ import com.databasepreservation.modules.siard.common.path.SIARDDKMetadataPathStr
 import com.databasepreservation.modules.siard.in.content.ContentImportStrategy;
 import com.databasepreservation.modules.siard.in.content.SIARDDKContentImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.MetadataImportStrategy;
-import com.databasepreservation.modules.siard.in.metadata.SIARD1MetadataImportStrategy;
+import com.databasepreservation.modules.siard.in.metadata.SIARDDKMetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.path.SIARDDKContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
@@ -43,7 +43,8 @@ public class SIARDDKImportModule {
     contentStrategy = new SIARDDKContentImportStrategy(readStrategy, contentPathStrategy);
 
     MetadataPathStrategy metadataPathStrategy = new SIARDDKMetadataPathStrategy();
-    metadataStrategy = new SIARD1MetadataImportStrategy(metadataPathStrategy, contentPathStrategy);
+    metadataStrategy = new SIARDDKMetadataImportStrategy(metadataPathStrategy, contentPathStrategy,
+      this.parameters.get(SIARDDKModuleFactory.PARAM_IMPORT_AS_SCHEMA));
 
   }
 
