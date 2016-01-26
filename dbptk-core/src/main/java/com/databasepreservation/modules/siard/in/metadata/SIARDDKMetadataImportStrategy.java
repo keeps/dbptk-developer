@@ -171,6 +171,7 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
         tblDptkl.setForeignKeys(getForeignKeys(tblXml.getForeignKeys(), tblDptkl.getId()));
         tblDptkl.setRows(getNumberOfTblRows(tblXml.getRows(), tblXml.getName()));
         tblDptkl.setColumns(getTblColumns(tblXml.getColumns(), tblDptkl.getId()));
+        contentPathStrategy.associateTableWithFolder(tblDptkl.getId(), tblXml.getFolder());
         lstTblsDptkl.add(tblDptkl);
       }
     }
@@ -191,8 +192,8 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
         columnDptkl.setDescription(columnXml.getDescription());
         columnDptkl.setDefaultValue(columnXml.getDefaultValue());
         columnDptkl.setNillable(columnXml.isNullable());
-        
-        // TODO
+
+        // TODO LOB
         // contentPathStrategy.associateColumnWithFolder(columnDptkl.getId(),);
         lstColumnsDptkl.add(columnDptkl);
       }

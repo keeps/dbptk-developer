@@ -30,12 +30,12 @@ public class SIARDDKImportModule {
     mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.MAIN);
     readStrategy = new FolderReadStrategy(mainContainer);
 
-    ContentPathImportStrategy contentPathStrategy = new SIARDDKContentPathImportStrategy();
-    contentStrategy = new SIARDDKContentImportStrategy(readStrategy, contentPathStrategy);
-
     MetadataPathStrategy metadataPathStrategy = new SIARDDKMetadataPathStrategy();
+    ContentPathImportStrategy contentPathStrategy = new SIARDDKContentPathImportStrategy(mainContainer, readStrategy,
+      metadataPathStrategy, paramImportAsSchema);
     metadataStrategy = new SIARDDKMetadataImportStrategy(metadataPathStrategy, contentPathStrategy,
       paramImportAsSchema);
+    contentStrategy = new SIARDDKContentImportStrategy(readStrategy, contentPathStrategy);
 
   }
 
