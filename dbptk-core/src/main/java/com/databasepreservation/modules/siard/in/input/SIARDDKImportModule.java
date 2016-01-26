@@ -10,7 +10,6 @@ import com.databasepreservation.modules.siard.in.content.ContentImportStrategy;
 import com.databasepreservation.modules.siard.in.content.SIARDDKContentImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.SIARDDKMetadataImportStrategy;
-import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.path.SIARDDKContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.FolderReadStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
@@ -31,11 +30,12 @@ public class SIARDDKImportModule {
     readStrategy = new FolderReadStrategy(mainContainer);
 
     MetadataPathStrategy metadataPathStrategy = new SIARDDKMetadataPathStrategy();
-    ContentPathImportStrategy contentPathStrategy = new SIARDDKContentPathImportStrategy(mainContainer, readStrategy,
+    SIARDDKContentPathImportStrategy contentPathStrategy = new SIARDDKContentPathImportStrategy(mainContainer,
+      readStrategy,
       metadataPathStrategy, paramImportAsSchema);
     metadataStrategy = new SIARDDKMetadataImportStrategy(metadataPathStrategy, contentPathStrategy,
       paramImportAsSchema);
-    contentStrategy = new SIARDDKContentImportStrategy(readStrategy, contentPathStrategy);
+    contentStrategy = new SIARDDKContentImportStrategy(readStrategy, contentPathStrategy, paramImportAsSchema);
 
   }
 

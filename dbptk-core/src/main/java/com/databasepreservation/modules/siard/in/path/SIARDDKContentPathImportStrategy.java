@@ -2,6 +2,8 @@ package com.databasepreservation.modules.siard.in.path;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -39,6 +41,7 @@ public class SIARDDKContentPathImportStrategy implements ContentPathImportStrate
   protected final Map<String, F> xmlFilePathLookupByFolderName = new HashMap<String, F>();
   protected final Map<String, F> xsdFilePathLookupByFolderName = new HashMap<String, F>();
   protected final Map<String, String> folderNameLookupByTableId = new HashMap<String, String>();
+  protected final Map<String, Path> archiveFolderLookupByFolderName = new HashMap<String, Path>();
 
   public SIARDDKContentPathImportStrategy(SIARDArchiveContainer mainFolder, ReadStrategy readStrategy,
     MetadataPathStrategy metadataPathStrategy, String importAsSchema) {
@@ -93,12 +96,14 @@ public class SIARDDKContentPathImportStrategy implements ContentPathImportStrate
       }
     }
 
-    Pattern pattrnTableFolder = Pattern.compile("AVID\\.[A-ZÆØÅ]{2,4}\\.[0-9]*\\.[0-9]*\\Tables\\(table[0-9]*)");
+    Pattern pattrnTableFolder = Pattern.compile("(AVID\\.[A-ZÆØÅ]{2,4}\\.[0-9]*\\.[0-9]*)\\Tables\\(table[0-9]*)");
 
     for (F fileInfo : xmlFileIndex.getF()) {
       Matcher m = pattrnTableFolder.matcher(fileInfo.getFoN());
       if (m.matches()) {
-        String folderName=m.group(1);
+        String folderName = m.group(2);
+        Path archivePath = FileSystems.getDefault().getPath(m.group(1));
+        archiveFolderLookupByFolderName.put(folderName, archivePath);
         if( fileInfo.getFiN().toLowerCase().endsWith(SIARDDKConstants.XML_EXTENSION))
         {
           if(xmlFilePathLookupByFolderName.containsKey(folderName))
@@ -209,6 +214,13 @@ public class SIARDDKContentPathImportStrategy implements ContentPathImportStrate
 
   public byte[] getTableXSDFileMD5(String schemaName, String tableId) throws ModuleException {
     return getTableXSDFileInfo(schemaName, tableId).getMd5();
+  }
+
+  public Path getArchiveFolderPath(String schemaName, String tableId) throws ModuleException {
+    canLookupTable(schemaName, tableId);
+    String folderName = folderNameLookupByTableId.get(tableId);
+    assert (archiveFolderLookupByFolderName.containsKey(folderName));
+    return archiveFolderLookupByFolderName.get(folderName);
   }
 
 }
