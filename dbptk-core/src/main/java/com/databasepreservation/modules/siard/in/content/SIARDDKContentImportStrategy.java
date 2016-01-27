@@ -94,7 +94,8 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
         currentTable = table;
         this.dbExportHandler.handleDataOpenTable(table.getId());
         rowIndex = 0;
-        try {
+        String xsdFileName = contentPathStrategy.getTableXSDFilePath(schema.getName(), table.getId());
+        String xmlFileName = contentPathStrategy.getTableXMLFilePath(schema.getName(), table.getId());
           Path archiveFolderLogicalPath = contentPathStrategy.getArchiveFolderPath(importAsSchema, table.getId());
           Path archiveFolderActualPath = mainFolder.getPath().resolveSibling(archiveFolderLogicalPath);
           if (!archiveContainerByPath.containsKey(archiveFolderActualPath)) {
@@ -103,8 +104,9 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
               new SIARDArchiveContainer(archiveFolderActualPath, OutputContainerType.MAIN));
           }
           currentFolder = archiveContainerByPath.get(archiveFolderActualPath);
+        try {
           xsdStream = readStrategy.createInputStream(currentFolder,
-            contentPathStrategy.getTableXSDFilePath(schema.getName(), table.getId()));
+ xsdFileName);
           saxParser = saxParserFactory.newSAXParser();
           // saxParser.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, ""); //TODO
           // saxParser.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
@@ -124,7 +126,7 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
         }
 
         InputStream currentTableStream = readStrategy.createInputStream(currentFolder,
-          contentPathStrategy.getTableXMLFilePath(schema.getName(), table.getId()));
+ xmlFileName);
 
         SAXErrorHandler saxErrorHandler = new SAXErrorHandler();
 
@@ -132,7 +134,7 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
           XMLReader xmlReader = saxParser.getXMLReader();
           xmlReader.setContentHandler(this);
           xmlReader.setErrorHandler(saxErrorHandler);
-
+          logger.debug("begin parse of xml-file:[" + xmlFileName + "], using xsd [" + xsdFileName + "]");
           xmlReader.parse(new InputSource(currentTableStream));
 
         } catch (SAXException e) {
@@ -204,12 +206,12 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
 
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
-    // assert (localName.toLowerCase().equals(currentTagLocalName));
+
     if (localName.equals(XML_TBL_TAG_LOCALNAME)) {
       isInTblTag = false;
 
     } else {
-      if (isInTblTag && currentTagLocalName.equals(XML_ROW_TAG_LOCALNAME)) {
+      if (isInTblTag && localName.equals(XML_ROW_TAG_LOCALNAME)) {
         currentRow.setCells(Arrays.asList(currentRowCells));
         try {
           this.dbExportHandler.handleDataRow(currentRow);
@@ -238,11 +240,13 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
           String id = String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1).getId(), rowIndex);
           Cell cell = new SimpleCell(id);
 
-          if (trimmedCellVal.length() > 0) {
+          // TODO: Handle NULL values - Continue here
+
+          // if (trimmedCellVal.length() > 0) {
             ((SimpleCell) cell).setSimpledata(trimmedCellVal);
-          } else {
-            ((SimpleCell) cell).setSimpledata(null);
-          }
+          // } else {
+          // ((SimpleCell) cell).setSimpledata(null);
+          // }
 
           currentRowCells[columnIndex - 1] = cell;
           // TODO: Verify all cells were present.
