@@ -3,9 +3,8 @@ package com.databasepreservation.modules.siard.in.content;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,12 +23,16 @@ import org.xml.sax.helpers.DefaultHandler;
 import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.Row;
+import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.type.SimpleTypeString;
+import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.modules.siard.SIARDHelper;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer.OutputContainerType;
 import com.databasepreservation.modules.siard.in.path.SIARDDKContentPathImportStrategy;
@@ -53,10 +56,11 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
   private StringBuilder currentTagContentStrBld;
   protected boolean isInTblTag;
   protected boolean isInRowTag;
+  protected boolean isInCellTag;
   protected Row currentRow;
-  protected List<Cell> currentRowCells;
+  protected Cell[] currentRowCells;
+  protected int rowIndex = 0;
 
-  // TODO: Implement this!
   /**
    * @author Thomas Kristensen <tk@bithuset.dk>
    *
@@ -72,6 +76,7 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
   @Override
   public void importContent(DatabaseExportModule dbExportHandler, SIARDArchiveContainer mainFolder,
     DatabaseStructure databaseStructure) throws ModuleException {
+    contentPathStrategy.parseFileIndexMetadata();
     this.dbExportHandler = dbExportHandler;
     Map<Path, SIARDArchiveContainer> archiveContainerByPath = new HashMap<Path, SIARDArchiveContainer>();
     archiveContainerByPath.put(mainFolder.getPath(), mainFolder);
@@ -82,12 +87,13 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
     InputStream xsdStream = null;
     SIARDArchiveContainer currentFolder = null;
     assert (databaseStructure.getSchemas().size() == 1);
-    dbExportHandler.handleDataOpenSchema(importAsSchema);
+    this.dbExportHandler.handleDataOpenSchema(importAsSchema);
     for (SchemaStructure schema : databaseStructure.getSchemas()) {
       assert (schema.getName().equals(importAsSchema));
       for (TableStructure table : schema.getTables()) {
         currentTable = table;
-        dbExportHandler.handleDataOpenTable(table.getId());
+        this.dbExportHandler.handleDataOpenTable(table.getId());
+        rowIndex = 0;
         try {
           Path archiveFolderLogicalPath = contentPathStrategy.getArchiveFolderPath(importAsSchema, table.getId());
           Path archiveFolderActualPath = mainFolder.getPath().resolveSibling(archiveFolderLogicalPath);
@@ -100,8 +106,9 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
           xsdStream = readStrategy.createInputStream(currentFolder,
             contentPathStrategy.getTableXSDFilePath(schema.getName(), table.getId()));
           saxParser = saxParserFactory.newSAXParser();
-          saxParser.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-          saxParser.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+          // saxParser.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, ""); //TODO
+          // saxParser.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+          // //TODO
           // TODO: Verify that this does not undo the wanted behavior defined
           // below
           saxParser.setProperty(JAXP_SCHEMA_LANGUAGE, XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -151,9 +158,9 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
         } catch (IOException e) {
           throw new ModuleException("Could not close table XSD schema input stream", e);
         }
-        dbExportHandler.handleDataCloseTable(table.getId());
+        this.dbExportHandler.handleDataCloseTable(table.getId());
       }
-      dbExportHandler.handleDataCloseSchema(importAsSchema);
+      this.dbExportHandler.handleDataCloseSchema(importAsSchema);
     }
 
   }
@@ -162,6 +169,7 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
   public void startDocument() throws SAXException {
     isInTblTag = false;
     isInRowTag = false;
+    isInCellTag = false;
   }
 
   @Override
@@ -176,12 +184,17 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
       if (isInTblTag && currentTagLocalName.equals(XML_ROW_TAG_LOCALNAME)) {
         isInRowTag = true;
         currentRow = new Row();
-        currentRowCells = new LinkedList<Cell>();
+        currentRow.setIndex(rowIndex);
+        rowIndex++;
+        currentRowCells = new Cell[currentTable.getColumns().size()];
+
       } else {
         if (isInTblTag && isInRowTag) {
           Matcher matcher = XML_ROW_COLUMN_LOCALNAME_PATTERN.matcher(localName);
           if (matcher.matches()) {
-            // TODO: Continue impl. here!
+            isInCellTag = true;
+
+            
           }
         }
 
@@ -189,18 +202,17 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
     }
   }
 
-
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
-    assert (localName.equals(currentTagLocalName));
+    // assert (localName.toLowerCase().equals(currentTagLocalName));
     if (localName.equals(XML_TBL_TAG_LOCALNAME)) {
       isInTblTag = false;
-    }
- else {
+
+    } else {
       if (isInTblTag && currentTagLocalName.equals(XML_ROW_TAG_LOCALNAME)) {
-        currentRow.setCells(currentRowCells);
+        currentRow.setCells(Arrays.asList(currentRowCells));
         try {
-          dbExportHandler.handleDataRow(currentRow);
+          this.dbExportHandler.handleDataRow(currentRow);
         } catch (InvalidDataException e) {
           // TODO: Add row index to description
           throw new SAXException(e);
@@ -210,9 +222,35 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
         }
 
         isInRowTag = false;
+      } else {
+        Matcher matcher = XML_ROW_COLUMN_LOCALNAME_PATTERN.matcher(localName);
+        if (isInCellTag && matcher.matches()) {
+          Integer columnIndex = Integer.valueOf(matcher.group(1));
+          Type currentCellType = currentTable.getColumns().get(columnIndex - 1).getType();
+
+          // TODO: Handle LOB cells & simple binary cells
+          String trimmedCellVal = currentTagContentStrBld.toString().trim();
+
+          if (currentCellType instanceof SimpleTypeString) {
+            // TODO: Determine SHIARDDK requirements here.
+            trimmedCellVal = SIARDHelper.decode(trimmedCellVal);
+          }
+          String id = String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1).getId(), rowIndex);
+          Cell cell = new SimpleCell(id);
+
+          if (trimmedCellVal.length() > 0) {
+            ((SimpleCell) cell).setSimpledata(trimmedCellVal);
+          } else {
+            ((SimpleCell) cell).setSimpledata(null);
+          }
+
+          currentRowCells[columnIndex - 1] = cell;
+          // TODO: Verify all cells were present.
+          isInCellTag = false;
+        }
+
       }
     }
-
 
   }
 

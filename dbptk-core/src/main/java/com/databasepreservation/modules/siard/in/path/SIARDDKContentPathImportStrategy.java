@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
@@ -42,6 +43,7 @@ public class SIARDDKContentPathImportStrategy implements ContentPathImportStrate
   protected final Map<String, F> xsdFilePathLookupByFolderName = new HashMap<String, F>();
   protected final Map<String, String> folderNameLookupByTableId = new HashMap<String, String>();
   protected final Map<String, Path> archiveFolderLookupByFolderName = new HashMap<String, Path>();
+  protected final Pattern folderSperatorPattern = Pattern.compile("[\\\\\\/]");
 
   public SIARDDKContentPathImportStrategy(SIARDArchiveContainer mainFolder, ReadStrategy readStrategy,
     MetadataPathStrategy metadataPathStrategy, String importAsSchema) {
@@ -52,7 +54,7 @@ public class SIARDDKContentPathImportStrategy implements ContentPathImportStrate
     this.importAsSchema = importAsSchema;
   }
 
-  public void init() throws ModuleException {
+  public void parseFileIndexMetadata() throws ModuleException {
 
     JAXBContext context;
     try {
@@ -82,7 +84,8 @@ public class SIARDDKContentPathImportStrategy implements ContentPathImportStrate
       // TODO: Validate file md5sum
       reader = readStrategy.createInputStream(mainFolder,
         metadataPathStrategy.getXmlFilePath(SIARDDKConstants.FILE_INDEX));
-      xmlFileIndex = (FileIndexType) unmarshaller.unmarshal(reader);
+      JAXBElement<FileIndexType> jaxbElement = (JAXBElement<FileIndexType>) unmarshaller.unmarshal(reader);
+      xmlFileIndex = jaxbElement.getValue();
     } catch (JAXBException e) {
       throw new ModuleException("Error while Unmarshalling JAXB", e);
     } finally {
@@ -96,7 +99,7 @@ public class SIARDDKContentPathImportStrategy implements ContentPathImportStrate
       }
     }
 
-    Pattern pattrnTableFolder = Pattern.compile("(AVID\\.[A-ZÆØÅ]{2,4}\\.[0-9]*\\.[0-9]*)\\Tables\\(table[0-9]*)");
+    Pattern pattrnTableFolder = Pattern.compile("(AVID\\.[A-ZÆØÅ]{2,4}\\.[0-9]*\\.[0-9]*)\\\\Tables\\\\(table[0-9]*)");
 
     for (F fileInfo : xmlFileIndex.getF()) {
       Matcher m = pattrnTableFolder.matcher(fileInfo.getFoN());
@@ -178,7 +181,7 @@ public class SIARDDKContentPathImportStrategy implements ContentPathImportStrate
 
   @Override
   public String getTableXMLFilePath(String schemaName, String tableId) throws ModuleException {
-    return getTableXMLFileInfo(schemaName, tableId).getFiN();
+    return buildPath(getTableXMLFileInfo(schemaName, tableId));
   }
 
   public byte[] getTableXMLFileMD5(String schemaName, String tableId) throws ModuleException {
@@ -207,9 +210,18 @@ public class SIARDDKContentPathImportStrategy implements ContentPathImportStrate
     return xsdFilePathLookupByFolderName.get(folderName);
   }
 
+
+
+  protected String buildPath(F fileInfo) {
+    Path pathFolderSperatorNeutral = FileSystems.getDefault().getPath("",
+      folderSperatorPattern.split(fileInfo.getFoN()));
+    Path pathFolderSperatorNeutralWithFile = pathFolderSperatorNeutral.resolve(fileInfo.getFiN());
+    return mainFolder.getPath().resolveSibling(pathFolderSperatorNeutralWithFile).toString();
+  }
+
   @Override
   public String getTableXSDFilePath(String schemaName, String tableId) throws ModuleException {
-    return getTableXSDFileInfo(schemaName, tableId).getFiN();
+    return buildPath(getTableXSDFileInfo(schemaName, tableId));
   }
 
   public byte[] getTableXSDFileMD5(String schemaName, String tableId) throws ModuleException {
