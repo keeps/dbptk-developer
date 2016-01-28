@@ -61,7 +61,7 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
   protected Row currentRow;
   protected Cell[] currentRowCells;
   protected int rowIndex = 0;
-  protected static final String SIARDDK_NIL_ATTR_NAME = "xsi:nil";
+  private static final String SIARDDK_NIL_LOCAL_ATTR_NAME = "nil";
 
   /**
    * @author Thomas Kristensen <tk@bithuset.dk>
@@ -197,7 +197,9 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
           Matcher matcher = XML_ROW_COLUMN_LOCALNAME_PATTERN.matcher(localName);
           if (matcher.matches()) {
             isInCellTag = true;
-            isInNullValueCell = Boolean.valueOf(attributes.getValue(SIARDDK_NIL_ATTR_NAME));
+            int nilAttrIndex = attributes.getIndex(XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI,
+              SIARDDK_NIL_LOCAL_ATTR_NAME);
+            isInNullValueCell = nilAttrIndex != -1 && Boolean.valueOf(attributes.getValue(nilAttrIndex));
           }
         }
 
