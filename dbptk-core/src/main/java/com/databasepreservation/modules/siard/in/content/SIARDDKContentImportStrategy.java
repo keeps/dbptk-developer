@@ -57,9 +57,11 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
   protected boolean isInTblTag;
   protected boolean isInRowTag;
   protected boolean isInCellTag;
+  protected boolean isInNullValueCell;
   protected Row currentRow;
   protected Cell[] currentRowCells;
   protected int rowIndex = 0;
+  protected static final String SIARDDK_NIL_ATTR_NAME = "xsi:nil";
 
   /**
    * @author Thomas Kristensen <tk@bithuset.dk>
@@ -195,14 +197,14 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
           Matcher matcher = XML_ROW_COLUMN_LOCALNAME_PATTERN.matcher(localName);
           if (matcher.matches()) {
             isInCellTag = true;
-
-            
+            isInNullValueCell = Boolean.valueOf(attributes.getValue(SIARDDK_NIL_ATTR_NAME));
           }
         }
 
       }
     }
   }
+
 
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
@@ -228,29 +230,26 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
         Matcher matcher = XML_ROW_COLUMN_LOCALNAME_PATTERN.matcher(localName);
         if (isInCellTag && matcher.matches()) {
           Integer columnIndex = Integer.valueOf(matcher.group(1));
-          Type currentCellType = currentTable.getColumns().get(columnIndex - 1).getType();
 
           // TODO: Handle LOB cells & simple binary cells
-          String trimmedCellVal = currentTagContentStrBld.toString().trim();
 
-          if (currentCellType instanceof SimpleTypeString) {
-            // TODO: Determine SHIARDDK requirements here.
-            trimmedCellVal = SIARDHelper.decode(trimmedCellVal);
-          }
           String id = String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1).getId(), rowIndex);
-          Cell cell = new SimpleCell(id);
-
-          // TODO: Handle NULL values - Continue here
-
-          // if (trimmedCellVal.length() > 0) {
-            ((SimpleCell) cell).setSimpledata(trimmedCellVal);
-          // } else {
-          // ((SimpleCell) cell).setSimpledata(null);
-          // }
-
+          SimpleCell cell = new SimpleCell(id);
+          if (isInNullValueCell) {
+            cell.setSimpledata(null);
+          } else {
+            String preparedCellVal = currentTagContentStrBld.toString().trim();
+            Type currentCellType = currentTable.getColumns().get(columnIndex - 1).getType();
+          if (currentCellType instanceof SimpleTypeString) {
+              // TODO: Establish SIARD-DK requirements here.
+              preparedCellVal = SIARDHelper.decode(preparedCellVal);
+          }
+            cell.setSimpledata(preparedCellVal);
+          }
           currentRowCells[columnIndex - 1] = cell;
           // TODO: Verify all cells were present.
           isInCellTag = false;
+          isInNullValueCell = false;
         }
 
       }
