@@ -26,7 +26,8 @@ public class SIARDDKImportModule {
   protected final ContentImportStrategy contentStrategy;
 
   public SIARDDKImportModule(Path siardPackage, String paramImportAsSchema) {
-    mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.MAIN);
+    mainContainer = new SIARDArchiveContainer(siardPackage.toAbsolutePath().normalize(),
+      SIARDArchiveContainer.OutputContainerType.MAIN);
     readStrategy = new FolderReadStrategy(mainContainer);
 
     MetadataPathStrategy metadataPathStrategy = new SIARDDKMetadataPathStrategy();

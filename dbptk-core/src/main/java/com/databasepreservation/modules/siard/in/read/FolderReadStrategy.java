@@ -11,7 +11,7 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
  */
 public class FolderReadStrategy implements ReadStrategy {
 
-  protected ZipAndFolderReadStrategy zipAndFolderReadStrategy;
+  protected final ZipAndFolderReadStrategy zipAndFolderReadStrategy;
 
   public FolderReadStrategy(SIARDArchiveContainer mainContainer) {
     // Adapter Strategy:

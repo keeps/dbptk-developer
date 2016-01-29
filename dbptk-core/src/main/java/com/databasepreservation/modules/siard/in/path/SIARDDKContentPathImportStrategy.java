@@ -181,7 +181,7 @@ public class SIARDDKContentPathImportStrategy implements ContentPathImportStrate
 
   @Override
   public String getTableXMLFilePath(String schemaName, String tableId) throws ModuleException {
-    return buildPath(getTableXMLFileInfo(schemaName, tableId));
+    return buildPathSansArchiveFolderName(getTableXMLFileInfo(schemaName, tableId));
   }
 
   public byte[] getTableXMLFileMD5(String schemaName, String tableId) throws ModuleException {
@@ -212,16 +212,17 @@ public class SIARDDKContentPathImportStrategy implements ContentPathImportStrate
 
 
 
-  protected String buildPath(F fileInfo) {
+  protected String buildPathSansArchiveFolderName(F fileInfo) {
     Path pathFolderSperatorNeutral = FileSystems.getDefault().getPath("",
       folderSperatorPattern.split(fileInfo.getFoN()));
+    pathFolderSperatorNeutral = pathFolderSperatorNeutral.subpath(1, pathFolderSperatorNeutral.getNameCount());
     Path pathFolderSperatorNeutralWithFile = pathFolderSperatorNeutral.resolve(fileInfo.getFiN());
-    return mainFolder.getPath().resolveSibling(pathFolderSperatorNeutralWithFile).toString();
+    return pathFolderSperatorNeutralWithFile.toString();
   }
 
   @Override
   public String getTableXSDFilePath(String schemaName, String tableId) throws ModuleException {
-    return buildPath(getTableXSDFileInfo(schemaName, tableId));
+    return buildPathSansArchiveFolderName(getTableXSDFileInfo(schemaName, tableId));
   }
 
   public byte[] getTableXSDFileMD5(String schemaName, String tableId) throws ModuleException {

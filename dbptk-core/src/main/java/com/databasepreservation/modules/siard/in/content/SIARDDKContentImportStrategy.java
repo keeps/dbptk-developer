@@ -86,8 +86,8 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
     DatabaseStructure databaseStructure) throws ModuleException {
     contentPathStrategy.parseFileIndexMetadata();
     this.dbExportHandler = dbExportHandler;
-    Map<Path, SIARDArchiveContainer> archiveContainerByPath = new HashMap<Path, SIARDArchiveContainer>();
-    archiveContainerByPath.put(mainFolder.getPath(), mainFolder);
+    Map<Path, SIARDArchiveContainer> archiveContainerByAbsPath = new HashMap<Path, SIARDArchiveContainer>();
+    archiveContainerByAbsPath.put(mainFolder.getPath(), mainFolder);
     SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
     saxParserFactory.setValidating(true);
     saxParserFactory.setNamespaceAware(true);
@@ -105,15 +105,18 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
         String xsdFileName = contentPathStrategy.getTableXSDFilePath(schema.getName(), table.getId());
         String xmlFileName = contentPathStrategy.getTableXMLFilePath(schema.getName(), table.getId());
         Path archiveFolderLogicalPath = contentPathStrategy.getArchiveFolderPath(importAsSchema, table.getId());
-        Path archiveFolderActualPath = mainFolder.getPath().resolveSibling(archiveFolderLogicalPath);
-        if (!archiveContainerByPath.containsKey(archiveFolderActualPath)) {
-          archiveContainerByPath.put(mainFolder.getPath().resolveSibling(archiveFolderLogicalPath),
+
+        Path archiveFolderActualPath = mainFolder.getPath()
+          .resolveSibling(archiveFolderLogicalPath);
+        if (!archiveContainerByAbsPath.containsKey(archiveFolderActualPath)) {
+          archiveContainerByAbsPath.put(archiveFolderActualPath,
             // TODO: Verify meaning of OutputContainerType. AUX never used.
             new SIARDArchiveContainer(archiveFolderActualPath, OutputContainerType.MAIN));
         }
-        currentFolder = archiveContainerByPath.get(archiveFolderActualPath);
+        currentFolder = archiveContainerByAbsPath.get(archiveFolderActualPath);
         try {
           xsdStream = readStrategy.createInputStream(currentFolder, xsdFileName);
+
           saxParser = saxParserFactory.newSAXParser();
           // saxParser.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, ""); //TODO
           // saxParser.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
