@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.security.DigestInputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,14 +42,14 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.SIARDHelper;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer.OutputContainerType;
-import com.databasepreservation.modules.siard.in.path.SIARDDKContentPathImportStrategy;
-import com.databasepreservation.modules.siard.in.read.ReadStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARDDKPathImportStrategy;
+import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
 
 public class SIARDDKContentImportStrategy extends DefaultHandler implements ContentImportStrategy {
 
   private final CustomLogger logger = CustomLogger.getLogger(SIARDDKContentImportStrategy.class);
-  protected final ReadStrategy readStrategy;
-  protected final SIARDDKContentPathImportStrategy contentPathStrategy;
+  protected final FolderReadStrategyMD5Sum readStrategy;
+  protected final SIARDDKPathImportStrategy pathStrategy;
   protected final String importAsSchema;
   protected static final String XML_TBL_TAG_LOCALNAME = "table";
   protected static final String XML_ROW_TAG_LOCALNAME = "row";
@@ -73,10 +74,10 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
    * @author Thomas Kristensen <tk@bithuset.dk>
    *
    */
-  public SIARDDKContentImportStrategy(ReadStrategy readStrategy, SIARDDKContentPathImportStrategy contentPathStrategy,
+  public SIARDDKContentImportStrategy(FolderReadStrategyMD5Sum readStrategy, SIARDDKPathImportStrategy pathStrategy,
     String importAsSchema) {
     this.readStrategy = readStrategy;
-    this.contentPathStrategy = contentPathStrategy;
+    this.pathStrategy = pathStrategy;
     this.importAsSchema = importAsSchema;
 
   }
@@ -84,7 +85,7 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
   @Override
   public void importContent(DatabaseExportModule dbExportHandler, SIARDArchiveContainer mainFolder,
     DatabaseStructure databaseStructure) throws ModuleException {
-    contentPathStrategy.parseFileIndexMetadata();
+    pathStrategy.parseFileIndexMetadata();
     this.dbExportHandler = dbExportHandler;
     Map<Path, SIARDArchiveContainer> archiveContainerByAbsPath = new HashMap<Path, SIARDArchiveContainer>();
     archiveContainerByAbsPath.put(mainFolder.getPath(), mainFolder);
@@ -92,7 +93,7 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
     saxParserFactory.setValidating(true);
     saxParserFactory.setNamespaceAware(true);
     SAXParser saxParser = null;
-    InputStream xsdStream = null;
+    DigestInputStream xsdInputStream = null;
     SIARDArchiveContainer currentFolder = null;
     assert (databaseStructure.getSchemas().size() == 1);
     this.dbExportHandler.handleDataOpenSchema(importAsSchema);
@@ -102,40 +103,36 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
         currentTable = table;
         this.dbExportHandler.handleDataOpenTable(table.getId());
         rowIndex = 0;
-        String xsdFileName = contentPathStrategy.getTableXSDFilePath(schema.getName(), table.getId());
-        String xmlFileName = contentPathStrategy.getTableXMLFilePath(schema.getName(), table.getId());
-        Path archiveFolderLogicalPath = contentPathStrategy.getArchiveFolderPath(importAsSchema, table.getId());
+        String xsdFileName = pathStrategy.getTableXSDFilePath(schema.getName(), table.getId());
+        String xmlFileName = pathStrategy.getTableXMLFilePath(schema.getName(), table.getId());
+        Path archiveFolderLogicalPath = pathStrategy.getArchiveFolderPath(importAsSchema, table.getId());
 
         Path archiveFolderActualPath = mainFolder.getPath()
           .resolveSibling(archiveFolderLogicalPath);
         if (!archiveContainerByAbsPath.containsKey(archiveFolderActualPath)) {
           archiveContainerByAbsPath.put(archiveFolderActualPath,
-            // TODO: Verify meaning of OutputContainerType. AUX never used.
             new SIARDArchiveContainer(archiveFolderActualPath, OutputContainerType.MAIN));
         }
         currentFolder = archiveContainerByAbsPath.get(archiveFolderActualPath);
         try {
-          xsdStream = readStrategy.createInputStream(currentFolder, xsdFileName);
+          xsdInputStream = readStrategy.createInputStream(currentFolder, xsdFileName,
+            pathStrategy.getTableXSDFileMD5(schema.getName(), table.getId()));
 
           saxParser = saxParserFactory.newSAXParser();
-          // saxParser.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, ""); //TODO
-          // saxParser.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
-          // //TODO
-          // TODO: Verify that this does not undo the wanted behavior defined
-          // below
           saxParser.setProperty(JAXP_SCHEMA_LANGUAGE, XMLConstants.W3C_XML_SCHEMA_NS_URI);
-          saxParser.setProperty(JAXP_SCHEMA_SOURCE, xsdStream);
+          saxParser.setProperty(JAXP_SCHEMA_SOURCE, xsdInputStream);
         } catch (SAXException e) {
           logger.error("Error validating schema", e);
           throw new ModuleException("Error reading XSD file: "
-            + contentPathStrategy.getTableXSDFilePath(schema.getName(), table.getId()) + " for table:" + table.getId(),
+            + pathStrategy.getTableXSDFilePath(schema.getName(), table.getId()) + " for table:" + table.getId(),
             e);
         } catch (ParserConfigurationException e) {
           logger.error("Error creating XML SAXparser", e);
           throw new ModuleException(e);
         }
 
-        InputStream currentTableStream = readStrategy.createInputStream(currentFolder, xmlFileName);
+        DigestInputStream currentTableInputStream = readStrategy.createInputStream(currentFolder, xmlFileName,
+          pathStrategy.getTableXMLFileMD5(schema.getName(), table.getId()));
 
         SAXErrorHandler saxErrorHandler = new SAXErrorHandler();
 
@@ -144,7 +141,7 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
           xmlReader.setContentHandler(this);
           xmlReader.setErrorHandler(saxErrorHandler);
           logger.debug("begin parse of xml-file:[" + xmlFileName + "], using xsd [" + xsdFileName + "]");
-          xmlReader.parse(new InputSource(currentTableStream));
+          xmlReader.parse(new InputSource(currentTableInputStream));
 
         } catch (SAXException e) {
           throw new ModuleException(
@@ -158,17 +155,9 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
             "Parsing or validation error occurred while reading XML table file for table:" + table.getId());
         }
 
-        try {
-          currentTableStream.close();
-        } catch (IOException e) {
-          throw new ModuleException("Could not close XML table input stream", e);
-        }
+        readStrategy.closeAndVerifyMD5Sum(currentTableInputStream);
+        readStrategy.closeAndVerifyMD5Sum(xsdInputStream);
 
-        try {
-          xsdStream.close();
-        } catch (IOException e) {
-          throw new ModuleException("Could not close table XSD schema input stream", e);
-        }
         this.dbExportHandler.handleDataCloseTable(table.getId());
       }
       this.dbExportHandler.handleDataCloseSchema(importAsSchema);

@@ -4,6 +4,7 @@ package com.databasepreservation.modules.siard.in.metadata;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.security.DigestInputStream;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,10 +29,10 @@ import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.in.metadata.typeConverter.TypeConverterFactory;
-import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARDDKPathImportStrategy;
+import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 
 import dk.sa.xmlns.diark._1_0.tableindex.ColumnType;
@@ -51,20 +52,24 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
 
   protected final CustomLogger logger = CustomLogger.getLogger(SIARDDKMetadataImportStrategy.class);
 
-  protected final MetadataPathStrategy metadataPathStrategy;
-  protected final ContentPathImportStrategy contentPathStrategy;
+  protected final SIARDDKPathImportStrategy pathStrategy;
   protected DatabaseStructure databaseStructure;
   protected final String importAsSchameName;
 
-  public SIARDDKMetadataImportStrategy(MetadataPathStrategy metadataPathStrategy,
-    ContentPathImportStrategy contentPathImportStrategy, String importAsSchameName) {
-    this.metadataPathStrategy = metadataPathStrategy;
-    this.contentPathStrategy = contentPathImportStrategy;
+  public SIARDDKMetadataImportStrategy(SIARDDKPathImportStrategy pathStrategy, String importAsSchameName) {
+    this.pathStrategy = pathStrategy;
     this.importAsSchameName = importAsSchameName;
   }
 
   @Override
   public void loadMetadata(ReadStrategy readStrategy, SIARDArchiveContainer container) throws ModuleException {
+    FolderReadStrategyMD5Sum readStrategyMD5Sum = null;
+    if (!(readStrategy instanceof FolderReadStrategyMD5Sum)) {
+      throw new IllegalArgumentException(
+        "The current implemenation of SIARDDKMetadataImportStrategy requires relies on the FolderReadStrategyMD5Sum (should be passed to loadMetadata ).");
+    }
+    readStrategyMD5Sum = (FolderReadStrategyMD5Sum) readStrategy;
+    pathStrategy.parseFileIndexMetadata();
 
     JAXBContext context;
     try {
@@ -75,33 +80,31 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
 
     SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
     Schema xsdSchema = null;
-    InputStream xsdStream = readStrategy.createInputStream(container,
-      metadataPathStrategy.getXsdFilePath(SIARDDKConstants.TABLE_INDEX));
+    InputStream xsdInputStream = readStrategyMD5Sum.createInputStream(container,
+      pathStrategy.getXsdFilePath(SIARDDKConstants.TABLE_INDEX));
+
     try {
-      xsdSchema = schemaFactory.newSchema(new StreamSource(xsdStream));
+      xsdSchema = schemaFactory.newSchema(new StreamSource(xsdInputStream));
     } catch (SAXException e) {
       throw new ModuleException(
-        "Error reading metadata XSD file: " + metadataPathStrategy.getXsdFilePath(SIARDDKConstants.TABLE_INDEX), e);
+        "Error reading metadata XSD file: " + pathStrategy.getXsdFilePath(SIARDDKConstants.TABLE_INDEX), e);
     }
-    InputStream reader = null;
+    DigestInputStream inputStreamXml = null;
     SiardDiark xmlRoot;
     Unmarshaller unmarshaller;
     try {
       unmarshaller = context.createUnmarshaller();
-      // unmarshaller.setProperty(Marshaller.JAXB_ENCODING, ENCODING);
-      // unmarshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
       unmarshaller.setSchema(xsdSchema);
-      // TODO: Validate file md5sum
-      reader = readStrategy.createInputStream(container,
-        metadataPathStrategy.getXmlFilePath(SIARDDKConstants.TABLE_INDEX));
-      xmlRoot = (SiardDiark) unmarshaller.unmarshal(reader);
+      inputStreamXml = readStrategyMD5Sum.createInputStream(container,
+        pathStrategy.getXmlFilePath(SIARDDKConstants.TABLE_INDEX), pathStrategy.getTabelIndexExpectedMD5Sum());
+      xmlRoot = (SiardDiark) unmarshaller.unmarshal(inputStreamXml);
     } catch (JAXBException e) {
       throw new ModuleException("Error while Unmarshalling JAXB", e);
     } finally {
       try {
-        xsdStream.close();
-        if (reader != null) {
-          reader.close();
+        xsdInputStream.close();
+        if (inputStreamXml != null) {
+          readStrategyMD5Sum.closeAndVerifyMD5Sum(inputStreamXml);
         }
       } catch (IOException e) {
         logger.debug("Could not close xsdStream", e);
@@ -123,21 +126,6 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
 
   protected DatabaseStructure getDatabaseStructure(SiardDiark siardArchive) throws ModuleException {
     DatabaseStructure databaseStructure = new DatabaseStructure();
-    // TODO:
-    /*
-     * databaseStructure.setDescription(siardArchive.getDescription());
-     * databaseStructure.setArchiver(siardArchive.getArchiver());
-     * databaseStructure.setArchiverContact(siardArchive.getArchiverContact());
-     * databaseStructure.setDataOwner(siardArchive.getDataOwner());
-     * databaseStructure.setDataOriginTimespan(siardArchive.
-     * getDataOriginTimespan());
-     * databaseStructure.setProducerApplication(siardArchive.
-     * getProducerApplication());
-     * databaseStructure.setArchivalDate(JodaUtils.xs_date_parse(siardArchive.
-     * getArchivalDate()));
-     * databaseStructure.setClientMachine(siardArchive.getClientMachine());
-     * databaseStructure.setDatabaseUser(siardArchive.getDatabaseUser());
-     */
     databaseStructure.setName(siardArchive.getDbName());
     databaseStructure.setProductName(siardArchive.getDatabaseProduct());
     databaseStructure.setSchemas(getSchemas(siardArchive));
@@ -171,7 +159,7 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
         tblDptkl.setForeignKeys(getForeignKeys(tblXml.getForeignKeys(), tblDptkl.getId()));
         tblDptkl.setRows(getNumberOfTblRows(tblXml.getRows(), tblXml.getName()));
         tblDptkl.setColumns(getTblColumns(tblXml.getColumns(), tblDptkl.getId()));
-        contentPathStrategy.associateTableWithFolder(tblDptkl.getId(), tblXml.getFolder());
+        pathStrategy.associateTableWithFolder(tblDptkl.getId(), tblXml.getFolder());
         lstTblsDptkl.add(tblDptkl);
       }
     }
@@ -187,14 +175,9 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
         columnDptkl.setId(String.format("%s.%s", tableId, columnDptkl.getName()));
         columnDptkl.setType(
           TypeConverterFactory.getSQL99TypeConverter().getType(columnXml.getType(), columnXml.getTypeOriginal()));
-        // TODO: Consider if columnXml.getFunctionalDescription() should be
-        // merged into this as well.
         columnDptkl.setDescription(columnXml.getDescription());
         columnDptkl.setDefaultValue(columnXml.getDefaultValue());
         columnDptkl.setNillable(columnXml.isNullable());
-
-        // TODO LOB
-        // contentPathStrategy.associateColumnWithFolder(columnDptkl.getId(),);
         lstColumnsDptkl.add(columnDptkl);
       }
     }

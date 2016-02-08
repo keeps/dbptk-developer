@@ -10,9 +10,8 @@ import com.databasepreservation.modules.siard.in.content.ContentImportStrategy;
 import com.databasepreservation.modules.siard.in.content.SIARDDKContentImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.SIARDDKMetadataImportStrategy;
-import com.databasepreservation.modules.siard.in.path.SIARDDKContentPathImportStrategy;
-import com.databasepreservation.modules.siard.in.read.FolderReadStrategy;
-import com.databasepreservation.modules.siard.in.read.ReadStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARDDKPathImportStrategy;
+import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
 
 /**
  * @author Thomas Kristensen <tk@bithuset.dk>
@@ -20,7 +19,7 @@ import com.databasepreservation.modules.siard.in.read.ReadStrategy;
  */
 public class SIARDDKImportModule {
 
-  protected final ReadStrategy readStrategy;
+  protected final FolderReadStrategyMD5Sum readStrategy;
   protected final SIARDArchiveContainer mainContainer;
   protected final MetadataImportStrategy metadataStrategy;
   protected final ContentImportStrategy contentStrategy;
@@ -28,15 +27,17 @@ public class SIARDDKImportModule {
   public SIARDDKImportModule(Path siardPackage, String paramImportAsSchema) {
     mainContainer = new SIARDArchiveContainer(siardPackage.toAbsolutePath().normalize(),
       SIARDArchiveContainer.OutputContainerType.MAIN);
-    readStrategy = new FolderReadStrategy(mainContainer);
+    readStrategy = new FolderReadStrategyMD5Sum(mainContainer);
 
     MetadataPathStrategy metadataPathStrategy = new SIARDDKMetadataPathStrategy();
-    SIARDDKContentPathImportStrategy contentPathStrategy = new SIARDDKContentPathImportStrategy(mainContainer,
-      readStrategy,
+    // Please notice, that the MetadataPathStrategy instance is wrapped into
+    // the SIARDDKPathImportStrategy below.
+
+    SIARDDKPathImportStrategy pathStrategy = new SIARDDKPathImportStrategy(mainContainer, readStrategy,
       metadataPathStrategy, paramImportAsSchema);
-    metadataStrategy = new SIARDDKMetadataImportStrategy(metadataPathStrategy, contentPathStrategy,
-      paramImportAsSchema);
-    contentStrategy = new SIARDDKContentImportStrategy(readStrategy, contentPathStrategy, paramImportAsSchema);
+
+    metadataStrategy = new SIARDDKMetadataImportStrategy(pathStrategy, paramImportAsSchema);
+    contentStrategy = new SIARDDKContentImportStrategy(readStrategy, pathStrategy, paramImportAsSchema);
 
   }
 
