@@ -55,6 +55,17 @@ public class PostgreSqlDumpDiffExpectationsPrepQueue extends PostgreSqlDumpDiffE
       }
     }
 
+    if (expectedDiffs != null && expectedDiffs.size() > 0) {
+      TextDiff.Diff nextAllowedDiff = null;
+      do {
+        nextAllowedDiff = expectedDiffs.poll();
+      } while (nextAllowedDiff.operation == TextDiff.Operation.EQUAL && expectedDiffs.size() > 0);
+      if (nextAllowedDiff != null) {
+        foundUnexpectedDifferences = true; // not all expected diffs were
+                                           // "spent".
+      }
+    }
+
     try {
       assertThat("Found unexpected changes in target database dump", foundUnexpectedDifferences, is(false));
     } catch (AssertionError a) {
