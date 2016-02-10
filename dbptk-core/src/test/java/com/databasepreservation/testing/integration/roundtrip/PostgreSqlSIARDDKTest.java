@@ -55,7 +55,7 @@ public class PostgreSqlSIARDDKTest {
         db_source, db_target, db_tmp_username, db_tmp_password),
       String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/postgreSql/scripts/teardown.sh").getPath(),
         db_source, db_target, db_tmp_username),
-      "psql -q",
+      "psql --echo-errors --single-transaction -v ON_ERROR_STOP=1 ",
       "pg_dump --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces --exclude-table=tbl_datatypes_prikey_seq",
       "pg_dump --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces --exclude-table=tbl_datatypes_prikey_seq",
 
@@ -78,7 +78,7 @@ public class PostgreSqlSIARDDKTest {
   public Iterator<Object[]> testQueriesProvider() {
     String singleTypeAndValue = "CREATE SEQUENCE tbl_datatypes_prikey_seq INCREMENT 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1;\n"
       + "CREATE TABLE datatypes (col1 %s,col_key integer NOT NULL, CONSTRAINT tbl_datatypes_prikey PRIMARY KEY (col_key) );\n"
-      + "INSERT INTO datatypes(col_key,col1) VALUES(%s,nextval('tbl_datatypes_prikey_seq'::regclass));";
+      + "INSERT INTO datatypes (col_key,col1) VALUES (nextval('tbl_datatypes_prikey_seq'::regclass),%s);";
     ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
     tests.add(new String[] {singleTypeAndValue, "\"char\" NOT NULL", "'a'"});
@@ -95,9 +95,10 @@ public class PostgreSqlSIARDDKTest {
     tests.add(new String[] {singleTypeAndValue, "numeric", "2147483647"});
     tests.add(new String[] {singleTypeAndValue, "real", "0.123456"});
     tests.add(new String[] {singleTypeAndValue, "smallint", "32767"});
-    // tests.add(new String[] {singleTypeAndValue, "text", "'abc'"}); --TODO
+    // tests.add(new String[]{singleTypeAndValue, "text", "'abc'"}); --TODO
     tests.add(new String[] {singleTypeAndValue, "time with time zone", "'23:59:59.999 PST'"});
     tests.add(new String[] {singleTypeAndValue, "time with time zone", "'23:59:59.999+05:30'"});
+     
     return tests.iterator();
   }
 

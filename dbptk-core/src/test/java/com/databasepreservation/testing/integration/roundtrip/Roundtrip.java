@@ -135,6 +135,12 @@ public class Roundtrip {
     printTmpFileOnError(processSTDERR, p.waitFor());
     printTmpFileOnError(processSTDOUT, p.waitFor());
 
+    // We won't continue, if the process setting up the particular round trip
+    // database didn't succeed.
+    if (p.exitValue() != 0) {
+      return false;
+    }
+
     Path dumpsDir = Files.createTempDirectory("dpttest_dumps");
 
     Path dump_source = dumpsDir.resolve("source.sql");
