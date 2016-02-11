@@ -8,6 +8,7 @@
                 <include name="postgresql-siard1"/>
                 <include name="postgresql-siarddk"/>
                 <include name="mysql-siard1"/>
+                <include name="mysql-siarddk"/>
                 <include name="siard-roundtrip"/>
                 <include name="cli"/>
             </define>
@@ -33,6 +34,7 @@
             <class name="com.databasepreservation.testing.unit.cli.PostgreSQLModuleFactoryTest"/>
             <class name="com.databasepreservation.testing.unit.cli.SQLServerJDBCModuleFactoryTest"/>
             <class name="com.databasepreservation.testing.integration.roundtrip.PostgreSqlSIARDDKTest"/>
+            <class name="com.databasepreservation.testing.integration.roundtrip.MySqlSIARDDKTest"/>
         </classes>
     </test>
 </suite>
