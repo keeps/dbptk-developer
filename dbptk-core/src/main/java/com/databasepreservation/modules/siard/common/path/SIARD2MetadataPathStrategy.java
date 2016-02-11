@@ -21,14 +21,13 @@ public class SIARD2MetadataPathStrategy implements MetadataPathStrategy {
 
   // control characters
   private static final String RESOURCE_FILE_SEPARATOR = "/";
-  private static final String FILE_SEPARATOR = File.separator;
   private static final String FILE_EXTENSION_SEPARATOR = ".";
 
   @Override
   public String getXmlFilePath(String filename) throws InvalidParameterException {
 
     if (filename.equals(METADATA_FILENAME)) {
-      return new StringBuilder().append(HEADER_DIR).append(FILE_SEPARATOR).append(METADATA_FILENAME)
+      return new StringBuilder().append(HEADER_DIR).append(RESOURCE_FILE_SEPARATOR).append(METADATA_FILENAME)
         .append(FILE_EXTENSION_SEPARATOR).append(XML_EXTENSION).toString();
     } else {
       throw new InvalidParameterException("Invalid metadata filename");
@@ -38,7 +37,7 @@ public class SIARD2MetadataPathStrategy implements MetadataPathStrategy {
   @Override
   public String getXsdFilePath(String filename) throws InvalidParameterException {
     if (filename.equals(METADATA_FILENAME)) {
-      return new StringBuilder().append(HEADER_DIR).append(FILE_SEPARATOR).append(METADATA_FILENAME)
+      return new StringBuilder().append(HEADER_DIR).append(RESOURCE_FILE_SEPARATOR).append(METADATA_FILENAME)
         .append(FILE_EXTENSION_SEPARATOR).append(XSD_EXTENSION).toString();
     } else {
       throw new InvalidParameterException("Invalid metadata filename");
