@@ -28,7 +28,7 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
     .required(false);
 
   private static final Parameter database = new Parameter().shortName("db").longName("database")
-    .description("the name of the database to import from").hasArgument(true).setOptionalArgument(false).required(true);
+    .description("the name of the MySQL database").hasArgument(true).setOptionalArgument(false).required(true);
 
   private static final Parameter username = new Parameter().shortName("u").longName("username")
     .description("the name of the user to use in connection").hasArgument(true).setOptionalArgument(false)
