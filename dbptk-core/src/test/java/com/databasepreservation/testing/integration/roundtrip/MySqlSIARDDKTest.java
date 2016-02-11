@@ -139,8 +139,7 @@ public class MySqlSIARDDKTest {
     // // float(8,3)
     tests.add(new String[] {singleTypeAndValue, "DOUBLE", "1234567890.12345"});
     tests.add(new String[] {singleTypeAndValue, "DOUBLE(22,0)", "1234567890.12345"});
-    // tests.add(new String[] {singleTypeAndValue, "DOUBLE(10,2)",
-    // "1234567890.12345"}); //TODO
+    tests.add(new String[] {singleTypeAndValue, "DOUBLE(10,2)", "12345678.12345"});
     tests.add(new String[] {singleTypeAndValue, "BIT(1)", "b'1'"});
     tests.add(new String[] {singleTypeAndValue, "BIT", "b'1'"});
     // tests.add(new String[] {singleTypeAndValue, "BIT(1)", "b'0'"});
@@ -184,15 +183,15 @@ public class MySqlSIARDDKTest {
     // //fixme: for empty strings, the value becomes null
     tests.add(new String[] {singleTypeAndValue, "CHAR(3)", "'abc'"});
     tests.add(new String[] {singleTypeAndValue, "CHAR(253)", "NULL"});
-    tests.add(new String[] {singleTypeAndValue, "CHAR(253) NOT NULL", "'" + StringUtils.repeat("asdf", 64) + "'"});
+    tests.add(new String[] {singleTypeAndValue, "CHAR(253) NOT NULL", "'" + StringUtils.repeat("asdf", 63) + "'"});
     tests.add(new String[] {singleTypeAndValue, "CHAR(255)", "NULL"});
-    tests.add(new String[] {singleTypeAndValue, "CHAR(255) NOT NULL", "'" + StringUtils.repeat("asdf", 64) + "'"});
+    tests.add(new String[] {singleTypeAndValue, "CHAR(255) NOT NULL", "'" + StringUtils.repeat("asdf", 63) + "'"});
     tests.add(new String[] {singleTypeAndValue, "CHAR(255) NOT NULL", "''"});
     // //fixme: similar to CHAR(0) NOT NULL
     // tests.add(new String[] {singleTypeAndValue, "VARCHAR(10) NOT NULL",
     // "''"}); //fixme: similar to CHAR(0) NOT NULL
     tests.add(new String[] {singleTypeAndValue, "VARCHAR(1024)", "NULL"});
-    tests.add(new String[] {singleTypeAndValue, "VARCHAR(255)", "'" + StringUtils.repeat("asdf", 64) + "'"});
+    tests.add(new String[] {singleTypeAndValue, "VARCHAR(256)", "'" + StringUtils.repeat("asdf", 64) + "'"});
     // tests.add(new String[] {singleTypeAndValue, "VARCHAR(4098)", "'" +
     // StringUtils.repeat("asdfqwertyuighjk", 4096) + "'"}); //fixme: in siard,
     // small strings are strings, longer strings are clobs
@@ -200,7 +199,7 @@ public class MySqlSIARDDKTest {
     // tests.add(new String[]{singleTypeAndValue, "BINARY(255)", "NULL"});
     // tests.add(new String[]{singleTypeAndValue, "VARBINARY(1024)","NULL"});
     // http://stackoverflow.com/questions/6766781/maximum-length-for-mysql-type-text
-    tests.add(new String[] {singleTypeAndValue, "TINYBLOB", "NULL"});
+    tests.add(new String[] {singleTypeAndValue, "TINYBLOB", "NULL"}); //TODO FIX THIS
     tests.add(new String[] {singleTypeAndValue, "BLOB", "NULL"});
     tests.add(new String[] {singleTypeAndValue, "MEDIUMBLOB", "NULL"});
     tests.add(new String[] {singleTypeAndValue, "LONGBLOB", "NULL"});
