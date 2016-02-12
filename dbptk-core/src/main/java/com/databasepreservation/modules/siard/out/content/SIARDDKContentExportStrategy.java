@@ -183,7 +183,14 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
         lobsTracker.addLOBLocationAndType(tableCounter, columnIndex, sql99Type);
       }
 
-      c.setAttribute("type", SIARDDKsql99ToXsdType.convert(sql99Type));
+      String xsdType = SIARDDKsql99ToXsdType.convert(sql99Type);
+      if (xsdType == null) {
+        throw new ModuleException(
+          "Unable to export column [" + columnStructure.getName() + "] in table [" + tableStructure.getName()
+            + "], as siard-dk doesn't support the normalized SQL data type of the column: [" + sql99Type + "] ");
+      }
+
+      c.setAttribute("type", xsdType);
       if (columnStructure.getNillable()) {
         c.setAttribute("nillable", "true");
       }
