@@ -79,7 +79,7 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
             TableType tableType = new TableType();
 
             // Set name - mandatory
-            tableType.setName(removeBlanks(tableStructure.getName()));
+            tableType.setName(escapeString(tableStructure.getName()));
 
             // Set folder - mandatory
             tableType.setFolder("table" + Integer.toString(tableCounter));
@@ -100,7 +100,7 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
               Type type = columnStructure.getType();
 
               // Set column name - mandatory
-              column.setName(removeBlanks(columnStructure.getName()));
+              column.setName(escapeString(columnStructure.getName()));
 
               // Set columnID - mandatory
               column.setColumnID("c" + Integer.toString(columnCounter));
@@ -159,12 +159,12 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
             PrimaryKeyType primaryKeyType = new PrimaryKeyType(); // JAXB
             PrimaryKey primaryKey = tableStructure.getPrimaryKey();
 
-            primaryKeyType.setName(removeBlanks(primaryKey.getName()));
+            primaryKeyType.setName(escapeString(primaryKey.getName()));
             List<String> columnNames = primaryKey.getColumnNames();
             for (String columnName : columnNames) {
               // Set column names for primary key
 
-              primaryKeyType.getColumn().add(removeBlanks(columnName));
+              primaryKeyType.getColumn().add(escapeString(columnName));
             }
             tableType.setPrimaryKey(primaryKeyType);
 
@@ -176,16 +176,16 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
                 ForeignKeyType foreignKeyType = new ForeignKeyType();
 
                 // Set key name - mandatory
-                foreignKeyType.setName(removeBlanks(key.getName()));
+                foreignKeyType.setName(escapeString(key.getName()));
 
                 // Set referenced table - mandatory
-                foreignKeyType.setReferencedTable(removeBlanks(key.getReferencedTable()));
+                foreignKeyType.setReferencedTable(escapeString(key.getReferencedTable()));
 
                 // Set reference - mandatory
                 for (Reference ref : key.getReferences()) {
                   ReferenceType referenceType = new ReferenceType();
-                  referenceType.setColumn(removeBlanks(ref.getColumn()));
-                  referenceType.setReferenced(removeBlanks(ref.getReferenced()));
+                  referenceType.setColumn(escapeString(ref.getColumn()));
+                  referenceType.setReferenced(escapeString(ref.getReferenced()));
                   foreignKeyType.getReference().add(referenceType);
                 }
                 foreignKeysType.getForeignKey().add(foreignKeyType);
@@ -216,7 +216,7 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
               ViewType viewType = new ViewType();
 
               // Set view name - mandatory
-              viewType.setName(removeBlanks(viewStructure.getName()));
+              viewType.setName(escapeString(viewStructure.getName()));
 
               // Set queryOriginal - mandatory
               viewType.setQueryOriginal(viewStructure.getQueryOriginal());
@@ -240,7 +240,7 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
     return siardDiark;
   }
 
-  private String removeBlanks(String s) {
+  private String escapeString(String s) {
     if (s.contains(" ")) {
       s = new StringBuilder().append("\"").append(s).append("\"").toString();
     }
