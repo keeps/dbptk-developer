@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
@@ -97,7 +98,12 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
     tableXmlOutputStream = fileIndexFileStrategy.getWriter(baseContainer,
       contentPathExportStrategy.getTableXmlFilePath(0, tableStructure.getIndex()), writeStrategy);
-    tableXmlWriter = new BufferedWriter(new OutputStreamWriter(tableXmlOutputStream));
+
+    try {
+      tableXmlWriter = new BufferedWriter(new OutputStreamWriter(tableXmlOutputStream, ENCODING));
+    } catch (UnsupportedEncodingException e1) {
+      throw new ModuleException(e1);
+    }
 
     // Note: cannot use JAXB or JDOM to generate XML for tables, since the
     // actual tables are too large
