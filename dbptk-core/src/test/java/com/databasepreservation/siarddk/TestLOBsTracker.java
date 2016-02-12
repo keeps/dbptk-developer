@@ -119,6 +119,14 @@ public class TestLOBsTracker {
   }
 
   @Test
+  public void shouldReturnCorrectValuesWhenTwoDifferentColumnsAreUpdatedInTheSameTable() {
+    lobsTracker.updateMaxClobLength(2, 7, 100);
+    assertEquals(100, lobsTracker.getMaxClobLength(2, 7));
+    lobsTracker.updateMaxClobLength(2, 6, 200);
+    assertEquals(200, lobsTracker.getMaxClobLength(2, 6));
+  }
+
+  @Test
   public void shouldReturnCorrectMaxClobLengthValuesWhenUpdatedMultipleTimes() {
     lobsTracker.updateMaxClobLength(2, 7, 100);
     assertEquals(100, lobsTracker.getMaxClobLength(2, 7));

@@ -103,6 +103,7 @@
 			<xs:pattern value="jp2|JP2"/>
 			<xs:pattern value="gml|GML"/>
 			<xs:pattern value="xsd|XSD"/>
+			<xs:pattern value="bin"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="gmlXsdType">

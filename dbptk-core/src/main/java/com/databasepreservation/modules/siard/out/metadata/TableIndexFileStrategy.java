@@ -79,15 +79,16 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
             TableType tableType = new TableType();
 
             // Set name - mandatory
-            tableType.setName(tableStructure.getName());
+            tableType.setName(escapeString(tableStructure.getName()));
 
             // Set folder - mandatory
             tableType.setFolder("table" + Integer.toString(tableCounter));
 
-            // TO-DO: fix how description should be obtained
-            // Set description
+            if (tableStructure.getDescription() != null && !tableStructure.getDescription().trim().isEmpty()) {
+              tableType.setDescription(tableStructure.getDescription().trim());
+            } else {
             tableType.setDescription("Description should be entered manually");
-
+            }
             // Set columns - mandatory
             int columnCounter = 1;
             ColumnsType columns = new ColumnsType();
@@ -99,7 +100,7 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
               Type type = columnStructure.getType();
 
               // Set column name - mandatory
-              column.setName(columnStructure.getName());
+              column.setName(escapeString(columnStructure.getName()));
 
               // Set columnID - mandatory
               column.setColumnID("c" + Integer.toString(columnCounter));
@@ -133,9 +134,11 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
               // Set nullable
               column.setNullable(columnStructure.getNillable());
 
-              // TO-DO: get (how?) and set description
-              // Set description
+              if (columnStructure.getDescription() != null && !columnStructure.getDescription().trim().isEmpty()) {
+                column.setDescription(columnStructure.getDescription().trim());
+              } else {
               column.setDescription("Description should be set");
+              }
 
               // Set functionalDescription
               String lobType = lobsTracker.getLOBsType(tableCounter, columnCounter);
@@ -156,12 +159,12 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
             PrimaryKeyType primaryKeyType = new PrimaryKeyType(); // JAXB
             PrimaryKey primaryKey = tableStructure.getPrimaryKey();
 
-            primaryKeyType.setName(primaryKey.getName());
+            primaryKeyType.setName(escapeString(primaryKey.getName()));
             List<String> columnNames = primaryKey.getColumnNames();
             for (String columnName : columnNames) {
               // Set column names for primary key
 
-              primaryKeyType.getColumn().add(columnName);
+              primaryKeyType.getColumn().add(escapeString(columnName));
             }
             tableType.setPrimaryKey(primaryKeyType);
 
@@ -173,16 +176,16 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
                 ForeignKeyType foreignKeyType = new ForeignKeyType();
 
                 // Set key name - mandatory
-                foreignKeyType.setName(key.getName());
+                foreignKeyType.setName(escapeString(key.getName()));
 
                 // Set referenced table - mandatory
-                foreignKeyType.setReferencedTable(key.getReferencedTable());
+                foreignKeyType.setReferencedTable(escapeString(key.getReferencedTable()));
 
                 // Set reference - mandatory
                 for (Reference ref : key.getReferences()) {
                   ReferenceType referenceType = new ReferenceType();
-                  referenceType.setColumn(ref.getColumn());
-                  referenceType.setReferenced(ref.getReferenced());
+                  referenceType.setColumn(escapeString(ref.getColumn()));
+                  referenceType.setReferenced(escapeString(ref.getReferenced()));
                   foreignKeyType.getReference().add(referenceType);
                 }
                 foreignKeysType.getForeignKey().add(foreignKeyType);
@@ -213,7 +216,7 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
               ViewType viewType = new ViewType();
 
               // Set view name - mandatory
-              viewType.setName(viewStructure.getName());
+              viewType.setName(escapeString(viewStructure.getName()));
 
               // Set queryOriginal - mandatory
               viewType.setQueryOriginal(viewStructure.getQueryOriginal());
@@ -235,5 +238,12 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
     }
 
     return siardDiark;
+  }
+
+  private String escapeString(String s) {
+    if (s.contains(" ")) {
+      s = new StringBuilder().append("\"").append(s).append("\"").toString();
+    }
+    return s;
   }
 }
