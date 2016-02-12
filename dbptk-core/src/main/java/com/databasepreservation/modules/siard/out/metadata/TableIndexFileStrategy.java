@@ -1,6 +1,7 @@
 package com.databasepreservation.modules.siard.out.metadata;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -72,6 +73,25 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
         if (schemaStructure.getTables() == null) {
           throw new ModuleException("No tables found in schema!");
         } else {
+
+          // Check that all tables have primary keys
+
+          List<String> tablesWithNoPrimaryKeys = new ArrayList<String>();
+          StringBuilder tableListBuilder = new StringBuilder();
+          for (TableStructure tableStructure : schemaStructure.getTables()) {
+            PrimaryKey primaryKey = tableStructure.getPrimaryKey();
+            if (primaryKey == null) {
+              tablesWithNoPrimaryKeys.add(tableStructure.getName());
+              tableListBuilder.append(tableStructure.getName()).append(", ");
+            }
+          }
+          if (!tablesWithNoPrimaryKeys.isEmpty()) {
+            throw new ModuleException("No primary keys in the following table(s): "
+              + tableListBuilder.substring(0, tableListBuilder.length() - 2));
+          }
+
+          // Go ahead - all tables have primary keys
+
           for (TableStructure tableStructure : schemaStructure.getTables()) {
 
             // Set table - mandatory
@@ -158,7 +178,6 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
             // Set primary key - mandatory
             PrimaryKeyType primaryKeyType = new PrimaryKeyType(); // JAXB
             PrimaryKey primaryKey = tableStructure.getPrimaryKey();
-
             primaryKeyType.setName(escapeString(primaryKey.getName()));
             List<String> columnNames = primaryKey.getColumnNames();
             for (String columnName : columnNames) {
