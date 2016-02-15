@@ -126,8 +126,8 @@ public class PostgreSqlSIARDDKTest {
     TextDiff textDiff = new TextDiff();
     tests.add(
       new Object[] {singleTypeAndValue, "text", "'abc'", textDiff.diff_main("text", "character varying(3)", false)});
-    // tests.add(new String[] {singleTypeAndValue, "bytea",
-    // "(decode('013d7d16d7ad4fefb61bd95b765c8ceb', 'hex'))"}); --TODO
+
+    tests.add(new Object[] {singleTypeAndValue, "bytea", "NULL", textDiff.diff_main("bytea", "integer", false)});
 
     return tests.iterator();
   }
