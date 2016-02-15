@@ -84,6 +84,8 @@ public class PostgreSqlSIARDDKTest {
   public Iterator<Object[]> testQueriesProvider() {
     String singleTypeAndValue = "CREATE SEQUENCE tbl_datatypes_prikey_seq INCREMENT 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1;\n"
       + "CREATE TABLE datatypes (col1 %s,col_key integer NOT NULL, CONSTRAINT tbl_datatypes_prikey PRIMARY KEY (col_key) );\n"
+      // + "COMMENT ON COLUMN public.datatypes.col1 IS 'Test comment';\n"
+      // Awaits: https://github.com/keeps/db-preservation-toolkit/issues/130
       + "INSERT INTO datatypes (col_key,col1) VALUES (nextval('tbl_datatypes_prikey_seq'::regclass),%s);";
     ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
