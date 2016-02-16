@@ -6,5 +6,5 @@ package com.databasepreservation.testing;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public enum SIARDVersion {
-  SIARD_1, SIARD_2
+  SIARD_1, SIARD_2, SIARD_DK
 }

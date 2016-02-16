@@ -25,30 +25,30 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
   // TODO: As things are now, are we not always generating the '.1' version of
   // the archive (indicating that the last .[1-9][0-9] should perhaps not be
   // inputed by the user - but added by the code automatically? )
-  private static final Parameter folder = new Parameter().shortName("f").longName("folder")
+  public static final Parameter folder = new Parameter().shortName("f").longName("folder")
     .description(
       "Path to SIARDDK archive folder. Archive folder name must match the expression AVID.[A-ZÆØÅ]{2,4}.[1-9][0-9]*.[1-9][0-9]")
     .hasArgument(true).setOptionalArgument(false).required(true);
 
-  private static final Parameter archiveIndex = new Parameter().shortName("ai").longName("archiveIndex")
+  public static final Parameter archiveIndex = new Parameter().shortName("ai").longName("archiveIndex")
     .description("Path to archiveIndex.xml input file").hasArgument(true).setOptionalArgument(false).required(false);
 
-  private static final Parameter contextDocumentationIndex = new Parameter().shortName("ci")
+  public static final Parameter contextDocumentationIndex = new Parameter().shortName("ci")
     .longName("contextDocumentationIndex").description("Path to contextDocumentationIndex.xml input file")
     .hasArgument(true).setOptionalArgument(false).required(false);
 
-  private static final Parameter contextDocmentationFolder = new Parameter().shortName("cf")
+  public static final Parameter contextDocmentationFolder = new Parameter().shortName("cf")
     .longName(SIARDDKConstants.CONTEXT_DOCUMENTATION_FOLDER)
     .description("Path to contextDocumentation folder which should contain the context documentation for the archive")
     .hasArgument(true).setOptionalArgument(false).required(false);
 
   // TODO: Supplement description with default choice for schema for PostgreSQL,
   // MS SQL etc.
-  private static final Parameter PARAM_IMPORT_AS_SCHEMA = new Parameter().shortName("as").longName("as-schema")
+  public static final Parameter PARAM_IMPORT_AS_SCHEMA = new Parameter().shortName("as").longName("as-schema")
     .description("Name of the database schema to use when importing the SIARDDK archive").required(true)
     .hasArgument(true);
 
-  private static final Parameter PARAM_IMPORT_FOLDER = new Parameter().shortName("f").longName("folder")
+  public static final Parameter PARAM_IMPORT_FOLDER = new Parameter().shortName("f").longName("folder")
     .description(
       "Path to (the first) SIARDDK archive folder. Archive folder name must match the expression AVID.[A-ZÆØÅ]{2,4}.[1-9][0-9]*.1 .Any subsequent folders in the identified serie will also be processed (eg. with suffixes .2 .3 etc)")
     .hasArgument(true).setOptionalArgument(false).required(true);
