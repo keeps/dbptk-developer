@@ -23,19 +23,22 @@ import com.databasepreservation.testing.SIARDVersion;
 @Test(groups = {"siarddk-roundtrip"})
 public class SiardDKTestWrapper {
 
-  private SiardDKTest siardDKTest = new SiardDKTest();
+
 
   @DataProvider
   public Iterator<Object[]> siardVersionsProvider() {
     ArrayList<Object[]> tests = new ArrayList<Object[]>();
-    tests.add(new SIARDVersion[] {SIARDVersion.SIARD_DK});
+    tests.add(new Object[] {SIARDVersion.SIARD_DK, 0}); // int is index of
+                                                        // schema to use in test
+    tests.add(new Object[] {SIARDVersion.SIARD_DK, 1});
     return tests.iterator();
   }
 
   @Test(dataProvider = "siardVersionsProvider")
-  public void SIARD_Roundtrip(SIARDVersion version)
+  public void SIARD_Roundtrip(SIARDVersion siardVersion, int schemaIndex)
     throws ModuleException, IOException, UnknownTypeException, InvalidDataException {
-    siardDKTest.SIARD_Roundtrip(version);
+    SiardDKTest siardDKTest = new SiardDKTest(schemaIndex);
+    siardDKTest.SIARD_Roundtrip(siardVersion);
   }
 
 }

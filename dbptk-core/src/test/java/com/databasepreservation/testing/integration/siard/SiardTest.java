@@ -587,7 +587,12 @@ public class SiardTest {
         break;
         
       case SIARD_DK:
-        importer = new SIARDDKImportModule(tmpFile, "public").getDatabaseImportModule();
+        // Notice: SIARD DK doesn't support schemas in the archive format.
+        // Therefore it uses a special 'importAsSchema' parameter, to make it
+        // compatible with the format of the dptkl internal database structure
+        // representation.
+        importer = new SIARDDKImportModule(tmpFile, dbStructure.getSchemas().get(0).getName())
+          .getDatabaseImportModule();
         break;
     }
 
