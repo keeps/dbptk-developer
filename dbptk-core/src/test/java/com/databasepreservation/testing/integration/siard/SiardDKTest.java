@@ -15,12 +15,15 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
+import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.ForeignKey;
 import com.databasepreservation.model.structure.PrimaryKey;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.Trigger;
+import com.databasepreservation.model.structure.UserStructure;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.testing.SIARDVersion;
 
 /*
@@ -33,6 +36,7 @@ public class SiardDKTest extends SiardTest {
 
   private final String ROUND_TRIP_SIARD_ARCHIVE_FILENAME = "AVID.RND.3000.1";
 
+
   private int schemaIndexUnderTest; // hack: siard-dk doesn't support multiple
                                     // schemas, so we'll only use one at a time.
 
@@ -44,12 +48,27 @@ public class SiardDKTest extends SiardTest {
   @Override
   protected DatabaseStructure generateDatabaseStructure() throws ModuleException, IOException {
     DatabaseStructure databaseStructure = super.generateDatabaseStructure();
-    databaseStructure.setUrl(null); // high level url not supported in siard-dk
-    databaseStructure.setSchemas(Lists.newArrayList(databaseStructure.getSchemas().get(schemaIndexUnderTest)));
 
+    databaseStructure.setSchemas(Lists.newArrayList(databaseStructure.getSchemas().get(schemaIndexUnderTest)));
+    // //TODO:In siard-dk the archive meta data is located in archiveIndex.xml,
+    // which is not read or written yet.
+    databaseStructure.setArchivalDate(null);
+    databaseStructure.setDataOwner(null);
+    databaseStructure.setDataOwner(null);
+    databaseStructure.setDataOriginTimespan(null);
+    databaseStructure.setProducerApplication(null);
+    databaseStructure.setClientMachine(null);
+    databaseStructure.setProductName(null);
+    databaseStructure.setUrl(null);
+    databaseStructure.setDatabaseUser(null);
+    databaseStructure.setArchiver(null);
+    databaseStructure.setArchiverContact(null);
+    databaseStructure.setDescription(null);
     SchemaStructure schema = databaseStructure.getSchemas().get(0);
     schema.setDescription(null); // schemas are not supported in siard dk.
     schema.setIndex(0);
+    // users are not supported in siard-dk
+    databaseStructure.setUsers(new LinkedList<UserStructure>());
     for (TableStructure table : schema.getTables()) {
       int index = 0;
       // primary key is mandatory in siard-dk. Description of key is not
@@ -88,7 +107,7 @@ public class SiardDKTest extends SiardTest {
   }
 
   @Override
-  protected DatabaseStructure roundtrip(DatabaseStructure dbStructure, Path tmpFile, SIARDVersion version)
+  protected DatabaseStructure roundtrip(DatabaseStructure orgDbStructure, Path tmpFile, SIARDVersion version)
     throws FileNotFoundException, ModuleException, UnknownTypeException, InvalidDataException {
 
     Path archiveFolderPath = Paths.get(System.getProperty("java.io.tmpdir") + ROUND_TRIP_SIARD_ARCHIVE_FILENAME);
@@ -101,10 +120,34 @@ public class SiardDKTest extends SiardTest {
       }
     }
 
-    DatabaseStructure databaseStructure = super.roundtrip(dbStructure, archiveFolderPath, version);
-    // Remember that mockito is involved.
-    // TODO: Do the needed alterations to the databaseStructure. Eg. change
-    // column types on blobs/clobs etc.
+    DatabaseStructure databaseStructure = super.roundtrip(orgDbStructure, archiveFolderPath, version);
+
+    databaseStructure.setArchivalDate(null); // In siard-dk Archival Date is
+                                             // located in archiveIndex.xml
+
+    for (SchemaStructure orgSchema : orgDbStructure.getSchemas()) {
+      assert orgSchema.getTables().size() == databaseStructure.getSchemas().get(0).getTables().size();
+      for (int tblIndex = 0; tblIndex < orgSchema.getTables().size(); tblIndex++) {
+        TableStructure orgTable = orgSchema.getTables().get(tblIndex);
+        assert orgTable.getColumns().size() == databaseStructure.getSchemas().get(0).getTables().get(tblIndex).getColumns()
+          .size();
+        for (int columnIndex = 0; columnIndex < orgTable.getColumns().size(); columnIndex++) {
+          ColumnStructure orgColumn = orgTable.getColumns().get(columnIndex);
+          if (orgColumn.getType().getSql99TypeName().equals(SIARDDKConstants.BINARY_LARGE_OBJECT)) {
+            ColumnStructure roundTrippedColumn = databaseStructure.getSchemas().get(0).getTables().get(tblIndex)
+              .getColumns()
+              .get(columnIndex);
+            assert roundTrippedColumn.getType().getSql99TypeName().equals("INTEGER");
+            // revert to make equals test pass on the entire db structure
+            roundTrippedColumn.setType(orgColumn.getType());
+            // TODO test orginal type: Awaits issue
+            // https://github.com/keeps/db-preservation-toolkit/issues/128
+
+          }
+        }
+
+      }
+    }
 
     return databaseStructure;
   }

@@ -55,6 +55,7 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
   protected final SIARDDKPathImportStrategy pathStrategy;
   protected DatabaseStructure databaseStructure;
   protected final String importAsSchameName;
+  private int currentTableIndex = 1;
 
   public SIARDDKMetadataImportStrategy(SIARDDKPathImportStrategy pathStrategy, String importAsSchameName) {
     this.pathStrategy = pathStrategy;
@@ -151,6 +152,7 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
     if (siardArchive.getTables() != null && siardArchive.getTables().getTable() != null) {
       for (TableType tblXml : siardArchive.getTables().getTable()) {
         TableStructure tblDptkl = new TableStructure();
+        tblDptkl.setIndex(currentTableIndex++);
         tblDptkl.setSchema(getImportAsSchameName());
         tblDptkl.setName(tblXml.getName());
         tblDptkl.setId(String.format("%s.%s", tblDptkl.getSchema(), tblDptkl.getName()));
