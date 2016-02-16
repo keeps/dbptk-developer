@@ -9,6 +9,7 @@
                 <include name="mysql-siard1"/>
                 <include name="siard-roundtrip"/>
                 <include name="cli"/>
+                <include name="unit"/>
             </define>
 
             <!-- Tests ran by Travis CI -->
@@ -17,12 +18,14 @@
                 <include name="mysql-siard1"/>
                 <include name="siard-roundtrip"/>
                 <include name="cli"/>
+                <include name="unit"/>
             </define>
 
             <!-- Tests that don't have external dependencies -->
             <define name="no-dependencies">
                 <include name="siard-roundtrip"/>
                 <include name="cli"/>
+                <include name="unit"/>
             </define>
         </groups>
         <classes>
@@ -31,6 +34,7 @@
             <class name="com.databasepreservation.testing.integration.siard.SiardTest"/>
             <class name="com.databasepreservation.testing.unit.cli.PostgreSQLModuleFactoryTest"/>
             <class name="com.databasepreservation.testing.unit.cli.SQLServerJDBCModuleFactoryTest"/>
+            <class name="com.databasepreservation.testing.unit.utils.XMLUtilsTest"/>
         </classes>
     </test>
 </suite>
