@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://www.sa.dk/xmlns/siard/1.0/schema0/table2.xsd" targetNamespace="http://www.sa.dk/xmlns/siard/1.0/schema0/table2.xsd" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xs:element name="table">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="row" type="rowType" maxOccurs="unbounded" minOccurs="0" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:complexType name="rowType">
+    <xs:sequence>
+      <xs:element name="c1" minOccurs="1" type="xs:string" nillable="false" />
+      <xs:element name="c2" minOccurs="1" type="xs:string" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="NonEmptyString">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="(.|\n|\r)+" />
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>
