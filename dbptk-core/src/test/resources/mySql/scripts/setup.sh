@@ -20,7 +20,7 @@ pass="$DPT_MYSQL_PASS"
 
 function sql() {
   #mysql -s --user="$user" --password="$password" --database="mysql" --execute="$1"
-  mysql -s --user="$user" --password="$pass" --host="localhost" --execute="$1"
+  mysql -s --user="$user" --password="$pass" --host="127.0.0.1" --execute="$1"
 }
 
 # Create test databases
@@ -28,10 +28,10 @@ sql "CREATE DATABASE $TEST_DB_TARGET;"
 sql "CREATE DATABASE $TEST_DB_SOURCE;"
 
 # Create test user
-sql "CREATE USER '$TEST_DB_USER'@'localhost' IDENTIFIED BY '$TEST_DB_PASS';"
-sql "GRANT ALL PRIVILEGES ON $TEST_DB_SOURCE.* TO '$TEST_DB_USER'@'localhost' IDENTIFIED BY '$TEST_DB_PASS';"
-sql "GRANT ALL PRIVILEGES ON $TEST_DB_TARGET.* TO '$TEST_DB_USER'@'localhost' IDENTIFIED BY '$TEST_DB_PASS';"
-sql "GRANT SELECT ON mysql.user TO '$TEST_DB_USER'@'localhost' IDENTIFIED BY '$TEST_DB_PASS';"
-sql "GRANT SELECT ON mysql.tables_priv TO '$TEST_DB_USER'@'localhost' IDENTIFIED BY '$TEST_DB_PASS';"
+sql "CREATE USER '$TEST_DB_USER'@'%' IDENTIFIED BY '$TEST_DB_PASS';"
+sql "GRANT ALL PRIVILEGES ON $TEST_DB_SOURCE.* TO '$TEST_DB_USER'@'%' IDENTIFIED BY '$TEST_DB_PASS';"
+sql "GRANT ALL PRIVILEGES ON $TEST_DB_TARGET.* TO '$TEST_DB_USER'@'%' IDENTIFIED BY '$TEST_DB_PASS';"
+sql "GRANT SELECT ON mysql.user TO '$TEST_DB_USER'@'%' IDENTIFIED BY '$TEST_DB_PASS';"
+sql "GRANT SELECT ON mysql.tables_priv TO '$TEST_DB_USER'@'%' IDENTIFIED BY '$TEST_DB_PASS';"
 
 sql "FLUSH PRIVILEGES;"

@@ -39,17 +39,17 @@ public class MySqlTest {
       .getResource("/mySql/scripts/setup.sh").getPath(), db_source, db_target, db_tmp_username, db_tmp_password),
       String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/teardown.sh").getPath(),
         db_source, db_target, db_tmp_username), String.format(
-        "mysql --user=\"%s\" --password=\"%s\" --database=\"%s\"", db_tmp_username, db_tmp_password, db_source),
-      String.format("mysqldump -v --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username, db_tmp_password,
-        db_source), String.format("mysqldump -v --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
+        "mysql --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" --database=\"%s\"", db_tmp_username, db_tmp_password, db_source),
+      String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username, db_tmp_password,
+        db_source), String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
         db_tmp_password, db_target),
 
-      new String[] {"--import=mysql", "--import-hostname=localhost", "--import-database", db_source,
+      new String[] {"--import=mysql", "--import-hostname=127.0.0.1", "--import-database", db_source,
         "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--export=siard-1",
         "--export-compress", "--export-file", Roundtrip.TMP_FILE_SIARD_VAR},
 
       new String[] {"--import=siard-1", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=mysql",
-        "--export-hostname=localhost", "--export-database", db_target, "--export-username", db_tmp_username,
+        "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
         "--export-password", db_tmp_password},
 
       new MySqlDumpDiffExpectations(), null, null);

@@ -22,7 +22,7 @@ fi
 export PGPASSWORD="$DPT_POSTGRESQL_PASS"
 
 function sql() {
-  psql -q -h localhost -d postgres --command="$1"
+  psql -q -h 127.0.0.1 -d postgres --command="$1"
 }
 
 sql "DROP DATABASE IF EXISTS \"$TEST_DB_SOURCE\";"
