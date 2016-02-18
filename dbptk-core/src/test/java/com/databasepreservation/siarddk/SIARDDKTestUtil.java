@@ -2,6 +2,7 @@ package com.databasepreservation.siarddk;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -10,6 +11,7 @@ import org.apache.commons.io.FileUtils;
 import org.testng.FileAssert;
 
 import com.databasepreservation.CustomLogger;
+import com.databasepreservation.Main;
 
 /*
  * @author Thomas Kristensen tk@bithuset.dk
@@ -17,6 +19,26 @@ import com.databasepreservation.CustomLogger;
 public class SIARDDKTestUtil {
 
   private static final CustomLogger logger = CustomLogger.getLogger(SIARDDKTestUtil.class);
+
+  static void assertArchiveFoldersEqualAfterExportImport(Path archiveFldToProcessPath, Path archiveFldExpectedPath,
+    Path archiveFldTmp) throws IOException {
+
+    File archFile = archiveFldTmp.toFile();
+    if (archFile.exists()) {
+      FileUtils.deleteDirectory(archFile);
+    }
+
+    String[] argumentsToMain = new String[] {"--import=siard-dk", "--import-as-schema=public", "--import-folder",
+      archiveFldToProcessPath.toString(), "--export", "siard-dk", "--export-folder",
+      archFile.getAbsolutePath().toString()};
+
+    assert Main.internal_main(argumentsToMain) == 0 : "Expected import of siard-dk archive ["
+      + archiveFldToProcessPath.toString() + "] followed by export to siard-dk archive [" + archiveFldTmp.toString()
+      + "] to succeed.";
+
+    SIARDDKTestUtil.assertArchiveFoldersEqual(archFile, archiveFldExpectedPath.toFile());
+
+  }
 
   static void assertArchiveFoldersEqual(File actualArchFolder, File expectedArchFolder) throws IOException {
 
