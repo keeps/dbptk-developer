@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.testng.collections.Lists;
@@ -23,6 +24,7 @@ import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.Trigger;
 import com.databasepreservation.model.structure.UserStructure;
+import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.testing.SIARDVersion;
 
@@ -35,7 +37,6 @@ import com.databasepreservation.testing.SIARDVersion;
 public class SiardDKTest extends SiardTest {
 
   private final String ROUND_TRIP_SIARD_ARCHIVE_FILENAME = "AVID.RND.3000.1";
-
 
   private int schemaIndexUnderTest; // hack: siard-dk doesn't support multiple
                                     // schemas, so we'll only use one at a time.
@@ -99,9 +100,23 @@ public class SiardDKTest extends SiardTest {
           foreignKey.setDescription(null); // not supported in siard-dk.
         }
       }
+
+      // create pseudo views
+      ViewStructure view01 = new ViewStructure("view01", "the original query1", "the original query1", "first view",
+        null);
+      ViewStructure view02 = new ViewStructure("view02", "the original query2", "the original query2", "second view",
+        null);
+      List<ViewStructure> views = new LinkedList<ViewStructure>();
+      views.add(view01);
+      views.add(view02);
+      schema.setViews(views);
       
     }
 
+   
+  
+    
+    
 
     return databaseStructure;
   }
@@ -129,14 +144,13 @@ public class SiardDKTest extends SiardTest {
       assert orgSchema.getTables().size() == databaseStructure.getSchemas().get(0).getTables().size();
       for (int tblIndex = 0; tblIndex < orgSchema.getTables().size(); tblIndex++) {
         TableStructure orgTable = orgSchema.getTables().get(tblIndex);
-        assert orgTable.getColumns().size() == databaseStructure.getSchemas().get(0).getTables().get(tblIndex).getColumns()
-          .size();
+        assert orgTable.getColumns().size() == databaseStructure.getSchemas().get(0).getTables().get(tblIndex)
+          .getColumns().size();
         for (int columnIndex = 0; columnIndex < orgTable.getColumns().size(); columnIndex++) {
           ColumnStructure orgColumn = orgTable.getColumns().get(columnIndex);
           if (orgColumn.getType().getSql99TypeName().equals(SIARDDKConstants.BINARY_LARGE_OBJECT)) {
             ColumnStructure roundTrippedColumn = databaseStructure.getSchemas().get(0).getTables().get(tblIndex)
-              .getColumns()
-              .get(columnIndex);
+              .getColumns().get(columnIndex);
             assert roundTrippedColumn.getType().getSql99TypeName().equals("INTEGER");
             // revert to make equals test pass on the entire db structure
             roundTrippedColumn.setType(orgColumn.getType());

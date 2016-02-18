@@ -16,6 +16,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.CustomLogger;
@@ -27,6 +28,7 @@ import com.databasepreservation.model.structure.PrimaryKey;
 import com.databasepreservation.model.structure.Reference;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
@@ -43,6 +45,7 @@ import dk.sa.xmlns.diark._1_0.tableindex.PrimaryKeyType;
 import dk.sa.xmlns.diark._1_0.tableindex.ReferenceType;
 import dk.sa.xmlns.diark._1_0.tableindex.SiardDiark;
 import dk.sa.xmlns.diark._1_0.tableindex.TableType;
+import dk.sa.xmlns.diark._1_0.tableindex.ViewType;
 
 /**
  * @author Thomas Kristensen <tk@bithuset.dk>
@@ -139,11 +142,32 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
     SchemaStructure schemaImportAs = new SchemaStructure();
     schemaImportAs.setName(getImportAsSchameName());
     schemaImportAs.setTables(getTables(siardArchive));
+    schemaImportAs.setViews(getViews(siardArchive));
     List<SchemaStructure> list = new LinkedList<SchemaStructure>();
     list.add(schemaImportAs);
-    // TODO: Views
+
     return list;
 
+  }
+
+  protected List<ViewStructure> getViews(SiardDiark siardArchive) {
+    List<ViewStructure> lstViewsDptkl = new LinkedList<ViewStructure>();
+    if (siardArchive.getViews() != null && siardArchive.getViews().getView() != null) {
+      for (ViewType viewXml : siardArchive.getViews().getView()) {
+        ViewStructure viewDptkl = new ViewStructure();
+        if (StringUtils.isNotBlank(viewXml.getDescription())) {
+          viewDptkl.setDescription(viewXml.getDescription());
+        }
+        viewDptkl.setName(viewXml.getName());
+        viewDptkl.setQueryOriginal(viewXml.getQueryOriginal());
+        // NOTICE: As siard-dk only support defining the query original attribute -
+        // we'll use it for both the query and the query original field in the
+        // internal representation of the view.
+        viewDptkl.setQuery(viewXml.getQueryOriginal());
+        lstViewsDptkl.add(viewDptkl);
+      }
+    }
+    return lstViewsDptkl;
   }
 
   protected List<TableStructure> getTables(SiardDiark siardArchive) throws ModuleException {
@@ -175,10 +199,11 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
         ColumnStructure columnDptkl = new ColumnStructure();
         columnDptkl.setName(columnXml.getName());
         columnDptkl.setId(String.format("%s.%s", tableId, columnDptkl.getName()));
-        columnDptkl.setType(
-          TypeConverterFactory.getSQL99TypeConverter().getType(columnXml.getType(), columnXml.getTypeOriginal()));
+        String typeOriginal = StringUtils.isNotBlank(columnXml.getTypeOriginal()) ? columnXml.getTypeOriginal() : null;
+        columnDptkl.setType(TypeConverterFactory.getSQL99TypeConverter().getType(columnXml.getType(), typeOriginal));
         columnDptkl.setDescription(columnXml.getDescription());
-        columnDptkl.setDefaultValue(columnXml.getDefaultValue());
+        String defaultValue = StringUtils.isNotBlank(columnXml.getDefaultValue()) ? columnXml.getDefaultValue() : null;
+        columnDptkl.setDefaultValue(defaultValue);
         columnDptkl.setNillable(columnXml.isNullable());
         lstColumnsDptkl.add(columnDptkl);
       }
