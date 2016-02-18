@@ -13,36 +13,40 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.databasepreservation.testing.integration.roundtrip.differences.MySqlDumpDiffExpectations;
 
-@Test(groups = {"mysql-siard1"})
 public class MySqlTest {
   private final String db_source = "dpttest";
   private final String db_target = "dpttest_siard";
   private final String db_tmp_username = "dpttest";
   private final String db_tmp_password = RandomStringUtils.randomAlphabetic(10);
-  private Roundtrip rt;
+  private Roundtrip rt_siard1;
+  private Roundtrip rt_siard2;
 
-  @BeforeClass
+  @Test(description = "Testing environment setup", groups = {"mysql-siard1", "mysql-siard2"})
   public void setup() throws IOException, InterruptedException, URISyntaxException {
+    // avoid running a second time
+    if(rt_siard1 != null && rt_siard2 != null){
+      return;
+    }
+
     Set<PosixFilePermission> executablePermissions = PosixFilePermissions.fromString("rwxr-xr-x");
     Files.setAttribute(Paths.get(getClass().getResource("/mySql/scripts/setup.sh").getPath()), "posix:permissions",
       executablePermissions);
     Files.setAttribute(Paths.get(getClass().getResource("/mySql/scripts/teardown.sh").getPath()), "posix:permissions",
       executablePermissions);
 
-    rt = new Roundtrip(String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass()
+    rt_siard1 = new Roundtrip(String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass()
       .getResource("/mySql/scripts/setup.sh").getPath(), db_source, db_target, db_tmp_username, db_tmp_password),
       String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/teardown.sh").getPath(),
         db_source, db_target, db_tmp_username), String.format(
-        "mysql --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" --database=\"%s\"", db_tmp_username, db_tmp_password, db_source),
+      "mysql --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" --database=\"%s\"", db_tmp_username, db_tmp_password, db_source),
       String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username, db_tmp_password,
         db_source), String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
-        db_tmp_password, db_target),
+      db_tmp_password, db_target),
 
       new String[] {"--import=mysql", "--import-hostname=127.0.0.1", "--import-database", db_source,
         "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--export=siard-1",
@@ -53,11 +57,36 @@ public class MySqlTest {
         "--export-password", db_tmp_password},
 
       new MySqlDumpDiffExpectations(), null, null);
+
+
+    rt_siard2 = new Roundtrip(String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass()
+      .getResource("/mySql/scripts/setup.sh").getPath(), db_source, db_target, db_tmp_username, db_tmp_password),
+      String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/teardown.sh").getPath(),
+        db_source, db_target, db_tmp_username), String.format(
+      "mysql --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" --database=\"%s\"", db_tmp_username, db_tmp_password, db_source),
+      String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username, db_tmp_password,
+        db_source), String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
+      db_tmp_password, db_target),
+
+      new String[] {"--import=mysql", "--import-hostname=127.0.0.1", "--import-database", db_source,
+        "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--export=siard-2",
+        "--export-compress", "--export-file", Roundtrip.TMP_FILE_SIARD_VAR},
+
+      new String[] {"--import=siard-2", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=mysql",
+        "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
+        "--export-password", db_tmp_password},
+
+      new MySqlDumpDiffExpectations(), null, null);
   }
 
-  @Test(description = "MySql server is available and accessible")
-  public void testConnection() throws IOException, InterruptedException {
-    rt.checkConnection();
+  @Test(description = "MySql server is available and accessible", groups = {"mysql-siard1"}, dependsOnMethods = {"setup"})
+  public void testConnection1() throws IOException, InterruptedException {
+    rt_siard1.checkConnection();
+  }
+
+  @Test(description = "MySql server is available and accessible", groups = {"mysql-siard2"}, dependsOnMethods = {"setup"})
+  public void testConnection2() throws IOException, InterruptedException {
+    rt_siard2.checkConnection();
   }
 
   @DataProvider
@@ -197,13 +226,22 @@ public class MySqlTest {
     return tests.iterator();
   }
 
-  @Test(description = "Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnection"})
-  public void testQueries(String... args) throws IOException, InterruptedException {
+  @Test(description = "Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnection1"}, groups = {"mysql-siard1"})
+  public void testQueries1(String... args) throws IOException, InterruptedException {
 
     String[] fields = new String[args.length - 1];
     System.arraycopy(args, 1, fields, 0, args.length - 1);
 
-    assert rt.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], (Object[]) fields);
+    assert rt_siard1.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], (Object[]) fields);
+  }
+
+  @Test(description = "Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnection2"}, groups = {"mysql-siard2"})
+  public void testQueries2(String... args) throws IOException, InterruptedException {
+
+    String[] fields = new String[args.length - 1];
+    System.arraycopy(args, 1, fields, 0, args.length - 1);
+
+    assert rt_siard2.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], (Object[]) fields);
   }
 
   @DataProvider
@@ -216,8 +254,13 @@ public class MySqlTest {
     return tests.iterator();
   }
 
-  @Test(description = "Tests MySQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnection"})
-  public void testFiles(Path... file) throws IOException, InterruptedException, URISyntaxException {
-    assert rt.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
+  @Test(description = "Tests MySQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnection1"}, groups = {"mysql-siard1"})
+  public void testFiles1(Path... file) throws IOException, InterruptedException, URISyntaxException {
+    assert rt_siard1.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
+  }
+
+  @Test(description = "Tests MySQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnection2"}, groups = {"mysql-siard2"})
+  public void testFiles2(Path... file) throws IOException, InterruptedException, URISyntaxException {
+    assert rt_siard2.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
   }
 }

@@ -14,22 +14,22 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.databasepreservation.testing.integration.roundtrip.differences.PostgreSqlDumpDiffExpectations;
 
-@Test(groups = {"postgresql-siard1"})
+@Test
 public class PostgreSqlTest {
   private final String db_source = "dpttest";
   private final String db_target = "dpttest_siard";
   private final String db_tmp_username = "dpttest";
   private final String db_tmp_password = RandomStringUtils.randomAlphabetic(10);
   private File tmpFile;
-  private Roundtrip rt;
+  private Roundtrip rt_siard1;
+  private Roundtrip rt_siard2;
 
-  @BeforeClass
+  @Test(description = "Testing environment setup", groups = {"postgresql-siard1", "postgresql-siard2"})
   public void setup() throws IOException, InterruptedException, URISyntaxException {
     HashMap<String, String> env_var_source = new HashMap<String, String>();
     env_var_source.put("PGUSER", db_tmp_username);
@@ -49,10 +49,11 @@ public class PostgreSqlTest {
 
     // Files.setAttribute(p, attribute, value, options)
 
-    rt = new Roundtrip(String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"",
-      getClass().getResource("/postgreSql/scripts/setup.sh").getPath(), db_source, db_target, db_tmp_username,
-      db_tmp_password), String.format("%s \"%s\" \"%s\" \"%s\"",
-      getClass().getResource("/postgreSql/scripts/teardown.sh").getPath(), db_source, db_target, db_tmp_username),
+    rt_siard1 = new Roundtrip(
+      String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass().getResource("/postgreSql/scripts/setup.sh").getPath(),
+        db_source, db_target, db_tmp_username, db_tmp_password),
+      String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/postgreSql/scripts/teardown.sh").getPath(),
+        db_source, db_target, db_tmp_username),
       "psql -q -h 127.0.0.1",
       "pg_dump -h 127.0.0.1 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
       "pg_dump -h 127.0.0.1 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
@@ -65,11 +66,34 @@ public class PostgreSqlTest {
         "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
         "--export-password", db_tmp_password, "--export-disable-encryption"}, new PostgreSqlDumpDiffExpectations(),
       env_var_source, env_var_target);
+
+    rt_siard2 = new Roundtrip(
+      String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass().getResource("/postgreSql/scripts/setup.sh").getPath(),
+        db_source, db_target, db_tmp_username, db_tmp_password),
+      String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/postgreSql/scripts/teardown.sh").getPath(),
+        db_source, db_target, db_tmp_username),
+      "psql -q -h 127.0.0.1",
+      "pg_dump -h 127.0.0.1 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
+      "pg_dump -h 127.0.0.1 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
+
+      new String[] {"--import=postgresql", "--import-hostname=127.0.0.1", "--import-database", db_source,
+        "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--import-disable-encryption",
+        "--export=siard-2", "--export-file", Roundtrip.TMP_FILE_SIARD_VAR},
+
+      new String[] {"--import=siard-2", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=postgresql",
+        "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
+        "--export-password", db_tmp_password, "--export-disable-encryption"}, new PostgreSqlDumpDiffExpectations(),
+      env_var_source, env_var_target);
   }
 
-  @Test(description = "PostgreSql server is available and accessible")
-  public void testConnection() throws IOException, InterruptedException {
-    rt.checkConnection();
+  @Test(description = "[siard-1] PostgreSql server is available and accessible", groups = {"postgresql-siard1"}, dependsOnMethods = {"setup"})
+  public void testConnection1() throws IOException, InterruptedException {
+    rt_siard1.checkConnection();
+  }
+
+  @Test(description = "[siard-2] PostgreSql server is available and accessible", groups = {"postgresql-siard2"}, dependsOnMethods = {"setup"})
+  public void testConnection2() throws IOException, InterruptedException {
+    rt_siard2.checkConnection();
   }
 
   @DataProvider
@@ -103,13 +127,22 @@ public class PostgreSqlTest {
     return tests.iterator();
   }
 
-  @Test(description = "Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnection"})
-  public void testQueries(String... args) throws IOException, InterruptedException {
+  @Test(description = "[siard-1] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnection1"}, groups = {"postgresql-siard1"})
+  public void testQueries1(String... args) throws IOException, InterruptedException {
 
     String[] fields = new String[args.length - 1];
     System.arraycopy(args, 1, fields, 0, args.length - 1);
 
-    assert rt.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], (Object[]) fields);
+    assert rt_siard1.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], (Object[]) fields);
+  }
+
+  @Test(description = "[siard-2] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnection2"}, groups = {"postgresql-siard2"})
+  public void testQueries2(String... args) throws IOException, InterruptedException {
+
+    String[] fields = new String[args.length - 1];
+    System.arraycopy(args, 1, fields, 0, args.length - 1);
+
+    assert rt_siard2.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], (Object[]) fields);
   }
 
   @DataProvider
@@ -126,8 +159,13 @@ public class PostgreSqlTest {
     return tests.iterator();
   }
 
-  @Test(description = "Tests PostgreSQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnection"})
-  public void testFiles(Path... file) throws IOException, InterruptedException, URISyntaxException {
-    assert rt.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
+  @Test(description = "[siard-1] Tests PostgreSQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnection1"}, groups = {"postgresql-siard1"})
+  public void testFiles1(Path... file) throws IOException, InterruptedException, URISyntaxException {
+    assert rt_siard1.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
+  }
+
+  @Test(description = "[siard-2] Tests PostgreSQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnection2"}, groups = {"postgresql-siard2"})
+  public void testFiles2(Path... file) throws IOException, InterruptedException, URISyntaxException {
+    assert rt_siard2.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
   }
 }

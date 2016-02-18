@@ -6,7 +6,9 @@
             <!-- All the tests -->
             <define name="all">
                 <include name="postgresql-siard1"/>
+                <include name="postgresql-siard2"/>
                 <include name="mysql-siard1"/>
+                <include name="mysql-siard2"/>
                 <include name="siard-roundtrip"/>
                 <include name="cli"/>
                 <include name="unit"/>
@@ -15,7 +17,9 @@
             <!-- Tests ran by Travis CI -->
             <define name="travis-ci">
                 <include name="postgresql-siard1"/>
+                <include name="postgresql-siard2"/>
                 <include name="mysql-siard1"/>
+                <include name="mysql-siard2"/>
                 <include name="siard-roundtrip"/>
                 <include name="cli"/>
                 <include name="unit"/>
