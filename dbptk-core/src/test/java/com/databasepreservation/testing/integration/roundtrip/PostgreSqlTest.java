@@ -60,7 +60,7 @@ public class PostgreSqlTest {
 
       new String[] {"--import=postgresql", "--import-hostname=127.0.0.1", "--import-database", db_source,
         "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--import-disable-encryption",
-        "--export=siard-1", "--export-file", Roundtrip.TMP_FILE_SIARD_VAR},
+        "--export=siard-1", "--export-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export-pretty-xml"},
 
       new String[] {"--import=siard-1", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=postgresql",
         "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
@@ -78,7 +78,7 @@ public class PostgreSqlTest {
 
       new String[] {"--import=postgresql", "--import-hostname=127.0.0.1", "--import-database", db_source,
         "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--import-disable-encryption",
-        "--export=siard-2", "--export-file", Roundtrip.TMP_FILE_SIARD_VAR},
+        "--export=siard-2", "--export-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export-pretty-xml"},
 
       new String[] {"--import=siard-2", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=postgresql",
         "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
