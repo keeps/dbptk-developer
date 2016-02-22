@@ -427,15 +427,22 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     // xs:complexType name="clobType"
     xsdWriter.beginOpenTag("xs:complexType", 1).appendAttribute("name", "clobType").endOpenTag()
 
-    .openTag("xs:simpleContent", 2)
+      .openTag("xs:annotation", 2)
 
-    .beginOpenTag("xs:extension", 3).appendAttribute("base", "xs:string").endOpenTag()
+      .openTag("xs:documentation", 3).append("Type to refer CLOB types. Either inline or in a separate file.")
+      .closeTag("xs:documentation", 3)
 
-    .beginOpenTag("xs:attribute", 4).appendAttribute("name", "file").appendAttribute("type", "xs:anyURI")
-      .appendAttribute("use", "required").endShorthandTag()
+      .closeTag("xs:annotation", 2)
+
+      .openTag("xs:simpleContent", 2)
+
+      .beginOpenTag("xs:extension", 3).appendAttribute("base", "xs:string").endOpenTag()
+
+      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "file").appendAttribute("type", "xs:anyURI")
+      .endShorthandTag()
 
       .beginOpenTag("xs:attribute", 4).appendAttribute("name", "length").appendAttribute("type", "xs:integer")
-      .appendAttribute("use", "required").endShorthandTag()
+      .endShorthandTag()
 
       .beginOpenTag("xs:attribute", 4).appendAttribute("name", "messageDigest").appendAttribute("type", "xs:string")
       .endShorthandTag()
@@ -449,15 +456,22 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     // xs:complexType name="blobType"
     xsdWriter.beginOpenTag("xs:complexType", 1).appendAttribute("name", "blobType").endOpenTag()
 
-    .openTag("xs:simpleContent", 2)
+      .openTag("xs:annotation", 2)
 
-    .beginOpenTag("xs:extension", 3).appendAttribute("base", "xs:hexBinary").endOpenTag()
+      .openTag("xs:documentation", 3).append("Type to refer BLOB types. Either inline or in a separate file.")
+      .closeTag("xs:documentation", 3)
 
-    .beginOpenTag("xs:attribute", 4).appendAttribute("name", "file").appendAttribute("type", "xs:anyURI")
-      .appendAttribute("use", "required").endShorthandTag()
+      .closeTag("xs:annotation", 2)
+
+      .openTag("xs:simpleContent", 2)
+
+      .beginOpenTag("xs:extension", 3).appendAttribute("base", "xs:hexBinary").endOpenTag()
+
+      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "file").appendAttribute("type", "xs:anyURI")
+      .endShorthandTag()
 
       .beginOpenTag("xs:attribute", 4).appendAttribute("name", "length").appendAttribute("type", "xs:integer")
-      .appendAttribute("use", "required").endShorthandTag()
+      .endShorthandTag()
 
       .beginOpenTag("xs:attribute", 4).appendAttribute("name", "messageDigest").appendAttribute("type", "xs:string")
       .endShorthandTag()

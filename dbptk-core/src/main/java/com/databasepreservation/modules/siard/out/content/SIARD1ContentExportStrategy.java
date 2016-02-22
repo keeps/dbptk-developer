@@ -382,48 +382,68 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
       // close tags for xs:sequence and xs:complexType
       .closeTag("xs:sequence", 2)
 
-      .closeTag("xs:complexType", 1)
+      .closeTag("xs:complexType", 1);
 
-      // xs:complexType name="clobType"
-      .beginOpenTag("xs:complexType", 1).appendAttribute("name", "clobType").endOpenTag()
+    // xs:complexType name="clobType"
+    xsdWriter.beginOpenTag("xs:complexType", 1).appendAttribute("name", "clobType").endOpenTag()
+
+      .openTag("xs:annotation", 2)
+
+      .openTag("xs:documentation", 3).append("Type to refer CLOB types. Either inline or in a separate file.")
+      .closeTag("xs:documentation", 3)
+
+      .closeTag("xs:annotation", 2)
 
       .openTag("xs:simpleContent", 2)
 
       .beginOpenTag("xs:extension", 3).appendAttribute("base", "xs:string").endOpenTag()
 
-      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "file").appendAttribute("type", "xs:string")
+      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "file").appendAttribute("type", "xs:anyURI")
       .endShorthandTag()
 
       .beginOpenTag("xs:attribute", 4).appendAttribute("name", "length").appendAttribute("type", "xs:integer")
+      .endShorthandTag()
+
+      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "messageDigest").appendAttribute("type", "xs:string")
       .endShorthandTag()
 
       .closeTag("xs:extension", 3)
 
       .closeTag("xs:simpleContent", 2)
 
-      .closeTag("xs:complexType", 1)
+      .closeTag("xs:complexType", 1);
 
-      // xs:complexType name="blobType"
-      .beginOpenTag("xs:complexType", 1).appendAttribute("name", "blobType").endOpenTag()
+    // xs:complexType name="blobType"
+    xsdWriter.beginOpenTag("xs:complexType", 1).appendAttribute("name", "blobType").endOpenTag()
+
+      .openTag("xs:annotation", 2)
+
+      .openTag("xs:documentation", 3).append("Type to refer BLOB types. Either inline or in a separate file.")
+      .closeTag("xs:documentation", 3)
+
+      .closeTag("xs:annotation", 2)
 
       .openTag("xs:simpleContent", 2)
 
-      .beginOpenTag("xs:extension", 3).appendAttribute("base", "xs:string").endOpenTag()
+      .beginOpenTag("xs:extension", 3).appendAttribute("base", "xs:hexBinary").endOpenTag()
 
-      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "file").appendAttribute("type", "xs:string")
+      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "file").appendAttribute("type", "xs:anyURI")
       .endShorthandTag()
 
       .beginOpenTag("xs:attribute", 4).appendAttribute("name", "length").appendAttribute("type", "xs:integer")
+      .endShorthandTag()
+
+      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "messageDigest").appendAttribute("type", "xs:string")
       .endShorthandTag()
 
       .closeTag("xs:extension", 3)
 
       .closeTag("xs:simpleContent", 2)
 
-      .closeTag("xs:complexType", 1)
+      .closeTag("xs:complexType", 1);
 
-      // close schema
-      .closeTag("xs:schema");
+    // close schema
+    xsdWriter.closeTag("xs:schema");
 
     xsdWriter.close();
   }

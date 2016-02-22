@@ -60,9 +60,9 @@ public class MySqlTest {
       db_tmp_username, "--import-password", db_tmp_password, "--export=siard-1", "--export-compress", "--export-file",
       Roundtrip.TMP_FILE_SIARD_VAR, "--export-pretty-xml"},
 
-    new String[] {"--import=siard-1", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--import-pretty-xml",
-      "--export=mysql", "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username",
-      db_tmp_username, "--export-password", db_tmp_password},
+    new String[] {"--import=siard-1", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=mysql",
+      "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
+      "--export-password", db_tmp_password},
 
     new MySqlDumpDiffExpectations(), null, null);
 
@@ -94,13 +94,13 @@ public class MySqlTest {
     new MySqlDumpDiffExpectations(), null, null);
   }
 
-  @Test(description = "MySql server is available and accessible", groups = {"mysql-siard1"}, dependsOnMethods = {"setup"})
-  public void testConnection1() throws IOException, InterruptedException {
+  @Test(description = "[siard-1] MySql server is available and accessible", groups = {"mysql-siard1"}, dependsOnMethods = {"setup"})
+  public void testConnectionSiard1() throws IOException, InterruptedException {
     rt_siard1.checkConnection();
   }
 
-  @Test(description = "MySql server is available and accessible", groups = {"mysql-siard2"}, dependsOnMethods = {"setup"})
-  public void testConnection2() throws IOException, InterruptedException {
+  @Test(description = "[siard-2] MySql server is available and accessible", groups = {"mysql-siard2"}, dependsOnMethods = {"setup"})
+  public void testConnectionSiard2() throws IOException, InterruptedException {
     rt_siard2.checkConnection();
   }
 
@@ -217,8 +217,8 @@ public class MySqlTest {
     return tests.iterator();
   }
 
-  @Test(description = "Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnection1"}, groups = {"mysql-siard1"})
-  public void testQueries1(String... args) throws IOException, InterruptedException {
+  @Test(description = "[siard-1] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnectionSiard1"}, groups = {"mysql-siard1"})
+  public void testQueriesSiard1(String... args) throws IOException, InterruptedException {
 
     String[] fields = new String[args.length - 1];
     System.arraycopy(args, 1, fields, 0, args.length - 1);
@@ -226,8 +226,8 @@ public class MySqlTest {
     assert rt_siard1.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], (Object[]) fields);
   }
 
-  @Test(description = "Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnection2"}, groups = {"mysql-siard2"})
-  public void testQueries2(String... args) throws IOException, InterruptedException {
+  @Test(description = "[siard-2] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnectionSiard2"}, groups = {"mysql-siard2"})
+  public void testQueriesSiard2(String... args) throws IOException, InterruptedException {
 
     String[] fields = new String[args.length - 1];
     System.arraycopy(args, 1, fields, 0, args.length - 1);
@@ -245,13 +245,13 @@ public class MySqlTest {
     return tests.iterator();
   }
 
-  @Test(description = "Tests MySQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnection1"}, groups = {"mysql-siard1"})
-  public void testFiles1(Path... file) throws IOException, InterruptedException, URISyntaxException {
+  @Test(description = "[siard-1] Tests MySQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnectionSiard1"}, groups = {"mysql-siard1"})
+  public void testFilesSiard1(Path... file) throws IOException, InterruptedException, URISyntaxException {
     assert rt_siard1.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
   }
 
-  @Test(description = "Tests MySQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnection2"}, groups = {"mysql-siard2"})
-  public void testFiles2(Path... file) throws IOException, InterruptedException, URISyntaxException {
+  @Test(description = "[siard-2] Tests MySQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnectionSiard2"}, groups = {"mysql-siard2"})
+  public void testFilesSiard2(Path... file) throws IOException, InterruptedException, URISyntaxException {
     assert rt_siard2.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
   }
 }

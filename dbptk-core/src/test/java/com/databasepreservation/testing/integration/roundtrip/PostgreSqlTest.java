@@ -87,12 +87,12 @@ public class PostgreSqlTest {
   }
 
   @Test(description = "[siard-1] PostgreSql server is available and accessible", groups = {"postgresql-siard1"}, dependsOnMethods = {"setup"})
-  public void testConnection1() throws IOException, InterruptedException {
+  public void testConnectionSiard1() throws IOException, InterruptedException {
     rt_siard1.checkConnection();
   }
 
   @Test(description = "[siard-2] PostgreSql server is available and accessible", groups = {"postgresql-siard2"}, dependsOnMethods = {"setup"})
-  public void testConnection2() throws IOException, InterruptedException {
+  public void testConnectionSiard2() throws IOException, InterruptedException {
     rt_siard2.checkConnection();
   }
 
@@ -127,8 +127,8 @@ public class PostgreSqlTest {
     return tests.iterator();
   }
 
-  @Test(description = "[siard-1] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnection1"}, groups = {"postgresql-siard1"})
-  public void testQueries1(String... args) throws IOException, InterruptedException {
+  @Test(description = "[siard-1] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnectionSiard1"}, groups = {"postgresql-siard1"})
+  public void testQueriesSiard1(String... args) throws IOException, InterruptedException {
 
     String[] fields = new String[args.length - 1];
     System.arraycopy(args, 1, fields, 0, args.length - 1);
@@ -136,8 +136,8 @@ public class PostgreSqlTest {
     assert rt_siard1.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], (Object[]) fields);
   }
 
-  @Test(description = "[siard-2] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnection2"}, groups = {"postgresql-siard2"})
-  public void testQueries2(String... args) throws IOException, InterruptedException {
+  @Test(description = "[siard-2] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnectionSiard2"}, groups = {"postgresql-siard2"})
+  public void testQueriesSiard2(String... args) throws IOException, InterruptedException {
 
     String[] fields = new String[args.length - 1];
     System.arraycopy(args, 1, fields, 0, args.length - 1);
@@ -159,13 +159,13 @@ public class PostgreSqlTest {
     return tests.iterator();
   }
 
-  @Test(description = "[siard-1] Tests PostgreSQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnection1"}, groups = {"postgresql-siard1"})
-  public void testFiles1(Path... file) throws IOException, InterruptedException, URISyntaxException {
+  @Test(description = "[siard-1] Tests PostgreSQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnectionSiard1"}, groups = {"postgresql-siard1"})
+  public void testFilesSiard1(Path... file) throws IOException, InterruptedException, URISyntaxException {
     assert rt_siard1.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
   }
 
-  @Test(description = "[siard-2] Tests PostgreSQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnection2"}, groups = {"postgresql-siard2"})
-  public void testFiles2(Path... file) throws IOException, InterruptedException, URISyntaxException {
+  @Test(description = "[siard-2] Tests PostgreSQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnectionSiard2"}, groups = {"postgresql-siard2"})
+  public void testFilesSiard2(Path... file) throws IOException, InterruptedException, URISyntaxException {
     assert rt_siard2.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
   }
 }
