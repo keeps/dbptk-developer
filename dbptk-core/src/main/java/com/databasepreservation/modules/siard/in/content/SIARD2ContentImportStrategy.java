@@ -228,8 +228,9 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
       throw new InternalError();
     }
 
+    String localVal = tempVal.toString();
+
     popTag();
-    String trimmedVal = tempVal.toString().trim();
 
     if (tag.equalsIgnoreCase(SCHEMA_KEYWORD)) {
       try {
@@ -245,6 +246,17 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
         logger.error("An error occurred while handling data close table", e);
       }
     } else if (tag.equalsIgnoreCase(ROW_KEYWORD)) {
+      // assume all cells that are not present are null
+      for (int i = row.getCells().size() - 1; i >= 0; i--) {
+        Cell cell = row.getCells().get(i);
+        if (cell == null) {
+          String id = String.format("%s.%d", currentTable.getColumns().get(i).getId(), rowIndex);
+          SimpleCell simpleCell = new SimpleCell(id);
+          simpleCell.setSimpledata(null);
+          row.getCells().set(i, simpleCell);
+        }
+      }
+
       row.setIndex(rowIndex);
       rowIndex++;
       try {
@@ -261,7 +273,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
       Type type = currentTable.getColumns().get(columnIndex - 1).getType();
 
       if (type instanceof SimpleTypeString) {
-        trimmedVal = SIARDHelper.decode(trimmedVal);
+        localVal = SIARDHelper.decode(localVal);
       }
 
       Cell cell = null;
@@ -270,24 +282,19 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
       } else {
         String id = String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1).getId(), rowIndex);
 
-        if (type instanceof SimpleTypeBinary && StringUtils.isNotBlank(trimmedVal)) {
+        if (type instanceof SimpleTypeBinary && StringUtils.isNotBlank(localVal)) {
           // binary data with less than 2000 bytes does not have its own file
           try {
-            InputStream is = new ByteArrayInputStream(Hex.decodeHex(trimmedVal.toCharArray()));
+            InputStream is = new ByteArrayInputStream(Hex.decodeHex(localVal.toCharArray()));
             cell = new BinaryCell(id, new FileItem(is));
           } catch (ModuleException e) {
             logger.error("An error occurred while importing in-table binary cell", e);
           } catch (DecoderException e) {
-            logger.error(String.format("Illegal characters in hexadecimal string \"%s\"", trimmedVal), e);
+            logger.error(String.format("Illegal characters in hexadecimal string \"%s\"", localVal), e);
           }
         } else {
           cell = new SimpleCell(id);
-          if (trimmedVal.length() > 0) {
-            // logger.debug("trimmed: " + trimmedVal);
-            ((SimpleCell) cell).setSimpledata(trimmedVal);
-          } else {
-            ((SimpleCell) cell).setSimpledata(null);
-          }
+          ((SimpleCell) cell).setSimpledata(localVal);
         }
       }
       row.getCells().set(columnIndex - 1, cell);

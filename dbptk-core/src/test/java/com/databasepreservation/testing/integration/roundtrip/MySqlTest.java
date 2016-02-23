@@ -179,7 +179,6 @@ public class MySqlTest {
     tests.add(new String[] {singleTypeAndValue, "YEAR(4)", "'69'"});
 
     // TODO: tests character sets and collations
-    tests.add(new String[] {singleTypeAndValue, "CHAR(0)", "NULL"});
 
     // tests.add(new String[]{singleTypeAndValue, "CHAR(0) NOT NULL", "''"});
     // fixme: for empty strings, the value becomes null
@@ -239,8 +238,7 @@ public class MySqlTest {
   public Iterator<Object[]> testFilesProvider() throws URISyntaxException {
     ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
-    // tests.add(new
-    // Path[]{Paths.get(getClass().getResource("/mySql/testfiles/datatypes.sql").toURI())});
+    //tests.add(new Path[]{Paths.get(getClass().getResource("/mySql/testfiles/world.sql").toURI())});
 
     return tests.iterator();
   }

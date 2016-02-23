@@ -189,13 +189,11 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
   }
 
   private void writeSimpleCellData(SimpleCell simpleCell, int columnIndex) throws IOException {
-    currentWriter.inlineOpenTag("c" + columnIndex, 2);
-
     if (simpleCell.getSimpledata() != null) {
+      currentWriter.inlineOpenTag("c" + columnIndex, 2);
       currentWriter.write(XMLUtils.encode(simpleCell.getSimpledata()));
+      currentWriter.closeTag("c" + columnIndex);
     }
-
-    currentWriter.closeTag("c" + columnIndex);
   }
 
   private void writeLargeObjectData(Cell cell, int columnIndex) throws IOException, ModuleException {
@@ -204,6 +202,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     LargeObject lob = null;
 
     if (cell instanceof BinaryCell) {
+      // TODO: check for problems when lob is null
       final BinaryCell binCell = (BinaryCell) cell;
 
       String path = contentPathStrategy.getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
@@ -230,6 +229,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
         .append(String.valueOf(txtCell.getSimpledata().length())).append("\"");
 
       // workaround to have data from CLOBs saved as a temporary file to be read
+      // FIXME: if lob is null, this will fail
       String data = txtCell.getSimpledata();
       ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
       try {
@@ -379,7 +379,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     }
 
     xsdWriter
-      // close tags for xs:sequence and xs:complexType
+    // close tags for xs:sequence and xs:complexType
       .closeTag("xs:sequence", 2)
 
       .closeTag("xs:complexType", 1);
@@ -387,9 +387,9 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     // xs:complexType name="clobType"
     xsdWriter.beginOpenTag("xs:complexType", 1).appendAttribute("name", "clobType").endOpenTag()
 
-      .openTag("xs:annotation", 2)
+    .openTag("xs:annotation", 2)
 
-      .openTag("xs:documentation", 3).append("Type to refer CLOB types. Either inline or in a separate file.")
+    .openTag("xs:documentation", 3).append("Type to refer CLOB types. Either inline or in a separate file.")
       .closeTag("xs:documentation", 3)
 
       .closeTag("xs:annotation", 2)
@@ -416,9 +416,9 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     // xs:complexType name="blobType"
     xsdWriter.beginOpenTag("xs:complexType", 1).appendAttribute("name", "blobType").endOpenTag()
 
-      .openTag("xs:annotation", 2)
+    .openTag("xs:annotation", 2)
 
-      .openTag("xs:documentation", 3).append("Type to refer BLOB types. Either inline or in a separate file.")
+    .openTag("xs:documentation", 3).append("Type to refer BLOB types. Either inline or in a separate file.")
       .closeTag("xs:documentation", 3)
 
       .closeTag("xs:annotation", 2)

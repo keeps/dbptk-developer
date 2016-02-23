@@ -222,13 +222,11 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   }
 
   private void writeSimpleCellData(SimpleCell simpleCell, int columnIndex) throws IOException {
-    currentWriter.inlineOpenTag("c" + columnIndex, 2);
-
     if (simpleCell.getSimpledata() != null) {
+      currentWriter.inlineOpenTag("c" + columnIndex, 2);
       currentWriter.write(XMLUtils.encode(simpleCell.getSimpledata()));
+      currentWriter.closeTag("c" + columnIndex);
     }
-
-    currentWriter.closeTag("c" + columnIndex);
   }
 
   private void writeLargeObjectData(Cell cell, int columnIndex) throws IOException, ModuleException {
@@ -237,6 +235,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     LargeObject lob = null;
 
     if (cell instanceof BinaryCell) {
+      // TODO: check for problems when lob is null
       final BinaryCell binCell = (BinaryCell) cell;
 
       // blob header
@@ -259,6 +258,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
         .append("length=\"").append(String.valueOf(txtCell.getSimpledata().length())).append("\"");
 
       // workaround to have data from CLOBs saved as a temporary file to be read
+      // FIXME: if lob is null, this will fail
       String data = txtCell.getSimpledata();
       ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
       try {
