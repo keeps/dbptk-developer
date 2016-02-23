@@ -1398,9 +1398,11 @@ public class TextDiff {
     // #-y $'\033[30;42m' -z $'\033[0m'
 
     StringBuilder outputText = new StringBuilder();
-    int lineNumber = 1;
     for (Diff aDiff : diffs) {
       String text = aDiff.text;
+      if(text.isEmpty()){
+        continue;
+      }
       switch (aDiff.operation) {
         case INSERT:
           outputText.append(ANSI_BLACK).append(ANSI_BG_GREEN).append(text).append(ANSI_RESET);
@@ -1409,7 +1411,12 @@ public class TextDiff {
           outputText.append(ANSI_BLACK).append(ANSI_BG_RED).append(text).append(ANSI_RESET);
           break;
         case EQUAL:
-          outputText.append(text);
+          if(text.length() < 1000){
+            outputText.append(text);
+          }else{
+            outputText.append(text.substring(0, 490)).append("\n(...)\n").append(text.substring(text.length()-490, text.length()));
+          }
+
           break;
       }
     }
