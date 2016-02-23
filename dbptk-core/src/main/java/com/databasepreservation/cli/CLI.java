@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -497,6 +498,35 @@ public class CLI {
       return ", v" + Main.APP_VERSION;
     } else {
       return ""; // omit version if it is not known
+    }
+  }
+
+  /**
+   * Get operative system information.
+   *
+   * @return An order-preserving map which keys are a description (String) of
+   *         the information contained in the values (which are also of type
+   *         String).
+   */
+  private HashMap<String, String> getOperativeSystemInfo() {
+    LinkedHashMap<String, String> result = new LinkedHashMap<>();
+
+    result.put("Operative system", System.getProperty("os.name", "unknown"));
+    result.put("Architecture", System.getProperty("os.arch", "unknown"));
+    result.put("Version", System.getProperty("os.version", "unknown"));
+    result.put("Java vendor", System.getProperty("java.vendor", "unknown"));
+    result.put("Java version", System.getProperty("java.version", "unknown"));
+    result.put("Java class version", System.getProperty("java.class.version", "unknown"));
+
+    return result;
+  }
+
+  /**
+   * Logs operative system information
+   */
+  public void logOperativeSystemInfo() {
+    for (Map.Entry<String, String> entry : getOperativeSystemInfo().entrySet()) {
+      logger.info(entry.getKey() + ": " + entry.getValue());
     }
   }
 

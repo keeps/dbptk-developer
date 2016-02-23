@@ -1,7 +1,5 @@
 package com.databasepreservation.modules.siard.out.path;
 
-import java.io.File;
-
 /**
  * Defines a SIARD 1.0 implementation to get paths to folders and files
  *
@@ -25,24 +23,22 @@ public class SIARD1ContentPathExportStrategy implements ContentPathExportStrateg
   private static final String BLOB_EXTENSION = "bin";
 
   // control characters
-  private static final String FILE_SEPARATOR = File.separator; // is "/" on Unix
-                                                               // and "\\" on
-                                                               // Windows
+  private static final String RESOURCE_FILE_SEPARATOR = "/";
   private static final String FILE_EXTENSION_SEPARATOR = ".";
 
   @Override
   public String getClobFilePath(int schemaIndex, int tableIndex, int columnIndex, int rowIndex) {
-    return new StringBuilder().append(CONTENT_DIR).append(FILE_SEPARATOR).append(SCHEMA_DIR).append(schemaIndex)
-      .append(FILE_SEPARATOR).append(TABLE_DIR).append(tableIndex).append(FILE_SEPARATOR).append(LOB_DIR)
-      .append(columnIndex).append(FILE_SEPARATOR).append(LOB_FILENAME).append(rowIndex)
+    return new StringBuilder().append(CONTENT_DIR).append(RESOURCE_FILE_SEPARATOR).append(SCHEMA_DIR).append(schemaIndex)
+      .append(RESOURCE_FILE_SEPARATOR).append(TABLE_DIR).append(tableIndex).append(RESOURCE_FILE_SEPARATOR).append(LOB_DIR)
+      .append(columnIndex).append(RESOURCE_FILE_SEPARATOR).append(LOB_FILENAME).append(rowIndex)
       .append(FILE_EXTENSION_SEPARATOR).append(CLOB_EXTENSION).toString();
   }
 
   @Override
   public String getBlobFilePath(int schemaIndex, int tableIndex, int columnIndex, int rowIndex) {
-    return new StringBuilder().append(CONTENT_DIR).append(FILE_SEPARATOR).append(SCHEMA_DIR).append(schemaIndex)
-      .append(FILE_SEPARATOR).append(TABLE_DIR).append(tableIndex).append(FILE_SEPARATOR).append(LOB_DIR)
-      .append(columnIndex).append(FILE_SEPARATOR).append(LOB_FILENAME).append(rowIndex)
+    return new StringBuilder().append(CONTENT_DIR).append(RESOURCE_FILE_SEPARATOR).append(SCHEMA_DIR).append(schemaIndex)
+      .append(RESOURCE_FILE_SEPARATOR).append(TABLE_DIR).append(tableIndex).append(RESOURCE_FILE_SEPARATOR).append(LOB_DIR)
+      .append(columnIndex).append(RESOURCE_FILE_SEPARATOR).append(LOB_FILENAME).append(rowIndex)
       .append(FILE_EXTENSION_SEPARATOR).append(BLOB_EXTENSION).toString();
   }
 
@@ -58,21 +54,21 @@ public class SIARD1ContentPathExportStrategy implements ContentPathExportStrateg
 
   @Override
   public String getTableXsdFilePath(int schemaIndex, int tableIndex) {
-    return new StringBuilder().append(CONTENT_DIR).append(FILE_SEPARATOR).append(SCHEMA_DIR).append(schemaIndex)
-      .append(FILE_SEPARATOR).append(TABLE_DIR).append(tableIndex).append(FILE_SEPARATOR).append(TABLE_FILENAME)
+    return new StringBuilder().append(CONTENT_DIR).append(RESOURCE_FILE_SEPARATOR).append(SCHEMA_DIR).append(schemaIndex)
+      .append(RESOURCE_FILE_SEPARATOR).append(TABLE_DIR).append(tableIndex).append(RESOURCE_FILE_SEPARATOR).append(TABLE_FILENAME)
       .append(tableIndex).append(FILE_EXTENSION_SEPARATOR).append(XSD_EXTENSION).toString();
   }
 
   @Override
   public String getTableXmlFilePath(int schemaIndex, int tableIndex) {
-    return new StringBuilder().append(CONTENT_DIR).append(FILE_SEPARATOR).append(SCHEMA_DIR).append(schemaIndex)
-      .append(FILE_SEPARATOR).append(TABLE_DIR).append(tableIndex).append(FILE_SEPARATOR).append(TABLE_FILENAME)
+    return new StringBuilder().append(CONTENT_DIR).append(RESOURCE_FILE_SEPARATOR).append(SCHEMA_DIR).append(schemaIndex)
+      .append(RESOURCE_FILE_SEPARATOR).append(TABLE_DIR).append(tableIndex).append(RESOURCE_FILE_SEPARATOR).append(TABLE_FILENAME)
       .append(tableIndex).append(FILE_EXTENSION_SEPARATOR).append(XML_EXTENSION).toString();
   }
 
   @Override
   public String getTableXsdNamespace(String base, int schemaIndex, int tableIndex) {
-    return new StringBuilder().append(base).append(SCHEMA_DIR).append(schemaIndex).append(FILE_SEPARATOR)
+    return new StringBuilder().append(base).append(SCHEMA_DIR).append(schemaIndex).append(RESOURCE_FILE_SEPARATOR)
       .append(TABLE_FILENAME).append(tableIndex).append(FILE_EXTENSION_SEPARATOR).append(XSD_EXTENSION).toString();
   }
 

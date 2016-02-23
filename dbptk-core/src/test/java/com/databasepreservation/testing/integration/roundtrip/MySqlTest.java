@@ -13,51 +13,95 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.databasepreservation.testing.integration.roundtrip.differences.MySqlDumpDiffExpectations;
 
-@Test(groups = {"mysql-siard1"})
 public class MySqlTest {
   private final String db_source = "dpttest";
   private final String db_target = "dpttest_siard";
   private final String db_tmp_username = "dpttest";
   private final String db_tmp_password = RandomStringUtils.randomAlphabetic(10);
-  private Roundtrip rt;
+  private Roundtrip rt_siard1;
+  private Roundtrip rt_siard2;
 
-  @BeforeClass
+  @Test(description = "Testing environment setup", groups = {"mysql-siard1", "mysql-siard2"})
   public void setup() throws IOException, InterruptedException, URISyntaxException {
+    // avoid running a second time
+    if (rt_siard1 != null && rt_siard2 != null) {
+      return;
+    }
+
     Set<PosixFilePermission> executablePermissions = PosixFilePermissions.fromString("rwxr-xr-x");
     Files.setAttribute(Paths.get(getClass().getResource("/mySql/scripts/setup.sh").getPath()), "posix:permissions",
       executablePermissions);
     Files.setAttribute(Paths.get(getClass().getResource("/mySql/scripts/teardown.sh").getPath()), "posix:permissions",
       executablePermissions);
 
-    rt = new Roundtrip(String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass()
-      .getResource("/mySql/scripts/setup.sh").getPath(), db_source, db_target, db_tmp_username, db_tmp_password),
-      String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/teardown.sh").getPath(),
-        db_source, db_target, db_tmp_username), String.format(
-        "mysql --user=\"%s\" --password=\"%s\" --database=\"%s\"", db_tmp_username, db_tmp_password, db_source),
-      String.format("mysqldump -v --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username, db_tmp_password,
-        db_source), String.format("mysqldump -v --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
-        db_tmp_password, db_target),
+    rt_siard1 = new Roundtrip(
 
-      new String[] {"--import=mysql", "--import-hostname=localhost", "--import-database", db_source,
-        "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--export=siard-1",
-        "--export-compress", "--export-file", Roundtrip.TMP_FILE_SIARD_VAR},
+    String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/setup.sh").getPath(),
+      db_source, db_target, db_tmp_username, db_tmp_password),
 
-      new String[] {"--import=siard-1", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=mysql",
-        "--export-hostname=localhost", "--export-database", db_target, "--export-username", db_tmp_username,
-        "--export-password", db_tmp_password},
+    String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/teardown.sh").getPath(), db_source,
+      db_target, db_tmp_username),
 
-      new MySqlDumpDiffExpectations(), null, null);
+    String.format("mysql --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" --database=\"%s\"", db_tmp_username,
+      db_tmp_password, db_source),
+
+    String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
+      db_tmp_password, db_source),
+
+    String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
+      db_tmp_password, db_target),
+
+    new String[] {"--import=mysql", "--import-hostname=127.0.0.1", "--import-database", db_source, "--import-username",
+      db_tmp_username, "--import-password", db_tmp_password, "--export=siard-1", "--export-compress", "--export-file",
+      Roundtrip.TMP_FILE_SIARD_VAR, "--export-pretty-xml"},
+
+    new String[] {"--import=siard-1", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=mysql",
+      "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
+      "--export-password", db_tmp_password},
+
+    new MySqlDumpDiffExpectations(), null, null);
+
+    rt_siard2 = new Roundtrip(
+
+    String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/setup.sh").getPath(),
+      db_source, db_target, db_tmp_username, db_tmp_password),
+
+    String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/teardown.sh").getPath(), db_source,
+      db_target, db_tmp_username),
+
+    String.format("mysql --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" --database=\"%s\"", db_tmp_username,
+      db_tmp_password, db_source),
+
+    String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
+      db_tmp_password, db_source),
+
+    String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
+      db_tmp_password, db_target),
+
+    new String[] {"--import=mysql", "--import-hostname=127.0.0.1", "--import-database", db_source, "--import-username",
+      db_tmp_username, "--import-password", db_tmp_password, "--export=siard-2", "--export-compress", "--export-file",
+      Roundtrip.TMP_FILE_SIARD_VAR, "--export-pretty-xml"},
+
+    new String[] {"--import=siard-2", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=mysql",
+      "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
+      "--export-password", db_tmp_password},
+
+    new MySqlDumpDiffExpectations(), null, null);
   }
 
-  @Test(description = "MySql server is available and accessible")
-  public void testConnection() throws IOException, InterruptedException {
-    rt.checkConnection();
+  @Test(description = "[siard-1] MySql server is available and accessible", groups = {"mysql-siard1"}, dependsOnMethods = {"setup"})
+  public void testConnectionSiard1() throws IOException, InterruptedException {
+    rt_siard1.checkConnection();
+  }
+
+  @Test(description = "[siard-2] MySql server is available and accessible", groups = {"mysql-siard2"}, dependsOnMethods = {"setup"})
+  public void testConnectionSiard2() throws IOException, InterruptedException {
+    rt_siard2.checkConnection();
   }
 
   @DataProvider
@@ -66,20 +110,9 @@ public class MySqlTest {
     ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
     // TODO: test NULL
-    tests.add(new String[] {singleTypeAndValue, "TINYINT(10)", "1"}); // the
-                                                                      // number
-                                                                      // inside
-                                                                      // parentheses
-                                                                      // is the
-                                                                      // display
-                                                                      // width,
-                                                                      // does
-                                                                      // not
-                                                                      // affect
-                                                                      // datatype
-                                                                      // size
-                                                                      // and is
-                                                                      // ignored
+    // the number inside parentheses is the display width, does not affect datatype size and is ignored
+    tests.add(new String[] {singleTypeAndValue, "TINYINT(10)", "1"});
+
     tests.add(new String[] {singleTypeAndValue, "TINYINT", "1"});
     tests.add(new String[] {singleTypeAndValue, "SMALLINT", "123"});
     tests.add(new String[] {singleTypeAndValue, "MEDIUMINT(10)", "123"});
@@ -91,36 +124,22 @@ public class MySqlTest {
     tests.add(new String[] {singleTypeAndValue, "NUMERIC", "123"});
     tests.add(new String[] {singleTypeAndValue, "FLOAT", "12345.123"});
     tests.add(new String[] {singleTypeAndValue, "FLOAT", "123456789012"});
-    tests.add(new String[] {singleTypeAndValue, "FLOAT(9)", "12345.123"}); // in
-                                                                           // mysql,
-                                                                           // this
-                                                                           // creates
-                                                                           // a
-                                                                           // float(12,0)
-    tests.add(new String[] {singleTypeAndValue, "FLOAT(12)", "12345.123"}); // in
-                                                                            // mysql,
-                                                                            // this
-                                                                            // creates
-                                                                            // a
-                                                                            // float(12,0)
-    tests.add(new String[] {singleTypeAndValue, "FLOAT(12,0)", "12345.123"}); // in
-                                                                              // mysql,
-                                                                              // this
-                                                                              // creates
-                                                                              // a
-                                                                              // float(12,0)
-    tests.add(new String[] {singleTypeAndValue, "FLOAT(53)", "12345.123"}); // in
-                                                                            // mysql,
-                                                                            // this
-                                                                            // creates
-                                                                            // a
-                                                                            // double(22,0)
-    tests.add(new String[] {singleTypeAndValue, "FLOAT(8,3)", "12345.123"}); // in
-                                                                             // mysql,
-                                                                             // this
-                                                                             // creates
-                                                                             // a
-                                                                             // float(8,3)
+
+    // in mysql, this creates a float(12,0)
+    tests.add(new String[] {singleTypeAndValue, "FLOAT(9)", "12345.123"});
+
+    // in mysql, this creates a float(12,0)
+    tests.add(new String[] {singleTypeAndValue, "FLOAT(12)", "12345.123"});
+
+    // in mysql, this creates a float(12,0)
+    tests.add(new String[] {singleTypeAndValue, "FLOAT(12,0)", "12345.123"});
+
+    // in mysql, this creates a double(22,0)
+    tests.add(new String[] {singleTypeAndValue, "FLOAT(53)", "12345.123"});
+
+    // in mysql, this creates a float(8,3)
+    tests.add(new String[] {singleTypeAndValue, "FLOAT(8,3)", "12345.123"});
+
     tests.add(new String[] {singleTypeAndValue, "DOUBLE", "1234567890.12345"});
     tests.add(new String[] {singleTypeAndValue, "DOUBLE(22,0)", "1234567890.12345"});
     tests.add(new String[] {singleTypeAndValue, "DOUBLE(10,2)", "1234567890.12345"});
@@ -133,36 +152,36 @@ public class MySqlTest {
     tests.add(new String[] {singleTypeAndValue, "DATE", "'2015-01-01'"});
     tests.add(new String[] {singleTypeAndValue, "DATETIME", "'9999-12-31 23:59:59.999999'"});
     tests.add(new String[] {singleTypeAndValue, "TIMESTAMP", "'2038-01-19 03:14:07.999999'"});
-    // tests.add(new String[]{singleTypeAndValue, "YEAR(2)", "'15'"}); //
-    // difficult to make the test pass, because the value is changed from 15 to
-    // 2015
-    // tests.add(new String[]{singleTypeAndValue, "YEAR(2)", "5"}); // difficult
-    // to make the test pass, because the value is changed from 15 to 2015
-    // tests.add(new String[]{singleTypeAndValue, "YEAR(2)", "2015"}); //
-    // difficult to make the test pass, because the value is changed from 15 to
-    // 2015
+
+    // tests.add(new String[]{singleTypeAndValue, "YEAR(2)", "'15'"});
+    // tests.add(new String[]{singleTypeAndValue, "YEAR(2)", "5"});
+    // tests.add(new String[]{singleTypeAndValue, "YEAR(2)", "2015"});
+
     tests.add(new String[] {singleTypeAndValue, "YEAR(4)", "2015"});
-    tests.add(new String[] {singleTypeAndValue, "YEAR(4)", "'0'"});// becomes
-                                                                   // 2000, zero
-                                                                   // is not
-                                                                   // allowed as
-                                                                   // number
-    tests.add(new String[] {singleTypeAndValue, "YEAR(4)", "1"}); // becomes
-                                                                  // 2001
+
+    // becomes 2000, zero is not allowed as number
+    tests.add(new String[] {singleTypeAndValue, "YEAR(4)", "'0'"});
+
+    // 1 becomes 2001
+    tests.add(new String[] {singleTypeAndValue, "YEAR(4)", "1"});
     tests.add(new String[] {singleTypeAndValue, "YEAR(4)", "'1'"});
-    tests.add(new String[] {singleTypeAndValue, "YEAR(4)", "99"}); // becomes
-                                                                   // 1999
+
+    // 99 becomes 1999
+    tests.add(new String[] {singleTypeAndValue, "YEAR(4)", "99"});
     tests.add(new String[] {singleTypeAndValue, "YEAR(4)", "'99'"});
-    tests.add(new String[] {singleTypeAndValue, "YEAR(4)", "70"}); // becomes
-                                                                   // 1970
+
+    // 70 becomes 1970
+    tests.add(new String[] {singleTypeAndValue, "YEAR(4)", "70"});
     tests.add(new String[] {singleTypeAndValue, "YEAR(4)", "'70'"});
-    tests.add(new String[] {singleTypeAndValue, "YEAR(4)", "69"}); // becomes
-                                                                   // 2069
+
+    // becomes 2069
+    tests.add(new String[] {singleTypeAndValue, "YEAR(4)", "69"});
     tests.add(new String[] {singleTypeAndValue, "YEAR(4)", "'69'"});
+
     // TODO: tests character sets and collations
-    tests.add(new String[] {singleTypeAndValue, "CHAR(0)", "NULL"});
+
     // tests.add(new String[]{singleTypeAndValue, "CHAR(0) NOT NULL", "''"});
-    // //fixme: for empty strings, the value becomes null
+    // fixme: for empty strings, the value becomes null
     tests.add(new String[] {singleTypeAndValue, "CHAR(3)", "'abc'"});
     tests.add(new String[] {singleTypeAndValue, "CHAR(253)", "NULL"});
     tests.add(new String[] {singleTypeAndValue, "CHAR(253) NOT NULL", "'" + StringUtils.repeat("asdf", 64) + "'"});
@@ -197,27 +216,40 @@ public class MySqlTest {
     return tests.iterator();
   }
 
-  @Test(description = "Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnection"})
-  public void testQueries(String... args) throws IOException, InterruptedException {
+  @Test(description = "[siard-1] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnectionSiard1"}, groups = {"mysql-siard1"})
+  public void testQueriesSiard1(String... args) throws IOException, InterruptedException {
 
     String[] fields = new String[args.length - 1];
     System.arraycopy(args, 1, fields, 0, args.length - 1);
 
-    assert rt.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], (Object[]) fields);
+    assert rt_siard1.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], (Object[]) fields);
+  }
+
+  @Test(description = "[siard-2] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnectionSiard2"}, groups = {"mysql-siard2"})
+  public void testQueriesSiard2(String... args) throws IOException, InterruptedException {
+
+    String[] fields = new String[args.length - 1];
+    System.arraycopy(args, 1, fields, 0, args.length - 1);
+
+    assert rt_siard2.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], (Object[]) fields);
   }
 
   @DataProvider
   public Iterator<Object[]> testFilesProvider() throws URISyntaxException {
     ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
-    // tests.add(new
-    // Path[]{Paths.get(getClass().getResource("/mySql/testfiles/datatypes.sql").toURI())});
+    //tests.add(new Path[]{Paths.get(getClass().getResource("/mySql/testfiles/world.sql").toURI())});
 
     return tests.iterator();
   }
 
-  @Test(description = "Tests MySQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnection"})
-  public void testFiles(Path... file) throws IOException, InterruptedException, URISyntaxException {
-    assert rt.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
+  @Test(description = "[siard-1] Tests MySQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnectionSiard1"}, groups = {"mysql-siard1"})
+  public void testFilesSiard1(Path... file) throws IOException, InterruptedException, URISyntaxException {
+    assert rt_siard1.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
+  }
+
+  @Test(description = "[siard-2] Tests MySQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnectionSiard2"}, groups = {"mysql-siard2"})
+  public void testFilesSiard2(Path... file) throws IOException, InterruptedException, URISyntaxException {
+    assert rt_siard2.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
   }
 }

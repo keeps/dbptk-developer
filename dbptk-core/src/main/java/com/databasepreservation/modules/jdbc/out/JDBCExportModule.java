@@ -105,7 +105,7 @@ public class JDBCExportModule implements DatabaseExportModule {
    *          the SQLHelper instance to use
    */
   public JDBCExportModule(String driverClassName, String connectionURL, SQLHelper sqlHelper) {
-    logger.debug(driverClassName + ", " + connectionURL);
+    //logger.debug(driverClassName + ", " + connectionURL);
     this.driverClassName = driverClassName;
     this.connectionURL = connectionURL;
     this.sqlHelper = sqlHelper;
@@ -502,8 +502,8 @@ public class JDBCExportModule implements DatabaseExportModule {
       if (cell instanceof SimpleCell) {
         SimpleCell simple = (SimpleCell) cell;
         String data = simple.getSimpledata();
-        logger.debug("data: " + data);
-        logger.debug("type: " + type.getOriginalTypeName());
+        //logger.debug("data: " + data);
+        //logger.debug("type: " + type.getOriginalTypeName());
         if (type instanceof SimpleTypeString) {
           handleSimpleTypeStringDataCell(data, ps, index, cell, type);
         } else if (type instanceof SimpleTypeNumericExact) {

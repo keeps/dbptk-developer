@@ -595,7 +595,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         try {
           admin = rs.getString("ADMIN");
         } catch (SQLException e) {
-          logger.trace("handled SQLException", e);
+          logger.debug("handled SQLException", e);
           admin = "";
         }
         role.setAdmin(admin);

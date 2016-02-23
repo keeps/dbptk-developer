@@ -20,10 +20,7 @@ public class SIARD2ContentPathImportStrategy implements ContentPathImportStrateg
   private static final String XML_EXTENSION = "xml";
   private static final String XSD_EXTENSION = "xsd";
 
-  // control characters
-  private static final String FILE_SEPARATOR = File.separator; // is "/" on Unix
-                                                               // and "\\" on
-                                                               // Windows
+  private static final String RESOURCE_FILE_SEPARATOR = "/";
   private static final String FILE_EXTENSION_SEPARATOR = ".";
 
   private static final String defaultBasePath = "content";
@@ -63,7 +60,9 @@ public class SIARD2ContentPathImportStrategy implements ContentPathImportStrateg
       columnPart = ".";
     }
 
-    return Paths.get(basePath, schemaPart, tablePart, columnPart, lobFileName).toString();
+    return new StringBuilder().append(basePath).append(RESOURCE_FILE_SEPARATOR).append(schemaPart)
+      .append(RESOURCE_FILE_SEPARATOR).append(tablePart).append(RESOURCE_FILE_SEPARATOR).append(columnPart)
+      .append(RESOURCE_FILE_SEPARATOR).append(lobFileName).toString();
   }
 
   @Override
@@ -99,8 +98,8 @@ public class SIARD2ContentPathImportStrategy implements ContentPathImportStrateg
       throw new ModuleException("No folder name for table id \"" + tableId + "\"");
     }
 
-    return new StringBuilder().append(CONTENT_FOLDER).append(FILE_SEPARATOR).append(schemaFolder)
-      .append(FILE_SEPARATOR).append(tableFolder).append(FILE_SEPARATOR).append(tableFolder)
+    return new StringBuilder().append(CONTENT_FOLDER).append(RESOURCE_FILE_SEPARATOR).append(schemaFolder)
+      .append(RESOURCE_FILE_SEPARATOR).append(tableFolder).append(RESOURCE_FILE_SEPARATOR).append(tableFolder)
       .append(FILE_EXTENSION_SEPARATOR).append(XML_EXTENSION).toString();
   }
 
@@ -122,8 +121,8 @@ public class SIARD2ContentPathImportStrategy implements ContentPathImportStrateg
       throw new ModuleException("No folder name for table id \"" + tableId + "\"");
     }
 
-    return new StringBuilder().append(CONTENT_FOLDER).append(FILE_SEPARATOR).append(schemaFolder)
-      .append(FILE_SEPARATOR).append(tableFolder).append(FILE_SEPARATOR).append(tableFolder)
+    return new StringBuilder().append(CONTENT_FOLDER).append(RESOURCE_FILE_SEPARATOR).append(schemaFolder)
+      .append(RESOURCE_FILE_SEPARATOR).append(tableFolder).append(RESOURCE_FILE_SEPARATOR).append(tableFolder)
       .append(FILE_EXTENSION_SEPARATOR).append(XSD_EXTENSION).toString();
   }
 }

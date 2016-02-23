@@ -189,13 +189,11 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
   }
 
   private void writeSimpleCellData(SimpleCell simpleCell, int columnIndex) throws IOException {
-    currentWriter.inlineOpenTag("c" + columnIndex, 2);
-
     if (simpleCell.getSimpledata() != null) {
+      currentWriter.inlineOpenTag("c" + columnIndex, 2);
       currentWriter.write(XMLUtils.encode(simpleCell.getSimpledata()));
+      currentWriter.closeTag("c" + columnIndex);
     }
-
-    currentWriter.closeTag("c" + columnIndex);
   }
 
   private void writeLargeObjectData(Cell cell, int columnIndex) throws IOException, ModuleException {
@@ -204,6 +202,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     LargeObject lob = null;
 
     if (cell instanceof BinaryCell) {
+      // TODO: check for problems when lob is null
       final BinaryCell binCell = (BinaryCell) cell;
 
       String path = contentPathStrategy.getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
@@ -230,6 +229,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
         .append(String.valueOf(txtCell.getSimpledata().length())).append("\"");
 
       // workaround to have data from CLOBs saved as a temporary file to be read
+      // FIXME: if lob is null, this will fail
       String data = txtCell.getSimpledata();
       ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
       try {
@@ -379,51 +379,71 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     }
 
     xsdWriter
-      // close tags for xs:sequence and xs:complexType
+    // close tags for xs:sequence and xs:complexType
       .closeTag("xs:sequence", 2)
 
-      .closeTag("xs:complexType", 1)
+      .closeTag("xs:complexType", 1);
 
-      // xs:complexType name="clobType"
-      .beginOpenTag("xs:complexType", 1).appendAttribute("name", "clobType").endOpenTag()
+    // xs:complexType name="clobType"
+    xsdWriter.beginOpenTag("xs:complexType", 1).appendAttribute("name", "clobType").endOpenTag()
+
+    .openTag("xs:annotation", 2)
+
+    .openTag("xs:documentation", 3).append("Type to refer CLOB types. Either inline or in a separate file.")
+      .closeTag("xs:documentation")
+
+      .closeTag("xs:annotation", 2)
 
       .openTag("xs:simpleContent", 2)
 
       .beginOpenTag("xs:extension", 3).appendAttribute("base", "xs:string").endOpenTag()
 
-      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "file").appendAttribute("type", "xs:string")
+      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "file").appendAttribute("type", "xs:anyURI")
       .endShorthandTag()
 
       .beginOpenTag("xs:attribute", 4).appendAttribute("name", "length").appendAttribute("type", "xs:integer")
+      .endShorthandTag()
+
+      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "messageDigest").appendAttribute("type", "xs:string")
       .endShorthandTag()
 
       .closeTag("xs:extension", 3)
 
       .closeTag("xs:simpleContent", 2)
 
-      .closeTag("xs:complexType", 1)
+      .closeTag("xs:complexType", 1);
 
-      // xs:complexType name="blobType"
-      .beginOpenTag("xs:complexType", 1).appendAttribute("name", "blobType").endOpenTag()
+    // xs:complexType name="blobType"
+    xsdWriter.beginOpenTag("xs:complexType", 1).appendAttribute("name", "blobType").endOpenTag()
+
+    .openTag("xs:annotation", 2)
+
+    .openTag("xs:documentation", 3).append("Type to refer BLOB types. Either inline or in a separate file.")
+      .closeTag("xs:documentation")
+
+      .closeTag("xs:annotation", 2)
 
       .openTag("xs:simpleContent", 2)
 
-      .beginOpenTag("xs:extension", 3).appendAttribute("base", "xs:string").endOpenTag()
+      .beginOpenTag("xs:extension", 3).appendAttribute("base", "xs:hexBinary").endOpenTag()
 
-      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "file").appendAttribute("type", "xs:string")
+      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "file").appendAttribute("type", "xs:anyURI")
       .endShorthandTag()
 
       .beginOpenTag("xs:attribute", 4).appendAttribute("name", "length").appendAttribute("type", "xs:integer")
+      .endShorthandTag()
+
+      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "messageDigest").appendAttribute("type", "xs:string")
       .endShorthandTag()
 
       .closeTag("xs:extension", 3)
 
       .closeTag("xs:simpleContent", 2)
 
-      .closeTag("xs:complexType", 1)
+      .closeTag("xs:complexType", 1);
 
-      // close schema
-      .closeTag("xs:schema");
+    // close schema
+    xsdWriter.closeTag("xs:schema");
 
     xsdWriter.close();
   }

@@ -206,7 +206,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
     List<ViewStructure> views = super.getViews(schemaName);
     for (ViewStructure v : views) {
       Statement statement = getConnection().createStatement();
-      String query = "SHOW CREATE VIEW " + v.getName();
+      String query = "SHOW CREATE VIEW " + sqlHelper.escapeViewName(v.getName());
       ResultSet rset = statement.executeQuery(query);
       rset.next(); // Returns only one tuple
 

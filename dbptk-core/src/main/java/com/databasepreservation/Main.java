@@ -90,6 +90,7 @@ public class Main {
 
     try {
       long startTime = System.currentTimeMillis();
+      cli.logOperativeSystemInfo();
       logger.info("Translating database: " + cli.getImportModuleName() + " to " + cli.getExportModuleName());
       importModule.getDatabase(exportModule);
       long duration = System.currentTimeMillis() - startTime;

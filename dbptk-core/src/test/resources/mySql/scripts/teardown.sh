@@ -18,9 +18,9 @@ pass="$DPT_MYSQL_PASS"
 
 function sql() {
   #mysql -s --user="$user" --password="$password" --database="mysql" --execute="$1"
-  mysql -s --user="$user" --password="$pass" --database="mysql" --host="localhost" --execute="$1"
+  mysql -s --user="$user" --password="$pass" --database="mysql" --host="127.0.0.1" --execute="$1"
 }
 
-sql "DROP USER '$TEST_DB_USER'@'localhost';"
+sql "DROP USER '$TEST_DB_USER'@'%';"
 sql "DROP DATABASE IF EXISTS $TEST_DB_SOURCE;"
 sql "DROP DATABASE IF EXISTS $TEST_DB_TARGET;"
