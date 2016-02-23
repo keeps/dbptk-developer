@@ -390,7 +390,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     .openTag("xs:annotation", 2)
 
     .openTag("xs:documentation", 3).append("Type to refer CLOB types. Either inline or in a separate file.")
-      .closeTag("xs:documentation", 3)
+      .closeTag("xs:documentation")
 
       .closeTag("xs:annotation", 2)
 
@@ -419,7 +419,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     .openTag("xs:annotation", 2)
 
     .openTag("xs:documentation", 3).append("Type to refer BLOB types. Either inline or in a separate file.")
-      .closeTag("xs:documentation", 3)
+      .closeTag("xs:documentation")
 
       .closeTag("xs:annotation", 2)
 

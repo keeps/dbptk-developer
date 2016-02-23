@@ -430,7 +430,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       .openTag("xs:annotation", 2)
 
       .openTag("xs:documentation", 3).append("Type to refer CLOB types. Either inline or in a separate file.")
-      .closeTag("xs:documentation", 3)
+      .closeTag("xs:documentation")
 
       .closeTag("xs:annotation", 2)
 
@@ -459,7 +459,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       .openTag("xs:annotation", 2)
 
       .openTag("xs:documentation", 3).append("Type to refer BLOB types. Either inline or in a separate file.")
-      .closeTag("xs:documentation", 3)
+      .closeTag("xs:documentation")
 
       .closeTag("xs:annotation", 2)
 
@@ -489,7 +489,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
     .openTag("xs:documentation", 3)
       .append("dateType restricts xs:date to dates between 0001 and 9999 and is in UTC (no +/- but an optional Z)")
-      .closeTag("xs:documentation", 3)
+      .closeTag("xs:documentation")
 
       .closeTag("xs:annotation", 2)
 
@@ -512,7 +512,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
     .openTag("xs:documentation", 3)
       .append("timeType restricts xs:date to dates between 0001 and 9999 and is in UTC (no +/- but an optional Z)")
-      .closeTag("xs:documentation", 3)
+      .closeTag("xs:documentation")
 
       .closeTag("xs:annotation", 2)
 
@@ -535,7 +535,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       .openTag("xs:documentation", 3)
       .append(
         "dateTimeType restricts xs:dateTime to dates between 0001 and 9999 and is in UTC (no +/- after the T but an optional Z)")
-      .closeTag("xs:documentation", 3)
+      .closeTag("xs:documentation")
 
       .closeTag("xs:annotation", 2)
 
