@@ -60,7 +60,9 @@ public class SIARD2ContentPathImportStrategy implements ContentPathImportStrateg
       columnPart = ".";
     }
 
-    return Paths.get(basePath, schemaPart, tablePart, columnPart, lobFileName).toString();
+    return new StringBuilder().append(basePath).append(RESOURCE_FILE_SEPARATOR).append(schemaPart)
+      .append(RESOURCE_FILE_SEPARATOR).append(tablePart).append(RESOURCE_FILE_SEPARATOR).append(columnPart)
+      .append(RESOURCE_FILE_SEPARATOR).append(lobFileName).toString();
   }
 
   @Override
