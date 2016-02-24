@@ -14,7 +14,7 @@ A new version of the this tool, together with a [new version of the SIARD preser
 ## Download pre-compiled version
 
 Binaries with all dependencies included:
-* [dbptk-app v2.0.0-rc3.2.4](https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-rc3.2.4/dbptk-app-2.0.0-rc3.2.4.jar) (pre-release)
+* [dbptk-app v2.0.0-rc3.2.5](https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-rc3.2.5/dbptk-app-2.0.0-rc3.2.5.jar) (pre-release)
 
 ## How to use
 
