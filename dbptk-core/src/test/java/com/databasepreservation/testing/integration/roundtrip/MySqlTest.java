@@ -239,6 +239,7 @@ public class MySqlTest {
     ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
     //tests.add(new Path[]{Paths.get(getClass().getResource("/mySql/testfiles/world.sql").toURI())});
+    //tests.add(new Path[]{Paths.get(getClass().getResource("/mySql/testfiles/sakila.sql").toURI())});
 
     return tests.iterator();
   }
