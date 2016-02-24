@@ -11,11 +11,6 @@ The toolkit is created as a platform that uses input and output modules. Each mo
 
 A new version of the this tool, together with a [new version of the SIARD preservation format](http://eark-project.github.io/siard-e-format/), is currently being designed and developed on the [EARK project](http://www.eark-project.com/). A draft specification will be available soon, together with a request for comments. In the meanwhile, if you'd like to know more and even send us use cases and requirements, [contact us](http://www.eark-project.com/contacts).
 
-## Download pre-compiled version
-
-Binaries with all dependencies included:
-* [dbptk-app v2.0.0-rc3.2.5](https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-rc3.2.5/dbptk-app-2.0.0-rc3.2.5.jar) (pre-release)
-
 ## How to use
 
 To use the program, open a command-line and try out the following command (replace x.y.z accordingly to the version of the binary in use):
