@@ -3,6 +3,7 @@ package com.databasepreservation.modules.siard.in.content;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Stack;
 
@@ -123,7 +124,10 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
           XMLReader xmlReader = saxParser.getXMLReader();
           xmlReader.setContentHandler(this);
           xmlReader.setErrorHandler(errorHandler);
-          xmlReader.parse(new InputSource(currentTableStream));
+          InputStreamReader tableInputStreamReader = new InputStreamReader(currentTableStream, "UTF-8");
+          InputSource tableInputSource = new InputSource(tableInputStreamReader);
+          tableInputSource.setEncoding("UTF-8");
+          xmlReader.parse(tableInputSource);
         } catch (SAXException e) {
           throw new ModuleException("A SAX error occurred during processing of XML table file", e);
         } catch (IOException e) {
