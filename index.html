@@ -14,12 +14,13 @@
       <h1 class="project-name">db-preservation-toolkit</h1>
       <h2 class="project-tagline">Database Preservation Toolkit</h2>
       <a href="https://github.com/keeps/db-preservation-toolkit" class="btn">View on GitHub</a>
-      <a href="https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-rc3.2.4/dbptk-app-2.0.0-rc3.2.4.jar" class="btn">Download 2.0.0-rc3.2.4</a>
+      <a href="https://github.com/keeps/db-preservation-toolkit/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/keeps/db-preservation-toolkit/tarball/master" class="btn">Download .tar.gz</a>
     </section>
 
     <section class="main-content">
       <h1>
-<a id="database-preservation-toolkit" class="anchor" href="#database-preservation-toolkit" aria-hidden="true"><span class="octicon octicon-link"></span></a>Database Preservation Toolkit</h1>
+<a id="database-preservation-toolkit" class="anchor" href="#database-preservation-toolkit" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Database Preservation Toolkit</h1>
 
 <p>The Database Preservation Toolkit allows conversion between Database formats, including connection to live systems, for purposes of digitally preserving databases. The toolkit allows conversion of live or backed-up databases into preservation formats such as <strong>SIARD</strong>, a XML-based format created for the purpose of database preservation. The toolkit also allows conversion of the preservation formats back into live systems to allow the full functionality of databases. For example, it supports a specialized export into MySQL, optimized for PhpMyAdmin, so the database can be fully  experimented using a web interface.</p>
 
@@ -28,22 +29,22 @@
 <p>The toolkit is created as a platform that uses input and output modules. Each module supports read and/or write to a particular database format or live system. New modules can easily be added by implementation of a new interface and adding of new drivers.</p>
 
 <h2>
-<a id="eark-and-siard-20" class="anchor" href="#eark-and-siard-20" aria-hidden="true"><span class="octicon octicon-link"></span></a>EARK and SIARD 2.0</h2>
+<a id="eark-and-siard-20" class="anchor" href="#eark-and-siard-20" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>EARK and SIARD 2.0</h2>
 
 <p>A new version of the this tool, together with a <a href="http://eark-project.github.io/siard-e-format/">new version of the SIARD preservation format</a>, is currently being designed and developed on the <a href="http://www.eark-project.com/">EARK project</a>. A draft specification will be available soon, together with a request for comments. In the meanwhile, if you'd like to know more and even send us use cases and requirements, <a href="http://www.eark-project.com/contacts">contact us</a>.</p>
 
 <h2>
-<a id="download-pre-compiled-version" class="anchor" href="#download-pre-compiled-version" aria-hidden="true"><span class="octicon octicon-link"></span></a>Download pre-compiled version</h2>
+<a id="download-pre-compiled-version" class="anchor" href="#download-pre-compiled-version" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Download pre-compiled version</h2>
 
 <p>Binaries with all dependencies included:</p>
 
 <ul>
 <li>
-<a href="https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-rc3.2.4/dbptk-app-2.0.0-rc3.2.4.jar">dbptk-app v2.0.0-rc3.2.4</a> (pre-release)</li>
+<a href="https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-rc3.2.5/dbptk-app-2.0.0-rc3.2.5.jar">dbptk-app v2.0.0-rc3.2.5</a> (pre-release)</li>
 </ul>
 
 <h2>
-<a id="how-to-use" class="anchor" href="#how-to-use" aria-hidden="true"><span class="octicon octicon-link"></span></a>How to use</h2>
+<a id="how-to-use" class="anchor" href="#how-to-use" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>How to use</h2>
 
 <p>To use the program, open a command-line and try out the following command (replace x.y.z accordingly to the version of the binary in use):</p>
 
@@ -170,7 +171,7 @@ Export module: siard-dk
 </code></pre>
 
 <h3>
-<a id="how-to-use-jdbc-import-and-export-modules" class="anchor" href="#how-to-use-jdbc-import-and-export-modules" aria-hidden="true"><span class="octicon octicon-link"></span></a>How to use JDBC import and export modules</h3>
+<a id="how-to-use-jdbc-import-and-export-modules" class="anchor" href="#how-to-use-jdbc-import-and-export-modules" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>How to use JDBC import and export modules</h3>
 
 <p>To use Database Preservation Toolkit with an unsupported database, one can connect by providing the name of the the JDBC driver class (and adding the JDBC driver to the classpath) and the JDBC connection string. The steps to run Database Preservation Toolkit this way are as follows:</p>
 
@@ -186,7 +187,7 @@ Furthermore, non-tested drivers are more prone to possible errors during the con
 A specialized module for the database, if available, would always be preferable to this generic JDBC module.</p>
 
 <h4>
-<a id="example-to-convert-from-oracle-to-siard2" class="anchor" href="#example-to-convert-from-oracle-to-siard2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Example to convert from Oracle to SIARD2:</h4>
+<a id="example-to-convert-from-oracle-to-siard2" class="anchor" href="#example-to-convert-from-oracle-to-siard2" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Example to convert from Oracle to SIARD2:</h4>
 
 <p>Using the method described above, the Windows command to extract a database from an Oracle database to SIARD 2 is as the following:</p>
 
@@ -205,7 +206,7 @@ A specialized module for the database, if available, would always be preferable 
 </code></pre>
 
 <h2>
-<a id="how-to-build-from-source" class="anchor" href="#how-to-build-from-source" aria-hidden="true"><span class="octicon octicon-link"></span></a>How to build from source</h2>
+<a id="how-to-build-from-source" class="anchor" href="#how-to-build-from-source" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>How to build from source</h2>
 
 <ol>
 <li>Download the <a href="https://github.com/keeps/db-preservation-toolkit/releases">latest stable release</a>.</li>
@@ -217,7 +218,7 @@ A specialized module for the database, if available, would always be preferable 
 <p>Binaries will be on the <code>target</code> folder</p>
 
 <h2>
-<a id="related-publications--presentations" class="anchor" href="#related-publications--presentations" aria-hidden="true"><span class="octicon octicon-link"></span></a>Related publications &amp; presentations</h2>
+<a id="related-publications--presentations" class="anchor" href="#related-publications--presentations" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Related publications &amp; presentations</h2>
 
 <ul>
 <li>Presentation <a href="http://hdl.handle.net/1822/17856">"Database migration: CLI"</a> by José Ramalho at "A Pratical Approach to Database Archiving", Danish National Archives, Copenhagen, Denmark, 2012-02-07.</li>
@@ -235,7 +236,7 @@ A specialized module for the database, if available, would always be preferable 
 </ul>
 
 <h2>
-<a id="troubleshooting" class="anchor" href="#troubleshooting" aria-hidden="true"><span class="octicon octicon-link"></span></a>Troubleshooting</h2>
+<a id="troubleshooting" class="anchor" href="#troubleshooting" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Troubleshooting</h2>
 
 <p><strong>Getting exception "java.net.ConnectException: Connection refused"</strong></p>
 
@@ -264,12 +265,12 @@ A specialized module for the database, if available, would always be preferable 
 </code></pre>
 
 <h2>
-<a id="information--commercial-support" class="anchor" href="#information--commercial-support" aria-hidden="true"><span class="octicon octicon-link"></span></a>Information &amp; Commercial support</h2>
+<a id="information--commercial-support" class="anchor" href="#information--commercial-support" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Information &amp; Commercial support</h2>
 
 <p>For more information or commercial support, contact <a href="http://www.keep.pt/contactos/?lang=en">KEEP SOLUTIONS</a>.</p>
 
 <h2>
-<a id="development-" class="anchor" href="#development-" aria-hidden="true"><span class="octicon octicon-link"></span></a>Development <a href="https://travis-ci.org/keeps/db-preservation-toolkit"><img src="https://travis-ci.org/keeps/db-preservation-toolkit.png?branch=master" alt="Build Status"></a>
+<a id="development-" class="anchor" href="#development-" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Development <a href="https://travis-ci.org/keeps/db-preservation-toolkit"><img src="https://travis-ci.org/keeps/db-preservation-toolkit.png?branch=master" alt="Build Status"></a>
 </h2>
 
 <p>To develop we recommend the use of Maven and Eclipse.</p>
@@ -299,11 +300,184 @@ A specialized module for the database, if available, would always be preferable 
 <p>To run MySQL tests, a local MySQL (or MariaDB) database is required and 'root' user or another user with permission to create new databases and users can be used. This user must be accessible by IP connection on localhost. The access can be tested with <code>mysql --user="username" -p --database="mysql" --host="localhost"</code>.</p>
 
 <h3>
-<a id="changing-xml-schema-files" class="anchor" href="#changing-xml-schema-files" aria-hidden="true"><span class="octicon octicon-link"></span></a>Changing XML Schema files</h3>
+<a id="changing-xml-schema-files" class="anchor" href="#changing-xml-schema-files" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Changing XML Schema files</h3>
 
 <p>After changing SIARD XML Schema files, maven must be used to compile a new artifact from the XML Schema (using JAXB). To do this, run <code>mvn clean install -Pdbptk-bindings</code> from project root folder.</p>
 
 <p>The jars should now be installed in <code>&lt;project_dir&gt;/vendor-libs</code> (and also in your local maven repository).</p>
+
+<h2>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>License</h2>
+
+<p>Database Preservation Toolkit licence is <a href="http://www.gnu.org/licenses/lgpl-3.0.html">LGPLv3</a></p>
+
+<pre><code>                   GNU LESSER GENERAL PUBLIC LICENSE
+                       Version 3, 29 June 2007
+
+ Copyright (C) 2007 Free Software Foundation, Inc. &lt;http://fsf.org/&gt;
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
+
+
+  This version of the GNU Lesser General Public License incorporates
+the terms and conditions of version 3 of the GNU General Public
+License, supplemented by the additional permissions listed below.
+
+  0. Additional Definitions.
+
+  As used herein, "this License" refers to version 3 of the GNU Lesser
+General Public License, and the "GNU GPL" refers to version 3 of the GNU
+General Public License.
+
+  "The Library" refers to a covered work governed by this License,
+other than an Application or a Combined Work as defined below.
+
+  An "Application" is any work that makes use of an interface provided
+by the Library, but which is not otherwise based on the Library.
+Defining a subclass of a class defined by the Library is deemed a mode
+of using an interface provided by the Library.
+
+  A "Combined Work" is a work produced by combining or linking an
+Application with the Library.  The particular version of the Library
+with which the Combined Work was made is also called the "Linked
+Version".
+
+  The "Minimal Corresponding Source" for a Combined Work means the
+Corresponding Source for the Combined Work, excluding any source code
+for portions of the Combined Work that, considered in isolation, are
+based on the Application, and not on the Linked Version.
+
+  The "Corresponding Application Code" for a Combined Work means the
+object code and/or source code for the Application, including any data
+and utility programs needed for reproducing the Combined Work from the
+Application, but excluding the System Libraries of the Combined Work.
+
+  1. Exception to Section 3 of the GNU GPL.
+
+  You may convey a covered work under sections 3 and 4 of this License
+without being bound by section 3 of the GNU GPL.
+
+  2. Conveying Modified Versions.
+
+  If you modify a copy of the Library, and, in your modifications, a
+facility refers to a function or data to be supplied by an Application
+that uses the facility (other than as an argument passed when the
+facility is invoked), then you may convey a copy of the modified
+version:
+
+   a) under this License, provided that you make a good faith effort to
+   ensure that, in the event an Application does not supply the
+   function or data, the facility still operates, and performs
+   whatever part of its purpose remains meaningful, or
+
+   b) under the GNU GPL, with none of the additional permissions of
+   this License applicable to that copy.
+
+  3. Object Code Incorporating Material from Library Header Files.
+
+  The object code form of an Application may incorporate material from
+a header file that is part of the Library.  You may convey such object
+code under terms of your choice, provided that, if the incorporated
+material is not limited to numerical parameters, data structure
+layouts and accessors, or small macros, inline functions and templates
+(ten or fewer lines in length), you do both of the following:
+
+   a) Give prominent notice with each copy of the object code that the
+   Library is used in it and that the Library and its use are
+   covered by this License.
+
+   b) Accompany the object code with a copy of the GNU GPL and this license
+   document.
+
+  4. Combined Works.
+
+  You may convey a Combined Work under terms of your choice that,
+taken together, effectively do not restrict modification of the
+portions of the Library contained in the Combined Work and reverse
+engineering for debugging such modifications, if you also do each of
+the following:
+
+   a) Give prominent notice with each copy of the Combined Work that
+   the Library is used in it and that the Library and its use are
+   covered by this License.
+
+   b) Accompany the Combined Work with a copy of the GNU GPL and this license
+   document.
+
+   c) For a Combined Work that displays copyright notices during
+   execution, include the copyright notice for the Library among
+   these notices, as well as a reference directing the user to the
+   copies of the GNU GPL and this license document.
+
+   d) Do one of the following:
+
+       0) Convey the Minimal Corresponding Source under the terms of this
+       License, and the Corresponding Application Code in a form
+       suitable for, and under terms that permit, the user to
+       recombine or relink the Application with a modified version of
+       the Linked Version to produce a modified Combined Work, in the
+       manner specified by section 6 of the GNU GPL for conveying
+       Corresponding Source.
+
+       1) Use a suitable shared library mechanism for linking with the
+       Library.  A suitable mechanism is one that (a) uses at run time
+       a copy of the Library already present on the user's computer
+       system, and (b) will operate properly with a modified version
+       of the Library that is interface-compatible with the Linked
+       Version.
+
+   e) Provide Installation Information, but only if you would otherwise
+   be required to provide such information under section 6 of the
+   GNU GPL, and only to the extent that such information is
+   necessary to install and execute a modified version of the
+   Combined Work produced by recombining or relinking the
+   Application with a modified version of the Linked Version. (If
+   you use option 4d0, the Installation Information must accompany
+   the Minimal Corresponding Source and Corresponding Application
+   Code. If you use option 4d1, you must provide the Installation
+   Information in the manner specified by section 6 of the GNU GPL
+   for conveying Corresponding Source.)
+
+  5. Combined Libraries.
+
+  You may place library facilities that are a work based on the
+Library side by side in a single library together with other library
+facilities that are not Applications and are not covered by this
+License, and convey such a combined library under terms of your
+choice, if you do both of the following:
+
+   a) Accompany the combined library with a copy of the same work based
+   on the Library, uncombined with any other library facilities,
+   conveyed under the terms of this License.
+
+   b) Give prominent notice with the combined library that part of it
+   is a work based on the Library, and explaining where to find the
+   accompanying uncombined form of the same work.
+
+  6. Revised Versions of the GNU Lesser General Public License.
+
+  The Free Software Foundation may publish revised and/or new versions
+of the GNU Lesser General Public License from time to time. Such new
+versions will be similar in spirit to the present version, but may
+differ in detail to address new problems or concerns.
+
+  Each version is given a distinguishing version number. If the
+Library as you received it specifies that a certain numbered version
+of the GNU Lesser General Public License "or any later version"
+applies to it, you have the option of following the terms and
+conditions either of that published version or of any later version
+published by the Free Software Foundation. If the Library as you
+received it does not specify a version number of the GNU Lesser
+General Public License, you may choose any version of the GNU Lesser
+General Public License ever published by the Free Software Foundation.
+
+  If the Library as you received it specifies that a proxy can decide
+whether future versions of the GNU Lesser General Public License shall
+apply, that proxy's public statement of acceptance of any version is
+permanent authorization for you to choose that version for the
+Library.
+
+</code></pre>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/keeps/db-preservation-toolkit">db-preservation-toolkit</a> is maintained by <a href="https://github.com/keeps">keeps</a>.</span>
