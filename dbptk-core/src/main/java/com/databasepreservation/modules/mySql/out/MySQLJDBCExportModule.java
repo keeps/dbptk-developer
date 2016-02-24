@@ -156,7 +156,7 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
       SQLException ei = e;
       do {
         if (ei != null) {
-          logger.error("Error handleing foreign key (next exception)", ei);
+          logger.error("Error handling foreign key (next exception)", ei);
           logger.error("Error description: ", ei);
         }
         ei = ei.getNextException();

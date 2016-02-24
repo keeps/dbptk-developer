@@ -188,8 +188,8 @@ public class MySQLHelper extends SQLHelper {
       constraint = " ADD CONSTRAINT `dbpres_" + System.currentTimeMillis() + plus + "`";
     }
     String ret = "ALTER TABLE " + escapeTableName(table.getName()) + (addConstraint ? constraint : " ADD")
-      + " FOREIGN KEY (" + foreignRefs + ") REFERENCES " + escapeTableName(fkey.getReferencedSchema()) + "."
-      + escapeTableName(fkey.getReferencedTable()) + " (" + foreignReferenced + ")";
+      + " FOREIGN KEY (" + foreignRefs + ") REFERENCES " + escapeTableName(fkey.getReferencedTable()) + " ("
+      + foreignReferenced + ")";
     return ret;
   }
 
