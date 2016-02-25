@@ -125,4 +125,19 @@
             <rows>42</rows>
         </table>
     </tables>
+    <views>
+        <view>
+            <name>AV_Antal_vildt_nedlagt</name>
+            <queryOriginal>
+				select b.Artsnavn, a.Antal, c.Amtsnavn, a.Aar
+				from AGG a, ART_kode b, AMT_kode c
+				where b.artid = 'AH'
+				and a.ArtID = b.ArtID
+				and a.Aar = '1987'
+				and a.AmtID = 'KØ'
+				and a.AmtID = c.AmtID
+			</queryOriginal>
+            <description>SQL-forespørgsel, der finder antallet af agerhøns skudt i året 1987 i Københavns Amt</description>
+        </view>
+    </views>
 </siardDiark>
