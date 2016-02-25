@@ -42,15 +42,14 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     .description("Path to contextDocumentation folder which should contain the context documentation for the archive")
     .hasArgument(true).setOptionalArgument(false).required(false);
 
-  // TODO: Supplement description with default choice for schema for PostgreSQL,
-  // MS SQL etc.
   public static final Parameter PARAM_IMPORT_AS_SCHEMA = new Parameter().shortName("as").longName("as-schema")
-    .description("Name of the database schema to use when importing the SIARDDK archive").required(true)
-    .hasArgument(true);
+    .description(
+      "Name of the database schema to use when importing the SIARDDK archive. Suggested values: PostgreSQL:'public', MySQL:'<name of database>', MSSQL:'dbo'")
+    .required(true).hasArgument(true);
 
   public static final Parameter PARAM_IMPORT_FOLDER = new Parameter().shortName("f").longName("folder")
     .description(
-      "Path to (the first) SIARDDK archive folder. Archive folder name must match the expression AVID.[A-ZÆØÅ]{2,4}.[1-9][0-9]*.1 .Any subsequent folders in the identified serie will also be processed (eg. with suffixes .2 .3 etc)")
+      "Path to (the first) SIARDDK archive folder. Archive folder name must match the expression AVID.[A-ZÆØÅ]{2,4}.[1-9][0-9]*.1 Any additional parts of the archive (eg. with suffixes .2 .3 etc) referenced in the tableIndex.xml will also be processed.")
     .hasArgument(true).setOptionalArgument(false).required(true);
 
   // This is not used now, but will be used later

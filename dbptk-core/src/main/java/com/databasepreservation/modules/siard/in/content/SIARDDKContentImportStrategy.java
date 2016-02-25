@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -224,15 +225,15 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
 
     } else {
       if (isInTblTag && localName.equals(XML_ROW_TAG_LOCALNAME)) {
-        currentRow.setCells(Arrays.asList(currentRowCells));
+        List<Cell> lstCells = Arrays.asList(currentRowCells);
+        assert !lstCells.contains(null);
+        currentRow.setCells(lstCells);
         try {
           this.dbExportHandler.handleDataRow(currentRow);
         } catch (InvalidDataException e) {
-          // TODO: Add row index to description
-          throw new SAXException(e);
+          throw new SAXException(e.getMessage() + " Row index:" + rowIndex, e);
         } catch (ModuleException e) {
-          // TODO: Add row index to description
-          throw new SAXException(e);
+          throw new SAXException(e.getMessage() + " Row index:" + rowIndex, e);
         }
 
         isInRowTag = false;
@@ -259,7 +260,6 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
                 preparedCellVal = new String(DatatypeConverter.parseHexBinary(preparedCellVal), Charsets.UTF_8);
               } else {
                 if (currentCellType instanceof SimpleTypeString) {
-                  // TODO: Establish SIARD-DK requirements here.
                   preparedCellVal = SIARDHelper.decode(preparedCellVal);
                 }
               }
@@ -268,7 +268,6 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
             }
           }
           currentRowCells[columnIndex - 1] = cell;
-          // TODO: Verify all cells were present.
           isInCellTag = false;
           isInNullValueCell = false;
           xsdCellType = null;

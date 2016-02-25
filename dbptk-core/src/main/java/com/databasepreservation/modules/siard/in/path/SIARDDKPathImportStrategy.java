@@ -92,9 +92,9 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
       try {
         unmarshaller = context.createUnmarshaller();
         unmarshaller.setSchema(xsdSchema);
-        // TODO: Validate fileIndex md5sum
         reader = readStrategy.createInputStream(mainFolder,
           metadataPathStrategy.getXmlFilePath(SIARDDKConstants.FILE_INDEX));
+        @SuppressWarnings("unchecked")
         JAXBElement<FileIndexType> jaxbElement = (JAXBElement<FileIndexType>) unmarshaller.unmarshal(reader);
         xmlFileIndex = jaxbElement.getValue();
       } catch (JAXBException e) {

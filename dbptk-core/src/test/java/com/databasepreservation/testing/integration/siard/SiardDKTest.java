@@ -51,8 +51,8 @@ public class SiardDKTest extends SiardTest {
     DatabaseStructure databaseStructure = super.generateDatabaseStructure();
 
     databaseStructure.setSchemas(Lists.newArrayList(databaseStructure.getSchemas().get(schemaIndexUnderTest)));
-    // //TODO:In siard-dk the archive meta data is located in archiveIndex.xml,
-    // which is not read or written yet.
+    // In siard-dk the archive meta data is located in archiveIndex.xml,
+    // which is not read or written.
     databaseStructure.setArchivalDate(null);
     databaseStructure.setDataOwner(null);
     databaseStructure.setDataOwner(null);
