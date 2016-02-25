@@ -1,8 +1,6 @@
 package com.databasepreservation.modules.siard.in.content;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.util.Arrays;
@@ -12,12 +10,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.XMLConstants;
+import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.TypeInfoProvider;
+import javax.xml.validation.ValidatorHandler;
 
-import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.Charsets;
+import org.w3c.dom.TypeInfo;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -25,9 +29,7 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 import com.databasepreservation.CustomLogger;
-import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
-import com.databasepreservation.model.data.FileItem;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
@@ -69,6 +71,8 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
   protected Cell[] currentRowCells;
   protected int rowIndex = 0;
   private static final String SIARDDK_NIL_LOCAL_ATTR_NAME = "nil";
+  protected TypeInfoProvider typeInfoProvider;
+  protected TypeInfo xsdCellType;
 
   /**
    * @author Thomas Kristensen <tk@bithuset.dk>
@@ -90,7 +94,8 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
     Map<Path, SIARDArchiveContainer> archiveContainerByAbsPath = new HashMap<Path, SIARDArchiveContainer>();
     archiveContainerByAbsPath.put(mainFolder.getPath(), mainFolder);
     SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
-    saxParserFactory.setValidating(true);
+    saxParserFactory.setValidating(false); // validation is done using the
+                                           // validatorHandler
     saxParserFactory.setNamespaceAware(true);
     SAXParser saxParser = null;
     DigestInputStream xsdInputStream = null;
@@ -107,39 +112,42 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
         String xmlFileName = pathStrategy.getTableXMLFilePath(schema.getName(), table.getId());
         Path archiveFolderLogicalPath = pathStrategy.getArchiveFolderPath(importAsSchema, table.getId());
 
-        Path archiveFolderActualPath = mainFolder.getPath()
-          .resolveSibling(archiveFolderLogicalPath);
+        Path archiveFolderActualPath = mainFolder.getPath().resolveSibling(archiveFolderLogicalPath);
         if (!archiveContainerByAbsPath.containsKey(archiveFolderActualPath)) {
           archiveContainerByAbsPath.put(archiveFolderActualPath,
             new SIARDArchiveContainer(archiveFolderActualPath, OutputContainerType.MAIN));
         }
         currentFolder = archiveContainerByAbsPath.get(archiveFolderActualPath);
+        ValidatorHandler validatorHandler = null;
         try {
           xsdInputStream = readStrategy.createInputStream(currentFolder, xsdFileName,
             pathStrategy.getTableXSDFileMD5(schema.getName(), table.getId()));
 
-          saxParser = saxParserFactory.newSAXParser();
-          saxParser.setProperty(JAXP_SCHEMA_LANGUAGE, XMLConstants.W3C_XML_SCHEMA_NS_URI);
-          saxParser.setProperty(JAXP_SCHEMA_SOURCE, xsdInputStream);
+          SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+          Schema xmlSchema = factory.newSchema(new StreamSource(xsdInputStream));
+          validatorHandler = xmlSchema.newValidatorHandler();
+          typeInfoProvider = validatorHandler.getTypeInfoProvider();
+          validatorHandler.setContentHandler(this);
+
+          // saxParser.setProperty(JAXP_SCHEMA_LANGUAGE,
+          // XMLConstants.W3C_XML_SCHEMA_NS_URI);
+          // saxParser.setProperty(JAXP_SCHEMA_SOURCE, xsdInputStream);
         } catch (SAXException e) {
           logger.error("Error validating schema", e);
           throw new ModuleException("Error reading XSD file: "
-            + pathStrategy.getTableXSDFilePath(schema.getName(), table.getId()) + " for table:" + table.getId(),
-            e);
-        } catch (ParserConfigurationException e) {
-          logger.error("Error creating XML SAXparser", e);
-          throw new ModuleException(e);
+            + pathStrategy.getTableXSDFilePath(schema.getName(), table.getId()) + " for table:" + table.getId(), e);
         }
-
         DigestInputStream currentTableInputStream = readStrategy.createInputStream(currentFolder, xmlFileName,
           pathStrategy.getTableXMLFileMD5(schema.getName(), table.getId()));
 
         SAXErrorHandler saxErrorHandler = new SAXErrorHandler();
 
         try {
+          saxParser = saxParserFactory.newSAXParser();
           XMLReader xmlReader = saxParser.getXMLReader();
-          xmlReader.setContentHandler(this);
-          xmlReader.setErrorHandler(saxErrorHandler);
+          xmlReader.setContentHandler(validatorHandler);
+          // xmlReader.setErrorHandler(saxErrorHandler);
+          validatorHandler.setErrorHandler(saxErrorHandler);
           logger.debug("begin parse of xml-file:[" + xmlFileName + "], using xsd [" + xsdFileName + "]");
           xmlReader.parse(new InputSource(currentTableInputStream));
 
@@ -148,11 +156,15 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
             "A SAX error occurred during processing of XML table file for table:" + table.getId(), e);
         } catch (IOException e) {
           throw new ModuleException("Error while reading XML table file for table:" + table.getId(), e);
+        } catch (ParserConfigurationException e) {
+          logger.error("Error creating XML SAXparser", e);
+          throw new ModuleException(e);
         }
 
         if (saxErrorHandler.hasError()) {
           throw new ModuleException(
             "Parsing or validation error occurred while reading XML table file for table:" + table.getId());
+
         }
 
         readStrategy.closeAndVerifyMD5Sum(currentTableInputStream);
@@ -190,6 +202,7 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
 
       } else {
         if (isInTblTag && isInRowTag) {
+          xsdCellType = typeInfoProvider.getElementTypeInfo();
           Matcher matcher = XML_ROW_COLUMN_LOCALNAME_PATTERN.matcher(localName);
           if (matcher.matches()) {
             isInCellTag = true;
@@ -227,37 +240,30 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
         Matcher matcher = XML_ROW_COLUMN_LOCALNAME_PATTERN.matcher(localName);
         if (isInCellTag && matcher.matches()) {
           Integer columnIndex = Integer.valueOf(matcher.group(1));
+
           Type currentCellType = currentTable.getColumns().get(columnIndex - 1).getType();
-          // TODO: Handle LOB cells
+
           String id = String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1).getId(), rowIndex);
           Cell cell;
           String preparedCellVal = currentTagContentStrBld.toString().trim();
           if (currentCellType instanceof SimpleTypeBinary) {
-            // TODO: Figure out the best way to test the 'xsd:hexBinary' in the
-            // SIARD-context.
-            // TODO: Depending on whether support for 'xsd:hexBinary' stays in -
-            // make sure that not all hex encoded string get written to a temp
-            // file.
-            try {
-              InputStream is = new ByteArrayInputStream(Hex.decodeHex(preparedCellVal.toCharArray()));
-              cell = new BinaryCell(id, new FileItem(is));
-            } catch (ModuleException e) {
-              logger.error("An error occurred while importing in-table binary cell", e);
-              throw new SAXException(e);
-            } catch (DecoderException e) {
-              logger.error(String.format("Illegal characters in hexadecimal string \"%s\"", preparedCellVal), e);
-              throw new SAXException(e);
-            }
+            ModuleException ex = new ModuleException("Siard-dk does not support import of binary values into the db");
+            logger.error(ex);
+            throw new SAXException(ex);
           } else {
             cell = new SimpleCell(id);
             if (isInNullValueCell) {
               ((SimpleCell) cell).setSimpledata(null);
             } else {
-
-              if (currentCellType instanceof SimpleTypeString) {
-                // TODO: Establish SIARD-DK requirements here.
-                preparedCellVal = SIARDHelper.decode(preparedCellVal);
+              if (xsdCellType != null && xsdCellType.getTypeName().equalsIgnoreCase("hexBinary")) {
+                preparedCellVal = new String(DatatypeConverter.parseHexBinary(preparedCellVal), Charsets.UTF_8);
+              } else {
+                if (currentCellType instanceof SimpleTypeString) {
+                  // TODO: Establish SIARD-DK requirements here.
+                  preparedCellVal = SIARDHelper.decode(preparedCellVal);
+                }
               }
+
               ((SimpleCell) cell).setSimpledata(preparedCellVal);
             }
           }
@@ -265,6 +271,7 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
           // TODO: Verify all cells were present.
           isInCellTag = false;
           isInNullValueCell = false;
+          xsdCellType = null;
         }
 
       }
