@@ -200,9 +200,8 @@ public class MySqlSIARDDKTest {
     // tests.add(new String[]{singleTypeAndValue, "VARBINARY(1024)","NULL"});
     // http://stackoverflow.com/questions/6766781/maximum-length-for-mysql-type-text
 
-    // TODO TK:FIX OR REMOVE TINYBLOB TEST: Awaits:
-    // https://github.com/keeps/db-preservation-toolkit/issues/127
-    tests.add(new String[] {singleTypeAndValue, "TINYBLOB", "NULL"});
+    // TINYBLOB is not supported in siard-dk
+    // tests.add(new String[] {singleTypeAndValue, "TINYBLOB", "NULL"});
     // TODO: TK: FIX blob test when issue is fixed:
     // https://github.com/keeps/db-preservation-toolkit/issues/128
     /*
