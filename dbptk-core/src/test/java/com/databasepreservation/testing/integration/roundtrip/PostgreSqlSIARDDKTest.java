@@ -63,9 +63,9 @@ public class PostgreSqlSIARDDKTest {
         db_source, db_target, db_tmp_username, db_tmp_password),
       String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/postgreSql/scripts/teardown.sh").getPath(),
         db_source, db_target, db_tmp_username),
-      "psql --echo-errors --single-transaction -v ON_ERROR_STOP=1 ",
-      "pg_dump --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces --exclude-table=tbl_datatypes_prikey_seq",
-      "pg_dump --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces --exclude-table=tbl_datatypes_prikey_seq",
+      "psql -h localhost --single-transaction -v ON_ERROR_STOP=1 ",
+      "pg_dump -h localhost --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces --exclude-table=tbl_datatypes_prikey_seq",
+      "pg_dump -h localhost --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces --exclude-table=tbl_datatypes_prikey_seq",
 
       new String[] {"--import=postgresql", "--import-hostname=localhost", "--import-database", db_source,
         "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--import-disable-encryption",
