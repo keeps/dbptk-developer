@@ -3,6 +3,7 @@ package com.databasepreservation.testing.integration.roundtrip;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -39,7 +40,8 @@ public class MySqlSIARDDKTest {
     Files.setAttribute(Paths.get(getClass().getResource("/mySql/scripts/teardown.sh").getPath()), "posix:permissions",
       executablePermissions);
 
-    archiveFullPath = System.getProperty("java.io.tmpdir") + ROUND_TRIP_SIARD_ARCHIVE_FILENAME;
+    archiveFullPath = FileSystems.getDefault()
+      .getPath(System.getProperty("java.io.tmpdir"), ROUND_TRIP_SIARD_ARCHIVE_FILENAME).toString();
 
     rt = new Roundtrip(String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass()
       .getResource("/mySql/scripts/setup.sh").getPath(), db_source, db_target, db_tmp_username, db_tmp_password),
@@ -55,14 +57,11 @@ public class MySqlSIARDDKTest {
         "--export-folder", archiveFullPath},
 
       new String[] {"--import=siard-dk", "--import-as-schema=dpttest", "--import-folder", archiveFullPath,
-        "--export=mysql",
-        "--export-hostname=localhost", "--export-database", db_target, "--export-username", db_tmp_username,
-        "--export-password", db_tmp_password},
+        "--export=mysql", "--export-hostname=localhost", "--export-database", db_target, "--export-username",
+        db_tmp_username, "--export-password", db_tmp_password},
 
       new MySqlDumpDiffExpectations(), null, null);
   }
-
-
 
   @Test(description = "MySql server is available and accessible")
   public void testConnection() throws IOException, InterruptedException {

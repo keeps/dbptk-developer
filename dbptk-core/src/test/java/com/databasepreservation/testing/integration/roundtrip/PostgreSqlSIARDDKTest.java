@@ -2,6 +2,7 @@ package com.databasepreservation.testing.integration.roundtrip;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -47,12 +48,13 @@ public class PostgreSqlSIARDDKTest {
     env_var_target.put("PGDATABASE", db_target);
 
     Set<PosixFilePermission> executablePermissions = PosixFilePermissions.fromString("rwxr-xr-x");
-    Files.setAttribute(Paths.get(getClass().getResource("/postgreSql/scripts/setup.sh").getPath()), "posix:permissions",
-      executablePermissions);
+    Files.setAttribute(Paths.get(getClass().getResource("/postgreSql/scripts/setup.sh").getPath()),
+      "posix:permissions", executablePermissions);
     Files.setAttribute(Paths.get(getClass().getResource("/postgreSql/scripts/teardown.sh").getPath()),
       "posix:permissions", executablePermissions);
 
-    archiveFullPath = System.getProperty("java.io.tmpdir") + ROUND_TRIP_SIARD_ARCHIVE_FILENAME;
+    archiveFullPath = FileSystems.getDefault()
+      .getPath(System.getProperty("java.io.tmpdir"), ROUND_TRIP_SIARD_ARCHIVE_FILENAME).toString();
 
     sqlDumpDiffExpectationsPrepQueue = new PostgreSqlDumpDiffExpectationsPrepQueue();
 
@@ -109,8 +111,7 @@ public class PostgreSqlSIARDDKTest {
     return tests.iterator();
   }
 
-  @Test(description = "Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {
-    "testConnection"})
+  @Test(description = "Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnection"})
   public void testQueries(String... args) throws IOException, InterruptedException {
 
     String[] fields = new String[args.length - 1];
@@ -126,8 +127,8 @@ public class PostgreSqlSIARDDKTest {
       + "CREATE TABLE datatypes (col1 %s,col_key integer NOT NULL, CONSTRAINT tbl_datatypes_prikey PRIMARY KEY (col_key) );\n"
       + "INSERT INTO datatypes (col_key,col1) VALUES (nextval('tbl_datatypes_prikey_seq'::regclass),%s);";
     TextDiff textDiff = new TextDiff();
-    tests.add(
-      new Object[] {singleTypeAndValue, "text", "'abc'", textDiff.diff_main("text", "character varying(3)", false)});
+    tests.add(new Object[] {singleTypeAndValue, "text", "'abc'",
+      textDiff.diff_main("text", "character varying(3)", false)});
 
     tests.add(new Object[] {singleTypeAndValue, "bytea", "NULL", textDiff.diff_main("bytea", "integer", false)});
 
@@ -135,8 +136,7 @@ public class PostgreSqlSIARDDKTest {
   }
 
   @SuppressWarnings("unchecked")
-  @Test(description = "Tests small examples", dataProvider = "testQueriesWithDiffsProvider", dependsOnMethods = {
-    "testConnection"})
+  @Test(description = "Tests small examples", dataProvider = "testQueriesWithDiffsProvider", dependsOnMethods = {"testConnection"})
   public void testQueriesWithDiffs(Object... args) throws IOException, InterruptedException {
 
     String[] fields = new String[args.length - 1];
@@ -160,8 +160,7 @@ public class PostgreSqlSIARDDKTest {
     return tests.iterator();
   }
 
-  @Test(description = "Tests PostgreSQL files", dataProvider = "testFilesProvider", dependsOnMethods = {
-    "testConnection"})
+  @Test(description = "Tests PostgreSQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnection"})
   public void testFiles(Path... file) throws IOException, InterruptedException, URISyntaxException {
     sqlDumpDiffExpectationsPrepQueue.setExpectedDiffs(null);
     assert rt.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();

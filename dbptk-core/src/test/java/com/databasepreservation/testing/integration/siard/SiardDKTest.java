@@ -3,8 +3,8 @@ package com.databasepreservation.testing.integration.siard;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -75,8 +75,8 @@ public class SiardDKTest extends SiardTest {
       // primary key is mandatory in siard-dk. Description of key is not
       // supported, though.
       if (table.getPrimaryKey() == null) {
-        PrimaryKey primaryKey = new PrimaryKey("key" + index++, Lists.newArrayList(table.getColumns().get(0).getName()),
-          null);
+        PrimaryKey primaryKey = new PrimaryKey("key" + index++,
+          Lists.newArrayList(table.getColumns().get(0).getName()), null);
         table.setPrimaryKey(primaryKey);
       } else {
         table.getPrimaryKey().setDescription(null); // Description of key is not
@@ -110,13 +110,8 @@ public class SiardDKTest extends SiardTest {
       views.add(view01);
       views.add(view02);
       schema.setViews(views);
-      
-    }
 
-   
-  
-    
-    
+    }
 
     return databaseStructure;
   }
@@ -125,7 +120,8 @@ public class SiardDKTest extends SiardTest {
   protected DatabaseStructure roundtrip(DatabaseStructure orgDbStructure, Path tmpFile, SIARDVersion version)
     throws FileNotFoundException, ModuleException, UnknownTypeException, InvalidDataException {
 
-    Path archiveFolderPath = Paths.get(System.getProperty("java.io.tmpdir") + ROUND_TRIP_SIARD_ARCHIVE_FILENAME);
+    Path archiveFolderPath = FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"),
+      ROUND_TRIP_SIARD_ARCHIVE_FILENAME);
     File archFolder = archiveFolderPath.toFile();
     if (archFolder.exists()) {
       try {
