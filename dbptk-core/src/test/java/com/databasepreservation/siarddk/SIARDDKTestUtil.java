@@ -7,14 +7,12 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
-import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.testng.FileAssert;
 
 import com.databasepreservation.CustomLogger;
 import com.databasepreservation.Main;
-import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 
 /*
  * @author Thomas Kristensen tk@bithuset.dk
@@ -73,34 +71,14 @@ public class SIARDDKTestUtil {
     byte[] expectedFileContent = FileUtils.readFileToByteArray(expectedFile);
     byte[] actualFileContent = FileUtils.readFileToByteArray(actualFile);
 
-    String expectedFileContentStr = new String(expectedFileContent, Charsets.UTF_8);
-    String actualFileStr = new String(actualFileContent, Charsets.UTF_8);
-
-    // neutralize file platform specific line endings in the comparison
-    expectedFileContentStr = expectedFileContentStr.replace("\n", System.lineSeparator());
-
-    String expectedSha1 = DigestUtils.sha1Hex(expectedFileContentStr);
-    String actualSha1 = DigestUtils.sha1Hex(actualFileStr);
+    String expectedSha1 = DigestUtils.sha1Hex(expectedFileContent);
+    String actualSha1 = DigestUtils.sha1Hex(actualFileContent);
 
     if (!expectedSha1.equals(actualSha1)) {
-
-      // Special case: Expected md5sums in fileIndex.xml will not match when
-      // line endings have been substituted.
-      if (actualFile.getName().equals(
-        SIARDDKConstants.FILE_INDEX + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + SIARDDKConstants.XML_EXTENSION)
-        && expectedFile.getName().equals(actualFile.getName())) {
-        expectedFileContentStr = fileIndexMd5sumReplacementPattern.matcher(expectedFileContentStr).replaceAll("");
-        actualFileStr = fileIndexMd5sumReplacementPattern.matcher(actualFileStr).replaceAll("");
-        expectedSha1 = DigestUtils.sha1Hex(expectedFileContentStr);
-        actualSha1 = DigestUtils.sha1Hex(actualFileStr);
-      } else {
-
         logger.debug("sha1 sum of [" + actualFile.getAbsolutePath() + "] is [" + actualSha1
           + "], and does not match the expected sha1 sum of [" + expectedFile.getAbsolutePath() + "], which is ["
           + expectedSha1 + "]");
-      }
     }
-
     assert expectedSha1.equals(actualSha1) : "Expected the content of [" + actualFile.getAbsolutePath()
       + "] to match the content of [" + expectedFile.getAbsolutePath() + "]";
   }
