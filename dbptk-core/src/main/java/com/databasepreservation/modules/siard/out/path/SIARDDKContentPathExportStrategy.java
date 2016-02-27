@@ -83,9 +83,9 @@ public class SIARDDKContentPathExportStrategy implements ContentPathExportStrate
 
   @Override
   public String getTableXsdNamespace(String base, int schemaIndex, int tableIndex) {
-    return new StringBuilder().append(base).append(SCHEMA_DIR).append(schemaIndex)
-      .append(SIARDDKConstants.FILE_SEPARATOR).append(TABLE_FILENAME).append(tableIndex)
-      .append(SIARDDKConstants.FILE_EXTENSION_SEPARATOR).append(SIARDDKConstants.XSD_EXTENSION).toString();
+    return new StringBuilder().append(base).append(SCHEMA_DIR).append(schemaIndex).append("/").append(TABLE_FILENAME)
+      .append(tableIndex).append(SIARDDKConstants.FILE_EXTENSION_SEPARATOR).append(SIARDDKConstants.XSD_EXTENSION)
+      .toString();
   }
 
   @Override
