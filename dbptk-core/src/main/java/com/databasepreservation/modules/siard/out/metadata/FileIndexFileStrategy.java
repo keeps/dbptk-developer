@@ -17,12 +17,14 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
+
 import dk.sa.xmlns.diark._1_0.fileindex.FileIndexType;
 
 /**
@@ -62,7 +64,7 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
       // System.out.println(entry.getKey() + " " + entry.getValue());
 
       String path = entry.getKey();
-      String[] splitPath = path.split(SIARDDKConstants.FILE_SEPARATOR);
+      String[] splitPath = path.split(Pattern.quote(SIARDDKConstants.FILE_SEPARATOR));
       String fiN = splitPath[splitPath.length - 1];
       // System.out.println(fiN);
 
