@@ -14,9 +14,10 @@ import java.nio.file.Path;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 import com.databasepreservation.model.exception.ModuleException;
@@ -39,11 +40,11 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
   private MessageDigest messageDigest;
   private MessageDigest lobMessageDigest;
   private boolean currentlyDigestingLOB;
-  private Map<String, byte[]> md5sums;
+  private SortedMap<String, byte[]> md5sums;
   private SIARDArchiveContainer outputContainer;
 
   public FileIndexFileStrategy() {
-    md5sums = new HashMap<String, byte[]>();
+    md5sums = new TreeMap<String, byte[]>();
     outputContainer = null;
     currentlyDigestingLOB = false;
   }
