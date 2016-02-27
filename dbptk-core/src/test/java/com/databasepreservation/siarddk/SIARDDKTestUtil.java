@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.testng.FileAssert;
@@ -69,8 +70,13 @@ public class SIARDDKTestUtil {
     byte[] expectedFileContent = FileUtils.readFileToByteArray(expectedFile);
     byte[] actualFileContent = FileUtils.readFileToByteArray(actualFile);
 
-    String expectedSha1 = DigestUtils.sha1Hex(expectedFileContent);
-    String actualSha1 = DigestUtils.sha1Hex(actualFileContent);
+    String expectedFileContentStr = new String(expectedFileContent, Charsets.UTF_8);
+    String actualFileStr = new String(actualFileContent, Charsets.UTF_8);
+
+    expectedFileContentStr = expectedFileContentStr.replace("\n", System.lineSeparator());
+
+    String expectedSha1 = DigestUtils.sha1Hex(expectedFileContentStr);
+    String actualSha1 = DigestUtils.sha1Hex(actualFileStr);
 
     if (!expectedSha1.equals(actualSha1)) {
       logger.debug("sha1 sum of [" + actualFile.getAbsolutePath() + "] is [" + actualSha1
