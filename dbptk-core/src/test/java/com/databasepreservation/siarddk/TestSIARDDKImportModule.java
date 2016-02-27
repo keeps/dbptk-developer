@@ -1,5 +1,6 @@
 package com.databasepreservation.siarddk;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -24,14 +25,14 @@ public class TestSIARDDKImportModule {
     // We'll then compare this folder to a folder representing the expected
     // result.
 
-    Path splittedArchiveFld = FileSystems.getDefault().getPath(
-      this.getClass().getClassLoader().getResource("siarddk/AVID.SA.18001.1").getPath());
+    Path splittedArchiveFld = new File(
+      this.getClass().getClassLoader().getResource("siarddk/AVID.SA.18001.1").getFile()).toPath();
 
     Path generatedArchiveFullPath = FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"),
       ARCHIVE_FLD_NAME_SPLIT_TEST);
 
-    Path expectedConsolidatedArchivePath = FileSystems.getDefault().getPath(
-      this.getClass().getClassLoader().getResource("siarddk/AVID.TST.4000.1").getPath());
+    Path expectedConsolidatedArchivePath = new File(
+      this.getClass().getClassLoader().getResource("siarddk/AVID.TST.4000.1").getFile()).toPath();
 
     SIARDDKTestUtil.assertArchiveFoldersEqualAfterExportImport(splittedArchiveFld, expectedConsolidatedArchivePath,
       generatedArchiveFullPath);
@@ -54,14 +55,14 @@ public class TestSIARDDKImportModule {
 
     // AVID.HEX.1000.1 becomes AVID.HEX.2000.1
 
-    Path hexArchiveFld = FileSystems.getDefault().getPath(
-      this.getClass().getClassLoader().getResource("siarddk/AVID.HEX.1000.1").getPath());
+    Path hexArchiveFld = new File(this.getClass().getClassLoader().getResource("siarddk/AVID.HEX.1000.1").getFile())
+      .toPath();
 
     Path generatedArchiveFullPath = FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"),
       ARCHIVE_FLD_NAME_HEX_TEST);
 
-    Path expectedConsolidatedArchivePath = FileSystems.getDefault().getPath(
-      this.getClass().getClassLoader().getResource("siarddk/AVID.HEX.2000.1").getPath());
+    Path expectedConsolidatedArchivePath = new File(
+      this.getClass().getClassLoader().getResource("siarddk/AVID.HEX.2000.1").getFile()).toPath();
 
     SIARDDKTestUtil.assertArchiveFoldersEqualAfterExportImport(hexArchiveFld, expectedConsolidatedArchivePath,
       generatedArchiveFullPath);
