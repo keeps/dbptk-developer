@@ -18,7 +18,8 @@ public class SIARDDKsql99ToXsdType {
       return "xs:hexBinary";
     } else if (sql99Type.startsWith("BOOLEAN")) {
       return "xs:boolean";
-    } else if (sql99Type.startsWith("CHARACTER") || sql99Type.equals(SIARDDKConstants.CHARACTER_LARGE_OBJECT)) {
+    } else if (sql99Type.startsWith("CHARACTER") || sql99Type.startsWith("NATIONAL CHARACTER")
+      || sql99Type.equals(SIARDDKConstants.CHARACTER_LARGE_OBJECT)) {
       return "xs:string";
     } else if (sql99Type.startsWith("DATE")) {
       return "xs:date";

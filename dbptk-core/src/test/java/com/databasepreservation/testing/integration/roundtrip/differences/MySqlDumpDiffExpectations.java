@@ -57,6 +57,11 @@ public class MySqlDumpDiffExpectations extends DumpDiffExpectations {
     // year(N) -> decimal(4,0)
     directReplacements.add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)year\\((\\d+)\\)(?=\\W)"),
       "decimal(4,0)"));
+
+    // Remove AUTO_INCREMENT info
+    directReplacements
+      .add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)AUTO_INCREMENT(=[0-9]*)*\\W"), ""));
+
   }
 
   @Override

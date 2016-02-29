@@ -1,0 +1,143 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<siardDiark xmlns="http://www.sa.dk/xmlns/diark/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/tableIndex.xsd">
+  <version>1.0</version>
+  <dbName>VildtDatabasen</dbName>
+  <databaseProduct>Microsoft SQL server</databaseProduct>
+  <tables>
+    <table>
+      <name>AGG</name>
+      <folder>table1</folder>
+      <description>Tabel med oplysninger i aggregeret form om nedlagt vildt i Danmark for hver jagtsæson fordelt på vildtarter og amter</description>
+      <columns>
+        <column>
+          <name>Aar</name>
+          <columnID>c1</columnID>
+          <type>CHARACTER VARYING(4)</type>
+          <typeOriginal>varchar(4)</typeOriginal>
+          <nullable>false</nullable>
+          <description>Jagtsæson, indeholder årstallet for sæsonens start</description>
+        </column>
+        <column>
+          <name>ArtID</name>
+          <columnID>c2</columnID>
+          <type>CHARACTER VARYING(2)</type>
+          <typeOriginal>varchar(2)</typeOriginal>
+          <nullable>false</nullable>
+          <description>Fremmednøgle til Art_kode</description>
+        </column>
+        <column>
+          <name>AmtID</name>
+          <columnID>c3</columnID>
+          <type>CHARACTER VARYING(2)</type>
+          <typeOriginal>varchar(2)</typeOriginal>
+          <nullable>false</nullable>
+          <description>Fremmednøgle til tabel Amt_kode</description>
+        </column>
+        <column>
+          <name>Antal</name>
+          <columnID>c4</columnID>
+          <type>INTEGER</type>
+          <typeOriginal>int</typeOriginal>
+          <nullable>true</nullable>
+          <description>Angiver antal stykker nedlagt vildt</description>
+        </column>
+      </columns>
+      <primaryKey>
+        <name>PK_AGG</name>
+        <column>AmtID</column>
+        <column>ArtID</column>
+        <column>Aar</column>
+      </primaryKey>
+      <foreignKeys>
+        <foreignKey>
+          <name>FK_AGG_AMT</name>
+          <referencedTable>AMT_kode</referencedTable>
+          <reference>
+            <column>AmtID</column>
+            <referenced>AmtID</referenced>
+          </reference>
+        </foreignKey>
+        <foreignKey>
+          <name>FK_AGG_ART</name>
+          <referencedTable>ART_kode</referencedTable>
+          <reference>
+            <column>ArtID</column>
+            <referenced>ArtID</referenced>
+          </reference>
+        </foreignKey>
+      </foreignKeys>
+      <rows>22710</rows>
+    </table>
+    <table>
+      <name>AMT_kode</name>
+      <folder>table2</folder>
+      <description>Tabel over amter</description>
+      <columns>
+        <column>
+          <name>AmtID</name>
+          <columnID>c1</columnID>
+          <type>CHARACTER VARYING(2)</type>
+          <typeOriginal>varchar(2)</typeOriginal>
+          <nullable>false</nullable>
+          <description>Amtskode, primærnøgle</description>
+        </column>
+        <column>
+          <name>Amtsnavn</name>
+          <columnID>c2</columnID>
+          <type>NATIONAL CHARACTER VARYING(18)</type>
+          <typeOriginal>nvarchar(18)</typeOriginal>
+          <nullable>true</nullable>
+          <description>Amtsnavn</description>
+        </column>
+      </columns>
+      <primaryKey>
+        <name>PK_AMT</name>
+        <column>AmtID</column>
+      </primaryKey>
+      <rows>15</rows>
+    </table>
+    <table>
+      <name>ART_kode</name>
+      <folder>table3</folder>
+      <description>Tabel over vildtarter</description>
+      <columns>
+        <column>
+          <name>ArtID</name>
+          <columnID>c1</columnID>
+          <type>CHARACTER VARYING(2)</type>
+          <typeOriginal>varchar(2)</typeOriginal>
+          <nullable>false</nullable>
+          <description>Fremmednøgle til Artstabel</description>
+        </column>
+        <column>
+          <name>ArtsNavn</name>
+          <columnID>c2</columnID>
+          <type>NATIONAL CHARACTER VARYING(17)</type>
+          <typeOriginal>nvarchar(17)</typeOriginal>
+          <nullable>true</nullable>
+          <description>Artsnavn</description>
+        </column>
+      </columns>
+      <primaryKey>
+        <name>PK_ART</name>
+        <column>ArtID</column>
+      </primaryKey>
+      <rows>42</rows>
+    </table>
+  </tables>
+  <views>
+    <view>
+      <name>AV_Antal_vildt_nedlagt</name>
+      <queryOriginal>
+				select b.Artsnavn, a.Antal, c.Amtsnavn, a.Aar
+				from AGG a, ART_kode b, AMT_kode c
+				where b.artid = 'AH'
+				and a.ArtID = b.ArtID
+				and a.Aar = '1987'
+				and a.AmtID = 'KØ'
+				and a.AmtID = c.AmtID
+			</queryOriginal>
+      <description>SQL-forespørgsel, der finder antallet af agerhøns skudt i året 1987 i Københavns Amt</description>
+    </view>
+  </views>
+</siardDiark>

@@ -9,9 +9,13 @@
                 <include name="postgresql-siard2"/>
                 <include name="mysql-siard1"/>
                 <include name="mysql-siard2"/>
+                <include name="postgresql-siarddk"/>
+                <include name="mysql-siarddk"/>
                 <include name="siard-roundtrip"/>
+                <include name="siarddk-roundtrip"/>
                 <include name="cli"/>
                 <include name="unit"/>
+                <include name="siarddk"/>
             </define>
 
             <!-- Tests ran by Travis CI -->
@@ -23,6 +27,7 @@
                 <include name="siard-roundtrip"/>
                 <include name="cli"/>
                 <include name="unit"/>
+                <include name="siarddk"/>
             </define>
 
             <!-- Tests that don't have external dependencies -->
@@ -30,15 +35,21 @@
                 <include name="siard-roundtrip"/>
                 <include name="cli"/>
                 <include name="unit"/>
+                <include name="siarddk"/>
+                <include name="siarddk-roundtrip"/>
             </define>
         </groups>
         <classes>
             <class name="com.databasepreservation.testing.integration.roundtrip.MySqlTest"/>
             <class name="com.databasepreservation.testing.integration.roundtrip.PostgreSqlTest"/>
             <class name="com.databasepreservation.testing.integration.siard.SiardTest"/>
+            <class name="com.databasepreservation.testing.integration.siard.SiardDKTestWrapper"/>
+            <class name="com.databasepreservation.siarddk.TestSIARDDKImportModule"/>
             <class name="com.databasepreservation.testing.unit.cli.PostgreSQLModuleFactoryTest"/>
             <class name="com.databasepreservation.testing.unit.cli.SQLServerJDBCModuleFactoryTest"/>
             <class name="com.databasepreservation.testing.unit.utils.XMLUtilsTest"/>
+            <class name="com.databasepreservation.testing.integration.roundtrip.PostgreSqlSIARDDKTest"/>
+            <class name="com.databasepreservation.testing.integration.roundtrip.MySqlSIARDDKTest"/>
         </classes>
     </test>
 </suite>
