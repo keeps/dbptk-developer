@@ -43,6 +43,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
+import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -99,6 +100,8 @@ public class JDBCImportModule implements DatabaseImportModule {
   protected SQLHelper sqlHelper;
 
   protected FormatUtility formatUtility;
+
+  private ModuleSettings moduleSettings;
 
   /**
    * Create a new JDBC import module
@@ -419,9 +422,17 @@ public class JDBCImportModule implements DatabaseImportModule {
     ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"TABLE"});
     int tableIndex = 1;
     while (rset.next()) {
-      logger.debug("getting table structure for: " + rset.getString(3));
-      tables.add(getTableStructure(schema, rset.getString(3), tableIndex));
-      tableIndex++;
+      String tableName = rset.getString(3);
+
+      logger.debug("getting table structure for: " + tableName);
+
+      if (moduleSettings.isSelectedTable(schema.getName(), tableName)) {
+        tables.add(getTableStructure(schema, tableName, tableIndex));
+        tableIndex++;
+      } else {
+        logger.debug("Table " + tableName + " has been filtered out.");
+      }
+
     }
     return tables;
   }
@@ -1891,6 +1902,8 @@ public class JDBCImportModule implements DatabaseImportModule {
   public void getDatabase(DatabaseExportModule handler) throws ModuleException, UnknownTypeException,
     InvalidDataException {
     try {
+      moduleSettings = handler.getModuleSettings();
+
       logger.debug("initializing database");
       handler.initDatabase();
       // sets schemas won't be exported
@@ -1903,18 +1916,22 @@ public class JDBCImportModule implements DatabaseImportModule {
         handler.handleDataOpenSchema(schema.getName());
         for (TableStructure table : schema.getTables()) {
           logger.info("STARTED: Getting data of table: " + table.getId());
-          ResultSet tableRawData = getTableRawData(table);
           handler.handleDataOpenTable(table.getId());
+
           int nRows = 0;
-          while (tableRawData.next()) {
-            handler.handleDataRow(convertRawToRow(tableRawData, table));
-            nRows++;
-            if (nRows % 1000 == 0) {
-              logger.info(nRows + " rows processed");
+          if (moduleSettings.shouldFetchRows()) {
+            ResultSet tableRawData = getTableRawData(table);
+            while (tableRawData.next()) {
+              handler.handleDataRow(convertRawToRow(tableRawData, table));
+              nRows++;
+              if (nRows % 1000 == 0) {
+                logger.info(nRows + " rows processed");
+              }
             }
           }
           logger.info("Total of " + nRows + " row(s) processed");
           getDatabaseStructure().lookupTableStructure(table.getId()).setRows(nRows);
+
           handler.handleDataCloseTable(table.getId());
           logger.info("FINISHED: Getting data of table: " + table.getId());
         }

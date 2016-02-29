@@ -43,6 +43,6 @@ public class SIARD1ExportModule {
   }
 
   public DatabaseExportModule getDatabaseHandler() {
-    return new SIARDExportDefault(contentStrategy, mainContainer, writeStrategy, metadataStrategy);
+    return new SIARDExportDefault(contentStrategy, mainContainer, writeStrategy, metadataStrategy, null);
   }
 }

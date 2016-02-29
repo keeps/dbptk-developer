@@ -1,5 +1,6 @@
 package com.databasepreservation.modules.siard;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,6 +44,13 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     .description("write human-readable XML").hasArgument(false).required(false).valueIfNotSet("false")
     .valueIfSet("true");
 
+  private static final Parameter tableFilter = new Parameter()
+    .shortName("tf")
+    .longName("table-filter")
+    .description(
+      "file with the list of tables that should be exported (this file can be created by the list-tables export module).")
+    .required(false).hasArgument(true).setOptionalArgument(false);
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -64,6 +72,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(file.longName(), file);
     parameterHashMap.put(compress.longName(), compress);
     parameterHashMap.put(prettyPrintXML.longName(), prettyPrintXML);
+    parameterHashMap.put(tableFilter.longName(), tableFilter);
     return parameterHashMap;
   }
 
@@ -74,7 +83,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Parameters getExportModuleParameters() throws OperationNotSupportedException {
-    return new Parameters(Arrays.asList(file, compress, prettyPrintXML), null);
+    return new Parameters(Arrays.asList(file, compress, prettyPrintXML, tableFilter), null);
   }
 
   @Override
@@ -100,6 +109,11 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
       pPrettyPrintXML = Boolean.parseBoolean(prettyPrintXML.valueIfSet());
     }
 
-    return new SIARD2ExportModule(Paths.get(pFile), pCompress, pPrettyPrintXML).getDatabaseHandler();
+    Path pTableFilter = null;
+    if (StringUtils.isNotBlank(parameters.get(tableFilter))) {
+      pTableFilter = Paths.get(parameters.get(tableFilter));
+    }
+
+    return new SIARD2ExportModule(Paths.get(pFile), pCompress, pPrettyPrintXML, pTableFilter).getDatabaseHandler();
   }
 }
