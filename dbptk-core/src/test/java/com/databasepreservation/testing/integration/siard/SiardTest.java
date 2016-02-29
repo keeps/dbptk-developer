@@ -528,7 +528,7 @@ public class SiardTest {
 
     switch (version) {
       case SIARD_1:
-        exporter = new SIARD1ExportModule(tmpFile, true, false).getDatabaseHandler();
+        exporter = new SIARD1ExportModule(tmpFile, true, false, null).getDatabaseHandler();
         break;
       case SIARD_2:
         exporter = new SIARD2ExportModule(tmpFile, true, false, null).getDatabaseHandler();
