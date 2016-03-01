@@ -2,19 +2,19 @@
 <table xsi:schemaLocation="http://www.sa.dk/xmlns/siard/1.0/schema3/table3.xsd table3.xsd" xmlns="http://www.sa.dk/xmlns/siard/1.0/schema3/table3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <row>
     <c1>AD</c1>
-    <c2>Andre\u0020dyk\u00E6nder</c2>
+    <c2>Andre dykænder</c2>
   </row>
   <row>
     <c1>AH</c1>
-    <c2>Agerh\u00F8ne</c2>
+    <c2>Agerhøne</c2>
   </row>
   <row>
     <c1>AL</c1>
     <c2>Allike</c2>
   </row>
   <row>
-    <c1>A\u00C6</c1>
-    <c2>Andre\u0020sv\u00F8mme\u00E6nder</c2>
+    <c1>AÆ</c1>
+    <c2>Andre svømmeænder</c2>
   </row>
   <row>
     <c1>BE</c1>
@@ -22,11 +22,11 @@
   </row>
   <row>
     <c1>BL</c1>
-    <c2>Blish\u00F8ne</c2>
+    <c2>Blishøne</c2>
   </row>
   <row>
     <c1>DV</c1>
-    <c2>D\u00E5dyr</c2>
+    <c2>Dådyr</c2>
   </row>
   <row>
     <c1>ED</c1>
@@ -50,15 +50,15 @@
   </row>
   <row>
     <c1>GL</c1>
-    <c2>Gr\u00E6vling</c2>
+    <c2>Grævling</c2>
   </row>
   <row>
     <c1>GS</c1>
-    <c2>G\u00E6s</c2>
+    <c2>Gæs</c2>
   </row>
   <row>
     <c1>HM</c1>
-    <c2>Husm\u00E5r</c2>
+    <c2>Husmår</c2>
   </row>
   <row>
     <c1>HR</c1>
@@ -85,16 +85,16 @@
     <c2>Krondyr</c2>
   </row>
   <row>
-    <c1>L\u00C6</c1>
-    <c2>L\u00E6kat</c2>
+    <c1>LÆ</c1>
+    <c2>Lækat</c2>
   </row>
   <row>
     <c1>MI</c1>
     <c2>Mink</c2>
   </row>
   <row>
-    <c1>M\u00C5</c1>
-    <c2>M\u00E5ger</c2>
+    <c1>MÅ</c1>
+    <c2>Måger</c2>
   </row>
   <row>
     <c1>OD</c1>
@@ -114,19 +114,19 @@
   </row>
   <row>
     <c1>RG</c1>
-    <c2>R\u00E5ge</c2>
+    <c2>Råge</c2>
   </row>
   <row>
     <c1>RV</c1>
-    <c2>R\u00E5dyr</c2>
+    <c2>Rådyr</c2>
   </row>
   <row>
-    <c1>R\u00C6</c1>
-    <c2>R\u00E6v</c2>
+    <c1>RÆ</c1>
+    <c2>Ræv</c2>
   </row>
   <row>
     <c1>SF</c1>
-    <c2>Andre\u0020sv\u00F8mmefugle</c2>
+    <c2>Andre svømmefugle</c2>
   </row>
   <row>
     <c1>SI</c1>
@@ -138,11 +138,11 @@
   </row>
   <row>
     <c1>SM</c1>
-    <c2>Skovm\u00E5r</c2>
+    <c2>Skovmår</c2>
   </row>
   <row>
     <c1>SP</c1>
-    <c2>Sp\u00E6ttet\u0020s\u00E6l</c2>
+    <c2>Spættet sæl</c2>
   </row>
   <row>
     <c1>SS</c1>
@@ -150,7 +150,7 @@
   </row>
   <row>
     <c1>ST</c1>
-    <c2>St\u00E6r</c2>
+    <c2>Stær</c2>
   </row>
   <row>
     <c1>TY</c1>
@@ -165,7 +165,7 @@
     <c2>Vadefugle</c2>
   </row>
   <row>
-    <c1>\u00C6N</c1>
-    <c2>Gr\u00E5and</c2>
+    <c1>ÆN</c1>
+    <c2>Gråand</c2>
   </row>
 </table>
