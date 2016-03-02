@@ -1,4 +1,4 @@
-Short and descriptive example bug report title
+Title: use a short and descriptive example bug report title
 
 before starting:
 
