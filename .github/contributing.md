@@ -42,48 +42,20 @@ Guidelines for bug reports:
    is just enough to reproduce the issue. If possible, attach the example
    files to the issue, otherwise a description of the steps taken may suffice.
 
-4. **Attach the dbptk-app.log file** &mdash; the log file is located in the directory
-   where the command `java -jar dbptk-app-(version).jar` was executed from.
-   If the log file contains private information (it registers the database
-   structure, along with other detailed information, but excludes database usernames
-   and passwords), include the part relevant to the issue: starting with the same
-   ```ERROR``` displayed in the program output up to the program termination (marked
-   by ```DEBUG``` messages containing a lot of `#` characters and the `FINISH-ID` code).
+4. **Attach the dbptk-app.log.txt file** &mdash; the log file is located
+   in the directory where the command `java -jar dbptk-app-(version).jar` was
+   executed from. If the log file contains private information (it registers the
+   database structure, along with other detailed information, but excludes database
+   usernames and passwords), include the part relevant to the issue: starting with the
+   same ```ERROR``` displayed in the program output up to the program termination
+   (marked by ```DEBUG``` messages containing a lot of `#` characters and the
+   `FINISH-ID` code).
 
 A good bug report shouldn't leave others needing to chase you up for more
 information. Please try to be as detailed as possible in your report. What is
 your environment? What steps will reproduce the issue? In which operative systems do you
 experience the problem? What would you expect to be the outcome? All these
 details will help people to fix any potential bugs.
-
-Example / Template:
-
-> Short and descriptive example bug report title
->
-> A summary of the issue and the operative system and database environment
-> in which it occurs. Include the software version used, the original
-> database environment and the destination database environment.
->
-> Include the steps required to reproduce the bug:
->
-> 1. This is the first step
-> 2. This is the second step
-> 3. Further steps, etc.
->
-> Include the expected outcome of reproducing these steps.
->
-> Include the actual (i.e. _buggy_) outcome of reproducing these steps.
->
-> attach a reduced test case (it can be in a zip file)
->
-> attach the dbptk-app.log file (it must be in a zip file or have the extension
-> changed to .txt because github does not currently accept files with extension
-> .log). 
->
-> Any other information you want to share that is relevant to the issue being
-> reported. This might include the lines of code that you have identified as
-> causing the bug, and potential solutions (and your opinions on their
-> merits).
 
 It is advisable to not add tags, milestone or assignee to the issue, as these
 are managed by the development team.
