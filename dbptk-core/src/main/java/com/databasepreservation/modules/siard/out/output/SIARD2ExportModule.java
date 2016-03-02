@@ -24,10 +24,12 @@ public class SIARD2ExportModule {
   private final SIARDArchiveContainer mainContainer;
   private final WriteStrategy writeStrategy;
 
+  private final Path tableFilter;
+
   private MetadataExportStrategy metadataStrategy;
   private ContentExportStrategy contentStrategy;
 
-  public SIARD2ExportModule(Path siardPackage, boolean compressZip, boolean prettyXML) {
+  public SIARD2ExportModule(Path siardPackage, boolean compressZip, boolean prettyXML, Path tableFilter) {
     contentPathStrategy = new SIARD2ContentPathExportStrategy();
     metadataPathStrategy = new SIARD2MetadataPathStrategy();
     if (compressZip) {
@@ -39,9 +41,11 @@ public class SIARD2ExportModule {
 
     metadataStrategy = new SIARD2MetadataExportStrategy(metadataPathStrategy, contentPathStrategy);
     contentStrategy = new SIARD2ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer, prettyXML);
+
+    this.tableFilter = tableFilter;
   }
 
   public DatabaseExportModule getDatabaseHandler() {
-    return new SIARDExportDefault(contentStrategy, mainContainer, writeStrategy, metadataStrategy);
+    return new SIARDExportDefault(contentStrategy, mainContainer, writeStrategy, metadataStrategy, tableFilter);
   }
 }

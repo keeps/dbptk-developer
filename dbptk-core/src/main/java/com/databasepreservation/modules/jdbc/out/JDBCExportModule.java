@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.databasepreservation.model.modules.ModuleSettings;
 import org.w3c.util.InvalidDateException;
 
 import com.databasepreservation.CustomLogger;
@@ -218,6 +219,16 @@ public class JDBCExportModule implements DatabaseExportModule {
       }
     }
     return statement;
+  }
+
+  /**
+   * Gets custom settings set by the export module that modify behaviour of
+   * the import module.
+   *
+   * @throws ModuleException
+   */
+  @Override public ModuleSettings getModuleSettings() throws ModuleException {
+    return new ModuleSettings();
   }
 
   @Override

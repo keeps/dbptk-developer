@@ -13,8 +13,17 @@ import com.databasepreservation.model.structure.DatabaseStructure;
 
 /**
  * @author Luis Faria
+ * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public interface DatabaseExportModule {
+  /**
+   * Gets custom settings set by the export module that modify behaviour of
+   * the import module.
+   * 
+   * @throws ModuleException
+   */
+  ModuleSettings getModuleSettings() throws ModuleException;
+
   /**
    * Initialize the database, this will be the first method called
    *

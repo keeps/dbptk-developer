@@ -28,6 +28,7 @@ import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
+import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.ForeignKey;
@@ -212,6 +213,16 @@ public class SQLFileExportModule implements DatabaseExportModule {
     };
     new Thread(writerRunnable).start();
     escapeStringLiteral(bin, out);
+  }
+
+  /**
+   * Gets custom settings set by the export module that modify behaviour of
+   * the import module.
+   *
+   * @throws ModuleException
+   */
+  @Override public ModuleSettings getModuleSettings() throws ModuleException {
+    return new ModuleSettings();
   }
 
   @Override
