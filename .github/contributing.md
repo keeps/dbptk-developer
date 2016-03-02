@@ -64,7 +64,7 @@ Example / Template:
 > in which it occurs. Include the software version used, the original
 > database environment and the destination database environment.
 >
-> Include the steps required to reproduce the bug.
+> Include the steps required to reproduce the bug:
 >
 > 1. This is the first step
 > 2. This is the second step
