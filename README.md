@@ -136,7 +136,15 @@ For example, if you want to connect to a live MySQL database and export its cont
 
 ```text
 $ java -jar dbptk-app-x.y.z.jar \
--i mysql --import-hostname=localhost -idb example_db -iu username -ip p4ssw0rd \
+--import mysql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \
+--export siard-1 --export-file=example.siard
+```
+
+Or using the equivalent short version of the parameters:
+
+```text
+$ java -jar dbptk-app-x.y.z.jar \
+-i mysql -ih localhost -idb "example_db" -iu username -ip "p4ssw0rd" \
 -e siard-1 -ef example.siard
 ```
 
@@ -159,8 +167,8 @@ Using the method described above, the Windows command to extract a database from
 
 ```text
 java -cp "C:\path\to\dbptk-app-x.y.z.jar;C:\path\to\jdbc_driver.jar" com.databasepreservation.Main \
-  --import=jdbc --driver=oracle.jdbc.driver.OracleDriver \
-    --connection="jdbc:oracle:thin:username/password@serverName:port/database" \
+  --import=jdbc --import-driver=oracle.jdbc.driver.OracleDriver \
+    --import-connection="jdbc:oracle:thin:username/password@serverName:port/database" \
   -e siard-2 -ef C:\path\to\output.siard
 ```
 
@@ -168,8 +176,8 @@ And on Linux the equivalent command would be (note that the jarfile separator is
 
 ```text
 java -cp "/path/to/dbptk-app-x.y.z.jar:/path/to/jdbc_driver.jar" com.databasepreservation.Main \
-  --import=jdbc --driver=oracle.jdbc.driver.OracleDriver \
-    --connection="jdbc:oracle:thin:username/password@serverName:port/database" \
+  --import=jdbc --import-driver=oracle.jdbc.driver.OracleDriver \
+    --import-connection="jdbc:oracle:thin:username/password@serverName:port/database" \
   -e siard-2 -ef /path/to/output.siard
 ```
 
@@ -246,9 +254,9 @@ And the following environment variables should be set:
 * **DPT_POSTGRESQL_USER** - PostgreSQL user that must be able to create new users and give them permissions (uses 'postgres' if not defined)
 * **DPT_POSTGRESQL_PASS** - PostgreSQL user's password (uses blank password if not defined)
 
-To run PostgreSQL tests, a local PostgreSQL database is required and *postgres* user or another user with permission to create new databases and users can be used. This user must be accessible by IP connection on localhost. The access can be tested with ```psql -U username -h localhost -d postgres -W```.
+To run PostgreSQL tests, a local PostgreSQL database is required and *postgres* user or another user with permission to create new databases and users can be used. This user must be accessible by IP connection on localhost. The access can be tested with ```psql -U username -h 127.0.0.1 -d postgres -W```.
 
-To run MySQL tests, a local MySQL (or MariaDB) database is required and 'root' user or another user with permission to create new databases and users can be used. This user must be accessible by IP connection on localhost. The access can be tested with ```mysql --user="username" -p --database="mysql" --host="localhost"```.
+To run MySQL tests, a local MySQL (or MariaDB) database is required and 'root' user or another user with permission to create new databases and users can be used. This user must be accessible by IP connection on localhost. The access can be tested with ```mysql --user="username" -p --database="mysql" --host="127.0.0.1"```.
 
 ### Changing XML Schema files
 
