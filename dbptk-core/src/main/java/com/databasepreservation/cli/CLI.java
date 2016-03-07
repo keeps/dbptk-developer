@@ -541,6 +541,17 @@ public class CLI {
     System.out.println(license);
   }
 
+  public boolean shouldPrintHelp() {
+    if (commandLineArguments.isEmpty()) {
+      return true;
+    } else if (commandLineArguments.size() == 1) {
+      String arg = commandLineArguments.get(0);
+      return "-h".equalsIgnoreCase(arg) || "--help".equalsIgnoreCase(arg);
+    } else {
+      return false;
+    }
+  }
+
   private static class DatabaseModuleFactoryNameComparator implements Comparator<DatabaseModuleFactory> {
     @Override
     public int compare(DatabaseModuleFactory o1, DatabaseModuleFactory o2) {

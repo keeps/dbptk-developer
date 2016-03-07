@@ -70,12 +70,16 @@ public class Main {
     final DatabaseImportModule importModule;
     final DatabaseExportModule exportModule;
 
+    if(cli.shouldPrintHelp()){
+      cli.printHelp();
+      return EXIT_CODE_GENERIC_ERROR;
+    }
+
     try {
       importModule = cli.getImportModule();
       exportModule = cli.getExportModule();
     } catch (ParseException e) {
       logger.error(e.getMessage(), e);
-      cli.printHelp();
       logProgramFinish(EXIT_CODE_COMMAND_PARSE_ERROR);
       return EXIT_CODE_COMMAND_PARSE_ERROR;
     } catch (LicenseNotAcceptedException e) {
