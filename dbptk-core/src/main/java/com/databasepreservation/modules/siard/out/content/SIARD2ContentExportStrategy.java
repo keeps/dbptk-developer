@@ -15,6 +15,7 @@ import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
 import com.databasepreservation.model.data.FileItem;
+import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
@@ -37,10 +38,13 @@ import com.databasepreservation.utils.XMLUtils;
  */
 public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   private final static String ENCODING = "UTF-8";
+  private final static int TREAT_STRING_AS_CLOB_THRESHOLD = 4000;
+  private final static int INLINE_BINARY_DATA_THRESHOLD = 2000;
+
   private final CustomLogger logger = CustomLogger.getLogger(SIARD2ContentExportStrategy.class);
-  private final SIARD2ContentPathExportStrategy contentPathStrategy;
-  private final WriteStrategy writeStrategy;
-  private final SIARDArchiveContainer baseContainer;
+  protected final SIARD2ContentPathExportStrategy contentPathStrategy;
+  protected final WriteStrategy writeStrategy;
+  protected final SIARDArchiveContainer baseContainer;
   private final boolean prettyXMLOutput;
   XMLBufferedWriter currentWriter;
   OutputStream currentStream;
@@ -138,8 +142,9 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
           writeSimpleCell(cell, column, columnIndex);
         } else if (cell instanceof ComposedCell) {
           writeComposedCell(cell, column, columnIndex);
+        } else if (cell instanceof NullCell) {
+          writeNullCell(cell, column, columnIndex);
         }
-        // TODO add support for composed cell types
       }
 
       currentWriter.closeTag("row", 1);
@@ -158,13 +163,13 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
     int subCellIndex = 1;
     for (Cell subCell : composedCell.getComposedData()) {
-      if (subCell == null) {
+      if (subCell == null || subCell instanceof NullCell) {
         // silently ignore
       } else if (subCell instanceof SimpleCell) {
         SimpleCell simpleCell = (SimpleCell) subCell;
-        if (simpleCell.getSimpledata() != null) {
+        if (simpleCell.getSimpleData() != null) {
           currentWriter.inlineOpenTag("u" + subCellIndex, 3);
-          currentWriter.write(XMLUtils.encode(simpleCell.getSimpledata()));
+          currentWriter.write(XMLUtils.encode(simpleCell.getSimpleData()));
           currentWriter.closeTag("u" + subCellIndex);
         }
       } else if (subCell instanceof ComposedCell) {
@@ -186,50 +191,56 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     currentWriter.closeTag("c" + columnIndex, 2);
   }
 
+  private void writeNullCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException, IOException {
+    NullCell nullCell = (NullCell) cell;
+    writeNullCellData(nullCell, columnIndex);
+  }
+
   private void writeSimpleCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException, IOException {
     SimpleCell simpleCell = (SimpleCell) cell;
 
-    // deal with strings that are big enough to be saved externally as if they
-    // were CLOBs
-    if (column.getType() instanceof SimpleTypeString && simpleCell.getSimpledata() != null
-      && simpleCell.getSimpledata().length() > 4000) {// TODO: used value from
-                                                      // original code, but why
-                                                      // 4000?
+    // deal with big strings as if they were CLOBs
+    if (column.getType() instanceof SimpleTypeString && simpleCell.getSimpleData() != null
+      && simpleCell.getStringSize() > TREAT_STRING_AS_CLOB_THRESHOLD) {
       writeLargeObjectData(cell, columnIndex);
     } else {
       writeSimpleCellData(simpleCell, columnIndex);
     }
   }
 
-  private void writeBinaryCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException, IOException {
+  protected void writeBinaryCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException,
+    IOException {
     BinaryCell binaryCell = (BinaryCell) cell;
 
     long length = binaryCell.getLength();
-    if (length > 2000) {// TODO: used value from original code, but why 2000?
-      writeLargeObjectData(cell, columnIndex);
-    } else {
-      SimpleCell simpleCell = new SimpleCell(binaryCell.getId());
-      if (length == 0) {
-        simpleCell.setSimpledata(null);
-      } else {
-        InputStream inputStream = binaryCell.createInputstream();
-        byte[] bytes = IOUtils.toByteArray(inputStream);
-        inputStream.close();
-        simpleCell.setSimpledata(Hex.encodeHexString(bytes));
-      }
+    if (length == 0) {
+      // TODO: make sure this never happens
+      NullCell nullCell = new NullCell(binaryCell.getId());
+      writeNullCellData(nullCell, columnIndex);
+    } else if (length <= INLINE_BINARY_DATA_THRESHOLD) {
+      InputStream inputStream = binaryCell.createInputstream();
+      byte[] bytes = IOUtils.toByteArray(inputStream);
+      inputStream.close();
+      SimpleCell simpleCell = new SimpleCell(binaryCell.getId(), Hex.encodeHexString(bytes));
       writeSimpleCellData(simpleCell, columnIndex);
+    } else {
+      writeLargeObjectData(cell, columnIndex);
     }
   }
 
+  private void writeNullCellData(NullCell nullcell, int columnIndex) throws IOException {
+    // do nothing, as null cells are simply ommited
+  }
+
   private void writeSimpleCellData(SimpleCell simpleCell, int columnIndex) throws IOException {
-    if (simpleCell.getSimpledata() != null) {
+    if (simpleCell.getSimpleData() != null) {
       currentWriter.inlineOpenTag("c" + columnIndex, 2);
-      currentWriter.write(XMLUtils.encode(simpleCell.getSimpledata()));
+      currentWriter.write(XMLUtils.encode(simpleCell.getSimpleData()));
       currentWriter.closeTag("c" + columnIndex);
     }
   }
 
-  private void writeLargeObjectData(Cell cell, int columnIndex) throws IOException, ModuleException {
+  protected void writeLargeObjectData(Cell cell, int columnIndex) throws IOException, ModuleException {
     currentWriter.beginOpenTag("c" + columnIndex, 2).space().append("file=\"");
 
     LargeObject lob = null;
@@ -255,11 +266,11 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
       // clob header
       currentWriter.append(contentPathStrategy.getClobFileName(currentRowIndex + 1)).append('"').space()
-        .append("length=\"").append(String.valueOf(txtCell.getSimpledata().length())).append("\"");
+        .append("length=\"").append(String.valueOf(txtCell.getStringSize())).append("\"");
 
       // workaround to have data from CLOBs saved as a temporary file to be read
       // FIXME: if lob is null, this will fail
-      String data = txtCell.getSimpledata();
+      String data = txtCell.getSimpleData();
       ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
       try {
         final FileItem fileItem = new FileItem(inputStream);
@@ -313,7 +324,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     currentWriter.closeTag("table", 0);
   }
 
-  private void writeLOB(LargeObject lob) throws ModuleException, IOException {
+  protected void writeLOB(LargeObject lob) throws ModuleException, IOException {
     OutputStream out = writeStrategy.createOutputStream(baseContainer, lob.getOutputPath());
     InputStream in = lob.getInputStreamProvider().createInputStream();
 
@@ -427,9 +438,9 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     // xs:complexType name="clobType"
     xsdWriter.beginOpenTag("xs:complexType", 1).appendAttribute("name", "clobType").endOpenTag()
 
-      .openTag("xs:annotation", 2)
+    .openTag("xs:annotation", 2)
 
-      .openTag("xs:documentation", 3).append("Type to refer CLOB types. Either inline or in a separate file.")
+    .openTag("xs:documentation", 3).append("Type to refer CLOB types. Either inline or in a separate file.")
       .closeTag("xs:documentation")
 
       .closeTag("xs:annotation", 2)
@@ -456,9 +467,9 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     // xs:complexType name="blobType"
     xsdWriter.beginOpenTag("xs:complexType", 1).appendAttribute("name", "blobType").endOpenTag()
 
-      .openTag("xs:annotation", 2)
+    .openTag("xs:annotation", 2)
 
-      .openTag("xs:documentation", 3).append("Type to refer BLOB types. Either inline or in a separate file.")
+    .openTag("xs:documentation", 3).append("Type to refer BLOB types. Either inline or in a separate file.")
       .closeTag("xs:documentation")
 
       .closeTag("xs:annotation", 2)

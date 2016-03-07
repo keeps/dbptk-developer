@@ -12,6 +12,8 @@ import pt.gov.dgarq.roda.common.FileFormat;
 import com.databasepreservation.model.exception.ModuleException;
 
 /**
+ * Represents the value of a cell of BLOB type
+ *
  * @author Luis Faria
  */
 public class BinaryCell extends Cell {
@@ -21,10 +23,12 @@ public class BinaryCell extends Cell {
   private List<FileFormat> formatHits;
 
   /**
+   * Binary cell constructor without a FileItem. This should not be used to represent NULL, instead a NullCell should be created.
+   *
    * @param id
    *          the cell id, equal to 'tableId.columnId.rowIndex'
    */
-  public BinaryCell(String id) {
+  protected BinaryCell(String id) {
     super(id);
     fileItem = null;
     formatHits = new ArrayList<FileFormat>();
@@ -99,7 +103,7 @@ public class BinaryCell extends Cell {
    *
    * @return the binary stream length
    */
-  public long getLength() {
+  public long getLength() throws ModuleException {
     return fileItem != null ? fileItem.size() : 0;
   }
 

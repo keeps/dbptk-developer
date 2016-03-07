@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.databasepreservation.model.modules.ModuleSettings;
+import com.databasepreservation.model.data.NullCell;
 import org.w3c.util.InvalidDateException;
 
 import com.databasepreservation.CustomLogger;
@@ -36,6 +36,7 @@ import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
+import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.ForeignKey;
@@ -106,7 +107,7 @@ public class JDBCExportModule implements DatabaseExportModule {
    *          the SQLHelper instance to use
    */
   public JDBCExportModule(String driverClassName, String connectionURL, SQLHelper sqlHelper) {
-    //logger.debug(driverClassName + ", " + connectionURL);
+    // logger.debug(driverClassName + ", " + connectionURL);
     this.driverClassName = driverClassName;
     this.connectionURL = connectionURL;
     this.sqlHelper = sqlHelper;
@@ -222,12 +223,13 @@ public class JDBCExportModule implements DatabaseExportModule {
   }
 
   /**
-   * Gets custom settings set by the export module that modify behaviour of
-   * the import module.
+   * Gets custom settings set by the export module that modify behaviour of the
+   * import module.
    *
    * @throws ModuleException
    */
-  @Override public ModuleSettings getModuleSettings() throws ModuleException {
+  @Override
+  public ModuleSettings getModuleSettings() throws ModuleException {
     return new ModuleSettings();
   }
 
@@ -510,11 +512,16 @@ public class JDBCExportModule implements DatabaseExportModule {
       }
     };
     try {
+      // TODO: better null handling
+      if (cell instanceof NullCell) {
+        cell = new SimpleCell(cell.getId(), null);
+      }
+
       if (cell instanceof SimpleCell) {
         SimpleCell simple = (SimpleCell) cell;
-        String data = simple.getSimpledata();
-        //logger.debug("data: " + data);
-        //logger.debug("type: " + type.getOriginalTypeName());
+        String data = simple.getSimpleData();
+        // logger.debug("data: " + data);
+        // logger.debug("type: " + type.getOriginalTypeName());
         if (type instanceof SimpleTypeString) {
           handleSimpleTypeStringDataCell(data, ps, index, cell, type);
         } else if (type instanceof SimpleTypeNumericExact) {

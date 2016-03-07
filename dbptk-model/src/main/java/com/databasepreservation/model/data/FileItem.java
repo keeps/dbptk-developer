@@ -9,31 +9,23 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.transaction.util.FileHelper;
 
 import com.databasepreservation.model.exception.ModuleException;
 
 /**
  * @author Luis Faria
+ * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class FileItem {
 
-  private File file;
-
-  /**
-   * Empty file item constructor
-   *
-   * @throws ModuleException
-   */
-  public FileItem() throws ModuleException {
-    try {
-      file = File.createTempFile("dbptk", null);
-      file.deleteOnExit();
-    } catch (IOException e) {
-      throw new ModuleException("Error creating temporary file", e);
-    }
-  }
+  private Path path;
 
   /**
    * File item constructor, copying inputstream to item
@@ -43,28 +35,18 @@ public class FileItem {
    * @throws ModuleException
    */
   public FileItem(InputStream inputStream) throws ModuleException {
-    this();
     try {
-      // TODO if input stream is not too big, keep it in memory
-      FileHelper.copy(inputStream, file);
+      path = Files.createTempFile("dbptk", "lob");
+    } catch (IOException e) {
+      throw new ModuleException("Error creating temporary file", e);
+    }
+
+    try {
+      Files.copy(inputStream, path, StandardCopyOption.REPLACE_EXISTING);
     } catch (IOException e) {
       throw new ModuleException("Error copying stream to temp file", e);
     }
 
-  }
-
-  /**
-   * Creates an output stream to insert content to file item
-   *
-   * @return an output stream
-   * @throws ModuleException
-   */
-  public FileOutputStream createOutputStream() throws ModuleException {
-    try {
-      return new FileOutputStream(file);
-    } catch (FileNotFoundException e) {
-      throw new ModuleException("Error getting output stream from temp file", e);
-    }
   }
 
   /**
@@ -73,10 +55,12 @@ public class FileItem {
    * @return an input stream
    * @throws ModuleException
    */
-  public FileInputStream createInputStream() throws ModuleException {
+  public InputStream createInputStream() throws ModuleException {
     try {
-      return new FileInputStream(file);
+      return Files.newInputStream(path);
     } catch (FileNotFoundException e) {
+      throw new ModuleException("Error getting input stream from temp file", e);
+    } catch (IOException e) {
       throw new ModuleException("Error getting input stream from temp file", e);
     }
   }
@@ -87,7 +71,7 @@ public class FileItem {
    * @return a file
    */
   public File getFile() {
-    return file;
+    return new File(path.toAbsolutePath().toString());
   }
 
   /**
@@ -95,8 +79,12 @@ public class FileItem {
    *
    * @return the size
    */
-  public long size() {
-    return file.length();
+  public long size() throws ModuleException {
+    try {
+      return Files.size(path);
+    } catch (IOException e) {
+      throw new ModuleException("Error getting size of temp file", e);
+    }
   }
 
   /**
@@ -105,6 +93,11 @@ public class FileItem {
    * @return true if file item successfully deleted, false otherwise
    */
   public boolean delete() {
-    return file.delete();
+    try {
+      Files.delete(path);
+    } catch (IOException e) {
+      // ignore exception
+    }
+    return true;
   }
 }

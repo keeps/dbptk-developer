@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.databasepreservation.model.data.NullCell;
 import oracle.sql.STRUCT;
 
 import org.apache.commons.lang3.StringUtils;
@@ -1686,7 +1687,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         cell = new SimpleCell(id, rawData.getString(columnName));
       } catch (SQLException e) {
         logger.warn("Could not export cell of unsupported datatype: OTHER", e);
-        cell = new SimpleCell(id);
+        cell = new NullCell(id);
       }
     } else if (cellType instanceof SimpleTypeNumericExact) {
       cell = rawToCellSimpleTypeNumericExact(id, columnName, cellType, rawData);
@@ -1695,7 +1696,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         cell = new SimpleCell(id, rawData.getString(columnName));
       } catch (SQLException e) {
         logger.warn("Could not export cell of unknown/undefined datatype", e);
-        cell = new SimpleCell(id);
+        cell = new NullCell(id);
       } catch (NoClassDefFoundError e) {
         try {
           Object[] aStruct = ((STRUCT) rawData.getObject(columnName)).getAttributes();
@@ -1712,7 +1713,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         } catch (SQLException e1) {
           logger.debug("No Class Def Found when trying to getString", e);
           logger.warn("Could not export cell of unknown/undefined datatype", e1);
-          cell = new SimpleCell(id);
+          cell = new NullCell(id);
         }
       }
     }
@@ -1800,7 +1801,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     } else {
       cell = new SimpleCell(id, stringValue);
     }
-    logger.trace("rawToCellSimpleTypeNumericApproximate cell: " + (cell.getSimpledata()));
+    logger.trace("rawToCellSimpleTypeNumericApproximate cell: " + (cell.getSimpleData()));
 
     return cell;
   }
@@ -1835,7 +1836,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         cell = new SimpleCell(id, null);
       }
     }
-    logger.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell) cell).getSimpledata()));
+    logger.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell) cell).getSimpleData()));
     return cell;
   }
 
@@ -1856,7 +1857,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         logger.error(e);
       }
     } else {
-      cell = new BinaryCell(id);
+      cell = new NullCell(id);
     }
     return cell;
   }

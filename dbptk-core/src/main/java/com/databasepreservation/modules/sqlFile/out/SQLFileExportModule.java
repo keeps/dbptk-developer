@@ -16,6 +16,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.Set;
 
 import com.databasepreservation.CustomLogger;
@@ -279,13 +280,17 @@ public class SQLFileExportModule implements DatabaseExportModule {
           byte[] ret;
           if (cell instanceof SimpleCell) {
             SimpleCell simple = (SimpleCell) cell;
-            if (simple.getSimpledata() == null) {
+            if (simple.getSimpleData() == null) {
               ret = "NULL".getBytes();
             } else if (column.getType() instanceof SimpleTypeNumericExact
               || column.getType() instanceof SimpleTypeNumericApproximate) {
-              ret = simple.getSimpledata().getBytes();
+              try {
+                ret = simple.getSimpleData().getBytes("UTF-8");
+              } catch (UnsupportedEncodingException e) {
+                throw new ModuleException("Unsupported encoding", e);
+              }
             } else {
-              ret = (escapeString(simple.getSimpledata())).getBytes();
+              ret = (escapeString(simple.getSimpleData())).getBytes();
             }
 
           } else if (cell instanceof BinaryCell) {

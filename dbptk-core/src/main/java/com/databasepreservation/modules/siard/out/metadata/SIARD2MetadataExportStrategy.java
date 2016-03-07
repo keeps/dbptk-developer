@@ -96,10 +96,12 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
   private final CustomLogger logger = CustomLogger.getLogger(SIARD2MetadataExportStrategy.class);
   private final SIARD2ContentPathExportStrategy contentPathStrategy;
   private final MetadataPathStrategy metadataPathStrategy;
+  private final boolean savingLobsExternally;
 
-  public SIARD2MetadataExportStrategy(MetadataPathStrategy metadataPathStrategy, SIARD2ContentPathExportStrategy paths) {
+  public SIARD2MetadataExportStrategy(MetadataPathStrategy metadataPathStrategy, SIARD2ContentPathExportStrategy paths, boolean savingLobsExternally) {
     this.contentPathStrategy = paths;
     this.metadataPathStrategy = metadataPathStrategy;
+    this.savingLobsExternally = savingLobsExternally;
   }
 
   @Override
@@ -231,7 +233,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
       siardArchive.setArchivalDate(JodaUtils.xs_date_format(dbStructure.getArchivalDate()));
     }
 
-    // TODO: set some kind of message digest
+    // TODO: set message digest
     // siardArchive.setMessageDigest("");
 
     if (StringUtils.isNotBlank(dbStructure.getProductName())) {
@@ -260,9 +262,9 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     siardArchive.setPrivileges(jaxbPrivilegesType(dbStructure.getPrivileges()));
 
     // siardArchive.setLobFolder(omitted);
-    // database level lobFolder is ommited, meaning the root file inside SIARD
-    // archive
-    // fixme: allow storing lobs outside of siard archive
+    // database level lobFolder is omitted, meaning the root file inside SIARD
+    // archive. This allows referencing folders in the same directory as
+    // the SIARD file using ../folder_name
 
     return siardArchive;
   }
@@ -696,7 +698,9 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     } catch (UnknownTypeException e) {
       throw new ModuleException("Could not get SQL2003 type", e);
     }
-    if (xsdTypeFromColumnSql2003Type != null
+
+    // don't set Folder if LOBs are being saved externally
+    if (xsdTypeFromColumnSql2003Type != null && !savingLobsExternally
       && ("clobType".equals(xsdTypeFromColumnSql2003Type) || "blobType".equals(xsdTypeFromColumnSql2003Type))) {
       columnType.setFolder(contentPathStrategy.getColumnFolderName(columnIndex));
     }

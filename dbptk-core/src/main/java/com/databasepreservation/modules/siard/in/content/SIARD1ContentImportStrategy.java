@@ -13,6 +13,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.validation.SchemaFactory;
 
+import com.databasepreservation.model.data.NullCell;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
@@ -251,9 +252,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
         Cell cell = row.getCells().get(i);
         if (cell == null) {
           String id = String.format("%s.%d", currentTable.getColumns().get(i).getId(), rowIndex);
-          SimpleCell simpleCell = new SimpleCell(id);
-          simpleCell.setSimpledata(null);
-          row.getCells().set(i, simpleCell);
+          row.getCells().set(i, new NullCell(id));
         }
       }
 
@@ -293,8 +292,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
             logger.error(String.format("Illegal characters in hexadecimal string \"%s\"", localVal), e);
           }
         } else {
-          cell = new SimpleCell(id);
-          ((SimpleCell) cell).setSimpledata(localVal);
+          cell = new SimpleCell(id, localVal);
         }
       }
       row.getCells().set(columnIndex - 1, cell);

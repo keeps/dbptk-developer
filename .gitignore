@@ -10,6 +10,7 @@ target/
 
 log/
 dbptk-app.log
+dbptk-app.log.txt
 exported-dbs/
 
 **/pom.xml.versionsBackup

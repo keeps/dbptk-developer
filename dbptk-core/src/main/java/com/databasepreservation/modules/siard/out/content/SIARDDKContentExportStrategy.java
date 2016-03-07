@@ -275,9 +275,9 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
           // LOBsTracker
 
           SimpleCell simpleCell = (SimpleCell) cell;
-          if (simpleCell.getSimpledata() != null) {
+          if (simpleCell.getSimpleData() != null) {
             tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-              .append(XMLUtils.encode(simpleCell.getSimpledata())).append("</c").append(String.valueOf(columnIndex))
+              .append(XMLUtils.encode(simpleCell.getSimpleData())).append("</c").append(String.valueOf(columnIndex))
               .append(">\n");
           } else {
             tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
@@ -293,7 +293,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
             // TO-DO: handle case, where CLOB is archived as tiff
 
             SimpleCell simpleCell = (SimpleCell) cell;
-            if (simpleCell.getSimpledata() == null) {
+            if (simpleCell.getSimpleData() == null) {
 
               // CLOB is NULL
 
@@ -304,7 +304,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
               // CLOB is not NULL
 
               foundClob = true;
-              String clobsData = simpleCell.getSimpledata();
+              String clobsData = simpleCell.getSimpleData();
               lobsTracker.updateMaxClobLength(tableCounter, columnIndex, clobsData.length());
 
               // lobsTracker.addLOB(); // Only if LOB not NULL
