@@ -59,6 +59,8 @@ public class CLI {
   private String exportModuleName;
   private DatabaseExportModule exportModule;
 
+  private boolean forceDisableEncryption = false;
+
   /**
    * Create a new CLI handler
    * 
@@ -193,6 +195,17 @@ public class CLI {
   }
 
   /**
+   * Discards import and export module instances and disables encryption. Next
+   * time #parse is run, encryption will be disabled for modules that support
+   * that option.
+   */
+  public void disableEncryption() {
+    forceDisableEncryption = true;
+    importModule = null;
+    exportModule = null;
+  }
+
+  /**
    * Parses the argument list and creates new import and export modules
    *
    * @param args
@@ -208,6 +221,30 @@ public class CLI {
       exportModuleName = databaseModuleFactoriesPair.getExportModuleFactory().getModuleName();
       DatabaseModuleFactoriesArguments databaseModuleFactoriesArguments = getModuleArguments(
         databaseModuleFactoriesPair, args);
+
+      if (forceDisableEncryption) {
+        // inject disable encryption for import module
+        for (Parameter parameter : databaseModuleFactoriesPair.getImportModuleFactory().getImportModuleParameters()
+          .getParameters()) {
+          if (parameter.longName().equalsIgnoreCase("disable-encryption")) {
+            if (!databaseModuleFactoriesArguments.getImportModuleArguments().containsKey(parameter)) {
+              databaseModuleFactoriesArguments.getImportModuleArguments().put(parameter, "true");
+            }
+            break;
+          }
+        }
+
+        // inject disable encryption for export module
+        for (Parameter parameter : databaseModuleFactoriesPair.getExportModuleFactory().getExportModuleParameters()
+          .getParameters()) {
+          if (parameter.longName().equalsIgnoreCase("disable-encryption")) {
+            if (!databaseModuleFactoriesArguments.getExportModuleArguments().containsKey(parameter)) {
+              databaseModuleFactoriesArguments.getExportModuleArguments().put(parameter, "true");
+            }
+            break;
+          }
+        }
+      }
 
       // set import and export modules
       importModule = databaseModuleFactoriesPair.getImportModuleFactory().buildImportModule(
