@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
-import com.databasepreservation.modules.listTables.ListTablesModuleFactory;
 import org.apache.commons.cli.ParseException;
 
 import com.databasepreservation.cli.CLI;
@@ -16,6 +15,7 @@ import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.modules.jdbc.JDBCModuleFactory;
+import com.databasepreservation.modules.listTables.ListTablesModuleFactory;
 import com.databasepreservation.modules.msAccess.MsAccessUCanAccessModuleFactory;
 import com.databasepreservation.modules.mySql.MySQLModuleFactory;
 import com.databasepreservation.modules.oracle.Oracle12cModuleFactory;
@@ -34,6 +34,7 @@ public class Main {
   public static final int EXIT_CODE_GENERIC_ERROR = 1;
   public static final int EXIT_CODE_COMMAND_PARSE_ERROR = 2;
   public static final int EXIT_CODE_LICENSE_NOT_ACCEPTED = 3;
+  public static final int EXIT_CODE_CONNECTION_ERROR = 4;
 
   private static final String execID = UUID.randomUUID().toString();
   public static final String APP_VERSION = getProgramVersion();
@@ -45,9 +46,9 @@ public class Main {
   private static final CustomLogger logger = CustomLogger.getLogger(Main.class);
 
   public static final DatabaseModuleFactory[] databaseModuleFactories = new DatabaseModuleFactory[] {
-    new JDBCModuleFactory(), new ListTablesModuleFactory(),new MsAccessUCanAccessModuleFactory(), new MySQLModuleFactory(),
-    new Oracle12cModuleFactory(), new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(), new SIARD2ModuleFactory(),
-    new SIARDDKModuleFactory(), new SQLServerJDBCModuleFactory()};
+    new JDBCModuleFactory(), new ListTablesModuleFactory(), new MsAccessUCanAccessModuleFactory(),
+    new MySQLModuleFactory(), new Oracle12cModuleFactory(), new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(),
+    new SIARD2ModuleFactory(), new SIARDDKModuleFactory(), new SQLServerJDBCModuleFactory()};
 
   /**
    * @param args
@@ -67,15 +68,32 @@ public class Main {
   public static int internal_main(CLI cli) {
     logProgramStart();
 
-    final DatabaseImportModule importModule;
-    final DatabaseExportModule exportModule;
+    if (cli.shouldPrintHelp()) {
+      cli.printHelp();
+      return EXIT_CODE_GENERIC_ERROR;
+    }
+
+    int exitStatus = run(cli);
+    if (exitStatus == EXIT_CODE_CONNECTION_ERROR) {
+      logger.debug("Disabling encryption (for modules that support it) and trying again.");
+      cli.disableEncryption();
+      exitStatus = run(cli);
+    }
+
+    logProgramFinish(exitStatus);
+
+    return exitStatus;
+  }
+
+  private static int run(CLI cli) {
+    DatabaseImportModule importModule;
+    DatabaseExportModule exportModule;
 
     try {
       importModule = cli.getImportModule();
       exportModule = cli.getExportModule();
     } catch (ParseException e) {
       logger.error(e.getMessage(), e);
-      cli.printHelp();
       logProgramFinish(EXIT_CODE_COMMAND_PARSE_ERROR);
       return EXIT_CODE_COMMAND_PARSE_ERROR;
     } catch (LicenseNotAcceptedException e) {
@@ -102,7 +120,12 @@ public class Main {
         && "sun.jdbc.odbc.JdbcOdbcDriver".equals(e.getCause().getMessage())) {
         logger.error("Could not find the Java ODBC driver, "
           + "please run this program under Windows to use the JDBC-ODBC bridge.", e.getCause());
-      } else if (e.getModuleErrors() != null) {
+      } else if ("SQL error while conecting".equalsIgnoreCase(e.getMessage())) {
+        logger.error("Connection error while importing/exporting", e);
+        exitStatus = EXIT_CODE_CONNECTION_ERROR;
+      }
+
+      if (e.getModuleErrors() != null) {
         for (Map.Entry<String, Throwable> entry : e.getModuleErrors().entrySet()) {
           logger.error(entry.getKey(), entry.getValue());
         }
@@ -116,9 +139,6 @@ public class Main {
     } catch (Exception e) {
       logger.error("Unexpected exception", e);
     }
-
-    logProgramFinish(exitStatus);
-
     return exitStatus;
   }
 
