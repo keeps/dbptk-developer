@@ -67,17 +67,18 @@ public class Main {
 
   public static int internal_main(CLI cli) {
     logProgramStart();
+    cli.logOperativeSystemInfo();
 
+    int exitStatus = EXIT_CODE_GENERIC_ERROR;
     if (cli.shouldPrintHelp()) {
       cli.printHelp();
-      return EXIT_CODE_GENERIC_ERROR;
-    }
-
-    int exitStatus = run(cli);
-    if (exitStatus == EXIT_CODE_CONNECTION_ERROR) {
-      logger.debug("Disabling encryption (for modules that support it) and trying again.");
-      cli.disableEncryption();
+    } else {
       exitStatus = run(cli);
+      if (exitStatus == EXIT_CODE_CONNECTION_ERROR) {
+        logger.debug("Disabling encryption (for modules that support it) and trying again.");
+        cli.disableEncryption();
+        exitStatus = run(cli);
+      }
     }
 
     logProgramFinish(exitStatus);
@@ -109,7 +110,6 @@ public class Main {
 
     try {
       long startTime = System.currentTimeMillis();
-      cli.logOperativeSystemInfo();
       logger.info("Translating database: " + cli.getImportModuleName() + " to " + cli.getExportModuleName());
       importModule.getDatabase(exportModule);
       long duration = System.currentTimeMillis() - startTime;

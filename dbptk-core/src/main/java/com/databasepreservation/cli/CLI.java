@@ -1,8 +1,11 @@
 package com.databasepreservation.cli;
 
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -63,7 +66,7 @@ public class CLI {
 
   /**
    * Create a new CLI handler
-   * 
+   *
    * @param commandLineArguments
    *          List of command line parameters as they are received by Main.main
    * @param databaseModuleFactories
@@ -86,7 +89,7 @@ public class CLI {
 
   /**
    * Create a new CLI handler
-   * 
+   *
    * @param commandLineArguments
    *          List of command line parameters as they are received by Main.main
    * @param databaseModuleFactories
@@ -108,8 +111,8 @@ public class CLI {
         pluginString = argsIterator.next();
         break;
       } else if (StringUtils.startsWith(arg, "--plugin=")) {
-        pluginString = arg.substring(9); // 9 is the size of the string
-                                         // "--plugin="
+        // 9 is the size of the string "--plugin="
+        pluginString = arg.substring(9);
         break;
       }
     }
@@ -133,7 +136,7 @@ public class CLI {
 
   /**
    * Gets the database import module, obtained by parsing the parameters
-   * 
+   *
    * @return The database import module specified in the parameters
    * @throws ParseException
    *           if there was an error parsing the command line parameters
@@ -167,7 +170,7 @@ public class CLI {
    * Gets the name of the export module. Note that this method does not trigger
    * the lazy loading mechanism for parsing the parameters, so the value may be
    * null if no calls to getImportModule() or getExportModule() were made.
-   * 
+   *
    * @return The export module name. null if the command line parameters have
    *         not been parsed yet
    */
@@ -285,12 +288,12 @@ public class CLI {
           exportModuleName = argsIterator.next();
           exportModulesFound++;
         } else if (StringUtils.startsWith(arg, "--import=")) {
-          importModuleName = arg.substring(9); // 9 is the size of the string
-                                               // "--import="
+          // 9 is the size of the string "--import="
+          importModuleName = arg.substring(9);
           importModulesFound++;
         } else if (StringUtils.startsWith(arg, "--export=")) {
-          exportModuleName = arg.substring(9); // 9 is the size of the string
-                                               // "--export="
+          // 9 is the size of the string "--export="
+          exportModuleName = arg.substring(9);
           exportModulesFound++;
         }
       }
@@ -527,7 +530,7 @@ public class CLI {
   /**
    * Gets the application version, as string with a prefix, ready to be included
    * in the header part of the command line help text
-   * 
+   *
    * @return the application version
    */
   public static String getApplicationVersion() {
@@ -554,6 +557,10 @@ public class CLI {
     result.put("Java vendor", System.getProperty("java.vendor", "unknown"));
     result.put("Java version", System.getProperty("java.version", "unknown"));
     result.put("Java class version", System.getProperty("java.class.version", "unknown"));
+    // Charset.defaultCharset() is bugged on java version 5 and fixed on java 6
+    result.put("Default Charset reported by java", Charset.defaultCharset().toString());
+    result.put("Default Charset used by StreamWriter", getDefaultCharSet());
+    result.put("file.encoding property", System.getProperty("file.encoding"));
 
     return result;
   }
@@ -569,7 +576,7 @@ public class CLI {
 
   /**
    * Prints the license text to STDOUT
-   * 
+   *
    * @param license
    *          the whole license text or some information and a link to read the
    *          full license
@@ -597,8 +604,8 @@ public class CLI {
   }
 
   private static String getUniqueOptionIdentifier(Option option) {
-    final String delimiter = "\r\f\n"; // some string that should never occur in
-                                       // option shortName nor longName
+    // some string that should never occur in option shortName nor longName
+    final String delimiter = "\r\f\n";
     return new StringBuilder().append(delimiter).append(option.getOpt()).append(delimiter).append(option.getLongOpt())
       .append(delimiter).toString();
   }
@@ -623,6 +630,12 @@ public class CLI {
     return false;
   }
 
+  private static String getDefaultCharSet() {
+    OutputStreamWriter dummyWriter = new OutputStreamWriter(new ByteArrayOutputStream());
+    String encoding = dummyWriter.getEncoding();
+    return encoding;
+  }
+
   /**
    * Pair containing the import and export module factories
    */
@@ -633,7 +646,7 @@ public class CLI {
     /**
      * Create a new pair with an import module factory and an export module
      * factory
-     * 
+     *
      * @param importModuleFactory
      *          the import module factory
      * @param exportModuleFactory
@@ -670,7 +683,7 @@ public class CLI {
     /**
      * Create a new pair with the import module arguments and the export module
      * arguments
-     * 
+     *
      * @param importModuleArguments
      *          import module arguments in the form Map<parameter, value parsed
      *          from the command line>
