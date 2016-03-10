@@ -1,4 +1,3 @@
-
 package com.databasepreservation.modules.siard.in.metadata;
 
 import java.io.IOException;
@@ -90,8 +89,8 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
     try {
       xsdSchema = schemaFactory.newSchema(new StreamSource(xsdInputStream));
     } catch (SAXException e) {
-      throw new ModuleException(
-        "Error reading metadata XSD file: " + pathStrategy.getXsdFilePath(SIARDDKConstants.TABLE_INDEX), e);
+      throw new ModuleException("Error reading metadata XSD file: "
+        + pathStrategy.getXsdFilePath(SIARDDKConstants.TABLE_INDEX), e);
     }
     DigestInputStream inputStreamXml = null;
     SiardDiark xmlRoot;
@@ -160,7 +159,8 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
         }
         viewDptkl.setName(viewXml.getName());
         viewDptkl.setQueryOriginal(viewXml.getQueryOriginal());
-        // NOTICE: As siard-dk only support defining the query original attribute -
+        // NOTICE: As siard-dk only support defining the query original
+        // attribute -
         // we'll use it for both the query and the query original field in the
         // internal representation of the view.
         viewDptkl.setQuery(viewXml.getQueryOriginal());
@@ -218,10 +218,13 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
 
   protected long getNumberOfTblRows(BigInteger numRows, String tableName) throws ModuleException {
     try {
-      return numRows.longValueExact();
+      return numRows.longValue();
     } catch (ArithmeticException e) {
       throw new ModuleException(
-        "Unable to import table [" + tableName + "], as the number of rows [" + numRows
+        "Unable to import table ["
+          + tableName
+          + "], as the number of rows ["
+          + numRows
           + "] exceeds the max value of the long datatype used to store the number.(Consult the vendor/a programmer for a fix of this problem, if needed)",
         e);
     }
