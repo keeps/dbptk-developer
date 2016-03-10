@@ -5,9 +5,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
 import java.nio.file.Paths;
 import java.security.DigestOutputStream;
+
+import javax.xml.bind.DatatypeConverter;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.NotImplementedException;
@@ -27,8 +28,6 @@ import com.databasepreservation.modules.siard.out.path.SIARD2ContentWithExternal
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.modules.siard.out.write.ZipWithExternalLobsWriteStrategy;
 
-import javax.xml.bind.DatatypeConverter;
-
 /**
  * SIARD 2 external LOBs export strategy, that exports LOBs according to the
  * recommendation for external LOBs folder structure (version 0.16) available <a
@@ -41,10 +40,13 @@ import javax.xml.bind.DatatypeConverter;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentExportStrategy {
+  private static final long MB_TO_BYTE_RATIO = 1024L * 1024L;
+
   private final CustomLogger logger = CustomLogger.getLogger(SIARD2ContentWithExternalLobsExportStrategy.class);
 
   private SIARDArchiveContainer currentExternalContainer;
 
+  // measured in Bytes
   private final long maximumLobsFolderSize;
   private long currentLobsFolderSize = 0;
 
@@ -57,7 +59,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
     WriteStrategy writeStrategy, SIARDArchiveContainer baseContainer, boolean prettyXMLOutput,
     int externalLobsPerFolder, long maximumLobsFolderSize) {
     super(contentPathStrategy, writeStrategy, baseContainer, prettyXMLOutput);
-    this.maximumLobsFolderSize = maximumLobsFolderSize;
+    this.maximumLobsFolderSize = maximumLobsFolderSize * MB_TO_BYTE_RATIO;
     this.maximumLobsPerFolder = externalLobsPerFolder;
 
     this.currentExternalContainer = null;
@@ -78,6 +80,8 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
     if (currentExternalContainer == null) {
       currentExternalContainer = getAnotherExternalContainer();
       writeStrategy.setup(currentExternalContainer);
+      currentLobsFolderSize = 0;
+      currentLobsInFolder = 0;
     }
 
     // get size and file xml parameters
@@ -94,21 +98,22 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
         columnIndex, currentRowIndex + 1);
     }
 
-    long lobSizeMB = lobSizeParameter / 1024 / 1024;
-
-    if (maximumLobsFolderSize > 0 && lobSizeMB >= maximumLobsFolderSize) {
-      logger.warn("LOB size is " + lobSizeMB + "MB, which is more or equal to the maximum LOB size per folder of "
-        + maximumLobsFolderSize + "MB");
+    if (maximumLobsFolderSize > 0 && lobSizeParameter >= maximumLobsFolderSize) {
+      logger.warn("LOB size is " + lobSizeParameter / MB_TO_BYTE_RATIO
+        + "MB, which is more or equal to the maximum LOB size per folder of " + maximumLobsFolderSize
+        / MB_TO_BYTE_RATIO + "MB");
     }
 
     // IF the LOB would exceed current folder size limit,
     // OR the LOB would exceed current amount of files in folder limit
     // THEN prepare and use a new folder from now on
-    if ((maximumLobsFolderSize > 0 && lobSizeMB + currentLobsFolderSize >= maximumLobsFolderSize)
+    if ((maximumLobsFolderSize > 0 && lobSizeParameter + currentLobsFolderSize >= maximumLobsFolderSize)
       || currentLobsInFolder >= maximumLobsPerFolder) {
       writeStrategy.finish(currentExternalContainer);
       currentExternalContainer = getAnotherExternalContainer();
       writeStrategy.setup(currentExternalContainer);
+      currentLobsFolderSize = 0;
+      currentLobsInFolder = 0;
     }
 
     // get lob object
@@ -161,6 +166,9 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
     }
 
     currentWriter.endShorthandTag();
+
+    currentLobsFolderSize += lobSizeParameter;
+    currentLobsInFolder++;
   }
 
   @Override
@@ -188,7 +196,8 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
 
     if (out instanceof DigestOutputStream) {
       DigestOutputStream digestOutputStream = (DigestOutputStream) out;
-      lobDigestChecksum = DatatypeConverter.printHexBinary(digestOutputStream.getMessageDigest().digest()).toUpperCase();
+      lobDigestChecksum = DatatypeConverter.printHexBinary(digestOutputStream.getMessageDigest().digest())
+        .toUpperCase();
     }
   }
 

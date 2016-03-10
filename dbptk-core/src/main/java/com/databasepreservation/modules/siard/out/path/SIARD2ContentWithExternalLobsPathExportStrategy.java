@@ -14,7 +14,8 @@ public class SIARD2ContentWithExternalLobsPathExportStrategy extends SIARD2Conte
   private long externalContainerId = 0L;
 
   public Path nextContainerBasePath(Path mainContainerBasePath){
-    return Paths.get(mainContainerBasePath.toAbsolutePath().toString() + "_lobseg_" + externalContainerId++);
+    externalContainerId++;
+    return Paths.get(mainContainerBasePath.toAbsolutePath().toString() + "_lobseg_" + externalContainerId);
   }
 
   @Override
