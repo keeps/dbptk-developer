@@ -53,10 +53,13 @@ import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
+import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
 import com.databasepreservation.modules.siard.in.input.SIARD1ImportModule;
 import com.databasepreservation.modules.siard.in.input.SIARD2ImportModule;
+import com.databasepreservation.modules.siard.in.input.SIARDDKImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD1ExportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD2ExportModule;
+import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
 import com.databasepreservation.testing.SIARDVersion;
 import com.databasepreservation.testing.integration.roundtrip.differences.TextDiff;
 import com.databasepreservation.utils.JodaUtils;
@@ -137,7 +140,7 @@ public class SiardTest {
    * @throws ModuleException
    * @throws IOException
    */
-  private DatabaseStructure generateDatabaseStructure() throws ModuleException, IOException {
+  protected DatabaseStructure generateDatabaseStructure() throws ModuleException, IOException {
     /*
      * covered: - all lists (schemas, tables, columns, rows, routines,
      * parameters, views, etc) have more than one element - more than one table
@@ -522,7 +525,7 @@ public class SiardTest {
    * @throws UnknownTypeException
    * @throws InvalidDataException
    */
-  private DatabaseStructure roundtrip(DatabaseStructure dbStructure, Path tmpFile, SIARDVersion version)
+  protected DatabaseStructure roundtrip(DatabaseStructure dbStructure, Path tmpFile, SIARDVersion version)
     throws FileNotFoundException, ModuleException, UnknownTypeException, InvalidDataException {
     DatabaseExportModule exporter = null;
 
@@ -532,6 +535,11 @@ public class SiardTest {
         break;
       case SIARD_2:
         exporter = new SIARD2ExportModule(tmpFile, true, false, null).getDatabaseHandler();
+        break;
+      case SIARD_DK:
+        Map<String, String> exportModuleArgs = new HashMap<String, String>();
+        exportModuleArgs.put(SIARDDKModuleFactory.folder.longName(), tmpFile.toString());
+        exporter = new SIARDDKExportModule(exportModuleArgs).getDatabaseExportModule();
         break;
     }
 
@@ -576,6 +584,15 @@ public class SiardTest {
         break;
       case SIARD_2:
         importer = new SIARD2ImportModule(tmpFile).getDatabaseImportModule();
+        break;
+        
+      case SIARD_DK:
+        // Notice: SIARD DK doesn't support schemas in the archive format.
+        // Therefore it uses a special 'importAsSchema' parameter, to make it
+        // compatible with the format of the dptkl internal database structure
+        // representation.
+        importer = new SIARDDKImportModule(tmpFile, dbStructure.getSchemas().get(0).getName())
+          .getDatabaseImportModule();
         break;
     }
 

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<table xsi:schemaLocation="http://www.sa.dk/xmlns/siard/1.0/schema1/table1.xsd table1.xsd" xmlns="http://www.sa.dk/xmlns/siard/1.0/schema1/table1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <row>
+    <c1>BMU</c1>
+    <c2>Bermuda</c2>
+    <c3>North America</c3>
+    <c4>North America</c4>
+    <c5>53.0</c5>
+    <c6 xsi:nil="true"/>
+    <c7>65000</c7>
+    <c8>76.9</c8>
+    <c9>2328.00</c9>
+    <c10>2190.00</c10>
+    <c11>Bermuda</c11>
+    <c12>Dependent Territory of the UK</c12>
+    <c13>Elisabeth II</c13>
+    <c14>BM</c14>
+    <c15>Bermuda</c15>
+  </row>
+  <row>
+    <c1>BTN</c1>
+    <c2>Bhutan</c2>
+    <c3>Asia</c3>
+    <c4>Southern and Central Asia</c4>
+    <c5>47000.0</c5>
+    <c6>1910</c6>
+    <c7>2124000</c7>
+    <c8>52.4</c8>
+    <c9>372.00</c9>
+    <c10>383.00</c10>
+    <c11>Druk-Yul</c11>
+    <c12>Monarchy</c12>
+    <c13>Jigme Singye Wangchuk</c13>
+    <c14>BT</c14>
+    <c15>Bhutan</c15>
+  </row>
+  <row>
+    <c1>BOL</c1>
+    <c2>Bolivia</c2>
+    <c3>South America</c3>
+    <c4>South America</c4>
+    <c5>1098581.0</c5>
+    <c6>1825</c6>
+    <c7>8329000</c7>
+    <c8>63.7</c8>
+    <c9>8571.00</c9>
+    <c10>7967.00</c10>
+    <c11>Bolivia</c11>
+    <c12>Republic</c12>
+    <c13>Hugo Bánzer Suárez</c13>
+    <c14>BO</c14>
+    <c15>Bolivia</c15>
+  </row>
+  <row>
+    <c1>BIH</c1>
+    <c2>Bosnia and Herzegovina</c2>
+    <c3>Europe</c3>
+    <c4>Southern Europe</c4>
+    <c5>51197.0</c5>
+    <c6>1992</c6>
+    <c7>3972000</c7>
+    <c8>71.5</c8>
+    <c9>2841.00</c9>
+    <c10 xsi:nil="true"/>
+    <c11>Bosna i Hercegovina</c11>
+    <c12>Federal Republic</c12>
+    <c13>Ante Jelavic</c13>
+    <c14>BA</c14>
+    <c15>Bosnia and Herzegovina</c15>
+  </row>
+  <row>
+    <c1>BWA</c1>
+    <c2>Botswana</c2>
+    <c3>Africa</c3>
+    <c4>Southern Africa</c4>
+    <c5>581730.0</c5>
+    <c6>1966</c6>
+    <c7>1622000</c7>
+    <c8>39.3</c8>
+    <c9>4834.00</c9>
+    <c10>4935.00</c10>
+    <c11>Botswana</c11>
+    <c12>Republic</c12>
+    <c13>Festus G. Mogae</c13>
+    <c14>BW</c14>
+    <c15>Botswana</c15>
+  </row>
+  <row>
+    <c1>BRA</c1>
+    <c2>Brazil</c2>
+    <c3>South America</c3>
+    <c4>South America</c4>
+    <c5>8547403.0</c5>
+    <c6>1822</c6>
+    <c7>170115000</c7>
+    <c8>62.9</c8>
+    <c9>776739.00</c9>
+    <c10>804108.00</c10>
+    <c11>Brasil</c11>
+    <c12>Federal Republic</c12>
+    <c13>Fernando Henrique Cardoso</c13>
+    <c14>BR</c14>
+    <c15>Brazil</c15>
+  </row>
+  <row>
+    <c1>GBR</c1>
+    <c2>United Kingdom</c2>
+    <c3>Europe</c3>
+    <c4>British Islands</c4>
+    <c5>242900.0</c5>
+    <c6>1066</c6>
+    <c7>59623400</c7>
+    <c8>77.7</c8>
+    <c9>1378330.00</c9>
+    <c10>1296830.00</c10>
+    <c11>United Kingdom</c11>
+    <c12>Constitutional Monarchy</c12>
+    <c13>Elisabeth II</c13>
+    <c14>GB</c14>
+    <c15>United Kingdom</c15>
+  </row>
+  <row>
+    <c1>VGB</c1>
+    <c2>Virgin Islands, British</c2>
+    <c3>North America</c3>
+    <c4>Caribbean</c4>
+    <c5>151.0</c5>
+    <c6 xsi:nil="true"/>
+    <c7>21000</c7>
+    <c8>75.4</c8>
+    <c9>612.00</c9>
+    <c10>573.00</c10>
+    <c11>British Virgin Islands</c11>
+    <c12>Dependent Territory of the UK</c12>
+    <c13>Elisabeth II</c13>
+    <c14>VG</c14>
+    <c15>Virgin Islands, British</c15>
+  </row>
+  <row>
+    <c1>BRN</c1>
+    <c2>Brunei</c2>
+    <c3>Asia</c3>
+    <c4>Southeast Asia</c4>
+    <c5>5765.0</c5>
+    <c6>1984</c6>
+    <c7>328000</c7>
+    <c8>73.6</c8>
+    <c9>11705.00</c9>
+    <c10>12460.00</c10>
+    <c11>Brunei Darussalam</c11>
+    <c12>Monarchy (Sultanate)</c12>
+    <c13>Haji Hassan al-Bolkiah</c13>
+    <c14>BN</c14>
+    <c15>Brunei</c15>
+  </row>
+  <row>
+    <c1>BGR</c1>
+    <c2>Bulgaria</c2>
+    <c3>Europe</c3>
+    <c4>Eastern Europe</c4>
+    <c5>110994.0</c5>
+    <c6>1908</c6>
+    <c7>8190900</c7>
+    <c8>70.9</c8>
+    <c9>12178.00</c9>
+    <c10>10169.00</c10>
+    <c11>Balgarija</c11>
+    <c12>Republic</c12>
+    <c13>Petar Stojanov</c13>
+    <c14>BG</c14>
+    <c15>Bulgaria</c15>
+  </row>
+</table>

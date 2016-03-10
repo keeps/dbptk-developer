@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<fileIndex xmlns="http://www.sa.dk/xmlns/diark/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/fileIndex.xsd">
+    <f>
+        <foN>AVID.HEX.2000.1\Indices</foN>
+        <fiN>tableIndex.xml</fiN>
+        <md5>0BFD6992E602AEB1A04AF847D26107A4</md5>
+    </f>
+    <f>
+        <foN>AVID.HEX.2000.1\Schemas\standard</foN>
+        <fiN>XMLSchema.xsd</fiN>
+        <md5>94ED1A93CE3147D01BCB2FC1126255ED</md5>
+    </f>
+    <f>
+        <foN>AVID.HEX.2000.1\Schemas\standard</foN>
+        <fiN>archiveIndex.xsd</fiN>
+        <md5>173A55066BF25975EB2D4E3770A65EA5</md5>
+    </f>
+    <f>
+        <foN>AVID.HEX.2000.1\Schemas\standard</foN>
+        <fiN>contextDocumentationIndex.xsd</fiN>
+        <md5>198D67E3D8A8515B4A0AEE5320E7926C</md5>
+    </f>
+    <f>
+        <foN>AVID.HEX.2000.1\Schemas\standard</foN>
+        <fiN>fileIndex.xsd</fiN>
+        <md5>C868C0C9D4E5F89A763E88BC081BB064</md5>
+    </f>
+    <f>
+        <foN>AVID.HEX.2000.1\Schemas\standard</foN>
+        <fiN>tableIndex.xsd</fiN>
+        <md5>9661F1CDC7B36EC85DB088A42D2E125F</md5>
+    </f>
+    <f>
+        <foN>AVID.HEX.2000.1\Tables\table1</foN>
+        <fiN>table1.xml</fiN>
+        <md5>D04F4EE0C8C8CBEDF67DEC65B92DF8FB</md5>
+    </f>
+    <f>
+        <foN>AVID.HEX.2000.1\Tables\table1</foN>
+        <fiN>table1.xsd</fiN>
+        <md5>22BA074D9AD942C913812731A32395E6</md5>
+    </f>
+</fileIndex>

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<siardDiark xmlns="http://www.sa.dk/xmlns/diark/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/tableIndex.xsd">
+    <version>1.0</version>
+    <dbName>world</dbName>
+    <databaseProduct>PostgreSQL</databaseProduct>
+    <tables>
+        <table>
+            <name>country</name>
+            <folder>table1</folder>
+            <description>Description should be entered manually</description>
+            <columns>
+                <column>
+                    <name>code</name>
+                    <columnID>c1</columnID>
+                    <type>CHARACTER(3)</type>
+                    <typeOriginal>CHARACTER(3)</typeOriginal>
+                    <nullable>false</nullable>
+                    <description>Description should be set</description>
+                </column>
+                <column>
+                    <name>name</name>
+                    <columnID>c2</columnID>
+                    <type>NATIONAL CHARACTER VARYING(23)</type>
+                    <typeOriginal>text</typeOriginal>
+                    <nullable>false</nullable>
+                    <description>Description should be set</description>
+                </column>
+                <column>
+                    <name>continent</name>
+                    <columnID>c3</columnID>
+                    <type>NATIONAL CHARACTER VARYING(13)</type>
+                    <typeOriginal>text</typeOriginal>
+                    <nullable>false</nullable>
+                    <description>Description should be set</description>
+                </column>
+                <column>
+                    <name>region</name>
+                    <columnID>c4</columnID>
+                    <type>NATIONAL CHARACTER VARYING(25)</type>
+                    <typeOriginal>text</typeOriginal>
+                    <nullable>false</nullable>
+                    <description>Description should be set</description>
+                </column>
+                <column>
+                    <name>surfacearea</name>
+                    <columnID>c5</columnID>
+                    <type>REAL</type>
+                    <typeOriginal>float4</typeOriginal>
+                    <nullable>false</nullable>
+                    <description>Description should be set</description>
+                </column>
+                <column>
+                    <name>indepyear</name>
+                    <columnID>c6</columnID>
+                    <type>SMALLINT</type>
+                    <typeOriginal>int2</typeOriginal>
+                    <nullable>true</nullable>
+                    <description>Description should be set</description>
+                </column>
+                <column>
+                    <name>population</name>
+                    <columnID>c7</columnID>
+                    <type>INTEGER</type>
+                    <typeOriginal>int4</typeOriginal>
+                    <nullable>false</nullable>
+                    <description>Description should be set</description>
+                </column>
+                <column>
+                    <name>lifeexpectancy</name>
+                    <columnID>c8</columnID>
+                    <type>REAL</type>
+                    <typeOriginal>float4</typeOriginal>
+                    <nullable>true</nullable>
+                    <description>Description should be set</description>
+                </column>
+                <column>
+                    <name>gnp</name>
+                    <columnID>c9</columnID>
+                    <type>NUMERIC(10,2)</type>
+                    <typeOriginal>numeric</typeOriginal>
+                    <nullable>true</nullable>
+                    <description>Description should be set</description>
+                </column>
+                <column>
+                    <name>gnpold</name>
+                    <columnID>c10</columnID>
+                    <type>NUMERIC(10,2)</type>
+                    <typeOriginal>numeric</typeOriginal>
+                    <nullable>true</nullable>
+                    <description>Description should be set</description>
+                </column>
+                <column>
+                    <name>localname</name>
+                    <columnID>c11</columnID>
+                    <type>NATIONAL CHARACTER VARYING(22)</type>
+                    <typeOriginal>text</typeOriginal>
+                    <nullable>false</nullable>
+                    <description>Description should be set</description>
+                </column>
+                <column>
+                    <name>governmentform</name>
+                    <columnID>c12</columnID>
+                    <type>NATIONAL CHARACTER VARYING(29)</type>
+                    <typeOriginal>text</typeOriginal>
+                    <nullable>false</nullable>
+                    <description>Description should be set</description>
+                </column>
+                <column>
+                    <name>headofstate</name>
+                    <columnID>c13</columnID>
+                    <type>NATIONAL CHARACTER VARYING(25)</type>
+                    <typeOriginal>text</typeOriginal>
+                    <nullable>true</nullable>
+                    <description>Description should be set</description>
+                </column>
+                <column>
+                    <name>code2</name>
+                    <columnID>c14</columnID>
+                    <type>CHARACTER(2)</type>
+                    <typeOriginal>CHARACTER(2)</typeOriginal>
+                    <nullable>false</nullable>
+                    <description>Description should be set</description>
+                </column>
+                <column>
+                    <name>name_utf8_hexencoded</name>
+                    <columnID>c15</columnID>
+                    <type>NATIONAL CHARACTER VARYING(23)</type>
+                    <typeOriginal>text</typeOriginal>
+                    <nullable>true</nullable>
+                    <description>Description should be set</description>
+                </column>
+            </columns>
+            <primaryKey>
+                <name>country_pkey</name>
+                <column>code</column>
+            </primaryKey>
+            <rows>10</rows>
+        </table>
+    </tables>
+</siardDiark>

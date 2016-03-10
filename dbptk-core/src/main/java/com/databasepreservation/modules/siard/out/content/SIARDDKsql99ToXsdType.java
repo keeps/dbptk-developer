@@ -13,12 +13,10 @@ public class SIARDDKsql99ToXsdType {
     if (sql99Type.startsWith("NUMERIC") || sql99Type.startsWith("DECIMAL") || sql99Type.startsWith("DOUBLE PRECISION")
       || sql99Type.startsWith("FLOAT") || sql99Type.startsWith("REAL")) {
       return "xs:decimal";
-    } else if (sql99Type.startsWith("BIT")) {
-      // Not in SIARDDK
-      return "xs:hexBinary";
     } else if (sql99Type.startsWith("BOOLEAN")) {
       return "xs:boolean";
-    } else if (sql99Type.startsWith("CHARACTER") || sql99Type.equals(SIARDDKConstants.CHARACTER_LARGE_OBJECT)) {
+    } else if (sql99Type.startsWith("CHARACTER") || sql99Type.startsWith("NATIONAL CHARACTER")
+      || sql99Type.equals(SIARDDKConstants.CHARACTER_LARGE_OBJECT)) {
       return "xs:string";
     } else if (sql99Type.startsWith("DATE")) {
       return "xs:date";
