@@ -4,18 +4,13 @@
 package com.databasepreservation.model.data;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.transaction.util.FileHelper;
+import java.util.ArrayList;
 
 import com.databasepreservation.model.exception.ModuleException;
 
@@ -24,8 +19,9 @@ import com.databasepreservation.model.exception.ModuleException;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class FileItem {
-
   private Path path;
+
+  private ArrayList<InputStream> createdStreams;
 
   /**
    * File item constructor, copying inputstream to item
@@ -56,13 +52,20 @@ public class FileItem {
    * @throws ModuleException
    */
   public InputStream createInputStream() throws ModuleException {
+    if (createdStreams == null) {
+      createdStreams = new ArrayList<>();
+    }
+
+    InputStream newStream;
     try {
-      return Files.newInputStream(path);
+      newStream = Files.newInputStream(path);
     } catch (FileNotFoundException e) {
       throw new ModuleException("Error getting input stream from temp file", e);
     } catch (IOException e) {
       throw new ModuleException("Error getting input stream from temp file", e);
     }
+    createdStreams.add(newStream);
+    return newStream;
   }
 
   /**
@@ -88,16 +91,23 @@ public class FileItem {
   }
 
   /**
-   * Delete file item
+   * Close all created streams and delete the file
    *
    * @return true if file item successfully deleted, false otherwise
    */
-  public boolean delete() {
-    try {
-      Files.delete(path);
-    } catch (IOException e) {
-      // ignore exception
+  public void delete() throws IOException {
+    if (createdStreams != null) {
+      for (InputStream stream : createdStreams) {
+        stream.close();
+      }
     }
-    return true;
+    Files.delete(path);
+  }
+
+  @Override public String toString() {
+    return "FileItem{" +
+      "path=" + path +
+      ", createdStreams=" + createdStreams +
+      '}';
   }
 }

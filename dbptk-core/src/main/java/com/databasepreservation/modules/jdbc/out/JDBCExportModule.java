@@ -3,6 +3,7 @@
  */
 package com.databasepreservation.modules.jdbc.out;
 
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -23,13 +24,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.databasepreservation.model.data.NullCell;
 import org.w3c.util.InvalidDateException;
 
 import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
+import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
@@ -486,15 +487,17 @@ public class JDBCExportModule implements DatabaseExportModule {
         try {
           currentRowInsertStatement.addBatch();
           if (++batch_index > BATCH_SIZE) {
+            batch_index = 0;
             currentRowInsertStatement.executeBatch();
             currentRowInsertStatement.clearBatch();
-            batch_index = 0;
           }
         } catch (SQLException e) {
           throw new ModuleException("Error executing insert batch", e);
         } finally {
-          for (CleanResourcesInterface clean : cleanResourcesList) {
-            clean.clean();
+          if (batch_index == 0) {
+            for (CleanResourcesInterface clean : cleanResourcesList) {
+              clean.clean();
+            }
           }
         }
       } else if (databaseStructure != null) {
@@ -548,32 +551,34 @@ public class JDBCExportModule implements DatabaseExportModule {
         final BinaryCell bin = (BinaryCell) cell;
 
         if (type instanceof SimpleTypeBinary) {
-          if (bin.createInputstream() != null) {
+          if (bin.canCreateInputstream()) {
             ps.setBinaryStream(index, bin.createInputstream(), (int) bin.getLength());
           } else {
             logger.debug("is null");
             ps.setNull(index, Types.BINARY);
           }
           ret = new CleanResourcesInterface() {
-
             @Override
-            public void clean() {
-              bin.cleanResources();
+            public void clean() throws ModuleException {
+              try {
+                bin.cleanResources();
+              } catch (IOException e) {
+                throw new ModuleException("Could not clean resources of " + bin, e);
+              }
             }
-
           };
         } else if (type instanceof SimpleTypeString) {
           handleSimpleTypeString(ps, index, bin);
-
           ret = new CleanResourcesInterface() {
-
             @Override
-            public void clean() {
-              bin.cleanResources();
+            public void clean() throws ModuleException {
+              try {
+                bin.cleanResources();
+              } catch (IOException e) {
+                throw new ModuleException("Could not clean resources of " + bin, e);
+              }
             }
-
           };
-
         } else {
           logger.error("Binary cell found when column type is " + type.getClass().getSimpleName());
         }
@@ -761,6 +766,6 @@ public class JDBCExportModule implements DatabaseExportModule {
   }
 
   public interface CleanResourcesInterface {
-    public void clean();
+    void clean() throws ModuleException;
   }
 }

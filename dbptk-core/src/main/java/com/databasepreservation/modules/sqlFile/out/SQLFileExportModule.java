@@ -303,7 +303,11 @@ public class SQLFileExportModule implements DatabaseExportModule {
             }
 
             ret = bout.toByteArray();
-            bin.cleanResources();
+            try {
+              bin.cleanResources();
+            } catch (IOException e) {
+              throw new ModuleException("Could not clean resources of " + bin, e);
+            }
 
           } else if (cell instanceof ComposedCell) {
             throw new ModuleException("Composed cell export not yet supported");

@@ -261,10 +261,9 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     siardArchive.setRoles(jaxbRolesType(dbStructure.getRoles()));
     siardArchive.setPrivileges(jaxbPrivilegesType(dbStructure.getPrivileges()));
 
-    // siardArchive.setLobFolder(omitted);
-    // database level lobFolder is omitted, meaning the root file inside SIARD
-    // archive. This allows referencing folders in the same directory as
-    // the SIARD file using ../folder_name
+    if(!savingLobsExternally){
+      siardArchive.setLobFolder("content");
+    }
 
     return siardArchive;
   }

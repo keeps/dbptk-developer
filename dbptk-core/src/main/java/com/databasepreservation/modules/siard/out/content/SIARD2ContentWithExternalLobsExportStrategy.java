@@ -92,8 +92,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
         columnIndex, currentRowIndex + 1);
     } else if (cell instanceof SimpleCell) {
       SimpleCell txtCell = (SimpleCell) cell;
-      // fixme: this size may not be accurate because .length uses the default
-      lobSizeParameter = txtCell.getSimpleData().length();
+      lobSizeParameter = txtCell.getBytesSize();
       lobFileParameter = contentPathStrategy.getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(),
         columnIndex, currentRowIndex + 1);
     }

@@ -53,8 +53,8 @@ public class SimpleCell extends Cell {
    * 
    * @return the size of the string in bytes
    */
-  public long getStringSize() {
-    return getStringSize(null);
+  public long getBytesSize() {
+    return getBytesSize(null);
   }
 
   /**
@@ -66,7 +66,7 @@ public class SimpleCell extends Cell {
    *          null, UTF-8 encoding is used
    * @return the size of the string in bytes
    */
-  public long getStringSize(String encoding) {
+  public long getBytesSize(String encoding) {
     // if the size is known, return it
     if (size != null) {
       return size;
@@ -88,14 +88,16 @@ public class SimpleCell extends Cell {
       switch (encoding) {
         case "US-ASCII":
         case "ISO-8859-1":
-        case "UTF-8":
           // 1 char = 1 byte
           size = (long) simpleData.length();
+          break;
         case "UTF-16BE":
         case "UTF-16LE":
         case "UTF-16":
           // 1 char = 2 bytes
           size = (long) simpleData.length() * 2;
+          break;
+        case "UTF-8":
         default:
           size = (long) simpleData.getBytes(encoding).length;
       }

@@ -1,7 +1,5 @@
 package com.databasepreservation.modules.siard.in.path;
 
-import java.io.File;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,6 +11,7 @@ import com.databasepreservation.model.exception.ModuleException;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARD2ContentPathImportStrategy implements ContentPathImportStrategy {
+
   // constant directories
   private static final String CONTENT_FOLDER = "content";
 
@@ -23,7 +22,7 @@ public class SIARD2ContentPathImportStrategy implements ContentPathImportStrateg
   private static final String RESOURCE_FILE_SEPARATOR = "/";
   private static final String FILE_EXTENSION_SEPARATOR = ".";
 
-  private static final String defaultBasePath = "content";
+  private String metadataLobFolder;
 
   // < schema name , schema folder >
   private Map<String, String> schemaFolders = new HashMap<String, String>();
@@ -38,10 +37,20 @@ public class SIARD2ContentPathImportStrategy implements ContentPathImportStrateg
 
   }
 
+  public void setMetadataLobFolder(String metadataLobFolder) {
+    // from SIARD2 specification: this path defaults to "." (current
+    // directory) if not specified
+    if (metadataLobFolder != null) {
+      this.metadataLobFolder = metadataLobFolder;
+    } else {
+      this.metadataLobFolder = ".";
+    }
+  }
+
   @Override
   public String getLobPath(String basePath, String schemaName, String tableId, String columnId, String lobFileName) {
     if (StringUtils.isBlank(basePath)) {
-      basePath = defaultBasePath;
+      basePath = metadataLobFolder;
     }
 
     String schemaPart = schemaFolders.get(schemaName);
@@ -60,9 +69,13 @@ public class SIARD2ContentPathImportStrategy implements ContentPathImportStrateg
       columnPart = ".";
     }
 
-    return new StringBuilder().append(basePath).append(RESOURCE_FILE_SEPARATOR).append(schemaPart)
-      .append(RESOURCE_FILE_SEPARATOR).append(tablePart).append(RESOURCE_FILE_SEPARATOR).append(columnPart)
-      .append(RESOURCE_FILE_SEPARATOR).append(lobFileName).toString();
+    if (".".equals(basePath) && ".".equals(columnPart) && lobFileName.startsWith("..")) {
+      return lobFileName.substring(3);
+    } else {
+      return new StringBuilder().append(basePath).append(RESOURCE_FILE_SEPARATOR).append(schemaPart)
+        .append(RESOURCE_FILE_SEPARATOR).append(tablePart).append(RESOURCE_FILE_SEPARATOR).append(columnPart)
+        .append(RESOURCE_FILE_SEPARATOR).append(lobFileName).toString();
+    }
   }
 
   @Override

@@ -13,7 +13,6 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.validation.SchemaFactory;
 
-import com.databasepreservation.model.data.NullCell;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
@@ -27,6 +26,7 @@ import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.FileItem;
+import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
@@ -64,6 +64,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
   private final Stack<String> tagsStack = new Stack<String>();
   private final StringBuilder tempVal = new StringBuilder();
   private SIARDArchiveContainer contentContainer;
+  private SIARDArchiveContainer lobContainer;
   private DatabaseExportModule databaseExportModule;
   private SAXErrorHandler errorHandler;
   // SAXHandler state
@@ -74,9 +75,11 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
   private Row row;
   private int rowIndex;
 
-  public SIARD2ContentImportStrategy(ReadStrategy readStrategy, ContentPathImportStrategy contentPathStrategy) {
+  public SIARD2ContentImportStrategy(ReadStrategy readStrategy, ContentPathImportStrategy contentPathStrategy,
+    SIARDArchiveContainer lobContainer) {
     this.contentPathStrategy = contentPathStrategy;
     this.readStrategy = readStrategy;
+    this.lobContainer = lobContainer;
   }
 
   @Override
@@ -209,8 +212,15 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
         String lobPath = contentPathStrategy.getLobPath(null, currentSchema.getName(), currentTable.getId(),
           currentTable.getColumns().get(columnIndex - 1).getId(), lobDirLastPart);
 
+        SIARDArchiveContainer container;
+        if(lobDirLastPart.startsWith("..")){
+          container = lobContainer;
+        }else{
+          container = contentContainer;
+        }
+
         try {
-          FileItem fileItem = new FileItem(readStrategy.createInputStream(contentContainer, lobPath));
+          FileItem fileItem = new FileItem(readStrategy.createInputStream(container, lobPath));
           currentBinaryCell = new BinaryCell(
           // TODO: what about CLOBs? should they also created as BinaryCells?
             String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1).getId(), rowIndex), fileItem);

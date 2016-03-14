@@ -22,6 +22,7 @@ import com.databasepreservation.modules.siard.in.read.ZipReadStrategy;
 public class SIARD2ImportModule {
   private final ReadStrategy readStrategy;
   private final SIARDArchiveContainer mainContainer;
+  private final SIARDArchiveContainer lobContainer;
   private final MetadataImportStrategy metadataStrategy;
   private final ContentImportStrategy contentStrategy;
 
@@ -43,6 +44,7 @@ public class SIARD2ImportModule {
    */
   public SIARD2ImportModule(Path siardPackage, boolean auxiliaryContainersInZipFormat) {
     mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.MAIN);
+    lobContainer = new SIARDArchiveContainer(siardPackage.getParent(), SIARDArchiveContainer.OutputContainerType.AUXILIARY);
     if (auxiliaryContainersInZipFormat) {
       readStrategy = new ZipReadStrategy();
     } else {
@@ -50,7 +52,7 @@ public class SIARD2ImportModule {
     }
 
     ContentPathImportStrategy contentPathStrategy = new SIARD2ContentPathImportStrategy();
-    contentStrategy = new SIARD2ContentImportStrategy(readStrategy, contentPathStrategy);
+    contentStrategy = new SIARD2ContentImportStrategy(readStrategy, contentPathStrategy, lobContainer);
 
     MetadataPathStrategy metadataPathStrategy = new SIARD2MetadataPathStrategy();
     metadataStrategy = new SIARD2MetadataImportStrategy(metadataPathStrategy, contentPathStrategy);

@@ -201,7 +201,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
     // deal with big strings as if they were CLOBs
     if (column.getType() instanceof SimpleTypeString && simpleCell.getSimpleData() != null
-      && simpleCell.getStringSize() > TREAT_STRING_AS_CLOB_THRESHOLD) {
+      && simpleCell.getBytesSize() > TREAT_STRING_AS_CLOB_THRESHOLD) {
       writeLargeObjectData(cell, columnIndex);
     } else {
       writeSimpleCellData(simpleCell, columnIndex);
@@ -266,7 +266,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
       // clob header
       currentWriter.append(contentPathStrategy.getClobFileName(currentRowIndex + 1)).append('"').space()
-        .append("length=\"").append(String.valueOf(txtCell.getStringSize())).append("\"");
+        .append("length=\"").append(String.valueOf(txtCell.getBytesSize())).append("\"");
 
       // workaround to have data from CLOBs saved as a temporary file to be read
       // FIXME: if lob is null, this will fail
