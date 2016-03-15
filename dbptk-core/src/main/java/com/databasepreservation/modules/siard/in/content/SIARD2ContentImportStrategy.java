@@ -117,8 +117,8 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
         }
 
         // import values from XML
-        currentTableStream = readStrategy.createInputStream(container,
-          contentPathStrategy.getTableXMLFilePath(schema.getName(), table.getId()));
+        String tableFilename = contentPathStrategy.getTableXMLFilePath(schema.getName(), table.getId());
+        currentTableStream = readStrategy.createInputStream(container, tableFilename);
 
         currentTable = table;
 
@@ -133,7 +133,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
           tableInputSource.setEncoding("UTF-8");
           xmlReader.parse(tableInputSource);
         } catch (SAXException e) {
-          throw new ModuleException("A SAX error occurred during processing of XML table file", e);
+          throw new ModuleException("A SAX error occurred during processing of XML table file at " + tableFilename, e);
         } catch (IOException e) {
           throw new ModuleException("Error while reading XML table file", e);
         }
