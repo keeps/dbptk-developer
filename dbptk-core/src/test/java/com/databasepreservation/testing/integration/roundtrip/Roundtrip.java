@@ -19,6 +19,11 @@ import com.databasepreservation.Main;
 import com.databasepreservation.testing.integration.roundtrip.differences.DumpDiffExpectations;
 import com.databasepreservation.utils.FileUtils;
 
+/**
+ * Core of siard roundtrip testing
+ * 
+ * @author Bruno Ferreira <bferreira@keep.pt>
+ */
 public class Roundtrip {
   public static final String TMP_FILE_SIARD_VAR = "%TMP_FILE_SIARD%";
 
@@ -37,18 +42,15 @@ public class Roundtrip {
   private String[] forward_conversion_arguments;
   private String[] backward_conversion_arguments;
   private DumpDiffExpectations dumpDiffExpectations;
-  private HashMap<String, String> environment_variables_source; // used in
-                                                                // populate step
-                                                                // and when
-                                                                // dumping
-                                                                // source
-                                                                // database
-  private HashMap<String, String> environment_variables_target; // used when
-                                                                // dumping
-                                                                // target
-                                                                // database
+
+  // used in populate step and when dumping source database
+  private HashMap<String, String> environment_variables_source;
+  // used when dumping target database
+  private HashMap<String, String> environment_variables_target;
+
   // set internally at runtime
   private Path tmpFileSIARD;
+  private Path tmpFolderSIARD;
   private File processSTDERR;
   private File processSTDOUT;
 
@@ -198,8 +200,9 @@ public class Roundtrip {
     printTmpFileOnError(processSTDERR, p.waitFor());
     printTmpFileOnError(processSTDOUT, p.waitFor());
 
-    // create siard 1.0 zip file
-    tmpFileSIARD = Files.createTempFile("dptsiard", ".zip");
+    // create a temporary folder with a siard file inside
+    tmpFolderSIARD = Files.createTempDirectory("dpttest_siard");
+    tmpFileSIARD = tmpFolderSIARD.resolve("dbptk.siard");
 
     // create user, database and give permissions to the user
     ProcessBuilder setup = new ProcessBuilder("bash", "-c", setup_command);
@@ -213,6 +216,7 @@ public class Roundtrip {
   }
 
   private int teardown() throws IOException, InterruptedException {
+    FileUtils.deleteDirectoryRecursive(tmpFolderSIARD);
     Files.deleteIfExists(tmpFileSIARD);
 
     // clean up script

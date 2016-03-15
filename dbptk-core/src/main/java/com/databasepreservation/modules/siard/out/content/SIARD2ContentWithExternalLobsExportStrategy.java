@@ -176,7 +176,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
     OutputStream out = writeStrategy.createOutputStream(currentExternalContainer, lobRelativePath);
     InputStream in = lob.getInputStreamProvider().createInputStream();
 
-    logger.info("Writing lob to " + lobRelativePath);
+    logger.debug("Writing lob to " + lobRelativePath);
 
     // copy lob to output and save digest checksum if possible
     try {

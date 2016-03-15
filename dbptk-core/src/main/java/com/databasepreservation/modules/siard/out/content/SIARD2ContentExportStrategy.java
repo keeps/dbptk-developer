@@ -328,7 +328,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     OutputStream out = writeStrategy.createOutputStream(baseContainer, lob.getOutputPath());
     InputStream in = lob.getInputStreamProvider().createInputStream();
 
-    logger.info("Writing lob to " + lob.getOutputPath());
+    logger.debug("Writing lob to " + lob.getOutputPath());
 
     // copy lob to output
     try {
