@@ -596,6 +596,10 @@ public class CLI {
     }
   }
 
+  public boolean usingUTF8() {
+    return Charset.defaultCharset().equals(Charset.forName("UTF-8"));
+  }
+
   private static class DatabaseModuleFactoryNameComparator implements Comparator<DatabaseModuleFactory> {
     @Override
     public int compare(DatabaseModuleFactory o1, DatabaseModuleFactory o2) {

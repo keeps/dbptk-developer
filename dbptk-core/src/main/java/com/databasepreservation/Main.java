@@ -35,6 +35,7 @@ public class Main {
   public static final int EXIT_CODE_COMMAND_PARSE_ERROR = 2;
   public static final int EXIT_CODE_LICENSE_NOT_ACCEPTED = 3;
   public static final int EXIT_CODE_CONNECTION_ERROR = 4;
+  public static final int EXIT_CODE_NOT_USING_UTF8 = 5;
 
   private static final String execID = UUID.randomUUID().toString();
   public static final String APP_VERSION = getProgramVersion();
@@ -70,17 +71,23 @@ public class Main {
     cli.logOperativeSystemInfo();
 
     int exitStatus = EXIT_CODE_GENERIC_ERROR;
-    if (cli.shouldPrintHelp()) {
-      cli.printHelp();
-    } else {
-      exitStatus = run(cli);
-      if (exitStatus == EXIT_CODE_CONNECTION_ERROR) {
-        logger.debug("Disabling encryption (for modules that support it) and trying again.");
-        cli.disableEncryption();
+    if(cli.usingUTF8()) {
+      if (cli.shouldPrintHelp()) {
+        cli.printHelp();
+      } else {
         exitStatus = run(cli);
+        if (exitStatus == EXIT_CODE_CONNECTION_ERROR) {
+          logger.debug("Disabling encryption (for modules that support it) and trying again.");
+          cli.disableEncryption();
+          exitStatus = run(cli);
+        }
       }
+    }else{
+      exitStatus = EXIT_CODE_NOT_USING_UTF8;
+      logger.error("The charset in use is not UTF-8.");
+      logger.error("Please try forcing UTF-8 charset by running the application with:");
+      logger.error("   java \"-Dfile.encoding=UTF-8\" -jar ...");
     }
-
     logProgramFinish(exitStatus);
 
     return exitStatus;
