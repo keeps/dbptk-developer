@@ -48,8 +48,46 @@
             <class name="com.databasepreservation.testing.unit.cli.PostgreSQLModuleFactoryTest"/>
             <class name="com.databasepreservation.testing.unit.cli.SQLServerJDBCModuleFactoryTest"/>
             <class name="com.databasepreservation.testing.unit.utils.XMLUtilsTest"/>
-            <class name="com.databasepreservation.testing.integration.roundtrip.PostgreSqlSIARDDKTest"/>
-            <class name="com.databasepreservation.testing.integration.roundtrip.MySqlSIARDDKTest"/>
+            <class name="com.databasepreservation.testing.integration.roundtrip.PostgreSqlSIARDDKTest">
+                <methods>
+                    <exclude name=".*"/>
+                </methods>
+            </class>
+            <class name="com.databasepreservation.testing.integration.roundtrip.MySqlSIARDDKTest">
+                <methods>
+                    <exclude name=".*"/>
+                </methods>
+            </class>
+            <class name="com.databasepreservation.siarddk.TestFileIndexFileStrategy">
+                <methods>
+                    <exclude name=".*"/>
+                </methods>
+            </class>
+            <class name="com.databasepreservation.siarddk.TestLOBsTracker">
+                <methods>
+                    <exclude name=".*"/>
+                </methods>
+            </class>
+            <class name="com.databasepreservation.siarddk.TestSIARDDKContentExportPathStrategy">
+                <methods>
+                    <exclude name=".*"/>
+                </methods>
+            </class>
+            <class name="com.databasepreservation.siarddk.TestSIARDDKsql99ToXsdType">
+                <methods>
+                    <exclude name=".*"/>
+                </methods>
+            </class>
+            <class name="com.databasepreservation.testing.integration.siard.SiardTest">
+                <methods>
+                    <exclude name=".*"/>
+                </methods>
+            </class>
+            <class name="com.databasepreservation.testing.integration.siard.DevelopmentDebugTest">
+                <methods>
+                    <exclude name=".*"/>
+                </methods>
+            </class>
         </classes>
     </test>
 </suite>
