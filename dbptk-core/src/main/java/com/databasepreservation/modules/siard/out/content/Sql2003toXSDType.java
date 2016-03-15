@@ -33,8 +33,8 @@ public class Sql2003toXSDType {
 
     // direct mapping
     sql2003toXSDconstant.put("BINARY LARGE OBJECT", "blobType");
-    sql2003toXSDconstant.put("BIT VARYING", "xs:hexBinary");
-    sql2003toXSDconstant.put("BIT", "xs:hexBinary");
+    sql2003toXSDconstant.put("BIT VARYING", "blobType");
+    sql2003toXSDconstant.put("BIT", "blobType");
     sql2003toXSDconstant.put("BLOB", "blobType");
     sql2003toXSDconstant.put("BOOLEAN", "xs:boolean");
     sql2003toXSDconstant.put("CHARACTER LARGE OBJECT", "clobType");
@@ -59,8 +59,8 @@ public class Sql2003toXSDType {
     sql2003toXSDconstant.put("TIMESTAMP", "xs:dateTime");
 
     // mapping using regex
-    sql2003toXSDregex.put("^BIT VARYING\\(\\d+\\)$", "xs:hexBinary");
-    sql2003toXSDregex.put("^BIT\\(\\d+\\)$", "xs:hexBinary");
+    sql2003toXSDregex.put("^BIT VARYING\\(\\d+\\)$", "blobType");
+    sql2003toXSDregex.put("^BIT\\(\\d+\\)$", "blobType");
     sql2003toXSDregex.put("^CHARACTER VARYING\\(\\d+\\)$", "xs:string");
     sql2003toXSDregex.put("^CHARACTER\\(\\d+\\)$", "xs:string");
     sql2003toXSDregex.put("^DECIMAL\\(\\d+(,\\d+)?\\)$", "xs:decimal");

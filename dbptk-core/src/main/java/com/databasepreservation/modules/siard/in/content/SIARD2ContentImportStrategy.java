@@ -26,6 +26,7 @@ import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.FileItem;
+import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
@@ -63,6 +64,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
   private final Stack<String> tagsStack = new Stack<String>();
   private final StringBuilder tempVal = new StringBuilder();
   private SIARDArchiveContainer contentContainer;
+  private SIARDArchiveContainer lobContainer;
   private DatabaseExportModule databaseExportModule;
   private SAXErrorHandler errorHandler;
   // SAXHandler state
@@ -73,9 +75,11 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
   private Row row;
   private int rowIndex;
 
-  public SIARD2ContentImportStrategy(ReadStrategy readStrategy, ContentPathImportStrategy contentPathStrategy) {
+  public SIARD2ContentImportStrategy(ReadStrategy readStrategy, ContentPathImportStrategy contentPathStrategy,
+    SIARDArchiveContainer lobContainer) {
     this.contentPathStrategy = contentPathStrategy;
     this.readStrategy = readStrategy;
+    this.lobContainer = lobContainer;
   }
 
   @Override
@@ -113,8 +117,8 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
         }
 
         // import values from XML
-        currentTableStream = readStrategy.createInputStream(container,
-          contentPathStrategy.getTableXMLFilePath(schema.getName(), table.getId()));
+        String tableFilename = contentPathStrategy.getTableXMLFilePath(schema.getName(), table.getId());
+        currentTableStream = readStrategy.createInputStream(container, tableFilename);
 
         currentTable = table;
 
@@ -129,7 +133,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
           tableInputSource.setEncoding("UTF-8");
           xmlReader.parse(tableInputSource);
         } catch (SAXException e) {
-          throw new ModuleException("A SAX error occurred during processing of XML table file", e);
+          throw new ModuleException("A SAX error occurred during processing of XML table file at " + tableFilename, e);
         } catch (IOException e) {
           throw new ModuleException("Error while reading XML table file", e);
         }
@@ -208,8 +212,15 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
         String lobPath = contentPathStrategy.getLobPath(null, currentSchema.getName(), currentTable.getId(),
           currentTable.getColumns().get(columnIndex - 1).getId(), lobDirLastPart);
 
+        SIARDArchiveContainer container;
+        if(lobDirLastPart.startsWith("..")){
+          container = lobContainer;
+        }else{
+          container = contentContainer;
+        }
+
         try {
-          FileItem fileItem = new FileItem(readStrategy.createInputStream(contentContainer, lobPath));
+          FileItem fileItem = new FileItem(readStrategy.createInputStream(container, lobPath));
           currentBinaryCell = new BinaryCell(
           // TODO: what about CLOBs? should they also created as BinaryCells?
             String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1).getId(), rowIndex), fileItem);
@@ -255,9 +266,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
         Cell cell = row.getCells().get(i);
         if (cell == null) {
           String id = String.format("%s.%d", currentTable.getColumns().get(i).getId(), rowIndex);
-          SimpleCell simpleCell = new SimpleCell(id);
-          simpleCell.setSimpledata(null);
-          row.getCells().set(i, simpleCell);
+          row.getCells().set(i, new NullCell(id));
         }
       }
 
@@ -297,8 +306,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
             logger.error(String.format("Illegal characters in hexadecimal string \"%s\"", localVal), e);
           }
         } else {
-          cell = new SimpleCell(id);
-          ((SimpleCell) cell).setSimpledata(localVal);
+          cell = new SimpleCell(id, localVal);
         }
       }
       row.getCells().set(columnIndex - 1, cell);

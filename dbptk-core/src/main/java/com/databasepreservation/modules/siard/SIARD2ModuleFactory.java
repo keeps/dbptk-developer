@@ -51,6 +51,22 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
       "file with the list of tables that should be exported (this file can be created by the list-tables export module).")
     .required(false).hasArgument(true).setOptionalArgument(false);
 
+  private static final Parameter externalLobs = new Parameter().shortName("el").longName("external-lobs")
+    .description("Saves any LOBs outside the siard file.").required(false).hasArgument(false).valueIfSet("true")
+    .valueIfNotSet("false");
+
+  private static final Parameter externalLobsPerFolder = new Parameter().shortName("elpf")
+    .longName("external-lobs-per-folder")
+    .description("The maximum number of files present in an external LOB folder. Default: 1000 files.").required(false)
+    .hasArgument(true).setOptionalArgument(false).valueIfNotSet("1000");
+
+  private static final Parameter externalLobsFolderSize = new Parameter()
+    .shortName("elfs")
+    .longName("external-lobs-folder-size")
+    .description(
+      "Divide LOBs across multiple external folders with (approximately) the specified maximum size (in Megabytes). Default: do not divide.")
+    .required(false).hasArgument(true).setOptionalArgument(false).valueIfNotSet("0");
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -73,6 +89,9 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(compress.longName(), compress);
     parameterHashMap.put(prettyPrintXML.longName(), prettyPrintXML);
     parameterHashMap.put(tableFilter.longName(), tableFilter);
+    parameterHashMap.put(externalLobs.longName(), externalLobs);
+    parameterHashMap.put(externalLobsPerFolder.longName(), externalLobsPerFolder);
+    parameterHashMap.put(externalLobsFolderSize.longName(), externalLobsFolderSize);
     return parameterHashMap;
   }
 
@@ -83,7 +102,8 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Parameters getExportModuleParameters() throws OperationNotSupportedException {
-    return new Parameters(Arrays.asList(file, compress, prettyPrintXML, tableFilter), null);
+    return new Parameters(Arrays.asList(file, compress, prettyPrintXML, tableFilter, externalLobs,
+      externalLobsPerFolder, externalLobsFolderSize), null);
   }
 
   @Override
@@ -104,16 +124,47 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
       pCompress = Boolean.parseBoolean(compress.valueIfSet());
     }
 
+    // optional
     boolean pPrettyPrintXML = Boolean.parseBoolean(prettyPrintXML.valueIfNotSet());
     if (StringUtils.isNotBlank(parameters.get(prettyPrintXML))) {
       pPrettyPrintXML = Boolean.parseBoolean(prettyPrintXML.valueIfSet());
     }
 
+    // optional
     Path pTableFilter = null;
     if (StringUtils.isNotBlank(parameters.get(tableFilter))) {
       pTableFilter = Paths.get(parameters.get(tableFilter));
     }
 
-    return new SIARD2ExportModule(Paths.get(pFile), pCompress, pPrettyPrintXML, pTableFilter).getDatabaseHandler();
+    // optional
+    boolean pExternalLobs = Boolean.parseBoolean(externalLobs.valueIfNotSet());
+    if (StringUtils.isNotBlank(parameters.get(externalLobs))) {
+      pExternalLobs = Boolean.parseBoolean(externalLobs.valueIfSet());
+    }
+
+    // optional
+    int pExternalLobsPerFolder = Integer.parseInt(externalLobsPerFolder.valueIfNotSet());
+    if (StringUtils.isNotBlank(parameters.get(externalLobsPerFolder))) {
+      pExternalLobsPerFolder = Integer.parseInt(parameters.get(externalLobsPerFolder));
+      if (pExternalLobsPerFolder <= 0) {
+        pExternalLobsPerFolder = Integer.parseInt(externalLobsPerFolder.valueIfNotSet());
+      }
+    }
+
+    // optional
+    long pExternalLobsFolderSize = Long.parseLong(externalLobsFolderSize.valueIfNotSet());
+    if (StringUtils.isNotBlank(parameters.get(externalLobsFolderSize))) {
+      pExternalLobsFolderSize = Long.parseLong(parameters.get(externalLobsFolderSize));
+      if (pExternalLobsFolderSize <= 0) {
+        pExternalLobsFolderSize = Long.parseLong(externalLobsFolderSize.valueIfNotSet());
+      }
+    }
+
+    if (pExternalLobs) {
+      return new SIARD2ExportModule(Paths.get(pFile), pCompress, pPrettyPrintXML, pTableFilter, pExternalLobsPerFolder,
+        pExternalLobsFolderSize).getDatabaseHandler();
+    } else {
+      return new SIARD2ExportModule(Paths.get(pFile), pCompress, pPrettyPrintXML, pTableFilter).getDatabaseHandler();
+    }
   }
 }

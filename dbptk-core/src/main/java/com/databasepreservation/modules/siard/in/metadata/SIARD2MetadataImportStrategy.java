@@ -13,6 +13,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStrategy;
 import org.xml.sax.SAXException;
 
 import ch.admin.bar.xmlns.siard._2_0.metadata.CandidateKeyType;
@@ -157,7 +158,6 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
     databaseStructure.setDatabaseUser(siardArchive.getDatabaseUser());
     databaseStructure.setName(siardArchive.getDbname());
 
-    // TODO: databaseStructure.setLobFolder(siardArchive.getLobFolder());
     databaseStructure.setArchivalDate(JodaUtils.xs_date_parse(siardArchive.getArchivalDate()));
     // TODO:
     // databaseStructure.setMessageDigest(siardArchive.getMessageDigest());
@@ -170,6 +170,11 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
     databaseStructure.setUsers(getUsers(siardArchive.getUsers()));
     databaseStructure.setRoles(getRoles(siardArchive.getRoles()));
     databaseStructure.setPrivileges(getPrivileges(siardArchive.getPrivileges()));
+
+    if(contentPathStrategy instanceof SIARD2ContentPathImportStrategy){
+      SIARD2ContentPathImportStrategy siard2ContentPathImportStrategy = (SIARD2ContentPathImportStrategy) contentPathStrategy;
+      siard2ContentPathImportStrategy.setMetadataLobFolder(siardArchive.getLobFolder());
+    }
 
     return databaseStructure;
   }

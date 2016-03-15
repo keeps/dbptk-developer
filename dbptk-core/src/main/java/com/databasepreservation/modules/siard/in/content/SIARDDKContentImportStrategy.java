@@ -252,9 +252,9 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
             logger.error(ex);
             throw new SAXException(ex);
           } else {
-            cell = new SimpleCell(id);
             if (isInNullValueCell) {
-              ((SimpleCell) cell).setSimpledata(null);
+              //fixme: use NullCell to represent NULL
+              cell = new SimpleCell(id, null);
             } else {
               if (xsdCellType != null && xsdCellType.getTypeName().equalsIgnoreCase("hexBinary")) {
                 preparedCellVal = new String(DatatypeConverter.parseHexBinary(preparedCellVal), Charsets.UTF_8);
@@ -263,8 +263,7 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
                   preparedCellVal = SIARDHelper.decode(preparedCellVal);
                 }
               }
-
-              ((SimpleCell) cell).setSimpledata(preparedCellVal);
+              cell = new SimpleCell(id, preparedCellVal);
             }
           }
           currentRowCells[columnIndex - 1] = cell;

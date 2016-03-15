@@ -13,6 +13,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.validation.SchemaFactory;
 
+import com.databasepreservation.model.data.NullCell;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
@@ -113,8 +114,8 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
         }
 
         // import values from XML
-        currentTableStream = readStrategy.createInputStream(container,
-          contentPathStrategy.getTableXMLFilePath(schema.getName(), table.getId()));
+        String tableFilename = contentPathStrategy.getTableXMLFilePath(schema.getName(), table.getId());
+        currentTableStream = readStrategy.createInputStream(container, tableFilename);
 
         currentTable = table;
 
@@ -129,7 +130,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
           tableInputSource.setEncoding("UTF-8");
           xmlReader.parse(tableInputSource);
         } catch (SAXException e) {
-          throw new ModuleException("A SAX error occurred during processing of XML table file", e);
+          throw new ModuleException("A SAX error occurred during processing of XML table file at " + tableFilename, e);
         } catch (IOException e) {
           throw new ModuleException("Error while reading XML table file", e);
         }
@@ -251,9 +252,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
         Cell cell = row.getCells().get(i);
         if (cell == null) {
           String id = String.format("%s.%d", currentTable.getColumns().get(i).getId(), rowIndex);
-          SimpleCell simpleCell = new SimpleCell(id);
-          simpleCell.setSimpledata(null);
-          row.getCells().set(i, simpleCell);
+          row.getCells().set(i, new NullCell(id));
         }
       }
 
@@ -293,8 +292,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
             logger.error(String.format("Illegal characters in hexadecimal string \"%s\"", localVal), e);
           }
         } else {
-          cell = new SimpleCell(id);
-          ((SimpleCell) cell).setSimpledata(localVal);
+          cell = new SimpleCell(id, localVal);
         }
       }
       row.getCells().set(columnIndex - 1, cell);

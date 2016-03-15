@@ -3,6 +3,7 @@
  */
 package com.databasepreservation.model.data;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +13,10 @@ import pt.gov.dgarq.roda.common.FileFormat;
 import com.databasepreservation.model.exception.ModuleException;
 
 /**
- * @author Luis Faria
+ * Represents the value of a cell of BLOB type
+ *
+ * @author Luis Faria <lfaria@keep.pt>
+ * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class BinaryCell extends Cell {
 
@@ -21,10 +25,13 @@ public class BinaryCell extends Cell {
   private List<FileFormat> formatHits;
 
   /**
+   * Binary cell constructor without a FileItem. This should not be used to
+   * represent NULL, instead a NullCell should be created.
+   *
    * @param id
    *          the cell id, equal to 'tableId.columnId.rowIndex'
    */
-  public BinaryCell(String id) {
+  protected BinaryCell(String id) {
     super(id);
     fileItem = null;
     formatHits = new ArrayList<FileFormat>();
@@ -71,12 +78,10 @@ public class BinaryCell extends Cell {
   }
 
   /**
-   * @param inputstream
-   *          the inputstream to fetch the binary data
-   * @throws ModuleException
+   * @return checks if an inputstream can be created
    */
-  public void setInputstream(InputStream inputstream) throws ModuleException {
-    this.fileItem = new FileItem(inputstream);
+  public boolean canCreateInputstream() {
+    return fileItem != null;
   }
 
   /**
@@ -99,7 +104,7 @@ public class BinaryCell extends Cell {
    *
    * @return the binary stream length
    */
-  public long getLength() {
+  public long getLength() throws ModuleException {
     return fileItem != null ? fileItem.size() : 0;
   }
 
@@ -108,8 +113,12 @@ public class BinaryCell extends Cell {
    *
    * @return true if successfuly cleared all resources
    */
-  public boolean cleanResources() {
-    return fileItem.delete();
+  public void cleanResources() throws IOException {
+    fileItem.delete();
   }
 
+  @Override
+  public String toString() {
+    return "BinaryCell{" + "fileItem=" + fileItem + ", formatHits=" + formatHits + '}';
+  }
 }

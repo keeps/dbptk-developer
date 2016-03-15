@@ -26,11 +26,19 @@ public class PostgreSqlTest {
   private final String db_tmp_username = "dpttest";
   private final String db_tmp_password = RandomStringUtils.randomAlphabetic(10);
   private File tmpFile;
+  private boolean needsSetup = true;
   private Roundtrip rt_siard1;
   private Roundtrip rt_siard2;
+  private Roundtrip rt_siard2ex;
 
   @Test(description = "Testing environment setup", groups = {"postgresql-siard1", "postgresql-siard2"})
   public void setup() throws IOException, InterruptedException, URISyntaxException {
+    // avoid running a second time
+    if (!needsSetup) {
+      return;
+    }
+    needsSetup = false;
+
     HashMap<String, String> env_var_source = new HashMap<String, String>();
     env_var_source.put("PGUSER", db_tmp_username);
     env_var_source.put("PGPASSWORD", db_tmp_password);
@@ -79,6 +87,24 @@ public class PostgreSqlTest {
       new String[] {"--import=postgresql", "--import-hostname=127.0.0.1", "--import-database", db_source,
         "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--import-disable-encryption",
         "--export=siard-2", "--export-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export-pretty-xml"},
+
+      new String[] {"--import=siard-2", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=postgresql",
+        "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
+        "--export-password", db_tmp_password, "--export-disable-encryption"}, new PostgreSqlDumpDiffExpectations(),
+      env_var_source, env_var_target);
+
+    rt_siard2ex = new Roundtrip(
+      String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass().getResource("/postgreSql/scripts/setup.sh").getPath(),
+        db_source, db_target, db_tmp_username, db_tmp_password),
+      String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/postgreSql/scripts/teardown.sh").getPath(),
+        db_source, db_target, db_tmp_username),
+      "psql -q -h 127.0.0.1",
+      "pg_dump -h 127.0.0.1 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
+      "pg_dump -h 127.0.0.1 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
+
+      new String[] {"--import=postgresql", "--import-hostname=127.0.0.1", "--import-database", db_source,
+        "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--import-disable-encryption",
+        "--export=siard-2", "--export-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export-pretty-xml", "--export-external-lobs"},
 
       new String[] {"--import=siard-2", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=postgresql",
         "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
@@ -145,6 +171,43 @@ public class PostgreSqlTest {
     assert rt_siard2.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], (Object[]) fields);
   }
 
+  @Test(description = "[siard-2-ex] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnectionSiard2"}, groups = {"postgresql-siard2"})
+  public void testQueriesSiard2ex(String... args) throws IOException, InterruptedException {
+
+    String[] fields = new String[args.length - 1];
+    System.arraycopy(args, 1, fields, 0, args.length - 1);
+
+    assert rt_siard2ex.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], (Object[]) fields);
+  }
+
+  @DataProvider
+  public Iterator<Object[]> lobQueriesProvider() {
+    ArrayList<Object[]> tests = new ArrayList<Object[]>();
+
+    // lots of small lobs with 10 bytes each
+    StringBuilder query = new StringBuilder("CREATE TABLE lobs (col1 bytea);");
+    for (int i = 0; i < 1000; i++) {
+      query.append("\nINSERT INTO lobs(col1) VALUES(decode('");
+      query.append(String.format("%020X", i));
+      query.append("', 'hex'));");
+    }
+    tests.add(new String[] {query.toString()});
+
+    return tests.iterator();
+  }
+
+  @Test(description = "[siard-2-ex] Tests external lobs specific examples", dataProvider = "lobQueriesProvider", dependsOnMethods = {"testConnectionSiard2"}, groups = {"postgresql-siard2"})
+  public void testQueriesSiard2exSpecific(String... args) throws IOException, InterruptedException {
+    String[] fields = new String[args.length - 1];
+    System.arraycopy(args, 1, fields, 0, args.length - 1);
+
+    if (args[0].length() <= 1000) {
+      assert rt_siard2ex.testTypeAndValue(args[0], fields) : "Query failed: " + args[0];
+    } else {
+      assert rt_siard2ex.testTypeAndValue(args[0], fields) : "Query failed: " + args[0].substring(0, 1000);
+    }
+  }
+
   @DataProvider
   public Iterator<Object[]> testFilesProvider() throws URISyntaxException {
     ArrayList<Object[]> tests = new ArrayList<Object[]>();
@@ -168,5 +231,10 @@ public class PostgreSqlTest {
   @Test(description = "[siard-2] Tests PostgreSQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnectionSiard2"}, groups = {"postgresql-siard2"})
   public void testFilesSiard2(Path... file) throws IOException, InterruptedException, URISyntaxException {
     assert rt_siard2.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
+  }
+
+  @Test(description = "[siard-2-ex] Tests PostgreSQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnectionSiard2"}, groups = {"postgresql-siard2"})
+  public void testFilesSiard2ex(Path... file) throws IOException, InterruptedException, URISyntaxException {
+    assert rt_siard2ex.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
   }
 }

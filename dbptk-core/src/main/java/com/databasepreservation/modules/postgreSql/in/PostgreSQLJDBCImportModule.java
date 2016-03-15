@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.databasepreservation.model.data.NullCell;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.postgresql.util.PGobject;
 
@@ -480,7 +481,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       formats.add(fileFormat);
       cell = new BinaryCell(id, fileItem, formats);
     } else {
-      cell = new BinaryCell(id);
+      cell = new NullCell(id);
     }
     return cell;
   }
@@ -495,10 +496,10 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
         String time_string = rawData.getString(columnName);
         if (time_string.matches("^\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[+-]\\d{2}$")) {
           cell = new SimpleCell(id, time_string + ":00");
-          logger.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell) cell).getSimpledata()));
+          logger.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell) cell).getSimpleData()));
         } else if (time_string.matches("^\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[+-]\\d{2}:\\d{2}$")) {
           cell = new SimpleCell(id, time_string);
-          logger.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell) cell).getSimpledata()));
+          logger.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell) cell).getSimpleData()));
         } else {
           cell = super.rawToCellSimpleTypeDateTime(id, columnName, cellType, rawData);
         }

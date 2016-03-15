@@ -114,7 +114,7 @@ public class SQLServerJDBCExportModule extends JDBCExportModule {
     };
     if (cell instanceof SimpleCell && type instanceof SimpleTypeDateTime) {
       SimpleCell simple = (SimpleCell) cell;
-      String data = simple.getSimpledata();
+      String data = simple.getSimpleData();
       try {
         if (data != null) {
           ps.setString(index, data);

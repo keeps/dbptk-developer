@@ -5,24 +5,24 @@ package com.databasepreservation.modules.siard.out.path;
  */
 public class SIARD2ContentPathExportStrategy implements ContentPathExportStrategy {
   // names for directories
-  private static final String CONTENT_DIR = "content";
-  private static final String SCHEMA_DIR = "schema";
-  private static final String TABLE_DIR = "table";
-  private static final String LOB_DIR = "lob";
+  protected static final String CONTENT_DIR = "content";
+  protected static final String SCHEMA_DIR = "schema";
+  protected static final String TABLE_DIR = "table";
+  protected static final String LOB_DIR = "lob";
 
   // names for files
-  private static final String TABLE_FILENAME = "table";
-  private static final String LOB_FILENAME = "record";
+  protected static final String TABLE_FILENAME = "table";
+  protected static final String LOB_FILENAME = "record";
 
   // extensions for files
-  private static final String XML_EXTENSION = "xml";
-  private static final String XSD_EXTENSION = "xsd";
-  private static final String CLOB_EXTENSION = "txt";
-  private static final String BLOB_EXTENSION = "bin";
+  protected static final String XML_EXTENSION = "xml";
+  protected static final String XSD_EXTENSION = "xsd";
+  protected static final String CLOB_EXTENSION = "txt";
+  protected static final String BLOB_EXTENSION = "bin";
 
   // control characters
-  private static final String RESOURCE_FILE_SEPARATOR = "/";
-  private static final String FILE_EXTENSION_SEPARATOR = ".";
+  protected static final String RESOURCE_FILE_SEPARATOR = "/";
+  protected static final String FILE_EXTENSION_SEPARATOR = ".";
 
   public String getColumnFolderName(int columnIndex) {
     return new StringBuilder().append(LOB_DIR).append(columnIndex).toString();

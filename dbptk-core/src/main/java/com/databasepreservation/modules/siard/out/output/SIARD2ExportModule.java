@@ -8,10 +8,14 @@ import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD2MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.content.ContentExportStrategy;
 import com.databasepreservation.modules.siard.out.content.SIARD2ContentExportStrategy;
+import com.databasepreservation.modules.siard.out.content.SIARD2ContentWithExternalLobsExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARD2MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.path.SIARD2ContentWithExternalLobsPathExportStrategy;
+import com.databasepreservation.modules.siard.out.write.FolderWriteStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
+import com.databasepreservation.modules.siard.out.write.ZipWithExternalLobsWriteStrategy;
 import com.databasepreservation.modules.siard.out.write.ZipWriteStrategy;
 
 /**
@@ -39,8 +43,30 @@ public class SIARD2ExportModule {
     }
     mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.MAIN);
 
-    metadataStrategy = new SIARD2MetadataExportStrategy(metadataPathStrategy, contentPathStrategy);
+    metadataStrategy = new SIARD2MetadataExportStrategy(metadataPathStrategy, contentPathStrategy, false);
     contentStrategy = new SIARD2ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer, prettyXML);
+
+    this.tableFilter = tableFilter;
+  }
+
+  public SIARD2ExportModule(Path siardPackage, boolean compressZip, boolean prettyXML, Path tableFilter,
+    int externalLobsPerFolder, long externalLobsFolderSize) {
+    contentPathStrategy = new SIARD2ContentWithExternalLobsPathExportStrategy();
+    metadataPathStrategy = new SIARD2MetadataPathStrategy();
+
+    FolderWriteStrategy folderWriteStrategy = new FolderWriteStrategy();
+    ZipWriteStrategy zipWriteStrategy;
+    if (compressZip) {
+      zipWriteStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.DEFLATE);
+    } else {
+      zipWriteStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.STORE);
+    }
+    writeStrategy = new ZipWithExternalLobsWriteStrategy(zipWriteStrategy, folderWriteStrategy);
+
+    mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.MAIN);
+
+    metadataStrategy = new SIARD2MetadataExportStrategy(metadataPathStrategy, contentPathStrategy, true);
+    contentStrategy = new SIARD2ContentWithExternalLobsExportStrategy(contentPathStrategy, writeStrategy, mainContainer, prettyXML, externalLobsPerFolder, externalLobsFolderSize);
 
     this.tableFilter = tableFilter;
   }

@@ -47,7 +47,9 @@ public class ZipWriteStrategy implements WriteStrategy {
     try {
       zipOut.closeArchiveEntry();
     } catch (IOException e) {
-      logger.debug("the ArchiveEntry is already closed or the ZipArchiveOutputStream is already finished", e);
+      if (!"No current entry to close".equals(e.getMessage())) {
+        logger.debug("the ArchiveEntry is already closed or the ZipArchiveOutputStream is already finished", e);
+      }
     }
 
     try {

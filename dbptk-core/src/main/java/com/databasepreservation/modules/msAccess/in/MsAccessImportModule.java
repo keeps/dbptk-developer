@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.databasepreservation.model.data.NullCell;
 import org.w3c.util.DateParser;
 
 import com.databasepreservation.CustomLogger;
@@ -128,7 +129,7 @@ public class MsAccessImportModule extends ODBCImportModule {
     if (cellType instanceof SimpleTypeDateTime) {
       String dateString = rawData.getString(columnName);
       if (dateString == null) {
-        cell = new SimpleCell(null);
+        cell = new NullCell(id);
       } else {
         try {
           cell = new SimpleCell(id, DateParser.getIsoDateNoMillis(accessDateFormat.parse(dateString)));

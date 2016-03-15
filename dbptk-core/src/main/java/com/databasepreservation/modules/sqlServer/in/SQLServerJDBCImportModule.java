@@ -156,17 +156,9 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
       InputStream input = rawData.getBinaryStream(columnName);
       if (input != null) {
         logger.debug("SQL ServerbinaryStream: " + columnName);
-        FileItem fileItem = new FileItem();
-        try {
-          FileHelper.copy(input, fileItem.createOutputStream());
-          // List<FileFormat> formats = FileFormatHelper.getInstance()
-          // .identify(fileItem);
-          // logger.debug("cell '" + id + "' has formats " + formats);
-          List<FileFormat> formats = new ArrayList<FileFormat>();
-          cell = new BinaryCell(id, fileItem, formats);
-        } catch (IOException e) {
-          throw new ModuleException("Error getting binary stream", e);
-        }
+        FileItem fileItem = new FileItem(input);
+        List<FileFormat> formats = new ArrayList<FileFormat>();
+        cell = new BinaryCell(id, fileItem, formats);
       } else {
         cell = new BinaryCell(id, null);
       }
