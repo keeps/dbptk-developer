@@ -229,7 +229,7 @@ public class MySQLHelper extends SQLHelper {
   @Override
   protected String escapePrimaryKeyName(String pkey_name) {
     if ("PRIMARY".equals(pkey_name)) {
-      logger.warn("Cannot set primary key name to reserved name PRIMARY, renaming it");
+      logger.debug("Cannot set primary key name to reserved name PRIMARY, renaming it");
       pkey_name += "_pkey";
     }
 
