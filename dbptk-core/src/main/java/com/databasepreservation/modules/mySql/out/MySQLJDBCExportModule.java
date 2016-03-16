@@ -12,6 +12,7 @@ import java.util.TreeSet;
 
 import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ForeignKey;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
@@ -195,5 +196,15 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
       }
     }
     return existingSchemas;
+  }
+
+  protected void handleSchemaStructure(SchemaStructure schema) throws ModuleException, UnknownTypeException {
+    logger.info("Handling schema structure " + schema.getName());
+    // for mysql the schema never needs to be created, because it is the same as
+    // the database and the database must already exist
+    for (TableStructure table : schema.getTables()) {
+      handleTableStructure(table);
+    }
+    logger.info("Handling schema structure " + schema.getName() + " finished");
   }
 }

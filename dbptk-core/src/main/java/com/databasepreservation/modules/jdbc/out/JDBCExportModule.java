@@ -268,12 +268,11 @@ public class JDBCExportModule implements DatabaseExportModule {
         for (SchemaStructure schema : structure.getSchemas()) {
           // won't export ignored schemas
           if (isIgnoredSchema(schema.getName())) {
-            logger.warn("Schema not exported because it's defined " + "as ignored (possibily is a system schema): "
+            logger.warn("Schema not exported because it's defined as ignored (possibily is a system schema): "
               + schema.getName());
-            continue;
+          } else {
+            handleSchemaStructure(schema);
           }
-
-          handleSchemaStructure(schema);
         }
         logger.debug("Executing table creation batch");
         batchResult = getStatement().executeBatch();
