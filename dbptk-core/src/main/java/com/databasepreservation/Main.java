@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
+import com.databasepreservation.modules.solr.SolrModuleFactory;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,7 @@ public class Main {
   public static final DatabaseModuleFactory[] databaseModuleFactories = new DatabaseModuleFactory[] {
     new JDBCModuleFactory(), new ListTablesModuleFactory(), new MsAccessUCanAccessModuleFactory(),
     new MySQLModuleFactory(), new Oracle12cModuleFactory(), new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(),
-    new SIARD2ModuleFactory(), new SIARDDKModuleFactory(), new SQLServerJDBCModuleFactory()};
+    new SIARD2ModuleFactory(), new SIARDDKModuleFactory(), new SolrModuleFactory(), new SQLServerJDBCModuleFactory()};
 
   /**
    * @param args
