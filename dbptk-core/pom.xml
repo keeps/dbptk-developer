@@ -96,6 +96,10 @@
             <groupId>com.databasepreservation</groupId>
             <artifactId>dbptk-bindings-siarddk</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.databasepreservation.dbviewer</groupId>
+            <artifactId>dbviewer-model</artifactId>
+        </dependency>
 
         <!-- normal -->
         <dependency>
@@ -176,6 +180,10 @@
         <dependency>
             <groupId>net.sf.ucanaccess</groupId>
             <artifactId>ucanaccess</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.solr</groupId>
+            <artifactId>solr-solrj</artifactId>
         </dependency>
 
 		<!-- test -->

@@ -148,6 +148,11 @@
                 <artifactId>dbptk-bindings-siarddk</artifactId>
                 <version>1.2.4</version>
             </dependency>
+            <dependency>
+                <groupId>com.databasepreservation.dbviewer</groupId>
+                <artifactId>dbviewer-model</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+            </dependency>
             <!-- 
             <dependency>
                 <groupId>dk.magenta</groupId>
@@ -260,6 +265,12 @@
                 <artifactId>ucanaccess</artifactId>
                 <version>3.0.2</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.solr</groupId>
+                <artifactId>solr-solrj</artifactId>
+                <version>5.5.0</version>
+            </dependency>
+
 
             <!-- test -->
             <dependency>
