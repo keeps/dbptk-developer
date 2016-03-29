@@ -32,7 +32,7 @@ public class SolrExportModule implements DatabaseExportModule {
   private ViewerDatabase viewerDatabase;
 
   public SolrExportModule() {
-    String url = "http://127.0.0.1:8983/solr/dblist";
+    String url = "http://127.0.0.1:8983/solr";
     solrManager = new SolrManager(url);
   }
 
