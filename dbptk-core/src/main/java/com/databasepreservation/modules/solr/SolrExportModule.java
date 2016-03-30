@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.databasepreservation.dbviewer.client.ViewerStructure.ViewerDatabase;
+import com.databasepreservation.dbviewer.client.ViewerStructure.ViewerDatabaseFromToolkit;
 import com.databasepreservation.dbviewer.transformers.ToolkitStructure2ViewerStructure;
 import com.databasepreservation.dbviewer.utils.SolrManager;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -29,7 +30,7 @@ public class SolrExportModule implements DatabaseExportModule {
 
   private DatabaseStructure structure;
 
-  private ViewerDatabase viewerDatabase;
+  private ViewerDatabaseFromToolkit viewerDatabase;
 
   public SolrExportModule() {
     String url = "http://127.0.0.1:8983/solr";
@@ -82,7 +83,8 @@ public class SolrExportModule implements DatabaseExportModule {
   @Override
   public void handleStructure(DatabaseStructure structure) throws ModuleException, UnknownTypeException {
     this.structure = structure;
-    solrManager.addDatabase(ToolkitStructure2ViewerStructure.getDatabase(structure));
+    this.viewerDatabase = ToolkitStructure2ViewerStructure.getDatabase(structure);
+    solrManager.addDatabase(viewerDatabase);
   }
 
   /**
@@ -95,7 +97,7 @@ public class SolrExportModule implements DatabaseExportModule {
    */
   @Override
   public void handleDataOpenSchema(String schemaName) throws ModuleException {
-
+    //viewerDatabase.getSchema(schemaName);
   }
 
   /**
@@ -110,7 +112,7 @@ public class SolrExportModule implements DatabaseExportModule {
    */
   @Override
   public void handleDataOpenTable(String tableId) throws ModuleException {
-
+    solrManager.addTable(viewerDatabase.getTable(tableId));
   }
 
   /**
