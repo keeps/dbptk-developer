@@ -152,7 +152,7 @@ public class SQL2003TypeConverter implements TypeConverter {
       throw new ModuleException("unidentified sqlStandardType: " + sqlStandardType);
     }
 
-    type.setSql99TypeName(sqlStandardType);
+    type.setSql2003TypeName(sqlStandardType);
     type.setOriginalTypeName(originalType);
 
     return type;
