@@ -9,7 +9,7 @@ The toolkit is created as a platform that uses input and output modules. Each mo
 
 ## EARK and SIARD 2.0
 
-A new version of the this tool, together with a [new version of the SIARD preservation format](http://eark-project.github.io/siard-e-format/), is currently being designed and developed on the [EARK project](http://www.eark-project.com/). A draft specification will be available soon, together with a request for comments. In the meanwhile, if you'd like to know more and even send us use cases and requirements, [contact us](http://www.eark-project.com/contacts).
+A new version of the this tool, together with a [new version of the SIARD preservation format](http://www.eark-project.com/resources/specificationdocs/32-specification-for-siard-format-v20), is currently being designed and developed on the [EARK project](http://www.eark-project.com/). Meanwhile, if you'd like to know more and even send us use cases and requirements, [contact us](http://www.eark-project.com/contacts).
 
 ## How to use
 
