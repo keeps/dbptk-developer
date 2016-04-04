@@ -1,19 +1,12 @@
 package com.databasepreservation.modules.solr;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Set;
-import java.util.UUID;
 
-import com.databasepreservation.dbviewer.client.ViewerStructure.ViewerDatabase;
 import com.databasepreservation.dbviewer.client.ViewerStructure.ViewerDatabaseFromToolkit;
+import com.databasepreservation.dbviewer.client.ViewerStructure.ViewerTable;
 import com.databasepreservation.dbviewer.transformers.ToolkitStructure2ViewerStructure;
 import com.databasepreservation.dbviewer.utils.SolrManager;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
-import org.apache.solr.common.SolrInputDocument;
-
+import com.databasepreservation.dbviewer.utils.SolrUtils;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
@@ -31,6 +24,10 @@ public class SolrExportModule implements DatabaseExportModule {
   private DatabaseStructure structure;
 
   private ViewerDatabaseFromToolkit viewerDatabase;
+
+  private ViewerTable currentTable;
+
+  private int rowIndex = 0;
 
   public SolrExportModule() {
     String url = "http://127.0.0.1:8983/solr";
@@ -55,7 +52,7 @@ public class SolrExportModule implements DatabaseExportModule {
    */
   @Override
   public void initDatabase() throws ModuleException {
-
+    SolrUtils.setupSolrCloudConfigsets("127.0.0.1:9983");
   }
 
   /**
@@ -97,7 +94,7 @@ public class SolrExportModule implements DatabaseExportModule {
    */
   @Override
   public void handleDataOpenSchema(String schemaName) throws ModuleException {
-    //viewerDatabase.getSchema(schemaName);
+    // viewerDatabase.getSchema(schemaName);
   }
 
   /**
@@ -112,7 +109,8 @@ public class SolrExportModule implements DatabaseExportModule {
    */
   @Override
   public void handleDataOpenTable(String tableId) throws ModuleException {
-    solrManager.addTable(viewerDatabase.getTable(tableId));
+    currentTable = viewerDatabase.getTable(tableId);
+    solrManager.addTable(currentTable);
   }
 
   /**
@@ -126,7 +124,7 @@ public class SolrExportModule implements DatabaseExportModule {
    */
   @Override
   public void handleDataRow(Row row) throws InvalidDataException, ModuleException {
-
+    solrManager.addRow(currentTable, ToolkitStructure2ViewerStructure.getRow(currentTable, row, rowIndex++));
   }
 
   /**
@@ -139,7 +137,7 @@ public class SolrExportModule implements DatabaseExportModule {
    */
   @Override
   public void handleDataCloseTable(String tableId) throws ModuleException {
-
+    // committing + optimizing after whole database
   }
 
   /**
@@ -152,7 +150,7 @@ public class SolrExportModule implements DatabaseExportModule {
    */
   @Override
   public void handleDataCloseSchema(String schemaName) throws ModuleException {
-
+    // committing + optimizing after whole database
   }
 
   /**
