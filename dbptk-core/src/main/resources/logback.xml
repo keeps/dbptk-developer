@@ -47,6 +47,11 @@
         <appender-ref ref="STDOUT"/>
     </logger>
 
+    <logger name="org.apache.http" additivity="false">
+        <level value="info"/>
+        <appender-ref ref="STDOUT"/>
+    </logger>
+
     <root>
         <level value="WARN"/>
         <appender-ref ref="STDERR"/>
