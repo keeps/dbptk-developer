@@ -26,7 +26,7 @@ This information is also available in the [application usage page](https://githu
 
 ### Supported Database Management Systems and Preservation formats
 
-The Database Preservation Toolkit supports the following database systems:
+The Database Preservation Toolkit supports the following Database Management Systems:
 
 * MySQL/MariaDB
 * PostgreSQL
@@ -35,13 +35,13 @@ The Database Preservation Toolkit supports the following database systems:
 * Microsoft Access
 * And other databases (using JDBC)
 
-Database Preservation Toolkit can convert any of the above database systems to the following preservation formats:
+Database Preservation Toolkit can convert any of the above DBMS to the following preservation formats:
 
 * SIARD 1
 * SIARD 2
 * SIARD DK
 
-The Database Preservation Toolkit is also capable of loading preserved databases into a live DBMS.
+The Database Preservation Toolkit is also capable of loading preserved databases into any of the above DBMS.
 
 ### Examples
 
