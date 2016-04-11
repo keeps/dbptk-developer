@@ -1,7 +1,7 @@
 Database Preservation Toolkit
 =============================
 
-The Database Preservation Toolkit allows conversion between Database formats, including connection to live systems, for purposes of digitally preserving databases. The toolkit allows conversion of live or backed-up databases into preservation formats such as **SIARD**, a XML-based format created for the purpose of database preservation. The toolkit also allows conversion of the preservation formats back into live systems to allow the full functionality of databases. For example, it supports a specialized export into MySQL, optimized for PhpMyAdmin, so the database can be fully  experimented using a web interface.
+The Database Preservation Toolkit allows conversion between Database formats, including connection to live systems, for purposes of digitally preserving databases. The toolkit allows conversion of live or backed-up databases into preservation formats such as **SIARD**, a XML-based format created for the purpose of database preservation. The toolkit also allows conversion of the preservation formats back into live systems to allow the full functionality of databases.
 
 This toolkit was part of the [RODA project](http://www.roda-community.org) and now has been released as a project by its own due to the increasing interest on this particular feature. It is now being further developed in the [EARK project](http://www.eark-project.com/) together with a new version of the SIARD preservation format.
 
@@ -23,6 +23,25 @@ Using this command you will be presented with the application usage, describing 
 This information is also available in the [application usage page](https://github.com/keeps/db-preservation-toolkit/wiki/Application-usage).
 
 **To use the application an input and an output module must be selected and some configuration parameters must be provided.**
+
+### Supported Database Management Systems and Preservation formats
+
+The Database Preservation Toolkit supports the following database systems:
+
+* MySQL/MariaDB
+* PostgreSQL
+* Oracle
+* Microsoft SQL Server
+* Microsoft Access
+* And other databases (using JDBC)
+
+Database Preservation Toolkit can convert any of the above database systems to the following preservation formats:
+
+* SIARD 1
+* SIARD 2
+* SIARD DK
+
+The Database Preservation Toolkit is also capable of loading preserved databases into a live DBMS.
 
 ### Examples
 
