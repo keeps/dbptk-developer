@@ -31,18 +31,23 @@ Good bug reports are extremely helpful - thank you!
 
 Guidelines for bug reports:
 
-1. **Use the GitHub issue search** &mdash; check if the issue has already been
+1. **Use the most recent version of DBPTK** (and also use it to re-create any SIARD
+   files you might be using). Most releases are not backwards compatible
+   with files created by previous versions. Using the most recent version
+   of DBPTK to create SIARD files may be enough to solve the problem.
+
+2. **Use the GitHub issue search** &mdash; check if the issue has already been
    reported.
 
-2. **Check if the issue has been fixed** &mdash; try to reproduce it using the
+3. **Check if the issue has been fixed** &mdash; try to reproduce it using the
    latest release, or if you are a developer, try the `master` or branch in the
    repository.
 
-3. **Isolate the problem** &mdash; try to create a minimal example that
+4. **Isolate the problem** &mdash; try to create a minimal example that
    is just enough to reproduce the issue. If possible, attach the example
    files to the issue, otherwise a description of the steps taken may suffice.
 
-4. **Attach the dbptk-app.log.txt file** &mdash; the log file is located
+5. **Attach the dbptk-app.log.txt file** &mdash; the log file is located
    in the directory where the command `java -jar dbptk-app-(version).jar` was
    executed from. If the log file contains private information (it registers the
    database structure, along with other detailed information, but excludes database
