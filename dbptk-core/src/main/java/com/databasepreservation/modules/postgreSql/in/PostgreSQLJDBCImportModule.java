@@ -331,8 +331,8 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       type.setSql99TypeName("BINARY LARGE OBJECT");
       type.setSql2003TypeName("BINARY LARGE OBJECT");
     } else {
-      type.setSql99TypeName("BIT");
-      type.setSql2003TypeName("BIT");
+      type.setSql99TypeName("BINARY LARGE OBJECT");
+      type.setSql2003TypeName("BINARY LARGE OBJECT");
     }
     return type;
   }

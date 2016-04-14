@@ -1120,9 +1120,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   protected Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeBinary(columnSize);
-    type.setSql99TypeName("BIT VARYING", columnSize);
+    type.setSql99TypeName("BINARY LARGE OBJECT");
     type.setSql2003TypeName("BINARY LARGE OBJECT");
-    logger.info("using BIT VARYING(" + columnSize + ")");
     return type;
   }
 
@@ -1155,8 +1154,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   protected Type getBinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeBinary(columnSize);
-    type.setSql99TypeName("BIT");
-    type.setSql2003TypeName("BIT");
+    type.setSql99TypeName("BINARY LARGE OBJECT");
+    type.setSql2003TypeName("BINARY LARGE OBJECT");
     type.setOriginalTypeName(typeName, columnSize);
     return type;
   }

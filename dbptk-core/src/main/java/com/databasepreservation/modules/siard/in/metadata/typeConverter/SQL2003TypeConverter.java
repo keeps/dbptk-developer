@@ -91,14 +91,6 @@ public class SQL2003TypeConverter implements TypeConverter {
       type = new SimpleTypeNumericApproximate(24);
     } else if (sqlStandardType.startsWith("DOUBLE")) {
       type = new SimpleTypeNumericApproximate(53);
-    } else if ("BIT".equals(sqlStandardType)) {
-      type = new SimpleTypeBoolean();
-    } else if (sqlStandardType.startsWith("BIT")) {
-      if (getLength(sqlStandardType) == 1) {
-        type = new SimpleTypeBoolean();
-      } else {
-        type = new SimpleTypeBinary(getLength(sqlStandardType));
-      }
     } else if (sqlStandardType.startsWith("BINARY LARGE OBJECT") || sqlStandardType.startsWith("BLOB")) {
       type = new SimpleTypeBinary();
     } else if (sqlStandardType.startsWith("CHAR")) {

@@ -177,17 +177,8 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   protected Type getBinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeBinary(columnSize);
 
-    if ("TINYBLOB".equalsIgnoreCase(typeName)) {
-      type.setSql99TypeName("BIT VARYING", 2040);
-      type.setSql2003TypeName("BINARY LARGE OBJECT");
-    } else if ("BIT".equalsIgnoreCase(typeName)) {
-      type.setSql99TypeName("BIT", columnSize);
-      type.setSql2003TypeName("BIT", columnSize);
-      type.setOriginalTypeName(typeName, columnSize);
-    } else {
-      type.setSql99TypeName("BIT", columnSize * 8);
-      type.setSql2003TypeName("BIT", columnSize * 8);
-    }
+    type.setSql99TypeName("BINARY LARGE OBJECT");
+    type.setSql2003TypeName("BINARY LARGE OBJECT");
 
     return type;
   }

@@ -4,6 +4,8 @@
 package com.databasepreservation.model.structure.type;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.log4j.Logger;
 
 /**
@@ -13,7 +15,7 @@ import org.apache.log4j.Logger;
  *         must extend this class.
  */
 public abstract class Type {
-  private final Logger logger = Logger.getLogger(Type.class);
+  private static final Logger LOGGER = Logger.getLogger(Type.class);
 
   private String originalTypeName;
 
@@ -81,9 +83,12 @@ public abstract class Type {
    * @return The name of the SQL99 normalized type. null if not applicable
    */
   public String getSql99TypeName() {
+    if (StringUtils.isBlank(sql99TypeName)){
+      setSql99fromSql2003();
+    }
 
     if (StringUtils.isBlank(sql99TypeName)) {
-      logger.warn("SQL99 type is not defined for type " + this.toString());
+      LOGGER.warn("SQL99 type is not defined for type " + this.toString());
     }
     return sql99TypeName;
   }
@@ -122,9 +127,12 @@ public abstract class Type {
    * @return The name of the SQL2003 normalized type. null if not applicable
    */
   public String getSql2003TypeName() {
+    if (StringUtils.isBlank(sql2003TypeName)){
+      setSql2003fromSql99();
+    }
 
     if (StringUtils.isBlank(sql2003TypeName)) {
-      logger.warn("SQL2003 type is not defined for type " + this.toString());
+      LOGGER.warn("SQL2003 type is not defined for type " + this.toString());
     }
     return sql2003TypeName;
   }
@@ -159,6 +167,16 @@ public abstract class Type {
     this.sql2003TypeName = String.format("%s(%d)", typeName, originalColumnSize);
   }
 
+  protected void setSql2003fromSql99(){
+    // default operation, may not be accurate
+    sql2003TypeName = sql99TypeName;
+  }
+
+  protected void setSql99fromSql2003(){
+    // default operation, may not be accurate
+    sql99TypeName = sql2003TypeName;
+  }
+
   /**
    * @return the type description, null if none
    */
@@ -174,42 +192,30 @@ public abstract class Type {
     this.description = description;
   }
 
-  @Override
-  public String toString() {
-    StringBuilder builder = new StringBuilder();
-    builder.append("Type [originalTypeName=");
-    builder.append(originalTypeName);
-    builder.append(", description=");
-    builder.append(description);
-    builder.append(", sql99TypeName=");
-    builder.append(sql99TypeName);
-    builder.append("]");
-    return builder.toString();
-
+  @Override public String toString() {
+    return "Type{" +
+      "description='" + description + '\'' +
+      ", originalTypeName='" + originalTypeName + '\'' +
+      ", sql99TypeName='" + sql99TypeName + '\'' +
+      ", sql2003TypeName='" + sql2003TypeName + '\'' +
+      '}';
   }
 
-  @Override
-  public boolean equals(Object o) {
+  @Override public boolean equals(Object o) {
     if (this == o)
       return true;
+
     if (o == null || getClass() != o.getClass())
       return false;
 
     Type type = (Type) o;
 
-    if (originalTypeName != null ? !originalTypeName.equals(type.originalTypeName) : type.originalTypeName != null)
-      return false;
-    if (description != null ? !description.equals(type.description) : type.description != null)
-      return false;
-    return !(sql99TypeName != null ? !sql99TypeName.equals(type.sql99TypeName) : type.sql99TypeName != null);
-
+    return new EqualsBuilder().append(originalTypeName, type.originalTypeName).append(description, type.description)
+      .append(sql99TypeName, type.sql99TypeName).append(sql2003TypeName, type.sql2003TypeName).isEquals();
   }
 
-  @Override
-  public int hashCode() {
-    int result = originalTypeName != null ? originalTypeName.hashCode() : 0;
-    result = 31 * result + (description != null ? description.hashCode() : 0);
-    result = 31 * result + (sql99TypeName != null ? sql99TypeName.hashCode() : 0);
-    return result;
+  @Override public int hashCode() {
+    return new HashCodeBuilder(17, 37).append(originalTypeName).append(description).append(sql99TypeName)
+      .append(sql2003TypeName).toHashCode();
   }
 }

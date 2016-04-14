@@ -58,6 +58,10 @@ public class MySqlDumpDiffExpectations extends DumpDiffExpectations {
     directReplacements.add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)year\\((\\d+)\\)(?=\\W)"),
       "decimal(4,0)"));
 
+    // bit(N) -> longblob
+    directReplacements.add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)bit\\((\\d+)\\)(?=\\W)"),
+      "longblob"));
+
     // Remove AUTO_INCREMENT info
     directReplacements
       .add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)AUTO_INCREMENT(=[0-9]*)*\\W"), ""));

@@ -148,6 +148,9 @@ public class Roundtrip {
     Path dump_source = dumpsDir.resolve("source.sql");
     Path dump_target = dumpsDir.resolve("target.sql");
 
+    logger.trace("SQL src dump: " + dump_source.toString());
+    logger.trace("SQL tgt dump: " + dump_target.toString());
+
     ProcessBuilder dump = new ProcessBuilder("bash", "-c", dump_source_command);
     dump.redirectOutput(dump_source.toFile());
     dump.redirectError(processSTDERR);
@@ -203,6 +206,7 @@ public class Roundtrip {
     // create a temporary folder with a siard file inside
     tmpFolderSIARD = Files.createTempDirectory("dpttest_siard");
     tmpFileSIARD = tmpFolderSIARD.resolve("dbptk.siard");
+    logger.trace("SIARD file: " + tmpFileSIARD.toString());
 
     // create user, database and give permissions to the user
     ProcessBuilder setup = new ProcessBuilder("bash", "-c", setup_command);
