@@ -218,7 +218,7 @@ public class MySQLHelper extends SQLHelper {
 
   @Override
   public String getDatabases(String database) {
-    return "SHOW DATABASES LIKE '" + database + "\\_%';";
+    return "SHOW DATABASES LIKE '" + database + "';";
   }
 
   @Override

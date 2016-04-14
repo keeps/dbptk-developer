@@ -22,8 +22,10 @@ import com.databasepreservation.modules.mySql.MySQLHelper;
  * @author Luis Faria
  */
 public class MySQLJDBCExportModule extends JDBCExportModule {
-
   private static final String[] IGNORED_SCHEMAS = {"mysql", "performance_schema", "information_schema"};
+
+  private static final String MYSQL_CONNECTION_DATABASE = "information_schema";
+
   protected final String hostname;
 
   protected final String database;
@@ -115,6 +117,24 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 
   public String createConnectionURL(String databaseName) {
     return createConnectionURL(hostname, port, databaseName, username, password);
+  }
+
+  @Override
+  public void initDatabase() throws ModuleException {
+    String connectionURL = createConnectionURL(MYSQL_CONNECTION_DATABASE);
+
+    if (databaseExists(MYSQL_CONNECTION_DATABASE, database, connectionURL)) {
+      logger.info("Database already exists, reusing.");
+    } else {
+      try {
+        logger.info("Database does not exist. Creating database " + database);
+        getConnection(MYSQL_CONNECTION_DATABASE, connectionURL).createStatement().executeUpdate(
+          sqlHelper.createDatabaseSQL(database));
+
+      } catch (SQLException e) {
+        throw new ModuleException("Error creating database " + database, e);
+      }
+    }
   }
 
   @Override
