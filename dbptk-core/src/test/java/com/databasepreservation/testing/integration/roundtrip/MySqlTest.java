@@ -144,6 +144,7 @@ public class MySqlTest {
     // datatype size and is ignored
     tests.add(new String[] {singleTypeAndValue, "TINYINT(10)", "1"});
 
+
     tests.add(new String[] {singleTypeAndValue, "TINYINT", "1"});
     tests.add(new String[] {singleTypeAndValue, "SMALLINT", "123"});
     tests.add(new String[] {singleTypeAndValue, "MEDIUMINT(10)", "123"});
@@ -179,6 +180,8 @@ public class MySqlTest {
     // TODO: fix in #177
     // tests.add(new String[] {singleTypeAndValue, "BIT(1)", "b'1'"});
     // tests.add(new String[] {singleTypeAndValue, "BIT(1)", "b'0'"});
+
+    // TODO: fix
     // tests.add(new String[] {singleTypeAndValue, "BIT(5)", "b'11111'"});
     // tests.add(new String[] {singleTypeAndValue, "BIT(64)", "b'" + StringUtils.repeat("1001", 16) + "'"});
     tests.add(new String[] {singleTypeAndValue, "DATE", "'9999-12-31'"});
