@@ -144,7 +144,6 @@ public class MySqlTest {
     // datatype size and is ignored
     tests.add(new String[] {singleTypeAndValue, "TINYINT(10)", "1"});
 
-
     tests.add(new String[] {singleTypeAndValue, "TINYINT", "1"});
     tests.add(new String[] {singleTypeAndValue, "SMALLINT", "123"});
     tests.add(new String[] {singleTypeAndValue, "MEDIUMINT(10)", "123"});
