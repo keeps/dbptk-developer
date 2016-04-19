@@ -283,18 +283,18 @@ public class JDBCExportModule implements DatabaseExportModule {
           for (int i = 0; i < batchResult.length; i++) {
             int result = batchResult[i];
             if (result == Statement.EXECUTE_FAILED) {
-              logger.error("Batch failed at index " + i);
+              logger.warn("Batch failed at index " + i);
             }
           }
         }
         SQLException ei = e;
         do {
           if (ei != null) {
-            logger.error("Error creating " + "structure (next exception)", ei);
+            logger.warn("Error creating " + "structure (next exception)", ei);
           }
           ei = ei.getNextException();
         } while (ei != null);
-        throw new ModuleException("Error creating structure", e);
+        logger.warn("Error creating structure", e);
       }
     }
   }
