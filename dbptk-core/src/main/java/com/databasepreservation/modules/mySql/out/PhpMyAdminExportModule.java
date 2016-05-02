@@ -11,7 +11,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -20,6 +19,8 @@ import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Luis Faria
@@ -31,7 +32,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
    */
   private static final String DEFAULT_PHPMYADMIN_DATABASE = "phpmyadmin";
   private static final String DEFAULT_COLUMN_INFO_TABLE = "pma__column_info";
-  private final CustomLogger logger = CustomLogger.getLogger(PhpMyAdminExportModule.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(PhpMyAdminExportModule.class);
   private String phpmyadmin_database;
 
   private String column_info_table;
@@ -105,7 +106,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
   @Override
   public void initDatabase() throws ModuleException {
     try {
-      logger.debug("Cleaning...");
+      LOGGER.debug("Cleaning...");
       super.initDatabase();
       getConnection(phpmyadmin_database, createConnectionURL(phpmyadmin_database)).createStatement().executeUpdate(
         "DELETE FROM " + column_info_table + " WHERE db_name LIKE '" + database + "\\_%'");
@@ -132,7 +133,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
   public void handleStructure(DatabaseStructure structure) throws ModuleException, UnknownTypeException {
     super.handleStructure(structure);
     if (getStatement() != null) {
-      logger.debug("Exporting columns info into PhpMyAdmin" + " extended features database");
+      LOGGER.debug("Exporting columns info into PhpMyAdmin" + " extended features database");
       try {
         Statement st = getConnection(phpmyadmin_database).createStatement();
         List<PreparedStatement> statements = new ArrayList<PreparedStatement>();
@@ -292,7 +293,7 @@ public class PhpMyAdminExportModule extends MySQLJDBCExportModule {
   @Override
   public void finishDatabase() throws ModuleException {
     super.finishDatabase();
-    logger.debug("Setting guest permissions");
+    LOGGER.debug("Setting guest permissions");
     setUserPermissions("guest", "localhost", "", database);
   }
 

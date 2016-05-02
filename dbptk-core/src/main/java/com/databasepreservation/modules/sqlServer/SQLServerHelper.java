@@ -3,7 +3,6 @@
  */
 package com.databasepreservation.modules.sqlServer;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
@@ -12,6 +11,8 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.SQLHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * SQL Server 2005 Helper
@@ -19,8 +20,7 @@ import com.databasepreservation.modules.SQLHelper;
  * @author Luis Faria
  */
 public class SQLServerHelper extends SQLHelper {
-
-  private final CustomLogger logger = CustomLogger.getLogger(SQLServerHelper.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SQLServerHelper.class);
 
   private String startQuote = "[";
 
@@ -45,7 +45,7 @@ public class SQLServerHelper extends SQLHelper {
         if (string.getLength().intValue() > 8000) {
           if (isPkey) {
             ret = "varchar(8000)";
-            logger.warn("Resizing column length to 8000" + " so it can be a primary key");
+            LOGGER.warn("Resizing column length to 8000" + " so it can be a primary key");
           } else {
             ret = "text";
           }
@@ -87,7 +87,7 @@ public class SQLServerHelper extends SQLHelper {
       } else if ("TIMESTAMP".equals(sql99TypeName)) {
         ret = "datetime2";
       } else {
-        logger.warn("Using string instead of datetime type because "
+        LOGGER.warn("Using string instead of datetime type because "
           + "SQL Server doesn't support dates before 1753-01-01");
         ret = "char(23)";
       }
@@ -97,7 +97,7 @@ public class SQLServerHelper extends SQLHelper {
       if (sql99TypeName.startsWith("BIT")) {
         String dataType = null;
         if ("BIT".equals(sql99TypeName)) {
-          logger.debug("is BIT");
+          LOGGER.debug("is BIT");
           dataType = "binary";
         } else {
           dataType = "varbinary";

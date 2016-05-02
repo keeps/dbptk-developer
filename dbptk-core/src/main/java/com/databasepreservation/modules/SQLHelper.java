@@ -8,9 +8,9 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
+import com.databasepreservation.model.Reporter;
 import org.apache.commons.lang3.StringUtils;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.exception.InvalidDataException;
@@ -37,8 +37,6 @@ import com.databasepreservation.model.structure.type.Type;
  * @author Luis Faria
  */
 public class SQLHelper {
-
-  private CustomLogger logger = CustomLogger.getLogger(SQLHelper.class);
 
   private String name = "";
 
@@ -122,7 +120,10 @@ public class SQLHelper {
       for (ForeignKey fkey : fkeys) {
         isFkey |= fkey.getName().equals(column.getName());
       }
-      ret += (index > 0 ? ", " : "") + createColumnSQL(column, isPkey, isFkey);
+      String columnTypeSQL = createColumnSQL(column, isPkey, isFkey);
+      ret += (index > 0 ? ", " : "") + columnTypeSQL;
+
+      Reporter.dataTypeChangedOnExport(this.getClass().getName(), column, columnTypeSQL);
       index++;
     }
     return ret;

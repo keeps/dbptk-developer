@@ -174,15 +174,16 @@ public class MySqlTest {
     tests.add(new String[] {singleTypeAndValue, "DOUBLE", "1234567890.12345"});
     tests.add(new String[] {singleTypeAndValue, "DOUBLE(22,0)", "1234567890.12345"});
     tests.add(new String[] {singleTypeAndValue, "DOUBLE(10,2)", "1234567890.12345"});
-    tests.add(new String[] {singleTypeAndValue, "BIT", "b'1'"});
 
     // TODO: fix in #177
+    // tests.add(new String[] {singleTypeAndValue, "BIT", "b'1'"});
     // tests.add(new String[] {singleTypeAndValue, "BIT(1)", "b'1'"});
     // tests.add(new String[] {singleTypeAndValue, "BIT(1)", "b'0'"});
 
     // TODO: fix
     // tests.add(new String[] {singleTypeAndValue, "BIT(5)", "b'11111'"});
-    // tests.add(new String[] {singleTypeAndValue, "BIT(64)", "b'" + StringUtils.repeat("1001", 16) + "'"});
+    // tests.add(new String[] {singleTypeAndValue, "BIT(64)", "b'" +
+    // StringUtils.repeat("1001", 16) + "'"});
     tests.add(new String[] {singleTypeAndValue, "DATE", "'9999-12-31'"});
     tests.add(new String[] {singleTypeAndValue, "DATE", "'2015-01-01'"});
     tests.add(new String[] {singleTypeAndValue, "DATETIME", "'9999-12-31 23:59:59.999999'"});
@@ -314,6 +315,8 @@ public class MySqlTest {
     // Path[]{Paths.get(getClass().getResource("/mySql/testfiles/world.sql").toURI())});
     // tests.add(new
     // Path[]{Paths.get(getClass().getResource("/mySql/testfiles/sakila.sql").toURI())});
+    // tests.add(new
+    // Path[]{Paths.get(getClass().getResource("/mySql/testfiles/datatypes.sql").toURI())});
 
     return tests.iterator();
   }

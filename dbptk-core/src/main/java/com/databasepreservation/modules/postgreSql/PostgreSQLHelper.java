@@ -9,7 +9,6 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
@@ -18,6 +17,8 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximat
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.SQLHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Luis Faria
@@ -27,7 +28,7 @@ public class PostgreSQLHelper extends SQLHelper {
   private static final Set<String> POSTGRESQL_TYPES = new HashSet<String>(Arrays.asList("char", "int8", "varchar",
     "bigserial", "name", "numeric"));
 
-  private final CustomLogger logger = CustomLogger.getLogger(getClass());
+  private static final Logger LOGGER = LoggerFactory.getLogger(PostgreSQLHelper.class);
 
   private String startQuote = "\"";
 
@@ -74,14 +75,14 @@ public class PostgreSQLHelper extends SQLHelper {
   protected String createTypeSQL(Type type, boolean isPkey, boolean isFkey) throws UnknownTypeException {
     String ret;
 
-    logger.debug("Checking PSQL type " + type.getOriginalTypeName());
+    LOGGER.debug("Checking PSQL type " + type.getOriginalTypeName());
     if (POSTGRESQL_TYPES.contains(type.getOriginalTypeName())) {
       // TODO verify if original database is also postgresql
       ret = type.getOriginalTypeName();
       if ("char".equals(ret)) {
         ret = "\"char\"";
       }
-      logger.info("Using PostgreSQL original type " + ret);
+      LOGGER.debug("Using PostgreSQL original type " + ret);
     } else if (type instanceof SimpleTypeString) {
       SimpleTypeString string = (SimpleTypeString) type;
       if (string.getLength().intValue() >= 65535) {

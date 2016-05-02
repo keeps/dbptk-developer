@@ -9,17 +9,17 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.FileAssert;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.Main;
 
 /*
  * @author Thomas Kristensen tk@bithuset.dk
  */
 public class SIARDDKTestUtil {
-
-  private static final CustomLogger logger = CustomLogger.getLogger(SIARDDKTestUtil.class);
+  private static final Logger logger = LoggerFactory.getLogger(SIARDDKTestUtil.class);
   private static Pattern fileIndexMd5sumReplacementPattern = Pattern.compile("<md5>[A-Fa-f0-9]{32}</md5>");
 
   static void assertArchiveFoldersEqualAfterExportImport(Path archiveFldToProcessPath, Path archiveFldExpectedPath,

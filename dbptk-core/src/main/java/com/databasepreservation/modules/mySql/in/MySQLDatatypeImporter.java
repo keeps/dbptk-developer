@@ -1,0 +1,84 @@
+package com.databasepreservation.modules.mySql.in;
+
+import com.databasepreservation.model.structure.type.SimpleTypeBinary;
+import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
+import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.modules.jdbc.in.JDBCDatatypeImporter;
+
+/**
+ * @author Bruno Ferreira <bferreira@keep.pt>
+ * @author Luis Faria <lfaria@keep.pt>
+ */
+public class MySQLDatatypeImporter extends JDBCDatatypeImporter {
+  @Override
+  protected Type getRealType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+    Type type;
+
+    if (columnSize == 12 && decimalDigits == 0) {
+      type = new SimpleTypeNumericApproximate(columnSize);
+      type.setSql99TypeName("REAL");
+      type.setSql2003TypeName("REAL");
+    } else {
+      type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
+    }
+
+    return type;
+  }
+
+  @Override
+  protected Type getDoubleType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+    Type type;
+
+    if (columnSize == 22 && decimalDigits == 0) {
+      type = new SimpleTypeNumericApproximate(columnSize);
+      type.setSql99TypeName("DOUBLE PRECISION");
+      type.setSql2003TypeName("DOUBLE PRECISION");
+    } else {
+      type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
+    }
+
+    return type;
+  }
+
+  @Override
+  protected Type getBinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+    Type type = new SimpleTypeBinary(columnSize);
+
+    type.setSql99TypeName("BINARY LARGE OBJECT");
+    type.setSql2003TypeName("BINARY LARGE OBJECT");
+
+    return type;
+  }
+
+  @Override
+  protected Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+    Type type = new SimpleTypeBinary(columnSize);
+    type.setSql99TypeName("BIT VARYING", columnSize * 8);
+    type.setSql2003TypeName("BIT VARYING", columnSize * 8);
+    return type;
+  }
+
+  @Override
+  protected Type getFloatType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+    Type type;
+
+    if (columnSize == 12 && decimalDigits == 0) {
+      type = new SimpleTypeNumericApproximate(columnSize);
+      type.setSql99TypeName("FLOAT");
+      type.setSql2003TypeName("FLOAT");
+    } else {
+      type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
+    }
+
+    return type;
+  }
+
+  @Override
+  protected Type getDateType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+    if ("YEAR".equals(typeName)) {
+      return getNumericType(typeName, 4, decimalDigits, numPrecRadix);
+    } else {
+      return super.getDateType(typeName, columnSize, decimalDigits, numPrecRadix);
+    }
+  }
+}

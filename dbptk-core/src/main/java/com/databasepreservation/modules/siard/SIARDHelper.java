@@ -1,16 +1,15 @@
 package com.databasepreservation.modules.siard;
 
 import org.apache.commons.lang3.StringEscapeUtils;
-
-import com.databasepreservation.CustomLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Miguel Coutada
  */
 
 public class SIARDHelper {
-
-  private static final CustomLogger logger = CustomLogger.getLogger(SIARDHelper.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARDHelper.class);
 
   /**
    * Encodes a data string as defined by SIARD format
@@ -61,9 +60,9 @@ public class SIARDHelper {
 
   public static byte[] hexStringToByteArray(String s) {
     int len = s.length();
-    logger.debug("len: " + len / 2);
+    LOGGER.debug("len: " + len / 2);
     byte[] data = new byte[len / 2];
-    logger.debug("data length: " + data.length);
+    LOGGER.debug("data length: " + data.length);
     for (int i = 0; i < len; i += 2) {
       data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
     }

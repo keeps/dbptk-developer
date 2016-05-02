@@ -5,20 +5,21 @@ package com.databasepreservation.modules.db2;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.SQLHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Miguel Coutada
  */
 public class DB2Helper extends SQLHelper {
 
-  private final CustomLogger logger = CustomLogger.getLogger(DB2Helper.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DB2Helper.class);
 
   @Override
   protected String createTypeSQL(Type type, boolean isPkey, boolean isFkey) throws UnknownTypeException {
@@ -28,7 +29,7 @@ public class DB2Helper extends SQLHelper {
       if (isPkey) {
         int length = string.getLength().intValue();
         if (length >= 65535) {
-          logger.warn("Resizing column length to 333 so " + "it can be a primary key");
+          LOGGER.debug("Resizing column length to 333 so it can be a primary key");
           length = 333;
         }
         ret = "varchar(" + length + ")";

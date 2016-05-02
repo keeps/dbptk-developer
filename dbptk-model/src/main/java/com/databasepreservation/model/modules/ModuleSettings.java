@@ -42,8 +42,10 @@ public class ModuleSettings {
   /**
    * Use the selectedTables set to determine if a table is selected.
    *
-   * @param schemaName the schema name
-   * @param tableName the table name
+   * @param schemaName
+   *          the schema name
+   * @param tableName
+   *          the table name
    * @return true if the table is selected, false otherwise
    */
   public boolean isSelectedTable(String schemaName, String tableName) {

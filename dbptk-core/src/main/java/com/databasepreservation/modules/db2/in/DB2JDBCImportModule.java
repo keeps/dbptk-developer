@@ -41,7 +41,7 @@ public class DB2JDBCImportModule extends JDBCImportModule {
    */
   public DB2JDBCImportModule(String hostname, int port, String database, String username, String password) {
     super("com.ibm.db2.jcc.DB2Driver", "jdbc:db2://" + hostname + ":" + port + "/" + database + ":user=" + username
-      + ";password=" + password + ";", new DB2Helper());
+      + ";password=" + password + ";", new DB2Helper(), new DB2JDBCDatatypeImporter());
     dbName = database;
   }
 
@@ -82,39 +82,7 @@ public class DB2JDBCImportModule extends JDBCImportModule {
     return ignored;
   }
 
-  @Override
-  protected Type getOtherType(int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
-    throws UnknownTypeException {
-    Type type;
-    if ("XML".equalsIgnoreCase(typeName)) {
-      type = new SimpleTypeString(31457280, true);
-      type.setSql99TypeName("CHARACTER LARGE OBJECT");
-      type.setSql2003TypeName("CHARACTER LARGE OBJECT");
-    } else if ("DECFLOAT".equalsIgnoreCase(typeName)) {
-      type = new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
-      type.setSql99TypeName("DOUBLE PRECISION");
-      type.setSql2003TypeName("DOUBLE PRECISION");
-    } else {
-      type = super.getOtherType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
-    }
-    return type;
-  }
 
-  @Override
-  protected Type getSpecificType(int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
-    throws UnknownTypeException {
-    Type type;
-    switch (dataType) {
-    // case 2001:
-    // type = new SimpleTypeNumericApproximate(
-    // Integer.valueOf(columnSize));
-    // break;
-      default:
-        type = super.getSpecificType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
-        break;
-    }
-    return type;
-  }
 
   /**
    * @return the db2 database alias tables

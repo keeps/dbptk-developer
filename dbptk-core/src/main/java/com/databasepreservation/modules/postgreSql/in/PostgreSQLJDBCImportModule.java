@@ -17,31 +17,29 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.databasepreservation.model.data.NullCell;
+import com.databasepreservation.model.Reporter;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.postgresql.util.PGobject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pt.gov.dgarq.roda.common.FileFormat;
 import pt.gov.dgarq.roda.common.FormatUtility;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
 import com.databasepreservation.model.data.FileItem;
+import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure.SubType;
-import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
-import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
-import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.postgreSql.PostgreSQLHelper;
@@ -72,8 +70,7 @@ import com.databasepreservation.modules.siard.SIARDHelper;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class PostgreSQLJDBCImportModule extends JDBCImportModule {
-
-  private final CustomLogger logger = CustomLogger.getLogger(PostgreSQLJDBCImportModule.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(PostgreSQLJDBCImportModule.class);
 
   /**
    * Create a new PostgreSQL JDBC import module
@@ -91,7 +88,8 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
    */
   public PostgreSQLJDBCImportModule(String hostname, String database, String username, String password, boolean encrypt) {
     super("org.postgresql.Driver", "jdbc:postgresql://" + hostname + "/" + database + "?user=" + username
-      + "&password=" + password + (encrypt ? "&ssl=true" : ""), new PostgreSQLHelper());
+      + "&password=" + password + (encrypt ? "&ssl=true" : ""), new PostgreSQLHelper(),
+      new PostgreSQLJDBCDatatypeImporter());
   }
 
   /**
@@ -114,18 +112,19 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
   public PostgreSQLJDBCImportModule(String hostname, int port, String database, String username, String password,
     boolean encrypt) {
     super("org.postgresql.Driver", "jdbc:postgresql://" + hostname + ":" + port + "/" + database + "?user=" + username
-      + "&password=" + password + (encrypt ? "&ssl=true" : ""), new PostgreSQLHelper());
+      + "&password=" + password + (encrypt ? "&ssl=true" : ""), new PostgreSQLHelper(),
+      new PostgreSQLJDBCDatatypeImporter());
   }
 
   @Override
   public Connection getConnection() throws SQLException, ClassNotFoundException {
     if (connection == null) {
-      logger.debug("Loading JDBC Driver " + driverClassName);
+      LOGGER.debug("Loading JDBC Driver " + driverClassName);
       Class.forName(driverClassName);
-      logger.debug("Getting connection");
+      LOGGER.debug("Getting connection");
       connection = DriverManager.getConnection(connectionURL);
       connection.setAutoCommit(false);
-      logger.debug("Connected");
+      LOGGER.debug("Connected");
 
     }
     return connection;
@@ -165,7 +164,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 
     query.append(" FROM ").append(table.getId());
 
-    logger.debug("query: " + query.toString());
+    LOGGER.debug("query: " + query.toString());
 
     Statement st = getStatement();
     st.setFetchSize(200);
@@ -192,7 +191,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       List<String> names = subtype.getPath();
 
       if (names.size() < 2) {
-        logger.debug("UDT type hierarchy is too small. columnId: " + columnId + ", " + subtype.toString());
+        LOGGER.debug("UDT type hierarchy is too small. columnId: " + columnId + ", " + subtype.toString());
       }
 
       sb.append(separator);
@@ -206,7 +205,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 
       String alias = RandomStringUtils.random(15, "abcdefghijklmnopqrstuvwxyz");
       while (columnNames.contains(alias)) {
-        logger.debug("random alias: column name '" + alias + "' exists.");
+        LOGGER.debug("random alias: column name '" + alias + "' exists.");
         alias = RandomStringUtils.random(15, "abcdefghijklmnopqrstuvwxyz");
       }
       columnNames.add(alias);
@@ -242,8 +241,15 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
           udtColumnsIndexes.add(i);
           cells.add(null);
         } else {
-          cells.add(convertRawToCell(tableStructure.getName(), colStruct.getName(), i + 1, currentRow,
-            colStruct.getType(), rawData));
+          Cell cell;
+          try {
+            cell = convertRawToCell(tableStructure.getName(), colStruct.getName(), i + 1, currentRow,
+              colStruct.getType(), rawData);
+          }catch (Exception e){
+            cell = new SimpleCell(tableStructure.getName() + "." + colStruct.getName() + "." + (i + 1), null);
+            Reporter.cellProcessingUsedNull(tableStructure, colStruct, currentRow, e);
+          }
+          cells.add(cell);
         }
       }
 
@@ -266,8 +272,14 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 
           String aliasColumnName = tableStructure.getUDTAlias(extraColumnName.toString());
 
-          udtCells.add(convertRawToCell(tableStructure.getName(), aliasColumnName, udtColumnIndex + 1, currentRow,
-            subtype.getType(), rawData));
+          Cell cell;
+          try {
+            cell = convertRawToCell(tableStructure.getName(), aliasColumnName, udtColumnIndex + 1, currentRow, subtype.getType(), rawData);
+          }catch (Exception e){
+            cell = new SimpleCell(tableStructure.getName() + "." + aliasColumnName + "." + (udtColumnIndex + 1), null);
+            Reporter.cellProcessingUsedNull(tableStructure, udtColumn, currentRow, e);
+          }
+          udtCells.add(cell);
 
           i++;
         }
@@ -277,6 +289,17 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       }
 
       row = new Row(currentRow, cells);
+    } else {
+      // insert null in all fields
+      List<Cell> cells = new ArrayList<Cell>(tableStructure.getColumns().size());
+      for (int i = 0; i < tableStructure.getColumns().size(); i++) {
+        ColumnStructure colStruct = tableStructure.getColumns().get(i);
+        cells.add(new SimpleCell(tableStructure.getName() + "." + colStruct.getName() + "." + (i + 1), null));
+      }
+      row = new Row(tableStructure.getCurrentRow(), cells);
+
+      Reporter.rowProcessingUsedNull(tableStructure, tableStructure.getCurrentRow(), new ModuleException(
+        "isRowValid returned false"));
     }
     tableStructure.incrementCurrentRow();
     return row;
@@ -304,9 +327,10 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       ret = true;
     } else {
       ret = false;
-      throw new InvalidDataException("table: " + structure.getName() + " row number: " + raw.getRow()
-        + " error: different column number from structure. Got " + metadata.getColumnCount() + " columns and expected "
-        + structure.getColumns().size() + " (or " + colNumber + " with UDT fields)");
+      LOGGER.debug("Invalid row",
+        new InvalidDataException("table: " + structure.getName() + " row number: " + raw.getRow()
+          + " error: different column number from structure. Got " + metadata.getColumnCount()
+          + " columns and expected " + structure.getColumns().size() + " (or " + colNumber + " with UDT fields)"));
     }
     return ret;
   }
@@ -324,103 +348,6 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     return ignoredSchemas;
   }
 
-  @Override
-  protected Type getBinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type = new SimpleTypeBinary(columnSize);
-    if ("bytea".equalsIgnoreCase(typeName)) {
-      type.setSql99TypeName("BINARY LARGE OBJECT");
-      type.setSql2003TypeName("BINARY LARGE OBJECT");
-    } else {
-      type.setSql99TypeName("BINARY LARGE OBJECT");
-      type.setSql2003TypeName("BINARY LARGE OBJECT");
-    }
-    return type;
-  }
-
-  @Override
-  protected Type getDoubleType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    if ("MONEY".equalsIgnoreCase(typeName) || "FLOAT8".equalsIgnoreCase(typeName)) {
-      logger.warn("Setting Money column size to 53");
-      columnSize = 53;
-    }
-    Type type = new SimpleTypeNumericApproximate(columnSize);
-    type.setSql99TypeName("DOUBLE PRECISION");
-    type.setSql2003TypeName("DOUBLE PRECISION");
-    return type;
-  }
-
-  @Override
-  protected Type getTimeType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type;
-    if ("TIMETZ".equalsIgnoreCase(typeName)) {
-      type = new SimpleTypeDateTime(true, true);
-      type.setSql99TypeName("TIME WITH TIME ZONE");
-      type.setSql2003TypeName("TIME WITH TIME ZONE");
-    } else {
-      type = new SimpleTypeDateTime(true, false);
-      type.setSql99TypeName("TIME");
-      type.setSql2003TypeName("TIME");
-    }
-
-    return type;
-  }
-
-  @Override
-  protected Type getTimestampType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type;
-    if ("TIMESTAMPTZ".equalsIgnoreCase(typeName)) {
-      type = new SimpleTypeDateTime(true, true);
-      type.setSql99TypeName("TIMESTAMP WITH TIME ZONE");
-      type.setSql2003TypeName("TIMESTAMP WITH TIME ZONE");
-    } else {
-      type = new SimpleTypeDateTime(true, false);
-      type.setSql99TypeName("TIMESTAMP");
-      type.setSql2003TypeName("TIMESTAMP");
-    }
-
-    return type;
-  }
-
-  @Override
-  protected Type getVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type = new SimpleTypeString(columnSize, true);
-    if ("text".equalsIgnoreCase(typeName)) {
-      type.setSql99TypeName("CHARACTER LARGE OBJECT");
-      type.setSql2003TypeName("CHARACTER LARGE OBJECT");
-    } else {
-      type.setSql99TypeName("CHARACTER VARYING", columnSize);
-      type.setSql2003TypeName("CHARACTER VARYING", columnSize);
-    }
-    return type;
-  }
-
-  @Override
-  protected Type getSpecificType(int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
-    throws UnknownTypeException {
-    Type type;
-    logger.debug("Specific type name: " + typeName);
-    logger.debug("------\n");
-    switch (dataType) {
-      case 2009: // XML Data type
-        type = new SimpleTypeString(columnSize, true);
-        type.setSql99TypeName("CHARACTER LARGE OBJECT");
-        type.setSql2003TypeName("CHARACTER LARGE OBJECT");
-        break;
-      default:
-        type = super.getSpecificType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
-        break;
-    }
-    return type;
-  }
-
-  @Override
-  protected Type getComposedTypeStructure(String schemaName, int dataType, String typeName) {
-    Type type = new SimpleTypeString(65535, true);
-    type.setSql99TypeName("CHARACTER LARGE OBJECT");
-    type.setSql2003TypeName("CHARACTER LARGE OBJECT");
-    return type;
-  }
-
   /**
    * Drops money currency
    */
@@ -433,7 +360,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       if (data != null) {
         String parts[] = data.split(" ");
         if (parts[1] != null) {
-          logger.warn("Money currency lost: " + parts[1]);
+          LOGGER.warn("Money currency lost: " + parts[1]);
         }
         cell = new SimpleCell(id, parts[0]);
       } else {
@@ -496,10 +423,10 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
         String time_string = rawData.getString(columnName);
         if (time_string.matches("^\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[+-]\\d{2}$")) {
           cell = new SimpleCell(id, time_string + ":00");
-          logger.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell) cell).getSimpleData()));
+          LOGGER.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell) cell).getSimpleData()));
         } else if (time_string.matches("^\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[+-]\\d{2}:\\d{2}$")) {
           cell = new SimpleCell(id, time_string);
-          logger.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell) cell).getSimpleData()));
+          LOGGER.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell) cell).getSimpleData()));
         } else {
           cell = super.rawToCellSimpleTypeDateTime(id, columnName, cellType, rawData);
         }
@@ -515,7 +442,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
   @Override
   protected Cell rawToCellComposedTypeStructure(String id, String columnName, Type cellType, ResultSet rawData)
     throws InvalidDataException {
-    logger.debug("postgresql, rawToCellComposedTypeStructure, ignored composed type cell");
+    LOGGER.debug("postgresql, rawToCellComposedTypeStructure, ignored composed type cell");
     return null;
   }
 

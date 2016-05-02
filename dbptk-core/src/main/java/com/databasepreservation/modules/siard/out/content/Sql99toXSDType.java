@@ -3,7 +3,6 @@ package com.databasepreservation.modules.siard.out.content;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.type.ComposedTypeArray;
@@ -16,6 +15,8 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Convert sql99 types into XML or XSD types
@@ -26,7 +27,7 @@ public class Sql99toXSDType {
   private static final Map<String, String> sql99toXSDconstant = new HashMap<String, String>();
   private static final Map<String, String> sql99toXSDregex = new HashMap<String, String>();
 
-  private static final CustomLogger logger = CustomLogger.getLogger(Sql99toXSDType.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(Sql99toXSDType.class);
 
   static {
     // initialize sql99 conversion tables
@@ -88,12 +89,12 @@ public class Sql99toXSDType {
       ret = convert(type.getSql99TypeName());
 
     } else if (type instanceof UnsupportedDataType) {
-      logger.warn("Unsupported datatype: " + type.toString() + ". Using xs:string as xml type.");
+      LOGGER.warn("Unsupported datatype: " + type.toString() + ". Using xs:string as xml type.");
       return "xs:string";
     } else if (type instanceof ComposedTypeArray) {
       throw new ModuleException("Not yet supported type: ARRAY");
     } else if (type instanceof ComposedTypeStructure) {
-      logger.error("User Defined Types are not supported by SIARD 1.");
+      LOGGER.error("User Defined Types are not supported by SIARD 1.");
       ret = null;
     } else {
       throw new UnknownTypeException(type.toString());

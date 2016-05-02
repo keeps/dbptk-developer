@@ -18,10 +18,11 @@ import java.util.Random;
 import org.joda.time.DateTime;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.FileItem;
@@ -71,8 +72,7 @@ import com.databasepreservation.utils.JodaUtils;
  */
 @Test(groups = {"siard-roundtrip"})
 public class SiardTest {
-
-  private static final CustomLogger logger = CustomLogger.getLogger(SiardTest.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SiardTest.class);
 
   private Map<String, List<Row>> tableRows;
 
@@ -125,9 +125,9 @@ public class SiardTest {
       }
     }
     if (differ) {
-      logger.debug(diff.diff_prettyCmd(diffs));
+      LOGGER.debug(diff.diff_prettyCmd(diffs));
     } else {
-      logger.debug("toString() are equal!");
+      LOGGER.debug("toString() are equal!");
     }
 
     assert original.equals(other) : "The final structure (from SIARD) differs from the original structure";
@@ -544,16 +544,16 @@ public class SiardTest {
     }
 
     // behaviour
-    logger.debug("initializing database");
+    LOGGER.debug("initializing database");
     exporter.initDatabase();
     exporter.setIgnoredSchemas(new HashSet<String>());
-    logger.info("STARTED: Getting the database structure.");
+    LOGGER.info("STARTED: Getting the database structure.");
     exporter.handleStructure(dbStructure);
-    logger.info("FINISHED: Getting the database structure.");
+    LOGGER.info("FINISHED: Getting the database structure.");
     for (SchemaStructure thisschema : dbStructure.getSchemas()) {
       exporter.handleDataOpenSchema(thisschema.getName());
       for (TableStructure thistable : thisschema.getTables()) {
-        logger.info("STARTED: Getting data of table: " + thistable.getId());
+        LOGGER.info("STARTED: Getting data of table: " + thistable.getId());
         thistable.setSchema(thisschema);
         exporter.handleDataOpenTable(thistable.getId());
         int nRows = 0;
@@ -562,19 +562,19 @@ public class SiardTest {
           exporter.handleDataRow(rowsIterator.next());
           nRows++;
         }
-        logger.info("Total of " + nRows + " row(s) processed");
+        LOGGER.info("Total of " + nRows + " row(s) processed");
         exporter.handleDataCloseTable(thistable.getId());
-        logger.info("FINISHED: Getting data of table: " + thistable.getId());
+        LOGGER.info("FINISHED: Getting data of table: " + thistable.getId());
       }
       exporter.handleDataCloseSchema(thisschema.getName());
     }
-    logger.debug("finishing database");
+    LOGGER.debug("finishing database");
     exporter.finishDatabase();
 
-    logger.debug("done");
-    logger.debug("getting the data back from SIARD");
+    LOGGER.debug("done");
+    LOGGER.debug("getting the data back from SIARD");
 
-    logger.debug("SIARD file: " + tmpFile.toUri().toString());
+    LOGGER.debug("SIARD file: " + tmpFile.toUri().toString());
     DatabaseExportModule mocked = Mockito.mock(DatabaseExportModule.class);
 
     DatabaseImportModule importer = null;

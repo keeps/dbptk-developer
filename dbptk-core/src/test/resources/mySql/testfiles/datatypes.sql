@@ -1,3 +1,5 @@
+USE dpttest;
+
 CREATE TABLE datatypes (
   -- Numeric types
   col1 TINYINT,

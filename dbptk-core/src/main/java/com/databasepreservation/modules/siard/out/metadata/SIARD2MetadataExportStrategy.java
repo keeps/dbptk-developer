@@ -17,6 +17,8 @@ import javax.xml.validation.SchemaFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import ch.admin.bar.xmlns.siard._2_0.metadata.ActionTimeType;
@@ -57,7 +59,6 @@ import ch.admin.bar.xmlns.siard._2_0.metadata.UsersType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.ViewType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.ViewsType;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.CandidateKey;
@@ -93,7 +94,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
   private static final String ENCODING = "UTF-8";
   private static final String METADATA_FILENAME = "metadata";
   private static final String METADATA_RESOURCE_FILENAME = "siard2-metadata";
-  private final CustomLogger logger = CustomLogger.getLogger(SIARD2MetadataExportStrategy.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2MetadataExportStrategy.class);
   private final SIARD2ContentPathExportStrategy contentPathStrategy;
   private final MetadataPathStrategy metadataPathStrategy;
   private final boolean savingLobsExternally;
@@ -293,7 +294,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
       privilegeType.setObject(privilege.getObject());
     } else {
       privilegeType.setObject("unknown object");
-      // logger.warn("Could not export privilege object");
+      // LOGGER.warn("Could not export privilege object");
       // TODO: check in which circumstances this happens
       throw new ModuleException("Error while exporting users structure: privilege object cannot be blank");
     }
@@ -389,7 +390,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
       SchemasType schemasType = new SchemasType();
       for (SchemaStructure schema : schemas) {
         if (schema.getTables().isEmpty()) {
-          logger.warn("Schema " + schema.getName() + " was not exported because it does not contain tables.");
+          LOGGER.warn("Schema " + schema.getName() + " was not exported because it does not contain tables.");
         } else {
           schemasType.getSchema().add(jaxbSchemaType(schema));
         }
@@ -480,12 +481,11 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
 
     if (type != null) {
       if (type instanceof ComposedTypeStructure) {
-        logger.debug("Saving UDT type '" + type.getOriginalTypeName() + "'(internal_id:" + type.hashCode() + ")");
+        LOGGER.debug("Saving UDT type '" + type.getOriginalTypeName() + "'(internal_id:" + type.hashCode() + ")");
         attributeType.setTypeName(type.getOriginalTypeName());
       } else {
-        logger.debug("Saving type '" + type.getOriginalTypeName() + "'(internal_id:" + type.hashCode() + ") as "
+        LOGGER.debug("Saving type '" + type.getOriginalTypeName() + "'(internal_id:" + type.hashCode() + ") as "
           + type.getSql2003TypeName());
-        logger.info("Saving type '" + type.getOriginalTypeName() + "' as '" + type.getSql2003TypeName() + "'");
         attributeType.setType(type.getSql2003TypeName());
         attributeType.setTypeOriginal(type.getOriginalTypeName());
       }
@@ -658,14 +658,14 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
 
     if (column.getType() != null) {
       if (column.getType() instanceof ComposedTypeStructure) {
-        logger.debug("Saving composed type '" + column.getType().getOriginalTypeName() + "'(internal_id:"
+        LOGGER.debug("Saving composed type '" + column.getType().getOriginalTypeName() + "'(internal_id:"
           + column.getType().hashCode() + ")");
-        logger.info("Saving composed type '" + column.getType().getOriginalTypeName() + "'");
+        LOGGER.debug("Saving composed type '" + column.getType().getOriginalTypeName() + "'");
         columnType.setTypeName(column.getType().getOriginalTypeName());
       } else {
-        logger.debug("Saving type '" + column.getType().getOriginalTypeName() + "'(internal_id:"
+        LOGGER.debug("Saving type '" + column.getType().getOriginalTypeName() + "'(internal_id:"
           + column.getType().hashCode() + ") as " + column.getType().getSql2003TypeName());
-        logger.info("Saving type '" + column.getType().getOriginalTypeName() + "' as '"
+        LOGGER.debug("Saving type '" + column.getType().getOriginalTypeName() + "' as '"
           + column.getType().getSql2003TypeName() + "'");
         columnType.setType(column.getType().getSql2003TypeName());
         columnType.setTypeOriginal(column.getType().getOriginalTypeName());
@@ -673,7 +673,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
         if (column.isNillable() != null) {
           columnType.setNullable(column.getNillable());
         } else {
-          logger.warn("column nullable property was null. changed it to false");
+          LOGGER.warn("column nullable property was null. changed it to false");
         }
       }
     } else {
@@ -714,16 +714,15 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
   }
 
   private TablesType jaxbTablesType(SchemaStructure schema, List<TableStructure> tables) throws ModuleException {
+    TablesType tablesType = new TablesType();
     if (tables != null && !tables.isEmpty()) {
-      TablesType tablesType = new TablesType();
       for (TableStructure tableStructure : tables) {
         tablesType.getTable().add(jaxbTableType(schema, tableStructure));
       }
-      return tablesType;
     } else {
-      logger.info(String.format("Schema %s does not have any tables.", schema.getName()));
-      return null;
+      LOGGER.info(String.format("Schema %s does not have any tables.", schema.getName()));
     }
+    return tablesType;
   }
 
   private TableType jaxbTableType(SchemaStructure schema, TableStructure table) throws ModuleException {
@@ -780,7 +779,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
       } else {
         // throw new
         // ModuleException("Error while exporting primary key: column list cannot be empty");
-        logger.warn("Error while exporting primary key: column list cannot be empty");
+        LOGGER.warn("Error while exporting primary key: column list cannot be empty");
       }
 
       return primaryKeyType;

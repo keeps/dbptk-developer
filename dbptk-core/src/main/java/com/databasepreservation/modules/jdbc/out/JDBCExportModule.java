@@ -6,6 +6,7 @@ package com.databasepreservation.modules.jdbc.out;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.sql.BatchUpdateException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -24,9 +25,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.util.InvalidDateException;
 
-import com.databasepreservation.CustomLogger;
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -64,7 +67,7 @@ public class JDBCExportModule implements DatabaseExportModule {
   protected final String connectionURL;
   protected final Map<String, Connection> connections;
   protected final boolean canDropDatabase;
-  private final CustomLogger logger = CustomLogger.getLogger(JDBCExportModule.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(JDBCExportModule.class);
   protected Connection connection;
 
   protected Statement statement;
@@ -77,13 +80,16 @@ public class JDBCExportModule implements DatabaseExportModule {
 
   protected int batch_index;
 
-  protected PreparedStatement currentRowInsertStatement;
+  protected PreparedStatement currentRowBatchInsertStatement;
+  protected long currentRowBatchStartIndex = 0;
 
   protected Set<String> ignoredSchemas;
 
   protected Set<String> existingSchemas;
 
   protected boolean currentIsIgnoredSchema;
+
+  private final List<String> batchSQL = new ArrayList<>();
 
   /**
    * Generic JDBC export module constructor
@@ -108,7 +114,7 @@ public class JDBCExportModule implements DatabaseExportModule {
    *          the SQLHelper instance to use
    */
   public JDBCExportModule(String driverClassName, String connectionURL, SQLHelper sqlHelper) {
-    // logger.debug(driverClassName + ", " + connectionURL);
+    // LOGGER.debug(driverClassName + ", " + connectionURL);
     this.driverClassName = driverClassName;
     this.connectionURL = connectionURL;
     this.sqlHelper = sqlHelper;
@@ -119,7 +125,7 @@ public class JDBCExportModule implements DatabaseExportModule {
     databaseStructure = null;
     currentTableStructure = null;
     batch_index = 0;
-    currentRowInsertStatement = null;
+    currentRowBatchInsertStatement = null;
     ignoredSchemas = new HashSet<String>();
     existingSchemas = null;
     currentIsIgnoredSchema = false;
@@ -137,13 +143,13 @@ public class JDBCExportModule implements DatabaseExportModule {
   public Connection getConnection() throws ModuleException {
     if (connection == null) {
       try {
-        logger.debug("Loading JDBC Driver " + driverClassName);
+        LOGGER.debug("Loading JDBC Driver " + driverClassName);
         Class.forName(driverClassName);
-        logger.debug("Getting connection");
-        // logger.debug("Connection URL: " + connectionURL);
+        LOGGER.debug("Getting connection");
+        // LOGGER.debug("Connection URL: " + connectionURL);
         connection = DriverManager.getConnection(connectionURL);
         connection.setAutoCommit(true);
-        logger.debug("Connected");
+        LOGGER.debug("Connected");
       } catch (ClassNotFoundException e) {
         throw new ModuleException("JDBC driver class could not be found", e);
       } catch (SQLException e) {
@@ -165,14 +171,14 @@ public class JDBCExportModule implements DatabaseExportModule {
   public Connection getConnection(String databaseName, String connectionURL) throws ModuleException {
     Connection connection;
     try {
-      logger.debug("Database: " + databaseName);
-      logger.debug("Loading JDBC Driver " + driverClassName);
+      LOGGER.debug("Database: " + databaseName);
+      LOGGER.debug("Loading JDBC Driver " + driverClassName);
       Class.forName(driverClassName);
-      logger.debug("Getting admin connection");
-      // logger.debug("Connection URL: " + connectionURL);
+      LOGGER.debug("Getting admin connection");
+      // LOGGER.debug("Connection URL: " + connectionURL);
       connection = DriverManager.getConnection(connectionURL);
       connection.setAutoCommit(true);
-      logger.debug("Connected");
+      LOGGER.debug("Connected");
       connections.put(databaseName, connection);
     } catch (ClassNotFoundException e) {
       throw new ModuleException("JDBC driver class could not be found", e);
@@ -236,7 +242,7 @@ public class JDBCExportModule implements DatabaseExportModule {
 
   @Override
   public void initDatabase() throws ModuleException {
-    logger.debug("on init db");
+    LOGGER.debug("on init db");
     getConnection();
     // nothing to do
   }
@@ -258,44 +264,26 @@ public class JDBCExportModule implements DatabaseExportModule {
     try {
       this.existingSchemas = getExistingSchemasNames();
     } catch (SQLException e) {
-      logger.error("An error occurred while getting the name of existing schemas", e);
+      LOGGER.error("An error occurred while getting the name of existing schemas", e);
     }
     createDatabase(structure.getName());
     int[] batchResult = null;
     if (getStatement() != null) {
-      try {
-        logger.info("Handling database structure");
-        for (SchemaStructure schema : structure.getSchemas()) {
-          // won't export ignored schemas
-          if (isIgnoredSchema(schema.getName())) {
-            logger.warn("Schema not exported because it's defined as ignored (possibily is a system schema): "
-              + schema.getName());
-          } else {
-            handleSchemaStructure(schema);
-          }
+      LOGGER.info("Exporting database structure");
+      for (SchemaStructure schema : structure.getSchemas()) {
+        // won't export ignored schemas
+        if (isIgnoredSchema(schema.getName())) {
+          LOGGER.warn("Schema not exported because it's defined " + "as ignored (possibily is a system schema): "
+            + schema.getName());
+        }else {
+          LOGGER.info("Exporting schema structure for schema " + schema.getName());
+          handleSchemaStructure(schema);
+          LOGGER.info("Exporting schema structure for schema " + schema.getName());
         }
-        logger.debug("Executing table creation batch");
-        batchResult = getStatement().executeBatch();
-        getStatement().clearBatch();
-        logger.info("Handling datababase structure finished");
-      } catch (SQLException e) {
-        if (batchResult != null) {
-          for (int i = 0; i < batchResult.length; i++) {
-            int result = batchResult[i];
-            if (result == Statement.EXECUTE_FAILED) {
-              logger.warn("Batch failed at index " + i);
-            }
-          }
-        }
-        SQLException ei = e;
-        do {
-          if (ei != null) {
-            logger.warn("Error creating " + "structure (next exception)", ei);
-          }
-          ei = ei.getNextException();
-        } while (ei != null);
-        logger.warn("Error creating structure", e);
       }
+      LOGGER.debug("Executing table creation batch");
+      statementExecuteAndClearBatch();
+      LOGGER.info("Exporting database structure finished");
     }
   }
 
@@ -304,25 +292,21 @@ public class JDBCExportModule implements DatabaseExportModule {
   }
 
   protected void handleSchemaStructure(SchemaStructure schema) throws ModuleException, UnknownTypeException {
-    logger.info("Handling schema structure " + schema.getName());
+    LOGGER.debug("Exporting schema structure for " + schema.getName());
     try {
       if (!isExistingSchema(schema.getName())) {
-        getStatement().addBatch(sqlHelper.createSchemaSQL(schema));
-        getStatement().executeBatch();
-        logger.debug("batch executed: " + schema.getName());
+        statementAddBatch(sqlHelper.createSchemaSQL(schema));
+        statementExecuteAndClearBatch();
+        LOGGER.debug("batch executed: " + schema.getName());
       }
 
       for (TableStructure table : schema.getTables()) {
         handleTableStructure(table);
       }
 
-      logger.info("Handling schema structure " + schema.getName() + " finished");
+      LOGGER.debug("Exporting schema structure " + schema.getName() + " completed");
     } catch (SQLException e) {
-      logger.error("Error handling schema structure", e);
-      SQLException nextException = e.getNextException();
-      if (nextException != null) {
-        logger.error("Error details", nextException);
-      }
+      LOGGER.error("Error exporting schema structure", e);
       throw new ModuleException("Error while adding schema SQL to batch", e);
     }
   }
@@ -366,20 +350,15 @@ public class JDBCExportModule implements DatabaseExportModule {
   }
 
   protected void handleTableStructure(TableStructure table) throws ModuleException, UnknownTypeException {
-
     if (getStatement() != null) {
-      try {
-        logger.info("Handling table structure " + table.getName());
-        logger.debug("Adding to batch creation of table " + table.getName());
-        logger.debug("SQL: " + sqlHelper.createTableSQL(table));
-        getStatement().addBatch(sqlHelper.createTableSQL(table));
-        String pkeySQL = sqlHelper.createPrimaryKeySQL(table.getId(), table.getPrimaryKey());
-        if (pkeySQL != null) {
-          logger.debug("SQL: " + pkeySQL);
-          getStatement().addBatch(pkeySQL);
-        }
-      } catch (SQLException e) {
-        throw new ModuleException("Error while adding SQL to batch", e);
+      LOGGER.info("Exporting table structure for " + table.getName());
+      LOGGER.debug("Adding to batch creation of table " + table.getName());
+      LOGGER.debug("SQL: " + sqlHelper.createTableSQL(table));
+      statementAddBatch(sqlHelper.createTableSQL(table));
+      String pkeySQL = sqlHelper.createPrimaryKeySQL(table.getId(), table.getPrimaryKey());
+      if (pkeySQL != null) {
+        LOGGER.debug("SQL: " + pkeySQL);
+        statementAddBatch(pkeySQL);
       }
     }
   }
@@ -421,16 +400,18 @@ public class JDBCExportModule implements DatabaseExportModule {
 
   @Override
   public void handleDataOpenTable(String tableId) throws ModuleException {
-    logger.debug("Started data open: " + tableId);
+    LOGGER.debug("Started data open: " + tableId);
     if (databaseStructure != null) {
       TableStructure table = databaseStructure.lookupTableStructure(tableId);
       this.currentTableStructure = table;
       if (currentTableStructure != null) {
         if (!currentIsIgnoredSchema) {
           try {
-            logger.info("Exporting data for " + table.getId());
-            currentRowInsertStatement = getConnection().prepareStatement(sqlHelper.createRowSQL(currentTableStructure));
-            logger.debug("sql: " + sqlHelper.createRowSQL(currentTableStructure));
+            LOGGER.info("Exporting content to table for " + table.getId());
+            currentRowBatchInsertStatement = getConnection().prepareStatement(
+              sqlHelper.createRowSQL(currentTableStructure));
+            currentRowBatchStartIndex = 0;
+            LOGGER.debug("sql: " + sqlHelper.createRowSQL(currentTableStructure));
 
           } catch (SQLException e) {
             throw new ModuleException("Error creating table " + tableId + " prepared statement", e);
@@ -449,17 +430,17 @@ public class JDBCExportModule implements DatabaseExportModule {
     currentTableStructure = null;
     if (batch_index > 0) {
       try {
-        currentRowInsertStatement.executeBatch();
+        currentRowBatchInsertStatement.executeBatch();
       } catch (SQLException e) {
-        logger.error("Error closing table", e);
+        LOGGER.error("Error closing table", e);
         SQLException nextException = e.getNextException();
         if (nextException != null) {
-          logger.error("More details", nextException);
+          LOGGER.error("More details", nextException);
         }
         throw new ModuleException("Error executing insert batch", e);
       }
       batch_index = 0;
-      currentRowInsertStatement = null;
+      currentRowBatchInsertStatement = null;
       currentIsIgnoredSchema = false;
     }
   }
@@ -472,35 +453,44 @@ public class JDBCExportModule implements DatabaseExportModule {
   @Override
   public void handleDataRow(Row row) throws InvalidDataException, ModuleException {
     if (!currentIsIgnoredSchema) {
-      if (currentTableStructure != null && currentRowInsertStatement != null) {
+      if (currentTableStructure != null && currentRowBatchInsertStatement != null) {
         Iterator<ColumnStructure> columnIterator = currentTableStructure.getColumns().iterator();
         List<CleanResourcesInterface> cleanResourcesList = new ArrayList<CleanResourcesInterface>();
         int index = 1;
         for (Cell cell : row.getCells()) {
           ColumnStructure column = columnIterator.next();
-          CleanResourcesInterface cleanResources = handleDataCell(currentRowInsertStatement, index, cell,
+          CleanResourcesInterface cleanResources = handleDataCell(currentRowBatchInsertStatement, index, cell,
             column.getType());
           cleanResourcesList.add(cleanResources);
           index++;
         }
+
+        long currentRowBatchEndIndex = row.getIndex();
         try {
-          currentRowInsertStatement.addBatch();
+          currentRowBatchInsertStatement.addBatch();
           if (++batch_index > BATCH_SIZE) {
             batch_index = 0;
-            currentRowInsertStatement.executeBatch();
-            currentRowInsertStatement.clearBatch();
+            currentRowBatchInsertStatement.executeBatch();
+            currentRowBatchInsertStatement.clearBatch();
           }
         } catch (SQLException e) {
-          throw new ModuleException("Error executing insert batch", e);
+          LOGGER.error("Error executing part of a batch of queries", e);
+          Reporter.failed("In table `" + currentTableStructure.getId() + "`, inserting rows with index from "
+            + currentRowBatchStartIndex + " to " + currentRowBatchEndIndex + " m",
+            " there was an error with at least one of the rows");
+          Reporter.customMessage(getClass().getName(), "In table `" + currentTableStructure.getId()
+            + "`, inserting rows with index from " + currentRowBatchStartIndex + " to " + currentRowBatchEndIndex
+            + " failed for at least one of the rows (and potentially for all of them, depending on the target DBMS)");
         } finally {
           if (batch_index == 0) {
             for (CleanResourcesInterface clean : cleanResourcesList) {
               clean.clean();
             }
+            currentRowBatchStartIndex = currentRowBatchEndIndex + 1;
           }
         }
       } else if (databaseStructure != null) {
-        throw new ModuleException("Cannot handle data row before a table " + "is open and insert statement created");
+        throw new ModuleException("Cannot handle data row before a table is open and insert statement created");
       }
     }
   }
@@ -510,7 +500,6 @@ public class JDBCExportModule implements DatabaseExportModule {
     CleanResourcesInterface ret = new CleanResourcesInterface() {
       @Override
       public void clean() {
-
       }
     };
     try {
@@ -522,8 +511,8 @@ public class JDBCExportModule implements DatabaseExportModule {
       if (cell instanceof SimpleCell) {
         SimpleCell simple = (SimpleCell) cell;
         String data = simple.getSimpleData();
-        // logger.debug("data: " + data);
-        // logger.debug("type: " + type.getOriginalTypeName());
+        // LOGGER.debug("data: " + data);
+        // LOGGER.debug("type: " + type.getOriginalTypeName());
         if (type instanceof SimpleTypeString) {
           handleSimpleTypeStringDataCell(data, ps, index, cell, type);
         } else if (type instanceof SimpleTypeNumericExact) {
@@ -553,7 +542,7 @@ public class JDBCExportModule implements DatabaseExportModule {
           if (bin.canCreateInputstream()) {
             ps.setBinaryStream(index, bin.createInputstream(), (int) bin.getLength());
           } else {
-            logger.debug("is null");
+            LOGGER.debug("is null");
             ps.setNull(index, Types.BINARY);
           }
           ret = new CleanResourcesInterface() {
@@ -579,7 +568,7 @@ public class JDBCExportModule implements DatabaseExportModule {
             }
           };
         } else {
-          logger.error("Binary cell found when column type is " + type.getClass().getSimpleName());
+          LOGGER.error("Binary cell found when column type is " + type.getClass().getSimpleName());
         }
 
       } else if (cell instanceof ComposedCell) {
@@ -592,7 +581,7 @@ public class JDBCExportModule implements DatabaseExportModule {
     } catch (SQLException e) {
       throw new ModuleException("SQL error while handling cell " + cell.getId(), e);
     } catch (InvalidDateException e) {
-      logger.debug("Original InvalidDateException (for debug)", e);
+      LOGGER.debug("Original InvalidDateException (for debug)", e);
       throw new InvalidDataException("Error handling cell " + cell.getId() + ":" + e.getMessage());
     }
     return ret;
@@ -610,7 +599,7 @@ public class JDBCExportModule implements DatabaseExportModule {
   protected void handleSimpleTypeNumericExactDataCell(String data, PreparedStatement ps, int index, Cell cell, Type type)
     throws NumberFormatException, SQLException {
     if (data != null) {
-      // logger.debug("big decimal: " + data);
+      // LOGGER.debug("big decimal: " + data);
       BigDecimal bd = new BigDecimal(data);
       ps.setBigDecimal(index, bd);
     } else {
@@ -634,19 +623,19 @@ public class JDBCExportModule implements DatabaseExportModule {
       if ("TIMESTAMP".equalsIgnoreCase(type.getSql99TypeName())
         || "TIMESTAMP WITH TIME ZONE".equalsIgnoreCase(type.getSql99TypeName())) {
         if (data != null) {
-          // logger.debug("timestamp before: " + data);
+          // LOGGER.debug("timestamp before: " + data);
           Calendar cal = javax.xml.bind.DatatypeConverter.parseDateTime(data);
           Timestamp sqlTimestamp = new Timestamp(cal.getTimeInMillis());
-          logger.debug("timestamp after: " + sqlTimestamp.toString());
+          LOGGER.debug("timestamp after: " + sqlTimestamp.toString());
           ps.setTimestamp(index, sqlTimestamp);
         } else {
           ps.setNull(index, Types.TIMESTAMP);
         }
       } else {
         if (data != null) {
-          // logger.debug("TIME before: " + data);
+          // LOGGER.debug("TIME before: " + data);
           Time sqlTime = Time.valueOf(data);
-          // logger.debug("TIME after: " + sqlTime.toString());
+          // LOGGER.debug("TIME after: " + sqlTime.toString());
           ps.setTime(index, sqlTime);
         } else {
           ps.setNull(index, Types.TIME);
@@ -654,9 +643,9 @@ public class JDBCExportModule implements DatabaseExportModule {
       }
     } else {
       if (data != null) {
-        // logger.debug("DATE before: " + data);
+        // LOGGER.debug("DATE before: " + data);
         java.sql.Date sqlDate = java.sql.Date.valueOf(data);
-        // logger.debug("DATE after: " + sqlDate.toString());
+        // LOGGER.debug("DATE after: " + sqlDate.toString());
         ps.setDate(index, sqlDate);
       } else {
         ps.setNull(index, Types.DATE);
@@ -667,7 +656,7 @@ public class JDBCExportModule implements DatabaseExportModule {
   protected void handleSimpleTypeBooleanDataCell(String data, PreparedStatement ps, int index, Cell cell, Type type)
     throws SQLException {
     if (data != null) {
-      // logger.debug("boolData: " + data);
+      // LOGGER.debug("boolData: " + data);
       ps.setBoolean(index, Boolean.valueOf(data));
     } else {
       ps.setNull(index, Types.BOOLEAN);
@@ -690,7 +679,7 @@ public class JDBCExportModule implements DatabaseExportModule {
 
   public void closeConnection() throws ModuleException {
     if (connection != null) {
-      logger.debug("Closing connection");
+      LOGGER.debug("Closing connection");
       try {
         connection.close();
         connection = null;
@@ -701,53 +690,40 @@ public class JDBCExportModule implements DatabaseExportModule {
   }
 
   protected void handleForeignKeys() throws ModuleException {
-    logger.debug("Creating foreign keys");
-    try {
-      for (SchemaStructure schema : databaseStructure.getSchemas()) {
-        if (isIgnoredSchema(schema.getName())) {
-          continue;
-        }
-        for (TableStructure table : schema.getTables()) {
+    LOGGER.debug("Creating foreign keys");
+    for (SchemaStructure schema : databaseStructure.getSchemas()) {
+      if (isIgnoredSchema(schema.getName())) {
+        continue;
+      }
+      for (TableStructure table : schema.getTables()) {
 
-          for (ForeignKey fkey : table.getForeignKeys()) {
-            String originalReferencedSchema = fkey.getReferencedSchema();
+        for (ForeignKey fkey : table.getForeignKeys()) {
+          String originalReferencedSchema = fkey.getReferencedSchema();
 
-            String tableId = originalReferencedSchema + "." + fkey.getReferencedTable();
+          String tableId = originalReferencedSchema + "." + fkey.getReferencedTable();
 
-            TableStructure tableAux = databaseStructure.lookupTableStructure(tableId);
-            if (tableAux != null) {
-              if (isIgnoredSchema(tableAux.getSchema())) {
-                logger.warn("Foreign key not exported: " + "referenced schema (" + fkey.getReferencedSchema()
-                  + ") is ignored at export.");
-                continue;
-              }
+          TableStructure tableAux = databaseStructure.lookupTableStructure(tableId);
+          if (tableAux != null) {
+            if (isIgnoredSchema(tableAux.getSchema())) {
+              LOGGER.debug("Foreign key not exported: referenced schema (" + fkey.getReferencedSchema()
+                + ") is ignored at export.");
+              continue;
             }
-
-            String fkeySQL = sqlHelper.createForeignKeySQL(table, fkey);
-            logger.debug("Returned fkey: " + fkeySQL);
-            getStatement().addBatch(fkeySQL);
           }
 
+          String fkeySQL = sqlHelper.createForeignKeySQL(table, fkey);
+          LOGGER.debug("Returned fkey: " + fkeySQL);
+          statementAddBatch(fkeySQL);
         }
+
       }
-      logger.debug("Getting fkeys finished");
-      getStatement().executeBatch();
-      getStatement().clearBatch();
-    } catch (SQLException e) {
-      SQLException ei = e;
-      do {
-        if (ei != null) {
-          logger.error("Error handleing foreign key (next exception)", ei);
-          logger.error("Error description: ", ei);
-        }
-        ei = ei.getNextException();
-      } while (ei != null);
-      throw new ModuleException("Error creating foreign keys", e);
     }
+    LOGGER.debug("Getting fkeys finished");
+    statementExecuteAndClearBatch();
   }
 
   protected void commit() throws ModuleException {
-    // logger.debug("Commiting");
+    // LOGGER.debug("Commiting");
     // try {
     // getConnection().commit();
     // } catch (SQLException e) {
@@ -766,5 +742,104 @@ public class JDBCExportModule implements DatabaseExportModule {
 
   public interface CleanResourcesInterface {
     void clean() throws ModuleException;
+  }
+
+  /**
+   * Executes the queries in the batch, recovering from failures as best as
+   * possible and ensuring that all queries in the batch are executed.
+   * 
+   * @throws ModuleException
+   */
+  protected void statementExecuteAndClearBatch() throws ModuleException {
+    Statement statement = getStatement();
+    int[] result;
+    String reasonForFailing;
+
+    while (!batchSQL.isEmpty()) {
+      // error handling
+      result = null;
+      reasonForFailing = null;
+
+      try {
+        // best case scenario, all queries run OK
+        statement.executeBatch();
+        batchSQL.clear();
+        break;
+      } catch (BatchUpdateException e) {
+        // not-good case scenario, some queries fail
+        result = e.getUpdateCounts();
+        reasonForFailing = e.getMessage();
+        LOGGER.debug("Got a batch update exception while executing a batch statement", e);
+
+        // some implementations continue running the queries in the batch,
+        // others do not. for those which do, at least one element in the result
+        // array will have a value of EXECUTE_FAILED. Dealing with that here:
+
+        // find out what failed, warn about it
+        int successes = 0;
+        for (int i = result.length - 1; i >= 0; i--) {
+          if (result[i] > 0 || result[i] == Statement.SUCCESS_NO_INFO) {
+            batchSQL.remove(i);
+            successes++;
+          } else if (result[i] == Statement.EXECUTE_FAILED) {
+            String failedQuery = batchSQL.get(i);
+            batchSQL.remove(i);
+            LOGGER.error("Error executing query: " + failedQuery);
+            Reporter.failed("Execution of query `" + failedQuery + "`", "of the following error: " + reasonForFailing);
+          } else {
+            String strangeQuery = batchSQL.get(i);
+            batchSQL.remove(i);
+            Reporter.customMessage(getClass().getName(), "Execution of query `" + strangeQuery
+              + "` returned an unexpected negative result value (" + result[i] + ")");
+          }
+        }
+
+        // some implementations stop running the queries in the batch when a
+        // query fails. returning an array with a length equal to the number of
+        // queries that executed successfully. If this happens, then the next
+        // query is the problematic one, and is removed from the batch before
+        // retrying
+        if (successes == result.length && batchSQL.size() > 0) {
+          String failedQuery = batchSQL.get(0);
+          batchSQL.remove(0);
+          LOGGER.error("Error executing query: " + failedQuery);
+          Reporter.failed("Execution of query `" + failedQuery + "`", "of the following error: " + reasonForFailing);
+        }
+
+        // clear batch and re-add queries that were left out
+        if (!batchSQL.isEmpty()) {
+          List<String> notExecuted = new ArrayList<>(batchSQL);
+          batchSQL.clear();
+          try {
+            statement.clearBatch();
+          } catch (SQLException e1) {
+            LOGGER.debug("Connection to database stopped working", e1);
+          }
+
+          for (String query : notExecuted) {
+            statementAddBatch(query);
+          }
+        }
+      } catch (SQLException e) {
+        // worst case scenario, something else failed
+        throw new ModuleException("Error executing batch statement", e);
+      }
+    }
+
+    // everything ran. clear the batch
+    try {
+      statement.clearBatch();
+    } catch (SQLException e) {
+      throw new ModuleException("Connection to database stopped working", e);
+    }
+  }
+
+  protected void statementAddBatch(String sql) throws ModuleException {
+    try {
+      getStatement().addBatch(sql);
+      batchSQL.add(sql);
+    } catch (SQLException e) {
+      throw new ModuleException("Could not add SQL to batch '" + sql + "'", e);
+    }
   }
 }

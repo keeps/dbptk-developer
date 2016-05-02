@@ -22,6 +22,8 @@ import javax.xml.validation.TypeInfoProvider;
 import javax.xml.validation.ValidatorHandler;
 
 import org.apache.commons.codec.Charsets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.TypeInfo;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -29,7 +31,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
@@ -49,8 +50,7 @@ import com.databasepreservation.modules.siard.in.path.SIARDDKPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
 
 public class SIARDDKContentImportStrategy extends DefaultHandler implements ContentImportStrategy {
-
-  private final CustomLogger logger = CustomLogger.getLogger(SIARDDKContentImportStrategy.class);
+  private static final Logger logger = LoggerFactory.getLogger(SIARDDKContentImportStrategy.class);
   protected final FolderReadStrategyMD5Sum readStrategy;
   protected final SIARDDKPathImportStrategy pathStrategy;
   protected final String importAsSchema;
@@ -249,7 +249,7 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
           String preparedCellVal = currentTagContentStrBld.toString().trim();
           if (currentCellType instanceof SimpleTypeBinary) {
             ModuleException ex = new ModuleException("Siard-dk does not support import of binary values into the db");
-            logger.error(ex);
+            logger.error("Siard-dk does not support the import of binary values into the db", ex);
             throw new SAXException(ex);
           } else {
             if (isInNullValueCell) {

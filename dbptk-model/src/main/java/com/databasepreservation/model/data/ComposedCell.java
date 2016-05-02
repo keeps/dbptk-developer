@@ -15,7 +15,8 @@ public class ComposedCell extends Cell {
   private List<Cell> composedData;
 
   /**
-   * Create a composed cell without data. This should not be used to represent NULL, instead a NullCell should be created.
+   * Create a composed cell without data. This should not be used to represent
+   * NULL, instead a NullCell should be created.
    *
    * @param id
    *          the cell id, equal to 'tableId.columnId.rowIndex'

@@ -13,7 +13,6 @@ import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.NotImplementedException;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.FileItem;
@@ -27,6 +26,8 @@ import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportSt
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentWithExternalLobsPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.modules.siard.out.write.ZipWithExternalLobsWriteStrategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * SIARD 2 external LOBs export strategy, that exports LOBs according to the
@@ -42,7 +43,7 @@ import com.databasepreservation.modules.siard.out.write.ZipWithExternalLobsWrite
 public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentExportStrategy {
   private static final long MB_TO_BYTE_RATIO = 1024L * 1024L;
 
-  private final CustomLogger logger = CustomLogger.getLogger(SIARD2ContentWithExternalLobsExportStrategy.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2ContentWithExternalLobsExportStrategy.class);
 
   private SIARDArchiveContainer currentExternalContainer;
 
@@ -98,7 +99,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
     }
 
     if (maximumLobsFolderSize > 0 && lobSizeParameter >= maximumLobsFolderSize) {
-      logger.warn("LOB size is " + lobSizeParameter / MB_TO_BYTE_RATIO
+      LOGGER.warn("LOB size is " + lobSizeParameter / MB_TO_BYTE_RATIO
         + "MB, which is more or equal to the maximum LOB size per folder of " + maximumLobsFolderSize
         / MB_TO_BYTE_RATIO + "MB");
     }
@@ -176,7 +177,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
     OutputStream out = writeStrategy.createOutputStream(currentExternalContainer, lobRelativePath);
     InputStream in = lob.getInputStreamProvider().createInputStream();
 
-    logger.debug("Writing lob to " + lobRelativePath);
+    LOGGER.debug("Writing lob to " + lobRelativePath);
 
     // copy lob to output and save digest checksum if possible
     try {
@@ -189,7 +190,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
         in.close();
         out.close();
       } catch (IOException e) {
-        logger.warn("Could not cleanup lob resources", e);
+        LOGGER.warn("Could not cleanup lob resources", e);
       }
     }
 

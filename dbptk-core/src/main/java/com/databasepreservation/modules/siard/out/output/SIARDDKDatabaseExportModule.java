@@ -10,13 +10,14 @@ import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.out.metadata.ContextDocumentationWriter;
 import com.databasepreservation.modules.siard.out.metadata.FileIndexFileStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARDMarshaller;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
@@ -25,7 +26,7 @@ import com.databasepreservation.modules.siard.out.metadata.SIARDMarshaller;
 public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
 
   private SIARDDKExportModule siarddkExportModule;
-  private final CustomLogger logger = CustomLogger.getLogger(SIARDDKDatabaseExportModule.class);
+  private static final Logger logger = LoggerFactory.getLogger(SIARDDKDatabaseExportModule.class);
 
   public SIARDDKDatabaseExportModule(SIARDDKExportModule siarddkExportModule) {
     super(siarddkExportModule.getContentExportStrategy(), siarddkExportModule.getMainContainer(), siarddkExportModule

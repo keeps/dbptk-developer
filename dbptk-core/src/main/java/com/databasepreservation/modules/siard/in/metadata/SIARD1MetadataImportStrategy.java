@@ -13,6 +13,8 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import ch.admin.bar.xmlns.siard._1_0.metadata.CandidateKeyType;
@@ -45,7 +47,6 @@ import ch.admin.bar.xmlns.siard._1_0.metadata.UsersType;
 import ch.admin.bar.xmlns.siard._1_0.metadata.ViewType;
 import ch.admin.bar.xmlns.siard._1_0.metadata.ViewsType;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
@@ -74,7 +75,7 @@ import com.databasepreservation.utils.JodaUtils;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
-  private final CustomLogger logger = CustomLogger.getLogger(SIARD1MetadataImportStrategy.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD1MetadataImportStrategy.class);
 
   private static final String METADATA_FILENAME = "metadata";
 
@@ -133,7 +134,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
           reader.close();
         }
       } catch (IOException e) {
-        logger.debug("Could not close xsdStream", e);
+        LOGGER.debug("Could not close xsdStream", e);
       }
     }
 

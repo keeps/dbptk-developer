@@ -9,7 +9,7 @@ import java.util.Map;
 import javax.naming.OperationNotSupportedException;
 
 import org.apache.commons.lang3.StringUtils;
-
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
@@ -133,6 +133,8 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) {
+    Reporter.importModuleParameters(getModuleName(), "file", Paths.get(parameters.get(PARAM_IMPORT_FOLDER)).normalize()
+      .toAbsolutePath().toString(), PARAM_IMPORT_AS_SCHEMA.longName(), parameters.get(PARAM_IMPORT_AS_SCHEMA));
     return new SIARDDKImportModule(Paths.get(parameters.get(PARAM_IMPORT_FOLDER)),
       parameters.get(PARAM_IMPORT_AS_SCHEMA)).getDatabaseImportModule();
   }
@@ -168,6 +170,18 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     // to be used later...
     // exportModuleArgs.put(clobType.longName(), pClobType);
     // exportModuleArgs.put(clobLength.longName(), pClobLength);
+
+    if(pTableFilter == null) {
+      Reporter
+        .exportModuleParameters(getModuleName(), folder.longName(), pFolder, archiveIndex.longName(), pArchiveIndex,
+          contextDocumentationIndex.longName(), pContextDocumentationIndex, contextDocmentationFolder.longName(),
+          pContextDocumentationFolder);
+    }else{
+      Reporter
+        .exportModuleParameters(getModuleName(), folder.longName(), pFolder, archiveIndex.longName(), pArchiveIndex,
+          contextDocumentationIndex.longName(), pContextDocumentationIndex, contextDocmentationFolder.longName(),
+          pContextDocumentationFolder, tableFilter.longName(), pTableFilter.normalize().toAbsolutePath().toString());
+    }
 
     return new SIARDDKExportModule(exportModuleArgs, pTableFilter).getDatabaseExportModule();
   }

@@ -10,7 +10,6 @@ import java.util.List;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -32,6 +31,8 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.XMLUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -41,7 +42,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   private final static int TREAT_STRING_AS_CLOB_THRESHOLD = 4000;
   private final static int INLINE_BINARY_DATA_THRESHOLD = 2000;
 
-  private final CustomLogger logger = CustomLogger.getLogger(SIARD2ContentExportStrategy.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2ContentExportStrategy.class);
   protected final SIARD2ContentPathExportStrategy contentPathStrategy;
   protected final WriteStrategy writeStrategy;
   protected final SIARDArchiveContainer baseContainer;
@@ -176,14 +177,14 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
         // currentWriter.inlineOpenTag("u" + subCellIndex, 3);
         // currentWriter.closeTag("u" + subCellIndex);
 
-        logger.warn("UDT inside UDT not yet supported. Saving as null.");
+        LOGGER.warn("UDT inside UDT not yet supported. Saving as null.");
       } else if (subCell instanceof BinaryCell) {
         // currentWriter.inlineOpenTag("u" + subCellIndex, 3);
         // currentWriter.closeTag("u" + subCellIndex);
 
-        logger.warn("LOBs inside UDT not yet supported. Saving as null.");
+        LOGGER.warn("LOBs inside UDT not yet supported. Saving as null.");
       } else {
-        logger.error("Unexpected cell type");
+        LOGGER.error("Unexpected cell type");
       }
 
       subCellIndex++;
@@ -328,7 +329,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     OutputStream out = writeStrategy.createOutputStream(baseContainer, lob.getOutputPath());
     InputStream in = lob.getInputStreamProvider().createInputStream();
 
-    logger.debug("Writing lob to " + lob.getOutputPath());
+    LOGGER.debug("Writing lob to " + lob.getOutputPath());
 
     // copy lob to output
     try {
@@ -341,7 +342,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
         in.close();
         out.close();
       } catch (IOException e) {
-        logger.warn("Could not cleanup lob resources", e);
+        LOGGER.warn("Could not cleanup lob resources", e);
       }
     }
   }
@@ -408,7 +409,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
         // FIXME: if the same table contains two columns of different UDTs which
         // subtypes differ then there would exist conflicting definitions for
         // elements u1, u2, u3, etc
-        logger.warn("XSD validation of tables containing UDT is not yet supported.");
+        LOGGER.warn("XSD validation of tables containing UDT is not yet supported.");
       } else {
         try {
           String xsdType = Sql2003toXSDType.convert(col.getType());
@@ -421,9 +422,9 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
           xsdWriter.appendAttribute("name", "c" + columnIndex).appendAttribute("type", xsdType).endShorthandTag();
         } catch (ModuleException e) {
-          logger.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
+          LOGGER.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
         } catch (UnknownTypeException e) {
-          logger.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
+          LOGGER.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
         }
         columnIndex++;
       }

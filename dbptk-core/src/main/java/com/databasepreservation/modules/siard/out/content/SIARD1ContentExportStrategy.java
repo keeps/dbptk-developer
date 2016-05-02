@@ -10,7 +10,6 @@ import java.util.List;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -30,6 +29,8 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.XMLUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -39,7 +40,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
   private final static int TREAT_STRING_AS_CLOB_THRESHOLD = 4000;
   private final static int INLINE_BINARY_DATA_THRESHOLD = 2000;
 
-  private final CustomLogger logger = CustomLogger.getLogger(SIARD1ContentExportStrategy.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD1ContentExportStrategy.class);
   private final ContentPathExportStrategy contentPathStrategy;
   private final WriteStrategy writeStrategy;
   private final SIARDArchiveContainer baseContainer;
@@ -153,7 +154,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     IOException {
     if (!warnedAboutUDT) {
       warnedAboutUDT = true;
-      logger.warn("User Defined Types are not supported in SIARD1");
+      LOGGER.warn("User Defined Types are not supported in SIARD1");
     }
 
   }
@@ -308,7 +309,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
         in.close();
         out.close();
       } catch (IOException e) {
-        logger.warn("Could not cleanup lob resources", e);
+        LOGGER.warn("Could not cleanup lob resources", e);
       }
     }
   }
@@ -381,9 +382,9 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
 
         xsdWriter.appendAttribute("name", "c" + columnIndex).appendAttribute("type", xsdType).endShorthandTag();
       } catch (ModuleException e) {
-        logger.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
+        LOGGER.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
       } catch (UnknownTypeException e) {
-        logger.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
+        LOGGER.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
       }
       columnIndex++;
     }

@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
@@ -32,6 +31,8 @@ import dk.sa.xmlns.diark._1_0.tableindex.TableType;
 import dk.sa.xmlns.diark._1_0.tableindex.TablesType;
 import dk.sa.xmlns.diark._1_0.tableindex.ViewType;
 import dk.sa.xmlns.diark._1_0.tableindex.ViewsType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
@@ -46,7 +47,7 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
     this.lobsTracker = lobsTracker;
   }
 
-  private static final CustomLogger logger = CustomLogger.getLogger(TableIndexFileStrategy.class);
+  private static final Logger logger = LoggerFactory.getLogger(TableIndexFileStrategy.class);
 
   @Override
   public Object generateXML(DatabaseStructure dbStructure) throws ModuleException {

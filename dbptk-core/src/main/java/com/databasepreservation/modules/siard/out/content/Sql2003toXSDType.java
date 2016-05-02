@@ -3,7 +3,6 @@ package com.databasepreservation.modules.siard.out.content;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.type.ComposedTypeArray;
@@ -16,6 +15,8 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Convert sql2003 types into XML or XSD types
@@ -26,7 +27,7 @@ public class Sql2003toXSDType {
   private static final Map<String, String> sql2003toXSDconstant = new HashMap<String, String>();
   private static final Map<String, String> sql2003toXSDregex = new HashMap<String, String>();
 
-  private static final CustomLogger logger = CustomLogger.getLogger(Sql99toXSDType.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(Sql99toXSDType.class);
 
   static {
     // initialize sql2003 conversion tables
@@ -88,7 +89,7 @@ public class Sql2003toXSDType {
       ret = convert(type.getSql2003TypeName());
 
     } else if (type instanceof UnsupportedDataType) {
-      logger.warn("Unsupported datatype: " + type.toString() + ". Using xs:string as xml type.");
+      LOGGER.warn("Unsupported datatype: " + type.toString() + ". Using xs:string as xml type.");
       ret = "xs:string";
     } else if (type instanceof ComposedTypeArray) {
       throw new ModuleException("Not yet supported type: ARRAY");

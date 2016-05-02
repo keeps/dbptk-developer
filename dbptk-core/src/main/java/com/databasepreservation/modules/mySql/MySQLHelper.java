@@ -7,9 +7,11 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.databasepreservation.model.Reporter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -27,10 +29,9 @@ import com.databasepreservation.modules.SQLHelper;
  * @author Luis Faria
  */
 public class MySQLHelper extends SQLHelper {
-
   private static final Set<String> MYSQL_TYPES = new HashSet<String>(Arrays.asList("BLOB", "MEDIUMBLOB", "LONGBLOB",
     "TIMESTAMP", "TINYBLOB", "TINYTEXT", "TEXT", "MEDIUMTEXT"));
-  private final CustomLogger logger = CustomLogger.getLogger(MySQLHelper.class);
+  private static final Logger logger = LoggerFactory.getLogger(MySQLHelper.class);
   private String name = "MySQL";
 
   private String startQuote = "`";
@@ -72,7 +73,7 @@ public class MySQLHelper extends SQLHelper {
     if (MYSQL_TYPES.contains(type.getOriginalTypeName())) {
       // TODO verify if original database is also mysql
       ret = type.getOriginalTypeName();
-      logger.info("Using MySQL original type " + ret);
+      logger.debug("Using MySQL original type " + ret);
     } else if (type instanceof SimpleTypeString) {
       SimpleTypeString string = (SimpleTypeString) type;
       if (isPkey) {
@@ -196,7 +197,7 @@ public class MySQLHelper extends SQLHelper {
   // MySQL does not support check constraints (returns an empty SQL query)
   @Override
   public String getCheckConstraintsSQL(String schemaName, String tableName) {
-    return "";
+    return null;
   }
 
   @Override

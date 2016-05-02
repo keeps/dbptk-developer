@@ -9,28 +9,29 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.databasepreservation.CustomLogger;
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
+import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
-import com.databasepreservation.model.structure.type.SimpleTypeBinary;
-import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.mySql.MySQLHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Luis Faria <lfaria@keep.pt>
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class MySQLJDBCImportModule extends JDBCImportModule {
-
-  private final CustomLogger logger = CustomLogger.getLogger(MySQLJDBCImportModule.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MySQLJDBCImportModule.class);
   private final String username;
 
   /**
@@ -47,7 +48,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    */
   public MySQLJDBCImportModule(String hostname, String database, String username, String password) {
     super("com.mysql.jdbc.Driver", "jdbc:mysql://" + hostname + "/" + database + "?" + "user=" + username
-      + "&password=" + password, new MySQLHelper());
+      + "&password=" + password, new MySQLHelper(), new MySQLDatatypeImporter());
     this.username = username;
   }
 
@@ -67,7 +68,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    */
   public MySQLJDBCImportModule(String hostname, int port, String database, String username, String password) {
     super("com.mysql.jdbc.Driver", "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?" + "user=" + username
-      + "&password=" + password, new MySQLHelper());
+      + "&password=" + password, new MySQLHelper(), new MySQLDatatypeImporter());
     this.username = username;
   }
 
@@ -107,17 +108,17 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
         }
       } catch (SQLException e) {
         if (e.getMessage().startsWith("SELECT command denied to user ") && e.getMessage().endsWith(" for table 'user'")) {
-          logger
+          LOGGER
             .warn("The selected MySQL user does not have permissions to list database users. This permission can be granted with the command \"GRANT SELECT ON mysql.user TO 'username'@'localhost' IDENTIFIED BY 'password';\"");
         } else {
-          logger.error("It was not possible to retrieve the list of database users.", e);
+          LOGGER.error("It was not possible to retrieve the list of database users.", e);
         }
       }
     }
 
     if (users.isEmpty()) {
       users.add(new UserStructure(username, ""));
-      logger.warn("Users were not imported. '" + username + "' will be set as the user name.");
+      LOGGER.warn("Users were not imported. '" + username + "' will be set as the user name.");
     }
 
     return users;
@@ -126,7 +127,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   @Override
   protected ResultSet getTableRawData(TableStructure table) throws SQLException, ClassNotFoundException,
     ModuleException {
-    logger.debug("query: " + sqlHelper.selectTableSQL(table.getId()));
+    LOGGER.debug("query: " + sqlHelper.selectTableSQL(table.getId()));
 
     Statement statement = getStatement();
     statement.setFetchSize(Integer.MIN_VALUE);
@@ -141,54 +142,6 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
       statement = getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
     }
     return statement;
-  }
-
-  @Override
-  protected Type getRealType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type;
-
-    if (columnSize == 12 && decimalDigits == 0) {
-      type = new SimpleTypeNumericApproximate(columnSize);
-      type.setSql99TypeName("REAL");
-      type.setSql2003TypeName("REAL");
-    } else {
-      type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
-    }
-
-    return type;
-  }
-
-  @Override
-  protected Type getDoubleType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type;
-
-    if (columnSize == 22 && decimalDigits == 0) {
-      type = new SimpleTypeNumericApproximate(columnSize);
-      type.setSql99TypeName("DOUBLE PRECISION");
-      type.setSql2003TypeName("DOUBLE PRECISION");
-    } else {
-      type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
-    }
-
-    return type;
-  }
-
-  @Override
-  protected Type getBinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type = new SimpleTypeBinary(columnSize);
-
-    type.setSql99TypeName("BINARY LARGE OBJECT");
-    type.setSql2003TypeName("BINARY LARGE OBJECT");
-
-    return type;
-  }
-
-  @Override
-  protected Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type = new SimpleTypeBinary(columnSize);
-    type.setSql99TypeName("BIT VARYING", columnSize * 8);
-    type.setSql2003TypeName("BIT VARYING", columnSize * 8);
-    return type;
   }
 
   @Override
@@ -209,30 +162,6 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected Type getFloatType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type;
-
-    if (columnSize == 12 && decimalDigits == 0) {
-      type = new SimpleTypeNumericApproximate(columnSize);
-      type.setSql99TypeName("FLOAT");
-      type.setSql2003TypeName("FLOAT");
-    } else {
-      type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
-    }
-
-    return type;
-  }
-
-  @Override
-  protected Type getDateType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    if ("YEAR".equals(typeName)) {
-      return getNumericType(typeName, 4, decimalDigits, numPrecRadix);
-    } else {
-      return super.getDateType(typeName, columnSize, decimalDigits, numPrecRadix);
-    }
-  }
-
-  @Override
   protected Cell rawToCellSimpleTypeNumericExact(String id, String columnName, Type cellType, ResultSet rawData)
     throws SQLException {
     if ("YEAR".equals(cellType.getOriginalTypeName())) {
@@ -242,9 +171,29 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
       // 1999-01-01, 1999-01-01
       // to get the "real" year value, using the first 4 characters from the
       // date string
-      return new SimpleCell(id, rawData.getString(columnName).substring(0, 4));
+      String data = rawData.getString(columnName);
+      if (data != null) {
+        return new SimpleCell(id, data.substring(0, 4));
+      } else {
+        return new NullCell(id);
+      }
     } else {
       return super.rawToCellSimpleTypeNumericExact(id, columnName, cellType, rawData);
     }
+  }
+
+  /**
+   * Gets the check constraints of a given schema table
+   *
+   * @param schemaName
+   * @param tableName
+   * @return
+   * @throws ClassNotFoundException
+   */
+  @Override
+  protected List<CheckConstraint> getCheckConstraints(String schemaName, String tableName)
+    throws ClassNotFoundException {
+    Reporter.notYetSupported("check constraints", "MySQL");
+    return new ArrayList<CheckConstraint>();
   }
 }

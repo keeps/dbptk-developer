@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.naming.OperationNotSupportedException;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
@@ -81,6 +82,8 @@ public class DB2ModuleFactory implements DatabaseModuleFactory {
     String pPassword = parameters.get(password);
     Integer pPortNumber = Integer.parseInt(parameters.get(portNumber));
 
+    Reporter.importModuleParameters(this.getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
+      pUsername, "password", Reporter.MESSAGE_FILTERED_PASSWORD);
     return new DB2JDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword);
   }
 
@@ -93,6 +96,8 @@ public class DB2ModuleFactory implements DatabaseModuleFactory {
     String pPassword = parameters.get(password);
     Integer pPortNumber = Integer.parseInt(parameters.get(portNumber));
 
+    Reporter.exportModuleParameters(this.getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
+      pUsername, "password", Reporter.MESSAGE_FILTERED_PASSWORD);
     return new DB2JDBCExportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword);
   }
 }

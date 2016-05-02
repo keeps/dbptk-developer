@@ -1,6 +1,5 @@
 package com.databasepreservation.modules.sqlServer.in;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,11 +9,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.transaction.util.FileHelper;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pt.gov.dgarq.roda.common.FileFormat;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.FileItem;
@@ -33,8 +31,7 @@ import com.microsoft.sqlserver.jdbc.SQLServerResultSet;
  * @author Luis Faria
  */
 public class SQLServerJDBCImportModule extends JDBCImportModule {
-
-  private final CustomLogger logger = CustomLogger.getLogger(SQLServerJDBCImportModule.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SQLServerJDBCImportModule.class);
 
   /**
    * Create a new Microsoft SQL Server import module using the default instance.
@@ -56,7 +53,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
     boolean integratedSecurity, boolean encrypt) {
     super("com.microsoft.sqlserver.jdbc.SQLServerDriver", "jdbc:sqlserver://" + serverName + ";database=" + database
       + ";user=" + username + ";password=" + password + ";integratedSecurity="
-      + (integratedSecurity ? "true" : "false") + ";encrypt=" + (encrypt ? "true" : "false"), new SQLServerHelper());
+      + (integratedSecurity ? "true" : "false") + ";encrypt=" + (encrypt ? "true" : "false"), new SQLServerHelper(), new SQLServerDatatypeImporter());
 
     System.setProperty("java.net.preferIPv6Addresses", "true");
 
@@ -86,7 +83,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
     String password, boolean integratedSecurity, boolean encrypt) {
     super("com.microsoft.sqlserver.jdbc.SQLServerDriver", "jdbc:sqlserver://" + serverName + "\\" + instanceName
       + ";database=" + database + ";user=" + username + ";password=" + password + ";integratedSecurity="
-      + (integratedSecurity ? "true" : "false") + ";encrypt=" + (encrypt ? "true" : "false"), new SQLServerHelper());
+      + (integratedSecurity ? "true" : "false") + ";encrypt=" + (encrypt ? "true" : "false"), new SQLServerHelper(), new SQLServerDatatypeImporter());
 
   }
 
@@ -112,7 +109,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
     String password, boolean integratedSecurity, boolean encrypt) {
     super("com.microsoft.sqlserver.jdbc.SQLServerDriver", "jdbc:sqlserver://" + serverName + ":" + portNumber
       + ";database=" + database + ";user=" + username + ";password=" + password + ";integratedSecurity="
-      + (integratedSecurity ? "true" : "false") + ";encrypt=" + (encrypt ? "true" : "false"), new SQLServerHelper());
+      + (integratedSecurity ? "true" : "false") + ";encrypt=" + (encrypt ? "true" : "false"), new SQLServerHelper(), new SQLServerDatatypeImporter());
 
   }
 
@@ -135,19 +132,6 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
     return ignored;
   }
 
-  @Override
-  protected Type getLongvarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type;
-    if ("image".equals(typeName)) {
-      type = new SimpleTypeBinary("MIME", "image");
-    } else {
-      type = new SimpleTypeBinary();
-    }
-    type.setSql99TypeName("BINARY LARGE OBJECT");
-    type.setSql2003TypeName("BINARY LARGE OBJECT");
-    return type;
-  }
-
   protected Cell convertRawToCell(String tableName, String columnName, int columnIndex, int rowIndex, Type cellType,
     ResultSet rawData) throws SQLException, InvalidDataException, ClassNotFoundException, ModuleException {
     Cell cell;
@@ -155,7 +139,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
     if (cellType instanceof SimpleTypeBinary) {
       InputStream input = rawData.getBinaryStream(columnName);
       if (input != null) {
-        logger.debug("SQL ServerbinaryStream: " + columnName);
+        LOGGER.debug("SQL ServerbinaryStream: " + columnName);
         FileItem fileItem = new FileItem(input);
         List<FileFormat> formats = new ArrayList<FileFormat>();
         cell = new BinaryCell(id, fileItem, formats);
@@ -171,7 +155,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 
   @Override
   protected String processTriggerEvent(String string) {
-    logger.debug("Trigger event: " + string);
+    LOGGER.debug("Trigger event: " + string);
     char[] charArray = string.toCharArray();
 
     String res = "";
@@ -197,7 +181,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 
   @Override
   protected String processActionTime(String string) {
-    logger.debug("Trigger action time: " + string);
+    LOGGER.debug("Trigger action time: " + string);
     char[] charArray = string.toCharArray();
 
     String res = "";

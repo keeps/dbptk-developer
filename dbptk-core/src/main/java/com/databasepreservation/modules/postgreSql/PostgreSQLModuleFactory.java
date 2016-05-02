@@ -8,6 +8,7 @@ import javax.naming.OperationNotSupportedException;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
@@ -99,6 +100,8 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
       pPortNumber = Integer.parseInt(portNumber.valueIfNotSet());
     }
 
+    Reporter.importModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
+      pUsername, "password", Reporter.MESSAGE_FILTERED_PASSWORD, "port number", pPortNumber.toString());
     return new PostgreSQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt);
   }
 
@@ -121,6 +124,8 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
       pPortNumber = Integer.parseInt(portNumber.valueIfNotSet());
     }
 
+    Reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
+      pUsername, "password", Reporter.MESSAGE_FILTERED_PASSWORD, "port number", pPortNumber.toString());
     return new PostgreSQLJDBCExportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt);
   }
 }

@@ -6,7 +6,8 @@ package com.databasepreservation.model.structure.type;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Luis Faria
@@ -15,7 +16,7 @@ import org.apache.log4j.Logger;
  *         must extend this class.
  */
 public abstract class Type {
-  private static final Logger LOGGER = Logger.getLogger(Type.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(Type.class);
 
   private String originalTypeName;
 
@@ -83,7 +84,7 @@ public abstract class Type {
    * @return The name of the SQL99 normalized type. null if not applicable
    */
   public String getSql99TypeName() {
-    if (StringUtils.isBlank(sql99TypeName)){
+    if (StringUtils.isBlank(sql99TypeName)) {
       setSql99fromSql2003();
     }
 
@@ -127,7 +128,7 @@ public abstract class Type {
    * @return The name of the SQL2003 normalized type. null if not applicable
    */
   public String getSql2003TypeName() {
-    if (StringUtils.isBlank(sql2003TypeName)){
+    if (StringUtils.isBlank(sql2003TypeName)) {
       setSql2003fromSql99();
     }
 
@@ -167,12 +168,12 @@ public abstract class Type {
     this.sql2003TypeName = String.format("%s(%d)", typeName, originalColumnSize);
   }
 
-  protected void setSql2003fromSql99(){
+  protected void setSql2003fromSql99() {
     // default operation, may not be accurate
     sql2003TypeName = sql99TypeName;
   }
 
-  protected void setSql99fromSql2003(){
+  protected void setSql99fromSql2003() {
     // default operation, may not be accurate
     sql99TypeName = sql2003TypeName;
   }
@@ -192,16 +193,14 @@ public abstract class Type {
     this.description = description;
   }
 
-  @Override public String toString() {
-    return "Type{" +
-      "description='" + description + '\'' +
-      ", originalTypeName='" + originalTypeName + '\'' +
-      ", sql99TypeName='" + sql99TypeName + '\'' +
-      ", sql2003TypeName='" + sql2003TypeName + '\'' +
-      '}';
+  @Override
+  public String toString() {
+    return "Type{" + "description='" + description + '\'' + ", originalTypeName='" + originalTypeName + '\''
+      + ", sql99TypeName='" + sql99TypeName + '\'' + ", sql2003TypeName='" + sql2003TypeName + '\'' + '}';
   }
 
-  @Override public boolean equals(Object o) {
+  @Override
+  public boolean equals(Object o) {
     if (this == o)
       return true;
 
@@ -214,7 +213,8 @@ public abstract class Type {
       .append(sql99TypeName, type.sql99TypeName).append(sql2003TypeName, type.sql2003TypeName).isEquals();
   }
 
-  @Override public int hashCode() {
+  @Override
+  public int hashCode() {
     return new HashCodeBuilder(17, 37).append(originalTypeName).append(description).append(sql99TypeName)
       .append(sql2003TypeName).toHashCode();
   }

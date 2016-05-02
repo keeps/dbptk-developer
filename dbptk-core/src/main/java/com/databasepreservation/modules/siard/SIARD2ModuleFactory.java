@@ -10,6 +10,7 @@ import javax.naming.OperationNotSupportedException;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
@@ -109,14 +110,16 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
   @Override
   public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters)
     throws OperationNotSupportedException {
-    String pFile = parameters.get(file);
-    return new SIARD2ImportModule(Paths.get(pFile)).getDatabaseImportModule();
+    Path pFile = Paths.get(parameters.get(file));
+
+    Reporter.importModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString());
+    return new SIARD2ImportModule(pFile).getDatabaseImportModule();
   }
 
   @Override
   public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters)
     throws OperationNotSupportedException {
-    String pFile = parameters.get(file);
+    Path pFile = Paths.get(parameters.get(file));
 
     // optional
     boolean pCompress = Boolean.parseBoolean(compress.valueIfNotSet());
@@ -161,10 +164,31 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     }
 
     if (pExternalLobs) {
-      return new SIARD2ExportModule(Paths.get(pFile), pCompress, pPrettyPrintXML, pTableFilter, pExternalLobsPerFolder,
+      if (pTableFilter == null) {
+        Reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
+          "compress", String.valueOf(pCompress), "pretty xml", String.valueOf(pPrettyPrintXML),
+          "external lobs per folder", String.valueOf(pExternalLobsPerFolder), "external lobs folder size",
+          String.valueOf(pExternalLobsFolderSize));
+      } else {
+        Reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
+          "compress", String.valueOf(pCompress), "pretty xml", String.valueOf(pPrettyPrintXML), "table filter",
+          pTableFilter.normalize().toAbsolutePath().toString(), "external lobs per folder",
+          String.valueOf(pExternalLobsPerFolder), "external lobs folder size", String.valueOf(pExternalLobsFolderSize));
+      }
+
+      return new SIARD2ExportModule(pFile, pCompress, pPrettyPrintXML, pTableFilter, pExternalLobsPerFolder,
         pExternalLobsFolderSize).getDatabaseHandler();
     } else {
-      return new SIARD2ExportModule(Paths.get(pFile), pCompress, pPrettyPrintXML, pTableFilter).getDatabaseHandler();
+      if (pTableFilter == null) {
+        Reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
+          "compress", String.valueOf(pCompress), "pretty xml", String.valueOf(pPrettyPrintXML));
+      } else {
+        Reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
+          "compress", String.valueOf(pCompress), "pretty xml", String.valueOf(pPrettyPrintXML), "table filter",
+          pTableFilter.normalize().toAbsolutePath().toString());
+      }
+
+      return new SIARD2ExportModule(pFile, pCompress, pPrettyPrintXML, pTableFilter).getDatabaseHandler();
     }
   }
 }

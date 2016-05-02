@@ -19,7 +19,6 @@ import java.io.PipedOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Set;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -39,12 +38,14 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximat
 import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.modules.SQLHelper;
 import com.databasepreservation.modules.SQLHelper.CellSQLHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Luis Faria
  */
 public class SQLFileExportModule implements DatabaseExportModule {
-  private static final CustomLogger logger = CustomLogger.getLogger(SQLFileExportModule.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SQLFileExportModule.class);
 
   protected File sqlFile;
 
@@ -208,7 +209,7 @@ public class SQLFileExportModule implements DatabaseExportModule {
           escapeBinary(in, bout);
           bout.close();
         } catch (IOException e) {
-          logger.error("Error escaping binary into circular buffer", e);
+          LOGGER.error("Error escaping binary into circular buffer", e);
         }
       }
     };
@@ -244,7 +245,7 @@ public class SQLFileExportModule implements DatabaseExportModule {
         for (TableStructure table : schema.getTables()) {
           sqlWriter.write(sqlHelper.createTableSQL(table) + ";\n");
           String pkeySQL = sqlHelper.createPrimaryKeySQL(table.getId(), table.getPrimaryKey());
-          logger.debug("PKEY: " + sqlHelper.createPrimaryKeySQL(table.getId(), table.getPrimaryKey()));
+          LOGGER.debug("PKEY: " + sqlHelper.createPrimaryKeySQL(table.getId(), table.getPrimaryKey()));
           if (pkeySQL != null) {
             sqlWriter.write(pkeySQL + ";\n");
           }

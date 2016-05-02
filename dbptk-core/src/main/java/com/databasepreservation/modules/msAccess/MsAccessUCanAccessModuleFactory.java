@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.naming.OperationNotSupportedException;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
@@ -58,6 +59,7 @@ public class MsAccessUCanAccessModuleFactory implements DatabaseModuleFactory {
     throws OperationNotSupportedException, LicenseNotAcceptedException {
     String pAccessFilePath = parameters.get(accessFilePath);
 
+    Reporter.importModuleParameters(getModuleName(), "file", pAccessFilePath);
     return new MsAccessUCanAccessImportModule(pAccessFilePath);
   }
 

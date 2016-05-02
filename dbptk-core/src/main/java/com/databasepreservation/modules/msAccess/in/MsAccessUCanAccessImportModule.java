@@ -10,29 +10,29 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.databasepreservation.CustomLogger;
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.PrivilegeStructure;
 import com.databasepreservation.model.structure.RoutineStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.msAccess.MsAccessHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  * @author Luis Faria <lfaria@keep.pt>
  */
 public class MsAccessUCanAccessImportModule extends JDBCImportModule {
-
-  private final CustomLogger logger = CustomLogger.getLogger(MsAccessUCanAccessImportModule.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MsAccessUCanAccessImportModule.class);
 
   public MsAccessUCanAccessImportModule(File msAccessFile) {
     super("net.ucanaccess.jdbc.UcanaccessDriver", "jdbc:ucanaccess://" + msAccessFile.getAbsolutePath()
-      + ";showSchema=true;", new MsAccessHelper());
+      + ";showSchema=true;", new MsAccessHelper(), new MsAccessUCanAccessDatatypeImporter());
   }
 
   public MsAccessUCanAccessImportModule(String accessFilePath) {
@@ -42,12 +42,12 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
   @Override
   public Connection getConnection() throws SQLException, ClassNotFoundException {
     if (connection == null) {
-      logger.debug("Loading JDBC Driver " + driverClassName);
+      LOGGER.debug("Loading JDBC Driver " + driverClassName);
       Class.forName(driverClassName);
-      logger.debug("Getting connection");
+      LOGGER.debug("Getting connection");
       connection = DriverManager.getConnection(connectionURL); // , "admin",
                                                                // "admin");
-      logger.debug("Connected");
+      LOGGER.debug("Connected");
     }
     return connection;
   }
@@ -58,7 +58,7 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
     String tableId;
     ResultSet set = null;
     tableId = table.getId();
-    logger.debug("query: " + sqlHelper.selectTableSQL(tableId));
+    LOGGER.debug("query: " + sqlHelper.selectTableSQL(tableId));
     set = getStatement().executeQuery(sqlHelper.selectTableSQL(tableId));
     set.setFetchSize(ROW_FETCH_BLOCK_SIZE);
 
@@ -107,7 +107,7 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
       String data = rawData.getString(columnName);
       String parts[] = data.split("E");
       if (parts.length > 1 && parts[1] != null) {
-        logger.warn("Double exponent lost: " + parts[1] + ". From " + data + " -> " + parts[0]);
+        LOGGER.warn("Double exponent lost: " + parts[1] + ". From " + data + " -> " + parts[0]);
       }
       cell = new SimpleCell(id, parts[0]);
     } else {
@@ -145,34 +145,7 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
    */
   @Override
   protected List<PrivilegeStructure> getPrivileges() throws SQLException, ClassNotFoundException {
-    logger.info("Roles were not imported: not supported yet on " + getClass().getSimpleName());
+    Reporter.notYetSupported("roles importing", "MS Access import module");
     return new ArrayList<PrivilegeStructure>();
-  }
-
-  /**
-   * Gets the UnsupportedDataType. This data type is a placeholder for
-   * unsupported data types
-   *
-   * @param dataType
-   * @param typeName
-   * @param columnSize
-   * @param decimalDigits
-   * @param numPrecRadix
-   * @return
-   * @throws UnknownTypeException
-   */
-  @Override
-  protected Type getUnsupportedDataType(int dataType, String typeName, int columnSize, int decimalDigits,
-    int numPrecRadix) throws UnknownTypeException {
-    Type unsupported = super.getUnsupportedDataType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
-    unsupported.setSql99TypeName("CHARACTER VARYING(50)"); // fixme: map the
-                                                           // unsupported
-                                                           // datatype to some
-                                                           // known type
-    unsupported.setSql2003TypeName("CHARACTER VARYING(50)"); // fixme: map the
-                                                             // unsupported
-                                                             // datatype to some
-                                                             // known type
-    return unsupported;
   }
 }

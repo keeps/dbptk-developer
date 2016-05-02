@@ -10,6 +10,7 @@ import javax.naming.OperationNotSupportedException;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
@@ -78,14 +79,16 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
   @Override
   public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters)
     throws OperationNotSupportedException {
-    String pFile = parameters.get(file);
-    return new SIARD1ImportModule(Paths.get(pFile)).getDatabaseImportModule();
+    Path pFile = Paths.get(parameters.get(file));
+
+    Reporter.importModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString());
+    return new SIARD1ImportModule(pFile).getDatabaseImportModule();
   }
 
   @Override
   public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters)
     throws OperationNotSupportedException {
-    String pFile = parameters.get(file);
+    Path pFile = Paths.get(parameters.get(file));
 
     // optional
     boolean pCompress = Boolean.parseBoolean(compress.valueIfNotSet());
@@ -103,6 +106,14 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
       pTableFilter = Paths.get(parameters.get(tableFilter));
     }
 
-    return new SIARD1ExportModule(Paths.get(pFile), pCompress, pPrettyPrintXML, pTableFilter).getDatabaseHandler();
+    if (pTableFilter == null) {
+      Reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
+        "compress", String.valueOf(pCompress), "pretty xml", String.valueOf(pPrettyPrintXML));
+    } else {
+      Reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
+        "compress", String.valueOf(pCompress), "pretty xml", String.valueOf(pPrettyPrintXML), "table filter",
+        pTableFilter.normalize().toAbsolutePath().toString());
+    }
+    return new SIARD1ExportModule(pFile, pCompress, pPrettyPrintXML, pTableFilter).getDatabaseHandler();
   }
 }

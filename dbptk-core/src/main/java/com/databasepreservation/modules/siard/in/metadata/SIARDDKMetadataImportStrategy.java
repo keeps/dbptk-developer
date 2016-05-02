@@ -16,9 +16,10 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
@@ -52,7 +53,7 @@ import dk.sa.xmlns.diark._1_0.tableindex.ViewType;
  */
 public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
 
-  protected final CustomLogger logger = CustomLogger.getLogger(SIARDDKMetadataImportStrategy.class);
+  protected final Logger logger = LoggerFactory.getLogger(SIARDDKMetadataImportStrategy.class);
 
   protected final SIARDDKPathImportStrategy pathStrategy;
   protected DatabaseStructure databaseStructure;

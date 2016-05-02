@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
+import com.databasepreservation.model.Reporter;
 import org.apache.commons.cli.ParseException;
 
 import com.databasepreservation.cli.CLI;
@@ -24,6 +25,8 @@ import com.databasepreservation.modules.siard.SIARD1ModuleFactory;
 import com.databasepreservation.modules.siard.SIARD2ModuleFactory;
 import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
 import com.databasepreservation.modules.sqlServer.SQLServerJDBCModuleFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Luis Faria <lfaria@keep.pt>
@@ -40,11 +43,9 @@ public class Main {
   private static final String execID = UUID.randomUUID().toString();
   public static final String APP_VERSION = getProgramVersion();
 
-  public static final String APP_NAME = "db-preservation-toolkit - KEEP SOLUTIONS";
+  public static final String APP_NAME = "Database Preservation Toolkit";
 
-  public static final String NAME = "db-preservation-toolkit";
-
-  private static final CustomLogger logger = CustomLogger.getLogger(Main.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
   public static final DatabaseModuleFactory[] databaseModuleFactories = new DatabaseModuleFactory[] {
     new JDBCModuleFactory(), new ListTablesModuleFactory(), new MsAccessUCanAccessModuleFactory(),
@@ -77,17 +78,20 @@ public class Main {
       } else {
         exitStatus = run(cli);
         if (exitStatus == EXIT_CODE_CONNECTION_ERROR) {
-          logger.debug("Disabling encryption (for modules that support it) and trying again.");
+          LOGGER.info("Disabling connection encryption (for modules that support it) and trying again.");
           cli.disableEncryption();
           exitStatus = run(cli);
         }
       }
     }else{
       exitStatus = EXIT_CODE_NOT_USING_UTF8;
-      logger.error("The charset in use is not UTF-8.");
-      logger.error("Please try forcing UTF-8 charset by running the application with:");
-      logger.error("   java \"-Dfile.encoding=UTF-8\" -jar ...");
+      LOGGER.info("The charset in use is not UTF-8.");
+      LOGGER.info("Please try forcing UTF-8 charset by running the application with:");
+      LOGGER.info("   java \"-Dfile.encoding=UTF-8\" -jar ...");
     }
+
+    Reporter.finish();
+    LOGGER.info("Please report any problems at https://github.com/keeps/db-preservation-toolkit/issues/new");
     logProgramFinish(exitStatus);
 
     return exitStatus;
@@ -101,14 +105,14 @@ public class Main {
       importModule = cli.getImportModule();
       exportModule = cli.getExportModule();
     } catch (ParseException e) {
-      logger.error(e.getMessage(), e);
+      LOGGER.error(e.getMessage(), e);
       logProgramFinish(EXIT_CODE_COMMAND_PARSE_ERROR);
       return EXIT_CODE_COMMAND_PARSE_ERROR;
     } catch (LicenseNotAcceptedException e) {
-      logger.error("The license must be accepted to use this module.");
-      logger.error("==================================================");
-      cli.printLicense(e.getLicense());
-      logger.error("==================================================");
+      LOGGER.info("The license must be accepted to use this module.");
+      LOGGER.info("==================================================");
+      LOGGER.info(e.getLicense());
+      LOGGER.info("==================================================");
       logProgramFinish(EXIT_CODE_LICENSE_NOT_ACCEPTED);
       return EXIT_CODE_LICENSE_NOT_ACCEPTED;
     }
@@ -117,58 +121,58 @@ public class Main {
 
     try {
       long startTime = System.currentTimeMillis();
-      logger.info("Translating database: " + cli.getImportModuleName() + " to " + cli.getExportModuleName());
+      LOGGER.info("Converting database: " + cli.getImportModuleName() + " to " + cli.getExportModuleName());
       importModule.getDatabase(exportModule);
       long duration = System.currentTimeMillis() - startTime;
-      logger.info("Done in " + (duration / 60000) + "m " + (duration % 60000 / 1000) + "s");
+      LOGGER.info("Run time " + (duration / 60000) + "m " + (duration % 60000 / 1000) + "s");
       exitStatus = EXIT_CODE_OK;
     } catch (ModuleException e) {
       if (e.getCause() != null && e.getCause() instanceof ClassNotFoundException
         && "sun.jdbc.odbc.JdbcOdbcDriver".equals(e.getCause().getMessage())) {
-        logger.error("Could not find the Java ODBC driver, "
+        LOGGER.error("Could not find the Java ODBC driver, "
           + "please run this program under Windows to use the JDBC-ODBC bridge.", e.getCause());
       } else if ("SQL error while conecting".equalsIgnoreCase(e.getMessage())) {
-        logger.error("Connection error while importing/exporting", e);
+        LOGGER.error("Connection error while importing/exporting", e);
         exitStatus = EXIT_CODE_CONNECTION_ERROR;
       }
 
       if (e.getModuleErrors() != null) {
         for (Map.Entry<String, Throwable> entry : e.getModuleErrors().entrySet()) {
-          logger.error(entry.getKey(), entry.getValue());
+          LOGGER.error(entry.getKey(), entry.getValue());
         }
       } else {
-        logger.error("Error while importing/exporting", e);
+        LOGGER.error("Error while importing/exporting", e);
       }
     } catch (UnknownTypeException e) {
-      logger.error("Error while importing/exporting", e);
+      LOGGER.error("Error while importing/exporting", e);
     } catch (InvalidDataException e) {
-      logger.error("Error while importing/exporting", e);
+      LOGGER.error("Error while importing/exporting", e);
     } catch (Exception e) {
-      logger.error("Unexpected exception", e);
+      LOGGER.error("Unexpected exception", e);
     }
     return exitStatus;
   }
 
   private static void logProgramStart() {
-    logger.debug("#########################################################");
-    logger.debug("#   START-ID-" + execID);
-    logger.debug("#   START v" + APP_VERSION);
-    logger.debug("#########################################################");
+    LOGGER.debug("#########################################################");
+    LOGGER.debug("#   START-ID-" + execID);
+    LOGGER.debug("#   START v" + APP_VERSION);
+    LOGGER.debug("#########################################################");
   }
 
   private static void logProgramFinish(int exitStatus) {
-    logger.debug("#########################################################");
-    logger.debug("#   FINISH-ID-" + execID);
-    logger.debug("#   FINISH v" + APP_VERSION);
-    logger.debug("#   EXIT CODE: " + exitStatus);
-    logger.debug("#########################################################");
+    LOGGER.debug("#########################################################");
+    LOGGER.debug("#   FINISH-ID-" + execID);
+    LOGGER.debug("#   FINISH v" + APP_VERSION);
+    LOGGER.debug("#   EXIT CODE: " + exitStatus);
+    LOGGER.debug("#########################################################");
   }
 
   private static String getProgramVersion() {
     try {
       return Main.class.getPackage().getImplementationVersion();
     } catch (Exception e) {
-      logger.debug("Problem getting program version", e);
+      LOGGER.debug("Problem getting program version", e);
       return null;
     }
   }
