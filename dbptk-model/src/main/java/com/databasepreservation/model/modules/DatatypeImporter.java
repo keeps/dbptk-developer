@@ -3,17 +3,28 @@ package com.databasepreservation.model.modules;
 import java.sql.SQLException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
+import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 
 /**
+ * Converts a datatype from a source database to a Type object
+ * 
+ * Code using this class or any of its subclasses should create a new instance
+ * and use the getCheckedType method, to convert a type and Report any potential
+ * problems.
+ * 
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public abstract class DatatypeImporter {
+  private static final Logger LOGGER = LoggerFactory.getLogger(DatatypeImporter.class);
+
   /**
    * Map the original type to the normalized type model
    *
@@ -41,11 +52,19 @@ public abstract class DatatypeImporter {
    * @throws SQLException
    */
   public Type getCheckedType(DatabaseStructure database, SchemaStructure currentSchema, String tableName,
-    String columnName, int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
-    throws UnknownTypeException, SQLException, ClassNotFoundException {
+    String columnName, int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
 
-    Type type = getType(database, currentSchema, tableName, columnName, dataType, typeName, columnSize, decimalDigits,
-      numPrecRadix);
+    Type type = getFallbackType(typeName);
+    try {
+      type = getType(database, currentSchema, tableName, columnName, dataType, typeName, columnSize, decimalDigits,
+        numPrecRadix);
+    } catch (UnknownTypeException e) {
+      LOGGER.debug("Got an UnknownTypeException while getting the source database type", e);
+    } catch (SQLException e) {
+      LOGGER.debug("Got an SQLException while getting the source database type", e);
+    } catch (ClassNotFoundException e) {
+      LOGGER.debug("Got an ClassNotFoundException while getting the source database type", e);
+    }
 
     checkType(type, database, currentSchema, tableName, columnName, dataType, typeName, columnSize, decimalDigits,
       numPrecRadix);
@@ -73,6 +92,18 @@ public abstract class DatatypeImporter {
     }
 
     Reporter.dataTypeChangedOnImport(this.getClass().getName(), currentSchema.getName(), tableName, columnName, type);
+  }
+
+  protected Type getFallbackType(String originalTypeName) {
+    Type type = new SimpleTypeString(Integer.MAX_VALUE, true);
+    if (StringUtils.isNotBlank(originalTypeName)) {
+      type.setOriginalTypeName(originalTypeName);
+    } else {
+      type.setOriginalTypeName("UNKNOWN");
+    }
+    type.setSql99TypeName("CHARACTER LARGE OBJECT");
+    type.setSql2003TypeName("CHARACTER LARGE OBJECT");
+    return type;
   }
 
   protected abstract Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName,
