@@ -43,7 +43,6 @@ public class Reporter {
   // instance
   private Path outputfile;
   private BufferedWriter writer;
-  private boolean usingTemporaryFile = false;
 
   /**
    * initializes message prefixes
@@ -61,7 +60,6 @@ public class Reporter {
       outputfile = Files.createFile(outputfile);
     } catch (IOException e) {
       LOGGER.warn("Could not create report file in current working directory. Attempting to use a temporary file", e);
-      usingTemporaryFile = true;
       try {
         outputfile = Files.createTempFile(filename_prefix, filename_suffix);
       } catch (IOException e1) {
@@ -79,14 +77,18 @@ public class Reporter {
   }
 
   private void writeLine(String line) {
-    if (writer == null) {
-      return;
-    }
-    try {
-      writer.write(line);
-      writer.newLine();
-    } catch (IOException e) {
-      LOGGER.warn("Could not report the message: " + line, e);
+    if (outputfile == null || writer == null) {
+      LOGGER.info(line);
+    }else {
+      try {
+        writer.write(line);
+        writer.newLine();
+      } catch (IOException e) {
+        if (e.getMessage().equals("Stream closed")) {
+          writer = null;
+        }
+        LOGGER.info(line);
+      }
     }
   }
 
