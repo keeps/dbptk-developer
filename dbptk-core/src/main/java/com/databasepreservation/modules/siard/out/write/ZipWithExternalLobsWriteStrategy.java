@@ -1,6 +1,5 @@
 package com.databasepreservation.modules.siard.out.write;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;

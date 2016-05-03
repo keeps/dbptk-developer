@@ -15,6 +15,8 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
 import org.jdom2.output.XMLOutputter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
@@ -35,8 +37,6 @@ import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.XMLUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
@@ -192,9 +192,9 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
       String xsdType = SIARDDKsql99ToXsdType.convert(sql99Type);
       if (xsdType == null) {
-        throw new ModuleException(
-          "Unable to export column [" + columnStructure.getName() + "] in table [" + tableStructure.getName()
-            + "], as siard-dk doesn't support the normalized SQL data type of the column: [" + sql99Type + "] ");
+        throw new ModuleException("Unable to export column [" + columnStructure.getName() + "] in table ["
+          + tableStructure.getName() + "], as siard-dk doesn't support the normalized SQL data type of the column: ["
+          + sql99Type + "] ");
       }
 
       c.setAttribute("type", xsdType);

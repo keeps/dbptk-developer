@@ -4,10 +4,12 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
-import com.databasepreservation.model.Reporter;
 import org.apache.commons.cli.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.cli.CLI;
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.ModuleException;
@@ -25,8 +27,6 @@ import com.databasepreservation.modules.siard.SIARD1ModuleFactory;
 import com.databasepreservation.modules.siard.SIARD2ModuleFactory;
 import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
 import com.databasepreservation.modules.sqlServer.SQLServerJDBCModuleFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Luis Faria <lfaria@keep.pt>
@@ -72,7 +72,7 @@ public class Main {
     cli.logOperativeSystemInfo();
 
     int exitStatus = EXIT_CODE_GENERIC_ERROR;
-    if(cli.usingUTF8()) {
+    if (cli.usingUTF8()) {
       if (cli.shouldPrintHelp()) {
         cli.printHelp();
       } else {
@@ -83,7 +83,7 @@ public class Main {
           exitStatus = run(cli);
         }
       }
-    }else{
+    } else {
       exitStatus = EXIT_CODE_NOT_USING_UTF8;
       LOGGER.info("The charset in use is not UTF-8.");
       LOGGER.info("Please try forcing UTF-8 charset by running the application with:");

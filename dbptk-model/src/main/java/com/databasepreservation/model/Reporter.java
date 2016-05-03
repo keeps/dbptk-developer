@@ -79,7 +79,7 @@ public class Reporter {
   private void writeLine(String line) {
     if (outputfile == null || writer == null) {
       LOGGER.info(line);
-    }else {
+    } else {
       try {
         writer.write(line);
         writer.newLine();

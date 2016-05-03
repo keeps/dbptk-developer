@@ -214,9 +214,9 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
           currentTable.getColumns().get(columnIndex - 1).getId(), lobDirLastPart);
 
         SIARDArchiveContainer container;
-        if(lobDirLastPart.startsWith("..")){
+        if (lobDirLastPart.startsWith("..")) {
           container = lobContainer;
-        }else{
+        } else {
           container = contentContainer;
         }
 

@@ -1,6 +1,5 @@
 package com.databasepreservation.modules.siard.common.path;
 
-import java.io.File;
 import java.security.InvalidParameterException;
 
 /**

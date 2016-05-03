@@ -3,6 +3,9 @@ package com.databasepreservation.modules.siard.out.content;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.type.ComposedTypeArray;
@@ -15,8 +18,6 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Convert sql99 types into XML or XSD types

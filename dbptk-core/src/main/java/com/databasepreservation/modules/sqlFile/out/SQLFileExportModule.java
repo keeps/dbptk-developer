@@ -19,6 +19,9 @@ import java.io.PipedOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -38,8 +41,6 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximat
 import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.modules.SQLHelper;
 import com.databasepreservation.modules.SQLHelper.CellSQLHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Luis Faria
@@ -218,12 +219,13 @@ public class SQLFileExportModule implements DatabaseExportModule {
   }
 
   /**
-   * Gets custom settings set by the export module that modify behaviour of
-   * the import module.
+   * Gets custom settings set by the export module that modify behaviour of the
+   * import module.
    *
    * @throws ModuleException
    */
-  @Override public ModuleSettings getModuleSettings() throws ModuleException {
+  @Override
+  public ModuleSettings getModuleSettings() throws ModuleException {
     return new ModuleSettings();
   }
 

@@ -10,6 +10,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
@@ -21,8 +24,6 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.msAccess.MsAccessHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -106,13 +107,13 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
     Cell cell = null;
     if ("DOUBLE".equalsIgnoreCase(cellType.getOriginalTypeName())) {
       String data = rawData.getString(columnName);
-      if(data != null) {
+      if (data != null) {
         String parts[] = data.split("E");
         if (parts.length > 1 && parts[1] != null) {
           LOGGER.warn("Double exponent lost: " + parts[1] + ". From " + data + " -> " + parts[0]);
         }
         cell = new SimpleCell(id, parts[0]);
-      }else{
+      } else {
         cell = new NullCell(id);
       }
     } else {
@@ -124,9 +125,9 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
         Double d = rawData.getDouble(columnName);
         value = d.toString();
       }
-      if(rawData.wasNull()){
+      if (rawData.wasNull()) {
         cell = new NullCell(id);
-      }else {
+      } else {
         cell = new SimpleCell(id, value);
       }
     }

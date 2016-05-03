@@ -84,8 +84,8 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
       try {
         xsdSchema = schemaFactory.newSchema(new StreamSource(xsdStream));
       } catch (SAXException e) {
-        throw new ModuleException(
-          "Error reading metadata XSD file: " + metadataPathStrategy.getXsdFilePath(SIARDDKConstants.FILE_INDEX), e);
+        throw new ModuleException("Error reading metadata XSD file: "
+          + metadataPathStrategy.getXsdFilePath(SIARDDKConstants.FILE_INDEX), e);
       }
       InputStream reader = null;
       FileIndexType xmlFileIndex;

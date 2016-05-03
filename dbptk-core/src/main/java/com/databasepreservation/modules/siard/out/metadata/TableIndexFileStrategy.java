@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -31,8 +33,6 @@ import dk.sa.xmlns.diark._1_0.tableindex.TableType;
 import dk.sa.xmlns.diark._1_0.tableindex.TablesType;
 import dk.sa.xmlns.diark._1_0.tableindex.ViewType;
 import dk.sa.xmlns.diark._1_0.tableindex.ViewsType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>

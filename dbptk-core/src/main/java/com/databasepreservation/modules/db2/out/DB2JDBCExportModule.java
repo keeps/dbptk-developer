@@ -7,11 +7,11 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Calendar;
 
-import com.databasepreservation.model.Reporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.util.InvalidDateException;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;

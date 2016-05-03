@@ -10,9 +10,6 @@ import java.util.Set;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.ForeignKey;
-import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
-import com.databasepreservation.model.structure.type.SimpleTypeString;
-import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.db2.DB2Helper;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 
@@ -81,8 +78,6 @@ public class DB2JDBCImportModule extends JDBCImportModule {
     ignored.add("SYSTOOLS");
     return ignored;
   }
-
-
 
   /**
    * @return the db2 database alias tables

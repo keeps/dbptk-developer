@@ -75,9 +75,9 @@ public class SIARDDKTestUtil {
     String actualSha1 = DigestUtils.sha1Hex(actualFileContent);
 
     if (!expectedSha1.equals(actualSha1)) {
-        logger.debug("sha1 sum of [" + actualFile.getAbsolutePath() + "] is [" + actualSha1
-          + "], and does not match the expected sha1 sum of [" + expectedFile.getAbsolutePath() + "], which is ["
-          + expectedSha1 + "]");
+      logger.debug("sha1 sum of [" + actualFile.getAbsolutePath() + "] is [" + actualSha1
+        + "], and does not match the expected sha1 sum of [" + expectedFile.getAbsolutePath() + "], which is ["
+        + expectedSha1 + "]");
     }
     assert expectedSha1.equals(actualSha1) : "Expected the content of [" + actualFile.getAbsolutePath()
       + "] to match the content of [" + expectedFile.getAbsolutePath() + "]";

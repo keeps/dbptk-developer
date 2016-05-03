@@ -115,8 +115,8 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
 
         Path archiveFolderActualPath = mainFolder.getPath().resolveSibling(archiveFolderLogicalPath);
         if (!archiveContainerByAbsPath.containsKey(archiveFolderActualPath)) {
-          archiveContainerByAbsPath.put(archiveFolderActualPath,
-            new SIARDArchiveContainer(archiveFolderActualPath, OutputContainerType.MAIN));
+          archiveContainerByAbsPath.put(archiveFolderActualPath, new SIARDArchiveContainer(archiveFolderActualPath,
+            OutputContainerType.MAIN));
         }
         currentFolder = archiveContainerByAbsPath.get(archiveFolderActualPath);
         ValidatorHandler validatorHandler = null;
@@ -153,8 +153,8 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
           xmlReader.parse(new InputSource(currentTableInputStream));
 
         } catch (SAXException e) {
-          throw new ModuleException(
-            "A SAX error occurred during processing of XML table file for table:" + table.getId(), e);
+          throw new ModuleException("A SAX error occurred during processing of XML table file for table:"
+            + table.getId(), e);
         } catch (IOException e) {
           throw new ModuleException("Error while reading XML table file for table:" + table.getId(), e);
         } catch (ParserConfigurationException e) {
@@ -163,8 +163,8 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
         }
 
         if (saxErrorHandler.hasError()) {
-          throw new ModuleException(
-            "Parsing or validation error occurred while reading XML table file for table:" + table.getId());
+          throw new ModuleException("Parsing or validation error occurred while reading XML table file for table:"
+            + table.getId());
 
         }
 
@@ -253,7 +253,7 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
             throw new SAXException(ex);
           } else {
             if (isInNullValueCell) {
-              //fixme: use NullCell to represent NULL
+              // fixme: use NullCell to represent NULL
               cell = new SimpleCell(id, null);
             } else {
               if (xsdCellType != null && xsdCellType.getTypeName().equalsIgnoreCase("hexBinary")) {

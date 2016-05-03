@@ -34,10 +34,10 @@ public class DB2JDBCDatatypeImporter extends JDBCDatatypeImporter {
     throws UnknownTypeException {
     Type type;
     switch (dataType) {
-      // case 2001:
-      // type = new SimpleTypeNumericApproximate(
-      // Integer.valueOf(columnSize));
-      // break;
+    // case 2001:
+    // type = new SimpleTypeNumericApproximate(
+    // Integer.valueOf(columnSize));
+    // break;
       default:
         type = super.getSpecificType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
         break;

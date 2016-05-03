@@ -9,6 +9,8 @@ import java.util.List;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
@@ -29,8 +31,6 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.XMLUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -236,8 +236,8 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
         currentRowIndex + 1);
 
       // blob header
-      currentWriter.append(path).append('"').space().append("length=\"")
-        .append(String.valueOf(txtCell.getBytesSize())).append("\"");
+      currentWriter.append(path).append('"').space().append("length=\"").append(String.valueOf(txtCell.getBytesSize()))
+        .append("\"");
 
       // workaround to have data from CLOBs saved as a temporary file to be read
       // FIXME: if lob is null, this will fail

@@ -4,9 +4,7 @@ import java.io.InputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -52,7 +50,8 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
     boolean integratedSecurity, boolean encrypt) {
     super("com.microsoft.sqlserver.jdbc.SQLServerDriver", "jdbc:sqlserver://" + serverName + ";database=" + database
       + ";user=" + username + ";password=" + password + ";integratedSecurity="
-      + (integratedSecurity ? "true" : "false") + ";encrypt=" + (encrypt ? "true" : "false"), new SQLServerHelper(), new SQLServerDatatypeImporter());
+      + (integratedSecurity ? "true" : "false") + ";encrypt=" + (encrypt ? "true" : "false"), new SQLServerHelper(),
+      new SQLServerDatatypeImporter());
 
     System.setProperty("java.net.preferIPv6Addresses", "true");
 
@@ -82,7 +81,8 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
     String password, boolean integratedSecurity, boolean encrypt) {
     super("com.microsoft.sqlserver.jdbc.SQLServerDriver", "jdbc:sqlserver://" + serverName + "\\" + instanceName
       + ";database=" + database + ";user=" + username + ";password=" + password + ";integratedSecurity="
-      + (integratedSecurity ? "true" : "false") + ";encrypt=" + (encrypt ? "true" : "false"), new SQLServerHelper(), new SQLServerDatatypeImporter());
+      + (integratedSecurity ? "true" : "false") + ";encrypt=" + (encrypt ? "true" : "false"), new SQLServerHelper(),
+      new SQLServerDatatypeImporter());
 
   }
 
@@ -108,7 +108,8 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
     String password, boolean integratedSecurity, boolean encrypt) {
     super("com.microsoft.sqlserver.jdbc.SQLServerDriver", "jdbc:sqlserver://" + serverName + ":" + portNumber
       + ";database=" + database + ";user=" + username + ";password=" + password + ";integratedSecurity="
-      + (integratedSecurity ? "true" : "false") + ";encrypt=" + (encrypt ? "true" : "false"), new SQLServerHelper(), new SQLServerDatatypeImporter());
+      + (integratedSecurity ? "true" : "false") + ";encrypt=" + (encrypt ? "true" : "false"), new SQLServerHelper(),
+      new SQLServerDatatypeImporter());
 
   }
 

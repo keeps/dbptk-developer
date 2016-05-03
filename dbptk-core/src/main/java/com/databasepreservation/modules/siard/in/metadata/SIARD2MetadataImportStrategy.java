@@ -13,7 +13,6 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
-import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -69,6 +68,7 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.in.metadata.typeConverter.TypeConverterFactory;
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.utils.JodaUtils;
 
@@ -172,7 +172,7 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
     databaseStructure.setRoles(getRoles(siardArchive.getRoles()));
     databaseStructure.setPrivileges(getPrivileges(siardArchive.getPrivileges()));
 
-    if(contentPathStrategy instanceof SIARD2ContentPathImportStrategy){
+    if (contentPathStrategy instanceof SIARD2ContentPathImportStrategy) {
       SIARD2ContentPathImportStrategy siard2ContentPathImportStrategy = (SIARD2ContentPathImportStrategy) contentPathStrategy;
       siard2ContentPathImportStrategy.setMetadataLobFolder(siardArchive.getLobFolder());
     }

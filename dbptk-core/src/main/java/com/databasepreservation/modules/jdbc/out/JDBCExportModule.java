@@ -275,7 +275,7 @@ public class JDBCExportModule implements DatabaseExportModule {
         if (isIgnoredSchema(schema.getName())) {
           LOGGER.warn("Schema not exported because it's defined " + "as ignored (possibily is a system schema): "
             + schema.getName());
-        }else {
+        } else {
           LOGGER.info("Exporting schema structure for schema " + schema.getName());
           handleSchemaStructure(schema);
           LOGGER.info("Exporting schema structure for schema " + schema.getName());

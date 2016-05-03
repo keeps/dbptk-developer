@@ -99,7 +99,8 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
   private final MetadataPathStrategy metadataPathStrategy;
   private final boolean savingLobsExternally;
 
-  public SIARD2MetadataExportStrategy(MetadataPathStrategy metadataPathStrategy, SIARD2ContentPathExportStrategy paths, boolean savingLobsExternally) {
+  public SIARD2MetadataExportStrategy(MetadataPathStrategy metadataPathStrategy, SIARD2ContentPathExportStrategy paths,
+    boolean savingLobsExternally) {
     this.contentPathStrategy = paths;
     this.metadataPathStrategy = metadataPathStrategy;
     this.savingLobsExternally = savingLobsExternally;
@@ -262,7 +263,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     siardArchive.setRoles(jaxbRolesType(dbStructure.getRoles()));
     siardArchive.setPrivileges(jaxbPrivilegesType(dbStructure.getPrivileges()));
 
-    if(!savingLobsExternally){
+    if (!savingLobsExternally) {
       siardArchive.setLobFolder("content");
     }
 

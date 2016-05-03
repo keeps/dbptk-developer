@@ -1,5 +1,7 @@
 package com.databasepreservation.modules.oracle.in;
 
+import oracle.jdbc.OracleTypes;
+
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
@@ -7,7 +9,6 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCDatatypeImporter;
-import oracle.jdbc.OracleTypes;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>

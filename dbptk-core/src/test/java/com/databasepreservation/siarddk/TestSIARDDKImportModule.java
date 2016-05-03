@@ -25,14 +25,14 @@ public class TestSIARDDKImportModule {
     // We'll then compare this folder to a folder representing the expected
     // result.
 
-    Path splittedArchiveFld = new File(
-      this.getClass().getClassLoader().getResource("siarddk/AVID.SA.18001.1").getFile()).toPath();
+    Path splittedArchiveFld = new File(this.getClass().getClassLoader().getResource("siarddk/AVID.SA.18001.1")
+      .getFile()).toPath();
 
     Path generatedArchiveFullPath = FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"),
       ARCHIVE_FLD_NAME_SPLIT_TEST);
 
-    Path expectedConsolidatedArchivePath = new File(
-      this.getClass().getClassLoader().getResource("siarddk/AVID.TST.4000.1").getFile()).toPath();
+    Path expectedConsolidatedArchivePath = new File(this.getClass().getClassLoader()
+      .getResource("siarddk/AVID.TST.4000.1").getFile()).toPath();
 
     SIARDDKTestUtil.assertArchiveFoldersEqualAfterExportImport(splittedArchiveFld, expectedConsolidatedArchivePath,
       generatedArchiveFullPath);
@@ -61,8 +61,8 @@ public class TestSIARDDKImportModule {
     Path generatedArchiveFullPath = FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"),
       ARCHIVE_FLD_NAME_HEX_TEST);
 
-    Path expectedConsolidatedArchivePath = new File(
-      this.getClass().getClassLoader().getResource("siarddk/AVID.HEX.2000.1").getFile()).toPath();
+    Path expectedConsolidatedArchivePath = new File(this.getClass().getClassLoader()
+      .getResource("siarddk/AVID.HEX.2000.1").getFile()).toPath();
 
     SIARDDKTestUtil.assertArchiveFoldersEqualAfterExportImport(hexArchiveFld, expectedConsolidatedArchivePath,
       generatedArchiveFullPath);

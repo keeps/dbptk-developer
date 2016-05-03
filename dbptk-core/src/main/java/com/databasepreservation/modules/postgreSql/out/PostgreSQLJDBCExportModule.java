@@ -8,11 +8,11 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.TreeSet;
 
-import com.databasepreservation.model.Reporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.util.InvalidDateException;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.exception.ModuleException;

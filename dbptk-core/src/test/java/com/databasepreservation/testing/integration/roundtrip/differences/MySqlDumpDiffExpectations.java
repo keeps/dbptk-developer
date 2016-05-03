@@ -63,8 +63,8 @@ public class MySqlDumpDiffExpectations extends DumpDiffExpectations {
       "longblob"));
 
     // Remove AUTO_INCREMENT info
-    directReplacements
-      .add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)AUTO_INCREMENT(=[0-9]*)*\\W"), ""));
+    directReplacements.add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)AUTO_INCREMENT(=[0-9]*)*\\W"),
+      ""));
 
   }
 

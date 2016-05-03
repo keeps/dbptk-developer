@@ -13,12 +13,12 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.Main;
 import com.databasepreservation.testing.integration.roundtrip.differences.DumpDiffExpectations;
 import com.databasepreservation.utils.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Core of siard roundtrip testing

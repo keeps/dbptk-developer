@@ -1,8 +1,5 @@
 package com.databasepreservation.testing.integration.roundtrip.differences;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -13,6 +10,8 @@ import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PostgreSqlDumpDiffExpectationsPrepQueue extends PostgreSqlDumpDiffExpectations {
   private static final Logger logger = LoggerFactory.getLogger(PostgreSqlDumpDiffExpectations.class);
