@@ -86,7 +86,7 @@ public class Reporter {
       writer.write(line);
       writer.newLine();
     } catch (IOException e) {
-      LOGGER.warn("Could not report the message: " + line);
+      LOGGER.warn("Could not report the message: " + line, e);
     }
   }
 
