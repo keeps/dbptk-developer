@@ -29,9 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.util.DateParser;
 
-import pt.gov.dgarq.roda.common.FileFormat;
-import pt.gov.dgarq.roda.common.FormatUtility;
-
 import com.databasepreservation.Main;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
@@ -103,8 +100,6 @@ public class JDBCImportModule implements DatabaseImportModule {
   protected SQLHelper sqlHelper;
 
   protected DatatypeImporter datatypeImporter;
-
-  protected FormatUtility formatUtility;
 
   private ModuleSettings moduleSettings;
 
@@ -644,7 +639,9 @@ public class JDBCImportModule implements DatabaseImportModule {
           rs = getMetadata().getTablePrivileges(dbStructure.getName(), schema.getName(), table.getName());
         } catch (SQLException e) {
           LOGGER
-            .warn("It was not possible to retrieve the list of all database permissions. Please ensure the current user has permissions to list all database permissions.", e);
+            .warn(
+              "It was not possible to retrieve the list of all database permissions. Please ensure the current user has permissions to list all database permissions.",
+              e);
           break;
         }
         while (rs.next()) {
@@ -1331,7 +1328,8 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
     } catch (SQLFeatureNotSupportedException e) {
       LOGGER.debug("Got a problem getting Array value", e);
-      Reporter.customMessage(getClass().getName(), "Obtaining array elements as strings as no better type could be identified.");
+      Reporter.customMessage(getClass().getName(),
+        "Obtaining array elements as strings as no better type could be identified.");
       ResultSet rs = array.getResultSet();
       while (rs.next()) {
         String item = rs.getString(1);
@@ -1398,10 +1396,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     InputStream binaryStream = rawData.getBinaryStream(columnName);
     if (binaryStream != null) {
       FileItem fileItem = new FileItem(binaryStream);
-      FileFormat fileFormat = FormatUtility.getFileFormat(fileItem.getFile());
-      List<FileFormat> formats = new ArrayList<FileFormat>();
-      formats.add(fileFormat);
-      cell = new BinaryCell(id, fileItem, formats);
+      cell = new BinaryCell(id, fileItem);
 
       try {
         binaryStream.close();

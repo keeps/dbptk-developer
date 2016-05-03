@@ -11,7 +11,6 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pt.gov.dgarq.roda.common.FileFormat;
 
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
@@ -141,8 +140,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
       if (input != null) {
         LOGGER.debug("SQL ServerbinaryStream: " + columnName);
         FileItem fileItem = new FileItem(input);
-        List<FileFormat> formats = new ArrayList<FileFormat>();
-        cell = new BinaryCell(id, fileItem, formats);
+        cell = new BinaryCell(id, fileItem);
       } else {
         cell = new BinaryCell(id, null);
       }

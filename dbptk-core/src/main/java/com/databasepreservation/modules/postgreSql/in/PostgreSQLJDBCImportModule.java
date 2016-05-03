@@ -17,15 +17,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.databasepreservation.model.Reporter;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import pt.gov.dgarq.roda.common.FileFormat;
-import pt.gov.dgarq.roda.common.FormatUtility;
-
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -245,7 +242,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
           try {
             cell = convertRawToCell(tableStructure.getName(), colStruct.getName(), i + 1, currentRow,
               colStruct.getType(), rawData);
-          }catch (Exception e){
+          } catch (Exception e) {
             cell = new SimpleCell(tableStructure.getName() + "." + colStruct.getName() + "." + (i + 1), null);
             Reporter.cellProcessingUsedNull(tableStructure, colStruct, currentRow, e);
           }
@@ -274,8 +271,9 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 
           Cell cell;
           try {
-            cell = convertRawToCell(tableStructure.getName(), aliasColumnName, udtColumnIndex + 1, currentRow, subtype.getType(), rawData);
-          }catch (Exception e){
+            cell = convertRawToCell(tableStructure.getName(), aliasColumnName, udtColumnIndex + 1, currentRow,
+              subtype.getType(), rawData);
+          } catch (Exception e) {
             cell = new SimpleCell(tableStructure.getName() + "." + aliasColumnName + "." + (udtColumnIndex + 1), null);
             Reporter.cellProcessingUsedNull(tableStructure, udtColumn, currentRow, e);
           }
@@ -403,10 +401,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     }
     if (binaryStream != null) {
       FileItem fileItem = new FileItem(binaryStream);
-      FileFormat fileFormat = FormatUtility.getFileFormat(fileItem.getFile());
-      List<FileFormat> formats = new ArrayList<FileFormat>();
-      formats.add(fileFormat);
-      cell = new BinaryCell(id, fileItem, formats);
+      cell = new BinaryCell(id, fileItem);
     } else {
       cell = new NullCell(id);
     }

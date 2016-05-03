@@ -8,9 +8,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.databasepreservation.model.Reporter;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
