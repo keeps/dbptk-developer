@@ -12,6 +12,7 @@ import java.util.Set;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.PrivilegeStructure;
@@ -105,11 +106,15 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
     Cell cell = null;
     if ("DOUBLE".equalsIgnoreCase(cellType.getOriginalTypeName())) {
       String data = rawData.getString(columnName);
-      String parts[] = data.split("E");
-      if (parts.length > 1 && parts[1] != null) {
-        LOGGER.warn("Double exponent lost: " + parts[1] + ". From " + data + " -> " + parts[0]);
+      if(data != null) {
+        String parts[] = data.split("E");
+        if (parts.length > 1 && parts[1] != null) {
+          LOGGER.warn("Double exponent lost: " + parts[1] + ". From " + data + " -> " + parts[0]);
+        }
+        cell = new SimpleCell(id, parts[0]);
+      }else{
+        cell = new NullCell(id);
       }
-      cell = new SimpleCell(id, parts[0]);
     } else {
       String value;
       if ("float4".equalsIgnoreCase(cellType.getOriginalTypeName())) {
@@ -119,7 +124,11 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
         Double d = rawData.getDouble(columnName);
         value = d.toString();
       }
-      cell = new SimpleCell(id, value);
+      if(rawData.wasNull()){
+        cell = new NullCell(id);
+      }else {
+        cell = new SimpleCell(id, value);
+      }
     }
     return cell;
   }
