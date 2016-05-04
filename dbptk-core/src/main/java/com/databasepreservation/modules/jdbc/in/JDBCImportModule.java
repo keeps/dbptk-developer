@@ -601,12 +601,11 @@ public class JDBCImportModule implements DatabaseImportModule {
         }
         role.setName(roleName);
 
-        String admin;
+        String admin = "";
         try {
           admin = rs.getString("ADMIN");
         } catch (SQLException e) {
-          LOGGER.debug("handled SQLException", e);
-          admin = "";
+          LOGGER.trace("handled SQLException", e);
         }
         role.setAdmin(admin);
 
@@ -1014,30 +1013,27 @@ public class JDBCImportModule implements DatabaseImportModule {
         while (rs.next()) {
           CheckConstraint checkConst = new CheckConstraint();
 
-          String checkName;
+          String checkName = "";
           try {
             checkName = rs.getString("CHECK_NAME");
           } catch (SQLException e) {
-            LOGGER.debug("handled SQLException", e);
-            checkName = "";
+            LOGGER.trace("handled SQLException", e);
           }
           checkConst.setName(checkName);
 
-          String checkCondition;
+          String checkCondition = "UNKNOWN";
           try {
             checkCondition = rs.getString("CHECK_CONDITION");
           } catch (SQLException e) {
-            LOGGER.debug("handled SQLException", e);
-            checkCondition = "UNKNOWN";
+            LOGGER.trace("handled SQLException", e);
           }
           checkConst.setCondition(checkCondition);
 
-          String checkDescription;
+          String checkDescription = null;
           try {
             checkDescription = rs.getString("CHECK_DESCRIPTION");
           } catch (SQLException e) {
-            LOGGER.debug("handled SQLException", e);
-            checkDescription = null;
+            LOGGER.trace("handled SQLException", e);
           }
           if (checkDescription != null) {
             checkConst.setDescription(checkDescription);
