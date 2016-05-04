@@ -17,7 +17,7 @@ public class MySQLDatatypeImporter extends JDBCDatatypeImporter {
     if (columnSize == 12 && decimalDigits == 0) {
       type = new SimpleTypeNumericApproximate(columnSize);
       type.setSql99TypeName("REAL");
-      type.setSql2003TypeName("REAL");
+      type.setSql2008TypeName("REAL");
     } else {
       type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
     }
@@ -32,7 +32,7 @@ public class MySQLDatatypeImporter extends JDBCDatatypeImporter {
     if (columnSize == 22 && decimalDigits == 0) {
       type = new SimpleTypeNumericApproximate(columnSize);
       type.setSql99TypeName("DOUBLE PRECISION");
-      type.setSql2003TypeName("DOUBLE PRECISION");
+      type.setSql2008TypeName("DOUBLE PRECISION");
     } else {
       type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
     }
@@ -45,7 +45,7 @@ public class MySQLDatatypeImporter extends JDBCDatatypeImporter {
     Type type = new SimpleTypeBinary(columnSize);
 
     type.setSql99TypeName("BINARY LARGE OBJECT");
-    type.setSql2003TypeName("BINARY LARGE OBJECT");
+    type.setSql2008TypeName("BINARY LARGE OBJECT");
 
     return type;
   }
@@ -54,7 +54,7 @@ public class MySQLDatatypeImporter extends JDBCDatatypeImporter {
   protected Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeBinary(columnSize);
     type.setSql99TypeName("BIT VARYING", columnSize * 8);
-    type.setSql2003TypeName("BIT VARYING", columnSize * 8);
+    type.setSql2008TypeName("BIT VARYING", columnSize * 8);
     return type;
   }
 
@@ -65,7 +65,7 @@ public class MySQLDatatypeImporter extends JDBCDatatypeImporter {
     if (columnSize == 12 && decimalDigits == 0) {
       type = new SimpleTypeNumericApproximate(columnSize);
       type.setSql99TypeName("FLOAT");
-      type.setSql2003TypeName("FLOAT");
+      type.setSql2008TypeName("FLOAT");
     } else {
       type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
     }

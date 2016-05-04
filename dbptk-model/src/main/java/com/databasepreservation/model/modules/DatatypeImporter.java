@@ -87,8 +87,8 @@ public abstract class DatatypeImporter {
       // TODO add this in reporter
     }
 
-    if (StringUtils.isBlank(type.getSql2003TypeName())) {
-      // LOGGER.debug("Could not get SQL2003 type for type: " +
+    if (StringUtils.isBlank(type.getSql2008TypeName())) {
+      // LOGGER.debug("Could not get SQL2008 type for type: " +
       // type.toString());
       // TODO add this in reporter
     }
@@ -104,7 +104,7 @@ public abstract class DatatypeImporter {
       type.setOriginalTypeName("UNKNOWN");
     }
     type.setSql99TypeName("CHARACTER LARGE OBJECT");
-    type.setSql2003TypeName("CHARACTER LARGE OBJECT");
+    type.setSql2008TypeName("CHARACTER LARGE OBJECT");
     return type;
   }
 

@@ -31,17 +31,17 @@ public class Oracle12cJDBCDatatypeImporter extends JDBCDatatypeImporter {
     if (columnSize == 0 && decimalDigits == -127 && numPrecRadix == 10) {
       type = new SimpleTypeNumericApproximate(columnSize);
       type.setSql99TypeName("DOUBLE PRECISION");
-      type.setSql2003TypeName("DOUBLE PRECISION");
+      type.setSql2008TypeName("DOUBLE PRECISION");
     }
     // for all other cases NUMBER is a DECIMAL
     else {
       type = new SimpleTypeNumericExact(columnSize, decimalDigits);
       if (decimalDigits > 0) {
         type.setSql99TypeName("DECIMAL", columnSize, decimalDigits);
-        type.setSql2003TypeName("DECIMAL", columnSize, decimalDigits);
+        type.setSql2008TypeName("DECIMAL", columnSize, decimalDigits);
       } else {
         type.setSql99TypeName("DECIMAL", columnSize);
-        type.setSql2003TypeName("DECIMAL", columnSize);
+        type.setSql2008TypeName("DECIMAL", columnSize);
       }
     }
     return type;
@@ -55,28 +55,28 @@ public class Oracle12cJDBCDatatypeImporter extends JDBCDatatypeImporter {
     if ("NCHAR".equalsIgnoreCase(typeName)) {
       type = new SimpleTypeString(Integer.valueOf(columnSize), false, "CHARSET");
       type.setSql99TypeName("CHARACTER");
-      type.setSql2003TypeName("CHARACTER");
+      type.setSql2008TypeName("CHARACTER");
     } else if ("NVARCHAR2".equalsIgnoreCase(typeName)) {
       type = new SimpleTypeString(Integer.valueOf(columnSize), true, "CHARSET");
       type.setSql99TypeName("CHARACTER VARYING", columnSize);
-      type.setSql2003TypeName("CHARACTER VARYING", columnSize);
+      type.setSql2008TypeName("CHARACTER VARYING", columnSize);
     } else if ("NCLOB".equalsIgnoreCase(typeName)) {
       type = new SimpleTypeString(Integer.valueOf(columnSize), true, "CHARSET");
       type.setSql99TypeName("CHARACTER LARGE OBJECT");
-      type.setSql2003TypeName("CHARACTER LARGE OBJECT");
+      type.setSql2008TypeName("CHARACTER LARGE OBJECT");
     } else if ("ROWID".equalsIgnoreCase(typeName)) {
       type = new SimpleTypeString(Integer.valueOf(columnSize), true);
       type.setSql99TypeName("CHARACTER VARYING", columnSize);
-      type.setSql2003TypeName("CHARACTER VARYING", columnSize);
+      type.setSql2008TypeName("CHARACTER VARYING", columnSize);
     } else if ("UROWID".equalsIgnoreCase(typeName)) {
       type = new SimpleTypeString(Integer.valueOf(columnSize), true);
       type.setSql99TypeName("CHARACTER VARYING", columnSize);
-      type.setSql2003TypeName("CHARACTER VARYING", columnSize);
+      type.setSql2008TypeName("CHARACTER VARYING", columnSize);
     } else {
       // try to get everything else as string
       type = new SimpleTypeString(65535, true);
       type.setSql99TypeName("CHARACTER LARGE OBJECT");
-      type.setSql2003TypeName("CHARACTER LARGE OBJECT");
+      type.setSql2008TypeName("CHARACTER LARGE OBJECT");
       // type = super.getOtherType(dataType, typeName, columnSize,
       // decimalDigits, numPrecRadix);
     }
@@ -93,7 +93,7 @@ public class Oracle12cJDBCDatatypeImporter extends JDBCDatatypeImporter {
         type.setSql99TypeName("BIT VARYING", columnSize); // todo: not sure if
         // columnSize is the
         // correct value here
-        type.setSql2003TypeName("BIT VARYING", columnSize); // todo: not sure if
+        type.setSql2008TypeName("BIT VARYING", columnSize); // todo: not sure if
         // columnSize is the
         // correct value
         // here
@@ -103,7 +103,7 @@ public class Oracle12cJDBCDatatypeImporter extends JDBCDatatypeImporter {
         type.setSql99TypeName("BIT VARYING", columnSize); // todo: not sure if
         // columnSize is the
         // correct value here
-        type.setSql2003TypeName("BIT VARYING", columnSize); // todo: not sure if
+        type.setSql2008TypeName("BIT VARYING", columnSize); // todo: not sure if
         // columnSize is the
         // correct value
         // here
@@ -115,12 +115,12 @@ public class Oracle12cJDBCDatatypeImporter extends JDBCDatatypeImporter {
       case OracleTypes.TIMESTAMPTZ:
         type = new SimpleTypeDateTime(true, true);
         type.setSql99TypeName("TIMESTAMP");
-        type.setSql2003TypeName("TIMESTAMP");
+        type.setSql2008TypeName("TIMESTAMP");
         break;
       case OracleTypes.TIMESTAMPLTZ:
         type = new SimpleTypeDateTime(true, true);
         type.setSql99TypeName("TIMESTAMP");
-        type.setSql2003TypeName("TIMESTAMP");
+        type.setSql2008TypeName("TIMESTAMP");
         break;
       default:
         type = super.getSpecificType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);

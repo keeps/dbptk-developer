@@ -18,11 +18,11 @@ public class DB2JDBCDatatypeImporter extends JDBCDatatypeImporter {
     if ("XML".equalsIgnoreCase(typeName)) {
       type = new SimpleTypeString(31457280, true);
       type.setSql99TypeName("CHARACTER LARGE OBJECT");
-      type.setSql2003TypeName("CHARACTER LARGE OBJECT");
+      type.setSql2008TypeName("CHARACTER LARGE OBJECT");
     } else if ("DECFLOAT".equalsIgnoreCase(typeName)) {
       type = new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
       type.setSql99TypeName("DOUBLE PRECISION");
-      type.setSql2003TypeName("DOUBLE PRECISION");
+      type.setSql2008TypeName("DOUBLE PRECISION");
     } else {
       type = super.getOtherType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
     }

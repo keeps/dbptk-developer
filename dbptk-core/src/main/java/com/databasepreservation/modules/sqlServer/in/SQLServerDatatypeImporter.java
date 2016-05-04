@@ -18,7 +18,7 @@ public class SQLServerDatatypeImporter extends JDBCDatatypeImporter {
       type = new SimpleTypeBinary();
     }
     type.setSql99TypeName("BINARY LARGE OBJECT");
-    type.setSql2003TypeName("BINARY LARGE OBJECT");
+    type.setSql2008TypeName("BINARY LARGE OBJECT");
     return type;
   }
 }

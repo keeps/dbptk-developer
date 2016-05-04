@@ -222,7 +222,7 @@ public class Reporter {
     appendAsCode(message, columnName).append(" has type ");
     appendAsCode(message, type.getOriginalTypeName()).append(" which was perceived as a ");
     appendAsCode(message, type.getSql99TypeName()).append(" (SQL99) and a ");
-    appendAsCode(message, type.getSql2003TypeName()).append(" (SQL2008)");
+    appendAsCode(message, type.getSql2008TypeName()).append(" (SQL2008)");
 
     report(message);
     LOGGER.debug("dataTypeChangedOnImport, invoker: " + invokerNameForDebug + "; message: " + message + "; and type: "
@@ -234,7 +234,7 @@ public class Reporter {
     StringBuilder message = new StringBuilder("Column export: in ");
     appendAsCode(message, column.getId()).append(" (format: schema.table.column) has standard types ");
     appendAsCode(message, column.getType().getSql99TypeName()).append(" (SQL99) and ");
-    appendAsCode(message, column.getType().getSql2003TypeName()).append(" (SQL2008) and original type ");
+    appendAsCode(message, column.getType().getSql2008TypeName()).append(" (SQL2008) and original type ");
     appendAsCode(message, column.getType().getOriginalTypeName()).append(", will be created as ");
     appendAsCode(message, typeSQL).append(" in the target database");
 

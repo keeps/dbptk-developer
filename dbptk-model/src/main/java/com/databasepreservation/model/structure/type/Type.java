@@ -24,7 +24,7 @@ public abstract class Type {
 
   private String sql99TypeName;
 
-  private String sql2003TypeName;
+  private String sql2008TypeName;
 
   // using the empty constructor is not advised
   protected Type() {
@@ -85,7 +85,7 @@ public abstract class Type {
    */
   public String getSql99TypeName() {
     if (StringUtils.isBlank(sql99TypeName)) {
-      setSql99fromSql2003();
+      setSql99fromSql2008();
     }
 
     if (StringUtils.isBlank(sql99TypeName)) {
@@ -125,25 +125,25 @@ public abstract class Type {
   }
 
   /**
-   * @return The name of the SQL2003 normalized type. null if not applicable
+   * @return The name of the SQL2008 normalized type. null if not applicable
    */
-  public String getSql2003TypeName() {
-    if (StringUtils.isBlank(sql2003TypeName)) {
-      setSql2003fromSql99();
+  public String getSql2008TypeName() {
+    if (StringUtils.isBlank(sql2008TypeName)) {
+      setSql2008fromSql99();
     }
 
-    if (StringUtils.isBlank(sql2003TypeName)) {
-      LOGGER.warn("SQL2003 type is not defined for type " + this.toString());
+    if (StringUtils.isBlank(sql2008TypeName)) {
+      LOGGER.warn("SQL2008 type is not defined for type " + this.toString());
     }
-    return sql2003TypeName;
+    return sql2008TypeName;
   }
 
   /**
-   * @param sql2003TypeName
+   * @param sql2008TypeName
    *          the name of the original type, null if not applicable
    */
-  public void setSql2003TypeName(String sql2003TypeName) {
-    this.sql2003TypeName = sql2003TypeName;
+  public void setSql2008TypeName(String sql2008TypeName) {
+    this.sql2008TypeName = sql2008TypeName;
   }
 
   /**
@@ -154,8 +154,8 @@ public abstract class Type {
    * @param originalDecimalDigits
    *          Original decimal digits amount
    */
-  public void setSql2003TypeName(String typeName, int originalColumnSize, int originalDecimalDigits) {
-    this.sql2003TypeName = String.format("%s(%d,%d)", typeName, originalColumnSize, originalDecimalDigits);
+  public void setSql2008TypeName(String typeName, int originalColumnSize, int originalDecimalDigits) {
+    this.sql2008TypeName = String.format("%s(%d,%d)", typeName, originalColumnSize, originalDecimalDigits);
   }
 
   /**
@@ -164,18 +164,18 @@ public abstract class Type {
    * @param originalColumnSize
    *          Original column size
    */
-  public void setSql2003TypeName(String typeName, int originalColumnSize) {
-    this.sql2003TypeName = String.format("%s(%d)", typeName, originalColumnSize);
+  public void setSql2008TypeName(String typeName, int originalColumnSize) {
+    this.sql2008TypeName = String.format("%s(%d)", typeName, originalColumnSize);
   }
 
-  protected void setSql2003fromSql99() {
+  protected void setSql2008fromSql99() {
     // default operation, may not be accurate
-    sql2003TypeName = sql99TypeName;
+    sql2008TypeName = sql99TypeName;
   }
 
-  protected void setSql99fromSql2003() {
+  protected void setSql99fromSql2008() {
     // default operation, may not be accurate
-    sql99TypeName = sql2003TypeName;
+    sql99TypeName = sql2008TypeName;
   }
 
   /**
@@ -196,7 +196,7 @@ public abstract class Type {
   @Override
   public String toString() {
     return "Type{" + "description='" + description + '\'' + ", originalTypeName='" + originalTypeName + '\''
-      + ", sql99TypeName='" + sql99TypeName + '\'' + ", sql2003TypeName='" + sql2003TypeName + '\'' + '}';
+      + ", sql99TypeName='" + sql99TypeName + '\'' + ", sql2008TypeName='" + sql2008TypeName + '\'' + '}';
   }
 
   @Override
@@ -210,12 +210,12 @@ public abstract class Type {
     Type type = (Type) o;
 
     return new EqualsBuilder().append(originalTypeName, type.originalTypeName).append(description, type.description)
-      .append(sql99TypeName, type.sql99TypeName).append(sql2003TypeName, type.sql2003TypeName).isEquals();
+      .append(sql99TypeName, type.sql99TypeName).append(sql2008TypeName, type.sql2008TypeName).isEquals();
   }
 
   @Override
   public int hashCode() {
     return new HashCodeBuilder(17, 37).append(originalTypeName).append(description).append(sql99TypeName)
-      .append(sql2003TypeName).toHashCode();
+      .append(sql2008TypeName).toHashCode();
   }
 }

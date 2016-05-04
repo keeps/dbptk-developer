@@ -5,7 +5,7 @@ package com.databasepreservation.modules.siard.in.metadata.typeConverter;
  */
 public class SQLStandardDatatypeFactory {
   private static SQLStandardDatatypeImporter sql99;
-  private static SQLStandardDatatypeImporter sql2003;
+  private static SQLStandardDatatypeImporter sql2008;
 
   public static SQLStandardDatatypeImporter getSQL99StandardDatatypeImporter() {
     if (sql99 == null) {
@@ -14,10 +14,10 @@ public class SQLStandardDatatypeFactory {
     return sql99;
   }
 
-  public static SQLStandardDatatypeImporter getSQL2003StandardDatatypeImporter() {
-    if (sql2003 == null) {
-      sql2003 = new SQL2003StandardDatatypeImporter();
+  public static SQLStandardDatatypeImporter getSQL2008StandardDatatypeImporter() {
+    if (sql2008 == null) {
+      sql2008 = new SQL2008StandardDatatypeImporter();
     }
-    return sql2003;
+    return sql2008;
   }
 }

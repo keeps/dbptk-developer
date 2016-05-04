@@ -412,7 +412,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
         LOGGER.warn("XSD validation of tables containing UDT is not yet supported.");
       } else {
         try {
-          String xsdType = Sql2003toXSDType.convert(col.getType());
+          String xsdType = Sql2008toXSDType.convert(col.getType());
 
           xsdWriter.beginOpenTag("xs:element", 4);
 

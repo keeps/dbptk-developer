@@ -16,7 +16,7 @@ public class MsAccessUCanAccessDatatypeImporter extends JDBCDatatypeImporter {
 
     // fixme: map the unsupported datatype to some (better) known type
     unsupported.setSql99TypeName("CHARACTER VARYING(50)");
-    unsupported.setSql2003TypeName("CHARACTER VARYING(50)");
+    unsupported.setSql2008TypeName("CHARACTER VARYING(50)");
 
     return unsupported;
   }

@@ -168,17 +168,17 @@ public class SiardTest {
 
     columns_table11.get(0).getType().setOriginalTypeName("int", 10, 0);
     columns_table11.get(0).getType().setSql99TypeName("INTEGER");
-    columns_table11.get(0).getType().setSql2003TypeName("INTEGER");
+    columns_table11.get(0).getType().setSql2008TypeName("INTEGER");
     columns_table11.get(0).getType().setDescription("col111 description");
 
     columns_table11.get(1).getType().setOriginalTypeName("bool");
     columns_table11.get(1).getType().setSql99TypeName("BOOLEAN");
-    columns_table11.get(1).getType().setSql2003TypeName("BOOLEAN");
+    columns_table11.get(1).getType().setSql2008TypeName("BOOLEAN");
     columns_table11.get(0).getType().setDescription("col112 description");
 
     columns_table11.get(2).getType().setOriginalTypeName("decimal", 5, 2);
     columns_table11.get(2).getType().setSql99TypeName("DECIMAL", 5, 2);
-    columns_table11.get(2).getType().setSql2003TypeName("DECIMAL", 5, 2);
+    columns_table11.get(2).getType().setSql2008TypeName("DECIMAL", 5, 2);
     columns_table11.get(2).getType().setDescription("col113 description");
 
     // create columns for second table
@@ -198,17 +198,17 @@ public class SiardTest {
 
     columns_table12.get(0).getType().setOriginalTypeName("int", 10, 0);
     columns_table12.get(0).getType().setSql99TypeName("INTEGER");
-    columns_table12.get(0).getType().setSql2003TypeName("INTEGER");
+    columns_table12.get(0).getType().setSql2008TypeName("INTEGER");
     columns_table12.get(0).getType().setDescription("col121 description");
 
     columns_table12.get(1).getType().setOriginalTypeName("int", 10, 0);
     columns_table12.get(1).getType().setSql99TypeName("INTEGER");
-    columns_table12.get(1).getType().setSql2003TypeName("INTEGER");
+    columns_table12.get(1).getType().setSql2008TypeName("INTEGER");
     columns_table12.get(1).getType().setDescription("col122 description");
 
     columns_table12.get(2).getType().setOriginalTypeName("VARCHAR", 250);
     columns_table12.get(2).getType().setSql99TypeName("CHARACTER VARYING", 250);
-    columns_table12.get(2).getType().setSql2003TypeName("CHARACTER VARYING", 250);
+    columns_table12.get(2).getType().setSql2008TypeName("CHARACTER VARYING", 250);
     ((SimpleTypeString) columns_table12.get(2).getType()).setLength(250);
     ((SimpleTypeString) columns_table12.get(2).getType()).setLengthVariable(true);
     // TODO:
@@ -217,7 +217,7 @@ public class SiardTest {
 
     columns_table12.get(3).getType().setOriginalTypeName("VARCHAR", 230);
     columns_table12.get(3).getType().setSql99TypeName("CHARACTER VARYING", 230);
-    columns_table12.get(3).getType().setSql2003TypeName("CHARACTER VARYING", 230);
+    columns_table12.get(3).getType().setSql2008TypeName("CHARACTER VARYING", 230);
     ((SimpleTypeString) columns_table12.get(3).getType()).setLength(230);
     ((SimpleTypeString) columns_table12.get(3).getType()).setLengthVariable(true);
     // TODO:
@@ -226,17 +226,17 @@ public class SiardTest {
 
     columns_table12.get(4).getType().setOriginalTypeName("BLOB");
     // TODO: columns_table12.get(4).getType().setSql99TypeName("BLOB");
-    // columns_table12.get(4).getType().setSql2003TypeName("BLOB");
+    // columns_table12.get(4).getType().setSql2008TypeName("BLOB");
     columns_table12.get(4).getType().setSql99TypeName("BINARY LARGE OBJECT");
-    columns_table12.get(4).getType().setSql2003TypeName("BINARY LARGE OBJECT");
+    columns_table12.get(4).getType().setSql2008TypeName("BINARY LARGE OBJECT");
     columns_table12.get(4).getType().setDescription("col125 description");
     columns_table12.get(4).setNillable(false);
 
     // columns_table12.get(5).getType().setOriginalTypeName("TEXT");
     // columns_table12.get(5).getType().setSql99TypeName("BINARY LARGE OBJECT");
-    // columns_table12.get(5).getType().setSql2003TypeName("BINARY LARGE OBJECT");
+    // columns_table12.get(5).getType().setSql2008TypeName("BINARY LARGE OBJECT");
     // //TODO: columns_table12.get(5).getType().setSql99TypeName("CLOB");
-    // columns_table12.get(5).getType().setSql2003TypeName("CLOB");
+    // columns_table12.get(5).getType().setSql2008TypeName("CLOB");
     // columns_table12.get(5).getType().setDescription("col126 description");
 
     // schema02
@@ -250,17 +250,17 @@ public class SiardTest {
 
     columns_table21.get(0).getType().setOriginalTypeName("int", 10, 0);
     columns_table21.get(0).getType().setSql99TypeName("INTEGER");
-    columns_table21.get(0).getType().setSql2003TypeName("INTEGER");
+    columns_table21.get(0).getType().setSql2008TypeName("INTEGER");
     columns_table21.get(0).getType().setDescription("col211 description");
 
     columns_table21.get(1).getType().setOriginalTypeName("bool");
     columns_table21.get(1).getType().setSql99TypeName("BOOLEAN");
-    columns_table21.get(1).getType().setSql2003TypeName("BOOLEAN");
+    columns_table21.get(1).getType().setSql2008TypeName("BOOLEAN");
     columns_table21.get(0).getType().setDescription("col212 description");
 
     columns_table21.get(2).getType().setOriginalTypeName("decimal", 5, 2);
     columns_table21.get(2).getType().setSql99TypeName("DECIMAL", 5, 2);
-    columns_table21.get(2).getType().setSql2003TypeName("DECIMAL", 5, 2);
+    columns_table21.get(2).getType().setSql2008TypeName("DECIMAL", 5, 2);
     columns_table21.get(2).getType().setDescription("col213 description");
 
     // create columns for second table
@@ -275,17 +275,17 @@ public class SiardTest {
 
     columns_table22.get(0).getType().setOriginalTypeName("int", 10, 0);
     columns_table22.get(0).getType().setSql99TypeName("INTEGER");
-    columns_table22.get(0).getType().setSql2003TypeName("INTEGER");
+    columns_table22.get(0).getType().setSql2008TypeName("INTEGER");
     columns_table22.get(0).getType().setDescription("col221 description");
 
     columns_table22.get(1).getType().setOriginalTypeName("int", 10, 0);
     columns_table22.get(1).getType().setSql99TypeName("INTEGER");
-    columns_table22.get(1).getType().setSql2003TypeName("INTEGER");
+    columns_table22.get(1).getType().setSql2008TypeName("INTEGER");
     columns_table22.get(1).getType().setDescription("col222 description");
 
     columns_table22.get(2).getType().setOriginalTypeName("VARCHAR", 250);
     columns_table22.get(2).getType().setSql99TypeName("CHARACTER VARYING", 250);
-    columns_table22.get(2).getType().setSql2003TypeName("CHARACTER VARYING", 250);
+    columns_table22.get(2).getType().setSql2008TypeName("CHARACTER VARYING", 250);
     ((SimpleTypeString) columns_table22.get(2).getType()).setLength(250);
     ((SimpleTypeString) columns_table22.get(2).getType()).setLengthVariable(true);
     // TODO:
@@ -294,7 +294,7 @@ public class SiardTest {
 
     columns_table22.get(3).getType().setOriginalTypeName("VARCHAR", 230);
     columns_table22.get(3).getType().setSql99TypeName("CHARACTER VARYING", 230);
-    columns_table22.get(3).getType().setSql2003TypeName("CHARACTER VARYING", 230);
+    columns_table22.get(3).getType().setSql2008TypeName("CHARACTER VARYING", 230);
     ((SimpleTypeString) columns_table22.get(3).getType()).setLength(230);
     ((SimpleTypeString) columns_table22.get(3).getType()).setLengthVariable(true);
     // TODO:
@@ -370,7 +370,7 @@ public class SiardTest {
     param01.setType(new SimpleTypeString(50, false));
     param01.getType().setOriginalTypeName("VARCHAR", 50);
     param01.getType().setSql99TypeName("CHARACTER VARYING", 50);
-    param01.getType().setSql2003TypeName("CHARACTER VARYING", 50);
+    param01.getType().setSql2008TypeName("CHARACTER VARYING", 50);
     ((SimpleTypeString) param01.getType()).setLength(50);
     ((SimpleTypeString) param01.getType()).setLengthVariable(true);
     // TODO: ((SimpleTypeString)param01.getType()).setCharset("UTF-8");
@@ -384,7 +384,7 @@ public class SiardTest {
     param02.setType(new SimpleTypeNumericExact());
     // TODO: param02.getType().setOriginalTypeName("int", 10, 0);
     param02.getType().setSql99TypeName("INTEGER");
-    param02.getType().setSql2003TypeName("INTEGER");
+    param02.getType().setSql2008TypeName("INTEGER");
     // TODO: param02.getType().setDescription("param02 description");
     param02.setDescription("the second param");
 

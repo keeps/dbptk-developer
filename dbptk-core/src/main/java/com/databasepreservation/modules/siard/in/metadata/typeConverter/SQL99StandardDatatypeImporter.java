@@ -147,9 +147,9 @@ public class SQL99StandardDatatypeImporter extends SQLStandardDatatypeImporter {
       type.setSql99TypeName(sql99TypeName);
     }
 
-    if (StringUtils.isBlank(type.getSql2003TypeName())) {
-      // TODO: convert sql99 to sql2003
-      type.setSql2003TypeName(sql99TypeName);
+    if (StringUtils.isBlank(type.getSql2008TypeName())) {
+      // TODO: convert sql99 to sql2008
+      type.setSql2008TypeName(sql99TypeName);
     }
 
     type.setOriginalTypeName(sql99TypeName);

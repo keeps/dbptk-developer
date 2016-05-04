@@ -82,7 +82,7 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.SIARDHelper;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.out.content.Sql2003toXSDType;
+import com.databasepreservation.modules.siard.out.content.Sql2008toXSDType;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.JodaUtils;
@@ -486,8 +486,8 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
         attributeType.setTypeName(type.getOriginalTypeName());
       } else {
         LOGGER.debug("Saving type '" + type.getOriginalTypeName() + "'(internal_id:" + type.hashCode() + ") as "
-          + type.getSql2003TypeName());
-        attributeType.setType(type.getSql2003TypeName());
+          + type.getSql2008TypeName());
+        attributeType.setType(type.getSql2008TypeName());
         attributeType.setTypeOriginal(type.getOriginalTypeName());
       }
     } else {
@@ -578,7 +578,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (parameter.getType() != null) {
-      parameterType.setType(parameter.getType().getSql2003TypeName());
+      parameterType.setType(parameter.getType().getSql2008TypeName());
       parameterType.setTypeOriginal(parameter.getType().getOriginalTypeName());
     } else {
       throw new ModuleException("Error while exporting routine parameters: parameter type cannot be null");
@@ -665,10 +665,10 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
         columnType.setTypeName(column.getType().getOriginalTypeName());
       } else {
         LOGGER.debug("Saving type '" + column.getType().getOriginalTypeName() + "'(internal_id:"
-          + column.getType().hashCode() + ") as " + column.getType().getSql2003TypeName());
+          + column.getType().hashCode() + ") as " + column.getType().getSql2008TypeName());
         LOGGER.debug("Saving type '" + column.getType().getOriginalTypeName() + "' as '"
-          + column.getType().getSql2003TypeName() + "'");
-        columnType.setType(column.getType().getSql2003TypeName());
+          + column.getType().getSql2008TypeName() + "'");
+        columnType.setType(column.getType().getSql2008TypeName());
         columnType.setTypeOriginal(column.getType().getOriginalTypeName());
 
         if (column.isNillable() != null) {
@@ -692,16 +692,16 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     // TODO: set fields related to lob and complex types
 
     // specific fields for lobs
-    String xsdTypeFromColumnSql2003Type = null;
+    String xsdTypeFromColumnSql2008Type = null;
     try {
-      xsdTypeFromColumnSql2003Type = Sql2003toXSDType.convert(column.getType());
+      xsdTypeFromColumnSql2008Type = Sql2008toXSDType.convert(column.getType());
     } catch (UnknownTypeException e) {
-      throw new ModuleException("Could not get SQL2003 type", e);
+      throw new ModuleException("Could not get SQL2008 type", e);
     }
 
     // don't set Folder if LOBs are being saved externally
-    if (xsdTypeFromColumnSql2003Type != null && !savingLobsExternally
-      && ("clobType".equals(xsdTypeFromColumnSql2003Type) || "blobType".equals(xsdTypeFromColumnSql2003Type))) {
+    if (xsdTypeFromColumnSql2008Type != null && !savingLobsExternally
+      && ("clobType".equals(xsdTypeFromColumnSql2008Type) || "blobType".equals(xsdTypeFromColumnSql2008Type))) {
       columnType.setFolder(contentPathStrategy.getColumnFolderName(columnIndex));
     }
 

@@ -148,7 +148,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
     // TODO: add charset
     SimpleTypeString type = new SimpleTypeString(columnSize, true);
     type.setSql99TypeName("CHARACTER VARYING", columnSize);
-    type.setSql2003TypeName("CHARACTER VARYING", columnSize);
+    type.setSql2008TypeName("CHARACTER VARYING", columnSize);
     return type;
   }
 
@@ -156,7 +156,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getTinyintType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     SimpleTypeNumericExact type = new SimpleTypeNumericExact(columnSize, decimalDigits);
     type.setSql99TypeName("SMALLINT");
-    type.setSql2003TypeName("SMALLINT");
+    type.setSql2008TypeName("SMALLINT");
     return type;
   }
 
@@ -164,7 +164,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getSmallIntType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     SimpleTypeNumericExact type = new SimpleTypeNumericExact(columnSize, decimalDigits);
     type.setSql99TypeName("SMALLINT");
-    type.setSql2003TypeName("SMALLINT");
+    type.setSql2008TypeName("SMALLINT");
     return type;
   }
 
@@ -172,7 +172,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getLongNationalVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     SimpleTypeString type = new SimpleTypeString(columnSize, true);
     type.setSql99TypeName("CHARACTER LARGE OBJECT");
-    type.setSql2003TypeName("CHARACTER LARGE OBJECT");
+    type.setSql2008TypeName("CHARACTER LARGE OBJECT");
     return type;
   }
 
@@ -180,7 +180,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getIntegerType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     SimpleTypeNumericExact type = new SimpleTypeNumericExact(columnSize, decimalDigits);
     type.setSql99TypeName("INTEGER");
-    type.setSql2003TypeName("INTEGER");
+    type.setSql2008TypeName("INTEGER");
     return type;
   }
 
@@ -188,7 +188,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getClobType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     SimpleTypeString type = new SimpleTypeString(columnSize, true);
     type.setSql99TypeName("CHARACTER LARGE OBJECT");
-    type.setSql2003TypeName("CHARACTER LARGE OBJECT");
+    type.setSql2008TypeName("CHARACTER LARGE OBJECT");
     return type;
   }
 
@@ -197,7 +197,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
     // TODO add charset
     SimpleTypeString type = new SimpleTypeString(columnSize, false);
     type.setSql99TypeName("CHARACTER", columnSize);
-    type.setSql2003TypeName("CHARACTER", columnSize);
+    type.setSql2008TypeName("CHARACTER", columnSize);
     return type;
   }
 
@@ -205,7 +205,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getCharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     SimpleTypeString type = new SimpleTypeString(columnSize, false);
     type.setSql99TypeName("CHARACTER", columnSize);
-    type.setSql2003TypeName("CHARACTER", columnSize);
+    type.setSql2008TypeName("CHARACTER", columnSize);
     type.setOriginalTypeName("CHARACTER", columnSize);
     return type;
   }
@@ -214,7 +214,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getBooleanType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     SimpleTypeBoolean type = new SimpleTypeBoolean();
     type.setSql99TypeName("BOOLEAN");
-    type.setSql2003TypeName("BOOLEAN");
+    type.setSql2008TypeName("BOOLEAN");
     return type;
   }
 
@@ -222,7 +222,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getBlobType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     SimpleTypeBinary type = new SimpleTypeBinary(columnSize);
     type.setSql99TypeName("BINARY LARGE OBJECT");
-    type.setSql2003TypeName("BINARY LARGE OBJECT");
+    type.setSql2008TypeName("BINARY LARGE OBJECT");
     return type;
   }
 
@@ -234,7 +234,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
     } else {
       type = new SimpleTypeBoolean();
       type.setSql99TypeName("BOOLEAN");
-      type.setSql2003TypeName("BOOLEAN");
+      type.setSql2008TypeName("BOOLEAN");
     }
     return type;
   }
@@ -277,7 +277,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeBinary(columnSize);
     type.setSql99TypeName("BINARY LARGE OBJECT");
-    type.setSql2003TypeName("BINARY LARGE OBJECT");
+    type.setSql2008TypeName("BINARY LARGE OBJECT");
     return type;
   }
 
@@ -285,7 +285,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getRealType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeNumericApproximate(columnSize);
     type.setSql99TypeName("REAL");
-    type.setSql2003TypeName("REAL");
+    type.setSql2008TypeName("REAL");
     return type;
   }
 
@@ -296,7 +296,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
     if ("_char".equals(typeName)) {
       subtype = new SimpleTypeString(columnSize, false);
       subtype.setSql99TypeName("CHARACTER");
-      subtype.setSql2003TypeName("CHARACTER");
+      subtype.setSql2008TypeName("CHARACTER");
 
     } else if ("_abstime".equals(typeName)) {
       subtype = getTimeType(typeName, columnSize, decimalDigits, numPrecRadix);
@@ -311,7 +311,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getBinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeBinary(columnSize);
     type.setSql99TypeName("BINARY LARGE OBJECT");
-    type.setSql2003TypeName("BINARY LARGE OBJECT");
+    type.setSql2008TypeName("BINARY LARGE OBJECT");
     type.setOriginalTypeName(typeName, columnSize);
     return type;
   }
@@ -320,7 +320,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getDateType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeDateTime(false, false);
     type.setSql99TypeName("DATE");
-    type.setSql2003TypeName("DATE");
+    type.setSql2008TypeName("DATE");
     return type;
   }
 
@@ -329,10 +329,10 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
     Type type = new SimpleTypeNumericExact(columnSize, decimalDigits);
     if (decimalDigits > 0) {
       type.setSql99TypeName("DECIMAL", columnSize, decimalDigits);
-      type.setSql2003TypeName("DECIMAL", columnSize, decimalDigits);
+      type.setSql2008TypeName("DECIMAL", columnSize, decimalDigits);
     } else {
       type.setSql99TypeName("DECIMAL", columnSize);
-      type.setSql2003TypeName("DECIMAL", columnSize);
+      type.setSql2008TypeName("DECIMAL", columnSize);
     }
     return type;
   }
@@ -342,10 +342,10 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
     Type type = new SimpleTypeNumericExact(columnSize, decimalDigits);
     if (decimalDigits > 0) {
       type.setSql99TypeName("NUMERIC", columnSize, decimalDigits);
-      type.setSql2003TypeName("NUMERIC", columnSize, decimalDigits);
+      type.setSql2008TypeName("NUMERIC", columnSize, decimalDigits);
     } else {
       type.setSql99TypeName("NUMERIC", columnSize);
-      type.setSql2003TypeName("NUMERIC", columnSize);
+      type.setSql2008TypeName("NUMERIC", columnSize);
     }
     return type;
   }
@@ -354,7 +354,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getDoubleType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeNumericApproximate(columnSize);
     type.setSql99TypeName("DOUBLE PRECISION");
-    type.setSql2003TypeName("DOUBLE PRECISION");
+    type.setSql2008TypeName("DOUBLE PRECISION");
     return type;
   }
 
@@ -362,7 +362,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getFloatType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeNumericApproximate(columnSize);
     type.setSql99TypeName("FLOAT");
-    type.setSql2003TypeName("FLOAT");
+    type.setSql2008TypeName("FLOAT");
     return type;
   }
 
@@ -370,7 +370,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getLongvarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeBinary(columnSize);
     type.setSql99TypeName("BINARY LARGE OBJECT");
-    type.setSql2003TypeName("BINARY LARGE OBJECT");
+    type.setSql2008TypeName("BINARY LARGE OBJECT");
     return type;
   }
 
@@ -379,7 +379,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
     throws UnknownTypeException {
     Type type = new SimpleTypeString(columnSize, true);
     type.setSql99TypeName("CHARACTER LARGE OBJECT");
-    type.setSql2003TypeName("CHARACTER LARGE OBJECT");
+    type.setSql2008TypeName("CHARACTER LARGE OBJECT");
     return type;
   }
 
@@ -387,7 +387,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getTimeType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeDateTime(true, false);
     type.setSql99TypeName("TIME");
-    type.setSql2003TypeName("TIME");
+    type.setSql2008TypeName("TIME");
     return type;
   }
 
@@ -395,7 +395,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getTimestampType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeDateTime(true, false);
     type.setSql99TypeName("TIMESTAMP");
-    type.setSql2003TypeName("TIMESTAMP");
+    type.setSql2008TypeName("TIMESTAMP");
     return type;
   }
 
@@ -403,7 +403,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeString(columnSize, true);
     type.setSql99TypeName("CHARACTER VARYING", columnSize);
-    type.setSql2003TypeName("CHARACTER VARYING", columnSize);
+    type.setSql2008TypeName("CHARACTER VARYING", columnSize);
     return type;
   }
 
