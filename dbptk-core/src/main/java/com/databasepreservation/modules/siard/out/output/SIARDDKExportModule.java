@@ -45,17 +45,19 @@ public class SIARDDKExportModule {
   private MetadataPathStrategy metadataPathStrategy;
   private SIARDMarshaller siardMarshaller;
   private LOBsTracker lobsTracker;
+  private Path tableFilter;
 
   private Map<String, String> exportModuleArgs;
   private Map<Integer, List<Integer>> LOBsTracker;
   private FileIndexFileStrategy fileIndexFileStrategy;
   private DocIndexFileStrategy docIndexFileStrategy;
 
-  public SIARDDKExportModule(Map<String, String> exportModuleArgs) {
+  public SIARDDKExportModule(Map<String, String> exportModuleArgs, Path tableFilter) {
     this.exportModuleArgs = exportModuleArgs;
     LOBsTracker = new HashMap<Integer, List<Integer>>();
 
     Path rootPath = FileSystems.getDefault().getPath(exportModuleArgs.get("folder"));
+    this.tableFilter = tableFilter;
 
     mainContainer = new SIARDArchiveContainer(rootPath, SIARDArchiveContainer.OutputContainerType.MAIN);
     writeStrategy = new FolderWriteStrategy();
@@ -125,5 +127,12 @@ public class SIARDDKExportModule {
    */
   public LOBsTracker getLobsTracker() {
     return lobsTracker;
+  }
+
+  /**
+   * @return the tableFilter
+   */
+  public Path getTableFilter() {
+    return tableFilter;
   }
 }

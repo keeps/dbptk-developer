@@ -539,7 +539,7 @@ public class SiardTest {
       case SIARD_DK:
         Map<String, String> exportModuleArgs = new HashMap<String, String>();
         exportModuleArgs.put(SIARDDKModuleFactory.folder.longName(), tmpFile.toString());
-        exporter = new SIARDDKExportModule(exportModuleArgs).getDatabaseExportModule();
+        exporter = new SIARDDKExportModule(exportModuleArgs, null).getDatabaseExportModule();
         break;
     }
 
@@ -585,7 +585,7 @@ public class SiardTest {
       case SIARD_2:
         importer = new SIARD2ImportModule(tmpFile).getDatabaseImportModule();
         break;
-        
+
       case SIARD_DK:
         // Notice: SIARD DK doesn't support schemas in the archive format.
         // Therefore it uses a special 'importAsSchema' parameter, to make it
