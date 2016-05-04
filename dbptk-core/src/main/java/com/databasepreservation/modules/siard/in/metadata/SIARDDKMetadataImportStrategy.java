@@ -32,7 +32,7 @@ import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
-import com.databasepreservation.modules.siard.in.metadata.typeConverter.TypeConverterFactory;
+import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQLStandardDatatypeFactory;
 import com.databasepreservation.modules.siard.in.path.SIARDDKPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
@@ -201,7 +201,13 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
         columnDptkl.setName(columnXml.getName());
         columnDptkl.setId(String.format("%s.%s", tableId, columnDptkl.getName()));
         String typeOriginal = StringUtils.isNotBlank(columnXml.getTypeOriginal()) ? columnXml.getTypeOriginal() : null;
-        columnDptkl.setType(TypeConverterFactory.getSQL99TypeConverter().getType(columnXml.getType(), typeOriginal));
+
+        columnDptkl.setType(SQLStandardDatatypeFactory.getSQL99StandardDatatypeImporter().getCheckedType(
+          "<information unavailable>", "<information unavailable>", "<information unavailable>",
+          "<information unavailable>", columnXml.getType()));
+        // keep original type
+        columnDptkl.getType().setOriginalTypeName(typeOriginal);
+
         columnDptkl.setDescription(columnXml.getDescription());
         String defaultValue = StringUtils.isNotBlank(columnXml.getDefaultValue()) ? columnXml.getDefaultValue() : null;
         columnDptkl.setDefaultValue(defaultValue);

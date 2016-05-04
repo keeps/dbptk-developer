@@ -9,7 +9,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.oracle.OracleHelper;
@@ -57,7 +56,7 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected List<SchemaStructure> getSchemas() throws SQLException, ClassNotFoundException, UnknownTypeException {
+  protected List<SchemaStructure> getSchemas() throws SQLException, ClassNotFoundException {
     List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
     String schemaName = getMetadata().getUserName();
     schemas.add(getSchemaStructure(schemaName, 1));

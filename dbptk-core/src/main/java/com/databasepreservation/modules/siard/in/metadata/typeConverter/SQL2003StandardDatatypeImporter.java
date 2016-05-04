@@ -13,24 +13,24 @@ import com.databasepreservation.model.structure.type.Type;
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SQL99StandardDatatypeImporter extends SQLStandardDatatypeImporter {
+public class SQL2003StandardDatatypeImporter extends SQLStandardDatatypeImporter {
   @Override
   protected Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName,
-    String columnName, int dataType, String sql99TypeName, int columnSize, int decimalDigits, int numPrecRadix)
+    String columnName, int dataType, String sql2003TypeName, int columnSize, int decimalDigits, int numPrecRadix)
     throws UnknownTypeException, SQLException, ClassNotFoundException {
 
     // obtain the type without parameter information
     String typeNameWithoutParameters;
-    int leftParenthesisIndex = sql99TypeName.indexOf('(');
-    int rightParenthesisIndex = sql99TypeName.lastIndexOf(')');
+    int leftParenthesisIndex = sql2003TypeName.indexOf('(');
+    int rightParenthesisIndex = sql2003TypeName.lastIndexOf(')');
     if (leftParenthesisIndex >= 0 && rightParenthesisIndex >= 0) {
-      if (rightParenthesisIndex >= sql99TypeName.length()) {
-        rightParenthesisIndex = sql99TypeName.length() - 1;
+      if (rightParenthesisIndex >= sql2003TypeName.length()) {
+        rightParenthesisIndex = sql2003TypeName.length() - 1;
       }
-      typeNameWithoutParameters = sql99TypeName.substring(0, leftParenthesisIndex)
-        + sql99TypeName.substring(rightParenthesisIndex + 1);
+      typeNameWithoutParameters = sql2003TypeName.substring(0, leftParenthesisIndex)
+        + sql2003TypeName.substring(rightParenthesisIndex + 1);
     } else {
-      typeNameWithoutParameters = sql99TypeName;
+      typeNameWithoutParameters = sql2003TypeName;
     }
     typeNameWithoutParameters = typeNameWithoutParameters.toUpperCase(Locale.ENGLISH);
 
@@ -136,7 +136,7 @@ public class SQL99StandardDatatypeImporter extends SQLStandardDatatypeImporter {
         break;
 
       default:
-        type = getFallbackType(sql99TypeName);
+        type = getFallbackType(sql2003TypeName);
     }
 
     // exceptions
@@ -144,15 +144,15 @@ public class SQL99StandardDatatypeImporter extends SQLStandardDatatypeImporter {
     // TODO: support charsets
 
     if (StringUtils.isBlank(type.getSql99TypeName())) {
-      type.setSql99TypeName(sql99TypeName);
+      // TODO: convert sql2003 to sql99
+      type.setSql99TypeName(sql2003TypeName);
     }
 
     if (StringUtils.isBlank(type.getSql2003TypeName())) {
-      // TODO: convert sql99 to sql2003
-      type.setSql2003TypeName(sql99TypeName);
+      type.setSql2003TypeName(sql2003TypeName);
     }
 
-    type.setOriginalTypeName(sql99TypeName);
+    type.setOriginalTypeName(sql2003TypeName);
     return type;
   }
 }

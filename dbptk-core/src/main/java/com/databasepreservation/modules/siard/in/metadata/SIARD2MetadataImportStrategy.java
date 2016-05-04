@@ -66,7 +66,7 @@ import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.in.metadata.typeConverter.TypeConverterFactory;
+import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQLStandardDatatypeFactory;
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
@@ -85,6 +85,10 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
 
   private int currentSchemaIndex = 1;
   private int currentTableIndex;
+
+  private String metadataCurrentDatabaseName = "<information not available>";
+  private String metadataCurrentSchemaName = "<information not available>";
+  private String metadataCurrentTableName = "<information not available>";
 
   public SIARD2MetadataImportStrategy(MetadataPathStrategy metadataPathStrategy,
     ContentPathImportStrategy contentPathImportStrategy) {
@@ -157,7 +161,9 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
     databaseStructure.setProducerApplication(siardArchive.getProducerApplication());
     databaseStructure.setClientMachine(siardArchive.getClientMachine());
     databaseStructure.setDatabaseUser(siardArchive.getDatabaseUser());
-    databaseStructure.setName(siardArchive.getDbname());
+
+    metadataCurrentDatabaseName = siardArchive.getDbname();
+    databaseStructure.setName(metadataCurrentDatabaseName);
 
     databaseStructure.setArchivalDate(JodaUtils.xs_date_parse(siardArchive.getArchivalDate()));
     // TODO:
@@ -278,7 +284,8 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
     if (schema != null) {
       SchemaStructure result = new SchemaStructure();
 
-      result.setName(schema.getName());
+      metadataCurrentSchemaName = schema.getName();
+      result.setName(metadataCurrentSchemaName);
       result.setDescription(schema.getDescription());
       result.setIndex(currentSchemaIndex++);
       contentPathStrategy.associateSchemaWithFolder(schema.getName(), schema.getFolder());
@@ -312,7 +319,8 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
     if (routineType != null) {
       RoutineStructure result = new RoutineStructure();
 
-      result.setName(routineType.getName());
+      metadataCurrentTableName = routineType.getName();
+      result.setName(metadataCurrentTableName);
       result.setDescription(routineType.getDescription());
       result.setSource(routineType.getSource());
       result.setBody(routineType.getBody());
@@ -346,8 +354,9 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
 
       result.setName(parameterType.getName());
       result.setMode(parameterType.getMode());
-      result.setType(TypeConverterFactory.getSQL2003TypeConverter().getType(parameterType.getType(),
-        parameterType.getTypeOriginal()));
+      result.setType(SQLStandardDatatypeFactory.getSQL99StandardDatatypeImporter().getCheckedType(
+        metadataCurrentDatabaseName, metadataCurrentSchemaName, metadataCurrentTableName + " (routine)",
+        parameterType.getName() + " (parameter)", parameterType.getType()));
       result.setDescription(parameterType.getDescription());
 
       // todo: deal with these fields (related to complex types)
@@ -417,7 +426,8 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
       TableStructure result = new TableStructure();
 
       result.setIndex(currentTableIndex++);
-      result.setName(table.getName());
+      metadataCurrentTableName = table.getName();
+      result.setName(metadataCurrentTableName);
       result.setSchema(schemaName);
       result.setDescription(table.getDescription());
       result.setId(String.format("%s.%s", result.getSchema(), result.getName()));
@@ -600,8 +610,9 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
       result.setId(tableId + "." + result.getName());
       contentPathStrategy.associateColumnWithFolder(result.getId(), column.getFolder());
 
-      result
-        .setType(TypeConverterFactory.getSQL2003TypeConverter().getType(column.getType(), column.getTypeOriginal()));
+      result.setType(SQLStandardDatatypeFactory.getSQL99StandardDatatypeImporter().getCheckedType(
+        metadataCurrentDatabaseName, metadataCurrentSchemaName, metadataCurrentTableName, column.getName(),
+        column.getType()));
 
       result.setNillable(column.isNullable());
       result.setDefaultValue(column.getDefaultValue());

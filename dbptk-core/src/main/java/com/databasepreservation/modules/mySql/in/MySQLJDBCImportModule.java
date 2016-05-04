@@ -17,7 +17,6 @@ import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
@@ -79,7 +78,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected List<SchemaStructure> getSchemas() throws SQLException, ClassNotFoundException, UnknownTypeException {
+  protected List<SchemaStructure> getSchemas() throws SQLException, ClassNotFoundException {
     List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
     String schemaName = getConnection().getCatalog();
     schemas.add(getSchemaStructure(schemaName, 1));
@@ -146,8 +145,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected List<ViewStructure> getViews(String schemaName) throws SQLException, ClassNotFoundException,
-    UnknownTypeException {
+  protected List<ViewStructure> getViews(String schemaName) throws SQLException, ClassNotFoundException {
     List<ViewStructure> views = super.getViews(schemaName);
     for (ViewStructure v : views) {
       Statement statement = getConnection().createStatement();

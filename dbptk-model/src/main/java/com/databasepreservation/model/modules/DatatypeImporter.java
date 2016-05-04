@@ -25,6 +25,8 @@ import com.databasepreservation.model.structure.type.Type;
 public abstract class DatatypeImporter {
   private static final Logger LOGGER = LoggerFactory.getLogger(DatatypeImporter.class);
 
+  private static final int FALLBACK_TYPE_SIZE = 65535;
+
   /**
    * Map the original type to the normalized type model
    *
@@ -95,7 +97,7 @@ public abstract class DatatypeImporter {
   }
 
   protected Type getFallbackType(String originalTypeName) {
-    Type type = new SimpleTypeString(Integer.MAX_VALUE, true);
+    Type type = new SimpleTypeString(FALLBACK_TYPE_SIZE, true);
     if (StringUtils.isNotBlank(originalTypeName)) {
       type.setOriginalTypeName(originalTypeName);
     } else {

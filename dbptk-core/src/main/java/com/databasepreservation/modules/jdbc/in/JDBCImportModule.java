@@ -22,7 +22,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.databasepreservation.model.exception.UnknownTypeException;
 import oracle.sql.STRUCT;
 
 import org.apache.commons.lang3.StringUtils;
@@ -41,6 +40,7 @@ import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatatypeImporter;
@@ -296,8 +296,8 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return the schema structure of a given schema name
    * @throws ModuleException
    */
-  protected SchemaStructure getSchemaStructure(String schemaName, int schemaIndex) throws SQLException
-    , ClassNotFoundException {
+  protected SchemaStructure getSchemaStructure(String schemaName, int schemaIndex) throws SQLException,
+    ClassNotFoundException {
     actualSchema = new SchemaStructure();
     actualSchema.setName(schemaName);
     actualSchema.setIndex(schemaIndex);
@@ -418,8 +418,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @throws ClassNotFoundException
    * @throws
    */
-  protected List<TableStructure> getTables(SchemaStructure schema) throws SQLException, ClassNotFoundException
-     {
+  protected List<TableStructure> getTables(SchemaStructure schema) throws SQLException, ClassNotFoundException {
     List<TableStructure> tables = new ArrayList<TableStructure>();
     ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"TABLE"});
     int tableIndex = 1;
@@ -447,8 +446,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @throws ClassNotFoundException
    * @throws
    */
-  protected List<ViewStructure> getViews(String schemaName) throws SQLException, ClassNotFoundException
-     {
+  protected List<ViewStructure> getViews(String schemaName) throws SQLException, ClassNotFoundException {
     List<ViewStructure> views = new ArrayList<ViewStructure>();
     ResultSet rset = getMetadata().getTables(dbStructure.getName(), schemaName, "%", new String[] {"VIEW"});
     while (rset.next()) {
@@ -682,8 +680,8 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @throws ClassNotFoundException
    * @throws
    */
-  protected List<ColumnStructure> getUDTColumns(String schemaName, String udtName)
-    throws SQLException, ClassNotFoundException {
+  protected List<ColumnStructure> getUDTColumns(String schemaName, String udtName) throws SQLException,
+    ClassNotFoundException {
 
     // LOGGER.debug("id: " + schemaName + "." + udtName);
     List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
@@ -833,8 +831,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @throws ClassNotFoundException
    * @throws ModuleException
    */
-  protected PrimaryKey getPrimaryKey(String schemaName, String tableName) throws SQLException,
-    ClassNotFoundException {
+  protected PrimaryKey getPrimaryKey(String schemaName, String tableName) throws SQLException, ClassNotFoundException {
     String pkName = null;
     List<String> pkColumns = new ArrayList<String>();
 
@@ -868,8 +865,8 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @throws ClassNotFoundException
    * @throws ModuleException
    */
-  protected List<ForeignKey> getForeignKeys(String schemaName, String tableName) throws SQLException
-    , ClassNotFoundException {
+  protected List<ForeignKey> getForeignKeys(String schemaName, String tableName) throws SQLException,
+    ClassNotFoundException {
 
     List<ForeignKey> foreignKeys = new ArrayList<ForeignKey>();
 
@@ -1443,8 +1440,8 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   @Override
-  public void getDatabase(DatabaseExportModule handler)
-    throws ModuleException, InvalidDataException, UnknownTypeException {
+  public void getDatabase(DatabaseExportModule handler) throws ModuleException, InvalidDataException,
+    UnknownTypeException {
     try {
       moduleSettings = handler.getModuleSettings();
 
