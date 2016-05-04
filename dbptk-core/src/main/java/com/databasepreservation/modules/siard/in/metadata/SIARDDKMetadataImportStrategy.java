@@ -201,13 +201,9 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
         columnDptkl.setName(columnXml.getName());
         columnDptkl.setId(String.format("%s.%s", tableId, columnDptkl.getName()));
         String typeOriginal = StringUtils.isNotBlank(columnXml.getTypeOriginal()) ? columnXml.getTypeOriginal() : null;
-
         columnDptkl.setType(SQLStandardDatatypeFactory.getSQL99StandardDatatypeImporter().getCheckedType(
           "<information unavailable>", "<information unavailable>", "<information unavailable>",
-          "<information unavailable>", columnXml.getType()));
-        // keep original type
-        columnDptkl.getType().setOriginalTypeName(typeOriginal);
-
+          "<information unavailable>", columnXml.getType(), typeOriginal));
         columnDptkl.setDescription(columnXml.getDescription());
         String defaultValue = StringUtils.isNotBlank(columnXml.getDefaultValue()) ? columnXml.getDefaultValue() : null;
         columnDptkl.setDefaultValue(defaultValue);

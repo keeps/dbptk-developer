@@ -353,7 +353,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
       result.setMode(parameterType.getMode());
       result.setType(SQLStandardDatatypeFactory.getSQL99StandardDatatypeImporter().getCheckedType(
         metadataCurrentDatabaseName, metadataCurrentSchemaName, metadataCurrentTableName + " (routine)",
-        parameterType.getName() + " (parameter)", parameterType.getType()));
+        parameterType.getName() + " (parameter)", parameterType.getType(), parameterType.getTypeOriginal()));
       result.setDescription(parameterType.getDescription());
 
       return result;
@@ -596,7 +596,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 
       result.setType(SQLStandardDatatypeFactory.getSQL99StandardDatatypeImporter().getCheckedType(
         metadataCurrentDatabaseName, metadataCurrentSchemaName, metadataCurrentTableName, column.getName(),
-        column.getType()));
+        column.getType(), column.getTypeOriginal()));
 
       result.setNillable(column.isNullable());
       result.setDefaultValue(column.getDefaultValue());

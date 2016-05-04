@@ -152,7 +152,6 @@ public class SQL2008StandardDatatypeImporter extends SQLStandardDatatypeImporter
       type.setSql2008TypeName(sql2008TypeName);
     }
 
-    type.setOriginalTypeName(sql2008TypeName);
     return type;
   }
 }

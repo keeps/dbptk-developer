@@ -1,9 +1,11 @@
 package com.databasepreservation.modules.mySql.in;
 
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
+import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCDatatypeImporter;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>

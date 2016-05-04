@@ -29,7 +29,7 @@ import com.databasepreservation.modules.SQLHelper;
  */
 public class MySQLHelper extends SQLHelper {
   private static final Set<String> MYSQL_TYPES = new HashSet<String>(Arrays.asList("BLOB", "MEDIUMBLOB", "LONGBLOB",
-    "TIMESTAMP", "TINYBLOB", "TINYTEXT", "TEXT", "MEDIUMTEXT"));
+    "TINYBLOB", "TINYTEXT", "TEXT", "MEDIUMTEXT"));
   private static final Logger logger = LoggerFactory.getLogger(MySQLHelper.class);
   private String name = "MySQL";
 
@@ -111,7 +111,9 @@ public class MySQLHelper extends SQLHelper {
       SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
       if (!dateTime.getTimeDefined() && !dateTime.getTimeZoneDefined()) {
         ret = "date";
-      } else if ("TIME".equalsIgnoreCase(type.getSql99TypeName())) {
+      } else if (StringUtils.equalsIgnoreCase(type.getSql99TypeName(), "TIMESTAMP")) {
+        ret = "datetime";
+      } else if (StringUtils.startsWithIgnoreCase(type.getSql99TypeName(), "TIME")) {
         if (dateTime.getTimeZoneDefined()) {
           logger.warn("Timezone not supported on MySQL: " + "defining type as 'time'");
         }

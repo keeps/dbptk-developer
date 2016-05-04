@@ -40,7 +40,7 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
    * getCheckedType method, simplified to use with SIARD import modules
    */
   public Type getCheckedType(String databaseName, String schemaName, String tableName, String columnName,
-    String sqlStandardType) {
+    String sqlStandardType, String originalType) {
     // dummy objects with bare essentials to be compatible with the parent class
     DatabaseStructure database = new DatabaseStructure();
     database.setName(databaseName);
@@ -60,19 +60,21 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
     try {
       if (indexOfOpen >= 0 && indexOfComma >= 0 && indexOfClose >= 0) {
         // format like NAME(PARAM1,PARAM2)
-        columnSize = Integer.parseInt(sqlStandardType.substring(indexOfOpen, indexOfComma).trim());
-        decimalDigits = Integer.parseInt(sqlStandardType.substring(indexOfComma, indexOfClose).trim());
+        columnSize = Integer.parseInt(sqlStandardType.substring(indexOfOpen + 1, indexOfComma).trim());
+        decimalDigits = Integer.parseInt(sqlStandardType.substring(indexOfComma + 1, indexOfClose).trim());
       } else if (indexOfOpen >= 0 && indexOfClose >= 0) {
         // format like NAME(PARAM1)
-        columnSize = Integer.parseInt(sqlStandardType.substring(indexOfOpen, indexOfComma).trim());
+        columnSize = Integer.parseInt(sqlStandardType.substring(indexOfOpen + 1, indexOfClose).trim());
       }
     } catch (NumberFormatException e) {
       columnSize = DEFAULT_COLUMN_SIZE;
       decimalDigits = DEFAULT_DECIMAL_DIGITS;
     }
 
-    return getCheckedType(database, schema, tableName, columnName, 0, sqlStandardType, columnSize, decimalDigits,
+    Type type = getCheckedType(database, schema, tableName, columnName, 0, sqlStandardType, columnSize, decimalDigits,
       numPrecRadix);
+    type.setOriginalTypeName(originalType);
+    return type;
   }
 
   @Override
@@ -118,7 +120,7 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
 
   @Override
   protected Type getCharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    return new SimpleTypeString(columnSize, true);
+    return new SimpleTypeString(columnSize, false);
   }
 
   @Override
@@ -247,5 +249,13 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
   protected Type getUnsupportedDataType(int dataType, String typeName, int columnSize, int decimalDigits,
     int numPrecRadix) throws UnknownTypeException {
     throw new UnknownTypeException();
+  }
+
+  @Override
+  protected Type getFallbackType(String originalTypeName) {
+    Type type = super.getFallbackType(originalTypeName);
+    // this will be filled later, before returning from getCheckedType
+    type.setOriginalTypeName(null);
+    return type;
   }
 }

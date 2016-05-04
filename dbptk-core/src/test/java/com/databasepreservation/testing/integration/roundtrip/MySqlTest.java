@@ -187,7 +187,10 @@ public class MySqlTest {
     tests.add(new String[] {singleTypeAndValue, "DATE", "'9999-12-31'"});
     tests.add(new String[] {singleTypeAndValue, "DATE", "'2015-01-01'"});
     tests.add(new String[] {singleTypeAndValue, "DATETIME", "'9999-12-31 23:59:59.999999'"});
-    tests.add(new String[] {singleTypeAndValue, "TIMESTAMP", "'2038-01-19 03:14:07.999999'"});
+
+    // MySQL adds "DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+    // tests.add(new String[] {singleTypeAndValue, "TIMESTAMP",
+    // "'2038-01-19 03:14:07.999999'"});
 
     // tests.add(new String[]{singleTypeAndValue, "YEAR(2)", "'15'"});
     // tests.add(new String[]{singleTypeAndValue, "YEAR(2)", "5"});

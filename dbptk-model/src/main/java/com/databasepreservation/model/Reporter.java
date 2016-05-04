@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -218,10 +219,15 @@ public class Reporter {
     conversionProblemsCounter++;
     StringBuilder message = new StringBuilder("Data type import: in schema ");
     appendAsCode(message, schemaName).append("and table ");
-    appendAsCode(message, tableName).append(", the column ");
-    appendAsCode(message, columnName).append(" has type ");
-    appendAsCode(message, type.getOriginalTypeName()).append(" which was perceived as a ");
-    appendAsCode(message, type.getSql99TypeName()).append(" (SQL99) and a ");
+    if(StringUtils.isBlank(type.getOriginalTypeName())){
+      appendAsCode(message, tableName).append(", the retrieved type for column ");
+      appendAsCode(message, columnName).append(" was ");
+    }else {
+      appendAsCode(message, tableName).append(", the column ");
+      appendAsCode(message, columnName).append(" has type ");
+      appendAsCode(message, type.getOriginalTypeName()).append(" which was perceived as ");
+    }
+    appendAsCode(message, type.getSql99TypeName()).append(" (SQL99) and ");
     appendAsCode(message, type.getSql2008TypeName()).append(" (SQL2008)");
 
     report(message);
