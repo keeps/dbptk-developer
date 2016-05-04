@@ -29,7 +29,7 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
 
   public SIARDDKDatabaseExportModule(SIARDDKExportModule siarddkExportModule) {
     super(siarddkExportModule.getContentExportStrategy(), siarddkExportModule.getMainContainer(), siarddkExportModule
-      .getWriteStrategy(), siarddkExportModule.getMetadataExportStrategy(), null);
+      .getWriteStrategy(), siarddkExportModule.getMetadataExportStrategy(), siarddkExportModule.getTableFilter());
 
     this.siarddkExportModule = siarddkExportModule;
   }
