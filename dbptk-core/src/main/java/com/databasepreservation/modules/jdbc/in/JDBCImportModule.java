@@ -503,7 +503,6 @@ public class JDBCImportModule implements DatabaseImportModule {
    */
   protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex)
     throws SQLException, ClassNotFoundException {
-
     TableStructure table = new TableStructure();
     table.setId(schema.getName() + "." + tableName);
     table.setName(tableName);

@@ -219,10 +219,10 @@ public class Reporter {
     conversionProblemsCounter++;
     StringBuilder message = new StringBuilder("Data type import: in schema ");
     appendAsCode(message, schemaName).append("and table ");
-    if(StringUtils.isBlank(type.getOriginalTypeName())){
+    if (StringUtils.isBlank(type.getOriginalTypeName())) {
       appendAsCode(message, tableName).append(", the retrieved type for column ");
       appendAsCode(message, columnName).append(" was ");
-    }else {
+    } else {
       appendAsCode(message, tableName).append(", the column ");
       appendAsCode(message, columnName).append(" has type ");
       appendAsCode(message, type.getOriginalTypeName()).append(" which was perceived as ");

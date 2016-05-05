@@ -320,6 +320,7 @@ public class MySqlTest {
     // Path[]{Paths.get(getClass().getResource("/mySql/testfiles/sakila.sql").toURI())});
     // tests.add(new
     // Path[]{Paths.get(getClass().getResource("/mySql/testfiles/datatypes.sql").toURI())});
+    tests.add(new Path[] {Paths.get(getClass().getResource("/mySql/testfiles/comments.sql").toURI())});
 
     return tests.iterator();
   }

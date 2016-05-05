@@ -124,6 +124,43 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
     return users;
   }
 
+  /**
+   * @param schema
+   * @param tableName
+   *          the name of the table
+   * @param tableIndex
+   * @return the table structure
+   * @throws SQLException
+   * @throws ClassNotFoundException
+   * @throws ModuleException
+   */
+  @Override
+  protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex)
+    throws SQLException, ClassNotFoundException {
+    TableStructure tableStructure = super.getTableStructure(schema, tableName, tableIndex);
+
+    // obtain mysql remarks/comments (unsupported by the mysql driver up to 5.1.38)
+    String query = new StringBuilder()
+      .append(
+        "SELECT TABLE_COMMENT FROM information_schema.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = '")
+      .append(schema.getName()).append("' AND TABLE_NAME = '").append(tableName).append("'").toString();
+    try {
+      boolean gotResultSet = getStatement().execute(query);
+      if (gotResultSet) {
+        ResultSet rs = getStatement().getResultSet();
+        if (rs.next()) {
+          String tableComment = rs.getString(1);
+          tableStructure.setDescription(tableComment);
+        }
+      }
+    } catch (Exception e) {
+      LOGGER.debug("Exception while trying to obtain MySQL table '" + tableIndex
+        + "' description (comment). with query ", e);
+    }
+
+    return tableStructure;
+  }
+
   @Override
   protected ResultSet getTableRawData(TableStructure table) throws SQLException, ClassNotFoundException,
     ModuleException {

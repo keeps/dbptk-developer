@@ -161,11 +161,6 @@
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
-			<groupId>pt.gov.dgarq.roda</groupId>
-			<artifactId>mets-1.7</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
 			<groupId>com.microsoft.sqlserver.jdbc</groupId>
 			<artifactId>sqljdbc4</artifactId>
 		</dependency>

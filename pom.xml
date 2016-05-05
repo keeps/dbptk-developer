@@ -237,13 +237,7 @@
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
-                <version>5.1.34</version>
-                <scope>runtime</scope>
-            </dependency>
-            <dependency>
-                <groupId>pt.gov.dgarq.roda</groupId>
-                <artifactId>mets-1.7</artifactId>
-                <version>1.0.0</version>
+                <version>5.1.38</version>
                 <scope>runtime</scope>
             </dependency>
             <dependency>

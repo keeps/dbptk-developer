@@ -54,7 +54,9 @@ public class MySQLHelper extends SQLHelper {
 
   @Override
   public String createTableSQL(TableStructure table) throws UnknownTypeException, ModuleException {
-    return super.createTableSQL(table) + " ENGINE=INNODB";
+    return super.createTableSQL(table)
+      + (table.getDescription() != null ? " COMMENT '" + escapeComment(table.getDescription()) + "'" : "")
+      + " ENGINE=INNODB";
   }
 
   @Override
