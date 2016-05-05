@@ -253,7 +253,8 @@
             <dependency>
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
-                <version>9.3-1102-jdbc4</version>
+                <!--<version>9.3-1104-jdbc4</version>-->
+                <version>9.4.1208.jre7</version>
             </dependency>
             <dependency>
                 <groupId>com.ibm</groupId>
