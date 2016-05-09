@@ -28,7 +28,7 @@ public class PostgreSqlSIARDDKTest {
 
   private final String db_source = "dpttestDK";
   private final String db_target = "dpttest_siardDK";
-  private final String db_tmp_username = "dpttest";
+  private final String db_tmp_username = "dpttestDK";
   private final String db_tmp_password = RandomStringUtils.randomAlphabetic(10);
   private final String ROUND_TRIP_SIARD_ARCHIVE_FILENAME = "AVID.RND.1000.1";
   private String archiveFullPath;
