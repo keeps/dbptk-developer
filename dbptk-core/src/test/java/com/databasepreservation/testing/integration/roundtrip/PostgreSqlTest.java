@@ -221,6 +221,8 @@ public class PostgreSqlTest {
     // Path[]{Paths.get(getClass().getResource("/postgreSql/testfiles/datatypes_with_arrays.sql").toURI())});
     // tests.add(new
     // Path[]{Paths.get(getClass().getResource("/postgreSql/testfiles/world.sql").toURI())});
+    // tests.add(new
+    // Path[]{Paths.get(getClass().getResource("/postgreSql/testfiles/comments.sql").toURI())});
 
     return tests.iterator();
   }

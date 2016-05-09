@@ -9,6 +9,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,27 +136,30 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    * @throws ModuleException
    */
   @Override
-  protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex)
-    throws SQLException, ClassNotFoundException {
-    TableStructure tableStructure = super.getTableStructure(schema, tableName, tableIndex);
+  protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex,
+    String description) throws SQLException, ClassNotFoundException {
+    TableStructure tableStructure = super.getTableStructure(schema, tableName, tableIndex, description);
 
-    // obtain mysql remarks/comments (unsupported by the mysql driver up to 5.1.38)
-    String query = new StringBuilder()
-      .append(
-        "SELECT TABLE_COMMENT FROM information_schema.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = '")
-      .append(schema.getName()).append("' AND TABLE_NAME = '").append(tableName).append("'").toString();
-    try {
-      boolean gotResultSet = getStatement().execute(query);
-      if (gotResultSet) {
-        ResultSet rs = getStatement().getResultSet();
-        if (rs.next()) {
-          String tableComment = rs.getString(1);
-          tableStructure.setDescription(tableComment);
+    // obtain mysql remarks/comments (unsupported by the mysql driver up to
+    // 5.1.38)
+    if (StringUtils.isBlank(tableStructure.getDescription())) {
+      String query = new StringBuilder()
+        .append(
+          "SELECT TABLE_COMMENT FROM information_schema.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = '")
+        .append(schema.getName()).append("' AND TABLE_NAME = '").append(tableName).append("'").toString();
+      try {
+        boolean gotResultSet = getStatement().execute(query);
+        if (gotResultSet) {
+          ResultSet rs = getStatement().getResultSet();
+          if (rs.next()) {
+            String tableComment = rs.getString(1);
+            tableStructure.setDescription(tableComment);
+          }
         }
+      } catch (Exception e) {
+        LOGGER.debug("Exception while trying to obtain MySQL table '" + tableIndex
+          + "' description (comment). with query ", e);
       }
-    } catch (Exception e) {
-      LOGGER.debug("Exception while trying to obtain MySQL table '" + tableIndex
-        + "' description (comment). with query ", e);
     }
 
     return tableStructure;

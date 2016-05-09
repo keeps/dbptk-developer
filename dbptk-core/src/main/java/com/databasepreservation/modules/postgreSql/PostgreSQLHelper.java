@@ -128,8 +128,13 @@ public class PostgreSQLHelper extends SQLHelper {
 
   @Override
   public String getCheckConstraintsSQL(String schemaName, String tableName) {
-    return "SELECT tc.constraint_name AS CHECK_NAME " + "FROM information_schema.table_constraints tc "
+    return "SELECT tc.constraint_name AS CHECK_NAME FROM information_schema.table_constraints tc "
       + "WHERE table_name='" + tableName + "' AND table_schema='" + schemaName + "' AND constraint_type = 'CHECK'";
+    // return
+    // "SELECT conname AS CHECK_NAME, obj_description(oid, 'pg_constraint') AS CHECK_DESCRIPTION FROM pg_catalog.pg_constraint WHERE conrelid = '"
+    // + tableName +
+    // "'::regclass AND connamespace=(select oid FROM pg_namespace WHERE nspname='"
+    // + schemaName + "')";
   }
 
   public String getCheckConstraintsSQL2(String schemaName, String tableName) {

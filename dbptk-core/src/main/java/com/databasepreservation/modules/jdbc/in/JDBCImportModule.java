@@ -424,16 +424,16 @@ public class JDBCImportModule implements DatabaseImportModule {
     int tableIndex = 1;
     while (rset.next()) {
       String tableName = rset.getString(3);
+      String tableDescription = rset.getString(5);
 
       LOGGER.debug("getting table structure for: " + tableName);
 
       if (moduleSettings.isSelectedTable(schema.getName(), tableName)) {
-        tables.add(getTableStructure(schema, tableName, tableIndex));
+        tables.add(getTableStructure(schema, tableName, tableIndex, tableDescription));
         tableIndex++;
       } else {
         LOGGER.debug("Table " + tableName + " has been filtered out.");
       }
-
     }
     return tables;
   }
@@ -453,6 +453,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       String viewName = rset.getString(3);
       ViewStructure view = new ViewStructure();
       view.setName(viewName);
+      view.setDescription(rset.getString(5));
       view.setColumns(getColumns(schemaName, viewName));
 
       if (view.getColumns().isEmpty()) {
@@ -501,13 +502,14 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @throws ClassNotFoundException
    * @throws ModuleException
    */
-  protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex)
+  protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex, String description)
     throws SQLException, ClassNotFoundException {
     TableStructure table = new TableStructure();
     table.setId(schema.getName() + "." + tableName);
     table.setName(tableName);
     table.setSchema(schema);
     table.setIndex(tableIndex);
+    table.setDescription(description);
 
     table.setColumns(getColumns(schema.getName(), tableName));
     table.setPrimaryKey(getPrimaryKey(schema.getName(), tableName));

@@ -33,6 +33,7 @@ import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
+import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure.SubType;
@@ -449,5 +450,4 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     private static final long serialVersionUID = 1L;
 
   }
-
 }
