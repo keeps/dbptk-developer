@@ -58,7 +58,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
   private static final String COLUMN_KEYWORD = "c";
   private static final String ROW_KEYWORD = "row";
   private static final String FILE_KEYWORD = "file";
-  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2ContentImportStrategy.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD1ContentImportStrategy.class);
   // ImportStrategy
   private final ContentPathImportStrategy contentPathStrategy;
   private final ReadStrategy readStrategy;

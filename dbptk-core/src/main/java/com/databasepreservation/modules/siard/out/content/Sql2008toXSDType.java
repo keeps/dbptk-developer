@@ -28,7 +28,7 @@ public class Sql2008toXSDType {
   private static final Map<String, String> sql2008toXSDconstant = new HashMap<String, String>();
   private static final Map<String, String> sql2008toXSDregex = new HashMap<String, String>();
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(Sql99toXSDType.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(Sql2008toXSDType.class);
 
   static {
     // initialize sql2008 conversion tables
