@@ -60,6 +60,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.18.1</version>
                 <configuration>
+                    <argLine>-Xmx128m</argLine>
                     <suiteXmlFiles>
                         <suiteXmlFile>${basedir}/testng.xml</suiteXmlFile>
                     </suiteXmlFiles>

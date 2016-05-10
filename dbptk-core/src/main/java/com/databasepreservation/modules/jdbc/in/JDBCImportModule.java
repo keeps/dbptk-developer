@@ -529,8 +529,9 @@ public class JDBCImportModule implements DatabaseImportModule {
     ResultSet rs = getStatement().executeQuery(query);
 
     int count = -1;
-    if (rs.next())
+    if (rs.next()) {
       count = rs.getInt(1);
+    }
     LOGGER.debug("Counted " + count + " rows");
 
     return count;
@@ -1465,9 +1466,9 @@ public class JDBCImportModule implements DatabaseImportModule {
               handler.handleDataRow(convertRawToRow(tableRawData, table));
               nRows++;
               if (nRows % 1000 == 0) {
-                if (tableRows <= 0) {
-                  LOGGER.info(String.format("Progress: %d table rows processed (%.2f%%)", nRows,
-                    (nRows / ((float) tableRows)) * 100));
+                if (tableRows > 0) {
+                  LOGGER.info(String
+                    .format("Progress: %d table rows processed (%d%%)", nRows, nRows * 100 / tableRows));
                 } else {
                   LOGGER.info(String.format("Progress: %d table rows processed", nRows));
                 }
