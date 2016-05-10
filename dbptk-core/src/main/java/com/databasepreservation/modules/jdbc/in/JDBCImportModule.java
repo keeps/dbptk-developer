@@ -426,13 +426,12 @@ public class JDBCImportModule implements DatabaseImportModule {
       String tableName = rset.getString(3);
       String tableDescription = rset.getString(5);
 
-      LOGGER.debug("getting table structure for: " + tableName);
-
       if (moduleSettings.isSelectedTable(schema.getName(), tableName)) {
+        LOGGER.info("Obtaining table structure for " + schema.getName() + "." + tableName);
         tables.add(getTableStructure(schema, tableName, tableIndex, tableDescription));
         tableIndex++;
       } else {
-        LOGGER.debug("Table " + tableName + " has been filtered out.");
+        LOGGER.info("Ignoring table " + schema.getName() + "." + tableName);
       }
     }
     return tables;
@@ -712,7 +711,6 @@ public class JDBCImportModule implements DatabaseImportModule {
     // LOGGER.debug("id: " + schemaName + "." + tableName);
     List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
     ResultSet rs = getMetadata().getColumns(dbStructure.getName(), schemaName, tableName, "%");
-    LOGGER.debug("Getting structure of table " + schemaName + "." + tableName);
 
     while (rs.next()) {
       columns.add(getColumn(rs, tableName));
