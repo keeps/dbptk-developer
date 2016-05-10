@@ -26,6 +26,8 @@ public abstract class Type {
 
   private String sql2008TypeName;
 
+  private Boolean largeType;
+
   // using the empty constructor is not advised
   protected Type() {
   }
@@ -89,7 +91,7 @@ public abstract class Type {
     }
 
     if (StringUtils.isBlank(sql99TypeName)) {
-      LOGGER.warn("SQL99 type is not defined for type " + this.toString());
+      // LOGGER.warn("SQL99 type is not defined for type " + this.toString());
     }
     return sql99TypeName;
   }
@@ -133,7 +135,7 @@ public abstract class Type {
     }
 
     if (StringUtils.isBlank(sql2008TypeName)) {
-      LOGGER.warn("SQL2008 type is not defined for type " + this.toString());
+      // LOGGER.warn("SQL2008 type is not defined for type " + this.toString());
     }
     return sql2008TypeName;
   }

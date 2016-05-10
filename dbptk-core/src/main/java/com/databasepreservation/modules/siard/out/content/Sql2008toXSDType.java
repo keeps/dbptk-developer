@@ -1,6 +1,8 @@
 package com.databasepreservation.modules.siard.out.content;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -27,6 +29,8 @@ import com.databasepreservation.model.structure.type.UnsupportedDataType;
 public class Sql2008toXSDType {
   private static final Map<String, String> sql2008toXSDconstant = new HashMap<String, String>();
   private static final Map<String, String> sql2008toXSDregex = new HashMap<String, String>();
+  private static final Map<Type, Boolean> largeObjects = new HashMap<>();
+  private static final List<String> largeTypes = Arrays.asList("clobType", "blobType");
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Sql2008toXSDType.class);
 
@@ -127,5 +131,36 @@ public class Sql2008toXSDType {
     }
 
     return ret;
+  }
+
+  /**
+   * @param type
+   *          the type to check
+   * @return true if the type is a BLOB or CLOB (large type); false otherwise
+   */
+  public static boolean isLargeType(Type type) {
+    Boolean result = largeObjects.get(type);
+    if (result != null) {
+      return result;
+    }
+
+    try {
+      String xmlType = convert(type);
+      for (String largeType : largeTypes) {
+        if (xmlType.equals(largeType)) {
+          result = true;
+          break;
+        }
+      }
+    } catch (Exception e) {
+      LOGGER.debug("Exception while obtaining xml type to check if type is a LOB. Assuming it is not a LOB", e);
+    }
+
+    if (result == null) {
+      result = false;
+    }
+    largeObjects.put(type, result);
+
+    return result;
   }
 }

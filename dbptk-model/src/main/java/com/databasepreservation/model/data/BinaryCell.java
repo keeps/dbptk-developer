@@ -62,10 +62,10 @@ public class BinaryCell extends Cell {
   /**
    * Get the binary stream length in bytes
    *
-   * @return the binary stream length
+   * @return the binary stream length; -1 if the file is not available
    */
   public long getLength() throws ModuleException {
-    return fileItem != null ? fileItem.size() : 0;
+    return fileItem != null ? fileItem.size() : -1;
   }
 
   /**

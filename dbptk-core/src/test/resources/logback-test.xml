@@ -8,7 +8,7 @@
     </appender>
 
     <logger name="com.databasepreservation.model.Reporter" additivity="false">
-        <level value="WARN"/>
+        <level value="DEBUG"/>
         <appender-ref ref="STDOUT"/>
     </logger>
 

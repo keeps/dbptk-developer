@@ -25,7 +25,6 @@ import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure;
-import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.common.LargeObject;
 import com.databasepreservation.modules.siard.common.ProvidesInputStream;
@@ -39,8 +38,8 @@ import com.databasepreservation.utils.XMLUtils;
  */
 public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   private final static String ENCODING = "UTF-8";
-  private final static int TREAT_STRING_AS_CLOB_THRESHOLD = 4000;
-  private final static int INLINE_BINARY_DATA_THRESHOLD = 2000;
+  private final static int THRESHOLD_TREAT_STRING_AS_CLOB = 4000;
+  private final static int THRESHOLD_TREAT_BINARY_AS_BLOB = 2000;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2ContentExportStrategy.class);
   protected final SIARD2ContentPathExportStrategy contentPathStrategy;
@@ -192,17 +191,16 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     currentWriter.closeTag("c" + columnIndex, 2);
   }
 
-  private void writeNullCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException, IOException {
+  protected void writeNullCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException, IOException {
     NullCell nullCell = (NullCell) cell;
     writeNullCellData(nullCell, columnIndex);
   }
 
-  private void writeSimpleCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException, IOException {
+  protected void writeSimpleCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException,
+    IOException {
     SimpleCell simpleCell = (SimpleCell) cell;
 
-    // deal with big strings as if they were CLOBs
-    if (column.getType() instanceof SimpleTypeString && simpleCell.getSimpleData() != null
-      && simpleCell.getBytesSize() > TREAT_STRING_AS_CLOB_THRESHOLD) {
+    if (Sql2008toXSDType.isLargeType(column.getType()) && simpleCell.getBytesSize() > THRESHOLD_TREAT_STRING_AS_CLOB) {
       writeLargeObjectData(cell, columnIndex);
     } else {
       writeSimpleCellData(simpleCell, columnIndex);
@@ -218,22 +216,23 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       // TODO: make sure this never happens
       NullCell nullCell = new NullCell(binaryCell.getId());
       writeNullCellData(nullCell, columnIndex);
-    } else if (length <= INLINE_BINARY_DATA_THRESHOLD) {
+    } else if (Sql2008toXSDType.isLargeType(column.getType()) && length > THRESHOLD_TREAT_BINARY_AS_BLOB) {
+      writeLargeObjectData(cell, columnIndex);
+    } else {
+      // inline binary data
       InputStream inputStream = binaryCell.createInputstream();
       byte[] bytes = IOUtils.toByteArray(inputStream);
       inputStream.close();
       SimpleCell simpleCell = new SimpleCell(binaryCell.getId(), Hex.encodeHexString(bytes));
       writeSimpleCellData(simpleCell, columnIndex);
-    } else {
-      writeLargeObjectData(cell, columnIndex);
     }
   }
 
-  private void writeNullCellData(NullCell nullcell, int columnIndex) throws IOException {
-    // do nothing, as null cells are simply ommited
+  protected void writeNullCellData(NullCell nullcell, int columnIndex) throws IOException {
+    // do nothing, as null cells are simply omitted
   }
 
-  private void writeSimpleCellData(SimpleCell simpleCell, int columnIndex) throws IOException {
+  protected void writeSimpleCellData(SimpleCell simpleCell, int columnIndex) throws IOException {
     if (simpleCell.getSimpleData() != null) {
       currentWriter.inlineOpenTag("c" + columnIndex, 2);
       currentWriter.write(XMLUtils.encode(simpleCell.getSimpleData()));
@@ -242,17 +241,16 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   }
 
   protected void writeLargeObjectData(Cell cell, int columnIndex) throws IOException, ModuleException {
-    currentWriter.beginOpenTag("c" + columnIndex, 2).space().append("file=\"");
 
     LargeObject lob = null;
 
     if (cell instanceof BinaryCell) {
-      // TODO: check for problems when lob is null
       final BinaryCell binCell = (BinaryCell) cell;
 
-      // blob header
-      currentWriter.append(contentPathStrategy.getBlobFileName(currentRowIndex + 1)).append('"').space()
-        .append("length=\"").append(String.valueOf(binCell.getLength())).append("\"");
+      if (!binCell.canCreateInputstream()) {
+        LOGGER.debug("Could not read from LOB file at " + currentTable.getId() + " column index " + columnIndex);
+        return;
+      }
 
       lob = new LargeObject(new ProvidesInputStream() {
         @Override
@@ -262,16 +260,22 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       }, contentPathStrategy.getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
         currentRowIndex + 1));
 
+      currentWriter.beginOpenTag("c" + columnIndex, 2).space().append("file=\"")
+        .append(contentPathStrategy.getBlobFileName(currentRowIndex + 1)).append('"').space().append("length=\"")
+        .append(String.valueOf(binCell.getLength())).append("\"");
+
     } else if (cell instanceof SimpleCell) {
       SimpleCell txtCell = (SimpleCell) cell;
 
-      // clob header
-      currentWriter.append(contentPathStrategy.getClobFileName(currentRowIndex + 1)).append('"').space()
-        .append("length=\"").append(String.valueOf(txtCell.getBytesSize())).append("\"");
-
       // workaround to have data from CLOBs saved as a temporary file to be read
-      // FIXME: if lob is null, this will fail
       String data = txtCell.getSimpleData();
+
+      if (txtCell.getBytesSize() < 0) {
+        // NULL content
+        writeNullCellData(new NullCell(cell.getId()), columnIndex);
+        return;
+      }
+
       ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
       try {
         final FileItem fileItem = new FileItem(inputStream);
@@ -285,6 +289,10 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       } finally {
         inputStream.close();
       }
+
+      currentWriter.beginOpenTag("c" + columnIndex, 2).space().append("file=\"")
+        .append(contentPathStrategy.getClobFileName(currentRowIndex + 1)).append('"').space().append("length=\"")
+        .append(String.valueOf(txtCell.getBytesSize())).append("\"");
     }
 
     // decide to whether write the LOB right away or later

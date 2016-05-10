@@ -83,14 +83,15 @@ public abstract class DatatypeImporter {
   private void checkType(Type type, DatabaseStructure database, SchemaStructure currentSchema, String tableName,
     String columnName, int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     if (StringUtils.isBlank(type.getSql99TypeName())) {
-      // LOGGER.debug("Could not get SQL99 type for type: " + type.toString());
-      // TODO add this in reporter
+      Reporter
+        .customMessage(this.getClass().getName(), "Could not determine SQL99 type for " + type.getOriginalTypeName(),
+          "Possibility of incomplete type definition");
     }
 
     if (StringUtils.isBlank(type.getSql2008TypeName())) {
-      // LOGGER.debug("Could not get SQL2008 type for type: " +
-      // type.toString());
-      // TODO add this in reporter
+      Reporter.customMessage(this.getClass().getName(),
+        "Could not determine SQL2008 type for " + type.getOriginalTypeName(),
+        "Possibility of incomplete type definition");
     }
 
     Reporter.dataTypeChangedOnImport(this.getClass().getName(), currentSchema.getName(), tableName, columnName, type);

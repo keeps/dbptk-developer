@@ -10,6 +10,7 @@ import java.security.DigestOutputStream;
 
 import javax.xml.bind.DatatypeConverter;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.FileItem;
+import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -67,10 +69,30 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
   }
 
   @Override
+  protected void writeSimpleCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException,
+    IOException {
+    if (Sql2008toXSDType.isLargeType(column.getType())) {
+      writeLargeObjectData(cell, columnIndex);
+    } else {
+      writeSimpleCellData((SimpleCell) cell, columnIndex);
+    }
+  }
+
+  @Override
   protected void writeBinaryCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException,
     IOException {
-    // never inline LOBs
-    writeLargeObjectData(cell, columnIndex);
+    BinaryCell binaryCell = (BinaryCell) cell;
+
+    if (Sql2008toXSDType.isLargeType(column.getType())) {
+      writeLargeObjectData(cell, columnIndex);
+    } else {
+      // inline non-BLOB binary data
+      InputStream inputStream = binaryCell.createInputstream();
+      byte[] bytes = IOUtils.toByteArray(inputStream);
+      inputStream.close();
+      SimpleCell simpleCell = new SimpleCell(binaryCell.getId(), Hex.encodeHexString(bytes));
+      writeSimpleCellData(simpleCell, columnIndex);
+    }
   }
 
   protected void writeLargeObjectData(Cell cell, int columnIndex) throws IOException, ModuleException {
@@ -96,6 +118,12 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
       lobSizeParameter = txtCell.getBytesSize();
       lobFileParameter = contentPathStrategy.getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(),
         columnIndex, currentRowIndex + 1);
+    }
+
+    if (lobSizeParameter < 0) {
+      // NULL content
+      writeNullCellData(new NullCell(cell.getId()), columnIndex);
+      return;
     }
 
     if (maximumLobsFolderSize > 0 && lobSizeParameter >= maximumLobsFolderSize) {

@@ -13,6 +13,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -126,7 +127,8 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
       reader = readStrategy.createInputStream(container, metadataPathStrategy.getXmlFilePath(METADATA_FILENAME));
       xmlRoot = (SiardArchive) unmarshaller.unmarshal(reader);
     } catch (JAXBException e) {
-      LOGGER.warn("The metadata.xml file did not pass the XML Schema validation.", new ModuleException("Error while Unmarshalling JAXB with XSD", e));
+      LOGGER.warn("The metadata.xml file did not pass the XML Schema validation.", new ModuleException(
+        "Error while Unmarshalling JAXB with XSD", e));
       if (reader != null) {
         try {
           reader.close();
@@ -622,6 +624,12 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
 
       result.setName(column.getName());
       result.setId(tableId + "." + result.getName());
+
+      String lobFolder = column.getFolder();
+      if (StringUtils.isBlank(lobFolder)) {
+        lobFolder = column.getLobFolder();
+      }
+
       contentPathStrategy.associateColumnWithFolder(result.getId(), column.getFolder());
 
       result.setType(SQLStandardDatatypeFactory.getSQL99StandardDatatypeImporter().getCheckedType(

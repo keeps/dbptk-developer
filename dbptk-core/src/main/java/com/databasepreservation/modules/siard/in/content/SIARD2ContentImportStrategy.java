@@ -15,6 +15,7 @@ import javax.xml.validation.SchemaFactory;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +44,7 @@ import com.databasepreservation.modules.siard.SIARDHelper;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
+import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -72,7 +74,8 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
   private TableStructure currentTable;
   private SchemaStructure currentSchema;
   private InputStream currentTableStream;
-  private BinaryCell currentBinaryCell;
+  private BinaryCell currentBlobCell;
+  private SimpleCell currentClobCell;
   private Row row;
   private int rowIndex;
 
@@ -207,32 +210,41 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
       }
     } else if (qName.startsWith(COLUMN_KEYWORD)) {
       if (attr.getValue(FILE_KEYWORD) != null) {
-        String lobDirLastPart = attr.getValue(FILE_KEYWORD);
+        String lobDir = attr.getValue(FILE_KEYWORD);
         int columnIndex = Integer.parseInt(qName.substring(1));
 
         String lobPath = contentPathStrategy.getLobPath(null, currentSchema.getName(), currentTable.getId(),
-          currentTable.getColumns().get(columnIndex - 1).getId(), lobDirLastPart);
+          currentTable.getColumns().get(columnIndex - 1).getId(), lobDir);
 
         SIARDArchiveContainer container;
-        if (lobDirLastPart.startsWith("..")) {
+        if (lobDir.startsWith("..")) {
           container = lobContainer;
         } else {
           container = contentContainer;
         }
 
         try {
-          FileItem fileItem = new FileItem(readStrategy.createInputStream(container, lobPath));
-          currentBinaryCell = new BinaryCell(
-          // TODO: what about CLOBs? should they also created as BinaryCells?
-            String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1).getId(), rowIndex), fileItem);
-        } catch (ModuleException e) {
-          LOGGER.error("Failed to open lob at " + lobPath, e);
-        }
+          if (lobDir.endsWith(SIARD2ContentPathExportStrategy.BLOB_EXTENSION)) {
+            FileItem fileItem = new FileItem(readStrategy.createInputStream(container, lobPath));
+            currentBlobCell = new BinaryCell(String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1)
+              .getId(), rowIndex), fileItem);
 
-        LOGGER.debug(String.format("Binary cell %s on row #%d with lob dir %s", currentBinaryCell.getId(), rowIndex,
-          lobPath));
+            LOGGER.debug(String.format("BLOB cell %s on row #%d with lob dir %s", currentBlobCell.getId(), rowIndex,
+              lobDir));
+          } else if (lobDir.endsWith(SIARD2ContentPathExportStrategy.CLOB_EXTENSION)) {
+            String data = IOUtils.toString(readStrategy.createInputStream(container, lobPath));
+            currentClobCell = new SimpleCell(String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1)
+              .getId(), rowIndex), data);
+
+            LOGGER.debug(String.format("CLOB cell %s on row #%d with lob dir %s", currentClobCell.getId(), rowIndex,
+              lobDir));
+          }
+        } catch (ModuleException | IOException e) {
+          LOGGER.error("Failed to open lob at " + lobDir, e);
+        }
       } else {
-        currentBinaryCell = null;
+        currentBlobCell = null;
+        currentClobCell = null;
       }
     }
   }
@@ -291,8 +303,10 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
       }
 
       Cell cell = null;
-      if (currentBinaryCell != null) {
-        cell = currentBinaryCell;
+      if (currentBlobCell != null) {
+        cell = currentBlobCell;
+      } else if (currentClobCell != null) {
+        cell = currentClobCell;
       } else {
         String id = String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1).getId(), rowIndex);
 

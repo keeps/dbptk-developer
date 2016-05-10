@@ -502,8 +502,8 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @throws ClassNotFoundException
    * @throws ModuleException
    */
-  protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex, String description)
-    throws SQLException, ClassNotFoundException {
+  protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex,
+    String description) throws SQLException, ClassNotFoundException {
     TableStructure table = new TableStructure();
     table.setId(schema.getName() + "." + tableName);
     table.setName(tableName);
@@ -1450,20 +1450,27 @@ public class JDBCImportModule implements DatabaseImportModule {
       handler.handleStructure(getDatabaseStructure());
       LOGGER.info("Database structure converted");
       // LOGGER.debug("db struct: " + getDatabaseStructure().toString());
+
       for (SchemaStructure schema : getDatabaseStructure().getSchemas()) {
         handler.handleDataOpenSchema(schema.getName());
         for (TableStructure table : schema.getTables()) {
           LOGGER.info("Getting contents from table '" + table.getId() + "'");
           handler.handleDataOpenTable(table.getId());
 
-          int nRows = 0;
+          long nRows = 0;
+          long tableRows = table.getRows();
           if (moduleSettings.shouldFetchRows()) {
             ResultSet tableRawData = getTableRawData(table);
             while (tableRawData.next()) {
               handler.handleDataRow(convertRawToRow(tableRawData, table));
               nRows++;
               if (nRows % 1000 == 0) {
-                LOGGER.info("Progress: " + nRows + " table rows processed");
+                if (tableRows <= 0) {
+                  LOGGER.info(String.format("Progress: %d table rows processed (%.2f%%)", nRows,
+                    (nRows / ((float) tableRows)) * 100));
+                } else {
+                  LOGGER.info(String.format("Progress: %d table rows processed", nRows));
+                }
               }
             }
           }

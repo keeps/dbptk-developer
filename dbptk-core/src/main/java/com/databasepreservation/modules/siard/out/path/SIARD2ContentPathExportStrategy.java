@@ -17,8 +17,8 @@ public class SIARD2ContentPathExportStrategy implements ContentPathExportStrateg
   // extensions for files
   protected static final String XML_EXTENSION = "xml";
   protected static final String XSD_EXTENSION = "xsd";
-  protected static final String CLOB_EXTENSION = "txt";
-  protected static final String BLOB_EXTENSION = "bin";
+  public static final String CLOB_EXTENSION = "txt";
+  public static final String BLOB_EXTENSION = "bin";
 
   // control characters
   protected static final String RESOURCE_FILE_SEPARATOR = "/";

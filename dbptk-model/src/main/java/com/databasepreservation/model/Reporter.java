@@ -218,7 +218,7 @@ public class Reporter {
     String columnName, Type type) {
     conversionProblemsCounter++;
     StringBuilder message = new StringBuilder("Data type import: in schema ");
-    appendAsCode(message, schemaName).append("and table ");
+    appendAsCode(message, schemaName).append(" and table ");
     if (StringUtils.isBlank(type.getOriginalTypeName())) {
       appendAsCode(message, tableName).append(", the retrieved type for column ");
       appendAsCode(message, columnName).append(" was ");

@@ -127,7 +127,8 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
       reader = readStrategy.createInputStream(container, metadataPathStrategy.getXmlFilePath(METADATA_FILENAME));
       xmlRoot = (SiardArchive) unmarshaller.unmarshal(reader);
     } catch (JAXBException e) {
-      LOGGER.warn("The metadata.xml file did not pass the XML Schema validation.", new ModuleException("Error while Unmarshalling JAXB with XSD", e));
+      LOGGER.warn("The metadata.xml file did not pass the XML Schema validation.", new ModuleException(
+        "Error while Unmarshalling JAXB with XSD", e));
       if (reader != null) {
         try {
           reader.close();

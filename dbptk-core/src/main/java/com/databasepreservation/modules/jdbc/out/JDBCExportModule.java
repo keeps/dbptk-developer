@@ -785,12 +785,15 @@ public class JDBCExportModule implements DatabaseExportModule {
             String failedQuery = batchSQL.get(i);
             batchSQL.remove(i);
             LOGGER.error("Error executing query: " + failedQuery);
-            Reporter.failed("Execution of query `" + failedQuery + "`", "of the following error: " + reasonForFailing);
+            Reporter
+              .failed("Execution of query ``" + failedQuery + "``", "of the following error: " + reasonForFailing);
           } else {
             String strangeQuery = batchSQL.get(i);
             batchSQL.remove(i);
-            Reporter.customMessage(getClass().getName(), "Execution of query `" + strangeQuery
-              + "` returned an unexpected negative result value (" + result[i] + ")");
+            LOGGER.debug("Error executing query: " + strangeQuery, new ModuleException("Query returned result of "
+              + result[i]));
+            Reporter.failed("Execution of query ``" + strangeQuery + "``", "of the following error: "
+              + reasonForFailing);
           }
         }
 
@@ -803,7 +806,7 @@ public class JDBCExportModule implements DatabaseExportModule {
           String failedQuery = batchSQL.get(0);
           batchSQL.remove(0);
           LOGGER.error("Error executing query: " + failedQuery);
-          Reporter.failed("Execution of query `" + failedQuery + "`", "of the following error: " + reasonForFailing);
+          Reporter.failed("Execution of query ``" + failedQuery + "``", "of the following error: " + reasonForFailing);
         }
 
         // clear batch and re-add queries that were left out
