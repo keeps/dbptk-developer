@@ -26,9 +26,9 @@ import com.databasepreservation.testing.integration.roundtrip.differences.TextDi
 @Test(groups = {"postgresql-siarddk"})
 public class PostgreSqlSIARDDKTest {
 
-  private final String db_source = "dpttest";
-  private final String db_target = "dpttest_siard";
-  private final String db_tmp_username = "dpttest";
+  private final String db_source = "dpttestdk";
+  private final String db_target = "dpttest_siarddk";
+  private final String db_tmp_username = "dpttestdk";
   private final String db_tmp_password = RandomStringUtils.randomAlphabetic(10);
   private final String ROUND_TRIP_SIARD_ARCHIVE_FILENAME = "AVID.RND.1000.1";
   private String archiveFullPath;

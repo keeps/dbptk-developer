@@ -15,7 +15,7 @@
                 <include name="siarddk-roundtrip"/>
                 <include name="cli"/>
                 <include name="unit"/>
-                <!--<include name="siarddk"/>-->
+                <include name="siarddk"/>
             </define>
 
             <!-- Tests ran by Travis CI -->
@@ -27,7 +27,7 @@
                 <include name="siard-roundtrip"/>
                 <include name="cli"/>
                 <include name="unit"/>
-                <!--<include name="siarddk"/>-->
+                <include name="siarddk"/>
             </define>
 
             <!-- Tests that don't have external dependencies -->
@@ -35,8 +35,8 @@
                 <include name="siard-roundtrip"/>
                 <include name="cli"/>
                 <include name="unit"/>
-                <!--<include name="siarddk"/>-->
-                <!--<include name="siarddk-roundtrip"/>-->
+                <include name="siarddk"/>
+                <include name="siarddk-roundtrip"/>
             </define>
         </groups>
         <classes>
