@@ -531,10 +531,10 @@ public class SiardTest {
 
     switch (version) {
       case SIARD_1:
-        exporter = new SIARD1ExportModule(tmpFile, true, false, null).getDatabaseHandler();
+        exporter = new SIARD1ExportModule(tmpFile, true, false, null, null).getDatabaseHandler();
         break;
       case SIARD_2:
-        exporter = new SIARD2ExportModule(tmpFile, true, false, null).getDatabaseHandler();
+        exporter = new SIARD2ExportModule(tmpFile, true, false, null, null).getDatabaseHandler();
         break;
       case SIARD_DK:
         Map<String, String> exportModuleArgs = new HashMap<String, String>();

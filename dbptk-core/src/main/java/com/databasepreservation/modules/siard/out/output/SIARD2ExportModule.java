@@ -1,8 +1,11 @@
 package com.databasepreservation.modules.siard.out.output;
 
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.databasepreservation.model.modules.DatabaseExportModule;
+import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD2MetadataPathStrategy;
@@ -33,7 +36,11 @@ public class SIARD2ExportModule {
   private MetadataExportStrategy metadataStrategy;
   private ContentExportStrategy contentStrategy;
 
-  public SIARD2ExportModule(Path siardPackage, boolean compressZip, boolean prettyXML, Path tableFilter) {
+  private HashMap<String, String> descriptiveMetadata;
+
+  public SIARD2ExportModule(Path siardPackage, boolean compressZip, boolean prettyXML, Path tableFilter,
+    HashMap<String, String> descriptiveMetadata) {
+    this.descriptiveMetadata = descriptiveMetadata;
     contentPathStrategy = new SIARD2ContentPathExportStrategy();
     metadataPathStrategy = new SIARD2MetadataPathStrategy();
     if (compressZip) {
@@ -50,7 +57,8 @@ public class SIARD2ExportModule {
   }
 
   public SIARD2ExportModule(Path siardPackage, boolean compressZip, boolean prettyXML, Path tableFilter,
-    int externalLobsPerFolder, long externalLobsFolderSize) {
+    int externalLobsPerFolder, long externalLobsFolderSize, HashMap<String, String> descriptiveMetadata) {
+    this.descriptiveMetadata = descriptiveMetadata;
     contentPathStrategy = new SIARD2ContentWithExternalLobsPathExportStrategy();
     metadataPathStrategy = new SIARD2MetadataPathStrategy();
 
@@ -73,6 +81,6 @@ public class SIARD2ExportModule {
   }
 
   public DatabaseExportModule getDatabaseHandler() {
-    return new SIARDExportDefault(contentStrategy, mainContainer, writeStrategy, metadataStrategy, tableFilter);
+    return new SIARDExportDefault(contentStrategy, mainContainer, writeStrategy, metadataStrategy, tableFilter, descriptiveMetadata);
   }
 }

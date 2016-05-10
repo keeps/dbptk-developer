@@ -5,6 +5,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,6 +56,8 @@ import com.databasepreservation.model.parameters.Parameters;
  */
 public class CLI {
   private static final Logger LOGGER = LoggerFactory.getLogger(CLI.class);
+  private static final String DEFAULT_HOSTNAME = "undefined";
+  private static String HOSTNAME = null;
 
   private final ArrayList<DatabaseModuleFactory> factories;
   private final List<String> commandLineArguments;
@@ -540,6 +543,24 @@ public class CLI {
     } else {
       return ""; // omit version if it is not known
     }
+  }
+
+  /**
+   * Gets the DNS name of the local machine
+   * 
+   * @return the DNS name of the local machine as the machine sees itself, and
+   *         is not necessarily how it is known by other machines.
+   */
+  public static String getHostname() {
+    if (HOSTNAME == null) {
+      try {
+        HOSTNAME = java.net.InetAddress.getLocalHost().getHostName();
+      } catch (UnknownHostException e) {
+        HOSTNAME = DEFAULT_HOSTNAME;
+        LOGGER.debug("Could not obtain hostname, using the default (" + HOSTNAME + ")", e);
+      }
+    }
+    return HOSTNAME;
   }
 
   /**

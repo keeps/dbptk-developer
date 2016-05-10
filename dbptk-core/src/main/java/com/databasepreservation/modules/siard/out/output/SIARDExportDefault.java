@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -44,9 +45,12 @@ public class SIARDExportDefault implements DatabaseExportModule {
   private DatabaseStructure dbStructure;
   private SchemaStructure currentSchema;
   private TableStructure currentTable;
+  private Map<String, String> descriptiveMetadata;
 
   public SIARDExportDefault(ContentExportStrategy contentStrategy, SIARDArchiveContainer mainContainer,
-    WriteStrategy writeStrategy, MetadataExportStrategy metadataStrategy, Path tableFilter) {
+    WriteStrategy writeStrategy, MetadataExportStrategy metadataStrategy, Path tableFilter,
+    Map<String, String> descriptiveMetadata) {
+    this.descriptiveMetadata = descriptiveMetadata;
     this.contentStrategy = contentStrategy;
     this.mainContainer = mainContainer;
     this.writeStrategy = writeStrategy;
@@ -119,6 +123,16 @@ public class SIARDExportDefault implements DatabaseExportModule {
     }
 
     dbStructure = structure;
+
+    // update database structure with descriptive metadata from parameters
+    if (descriptiveMetadata != null) {
+      dbStructure.setDescription(descriptiveMetadata.get("Description"));
+      dbStructure.setArchiver(descriptiveMetadata.get("Archiver"));
+      dbStructure.setArchiverContact(descriptiveMetadata.get("ArchiverContact"));
+      dbStructure.setDataOwner(descriptiveMetadata.get("DataOwner"));
+      dbStructure.setDataOriginTimespan(descriptiveMetadata.get("DataOriginTimespan"));
+      dbStructure.setClientMachine(descriptiveMetadata.get("ClientMachine"));
+    }
   }
 
   @Override

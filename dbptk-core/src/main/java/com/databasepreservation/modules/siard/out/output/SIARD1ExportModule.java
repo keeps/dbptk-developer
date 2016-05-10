@@ -1,8 +1,10 @@
 package com.databasepreservation.modules.siard.out.output;
 
 import java.nio.file.Path;
+import java.util.Map;
 
 import com.databasepreservation.model.modules.DatabaseExportModule;
+import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD1MetadataPathStrategy;
@@ -30,7 +32,11 @@ public class SIARD1ExportModule {
   private MetadataExportStrategy metadataStrategy;
   private ContentExportStrategy contentStrategy;
 
-  public SIARD1ExportModule(Path siardPackage, boolean compressZip, boolean prettyXML, Path tableFilter) {
+  private Map<String, String> descriptiveMetadata;
+
+  public SIARD1ExportModule(Path siardPackage, boolean compressZip, boolean prettyXML, Path tableFilter,
+    Map<String, String> descriptiveMetadata) {
+    this.descriptiveMetadata = descriptiveMetadata;
     contentPathStrategy = new SIARD1ContentPathExportStrategy();
     metadataPathStrategy = new SIARD1MetadataPathStrategy();
     if (compressZip) {
@@ -47,6 +53,7 @@ public class SIARD1ExportModule {
   }
 
   public DatabaseExportModule getDatabaseHandler() {
-    return new SIARDExportDefault(contentStrategy, mainContainer, writeStrategy, metadataStrategy, tableFilter);
+    return new SIARDExportDefault(contentStrategy, mainContainer, writeStrategy, metadataStrategy, tableFilter,
+      descriptiveMetadata);
   }
 }
