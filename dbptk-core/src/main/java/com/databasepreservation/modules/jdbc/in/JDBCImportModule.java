@@ -1465,10 +1465,11 @@ public class JDBCImportModule implements DatabaseImportModule {
               nRows++;
               if (nRows % 1000 == 0) {
                 if (tableRows > 0) {
-                  LOGGER.info(String
-                    .format("Progress: %d table rows processed (%d%%)", nRows, nRows * 100 / tableRows));
+                  LOGGER.info(String.format("Progress: %d rows of table %s.%s (%d%%)", nRows, table.getName(),
+                    table.getSchema(), nRows * 100 / tableRows));
                 } else {
-                  LOGGER.info(String.format("Progress: %d table rows processed", nRows));
+                  LOGGER.info(String.format("Progress: %d rows of table %s.%s", nRows, table.getName(),
+                    table.getSchema()));
                 }
               }
             }
