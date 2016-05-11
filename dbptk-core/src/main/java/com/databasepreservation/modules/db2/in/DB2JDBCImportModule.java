@@ -10,9 +10,6 @@ import java.util.Set;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.ForeignKey;
-import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
-import com.databasepreservation.model.structure.type.SimpleTypeString;
-import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.db2.DB2Helper;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 
@@ -41,7 +38,7 @@ public class DB2JDBCImportModule extends JDBCImportModule {
    */
   public DB2JDBCImportModule(String hostname, int port, String database, String username, String password) {
     super("com.ibm.db2.jcc.DB2Driver", "jdbc:db2://" + hostname + ":" + port + "/" + database + ":user=" + username
-      + ";password=" + password + ";", new DB2Helper());
+      + ";password=" + password + ";", new DB2Helper(), new DB2JDBCDatatypeImporter());
     dbName = database;
   }
 
@@ -53,7 +50,7 @@ public class DB2JDBCImportModule extends JDBCImportModule {
    * @throws ClassNotFoundException
    */
   @Override
-  protected DatabaseStructure getDatabaseStructure() throws SQLException, UnknownTypeException, ClassNotFoundException {
+  protected DatabaseStructure getDatabaseStructure() throws SQLException, ClassNotFoundException {
     if (dbStructure == null) {
       dbStructure = super.getDatabaseStructure();
       dbStructure.setName(dbName);
@@ -80,40 +77,6 @@ public class DB2JDBCImportModule extends JDBCImportModule {
     ignored.add("SYSSTAT");
     ignored.add("SYSTOOLS");
     return ignored;
-  }
-
-  @Override
-  protected Type getOtherType(int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
-    throws UnknownTypeException {
-    Type type;
-    if ("XML".equalsIgnoreCase(typeName)) {
-      type = new SimpleTypeString(31457280, true);
-      type.setSql99TypeName("CHARACTER LARGE OBJECT");
-      type.setSql2003TypeName("CHARACTER LARGE OBJECT");
-    } else if ("DECFLOAT".equalsIgnoreCase(typeName)) {
-      type = new SimpleTypeNumericApproximate(Integer.valueOf(columnSize));
-      type.setSql99TypeName("DOUBLE PRECISION");
-      type.setSql2003TypeName("DOUBLE PRECISION");
-    } else {
-      type = super.getOtherType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
-    }
-    return type;
-  }
-
-  @Override
-  protected Type getSpecificType(int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
-    throws UnknownTypeException {
-    Type type;
-    switch (dataType) {
-    // case 2001:
-    // type = new SimpleTypeNumericApproximate(
-    // Integer.valueOf(columnSize));
-    // break;
-      default:
-        type = super.getSpecificType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
-        break;
-    }
-    return type;
   }
 
   /**

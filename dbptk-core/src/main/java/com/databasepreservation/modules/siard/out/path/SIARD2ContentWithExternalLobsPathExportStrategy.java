@@ -1,7 +1,5 @@
 package com.databasepreservation.modules.siard.out.path;
 
-import com.databasepreservation.modules.siard.out.write.ZipWithExternalLobsWriteStrategy;
-
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,7 +11,7 @@ public class SIARD2ContentWithExternalLobsPathExportStrategy extends SIARD2Conte
   public static final String FILE_SEPARATOR = File.separator;
   private long externalContainerId = 0L;
 
-  public Path nextContainerBasePath(Path mainContainerBasePath){
+  public Path nextContainerBasePath(Path mainContainerBasePath) {
     externalContainerId++;
     return Paths.get(mainContainerBasePath.toAbsolutePath().toString() + "_lobseg_" + externalContainerId);
   }

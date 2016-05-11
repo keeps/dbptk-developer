@@ -10,8 +10,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
-import com.databasepreservation.CustomLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ForeignKey;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
@@ -22,6 +26,7 @@ import com.databasepreservation.modules.mySql.MySQLHelper;
  * @author Luis Faria
  */
 public class MySQLJDBCExportModule extends JDBCExportModule {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MySQLJDBCExportModule.class);
   private static final String[] IGNORED_SCHEMAS = {"mysql", "performance_schema", "information_schema"};
 
   private static final String MYSQL_CONNECTION_DATABASE = "information_schema";
@@ -35,7 +40,6 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
   protected final String username;
 
   protected final String password;
-  private final CustomLogger logger = CustomLogger.getLogger(MySQLJDBCExportModule.class);
 
   /**
    * MySQL JDBC export module constructor
@@ -88,33 +92,6 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
       + "&password=" + password + "&rewriteBatchedStatements=true";
   }
 
-  /**
-   * Check if a database exists
-   *
-   * @param defaultConnectionDb
-   *          an existing dbml database to establish the connection
-   * @param database
-   *          the name of the database to check
-   * @param connectionURL
-   *          the connection URL needed by getConnection
-   * @return true if exists, false otherwise
-   * @throws ModuleException
-   */
-  public Set<String> getExistingSchemasByName(String defaultConnectionDb, String database, String connectionURL)
-    throws ModuleException {
-    HashSet<String> found = new HashSet<String>();
-    try {
-      ResultSet result = getConnection(defaultConnectionDb, connectionURL).createStatement().executeQuery(
-        sqlHelper.getDatabases(database));
-      while (result.next()) {
-        found.add(result.getString(1));
-      }
-    } catch (SQLException e) {
-      throw new ModuleException("Error checking if database " + database + " exists", e);
-    }
-    return found;
-  }
-
   public String createConnectionURL(String databaseName) {
     return createConnectionURL(hostname, port, databaseName, username, password);
   }
@@ -124,10 +101,13 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
     String connectionURL = createConnectionURL(MYSQL_CONNECTION_DATABASE);
 
     if (databaseExists(MYSQL_CONNECTION_DATABASE, database, connectionURL)) {
-      logger.info("Database already exists, reusing.");
+      LOGGER.info("Target database already exists, reusing it.");
+      Reporter.customMessage(getClass().getName(), "target database existed and was used anyway");
     } else {
       try {
-        logger.info("Database does not exist. Creating database " + database);
+        LOGGER.info("Target database does not exist. Creating database " + database);
+        Reporter.customMessage(getClass().getName(), "target database with name " + Reporter.CODE_DELIMITER + database
+          + Reporter.CODE_DELIMITER + " did not exist and was created");
         getConnection(MYSQL_CONNECTION_DATABASE, connectionURL).createStatement().executeUpdate(
           sqlHelper.createDatabaseSQL(database));
 
@@ -139,50 +119,36 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 
   @Override
   protected void handleForeignKeys() throws ModuleException {
-    logger.debug("Creating foreign keys");
-    try {
-      for (SchemaStructure schema : databaseStructure.getSchemas()) {
-        if (isIgnoredSchema(schema.getName())) {
-          continue;
-        }
-        for (TableStructure table : schema.getTables()) {
-          int count = 0;
-          for (ForeignKey fkey : table.getForeignKeys()) {
-            count++;
-            String originalReferencedSchema = fkey.getReferencedSchema();
+    LOGGER.debug("Creating foreign keys");
+    for (SchemaStructure schema : databaseStructure.getSchemas()) {
+      if (isIgnoredSchema(schema.getName())) {
+        continue;
+      }
+      for (TableStructure table : schema.getTables()) {
+        int count = 0;
+        for (ForeignKey fkey : table.getForeignKeys()) {
+          count++;
+          String originalReferencedSchema = fkey.getReferencedSchema();
 
-            String tableId = originalReferencedSchema + "." + fkey.getReferencedTable();
+          String tableId = originalReferencedSchema + "." + fkey.getReferencedTable();
 
-            TableStructure tableAux = databaseStructure.lookupTableStructure(tableId);
-            if (tableAux != null) {
-              if (isIgnoredSchema(tableAux.getSchema())) {
-                logger.warn("Foreign key not exported: " + "referenced schema (" + fkey.getReferencedSchema()
-                  + ") is ignored at export.");
-                continue;
-              }
+          TableStructure tableAux = databaseStructure.lookupTableStructure(tableId);
+          if (tableAux != null) {
+            if (isIgnoredSchema(tableAux.getSchema())) {
+              LOGGER.warn("Foreign key not exported: " + "referenced schema (" + fkey.getReferencedSchema()
+                + ") is ignored at export.");
+              continue;
             }
-
-            String fkeySQL = ((MySQLHelper) sqlHelper).createForeignKeySQL(table, fkey, true, count);
-            logger.debug("Returned fkey: " + fkeySQL);
-            getStatement().addBatch(fkeySQL);
           }
 
-          getStatement().executeBatch();
-          getStatement().clearBatch();
+          String fkeySQL = ((MySQLHelper) sqlHelper).createForeignKeySQL(table, fkey, true, count);
+          LOGGER.debug("Returned fkey: " + fkeySQL);
+          statementAddBatch(fkeySQL);
         }
+        statementExecuteAndClearBatch();
       }
-      logger.debug("Getting fkeys finished");
-    } catch (SQLException e) {
-      SQLException ei = e;
-      do {
-        if (ei != null) {
-          logger.error("Error handling foreign key (next exception)", ei);
-          logger.error("Error description: ", ei);
-        }
-        ei = ei.getNextException();
-      } while (ei != null);
-      throw new ModuleException("Error creating foreign keys", e);
     }
+    LOGGER.debug("Getting fkeys finished");
   }
 
   @Override
@@ -195,5 +161,15 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
       }
     }
     return existingSchemas;
+  }
+
+  protected void handleSchemaStructure(SchemaStructure schema) throws ModuleException, UnknownTypeException {
+    LOGGER.info("Handling schema structure " + schema.getName());
+    // for mysql the schema never needs to be created, because it is the same as
+    // the database and the database must already exist
+    for (TableStructure table : schema.getTables()) {
+      handleTableStructure(table);
+    }
+    LOGGER.info("Handling schema structure " + schema.getName() + " finished");
   }
 }

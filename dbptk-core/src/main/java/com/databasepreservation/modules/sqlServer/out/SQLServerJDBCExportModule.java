@@ -7,7 +7,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 
-import com.databasepreservation.CustomLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
@@ -23,7 +25,7 @@ import com.databasepreservation.modules.sqlServer.SQLServerHelper;
  * @author Luis Faria
  */
 public class SQLServerJDBCExportModule extends JDBCExportModule {
-  private final CustomLogger logger = CustomLogger.getLogger(SQLServerJDBCExportModule.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SQLServerJDBCExportModule.class);
 
   /**
    * Create a new Microsoft SQL Server export module using the default instance.
@@ -137,7 +139,7 @@ public class SQLServerJDBCExportModule extends JDBCExportModule {
    */
   @Override
   protected void handleSchemaStructure(SchemaStructure schema) throws ModuleException, UnknownTypeException {
-    logger.debug("Handling schema structure " + schema.getName());
+    LOGGER.debug("Handling schema structure " + schema.getName());
     if ("public".equalsIgnoreCase(schema.getName())) {
       existingSchemas.add("public");
     }

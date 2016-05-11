@@ -2,9 +2,6 @@ package com.databasepreservation.utils;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
@@ -41,7 +38,7 @@ public class XMLUtils {
     text = text.replace("<", "&lt;");
     text = text.replace(">", "&gt;");
 
-    // all ' ' (space character) were replaced by \u0020.
+    // all ' ' (space character) were replaced by .
     // single spaces must be converted back to a ' ' character.
     // multiple spaces must continue as sequences of "\u0020"
     text = text.replaceAll("(?<!\\\\u0020)\\\\u0020(?!\\\\u0020)", " ");

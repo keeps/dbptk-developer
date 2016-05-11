@@ -19,8 +19,8 @@ public class SIARD1ContentPathExportStrategy implements ContentPathExportStrateg
   // extensions for files
   private static final String XML_EXTENSION = "xml";
   private static final String XSD_EXTENSION = "xsd";
-  private static final String CLOB_EXTENSION = "txt";
-  private static final String BLOB_EXTENSION = "bin";
+  public static final String CLOB_EXTENSION = "txt";
+  public static final String BLOB_EXTENSION = "bin";
 
   // control characters
   private static final String RESOURCE_FILE_SEPARATOR = "/";
@@ -28,18 +28,18 @@ public class SIARD1ContentPathExportStrategy implements ContentPathExportStrateg
 
   @Override
   public String getClobFilePath(int schemaIndex, int tableIndex, int columnIndex, int rowIndex) {
-    return new StringBuilder().append(CONTENT_DIR).append(RESOURCE_FILE_SEPARATOR).append(SCHEMA_DIR).append(schemaIndex)
-      .append(RESOURCE_FILE_SEPARATOR).append(TABLE_DIR).append(tableIndex).append(RESOURCE_FILE_SEPARATOR).append(LOB_DIR)
-      .append(columnIndex).append(RESOURCE_FILE_SEPARATOR).append(LOB_FILENAME).append(rowIndex)
-      .append(FILE_EXTENSION_SEPARATOR).append(CLOB_EXTENSION).toString();
+    return new StringBuilder().append(CONTENT_DIR).append(RESOURCE_FILE_SEPARATOR).append(SCHEMA_DIR)
+      .append(schemaIndex).append(RESOURCE_FILE_SEPARATOR).append(TABLE_DIR).append(tableIndex)
+      .append(RESOURCE_FILE_SEPARATOR).append(LOB_DIR).append(columnIndex).append(RESOURCE_FILE_SEPARATOR)
+      .append(LOB_FILENAME).append(rowIndex).append(FILE_EXTENSION_SEPARATOR).append(CLOB_EXTENSION).toString();
   }
 
   @Override
   public String getBlobFilePath(int schemaIndex, int tableIndex, int columnIndex, int rowIndex) {
-    return new StringBuilder().append(CONTENT_DIR).append(RESOURCE_FILE_SEPARATOR).append(SCHEMA_DIR).append(schemaIndex)
-      .append(RESOURCE_FILE_SEPARATOR).append(TABLE_DIR).append(tableIndex).append(RESOURCE_FILE_SEPARATOR).append(LOB_DIR)
-      .append(columnIndex).append(RESOURCE_FILE_SEPARATOR).append(LOB_FILENAME).append(rowIndex)
-      .append(FILE_EXTENSION_SEPARATOR).append(BLOB_EXTENSION).toString();
+    return new StringBuilder().append(CONTENT_DIR).append(RESOURCE_FILE_SEPARATOR).append(SCHEMA_DIR)
+      .append(schemaIndex).append(RESOURCE_FILE_SEPARATOR).append(TABLE_DIR).append(tableIndex)
+      .append(RESOURCE_FILE_SEPARATOR).append(LOB_DIR).append(columnIndex).append(RESOURCE_FILE_SEPARATOR)
+      .append(LOB_FILENAME).append(rowIndex).append(FILE_EXTENSION_SEPARATOR).append(BLOB_EXTENSION).toString();
   }
 
   @Override
@@ -54,16 +54,18 @@ public class SIARD1ContentPathExportStrategy implements ContentPathExportStrateg
 
   @Override
   public String getTableXsdFilePath(int schemaIndex, int tableIndex) {
-    return new StringBuilder().append(CONTENT_DIR).append(RESOURCE_FILE_SEPARATOR).append(SCHEMA_DIR).append(schemaIndex)
-      .append(RESOURCE_FILE_SEPARATOR).append(TABLE_DIR).append(tableIndex).append(RESOURCE_FILE_SEPARATOR).append(TABLE_FILENAME)
-      .append(tableIndex).append(FILE_EXTENSION_SEPARATOR).append(XSD_EXTENSION).toString();
+    return new StringBuilder().append(CONTENT_DIR).append(RESOURCE_FILE_SEPARATOR).append(SCHEMA_DIR)
+      .append(schemaIndex).append(RESOURCE_FILE_SEPARATOR).append(TABLE_DIR).append(tableIndex)
+      .append(RESOURCE_FILE_SEPARATOR).append(TABLE_FILENAME).append(tableIndex).append(FILE_EXTENSION_SEPARATOR)
+      .append(XSD_EXTENSION).toString();
   }
 
   @Override
   public String getTableXmlFilePath(int schemaIndex, int tableIndex) {
-    return new StringBuilder().append(CONTENT_DIR).append(RESOURCE_FILE_SEPARATOR).append(SCHEMA_DIR).append(schemaIndex)
-      .append(RESOURCE_FILE_SEPARATOR).append(TABLE_DIR).append(tableIndex).append(RESOURCE_FILE_SEPARATOR).append(TABLE_FILENAME)
-      .append(tableIndex).append(FILE_EXTENSION_SEPARATOR).append(XML_EXTENSION).toString();
+    return new StringBuilder().append(CONTENT_DIR).append(RESOURCE_FILE_SEPARATOR).append(SCHEMA_DIR)
+      .append(schemaIndex).append(RESOURCE_FILE_SEPARATOR).append(TABLE_DIR).append(tableIndex)
+      .append(RESOURCE_FILE_SEPARATOR).append(TABLE_FILENAME).append(tableIndex).append(FILE_EXTENSION_SEPARATOR)
+      .append(XML_EXTENSION).toString();
   }
 
   @Override

@@ -13,19 +13,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.databasepreservation.model.data.NullCell;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.util.DateParser;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ForeignKey;
 import com.databasepreservation.model.structure.PrimaryKey;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.modules.jdbc.in.JDBCDatatypeImporter;
 import com.databasepreservation.modules.msAccess.MsAccessHelper;
 import com.databasepreservation.modules.odbc.in.ODBCImportModule;
 
@@ -34,7 +35,7 @@ import com.databasepreservation.modules.odbc.in.ODBCImportModule;
  */
 public class MsAccessImportModule extends ODBCImportModule {
 
-  private final CustomLogger logger = CustomLogger.getLogger(MsAccessImportModule.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MsAccessImportModule.class);
   private final DateFormat accessDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
   /**
@@ -44,24 +45,23 @@ public class MsAccessImportModule extends ODBCImportModule {
    */
   public MsAccessImportModule(File msAccessFile) {
     super("Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=" + msAccessFile.getAbsolutePath(),
-      new MsAccessHelper());
+      new MsAccessHelper(), new JDBCDatatypeImporter());
   }
 
   @Override
   public Connection getConnection() throws SQLException, ClassNotFoundException {
     if (connection == null) {
-      logger.debug("Loading JDBC Driver " + driverClassName);
+      LOGGER.debug("Loading JDBC Driver " + driverClassName);
       Class.forName(driverClassName);
-      logger.debug("Getting connection");
+      LOGGER.debug("Getting connection");
       connection = DriverManager.getConnection(connectionURL, "admin", "");
-      logger.debug("Connected");
+      LOGGER.debug("Connected");
     }
     return connection;
   }
 
   @Override
-  protected PrimaryKey getPrimaryKey(String schemaName, String tableName) throws SQLException, UnknownTypeException,
-    ClassNotFoundException {
+  protected PrimaryKey getPrimaryKey(String schemaName, String tableName) throws SQLException, ClassNotFoundException {
     String key_colname = null;
 
     // get the primary key information
@@ -93,7 +93,7 @@ public class MsAccessImportModule extends ODBCImportModule {
 
   @Override
   protected List<ForeignKey> getForeignKeys(String schemaName, String tableName) throws SQLException,
-    UnknownTypeException, ClassNotFoundException {
+    ClassNotFoundException {
     List<ForeignKey> fKeys = new ArrayList<ForeignKey>();
 
     ResultSet foreignKeys = getStatement().executeQuery(

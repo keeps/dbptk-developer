@@ -3,8 +3,9 @@ package com.databasepreservation.model.structure;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.utils.ListUtils;
 
@@ -15,7 +16,7 @@ import com.databasepreservation.utils.ListUtils;
  */
 public class DatabaseStructure {
 
-  private static final Logger logger = Logger.getLogger(DatabaseStructure.class);
+  private static final Logger logger = LoggerFactory.getLogger(DatabaseStructure.class);
 
   private String name;
 

@@ -5,10 +5,6 @@ package com.databasepreservation.model.data;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import pt.gov.dgarq.roda.common.FileFormat;
 
 import com.databasepreservation.model.exception.ModuleException;
 
@@ -22,8 +18,6 @@ public class BinaryCell extends Cell {
 
   private FileItem fileItem;
 
-  private List<FileFormat> formatHits;
-
   /**
    * Binary cell constructor without a FileItem. This should not be used to
    * represent NULL, instead a NullCell should be created.
@@ -34,7 +28,6 @@ public class BinaryCell extends Cell {
   protected BinaryCell(String id) {
     super(id);
     fileItem = null;
-    formatHits = new ArrayList<FileFormat>();
   }
 
   /**
@@ -49,24 +42,6 @@ public class BinaryCell extends Cell {
   public BinaryCell(String id, FileItem fileItem) throws ModuleException {
     super(id);
     this.fileItem = fileItem;
-    this.formatHits = new ArrayList<FileFormat>();
-  }
-
-  /**
-   * Binary cell constructor, with optional mimetype attribute
-   *
-   * @param id
-   *          the cell id, equal to 'tableId.columnId.rowIndex'
-   * @param fileItem
-   *          the fileItem relative to the binary data
-   * @param formatHits
-   *          the possible formats of this binary
-   * @throws ModuleException
-   */
-  public BinaryCell(String id, FileItem fileItem, List<FileFormat> formatHits) throws ModuleException {
-    super(id);
-    this.fileItem = fileItem;
-    this.formatHits = formatHits;
   }
 
   /**
@@ -85,27 +60,12 @@ public class BinaryCell extends Cell {
   }
 
   /**
-   * @return the possible formats of this binary
-   */
-  public List<FileFormat> getFormatHits() {
-    return formatHits;
-  }
-
-  /**
-   * @param formatHits
-   *          the possible formats of this binary
-   */
-  public void setFormatHits(List<FileFormat> formatHits) {
-    this.formatHits = formatHits;
-  }
-
-  /**
    * Get the binary stream length in bytes
    *
-   * @return the binary stream length
+   * @return the binary stream length; -1 if the file is not available
    */
   public long getLength() throws ModuleException {
-    return fileItem != null ? fileItem.size() : 0;
+    return fileItem != null ? fileItem.size() : -1;
   }
 
   /**
@@ -119,6 +79,6 @@ public class BinaryCell extends Cell {
 
   @Override
   public String toString() {
-    return "BinaryCell{" + "fileItem=" + fileItem + ", formatHits=" + formatHits + '}';
+    return "BinaryCell{" + "fileItem=" + fileItem + '}';
   }
 }

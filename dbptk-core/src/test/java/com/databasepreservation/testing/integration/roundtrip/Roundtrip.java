@@ -13,8 +13,9 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.Main;
 import com.databasepreservation.testing.integration.roundtrip.differences.DumpDiffExpectations;
 import com.databasepreservation.utils.FileUtils;
@@ -27,7 +28,7 @@ import com.databasepreservation.utils.FileUtils;
 public class Roundtrip {
   public static final String TMP_FILE_SIARD_VAR = "%TMP_FILE_SIARD%";
 
-  private final CustomLogger logger = CustomLogger.getLogger(Roundtrip.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(Roundtrip.class);
   // constants
   private final String db_source = "dpttest";
   private final String db_target = "dpttest_siard";
@@ -148,6 +149,9 @@ public class Roundtrip {
     Path dump_source = dumpsDir.resolve("source.sql");
     Path dump_target = dumpsDir.resolve("target.sql");
 
+    LOGGER.trace("SQL src dump: " + dump_source.toString());
+    LOGGER.trace("SQL tgt dump: " + dump_target.toString());
+
     ProcessBuilder dump = new ProcessBuilder("bash", "-c", dump_source_command);
     dump.redirectOutput(dump_source.toFile());
     dump.redirectError(processSTDERR);
@@ -203,6 +207,7 @@ public class Roundtrip {
     // create a temporary folder with a siard file inside
     tmpFolderSIARD = Files.createTempDirectory("dpttest_siard");
     tmpFileSIARD = tmpFolderSIARD.resolve("dbptk.siard");
+    LOGGER.trace("SIARD file: " + tmpFileSIARD.toString());
 
     // create user, database and give permissions to the user
     ProcessBuilder setup = new ProcessBuilder("bash", "-c", setup_command);
@@ -244,7 +249,7 @@ public class Roundtrip {
 
   private void printTmpFileOnError(File file_to_print, int status_code) throws IOException {
     if (status_code != 0) {
-      logger.error("non-zero exit code, printing process output from " + file_to_print.getName());
+      LOGGER.error("non-zero exit code, printing process output from " + file_to_print.getName());
 
       if (file_to_print.length() > 0L) {
         FileReader fr;
@@ -258,15 +263,15 @@ public class Roundtrip {
             }
             br.close();
           } catch (IOException e) {
-            logger.error("Could not read file", e);
+            LOGGER.error("Could not read file", e);
           } finally {
             fr.close();
           }
         } catch (FileNotFoundException e) {
-          logger.error("File not found", e);
+          LOGGER.error("File not found", e);
         }
       } else {
-        logger.warn("output file is empty.");
+        LOGGER.warn("output file is empty.");
       }
     }
   }

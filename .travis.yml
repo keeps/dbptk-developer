@@ -1,6 +1,6 @@
 language: java
 sudo: false
-script: mvn -Dtestng.groups="travis-ci" clean verify
+script: mvn -Dtestng.groups="travis-ci" -Dlogback.configurationFile=logback-travis.xml verify
 jdk:
   - oraclejdk8
   - oraclejdk7

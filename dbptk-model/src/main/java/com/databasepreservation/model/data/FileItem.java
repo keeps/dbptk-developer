@@ -104,10 +104,8 @@ public class FileItem {
     Files.delete(path);
   }
 
-  @Override public String toString() {
-    return "FileItem{" +
-      "path=" + path +
-      ", createdStreams=" + createdStreams +
-      '}';
+  @Override
+  public String toString() {
+    return "FileItem{" + "path=" + path + ", createdStreams=" + createdStreams + '}';
   }
 }

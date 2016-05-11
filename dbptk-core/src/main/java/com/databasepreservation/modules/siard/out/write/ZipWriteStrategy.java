@@ -8,8 +8,9 @@ import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 
@@ -17,7 +18,7 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class ZipWriteStrategy implements WriteStrategy {
-  private final CustomLogger logger = CustomLogger.getLogger(ZipWriteStrategy.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ZipWriteStrategy.class);
 
   private final CompressionMethod compressionMethod;
   private ProtectedZipArchiveOutputStream zipOut;
@@ -48,7 +49,7 @@ public class ZipWriteStrategy implements WriteStrategy {
       zipOut.closeArchiveEntry();
     } catch (IOException e) {
       if (!"No current entry to close".equals(e.getMessage())) {
-        logger.debug("the ArchiveEntry is already closed or the ZipArchiveOutputStream is already finished", e);
+        LOGGER.debug("the ArchiveEntry is already closed or the ZipArchiveOutputStream is already finished", e);
       }
     }
 

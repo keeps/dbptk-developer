@@ -1,10 +1,10 @@
 package com.databasepreservation.modules.siard.in.content;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
-
-import com.databasepreservation.CustomLogger;
 
 /**
  * Class to handle SAX Parsing errors
@@ -12,7 +12,7 @@ import com.databasepreservation.CustomLogger;
  * @author bferreira
  */
 class SAXErrorHandler implements ErrorHandler {
-  private final CustomLogger logger = CustomLogger.getLogger(SAXErrorHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SAXErrorHandler.class);
   private boolean hasError = false;
 
   /**
@@ -49,25 +49,25 @@ class SAXErrorHandler implements ErrorHandler {
   }
 
   /**
-   * Logs SAX warnings with the custom logger.
+   * Logs SAX warnings with the custom LOGGER.
    * 
    * @param e
    *          the original exception
    */
   @Override
   public void warning(SAXParseException e) {
-    logger.warn(getParseExceptionInfo(e), e);
+    LOGGER.warn(getParseExceptionInfo(e), e);
   }
 
   /**
-   * Logs SAX errors with the custom logger.
+   * Logs SAX errors with the custom LOGGER.
    * 
    * @param e
    *          the original exception
    */
   @Override
   public void error(SAXParseException e) {
-    logger.error(getParseExceptionInfo(e), e);
+    LOGGER.error(getParseExceptionInfo(e), e);
     hasError = true;
   }
 

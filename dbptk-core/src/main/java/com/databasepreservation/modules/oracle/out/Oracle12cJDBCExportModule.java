@@ -3,7 +3,9 @@ package com.databasepreservation.modules.oracle.out;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import com.databasepreservation.CustomLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.SchemaStructure;
@@ -17,7 +19,7 @@ import com.databasepreservation.modules.oracle.OracleHelper;
  */
 
 public class Oracle12cJDBCExportModule extends JDBCExportModule {
-  private final CustomLogger logger = CustomLogger.getLogger(Oracle12cJDBCExportModule.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(Oracle12cJDBCExportModule.class);
 
   private final String username;
   private String sourceSchema = null;
@@ -39,7 +41,6 @@ public class Oracle12cJDBCExportModule extends JDBCExportModule {
       + port + "/" + database, new OracleHelper());
 
     this.username = username;
-    logger.info("jdbc:oracle:thin:<username>/<password>@//" + serverName + ":" + port + "/" + database);
   }
 
   public Oracle12cJDBCExportModule(String serverName, int port, String database, String username, String password,
@@ -65,7 +66,7 @@ public class Oracle12cJDBCExportModule extends JDBCExportModule {
 
   @Override
   protected void handleSchemaStructure(SchemaStructure schema) throws ModuleException, UnknownTypeException {
-    logger.info("Handling schema structure " + schema.getName());
+    LOGGER.info("Handling schema structure " + schema.getName());
 
     // if no source schema was specified, use the first schema as the default
     // schema
@@ -96,12 +97,12 @@ public class Oracle12cJDBCExportModule extends JDBCExportModule {
         handleTableStructure(table);
       }
 
-      logger.info("Handling schema structure " + schema.getName() + " finished");
+      LOGGER.info("Handling schema structure " + schema.getName() + " finished");
     } catch (SQLException e) {
-      logger.error("Error handling schema structure", e);
+      LOGGER.error("Error handling schema structure", e);
       SQLException nextException = e.getNextException();
       if (nextException != null) {
-        logger.error("Error details", nextException);
+        LOGGER.error("Error details", nextException);
       }
       throw new ModuleException("Error while adding schema SQL to batch", e);
     }
@@ -119,12 +120,12 @@ public class Oracle12cJDBCExportModule extends JDBCExportModule {
    */
   private boolean isDefaultTableSpace(String expectedDefaultTablespaceName) throws ModuleException, SQLException {
     String query = "select default_tablespace from user_users";
-    logger.debug("Getting default tablespace: " + query);
+    LOGGER.debug("Getting default tablespace: " + query);
     ResultSet rs = getStatement().executeQuery(query);
 
     if (rs.next()) {
       String defaultTablespaceName = rs.getString(1);
-      logger.debug("Default tablespace for user " + username + " is " + defaultTablespaceName + " (expected it to be: "
+      LOGGER.debug("Default tablespace for user " + username + " is " + defaultTablespaceName + " (expected it to be: "
         + expectedDefaultTablespaceName + ").");
       if (defaultTablespaceName.equalsIgnoreCase(expectedDefaultTablespaceName)) {
         return true;

@@ -7,9 +7,11 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Calendar;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.util.InvalidDateException;
 
-import com.databasepreservation.CustomLogger;
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
@@ -21,8 +23,7 @@ import com.databasepreservation.modules.jdbc.out.JDBCExportModule;
  * @author Miguel Coutada
  */
 public class DB2JDBCExportModule extends JDBCExportModule {
-
-  private final CustomLogger logger = CustomLogger.getLogger(DB2JDBCExportModule.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DB2JDBCExportModule.class);
 
   /**
    * Db2 JDBC export module constructor
@@ -47,7 +48,7 @@ public class DB2JDBCExportModule extends JDBCExportModule {
   @Override
   public void finishDatabase() throws ModuleException {
     if (databaseStructure != null) {
-      logger.info("Handling foreign keys is not yet supported!");
+      Reporter.notYetSupported("foreign key", "db2 export module");
       // handleForeignKeys();
       commit();
     }
@@ -60,19 +61,19 @@ public class DB2JDBCExportModule extends JDBCExportModule {
     if (dateTime.getTimeDefined()) {
       if ("TIMESTAMP".equalsIgnoreCase(type.getSql99TypeName())) {
         if (data != null) {
-          logger.debug("timestamp before: " + data);
+          LOGGER.debug("timestamp before: " + data);
           Calendar cal = javax.xml.bind.DatatypeConverter.parseDateTime(data);
           Timestamp sqlTimestamp = new Timestamp(cal.getTimeInMillis());
-          logger.debug("timestamp after: " + sqlTimestamp.toString());
+          LOGGER.debug("timestamp after: " + sqlTimestamp.toString());
           ps.setTimestamp(index, sqlTimestamp);
         } else {
           ps.setNull(index, Types.TIMESTAMP);
         }
       } else {
         if (data != null) {
-          logger.debug("TIME before: " + data);
+          LOGGER.debug("TIME before: " + data);
           Time sqlTime = Time.valueOf(data);
-          logger.debug("TIME after: " + sqlTime.toString());
+          LOGGER.debug("TIME after: " + sqlTime.toString());
           ps.setTime(index, sqlTime);
         } else {
           ps.setNull(index, Types.TIME);
@@ -80,9 +81,9 @@ public class DB2JDBCExportModule extends JDBCExportModule {
       }
     } else {
       if (data != null) {
-        logger.debug("DATE before: " + data);
+        LOGGER.debug("DATE before: " + data);
         java.sql.Date sqlDate = java.sql.Date.valueOf(data);
-        logger.debug("DATE after: " + sqlDate.toString());
+        LOGGER.debug("DATE after: " + sqlDate.toString());
         ps.setDate(index, sqlDate);
       } else {
         ps.setNull(index, Types.DATE);

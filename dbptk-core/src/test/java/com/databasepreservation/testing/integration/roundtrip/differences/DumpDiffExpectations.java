@@ -9,7 +9,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedList;
 
-import com.databasepreservation.CustomLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Roundtrip testing generates a textual database dump before converting the
@@ -25,7 +26,7 @@ import com.databasepreservation.CustomLogger;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public abstract class DumpDiffExpectations {
-  private static final CustomLogger logger = CustomLogger.getLogger(DumpDiffExpectations.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DumpDiffExpectations.class);
 
   /**
    * Creates a modified version of the source database dump that should equal to
@@ -65,9 +66,9 @@ public abstract class DumpDiffExpectations {
     try {
       assertThat("Found unexpected changes in target database dump", foundUnexpectedDifferences, is(false));
     } catch (AssertionError a) {
-      logger.error("Dump files do not represent the same information. Outputting diff");
+      LOGGER.error("Dump files do not represent the same information. Outputting diff");
       System.out.println(textDiff.diff_prettyCmd(diffs));
-      logger.error("Diff output finished.");
+      LOGGER.error("Diff output finished.");
       throw a;
     }
   }

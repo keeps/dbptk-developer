@@ -9,17 +9,20 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.databasepreservation.CustomLogger;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.exception.UnknownTypeException;
+import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
-import com.databasepreservation.model.structure.type.SimpleTypeBinary;
-import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.mySql.MySQLHelper;
@@ -29,8 +32,7 @@ import com.databasepreservation.modules.mySql.MySQLHelper;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class MySQLJDBCImportModule extends JDBCImportModule {
-
-  private final CustomLogger logger = CustomLogger.getLogger(MySQLJDBCImportModule.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MySQLJDBCImportModule.class);
   private final String username;
 
   /**
@@ -47,7 +49,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    */
   public MySQLJDBCImportModule(String hostname, String database, String username, String password) {
     super("com.mysql.jdbc.Driver", "jdbc:mysql://" + hostname + "/" + database + "?" + "user=" + username
-      + "&password=" + password, new MySQLHelper());
+      + "&password=" + password, new MySQLHelper(), new MySQLDatatypeImporter());
     this.username = username;
   }
 
@@ -67,7 +69,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    */
   public MySQLJDBCImportModule(String hostname, int port, String database, String username, String password) {
     super("com.mysql.jdbc.Driver", "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?" + "user=" + username
-      + "&password=" + password, new MySQLHelper());
+      + "&password=" + password, new MySQLHelper(), new MySQLDatatypeImporter());
     this.username = username;
   }
 
@@ -77,7 +79,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected List<SchemaStructure> getSchemas() throws SQLException, ClassNotFoundException, UnknownTypeException {
+  protected List<SchemaStructure> getSchemas() throws SQLException, ClassNotFoundException {
     List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
     String schemaName = getConnection().getCatalog();
     schemas.add(getSchemaStructure(schemaName, 1));
@@ -107,26 +109,66 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
         }
       } catch (SQLException e) {
         if (e.getMessage().startsWith("SELECT command denied to user ") && e.getMessage().endsWith(" for table 'user'")) {
-          logger
+          LOGGER
             .warn("The selected MySQL user does not have permissions to list database users. This permission can be granted with the command \"GRANT SELECT ON mysql.user TO 'username'@'localhost' IDENTIFIED BY 'password';\"");
         } else {
-          logger.error("It was not possible to retrieve the list of database users.", e);
+          LOGGER.error("It was not possible to retrieve the list of database users.", e);
         }
       }
     }
 
     if (users.isEmpty()) {
       users.add(new UserStructure(username, ""));
-      logger.warn("Users were not imported. '" + username + "' will be set as the user name.");
+      LOGGER.warn("Users were not imported. '" + username + "' will be set as the user name.");
     }
 
     return users;
   }
 
+  /**
+   * @param schema
+   * @param tableName
+   *          the name of the table
+   * @param tableIndex
+   * @return the table structure
+   * @throws SQLException
+   * @throws ClassNotFoundException
+   * @throws ModuleException
+   */
+  @Override
+  protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex,
+    String description) throws SQLException, ClassNotFoundException {
+    TableStructure tableStructure = super.getTableStructure(schema, tableName, tableIndex, description);
+
+    // obtain mysql remarks/comments (unsupported by the mysql driver up to
+    // 5.1.38)
+    if (StringUtils.isBlank(tableStructure.getDescription())) {
+      String query = new StringBuilder()
+        .append(
+          "SELECT TABLE_COMMENT FROM information_schema.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = '")
+        .append(schema.getName()).append("' AND TABLE_NAME = '").append(tableName).append("'").toString();
+      try {
+        boolean gotResultSet = getStatement().execute(query);
+        if (gotResultSet) {
+          ResultSet rs = getStatement().getResultSet();
+          if (rs.next()) {
+            String tableComment = rs.getString(1);
+            tableStructure.setDescription(tableComment);
+          }
+        }
+      } catch (Exception e) {
+        LOGGER.debug("Exception while trying to obtain MySQL table '" + tableIndex
+          + "' description (comment). with query ", e);
+      }
+    }
+
+    return tableStructure;
+  }
+
   @Override
   protected ResultSet getTableRawData(TableStructure table) throws SQLException, ClassNotFoundException,
     ModuleException {
-    logger.debug("query: " + sqlHelper.selectTableSQL(table.getId()));
+    LOGGER.debug("query: " + sqlHelper.selectTableSQL(table.getId()));
 
     Statement statement = getStatement();
     statement.setFetchSize(Integer.MIN_VALUE);
@@ -144,65 +186,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected Type getRealType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type;
-
-    if (columnSize == 12 && decimalDigits == 0) {
-      type = new SimpleTypeNumericApproximate(columnSize);
-      type.setSql99TypeName("REAL");
-      type.setSql2003TypeName("REAL");
-    } else {
-      type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
-    }
-
-    return type;
-  }
-
-  @Override
-  protected Type getDoubleType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type;
-
-    if (columnSize == 22 && decimalDigits == 0) {
-      type = new SimpleTypeNumericApproximate(columnSize);
-      type.setSql99TypeName("DOUBLE PRECISION");
-      type.setSql2003TypeName("DOUBLE PRECISION");
-    } else {
-      type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
-    }
-
-    return type;
-  }
-
-  @Override
-  protected Type getBinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type = new SimpleTypeBinary(columnSize);
-
-    if ("TINYBLOB".equalsIgnoreCase(typeName)) {
-      type.setSql99TypeName("BIT VARYING", 2040);
-      type.setSql2003TypeName("BINARY LARGE OBJECT");
-    } else if ("BIT".equalsIgnoreCase(typeName)) {
-      type.setSql99TypeName("BIT", columnSize);
-      type.setSql2003TypeName("BIT", columnSize);
-      type.setOriginalTypeName(typeName, columnSize);
-    } else {
-      type.setSql99TypeName("BIT", columnSize * 8);
-      type.setSql2003TypeName("BIT", columnSize * 8);
-    }
-
-    return type;
-  }
-
-  @Override
-  protected Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type = new SimpleTypeBinary(columnSize);
-    type.setSql99TypeName("BIT VARYING", columnSize * 8);
-    type.setSql2003TypeName("BIT VARYING", columnSize * 8);
-    return type;
-  }
-
-  @Override
-  protected List<ViewStructure> getViews(String schemaName) throws SQLException, ClassNotFoundException,
-    UnknownTypeException {
+  protected List<ViewStructure> getViews(String schemaName) throws SQLException, ClassNotFoundException {
     List<ViewStructure> views = super.getViews(schemaName);
     for (ViewStructure v : views) {
       Statement statement = getConnection().createStatement();
@@ -218,30 +202,6 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected Type getFloatType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type;
-
-    if (columnSize == 12 && decimalDigits == 0) {
-      type = new SimpleTypeNumericApproximate(columnSize);
-      type.setSql99TypeName("FLOAT");
-      type.setSql2003TypeName("FLOAT");
-    } else {
-      type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
-    }
-
-    return type;
-  }
-
-  @Override
-  protected Type getDateType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    if ("YEAR".equals(typeName)) {
-      return getNumericType(typeName, 4, decimalDigits, numPrecRadix);
-    } else {
-      return super.getDateType(typeName, columnSize, decimalDigits, numPrecRadix);
-    }
-  }
-
-  @Override
   protected Cell rawToCellSimpleTypeNumericExact(String id, String columnName, Type cellType, ResultSet rawData)
     throws SQLException {
     if ("YEAR".equals(cellType.getOriginalTypeName())) {
@@ -251,9 +211,29 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
       // 1999-01-01, 1999-01-01
       // to get the "real" year value, using the first 4 characters from the
       // date string
-      return new SimpleCell(id, rawData.getString(columnName).substring(0, 4));
+      String data = rawData.getString(columnName);
+      if (data != null) {
+        return new SimpleCell(id, data.substring(0, 4));
+      } else {
+        return new NullCell(id);
+      }
     } else {
       return super.rawToCellSimpleTypeNumericExact(id, columnName, cellType, rawData);
     }
+  }
+
+  /**
+   * Gets the check constraints of a given schema table
+   *
+   * @param schemaName
+   * @param tableName
+   * @return
+   * @throws ClassNotFoundException
+   */
+  @Override
+  protected List<CheckConstraint> getCheckConstraints(String schemaName, String tableName)
+    throws ClassNotFoundException {
+    Reporter.notYetSupported("check constraints", "MySQL");
+    return new ArrayList<CheckConstraint>();
   }
 }

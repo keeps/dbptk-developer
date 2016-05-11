@@ -13,7 +13,9 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
-import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStrategy;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import ch.admin.bar.xmlns.siard._2_0.metadata.CandidateKeyType;
@@ -46,7 +48,6 @@ import ch.admin.bar.xmlns.siard._2_0.metadata.UsersType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.ViewType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.ViewsType;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
@@ -66,8 +67,9 @@ import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.in.metadata.typeConverter.TypeConverterFactory;
+import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQLStandardDatatypeFactory;
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.utils.JodaUtils;
 
@@ -75,7 +77,7 @@ import com.databasepreservation.utils.JodaUtils;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
-  private final CustomLogger logger = CustomLogger.getLogger(SIARD2MetadataImportStrategy.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2MetadataImportStrategy.class);
   private static final String METADATA_FILENAME = "metadata";
 
   private DatabaseStructure databaseStructure;
@@ -84,6 +86,10 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
 
   private int currentSchemaIndex = 1;
   private int currentTableIndex;
+
+  private String metadataCurrentDatabaseName = "<information not available>";
+  private String metadataCurrentSchemaName = "<information not available>";
+  private String metadataCurrentTableName = "<information not available>";
 
   public SIARD2MetadataImportStrategy(MetadataPathStrategy metadataPathStrategy,
     ContentPathImportStrategy contentPathImportStrategy) {
@@ -121,7 +127,22 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
       reader = readStrategy.createInputStream(container, metadataPathStrategy.getXmlFilePath(METADATA_FILENAME));
       xmlRoot = (SiardArchive) unmarshaller.unmarshal(reader);
     } catch (JAXBException e) {
-      throw new ModuleException("Error while Unmarshalling JAXB", e);
+      LOGGER.warn("The metadata.xml file did not pass the XML Schema validation.", new ModuleException(
+        "Error while Unmarshalling JAXB with XSD", e));
+      if (reader != null) {
+        try {
+          reader.close();
+        } catch (IOException e1) {
+          LOGGER.trace("problem closing reader after XMl validation failure");
+        }
+      }
+      try {
+        unmarshaller = context.createUnmarshaller();
+        reader = readStrategy.createInputStream(container, metadataPathStrategy.getXmlFilePath(METADATA_FILENAME));
+        xmlRoot = (SiardArchive) unmarshaller.unmarshal(reader);
+      } catch (JAXBException e1) {
+        throw new ModuleException("The metadata.xml file could not be read.", e1);
+      }
     } finally {
       try {
         xsdStream.close();
@@ -129,7 +150,7 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
           reader.close();
         }
       } catch (IOException e) {
-        logger.debug("Could not close xsdStream", e);
+        LOGGER.debug("Could not close xsdStream", e);
       }
     }
 
@@ -156,7 +177,9 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
     databaseStructure.setProducerApplication(siardArchive.getProducerApplication());
     databaseStructure.setClientMachine(siardArchive.getClientMachine());
     databaseStructure.setDatabaseUser(siardArchive.getDatabaseUser());
-    databaseStructure.setName(siardArchive.getDbname());
+
+    metadataCurrentDatabaseName = siardArchive.getDbname();
+    databaseStructure.setName(metadataCurrentDatabaseName);
 
     databaseStructure.setArchivalDate(JodaUtils.xs_date_parse(siardArchive.getArchivalDate()));
     // TODO:
@@ -171,7 +194,7 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
     databaseStructure.setRoles(getRoles(siardArchive.getRoles()));
     databaseStructure.setPrivileges(getPrivileges(siardArchive.getPrivileges()));
 
-    if(contentPathStrategy instanceof SIARD2ContentPathImportStrategy){
+    if (contentPathStrategy instanceof SIARD2ContentPathImportStrategy) {
       SIARD2ContentPathImportStrategy siard2ContentPathImportStrategy = (SIARD2ContentPathImportStrategy) contentPathStrategy;
       siard2ContentPathImportStrategy.setMetadataLobFolder(siardArchive.getLobFolder());
     }
@@ -277,7 +300,8 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
     if (schema != null) {
       SchemaStructure result = new SchemaStructure();
 
-      result.setName(schema.getName());
+      metadataCurrentSchemaName = schema.getName();
+      result.setName(metadataCurrentSchemaName);
       result.setDescription(schema.getDescription());
       result.setIndex(currentSchemaIndex++);
       contentPathStrategy.associateSchemaWithFolder(schema.getName(), schema.getFolder());
@@ -311,7 +335,8 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
     if (routineType != null) {
       RoutineStructure result = new RoutineStructure();
 
-      result.setName(routineType.getName());
+      metadataCurrentTableName = routineType.getName();
+      result.setName(metadataCurrentTableName);
       result.setDescription(routineType.getDescription());
       result.setSource(routineType.getSource());
       result.setBody(routineType.getBody());
@@ -345,8 +370,9 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
 
       result.setName(parameterType.getName());
       result.setMode(parameterType.getMode());
-      result.setType(TypeConverterFactory.getSQL2003TypeConverter().getType(parameterType.getType(),
-        parameterType.getTypeOriginal()));
+      result.setType(SQLStandardDatatypeFactory.getSQL99StandardDatatypeImporter().getCheckedType(
+        metadataCurrentDatabaseName, metadataCurrentSchemaName, metadataCurrentTableName + " (routine)",
+        parameterType.getName() + " (parameter)", parameterType.getType(), parameterType.getTypeOriginal()));
       result.setDescription(parameterType.getDescription());
 
       // todo: deal with these fields (related to complex types)
@@ -416,7 +442,8 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
       TableStructure result = new TableStructure();
 
       result.setIndex(currentTableIndex++);
-      result.setName(table.getName());
+      metadataCurrentTableName = table.getName();
+      result.setName(metadataCurrentTableName);
       result.setSchema(schemaName);
       result.setDescription(table.getDescription());
       result.setId(String.format("%s.%s", result.getSchema(), result.getName()));
@@ -597,10 +624,17 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
 
       result.setName(column.getName());
       result.setId(tableId + "." + result.getName());
+
+      String lobFolder = column.getFolder();
+      if (StringUtils.isBlank(lobFolder)) {
+        lobFolder = column.getLobFolder();
+      }
+
       contentPathStrategy.associateColumnWithFolder(result.getId(), column.getFolder());
 
-      result
-        .setType(TypeConverterFactory.getSQL2003TypeConverter().getType(column.getType(), column.getTypeOriginal()));
+      result.setType(SQLStandardDatatypeFactory.getSQL99StandardDatatypeImporter().getCheckedType(
+        metadataCurrentDatabaseName, metadataCurrentSchemaName, metadataCurrentTableName, column.getName(),
+        column.getType(), column.getTypeOriginal()));
 
       result.setNillable(column.isNullable());
       result.setDefaultValue(column.getDefaultValue());

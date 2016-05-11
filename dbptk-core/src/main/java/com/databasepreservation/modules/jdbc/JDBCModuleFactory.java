@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.naming.OperationNotSupportedException;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
@@ -74,6 +75,7 @@ public class JDBCModuleFactory implements DatabaseModuleFactory {
     String pConnection = parameters.get(connection);
     // String pParams = parameters.get(params);
 
+    Reporter.importModuleParameters(this.getModuleName(), "driver", pDriver, "connection", pConnection);
     return new JDBCImportModule(pDriver, pConnection);
   }
 
@@ -84,6 +86,7 @@ public class JDBCModuleFactory implements DatabaseModuleFactory {
     String pConnection = parameters.get(connection);
     // String pParams = parameters.get(params);
 
+    Reporter.exportModuleParameters(this.getModuleName(), "driver", pDriver, "connection", pConnection);
     return new JDBCExportModule(pDriver, pConnection);
   }
 }

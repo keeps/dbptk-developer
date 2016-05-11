@@ -22,21 +22,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.databasepreservation.model.data.NullCell;
 import oracle.sql.STRUCT;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.util.DateParser;
 
-import pt.gov.dgarq.roda.common.FileFormat;
-import pt.gov.dgarq.roda.common.FormatUtility;
-
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.Main;
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
 import com.databasepreservation.model.data.FileItem;
+import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
@@ -44,6 +43,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
+import com.databasepreservation.model.modules.DatatypeImporter;
 import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
@@ -67,7 +67,6 @@ import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
-import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
 import com.databasepreservation.modules.SQLHelper;
@@ -86,7 +85,7 @@ public class JDBCImportModule implements DatabaseImportModule {
   protected static final boolean IGNORE_UNSUPPORTED_DATA_TYPES = true;
   protected final String driverClassName;
   protected final String connectionURL;
-  private final CustomLogger logger = CustomLogger.getLogger(JDBCImportModule.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(JDBCImportModule.class);
   protected Connection connection;
 
   protected Statement statement;
@@ -100,7 +99,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   protected SQLHelper sqlHelper;
 
-  protected FormatUtility formatUtility;
+  protected DatatypeImporter datatypeImporter;
 
   private ModuleSettings moduleSettings;
 
@@ -113,13 +112,15 @@ public class JDBCImportModule implements DatabaseImportModule {
    *          the connection url to use in the connection
    */
   public JDBCImportModule(String driverClassName, String connectionURL) {
-    this(driverClassName, connectionURL, new SQLHelper());
+    this(driverClassName, connectionURL, new SQLHelper(), new JDBCDatatypeImporter());
   }
 
-  protected JDBCImportModule(String driverClassName, String connectionURL, SQLHelper sqlHelper) {
+  protected JDBCImportModule(String driverClassName, String connectionURL, SQLHelper sqlHelper,
+    DatatypeImporter datatypeImporter) {
     this.driverClassName = driverClassName;
     this.connectionURL = connectionURL;
     this.sqlHelper = sqlHelper;
+    this.datatypeImporter = datatypeImporter;
     connection = null;
     dbMetadata = null;
     dbStructure = null;
@@ -136,11 +137,11 @@ public class JDBCImportModule implements DatabaseImportModule {
    */
   public Connection getConnection() throws SQLException, ClassNotFoundException {
     if (connection == null) {
-      logger.debug("Loading JDBC Driver " + driverClassName);
+      LOGGER.debug("Loading JDBC Driver " + driverClassName);
       Class.forName(driverClassName);
-      logger.debug("Getting connection");
+      LOGGER.debug("Getting connection");
       connection = DriverManager.getConnection(connectionURL);
-      logger.debug("Connected");
+      LOGGER.debug("Connected");
     }
     return connection;
   }
@@ -198,15 +199,12 @@ public class JDBCImportModule implements DatabaseImportModule {
   /**
    * @return the database structure
    * @throws SQLException
-   * @throws UnknownTypeException
-   *           the original data type is unknown
    * @throws ClassNotFoundException
    */
-  protected DatabaseStructure getDatabaseStructure() throws SQLException, UnknownTypeException, ClassNotFoundException {
+  protected DatabaseStructure getDatabaseStructure() throws SQLException, ClassNotFoundException {
     if (dbStructure == null) {
-      logger.debug("Importing structure");
       dbStructure = new DatabaseStructure();
-      logger.debug("driver version: " + getMetadata().getDriverVersion());
+      LOGGER.debug("driver version: " + getMetadata().getDriverVersion());
       dbStructure.setName(getDbName());
       dbStructure.setProductName(getMetadata().getDatabaseProductName());
       dbStructure.setProductVersion(getMetadata().getDatabaseProductVersion());
@@ -217,7 +215,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       try {
         clientMachine = InetAddress.getLocalHost().getHostName();
       } catch (UnknownHostException e) {
-        logger.debug("UnknownHostException", e);
+        LOGGER.debug("UnknownHostException", e);
       }
       dbStructure.setClientMachine(clientMachine);
 
@@ -228,7 +226,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       dbStructure.setRoles(getRoles());
       dbStructure.setPrivileges(getPrivileges());
 
-      logger.debug("Finishing get dbStructure");
+      LOGGER.debug("Database structure obtained");
     }
     return dbStructure;
   }
@@ -258,9 +256,9 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return the database schemas (not ignored by default and/or user)
    * @throws SQLException
    * @throws ClassNotFoundException
-   * @throws UnknownTypeException
+   * @throws
    */
-  protected List<SchemaStructure> getSchemas() throws SQLException, ClassNotFoundException, UnknownTypeException {
+  protected List<SchemaStructure> getSchemas() throws SQLException, ClassNotFoundException {
     List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
 
     ResultSet rs = getMetadata().getSchemas();
@@ -299,7 +297,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @throws ModuleException
    */
   protected SchemaStructure getSchemaStructure(String schemaName, int schemaIndex) throws SQLException,
-    UnknownTypeException, ClassNotFoundException {
+    ClassNotFoundException {
     actualSchema = new SchemaStructure();
     actualSchema.setName(schemaName);
     actualSchema.setIndex(schemaIndex);
@@ -313,7 +311,7 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   protected ArrayList<ComposedTypeStructure> getUDTs(SchemaStructure schema) throws SQLException,
-    ClassNotFoundException, UnknownTypeException {
+    ClassNotFoundException {
     ResultSet udtTypes = getMetadata().getUDTs(dbStructure.getName(), schema.getName(), null, null);
 
     // possibleUDT because it may also be a table name, which in some cases may
@@ -360,8 +358,8 @@ public class JDBCImportModule implements DatabaseImportModule {
          * REFERENCE_GENERATION = USER_DEFINED)
          */
         debug.append("\nBASE_TYPE: ").append(udtTypes.getShort(7));
-        logger.debug("Possible UDT is not a STRUCT. " + debug.toString());
-        logger.warn("Unsupported UDT found: " + debug.toString());
+        LOGGER.debug("Possible UDT is not a STRUCT. " + debug.toString());
+        LOGGER.debug("Unsupported UDT found: " + debug.toString());
       }
     }
 
@@ -383,14 +381,16 @@ public class JDBCImportModule implements DatabaseImportModule {
     for (ComposedTypeStructure udt : udts) {
       // TODO: remove after adding support for LOBs inside UDTs
       if (udt.containsLOBs()) {
-        logger.warn("LOBs inside UDTs are not supported yet. Only the first level of hierarchy will be exported. UDT "
+        Reporter.notYetSupported("LOBs inside UDTs", "the current import module");
+        LOGGER.debug("LOBs inside UDTs are not supported yet. Only the first level of hierarchy will be exported. UDT "
           + udt.getOriginalTypeName() + " detected as containing LOBs.", new ModuleException("UDT containing LOBs:"
           + udt.toString()));
       }
 
       // TODO: remove after adding support for hierarchical UDTs
       if (udt.isHierarchical()) {
-        logger.warn("UDTs inside UDTs are not supported yet. Only the first level of hierarchy will be exported. UDT "
+        Reporter.notYetSupported("UDTs inside UDTs", "the current import module");
+        LOGGER.debug("UDTs inside UDTs are not supported yet. Only the first level of hierarchy will be exported. UDT "
           + udt.getOriginalTypeName() + " detected as hierarchical.",
           new ModuleException("hierarchical UDT:" + udt.toString()));
       }
@@ -399,7 +399,8 @@ public class JDBCImportModule implements DatabaseImportModule {
       // recursive types
       // TODO: remove after adding support for recursive UDTs
       if (udt.isRecursive()) {
-        logger.warn(
+        Reporter.notYetSupported("Recursive UDTs", "the current import module");
+        LOGGER.debug(
           "Recursive UDTs are not supported yet. Only the first level of data will be exported. UDT "
             + udt.getOriginalTypeName() + " detected as recursive.",
           new ModuleException("recursive UDT:" + udt.toString()));
@@ -415,25 +416,23 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return the database tables of a given schema
    * @throws SQLException
    * @throws ClassNotFoundException
-   * @throws UnknownTypeException
+   * @throws
    */
-  protected List<TableStructure> getTables(SchemaStructure schema) throws SQLException, ClassNotFoundException,
-    UnknownTypeException {
+  protected List<TableStructure> getTables(SchemaStructure schema) throws SQLException, ClassNotFoundException {
     List<TableStructure> tables = new ArrayList<TableStructure>();
     ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"TABLE"});
     int tableIndex = 1;
     while (rset.next()) {
       String tableName = rset.getString(3);
-
-      logger.debug("getting table structure for: " + tableName);
+      String tableDescription = rset.getString(5);
 
       if (moduleSettings.isSelectedTable(schema.getName(), tableName)) {
-        tables.add(getTableStructure(schema, tableName, tableIndex));
+        LOGGER.info("Obtaining table structure for " + schema.getName() + "." + tableName);
+        tables.add(getTableStructure(schema, tableName, tableIndex, tableDescription));
         tableIndex++;
       } else {
-        logger.debug("Table " + tableName + " has been filtered out.");
+        LOGGER.info("Ignoring table " + schema.getName() + "." + tableName);
       }
-
     }
     return tables;
   }
@@ -444,20 +443,20 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return the database views of a given schema
    * @throws SQLException
    * @throws ClassNotFoundException
-   * @throws UnknownTypeException
+   * @throws
    */
-  protected List<ViewStructure> getViews(String schemaName) throws SQLException, ClassNotFoundException,
-    UnknownTypeException {
+  protected List<ViewStructure> getViews(String schemaName) throws SQLException, ClassNotFoundException {
     List<ViewStructure> views = new ArrayList<ViewStructure>();
     ResultSet rset = getMetadata().getTables(dbStructure.getName(), schemaName, "%", new String[] {"VIEW"});
     while (rset.next()) {
       String viewName = rset.getString(3);
       ViewStructure view = new ViewStructure();
       view.setName(viewName);
+      view.setDescription(rset.getString(5));
       view.setColumns(getColumns(schemaName, viewName));
 
       if (view.getColumns().isEmpty()) {
-        logger.info("View " + viewName + " in schema " + schemaName + " was ignored because it contains no columns.");
+        Reporter.ignored("View " + viewName + " in schema " + schemaName, "it contains no columns");
       } else {
         views.add(view);
       }
@@ -499,19 +498,17 @@ public class JDBCImportModule implements DatabaseImportModule {
    *          the name of the table
    * @return the table structure
    * @throws SQLException
-   * @throws UnknownTypeException
-   *           the original data type is unknown
    * @throws ClassNotFoundException
    * @throws ModuleException
    */
-  protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex)
-    throws SQLException, UnknownTypeException, ClassNotFoundException {
-
+  protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex,
+    String description) throws SQLException, ClassNotFoundException {
     TableStructure table = new TableStructure();
     table.setId(schema.getName() + "." + tableName);
     table.setName(tableName);
     table.setSchema(schema);
     table.setIndex(tableIndex);
+    table.setDescription(description);
 
     table.setColumns(getColumns(schema.getName(), tableName));
     table.setPrimaryKey(getPrimaryKey(schema.getName(), tableName));
@@ -527,13 +524,14 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   private int getRows(String schemaName, String tableName) throws ClassNotFoundException, SQLException {
     String query = sqlHelper.getRowsSQL(schemaName, tableName);
-    logger.debug("count query: " + query);
+    LOGGER.debug("count query: " + query);
     ResultSet rs = getStatement().executeQuery(query);
 
     int count = -1;
-    if (rs.next())
+    if (rs.next()) {
       count = rs.getInt(1);
-    logger.debug("Counted " + count + " rows");
+    }
+    LOGGER.debug("Counted " + count + " rows");
 
     return count;
   }
@@ -576,8 +574,9 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
     } else {
       users.add(new UserStructure("UNDEFINED_USER", "DESCRIPTION"));
-      logger.warn("Users were not imported: not supported yet on " + getClass().getSimpleName() + "\n"
+      LOGGER.debug("Users were not imported: not supported yet on " + getClass().getSimpleName() + "\n"
         + "UNDEFINED_USER will be set as user name");
+      Reporter.notYetSupported("Importing of users", "this import module");
     }
     return users;
   }
@@ -598,24 +597,23 @@ public class JDBCImportModule implements DatabaseImportModule {
         try {
           roleName = rs.getString("ROLE_NAME");
         } catch (SQLException e) {
-          logger.debug("handled SQLException", e);
+          LOGGER.debug("handled SQLException", e);
           roleName = "";
         }
         role.setName(roleName);
 
-        String admin;
+        String admin = "";
         try {
           admin = rs.getString("ADMIN");
         } catch (SQLException e) {
-          logger.debug("handled SQLException", e);
-          admin = "";
+          LOGGER.trace("handled SQLException", e);
         }
         role.setAdmin(admin);
 
         roles.add(role);
       }
     } else {
-      logger.info("Roles were not imported: not supported yet on " + getClass().getSimpleName());
+      Reporter.notYetSupported("importing roles", "this import module");
     }
     return roles;
   }
@@ -634,10 +632,8 @@ public class JDBCImportModule implements DatabaseImportModule {
         try {
           rs = getMetadata().getTablePrivileges(dbStructure.getName(), schema.getName(), table.getName());
         } catch (SQLException e) {
-          logger
-            .warn("It was not possible to retrieve the list of all database permissions. Please ensure the current user has permissions to list all database permissions.");
-          logger
-            .debug(
+          LOGGER
+            .warn(
               "It was not possible to retrieve the list of all database permissions. Please ensure the current user has permissions to list all database permissions.",
               e);
           break;
@@ -682,114 +678,18 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return the columns of a given schema.table
    * @throws SQLException
    * @throws ClassNotFoundException
-   * @throws UnknownTypeException
+   * @throws
    */
   protected List<ColumnStructure> getUDTColumns(String schemaName, String udtName) throws SQLException,
-    ClassNotFoundException, UnknownTypeException {
+    ClassNotFoundException {
 
-    // logger.debug("id: " + schemaName + "." + udtName);
+    // LOGGER.debug("id: " + schemaName + "." + udtName);
     List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
     ResultSet rs = getMetadata().getColumns(dbStructure.getName(), schemaName, udtName, "%");
-    logger.debug("Getting structure of (possible) UDT " + schemaName + "." + udtName);
+    LOGGER.debug("Getting structure of (possible) UDT " + schemaName + "." + udtName);
 
     while (rs.next()) {
-      StringBuilder cLogMessage = new StringBuilder();
-      // 1. Table catalog (may be null)
-      // String tableCatalog = rs.getString(1);
-      // 2. Table schema (may be null)
-      // String tableSchema = rs.getString(2);
-      // 3. Table name
-      // String udtName = rs.getString(3);
-      // 4. Column name
-      String columnName = rs.getString(4);
-      // cLogMessage.append("Column name: " + columnName + "\n");
-      // 5. SQL type from java.sql.Types
-      int dataType = rs.getInt(5);
-      cLogMessage.append("Data type: " + dataType + "\n");
-      // 6. Data source dependent type name, for a UDT the type name is
-      // fully qualified
-      String typeName = rs.getString(6);
-      cLogMessage.append("Type name: " + typeName + "\n");
-      // 7. Column size
-      // The COLUMN_SIZE column specifies the column size for the given
-      // column. For numeric data, this is the maximum precision. For
-      // character data, this is the length in characters. For datetime
-      // datatypes, this is the length in characters of the String
-      // representation (assuming the maximum allowed precision of the
-      // fractional seconds component). For binary data, this is the
-      // length in bytes. For the ROWID datatype, this is the length in
-      // bytes. Null is returned for data types where the column size is
-      // not applicable.
-      int columnSize = rs.getInt(7);
-      cLogMessage.append("Column size: ").append(columnSize).append("\n");
-      // 8. BUFFER_LENGTH is not used.
-      // 9. the number of fractional digits. Null is returned for data
-      // types where DECIMAL_DIGITS is not applicable.
-      int decimalDigits = rs.getInt(9);
-      cLogMessage.append("Decimal digits: ").append(decimalDigits).append("\n");
-      // 10. Radix (typically either 10 or 2)
-      int numPrecRadix = rs.getInt(10);
-      cLogMessage.append("Radix: ").append(numPrecRadix).append("\n");
-      // 11. is NULL allowed (using 18. instead)
-
-      // 12. comment describing column (may be null)
-      String remarks = rs.getString(12);
-      cLogMessage.append("Remarks: ").append(remarks).append("\n");
-      // 13. default value for the column, which should be interpreted as
-      // a string when the value is enclosed in single quotes (may be
-      // null)
-      String defaultValue = rs.getString(13);
-      cLogMessage.append("Default value: ").append(defaultValue).append("\n");
-      // 14. SQL_DATA_TYPE int => unused
-      // 15. SQL_DATETIME_SUB int => unused
-      // 16. CHAR_OCTET_LENGTH int => for char types the maximum number of
-      // bytes in the column
-      // 17. index of column in table (starting at 1)
-      int index = rs.getInt(17);
-      cLogMessage.append("Index: ").append(index).append("\n");
-      // 18. ISO rules are used to determine the nullability for a column.
-      // YES --- if the column can include NULLs
-      // NO --- if the column cannot include NULLs
-      // empty string --- if the nullability for the column is unknown
-      Boolean isNullable = "YES".equals(rs.getString(18));
-      cLogMessage.append("Is Nullable: ").append(isNullable).append("\n");
-      // 20. SCOPE_SCHEMA String => schema of table that is the scope of a
-      // reference attribute (null if the DATA_TYPE isn't REF)
-      // 21. SCOPE_TABLE String => table name that this the scope of a
-      // reference attribute (null if the DATA_TYPE isn't REF)
-      // 22. SOURCE_DATA_TYPE short => source type of a distinct type or
-      // user-generated Ref type, SQL type from java.sql.Types (null if
-      // DATA_TYPE isn't DISTINCT or user-generated REF)
-      // 23. IS_AUTOINCREMENT String => Indicates whether this column is
-      // auto incremented
-      // YES --- if the column is auto incremented
-      // NO --- if the column is not auto incremented
-      // empty string --- if it cannot be determined whether the column is
-      // auto incremented
-      Boolean isAutoIncrement = "YES".equals(rs.getString(23));
-      cLogMessage.append("Is auto increment: ").append(isAutoIncrement).append("\n");
-      // 24. IS_GENERATEDCOLUMN String => Indicates whether this is a
-      // generated column
-      // YES --- if this a generated column
-      // NO --- if this not a generated column
-      // empty string --- if it cannot be determined whether this is a
-      // generated column
-      // Boolean isGeneratedColumn = rs.getString(24) == "YES";
-
-      // cLog.append("(" + udtName + ") " + "colName: " + columnName
-      // + "; dataType: " + dataType + "; typeName: " + typeName);
-      Type columnType = getType(schemaName, udtName, columnName, dataType, typeName, columnSize, decimalDigits,
-        numPrecRadix);
-
-      cLogMessage.append("Calculated type: ").append(columnType.getClass().getSimpleName()).append("\n");
-
-      ColumnStructure column = getColumnStructure(udtName, columnName, columnType, isNullable, index, remarks,
-        defaultValue, isAutoIncrement);
-
-      cLogMessage.append("ColumnType hash: ").append(column.getType().hashCode()).append("\n");
-      logger.debug(cLogMessage);
-
-      columns.add(column);
+      columns.add(getColumn(rs, udtName));
     }
 
     return columns;
@@ -803,497 +703,120 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return the columns of a given schema.table
    * @throws SQLException
    * @throws ClassNotFoundException
-   * @throws UnknownTypeException
+   * @throws
    */
   protected List<ColumnStructure> getColumns(String schemaName, String tableName) throws SQLException,
-    ClassNotFoundException, UnknownTypeException {
+    ClassNotFoundException {
 
-    // logger.debug("id: " + schemaName + "." + tableName);
+    // LOGGER.debug("id: " + schemaName + "." + tableName);
     List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
     ResultSet rs = getMetadata().getColumns(dbStructure.getName(), schemaName, tableName, "%");
-    logger.debug("Getting structure of table " + schemaName + "." + tableName);
 
     while (rs.next()) {
-      StringBuilder cLogMessage = new StringBuilder();
-      // 1. Table catalog (may be null)
-      // String tableCatalog = rs.getString(1);
-      // 2. Table schema (may be null)
-      // String tableSchema = rs.getString(2);
-      // 3. Table name
-      // String tableName = rs.getString(3);
-      // 4. Column name
-      String columnName = rs.getString(4);
-      // cLogMessage.append("Column name: " + columnName + "\n");
-      // 5. SQL type from java.sql.Types
-      int dataType = rs.getInt(5);
-      cLogMessage.append("Data type: " + dataType + "\n");
-      // 6. Data source dependent type name, for a UDT the type name is
-      // fully qualified
-      String typeName = rs.getString(6);
-      cLogMessage.append("Type name: " + typeName + "\n");
-      // 7. Column size
-      // The COLUMN_SIZE column specifies the column size for the given
-      // column. For numeric data, this is the maximum precision. For
-      // character data, this is the length in characters. For datetime
-      // datatypes, this is the length in characters of the String
-      // representation (assuming the maximum allowed precision of the
-      // fractional seconds component). For binary data, this is the
-      // length in bytes. For the ROWID datatype, this is the length in
-      // bytes. Null is returned for data types where the column size is
-      // not applicable.
-      int columnSize = rs.getInt(7);
-      cLogMessage.append("Column size: ").append(columnSize).append("\n");
-      // 8. BUFFER_LENGTH is not used.
-      // 9. the number of fractional digits. Null is returned for data
-      // types where DECIMAL_DIGITS is not applicable.
-      int decimalDigits = rs.getInt(9);
-      cLogMessage.append("Decimal digits: ").append(decimalDigits).append("\n");
-      // 10. Radix (typically either 10 or 2)
-      int numPrecRadix = rs.getInt(10);
-      cLogMessage.append("Radix: ").append(numPrecRadix).append("\n");
-      // 11. is NULL allowed (using 18. instead)
-
-      // 12. comment describing column (may be null)
-      String remarks = rs.getString(12);
-      cLogMessage.append("Remarks: ").append(remarks).append("\n");
-      // 13. default value for the column, which should be interpreted as
-      // a string when the value is enclosed in single quotes (may be
-      // null)
-      String defaultValue = rs.getString(13);
-      cLogMessage.append("Default value: ").append(defaultValue).append("\n");
-      // 14. SQL_DATA_TYPE int => unused
-      // 15. SQL_DATETIME_SUB int => unused
-      // 16. CHAR_OCTET_LENGTH int => for char types the maximum number of
-      // bytes in the column
-      // 17. index of column in table (starting at 1)
-      int index = rs.getInt(17);
-      cLogMessage.append("Index: ").append(index).append("\n");
-      // 18. ISO rules are used to determine the nullability for a column.
-      // YES --- if the column can include NULLs
-      // NO --- if the column cannot include NULLs
-      // empty string --- if the nullability for the column is unknown
-      Boolean isNullable = "YES".equals(rs.getString(18));
-      cLogMessage.append("Is Nullable: ").append(isNullable).append("\n");
-      // 20. SCOPE_SCHEMA String => schema of table that is the scope of a
-      // reference attribute (null if the DATA_TYPE isn't REF)
-      // 21. SCOPE_TABLE String => table name that this the scope of a
-      // reference attribute (null if the DATA_TYPE isn't REF)
-      // 22. SOURCE_DATA_TYPE short => source type of a distinct type or
-      // user-generated Ref type, SQL type from java.sql.Types (null if
-      // DATA_TYPE isn't DISTINCT or user-generated REF)
-      // 23. IS_AUTOINCREMENT String => Indicates whether this column is
-      // auto incremented
-      // YES --- if the column is auto incremented
-      // NO --- if the column is not auto incremented
-      // empty string --- if it cannot be determined whether the column is
-      // auto incremented
-      Boolean isAutoIncrement = "YES".equals(rs.getString(23));
-      cLogMessage.append("Is auto increment: ").append(isAutoIncrement).append("\n");
-      // 24. IS_GENERATEDCOLUMN String => Indicates whether this is a
-      // generated column
-      // YES --- if this a generated column
-      // NO --- if this not a generated column
-      // empty string --- if it cannot be determined whether this is a
-      // generated column
-      // Boolean isGeneratedColumn = rs.getString(24) == "YES";
-
-      // cLog.append("(" + tableName + ") " + "colName: " + columnName
-      // + "; dataType: " + dataType + "; typeName: " + typeName);
-      Type columnType = getType(schemaName, tableName, columnName, dataType, typeName, columnSize, decimalDigits,
-        numPrecRadix);
-
-      cLogMessage.append("Calculated type: ").append(columnType.getClass().getSimpleName()).append("\n");
-
-      ColumnStructure column = getColumnStructure(tableName, columnName, columnType, isNullable, index, remarks,
-        defaultValue, isAutoIncrement);
-
-      cLogMessage.append("ColumnType hash: ").append(column.getType().hashCode()).append("\n");
-      logger.debug(cLogMessage);
-
-      columns.add(column);
+      columns.add(getColumn(rs, tableName));
     }
 
     return columns;
   }
 
-  /**
-   * Map the original type to the normalized type model saving the appropriate
-   * SQL:99 data type info
-   *
-   * @param schemaName
-   *          The name of the associated schema, needed to resolve user defined
-   *          data types
-   * @param tableName
-   *          The name of the associated table, needed to resolve user defined
-   *          data types
-   * @param columnName
-   *          The name of the associated column, needed to resolve user defined
-   *          data types
-   * @param dataType
-   *          the JDBC identifier of the original datatype
-   * @param typeName
-   *          the name of the original data type
-   * @param columnSize
-   *          the column size for the type
-   * @param decimalDigits
-   *          the number of decimal digits for the type
-   * @param numPrecRadix
-   *          Indicates the numeric radix of this data type, which is usually 2
-   *          or 10
-   * @return the normalized type
-   * @throws UnknownTypeException
-   *           the original type is unknown and cannot be mapped
-   * @throws ClassNotFoundException
-   * @throws SQLException
-   */
-  protected Type getType(String schemaName, String tableName, String columnName, int dataType, String typeName,
-    int columnSize, int decimalDigits, int numPrecRadix) throws UnknownTypeException, SQLException,
-    ClassNotFoundException {
-    Type type;
-    switch (dataType) {
-      case Types.BIGINT:
-        type = new SimpleTypeNumericExact(columnSize, decimalDigits);
-        if (decimalDigits > 0) {
-          type.setSql99TypeName("NUMERIC", columnSize, decimalDigits);
-          type.setSql2003TypeName("NUMERIC", columnSize, decimalDigits);
-        } else {
-          type.setSql99TypeName("NUMERIC", columnSize);
-          type.setSql2003TypeName("NUMERIC", columnSize);
-        }
-        break;
-      case Types.BINARY:
-        type = getBinaryType(typeName, columnSize, decimalDigits, numPrecRadix);
-        break;
-      case Types.BIT:
-        if (columnSize > 1) {
-          type = getBinaryType(typeName, columnSize, decimalDigits, numPrecRadix);
-        } else {
-          type = new SimpleTypeBoolean();
-          type.setSql99TypeName("BOOLEAN");
-          type.setSql2003TypeName("BOOLEAN");
-        }
-        break;
-      case Types.BLOB:
-        type = new SimpleTypeBinary(columnSize);
-        type.setSql99TypeName("BINARY LARGE OBJECT");
-        type.setSql2003TypeName("BINARY LARGE OBJECT");
-        break;
-      case Types.BOOLEAN:
-        type = new SimpleTypeBoolean();
-        type.setSql99TypeName("BOOLEAN");
-        type.setSql2003TypeName("BOOLEAN");
-        break;
-      case Types.CHAR:
-        type = new SimpleTypeString(columnSize, false);
-        type.setSql99TypeName("CHARACTER", columnSize);
-        type.setSql2003TypeName("CHARACTER", columnSize);
-        type.setOriginalTypeName("CHARACTER", columnSize);
-        break;
-      case Types.NCHAR:
-        // TODO add charset
-        type = new SimpleTypeString(columnSize, false);
-        type.setSql99TypeName("CHARACTER", columnSize);
-        type.setSql2003TypeName("CHARACTER", columnSize);
-        break;
-      case Types.CLOB:
-        type = new SimpleTypeString(columnSize, true);
-        type.setSql99TypeName("CHARACTER LARGE OBJECT");
-        type.setSql2003TypeName("CHARACTER LARGE OBJECT");
-        break;
-      case Types.DATE:
-        type = getDateType(typeName, columnSize, decimalDigits, numPrecRadix);
-        break;
-      case Types.DECIMAL:
-        type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
-        if (StringUtils.isBlank(type.getOriginalTypeName())) {
-          type.setOriginalTypeName(typeName, columnSize, decimalDigits);
-        }
-        break;
-      case Types.DOUBLE:
-        type = getDoubleType(typeName, columnSize, decimalDigits, numPrecRadix);
-        break;
-      case Types.FLOAT:
-        type = getFloatType(typeName, columnSize, decimalDigits, numPrecRadix);
-        break;
-      case Types.INTEGER:
-        type = new SimpleTypeNumericExact(columnSize, decimalDigits);
-        type.setSql99TypeName("INTEGER");
-        type.setSql2003TypeName("INTEGER");
-        break;
-      case Types.LONGVARBINARY:
-        type = getLongvarbinaryType(typeName, columnSize, decimalDigits, numPrecRadix);
-        break;
-      case Types.LONGVARCHAR:
-        type = getLongvarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
-        break;
-      case Types.LONGNVARCHAR:
-        type = new SimpleTypeString(columnSize, true);
-        type.setSql99TypeName("CHARACTER LARGE OBJECT");
-        type.setSql2003TypeName("CHARACTER LARGE OBJECT");
-        break;
-      case Types.NUMERIC:
-        type = getNumericType(typeName, columnSize, decimalDigits, numPrecRadix);
-        break;
-      case Types.REAL:
-        type = getRealType(typeName, columnSize, decimalDigits, numPrecRadix);
-        break;
-      case Types.SMALLINT:
-        type = new SimpleTypeNumericExact(columnSize, decimalDigits);
-        type.setSql99TypeName("SMALLINT");
-        type.setSql2003TypeName("SMALLINT");
-        break;
-      case Types.TIME:
-        type = getTimeType(typeName, columnSize, decimalDigits, numPrecRadix);
-        break;
-      case Types.TIMESTAMP:
-        type = getTimestampType(typeName, columnSize, decimalDigits, numPrecRadix);
-        break;
-      case Types.TINYINT:
-        type = new SimpleTypeNumericExact(columnSize, decimalDigits);
-        type.setSql99TypeName("SMALLINT");
-        type.setSql2003TypeName("SMALLINT");
-        break;
-      case Types.VARBINARY:
-        type = getVarbinaryType(typeName, columnSize, decimalDigits, numPrecRadix);
-        break;
-      case Types.VARCHAR:
-        type = getVarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
-        break;
-      case Types.NVARCHAR:
-        // TODO add charset
-        type = new SimpleTypeString(columnSize, true);
-        type.setSql99TypeName("CHARACTER VARYING", columnSize);
-        type.setSql2003TypeName("CHARACTER VARYING", columnSize);
-        break;
-      case Types.ARRAY:
-        Type subtype = getArraySubTypeFromTypeName(typeName, columnSize, numPrecRadix, numPrecRadix);
-        type = new ComposedTypeArray(subtype);
-        break;
+  private ColumnStructure getColumn(ResultSet rs, String tableOrUdtName) throws SQLException {
+    StringBuilder cLogMessage = new StringBuilder();
+    // 1. Table catalog (may be null)
+    // String tableCatalog = rs.getString(1);
+    // 2. Table schema (may be null)
+    // String tableSchema = rs.getString(2);
+    // 3. Table name
+    // String tableName = rs.getString(3);
+    // 4. Column name
+    String columnName = rs.getString(4);
+    // cLogMessage.append("Column name: " + columnName + "\n");
+    // 5. SQL type from java.sql.Types
+    int dataType = rs.getInt(5);
+    cLogMessage.append("Data type: " + dataType + "\n");
+    // 6. Data source dependent type name, for a UDT the type name is
+    // fully qualified
+    String typeName = rs.getString(6);
+    cLogMessage.append("Type name: " + typeName + "\n");
+    // 7. Column size
+    // The COLUMN_SIZE column specifies the column size for the given
+    // column. For numeric data, this is the maximum precision. For
+    // character data, this is the length in characters. For datetime
+    // datatypes, this is the length in characters of the String
+    // representation (assuming the maximum allowed precision of the
+    // fractional seconds component). For binary data, this is the
+    // length in bytes. For the ROWID datatype, this is the length in
+    // bytes. Null is returned for data types where the column size is
+    // not applicable.
+    int columnSize = rs.getInt(7);
+    cLogMessage.append("Column size: ").append(columnSize).append("\n");
+    // 8. BUFFER_LENGTH is not used.
+    // 9. the number of fractional digits. Null is returned for data
+    // types where DECIMAL_DIGITS is not applicable.
+    int decimalDigits = rs.getInt(9);
+    cLogMessage.append("Decimal digits: ").append(decimalDigits).append("\n");
+    // 10. Radix (typically either 10 or 2)
+    int numPrecRadix = rs.getInt(10);
+    cLogMessage.append("Radix: ").append(numPrecRadix).append("\n");
+    // 11. is NULL allowed (using 18. instead)
 
-      case Types.STRUCT:
-        type = getComposedTypeStructure(schemaName, dataType, typeName);
-        break;
+    // 12. comment describing column (may be null)
+    String remarks = rs.getString(12);
+    cLogMessage.append("Remarks: ").append(remarks).append("\n");
+    // 13. default value for the column, which should be interpreted as
+    // a string when the value is enclosed in single quotes (may be
+    // null)
+    String defaultValue = rs.getString(13);
+    cLogMessage.append("Default value: ").append(defaultValue).append("\n");
+    // 14. SQL_DATA_TYPE int => unused
+    // 15. SQL_DATETIME_SUB int => unused
+    // 16. CHAR_OCTET_LENGTH int => for char types the maximum number of
+    // bytes in the column
+    // 17. index of column in table (starting at 1)
+    int index = rs.getInt(17);
+    cLogMessage.append("Index: ").append(index).append("\n");
+    // 18. ISO rules are used to determine the nullability for a column.
+    // YES --- if the column can include NULLs
+    // NO --- if the column cannot include NULLs
+    // empty string --- if the nullability for the column is unknown
+    Boolean isNullable = "YES".equals(rs.getString(18));
+    cLogMessage.append("Is Nullable: ").append(isNullable).append("\n");
+    // 20. SCOPE_SCHEMA String => schema of table that is the scope of a
+    // reference attribute (null if the DATA_TYPE isn't REF)
+    // 21. SCOPE_TABLE String => table name that this the scope of a
+    // reference attribute (null if the DATA_TYPE isn't REF)
+    // 22. SOURCE_DATA_TYPE short => source type of a distinct type or
+    // user-generated Ref type, SQL type from java.sql.Types (null if
+    // DATA_TYPE isn't DISTINCT or user-generated REF)
+    // 23. IS_AUTOINCREMENT String => Indicates whether this column is
+    // auto incremented
+    // YES --- if the column is auto incremented
+    // NO --- if the column is not auto incremented
+    // empty string --- if it cannot be determined whether the column is
+    // auto incremented
+    Boolean isAutoIncrement = "YES".equals(rs.getString(23));
+    cLogMessage.append("Is auto increment: ").append(isAutoIncrement).append("\n");
+    // 24. IS_GENERATEDCOLUMN String => Indicates whether this is a
+    // generated column
+    // YES --- if this a generated column
+    // NO --- if this not a generated column
+    // empty string --- if it cannot be determined whether this is a
+    // generated column
+    // Boolean isGeneratedColumn = rs.getString(24) == "YES";
 
-      case Types.OTHER:
-        logger.debug("Got an OTHER type, beware!");
-        type = getOtherType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
-        break;
+    // cLog.append("(" + tableName + ") " + "colName: " + columnName
+    // + "; dataType: " + dataType + "; typeName: " + typeName);
+    Type columnType = datatypeImporter.getCheckedType(dbStructure, actualSchema, tableOrUdtName, columnName, dataType,
+      typeName, columnSize, decimalDigits, numPrecRadix);
 
-      default:
-        // tries to get specific DBMS data types
-        type = getSpecificType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
-        break;
-    }
+    cLogMessage.append("Calculated type: ").append(columnType.getClass().getSimpleName()).append("\n");
 
-    if (StringUtils.isBlank(type.getOriginalTypeName())) {
-      type.setOriginalTypeName(typeName);
-    }
+    ColumnStructure column = getColumnStructure(tableOrUdtName, columnName, columnType, isNullable, index, remarks,
+      defaultValue, isAutoIncrement);
 
-    return type;
-  }
+    cLogMessage.append("ColumnType hash: ").append(column.getType().hashCode()).append("\n");
+    LOGGER.debug(cLogMessage.toString());
 
-  protected Type getComposedTypeStructure(String schemaName, int dataType, String typeName) {
-    ComposedTypeStructure type = null;
-
-    SchemaStructure schema = actualSchema;
-    if (schema == null) {
-      schema = dbStructure.getSchemaByName(schemaName);
-    }
-
-    if (schema != null) {
-      for (ComposedTypeStructure udt : schema.getUserDefinedTypes()) {
-        if (udt.getOriginalTypeName().equalsIgnoreCase(typeName)) {
-          type = udt;
-          break;
-        }
-      }
-    }
-
-    if (type == null) {
-      logger.warn("Struct type could not be identified! Note that it may still be found later on. Schema name: "
-        + schemaName + ", data type: " + dataType + ", type name=" + typeName);
-      return ComposedTypeStructure.empty;
-    } else {
-      return type;
-    }
-  }
-
-  protected Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type = new SimpleTypeBinary(columnSize);
-    type.setSql99TypeName("BIT VARYING", columnSize);
-    type.setSql2003TypeName("BINARY LARGE OBJECT");
-    logger.info("using BIT VARYING(" + columnSize + ")");
-    return type;
-  }
-
-  protected Type getRealType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type = new SimpleTypeNumericApproximate(columnSize);
-    type.setSql99TypeName("REAL");
-    type.setSql2003TypeName("REAL");
-    return type;
-  }
-
-  private Type getArraySubTypeFromTypeName(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
-    throws UnknownTypeException {
-    Type subtype;
-    if ("_char".equals(typeName)) {
-      subtype = new SimpleTypeString(columnSize, false);
-      subtype.setSql99TypeName("CHARACTER");
-      subtype.setSql2003TypeName("CHARACTER");
-
-    } else if ("_abstime".equals(typeName)) {
-      subtype = getTimeType(typeName, columnSize, decimalDigits, numPrecRadix);
-    } else {
-      if (IGNORE_UNSUPPORTED_DATA_TYPES) {
-        return new UnsupportedDataType(Types.ARRAY, typeName, columnSize, decimalDigits, numPrecRadix);
-      } else {
-        throw new UnknownTypeException("Unsupported JDBC type, code: " + typeName);
-      }
-    }
-    return subtype;
-  }
-
-  protected Type getBinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type = new SimpleTypeBinary(columnSize);
-    type.setSql99TypeName("BIT");
-    type.setSql2003TypeName("BIT");
-    type.setOriginalTypeName(typeName, columnSize);
-    return type;
-  }
-
-  protected Type getDateType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type = new SimpleTypeDateTime(false, false);
-    type.setSql99TypeName("DATE");
-    type.setSql2003TypeName("DATE");
-    return type;
-  }
-
-  protected Type getDecimalType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type = new SimpleTypeNumericExact(columnSize, decimalDigits);
-    if (decimalDigits > 0) {
-      type.setSql99TypeName("DECIMAL", columnSize, decimalDigits);
-      type.setSql2003TypeName("DECIMAL", columnSize, decimalDigits);
-    } else {
-      type.setSql99TypeName("DECIMAL", columnSize);
-      type.setSql2003TypeName("DECIMAL", columnSize);
-    }
-    return type;
-  }
-
-  protected Type getNumericType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type = new SimpleTypeNumericExact(columnSize, decimalDigits);
-    if (decimalDigits > 0) {
-      type.setSql99TypeName("NUMERIC", columnSize, decimalDigits);
-      type.setSql2003TypeName("NUMERIC", columnSize, decimalDigits);
-    } else {
-      type.setSql99TypeName("NUMERIC", columnSize);
-      type.setSql2003TypeName("NUMERIC", columnSize);
-    }
-    return type;
-  }
-
-  protected Type getDoubleType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type = new SimpleTypeNumericApproximate(columnSize);
-    type.setSql99TypeName("DOUBLE PRECISION");
-    type.setSql2003TypeName("DOUBLE PRECISION");
-    return type;
-  }
-
-  protected Type getFloatType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type = new SimpleTypeNumericApproximate(columnSize);
-    type.setSql99TypeName("FLOAT");
-    type.setSql2003TypeName("FLOAT");
-    return type;
-  }
-
-  protected Type getLongvarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type = new SimpleTypeBinary(columnSize);
-    type.setSql99TypeName("BINARY LARGE OBJECT");
-    type.setSql2003TypeName("BINARY LARGE OBJECT");
-    return type;
-  }
-
-  protected Type getLongvarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
-    throws UnknownTypeException {
-    Type type = new SimpleTypeString(columnSize, true);
-    type.setSql99TypeName("CHARACTER LARGE OBJECT");
-    type.setSql2003TypeName("CHARACTER LARGE OBJECT");
-    return type;
-  }
-
-  protected Type getTimeType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type = new SimpleTypeDateTime(true, false);
-    type.setSql99TypeName("TIME");
-    type.setSql2003TypeName("TIME");
-    return type;
-  }
-
-  protected Type getTimestampType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type = new SimpleTypeDateTime(true, false);
-    type.setSql99TypeName("TIMESTAMP");
-    type.setSql2003TypeName("TIMESTAMP");
-    return type;
-  }
-
-  protected Type getVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    Type type = new SimpleTypeString(columnSize, true);
-    type.setSql99TypeName("CHARACTER VARYING", columnSize);
-    type.setSql2003TypeName("CHARACTER VARYING", columnSize);
-    return type;
-  }
-
-  /**
-   * Gets data types defined as Types.OTHER. The data type is inferred by
-   * typeName, sometimes specific to each DBMS
-   *
-   * @param dataType
-   * @param typeName
-   * @param columnSize
-   * @param numPrecRadix
-   * @param decimalDigits
-   * @return the inferred data type
-   * @throws UnknownTypeException
-   */
-  protected Type getOtherType(int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
-    throws UnknownTypeException {
-    return getUnsupportedDataType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
-  }
-
-  /**
-   * Gets specific DBMS data types. E.g.:OracleTypes.BINARY_DOUBLE
-   *
-   * @param dataType
-   * @param typeName
-   * @param columnSize
-   * @param numPrecRadix
-   * @param decimalDigits
-   * @return the inferred data type
-   * @throws UnknownTypeException
-   */
-  protected Type getSpecificType(int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
-    throws UnknownTypeException {
-    return getUnsupportedDataType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
-  }
-
-  /**
-   * Gets the UnsupportedDataType. This data type is a placeholder for
-   * unsupported data types
-   *
-   * @param dataType
-   * @param typeName
-   * @param columnSize
-   * @param decimalDigits
-   * @param numPrecRadix
-   * @return
-   * @throws UnknownTypeException
-   */
-  protected Type getUnsupportedDataType(int dataType, String typeName, int columnSize, int decimalDigits,
-    int numPrecRadix) throws UnknownTypeException {
-    if (IGNORE_UNSUPPORTED_DATA_TYPES) {
-      return new UnsupportedDataType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
-    } else {
-      throw new UnknownTypeException("Unsupported JDBC type, code: " + dataType);
-    }
+    return column;
   }
 
   /**
@@ -1303,12 +826,11 @@ public class JDBCImportModule implements DatabaseImportModule {
    *          the name of the table
    * @return the primary key
    * @throws SQLException
-   * @throws UnknownTypeException
+   * @throws
    * @throws ClassNotFoundException
    * @throws ModuleException
    */
-  protected PrimaryKey getPrimaryKey(String schemaName, String tableName) throws SQLException, UnknownTypeException,
-    ClassNotFoundException {
+  protected PrimaryKey getPrimaryKey(String schemaName, String tableName) throws SQLException, ClassNotFoundException {
     String pkName = null;
     List<String> pkColumns = new ArrayList<String>();
 
@@ -1338,12 +860,12 @@ public class JDBCImportModule implements DatabaseImportModule {
    *          the name of the table
    * @return the foreign keys
    * @throws SQLException
-   * @throws UnknownTypeException
+   * @throws
    * @throws ClassNotFoundException
    * @throws ModuleException
    */
   protected List<ForeignKey> getForeignKeys(String schemaName, String tableName) throws SQLException,
-    UnknownTypeException, ClassNotFoundException {
+    ClassNotFoundException {
 
     List<ForeignKey> foreignKeys = new ArrayList<ForeignKey>();
 
@@ -1491,30 +1013,27 @@ public class JDBCImportModule implements DatabaseImportModule {
         while (rs.next()) {
           CheckConstraint checkConst = new CheckConstraint();
 
-          String checkName;
+          String checkName = "";
           try {
             checkName = rs.getString("CHECK_NAME");
           } catch (SQLException e) {
-            logger.debug("handled SQLException", e);
-            checkName = "";
+            LOGGER.trace("handled SQLException", e);
           }
           checkConst.setName(checkName);
 
-          String checkCondition;
+          String checkCondition = "UNKNOWN";
           try {
             checkCondition = rs.getString("CHECK_CONDITION");
           } catch (SQLException e) {
-            logger.debug("handled SQLException", e);
-            checkCondition = "UNKNOWN";
+            LOGGER.trace("handled SQLException", e);
           }
           checkConst.setCondition(checkCondition);
 
-          String checkDescription;
+          String checkDescription = null;
           try {
             checkDescription = rs.getString("CHECK_DESCRIPTION");
           } catch (SQLException e) {
-            logger.debug("handled SQLException", e);
-            checkDescription = null;
+            LOGGER.trace("handled SQLException", e);
           }
           if (checkDescription != null) {
             checkConst.setDescription(checkDescription);
@@ -1528,10 +1047,10 @@ public class JDBCImportModule implements DatabaseImportModule {
         } else {
           message += "An error occurred!";
         }
-        logger.debug(message, e);
+        LOGGER.debug(message, e);
       }
     } else {
-      logger.info("Check constraints were not imported: not supported yet on " + getClass().getSimpleName());
+      Reporter.notYetSupported("importing check constraints", "this import module");
     }
     return checkConstraints;
   }
@@ -1559,7 +1078,7 @@ public class JDBCImportModule implements DatabaseImportModule {
           try {
             triggerName = rs.getString("TRIGGER_NAME");
           } catch (SQLException e) {
-            logger.debug("handled SQLException", e);
+            LOGGER.debug("handled SQLException", e);
             triggerName = "";
           }
           trigger.setName(triggerName);
@@ -1568,7 +1087,7 @@ public class JDBCImportModule implements DatabaseImportModule {
           try {
             actionTime = processActionTime(rs.getString("ACTION_TIME"));
           } catch (SQLException e) {
-            logger.debug("handled SQLException", e);
+            LOGGER.debug("handled SQLException", e);
             actionTime = "";
           }
           trigger.setActionTime(actionTime);
@@ -1577,7 +1096,7 @@ public class JDBCImportModule implements DatabaseImportModule {
           try {
             triggerEvent = processTriggerEvent(rs.getString("TRIGGER_EVENT"));
           } catch (SQLException e) {
-            logger.debug("handled SQLException", e);
+            LOGGER.debug("handled SQLException", e);
             triggerEvent = "";
           }
           trigger.setTriggerEvent(triggerEvent);
@@ -1586,7 +1105,7 @@ public class JDBCImportModule implements DatabaseImportModule {
           try {
             triggeredAction = rs.getString("TRIGGERED_ACTION");
           } catch (SQLException e) {
-            logger.debug("handled SQLException", e);
+            LOGGER.debug("handled SQLException", e);
             triggeredAction = "";
           }
           trigger.setTriggeredAction(triggeredAction);
@@ -1595,7 +1114,7 @@ public class JDBCImportModule implements DatabaseImportModule {
           try {
             description = rs.getString("REMARKS");
           } catch (SQLException e) {
-            logger.debug("handled SQLException", e);
+            LOGGER.debug("handled SQLException", e);
             description = null;
           }
           if (description != null) {
@@ -1605,10 +1124,10 @@ public class JDBCImportModule implements DatabaseImportModule {
           triggers.add(trigger);
         }
       } catch (SQLException e) {
-        logger.debug("No triggers imported for " + schemaName + "." + tableName, e);
+        LOGGER.debug("No triggers imported for " + schemaName + "." + tableName, e);
       }
     } else {
-      logger.debug("Triggers were not imported: not supported yet on " + getClass().getSimpleName());
+      LOGGER.debug("Triggers were not imported: not supported yet on " + getClass().getSimpleName());
     }
     return triggers;
   }
@@ -1646,10 +1165,28 @@ public class JDBCImportModule implements DatabaseImportModule {
 
       for (int i = 0; i < tableStructure.getColumns().size(); i++) {
         ColumnStructure colStruct = tableStructure.getColumns().get(i);
-        cells.add(convertRawToCell(tableStructure.getName(), colStruct.getName(), i + 1, currentRow,
-          colStruct.getType(), rawData));
+
+        try {
+          Cell cell = convertRawToCell(tableStructure.getName(), colStruct.getName(), i + 1, currentRow,
+            colStruct.getType(), rawData);
+          cells.add(cell);
+        } catch (Exception e) {
+          cells.add(new SimpleCell(tableStructure.getName() + "." + colStruct.getName() + "." + (i + 1), null));
+          Reporter.cellProcessingUsedNull(tableStructure, colStruct, currentRow, e);
+        }
       }
       row = new Row(currentRow, cells);
+    } else {
+      // insert null in all fields
+      List<Cell> cells = new ArrayList<Cell>(tableStructure.getColumns().size());
+      for (int i = 0; i < tableStructure.getColumns().size(); i++) {
+        ColumnStructure colStruct = tableStructure.getColumns().get(i);
+        cells.add(new SimpleCell(tableStructure.getName() + "." + colStruct.getName() + "." + (i + 1), null));
+      }
+      row = new Row(tableStructure.getCurrentRow(), cells);
+
+      Reporter.rowProcessingUsedNull(tableStructure, tableStructure.getCurrentRow(), new ModuleException(
+        "isRowValid returned false"));
     }
     tableStructure.incrementCurrentRow();
     return row;
@@ -1662,7 +1199,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     if (cellType instanceof ComposedTypeArray) {
       ComposedTypeArray composedTypeArray = (ComposedTypeArray) cellType;
       Array array = rawData.getArray(columnName);
-      logger.debug("Parsing array of subtype " + composedTypeArray.getElementType().getClass().getSimpleName());
+      LOGGER.debug("Parsing array of subtype " + composedTypeArray.getElementType().getClass().getSimpleName());
       List<Cell> cells = parseArray(id, array);
       cell = new ComposedCell(id, cells);
     } else if (cellType instanceof ComposedTypeStructure) {
@@ -1686,7 +1223,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       try {
         cell = new SimpleCell(id, rawData.getString(columnName));
       } catch (SQLException e) {
-        logger.warn("Could not export cell of unsupported datatype: OTHER", e);
+        LOGGER.debug("Could not export cell of unsupported datatype: OTHER", e);
         cell = new NullCell(id);
       }
     } else if (cellType instanceof SimpleTypeNumericExact) {
@@ -1695,7 +1232,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       try {
         cell = new SimpleCell(id, rawData.getString(columnName));
       } catch (SQLException e) {
-        logger.warn("Could not export cell of unknown/undefined datatype", e);
+        LOGGER.debug("Could not export cell of unknown/undefined datatype", e);
         cell = new NullCell(id);
       } catch (NoClassDefFoundError e) {
         try {
@@ -1711,8 +1248,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 
           cell = new SimpleCell(id, value.toString());
         } catch (SQLException e1) {
-          logger.debug("No Class Def Found when trying to getString", e);
-          logger.warn("Could not export cell of unknown/undefined datatype", e1);
+          LOGGER.debug("No Class Def Found when trying to getString", e);
+          LOGGER.debug("Could not export cell of unknown/undefined datatype", e1);
           cell = new NullCell(id);
         }
       }
@@ -1757,7 +1294,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         case Types.DATE:
           for (int i = 0; i < items.length; i++) {
             Date item = (Date) items[i];
-            // XXX should date be formatted as ISO8601?
+            // TODO should date be formatted as ISO8601?
             cells.add(new SimpleCell(baseid + "." + i, item.toString()));
           }
           break;
@@ -1778,8 +1315,9 @@ public class JDBCImportModule implements DatabaseImportModule {
             + "' not yet supported! Java class type is " + items.getClass());
       }
     } catch (SQLFeatureNotSupportedException e) {
-      logger.warn("Got a problem getting Array value: " + e.getMessage(), e);
-      logger.warn("Trying via result set, string representations will not be controlled!");
+      LOGGER.debug("Got a problem getting Array value", e);
+      Reporter.customMessage(getClass().getName(),
+        "Obtaining array elements as strings as no better type could be identified.");
       ResultSet rs = array.getResultSet();
       while (rs.next()) {
         String item = rs.getString(1);
@@ -1801,7 +1339,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     } else {
       cell = new SimpleCell(id, stringValue);
     }
-    logger.trace("rawToCellSimpleTypeNumericApproximate cell: " + (cell.getSimpleData()));
+    LOGGER.trace("rawToCellSimpleTypeNumericApproximate cell: " + (cell.getSimpleData()));
 
     return cell;
   }
@@ -1836,7 +1374,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         cell = new SimpleCell(id, null);
       }
     }
-    logger.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell) cell).getSimpleData()));
+    LOGGER.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell) cell).getSimpleData()));
     return cell;
   }
 
@@ -1846,15 +1384,12 @@ public class JDBCImportModule implements DatabaseImportModule {
     InputStream binaryStream = rawData.getBinaryStream(columnName);
     if (binaryStream != null) {
       FileItem fileItem = new FileItem(binaryStream);
-      FileFormat fileFormat = FormatUtility.getFileFormat(fileItem.getFile());
-      List<FileFormat> formats = new ArrayList<FileFormat>();
-      formats.add(fileFormat);
-      cell = new BinaryCell(id, fileItem, formats);
+      cell = new BinaryCell(id, fileItem);
 
       try {
         binaryStream.close();
       } catch (IOException e) {
-        logger.error(e);
+        LOGGER.error("Could not close binary stream", e);
       }
     } else {
       cell = new NullCell(id);
@@ -1869,16 +1404,17 @@ public class JDBCImportModule implements DatabaseImportModule {
       ret = true;
     } else {
       ret = false;
-      throw new InvalidDataException("table: " + structure.getName() + " row number: " + raw.getRow()
-        + " error: different column number from structure " + metadata.getColumnCount() + "!="
-        + structure.getColumns().size());
+      LOGGER.debug("Invalid row",
+        new InvalidDataException("table: " + structure.getName() + " row number: " + raw.getRow()
+          + " error: different column number from structure " + metadata.getColumnCount() + "!="
+          + structure.getColumns().size()));
     }
     return ret;
   }
 
   protected ResultSet getTableRawData(TableStructure table) throws SQLException, ClassNotFoundException,
     ModuleException {
-    logger.debug("query: " + sqlHelper.selectTableSQL(table.getId()));
+    LOGGER.debug("query: " + sqlHelper.selectTableSQL(table.getId()));
     ResultSet set = getStatement().executeQuery(sqlHelper.selectTableSQL(table.getId()));
     set.setFetchSize(ROW_FETCH_BLOCK_SIZE);
     return set;
@@ -1900,45 +1436,53 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   @Override
-  public void getDatabase(DatabaseExportModule handler) throws ModuleException, UnknownTypeException,
-    InvalidDataException {
+  public void getDatabase(DatabaseExportModule handler) throws ModuleException, InvalidDataException,
+    UnknownTypeException {
     try {
       moduleSettings = handler.getModuleSettings();
 
-      logger.debug("initializing database");
+      LOGGER.info("Initializing target database");
       handler.initDatabase();
       // sets schemas won't be exported
       handler.setIgnoredSchemas(getIgnoredExportedSchemas());
-      logger.info("STARTED: Getting the database structure.");
+      LOGGER.info("Converting database structure");
       handler.handleStructure(getDatabaseStructure());
-      logger.info("FINISHED: Getting the database structure.");
-      // logger.debug("db struct: " + getDatabaseStructure().toString());
+      LOGGER.info("Database structure converted");
+      // LOGGER.debug("db struct: " + getDatabaseStructure().toString());
+
       for (SchemaStructure schema : getDatabaseStructure().getSchemas()) {
         handler.handleDataOpenSchema(schema.getName());
         for (TableStructure table : schema.getTables()) {
-          logger.info("STARTED: Getting data of table: " + table.getId());
+          LOGGER.info("Getting contents from table '" + table.getId() + "'");
           handler.handleDataOpenTable(table.getId());
 
-          int nRows = 0;
+          long nRows = 0;
+          long tableRows = table.getRows();
           if (moduleSettings.shouldFetchRows()) {
             ResultSet tableRawData = getTableRawData(table);
             while (tableRawData.next()) {
               handler.handleDataRow(convertRawToRow(tableRawData, table));
               nRows++;
               if (nRows % 1000 == 0) {
-                logger.info(nRows + " rows processed");
+                if (tableRows > 0) {
+                  LOGGER.info(String.format("Progress: %d rows of table %s.%s (%d%%)", nRows, table.getName(),
+                    table.getSchema(), nRows * 100 / tableRows));
+                } else {
+                  LOGGER.info(String.format("Progress: %d rows of table %s.%s", nRows, table.getName(),
+                    table.getSchema()));
+                }
               }
             }
           }
-          logger.info("Total of " + nRows + " row(s) processed");
+          LOGGER.info("Total of " + nRows + " row(s) processed");
           getDatabaseStructure().lookupTableStructure(table.getId()).setRows(nRows);
 
           handler.handleDataCloseTable(table.getId());
-          logger.info("FINISHED: Getting data of table: " + table.getId());
+          LOGGER.info("Obtained contents from table '" + table.getId() + "'");
         }
         handler.handleDataCloseSchema(schema.getName());
       }
-      logger.debug("finishing database");
+      LOGGER.debug("Freeing resources");
       handler.finishDatabase();
     } catch (SQLException e) {
       throw new ModuleException("SQL error while conecting", e);
@@ -1946,11 +1490,11 @@ public class JDBCImportModule implements DatabaseImportModule {
       throw new ModuleException("JDBC driver class could not be found", e);
     } finally {
       try {
+        LOGGER.debug("Closing connection to source database");
         closeConnection();
       } catch (SQLException e) {
         throw new ModuleException("Error while closing connection", e);
       }
     }
   }
-
 }

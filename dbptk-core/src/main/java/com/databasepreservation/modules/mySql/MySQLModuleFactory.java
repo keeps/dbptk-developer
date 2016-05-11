@@ -8,6 +8,7 @@ import javax.naming.OperationNotSupportedException;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
@@ -89,8 +90,12 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
     }
 
     if (pPortNumber == null) {
+      Reporter.importModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
+        pUsername, "password", Reporter.MESSAGE_FILTERED_PASSWORD);
       return new MySQLJDBCImportModule(pHostname, pDatabase, pUsername, pPassword);
     } else {
+      Reporter.importModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
+        pUsername, "password", Reporter.MESSAGE_FILTERED_PASSWORD, "port number", pPortNumber.toString());
       return new MySQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword);
     }
   }
@@ -110,8 +115,12 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
     }
 
     if (pPortNumber == null) {
+      Reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
+        pUsername, "password", Reporter.MESSAGE_FILTERED_PASSWORD);
       return new MySQLJDBCExportModule(pHostname, pDatabase, pUsername, pPassword);
     } else {
+      Reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
+        pUsername, "password", Reporter.MESSAGE_FILTERED_PASSWORD, "port number", pPortNumber.toString());
       return new MySQLJDBCExportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword);
     }
   }

@@ -104,7 +104,8 @@ public class PostgreSqlTest {
 
       new String[] {"--import=postgresql", "--import-hostname=127.0.0.1", "--import-database", db_source,
         "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--import-disable-encryption",
-        "--export=siard-2", "--export-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export-pretty-xml", "--export-external-lobs"},
+        "--export=siard-2", "--export-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export-pretty-xml",
+        "--export-external-lobs"},
 
       new String[] {"--import=siard-2", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=postgresql",
         "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
@@ -218,7 +219,10 @@ public class PostgreSqlTest {
     // Path[]{Paths.get(getClass().getResource("/postgreSql/testfiles/datatypes_udt.sql").toURI())});
     // tests.add(new
     // Path[]{Paths.get(getClass().getResource("/postgreSql/testfiles/datatypes_with_arrays.sql").toURI())});
-    //tests.add(new Path[]{Paths.get(getClass().getResource("/postgreSql/testfiles/world.sql").toURI())});
+    // tests.add(new
+    // Path[]{Paths.get(getClass().getResource("/postgreSql/testfiles/world.sql").toURI())});
+    // tests.add(new
+    // Path[]{Paths.get(getClass().getResource("/postgreSql/testfiles/comments.sql").toURI())});
 
     return tests.iterator();
   }

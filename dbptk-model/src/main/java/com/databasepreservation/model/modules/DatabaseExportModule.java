@@ -17,8 +17,8 @@ import com.databasepreservation.model.structure.DatabaseStructure;
  */
 public interface DatabaseExportModule {
   /**
-   * Gets custom settings set by the export module that modify behaviour of
-   * the import module.
+   * Gets custom settings set by the export module that modify behaviour of the
+   * import module.
    * 
    * @throws ModuleException
    */

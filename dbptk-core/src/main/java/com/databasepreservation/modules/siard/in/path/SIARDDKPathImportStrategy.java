@@ -19,9 +19,10 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
@@ -41,7 +42,7 @@ import dk.sa.xmlns.diark._1_0.fileindex.FileIndexType.F;
  *         data files are only implemented to the extend that it is needed. )
  */
 public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, MetadataPathStrategy {
-  protected final CustomLogger logger = CustomLogger.getLogger(ContentPathImportStrategy.class);
+  protected final Logger logger = LoggerFactory.getLogger(ContentPathImportStrategy.class);
   protected final String importAsSchema;
   protected final SIARDArchiveContainer mainFolder;
   protected final ReadStrategy readStrategy;
@@ -83,8 +84,8 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
       try {
         xsdSchema = schemaFactory.newSchema(new StreamSource(xsdStream));
       } catch (SAXException e) {
-        throw new ModuleException(
-          "Error reading metadata XSD file: " + metadataPathStrategy.getXsdFilePath(SIARDDKConstants.FILE_INDEX), e);
+        throw new ModuleException("Error reading metadata XSD file: "
+          + metadataPathStrategy.getXsdFilePath(SIARDDKConstants.FILE_INDEX), e);
       }
       InputStream reader = null;
       FileIndexType xmlFileIndex;

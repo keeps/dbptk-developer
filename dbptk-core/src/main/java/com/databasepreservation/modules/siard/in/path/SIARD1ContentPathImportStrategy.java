@@ -1,6 +1,5 @@
 package com.databasepreservation.modules.siard.in.path;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 

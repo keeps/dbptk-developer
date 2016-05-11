@@ -5,6 +5,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,8 +33,9 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.Main;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
@@ -53,7 +55,9 @@ import com.databasepreservation.model.parameters.Parameters;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class CLI {
-  private static final CustomLogger logger = CustomLogger.getLogger(CLI.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(CLI.class);
+  private static final String DEFAULT_HOSTNAME = "undefined";
+  private static String HOSTNAME = null;
 
   private final ArrayList<DatabaseModuleFactory> factories;
   private final List<String> commandLineArguments;
@@ -80,9 +84,9 @@ public class CLI {
         factories.add(factoryClass.newInstance());
       }
     } catch (InstantiationException e) {
-      logger.error("Error initializing CLI", e);
+      LOGGER.error("Error initializing CLI", e);
     } catch (IllegalAccessException e) {
-      logger.error("Error initializing CLI", e);
+      LOGGER.error("Error initializing CLI", e);
     }
     includePluginModules();
   }
@@ -127,7 +131,7 @@ public class CLI {
           }
           pm.addPluginsFrom(pluginURI);
         } catch (URISyntaxException e) {
-          logger.warn("Plugin not found: " + plugin, e);
+          LOGGER.warn("Plugin not found: " + plugin, e);
         }
         factories.add(pm.getPlugin(DatabaseModuleFactory.class));
       }
@@ -255,7 +259,7 @@ public class CLI {
       exportModule = databaseModuleFactoriesPair.getExportModuleFactory().buildExportModule(
         databaseModuleFactoriesArguments.getExportModuleArguments());
     } catch (OperationNotSupportedException e) {
-      logger.debug("OperationNotSupportedException", e);
+      LOGGER.debug("OperationNotSupportedException", e);
       throw new ParseException("Module does not support the requested mode.");
     }
   }
@@ -298,7 +302,7 @@ public class CLI {
         }
       }
     } catch (NoSuchElementException e) {
-      logger.debug("NoSuchElementException", e);
+      LOGGER.debug("NoSuchElementException", e);
       throw new ParseException("Missing module name.");
     }
     if (importModulesFound != 1 || exportModulesFound != 1) {
@@ -400,7 +404,7 @@ public class CLI {
       for (String shortOption : missingShort) {
         missingLong.add(options.getOption(shortOption).getLongOpt());
       }
-      logger.debug("MissingOptionException (the original, unmodified exception)", e);
+      LOGGER.debug("MissingOptionException (the original, unmodified exception)", e);
       throw new MissingOptionException(missingLong);
     }
 
@@ -453,7 +457,7 @@ public class CLI {
           out.append(printModuleHelp("Import module: " + factory.getModuleName(), "i", "import",
             factory.getImportModuleParameters()));
         } catch (OperationNotSupportedException e) {
-          logger.debug("This should not occur a this point", e);
+          LOGGER.debug("This should not occur a this point", e);
         }
       }
     }
@@ -465,7 +469,7 @@ public class CLI {
           out.append(printModuleHelp("Export module: " + factory.getModuleName(), "e", "export",
             factory.getExportModuleParameters()));
         } catch (OperationNotSupportedException e) {
-          logger.debug("This should not occur a this point", e);
+          LOGGER.debug("This should not occur a this point", e);
         }
       }
     }
@@ -542,6 +546,24 @@ public class CLI {
   }
 
   /**
+   * Gets the DNS name of the local machine
+   * 
+   * @return the DNS name of the local machine as the machine sees itself, and
+   *         is not necessarily how it is known by other machines.
+   */
+  public static String getHostname() {
+    if (HOSTNAME == null) {
+      try {
+        HOSTNAME = java.net.InetAddress.getLocalHost().getHostName();
+      } catch (UnknownHostException e) {
+        HOSTNAME = DEFAULT_HOSTNAME;
+        LOGGER.debug("Could not obtain hostname, using the default (" + HOSTNAME + ")", e);
+      }
+    }
+    return HOSTNAME;
+  }
+
+  /**
    * Get operative system information.
    *
    * @return An order-preserving map which keys are a description (String) of
@@ -570,19 +592,8 @@ public class CLI {
    */
   public void logOperativeSystemInfo() {
     for (Map.Entry<String, String> entry : getOperativeSystemInfo().entrySet()) {
-      logger.info(entry.getKey() + ": " + entry.getValue());
+      LOGGER.debug(entry.getKey() + ": " + entry.getValue());
     }
-  }
-
-  /**
-   * Prints the license text to STDOUT
-   *
-   * @param license
-   *          the whole license text or some information and a link to read the
-   *          full license
-   */
-  public void printLicense(String license) {
-    System.out.println(license);
   }
 
   public boolean shouldPrintHelp() {

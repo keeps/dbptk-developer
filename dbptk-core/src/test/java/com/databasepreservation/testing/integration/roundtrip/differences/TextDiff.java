@@ -1400,7 +1400,7 @@ public class TextDiff {
     StringBuilder outputText = new StringBuilder();
     for (Diff aDiff : diffs) {
       String text = aDiff.text;
-      if(text.isEmpty()){
+      if (text.isEmpty()) {
         continue;
       }
       switch (aDiff.operation) {
@@ -1411,10 +1411,11 @@ public class TextDiff {
           outputText.append(ANSI_BLACK).append(ANSI_BG_RED).append(text).append(ANSI_RESET);
           break;
         case EQUAL:
-          if(text.length() < 1000){
+          if (text.length() < 1000) {
             outputText.append(text);
-          }else{
-            outputText.append(text.substring(0, 490)).append("\n(...)\n").append(text.substring(text.length()-490, text.length()));
+          } else {
+            outputText.append(text.substring(0, 490)).append("\n(...)\n")
+              .append(text.substring(text.length() - 490, text.length()));
           }
 
           break;

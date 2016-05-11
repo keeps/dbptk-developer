@@ -13,20 +13,22 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.validation.SchemaFactory;
 
-import com.databasepreservation.model.data.NullCell;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.FileItem;
+import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
@@ -42,6 +44,7 @@ import com.databasepreservation.modules.siard.SIARDHelper;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
+import com.databasepreservation.modules.siard.out.path.SIARD1ContentPathExportStrategy;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -57,7 +60,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
   private static final String COLUMN_KEYWORD = "c";
   private static final String ROW_KEYWORD = "row";
   private static final String FILE_KEYWORD = "file";
-  private final CustomLogger logger = CustomLogger.getLogger(SIARD2ContentImportStrategy.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD1ContentImportStrategy.class);
   // ImportStrategy
   private final ContentPathImportStrategy contentPathStrategy;
   private final ReadStrategy readStrategy;
@@ -70,7 +73,8 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
   private TableStructure currentTable;
   private SchemaStructure currentSchema;
   private InputStream currentTableStream;
-  private BinaryCell currentBinaryCell;
+  private BinaryCell currentBlobCell;
+  private SimpleCell currentClobCell;
   private Row row;
   private int rowIndex;
 
@@ -108,9 +112,9 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
           saxParser.setProperty(JAXP_SCHEMA_LANGUAGE, W3C_XML_SCHEMA);
           saxParser.setProperty(JAXP_SCHEMA_SOURCE, xsdStream);
         } catch (SAXException e) {
-          logger.error("Error validating schema", e);
+          LOGGER.error("Error validating schema", e);
         } catch (ParserConfigurationException e) {
-          logger.error("Error creating XML SAXparser", e);
+          LOGGER.error("Error creating XML SAXparser", e);
         }
 
         // import values from XML
@@ -186,14 +190,14 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
       try {
         databaseExportModule.handleDataOpenSchema(currentSchema.getName());
       } catch (ModuleException e) {
-        logger.error("An error occurred while handling data open schema", e);
+        LOGGER.error("An error occurred while handling data open schema", e);
       }
     } else if (qName.equalsIgnoreCase(TABLE_KEYWORD)) {
       this.rowIndex = 0;
       try {
         databaseExportModule.handleDataOpenTable(currentTable.getId());
       } catch (ModuleException e) {
-        logger.error("An error occurred while handling data open table", e);
+        LOGGER.error("An error occurred while handling data open table", e);
       }
     } else if (qName.equalsIgnoreCase(ROW_KEYWORD)) {
       row = new Row();
@@ -207,18 +211,27 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
         int columnIndex = Integer.parseInt(qName.substring(1));
 
         try {
-          FileItem fileItem = new FileItem(readStrategy.createInputStream(contentContainer, lobDir));
-          currentBinaryCell = new BinaryCell(
-          // TODO: what about CLOBs? are they also created as BinaryCells?
-            String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1).getId(), rowIndex), fileItem);
-        } catch (ModuleException e) {
-          logger.error("Failed to open lob at " + lobDir, e);
-        }
+          if (lobDir.endsWith(SIARD1ContentPathExportStrategy.BLOB_EXTENSION)) {
+            FileItem fileItem = new FileItem(readStrategy.createInputStream(contentContainer, lobDir));
+            currentBlobCell = new BinaryCell(String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1)
+              .getId(), rowIndex), fileItem);
 
-        logger.debug(String.format("Binary cell %s on row #%d with lob dir %s", currentBinaryCell.getId(), rowIndex,
-          lobDir));
+            LOGGER.debug(String.format("BLOB cell %s on row #%d with lob dir %s", currentBlobCell.getId(), rowIndex,
+              lobDir));
+          } else if (lobDir.endsWith(SIARD1ContentPathExportStrategy.CLOB_EXTENSION)) {
+            String data = IOUtils.toString(readStrategy.createInputStream(contentContainer, lobDir));
+            currentClobCell = new SimpleCell(String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1)
+              .getId(), rowIndex), data);
+
+            LOGGER.debug(String.format("CLOB cell %s on row #%d with lob dir %s", currentClobCell.getId(), rowIndex,
+              lobDir));
+          }
+        } catch (ModuleException | IOException e) {
+          LOGGER.error("Failed to open lob at " + lobDir, e);
+        }
       } else {
-        currentBinaryCell = null;
+        currentBlobCell = null;
+        currentClobCell = null;
       }
     }
   }
@@ -237,14 +250,14 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
       try {
         databaseExportModule.handleDataCloseSchema(currentSchema.getName());
       } catch (ModuleException e) {
-        logger.error("An error occurred while handling data close schema", e);
+        LOGGER.error("An error occurred while handling data close schema", e);
       }
     } else if (tag.equalsIgnoreCase(TABLE_KEYWORD)) {
       try {
-        logger.debug("before handle data close");
+        LOGGER.debug("before handle data close");
         databaseExportModule.handleDataCloseTable(currentTable.getId());
       } catch (ModuleException e) {
-        logger.error("An error occurred while handling data close table", e);
+        LOGGER.error("An error occurred while handling data close table", e);
       }
     } else if (tag.equalsIgnoreCase(ROW_KEYWORD)) {
       // assume all cells that are not present are null
@@ -261,9 +274,9 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
       try {
         databaseExportModule.handleDataRow(row);
       } catch (InvalidDataException e) {
-        logger.error("An error occurred while handling data row", e);
+        LOGGER.error("An error occurred while handling data row", e);
       } catch (ModuleException e) {
-        logger.error("An error occurred while handling data row", e);
+        LOGGER.error("An error occurred while handling data row", e);
       }
     } else if (tag.contains(COLUMN_KEYWORD)) {
       // TODO Support other cell types
@@ -276,8 +289,10 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
       }
 
       Cell cell = null;
-      if (currentBinaryCell != null) {
-        cell = currentBinaryCell;
+      if (currentBlobCell != null) {
+        cell = currentBlobCell;
+      } else if (currentClobCell != null) {
+        cell = currentClobCell;
       } else {
         String id = String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1).getId(), rowIndex);
 
@@ -287,9 +302,9 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
             InputStream is = new ByteArrayInputStream(Hex.decodeHex(localVal.toCharArray()));
             cell = new BinaryCell(id, new FileItem(is));
           } catch (ModuleException e) {
-            logger.error("An error occurred while importing in-table binary cell", e);
+            LOGGER.error("An error occurred while importing in-table binary cell", e);
           } catch (DecoderException e) {
-            logger.error(String.format("Illegal characters in hexadecimal string \"%s\"", localVal), e);
+            LOGGER.error(String.format("Illegal characters in hexadecimal string \"%s\"", localVal), e);
           }
         } else {
           cell = new SimpleCell(id, localVal);

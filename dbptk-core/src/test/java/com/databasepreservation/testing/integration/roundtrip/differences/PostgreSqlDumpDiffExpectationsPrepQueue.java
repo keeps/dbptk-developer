@@ -10,11 +10,11 @@ import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import com.databasepreservation.CustomLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PostgreSqlDumpDiffExpectationsPrepQueue extends PostgreSqlDumpDiffExpectations {
-
-  private static final CustomLogger logger = CustomLogger.getLogger(PostgreSqlDumpDiffExpectations.class);
+  private static final Logger logger = LoggerFactory.getLogger(PostgreSqlDumpDiffExpectations.class);
 
   protected Queue<TextDiff.Diff> expectedDiffs;
 

@@ -3,6 +3,7 @@
  */
 package com.databasepreservation.modules.odbc.in;
 
+import com.databasepreservation.model.modules.DatatypeImporter;
 import com.databasepreservation.modules.SQLHelper;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 
@@ -11,9 +12,6 @@ import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
  */
 public class ODBCImportModule extends JDBCImportModule {
 
-  /**
-   * @param source
-   */
   public ODBCImportModule(String source) {
     super("sun.jdbc.odbc.JdbcOdbcDriver", "jdbc:odbc:" + source);
   }
@@ -22,11 +20,7 @@ public class ODBCImportModule extends JDBCImportModule {
     super("sun.jdbc.odbc.JdbcOdbcDriver", "jdbc:odbc:" + source + ";UID=" + username + ";PWD=" + password);
   }
 
-  /**
-   * @param source
-   * @param sqlHelper
-   */
-  public ODBCImportModule(String source, SQLHelper sqlHelper) {
-    super("sun.jdbc.odbc.JdbcOdbcDriver", "jdbc:odbc:" + source, sqlHelper);
+  public ODBCImportModule(String source, SQLHelper sqlHelper, DatatypeImporter datatypeImporter) {
+    super("sun.jdbc.odbc.JdbcOdbcDriver", "jdbc:odbc:" + source, sqlHelper, datatypeImporter);
   }
 }

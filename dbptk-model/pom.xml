@@ -5,12 +5,12 @@
     <name>dbptk-model</name>
     <groupId>com.databasepreservation</groupId>
     <artifactId>dbptk-model</artifactId>
-    <version>2.0.0-beta4.0</version>
+    <version>2.0.0-beta4.2</version>
     <packaging>jar</packaging>
     <parent>
         <groupId>com.databasepreservation</groupId>
         <artifactId>dbptk</artifactId>
-        <version>2.0.0-beta4.0</version>
+        <version>2.0.0-beta4.2</version>
         <relativePath>..</relativePath>
     </parent>
     <dependencies>
@@ -31,16 +31,12 @@
             <artifactId>commons-transaction</artifactId>
         </dependency>
         <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-        </dependency>
-        <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
         </dependency>
         <dependency>
-            <groupId>pt.keep</groupId>
-            <artifactId>file-format-utility</artifactId>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
         </dependency>
     </dependencies>
 </project>

@@ -7,9 +7,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -27,10 +28,9 @@ import com.databasepreservation.modules.SQLHelper;
  * @author Luis Faria
  */
 public class MySQLHelper extends SQLHelper {
-
   private static final Set<String> MYSQL_TYPES = new HashSet<String>(Arrays.asList("BLOB", "MEDIUMBLOB", "LONGBLOB",
-    "TIMESTAMP", "TINYBLOB", "TINYTEXT", "TEXT", "MEDIUMTEXT"));
-  private final CustomLogger logger = CustomLogger.getLogger(MySQLHelper.class);
+    "TINYBLOB", "TINYTEXT", "TEXT", "MEDIUMTEXT"));
+  private static final Logger logger = LoggerFactory.getLogger(MySQLHelper.class);
   private String name = "MySQL";
 
   private String startQuote = "`";
@@ -54,7 +54,9 @@ public class MySQLHelper extends SQLHelper {
 
   @Override
   public String createTableSQL(TableStructure table) throws UnknownTypeException, ModuleException {
-    return super.createTableSQL(table) + " ENGINE=INNODB";
+    return super.createTableSQL(table)
+      + (table.getDescription() != null ? " COMMENT '" + escapeComment(table.getDescription()) + "'" : "")
+      + " ENGINE=INNODB";
   }
 
   @Override
@@ -72,7 +74,7 @@ public class MySQLHelper extends SQLHelper {
     if (MYSQL_TYPES.contains(type.getOriginalTypeName())) {
       // TODO verify if original database is also mysql
       ret = type.getOriginalTypeName();
-      logger.info("Using MySQL original type " + ret);
+      logger.debug("Using MySQL original type " + ret);
     } else if (type instanceof SimpleTypeString) {
       SimpleTypeString string = (SimpleTypeString) type;
       if (isPkey) {
@@ -111,7 +113,9 @@ public class MySQLHelper extends SQLHelper {
       SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
       if (!dateTime.getTimeDefined() && !dateTime.getTimeZoneDefined()) {
         ret = "date";
-      } else if ("TIME".equalsIgnoreCase(type.getSql99TypeName())) {
+      } else if (StringUtils.equalsIgnoreCase(type.getSql99TypeName(), "TIMESTAMP")) {
+        ret = "datetime";
+      } else if (StringUtils.startsWithIgnoreCase(type.getSql99TypeName(), "TIME")) {
         if (dateTime.getTimeZoneDefined()) {
           logger.warn("Timezone not supported on MySQL: " + "defining type as 'time'");
         }
@@ -196,7 +200,7 @@ public class MySQLHelper extends SQLHelper {
   // MySQL does not support check constraints (returns an empty SQL query)
   @Override
   public String getCheckConstraintsSQL(String schemaName, String tableName) {
-    return "";
+    return null;
   }
 
   @Override
@@ -229,7 +233,7 @@ public class MySQLHelper extends SQLHelper {
   @Override
   protected String escapePrimaryKeyName(String pkey_name) {
     if ("PRIMARY".equals(pkey_name)) {
-      logger.warn("Cannot set primary key name to reserved name PRIMARY, renaming it");
+      logger.debug("Cannot set primary key name to reserved name PRIMARY, renaming it");
       pkey_name += "_pkey";
     }
 

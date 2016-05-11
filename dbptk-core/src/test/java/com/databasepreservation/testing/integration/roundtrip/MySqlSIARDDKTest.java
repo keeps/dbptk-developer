@@ -24,9 +24,9 @@ import com.databasepreservation.testing.integration.roundtrip.differences.MySqlD
 
 @Test(groups = {"mysql-siarddk"})
 public class MySqlSIARDDKTest {
-  private final String db_source = "dpttest";
-  private final String db_target = "dpttest_siard";
-  private final String db_tmp_username = "dpttest";
+  private final String db_source = "dpttestdk";
+  private final String db_target = "dpttest_siarddk";
+  private final String db_tmp_username = "dpttestdk";
   private final String db_tmp_password = RandomStringUtils.randomAlphabetic(10);
   private Roundtrip rt;
   private String archiveFullPath;

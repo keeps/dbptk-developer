@@ -8,9 +8,11 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.TreeSet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.util.InvalidDateException;
 
-import com.databasepreservation.CustomLogger;
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.exception.ModuleException;
@@ -49,7 +51,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
   // java 7
   private static final int Types_TIME_WITH_TIMEZONE = 0x7dd;
   private static final String[] IGNORED_SCHEMAS = {};
-  private final CustomLogger logger = CustomLogger.getLogger(PostgreSQLJDBCExportModule.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(PostgreSQLJDBCExportModule.class);
   private final String hostname;
   private final int port;
   private final String database;
@@ -138,14 +140,13 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
     }
 
     if (databaseExists(POSTGRES_CONNECTION_DATABASE, database, connectionURL)) {
-      logger.info("Database already exists, reusing.");
-      // throw new ModuleException("Cannot create database " + database
-      // + ". Please choose"
-      // + " another name or delete the database " + "'"
-      // + database + "'.");
+      LOGGER.info("Target database already exists, reusing it.");
+      Reporter.customMessage(getClass().getName(), "target database existed and was used anyway");
     } else {
       try {
-        logger.debug("Creating database " + database);
+        LOGGER.info("Target database does not exist. Creating database " + database);
+        Reporter.customMessage(getClass().getName(), "target database with name " + Reporter.CODE_DELIMITER + database
+          + Reporter.CODE_DELIMITER + " did not exist and was created");
         getConnection(POSTGRES_CONNECTION_DATABASE, connectionURL).createStatement().executeUpdate(
           sqlHelper.createDatabaseSQL(database));
 
@@ -177,7 +178,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
         if (data != null) {
           Calendar cal = javax.xml.bind.DatatypeConverter.parseTime(data);
           Time time = new Time(cal.getTimeInMillis());
-          logger.debug("time with timezone after: " + time.toString() + "; timezone: " + cal.getTimeZone().getID());
+          LOGGER.debug("time with timezone after: " + time.toString() + "; timezone: " + cal.getTimeZone().getID());
           ps.setTime(index, time, cal);
         } else {
           ps.setNull(index, Types_TIME_WITH_TIMEZONE);
@@ -194,7 +195,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
   protected void handleSimpleTypeNumericApproximateDataCell(String data, PreparedStatement ps, int index, Cell cell,
     Type type) throws NumberFormatException, SQLException {
     if (data != null) {
-      logger.debug("set approx: " + data);
+      LOGGER.debug("set approx: " + data);
       if ("FLOAT".equalsIgnoreCase(type.getSql99TypeName())) {
         ps.setFloat(index, Float.valueOf(data));
       } else {

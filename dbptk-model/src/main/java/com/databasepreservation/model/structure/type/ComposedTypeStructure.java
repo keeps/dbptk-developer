@@ -51,10 +51,10 @@ public class ComposedTypeStructure extends Type {
   }
 
   /**
-   * @return The name of the SQL2003 normalized type. null if not applicable
+   * @return The name of the SQL2008 normalized type. null if not applicable
    */
   @Override
-  public String getSql2003TypeName() {
+  public String getSql2008TypeName() {
     return null;
   }
 

@@ -9,17 +9,17 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.FileAssert;
 
-import com.databasepreservation.CustomLogger;
 import com.databasepreservation.Main;
 
 /*
  * @author Thomas Kristensen tk@bithuset.dk
  */
 public class SIARDDKTestUtil {
-
-  private static final CustomLogger logger = CustomLogger.getLogger(SIARDDKTestUtil.class);
+  private static final Logger logger = LoggerFactory.getLogger(SIARDDKTestUtil.class);
   private static Pattern fileIndexMd5sumReplacementPattern = Pattern.compile("<md5>[A-Fa-f0-9]{32}</md5>");
 
   static void assertArchiveFoldersEqualAfterExportImport(Path archiveFldToProcessPath, Path archiveFldExpectedPath,
@@ -75,9 +75,9 @@ public class SIARDDKTestUtil {
     String actualSha1 = DigestUtils.sha1Hex(actualFileContent);
 
     if (!expectedSha1.equals(actualSha1)) {
-        logger.debug("sha1 sum of [" + actualFile.getAbsolutePath() + "] is [" + actualSha1
-          + "], and does not match the expected sha1 sum of [" + expectedFile.getAbsolutePath() + "], which is ["
-          + expectedSha1 + "]");
+      logger.debug("sha1 sum of [" + actualFile.getAbsolutePath() + "] is [" + actualSha1
+        + "], and does not match the expected sha1 sum of [" + expectedFile.getAbsolutePath() + "], which is ["
+        + expectedSha1 + "]");
     }
     assert expectedSha1.equals(actualSha1) : "Expected the content of [" + actualFile.getAbsolutePath()
       + "] to match the content of [" + expectedFile.getAbsolutePath() + "]";

@@ -8,6 +8,7 @@ import java.util.Map;
 
 import javax.naming.OperationNotSupportedException;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
@@ -70,6 +71,7 @@ public class ListTablesModuleFactory implements DatabaseModuleFactory {
     throws OperationNotSupportedException, LicenseNotAcceptedException {
     Path pFile = Paths.get(parameters.get(file));
 
+    Reporter.exportModuleParameters(this.getModuleName(), "file", pFile.normalize().toAbsolutePath().toString());
     return new ListTables(pFile);
   }
 }
