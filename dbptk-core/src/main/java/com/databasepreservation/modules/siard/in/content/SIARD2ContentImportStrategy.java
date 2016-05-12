@@ -78,6 +78,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
   private SimpleCell currentClobCell;
   private Row row;
   private int rowIndex;
+  private long currentTableTotalRows;
 
   public SIARD2ContentImportStrategy(ReadStrategy readStrategy, ContentPathImportStrategy contentPathStrategy,
     SIARDArchiveContainer lobContainer) {
@@ -202,6 +203,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
       } catch (ModuleException e) {
         LOGGER.error("An error occurred while handling data open table", e);
       }
+      this.currentTableTotalRows = currentTable.getRows();
     } else if (qName.equalsIgnoreCase(ROW_KEYWORD)) {
       row = new Row();
       row.setCells(new ArrayList<Cell>());
@@ -291,6 +293,16 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
         LOGGER.error("An error occurred while handling data row", e);
       } catch (ModuleException e) {
         LOGGER.error("An error occurred while handling data row", e);
+      }
+
+      if (rowIndex % 1000 == 0) {
+        if (currentTableTotalRows > 0) {
+          LOGGER.info(String.format("Progress: %d rows of table %s.%s (%d%%)", rowIndex, currentTable.getName(),
+            currentTable.getSchema(), rowIndex * 100 / currentTableTotalRows));
+        } else {
+          LOGGER.info(String.format("Progress: %d rows of table %s.%s", rowIndex, currentTable.getName(),
+            currentTable.getSchema()));
+        }
       }
     } else if (tag.contains(COLUMN_KEYWORD)) {
       // TODO Support other cell types
