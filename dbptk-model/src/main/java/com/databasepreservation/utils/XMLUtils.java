@@ -14,10 +14,18 @@ public class XMLUtils {
    * @return the encoded (XML-safe) text
    */
   public static final String encode(String text) {
+    // allowed characters by XML spec:
+    // #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] |
+    // [#x10000-#x10FFFF]
+
     text = text.replace("\\", "\\u005c");
 
     for (int charCode = 0; charCode <= 8; charCode++) {
       text = text.replace(String.valueOf(Character.toChars(charCode)), "\\u000" + charCode);
+    }
+
+    for (int charCode = 11; charCode <= 12; charCode++) {
+      text = text.replace(String.valueOf(Character.toChars(charCode)), "\\u000" + Integer.toHexString(charCode));
     }
 
     for (int charCode = 14; charCode <= 15; charCode++) {
