@@ -109,23 +109,14 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     // actual tables are too large
 
     StringBuilder builder = new StringBuilder();
-    builder
-      .append("<?xml version=\"1.0\" encoding=\"")
-      .append(ENCODING)
-      .append("\"?>\n")
+    builder.append("<?xml version=\"1.0\" encoding=\"").append(ENCODING).append("\"?>\n")
 
-      .append("<table xsi:schemaLocation=\"")
-      .append(
-        contentPathExportStrategy.getTableXsdNamespace(namespaceBase, tableStructure.getIndex(),
-          tableStructure.getIndex()))
-      .append(" ")
-      .append(contentPathExportStrategy.getTableXsdFileName(tableStructure.getIndex()))
-      .append("\" ")
+    .append("<table xsi:schemaLocation=\"")
+      .append(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableStructure.getIndex())).append(" ")
+      .append(contentPathExportStrategy.getTableXsdFileName(tableStructure.getIndex())).append("\" ")
       .append("xmlns=\"")
-      .append(
-        contentPathExportStrategy.getTableXsdNamespace(namespaceBase, tableStructure.getIndex(),
-          tableStructure.getIndex())).append("\" ").append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"")
-      .append(">").append("\n");
+      .append(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableStructure.getIndex()))
+      .append("\" ").append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"").append(">").append("\n");
 
     try {
       tableXmlWriter.write(builder.toString());
@@ -138,16 +129,14 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
     // Set namespaces for schema
     Namespace defaultNamespace = Namespace.getNamespace(contentPathExportStrategy.getTableXsdNamespace(namespaceBase,
-      tableStructure.getIndex(), tableStructure.getIndex()));
+      0, tableStructure.getIndex()));
     Namespace xs = Namespace.getNamespace("xs", "http://www.w3.org/2001/XMLSchema");
 
     // Create root element
     Element schema = new Element("schema", xs);
     schema.addNamespaceDeclaration(defaultNamespace);
-    schema.setAttribute(
-      "targetNamespace",
-      contentPathExportStrategy.getTableXsdNamespace(namespaceBase, tableStructure.getIndex(),
-        tableStructure.getIndex()));
+    schema.setAttribute("targetNamespace",
+      contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableStructure.getIndex()));
     schema.setAttribute("elementFormDefault", "qualified");
     schema.setAttribute("attributeFormDefault", "unqualified");
 
