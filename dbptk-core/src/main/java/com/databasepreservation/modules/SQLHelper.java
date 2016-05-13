@@ -123,7 +123,6 @@ public class SQLHelper {
       String columnTypeSQL = createColumnSQL(column, isPkey, isFkey);
       ret += (index > 0 ? ", " : "") + columnTypeSQL;
 
-      Reporter.dataTypeChangedOnExport(this.getClass().getName(), column, columnTypeSQL);
       index++;
     }
     return ret;
@@ -131,8 +130,13 @@ public class SQLHelper {
 
   protected String createColumnSQL(ColumnStructure column, boolean isPrimaryKey, boolean isForeignKey)
     throws UnknownTypeException {
-    StringBuilder result = new StringBuilder().append(escapeColumnName(column.getName())).append(" ")
-      .append(createTypeSQL(column.getType(), isPrimaryKey, isForeignKey));
+    String sqlType = createTypeSQL(column.getType(), isPrimaryKey, isForeignKey);
+
+    if(sqlType.equalsIgnoreCase(column.getType().getOriginalTypeName())) {
+      Reporter.dataTypeChangedOnExport(this.getClass().getName(), column, sqlType);
+    }
+
+    StringBuilder result = new StringBuilder().append(escapeColumnName(column.getName())).append(" ").append(sqlType);
 
     if (column.isNillable() != null && !column.isNillable()) {
       result.append(" NOT");
