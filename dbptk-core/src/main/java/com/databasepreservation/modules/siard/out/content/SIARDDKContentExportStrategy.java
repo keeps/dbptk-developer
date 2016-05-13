@@ -36,7 +36,6 @@ import com.databasepreservation.modules.siard.out.metadata.FileIndexFileStrategy
 import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
-import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
@@ -278,8 +277,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
           SimpleCell simpleCell = (SimpleCell) cell;
           if (simpleCell.getSimpleData() != null) {
             tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-              .append(XMLUtils.encode(simpleCell.getSimpleData().trim())).append("</c")
-              .append(String.valueOf(columnIndex)).append(">\n");
+              .append(encodeText(simpleCell.getSimpleData())).append("</c").append(String.valueOf(columnIndex))
+              .append(">\n");
           } else {
             tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
               .append(" xsi:nil=\"true\"/>").append("\n");
@@ -310,7 +309,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
               // lobsTracker.addLOB(); // Only if LOB not NULL
               tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-                .append(XMLUtils.encode(clobsData)).append("</c").append(String.valueOf(columnIndex)).append(">\n");
+                .append(encodeText(clobsData)).append("</c").append(String.valueOf(columnIndex)).append(">\n");
             }
 
           } else if (cell instanceof BinaryCell) {
@@ -397,5 +396,15 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
   private void writeColumnElement(int columnIndex, Object value) {
     // TO-DO: implement this
+  }
+
+  private String encodeText(String s) {
+    s = s.trim();
+    s = s.replace("<", "&lt;");
+    s = s.replace(">", "&gt;");
+    s = s.replace("&", "&amp;");
+    s = s.replace("'", "&apos;");
+    s = s.replace("\"", "&quot;");
+    return s;
   }
 }
