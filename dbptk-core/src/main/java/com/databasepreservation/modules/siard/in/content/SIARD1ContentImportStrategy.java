@@ -283,11 +283,11 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
 
       if (rowIndex % 1000 == 0) {
         if (currentTableTotalRows > 0) {
-          LOGGER.info(String.format("Progress: %d rows of table %s.%s (%d%%)", rowIndex, currentTable.getName(),
-            currentTable.getSchema(), rowIndex * 100 / currentTableTotalRows));
+          LOGGER.info(String.format("Progress: %d rows of table %s.%s (%d%%)", rowIndex, currentTable.getSchema(),
+            currentTable.getName(), rowIndex * 100 / currentTableTotalRows));
         } else {
-          LOGGER.info(String.format("Progress: %d rows of table %s.%s", rowIndex, currentTable.getName(),
-            currentTable.getSchema()));
+          LOGGER.info(String.format("Progress: %d rows of table %s.%s", rowIndex, currentTable.getSchema(),
+            currentTable.getName()));
         }
       }
     } else if (tag.contains(COLUMN_KEYWORD)) {

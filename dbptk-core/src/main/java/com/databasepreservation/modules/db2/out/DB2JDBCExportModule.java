@@ -64,7 +64,7 @@ public class DB2JDBCExportModule extends JDBCExportModule {
           LOGGER.debug("timestamp before: " + data);
           Calendar cal = javax.xml.bind.DatatypeConverter.parseDateTime(data);
           Timestamp sqlTimestamp = new Timestamp(cal.getTimeInMillis());
-          LOGGER.debug("timestamp after: " + sqlTimestamp.toString());
+          LOGGER.trace("timestamp after: " + sqlTimestamp.toString());
           ps.setTimestamp(index, sqlTimestamp);
         } else {
           ps.setNull(index, Types.TIMESTAMP);
