@@ -27,7 +27,7 @@ import com.databasepreservation.model.structure.type.Type;
 public class Reporter {
   // //////////////////////////////////////////////////
   // constants
-  public static final String MESSAGE_FILTERED_PASSWORD = "************";
+  public static final String MESSAGE_FILTERED_PASSWORD = "<filtered>";
   public static final String CODE_DELIMITER = "`";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Reporter.class);
