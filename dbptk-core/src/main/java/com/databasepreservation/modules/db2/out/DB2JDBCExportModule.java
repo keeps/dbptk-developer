@@ -50,7 +50,11 @@ public class DB2JDBCExportModule extends JDBCExportModule {
     if (databaseStructure != null) {
       Reporter.notYetSupported("foreign key", "db2 export module");
       // handleForeignKeys();
-      commit();
+      try {
+        commit();
+      } catch (SQLException e) {
+        throw new ModuleException("Could not commit changes");
+      }
     }
   }
 

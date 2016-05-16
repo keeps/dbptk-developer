@@ -85,57 +85,103 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
 
   @Override
   protected Type getNationalVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    return new SimpleTypeString(columnSize, true);
+    SimpleTypeString type = new SimpleTypeString(columnSize, true);
+    type.setSql99TypeName("NATIONAL CHARACTER VARYING", columnSize);
+    type.setSql2008TypeName("NATIONAL CHARACTER VARYING", columnSize);
+    return type;
   }
 
   @Override
   protected Type getTinyintType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    return new SimpleTypeNumericExact(Math.max(columnSize, MINIMUM_TINYINT_SIZE), 0);
+    SimpleTypeNumericExact type = new SimpleTypeNumericExact(Math.max(columnSize, MINIMUM_TINYINT_SIZE), 0);
+    type.setSql99TypeName("SMALLINT");
+    type.setSql2008TypeName("SMALLINT");
+    return type;
   }
 
   @Override
   protected Type getSmallIntType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    return new SimpleTypeNumericExact(Math.max(columnSize, MINIMUM_SMALLINT_SIZE), 0);
+    SimpleTypeNumericExact type = new SimpleTypeNumericExact(Math.max(columnSize, MINIMUM_SMALLINT_SIZE), 0);
+    type.setSql99TypeName("SMALLINT");
+    type.setSql2008TypeName("SMALLINT");
+    return type;
   }
 
   @Override
   protected Type getLongNationalVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    return new SimpleTypeString(columnSize, true);
+    SimpleTypeString type = new SimpleTypeString(columnSize, true);
+    type.setSql99TypeName("NATIONAL CHARACTER LARGE OBJECT");
+    type.setSql2008TypeName("NATIONAL CHARACTER LARGE OBJECT");
+    return type;
   }
 
   @Override
   protected Type getIntegerType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    return new SimpleTypeNumericExact(Math.max(columnSize, MINIMUM_INT_SIZE), 0);
+    SimpleTypeNumericExact type = new SimpleTypeNumericExact(Math.max(columnSize, MINIMUM_INT_SIZE), 0);
+    type.setSql99TypeName("INTEGER");
+    type.setSql2008TypeName("INTEGER");
+    return type;
   }
 
   @Override
   protected Type getClobType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    return new SimpleTypeString(Math.max(columnSize, MINIMUM_CLOB_SIZE), true);
+    SimpleTypeString type = new SimpleTypeString(Math.max(columnSize, MINIMUM_CLOB_SIZE), true);
+    type.setSql99TypeName("CHARACTER LARGE OBJECT");
+    type.setSql2008TypeName("CHARACTER LARGE OBJECT");
+    return type;
   }
 
   @Override
   protected Type getNationalCharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    return new SimpleTypeString(columnSize, true);
+    // TODO add charset
+    SimpleTypeString type = new SimpleTypeString(columnSize, false);
+    type.setSql99TypeName("NATIONAL CHARACTER", columnSize);
+    type.setSql2008TypeName("NATIONAL CHARACTER", columnSize);
+    return type;
   }
 
   @Override
   protected Type getCharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    return new SimpleTypeString(columnSize, false);
+    SimpleTypeString type = new SimpleTypeString(columnSize, false);
+    type.setSql99TypeName("CHARACTER", columnSize);
+    type.setSql2008TypeName("CHARACTER", columnSize);
+    return type;
   }
 
   @Override
   protected Type getBooleanType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    return new SimpleTypeBoolean();
+    SimpleTypeBoolean type = new SimpleTypeBoolean();
+    type.setSql99TypeName("BOOLEAN");
+    type.setSql2008TypeName("BOOLEAN");
+    return type;
   }
 
   @Override
   protected Type getBlobType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    return new SimpleTypeBinary();
+    SimpleTypeBinary type;
+    if (columnSize > 0) {
+      type = new SimpleTypeBinary(columnSize);
+    } else {
+      type = new SimpleTypeBinary();
+    }
+    type.setSql99TypeName("BINARY LARGE OBJECT");
+    type.setSql2008TypeName("BINARY LARGE OBJECT");
+    return type;
   }
 
   @Override
   protected Type getBitType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    return getFallbackType(typeName);
+    Type type;
+    if (columnSize > 1) {
+      type = new SimpleTypeBinary(columnSize);
+      type.setSql99TypeName("BIT", columnSize);
+      type.setSql2008TypeName("BIT", columnSize);
+    } else {
+      type = new SimpleTypeBoolean();
+      type.setSql99TypeName("BOOLEAN");
+      type.setSql2008TypeName("BOOLEAN");
+    }
+    return type;
   }
 
   @Override
@@ -151,7 +197,10 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
 
   @Override
   protected Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    return new SimpleTypeBinary(columnSize);
+    Type type = new SimpleTypeBinary(columnSize);
+    type.setSql99TypeName("BIT VARYING", columnSize);
+    type.setSql2008TypeName("BIT VARYING", columnSize);
+    return type;
   }
 
   @Override
@@ -197,17 +246,25 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
 
   @Override
   protected Type getLongvarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    return new SimpleTypeBinary(columnSize);
+    Type type = new SimpleTypeBinary(columnSize);
+    type.setSql99TypeName("BINARY LARGE OBJECT");
+    type.setSql2008TypeName("BINARY LARGE OBJECT");
+    return type;
   }
 
   @Override
   protected Type getLongvarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
     throws UnknownTypeException {
+    Type type;
     if (columnSize != 0) {
-      return new SimpleTypeString(columnSize, true);
+      type = new SimpleTypeString(columnSize, true);
     } else {
-      return new SimpleTypeString(Integer.MAX_VALUE, true);
+      type = new SimpleTypeString(Integer.MAX_VALUE, true);
     }
+
+    type.setSql99TypeName("CHARACTER LARGE OBJECT");
+    type.setSql2008TypeName("CHARACTER LARGE OBJECT");
+    return type;
   }
 
   @Override
@@ -230,7 +287,10 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
 
   @Override
   protected Type getVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    return new SimpleTypeString(columnSize, true);
+    Type type = new SimpleTypeString(columnSize, true);
+    type.setSql99TypeName("CHARACTER VARYING", columnSize);
+    type.setSql2008TypeName("CHARACTER VARYING", columnSize);
+    return type;
   }
 
   @Override

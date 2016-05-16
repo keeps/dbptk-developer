@@ -147,8 +147,8 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getNationalVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     // TODO: add charset
     SimpleTypeString type = new SimpleTypeString(columnSize, true);
-    type.setSql99TypeName("CHARACTER VARYING", columnSize);
-    type.setSql2008TypeName("CHARACTER VARYING", columnSize);
+    type.setSql99TypeName("NATIONAL CHARACTER VARYING", columnSize);
+    type.setSql2008TypeName("NATIONAL CHARACTER VARYING", columnSize);
     return type;
   }
 
@@ -230,7 +230,9 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getBitType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type;
     if (columnSize > 1) {
-      type = getBinaryType(typeName, columnSize, decimalDigits, numPrecRadix);
+      type = new SimpleTypeBinary(columnSize*8);
+      type.setSql99TypeName("BIT", columnSize*8);
+      type.setSql2008TypeName("BIT", columnSize*8);
     } else {
       type = new SimpleTypeBoolean();
       type.setSql99TypeName("BOOLEAN");
@@ -276,8 +278,8 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   @Override
   protected Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeBinary(columnSize);
-    type.setSql99TypeName("BINARY LARGE OBJECT");
-    type.setSql2008TypeName("BINARY LARGE OBJECT");
+    type.setSql99TypeName("BIT VARYING", columnSize*8);
+    type.setSql2008TypeName("BIT VARYING", columnSize*8);
     return type;
   }
 

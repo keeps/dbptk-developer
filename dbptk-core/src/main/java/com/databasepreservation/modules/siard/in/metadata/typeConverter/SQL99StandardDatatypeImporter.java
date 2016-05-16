@@ -67,10 +67,6 @@ public class SQL99StandardDatatypeImporter extends SQLStandardDatatypeImporter {
         type = getClobType(typeNameWithoutParameters, columnSize, decimalDigits, numPrecRadix);
         break;
 
-      case "BINARY":
-        type = getBinaryType(typeNameWithoutParameters, columnSize, decimalDigits, numPrecRadix);
-        break;
-
       case "BINARY VARYING":
       case "VARBINARY":
         type = getVarbinaryType(typeNameWithoutParameters, columnSize, decimalDigits, numPrecRadix);

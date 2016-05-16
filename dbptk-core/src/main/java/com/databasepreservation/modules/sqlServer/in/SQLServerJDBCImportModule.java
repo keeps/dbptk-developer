@@ -7,6 +7,7 @@ import java.sql.Statement;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.microsoft.sqlserver.jdbc.SQLServerStatement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,7 +118,10 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
   protected Statement getStatement() throws SQLException, ClassNotFoundException {
     if (statement == null) {
       statement = ((SQLServerConnection) getConnection()).createStatement(
-        SQLServerResultSet.TYPE_SS_SERVER_CURSOR_FORWARD_ONLY, SQLServerResultSet.CONCUR_READ_ONLY);
+        SQLServerResultSet.TYPE_FORWARD_ONLY, SQLServerResultSet.CONCUR_READ_ONLY);
+
+      SQLServerStatement sqlServerStatement = statement.unwrap(com.microsoft.sqlserver.jdbc.SQLServerStatement.class);
+      sqlServerStatement.setResponseBuffering("adaptive");
     }
     return statement;
   }

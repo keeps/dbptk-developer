@@ -1,11 +1,39 @@
 package com.databasepreservation.utils;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.translate.AggregateTranslator;
+import org.apache.commons.lang3.text.translate.CharSequenceTranslator;
+import org.apache.commons.lang3.text.translate.EntityArrays;
+import org.apache.commons.lang3.text.translate.LookupTranslator;
+import org.apache.commons.lang3.text.translate.UnicodeEscaper;
+import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class XMLUtils {
+  /**
+   * Translator to escape characters according to the SIARD specification
+   */
+  private static final CharSequenceTranslator SIARD_ESCAPE = new AggregateTranslator(
+
+  new SIARDUnicodeEscaper(),
+
+  new LookupTranslator(EntityArrays.BASIC_ESCAPE()), new LookupTranslator(EntityArrays.APOS_ESCAPE()));
+
+  /**
+   * Translator to convert escaped text in a SIARD file back to unescaped text
+   */
+  private static final CharSequenceTranslator SIARD_UNESCAPE = new AggregateTranslator(
+
+  new LookupTranslator(EntityArrays.APOS_UNESCAPE()), new LookupTranslator(EntityArrays.BASIC_UNESCAPE()),
+
+  new UnicodeUnescaper());
+
   /**
    * Encodes a data string as defined by SIARD formats
    *
@@ -17,39 +45,13 @@ public class XMLUtils {
     // allowed characters by XML spec:
     // #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] |
     // [#x10000-#x10FFFF]
+    text = SIARD_ESCAPE.translate(text);
 
-    text = text.replace("\\", "\\u005c");
-
-    for (int charCode = 0; charCode <= 8; charCode++) {
-      text = text.replace(String.valueOf(Character.toChars(charCode)), "\\u000" + charCode);
-    }
-
-    for (int charCode = 11; charCode <= 12; charCode++) {
-      text = text.replace(String.valueOf(Character.toChars(charCode)), "\\u000" + Integer.toHexString(charCode));
-    }
-
-    for (int charCode = 14; charCode <= 15; charCode++) {
-      text = text.replace(String.valueOf(Character.toChars(charCode)), "\\u000" + Integer.toHexString(charCode));
-    }
-
-    for (int charCode = 16; charCode <= 32; charCode++) {
-      text = text.replace(String.valueOf(Character.toChars(charCode)), "\\u00" + Integer.toHexString(charCode));
-    }
-
-    for (int charCode = 127; charCode <= 159; charCode++) {
-      text = text.replace(String.valueOf(Character.toChars(charCode)), "\\u00" + Integer.toHexString(charCode));
-    }
-
-    text = text.replace("\"", "&quot;");
-    text = text.replace("&", "&amp;");
-    text = text.replace("'", "&apos;");
-    text = text.replace("<", "&lt;");
-    text = text.replace(">", "&gt;");
-
-    // all ' ' (space character) were replaced by .
+    // all ' ' (space character) were replaced by "\u0020".
     // single spaces must be converted back to a ' ' character.
     // multiple spaces must continue as sequences of "\u0020"
-    text = text.replaceAll("(?<!\\\\u0020)\\\\u0020(?!\\\\u0020)", " ");
+    // text = text.replaceAll("(?<!\\\\u0020)\\\\u0020(?!\\\\u0020)", " ");
+    text = spaceEscaper(text);
 
     return text;
   }
@@ -61,15 +63,95 @@ public class XMLUtils {
    *          the encoded string
    * @return the original string
    */
-  public static final String decode(String text) {
-    text = text.replace("&gt;", ">");
-    text = text.replace("&lt;", "<");
-    text = text.replace("&apos;", "'");
-    text = text.replace("&amp;", "&");
-    text = text.replace("&quot;", "\"");
-
-    text = StringEscapeUtils.unescapeJava(text);
-
+  public static String decode(String text) {
+    text = SIARD_UNESCAPE.translate(text);
     return text;
+  }
+
+  private static String spaceEscaper(final CharSequence input) {
+    if (input == null) {
+      return null;
+    }
+    try {
+      final StringWriter out = new StringWriter(input.length() * 2);
+      int pos = 0;
+      final int len = input.length();
+      int spaces = 0;
+      while (pos < len) {
+        int codePoint = Character.codePointAt(input, pos);
+        if (codePoint != 0x20) {
+          if (spaces > 0) {
+            if (spaces == 1) {
+              out.write(' ');
+            } else {
+              out.write(StringUtils.repeat("\\u0020", spaces));
+            }
+            spaces = 0;
+          }
+
+          final char[] c = Character.toChars(Character.codePointAt(input, pos));
+          out.write(c);
+          pos += c.length;
+        } else {
+          // found a space character. register the event but write it later
+          spaces++;
+          pos++;
+        }
+      }
+
+      // write leftover spaces
+      if (spaces > 0) {
+        if (spaces == 1) {
+          out.write(' ');
+        } else {
+          out.write(StringUtils.repeat("\\u0020", spaces));
+        }
+      }
+
+      return out.toString();
+    } catch (final IOException ioe) {
+      // this should never ever happen while writing to a StringWriter
+      throw new RuntimeException(ioe);
+    }
+  }
+
+  private static class SIARDUnicodeEscaper extends UnicodeEscaper {
+    public SIARDUnicodeEscaper() {
+      super(0, 0, false);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @param codepoint
+     * @param out
+     */
+    @Override
+    public boolean translate(int codepoint, Writer out) throws IOException {
+      // hardcoded characters to escape
+      if (codepoint == 0x5C || codepoint == 0xB || codepoint == 0xC || codepoint == 0xE || codepoint == 0xF
+
+      || (codepoint >= 0x0 && codepoint <= 0x8) || (codepoint >= 0x10 && codepoint < 0x20)
+
+      || (codepoint >= 0x1A && codepoint <= 0x1F) || (codepoint >= 0x7F && codepoint <= 0x9F)
+
+      || codepoint == 0xFFFE || codepoint == 0xFFFF) {
+
+        if (codepoint > 0xffff) {
+          out.write(toUtf16Escape(codepoint));
+        } else if (codepoint > 0xfff) {
+          out.write("\\u" + hex(codepoint));
+        } else if (codepoint > 0xff) {
+          out.write("\\u0" + hex(codepoint));
+        } else if (codepoint > 0xf) {
+          out.write("\\u00" + hex(codepoint));
+        } else {
+          out.write("\\u000" + hex(codepoint));
+        }
+        return true;
+      } else {
+        return false;
+      }
+    }
   }
 }
