@@ -20,9 +20,6 @@ import java.util.NoSuchElementException;
 
 import javax.naming.OperationNotSupportedException;
 
-import net.xeoh.plugins.base.PluginManager;
-import net.xeoh.plugins.base.impl.PluginManagerFactory;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -44,6 +41,9 @@ import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.ParameterGroup;
 import com.databasepreservation.model.parameters.Parameters;
+
+import net.xeoh.plugins.base.PluginManager;
+import net.xeoh.plugins.base.impl.PluginManagerFactory;
 
 /**
  * Handles command line interface.

@@ -106,7 +106,7 @@ public class Reporter {
 
   private static void report(StringBuilder message, String prefix) {
     Reporter reporter = getInstance();
-    if(prefix != null) {
+    if (prefix != null) {
       message.insert(0, prefix);
     }
     reporter.writeLine(message.toString());
@@ -151,7 +151,7 @@ public class Reporter {
 
     if (countModuleInfoReported == 0) {
       message = new StringBuilder("## Parameters").append(NEWLINE);
-    }else{
+    } else {
       message = new StringBuilder();
     }
 
@@ -345,7 +345,7 @@ public class Reporter {
     LOGGER.debug("something failed, message: " + message);
   }
 
-  public static void valueChanged(String originalValue, String newValue, String reason, String location){
+  public static void valueChanged(String originalValue, String newValue, String reason, String location) {
     conversionProblemsCounter++;
     StringBuilder message = new StringBuilder("Warning: ");
     appendAsCode(message, originalValue).append(" changed to ");

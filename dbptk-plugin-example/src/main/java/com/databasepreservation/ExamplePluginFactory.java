@@ -6,8 +6,6 @@ import java.util.Map;
 
 import javax.naming.OperationNotSupportedException;
 
-import net.xeoh.plugins.base.annotations.PluginImplementation;
-
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.modules.DatabaseExportModule;
@@ -15,6 +13,8 @@ import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
+
+import net.xeoh.plugins.base.annotations.PluginImplementation;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>

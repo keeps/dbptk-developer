@@ -1,6 +1,5 @@
 package com.databasepreservation;
 
-import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;

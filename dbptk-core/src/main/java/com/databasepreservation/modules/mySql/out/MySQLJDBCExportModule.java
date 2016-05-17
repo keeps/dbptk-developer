@@ -185,7 +185,8 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
     LOGGER.info("Handling schema structure " + schema.getName() + " finished");
   }
 
-  @Override public void finishDatabase() throws ModuleException {
+  @Override
+  public void finishDatabase() throws ModuleException {
     if (databaseStructure != null) {
       try {
         commit();

@@ -132,7 +132,7 @@ public class SQLHelper {
     throws UnknownTypeException {
     String sqlType = createTypeSQL(column.getType(), isPrimaryKey, isForeignKey);
 
-    if(sqlType.equalsIgnoreCase(column.getType().getOriginalTypeName())) {
+    if (sqlType.equalsIgnoreCase(column.getType().getOriginalTypeName())) {
       Reporter.dataTypeChangedOnExport(this.getClass().getName(), column, sqlType);
     }
 

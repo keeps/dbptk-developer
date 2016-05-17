@@ -9,6 +9,7 @@ import java.util.Map;
 import javax.naming.OperationNotSupportedException;
 
 import org.apache.commons.lang3.StringUtils;
+
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
@@ -171,16 +172,15 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     // exportModuleArgs.put(clobType.longName(), pClobType);
     // exportModuleArgs.put(clobLength.longName(), pClobLength);
 
-    if(pTableFilter == null) {
-      Reporter
-        .exportModuleParameters(getModuleName(), folder.longName(), pFolder, archiveIndex.longName(), pArchiveIndex,
-          contextDocumentationIndex.longName(), pContextDocumentationIndex, contextDocmentationFolder.longName(),
-          pContextDocumentationFolder);
-    }else{
-      Reporter
-        .exportModuleParameters(getModuleName(), folder.longName(), pFolder, archiveIndex.longName(), pArchiveIndex,
-          contextDocumentationIndex.longName(), pContextDocumentationIndex, contextDocmentationFolder.longName(),
-          pContextDocumentationFolder, tableFilter.longName(), pTableFilter.normalize().toAbsolutePath().toString());
+    if (pTableFilter == null) {
+      Reporter.exportModuleParameters(getModuleName(), folder.longName(), pFolder, archiveIndex.longName(),
+        pArchiveIndex, contextDocumentationIndex.longName(), pContextDocumentationIndex,
+        contextDocmentationFolder.longName(), pContextDocumentationFolder);
+    } else {
+      Reporter.exportModuleParameters(getModuleName(), folder.longName(), pFolder, archiveIndex.longName(),
+        pArchiveIndex, contextDocumentationIndex.longName(), pContextDocumentationIndex,
+        contextDocmentationFolder.longName(), pContextDocumentationFolder, tableFilter.longName(), pTableFilter
+          .normalize().toAbsolutePath().toString());
     }
 
     return new SIARDDKExportModule(exportModuleArgs, pTableFilter).getDatabaseExportModule();
