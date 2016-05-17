@@ -22,8 +22,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import oracle.sql.STRUCT;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +68,8 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
 import com.databasepreservation.modules.SQLHelper;
+
+import oracle.sql.STRUCT;
 
 /**
  * @author Luis Faria <lfaria@keep.pt>
@@ -1263,8 +1263,70 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   protected Cell rawToCellSimpleTypeNumericExact(String id, String columnName, Type cellType, ResultSet rawData)
-    throws SQLException {
-    return new SimpleCell(id, rawData.getString(columnName));
+    throws SQLException, ModuleException {
+    String stringValue = rawData.getString(columnName);
+    boolean wasNull = rawData.wasNull();
+    Cell cell;
+    if (wasNull) {
+      cell = new NullCell(id);
+    } else {
+      int eIndex = stringValue.indexOf('E');
+      if (eIndex > 0) {
+        String fst = stringValue.substring(0, eIndex);
+        String newValue = null;
+
+        if (eIndex < stringValue.length() - 1) {
+          String snd = stringValue.substring(eIndex + 1);
+          Integer fstNum = null;
+          Integer sndNum = null;
+
+          try {
+            fstNum = Integer.parseInt(fst);
+          } catch (NumberFormatException e) {
+            LOGGER.debug("could not parse `" + fst + "` as integer", e);
+          }
+
+          try {
+            sndNum = Integer.parseInt(snd);
+          } catch (NumberFormatException e) {
+            LOGGER.debug("could not parse `" + snd + "` as integer", e);
+          }
+
+          if (fstNum == null && sndNum == null) {
+            // this will save the value as NULL and trigger the Reporter
+            throw new ModuleException("Could not parse `" + stringValue + "` as an exact numeric value");
+          } else {
+            if (fstNum != null && sndNum != null) {
+              if (fstNum == 0 || sndNum == 0) {
+                newValue = "0";
+              } else {
+                newValue = String.valueOf(Math.pow(fstNum, sndNum));
+                Reporter.valueChanged(stringValue, newValue, " exact numeric values can not have exponent (`E`) ",
+                  "column " + columnName);
+              }
+            } else if (fstNum != null) {
+              // fstNum != null && sndNum == null
+              newValue = fst;
+              Reporter.valueChanged(stringValue, newValue, " exact numeric values can not have exponent (`E`) ",
+                "column " + columnName);
+            } else {
+              // fstNum == null && sndNum != null
+              newValue = "0";
+              Reporter.valueChanged(stringValue, newValue, " exact numeric values can not have exponent (`E`) ",
+                "column " + columnName);
+            }
+            cell = new SimpleCell(id, newValue);
+          }
+        } else {
+          // 'E' is the last character in the string, use only the first part
+          cell = new SimpleCell(id, fst);
+        }
+      } else {
+        cell = new SimpleCell(id, stringValue);
+      }
+    }
+
+    return cell;
   }
 
   protected List<Cell> parseArray(String baseid, Array array) throws SQLException, InvalidDataException {
@@ -1465,9 +1527,11 @@ public class JDBCImportModule implements DatabaseImportModule {
               nRows++;
               if (nRows % 1000 == 0) {
                 if (tableRows > 0) {
-                  LOGGER.info(String.format("Progress: %d rows of table %s.%s (%d%%)", nRows, table.getSchema(), table.getName(), nRows * 100 / tableRows));
+                  LOGGER.info(String.format("Progress: %d rows of table %s.%s (%d%%)", nRows, table.getSchema(),
+                    table.getName(), nRows * 100 / tableRows));
                 } else {
-                  LOGGER.info(String.format("Progress: %d rows of table %s.%s", nRows, table.getSchema(), table.getName()));
+                  LOGGER.info(String.format("Progress: %d rows of table %s.%s", nRows, table.getSchema(),
+                    table.getName()));
                 }
               }
             }

@@ -659,22 +659,15 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
 
     if (column.getType() != null) {
       if (column.getType() instanceof ComposedTypeStructure) {
-        LOGGER.debug("Saving composed type '" + column.getType().getOriginalTypeName() + "'(internal_id:"
-          + column.getType().hashCode() + ")");
-        LOGGER.debug("Saving composed type '" + column.getType().getOriginalTypeName() + "'");
         columnType.setTypeName(column.getType().getOriginalTypeName());
       } else {
-        LOGGER.debug("Saving type '" + column.getType().getOriginalTypeName() + "'(internal_id:"
-          + column.getType().hashCode() + ") as " + column.getType().getSql2008TypeName());
-        LOGGER.debug("Saving type '" + column.getType().getOriginalTypeName() + "' as '"
-          + column.getType().getSql2008TypeName() + "'");
         columnType.setType(column.getType().getSql2008TypeName());
         columnType.setTypeOriginal(column.getType().getOriginalTypeName());
 
         if (column.isNillable() != null) {
           columnType.setNullable(column.getNillable());
         } else {
-          LOGGER.warn("column nullable property was null. changed it to false");
+          LOGGER.debug("column nullable property was null. changed it to false");
         }
       }
     } else {

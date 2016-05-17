@@ -101,8 +101,14 @@ public class Reporter {
   private static Reporter reporterInstance;
 
   private static void report(StringBuilder message) {
+    report(message, MESSAGE_LINE_PREFIX_ALL);
+  }
+
+  private static void report(StringBuilder message, String prefix) {
     Reporter reporter = getInstance();
-    message.insert(0, MESSAGE_LINE_PREFIX_ALL);
+    if(prefix != null) {
+      message.insert(0, prefix);
+    }
     reporter.writeLine(message.toString());
   }
 
@@ -145,7 +151,7 @@ public class Reporter {
 
     if (countModuleInfoReported == 0) {
       message = new StringBuilder("## Parameters").append(NEWLINE);
-    } else {
+    }else{
       message = new StringBuilder();
     }
 
@@ -163,9 +169,9 @@ public class Reporter {
         .append(new SimpleDateFormat("yyyy-MM-dd").format(new Date())).append(NEWLINE).append(NEWLINE)
         .append("## Details");
     } else {
-      message.append(NEWLINE).append(NEWLINE);
+      message.append(NEWLINE);
     }
-    report(message);
+    report(message, null);
   }
 
   // //////////////////////////////////////////////////
@@ -334,6 +340,16 @@ public class Reporter {
     conversionProblemsCounter++;
     StringBuilder message = new StringBuilder(MESSAGE_LINE_DEFAULT_PREFIX);
     appendAsCode(message, whatFailed).append(" failed because ").append(whyItFailed);
+
+    report(message);
+    LOGGER.debug("something failed, message: " + message);
+  }
+
+  public static void valueChanged(String originalValue, String newValue, String reason, String location){
+    conversionProblemsCounter++;
+    StringBuilder message = new StringBuilder("Warning: ");
+    appendAsCode(message, originalValue).append(" changed to ");
+    appendAsCode(message, newValue).append(" because ").append(reason).append(" in ").append(location);
 
     report(message);
     LOGGER.debug("something failed, message: " + message);
