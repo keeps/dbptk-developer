@@ -408,6 +408,7 @@ public class JDBCExportModule implements DatabaseExportModule {
         if (!currentIsIgnoredSchema) {
           try {
             LOGGER.info("Exporting content to table for " + table.getId());
+            getConnection().setAutoCommit(false);
             currentRowBatchInsertStatement = getConnection().prepareStatement(
               sqlHelper.createRowSQL(currentTableStructure));
             currentRowBatchStartIndex = 0;
@@ -432,17 +433,24 @@ public class JDBCExportModule implements DatabaseExportModule {
       try {
         currentRowBatchInsertStatement.executeBatch();
       } catch (SQLException e) {
-        LOGGER.error("Error closing table", e);
-        SQLException nextException = e.getNextException();
-        if (nextException != null) {
-          LOGGER.error("More details", nextException);
-        }
-        throw new ModuleException("Error executing insert batch", e);
+        LOGGER.error("Error closing table " + tableId, e);
       }
       batch_index = 0;
-      currentRowBatchInsertStatement = null;
       currentIsIgnoredSchema = false;
     }
+
+    try {
+      commit();
+    } catch (SQLException e) {
+      LOGGER.error("Could not commit data insertion for table " + tableId);
+    }
+
+    try {
+      currentRowBatchInsertStatement.close();
+    } catch (SQLException e) {
+      LOGGER.debug("Failed to close prepared statement", e);
+    }
+    currentRowBatchInsertStatement = null;
   }
 
   @Override
@@ -472,15 +480,13 @@ public class JDBCExportModule implements DatabaseExportModule {
             batch_index = 0;
             currentRowBatchInsertStatement.executeBatch();
             currentRowBatchInsertStatement.clearBatch();
+            commit();
           }
         } catch (SQLException e) {
           LOGGER.error("Error executing part of a batch of queries", e);
           Reporter.failed("In table `" + currentTableStructure.getId() + "`, inserting rows with index from "
-            + currentRowBatchStartIndex + " to " + currentRowBatchEndIndex + " m",
+            + currentRowBatchStartIndex + " to " + currentRowBatchEndIndex + " ",
             " there was an error with at least one of the rows");
-          Reporter.customMessage(getClass().getName(), "In table `" + currentTableStructure.getId()
-            + "`, inserting rows with index from " + currentRowBatchStartIndex + " to " + currentRowBatchEndIndex
-            + " failed for at least one of the rows (and potentially for all of them, depending on the target DBMS)");
         } finally {
           if (batch_index == 0) {
             for (CleanResourcesInterface clean : cleanResourcesList) {
@@ -626,7 +632,7 @@ public class JDBCExportModule implements DatabaseExportModule {
           // LOGGER.debug("timestamp before: " + data);
           Calendar cal = javax.xml.bind.DatatypeConverter.parseDateTime(data);
           Timestamp sqlTimestamp = new Timestamp(cal.getTimeInMillis());
-          LOGGER.debug("timestamp after: " + sqlTimestamp.toString());
+          LOGGER.trace("timestamp after: " + sqlTimestamp.toString());
           ps.setTimestamp(index, sqlTimestamp);
         } else {
           ps.setNull(index, Types.TIMESTAMP);
@@ -671,8 +677,13 @@ public class JDBCExportModule implements DatabaseExportModule {
   @Override
   public void finishDatabase() throws ModuleException {
     if (databaseStructure != null) {
+      try {
+        commit();
+        getConnection().setAutoCommit(true);
+      } catch (SQLException e) {
+        throw new ModuleException("Could not enable autocommit before creating foreign keys", e);
+      }
       handleForeignKeys();
-      commit();
     }
     closeConnection();
   }
@@ -722,13 +733,13 @@ public class JDBCExportModule implements DatabaseExportModule {
     statementExecuteAndClearBatch();
   }
 
-  protected void commit() throws ModuleException {
-    // LOGGER.debug("Commiting");
-    // try {
-    // getConnection().commit();
-    // } catch (SQLException e) {
-    // throw new ModuleException("Error while commiting", e);
-    // }
+  protected void commit() throws SQLException {
+    LOGGER.trace("Committing");
+    try {
+      getConnection().commit();
+    } catch (ModuleException e) {
+      LOGGER.debug("Module exception obtaining the connection to commit.", e);
+    }
   }
 
   /**

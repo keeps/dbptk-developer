@@ -163,9 +163,9 @@ public abstract class DatatypeImporter {
 
   protected abstract Type getFloatType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
 
-  protected abstract Type getLongvarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getLongVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
 
-  protected abstract Type getLongvarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+  protected abstract Type getLongVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
     throws UnknownTypeException;
 
   protected abstract Type getTimeType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);

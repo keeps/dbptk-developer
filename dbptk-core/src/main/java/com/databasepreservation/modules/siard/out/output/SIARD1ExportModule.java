@@ -4,7 +4,6 @@ import java.nio.file.Path;
 import java.util.Map;
 
 import com.databasepreservation.model.modules.DatabaseExportModule;
-import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD1MetadataPathStrategy;

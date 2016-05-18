@@ -21,6 +21,7 @@ import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.sqlServer.SQLServerHelper;
 import com.microsoft.sqlserver.jdbc.SQLServerConnection;
 import com.microsoft.sqlserver.jdbc.SQLServerResultSet;
+import com.microsoft.sqlserver.jdbc.SQLServerStatement;
 
 /**
  * Microsoft SQL Server JDBC import module.
@@ -116,8 +117,11 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
   @Override
   protected Statement getStatement() throws SQLException, ClassNotFoundException {
     if (statement == null) {
-      statement = ((SQLServerConnection) getConnection()).createStatement(
-        SQLServerResultSet.TYPE_SS_SERVER_CURSOR_FORWARD_ONLY, SQLServerResultSet.CONCUR_READ_ONLY);
+      statement = ((SQLServerConnection) getConnection()).createStatement(SQLServerResultSet.TYPE_FORWARD_ONLY,
+        SQLServerResultSet.CONCUR_READ_ONLY);
+
+      SQLServerStatement sqlServerStatement = statement.unwrap(com.microsoft.sqlserver.jdbc.SQLServerStatement.class);
+      sqlServerStatement.setResponseBuffering("adaptive");
     }
     return statement;
   }
@@ -132,7 +136,8 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
     return ignored;
   }
 
-  protected Cell convertRawToCell(String tableName, String columnName, int columnIndex, int rowIndex, Type cellType,
+  @Override
+  protected Cell convertRawToCell(String tableName, String columnName, int columnIndex, long rowIndex, Type cellType,
     ResultSet rawData) throws SQLException, InvalidDataException, ClassNotFoundException, ModuleException {
     Cell cell;
     String id = tableName + "." + columnName + "." + rowIndex;

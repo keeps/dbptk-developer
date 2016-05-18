@@ -18,6 +18,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.structure.CandidateKey;
+import com.databasepreservation.model.structure.CheckConstraint;
+import com.databasepreservation.model.structure.ColumnStructure;
+import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.model.structure.ForeignKey;
+import com.databasepreservation.model.structure.Parameter;
+import com.databasepreservation.model.structure.PrimaryKey;
+import com.databasepreservation.model.structure.PrivilegeStructure;
+import com.databasepreservation.model.structure.Reference;
+import com.databasepreservation.model.structure.RoleStructure;
+import com.databasepreservation.model.structure.RoutineStructure;
+import com.databasepreservation.model.structure.SchemaStructure;
+import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.Trigger;
+import com.databasepreservation.model.structure.UserStructure;
+import com.databasepreservation.model.structure.ViewStructure;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
+import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQLStandardDatatypeFactory;
+import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStrategy;
+import com.databasepreservation.modules.siard.in.read.ReadStrategy;
+import com.databasepreservation.utils.JodaUtils;
+
 import ch.admin.bar.xmlns.siard._2_0.metadata.CandidateKeyType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.CandidateKeysType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.CheckConstraintType;
@@ -47,31 +72,6 @@ import ch.admin.bar.xmlns.siard._2_0.metadata.UserType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.UsersType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.ViewType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.ViewsType;
-
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.structure.CandidateKey;
-import com.databasepreservation.model.structure.CheckConstraint;
-import com.databasepreservation.model.structure.ColumnStructure;
-import com.databasepreservation.model.structure.DatabaseStructure;
-import com.databasepreservation.model.structure.ForeignKey;
-import com.databasepreservation.model.structure.Parameter;
-import com.databasepreservation.model.structure.PrimaryKey;
-import com.databasepreservation.model.structure.PrivilegeStructure;
-import com.databasepreservation.model.structure.Reference;
-import com.databasepreservation.model.structure.RoleStructure;
-import com.databasepreservation.model.structure.RoutineStructure;
-import com.databasepreservation.model.structure.SchemaStructure;
-import com.databasepreservation.model.structure.TableStructure;
-import com.databasepreservation.model.structure.Trigger;
-import com.databasepreservation.model.structure.UserStructure;
-import com.databasepreservation.model.structure.ViewStructure;
-import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQLStandardDatatypeFactory;
-import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
-import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStrategy;
-import com.databasepreservation.modules.siard.in.read.ReadStrategy;
-import com.databasepreservation.utils.JodaUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>

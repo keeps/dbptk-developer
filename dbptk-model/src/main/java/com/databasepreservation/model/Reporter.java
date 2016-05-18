@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -26,7 +27,7 @@ import com.databasepreservation.model.structure.type.Type;
 public class Reporter {
   // //////////////////////////////////////////////////
   // constants
-  public static final String MESSAGE_FILTERED_PASSWORD = "************";
+  public static final String MESSAGE_FILTERED_PASSWORD = "<filtered>";
   public static final String CODE_DELIMITER = "`";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Reporter.class);
@@ -34,9 +35,11 @@ public class Reporter {
     "th"};
 
   private static final String MESSAGE_LINE_PREFIX_ALL = "- ";
-  private static final String MESSAGE_LINE_DEFAULT_PREFIX = "Possible data loss: ";
+  private static final String MESSAGE_LINE_DEFAULT_PREFIX = "Information: ";
   private static final String EMPTY_MESSAGE_LINE = "";
   private static final String NEWLINE = System.getProperty("line.separator", "\n");
+
+  private static int countModuleInfoReported = 0;
 
   private static long conversionProblemsCounter = 0;
 
@@ -98,8 +101,14 @@ public class Reporter {
   private static Reporter reporterInstance;
 
   private static void report(StringBuilder message) {
+    report(message, MESSAGE_LINE_PREFIX_ALL);
+  }
+
+  private static void report(StringBuilder message, String prefix) {
     Reporter reporter = getInstance();
-    message.insert(0, MESSAGE_LINE_PREFIX_ALL);
+    if (prefix != null) {
+      message.insert(0, prefix);
+    }
     reporter.writeLine(message.toString());
   }
 
@@ -137,15 +146,32 @@ public class Reporter {
     return sb;
   }
 
-  private static void moduleParameters(String moduleName, String... parameters) {
-    StringBuilder message = new StringBuilder(moduleName).append(" parameters:");
+  private static void moduleParameters(String moduleName, String importOrExport, String... parameters) {
+    StringBuilder message;
 
-    for (int i = 0; i < parameters.length; i += 2) {
-      message.append(NEWLINE).append("  - ").append(parameters[i]).append(" = ").append(parameters[i + 1]);
+    if (countModuleInfoReported == 0) {
+      message = new StringBuilder("## Parameters").append(NEWLINE);
+    } else {
+      message = new StringBuilder();
     }
 
-    report(message);
+    message.append("**").append(importOrExport).append(" module:** ").append(moduleName);
+
+    for (int i = 0; i < parameters.length; i += 2) {
+      message.append(NEWLINE).append("- ").append(parameters[i]).append(" = ").append(parameters[i + 1]);
+    }
+
+    countModuleInfoReported++;
+
     LOGGER.debug("moduleParameters, module: " + moduleName + " with parameters " + message);
+    if (countModuleInfoReported == 2) {
+      message.append(NEWLINE).append(NEWLINE).append("Date: ")
+        .append(new SimpleDateFormat("yyyy-MM-dd").format(new Date())).append(NEWLINE).append(NEWLINE)
+        .append("## Details");
+    } else {
+      message.append(NEWLINE);
+    }
+    report(message, null);
   }
 
   // //////////////////////////////////////////////////
@@ -217,31 +243,61 @@ public class Reporter {
   public static void dataTypeChangedOnImport(String invokerNameForDebug, String schemaName, String tableName,
     String columnName, Type type) {
     conversionProblemsCounter++;
-    StringBuilder message = new StringBuilder("Data type import: in schema ");
-    appendAsCode(message, schemaName).append(" and table ");
-    if (StringUtils.isBlank(type.getOriginalTypeName())) {
-      appendAsCode(message, tableName).append(", the retrieved type for column ");
-      appendAsCode(message, columnName).append(" was ");
-    } else {
-      appendAsCode(message, tableName).append(", the column ");
-      appendAsCode(message, columnName).append(" has type ");
-      appendAsCode(message, type.getOriginalTypeName()).append(" which was perceived as ");
-    }
-    appendAsCode(message, type.getSql99TypeName()).append(" (SQL99) and ");
-    appendAsCode(message, type.getSql2008TypeName()).append(" (SQL2008)");
 
-    report(message);
+    String original = null;
+    if (type != null && StringUtils.isNotBlank(type.getOriginalTypeName())) {
+      original = type.getOriginalTypeName().toUpperCase(Locale.ENGLISH);
+    }
+
+    String sql99 = type.getSql99TypeName().toUpperCase(Locale.ENGLISH);
+    String sql2008 = type.getSql2008TypeName().toUpperCase(Locale.ENGLISH);
+
+    StringBuilder message = new StringBuilder("Type conversion in import module: in ");
+    appendAsCode(message, schemaName + "." + tableName + "." + columnName);
+    message.append(" (format: schema.table.column) has ");
+
+    if (original == null) {
+      message.append("an unidentified original type");
+    } else {
+      message.append("original type ");
+      appendAsCode(message, original);
+    }
+
+    message.append(" and was converted to the standard type ");
+
+    if (sql99.equals(sql2008)) {
+      appendAsCode(message, sql99);
+    } else {
+      appendAsCode(message, sql99).append(" and ");
+      appendAsCode(message, sql2008).append(" (SQL99 and SQL2008 standard)");
+    }
+
+    if (original != null) {
+      report(message);
+    }
     LOGGER.debug("dataTypeChangedOnImport, invoker: " + invokerNameForDebug + "; message: " + message + "; and type: "
       + type);
   }
 
   public static void dataTypeChangedOnExport(String invokerNameForDebug, ColumnStructure column, String typeSQL) {
     conversionProblemsCounter++;
-    StringBuilder message = new StringBuilder("Column export: in ");
-    appendAsCode(message, column.getId()).append(" (format: schema.table.column) has standard types ");
-    appendAsCode(message, column.getType().getSql99TypeName()).append(" (SQL99) and ");
-    appendAsCode(message, column.getType().getSql2008TypeName()).append(" (SQL2008) and original type ");
-    appendAsCode(message, column.getType().getOriginalTypeName()).append(", will be created as ");
+
+    String original = column.getType().getOriginalTypeName().toUpperCase(Locale.ENGLISH);
+    String sql99 = column.getType().getSql99TypeName().toUpperCase(Locale.ENGLISH);
+    String sql2008 = column.getType().getSql2008TypeName().toUpperCase(Locale.ENGLISH);
+
+    StringBuilder message = new StringBuilder("Type conversion in export module: in ");
+    appendAsCode(message, column.getId()).append(" (format: schema.table.column) has original type ");
+    appendAsCode(message, original).append(" and standard type ");
+
+    if (sql99.equals(sql2008)) {
+      appendAsCode(message, sql99);
+    } else {
+      appendAsCode(message, sql99).append(" and ");
+      appendAsCode(message, sql2008).append(" (SQL99 and SQL2008 standard)");
+    }
+
+    message.append(", will be created as ");
     appendAsCode(message, typeSQL).append(" in the target database");
 
     report(message);
@@ -250,13 +306,11 @@ public class Reporter {
   }
 
   public static void exportModuleParameters(String moduleName, String... parameters) {
-    conversionProblemsCounter++;
-    moduleParameters(moduleName + " export module", parameters);
+    moduleParameters(moduleName, "Export", parameters);
   }
 
   public static void importModuleParameters(String moduleName, String... parameters) {
-    conversionProblemsCounter++;
-    moduleParameters(moduleName + " import module", parameters);
+    moduleParameters(moduleName, "Import", parameters);
   }
 
   public static void customMessage(String invokerNameForDebug, String customMessage, String prefix) {
@@ -286,8 +340,18 @@ public class Reporter {
 
   public static void failed(String whatFailed, String whyItFailed) {
     conversionProblemsCounter++;
-    StringBuilder message = new StringBuilder(MESSAGE_LINE_DEFAULT_PREFIX);
-    appendAsCode(message, whatFailed).append(" failed because ").append(whyItFailed);
+    StringBuilder message = new StringBuilder(MESSAGE_LINE_DEFAULT_PREFIX).append(whatFailed)
+      .append(" failed because ").append(whyItFailed);
+
+    report(message);
+    LOGGER.debug("something failed, message: " + message);
+  }
+
+  public static void valueChanged(String originalValue, String newValue, String reason, String location) {
+    conversionProblemsCounter++;
+    StringBuilder message = new StringBuilder("Warning: ");
+    appendAsCode(message, originalValue).append(" changed to ");
+    appendAsCode(message, newValue).append(" because ").append(reason).append(" in ").append(location);
 
     report(message);
     LOGGER.debug("something failed, message: " + message);

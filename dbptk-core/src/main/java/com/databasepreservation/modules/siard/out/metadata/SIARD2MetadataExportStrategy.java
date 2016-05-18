@@ -21,6 +21,34 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.UnknownTypeException;
+import com.databasepreservation.model.structure.CandidateKey;
+import com.databasepreservation.model.structure.CheckConstraint;
+import com.databasepreservation.model.structure.ColumnStructure;
+import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.model.structure.ForeignKey;
+import com.databasepreservation.model.structure.Parameter;
+import com.databasepreservation.model.structure.PrimaryKey;
+import com.databasepreservation.model.structure.PrivilegeStructure;
+import com.databasepreservation.model.structure.Reference;
+import com.databasepreservation.model.structure.RoleStructure;
+import com.databasepreservation.model.structure.RoutineStructure;
+import com.databasepreservation.model.structure.SchemaStructure;
+import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.Trigger;
+import com.databasepreservation.model.structure.UserStructure;
+import com.databasepreservation.model.structure.ViewStructure;
+import com.databasepreservation.model.structure.type.ComposedTypeStructure;
+import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.modules.siard.SIARDHelper;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
+import com.databasepreservation.modules.siard.out.content.Sql2008toXSDType;
+import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.write.WriteStrategy;
+import com.databasepreservation.utils.JodaUtils;
+
 import ch.admin.bar.xmlns.siard._2_0.metadata.ActionTimeType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.AttributeType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.AttributesType;
@@ -58,34 +86,6 @@ import ch.admin.bar.xmlns.siard._2_0.metadata.UserType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.UsersType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.ViewType;
 import ch.admin.bar.xmlns.siard._2_0.metadata.ViewsType;
-
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.exception.UnknownTypeException;
-import com.databasepreservation.model.structure.CandidateKey;
-import com.databasepreservation.model.structure.CheckConstraint;
-import com.databasepreservation.model.structure.ColumnStructure;
-import com.databasepreservation.model.structure.DatabaseStructure;
-import com.databasepreservation.model.structure.ForeignKey;
-import com.databasepreservation.model.structure.Parameter;
-import com.databasepreservation.model.structure.PrimaryKey;
-import com.databasepreservation.model.structure.PrivilegeStructure;
-import com.databasepreservation.model.structure.Reference;
-import com.databasepreservation.model.structure.RoleStructure;
-import com.databasepreservation.model.structure.RoutineStructure;
-import com.databasepreservation.model.structure.SchemaStructure;
-import com.databasepreservation.model.structure.TableStructure;
-import com.databasepreservation.model.structure.Trigger;
-import com.databasepreservation.model.structure.UserStructure;
-import com.databasepreservation.model.structure.ViewStructure;
-import com.databasepreservation.model.structure.type.ComposedTypeStructure;
-import com.databasepreservation.model.structure.type.Type;
-import com.databasepreservation.modules.siard.SIARDHelper;
-import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.out.content.Sql2008toXSDType;
-import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
-import com.databasepreservation.modules.siard.out.write.WriteStrategy;
-import com.databasepreservation.utils.JodaUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -659,22 +659,15 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
 
     if (column.getType() != null) {
       if (column.getType() instanceof ComposedTypeStructure) {
-        LOGGER.debug("Saving composed type '" + column.getType().getOriginalTypeName() + "'(internal_id:"
-          + column.getType().hashCode() + ")");
-        LOGGER.debug("Saving composed type '" + column.getType().getOriginalTypeName() + "'");
         columnType.setTypeName(column.getType().getOriginalTypeName());
       } else {
-        LOGGER.debug("Saving type '" + column.getType().getOriginalTypeName() + "'(internal_id:"
-          + column.getType().hashCode() + ") as " + column.getType().getSql2008TypeName());
-        LOGGER.debug("Saving type '" + column.getType().getOriginalTypeName() + "' as '"
-          + column.getType().getSql2008TypeName() + "'");
         columnType.setType(column.getType().getSql2008TypeName());
         columnType.setTypeOriginal(column.getType().getOriginalTypeName());
 
         if (column.isNillable() != null) {
           columnType.setNullable(column.getNillable());
         } else {
-          LOGGER.warn("column nullable property was null. changed it to false");
+          LOGGER.debug("column nullable property was null. changed it to false");
         }
       }
     } else {

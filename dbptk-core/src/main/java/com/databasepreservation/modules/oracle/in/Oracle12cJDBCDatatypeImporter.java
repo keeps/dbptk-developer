@@ -1,7 +1,5 @@
 package com.databasepreservation.modules.oracle.in;
 
-import oracle.jdbc.OracleTypes;
-
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
@@ -10,13 +8,15 @@ import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCDatatypeImporter;
 
+import oracle.jdbc.OracleTypes;
+
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  * @author Luis Faria <lfaria@keep.pt>
  */
 public class Oracle12cJDBCDatatypeImporter extends JDBCDatatypeImporter {
   @Override
-  protected Type getLongvarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+  protected Type getLongVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
     throws UnknownTypeException {
     throw new UnknownTypeException("Unsuported JDBC type, code: -1. Oracle " + typeName
       + " data type is not supported.");

@@ -4,11 +4,11 @@ import java.util.Map;
 
 import javax.naming.OperationNotSupportedException;
 
-import net.xeoh.plugins.base.Plugin;
-
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
+
+import net.xeoh.plugins.base.Plugin;
 
 /**
  * Defines a factory used to create Import and Export Modules. This factory
