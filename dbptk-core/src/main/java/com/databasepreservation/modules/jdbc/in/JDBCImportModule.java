@@ -778,7 +778,12 @@ public class JDBCImportModule implements DatabaseImportModule {
     // YES --- if the column can include NULLs
     // NO --- if the column cannot include NULLs
     // empty string --- if the nullability for the column is unknown
-    Boolean isNullable = "YES".equals(rs.getString(18));
+    Boolean isNullable = true;
+    try{
+      isNullable = "YES".equals(rs.getString(18));
+    }catch (SQLException e){
+      LOGGER.debug("Could not get nullability property of column. current debug message: '"+cLogMessage+"'", e);
+    }
     cLogMessage.append("Is Nullable: ").append(isNullable).append("\n");
     // 20. SCOPE_SCHEMA String => schema of table that is the scope of a
     // reference attribute (null if the DATA_TYPE isn't REF)
@@ -793,7 +798,12 @@ public class JDBCImportModule implements DatabaseImportModule {
     // NO --- if the column is not auto incremented
     // empty string --- if it cannot be determined whether the column is
     // auto incremented
-    Boolean isAutoIncrement = "YES".equals(rs.getString(23));
+    Boolean isAutoIncrement = false;
+    try {
+      isAutoIncrement = "YES".equals(rs.getString(23));
+    } catch (SQLException e){
+      LOGGER.debug("Could not get auto increment property of column. current debug message: '"+cLogMessage+"'", e);
+    }
     cLogMessage.append("Is auto increment: ").append(isAutoIncrement).append("\n");
     // 24. IS_GENERATEDCOLUMN String => Indicates whether this is a
     // generated column
