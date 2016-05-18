@@ -1476,8 +1476,9 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   protected ResultSet getTableRawData(TableStructure table) throws SQLException, ClassNotFoundException,
     ModuleException {
-    LOGGER.debug("query: " + sqlHelper.selectTableSQL(table.getId()));
-    ResultSet set = getStatement().executeQuery(sqlHelper.selectTableSQL(table.getId()));
+    String query = sqlHelper.selectTableSQL(table.getId());
+    LOGGER.debug("query: " + query);
+    ResultSet set = getStatement().executeQuery(query);
     set.setFetchSize(ROW_FETCH_BLOCK_SIZE);
     return set;
   }

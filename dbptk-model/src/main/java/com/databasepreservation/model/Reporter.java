@@ -272,7 +272,9 @@ public class Reporter {
       appendAsCode(message, sql2008).append(" (SQL99 and SQL2008 standard)");
     }
 
-    report(message);
+    if (original != null) {
+      report(message);
+    }
     LOGGER.debug("dataTypeChangedOnImport, invoker: " + invokerNameForDebug + "; message: " + message + "; and type: "
       + type);
   }
@@ -338,8 +340,8 @@ public class Reporter {
 
   public static void failed(String whatFailed, String whyItFailed) {
     conversionProblemsCounter++;
-    StringBuilder message = new StringBuilder(MESSAGE_LINE_DEFAULT_PREFIX);
-    appendAsCode(message, whatFailed).append(" failed because ").append(whyItFailed);
+    StringBuilder message = new StringBuilder(MESSAGE_LINE_DEFAULT_PREFIX).append(whatFailed)
+      .append(" failed because ").append(whyItFailed);
 
     report(message);
     LOGGER.debug("something failed, message: " + message);

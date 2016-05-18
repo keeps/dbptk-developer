@@ -487,9 +487,6 @@ public class JDBCExportModule implements DatabaseExportModule {
           Reporter.failed("In table `" + currentTableStructure.getId() + "`, inserting rows with index from "
             + currentRowBatchStartIndex + " to " + currentRowBatchEndIndex + " ",
             " there was an error with at least one of the rows");
-          Reporter.customMessage(getClass().getName(), "In table `" + currentTableStructure.getId()
-            + "`, inserting rows with index from " + currentRowBatchStartIndex + " to " + currentRowBatchEndIndex
-            + " failed for at least one of the rows (and potentially for all of them, depending on the target DBMS)");
         } finally {
           if (batch_index == 0) {
             for (CleanResourcesInterface clean : cleanResourcesList) {

@@ -34,7 +34,8 @@ import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 
 /**
- * @author Luis Faria
+ * @author Luis Faria <lfaria@keep.pt>
+ * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SQLHelper {
 
@@ -71,7 +72,7 @@ public class SQLHelper {
    * @throws ModuleException
    */
   public String selectTableSQL(String tableId) throws ModuleException {
-    return "SELECT * FROM " + getEscapedTableNameFromId(tableId);
+    return "SELECT * FROM " + escapeTableId(tableId);
   }
 
   /**
@@ -266,7 +267,7 @@ public class SQLHelper {
     StringBuilder ret = new StringBuilder();
     if (pkey != null) {
 
-      ret.append("ALTER TABLE ").append(getEscapedTableNameFromId(tableId));
+      ret.append("ALTER TABLE ").append(escapeTableId(tableId));
       if (StringUtils.isBlank(pkey.getName())) {
         ret.append(" ADD PRIMARY KEY (");
       } else {
@@ -298,7 +299,7 @@ public class SQLHelper {
    * @throws ModuleException
    */
   public String createForeignKeySQL(TableStructure table, ForeignKey fkey) throws ModuleException {
-    String ret = "ALTER TABLE " + escapeTableName(table.getName()) + " ADD FOREIGN KEY (";
+    String ret = "ALTER TABLE " + escapeTableId(table.getName()) + " ADD FOREIGN KEY (";
 
     for (int i = 0; i < fkey.getReferences().size(); i++) {
       if (i > 0) {
@@ -307,7 +308,7 @@ public class SQLHelper {
       ret += escapeColumnName(fkey.getReferences().get(i).getColumn());
     }
 
-    ret += ") REFERENCES " + escapeTableName(fkey.getReferencedSchema()) + "."
+    ret += ") REFERENCES " + escapeSchemaName(fkey.getReferencedSchema()) + "."
       + escapeTableName(fkey.getReferencedTable()) + " (";
 
     for (int i = 0; i < fkey.getReferences().size(); i++) {
@@ -388,7 +389,7 @@ public class SQLHelper {
     String[] parts = splitTableId(tableId);
     String schema = parts[0];
     String table = parts[1];
-    return escapeSchemaName(schema) + "." + escapeTableName(table);
+    return escapeSchemaName(schema) + getSeparatorSchemaTable() + escapeTableName(table);
   }
 
   protected String getEscapedTableNameFromId(String tableId) throws ModuleException {
