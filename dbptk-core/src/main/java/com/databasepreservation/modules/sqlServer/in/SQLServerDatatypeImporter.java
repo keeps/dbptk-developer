@@ -1,6 +1,7 @@
 package com.databasepreservation.modules.sqlServer.in;
 
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
+import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCDatatypeImporter;
 
@@ -10,7 +11,7 @@ import com.databasepreservation.modules.jdbc.in.JDBCDatatypeImporter;
  */
 public class SQLServerDatatypeImporter extends JDBCDatatypeImporter {
   @Override
-  protected Type getLongvarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+  protected Type getLongVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type;
     if ("image".equals(typeName)) {
       type = new SimpleTypeBinary("MIME", "image");

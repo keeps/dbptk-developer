@@ -80,6 +80,8 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
   private int rowIndex;
   private long currentTableTotalRows;
 
+  private long lastProgressTimestamp;
+
   public SIARD2ContentImportStrategy(ReadStrategy readStrategy, ContentPathImportStrategy contentPathStrategy,
     SIARDArchiveContainer lobContainer) {
     this.contentPathStrategy = contentPathStrategy;
@@ -204,6 +206,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
         LOGGER.error("An error occurred while handling data open table", e);
       }
       this.currentTableTotalRows = currentTable.getRows();
+      lastProgressTimestamp = System.currentTimeMillis();
     } else if (qName.equalsIgnoreCase(ROW_KEYWORD)) {
       row = new Row();
       row.setCells(new ArrayList<Cell>());
@@ -295,7 +298,8 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
         LOGGER.error("An error occurred while handling data row", e);
       }
 
-      if (rowIndex % 1000 == 0) {
+      if (rowIndex % 1000 == 0 && System.currentTimeMillis() - lastProgressTimestamp > 3000) {
+        lastProgressTimestamp = System.currentTimeMillis();
         if (currentTableTotalRows > 0) {
           LOGGER.info(String.format("Progress: %d rows of table %s.%s (%d%%)", rowIndex, currentTable.getSchema(),
             currentTable.getName(), rowIndex * 100 / currentTableTotalRows));

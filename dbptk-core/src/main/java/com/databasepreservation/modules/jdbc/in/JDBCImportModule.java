@@ -1520,12 +1520,14 @@ public class JDBCImportModule implements DatabaseImportModule {
 
           long nRows = 0;
           long tableRows = table.getRows();
+          long lastProgressTimestamp = System.currentTimeMillis();
           if (moduleSettings.shouldFetchRows()) {
             ResultSet tableRawData = getTableRawData(table);
             while (tableRawData.next()) {
               handler.handleDataRow(convertRawToRow(tableRawData, table));
               nRows++;
-              if (nRows % 1000 == 0) {
+              if (nRows % 1000 == 0 && System.currentTimeMillis() - lastProgressTimestamp > 3000) {
+                lastProgressTimestamp = System.currentTimeMillis();
                 if (tableRows > 0) {
                   LOGGER.info(String.format("Progress: %d rows of table %s.%s (%d%%)", nRows, table.getSchema(),
                     table.getName(), nRows * 100 / tableRows));

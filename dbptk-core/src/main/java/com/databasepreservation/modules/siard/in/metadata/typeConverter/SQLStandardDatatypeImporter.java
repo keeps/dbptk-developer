@@ -245,7 +245,7 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
   }
 
   @Override
-  protected Type getLongvarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+  protected Type getLongVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeBinary(columnSize);
     type.setSql99TypeName("BINARY LARGE OBJECT");
     type.setSql2008TypeName("BINARY LARGE OBJECT");
@@ -253,7 +253,7 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
   }
 
   @Override
-  protected Type getLongvarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+  protected Type getLongVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
     throws UnknownTypeException {
     Type type;
     if (columnSize != 0) {

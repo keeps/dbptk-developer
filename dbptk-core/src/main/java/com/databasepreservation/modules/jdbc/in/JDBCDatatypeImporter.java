@@ -33,6 +33,9 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
     String columnName, int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
     throws UnknownTypeException, SQLException, ClassNotFoundException {
     Type type;
+
+    boolean maxSize = (columnSize == Integer.MAX_VALUE);
+
     switch (dataType) {
       case Types.BIGINT:
         type = getBigIntType(typeName, columnSize, decimalDigits, numPrecRadix);
@@ -78,10 +81,10 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
         type = getIntegerType(typeName, columnSize, decimalDigits, numPrecRadix);
         break;
       case Types.LONGVARBINARY:
-        type = getLongvarbinaryType(typeName, columnSize, decimalDigits, numPrecRadix);
+        type = getLongVarbinaryType(typeName, columnSize, decimalDigits, numPrecRadix);
         break;
       case Types.LONGVARCHAR:
-        type = getLongvarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
+        type = getLongVarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
         break;
       case Types.LONGNVARCHAR:
         type = getLongNationalVarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
@@ -129,7 +132,17 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
     }
 
     if (StringUtils.isBlank(type.getOriginalTypeName())) {
+      // TODO: more accurate original type
+      // if (maxSize) {
+      // type.setOriginalTypeName(typeName + "(max)");
+      // } else
+      // if (columnSize > 0 && decimalDigits > 0) {
+      // type.setOriginalTypeName(typeName, columnSize, decimalDigits);
+      // } else if (columnSize > 0) {
+      // type.setOriginalTypeName(typeName, columnSize);
+      // } else {
       type.setOriginalTypeName(typeName);
+      // }
     }
 
     return type;
@@ -278,8 +291,8 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   @Override
   protected Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeBinary(columnSize);
-    type.setSql99TypeName("BIT VARYING", columnSize * 8);
-    type.setSql2008TypeName("BIT VARYING", columnSize * 8);
+    type.setSql99TypeName("BIT VARYING", columnSize);
+    type.setSql2008TypeName("BIT VARYING", columnSize);
     return type;
   }
 
@@ -369,7 +382,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   }
 
   @Override
-  protected Type getLongvarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+  protected Type getLongVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeBinary(columnSize);
     type.setSql99TypeName("BINARY LARGE OBJECT");
     type.setSql2008TypeName("BINARY LARGE OBJECT");
@@ -377,7 +390,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   }
 
   @Override
-  protected Type getLongvarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+  protected Type getLongVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
     throws UnknownTypeException {
     Type type = new SimpleTypeString(columnSize, true);
     type.setSql99TypeName("CHARACTER LARGE OBJECT");
