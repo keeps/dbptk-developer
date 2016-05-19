@@ -267,7 +267,7 @@ public class SQLHelper {
     StringBuilder ret = new StringBuilder();
     if (pkey != null) {
 
-      ret.append("ALTER TABLE ").append(escapeTableId(tableId));
+      ret.append("ALTER TABLE ").append(getEscapedTableNameFromId(tableId));
       if (StringUtils.isBlank(pkey.getName())) {
         ret.append(" ADD PRIMARY KEY (");
       } else {
@@ -299,7 +299,7 @@ public class SQLHelper {
    * @throws ModuleException
    */
   public String createForeignKeySQL(TableStructure table, ForeignKey fkey) throws ModuleException {
-    String ret = "ALTER TABLE " + escapeTableId(table.getName()) + " ADD FOREIGN KEY (";
+    String ret = "ALTER TABLE " + escapeTableName(table.getName()) + " ADD FOREIGN KEY (";
 
     for (int i = 0; i < fkey.getReferences().size(); i++) {
       if (i > 0) {
