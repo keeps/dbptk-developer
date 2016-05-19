@@ -203,7 +203,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 
   @Override
   protected Cell rawToCellSimpleTypeNumericExact(String id, String columnName, Type cellType, ResultSet rawData)
-    throws SQLException {
+    throws SQLException, ModuleException {
     if ("YEAR".equals(cellType.getOriginalTypeName())) {
       // for inputs 15, 2015, 99 and 1999
       // rawData.getInt returns numbers like 15, 2015, 99, 1999

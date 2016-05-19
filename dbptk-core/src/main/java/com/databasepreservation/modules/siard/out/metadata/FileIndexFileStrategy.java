@@ -25,6 +25,7 @@ import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
+
 import dk.sa.xmlns.diark._1_0.fileindex.FileIndexType;
 
 /**

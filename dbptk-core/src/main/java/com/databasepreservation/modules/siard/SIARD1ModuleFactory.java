@@ -189,6 +189,7 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
         "compress", String.valueOf(pCompress), "pretty xml", String.valueOf(pPrettyPrintXML), "table filter",
         pTableFilter.normalize().toAbsolutePath().toString());
     }
-    return new SIARD1ExportModule(pFile, pCompress, pPrettyPrintXML, pTableFilter, descriptiveMetadataParameterValues).getDatabaseHandler();
+    return new SIARD1ExportModule(pFile, pCompress, pPrettyPrintXML, pTableFilter, descriptiveMetadataParameterValues)
+      .getDatabaseHandler();
   }
 }

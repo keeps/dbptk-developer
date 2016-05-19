@@ -69,6 +69,8 @@ public class Sql2008toXSDType {
     sql2008toXSDregex.put("^BIT\\(\\d+\\)$", "blobType");
     sql2008toXSDregex.put("^CHARACTER VARYING\\(\\d+\\)$", "xs:string");
     sql2008toXSDregex.put("^CHARACTER\\(\\d+\\)$", "xs:string");
+    sql2008toXSDregex.put("^NATIONAL CHARACTER VARYING\\(\\d+\\)$", "xs:string");
+    sql2008toXSDregex.put("^NATIONAL CHARACTER\\(\\d+\\)$", "xs:string");
     sql2008toXSDregex.put("^DECIMAL\\(\\d+(,\\d+)?\\)$", "xs:decimal");
     sql2008toXSDregex.put("^FLOAT\\(\\d+\\)$", "xs:float");
     sql2008toXSDregex.put("^NUMERIC\\(\\d+(,\\d+)?\\)$", "xs:decimal");

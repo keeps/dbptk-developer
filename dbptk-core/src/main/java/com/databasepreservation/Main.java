@@ -1,6 +1,5 @@
 package com.databasepreservation;
 
-import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
@@ -86,7 +85,7 @@ public class Main {
       }
     } else {
       exitStatus = EXIT_CODE_NOT_USING_UTF8;
-      LOGGER.info("The charset in use is not UTF-8.");
+      LOGGER.error("The charset in use is not UTF-8.");
       LOGGER.info("Please try forcing UTF-8 charset by running the application with:");
       LOGGER.info("   java \"-Dfile.encoding=UTF-8\" -jar ...");
     }
@@ -142,14 +141,12 @@ public class Main {
           LOGGER.error(entry.getKey(), entry.getValue());
         }
       } else {
-        LOGGER.error("Error while importing/exporting", e);
+        LOGGER.error("Fatal error while converting the database ("+e.getMessage()+")", e);
       }
-    } catch (UnknownTypeException e) {
-      LOGGER.error("Error while importing/exporting", e);
-    } catch (InvalidDataException e) {
-      LOGGER.error("Error while importing/exporting", e);
+    } catch (UnknownTypeException | InvalidDataException e) {
+      LOGGER.error("Fatal error while converting the database ("+e.getMessage()+")", e);
     } catch (Exception e) {
-      LOGGER.error("Unexpected exception", e);
+      LOGGER.error("Fatal error: Unexpected exception ("+e.getMessage()+")", e);
     }
     return exitStatus;
   }

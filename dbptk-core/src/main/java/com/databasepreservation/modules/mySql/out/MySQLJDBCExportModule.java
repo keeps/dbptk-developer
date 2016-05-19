@@ -115,6 +115,18 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
         throw new ModuleException("Error creating database " + database, e);
       }
     }
+
+    try {
+      getConnection().createStatement().execute("SET FOREIGN_KEY_CHECKS = 0");
+    } catch (SQLException e) {
+      LOGGER.info("Could not temporarily disable \"foreign key\" checks. Performance may be affected.", e);
+    }
+
+    try {
+      getConnection().createStatement().execute("SET UNIQUE_CHECKS = 0");
+    } catch (SQLException e) {
+      LOGGER.info("Could not temporarily disable \"unique\" checks. Performance may be affected.", e);
+    }
   }
 
   @Override
@@ -171,5 +183,31 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
       handleTableStructure(table);
     }
     LOGGER.info("Handling schema structure " + schema.getName() + " finished");
+  }
+
+  @Override
+  public void finishDatabase() throws ModuleException {
+    if (databaseStructure != null) {
+      try {
+        commit();
+        getConnection().setAutoCommit(true);
+      } catch (SQLException e) {
+        throw new ModuleException("Could not enable autocommit before creating foreign keys", e);
+      }
+      handleForeignKeys();
+
+      try {
+        getConnection().createStatement().execute("SET FOREIGN_KEY_CHECKS = 0");
+      } catch (SQLException e) {
+        LOGGER.info("Problem activating \"foreign key\" checks.", e);
+      }
+
+      try {
+        getConnection().createStatement().execute("SET UNIQUE_CHECKS = 0");
+      } catch (SQLException e) {
+        LOGGER.info("Problem activating \"unique\" checks.", e);
+      }
+    }
+    closeConnection();
   }
 }

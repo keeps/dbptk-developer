@@ -22,8 +22,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import oracle.sql.STRUCT;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +68,8 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
 import com.databasepreservation.modules.SQLHelper;
+
+import oracle.sql.STRUCT;
 
 /**
  * @author Luis Faria <lfaria@keep.pt>
@@ -778,7 +778,12 @@ public class JDBCImportModule implements DatabaseImportModule {
     // YES --- if the column can include NULLs
     // NO --- if the column cannot include NULLs
     // empty string --- if the nullability for the column is unknown
-    Boolean isNullable = "YES".equals(rs.getString(18));
+    Boolean isNullable = true;
+    try{
+      isNullable = "YES".equals(rs.getString(18));
+    }catch (SQLException e){
+      LOGGER.debug("Could not get nullability property of column. current debug message: '"+cLogMessage+"'", e);
+    }
     cLogMessage.append("Is Nullable: ").append(isNullable).append("\n");
     // 20. SCOPE_SCHEMA String => schema of table that is the scope of a
     // reference attribute (null if the DATA_TYPE isn't REF)
@@ -793,7 +798,12 @@ public class JDBCImportModule implements DatabaseImportModule {
     // NO --- if the column is not auto incremented
     // empty string --- if it cannot be determined whether the column is
     // auto incremented
-    Boolean isAutoIncrement = "YES".equals(rs.getString(23));
+    Boolean isAutoIncrement = false;
+    try {
+      isAutoIncrement = "YES".equals(rs.getString(23));
+    } catch (SQLException e){
+      LOGGER.debug("Could not get auto increment property of column. current debug message: '"+cLogMessage+"'", e);
+    }
     cLogMessage.append("Is auto increment: ").append(isAutoIncrement).append("\n");
     // 24. IS_GENERATEDCOLUMN String => Indicates whether this is a
     // generated column
@@ -1263,8 +1273,70 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   protected Cell rawToCellSimpleTypeNumericExact(String id, String columnName, Type cellType, ResultSet rawData)
-    throws SQLException {
-    return new SimpleCell(id, rawData.getString(columnName));
+    throws SQLException, ModuleException {
+    String stringValue = rawData.getString(columnName);
+    boolean wasNull = rawData.wasNull();
+    Cell cell;
+    if (wasNull) {
+      cell = new NullCell(id);
+    } else {
+      int eIndex = stringValue.indexOf('E');
+      if (eIndex > 0) {
+        String fst = stringValue.substring(0, eIndex);
+        String newValue = null;
+
+        if (eIndex < stringValue.length() - 1) {
+          String snd = stringValue.substring(eIndex + 1);
+          Integer fstNum = null;
+          Integer sndNum = null;
+
+          try {
+            fstNum = Integer.parseInt(fst);
+          } catch (NumberFormatException e) {
+            LOGGER.debug("could not parse `" + fst + "` as integer", e);
+          }
+
+          try {
+            sndNum = Integer.parseInt(snd);
+          } catch (NumberFormatException e) {
+            LOGGER.debug("could not parse `" + snd + "` as integer", e);
+          }
+
+          if (fstNum == null && sndNum == null) {
+            // this will save the value as NULL and trigger the Reporter
+            throw new ModuleException("Could not parse `" + stringValue + "` as an exact numeric value");
+          } else {
+            if (fstNum != null && sndNum != null) {
+              if (fstNum == 0 || sndNum == 0) {
+                newValue = "0";
+              } else {
+                newValue = String.valueOf(Math.pow(fstNum, sndNum));
+                Reporter.valueChanged(stringValue, newValue, " exact numeric values can not have exponent (`E`) ",
+                  "column " + columnName);
+              }
+            } else if (fstNum != null) {
+              // fstNum != null && sndNum == null
+              newValue = fst;
+              Reporter.valueChanged(stringValue, newValue, " exact numeric values can not have exponent (`E`) ",
+                "column " + columnName);
+            } else {
+              // fstNum == null && sndNum != null
+              newValue = "0";
+              Reporter.valueChanged(stringValue, newValue, " exact numeric values can not have exponent (`E`) ",
+                "column " + columnName);
+            }
+            cell = new SimpleCell(id, newValue);
+          }
+        } else {
+          // 'E' is the last character in the string, use only the first part
+          cell = new SimpleCell(id, fst);
+        }
+      } else {
+        cell = new SimpleCell(id, stringValue);
+      }
+    }
+
+    return cell;
   }
 
   protected List<Cell> parseArray(String baseid, Array array) throws SQLException, InvalidDataException {
@@ -1414,8 +1486,9 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   protected ResultSet getTableRawData(TableStructure table) throws SQLException, ClassNotFoundException,
     ModuleException {
-    LOGGER.debug("query: " + sqlHelper.selectTableSQL(table.getId()));
-    ResultSet set = getStatement().executeQuery(sqlHelper.selectTableSQL(table.getId()));
+    String query = sqlHelper.selectTableSQL(table.getId());
+    LOGGER.debug("query: " + query);
+    ResultSet set = getStatement().executeQuery(query);
     set.setFetchSize(ROW_FETCH_BLOCK_SIZE);
     return set;
   }
@@ -1458,18 +1531,20 @@ public class JDBCImportModule implements DatabaseImportModule {
 
           long nRows = 0;
           long tableRows = table.getRows();
+          long lastProgressTimestamp = System.currentTimeMillis();
           if (moduleSettings.shouldFetchRows()) {
             ResultSet tableRawData = getTableRawData(table);
             while (tableRawData.next()) {
               handler.handleDataRow(convertRawToRow(tableRawData, table));
               nRows++;
-              if (nRows % 1000 == 0) {
+              if (nRows % 1000 == 0 && System.currentTimeMillis() - lastProgressTimestamp > 3000) {
+                lastProgressTimestamp = System.currentTimeMillis();
                 if (tableRows > 0) {
-                  LOGGER.info(String.format("Progress: %d rows of table %s.%s (%d%%)", nRows, table.getName(),
-                    table.getSchema(), nRows * 100 / tableRows));
+                  LOGGER.info(String.format("Progress: %d rows of table %s.%s (%d%%)", nRows, table.getSchema(),
+                    table.getName(), nRows * 100 / tableRows));
                 } else {
-                  LOGGER.info(String.format("Progress: %d rows of table %s.%s", nRows, table.getName(),
-                    table.getSchema()));
+                  LOGGER.info(String.format("Progress: %d rows of table %s.%s", nRows, table.getSchema(),
+                    table.getName()));
                 }
               }
             }
