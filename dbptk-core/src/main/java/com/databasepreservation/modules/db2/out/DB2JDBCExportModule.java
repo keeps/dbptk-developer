@@ -9,7 +9,6 @@ import java.util.Calendar;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.util.InvalidDateException;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Cell;
@@ -60,7 +59,7 @@ public class DB2JDBCExportModule extends JDBCExportModule {
 
   @Override
   protected void handleSimpleTypeDateTimeDataCell(String data, PreparedStatement ps, int index, Cell cell, Type type)
-    throws InvalidDateException, SQLException {
+    throws SQLException {
     SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
     if (dateTime.getTimeDefined()) {
       if ("TIMESTAMP".equalsIgnoreCase(type.getSql99TypeName())) {

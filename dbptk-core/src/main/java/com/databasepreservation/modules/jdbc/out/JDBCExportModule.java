@@ -27,7 +27,6 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.util.InvalidDateException;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
@@ -586,9 +585,6 @@ public class JDBCExportModule implements DatabaseExportModule {
       }
     } catch (SQLException e) {
       throw new ModuleException("SQL error while handling cell " + cell.getId(), e);
-    } catch (InvalidDateException e) {
-      LOGGER.debug("Original InvalidDateException (for debug)", e);
-      throw new InvalidDataException("Error handling cell " + cell.getId() + ":" + e.getMessage());
     }
     return ret;
   }
@@ -623,7 +619,7 @@ public class JDBCExportModule implements DatabaseExportModule {
   }
 
   protected void handleSimpleTypeDateTimeDataCell(String data, PreparedStatement ps, int index, Cell cell, Type type)
-    throws InvalidDateException, SQLException {
+    throws SQLException {
     SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
     if (dateTime.getTimeDefined()) {
       if ("TIMESTAMP".equalsIgnoreCase(type.getSql99TypeName())

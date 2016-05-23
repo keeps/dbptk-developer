@@ -1,6 +1,10 @@
 package com.databasepreservation.utils;
 
+import java.sql.Timestamp;
+
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.chrono.GJChronology;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -14,6 +18,10 @@ public final class JodaUtils {
   private static DateTimeFormatter xs_date_withouttimezone = DateTimeFormat.forPattern("yyyy-MM-dd");
 
   private JodaUtils() {
+  }
+
+  public static DateTime getDateTime(Timestamp timestamp) {
+    return new DateTime(timestamp, GJChronology.getInstance(DateTimeZone.UTC));
   }
 
   /**
