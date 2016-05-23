@@ -273,8 +273,9 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
       }
     } else if (tag.equalsIgnoreCase(TABLE_KEYWORD)) {
       try {
-        LOGGER.debug("before handle data close");
+        LOGGER.info("Total of " + rowIndex + " row(s) processed");
         databaseExportModule.handleDataCloseTable(currentTable.getId());
+        LOGGER.info("Obtained contents from table '" + currentTable.getId() + "'");
       } catch (ModuleException e) {
         LOGGER.error("An error occurred while handling data close table", e);
       }
