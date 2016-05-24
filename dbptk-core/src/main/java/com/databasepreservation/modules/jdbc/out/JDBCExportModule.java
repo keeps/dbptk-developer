@@ -680,6 +680,7 @@ public class JDBCExportModule implements DatabaseExportModule {
         throw new ModuleException("Could not enable autocommit before creating foreign keys", e);
       }
       handleForeignKeys();
+      statementExecuteAndClearBatch();
     }
     closeConnection();
   }
@@ -697,13 +698,14 @@ public class JDBCExportModule implements DatabaseExportModule {
   }
 
   protected void handleForeignKeys() throws ModuleException {
-    LOGGER.debug("Creating foreign keys");
+    LOGGER.debug("Adding foreign keys");
     for (SchemaStructure schema : databaseStructure.getSchemas()) {
       if (isIgnoredSchema(schema.getName())) {
         continue;
       }
       for (TableStructure table : schema.getTables()) {
 
+        LOGGER.info("Adding foreign keys for table " + table.getId());
         for (ForeignKey fkey : table.getForeignKeys()) {
           String originalReferencedSchema = fkey.getReferencedSchema();
 
@@ -719,14 +721,13 @@ public class JDBCExportModule implements DatabaseExportModule {
           }
 
           String fkeySQL = sqlHelper.createForeignKeySQL(table, fkey);
-          LOGGER.debug("Returned fkey: " + fkeySQL);
+          LOGGER.debug("Foreign key SQL: " + fkeySQL);
           statementAddBatch(fkeySQL);
+          statementExecuteAndClearBatch();
         }
-
       }
     }
-    LOGGER.debug("Getting fkeys finished");
-    statementExecuteAndClearBatch();
+    LOGGER.info("Finished adding foreign keys");
   }
 
   protected void commit() throws SQLException {
