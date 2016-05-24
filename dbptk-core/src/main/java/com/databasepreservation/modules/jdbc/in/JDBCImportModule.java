@@ -1181,7 +1181,7 @@ public class JDBCImportModule implements DatabaseImportModule {
             colStruct.getType(), rawData);
           cells.add(cell);
         } catch (Exception e) {
-          cells.add(new SimpleCell(tableStructure.getName() + "." + colStruct.getName() + "." + (i + 1), null));
+          cells.add(new NullCell(tableStructure.getName() + "." + colStruct.getName() + "." + (i + 1)));
           Reporter.cellProcessingUsedNull(tableStructure, colStruct, currentRow, e);
         }
       }
@@ -1445,7 +1445,6 @@ public class JDBCImportModule implements DatabaseImportModule {
         cell = new NullCell(id);
       }
     }
-    LOGGER.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell) cell).getSimpleData()));
     return cell;
   }
 
