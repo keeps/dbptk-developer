@@ -76,7 +76,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
   private BinaryCell currentBlobCell;
   private SimpleCell currentClobCell;
   private Row row;
-  private int rowIndex;
+  private long rowIndex;
   private long currentTableTotalRows;
 
   private long lastProgressTimestamp;

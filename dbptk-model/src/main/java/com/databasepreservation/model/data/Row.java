@@ -47,7 +47,7 @@ public class Row {
    * @param index
    *          the sequence number of the row in the table
    */
-  public void setIndex(int index) {
+  public void setIndex(long index) {
     this.index = index;
   }
 
