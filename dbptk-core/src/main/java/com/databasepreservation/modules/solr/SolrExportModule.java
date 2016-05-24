@@ -27,7 +27,7 @@ public class SolrExportModule implements DatabaseExportModule {
 
   private ViewerTable currentTable;
 
-  private int rowIndex = 0;
+  private long rowIndex = 0;
 
   public SolrExportModule() {
     String url = "http://127.0.0.1:8983/solr";
