@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<table xsi:schemaLocation="http://www.sa.dk/xmlns/siard/1.0/schema1/table1.xsd table1.xsd" xmlns="http://www.sa.dk/xmlns/siard/1.0/schema1/table1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<table xsi:schemaLocation="http://www.sa.dk/xmlns/siard/1.0/schema0/table1.xsd table1.xsd" xmlns="http://www.sa.dk/xmlns/siard/1.0/schema0/table1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <row>
     <c1>BMU</c1>
     <c2>Bermuda</c2>

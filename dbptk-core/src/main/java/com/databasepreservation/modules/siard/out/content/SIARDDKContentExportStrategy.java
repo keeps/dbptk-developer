@@ -36,7 +36,6 @@ import com.databasepreservation.modules.siard.out.metadata.FileIndexFileStrategy
 import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
-import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
@@ -110,23 +109,14 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     // actual tables are too large
 
     StringBuilder builder = new StringBuilder();
-    builder
-      .append("<?xml version=\"1.0\" encoding=\"")
-      .append(ENCODING)
-      .append("\"?>\n")
+    builder.append("<?xml version=\"1.0\" encoding=\"").append(ENCODING).append("\"?>\n")
 
-      .append("<table xsi:schemaLocation=\"")
-      .append(
-        contentPathExportStrategy.getTableXsdNamespace(namespaceBase, tableStructure.getIndex(),
-          tableStructure.getIndex()))
-      .append(" ")
-      .append(contentPathExportStrategy.getTableXsdFileName(tableStructure.getIndex()))
-      .append("\" ")
+    .append("<table xsi:schemaLocation=\"")
+      .append(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableStructure.getIndex())).append(" ")
+      .append(contentPathExportStrategy.getTableXsdFileName(tableStructure.getIndex())).append("\" ")
       .append("xmlns=\"")
-      .append(
-        contentPathExportStrategy.getTableXsdNamespace(namespaceBase, tableStructure.getIndex(),
-          tableStructure.getIndex())).append("\" ").append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"")
-      .append(">").append("\n");
+      .append(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableStructure.getIndex()))
+      .append("\" ").append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"").append(">").append("\n");
 
     try {
       tableXmlWriter.write(builder.toString());
@@ -139,16 +129,14 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
     // Set namespaces for schema
     Namespace defaultNamespace = Namespace.getNamespace(contentPathExportStrategy.getTableXsdNamespace(namespaceBase,
-      tableStructure.getIndex(), tableStructure.getIndex()));
+      0, tableStructure.getIndex()));
     Namespace xs = Namespace.getNamespace("xs", "http://www.w3.org/2001/XMLSchema");
 
     // Create root element
     Element schema = new Element("schema", xs);
     schema.addNamespaceDeclaration(defaultNamespace);
-    schema.setAttribute(
-      "targetNamespace",
-      contentPathExportStrategy.getTableXsdNamespace(namespaceBase, tableStructure.getIndex(),
-        tableStructure.getIndex()));
+    schema.setAttribute("targetNamespace",
+      contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableStructure.getIndex()));
     schema.setAttribute("elementFormDefault", "qualified");
     schema.setAttribute("attributeFormDefault", "unqualified");
 
@@ -278,7 +266,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
           SimpleCell simpleCell = (SimpleCell) cell;
           if (simpleCell.getSimpleData() != null) {
             tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-              .append(XMLUtils.encode(simpleCell.getSimpleData())).append("</c").append(String.valueOf(columnIndex))
+              .append(encodeText(simpleCell.getSimpleData())).append("</c").append(String.valueOf(columnIndex))
               .append(">\n");
           } else {
             tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
@@ -305,12 +293,12 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
               // CLOB is not NULL
 
               foundClob = true;
-              String clobsData = simpleCell.getSimpleData();
+              String clobsData = simpleCell.getSimpleData().trim();
               lobsTracker.updateMaxClobLength(tableCounter, columnIndex, clobsData.length());
 
               // lobsTracker.addLOB(); // Only if LOB not NULL
               tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-                .append(XMLUtils.encode(clobsData)).append("</c").append(String.valueOf(columnIndex)).append(">\n");
+                .append(encodeText(clobsData)).append("</c").append(String.valueOf(columnIndex)).append(">\n");
             }
 
           } else if (cell instanceof BinaryCell) {
@@ -397,5 +385,15 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
   private void writeColumnElement(int columnIndex, Object value) {
     // TO-DO: implement this
+  }
+
+  private String encodeText(String s) {
+    s = s.trim();
+    s = s.replace("<", "&lt;");
+    s = s.replace(">", "&gt;");
+    s = s.replace("&", "&amp;");
+    s = s.replace("'", "&apos;");
+    s = s.replace("\"", "&quot;");
+    return s;
   }
 }

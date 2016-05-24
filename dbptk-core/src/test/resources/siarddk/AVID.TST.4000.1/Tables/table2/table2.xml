@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<table xsi:schemaLocation="http://www.sa.dk/xmlns/siard/1.0/schema2/table2.xsd table2.xsd" xmlns="http://www.sa.dk/xmlns/siard/1.0/schema2/table2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<table xsi:schemaLocation="http://www.sa.dk/xmlns/siard/1.0/schema0/table2.xsd table2.xsd" xmlns="http://www.sa.dk/xmlns/siard/1.0/schema0/table2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <row>
     <c1>BO</c1>
     <c2>Bornholms Amt</c2>
