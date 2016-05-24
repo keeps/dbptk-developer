@@ -680,7 +680,6 @@ public class JDBCExportModule implements DatabaseExportModule {
         throw new ModuleException("Could not enable autocommit before creating foreign keys", e);
       }
       handleForeignKeys();
-      statementExecuteAndClearBatch();
     }
     closeConnection();
   }
@@ -723,10 +722,11 @@ public class JDBCExportModule implements DatabaseExportModule {
           String fkeySQL = sqlHelper.createForeignKeySQL(table, fkey);
           LOGGER.debug("Foreign key SQL: " + fkeySQL);
           statementAddBatch(fkeySQL);
-          statementExecuteAndClearBatch();
         }
+        statementExecuteAndClearBatch();
       }
     }
+    statementExecuteAndClearBatch();
     LOGGER.info("Finished adding foreign keys");
   }
 
