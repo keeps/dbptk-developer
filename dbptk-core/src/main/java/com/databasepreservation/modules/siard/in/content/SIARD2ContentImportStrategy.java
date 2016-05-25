@@ -201,6 +201,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
     } else if (qName.equalsIgnoreCase(TABLE_KEYWORD)) {
       this.rowIndex = 0;
       try {
+        LOGGER.info("Obtaining contents from table '" + currentTable.getId() + "'");
         databaseExportModule.handleDataOpenTable(currentTable.getId());
       } catch (ModuleException e) {
         LOGGER.error("An error occurred while handling data open table", e);
