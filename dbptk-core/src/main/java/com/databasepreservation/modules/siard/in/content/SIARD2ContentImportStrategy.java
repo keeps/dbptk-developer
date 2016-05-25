@@ -40,11 +40,11 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
-import com.databasepreservation.modules.siard.SIARDHelper;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
+import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -316,7 +316,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
       Type type = currentTable.getColumns().get(columnIndex - 1).getType();
 
       if (type instanceof SimpleTypeString) {
-        localVal = SIARDHelper.decode(localVal);
+        localVal = XMLUtils.decode(localVal);
       }
 
       Cell cell = null;

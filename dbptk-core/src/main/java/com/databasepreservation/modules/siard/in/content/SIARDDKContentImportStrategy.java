@@ -43,11 +43,11 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
-import com.databasepreservation.modules.siard.SIARDHelper;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer.OutputContainerType;
 import com.databasepreservation.modules.siard.in.path.SIARDDKPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
+import com.databasepreservation.utils.XMLUtils;
 
 public class SIARDDKContentImportStrategy extends DefaultHandler implements ContentImportStrategy {
   private static final Logger logger = LoggerFactory.getLogger(SIARDDKContentImportStrategy.class);
@@ -260,7 +260,7 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
                 preparedCellVal = new String(DatatypeConverter.parseHexBinary(preparedCellVal), Charsets.UTF_8);
               } else {
                 if (currentCellType instanceof SimpleTypeString) {
-                  preparedCellVal = SIARDHelper.decode(preparedCellVal);
+                  preparedCellVal = XMLUtils.decode(preparedCellVal);
                 }
               }
               cell = new SimpleCell(id, preparedCellVal);

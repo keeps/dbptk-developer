@@ -44,6 +44,7 @@ import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.JodaUtils;
+import com.databasepreservation.utils.XMLUtils;
 
 import ch.admin.bar.xmlns.siard._1_0.metadata.ActionTimeType;
 import ch.admin.bar.xmlns.siard._1_0.metadata.CandidateKeyType;
@@ -669,7 +670,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     TriggerType triggerType = new TriggerType();
 
     if (StringUtils.isNotBlank(trigger.getName())) {
-      triggerType.setName(SIARDHelper.encode(trigger.getName()));
+      triggerType.setName(XMLUtils.encode(trigger.getName()));
     } else {
       throw new ModuleException("Error while exporting trigger: trigger name key name cannot be blank");
     }
@@ -683,7 +684,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (StringUtils.isNotBlank(trigger.getTriggerEvent())) {
-      triggerType.setTriggerEvent(SIARDHelper.encode(trigger.getTriggerEvent()));
+      triggerType.setTriggerEvent(XMLUtils.encode(trigger.getTriggerEvent()));
     } else {
       throw new ModuleException("Error while exporting trigger: trigger triggerEvent cannot be blank");
     }
@@ -693,7 +694,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (StringUtils.isNotBlank(trigger.getTriggeredAction())) {
-      triggerType.setTriggeredAction(SIARDHelper.encode(trigger.getTriggeredAction()));
+      triggerType.setTriggeredAction(XMLUtils.encode(trigger.getTriggeredAction()));
     } else {
       throw new ModuleException("Error while exporting trigger: trigger triggeredAction cannot be black");
     }
