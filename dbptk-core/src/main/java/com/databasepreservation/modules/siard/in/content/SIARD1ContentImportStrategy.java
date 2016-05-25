@@ -219,15 +219,15 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
         try {
           if (lobDir.endsWith(SIARD1ContentPathExportStrategy.BLOB_EXTENSION)) {
             FileItem fileItem = new FileItem(readStrategy.createInputStream(contentContainer, lobDir));
-            currentBlobCell = new BinaryCell(String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1)
-              .getId(), rowIndex), fileItem);
+            currentBlobCell = new BinaryCell(currentTable.getColumns().get(columnIndex - 1).getId() + "." + rowIndex,
+              fileItem);
 
             LOGGER.debug(String.format("BLOB cell %s on row #%d with lob dir %s", currentBlobCell.getId(), rowIndex,
               lobDir));
           } else if (lobDir.endsWith(SIARD1ContentPathExportStrategy.CLOB_EXTENSION)) {
             String data = IOUtils.toString(readStrategy.createInputStream(contentContainer, lobDir));
-            currentClobCell = new SimpleCell(String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1)
-              .getId(), rowIndex), data);
+            currentClobCell = new SimpleCell(currentTable.getColumns().get(columnIndex - 1).getId() + "." + rowIndex,
+              data);
 
             LOGGER.debug(String.format("CLOB cell %s on row #%d with lob dir %s", currentClobCell.getId(), rowIndex,
               lobDir));
@@ -271,7 +271,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
       for (int i = row.getCells().size() - 1; i >= 0; i--) {
         Cell cell = row.getCells().get(i);
         if (cell == null) {
-          String id = String.format("%s.%d", currentTable.getColumns().get(i).getId(), rowIndex);
+          String id = currentTable.getColumns().get(i).getId() + "." + rowIndex;
           row.getCells().set(i, new NullCell(id));
         }
       }
@@ -312,7 +312,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
       } else if (currentClobCell != null) {
         cell = currentClobCell;
       } else {
-        String id = String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1).getId(), rowIndex);
+        String id = currentTable.getColumns().get(columnIndex - 1).getId() + "." + rowIndex;
 
         if (type instanceof SimpleTypeBinary && StringUtils.isNotBlank(localVal)) {
           // binary data with less than 2000 bytes does not have its own file
