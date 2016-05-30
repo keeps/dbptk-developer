@@ -40,11 +40,11 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
-import com.databasepreservation.modules.siard.SIARDHelper;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.modules.siard.out.path.SIARD1ContentPathExportStrategy;
+import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -76,7 +76,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
   private BinaryCell currentBlobCell;
   private SimpleCell currentClobCell;
   private Row row;
-  private int rowIndex;
+  private long rowIndex;
   private long currentTableTotalRows;
 
   private long lastProgressTimestamp;
@@ -198,6 +198,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
     } else if (qName.equalsIgnoreCase(TABLE_KEYWORD)) {
       this.rowIndex = 0;
       try {
+        LOGGER.info("Obtaining contents from table '" + currentTable.getId() + "'");
         databaseExportModule.handleDataOpenTable(currentTable.getId());
       } catch (ModuleException e) {
         LOGGER.error("An error occurred while handling data open table", e);
@@ -218,15 +219,15 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
         try {
           if (lobDir.endsWith(SIARD1ContentPathExportStrategy.BLOB_EXTENSION)) {
             FileItem fileItem = new FileItem(readStrategy.createInputStream(contentContainer, lobDir));
-            currentBlobCell = new BinaryCell(String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1)
-              .getId(), rowIndex), fileItem);
+            currentBlobCell = new BinaryCell(currentTable.getColumns().get(columnIndex - 1).getId() + "." + rowIndex,
+              fileItem);
 
             LOGGER.debug(String.format("BLOB cell %s on row #%d with lob dir %s", currentBlobCell.getId(), rowIndex,
               lobDir));
           } else if (lobDir.endsWith(SIARD1ContentPathExportStrategy.CLOB_EXTENSION)) {
             String data = IOUtils.toString(readStrategy.createInputStream(contentContainer, lobDir));
-            currentClobCell = new SimpleCell(String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1)
-              .getId(), rowIndex), data);
+            currentClobCell = new SimpleCell(currentTable.getColumns().get(columnIndex - 1).getId() + "." + rowIndex,
+              data);
 
             LOGGER.debug(String.format("CLOB cell %s on row #%d with lob dir %s", currentClobCell.getId(), rowIndex,
               lobDir));
@@ -259,8 +260,9 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
       }
     } else if (tag.equalsIgnoreCase(TABLE_KEYWORD)) {
       try {
-        LOGGER.debug("before handle data close");
+        LOGGER.info("Total of " + rowIndex + " row(s) processed");
         databaseExportModule.handleDataCloseTable(currentTable.getId());
+        LOGGER.info("Obtained contents from table '" + currentTable.getId() + "'");
       } catch (ModuleException e) {
         LOGGER.error("An error occurred while handling data close table", e);
       }
@@ -269,7 +271,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
       for (int i = row.getCells().size() - 1; i >= 0; i--) {
         Cell cell = row.getCells().get(i);
         if (cell == null) {
-          String id = String.format("%s.%d", currentTable.getColumns().get(i).getId(), rowIndex);
+          String id = currentTable.getColumns().get(i).getId() + "." + rowIndex;
           row.getCells().set(i, new NullCell(id));
         }
       }
@@ -301,7 +303,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
       Type type = currentTable.getColumns().get(columnIndex - 1).getType();
 
       if (type instanceof SimpleTypeString) {
-        localVal = SIARDHelper.decode(localVal);
+        localVal = XMLUtils.decode(localVal);
       }
 
       Cell cell = null;
@@ -310,7 +312,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
       } else if (currentClobCell != null) {
         cell = currentClobCell;
       } else {
-        String id = String.format("%s.%d", currentTable.getColumns().get(columnIndex - 1).getId(), rowIndex);
+        String id = currentTable.getColumns().get(columnIndex - 1).getId() + "." + rowIndex;
 
         if (type instanceof SimpleTypeBinary && StringUtils.isNotBlank(localVal)) {
           // binary data with less than 2000 bytes does not have its own file

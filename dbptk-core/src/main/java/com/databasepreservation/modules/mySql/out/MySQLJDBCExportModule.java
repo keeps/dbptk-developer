@@ -160,6 +160,7 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
         statementExecuteAndClearBatch();
       }
     }
+    statementExecuteAndClearBatch();
     LOGGER.debug("Getting fkeys finished");
   }
 

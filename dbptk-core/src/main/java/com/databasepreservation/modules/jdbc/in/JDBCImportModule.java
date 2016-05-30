@@ -25,7 +25,6 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.util.DateParser;
 
 import com.databasepreservation.Main;
 import com.databasepreservation.model.Reporter;
@@ -68,6 +67,7 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
 import com.databasepreservation.modules.SQLHelper;
+import com.databasepreservation.utils.JodaUtils;
 
 import oracle.sql.STRUCT;
 
@@ -779,10 +779,10 @@ public class JDBCImportModule implements DatabaseImportModule {
     // NO --- if the column cannot include NULLs
     // empty string --- if the nullability for the column is unknown
     Boolean isNullable = true;
-    try{
+    try {
       isNullable = "YES".equals(rs.getString(18));
-    }catch (SQLException e){
-      LOGGER.debug("Could not get nullability property of column. current debug message: '"+cLogMessage+"'", e);
+    } catch (SQLException e) {
+      LOGGER.debug("Could not get nullability property of column. current debug message: '" + cLogMessage + "'", e);
     }
     cLogMessage.append("Is Nullable: ").append(isNullable).append("\n");
     // 20. SCOPE_SCHEMA String => schema of table that is the scope of a
@@ -801,8 +801,8 @@ public class JDBCImportModule implements DatabaseImportModule {
     Boolean isAutoIncrement = false;
     try {
       isAutoIncrement = "YES".equals(rs.getString(23));
-    } catch (SQLException e){
-      LOGGER.debug("Could not get auto increment property of column. current debug message: '"+cLogMessage+"'", e);
+    } catch (SQLException e) {
+      LOGGER.debug("Could not get auto increment property of column. current debug message: '" + cLogMessage + "'", e);
     }
     cLogMessage.append("Is auto increment: ").append(isAutoIncrement).append("\n");
     // 24. IS_GENERATEDCOLUMN String => Indicates whether this is a
@@ -1181,7 +1181,7 @@ public class JDBCImportModule implements DatabaseImportModule {
             colStruct.getType(), rawData);
           cells.add(cell);
         } catch (Exception e) {
-          cells.add(new SimpleCell(tableStructure.getName() + "." + colStruct.getName() + "." + (i + 1), null));
+          cells.add(new NullCell(tableStructure.getName() + "." + colStruct.getName() + "." + (i + 1)));
           Reporter.cellProcessingUsedNull(tableStructure, colStruct, currentRow, e);
         }
       }
@@ -1427,15 +1427,14 @@ public class JDBCImportModule implements DatabaseImportModule {
         if (time != null) {
           cell = new SimpleCell(id, time.toString());
         } else {
-          cell = new SimpleCell(id, null);
+          cell = new NullCell(id);
         }
       } else {
         Timestamp timestamp = rawData.getTimestamp(columnName);
         if (timestamp != null) {
-          String isoDate = DateParser.getIsoDate(timestamp);
-          cell = new SimpleCell(id, isoDate);
+          cell = new SimpleCell(id, JodaUtils.getDateTime(timestamp).toString());
         } else {
-          cell = new SimpleCell(id, null);
+          cell = new NullCell(id);
         }
       }
     } else {
@@ -1443,10 +1442,9 @@ public class JDBCImportModule implements DatabaseImportModule {
       if (date != null) {
         cell = new SimpleCell(id, date.toString());
       } else {
-        cell = new SimpleCell(id, null);
+        cell = new NullCell(id);
       }
     }
-    LOGGER.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell) cell).getSimpleData()));
     return cell;
   }
 

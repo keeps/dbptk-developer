@@ -10,7 +10,6 @@ import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.util.InvalidDateException;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
@@ -161,17 +160,17 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
     try {
       if (!currentIsIgnoredSchema) {
         getStatement().executeUpdate(
-          ((PostgreSQLHelper) getSqlHelper()).grantPermissionsSQL(currentTableStructure.getId()));
+          ((PostgreSQLHelper) getSqlHelper()).grantPermissionsSQL(tableId));
       }
     } catch (SQLException e) {
-      throw new ModuleException("Error granting permissions to public", e);
+      LOGGER.error("Error granting public read access permissions on table " + tableId, e);
     }
     super.handleDataCloseTable(tableId);
   }
 
   @Override
   protected void handleSimpleTypeDateTimeDataCell(String data, PreparedStatement ps, int index, Cell cell, Type type)
-    throws InvalidDateException, SQLException {
+    throws SQLException {
     SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
     if (dateTime.getTimeDefined()) {
       if ("TIME WITH TIME ZONE".equalsIgnoreCase(type.getSql99TypeName())) {

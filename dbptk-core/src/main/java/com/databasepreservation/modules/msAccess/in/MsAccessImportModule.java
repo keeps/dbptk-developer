@@ -13,9 +13,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.util.DateParser;
 
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
@@ -132,7 +132,8 @@ public class MsAccessImportModule extends ODBCImportModule {
         cell = new NullCell(id);
       } else {
         try {
-          cell = new SimpleCell(id, DateParser.getIsoDateNoMillis(accessDateFormat.parse(dateString)));
+          DateTime isoDateTime = new DateTime(accessDateFormat.parse(dateString));
+          cell = new SimpleCell(id, isoDateTime.toString());
         } catch (ParseException e) {
           throw new InvalidDataException("Invalid date found in cell " + id + ": " + dateString);
         }

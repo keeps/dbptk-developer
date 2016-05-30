@@ -168,11 +168,6 @@
                 <version>1.9</version>
             </dependency>
             <dependency>
-                <groupId>org.w3c</groupId>
-                <artifactId>w3c-utils</artifactId>
-                <version>1.0.0</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-compress</artifactId>
                 <version>1.7</version>
