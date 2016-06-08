@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
+import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
@@ -263,8 +264,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
           // cell must be a SimpleCell since it is not registered in the
           // LOBsTracker
 
-          SimpleCell simpleCell = (SimpleCell) cell;
-          if (simpleCell.getSimpleData() != null) {
+          if (!(cell instanceof NullCell)) {
+            SimpleCell simpleCell = (SimpleCell) cell;
             tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
               .append(encodeText(simpleCell.getSimpleData())).append("</c").append(String.valueOf(columnIndex))
               .append(">\n");
