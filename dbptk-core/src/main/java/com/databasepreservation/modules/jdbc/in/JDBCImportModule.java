@@ -1218,7 +1218,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       boolean booleanValue = rawData.getBoolean(columnName);
       boolean wasNull = rawData.wasNull();
       if (wasNull) {
-        cell = new SimpleCell(id, null);
+        cell = new NullCell(id);
       } else {
         cell = new SimpleCell(id, booleanValue ? "true" : "false");
       }
@@ -1240,6 +1240,13 @@ public class JDBCImportModule implements DatabaseImportModule {
       cell = rawToCellSimpleTypeNumericExact(id, columnName, cellType, rawData);
     } else {
       try {
+        // NOTE: the rawData.wasNull() approach is strangely enough not working,
+        // but the rawData.getString(columnName) == null approach is ?!
+
+        // System.out.println("rawData = " + rawData.getString(columnName));
+        // if (rawData.wasNull()) {
+        // cell = new NullCell(id);
+        // }
         if (rawData.getString(columnName) == null) {
           cell = new NullCell(id);
         } else {

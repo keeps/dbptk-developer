@@ -266,6 +266,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
           if (!(cell instanceof NullCell)) {
             SimpleCell simpleCell = (SimpleCell) cell;
+            // System.out.println("SimpleData = " + simpleCell.getSimpleData());
             tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
               .append(encodeText(simpleCell.getSimpleData())).append("</c").append(String.valueOf(columnIndex))
               .append(">\n");
