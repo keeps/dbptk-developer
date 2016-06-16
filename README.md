@@ -1,5 +1,44 @@
-Database Preservation Toolkit
-=============================
+# Database Preservation
+
+Relational databases are one of the most important technologies supporting today’s information management activities. They are designed to store, organize and explore digital records that not only support but also document day-to-day business operations. Very often, these records are irreplaceable or prohibitively expensive to reacquire by other means rendering the preservation of databases a serious concern.
+
+This page focus on workflows, tools and standards to allow information managers to extract, archive and preserve records of information currently managed by relational databases. 
+
+The most relevant initiatives in this context are the Database Preservation Toolkit, the Database Visualization Toolkit and the SIARD 2.0 preservation format. 
+
+The following screencast aims to illustrate how all these tools fit together in a full-cycle archiving and preservation workflow for relational databases.
+
+[![Database preservation workflow screencast](https://img.youtube.com/vi/nPWmOH6pQwY/0.jpg)](https://www.youtube.com/watch?v=nPWmOH6pQwY)
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/nPWmOH6pQwY" frameborder="0" allowfullscreen></iframe>
+
+More detailed information about these tools and standards can be found on the following sections.
+
+## RODA – A digital repository made for preservation
+
+RODA is a complete digital repository solution that delivers functionality for all the main functional units of the OAIS reference model. RODA is capable of ingesting, managing and providing access to the various types of digital content produced by large corporations or public bodies. RODA is based on open-source technologies and is supported by existing standards such as the Open Archival Information System (OAIS), Metadata Encoding and Transmission Standard (METS), Encoded Archival Description (EAD), Dublin Core (DC) and PREMIS (Preservation Metadata).
+
+For more information please visit https://github.com/keeps/roda 
+
+## RODA-in – The ultimate SIP creation tool
+
+RODA-in is a tool specially designed for producers and archivists to create Submission Information Packages (SIP) ready to be submitted to an Open Archival Information System (OAIS). The tool creates SIPs from files and folders available on the local file system.
+
+In version 2 we revolutionized the way SIPs are created to satisfy the need for mass processing of data. In this version you can create thousands of valid SIPs with just a few clicks, complete with data and metadata.
+
+The tool includes features such as:
+
+* Create, load and edit classification schemas
+* Automatic association of files/folders to SIP
+* Automatic association of metadata to SIP
+* Definition of metadata templates
+* Support for various metadata formats (EAD, DC, etc.)
+* Creation of SIP of unlimited size
+* Creation of SIP in various formats: BagIt and E-ARK
+
+For more information please visit https://github.com/keeps/roda-in 
+
+# Database Preservation Toolkit
 
 The Database Preservation Toolkit allows conversion between Database formats, including connection to live systems, for purposes of digitally preserving databases. The toolkit allows conversion of live or backed-up databases into preservation formats such as **SIARD**, a XML-based format created for the purpose of database preservation. The toolkit also allows conversion of the preservation formats back into live systems to allow the full functionality of databases.
 
