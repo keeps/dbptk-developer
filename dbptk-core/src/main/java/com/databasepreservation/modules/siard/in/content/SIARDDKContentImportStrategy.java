@@ -32,6 +32,7 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
@@ -253,8 +254,7 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
             throw new SAXException(ex);
           } else {
             if (isInNullValueCell) {
-              // fixme: use NullCell to represent NULL
-              cell = new SimpleCell(id, null);
+              cell = new NullCell(id);
             } else {
               if (xsdCellType != null && xsdCellType.getTypeName().equalsIgnoreCase("hexBinary")) {
                 preparedCellVal = new String(DatatypeConverter.parseHexBinary(preparedCellVal), Charsets.UTF_8);

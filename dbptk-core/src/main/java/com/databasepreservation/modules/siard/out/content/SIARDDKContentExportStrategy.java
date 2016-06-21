@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
+import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
@@ -263,8 +264,9 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
           // cell must be a SimpleCell since it is not registered in the
           // LOBsTracker
 
-          SimpleCell simpleCell = (SimpleCell) cell;
-          if (simpleCell.getSimpleData() != null) {
+          if (!(cell instanceof NullCell)) {
+            SimpleCell simpleCell = (SimpleCell) cell;
+            // System.out.println("SimpleData = " + simpleCell.getSimpleData());
             tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
               .append(encodeText(simpleCell.getSimpleData())).append("</c").append(String.valueOf(columnIndex))
               .append(">\n");
@@ -276,30 +278,25 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
         } else {
           // cell must contain BLOB or CLOB
 
-          if (cell instanceof SimpleCell) {
+          if (cell instanceof NullCell) {
+            tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
+              .append(" xsi:nil=\"true\"/>").append("\n");
+          } else if (cell instanceof SimpleCell) {
+
+            // CLOB is not NULL
 
             // CLOB case - save as string
             // TO-DO: handle case, where CLOB is archived as tiff
 
             SimpleCell simpleCell = (SimpleCell) cell;
-            if (simpleCell.getSimpleData() == null) {
 
-              // CLOB is NULL
+            foundClob = true;
+            String clobsData = simpleCell.getSimpleData().trim();
+            lobsTracker.updateMaxClobLength(tableCounter, columnIndex, clobsData.length());
 
-              tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
-                .append(" xsi:nil=\"true\"/>").append("\n");
-            } else {
-
-              // CLOB is not NULL
-
-              foundClob = true;
-              String clobsData = simpleCell.getSimpleData().trim();
-              lobsTracker.updateMaxClobLength(tableCounter, columnIndex, clobsData.length());
-
-              // lobsTracker.addLOB(); // Only if LOB not NULL
-              tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-                .append(encodeText(clobsData)).append("</c").append(String.valueOf(columnIndex)).append(">\n");
-            }
+            // lobsTracker.addLOB(); // Only if LOB not NULL
+            tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
+              .append(encodeText(clobsData)).append("</c").append(String.valueOf(columnIndex)).append(">\n");
 
           } else if (cell instanceof BinaryCell) {
 
@@ -307,71 +304,63 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
             final BinaryCell binaryCell = (BinaryCell) cell;
 
-            if (binaryCell.createInputstream() == null) {
+            // BLOB is not NULL
 
-              // BLOB is NULL
+            lobsTracker.addLOB(); // Only if LOB not NULL
 
-              tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
-                .append(" xsi:nil=\"true\"/>").append("\n");
+            // Determine the mimetype (Tika should use an inputstream which
+            // supports marks)
 
+            InputStream is = new BufferedInputStream(binaryCell.createInputstream());
+            String mimeType = tika.detect(is); // Automatically resets the
+                                               // inputstream after use
+
+            // Archive BLOB - simultaneous writing always supported for
+            // SIARDDK
+
+            tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
+              .append(Integer.toString(lobsTracker.getLOBsCount())).append("</c").append(String.valueOf(columnIndex))
+              .append(">\n");
+
+            String path = contentPathExportStrategy.getBlobFilePath(-1, -1, -1, -1);
+            String fileExtension;
+            if (mimetypeHandler.isMimetypeAllowed(mimeType)) {
+              fileExtension = mimetypeHandler.getFileExtension(mimeType);
             } else {
-
-              // BLOB is not NULL
-
-              lobsTracker.addLOB(); // Only if LOB not NULL
-
-              // Determine the mimetype (Tika should use an inputstream which
-              // supports marks)
-
-              InputStream is = new BufferedInputStream(binaryCell.createInputstream());
-              String mimeType = tika.detect(is); // Automatically resets the
-                                                 // inputstream after use
-
-              // Archive BLOB - simultaneous writing always supported for
-              // SIARDDK
-
-              tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-                .append(Integer.toString(lobsTracker.getLOBsCount())).append("</c").append(String.valueOf(columnIndex))
-                .append(">\n");
-
-              String path = contentPathExportStrategy.getBlobFilePath(-1, -1, -1, -1);
-              String fileExtension;
-              if (mimetypeHandler.isMimetypeAllowed(mimeType)) {
-                fileExtension = mimetypeHandler.getFileExtension(mimeType);
-              } else {
-                fileExtension = SIARDDKConstants.UNKNOWN_MIMETYPE_BLOB_EXTENSION;
-                // Log (table level) that unknown BLOB mimetype was detected
-                foundUnknownMimetype = true;
-              }
-              path += fileExtension;
-
-              LargeObject blob = new LargeObject(new ProvidesInputStream() {
-                @Override
-                public InputStream createInputStream() throws ModuleException {
-                  return binaryCell.createInputstream();
-                }
-              }, path);
-
-              // Create new FileIndexFileStrategy
-
-              // Write the BLOB
-              OutputStream out = fileIndexFileStrategy.getLOBWriter(baseContainer, blob.getOutputPath(), writeStrategy);
-              InputStream in = blob.getInputStreamProvider().createInputStream();
-              IOUtils.copy(in, out);
-              in.close();
-              out.close();
-
-              // Add file to docIndex (a lot easier to do here even though we
-              // are dealing with metadata)
-
-              // TO-DO: obtain (how?) hardcoded values
-              docIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1, lobsTracker.getDocCollectionCount(),
-                "originalFilename", fileExtension, null);
-
-              // Add file to fileIndex
-              fileIndexFileStrategy.addFile(blob.getOutputPath());
-
+              fileExtension = SIARDDKConstants.UNKNOWN_MIMETYPE_BLOB_EXTENSION;
+              // Log (table level) that unknown BLOB mimetype was detected
+              foundUnknownMimetype = true;
             }
+            path += fileExtension;
+
+            LargeObject blob = new LargeObject(new ProvidesInputStream() {
+              @Override
+              public InputStream createInputStream() throws ModuleException {
+                return binaryCell.createInputstream();
+              }
+            }, path);
+
+            // Create new FileIndexFileStrategy
+
+            // Write the BLOB
+            OutputStream out = fileIndexFileStrategy.getLOBWriter(baseContainer, blob.getOutputPath(), writeStrategy);
+            InputStream in = blob.getInputStreamProvider().createInputStream();
+            IOUtils.copy(in, out);
+            in.close();
+            out.close();
+
+            // Add file to docIndex (a lot easier to do here even though we
+            // are dealing with metadata)
+
+            // TO-DO: obtain (how?) hardcoded values
+            docIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1, lobsTracker.getDocCollectionCount(),
+              "originalFilename", fileExtension, null);
+
+            // Add file to fileIndex
+            fileIndexFileStrategy.addFile(blob.getOutputPath());
+
+          } else {
+            // never happens
           }
         }
       }
