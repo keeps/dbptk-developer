@@ -2,11 +2,11 @@ package com.databasepreservation.modules.solr;
 
 import java.util.Set;
 
-import com.databasepreservation.dbviewer.client.ViewerStructure.ViewerDatabaseFromToolkit;
-import com.databasepreservation.dbviewer.client.ViewerStructure.ViewerTable;
-import com.databasepreservation.dbviewer.transformers.ToolkitStructure2ViewerStructure;
-import com.databasepreservation.dbviewer.utils.SolrManager;
-import com.databasepreservation.dbviewer.utils.SolrUtils;
+import com.databasepreservation.visualization.client.ViewerStructure.ViewerDatabaseFromToolkit;
+import com.databasepreservation.visualization.client.ViewerStructure.ViewerTable;
+import com.databasepreservation.visualization.transformers.ToolkitStructure2ViewerStructure;
+import com.databasepreservation.visualization.utils.SolrManager;
+import com.databasepreservation.visualization.utils.SolrUtils;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;

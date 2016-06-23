@@ -97,8 +97,8 @@
             <artifactId>dbptk-bindings-siarddk</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.databasepreservation.dbviewer</groupId>
-            <artifactId>dbviewer-model</artifactId>
+            <groupId>com.databasepreservation.visualization</groupId>
+            <artifactId>dbvtk-model</artifactId>
         </dependency>
 
         <!-- normal -->
