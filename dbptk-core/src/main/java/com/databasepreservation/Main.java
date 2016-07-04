@@ -69,7 +69,7 @@ public class Main {
 
   public static int internal_main(CLI cli) {
     logProgramStart();
-    cli.logOperativeSystemInfo();
+    cli.logOperatingSystemInfo();
 
     int exitStatus = EXIT_CODE_GENERIC_ERROR;
     if (cli.usingUTF8()) {

@@ -564,16 +564,16 @@ public class CLI {
   }
 
   /**
-   * Get operative system information.
+   * Get operating system information.
    *
    * @return An order-preserving map which keys are a description (String) of
    *         the information contained in the values (which are also of type
    *         String).
    */
-  private HashMap<String, String> getOperativeSystemInfo() {
+  private HashMap<String, String> getOperatingSystemInfo() {
     LinkedHashMap<String, String> result = new LinkedHashMap<>();
 
-    result.put("Operative system", System.getProperty("os.name", "unknown"));
+    result.put("Operating system", System.getProperty("os.name", "unknown"));
     result.put("Architecture", System.getProperty("os.arch", "unknown"));
     result.put("Version", System.getProperty("os.version", "unknown"));
     result.put("Java vendor", System.getProperty("java.vendor", "unknown"));
@@ -588,10 +588,10 @@ public class CLI {
   }
 
   /**
-   * Logs operative system information
+   * Logs operating system information
    */
-  public void logOperativeSystemInfo() {
-    for (Map.Entry<String, String> entry : getOperativeSystemInfo().entrySet()) {
+  public void logOperatingSystemInfo() {
+    for (Map.Entry<String, String> entry : getOperatingSystemInfo().entrySet()) {
       LOGGER.debug(entry.getKey() + ": " + entry.getValue());
     }
   }
