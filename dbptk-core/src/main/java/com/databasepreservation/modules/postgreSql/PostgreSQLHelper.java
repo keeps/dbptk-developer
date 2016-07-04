@@ -59,16 +59,13 @@ public class PostgreSQLHelper extends SQLHelper {
   /**
    * Grant table read permissions to table schema
    *
-   * @param tableName
+   * @param tableId
    *          the table id
    * @return the SQL
    * @throws ModuleException
    */
   public String grantPermissionsSQL(String tableId) throws ModuleException {
-    String[] parts = splitTableId(tableId);
-    String schema = parts[0];
-    String table = parts[1];
-    return "GRANT SELECT ON " + escapeSchemaName(schema) + "." + escapeTableName(table) + " TO PUBLIC";
+    return "GRANT SELECT ON " + escapeTableId(tableId) + " TO PUBLIC";
   }
 
   @Override

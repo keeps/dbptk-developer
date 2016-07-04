@@ -779,6 +779,17 @@ public class JDBCExportModule implements DatabaseExportModule {
         reasonForFailing = e.getMessage();
         LOGGER.debug("Got a batch update exception while executing a batch statement", e);
 
+        // handle next-exceptions
+        int maxNextException = 10;
+        SQLException sqlException = e.getNextException();
+        while (sqlException != null && maxNextException >= 0) {
+          // log exception
+          LOGGER.debug("Next exception", sqlException);
+          // go deeper
+          sqlException = sqlException.getNextException();
+          maxNextException--;
+        }
+
         // some implementations continue running the queries in the batch,
         // others do not. for those which do, at least one element in the result
         // array will have a value of EXECUTE_FAILED. Dealing with that here:
