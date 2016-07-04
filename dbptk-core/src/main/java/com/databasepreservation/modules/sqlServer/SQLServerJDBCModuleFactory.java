@@ -47,7 +47,7 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
     .description("the name of the instance").hasArgument(true).setOptionalArgument(false).required(false);
 
   private static final Parameter portNumber = new Parameter().shortName("pn").longName("port-number")
-    .description("the port number of the server instance").hasArgument(true).setOptionalArgument(false).required(false);
+    .description("the server port number").hasArgument(true).setOptionalArgument(false).required(false);
 
   private static final ParameterGroup instanceName_portNumber = new ParameterGroup(false, instanceName, portNumber);
 

@@ -41,7 +41,7 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
     .valueIfNotSet("false").valueIfSet("true");
 
   private static final Parameter portNumber = new Parameter().shortName("pn").longName("port-number")
-    .description("the port of where the PostgreSQL server is listening, default is 5432").hasArgument(true)
+    .description("the PostgreSQL server port number, default is 5432").hasArgument(true)
     .setOptionalArgument(false).required(false).valueIfNotSet("5432");
 
   @Override

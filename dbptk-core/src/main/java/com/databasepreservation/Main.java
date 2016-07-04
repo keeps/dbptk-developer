@@ -131,7 +131,7 @@ public class Main {
         && "sun.jdbc.odbc.JdbcOdbcDriver".equals(e.getCause().getMessage())) {
         LOGGER.error("Could not find the Java ODBC driver, "
           + "please run this program under Windows to use the JDBC-ODBC bridge.", e.getCause());
-      } else if ("SQL error while conecting".equalsIgnoreCase(e.getMessage())) {
+      } else if ("SQL error while connecting".equalsIgnoreCase(e.getMessage())) {
         LOGGER.error("Connection error while importing/exporting", e);
         exitStatus = EXIT_CODE_CONNECTION_ERROR;
       }

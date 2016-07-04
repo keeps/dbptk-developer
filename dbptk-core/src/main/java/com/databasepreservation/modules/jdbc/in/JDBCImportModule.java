@@ -1562,7 +1562,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       LOGGER.debug("Freeing resources");
       handler.finishDatabase();
     } catch (SQLException e) {
-      throw new ModuleException("SQL error while conecting", e);
+      throw new ModuleException("SQL error while connecting", e);
     } catch (ClassNotFoundException e) {
       throw new ModuleException("JDBC driver class could not be found", e);
     } finally {
