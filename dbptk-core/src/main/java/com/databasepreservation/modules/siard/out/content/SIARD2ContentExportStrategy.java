@@ -212,8 +212,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     BinaryCell binaryCell = (BinaryCell) cell;
 
     long length = binaryCell.getLength();
-    if (length == 0) {
-      // TODO: make sure this never happens
+    if (length <= 0) {
       NullCell nullCell = new NullCell(binaryCell.getId());
       writeNullCellData(nullCell, columnIndex);
     } else if (Sql2008toXSDType.isLargeType(column.getType()) && length > THRESHOLD_TREAT_BINARY_AS_BLOB) {

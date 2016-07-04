@@ -333,10 +333,13 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
           try {
             InputStream is = new ByteArrayInputStream(Hex.decodeHex(localVal.toCharArray()));
             cell = new BinaryCell(id, new FileItem(is));
+            is.close();
           } catch (ModuleException e) {
             LOGGER.error("An error occurred while importing in-table binary cell", e);
           } catch (DecoderException e) {
             LOGGER.error(String.format("Illegal characters in hexadecimal string \"%s\"", localVal), e);
+          } catch (IOException e) {
+            LOGGER.error("Problem closing the byte array input stream", e);
           }
         } else {
           cell = new SimpleCell(id, localVal);

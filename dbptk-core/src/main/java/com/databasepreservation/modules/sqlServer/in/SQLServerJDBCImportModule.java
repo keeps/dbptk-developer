@@ -49,13 +49,10 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
    */
   public SQLServerJDBCImportModule(String serverName, String database, String username, String password,
     boolean integratedSecurity, boolean encrypt) {
-    super("com.microsoft.sqlserver.jdbc.SQLServerDriver", "jdbc:sqlserver://" + serverName + ";database=" + database
-      + ";user=" + username + ";password=" + password + ";integratedSecurity="
-      + (integratedSecurity ? "true" : "false") + ";encrypt=" + (encrypt ? "true" : "false"), new SQLServerHelper(),
-      new SQLServerDatatypeImporter());
-
-    System.setProperty("java.net.preferIPv6Addresses", "true");
-
+    super("com.microsoft.sqlserver.jdbc.SQLServerDriver", new StringBuilder("jdbc:sqlserver://").append(serverName)
+      .append(";database=").append(database).append(";user=").append(username).append(";password=").append(password)
+      .append(";integratedSecurity=").append(integratedSecurity).append(";encrypt=").append(encrypt).toString(),
+      new SQLServerHelper(), new SQLServerDatatypeImporter());
   }
 
   /**
@@ -80,11 +77,10 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
    */
   public SQLServerJDBCImportModule(String serverName, String instanceName, String database, String username,
     String password, boolean integratedSecurity, boolean encrypt) {
-    super("com.microsoft.sqlserver.jdbc.SQLServerDriver", "jdbc:sqlserver://" + serverName + "\\" + instanceName
-      + ";database=" + database + ";user=" + username + ";password=" + password + ";integratedSecurity="
-      + (integratedSecurity ? "true" : "false") + ";encrypt=" + (encrypt ? "true" : "false"), new SQLServerHelper(),
-      new SQLServerDatatypeImporter());
-
+    super("com.microsoft.sqlserver.jdbc.SQLServerDriver", new StringBuilder("jdbc:sqlserver://").append(serverName)
+      .append("\\").append(instanceName).append(";database=").append(database).append(";user=").append(username)
+      .append(";password=").append(password).append(";integratedSecurity=").append(integratedSecurity)
+      .append(";encrypt=").append(encrypt).toString(), new SQLServerHelper(), new SQLServerDatatypeImporter());
   }
 
   /**
@@ -107,11 +103,10 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
    */
   public SQLServerJDBCImportModule(String serverName, int portNumber, String database, String username,
     String password, boolean integratedSecurity, boolean encrypt) {
-    super("com.microsoft.sqlserver.jdbc.SQLServerDriver", "jdbc:sqlserver://" + serverName + ":" + portNumber
-      + ";database=" + database + ";user=" + username + ";password=" + password + ";integratedSecurity="
-      + (integratedSecurity ? "true" : "false") + ";encrypt=" + (encrypt ? "true" : "false"), new SQLServerHelper(),
-      new SQLServerDatatypeImporter());
-
+    super("com.microsoft.sqlserver.jdbc.SQLServerDriver", new StringBuilder("jdbc:sqlserver://").append(serverName)
+      .append(":").append(portNumber).append(";database=").append(database).append(";user=").append(username)
+      .append(";password=").append(password).append(";integratedSecurity=").append(integratedSecurity)
+      .append(";encrypt=").append(encrypt).toString(), new SQLServerHelper(), new SQLServerDatatypeImporter());
   }
 
   @Override

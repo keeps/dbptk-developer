@@ -47,8 +47,7 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
     .description("the name of the instance").hasArgument(true).setOptionalArgument(false).required(false);
 
   private static final Parameter portNumber = new Parameter().shortName("pn").longName("port-number")
-    .description("the port number of the server instance, default is 1433").hasArgument(true)
-    .setOptionalArgument(false).required(false).valueIfNotSet("1433");
+    .description("the port number of the server instance").hasArgument(true).setOptionalArgument(false).required(false);
 
   private static final ParameterGroup instanceName_portNumber = new ParameterGroup(false, instanceName, portNumber);
 
@@ -153,15 +152,19 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
     Integer pPortNumber = null;
     if (StringUtils.isNotBlank(parameters.get(portNumber))) {
       pPortNumber = Integer.parseInt(parameters.get(portNumber));
-    } else {
-      pPortNumber = Integer.parseInt(portNumber.valueIfNotSet());
     }
     String pInstanceName = null;
     if (StringUtils.isNotBlank(parameters.get(instanceName))) {
       pInstanceName = parameters.get(instanceName);
     }
 
-    if (pInstanceName != null) {
+    if (pPortNumber != null) {
+      Reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
+        pUsername, "password", Reporter.MESSAGE_FILTERED_PASSWORD, "integrated login",
+        String.valueOf(pUseIntegratedLogin), "port number", pPortNumber.toString());
+      return new SQLServerJDBCExportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword,
+        pUseIntegratedLogin, pEncrypt);
+    } else if (pInstanceName != null) {
       Reporter.exportModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
         pUsername, "password", Reporter.MESSAGE_FILTERED_PASSWORD, "integrated login",
         String.valueOf(pUseIntegratedLogin), "instance name", pInstanceName);
@@ -170,9 +173,8 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
     } else {
       Reporter.exportModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
         pUsername, "password", Reporter.MESSAGE_FILTERED_PASSWORD, "integrated login",
-        String.valueOf(pUseIntegratedLogin), "port number", pPortNumber.toString());
-      return new SQLServerJDBCExportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword,
-        pUseIntegratedLogin, pEncrypt);
+        String.valueOf(pUseIntegratedLogin));
+      return new SQLServerJDBCExportModule(pServerName, pDatabase, pUsername, pPassword, pUseIntegratedLogin, pEncrypt);
     }
   }
 }
