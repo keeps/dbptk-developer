@@ -45,10 +45,10 @@ public class SQLServerJDBCExportModule extends JDBCExportModule {
    */
   public SQLServerJDBCExportModule(String serverName, String database, String username, String password,
     boolean integratedSecurity, boolean encrypt) {
-    super("com.microsoft.sqlserver.jdbc.SQLServerDriver", "jdbc:sqlserver://" + serverName + ";database=" + database
-      + ";integratedSecurity=" + (integratedSecurity ? "true" : "false") + ";encrypt=" + (encrypt ? "true" : "false"),
+    super("com.microsoft.sqlserver.jdbc.SQLServerDriver", new StringBuilder("jdbc:sqlserver://").append(serverName)
+      .append(";database=").append(database).append(";user=").append(username).append(";password=").append(password)
+      .append(";integratedSecurity=").append(integratedSecurity).append(";encrypt=").append(encrypt).toString(),
       new SQLServerHelper());
-
   }
 
   /**
@@ -73,10 +73,10 @@ public class SQLServerJDBCExportModule extends JDBCExportModule {
    */
   public SQLServerJDBCExportModule(String serverName, String instanceName, String database, String username,
     String password, boolean integratedSecurity, boolean encrypt) {
-    super("com.microsoft.sqlserver.jdbc.SQLServerDriver", "jdbc:sqlserver://" + serverName + "\\" + instanceName
-      + ";database=" + database + ";user=" + username + ";password=" + password + ";integratedSecurity="
-      + (integratedSecurity ? "true" : "false") + ";encrypt=" + (encrypt ? "true" : "false"), new SQLServerHelper());
-
+    super("com.microsoft.sqlserver.jdbc.SQLServerDriver", new StringBuilder("jdbc:sqlserver://").append(serverName)
+      .append("\\").append(instanceName).append(";database=").append(database).append(";user=").append(username)
+      .append(";password=").append(password).append(";integratedSecurity=").append(integratedSecurity)
+      .append(";encrypt=").append(encrypt).toString(), new SQLServerHelper());
   }
 
   /**
@@ -99,10 +99,10 @@ public class SQLServerJDBCExportModule extends JDBCExportModule {
    */
   public SQLServerJDBCExportModule(String serverName, int portNumber, String database, String username,
     String password, boolean integratedSecurity, boolean encrypt) {
-    super("com.microsoft.sqlserver.jdbc.SQLServerDriver", "jdbc:sqlserver://" + serverName + ":" + portNumber
-      + ";database=" + database + ";user=" + username + ";password=" + password + ";integratedSecurity="
-      + (integratedSecurity ? "true" : "false") + ";encrypt=" + (encrypt ? "true" : "false"), new SQLServerHelper());
-
+    super("com.microsoft.sqlserver.jdbc.SQLServerDriver", new StringBuilder("jdbc:sqlserver://").append(serverName)
+      .append(":").append(portNumber).append(";database=").append(database).append(";user=").append(username)
+      .append(";password=").append(password).append(";integratedSecurity=").append(integratedSecurity)
+      .append(";encrypt=").append(encrypt).toString(), new SQLServerHelper());
   }
 
   @Override
@@ -128,7 +128,7 @@ public class SQLServerJDBCExportModule extends JDBCExportModule {
       }
 
     } else {
-      super.handleDataCell(ps, index, cell, type);
+      return super.handleDataCell(ps, index, cell, type);
     }
     return ret;
   }
