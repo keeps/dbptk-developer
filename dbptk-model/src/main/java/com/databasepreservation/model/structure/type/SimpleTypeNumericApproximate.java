@@ -18,7 +18,7 @@ public class SimpleTypeNumericApproximate extends Type {
   }
 
   /**
-   * Exact numeric, like floating point, with optional fields.
+   * Approximate numeric, like floating point, with optional fields.
    *
    * @param precision
    *          the number of digits (optional)
