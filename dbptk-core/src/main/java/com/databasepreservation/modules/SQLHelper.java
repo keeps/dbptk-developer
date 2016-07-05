@@ -407,6 +407,10 @@ public class SQLHelper {
     return getStartQuote() + viewName + getEndQuote();
   }
 
+  public String escapeViewName(String schemaName, String viewName) {
+    return escapeSchemaName(schemaName) + getSeparatorSchemaTable() + escapeViewName(viewName);
+  }
+
   protected String escapeColumnName(String column) {
     return getStartQuote() + column + getEndQuote();
   }
