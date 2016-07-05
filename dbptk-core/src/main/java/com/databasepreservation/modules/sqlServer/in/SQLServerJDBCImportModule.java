@@ -5,8 +5,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import com.databasepreservation.model.Reporter;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +18,7 @@ import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.FileItem;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
@@ -197,5 +201,47 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
     // note that SQL Server does not support BEFORE triggers
 
     return res;
+  }
+
+  @Override
+  protected List<ViewStructure> getViews(String schemaName) throws SQLException, ClassNotFoundException {
+    final String fieldName = "objdefinition";
+    final String defaultValue = "unknown";
+
+    List<ViewStructure> views = super.getViews(schemaName);
+    for (ViewStructure v : views) {
+      Statement statement = getConnection().createStatement();
+      String originalQuery = null;
+
+      try {
+        // https://technet.microsoft.com/en-us/library/ms175067.aspx
+        String query = "SELECT OBJECT_DEFINITION (OBJECT_ID(" + sqlHelper.escapeViewName(schemaName, v.getName())
+          + ")) AS " + fieldName;
+        ResultSet rset = statement.executeQuery(query);
+        rset.next();
+        originalQuery = rset.getString(fieldName);
+      } catch (Exception e) {
+        LOGGER.debug("Exception trying to get view SQL in SQL Server (method #1)", e);
+      }
+
+      try {
+        // https://technet.microsoft.com/en-us/library/ms175067.aspx
+        String query = "SELECT " + fieldName + " FROM sys.sql_modules WHERE object_id = OBJECT_ID("
+          + sqlHelper.escapeViewName(schemaName, v.getName()) + ")";
+        ResultSet rset = statement.executeQuery(query);
+        rset.next();
+        originalQuery = rset.getString(fieldName);
+      } catch (Exception e) {
+        LOGGER.debug("Exception trying to get view SQL in SQL Server (method #2)", e);
+      }
+
+      if (StringUtils.isBlank(originalQuery)) {
+        originalQuery = defaultValue;
+        Reporter.customMessage("SQLServerJDBCImportModule", "Could not obtain SQL statement for view " + sqlHelper.escapeViewName(schemaName, v.getName()));
+      }
+
+      v.setQueryOriginal(originalQuery);
+    }
+    return views;
   }
 }
