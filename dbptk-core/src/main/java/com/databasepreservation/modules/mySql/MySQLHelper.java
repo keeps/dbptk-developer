@@ -38,6 +38,16 @@ public class MySQLHelper extends SQLHelper {
   private String endQuote = "`";
 
   @Override
+  protected String escapeTableId(String tableId) throws ModuleException {
+    String[] parts = splitTableId(tableId);
+    // String schema = parts[0];
+    String table = parts[1];
+
+    // return the escaped table name, because mysql schemas are handled as databases
+    return escapeTableName(table);
+  }
+
+  @Override
   public String getName() {
     return name;
   }

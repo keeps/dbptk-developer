@@ -213,6 +213,8 @@ public class PostgreSqlTest {
   public Iterator<Object[]> testFilesProvider() throws URISyntaxException {
     ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
+    tests.add(new Path[] {Paths.get(getClass().getResource("/postgreSql/testfiles/schemas.sql").toURI())});
+    tests.add(new Path[] {Paths.get(getClass().getResource("/postgreSql/testfiles/case_sensitivity.sql").toURI())});
     // tests.add(new
     // Path[]{Paths.get(getClass().getResource("/postgreSql/testfiles/datatypes.sql").toURI())});
     // tests.add(new

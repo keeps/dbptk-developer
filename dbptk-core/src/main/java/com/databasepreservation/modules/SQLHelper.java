@@ -106,7 +106,7 @@ public class SQLHelper {
    * @throws UnknownTypeException
    */
   public String createTableSQL(TableStructure table) throws UnknownTypeException, ModuleException {
-    return new StringBuilder().append("CREATE TABLE ").append(escapeTableName(table.getName())).append(" (")
+    return new StringBuilder().append("CREATE TABLE ").append(escapeTableId(table.getId())).append(" (")
       .append(createColumnsSQL(table.getColumns(), table.getPrimaryKey(), table.getForeignKeys())).append(")")
       .toString();
   }
@@ -267,7 +267,7 @@ public class SQLHelper {
     StringBuilder ret = new StringBuilder();
     if (pkey != null) {
 
-      ret.append("ALTER TABLE ").append(getEscapedTableNameFromId(tableId));
+      ret.append("ALTER TABLE ").append(escapeTableId(tableId));
       if (StringUtils.isBlank(pkey.getName())) {
         ret.append(" ADD PRIMARY KEY (");
       } else {
@@ -299,7 +299,7 @@ public class SQLHelper {
    * @throws ModuleException
    */
   public String createForeignKeySQL(TableStructure table, ForeignKey fkey) throws ModuleException {
-    String ret = "ALTER TABLE " + escapeTableName(table.getName()) + " ADD FOREIGN KEY (";
+    String ret = "ALTER TABLE " + escapeTableId(table.getId()) + " ADD FOREIGN KEY (";
 
     for (int i = 0; i < fkey.getReferences().size(); i++) {
       if (i > 0) {
@@ -365,7 +365,7 @@ public class SQLHelper {
    * @throws ModuleException
    */
   public String createRowSQL(TableStructure table) throws ModuleException {
-    String ret = "INSERT INTO " + escapeTableName(table.getName()) + " VALUES (";
+    String ret = "INSERT INTO " + escapeTableId(table.getId()) + " VALUES (";
     for (int i = 0; i < table.getColumns().size(); i++) {
       if (i > 0) {
         ret += ", ";
