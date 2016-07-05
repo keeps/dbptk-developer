@@ -11,9 +11,11 @@
   </head>
   <body>
     <section class="page-header">
-      <img src="3.png" style="max-height: 200px;display:block;margin-left:auto;margin-right:auto;margin-bottom: 2em;max-width: 100%" />
+      <h1 class="project-name">db-preservation-toolkit</h1>
+      <h2 class="project-tagline">Database Preservation Toolkit</h2>
       <a href="https://github.com/keeps/db-preservation-toolkit" class="btn">View on GitHub</a>
-      <a href="https://github.com/keeps/db-preservation-toolkit/releases/download/2.0.0-beta4.3/dbptk-app-2.0.0-beta4.3.jar" class="btn">Download v2-beta4.3</a>
+      <a href="https://github.com/keeps/db-preservation-toolkit/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/keeps/db-preservation-toolkit/tarball/master" class="btn">Download .tar.gz</a>
     </section>
 
     <section class="main-content">
@@ -28,7 +30,7 @@
 
 <p>The following screencast aims to illustrate how all these tools fit together in a full-cycle archiving and preservation workflow for relational databases.</p>
 
-<p style="text-align:center"><iframe width="560" height="315" src="https://www.youtube.com/embed/nPWmOH6pQwY" frameborder="0" allowfullscreen></iframe></p>
+<p><a href="https://www.youtube.com/watch?v=nPWmOH6pQwY"><img src="https://img.youtube.com/vi/nPWmOH6pQwY/0.jpg" alt="Database preservation workflow screencast"></a></p>
 
 
 
@@ -269,7 +271,7 @@ A specialized module for the database, if available, would always be preferable 
 <a id="development-" class="anchor" href="#development-" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Development <a href="https://travis-ci.org/keeps/db-preservation-toolkit"><img src="https://travis-ci.org/keeps/db-preservation-toolkit.png?branch=master" alt="Build Status"></a>
 </h2>
 
-<p>To develop we recommend the use of Maven and Eclipse.</p>
+<p>To develop we recommend the use of Maven and Eclipse (or Intellij with Eclipse Code Formatter plugin).</p>
 
 <p>The following plugins should be installed in Eclipse:</p>
 
@@ -296,11 +298,16 @@ A specialized module for the database, if available, would always be preferable 
 <p>To run MySQL tests, a local MySQL (or MariaDB) database is required and 'root' user or another user with permission to create new databases and users can be used. This user must be accessible by IP connection on localhost. The access can be tested with <code>mysql --user="username" -p --database="mysql" --host="127.0.0.1"</code>.</p>
 
 <h3>
+<a id="building-common-parts-that-may-be-used-by-other-projects" class="anchor" href="#building-common-parts-that-may-be-used-by-other-projects" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Building common parts that may be used by other projects</h3>
+
+<p>Use <code>mvn clean install -Pcommon</code> to locally install the common artifacts so they can be used by other projects.
+Note that this is not necessary unless you do not have access to KEEPS Artifactory or you want to make changes to the common artifacts to use in other projects.</p>
+
+<h3>
 <a id="changing-xml-schema-files" class="anchor" href="#changing-xml-schema-files" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Changing XML Schema files</h3>
 
-<p>After changing SIARD XML Schema files, maven must be used to compile a new artifact from the XML Schema (using JAXB). To do this, run <code>mvn clean install -Pdbptk-bindings</code> from project root folder.</p>
-
-<p>The jars should now be installed in <code>&lt;project_dir&gt;/vendor-libs</code> (and also in your local maven repository).</p>
+<p>After changing SIARD XML Schema files, maven must be used to compile a new artifact from the XML Schema (using JAXB). To do this, run <code>mvn clean install -Pdbptk-bindings</code> from project root folder.
+This will install the artifacts locally and they will be used instead of the ones in KEEPS Artifactory.</p>
 
 <h2>
 <a id="license" class="anchor" href="#license" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>License</h2>
