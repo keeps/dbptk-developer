@@ -229,7 +229,7 @@ For more information or commercial support, contact [KEEP SOLUTIONS](http://www.
 
 ## Development [![Build Status](https://travis-ci.org/keeps/db-preservation-toolkit.png?branch=master)](https://travis-ci.org/keeps/db-preservation-toolkit)
 
-To develop we recommend the use of Maven and Eclipse.
+To develop we recommend the use of Maven and Eclipse (or Intellij with Eclipse Code Formatter plugin).
 
 The following plugins should be installed in Eclipse:
 
@@ -246,11 +246,15 @@ To run PostgreSQL tests, a local PostgreSQL database is required and *postgres* 
 
 To run MySQL tests, a local MySQL (or MariaDB) database is required and 'root' user or another user with permission to create new databases and users can be used. This user must be accessible by IP connection on localhost. The access can be tested with ```mysql --user="username" -p --database="mysql" --host="127.0.0.1"```.
 
+### Building common parts that may be used by other projects
+
+Use ```mvn clean install -Pcommon``` to locally install the common artifacts so they can be used by other projects.
+Note that this is not necessary unless you do not have access to KEEPS Artifactory or you want to make changes to the common artifacts to use in other projects.
+
 ### Changing XML Schema files
 
 After changing SIARD XML Schema files, maven must be used to compile a new artifact from the XML Schema (using JAXB). To do this, run ```mvn clean install -Pdbptk-bindings``` from project root folder.
-
-The jars should now be installed in ```<project_dir>/vendor-libs``` (and also in your local maven repository).
+This will install the artifacts locally and they will be used instead of the ones in KEEPS Artifactory.
 
 
 ## License
