@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +21,7 @@ import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.PrivilegeStructure;
 import com.databasepreservation.model.structure.RoutineStructure;
+import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
@@ -31,6 +33,8 @@ import com.databasepreservation.modules.msAccess.MsAccessHelper;
  */
 public class MsAccessUCanAccessImportModule extends JDBCImportModule {
   private static final Logger LOGGER = LoggerFactory.getLogger(MsAccessUCanAccessImportModule.class);
+
+  private static String INVALID_CHARACTERS_IN_TABLE_NAME = "\'";
 
   public MsAccessUCanAccessImportModule(File msAccessFile) {
     super("net.ucanaccess.jdbc.UcanaccessDriver", "jdbc:ucanaccess://" + msAccessFile.getAbsolutePath()
@@ -157,5 +161,38 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
   protected List<PrivilegeStructure> getPrivileges() throws SQLException, ClassNotFoundException {
     Reporter.notYetSupported("roles importing", "MS Access import module");
     return new ArrayList<PrivilegeStructure>();
+  }
+
+  /**
+   * @param schema
+   *          the schema structure
+   * @return the database tables of a given schema
+   * @throws SQLException
+   * @throws ClassNotFoundException
+   * @throws
+   */
+  @Override
+  protected List<TableStructure> getTables(SchemaStructure schema) throws SQLException, ClassNotFoundException {
+    List<TableStructure> tables = new ArrayList<>();
+    ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"TABLE"});
+    int tableIndex = 1;
+    while (rset.next()) {
+      String tableName = rset.getString(3);
+      String tableDescription = rset.getString(5);
+
+      if (StringUtils.containsAny(tableName, INVALID_CHARACTERS_IN_TABLE_NAME)) {
+        LOGGER.warn("Ignoring table " + tableName + " in schema " + schema.getName()
+          + " because it constains one of these non-supported characters: " + INVALID_CHARACTERS_IN_TABLE_NAME);
+        Reporter.ignored("table " + tableName + " in schema " + schema.getName(),
+          "it constains one of these non-supported characters: " + INVALID_CHARACTERS_IN_TABLE_NAME);
+      } else if (getModuleSettings().isSelectedTable(schema.getName(), tableName)) {
+        LOGGER.info("Obtaining table structure for " + schema.getName() + "." + tableName);
+        tables.add(getTableStructure(schema, tableName, tableIndex, tableDescription));
+        tableIndex++;
+      } else {
+        LOGGER.info("Ignoring table " + schema.getName() + "." + tableName);
+      }
+    }
+    return tables;
   }
 }
