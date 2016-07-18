@@ -1081,6 +1081,22 @@ public class JDBCImportModule implements DatabaseImportModule {
       try {
         ResultSet rs = getStatement().executeQuery(sqlHelper.getTriggersSQL(schemaName, tableName));
 
+        // debug for #228
+        ResultSetMetaData resultSetMetaData = rs.getMetaData();
+        int columnCount = resultSetMetaData.getColumnCount();
+        for (int i = 0; i < columnCount; i++) {
+          LOGGER.debug("issue 228: --------- TRIGGER RESULTSET METADATA - START("+i+") --------");
+          LOGGER.debug("issue 228: getColumnLabel: " + resultSetMetaData.getColumnLabel(i));
+          LOGGER.debug("issue 228: getColumnName: " + resultSetMetaData.getColumnName(i));
+          LOGGER.debug("issue 228: getColumnType: " + resultSetMetaData.getColumnType(i));
+          LOGGER.debug("issue 228: getColumnTypeName: " + resultSetMetaData.getColumnTypeName(i));
+          LOGGER.debug("issue 228: getPrecision: " + resultSetMetaData.getPrecision(i));
+          LOGGER.debug("issue 228: getScale: " + resultSetMetaData.getScale(i));
+          LOGGER.debug("issue 228: getColumnDisplaySize: " + resultSetMetaData.getColumnDisplaySize(i));
+          LOGGER.debug("issue 228: getColumnClassName: " + resultSetMetaData.getColumnClassName(i));
+          LOGGER.debug("issue 228: --------- TRIGGER RESULTSET METADATA -  END("+i+")  --------");
+        }
+
         while (rs.next()) {
           Trigger trigger = new Trigger();
 
