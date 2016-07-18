@@ -337,7 +337,7 @@
             <dependency>
                 <groupId>net.sf.ucanaccess</groupId>
                 <artifactId>ucanaccess</artifactId>
-                <version>3.0.2</version>
+                <version>3.0.6</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.solr</groupId>

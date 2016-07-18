@@ -22,8 +22,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import oracle.sql.STRUCT;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,12 +69,13 @@ import com.databasepreservation.model.structure.type.UnsupportedDataType;
 import com.databasepreservation.modules.SQLHelper;
 import com.databasepreservation.utils.JodaUtils;
 
+import oracle.sql.STRUCT;
+
 /**
  * @author Luis Faria <lfaria@keep.pt>
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class JDBCImportModule implements DatabaseImportModule {
-
   // if fetch size is zero, then the driver decides the best fetch size
   protected static final int ROW_FETCH_BLOCK_SIZE = 0;
 
@@ -426,7 +425,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       String tableName = rset.getString(3);
       String tableDescription = rset.getString(5);
 
-      if (moduleSettings.isSelectedTable(schema.getName(), tableName)) {
+      if (getModuleSettings().isSelectedTable(schema.getName(), tableName)) {
         LOGGER.info("Obtaining table structure for " + schema.getName() + "." + tableName);
         tables.add(getTableStructure(schema, tableName, tableIndex, tableDescription));
         tableIndex++;
@@ -1573,5 +1572,9 @@ public class JDBCImportModule implements DatabaseImportModule {
         throw new ModuleException("Error while closing connection", e);
       }
     }
+  }
+
+  public ModuleSettings getModuleSettings() {
+    return moduleSettings;
   }
 }
