@@ -182,9 +182,9 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
 
       if (StringUtils.containsAny(tableName, INVALID_CHARACTERS_IN_TABLE_NAME)) {
         LOGGER.warn("Ignoring table " + tableName + " in schema " + schema.getName()
-          + " because it constains one of these non-supported characters: " + INVALID_CHARACTERS_IN_TABLE_NAME);
+          + " because it contains one of these non-supported characters: " + INVALID_CHARACTERS_IN_TABLE_NAME);
         Reporter.ignored("table " + tableName + " in schema " + schema.getName(),
-          "it constains one of these non-supported characters: " + INVALID_CHARACTERS_IN_TABLE_NAME);
+          "it contains one of these non-supported characters: " + INVALID_CHARACTERS_IN_TABLE_NAME);
       } else if (getModuleSettings().isSelectedTable(schema.getName(), tableName)) {
         LOGGER.info("Obtaining table structure for " + schema.getName() + "." + tableName);
         tables.add(getTableStructure(schema, tableName, tableIndex, tableDescription));
