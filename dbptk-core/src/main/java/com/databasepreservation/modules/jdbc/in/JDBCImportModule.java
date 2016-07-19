@@ -1084,7 +1084,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         // debug for #228
         ResultSetMetaData resultSetMetaData = rs.getMetaData();
         int columnCount = resultSetMetaData.getColumnCount();
-        for (int i = 0; i < columnCount; i++) {
+        for (int i = 1; i <= columnCount; i++) {
           LOGGER.debug("issue 228: --------- TRIGGER RESULTSET METADATA - START("+i+") --------");
           LOGGER.debug("issue 228: getColumnLabel: " + resultSetMetaData.getColumnLabel(i));
           LOGGER.debug("issue 228: getColumnName: " + resultSetMetaData.getColumnName(i));
