@@ -1113,8 +1113,22 @@ public class JDBCImportModule implements DatabaseImportModule {
 
           String triggeredAction;
           try {
+            LOGGER.debug("issue228-3: getting TRIGGERED_ACTION by name");
             triggeredAction = rs.getString("TRIGGERED_ACTION");
+            LOGGER.debug("issue228-3: got " + triggeredAction);
           } catch (SQLException e) {
+            LOGGER.debug("issue228-3: sqlexception handled");
+            LOGGER.debug("handled SQLException", e);
+            triggeredAction = "";
+          }
+          trigger.setTriggeredAction(triggeredAction);
+          
+          try {
+            LOGGER.debug("issue228-3: getting TRIGGERED_ACTION by number");
+            triggeredAction = rs.getString(4);
+            LOGGER.debug("issue228-3: got " + triggeredAction);
+          } catch (SQLException e) {
+            LOGGER.debug("issue228-3: sqlexception handled");
             LOGGER.debug("handled SQLException", e);
             triggeredAction = "";
           }
