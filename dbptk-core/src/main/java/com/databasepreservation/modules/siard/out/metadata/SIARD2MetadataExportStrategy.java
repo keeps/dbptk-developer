@@ -804,7 +804,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
   private TriggerType jaxbTriggerType(Trigger trigger) throws ModuleException {
     TriggerType triggerType = new TriggerType();
 
-    LOGGER.debug("issue228: exporting this trigger: " + trigger.toString());
+    LOGGER.debug("issue228-2: exporting this trigger: " + trigger.toString() + " with this id: " +  System.identityHashCode(trigger));
 
     if (StringUtils.isNotBlank(trigger.getName())) {
       triggerType.setName(XMLUtils.encode(trigger.getName()));

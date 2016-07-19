@@ -1081,54 +1081,6 @@ public class JDBCImportModule implements DatabaseImportModule {
       try {
         ResultSet rs = getStatement().executeQuery(sqlHelper.getTriggersSQL(schemaName, tableName));
 
-        // debug for #228
-        ResultSetMetaData resultSetMetaData = rs.getMetaData();
-        int columnCount = resultSetMetaData.getColumnCount();
-        for (int i = 1; i <= columnCount; i++) {
-          LOGGER.debug("issue 228: --------- TRIGGER RESULTSET METADATA - START(" + i + ") --------");
-          try {
-            LOGGER.debug("issue 228: getColumnLabel: " + resultSetMetaData.getColumnLabel(i));
-          } catch (SQLException e) {
-            handleSQLException(e);
-          }
-          try {
-            LOGGER.debug("issue 228: getColumnName: " + resultSetMetaData.getColumnName(i));
-          } catch (SQLException e) {
-            handleSQLException(e);
-          }
-          try {
-            LOGGER.debug("issue 228: getColumnType: " + resultSetMetaData.getColumnType(i));
-          } catch (SQLException e) {
-            handleSQLException(e);
-          }
-          try {
-            LOGGER.debug("issue 228: getColumnTypeName: " + resultSetMetaData.getColumnTypeName(i));
-          } catch (SQLException e) {
-            handleSQLException(e);
-          }
-          try {
-            LOGGER.debug("issue 228: getPrecision: " + resultSetMetaData.getPrecision(i));
-          } catch (SQLException e) {
-            handleSQLException(e);
-          }
-          try {
-            LOGGER.debug("issue 228: getScale: " + resultSetMetaData.getScale(i));
-          } catch (SQLException e) {
-            handleSQLException(e);
-          }
-          try {
-            LOGGER.debug("issue 228: getColumnDisplaySize: " + resultSetMetaData.getColumnDisplaySize(i));
-          } catch (SQLException e) {
-            handleSQLException(e);
-          }
-          try {
-            LOGGER.debug("issue 228: getColumnClassName: " + resultSetMetaData.getColumnClassName(i));
-          } catch (SQLException e) {
-            handleSQLException(e);
-          }
-          LOGGER.debug("issue 228: --------- TRIGGER RESULTSET METADATA -  END(" + i + ")  --------");
-        }
-
         while (rs.next()) {
           Trigger trigger = new Trigger();
 
@@ -1175,9 +1127,9 @@ public class JDBCImportModule implements DatabaseImportModule {
             LOGGER.debug("handled SQLException", e);
             description = null;
           }
-          if (description != null) {
-            trigger.setDescription(description);
-          }
+          trigger.setDescription(description);
+
+          LOGGER.debug("issue228-2: trigger is " + trigger + " with this id: " +  System.identityHashCode(trigger));
 
           triggers.add(trigger);
         }
@@ -1188,13 +1140,6 @@ public class JDBCImportModule implements DatabaseImportModule {
       LOGGER.debug("Triggers were not imported: not supported yet on " + getClass().getSimpleName());
     }
     return triggers;
-  }
-
-  private void handleSQLException(SQLException e) {
-    for (int i = 0; i < 20 && e != null; i++) {
-      LOGGER.debug("issue 228 exception: " + e.getMessage(), e);
-      e = e.getNextException();
-    }
   }
 
   /**
