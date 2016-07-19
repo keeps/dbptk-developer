@@ -722,6 +722,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
 
   private TableType jaxbTableType(SchemaStructure schema, TableStructure table) throws ModuleException {
     TableType tableType = new TableType();
+    LOGGER.debug("issue228: exporting metadata for table " + table.getName() + " in schema " + schema.getName());
 
     if (StringUtils.isNotBlank(table.getName())) {
       tableType.setName(table.getName());
@@ -744,7 +745,9 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
 
     tableType.setCheckConstraints(jaxbCheckConstraintsType(table.getCheckConstraints()));
 
+    LOGGER.debug("issue228: exporting triggers for table " + table.getName() + " in schema " + schema.getName());
     tableType.setTriggers(jaxbTriggersType(table.getTriggers()));
+    LOGGER.debug("issue228: finished exporting triggers for table " + table.getName() + " in schema " + schema.getName());
 
     if (table.getRows() >= 0) {
       tableType.setRows(BigInteger.valueOf(table.getRows()));
@@ -787,16 +790,21 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     if (triggers != null && !triggers.isEmpty()) {
       TriggersType triggersType = new TriggersType();
       for (Trigger trigger : triggers) {
+        LOGGER.debug("issue228: exporting a trigger");
         triggersType.getTrigger().add(jaxbTriggerType(trigger));
+        LOGGER.debug("issue228: finished exporting a trigger.");
       }
       return triggersType;
     } else {
+      LOGGER.debug("issue228: there were no triggers.");
       return null;
     }
   }
 
   private TriggerType jaxbTriggerType(Trigger trigger) throws ModuleException {
     TriggerType triggerType = new TriggerType();
+
+    LOGGER.debug("issue228-2: exporting this trigger: " + trigger.toString() + " with this id: " +  System.identityHashCode(trigger));
 
     if (StringUtils.isNotBlank(trigger.getName())) {
       triggerType.setName(XMLUtils.encode(trigger.getName()));
@@ -825,7 +833,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     if (StringUtils.isNotBlank(trigger.getTriggeredAction())) {
       triggerType.setTriggeredAction(XMLUtils.encode(trigger.getTriggeredAction()));
     } else {
-      throw new ModuleException("Error while exporting trigger: trigger triggeredAction cannot be black");
+      throw new ModuleException("Error while exporting trigger: trigger triggeredAction cannot be blank");
     }
 
     if (StringUtils.isNotBlank(trigger.getDescription())) {

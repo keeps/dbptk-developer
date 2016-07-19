@@ -1112,8 +1112,22 @@ public class JDBCImportModule implements DatabaseImportModule {
 
           String triggeredAction;
           try {
+            LOGGER.debug("issue228-3: getting TRIGGERED_ACTION by name");
             triggeredAction = rs.getString("TRIGGERED_ACTION");
+            LOGGER.debug("issue228-3: got " + triggeredAction);
           } catch (SQLException e) {
+            LOGGER.debug("issue228-3: sqlexception handled");
+            LOGGER.debug("handled SQLException", e);
+            triggeredAction = "";
+          }
+          trigger.setTriggeredAction(triggeredAction);
+          
+          try {
+            LOGGER.debug("issue228-3: getting TRIGGERED_ACTION by number");
+            triggeredAction = rs.getString(4);
+            LOGGER.debug("issue228-3: got " + triggeredAction);
+          } catch (SQLException e) {
+            LOGGER.debug("issue228-3: sqlexception handled");
             LOGGER.debug("handled SQLException", e);
             triggeredAction = "";
           }
@@ -1126,9 +1140,9 @@ public class JDBCImportModule implements DatabaseImportModule {
             LOGGER.debug("handled SQLException", e);
             description = null;
           }
-          if (description != null) {
-            trigger.setDescription(description);
-          }
+          trigger.setDescription(description);
+
+          LOGGER.debug("issue228-2: trigger is " + trigger + " with this id: " +  System.identityHashCode(trigger));
 
           triggers.add(trigger);
         }
