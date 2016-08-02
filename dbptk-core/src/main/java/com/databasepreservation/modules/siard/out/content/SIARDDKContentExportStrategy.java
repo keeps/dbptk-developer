@@ -98,7 +98,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   public void openTable(TableStructure tableStructure) throws ModuleException {
 
     tableXmlOutputStream = fileIndexFileStrategy.getWriter(baseContainer,
-      contentPathExportStrategy.getTableXmlFilePath(0, tableStructure.getIndex()), writeStrategy);
+      contentPathExportStrategy.getTableXmlFilePath(0, tableCounter), writeStrategy);
 
     try {
       tableXmlWriter = new BufferedWriter(new OutputStreamWriter(tableXmlOutputStream, ENCODING));

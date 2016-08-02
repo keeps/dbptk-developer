@@ -22,6 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import oracle.sql.STRUCT;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,8 +70,6 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
 import com.databasepreservation.modules.SQLHelper;
 import com.databasepreservation.utils.JodaUtils;
-
-import oracle.sql.STRUCT;
 
 /**
  * @author Luis Faria <lfaria@keep.pt>
@@ -1408,13 +1408,14 @@ public class JDBCImportModule implements DatabaseImportModule {
 
     String stringValue = rawData.getString(columnName);
     boolean wasNull = rawData.wasNull();
-    SimpleCell cell;
+    Cell cell;
     if (wasNull) {
-      cell = new SimpleCell(id, null);
+      cell = new NullCell(id);
+      LOGGER.trace("rawToCellSimpleTypeNumericApproximate cell: NULL");
     } else {
       cell = new SimpleCell(id, stringValue);
+      LOGGER.trace("rawToCellSimpleTypeNumericApproximate cell: " + ((SimpleCell) cell).getSimpleData());
     }
-    LOGGER.trace("rawToCellSimpleTypeNumericApproximate cell: " + (cell.getSimpleData()));
 
     return cell;
   }
