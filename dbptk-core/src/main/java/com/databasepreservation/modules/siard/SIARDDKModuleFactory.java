@@ -2,8 +2,10 @@ package com.databasepreservation.modules.siard;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.naming.OperationNotSupportedException;
@@ -69,6 +71,16 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
       "Path to (the first) SIARDDK archive folder. Archive folder name must match the expression AVID.[A-ZÆØÅ]{2,4}.[1-9][0-9]*.1 Any additional parts of the archive (eg. with suffixes .2 .3 etc) referenced in the tableIndex.xml will also be processed.")
     .hasArgument(true).setOptionalArgument(false).required(true);
 
+  private static final Parameter lobsPerFolder = new Parameter()
+    .shortName("lpf")
+    .longName("lobs-per-folder")
+    .description("The maximum number of documents (i.e. folders) present in a docCollection folder (default is 10000).")
+    .required(false).hasArgument(true).setOptionalArgument(false).valueIfNotSet("10000");
+
+  private static final Parameter lobsFolderSize = new Parameter().shortName("lfs").longName("lobs-folder-size")
+    .description("The maximum size (in megabytes) of the docCollection folders (default is 1000 MB").required(false)
+    .hasArgument(true).setOptionalArgument(false).valueIfNotSet("1000");
+
   // This is not used now, but will be used later
   // private static final Parameter clobType = new
   // Parameter().shortName("ct").longName("clobtype")
@@ -109,6 +121,8 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     parameterMap.put(contextDocmentationFolder.longName(), contextDocmentationFolder);
     parameterMap.put(PARAM_IMPORT_AS_SCHEMA.longName(), PARAM_IMPORT_AS_SCHEMA);
     parameterMap.put(PARAM_IMPORT_FOLDER.longName(), PARAM_IMPORT_FOLDER);
+    parameterMap.put(lobsPerFolder.longName(), lobsPerFolder);
+    parameterMap.put(lobsFolderSize.longName(), lobsFolderSize);
     // to be used later...
     // parameterMap.put(clobType.longName(), clobType);
     // parameterMap.put(clobLength.longName(), clobLength);
@@ -128,7 +142,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     // clobType, clobLength), null);
 
     return new Parameters(Arrays.asList(folder, tableFilter, archiveIndex, contextDocumentationIndex,
-      contextDocmentationFolder), null);
+      contextDocmentationFolder, lobsPerFolder, lobsFolderSize), null);
 
   }
 
@@ -157,6 +171,18 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
       pTableFilter = Paths.get(parameters.get(tableFilter));
     }
 
+    // optional
+    String pLobsPerFolder = lobsPerFolder.valueIfNotSet();
+    if (StringUtils.isNotBlank(parameters.get(lobsPerFolder))) {
+      pLobsPerFolder = parameters.get(lobsPerFolder);
+    }
+
+    // optional
+    String pLobsFolderSize = lobsFolderSize.valueIfNotSet();
+    if (StringUtils.isNotBlank(parameters.get(lobsFolderSize))) {
+      pLobsFolderSize = parameters.get(lobsFolderSize);
+    }
+
     // to be used later...
     // String pClobType = parameters.get(clobType);
     // String pClobLength = parameters.get(clobLength);
@@ -167,21 +193,36 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     exportModuleArgs.put(archiveIndex.longName(), pArchiveIndex);
     exportModuleArgs.put(contextDocumentationIndex.longName(), pContextDocumentationIndex);
     exportModuleArgs.put(contextDocmentationFolder.longName(), pContextDocumentationFolder);
+    exportModuleArgs.put(lobsPerFolder.longName(), pLobsPerFolder);
+    exportModuleArgs.put(lobsFolderSize.longName(), pLobsFolderSize);
 
     // to be used later...
     // exportModuleArgs.put(clobType.longName(), pClobType);
     // exportModuleArgs.put(clobLength.longName(), pClobLength);
 
-    if (pTableFilter == null) {
-      Reporter.exportModuleParameters(getModuleName(), folder.longName(), pFolder, archiveIndex.longName(),
-        pArchiveIndex, contextDocumentationIndex.longName(), pContextDocumentationIndex,
-        contextDocmentationFolder.longName(), pContextDocumentationFolder);
-    } else {
-      Reporter.exportModuleParameters(getModuleName(), folder.longName(), pFolder, archiveIndex.longName(),
-        pArchiveIndex, contextDocumentationIndex.longName(), pContextDocumentationIndex,
-        contextDocmentationFolder.longName(), pContextDocumentationFolder, tableFilter.longName(), pTableFilter
-          .normalize().toAbsolutePath().toString());
+    List<String> exportModuleParameters = new ArrayList<String>();
+    exportModuleParameters.add(folder.longName());
+    exportModuleParameters.add(pFolder);
+    exportModuleParameters.add(archiveIndex.longName());
+    exportModuleParameters.add(pArchiveIndex);
+    exportModuleParameters.add(contextDocumentationIndex.longName());
+    exportModuleParameters.add(pContextDocumentationIndex);
+    exportModuleParameters.add(contextDocmentationFolder.longName());
+    exportModuleParameters.add(pContextDocumentationFolder);
+    if (pTableFilter != null) {
+      exportModuleParameters.add(tableFilter.longName());
+      exportModuleParameters.add(pTableFilter.normalize().toAbsolutePath().toString());
     }
+    if (!pLobsPerFolder.equals(lobsPerFolder.valueIfNotSet())) {
+      exportModuleParameters.add(lobsPerFolder.longName());
+      exportModuleParameters.add(pLobsPerFolder);
+    }
+    if (!pLobsFolderSize.equals(lobsFolderSize.valueIfNotSet())) {
+      exportModuleParameters.add(lobsFolderSize.longName());
+      exportModuleParameters.add(pLobsFolderSize);
+    }
+    Reporter.exportModuleParameters(getModuleName(),
+      exportModuleParameters.toArray(new String[exportModuleParameters.size()]));
 
     return new SIARDDKExportModule(exportModuleArgs, pTableFilter).getDatabaseExportModule();
   }
