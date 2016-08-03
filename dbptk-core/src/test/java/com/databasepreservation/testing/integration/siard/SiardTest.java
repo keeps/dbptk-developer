@@ -539,6 +539,8 @@ public class SiardTest {
       case SIARD_DK:
         Map<String, String> exportModuleArgs = new HashMap<String, String>();
         exportModuleArgs.put(SIARDDKModuleFactory.folder.longName(), tmpFile.toString());
+        exportModuleArgs.put("lobs-per-folder", "10000");
+        exportModuleArgs.put("lobs-folder-size", "1000");
         exporter = new SIARDDKExportModule(exportModuleArgs, null).getDatabaseExportModule();
         break;
     }

@@ -306,7 +306,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
             // BLOB is not NULL
 
-            lobsTracker.addLOB(); // Only if LOB not NULL
+            lobsTracker.addLOB(0); // Only if LOB not NULL
 
             // Determine the mimetype (Tika should use an inputstream which
             // supports marks)
