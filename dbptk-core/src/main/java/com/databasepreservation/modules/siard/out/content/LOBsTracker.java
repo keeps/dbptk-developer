@@ -17,7 +17,7 @@ public class LOBsTracker {
   private int currentTable;
   private int maxLobsPerFolder;
   private int maxLobsFolderSize;
-  private int accumulatedLobsSize;
+  private double accumulatedLobsSize;
   private Map<Integer, List<Integer>> columnIndicesOfLOBsInTables; // Info like:
                                                                    // table 7
                                                                    // has LOBs
@@ -52,7 +52,7 @@ public class LOBsTracker {
   /**
    * @return the accumulatedLobsSize
    */
-  public int getAccumulatedLobsSize() {
+  public double getAccumulatedLobsSize() {
     return accumulatedLobsSize;
   }
 
@@ -102,13 +102,13 @@ public class LOBsTracker {
    * @param lobSize
    *          The size of the LOB in megabyte
    */
-  public void addLOB(int lobSize) {
+  public void addLOB(double lobSize) {
     LOBsCount += 1;
     folderCount += 1;
 
     // Note: code assumes one file in each folder
 
-    int newPotentialAccumulatedSize = accumulatedLobsSize + lobSize;
+    double newPotentialAccumulatedSize = accumulatedLobsSize + lobSize;
     if (newPotentialAccumulatedSize > maxLobsFolderSize || folderCount == maxLobsPerFolder + 1) {
       docCollectionCount += 1;
       folderCount = 1;

@@ -17,6 +17,7 @@ import com.databasepreservation.modules.siard.out.content.LOBsTracker;
 @Test(groups = {"siarddk"})
 public class TestLOBsTracker {
 
+  private final double DELTA = 1e-7;
   private LOBsTracker lobsTracker;
 
   @BeforeMethod
@@ -198,27 +199,27 @@ public class TestLOBsTracker {
   @Test
   public void accumulatedLobsSizeShouldBeZeroInitially() {
     LOBsTracker lt = new LOBsTracker(10000, 100);
-    assertEquals(0, lt.getAccumulatedLobsSize());
+    assertEquals(0, lt.getAccumulatedLobsSize(), DELTA);
   }
 
   @Test
   public void accumulatedLobsSizeShouldBeAbleToAccumulate() {
     LOBsTracker lt = new LOBsTracker(10000, 100);
     lt.addLOB(50);
-    assertEquals(50, lt.getAccumulatedLobsSize());
+    assertEquals(50, lt.getAccumulatedLobsSize(), DELTA);
     lt.addLOB(25);
-    assertEquals(75, lt.getAccumulatedLobsSize());
+    assertEquals(75, lt.getAccumulatedLobsSize(), DELTA);
   }
 
   @Test
   public void docCollectionShouldBeIncrementedCorrectlyWhenIncrementingAccumulatedLobsSize() {
     LOBsTracker lt = new LOBsTracker(10000, 100);
     lt.addLOB(50);
-    assertEquals(50, lt.getAccumulatedLobsSize());
+    assertEquals(50, lt.getAccumulatedLobsSize(), DELTA);
     lt.addLOB(75);
     assertEquals(1, lt.getFolderCount());
     assertEquals(2, lt.getDocCollectionCount());
-    assertEquals(75, lt.getAccumulatedLobsSize());
+    assertEquals(75, lt.getAccumulatedLobsSize(), DELTA);
   }
 
   @Test
@@ -230,7 +231,7 @@ public class TestLOBsTracker {
     lt.addLOB(20);
     assertEquals(1, lt.getFolderCount());
     assertEquals(2, lt.getDocCollectionCount());
-    assertEquals(20, lt.getAccumulatedLobsSize());
+    assertEquals(20, lt.getAccumulatedLobsSize(), DELTA);
   }
 
   private void addLOB(int size) {
