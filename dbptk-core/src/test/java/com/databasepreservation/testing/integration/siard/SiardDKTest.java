@@ -106,9 +106,12 @@ public class SiardDKTest extends SiardTest {
         null);
       ViewStructure view02 = new ViewStructure("view02", "the original query2", "the original query2", "second view",
         null);
+      // ViewStructure view03 = new ViewStructure("view03",
+      // "the original query2", null, "third view", null);
       List<ViewStructure> views = new LinkedList<ViewStructure>();
       views.add(view01);
       views.add(view02);
+      // views.add(view03);
       schema.setViews(views);
 
     }

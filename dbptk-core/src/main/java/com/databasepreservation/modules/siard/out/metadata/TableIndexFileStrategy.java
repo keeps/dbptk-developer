@@ -250,7 +250,11 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
             viewType.setName(escapeString(viewStructure.getName()));
 
             // Set queryOriginal - mandatory
-            viewType.setQueryOriginal(viewStructure.getQueryOriginal());
+            if (StringUtils.isNotBlank(viewStructure.getQueryOriginal())) {
+              viewType.setQueryOriginal(viewStructure.getQueryOriginal());
+            } else {
+              viewType.setQueryOriginal("unknown");
+            }
 
             // Set description
             if (StringUtils.isNotBlank(viewStructure.getDescription())) {
