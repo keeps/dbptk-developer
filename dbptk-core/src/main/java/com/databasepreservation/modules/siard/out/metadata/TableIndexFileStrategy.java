@@ -75,9 +75,7 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
     List<String> tablesWithNoPrimaryKeys = new ArrayList<String>();
     StringBuilder tableListBuilder = new StringBuilder();
     for (SchemaStructure schemaStructure : schemas) {
-      if (schemaStructure.getTables().isEmpty()) {
-        throw new ModuleException("No tables found in schema!");
-      } else {
+      if (!schemaStructure.getTables().isEmpty()) {
         for (TableStructure tableStructure : schemaStructure.getTables()) {
           PrimaryKey primaryKey = tableStructure.getPrimaryKey();
           if (primaryKey == null) {
@@ -95,7 +93,8 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
 
     for (SchemaStructure schemaStructure : schemas) {
       if (schemaStructure.getTables().isEmpty()) {
-        throw new ModuleException("No tables found in schema!");
+        logger.info("No tables found in this schema: " + schemaStructure.getName());
+        continue;
       } else {
         for (TableStructure tableStructure : schemaStructure.getTables()) {
 
