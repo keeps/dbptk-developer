@@ -19,7 +19,7 @@ import com.databasepreservation.model.exception.ModuleException;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class FileItem {
-  private Path path;
+  private final Path path;
 
   private ArrayList<InputStream> createdStreams;
 
@@ -33,6 +33,16 @@ public class FileItem {
   public FileItem(InputStream inputStream) throws ModuleException {
     try {
       path = Files.createTempFile("dbptk", "lob");
+      Runtime.getRuntime().addShutdownHook(new Thread() {
+        @Override
+        public void run() {
+          try {
+            Files.deleteIfExists(path);
+          } catch (IOException e) {
+            // ignore, since loggers may also be shutting down
+          }
+        }
+      });
     } catch (IOException e) {
       throw new ModuleException("Error creating temporary file", e);
     }
