@@ -36,11 +36,7 @@ public class FileItem {
       Runtime.getRuntime().addShutdownHook(new Thread() {
         @Override
         public void run() {
-          try {
-            Files.deleteIfExists(path);
-          } catch (IOException e) {
-            // ignore, since loggers may also be shutting down
-          }
+          FileItem.this.deleteSilently();
         }
       });
     } catch (IOException e) {
@@ -114,7 +110,7 @@ public class FileItem {
     Files.delete(path);
   }
 
-  public void deleteSilently(){
+  public void deleteSilently() {
     try {
       delete();
     } catch (IOException e) {
