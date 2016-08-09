@@ -114,6 +114,14 @@ public class FileItem {
     Files.delete(path);
   }
 
+  public void deleteSilently(){
+    try {
+      delete();
+    } catch (IOException e) {
+      // ignore
+    }
+  }
+
   @Override
   public String toString() {
     return "FileItem{" + "path=" + path + ", createdStreams=" + createdStreams + '}';

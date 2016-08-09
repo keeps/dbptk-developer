@@ -19,8 +19,8 @@ import com.databasepreservation.model.parameters.Parameters;
 public class SolrModuleFactory implements DatabaseModuleFactory {
   private static final Parameter dummy = new Parameter().longName("dummy").shortName("d").required(false);
 
-  //TODO: param solr url
-  //TODO: param solr zookeeper host
+  // TODO: param solr url
+  // TODO: param solr zookeeper host
 
   @Override
   public boolean producesImportModules() {

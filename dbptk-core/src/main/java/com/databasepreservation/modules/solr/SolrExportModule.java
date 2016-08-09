@@ -2,11 +2,6 @@ package com.databasepreservation.modules.solr;
 
 import java.util.Set;
 
-import com.databasepreservation.visualization.client.ViewerStructure.ViewerDatabaseFromToolkit;
-import com.databasepreservation.visualization.client.ViewerStructure.ViewerTable;
-import com.databasepreservation.visualization.transformers.ToolkitStructure2ViewerStructure;
-import com.databasepreservation.visualization.utils.SolrManager;
-import com.databasepreservation.visualization.utils.SolrUtils;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
@@ -14,6 +9,11 @@ import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.visualization.client.ViewerStructure.ViewerDatabaseFromToolkit;
+import com.databasepreservation.visualization.client.ViewerStructure.ViewerTable;
+import com.databasepreservation.visualization.transformers.ToolkitStructure2ViewerStructure;
+import com.databasepreservation.visualization.utils.SolrManager;
+import com.databasepreservation.visualization.utils.SolrUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>

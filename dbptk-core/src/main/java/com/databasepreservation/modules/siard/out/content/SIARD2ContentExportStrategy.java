@@ -27,7 +27,8 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.common.LargeObject;
-import com.databasepreservation.modules.siard.common.ProvidesInputStream;
+import com.databasepreservation.modules.siard.common.ProvidesInputStreamFromBinaryCell;
+import com.databasepreservation.modules.siard.common.ProvidesInputStreamFromFileItem;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
@@ -251,13 +252,8 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
         return;
       }
 
-      lob = new LargeObject(new ProvidesInputStream() {
-        @Override
-        public InputStream createInputStream() throws ModuleException {
-          return binCell.createInputstream();
-        }
-      }, contentPathStrategy.getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
-        currentRowIndex + 1));
+      lob = new LargeObject(new ProvidesInputStreamFromBinaryCell(binCell), contentPathStrategy.getBlobFilePath(
+        currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
 
       currentWriter.beginOpenTag("c" + columnIndex, 2).space().append("file=\"")
         .append(contentPathStrategy.getBlobFileName(currentRowIndex + 1)).append('"').space().append("length=\"")
@@ -278,13 +274,8 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
       try {
         final FileItem fileItem = new FileItem(inputStream);
-        lob = new LargeObject(new ProvidesInputStream() {
-          @Override
-          public InputStream createInputStream() throws ModuleException {
-            return fileItem.createInputStream();
-          }
-        }, contentPathStrategy.getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
-          currentRowIndex + 1));
+        lob = new LargeObject(new ProvidesInputStreamFromFileItem(fileItem), contentPathStrategy.getClobFilePath(
+          currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
       } finally {
         inputStream.close();
       }
@@ -351,6 +342,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       } catch (IOException e) {
         LOGGER.warn("Could not cleanup lob resources", e);
       }
+      lob.getInputStreamProvider().cleanResources();
     }
   }
 

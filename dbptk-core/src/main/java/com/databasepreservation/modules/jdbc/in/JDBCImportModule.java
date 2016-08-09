@@ -22,8 +22,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import oracle.sql.STRUCT;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +68,8 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
 import com.databasepreservation.modules.SQLHelper;
 import com.databasepreservation.utils.JodaUtils;
+
+import oracle.sql.STRUCT;
 
 /**
  * @author Luis Faria <lfaria@keep.pt>

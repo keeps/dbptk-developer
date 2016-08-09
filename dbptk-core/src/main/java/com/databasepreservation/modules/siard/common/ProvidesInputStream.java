@@ -9,4 +9,9 @@ import com.databasepreservation.model.exception.ModuleException;
  */
 public interface ProvidesInputStream {
   InputStream createInputStream() throws ModuleException;
+
+  /**
+   * Close the stream and free all underlying resources.
+   */
+  void cleanResources();
 }

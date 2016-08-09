@@ -159,8 +159,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
   public void handleDataCloseTable(String tableId) throws ModuleException {
     try {
       if (!currentIsIgnoredSchema) {
-        getStatement().executeUpdate(
-          ((PostgreSQLHelper) getSqlHelper()).grantPermissionsSQL(tableId));
+        getStatement().executeUpdate(((PostgreSQLHelper) getSqlHelper()).grantPermissionsSQL(tableId));
       }
     } catch (SQLException e) {
       LOGGER.error("Error granting public read access permissions on table " + tableId, e);

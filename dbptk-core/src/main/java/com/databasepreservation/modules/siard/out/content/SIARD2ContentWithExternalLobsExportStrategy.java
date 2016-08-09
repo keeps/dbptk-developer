@@ -24,7 +24,8 @@ import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.modules.siard.common.LargeObject;
-import com.databasepreservation.modules.siard.common.ProvidesInputStream;
+import com.databasepreservation.modules.siard.common.ProvidesInputStreamFromBinaryCell;
+import com.databasepreservation.modules.siard.common.ProvidesInputStreamFromFileItem;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentWithExternalLobsPathExportStrategy;
@@ -147,24 +148,14 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
     // get lob object
     if (cell instanceof BinaryCell) {
       final BinaryCell binCell = (BinaryCell) cell;
-      lob = new LargeObject(new ProvidesInputStream() {
-        @Override
-        public InputStream createInputStream() throws ModuleException {
-          return binCell.createInputstream();
-        }
-      }, lobFileParameter);
+      lob = new LargeObject(new ProvidesInputStreamFromBinaryCell(binCell), lobFileParameter);
     } else if (cell instanceof SimpleCell) {
       SimpleCell txtCell = (SimpleCell) cell;
       String data = txtCell.getSimpleData();
       ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes("UTF-8"));
       try {
         final FileItem fileItem = new FileItem(inputStream);
-        lob = new LargeObject(new ProvidesInputStream() {
-          @Override
-          public InputStream createInputStream() throws ModuleException {
-            return fileItem.createInputStream();
-          }
-        }, lobFileParameter);
+        lob = new LargeObject(new ProvidesInputStreamFromFileItem(fileItem), lobFileParameter);
       } finally {
         inputStream.close();
       }
@@ -220,6 +211,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
       } catch (IOException e) {
         LOGGER.warn("Could not cleanup lob resources", e);
       }
+      lob.getInputStreamProvider().cleanResources();
     }
 
     if (out instanceof DigestOutputStream) {

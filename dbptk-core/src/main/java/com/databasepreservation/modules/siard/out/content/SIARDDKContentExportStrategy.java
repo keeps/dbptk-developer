@@ -29,7 +29,7 @@ import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.modules.siard.common.LargeObject;
-import com.databasepreservation.modules.siard.common.ProvidesInputStream;
+import com.databasepreservation.modules.siard.common.ProvidesInputStreamFromBinaryCell;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.out.metadata.DocIndexFileStrategy;
@@ -334,12 +334,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
             }
             path += fileExtension;
 
-            LargeObject blob = new LargeObject(new ProvidesInputStream() {
-              @Override
-              public InputStream createInputStream() throws ModuleException {
-                return binaryCell.createInputstream();
-              }
-            }, path);
+            LargeObject blob = new LargeObject(new ProvidesInputStreamFromBinaryCell(binaryCell), path);
 
             // Create new FileIndexFileStrategy
 
@@ -349,6 +344,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
             IOUtils.copy(in, out);
             in.close();
             out.close();
+            blob.getInputStreamProvider().cleanResources();
 
             // Add file to docIndex (a lot easier to do here even though we
             // are dealing with metadata)
