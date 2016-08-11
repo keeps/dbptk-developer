@@ -12,9 +12,10 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 
-import com.databasepreservation.model.exception.ModuleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.databasepreservation.model.exception.ModuleException;
 
 /**
  * @author Luis Faria
@@ -37,16 +38,16 @@ public class FileItem {
   public FileItem(InputStream inputStream) throws ModuleException {
     try {
       path = Files.createTempFile("dbptk", "lob");
-      Runtime.getRuntime().addShutdownHook(new Thread() {
-        @Override
-        public void run() {
-          try {
-            Files.deleteIfExists(path);
-          } catch (IOException e) {
-            // ignore
-          }
-        }
-      });
+      // Runtime.getRuntime().addShutdownHook(new Thread() {
+      // @Override
+      // public void run() {
+      // try {
+      // Files.deleteIfExists(path);
+      // } catch (IOException e) {
+      // // ignore
+      // }
+      // }
+      // });
     } catch (IOException e) {
       throw new ModuleException("Error creating temporary file", e);
     }
