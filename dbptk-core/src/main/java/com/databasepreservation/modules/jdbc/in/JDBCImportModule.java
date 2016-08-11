@@ -1569,9 +1569,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       try {
         LOGGER.debug("Closing connection to source database");
         closeConnection();
-      } catch (SQLException e) {
-        throw new ModuleException("Error while closing connection", e);
-      }
+      } catch (SQLException ignored) {}
     }
   }
 
