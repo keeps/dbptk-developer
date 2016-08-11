@@ -25,6 +25,6 @@ public class ProvidesInputStreamFromFileItem implements ProvidesInputStream {
    */
   @Override
   public void cleanResources() {
-    fileItem.deleteSilently();
+    fileItem.delete();
   }
 }

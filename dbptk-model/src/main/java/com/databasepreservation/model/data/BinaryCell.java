@@ -79,7 +79,7 @@ public class BinaryCell extends Cell {
    * Clear resources used by binary cell (without throwing exceptions)
    */
   public void cleanResourcesSilently() {
-    fileItem.deleteSilently();
+    fileItem.delete();
   }
 
   @Override

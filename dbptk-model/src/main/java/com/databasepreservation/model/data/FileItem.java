@@ -13,12 +13,16 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 
 import com.databasepreservation.model.exception.ModuleException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Luis Faria
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class FileItem {
+  private static final Logger LOGGER = LoggerFactory.getLogger(FileItem.class);
+
   private final Path path;
 
   private ArrayList<InputStream> createdStreams;
@@ -36,7 +40,11 @@ public class FileItem {
       Runtime.getRuntime().addShutdownHook(new Thread() {
         @Override
         public void run() {
-          FileItem.this.deleteSilently();
+          try {
+            Files.deleteIfExists(path);
+          } catch (IOException e) {
+            // ignore
+          }
         }
       });
     } catch (IOException e) {
@@ -101,20 +109,21 @@ public class FileItem {
    *
    * @return true if file item successfully deleted, false otherwise
    */
-  public void delete() throws IOException {
+  public void delete() {
     if (createdStreams != null) {
       for (InputStream stream : createdStreams) {
-        stream.close();
+        try {
+          stream.close();
+        } catch (IOException e) {
+          LOGGER.debug("Could not close stream to file " + path.toAbsolutePath().toString());
+        }
       }
     }
-    Files.delete(path);
-  }
 
-  public void deleteSilently() {
     try {
-      delete();
+      Files.delete(path);
     } catch (IOException e) {
-      // ignore
+      LOGGER.debug("Could not delete temporary file " + path.toAbsolutePath().toString());
     }
   }
 
