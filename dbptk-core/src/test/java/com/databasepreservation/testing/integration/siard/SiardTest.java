@@ -443,7 +443,7 @@ public class SiardTest {
       "dataOwner", // String dataOwner
       "dataOriginTimespan", // String dataOriginTimespan
       "db-preservation-toolkit - KEEP SOLUTIONS", // String producerApplication
-      JodaUtils.xs_date_rewrite(DateTime.now()), // DateTime archivalDate
+      JodaUtils.xsDateRewrite(DateTime.now()), // DateTime archivalDate
       "clientMachine", // String clientMachine
       "productName productVersion", // String productName
       null,

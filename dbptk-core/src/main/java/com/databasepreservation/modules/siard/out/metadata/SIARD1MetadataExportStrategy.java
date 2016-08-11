@@ -172,7 +172,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
   private SiardArchive jaxbSiardArchive(DatabaseStructure db) throws ModuleException {
     SiardArchive elem = new SiardArchive();
-    elem.setArchivalDate(JodaUtils.xs_date_format(db.getArchivalDate()));
+    elem.setArchivalDate(JodaUtils.xsDateFormat(db.getArchivalDate()));
 
     elem.setVersion("1.0");
 
@@ -211,7 +211,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (db.getArchivalDate() != null) {
-      elem.setArchivalDate(JodaUtils.xs_date_format(db.getArchivalDate()));
+      elem.setArchivalDate(JodaUtils.xsDateFormat(db.getArchivalDate()));
     }
 
     // TODO: use some kind of message digest

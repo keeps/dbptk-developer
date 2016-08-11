@@ -27,7 +27,7 @@ import com.databasepreservation.model.structure.type.Type;
 public class Reporter {
   // //////////////////////////////////////////////////
   // constants
-  public static final String MESSAGE_FILTERED_PASSWORD = "<filtered>";
+  public static final String MESSAGE_FILTERED = "<filtered>";
   public static final String CODE_DELIMITER = "`";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Reporter.class);
@@ -67,7 +67,7 @@ public class Reporter {
       try {
         outputfile = Files.createTempFile(filename_prefix, filename_suffix);
       } catch (IOException e1) {
-        LOGGER.error("Could not create report temporary file. Reporting will not function.", e);
+        LOGGER.error("Could not create report temporary file. Reporting will not function.", e1);
       }
     }
 
@@ -88,6 +88,7 @@ public class Reporter {
         writer.write(line);
         writer.newLine();
       } catch (IOException e) {
+        LOGGER.trace("IOException when trying to write report line", e);
         if (e.getMessage().equals("Stream closed")) {
           writer = null;
         }

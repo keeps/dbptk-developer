@@ -79,7 +79,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
         fileIndexFileStrategy.addFile(path);
 
       } catch (IOException e) {
-        throw new ModuleException("Error writing archiveIndex.xml to the archive");
+        throw new ModuleException("Error writing archiveIndex.xml to the archive", e);
       }
     }
 
@@ -98,7 +98,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
         fileIndexFileStrategy.addFile(path);
 
       } catch (IOException e) {
-        throw new ModuleException("Error writing contextDocumentationIndex.xml to the archive");
+        throw new ModuleException("Error writing contextDocumentationIndex.xml to the archive", e);
       }
     }
 

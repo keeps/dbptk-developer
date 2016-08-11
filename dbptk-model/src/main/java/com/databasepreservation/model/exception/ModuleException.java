@@ -3,6 +3,7 @@
  */
 package com.databasepreservation.model.exception;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -15,7 +16,7 @@ public class ModuleException extends Exception {
          */
   private static final long serialVersionUID = -200829472177640163L;
 
-  private Map<String, Throwable> errors = null;
+  private HashMap<String, Throwable> errors = null;
 
   /**
    * Create an empty generic module exception
@@ -62,7 +63,7 @@ public class ModuleException extends Exception {
    *          the errors messages and causes
    */
   public ModuleException(Map<String, Throwable> errors) {
-    this.errors = errors;
+    this.errors = new HashMap<>(errors);
   }
 
   /**

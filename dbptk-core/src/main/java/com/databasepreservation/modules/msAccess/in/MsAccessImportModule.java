@@ -97,8 +97,8 @@ public class MsAccessImportModule extends ODBCImportModule {
     List<ForeignKey> fKeys = new ArrayList<ForeignKey>();
 
     ResultSet foreignKeys = getStatement().executeQuery(
-      "SELECT  szRelationship, szReferencedObject, szColumn, szReferencedColumn FROM MSysRelationships WHERE szObject like '"
-        + tableName + "'");
+      "SELECT  szRelationship, szReferencedObject, szColumn, szReferencedColumn FROM MSysRelationships WHERE szObject like "
+        + sqlHelper.escapeTableName(tableName));
 
     while (foreignKeys.next()) {
       // FK name
