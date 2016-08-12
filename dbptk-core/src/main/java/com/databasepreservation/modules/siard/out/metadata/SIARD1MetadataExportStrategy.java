@@ -696,7 +696,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     if (StringUtils.isNotBlank(trigger.getTriggeredAction())) {
       triggerType.setTriggeredAction(XMLUtils.encode(trigger.getTriggeredAction()));
     } else {
-      throw new ModuleException("Error while exporting trigger: trigger triggeredAction cannot be black");
+      throw new ModuleException("Error while exporting trigger: trigger triggeredAction cannot be blank");
     }
 
     if (StringUtils.isNotBlank(trigger.getDescription())) {

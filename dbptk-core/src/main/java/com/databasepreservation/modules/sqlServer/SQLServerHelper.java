@@ -140,15 +140,14 @@ public class SQLServerHelper extends SQLHelper {
 
   @Override
   public String getTriggersSQL(String schemaName, String tableName) {
-    return "SELECT o.name AS TRIGGER_NAME, " + "CAST(OBJECTPROPERTY(id, 'ExecIsAfterTrigger') AS char(1)) "
-      + "+ CAST(OBJECTPROPERTY(id, 'ExecIsInsteadOfTrigger') " + "AS char(1)) AS ACTION_TIME, "
-      + "CAST(OBJECTPROPERTY(id, 'ExecIsInsertTrigger') AS char(1)) "
-      + "+ CAST(OBJECTPROPERTY(id, 'ExecIsUpdateTrigger') AS char(1))"
-      + "+ CAST(OBJECTPROPERTY(id, 'ExecIsDeleteTrigger') AS char(1))" + "AS TRIGGER_EVENT, "
-      + "OBJECT_DEFINITION(o.id) AS TRIGGERED_ACTION " + "FROM sysobjects o "
-      + "INNER JOIN sys.tables tab ON o.parent_obj = tab.object_id "
-      + "INNER JOIN sys.schemas s ON tab.schema_id = s.schema_id " + "WHERE o.type = 'TR' AND tab.name = '" + tableName
-      + "' " + "AND s.name='" + schemaName + "';";
+    return "SELECT o.name AS TRIGGER_NAME, CAST(OBJECTPROPERTY(id, 'ExecIsAfterTrigger') AS char(1)) "
+      + "+ CAST(OBJECTPROPERTY(id, 'ExecIsInsteadOfTrigger') AS char(1)) AS ACTION_TIME"
+      + ", CAST(OBJECTPROPERTY(id, 'ExecIsInsertTrigger') AS char(1)) "
+      + "+ CAST(OBJECTPROPERTY(id, 'ExecIsUpdateTrigger') AS char(1)) "
+      + "+ CAST(OBJECTPROPERTY(id, 'ExecIsDeleteTrigger') AS char(1)) AS TRIGGER_EVENT"
+      + ", OBJECT_DEFINITION(o.id) AS TRIGGERED_ACTION FROM sysobjects o"
+      + " INNER JOIN sys.tables tab ON o.parent_obj = tab.object_id"
+      + " INNER JOIN sys.schemas s ON tab.schema_id = s.schema_id WHERE o.type = 'TR' AND tab.name = '" + tableName;
   }
 
   @Override
