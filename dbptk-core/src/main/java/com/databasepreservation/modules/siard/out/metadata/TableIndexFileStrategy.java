@@ -71,29 +71,31 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
     List<SchemaStructure> schemas = dbStructure.getSchemas();
     // System.out.println(schemas.get(0));
 
+    // Check that all tables have primary keys
+    List<String> tablesWithNoPrimaryKeys = new ArrayList<String>();
+    StringBuilder tableListBuilder = new StringBuilder();
     for (SchemaStructure schemaStructure : schemas) {
-      if (schemaStructure.getTables().isEmpty()) {
-        throw new ModuleException("No tables found in schema!");
-      } else {
-
-        // Check that all tables have primary keys
-
-        List<String> tablesWithNoPrimaryKeys = new ArrayList<String>();
-        StringBuilder tableListBuilder = new StringBuilder();
+      if (!schemaStructure.getTables().isEmpty()) {
         for (TableStructure tableStructure : schemaStructure.getTables()) {
           PrimaryKey primaryKey = tableStructure.getPrimaryKey();
           if (primaryKey == null) {
             tablesWithNoPrimaryKeys.add(tableStructure.getName());
-            tableListBuilder.append(tableStructure.getName()).append(", ");
+            tableListBuilder.append(schemaStructure.getName()).append(".").append(tableStructure.getName())
+              .append(", ");
           }
         }
-        if (!tablesWithNoPrimaryKeys.isEmpty()) {
-          throw new ModuleException("No primary keys in the following table(s): "
-            + tableListBuilder.substring(0, tableListBuilder.length() - 2));
-        }
+      }
+    }
+    if (!tablesWithNoPrimaryKeys.isEmpty()) {
+      logger.warn("No primary keys in the following table(s): "
+        + tableListBuilder.substring(0, tableListBuilder.length() - 2));
+    }
 
-        // Go ahead - all tables have primary keys
-
+    for (SchemaStructure schemaStructure : schemas) {
+      if (schemaStructure.getTables().isEmpty()) {
+        logger.info("No tables found in this schema: " + schemaStructure.getName());
+        continue;
+      } else {
         for (TableStructure tableStructure : schemaStructure.getTables()) {
 
           // Set table - mandatory
@@ -183,12 +185,17 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
           // Set primary key - mandatory
           PrimaryKeyType primaryKeyType = new PrimaryKeyType(); // JAXB
           PrimaryKey primaryKey = tableStructure.getPrimaryKey();
-          primaryKeyType.setName(escapeString(primaryKey.getName()));
-          List<String> columnNames = primaryKey.getColumnNames();
-          for (String columnName : columnNames) {
-            // Set column names for primary key
+          if (primaryKey == null) {
+            primaryKeyType.setName("MISSING");
+            primaryKeyType.getColumn().add("MISSING");
+          } else {
+            primaryKeyType.setName(escapeString(primaryKey.getName()));
+            List<String> columnNames = primaryKey.getColumnNames();
+            for (String columnName : columnNames) {
+              // Set column names for primary key
 
-            primaryKeyType.getColumn().add(escapeString(columnName));
+              primaryKeyType.getColumn().add(escapeString(columnName));
+            }
           }
           tableType.setPrimaryKey(primaryKeyType);
 
@@ -243,7 +250,11 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
             viewType.setName(escapeString(viewStructure.getName()));
 
             // Set queryOriginal - mandatory
-            viewType.setQueryOriginal(viewStructure.getQueryOriginal());
+            if (StringUtils.isNotBlank(viewStructure.getQueryOriginal())) {
+              viewType.setQueryOriginal(viewStructure.getQueryOriginal());
+            } else {
+              viewType.setQueryOriginal("unknown");
+            }
 
             // Set description
             if (StringUtils.isNotBlank(viewStructure.getDescription())) {

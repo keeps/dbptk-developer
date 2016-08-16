@@ -64,7 +64,8 @@ public class SIARDDKExportModule {
     siardMarshaller = new StandardSIARDMarshaller();
     fileIndexFileStrategy = new FileIndexFileStrategy();
     docIndexFileStrategy = new DocIndexFileStrategy();
-    lobsTracker = new LOBsTracker();
+    lobsTracker = new LOBsTracker(Integer.parseInt(exportModuleArgs.get("lobs-per-folder")),
+      Integer.parseInt(exportModuleArgs.get("lobs-folder-size")));
     contentPathExportStrategy = new SIARDDKContentPathExportStrategy(this);
     metadataPathStrategy = new SIARDDKMetadataPathStrategy();
     metadataExportStrategy = new SIARDDKMetadataExportStrategy(this);

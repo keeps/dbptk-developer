@@ -14,14 +14,15 @@ import com.databasepreservation.modules.siard.out.content.LOBsTracker;
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-@Test
+@Test(groups = {"siarddk"})
 public class TestLOBsTracker {
 
+  private final double DELTA = 1e-7;
   private LOBsTracker lobsTracker;
 
   @BeforeMethod
   public void setUp() {
-    lobsTracker = new LOBsTracker();
+    lobsTracker = new LOBsTracker(10000, 1000);
 
     lobsTracker.addLOBLocationAndType(1, 1, SIARDDKConstants.BINARY_LARGE_OBJECT);
     lobsTracker.addLOBLocationAndType(1, 3, SIARDDKConstants.BINARY_LARGE_OBJECT);
@@ -55,7 +56,7 @@ public class TestLOBsTracker {
 
   @Test
   public void countsShouldBeCorrectAfter1LOBsAdds() {
-    addLOB();
+    addLOB(0);
     assertEquals(1, lobsTracker.getLOBsCount());
     assertEquals(1, lobsTracker.getDocCollectionCount());
     assertEquals(1, lobsTracker.getFolderCount());
@@ -64,7 +65,7 @@ public class TestLOBsTracker {
   @Test
   public void countsShouldBeCorrectAfter200LOBsAdds() {
     for (int i = 0; i < 200; i++) {
-      addLOB();
+      addLOB(0);
     }
     assertEquals(200, lobsTracker.getLOBsCount());
     assertEquals(1, lobsTracker.getDocCollectionCount());
@@ -74,7 +75,7 @@ public class TestLOBsTracker {
   @Test
   public void countsShouldBeCorrectAfter10000LOBsAdds() {
     for (int i = 0; i < 10000; i++) {
-      addLOB();
+      addLOB(0);
     }
     assertEquals(10000, lobsTracker.getLOBsCount());
     assertEquals(1, lobsTracker.getDocCollectionCount());
@@ -84,7 +85,7 @@ public class TestLOBsTracker {
   @Test
   public void countsShouldBeCorrectAfter10200LOBsAdds() {
     for (int i = 0; i < 10200; i++) {
-      addLOB();
+      addLOB(0);
     }
     assertEquals(10200, lobsTracker.getLOBsCount());
     assertEquals(2, lobsTracker.getDocCollectionCount());
@@ -94,7 +95,7 @@ public class TestLOBsTracker {
   @Test
   public void countsShouldBeCorrectAfter20001LOBsAdds() {
     for (int i = 0; i < 20001; i++) {
-      addLOB();
+      addLOB(0);
     }
     assertEquals(20001, lobsTracker.getLOBsCount());
     assertEquals(3, lobsTracker.getDocCollectionCount());
@@ -138,8 +139,8 @@ public class TestLOBsTracker {
 
   @Test
   public void decrementByOneLOBshouldBeCorrect() {
-    addLOB();
-    addLOB();
+    addLOB(0);
+    addLOB(0);
     lobsTracker.decrementLOBsCount();
     assertEquals(1, lobsTracker.getLOBsCount());
   }
@@ -147,7 +148,7 @@ public class TestLOBsTracker {
   @Test
   public void countsShouldBeCorrectAfter20001LOBsAddsAnd1Decrement() {
     for (int i = 0; i < 20001; i++) {
-      addLOB();
+      addLOB(0);
     }
     lobsTracker.decrementLOBsCount();
     assertEquals(20000, lobsTracker.getLOBsCount());
@@ -159,8 +160,82 @@ public class TestLOBsTracker {
     assertEquals(9999, lobsTracker.getFolderCount());
   }
 
-  private void addLOB() {
-    lobsTracker.addLOB();
+  @Test
+  public void docCollectionCountShouldBeCorrectWhenIncrementingNumberOfLobs() {
+    LOBsTracker lt = new LOBsTracker(3, 1000);
+    assertEquals(0, lt.getFolderCount());
+    assertEquals(1, lt.getDocCollectionCount());
+    lt.addLOB(0);
+    assertEquals(1, lt.getFolderCount());
+    assertEquals(1, lt.getDocCollectionCount());
+    lt.addLOB(0);
+    lt.addLOB(0);
+    assertEquals(3, lt.getFolderCount());
+    assertEquals(1, lt.getDocCollectionCount());
+    lt.addLOB(0);
+    assertEquals(1, lt.getFolderCount());
+    assertEquals(2, lt.getDocCollectionCount());
+    lt.addLOB(0);
+    lt.addLOB(0);
+    lt.addLOB(0);
+    assertEquals(1, lt.getFolderCount());
+    assertEquals(3, lt.getDocCollectionCount());
+  }
+
+  @Test
+  public void docCollectionCountShouldBeCorrectWhenDecrementingNumberOfLobs() {
+    LOBsTracker lt = new LOBsTracker(3, 1000);
+    lt.addLOB(0);
+    lt.addLOB(0);
+    lt.addLOB(0);
+    lt.addLOB(0);
+    assertEquals(1, lt.getFolderCount());
+    assertEquals(2, lt.getDocCollectionCount());
+    lt.decrementLOBsCount();
+    assertEquals(3, lt.getFolderCount());
+    assertEquals(1, lt.getDocCollectionCount());
+  }
+
+  @Test
+  public void accumulatedLobsSizeShouldBeZeroInitially() {
+    LOBsTracker lt = new LOBsTracker(10000, 100);
+    assertEquals(0, lt.getAccumulatedLobsSize(), DELTA);
+  }
+
+  @Test
+  public void accumulatedLobsSizeShouldBeAbleToAccumulate() {
+    LOBsTracker lt = new LOBsTracker(10000, 100);
+    lt.addLOB(50);
+    assertEquals(50, lt.getAccumulatedLobsSize(), DELTA);
+    lt.addLOB(25);
+    assertEquals(75, lt.getAccumulatedLobsSize(), DELTA);
+  }
+
+  @Test
+  public void docCollectionShouldBeIncrementedCorrectlyWhenIncrementingAccumulatedLobsSize() {
+    LOBsTracker lt = new LOBsTracker(10000, 100);
+    lt.addLOB(50);
+    assertEquals(50, lt.getAccumulatedLobsSize(), DELTA);
+    lt.addLOB(75);
+    assertEquals(1, lt.getFolderCount());
+    assertEquals(2, lt.getDocCollectionCount());
+    assertEquals(75, lt.getAccumulatedLobsSize(), DELTA);
+  }
+
+  @Test
+  public void docCollectionShouldBeIncrementedCorrectlyWhenBothLobsCountAndSizeAreExceeded() {
+    LOBsTracker lt = new LOBsTracker(3, 100);
+    lt.addLOB(30);
+    lt.addLOB(30);
+    lt.addLOB(30);
+    lt.addLOB(20);
+    assertEquals(1, lt.getFolderCount());
+    assertEquals(2, lt.getDocCollectionCount());
+    assertEquals(20, lt.getAccumulatedLobsSize(), DELTA);
+  }
+
+  private void addLOB(int size) {
+    lobsTracker.addLOB(size);
   }
 
   @Test(enabled = false)

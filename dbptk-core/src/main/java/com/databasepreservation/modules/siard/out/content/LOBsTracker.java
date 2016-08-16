@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
-
 /**
  * @author Andreas Kring <andreas@magenta.dk>
  *
@@ -17,6 +15,9 @@ public class LOBsTracker {
   private int docCollectionCount;
   private int folderCount; // Folder within docCollection
   private int currentTable;
+  private int maxLobsPerFolder;
+  private int maxLobsFolderSize;
+  private double accumulatedLobsSize;
   private Map<Integer, List<Integer>> columnIndicesOfLOBsInTables; // Info like:
                                                                    // table 7
                                                                    // has LOBs
@@ -28,11 +29,14 @@ public class LOBsTracker {
   private Map<Integer, String> lobTypeInColumn;
   private Map<Integer, Map<Integer, Integer>> maxCLOBlength;
 
-  public LOBsTracker() {
+  public LOBsTracker(int maxLobsPerFolder, int maxLobsFolderSize) {
     LOBsCount = 0;
     docCollectionCount = 1;
     folderCount = 0;
     currentTable = 0;
+    this.maxLobsPerFolder = maxLobsPerFolder;
+    this.maxLobsFolderSize = maxLobsFolderSize;
+    accumulatedLobsSize = 0;
     columnIndicesOfLOBsInTables = new HashMap<Integer, List<Integer>>();
     lobTypes = new HashMap<Integer, Map<Integer, String>>();
   }
@@ -43,6 +47,13 @@ public class LOBsTracker {
    */
   public int getLOBsCount() {
     return LOBsCount;
+  }
+
+  /**
+   * @return the accumulatedLobsSize
+   */
+  public double getAccumulatedLobsSize() {
+    return accumulatedLobsSize;
   }
 
   /**
@@ -85,15 +96,25 @@ public class LOBsTracker {
     }
   }
 
-  public void addLOB() {
+  /**
+   * Adds LOB of given size in megabyte
+   * 
+   * @param lobSize
+   *          The size of the LOB in megabyte
+   */
+  public void addLOB(double lobSize) {
     LOBsCount += 1;
     folderCount += 1;
 
     // Note: code assumes one file in each folder
 
-    if (folderCount == SIARDDKConstants.MAX_NUMBER_OF_FILES + 1) {
+    double newPotentialAccumulatedSize = accumulatedLobsSize + lobSize;
+    if (newPotentialAccumulatedSize > maxLobsFolderSize || folderCount == maxLobsPerFolder + 1) {
       docCollectionCount += 1;
       folderCount = 1;
+      accumulatedLobsSize = lobSize;
+    } else {
+      accumulatedLobsSize += lobSize;
     }
   }
 
@@ -147,7 +168,7 @@ public class LOBsTracker {
     LOBsCount -= 1;
 
     if (folderCount == 1) {
-      folderCount = SIARDDKConstants.MAX_NUMBER_OF_FILES;
+      folderCount = maxLobsPerFolder;
       docCollectionCount -= 1;
     } else {
       folderCount -= 1;
