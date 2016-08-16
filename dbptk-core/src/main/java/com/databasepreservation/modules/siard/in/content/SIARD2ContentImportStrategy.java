@@ -27,7 +27,6 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
-import com.databasepreservation.model.data.FileItem;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
@@ -231,9 +230,8 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
 
         try {
           if (lobDir.endsWith(SIARD2ContentPathExportStrategy.BLOB_EXTENSION)) {
-            FileItem fileItem = new FileItem(readStrategy.createInputStream(container, lobPath));
             currentBlobCell = new BinaryCell(currentTable.getColumns().get(columnIndex - 1).getId() + "." + rowIndex,
-              fileItem);
+              readStrategy.createInputStream(container, lobPath));
 
             LOGGER.debug(String.format("BLOB cell %s on row #%d with lob dir %s", currentBlobCell.getId(), rowIndex,
               lobDir));
@@ -332,14 +330,11 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
           // binary data with less than 2000 bytes does not have its own file
           try {
             InputStream is = new ByteArrayInputStream(Hex.decodeHex(localVal.toCharArray()));
-            cell = new BinaryCell(id, new FileItem(is));
-            is.close();
+            cell = new BinaryCell(id, is);
           } catch (ModuleException e) {
             LOGGER.error("An error occurred while importing in-table binary cell", e);
           } catch (DecoderException e) {
             LOGGER.error(String.format("Illegal characters in hexadecimal string \"%s\"", localVal), e);
-          } catch (IOException e) {
-            LOGGER.error("Problem closing the byte array input stream", e);
           }
         } else {
           cell = new SimpleCell(id, localVal);

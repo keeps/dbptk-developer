@@ -1,10 +1,10 @@
 package com.databasepreservation.modules.jdbc.in;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Array;
+import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Date;
@@ -31,7 +31,6 @@ import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
-import com.databasepreservation.model.data.FileItem;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
@@ -1455,16 +1454,10 @@ public class JDBCImportModule implements DatabaseImportModule {
   protected Cell rawToCellSimpleTypeBinary(String id, String columnName, Type cellType, ResultSet rawData)
     throws SQLException, ModuleException {
     Cell cell;
-    InputStream binaryStream = rawData.getBinaryStream(columnName);
-    if (binaryStream != null) {
-      FileItem fileItem = new FileItem(binaryStream);
-      cell = new BinaryCell(id, fileItem);
 
-      try {
-        binaryStream.close();
-      } catch (IOException e) {
-        LOGGER.error("Could not close binary stream", e);
-      }
+    Blob blob = rawData.getBlob(columnName);
+    if (blob != null) {
+      cell = new BinaryCell(id, blob);
     } else {
       cell = new NullCell(id);
     }
@@ -1569,7 +1562,9 @@ public class JDBCImportModule implements DatabaseImportModule {
       try {
         LOGGER.debug("Closing connection to source database");
         closeConnection();
-      } catch (SQLException ignored) {}
+      } catch (SQLException e) {
+        LOGGER.debug("Error while closing connection", e);
+      }
     }
   }
 

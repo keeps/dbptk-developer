@@ -36,4 +36,8 @@ public abstract class Cell {
     this.id = id;
   }
 
+  @Override
+  public String toString() {
+    return "Cell{" + "id='" + id + '\'' + '}';
+  }
 }

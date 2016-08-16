@@ -9,6 +9,7 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
+import com.databasepreservation.model.data.ProvidesTempFileInputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.Tika;
 import org.jdom2.Document;
@@ -29,7 +30,6 @@ import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.modules.siard.common.LargeObject;
-import com.databasepreservation.modules.siard.common.ProvidesInputStreamFromBinaryCell;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.out.metadata.DocIndexFileStrategy;
@@ -306,15 +306,16 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
             // BLOB is not NULL
 
-            double lobSizeMB = ((double) binaryCell.getLength()) / (1024 * 1024);
+            double lobSizeMB = ((double) binaryCell.getSize()) / (1024 * 1024);
             lobsTracker.addLOB(lobSizeMB); // Only if LOB not NULL
 
             // Determine the mimetype (Tika should use an inputstream which
             // supports marks)
 
-            InputStream is = new BufferedInputStream(binaryCell.createInputstream());
+            InputStream is = new BufferedInputStream(binaryCell.createInputStream());
             String mimeType = tika.detect(is); // Automatically resets the
                                                // inputstream after use
+            IOUtils.closeQuietly(is);
 
             // Archive BLOB - simultaneous writing always supported for
             // SIARDDK
@@ -334,7 +335,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
             }
             path += fileExtension;
 
-            LargeObject blob = new LargeObject(new ProvidesInputStreamFromBinaryCell(binaryCell), path);
+            LargeObject blob = new LargeObject(binaryCell, path);
 
             // Create new FileIndexFileStrategy
 
@@ -342,8 +343,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
             OutputStream out = fileIndexFileStrategy.getLOBWriter(baseContainer, blob.getOutputPath(), writeStrategy);
             InputStream in = blob.getInputStreamProvider().createInputStream();
             IOUtils.copy(in, out);
-            in.close();
-            out.close();
+            IOUtils.closeQuietly(in);
+            IOUtils.closeQuietly(out);
             blob.getInputStreamProvider().cleanResources();
 
             // Add file to docIndex (a lot easier to do here even though we

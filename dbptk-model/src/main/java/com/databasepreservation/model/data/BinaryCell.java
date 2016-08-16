@@ -3,87 +3,66 @@
  */
 package com.databasepreservation.model.data;
 
-import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Blob;
 
+import com.databasepreservation.common.ProvidesInputStream;
 import com.databasepreservation.model.exception.ModuleException;
 
 /**
- * Represents the value of a cell of BLOB type
+ * Represents a cell of BLOB type
  *
  * @author Luis Faria <lfaria@keep.pt>
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class BinaryCell extends Cell {
-
-  private FileItem fileItem;
+public class BinaryCell extends Cell implements ProvidesInputStream {
+  private ProvidesInputStream providesInputStream;
 
   /**
-   * Binary cell constructor without a FileItem. This should not be used to
-   * represent NULL, instead a NullCell should be created.
-   *
+   * Creates a binary cell. This binary cell will mostly just be a wrapper
+   * around the SQL Blob object.
+   * 
    * @param id
-   *          the cell id, equal to 'tableId.columnId.rowIndex'
+   *          the cell id
+   * @param blob
+   *          the SQL Blob object, where the blob value will be read from
    */
-  protected BinaryCell(String id) {
+  public BinaryCell(String id, Blob blob) {
     super(id);
-    fileItem = null;
+    providesInputStream = new ProvidesBlobInputStream(blob);
   }
 
   /**
-   * Binary cell constructor
+   * Creates a binary cell. The binary contents are read and saved to a
+   * temporary file, so they can be read later without keeping an open
+   * InputStreams.
    *
+   * The inputStream is closed after use.
+   * 
    * @param id
-   *          the cell id, equal to 'tableId.columnId.rowIndex'
-   * @param fileItem
-   *          the fileItem relative to the binary data
+   *          the cell id
+   * @param inputStream
+   *          to read the data. It will be closed.
    * @throws ModuleException
+   *           if some IO problem occurs. The stream will still be closed.
    */
-  public BinaryCell(String id, FileItem fileItem) throws ModuleException {
+  public BinaryCell(String id, InputStream inputStream) throws ModuleException {
     super(id);
-    this.fileItem = fileItem;
-  }
-
-  /**
-   * @return create an inputstream to fetch the binary data
-   * @throws ModuleException
-   */
-  public InputStream createInputstream() throws ModuleException {
-    return fileItem != null ? fileItem.createInputStream() : null;
-  }
-
-  /**
-   * @return checks if an inputstream can be created
-   */
-  public boolean canCreateInputstream() {
-    return fileItem != null;
-  }
-
-  /**
-   * Get the binary stream length in bytes
-   *
-   * @return the binary stream length; -1 if the file is not available
-   */
-  public long getLength() throws ModuleException {
-    return fileItem != null ? fileItem.size() : -1;
-  }
-
-  /**
-   * Clear resources used by binary cell
-   */
-  public void cleanResources() throws IOException {
-    fileItem.delete();
-  }
-
-  /**
-   * Clear resources used by binary cell (without throwing exceptions)
-   */
-  public void cleanResourcesSilently() {
-    fileItem.delete();
+    providesInputStream = new ProvidesTempFileInputStream(inputStream);
   }
 
   @Override
-  public String toString() {
-    return "BinaryCell{" + "fileItem=" + fileItem + '}';
+  public InputStream createInputStream() throws ModuleException {
+    return providesInputStream.createInputStream();
+  }
+
+  @Override
+  public void cleanResources() {
+    providesInputStream.cleanResources();
+  }
+
+  @Override
+  public long getSize() throws ModuleException {
+    return providesInputStream.getSize();
   }
 }

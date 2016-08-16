@@ -26,7 +26,6 @@ import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
-import com.databasepreservation.model.data.FileItem;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
@@ -394,17 +393,18 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       if ((hexString.length() % 2) != 0) {
         hexString = "0" + hexString;
       }
-      byte[] bytes = SIARDHelper.hexStringToByteArray(hexString);
-      binaryStream = new ByteArrayInputStream(bytes);
+
+      if (hexString.isEmpty()) {
+        cell = new NullCell(id);
+      } else {
+        byte[] bytes = SIARDHelper.hexStringToByteArray(hexString);
+        binaryStream = new ByteArrayInputStream(bytes);
+        cell = new BinaryCell(id, binaryStream);
+      }
     } else {
-      binaryStream = rawData.getBinaryStream(columnName);
+      cell = new BinaryCell(id, rawData.getBlob(columnName));
     }
-    if (binaryStream != null) {
-      FileItem fileItem = new FileItem(binaryStream);
-      cell = new BinaryCell(id, fileItem);
-    } else {
-      cell = new NullCell(id);
-    }
+
     return cell;
   }
 

@@ -4,6 +4,7 @@
 package com.databasepreservation.modules.jdbc.out;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.sql.BatchUpdateException;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -544,32 +546,22 @@ public class JDBCExportModule implements DatabaseExportModule {
         final BinaryCell bin = (BinaryCell) cell;
 
         if (type instanceof SimpleTypeBinary) {
-          if (bin.canCreateInputstream()) {
-            ps.setBinaryStream(index, bin.createInputstream(), (int) bin.getLength());
-          } else {
-            LOGGER.debug("is null");
-            ps.setNull(index, Types.BINARY);
-          }
+          final InputStream inputStream = bin.createInputStream();
+          ps.setBinaryStream(index, inputStream, bin.getSize());
           ret = new CleanResourcesInterface() {
             @Override
             public void clean() throws ModuleException {
-              try {
-                bin.cleanResources();
-              } catch (IOException e) {
-                throw new ModuleException("Could not clean resources of " + bin, e);
-              }
+              IOUtils.closeQuietly(inputStream);
+              bin.cleanResources();
             }
           };
         } else if (type instanceof SimpleTypeString) {
-          handleSimpleTypeString(ps, index, bin);
+          final InputStream inputStream = handleSimpleTypeString(ps, index, bin);
           ret = new CleanResourcesInterface() {
             @Override
             public void clean() throws ModuleException {
-              try {
-                bin.cleanResources();
-              } catch (IOException e) {
-                throw new ModuleException("Could not clean resources of " + bin, e);
-              }
+              IOUtils.closeQuietly(inputStream);
+              bin.cleanResources();
             }
           };
         } else {
@@ -665,9 +657,14 @@ public class JDBCExportModule implements DatabaseExportModule {
     }
   }
 
-  protected void handleSimpleTypeString(PreparedStatement ps, int index, BinaryCell bin) throws SQLException,
+  /**
+   * @return the created InputStream, so it can be closed.
+   */
+  protected InputStream handleSimpleTypeString(PreparedStatement ps, int index, BinaryCell bin) throws SQLException,
     ModuleException {
-    ps.setClob(index, new InputStreamReader(bin.createInputstream()), bin.getLength());
+    InputStream inputStream = bin.createInputStream();
+    ps.setClob(index, new InputStreamReader(inputStream), bin.getSize());
+    return inputStream;
   }
 
   @Override

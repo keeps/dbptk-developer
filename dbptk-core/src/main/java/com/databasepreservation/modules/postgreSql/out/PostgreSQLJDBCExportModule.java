@@ -1,5 +1,6 @@
 package com.databasepreservation.modules.postgreSql.out;
 
+import java.io.InputStream;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
@@ -205,8 +206,10 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
   }
 
   @Override
-  protected void handleSimpleTypeString(PreparedStatement ps, int index, BinaryCell bin) throws SQLException,
+  protected InputStream handleSimpleTypeString(PreparedStatement ps, int index, BinaryCell bin) throws SQLException,
     ModuleException {
-    ps.setBinaryStream(index, bin.createInputstream(), bin.getLength());
+    InputStream inputStream = bin.createInputStream();
+    ps.setBinaryStream(index, inputStream, bin.getSize());
+    return inputStream;
   }
 }

@@ -2,6 +2,7 @@ package com.databasepreservation.testing.integration.siard;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.databasepreservation.model.data.ProvidesTempFileInputStream;
 import org.joda.time.DateTime;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -25,7 +27,6 @@ import org.testng.annotations.Test;
 
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
-import com.databasepreservation.model.data.FileItem;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
@@ -499,7 +500,7 @@ public class SiardTest {
    * @throws ModuleException
    * @throws IOException
    */
-  private FileItem newBlob() throws ModuleException, IOException {
+  private InputStream newBlob() throws ModuleException, IOException {
     Path binary_file_path = Files.createTempFile("binary_cell", ".bin");
     binary_file_path.toFile().deleteOnExit();
     Random rnd = new Random();
@@ -508,7 +509,7 @@ public class SiardTest {
       rnd.nextBytes(bytes);
       Files.write(binary_file_path, bytes, StandardOpenOption.APPEND);
     }
-    return new FileItem(Files.newInputStream(binary_file_path));
+    return Files.newInputStream(binary_file_path);
   }
 
   /**
