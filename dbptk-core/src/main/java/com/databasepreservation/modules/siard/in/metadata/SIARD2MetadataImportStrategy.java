@@ -133,7 +133,7 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
         try {
           reader.close();
         } catch (IOException e1) {
-          LOGGER.trace("problem closing reader after XMl validation failure");
+          LOGGER.trace("problem closing reader after XMl validation failure", e1);
         }
       }
       try {
@@ -181,7 +181,7 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
     metadataCurrentDatabaseName = siardArchive.getDbname();
     databaseStructure.setName(metadataCurrentDatabaseName);
 
-    databaseStructure.setArchivalDate(JodaUtils.xs_date_parse(siardArchive.getArchivalDate()));
+    databaseStructure.setArchivalDate(JodaUtils.xsDateParse(siardArchive.getArchivalDate()));
     // TODO:
     // databaseStructure.setMessageDigest(siardArchive.getMessageDigest());
     databaseStructure.setProductName(siardArchive.getDatabaseProduct());

@@ -17,7 +17,7 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class ZipWithExternalLobsWriteStrategy implements WriteStrategy {
-  public final static String DIGEST_ALGORITHM = "MD5";
+  public static final String DIGEST_ALGORITHM = "MD5";
   private final MessageDigest digest;
 
   private final ZipWriteStrategy zipWriter;
@@ -30,7 +30,7 @@ public class ZipWithExternalLobsWriteStrategy implements WriteStrategy {
     try {
       digest = MessageDigest.getInstance(DIGEST_ALGORITHM);
     } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException("Unknown digest algorithm: " + DIGEST_ALGORITHM);
+      throw new IllegalArgumentException("Unknown digest algorithm: " + DIGEST_ALGORITHM, e);
     }
   }
 
@@ -53,7 +53,7 @@ public class ZipWithExternalLobsWriteStrategy implements WriteStrategy {
     } else if (container.getType().equals(SIARDArchiveContainer.OutputContainerType.AUXILIARY)) {
       return new DigestOutputStream(folderWriter.createOutputStream(container, path), digest);
     } else {
-      throw new ModuleException("OutputContainerType not supported: " + container.getType().toString());
+      throw createUnsupportedOutputContainerType(container);
     }
   }
 
@@ -80,7 +80,7 @@ public class ZipWithExternalLobsWriteStrategy implements WriteStrategy {
     } else if (container.getType().equals(SIARDArchiveContainer.OutputContainerType.AUXILIARY)) {
       folderWriter.finish(container);
     } else {
-      throw new ModuleException("OutputContainerType not supported: " + container.getType().toString());
+      throw createUnsupportedOutputContainerType(container);
     }
   }
 
@@ -98,7 +98,14 @@ public class ZipWithExternalLobsWriteStrategy implements WriteStrategy {
     } else if (container.getType().equals(SIARDArchiveContainer.OutputContainerType.AUXILIARY)) {
       folderWriter.setup(container);
     } else {
-      throw new ModuleException("OutputContainerType not supported: " + container.getType().toString());
+      throw createUnsupportedOutputContainerType(container);
     }
+  }
+
+  /**
+   * Creates a new exception informing that the container type is not supported
+   */
+  private ModuleException createUnsupportedOutputContainerType(SIARDArchiveContainer container) {
+    return new ModuleException("OutputContainerType not supported: " + container.getType().toString());
   }
 }

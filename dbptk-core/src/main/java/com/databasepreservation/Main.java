@@ -48,7 +48,7 @@ public class Main {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
-  public static final DatabaseModuleFactory[] databaseModuleFactories = new DatabaseModuleFactory[] {
+  private static final DatabaseModuleFactory[] databaseModuleFactories = new DatabaseModuleFactory[] {
     new JDBCModuleFactory(), new ListTablesModuleFactory(), new MsAccessUCanAccessModuleFactory(),
     new MySQLModuleFactory(), new Oracle12cModuleFactory(), new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(),
     new SIARD2ModuleFactory(), new SIARDDKModuleFactory(), new SolrModuleFactory(), new SQLServerJDBCModuleFactory()};
@@ -110,6 +110,7 @@ public class Main {
       logProgramFinish(EXIT_CODE_COMMAND_PARSE_ERROR);
       return EXIT_CODE_COMMAND_PARSE_ERROR;
     } catch (LicenseNotAcceptedException e) {
+      LOGGER.trace("LicenseNotAcceptedException", e);
       LOGGER.info("The license must be accepted to use this module.");
       LOGGER.info("==================================================");
       LOGGER.info(e.getLicense());

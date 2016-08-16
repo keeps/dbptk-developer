@@ -441,7 +441,7 @@ public class JDBCExportModule implements DatabaseExportModule {
     try {
       commit();
     } catch (SQLException e) {
-      LOGGER.error("Could not commit data insertion for table " + tableId);
+      LOGGER.error("Could not commit data insertion for table " + tableId, e);
     }
 
     try {

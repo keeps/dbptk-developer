@@ -101,7 +101,7 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
     }
 
     Reporter.importModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
-      pUsername, "password", Reporter.MESSAGE_FILTERED_PASSWORD, "port number", pPortNumber.toString());
+      pUsername, "password", Reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
     return new PostgreSQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt);
   }
 
@@ -125,7 +125,7 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
     }
 
     Reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
-      pUsername, "password", Reporter.MESSAGE_FILTERED_PASSWORD, "port number", pPortNumber.toString());
+      pUsername, "password", Reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
     return new PostgreSQLJDBCExportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt);
   }
 }

@@ -113,7 +113,7 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
     Integer pPortNumber = Integer.parseInt(parameters.get(portNumber));
 
     Reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
-      pUsername, "password", Reporter.MESSAGE_FILTERED_PASSWORD, "port number", pPortNumber.toString());
+      pUsername, "password", Reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
     return new Oracle12cJDBCImportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword);
   }
 
@@ -135,7 +135,7 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
     Integer pPortNumber = Integer.parseInt(parameters.get(portNumber));
 
     Reporter.exportModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
-      pUsername, "password", Reporter.MESSAGE_FILTERED_PASSWORD, "port number", pPortNumber.toString(),
+      pUsername, "password", Reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString(),
       "source schema", pSourceSchema);
     return new Oracle12cJDBCExportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword, pSourceSchema);
   }

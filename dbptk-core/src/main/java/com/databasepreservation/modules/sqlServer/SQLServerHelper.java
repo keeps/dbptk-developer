@@ -73,7 +73,7 @@ public class SQLServerHelper extends SQLHelper {
       } else {
         ret = "decimal(";
         int min = Math.min(precision, 28);
-        ret += min;
+        ret += Integer.toString(min);
         if (scale > 0) {
           ret += "," + (scale - precision + min);
         }
@@ -104,7 +104,7 @@ public class SQLServerHelper extends SQLHelper {
           dataType = "varbinary";
         }
         Integer length = binType.getLength();
-        Integer bytes = (((length / 8.0) % 1 == 0) ? (length / 8) : ((length / 8) + 1));
+        Integer bytes = (length % 8 == 0) ? (length / 8) : ((length / 8) + 1);
 
         if ("varbinary".equals(dataType) && bytes <= 0) {
           ret = "varbinary(max)";
@@ -125,7 +125,7 @@ public class SQLServerHelper extends SQLHelper {
   }
 
   @Override
-  protected String escapeTableName(String table) {
+  public String escapeTableName(String table) {
     return "[" + table + "]";
   }
 
