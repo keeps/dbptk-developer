@@ -9,7 +9,7 @@ import java.nio.file.StandardCopyOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.common.ProvidesInputStream;
+import com.databasepreservation.common.InputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 
 /**
@@ -25,8 +25,8 @@ import com.databasepreservation.model.exception.ModuleException;
  * @author Bruno Ferreira <bferreira@keep.pt>
  * @author Luis Faria <lfaria@keep.pt>
  */
-public class ProvidesTempFileInputStream implements ProvidesInputStream {
-  private static final Logger LOGGER = LoggerFactory.getLogger(ProvidesTempFileInputStream.class);
+public class TempFileInputStreamProvider implements InputStreamProvider {
+  private static final Logger LOGGER = LoggerFactory.getLogger(TempFileInputStreamProvider.class);
 
   private Path path;
 
@@ -39,7 +39,7 @@ public class ProvidesTempFileInputStream implements ProvidesInputStream {
    * @throws ModuleException
    *           if some IO problem happens. The stream is still closed.
    */
-  public ProvidesTempFileInputStream(InputStream inputStream) throws ModuleException {
+  public TempFileInputStreamProvider(InputStream inputStream) throws ModuleException {
     try {
       path = Files.createTempFile("dbptk", "lob");
     } catch (IOException e) {

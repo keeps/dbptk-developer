@@ -7,7 +7,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.databasepreservation.model.data.ProvidesTempFileInputStream;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -19,6 +18,7 @@ import com.databasepreservation.model.data.ComposedCell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
+import com.databasepreservation.model.data.TempFileInputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -237,7 +237,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
       }
 
       ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
-      lob = new LargeObject(new ProvidesTempFileInputStream(inputStream), path);
+      lob = new LargeObject(new TempFileInputStreamProvider(inputStream), path);
 
       currentWriter.beginOpenTag("c" + columnIndex, 2).space().append("file=\"").append(path).append('"').space()
         .append("length=\"").append(String.valueOf(txtCell.getBytesSize())).append("\"");

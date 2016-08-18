@@ -1,8 +1,6 @@
 package com.databasepreservation.modules.msAccess.in;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -46,21 +44,7 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
   }
 
   @Override
-  public Connection getConnection() throws SQLException, ClassNotFoundException {
-    if (connection == null) {
-      LOGGER.debug("Loading JDBC Driver " + driverClassName);
-      Class.forName(driverClassName);
-      LOGGER.debug("Getting connection");
-      connection = DriverManager.getConnection(connectionURL); // , "admin",
-                                                               // "admin");
-      LOGGER.debug("Connected");
-    }
-    return connection;
-  }
-
-  @Override
-  protected ResultSet getTableRawData(TableStructure table) throws SQLException, ClassNotFoundException,
-    ModuleException {
+  protected ResultSet getTableRawData(TableStructure table) throws SQLException, ModuleException {
     String tableId;
     ResultSet set = null;
     tableId = table.getId();
@@ -75,10 +59,9 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
    * @param schemaName
    * @return
    * @throws SQLException
-   * @throws ClassNotFoundException
    */
   @Override
-  protected List<RoutineStructure> getRoutines(String schemaName) throws SQLException, ClassNotFoundException {
+  protected List<RoutineStructure> getRoutines(String schemaName) throws SQLException {
     // TODO add optional fields to routine (use getProcedureColumns)
     Set<RoutineStructure> routines = new HashSet<RoutineStructure>();
 
@@ -155,10 +138,9 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
   /**
    * @return the database privileges
    * @throws SQLException
-   * @throws ClassNotFoundException
    */
   @Override
-  protected List<PrivilegeStructure> getPrivileges() throws SQLException, ClassNotFoundException {
+  protected List<PrivilegeStructure> getPrivileges() throws SQLException {
     Reporter.notYetSupported("roles importing", "MS Access import module");
     return new ArrayList<PrivilegeStructure>();
   }
@@ -168,11 +150,10 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
    *          the schema structure
    * @return the database tables of a given schema
    * @throws SQLException
-   * @throws ClassNotFoundException
    * @throws
    */
   @Override
-  protected List<TableStructure> getTables(SchemaStructure schema) throws SQLException, ClassNotFoundException {
+  protected List<TableStructure> getTables(SchemaStructure schema) throws SQLException {
     List<TableStructure> tables = new ArrayList<>();
     ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"TABLE"});
     int tableIndex = 1;

@@ -9,7 +9,6 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
-import com.databasepreservation.model.data.ProvidesTempFileInputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.Tika;
 import org.jdom2.Document;

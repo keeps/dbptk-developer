@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import com.databasepreservation.model.data.ProvidesTempFileInputStream;
 import org.joda.time.DateTime;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;

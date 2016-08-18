@@ -7,7 +7,7 @@ import com.databasepreservation.model.exception.ModuleException;
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public interface ProvidesInputStream {
+public interface InputStreamProvider {
   /**
    * Create a new input stream to read data
    *

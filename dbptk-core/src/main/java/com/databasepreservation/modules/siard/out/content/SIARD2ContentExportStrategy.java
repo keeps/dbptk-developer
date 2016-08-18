@@ -16,9 +16,9 @@ import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
 import com.databasepreservation.model.data.NullCell;
-import com.databasepreservation.model.data.ProvidesTempFileInputStream;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
+import com.databasepreservation.model.data.TempFileInputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -245,8 +245,8 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     if (cell instanceof BinaryCell) {
       final BinaryCell binCell = (BinaryCell) cell;
 
-      lob = new LargeObject(binCell, contentPathStrategy.getBlobFilePath(
-        currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
+      lob = new LargeObject(binCell, contentPathStrategy.getBlobFilePath(currentSchema.getIndex(),
+        currentTable.getIndex(), columnIndex, currentRowIndex + 1));
 
       currentWriter.beginOpenTag("c" + columnIndex, 2).space().append("file=\"")
         .append(contentPathStrategy.getBlobFileName(currentRowIndex + 1)).append('"').space().append("length=\"")
@@ -265,8 +265,8 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       }
 
       ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
-      lob = new LargeObject(new ProvidesTempFileInputStream(inputStream), contentPathStrategy.getClobFilePath(
-          currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
+      lob = new LargeObject(new TempFileInputStreamProvider(inputStream), contentPathStrategy.getClobFilePath(
+        currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
 
       currentWriter.beginOpenTag("c" + columnIndex, 2).space().append("file=\"")
         .append(contentPathStrategy.getClobFileName(currentRowIndex + 1)).append('"').space().append("length=\"")

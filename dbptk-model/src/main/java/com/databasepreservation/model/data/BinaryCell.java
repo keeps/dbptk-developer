@@ -6,7 +6,7 @@ package com.databasepreservation.model.data;
 import java.io.InputStream;
 import java.sql.Blob;
 
-import com.databasepreservation.common.ProvidesInputStream;
+import com.databasepreservation.common.InputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 
 /**
@@ -15,13 +15,13 @@ import com.databasepreservation.model.exception.ModuleException;
  * @author Luis Faria <lfaria@keep.pt>
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class BinaryCell extends Cell implements ProvidesInputStream {
-  private ProvidesInputStream providesInputStream;
+public class BinaryCell extends Cell implements InputStreamProvider {
+  private InputStreamProvider inputStreamProvider;
 
   /**
    * Creates a binary cell. This binary cell will mostly just be a wrapper
    * around the SQL Blob object.
-   * 
+   *
    * @param id
    *          the cell id
    * @param blob
@@ -29,7 +29,7 @@ public class BinaryCell extends Cell implements ProvidesInputStream {
    */
   public BinaryCell(String id, Blob blob) {
     super(id);
-    providesInputStream = new ProvidesBlobInputStream(blob);
+    inputStreamProvider = new BlobInputStreamProvider(blob);
   }
 
   /**
@@ -48,21 +48,35 @@ public class BinaryCell extends Cell implements ProvidesInputStream {
    */
   public BinaryCell(String id, InputStream inputStream) throws ModuleException {
     super(id);
-    providesInputStream = new ProvidesTempFileInputStream(inputStream);
+    inputStreamProvider = new TempFileInputStreamProvider(inputStream);
+  }
+
+  /**
+   * Creates a binary cell. This binary cell is a wrapper around a
+   * ProvidesInputStream object (whilst also providing Cell functionality).
+   *
+   * @param id
+   *          the cell id
+   * @param inputStreamProvider
+   *          the inputStream provider used to read BLOB data
+   */
+  public BinaryCell(String id, InputStreamProvider inputStreamProvider) {
+    super(id);
+    this.inputStreamProvider = inputStreamProvider;
   }
 
   @Override
   public InputStream createInputStream() throws ModuleException {
-    return providesInputStream.createInputStream();
+    return inputStreamProvider.createInputStream();
   }
 
   @Override
   public void cleanResources() {
-    providesInputStream.cleanResources();
+    inputStreamProvider.cleanResources();
   }
 
   @Override
   public long getSize() throws ModuleException {
-    return providesInputStream.getSize();
+    return inputStreamProvider.getSize();
   }
 }

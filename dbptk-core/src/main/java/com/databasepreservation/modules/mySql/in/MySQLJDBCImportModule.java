@@ -79,7 +79,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected List<SchemaStructure> getSchemas() throws SQLException, ClassNotFoundException {
+  protected List<SchemaStructure> getSchemas() throws SQLException {
     List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
     String schemaName = getConnection().getCatalog();
     schemas.add(getSchemaStructure(schemaName, 1));
@@ -87,12 +87,12 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected String getReferencedSchema(String s) throws SQLException, ClassNotFoundException {
+  protected String getReferencedSchema(String s) throws SQLException {
     return (s == null) ? getConnection().getCatalog() : s;
   }
 
   @Override
-  protected List<UserStructure> getUsers() throws SQLException, ClassNotFoundException {
+  protected List<UserStructure> getUsers() throws SQLException {
     List<UserStructure> users = new ArrayList<>();
 
     String query = sqlHelper.getUsersSQL(null);
@@ -132,12 +132,11 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    * @param tableIndex
    * @return the table structure
    * @throws SQLException
-   * @throws ClassNotFoundException
    * @throws ModuleException
    */
   @Override
   protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex,
-    String description) throws SQLException, ClassNotFoundException {
+    String description) throws SQLException {
     TableStructure tableStructure = super.getTableStructure(schema, tableName, tableIndex, description);
 
     // obtain mysql remarks/comments (unsupported by the mysql driver up to
@@ -166,8 +165,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected ResultSet getTableRawData(TableStructure table) throws SQLException, ClassNotFoundException,
-    ModuleException {
+  protected ResultSet getTableRawData(TableStructure table) throws SQLException, ModuleException {
     LOGGER.debug("query: " + sqlHelper.selectTableSQL(table.getId()));
 
     Statement statement = getStatement();
@@ -178,7 +176,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected Statement getStatement() throws SQLException, ClassNotFoundException {
+  protected Statement getStatement() throws SQLException {
     if (statement == null) {
       statement = getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
     }
@@ -186,7 +184,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected List<ViewStructure> getViews(String schemaName) throws SQLException, ClassNotFoundException {
+  protected List<ViewStructure> getViews(String schemaName) throws SQLException {
     List<ViewStructure> views = super.getViews(schemaName);
     for (ViewStructure v : views) {
       Statement statement = getConnection().createStatement();
@@ -228,11 +226,9 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    * @param schemaName
    * @param tableName
    * @return
-   * @throws ClassNotFoundException
    */
   @Override
-  protected List<CheckConstraint> getCheckConstraints(String schemaName, String tableName)
-    throws ClassNotFoundException {
+  protected List<CheckConstraint> getCheckConstraints(String schemaName, String tableName) {
     Reporter.notYetSupported("check constraints", "MySQL");
     return new ArrayList<CheckConstraint>();
   }

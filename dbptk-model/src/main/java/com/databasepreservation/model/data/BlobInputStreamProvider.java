@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.common.ProvidesInputStream;
+import com.databasepreservation.common.InputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 
 /**
@@ -15,8 +15,8 @@ import com.databasepreservation.model.exception.ModuleException;
  *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class ProvidesBlobInputStream implements ProvidesInputStream {
-  private static final Logger LOGGER = LoggerFactory.getLogger(ProvidesBlobInputStream.class);
+public class BlobInputStreamProvider implements InputStreamProvider {
+  private static final Logger LOGGER = LoggerFactory.getLogger(BlobInputStreamProvider.class);
 
   private Blob blob;
 
@@ -26,7 +26,7 @@ public class ProvidesBlobInputStream implements ProvidesInputStream {
    * @param blob
    *          the SQL Blob as provided by JDBC
    */
-  public ProvidesBlobInputStream(Blob blob) {
+  public BlobInputStreamProvider(Blob blob) {
     this.blob = blob;
   }
 

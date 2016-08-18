@@ -4,6 +4,7 @@
 package com.databasepreservation.modules.postgreSql.in;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.sql.Connection;
@@ -18,10 +19,15 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.postgresql.util.PGobject;
+import org.postgresql.PGConnection;
+import org.postgresql.core.Oid;
+import org.postgresql.jdbc.PgResultSet;
+import org.postgresql.largeobject.LargeObject;
+import org.postgresql.largeobject.LargeObjectManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.common.InputStreamProvider;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
@@ -34,9 +40,9 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure;
-import com.databasepreservation.model.structure.type.ComposedTypeStructure.SubType;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.model.structure.type.ComposedTypeStructure.SubType;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.postgreSql.PostgreSQLHelper;
 import com.databasepreservation.modules.siard.SIARDHelper;
@@ -113,21 +119,24 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  public Connection getConnection() throws SQLException, ClassNotFoundException {
+  public Connection getConnection() throws SQLException {
     if (connection == null) {
       LOGGER.debug("Loading JDBC Driver " + driverClassName);
-      Class.forName(driverClassName);
+      try {
+        Class.forName(driverClassName);
+      } catch (ClassNotFoundException e) {
+        throw new SQLException("Could not find SQL driver class: " + driverClassName, e);
+      }
       LOGGER.debug("Getting connection");
       connection = DriverManager.getConnection(connectionURL);
       connection.setAutoCommit(false);
       LOGGER.debug("Connected");
-
     }
     return connection;
   }
 
   @Override
-  protected Statement getStatement() throws SQLException, ClassNotFoundException {
+  protected Statement getStatement() throws SQLException {
     if (statement == null) {
       statement = getConnection().createStatement();
     }
@@ -135,8 +144,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected ResultSet getTableRawData(TableStructure table) throws SQLException, ClassNotFoundException,
-    ModuleException {
+  protected ResultSet getTableRawData(TableStructure table) throws SQLException, ModuleException {
 
     // builds a query like "SELECT field1, field2, field3 FROM table"
     HashSet<String> columnNames = new HashSet<>();
@@ -217,7 +225,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 
   @Override
   protected Row convertRawToRow(ResultSet rawData, TableStructure tableStructure) throws InvalidDataException,
-    SQLException, ClassNotFoundException, ModuleException {
+    SQLException, ModuleException {
     Row row = null;
     if (isRowValid(rawData, tableStructure)) {
       List<Cell> cells = new ArrayList<Cell>(tableStructure.getColumns().size());
@@ -383,8 +391,9 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
    * streams correctly
    */
   @Override
-  protected Cell rawToCellSimpleTypeBinary(String id, String columnName, Type cellType, ResultSet rawData)
+  protected Cell rawToCellSimpleTypeBinary(String id, String columnName, Type cellType, ResultSet genericRawData)
     throws SQLException, ModuleException {
+    PgResultSet rawData = (PgResultSet) genericRawData;
     Cell cell;
     InputStream binaryStream;
     if ("bit".equalsIgnoreCase(cellType.getOriginalTypeName())) {
@@ -401,8 +410,22 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
         binaryStream = new ByteArrayInputStream(bytes);
         cell = new BinaryCell(id, binaryStream);
       }
+    } else if ("bytea".equalsIgnoreCase(cellType.getOriginalTypeName())) {
+      binaryStream = rawData.getBinaryStream(columnName);
+      if (binaryStream != null) {
+        cell = new BinaryCell(id, binaryStream);
+      } else {
+        cell = new NullCell(id);
+      }
+    } else if (rawData.getColumnOID(rawData.findColumn(columnName)) == Oid.OID) {
+      long lobObjectID = rawData.getLong(columnName);
+      if (rawData.wasNull()) {
+        cell = new NullCell(id);
+      } else {
+        cell = new PostgresBinaryCell(id, getConnection(), lobObjectID);
+      }
     } else {
-      cell = new BinaryCell(id, rawData.getBlob(columnName));
+      cell = super.rawToCellSimpleTypeBinary(id, columnName, cellType, genericRawData);
     }
 
     return cell;
@@ -441,12 +464,87 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     return null;
   }
 
-  class PGTime extends PGobject {
+  /**
+   * This binary cell uses PostgreSQL specific code to postpone obtaining the
+   * LOB until it is really necessary and then provides streams to read the lob.
+   *
+   * Using PostgreSQL default implementation and BinaryCell, the LOB would be
+   * loaded to memory, written to a temporary file, then read from the temporary
+   * file to whatever destination the export module had prepared.
+   *
+   * This implementation does not avoid loading the whole LOB to memory but
+   * avoids wasting time and resources by skipping the temporary file and
+   * providing the export module with a stream coming directly from the LOB
+   * representation provided by PostgreSQL.
+   */
+  private static class PostgresBinaryCell extends BinaryCell {
+    public PostgresBinaryCell(String id, Connection connection, final Long objectId) {
+      super(id, new PostgresInputStreamProvider(connection, objectId));
+    }
+  }
 
-    /**
-                 *
-                 */
-    private static final long serialVersionUID = 1L;
+  private static class PostgresInputStreamProvider implements InputStreamProvider {
+    private final Long objectId;
+    private final Connection connection;
 
+    public PostgresInputStreamProvider(Connection connection, Long objectId) {
+      this.objectId = objectId;
+      this.connection = connection;
+    }
+
+    @Override
+    public InputStream createInputStream() throws ModuleException {
+      try {
+        LargeObjectManager largeObjectManager = ((PGConnection) connection).getLargeObjectAPI();
+        final LargeObject largeObject = largeObjectManager.open(objectId);
+        final InputStream largeObjectInputStream = largeObject.getInputStream();
+        return new InputStream() {
+          @Override
+          public int read() throws IOException {
+            return largeObjectInputStream.read();
+          }
+
+          @Override
+          public void close() throws IOException {
+            super.close();
+            // after closing the largeObject the stream becomes unreadable
+            try {
+              largeObject.close();
+            } catch (SQLException e) {
+              LOGGER.debug("Could not close large object", e);
+            }
+          }
+        };
+      } catch (SQLException e) {
+        throw new ModuleException("Could not open blob stream", e);
+      }
+    }
+
+    @Override
+    public void cleanResources() {
+      // nothing to do here. closing the stream cleans the largeObject
+    }
+
+    @Override
+    public long getSize() throws ModuleException {
+      LargeObject largeObject = null;
+      long ret = 0;
+      try {
+        LargeObjectManager largeObjectManager = ((PGConnection) connection).getLargeObjectAPI();
+        largeObject = largeObjectManager.open(objectId);
+        ret = largeObject.size64();
+      } catch (SQLException e) {
+        throw new ModuleException("Could not get blob size", e);
+      } finally {
+        if (largeObject != null) {
+          try {
+            largeObject.close();
+          } catch (SQLException e) {
+            LOGGER.debug("Could not close large object", e);
+          }
+        }
+      }
+      return ret;
+    }
   }
 }

@@ -50,7 +50,7 @@ public class DB2JDBCImportModule extends JDBCImportModule {
    * @throws ClassNotFoundException
    */
   @Override
-  protected DatabaseStructure getDatabaseStructure() throws SQLException, ClassNotFoundException {
+  protected DatabaseStructure getDatabaseStructure() throws SQLException {
     if (dbStructure == null) {
       dbStructure = super.getDatabaseStructure();
       dbStructure.setName(dbName);

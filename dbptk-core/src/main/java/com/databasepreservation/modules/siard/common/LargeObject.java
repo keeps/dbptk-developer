@@ -1,21 +1,21 @@
 package com.databasepreservation.modules.siard.common;
 
-import com.databasepreservation.common.ProvidesInputStream;
+import com.databasepreservation.common.InputStreamProvider;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class LargeObject {
-  private final ProvidesInputStream providesInputStream;
+  private final InputStreamProvider inputStreamProvider;
   private final String outputPath;
 
-  public LargeObject(ProvidesInputStream providesInputStream, String outputPath) {
-    this.providesInputStream = providesInputStream;
+  public LargeObject(InputStreamProvider inputStreamProvider, String outputPath) {
+    this.inputStreamProvider = inputStreamProvider;
     this.outputPath = outputPath;
   }
 
-  public ProvidesInputStream getInputStreamProvider() {
-    return providesInputStream;
+  public InputStreamProvider getInputStreamProvider() {
+    return inputStreamProvider;
   }
 
   public String getOutputPath() {

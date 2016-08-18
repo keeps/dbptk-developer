@@ -134,8 +134,8 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
     Integer pPortNumber = Integer.parseInt(parameters.get(portNumber));
 
     Reporter.exportModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
-      pUsername, "password", Reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString(),
-      "source schema", pSourceSchema);
+      pUsername, "password", Reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString(), "source schema",
+      pSourceSchema);
     return new Oracle12cJDBCExportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword, pSourceSchema);
   }
 

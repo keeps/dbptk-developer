@@ -1,7 +1,5 @@
 package com.databasepreservation.modules.sqlServer.in;
 
-import java.io.InputStream;
-import java.sql.Blob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -9,19 +7,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.databasepreservation.model.data.NullCell;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.Reporter;
-import com.databasepreservation.model.data.BinaryCell;
-import com.databasepreservation.model.data.Cell;
-import com.databasepreservation.model.exception.InvalidDataException;
-import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ViewStructure;
-import com.databasepreservation.model.structure.type.SimpleTypeBinary;
-import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.sqlServer.SQLServerHelper;
 import com.microsoft.sqlserver.jdbc.SQLServerConnection;
@@ -115,7 +106,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected Statement getStatement() throws SQLException, ClassNotFoundException {
+  protected Statement getStatement() throws SQLException {
     if (statement == null) {
       statement = ((SQLServerConnection) getConnection()).createStatement(SQLServerResultSet.TYPE_FORWARD_ONLY,
         SQLServerResultSet.CONCUR_READ_ONLY);
@@ -184,7 +175,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected List<ViewStructure> getViews(String schemaName) throws SQLException, ClassNotFoundException {
+  protected List<ViewStructure> getViews(String schemaName) throws SQLException {
     final String fieldName = "objdefinition";
     final String defaultValue = "unknown";
 
