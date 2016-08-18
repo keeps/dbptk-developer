@@ -31,7 +31,7 @@ public class PathInputStreamProvider implements InputStreamProvider {
   private static final Logger LOGGER = LoggerFactory.getLogger(PathInputStreamProvider.class);
 
   private final Path path;
-  private final Thread removeTemporaryFileHook;
+  private Thread removeTemporaryFileHook = null;
 
   /**
    * Copies the data from the inputStream to a temporary file and closes the
@@ -71,6 +71,7 @@ public class PathInputStreamProvider implements InputStreamProvider {
       public void run() {
         LOGGER.debug("A PathInputStreamProvider was cleaned by a shutdown hook. Path: "
           + PathInputStreamProvider.this.path.toAbsolutePath().toString());
+        PathInputStreamProvider.this.removeTemporaryFileHook = null;
         PathInputStreamProvider.this.cleanResources();
       }
     };
