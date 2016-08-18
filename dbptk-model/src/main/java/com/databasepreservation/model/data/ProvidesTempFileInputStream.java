@@ -43,13 +43,12 @@ public class ProvidesTempFileInputStream implements ProvidesInputStream {
     try {
       path = Files.createTempFile("dbptk", "lob");
     } catch (IOException e) {
-      throw new ModuleException("Error creating temporary file", e);
-    } finally {
       try {
         inputStream.close();
-      } catch (IOException e) {
-        LOGGER.debug("Could not close the stream after an error occurred", e);
+      } catch (IOException e1) {
+        LOGGER.debug("Could not close the stream after an error occurred trying to create the temporary file", e1);
       }
+      throw new ModuleException("Error creating temporary file", e);
     }
 
     try {
