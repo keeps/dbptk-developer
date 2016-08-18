@@ -88,9 +88,9 @@ public class PathInputStreamProvider implements InputStreamProvider {
    *           if some IO problem happens. The stream is still closed.
    */
   public PathInputStreamProvider(Path fileLocation) throws ModuleException {
-    if (Files.isReadable(fileLocation)) {
-      throw new ModuleException("Path " + fileLocation.toAbsolutePath().toString() + " is not readable.");
-    }
+//    if (Files.isReadable(fileLocation)) {
+//      throw new ModuleException("Path " + fileLocation.toAbsolutePath().toString() + " is not readable.");
+//    }
     this.path = fileLocation;
     removeTemporaryFileHook = null;
   }
