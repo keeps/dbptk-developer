@@ -18,7 +18,7 @@ import com.databasepreservation.model.data.ComposedCell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
-import com.databasepreservation.model.data.TempFileInputStreamProvider;
+import com.databasepreservation.common.PathInputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -237,7 +237,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
       }
 
       ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
-      lob = new LargeObject(new TempFileInputStreamProvider(inputStream), path);
+      lob = new LargeObject(new PathInputStreamProvider(inputStream), path);
 
       currentWriter.beginOpenTag("c" + columnIndex, 2).space().append("file=\"").append(path).append('"').space()
         .append("length=\"").append(String.valueOf(txtCell.getBytesSize())).append("\"");

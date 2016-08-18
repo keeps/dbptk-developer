@@ -20,7 +20,7 @@ import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
-import com.databasepreservation.model.data.TempFileInputStreamProvider;
+import com.databasepreservation.common.PathInputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.modules.siard.common.LargeObject;
@@ -151,7 +151,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
       SimpleCell txtCell = (SimpleCell) cell;
       String data = txtCell.getSimpleData();
       ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes("UTF-8"));
-      lob = new LargeObject(new TempFileInputStreamProvider(inputStream), lobFileParameter);
+      lob = new LargeObject(new PathInputStreamProvider(inputStream), lobFileParameter);
     }
 
     // decide to whether write the LOB right away or later

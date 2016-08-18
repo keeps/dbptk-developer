@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Stack;
 
@@ -25,6 +26,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.databasepreservation.common.PathInputStreamProvider;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
@@ -230,8 +232,15 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
 
         try {
           if (lobDir.endsWith(SIARD2ContentPathExportStrategy.BLOB_EXTENSION)) {
-            currentBlobCell = new BinaryCell(currentTable.getColumns().get(columnIndex - 1).getId() + "." + rowIndex,
-              readStrategy.createInputStream(container, lobPath));
+            // assuming auxiliary containers are in a directory, use the
+            // existing LOB file instead of copying it to a temporary directory
+            if (container.getType().equals(SIARDArchiveContainer.OutputContainerType.AUXILIARY)) {
+              currentBlobCell = new BinaryCell(currentTable.getColumns().get(columnIndex - 1).getId() + "." + rowIndex,
+                new PathInputStreamProvider(container.getPath().resolve(Paths.get(lobPath))));
+            } else {
+              currentBlobCell = new BinaryCell(currentTable.getColumns().get(columnIndex - 1).getId() + "." + rowIndex,
+                readStrategy.createInputStream(container, lobPath));
+            }
 
             LOGGER.debug(String.format("BLOB cell %s on row #%d with lob dir %s", currentBlobCell.getId(), rowIndex,
               lobDir));

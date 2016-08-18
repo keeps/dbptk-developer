@@ -1,4 +1,4 @@
-package com.databasepreservation.model.data;
+package com.databasepreservation.common;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,37 +9,40 @@ import java.nio.file.StandardCopyOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.common.InputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 
 /**
- * An input stream provider that copies the contents of an input stream to a
+ * An input stream provider serving streams from a file.
+ *
+ * When passed an InputStream, copies the contents of an input stream to a
  * temporary file and provides InputStreams to read that file.
  *
+ * When passed a Path, provides InputStreams to read the file at that path.
+ *
  * The purpose of this class is to avoid having InputStreams open while they are
- * not being used. So they are saved to temporary files, closed and then a new
- * InputStream can be opened to read the data from the temporary file.
+ * not being used, and to provide the streams when they are needed.
  *
  * Using ProvidesBlobInputStream is preferred, when possible.
  *
  * @author Bruno Ferreira <bferreira@keep.pt>
  * @author Luis Faria <lfaria@keep.pt>
  */
-public class TempFileInputStreamProvider implements InputStreamProvider {
-  private static final Logger LOGGER = LoggerFactory.getLogger(TempFileInputStreamProvider.class);
+public class PathInputStreamProvider implements InputStreamProvider {
+  private static final Logger LOGGER = LoggerFactory.getLogger(PathInputStreamProvider.class);
 
-  private Path path;
+  private final Path path;
+  private final Thread removeTemporaryFileHook;
 
   /**
    * Copies the data from the inputStream to a temporary file and closes the
    * stream.
-   * 
+   *
    * @param inputStream
    *          the stream to be read, saved as a temporary file, and closed
    * @throws ModuleException
    *           if some IO problem happens. The stream is still closed.
    */
-  public TempFileInputStreamProvider(InputStream inputStream) throws ModuleException {
+  public PathInputStreamProvider(InputStream inputStream) throws ModuleException {
     try {
       path = Files.createTempFile("dbptk", "lob");
     } catch (IOException e) {
@@ -62,6 +65,33 @@ public class TempFileInputStreamProvider implements InputStreamProvider {
         LOGGER.debug("Could not close the stream after an error occurred", e);
       }
     }
+
+    removeTemporaryFileHook = new Thread() {
+      @Override
+      public void run() {
+        LOGGER.debug("A PathInputStreamProvider was cleaned by a shutdown hook. Path: "
+          + PathInputStreamProvider.this.path.toAbsolutePath().toString());
+        PathInputStreamProvider.this.cleanResources();
+      }
+    };
+
+    Runtime.getRuntime().addShutdownHook(removeTemporaryFileHook);
+  }
+
+  /**
+   * Use the specified file path to create the streams.
+   *
+   * @param fileLocation
+   *          the stream to be read, saved as a temporary file, and closed
+   * @throws ModuleException
+   *           if some IO problem happens. The stream is still closed.
+   */
+  public PathInputStreamProvider(Path fileLocation) throws ModuleException {
+    if (Files.isReadable(fileLocation)) {
+      throw new ModuleException("Path " + fileLocation.toAbsolutePath().toString() + " is not readable.");
+    }
+    this.path = fileLocation;
+    removeTemporaryFileHook = null;
   }
 
   /**
@@ -92,6 +122,10 @@ public class TempFileInputStreamProvider implements InputStreamProvider {
       Files.deleteIfExists(path);
     } catch (IOException e) {
       LOGGER.debug("Could not delete temporary file", e);
+    } finally {
+      if (removeTemporaryFileHook != null) {
+        Runtime.getRuntime().removeShutdownHook(removeTemporaryFileHook);
+      }
     }
   }
 

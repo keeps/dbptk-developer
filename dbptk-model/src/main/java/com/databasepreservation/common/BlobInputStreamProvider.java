@@ -1,4 +1,4 @@
-package com.databasepreservation.model.data;
+package com.databasepreservation.common;
 
 import java.io.InputStream;
 import java.sql.Blob;
@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.common.InputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 
 /**
