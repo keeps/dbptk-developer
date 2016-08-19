@@ -52,7 +52,7 @@ public class DB2JDBCExportModule extends JDBCExportModule {
       try {
         commit();
       } catch (SQLException e) {
-        throw new ModuleException("Could not commit changes");
+        throw new ModuleException("Could not commit changes", e);
       }
     }
   }

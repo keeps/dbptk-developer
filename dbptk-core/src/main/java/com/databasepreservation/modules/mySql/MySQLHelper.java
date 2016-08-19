@@ -146,10 +146,10 @@ public class MySQLHelper extends SQLHelper {
             || StringUtils.startsWithIgnoreCase(type.getOriginalTypeName(), "BIT(")) {
             ret = "bit(" + length + ")";
           } else {
-            ret = "binary(" + (((length / 8.0) % 1 == 0) ? (length / 8) : ((length / 8) + 1)) + ")";
+            ret = "binary(" + ((length % 8 == 0) ? (length / 8) : ((length / 8) + 1)) + ")";
           }
         } else if ("BIT VARYING".equalsIgnoreCase(type.getSql99TypeName())) {
-          ret = "varbinary(" + (((length / 8.0) % 1 == 0) ? (length / 8) : ((length / 8) + 1)) + ")";
+          ret = "varbinary(" + ((length % 8 == 0) ? (length / 8) : ((length / 8) + 1)) + ")";
         } else {
           ret = "longblob";
         }

@@ -20,6 +20,9 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
@@ -33,6 +36,7 @@ import dk.sa.xmlns.diark._1_0.fileindex.FileIndexType;
  *
  */
 public class FileIndexFileStrategy implements IndexFileStrategy {
+  private static final Logger LOGGER = LoggerFactory.getLogger(FileIndexFileStrategy.class);
 
   // This is determined by the fileIndex schema
   private static final String SIARDDK_FILE_SEPERATOR = "\\";
@@ -107,7 +111,7 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
         return new DigestOutputStream(writerFromWriteStrategy, messageDigest);
       }
     } catch (NoSuchAlgorithmException e) {
-      e.printStackTrace();
+      LOGGER.debug("NoSuchAlgorithmException", e);
       return null;
     }
   }

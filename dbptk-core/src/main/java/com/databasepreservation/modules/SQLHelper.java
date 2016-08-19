@@ -399,7 +399,7 @@ public class SQLHelper {
     return escapeTableName(table);
   }
 
-  protected String escapeTableName(String table) {
+  public String escapeTableName(String table) {
     return getStartQuote() + table + getEndQuote();
   }
 

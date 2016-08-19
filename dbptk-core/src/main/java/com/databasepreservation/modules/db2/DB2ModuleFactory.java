@@ -83,7 +83,7 @@ public class DB2ModuleFactory implements DatabaseModuleFactory {
     Integer pPortNumber = Integer.parseInt(parameters.get(portNumber));
 
     Reporter.importModuleParameters(this.getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
-      pUsername, "password", Reporter.MESSAGE_FILTERED_PASSWORD);
+      pUsername, "password", Reporter.MESSAGE_FILTERED);
     return new DB2JDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword);
   }
 
@@ -97,7 +97,7 @@ public class DB2ModuleFactory implements DatabaseModuleFactory {
     Integer pPortNumber = Integer.parseInt(parameters.get(portNumber));
 
     Reporter.exportModuleParameters(this.getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
-      pUsername, "password", Reporter.MESSAGE_FILTERED_PASSWORD);
+      pUsername, "password", Reporter.MESSAGE_FILTERED);
     return new DB2JDBCExportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword);
   }
 }

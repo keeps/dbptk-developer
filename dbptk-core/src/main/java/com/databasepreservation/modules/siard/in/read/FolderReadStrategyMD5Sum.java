@@ -63,8 +63,7 @@ public class FolderReadStrategyMD5Sum extends FolderReadStrategy {
     } finally {
       try {
         inputStream.close();
-      } catch (IOException e) {
-        throw new ModuleException(e);
+      } catch (IOException ignored) {
       }
     }
   }
