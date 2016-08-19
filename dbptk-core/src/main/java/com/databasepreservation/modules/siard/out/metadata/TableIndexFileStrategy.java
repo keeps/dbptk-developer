@@ -42,9 +42,11 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
 
   // LOBsTracker used to get the locations of functionalDescriptions
   private LOBsTracker lobsTracker;
+  private String regex;
 
   public TableIndexFileStrategy(LOBsTracker lobsTracker) {
     this.lobsTracker = lobsTracker;
+    regex = "(\\p{L}(_|\\w)*)|(\".*\")";
   }
 
   private static final Logger logger = LoggerFactory.getLogger(TableIndexFileStrategy.class);
@@ -272,8 +274,10 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
     return siardDiark;
   }
 
-  private String escapeString(String s) {
-    if (s.contains(" ")) {
+  String escapeString(String s) {
+    if (s.matches(regex)) {
+      return s;
+    } else {
       s = new StringBuilder().append("\"").append(s).append("\"").toString();
     }
     return s;

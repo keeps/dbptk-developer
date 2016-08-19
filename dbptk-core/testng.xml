@@ -56,6 +56,7 @@
             <class name="com.databasepreservation.siarddk.TestSIARDDKsql99ToXsdType"/>
             <class name="com.databasepreservation.testing.integration.siard.SiardTest"/>
             <class name="com.databasepreservation.testing.integration.siard.DevelopmentDebugTest"/>
+            <class name="com.databasepreservation.modules.siard.out.metadata.TestTableIndexFileStrategy"/>
         </classes>
     </test>
 </suite>
