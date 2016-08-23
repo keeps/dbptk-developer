@@ -92,6 +92,17 @@ public class JDBCExportModule implements DatabaseExportModule {
   private final List<String> batchSQL = new ArrayList<>();
 
   /**
+   * Shorthand instance to obtain a no-op (no operation, do nothing)
+   * CleanResourcesInterface
+   */
+  protected static final CleanResourcesInterface noOpCleanResourcesInterface = new CleanResourcesInterface() {
+    @Override
+    public void clean() throws ModuleException {
+      // do nothing
+    }
+  };
+
+  /**
    * Generic JDBC export module constructor
    *
    * @param driverClassName
@@ -460,54 +471,63 @@ public class JDBCExportModule implements DatabaseExportModule {
 
   @Override
   public void handleDataRow(Row row) throws InvalidDataException, ModuleException {
-    if (!currentIsIgnoredSchema) {
-      if (currentTableStructure != null && currentRowBatchInsertStatement != null) {
-        Iterator<ColumnStructure> columnIterator = currentTableStructure.getColumns().iterator();
-        List<CleanResourcesInterface> cleanResourcesList = new ArrayList<CleanResourcesInterface>();
-        int index = 1;
-        for (Cell cell : row.getCells()) {
-          ColumnStructure column = columnIterator.next();
-          CleanResourcesInterface cleanResources = handleDataCell(currentRowBatchInsertStatement, index, cell,
-            column.getType());
-          cleanResourcesList.add(cleanResources);
-          index++;
-        }
+    List<CleanResourcesInterface> cleanResourcesList = new ArrayList<CleanResourcesInterface>();
 
-        long currentRowBatchEndIndex = row.getIndex();
-        try {
-          currentRowBatchInsertStatement.addBatch();
-          if (++batch_index > BATCH_SIZE) {
-            batch_index = 0;
-            currentRowBatchInsertStatement.executeBatch();
-            currentRowBatchInsertStatement.clearBatch();
-            commit();
+    try {
+      if (!currentIsIgnoredSchema) {
+        if (currentTableStructure != null && currentRowBatchInsertStatement != null) {
+          Iterator<ColumnStructure> columnIterator = currentTableStructure.getColumns().iterator();
+          cleanAndClearResources(cleanResourcesList);
+          int index = 1;
+          for (Cell cell : row.getCells()) {
+            ColumnStructure column = columnIterator.next();
+            CleanResourcesInterface cleanResources = handleDataCell(currentRowBatchInsertStatement, index, cell, column.getType());
+            cleanResourcesList.add(cleanResources);
+            index++;
           }
-        } catch (SQLException e) {
-          LOGGER.error("Error executing part of a batch of queries", e);
-          Reporter.failed("In table `" + currentTableStructure.getId() + "`, inserting rows with index from "
-            + currentRowBatchStartIndex + " to " + currentRowBatchEndIndex + " ",
-            " there was an error with at least one of the rows");
-        } finally {
-          if (batch_index == 0) {
-            for (CleanResourcesInterface clean : cleanResourcesList) {
-              clean.clean();
+
+          long currentRowBatchEndIndex = row.getIndex();
+          try {
+            currentRowBatchInsertStatement.addBatch();
+            if (++batch_index > BATCH_SIZE) {
+              batch_index = 0;
+              currentRowBatchInsertStatement.executeBatch();
+              currentRowBatchInsertStatement.clearBatch();
+              commit();
             }
-            currentRowBatchStartIndex = currentRowBatchEndIndex + 1;
+          } catch (SQLException e) {
+            LOGGER.error("Error executing part of a batch of queries", e);
+            Reporter.failed("In table `" + currentTableStructure.getId() + "`, inserting rows with index from " + currentRowBatchStartIndex + " to " + currentRowBatchEndIndex + " ",
+              " there was an error with at least one of the rows");
+          } finally {
+            if (batch_index == 0) {
+              cleanAndClearResources(cleanResourcesList);
+              currentRowBatchStartIndex = currentRowBatchEndIndex + 1;
+            }
           }
+        } else if (databaseStructure != null) {
+          throw new ModuleException("Cannot handle data row before a table is open and insert statement created");
         }
-      } else if (databaseStructure != null) {
-        throw new ModuleException("Cannot handle data row before a table is open and insert statement created");
+      }
+    } finally {
+      cleanAndClearResources(cleanResourcesList);
+    }
+  }
+
+  private void cleanAndClearResources(List<CleanResourcesInterface> resourcesList) {
+    for (CleanResourcesInterface clean : resourcesList) {
+      try {
+        clean.clean();
+      } catch (ModuleException e) {
+        LOGGER.debug("Ignored CleanResourcesInterface.clean exception: ", e);
       }
     }
+    resourcesList.clear();
   }
 
   protected CleanResourcesInterface handleDataCell(PreparedStatement ps, int index, Cell cell, Type type)
     throws InvalidDataException, ModuleException {
-    CleanResourcesInterface ret = new CleanResourcesInterface() {
-      @Override
-      public void clean() {
-      }
-    };
+    CleanResourcesInterface ret = noOpCleanResourcesInterface;
     try {
       // TODO: better null handling
       if (cell instanceof NullCell) {
