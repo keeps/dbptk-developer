@@ -69,10 +69,10 @@ public class PathInputStreamProvider implements InputStreamProvider {
     removeTemporaryFileHook = new Thread() {
       @Override
       public void run() {
-        LOGGER.debug("A PathInputStreamProvider was cleaned by a shutdown hook. Path: "
-          + PathInputStreamProvider.this.path.toAbsolutePath().toString());
         PathInputStreamProvider.this.removeTemporaryFileHook = null;
         PathInputStreamProvider.this.cleanResources();
+        throw new IllegalStateException("A PathInputStreamProvider was cleaned by a shutdown hook. Path: "
+          + PathInputStreamProvider.this.path.toAbsolutePath().toString());
       }
     };
 
@@ -88,9 +88,9 @@ public class PathInputStreamProvider implements InputStreamProvider {
    *           if some IO problem happens. The stream is still closed.
    */
   public PathInputStreamProvider(Path fileLocation) throws ModuleException {
-//    if (Files.isReadable(fileLocation)) {
-//      throw new ModuleException("Path " + fileLocation.toAbsolutePath().toString() + " is not readable.");
-//    }
+    if (!Files.isReadable(fileLocation)) {
+      throw new ModuleException("Path " + fileLocation.toAbsolutePath().toString() + " is not readable.");
+    }
     this.path = fileLocation;
     removeTemporaryFileHook = null;
   }
