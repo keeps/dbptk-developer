@@ -91,6 +91,8 @@ public class JDBCExportModule implements DatabaseExportModule {
 
   private final List<String> batchSQL = new ArrayList<>();
 
+  private List<CleanResourcesInterface> cleanResourcesList = new ArrayList<>();
+
   /**
    * Shorthand instance to obtain a no-op (no operation, do nothing)
    * CleanResourcesInterface
@@ -444,10 +446,11 @@ public class JDBCExportModule implements DatabaseExportModule {
       try {
         currentRowBatchInsertStatement.executeBatch();
       } catch (SQLException e) {
-        LOGGER.error("Error closing table " + tableId, e);
+        LOGGER.error("Error closing table {}", tableId, e);
       }
       batch_index = 0;
       currentIsIgnoredSchema = false;
+      cleanAndClearResources(cleanResourcesList);
     }
 
     try {
@@ -471,46 +474,41 @@ public class JDBCExportModule implements DatabaseExportModule {
 
   @Override
   public void handleDataRow(Row row) throws InvalidDataException, ModuleException {
-    List<CleanResourcesInterface> cleanResourcesList = new ArrayList<CleanResourcesInterface>();
-
-    try {
-      if (!currentIsIgnoredSchema) {
-        if (currentTableStructure != null && currentRowBatchInsertStatement != null) {
-          Iterator<ColumnStructure> columnIterator = currentTableStructure.getColumns().iterator();
-          cleanAndClearResources(cleanResourcesList);
-          int index = 1;
-          for (Cell cell : row.getCells()) {
-            ColumnStructure column = columnIterator.next();
-            CleanResourcesInterface cleanResources = handleDataCell(currentRowBatchInsertStatement, index, cell, column.getType());
-            cleanResourcesList.add(cleanResources);
-            index++;
-          }
-
-          long currentRowBatchEndIndex = row.getIndex();
-          try {
-            currentRowBatchInsertStatement.addBatch();
-            if (++batch_index > BATCH_SIZE) {
-              batch_index = 0;
-              currentRowBatchInsertStatement.executeBatch();
-              currentRowBatchInsertStatement.clearBatch();
-              commit();
-            }
-          } catch (SQLException e) {
-            LOGGER.error("Error executing part of a batch of queries", e);
-            Reporter.failed("In table `" + currentTableStructure.getId() + "`, inserting rows with index from " + currentRowBatchStartIndex + " to " + currentRowBatchEndIndex + " ",
-              " there was an error with at least one of the rows");
-          } finally {
-            if (batch_index == 0) {
-              cleanAndClearResources(cleanResourcesList);
-              currentRowBatchStartIndex = currentRowBatchEndIndex + 1;
-            }
-          }
-        } else if (databaseStructure != null) {
-          throw new ModuleException("Cannot handle data row before a table is open and insert statement created");
+    if (!currentIsIgnoredSchema) {
+      if (currentTableStructure != null && currentRowBatchInsertStatement != null) {
+        Iterator<ColumnStructure> columnIterator = currentTableStructure.getColumns().iterator();
+        int index = 1;
+        for (Cell cell : row.getCells()) {
+          ColumnStructure column = columnIterator.next();
+          CleanResourcesInterface cleanResources = handleDataCell(currentRowBatchInsertStatement, index, cell,
+            column.getType());
+          cleanResourcesList.add(cleanResources);
+          index++;
         }
+
+        long currentRowBatchEndIndex = row.getIndex();
+        try {
+          currentRowBatchInsertStatement.addBatch();
+          if (++batch_index > BATCH_SIZE) {
+            batch_index = 0;
+            currentRowBatchInsertStatement.executeBatch();
+            currentRowBatchInsertStatement.clearBatch();
+            commit();
+          }
+        } catch (SQLException e) {
+          LOGGER.error("Error executing part of a batch of queries", e);
+          Reporter.failed("In table `" + currentTableStructure.getId() + "`, inserting rows with index from "
+            + currentRowBatchStartIndex + " to " + currentRowBatchEndIndex + " ",
+            " there was an error with at least one of the rows");
+        } finally {
+          if (batch_index == 0) {
+            cleanAndClearResources(cleanResourcesList);
+            currentRowBatchStartIndex = currentRowBatchEndIndex + 1;
+          }
+        }
+      } else if (databaseStructure != null) {
+        throw new ModuleException("Cannot handle data row before a table is open and insert statement created");
       }
-    } finally {
-      cleanAndClearResources(cleanResourcesList);
     }
   }
 
