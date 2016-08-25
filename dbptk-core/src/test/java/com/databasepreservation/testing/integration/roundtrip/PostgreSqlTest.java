@@ -133,6 +133,7 @@ public class PostgreSqlTest {
     tests.add(new String[] {singleTypeAndValue, "boolean", "TRUE"});
     tests.add(new String[] {singleTypeAndValue, "bytea", "(decode('013d7d16d7ad4fefb61bd95b765c8ceb', 'hex'))"});
     tests.add(new String[] {singleTypeAndValue, "bytea", "(decode('00000000000000000000000000000000', 'hex'))"});
+    tests.add(new String[] {singleTypeAndValue, "bytea", "NULL"});
     tests.add(new String[] {singleTypeAndValue, "character(1)", "'a'"});
     tests.add(new String[] {singleTypeAndValue, "character varying", "'abc'"});
     tests.add(new String[] {singleTypeAndValue, "date", "'2015-01-01'"});

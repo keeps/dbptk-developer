@@ -5,6 +5,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
+import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.in.content.ContentImportStrategy;
@@ -19,6 +20,7 @@ public class SIARDImportDefault implements DatabaseImportModule {
   private final SIARDArchiveContainer mainContainer;
   private final ContentImportStrategy contentStrategy;
   private final MetadataImportStrategy metadataStrategy;
+  private ModuleSettings moduleSettings;
 
   public SIARDImportDefault(ContentImportStrategy contentStrategy, SIARDArchiveContainer mainContainer,
     ReadStrategy readStrategy, MetadataImportStrategy metadataStrategy) {
@@ -31,6 +33,7 @@ public class SIARDImportDefault implements DatabaseImportModule {
   @Override
   public void getDatabase(DatabaseExportModule handler) throws ModuleException, UnknownTypeException,
     InvalidDataException {
+    moduleSettings = handler.getModuleSettings();
     readStrategy.setup(mainContainer);
     handler.initDatabase();
     try {
@@ -42,7 +45,7 @@ public class SIARDImportDefault implements DatabaseImportModule {
 
       handler.handleStructure(dbStructure);
 
-      contentStrategy.importContent(handler, mainContainer, dbStructure);
+      contentStrategy.importContent(handler, mainContainer, dbStructure, moduleSettings);
 
       handler.finishDatabase();
     } finally {
