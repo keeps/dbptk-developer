@@ -235,6 +235,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
             // assuming auxiliary containers are in a directory, use the
             // existing LOB file instead of copying it to a temporary directory
             if (container.getType().equals(SIARDArchiveContainer.OutputContainerType.AUXILIARY)) {
+              LOGGER.debug("lobContainer: {}\ncontentContainer: {}", lobContainer, contentContainer);
               currentBlobCell = new BinaryCell(currentTable.getColumns().get(columnIndex - 1).getId() + "." + rowIndex,
                 new PathInputStreamProvider(container.getPath().resolve(Paths.get(lobPath))));
             } else {
