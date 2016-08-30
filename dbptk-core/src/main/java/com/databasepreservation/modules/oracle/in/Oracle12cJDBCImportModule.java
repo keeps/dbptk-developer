@@ -42,7 +42,7 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected Statement getStatement() throws SQLException, ClassNotFoundException {
+  protected Statement getStatement() throws SQLException {
     if (statement == null) {
       statement = getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY,
         ResultSet.HOLD_CURSORS_OVER_COMMIT);
@@ -51,12 +51,12 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected String getDbName() throws SQLException, ClassNotFoundException {
+  protected String getDbName() throws SQLException {
     return getMetadata().getUserName();
   }
 
   @Override
-  protected List<SchemaStructure> getSchemas() throws SQLException, ClassNotFoundException {
+  protected List<SchemaStructure> getSchemas() throws SQLException {
     List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
     String schemaName = getMetadata().getUserName();
     schemas.add(getSchemaStructure(schemaName, 1));

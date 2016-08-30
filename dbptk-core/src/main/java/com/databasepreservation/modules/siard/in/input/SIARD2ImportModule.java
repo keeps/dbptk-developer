@@ -34,7 +34,7 @@ public class SIARD2ImportModule {
    * Constructor used to initialize required objects to get a database import
    * module
    *
-   * @param siardPackage
+   * @param siardPackagePath
    *          Path to the main SIARD file (file with extension .siard)
    * @param auxiliaryContainersInZipFormat
    *          (optional) In some SIARD2 archives, LOBs are saved outside the
@@ -42,9 +42,10 @@ public class SIARD2ImportModule {
    *          simply saved to folders. When reading those LOBs it's important to
    *          know if they are inside a simple folder or a zip container.
    */
-  public SIARD2ImportModule(Path siardPackage, boolean auxiliaryContainersInZipFormat) {
-    mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.MAIN);
-    lobContainer = new SIARDArchiveContainer(siardPackage.getParent(),
+  public SIARD2ImportModule(Path siardPackagePath, boolean auxiliaryContainersInZipFormat) {
+    Path siardPackageNormalizedPath = siardPackagePath.toAbsolutePath().normalize();
+    mainContainer = new SIARDArchiveContainer(siardPackageNormalizedPath, SIARDArchiveContainer.OutputContainerType.MAIN);
+    lobContainer = new SIARDArchiveContainer(siardPackageNormalizedPath.getParent(),
       SIARDArchiveContainer.OutputContainerType.AUXILIARY);
     if (auxiliaryContainersInZipFormat) {
       readStrategy = new ZipReadStrategy();

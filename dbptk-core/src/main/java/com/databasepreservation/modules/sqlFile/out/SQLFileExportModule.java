@@ -19,6 +19,7 @@ import java.io.PipedOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -299,19 +300,19 @@ public class SQLFileExportModule implements DatabaseExportModule {
           } else if (cell instanceof BinaryCell) {
             BinaryCell bin = (BinaryCell) cell;
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            InputStream inputStream = bin.createInputStream();
             try {
-              escapeBinary(bin.createInputstream(), bout);
+              escapeBinary(inputStream, bout);
             } catch (IOException e) {
               throw new ModuleException("Error getting binary from binary cell", e);
             }
 
             ret = bout.toByteArray();
-            try {
-              bin.cleanResources();
-            } catch (IOException e) {
-              throw new ModuleException("Could not clean resources of " + bin, e);
-            }
 
+            // clean resources
+            IOUtils.closeQuietly(inputStream);
+            IOUtils.closeQuietly(bout);
+            bin.cleanResources();
           } else if (cell instanceof ComposedCell) {
             throw new ModuleException("Composed cell export not yet supported");
           } else {

@@ -108,12 +108,6 @@ public class SQLServerJDBCExportModule extends JDBCExportModule {
   @Override
   protected CleanResourcesInterface handleDataCell(PreparedStatement ps, int index, Cell cell, Type type)
     throws InvalidDataException, ModuleException {
-    CleanResourcesInterface ret = new CleanResourcesInterface() {
-      @Override
-      public void clean() {
-
-      }
-    };
     if (cell instanceof SimpleCell && type instanceof SimpleTypeDateTime) {
       SimpleCell simple = (SimpleCell) cell;
       String data = simple.getSimpleData();
@@ -126,11 +120,10 @@ public class SQLServerJDBCExportModule extends JDBCExportModule {
       } catch (SQLException e) {
         throw new ModuleException("SQL error while handling cell " + cell.getId(), e);
       }
-
     } else {
       return super.handleDataCell(ps, index, cell, type);
     }
-    return ret;
+    return noOpCleanResourcesInterface;
   }
 
   /**
