@@ -111,6 +111,7 @@ public class SolrExportModule implements DatabaseExportModule {
   public void handleDataOpenTable(String tableId) throws ModuleException {
     currentTable = viewerDatabase.getTable(tableId);
     solrManager.addTable(currentTable);
+    rowIndex = 0;
   }
 
   /**

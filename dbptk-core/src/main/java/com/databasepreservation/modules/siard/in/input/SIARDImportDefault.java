@@ -37,7 +37,7 @@ public class SIARDImportDefault implements DatabaseImportModule {
     readStrategy.setup(mainContainer);
     handler.initDatabase();
     try {
-      metadataStrategy.loadMetadata(readStrategy, mainContainer);
+      metadataStrategy.loadMetadata(readStrategy, mainContainer, moduleSettings);
 
       DatabaseStructure dbStructure = metadataStrategy.getDatabaseStructure();
 
