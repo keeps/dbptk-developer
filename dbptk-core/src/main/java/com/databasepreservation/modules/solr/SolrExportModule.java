@@ -42,7 +42,7 @@ public class SolrExportModule implements DatabaseExportModule {
    */
   @Override
   public ModuleSettings getModuleSettings() throws ModuleException {
-    return null;
+    return new ModuleSettings();
   }
 
   /**

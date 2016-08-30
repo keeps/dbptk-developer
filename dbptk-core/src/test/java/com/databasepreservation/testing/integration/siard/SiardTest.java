@@ -33,6 +33,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
+import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -578,6 +579,7 @@ public class SiardTest {
 
     LOGGER.debug("SIARD file: " + tmpFile.toUri().toString());
     DatabaseExportModule mocked = Mockito.mock(DatabaseExportModule.class);
+    Mockito.stub(mocked.getModuleSettings()).toReturn(new ModuleSettings());
 
     DatabaseImportModule importer = null;
     switch (version) {
