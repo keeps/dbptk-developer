@@ -1,7 +1,6 @@
 package com.databasepreservation.modules.siard.out.metadata;
 
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
 
 import org.testng.annotations.Test;
 
@@ -47,10 +46,4 @@ public class TestTableIndexFileStrategy {
     TableIndexFileStrategy tableIndexFileStrategy = new TableIndexFileStrategy(null);
     assertEquals("\"Normal(Word\"", tableIndexFileStrategy.escapeString("Normal(Word"));
   }
-
-  @Test(enabled = false)
-  public void test() {
-    assertTrue(false);
-  }
-
 }
