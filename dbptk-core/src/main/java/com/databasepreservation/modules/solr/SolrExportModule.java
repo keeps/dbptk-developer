@@ -29,8 +29,11 @@ public class SolrExportModule implements DatabaseExportModule {
 
   private long rowIndex = 0;
 
-  public SolrExportModule() {
-    String url = "http://127.0.0.1:8983/solr";
+  private final String zookeeperHostAndPort;
+
+  public SolrExportModule(String hostname, Integer port, String endpoint, String zookeeperHost, Integer zookeeperPort) {
+    zookeeperHostAndPort = zookeeperHost + ":" + zookeeperPort;
+    String url = "http://" + hostname + ":" + port + "/" + endpoint;
     solrManager = new SolrManager(url);
   }
 
@@ -52,7 +55,7 @@ public class SolrExportModule implements DatabaseExportModule {
    */
   @Override
   public void initDatabase() throws ModuleException {
-    SolrUtils.setupSolrCloudConfigsets("127.0.0.1:9983");
+    SolrUtils.setupSolrCloudConfigsets(zookeeperHostAndPort);
   }
 
   /**
