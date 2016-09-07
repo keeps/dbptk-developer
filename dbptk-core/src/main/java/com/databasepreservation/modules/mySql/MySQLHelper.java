@@ -43,7 +43,8 @@ public class MySQLHelper extends SQLHelper {
     // String schema = parts[0];
     String table = parts[1];
 
-    // return the escaped table name, because mysql schemas are handled as databases
+    // return the escaped table name, because mysql schemas are handled as
+    // databases
     return escapeTableName(table);
   }
 

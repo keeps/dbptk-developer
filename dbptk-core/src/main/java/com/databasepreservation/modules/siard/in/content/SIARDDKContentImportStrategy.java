@@ -21,6 +21,7 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.TypeInfoProvider;
 import javax.xml.validation.ValidatorHandler;
 
+import com.databasepreservation.model.modules.ModuleSettings;
 import org.apache.commons.codec.Charsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +91,7 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
 
   @Override
   public void importContent(DatabaseExportModule dbExportHandler, SIARDArchiveContainer mainFolder,
-    DatabaseStructure databaseStructure) throws ModuleException {
+    DatabaseStructure databaseStructure, ModuleSettings moduleSettings) throws ModuleException {
     pathStrategy.parseFileIndexMetadata();
     this.dbExportHandler = dbExportHandler;
     Map<Path, SIARDArchiveContainer> archiveContainerByAbsPath = new HashMap<Path, SIARDArchiveContainer>();

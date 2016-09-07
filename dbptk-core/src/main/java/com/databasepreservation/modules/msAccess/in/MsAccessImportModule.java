@@ -49,10 +49,14 @@ public class MsAccessImportModule extends ODBCImportModule {
   }
 
   @Override
-  public Connection getConnection() throws SQLException, ClassNotFoundException {
+  public Connection getConnection() throws SQLException {
     if (connection == null) {
       LOGGER.debug("Loading JDBC Driver " + driverClassName);
-      Class.forName(driverClassName);
+      try {
+        Class.forName(driverClassName);
+      } catch (ClassNotFoundException e) {
+        throw new SQLException("Could not find SQL driver class: " + driverClassName, e);
+      }
       LOGGER.debug("Getting connection");
       connection = DriverManager.getConnection(connectionURL, "admin", "");
       LOGGER.debug("Connected");
@@ -61,7 +65,7 @@ public class MsAccessImportModule extends ODBCImportModule {
   }
 
   @Override
-  protected PrimaryKey getPrimaryKey(String schemaName, String tableName) throws SQLException, ClassNotFoundException {
+  protected PrimaryKey getPrimaryKey(String schemaName, String tableName) throws SQLException {
     String key_colname = null;
 
     // get the primary key information
@@ -84,7 +88,7 @@ public class MsAccessImportModule extends ODBCImportModule {
   }
 
   @Override
-  protected Statement getStatement() throws SQLException, ClassNotFoundException {
+  protected Statement getStatement() throws SQLException {
     if (statement == null) {
       statement = getConnection().createStatement();
     }
@@ -92,8 +96,7 @@ public class MsAccessImportModule extends ODBCImportModule {
   }
 
   @Override
-  protected List<ForeignKey> getForeignKeys(String schemaName, String tableName) throws SQLException,
-    ClassNotFoundException {
+  protected List<ForeignKey> getForeignKeys(String schemaName, String tableName) throws SQLException {
     List<ForeignKey> fKeys = new ArrayList<ForeignKey>();
 
     ResultSet foreignKeys = getStatement().executeQuery(
@@ -123,7 +126,7 @@ public class MsAccessImportModule extends ODBCImportModule {
 
   @Override
   protected Cell convertRawToCell(String tableName, String columnName, int columnIndex, long rowIndex, Type cellType,
-    ResultSet rawData) throws SQLException, InvalidDataException, ClassNotFoundException, ModuleException {
+    ResultSet rawData) throws SQLException, InvalidDataException, ModuleException {
     Cell cell;
     String id = tableName + "." + columnName + "." + rowIndex;
     if (cellType instanceof SimpleTypeDateTime) {

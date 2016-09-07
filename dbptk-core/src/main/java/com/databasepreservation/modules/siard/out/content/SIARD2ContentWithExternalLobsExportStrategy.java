@@ -18,13 +18,12 @@ import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
-import com.databasepreservation.model.data.FileItem;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
+import com.databasepreservation.common.PathInputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.modules.siard.common.LargeObject;
-import com.databasepreservation.modules.siard.common.ProvidesInputStream;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentWithExternalLobsPathExportStrategy;
@@ -87,9 +86,9 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
       writeLargeObjectData(cell, columnIndex);
     } else {
       // inline non-BLOB binary data
-      InputStream inputStream = binaryCell.createInputstream();
+      InputStream inputStream = binaryCell.createInputStream();
       byte[] bytes = IOUtils.toByteArray(inputStream);
-      inputStream.close();
+      IOUtils.closeQuietly(inputStream);
       SimpleCell simpleCell = new SimpleCell(binaryCell.getId(), Hex.encodeHexString(bytes));
       writeSimpleCellData(simpleCell, columnIndex);
     }
@@ -110,7 +109,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
     // get size and file xml parameters
     if (cell instanceof BinaryCell) {
       final BinaryCell binCell = (BinaryCell) cell;
-      lobSizeParameter = binCell.getLength();
+      lobSizeParameter = binCell.getSize();
       lobFileParameter = contentPathStrategy.getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(),
         columnIndex, currentRowIndex + 1);
     } else if (cell instanceof SimpleCell) {
@@ -147,27 +146,12 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
     // get lob object
     if (cell instanceof BinaryCell) {
       final BinaryCell binCell = (BinaryCell) cell;
-      lob = new LargeObject(new ProvidesInputStream() {
-        @Override
-        public InputStream createInputStream() throws ModuleException {
-          return binCell.createInputstream();
-        }
-      }, lobFileParameter);
+      lob = new LargeObject(binCell, lobFileParameter);
     } else if (cell instanceof SimpleCell) {
       SimpleCell txtCell = (SimpleCell) cell;
       String data = txtCell.getSimpleData();
       ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes("UTF-8"));
-      try {
-        final FileItem fileItem = new FileItem(inputStream);
-        lob = new LargeObject(new ProvidesInputStream() {
-          @Override
-          public InputStream createInputStream() throws ModuleException {
-            return fileItem.createInputStream();
-          }
-        }, lobFileParameter);
-      } finally {
-        inputStream.close();
-      }
+      lob = new LargeObject(new PathInputStreamProvider(inputStream), lobFileParameter);
     }
 
     // decide to whether write the LOB right away or later
@@ -214,12 +198,9 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
       throw new ModuleException("Could not write lob", e);
     } finally {
       // close resources
-      try {
-        in.close();
-        out.close();
-      } catch (IOException e) {
-        LOGGER.warn("Could not cleanup lob resources", e);
-      }
+      IOUtils.closeQuietly(in);
+      IOUtils.closeQuietly(out);
+      lob.getInputStreamProvider().cleanResources();
     }
 
     if (out instanceof DigestOutputStream) {

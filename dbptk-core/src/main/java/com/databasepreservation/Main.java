@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
-import com.databasepreservation.modules.solr.SolrModuleFactory;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +26,7 @@ import com.databasepreservation.modules.postgreSql.PostgreSQLModuleFactory;
 import com.databasepreservation.modules.siard.SIARD1ModuleFactory;
 import com.databasepreservation.modules.siard.SIARD2ModuleFactory;
 import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
+import com.databasepreservation.modules.solr.SolrModuleFactory;
 import com.databasepreservation.modules.sqlServer.SQLServerJDBCModuleFactory;
 
 /**
@@ -143,12 +143,12 @@ public class Main {
           LOGGER.error(entry.getKey(), entry.getValue());
         }
       } else {
-        LOGGER.error("Fatal error while converting the database ("+e.getMessage()+")", e);
+        LOGGER.error("Fatal error while converting the database (" + e.getMessage() + ")", e);
       }
     } catch (UnknownTypeException | InvalidDataException e) {
-      LOGGER.error("Fatal error while converting the database ("+e.getMessage()+")", e);
+      LOGGER.error("Fatal error while converting the database (" + e.getMessage() + ")", e);
     } catch (Exception e) {
-      LOGGER.error("Fatal error: Unexpected exception ("+e.getMessage()+")", e);
+      LOGGER.error("Fatal error: Unexpected exception (" + e.getMessage() + ")", e);
     }
     return exitStatus;
   }

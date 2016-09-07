@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Stack;
 
@@ -13,6 +14,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.validation.SchemaFactory;
 
+import com.databasepreservation.model.modules.ModuleSettings;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
@@ -25,9 +27,9 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.databasepreservation.common.PathInputStreamProvider;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
-import com.databasepreservation.model.data.FileItem;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
@@ -91,7 +93,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
 
   @Override
   public void importContent(DatabaseExportModule handler, SIARDArchiveContainer container,
-    DatabaseStructure databaseStructure) throws ModuleException {
+    DatabaseStructure databaseStructure, ModuleSettings moduleSettings) throws ModuleException {
     // set instance state
     this.databaseExportModule = handler;
     this.contentContainer = container;
@@ -106,61 +108,104 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
 
     // process tables
     for (SchemaStructure schema : databaseStructure.getSchemas()) {
+      boolean schemaHandled = false;
       currentSchema = schema;
-      for (TableStructure table : schema.getTables()) {
+      try {
+        databaseExportModule.handleDataOpenSchema(currentSchema.getName());
+        schemaHandled = true;
+      } catch (ModuleException e) {
+        LOGGER.error("An error occurred while handling data open schema", e);
+      }
 
-        // setup a new validating parser
-        InputStream xsdStream = readStrategy.createInputStream(container,
-          contentPathStrategy.getTableXSDFilePath(schema.getName(), table.getId()));
+      if(schemaHandled) {
+        for (TableStructure table : schema.getTables()) {
+          currentTable = table;
+          boolean tableHandled = false;
+          LOGGER.info("Obtaining contents from table '" + currentTable.getId() + "'");
+          this.rowIndex = 0;
+          try {
+            databaseExportModule.handleDataOpenTable(currentTable.getId());
+            tableHandled = true;
+          } catch (ModuleException e) {
+            LOGGER.error("An error occurred while handling data open table", e);
+          }
+          this.currentTableTotalRows = currentTable.getRows();
+          lastProgressTimestamp = System.currentTimeMillis();
 
-        try {
-          saxParser = saxParserFactory.newSAXParser();
-          saxParser.setProperty(JAXP_SCHEMA_LANGUAGE, W3C_XML_SCHEMA);
-          saxParser.setProperty(JAXP_SCHEMA_SOURCE, xsdStream);
-        } catch (SAXException e) {
-          LOGGER.error("Error validating schema", e);
-        } catch (ParserConfigurationException e) {
-          LOGGER.error("Error creating XML SAXparser", e);
+          if(tableHandled && moduleSettings.shouldFetchRows()) {
+            try {
+              // setup a new validating parser
+              InputStream xsdStream = readStrategy
+                .createInputStream(container, contentPathStrategy.getTableXSDFilePath(schema.getName(), currentTable.getId()));
+
+              try {
+                saxParser = saxParserFactory.newSAXParser();
+                saxParser.setProperty(JAXP_SCHEMA_LANGUAGE, W3C_XML_SCHEMA);
+                saxParser.setProperty(JAXP_SCHEMA_SOURCE, xsdStream);
+              } catch (SAXException e) {
+                LOGGER.error("Error validating schema", e);
+              } catch (ParserConfigurationException e) {
+                LOGGER.error("Error creating XML SAXparser", e);
+              }
+
+              // import values from XML
+              String tableFilename = contentPathStrategy.getTableXMLFilePath(schema.getName(), currentTable.getId());
+              currentTableStream = readStrategy.createInputStream(container, tableFilename);
+
+              errorHandler = new SAXErrorHandler();
+
+              try {
+                XMLReader xmlReader = saxParser.getXMLReader();
+                xmlReader.setContentHandler(this);
+                xmlReader.setErrorHandler(errorHandler);
+                InputStreamReader tableInputStreamReader = new InputStreamReader(currentTableStream, "UTF-8");
+                InputSource tableInputSource = new InputSource(tableInputStreamReader);
+                tableInputSource.setEncoding("UTF-8");
+                xmlReader.parse(tableInputSource);
+              } catch (SAXException e) {
+                throw new ModuleException("A SAX error occurred during processing of XML table file at " + tableFilename,
+                  e);
+              } catch (IOException e) {
+                throw new ModuleException("Error while reading XML table file", e);
+              }
+
+              if (errorHandler.hasError()) {
+                throw new ModuleException(
+                  "Parsing or validation error occurred while reading XML table file (details are above)");
+              }
+
+              try {
+                currentTableStream.close();
+              } catch (IOException e) {
+                throw new ModuleException("Could not close XML table input stream", e);
+              }
+
+              try {
+                xsdStream.close();
+              } catch (IOException e) {
+                throw new ModuleException("Could not close table XSD schema input stream", e);
+              }
+            } catch (ModuleException e) {
+              LOGGER.error("An error occurred converting table contents", e);
+            }
+          }
+
+          LOGGER.info("Total of " + rowIndex + " row(s) processed");
+
+          try {
+            databaseExportModule.handleDataCloseTable(currentTable.getId());
+          } catch (ModuleException e) {
+            LOGGER.error("An error occurred while handling data close table", e);
+          }
+
+          LOGGER.info("Obtained contents from table '" + currentTable.getId() + "'");
         }
+      }
 
-        // import values from XML
-        String tableFilename = contentPathStrategy.getTableXMLFilePath(schema.getName(), table.getId());
-        currentTableStream = readStrategy.createInputStream(container, tableFilename);
-
-        currentTable = table;
-
-        errorHandler = new SAXErrorHandler();
-
-        try {
-          XMLReader xmlReader = saxParser.getXMLReader();
-          xmlReader.setContentHandler(this);
-          xmlReader.setErrorHandler(errorHandler);
-          InputStreamReader tableInputStreamReader = new InputStreamReader(currentTableStream, "UTF-8");
-          InputSource tableInputSource = new InputSource(tableInputStreamReader);
-          tableInputSource.setEncoding("UTF-8");
-          xmlReader.parse(tableInputSource);
-        } catch (SAXException e) {
-          throw new ModuleException("A SAX error occurred during processing of XML table file at " + tableFilename, e);
-        } catch (IOException e) {
-          throw new ModuleException("Error while reading XML table file", e);
-        }
-
-        if (errorHandler.hasError()) {
-          throw new ModuleException(
-            "Parsing or validation error occurred while reading XML table file (details are above)");
-        }
-
-        try {
-          currentTableStream.close();
-        } catch (IOException e) {
-          throw new ModuleException("Could not close XML table input stream", e);
-        }
-
-        try {
-          xsdStream.close();
-        } catch (IOException e) {
-          throw new ModuleException("Could not close table XSD schema input stream", e);
-        }
+      try {
+        databaseExportModule.handleDataCloseSchema(currentSchema.getName());
+      } catch (ModuleException e) {
+        LOGGER.error("An error occurred while handling data close schema", e);
       }
     }
   }
@@ -192,23 +237,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
     pushTag(qName);
     tempVal.setLength(0);
 
-    if (qName.equalsIgnoreCase(SCHEMA_KEYWORD)) {
-      try {
-        databaseExportModule.handleDataOpenSchema(currentSchema.getName());
-      } catch (ModuleException e) {
-        LOGGER.error("An error occurred while handling data open schema", e);
-      }
-    } else if (qName.equalsIgnoreCase(TABLE_KEYWORD)) {
-      this.rowIndex = 0;
-      try {
-        LOGGER.info("Obtaining contents from table '" + currentTable.getId() + "'");
-        databaseExportModule.handleDataOpenTable(currentTable.getId());
-      } catch (ModuleException e) {
-        LOGGER.error("An error occurred while handling data open table", e);
-      }
-      this.currentTableTotalRows = currentTable.getRows();
-      lastProgressTimestamp = System.currentTimeMillis();
-    } else if (qName.equalsIgnoreCase(ROW_KEYWORD)) {
+    if (qName.equalsIgnoreCase(ROW_KEYWORD)) {
       row = new Row();
       row.setCells(new ArrayList<Cell>());
       for (int i = 0; i < currentTable.getColumns().size(); i++) {
@@ -231,9 +260,16 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
 
         try {
           if (lobDir.endsWith(SIARD2ContentPathExportStrategy.BLOB_EXTENSION)) {
-            FileItem fileItem = new FileItem(readStrategy.createInputStream(container, lobPath));
-            currentBlobCell = new BinaryCell(currentTable.getColumns().get(columnIndex - 1).getId() + "." + rowIndex,
-              fileItem);
+            // assuming auxiliary containers are in a directory, use the
+            // existing LOB file instead of copying it to a temporary directory
+            if (container.getType().equals(SIARDArchiveContainer.OutputContainerType.AUXILIARY)) {
+              LOGGER.debug("lobContainer: {}\ncontentContainer: {}", lobContainer, contentContainer);
+              currentBlobCell = new BinaryCell(currentTable.getColumns().get(columnIndex - 1).getId() + "." + rowIndex,
+                new PathInputStreamProvider(container.getPath().resolve(Paths.get(lobPath))));
+            } else {
+              currentBlobCell = new BinaryCell(currentTable.getColumns().get(columnIndex - 1).getId() + "." + rowIndex,
+                readStrategy.createInputStream(container, lobPath));
+            }
 
             LOGGER.debug(String.format("BLOB cell %s on row #%d with lob dir %s", currentBlobCell.getId(), rowIndex,
               lobDir));
@@ -266,21 +302,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
 
     popTag();
 
-    if (tag.equalsIgnoreCase(SCHEMA_KEYWORD)) {
-      try {
-        databaseExportModule.handleDataCloseSchema(currentSchema.getName());
-      } catch (ModuleException e) {
-        LOGGER.error("An error occurred while handling data close schema", e);
-      }
-    } else if (tag.equalsIgnoreCase(TABLE_KEYWORD)) {
-      try {
-        LOGGER.info("Total of " + rowIndex + " row(s) processed");
-        databaseExportModule.handleDataCloseTable(currentTable.getId());
-        LOGGER.info("Obtained contents from table '" + currentTable.getId() + "'");
-      } catch (ModuleException e) {
-        LOGGER.error("An error occurred while handling data close table", e);
-      }
-    } else if (tag.equalsIgnoreCase(ROW_KEYWORD)) {
+    if (tag.equalsIgnoreCase(ROW_KEYWORD)) {
       // assume all cells that are not present are null
       for (int i = row.getCells().size() - 1; i >= 0; i--) {
         Cell cell = row.getCells().get(i);
@@ -332,14 +354,11 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
           // binary data with less than 2000 bytes does not have its own file
           try {
             InputStream is = new ByteArrayInputStream(Hex.decodeHex(localVal.toCharArray()));
-            cell = new BinaryCell(id, new FileItem(is));
-            is.close();
+            cell = new BinaryCell(id, is);
           } catch (ModuleException e) {
             LOGGER.error("An error occurred while importing in-table binary cell", e);
           } catch (DecoderException e) {
             LOGGER.error(String.format("Illegal characters in hexadecimal string \"%s\"", localVal), e);
-          } catch (IOException e) {
-            LOGGER.error("Problem closing the byte array input stream", e);
           }
         } else {
           cell = new SimpleCell(id, localVal);

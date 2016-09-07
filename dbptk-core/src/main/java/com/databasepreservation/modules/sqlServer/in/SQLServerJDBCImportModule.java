@@ -1,6 +1,5 @@
 package com.databasepreservation.modules.sqlServer.in;
 
-import java.io.InputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -8,19 +7,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.databasepreservation.model.Reporter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.model.data.BinaryCell;
-import com.databasepreservation.model.data.Cell;
-import com.databasepreservation.model.data.FileItem;
-import com.databasepreservation.model.exception.InvalidDataException;
-import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.structure.ViewStructure;
-import com.databasepreservation.model.structure.type.SimpleTypeBinary;
-import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.sqlServer.SQLServerHelper;
 import com.microsoft.sqlserver.jdbc.SQLServerConnection;
@@ -114,7 +106,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected Statement getStatement() throws SQLException, ClassNotFoundException {
+  protected Statement getStatement() throws SQLException {
     if (statement == null) {
       statement = ((SQLServerConnection) getConnection()).createStatement(SQLServerResultSet.TYPE_FORWARD_ONLY,
         SQLServerResultSet.CONCUR_READ_ONLY);
@@ -133,27 +125,6 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
     ignored.add("INFORMATION_SCHEMA");
     ignored.add("guest");
     return ignored;
-  }
-
-  @Override
-  protected Cell convertRawToCell(String tableName, String columnName, int columnIndex, long rowIndex, Type cellType,
-    ResultSet rawData) throws SQLException, InvalidDataException, ClassNotFoundException, ModuleException {
-    Cell cell;
-    String id = tableName + "." + columnName + "." + rowIndex;
-    if (cellType instanceof SimpleTypeBinary) {
-      InputStream input = rawData.getBinaryStream(columnName);
-      if (input != null) {
-        LOGGER.debug("SQL ServerbinaryStream: " + columnName);
-        FileItem fileItem = new FileItem(input);
-        cell = new BinaryCell(id, fileItem);
-      } else {
-        cell = new BinaryCell(id, null);
-      }
-
-    } else {
-      cell = super.convertRawToCell(tableName, columnName, columnIndex, rowIndex, cellType, rawData);
-    }
-    return cell;
   }
 
   @Override
@@ -204,7 +175,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected List<ViewStructure> getViews(String schemaName) throws SQLException, ClassNotFoundException {
+  protected List<ViewStructure> getViews(String schemaName) throws SQLException {
     final String fieldName = "objdefinition";
     final String defaultValue = "unknown";
 
@@ -237,7 +208,8 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 
       if (StringUtils.isBlank(originalQuery)) {
         originalQuery = defaultValue;
-        Reporter.customMessage("SQLServerJDBCImportModule", "Could not obtain SQL statement for view " + sqlHelper.escapeViewName(schemaName, v.getName()));
+        Reporter.customMessage("SQLServerJDBCImportModule",
+          "Could not obtain SQL statement for view " + sqlHelper.escapeViewName(schemaName, v.getName()));
       }
 
       v.setQueryOriginal(originalQuery);

@@ -3,7 +3,7 @@
  */
 package com.databasepreservation.modules.jdbc.out;
 
-import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.sql.BatchUpdateException;
@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,6 +90,19 @@ public class JDBCExportModule implements DatabaseExportModule {
   protected boolean currentIsIgnoredSchema;
 
   private final List<String> batchSQL = new ArrayList<>();
+
+  private List<CleanResourcesInterface> cleanResourcesList = new ArrayList<>();
+
+  /**
+   * Shorthand instance to obtain a no-op (no operation, do nothing)
+   * CleanResourcesInterface
+   */
+  protected static final CleanResourcesInterface noOpCleanResourcesInterface = new CleanResourcesInterface() {
+    @Override
+    public void clean() throws ModuleException {
+      // do nothing
+    }
+  };
 
   /**
    * Generic JDBC export module constructor
@@ -432,10 +446,11 @@ public class JDBCExportModule implements DatabaseExportModule {
       try {
         currentRowBatchInsertStatement.executeBatch();
       } catch (SQLException e) {
-        LOGGER.error("Error closing table " + tableId, e);
+        LOGGER.error("Error closing table {}", tableId, e);
       }
       batch_index = 0;
       currentIsIgnoredSchema = false;
+      cleanAndClearResources(cleanResourcesList);
     }
 
     try {
@@ -462,7 +477,6 @@ public class JDBCExportModule implements DatabaseExportModule {
     if (!currentIsIgnoredSchema) {
       if (currentTableStructure != null && currentRowBatchInsertStatement != null) {
         Iterator<ColumnStructure> columnIterator = currentTableStructure.getColumns().iterator();
-        List<CleanResourcesInterface> cleanResourcesList = new ArrayList<CleanResourcesInterface>();
         int index = 1;
         for (Cell cell : row.getCells()) {
           ColumnStructure column = columnIterator.next();
@@ -488,9 +502,7 @@ public class JDBCExportModule implements DatabaseExportModule {
             " there was an error with at least one of the rows");
         } finally {
           if (batch_index == 0) {
-            for (CleanResourcesInterface clean : cleanResourcesList) {
-              clean.clean();
-            }
+            cleanAndClearResources(cleanResourcesList);
             currentRowBatchStartIndex = currentRowBatchEndIndex + 1;
           }
         }
@@ -500,13 +512,20 @@ public class JDBCExportModule implements DatabaseExportModule {
     }
   }
 
+  private void cleanAndClearResources(List<CleanResourcesInterface> resourcesList) {
+    for (CleanResourcesInterface clean : resourcesList) {
+      try {
+        clean.clean();
+      } catch (ModuleException e) {
+        LOGGER.debug("Ignored CleanResourcesInterface.clean exception: ", e);
+      }
+    }
+    resourcesList.clear();
+  }
+
   protected CleanResourcesInterface handleDataCell(PreparedStatement ps, int index, Cell cell, Type type)
     throws InvalidDataException, ModuleException {
-    CleanResourcesInterface ret = new CleanResourcesInterface() {
-      @Override
-      public void clean() {
-      }
-    };
+    CleanResourcesInterface ret = noOpCleanResourcesInterface;
     try {
       // TODO: better null handling
       if (cell instanceof NullCell) {
@@ -544,32 +563,22 @@ public class JDBCExportModule implements DatabaseExportModule {
         final BinaryCell bin = (BinaryCell) cell;
 
         if (type instanceof SimpleTypeBinary) {
-          if (bin.canCreateInputstream()) {
-            ps.setBinaryStream(index, bin.createInputstream(), (int) bin.getLength());
-          } else {
-            LOGGER.debug("is null");
-            ps.setNull(index, Types.BINARY);
-          }
+          final InputStream inputStream = bin.createInputStream();
+          ps.setBinaryStream(index, inputStream, bin.getSize());
           ret = new CleanResourcesInterface() {
             @Override
             public void clean() throws ModuleException {
-              try {
-                bin.cleanResources();
-              } catch (IOException e) {
-                throw new ModuleException("Could not clean resources of " + bin, e);
-              }
+              IOUtils.closeQuietly(inputStream);
+              bin.cleanResources();
             }
           };
         } else if (type instanceof SimpleTypeString) {
-          handleSimpleTypeString(ps, index, bin);
+          final InputStream inputStream = handleSimpleTypeString(ps, index, bin);
           ret = new CleanResourcesInterface() {
             @Override
             public void clean() throws ModuleException {
-              try {
-                bin.cleanResources();
-              } catch (IOException e) {
-                throw new ModuleException("Could not clean resources of " + bin, e);
-              }
+              IOUtils.closeQuietly(inputStream);
+              bin.cleanResources();
             }
           };
         } else {
@@ -665,9 +674,14 @@ public class JDBCExportModule implements DatabaseExportModule {
     }
   }
 
-  protected void handleSimpleTypeString(PreparedStatement ps, int index, BinaryCell bin) throws SQLException,
+  /**
+   * @return the created InputStream, so it can be closed.
+   */
+  protected InputStream handleSimpleTypeString(PreparedStatement ps, int index, BinaryCell bin) throws SQLException,
     ModuleException {
-    ps.setClob(index, new InputStreamReader(bin.createInputstream()), bin.getLength());
+    InputStream inputStream = bin.createInputStream();
+    ps.setClob(index, new InputStreamReader(inputStream), bin.getSize());
+    return inputStream;
   }
 
   @Override
