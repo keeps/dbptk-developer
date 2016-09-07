@@ -60,6 +60,10 @@ public class Oracle12cJDBCDatatypeImporter extends JDBCDatatypeImporter {
       type = new SimpleTypeString(2000, true, "CHARSET");
       type.setSql99TypeName("CHARACTER VARYING", 2000);
       type.setSql2008TypeName("CHARACTER VARYING", 2000);
+    } else if ("VARCHAR2".equalsIgnoreCase(typeName)) {
+      type = new SimpleTypeString(2000, true, "CHARSET");
+      type.setSql99TypeName("CHARACTER VARYING", 2000);
+      type.setSql2008TypeName("CHARACTER VARYING", 2000);
     } else if ("NCLOB".equalsIgnoreCase(typeName)) {
       type = new SimpleTypeString(Integer.valueOf(columnSize), true, "CHARSET");
       type.setSql99TypeName("CHARACTER LARGE OBJECT");
