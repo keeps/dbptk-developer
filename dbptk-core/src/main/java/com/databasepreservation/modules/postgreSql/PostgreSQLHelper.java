@@ -46,13 +46,11 @@ public class PostgreSQLHelper extends SQLHelper {
 
   @Override
   public String escapeSchemaName(String schema) {
-    schema = schema.toLowerCase();
     return getStartQuote() + schema + getEndQuote();
   }
 
   @Override
   public String escapeTableName(String table) {
-    table = table.toLowerCase();
     return getStartQuote() + table + getEndQuote();
   }
 

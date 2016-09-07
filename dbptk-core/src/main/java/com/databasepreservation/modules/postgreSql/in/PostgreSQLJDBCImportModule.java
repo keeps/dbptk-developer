@@ -155,7 +155,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       if (column.getType() instanceof ComposedTypeStructure) {
         udtColumns.add(column);
       }
-      columnNames.add(column.getName().toLowerCase());
+      columnNames.add(column.getName());
       query.append(separator).append(column.getName());
       separator = ", ";
     }
