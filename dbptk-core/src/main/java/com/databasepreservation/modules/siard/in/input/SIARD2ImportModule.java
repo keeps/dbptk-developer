@@ -44,7 +44,8 @@ public class SIARD2ImportModule {
    */
   public SIARD2ImportModule(Path siardPackagePath, boolean auxiliaryContainersInZipFormat) {
     Path siardPackageNormalizedPath = siardPackagePath.toAbsolutePath().normalize();
-    mainContainer = new SIARDArchiveContainer(siardPackageNormalizedPath, SIARDArchiveContainer.OutputContainerType.MAIN);
+    mainContainer = new SIARDArchiveContainer(siardPackageNormalizedPath,
+      SIARDArchiveContainer.OutputContainerType.MAIN);
     lobContainer = new SIARDArchiveContainer(siardPackageNormalizedPath.getParent(),
       SIARDArchiveContainer.OutputContainerType.AUXILIARY);
     if (auxiliaryContainersInZipFormat) {

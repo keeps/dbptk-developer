@@ -14,7 +14,6 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.validation.SchemaFactory;
 
-import com.databasepreservation.model.modules.ModuleSettings;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
@@ -36,6 +35,7 @@ import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
+import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
@@ -117,7 +117,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
         LOGGER.error("An error occurred while handling data open schema", e);
       }
 
-      if(schemaHandled) {
+      if (schemaHandled) {
         for (TableStructure table : schema.getTables()) {
           currentTable = table;
           boolean tableHandled = false;
@@ -132,11 +132,11 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
           this.currentTableTotalRows = currentTable.getRows();
           lastProgressTimestamp = System.currentTimeMillis();
 
-          if(tableHandled && moduleSettings.shouldFetchRows()) {
+          if (tableHandled && moduleSettings.shouldFetchRows()) {
             try {
               // setup a new validating parser
-              InputStream xsdStream = readStrategy
-                .createInputStream(container, contentPathStrategy.getTableXSDFilePath(schema.getName(), currentTable.getId()));
+              InputStream xsdStream = readStrategy.createInputStream(container,
+                contentPathStrategy.getTableXSDFilePath(schema.getName(), currentTable.getId()));
 
               try {
                 saxParser = saxParserFactory.newSAXParser();
@@ -163,8 +163,8 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
                 tableInputSource.setEncoding("UTF-8");
                 xmlReader.parse(tableInputSource);
               } catch (SAXException e) {
-                throw new ModuleException("A SAX error occurred during processing of XML table file at " + tableFilename,
-                  e);
+                throw new ModuleException("A SAX error occurred during processing of XML table file at "
+                  + tableFilename, e);
               } catch (IOException e) {
                 throw new ModuleException("Error while reading XML table file", e);
               }

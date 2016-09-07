@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -81,6 +82,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 
   private final MetadataPathStrategy metadataPathStrategy;
   private final ContentPathImportStrategy contentPathStrategy;
+  private ModuleSettings moduleSettings;
   private DatabaseStructure databaseStructure;
   private String messageDigest = null;
 
@@ -98,7 +100,9 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
   }
 
   @Override
-  public void loadMetadata(ReadStrategy readStrategy, SIARDArchiveContainer container) throws ModuleException {
+  public void loadMetadata(ReadStrategy readStrategy, SIARDArchiveContainer container, ModuleSettings moduleSettings)
+    throws ModuleException {
+    this.moduleSettings = moduleSettings;
     JAXBContext context;
     try {
       context = JAXBContext.newInstance(SiardArchive.class.getPackage().getName());
@@ -410,7 +414,11 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 
     if (tables != null && !tables.getTable().isEmpty()) {
       for (TableType table : tables.getTable()) {
-        result.add(getTableStructure(table, schemaName));
+        TableStructure obtainedTableStructure = getTableStructure(table, schemaName);
+        if (moduleSettings.isSelectedTable(schemaName, obtainedTableStructure.getName())) {
+          result.add(obtainedTableStructure);
+          currentTableIndex++;
+        }
       }
     }
 
@@ -421,7 +429,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
     if (table != null) {
       TableStructure result = new TableStructure();
 
-      result.setIndex(currentTableIndex++);
+      result.setIndex(currentTableIndex);
       metadataCurrentTableName = table.getName();
       result.setName(metadataCurrentTableName);
       result.setSchema(schemaName);

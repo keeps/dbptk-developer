@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.ForeignKey;
@@ -66,7 +67,8 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
   }
 
   @Override
-  public void loadMetadata(ReadStrategy readStrategy, SIARDArchiveContainer container) throws ModuleException {
+  public void loadMetadata(ReadStrategy readStrategy, SIARDArchiveContainer container, ModuleSettings moduleSettings)
+    throws ModuleException {
     FolderReadStrategyMD5Sum readStrategyMD5Sum = null;
     if (!(readStrategy instanceof FolderReadStrategyMD5Sum)) {
       throw new IllegalArgumentException(

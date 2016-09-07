@@ -6,6 +6,9 @@ import java.util.Map;
 
 import javax.naming.OperationNotSupportedException;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
@@ -17,10 +20,24 @@ import com.databasepreservation.model.parameters.Parameters;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SolrModuleFactory implements DatabaseModuleFactory {
-  private static final Parameter dummy = new Parameter().longName("dummy").shortName("d").required(false);
+  private static final Parameter hostname = new Parameter().longName("hostname").shortName("h")
+    .description("Solr Cloud server hostname or address").required(false).hasArgument(true).setOptionalArgument(false)
+    .valueIfNotSet("127.0.0.1");
 
-  // TODO: param solr url
-  // TODO: param solr zookeeper host
+  private static final Parameter port = new Parameter().longName("port").shortName("p")
+    .description("Solr Cloud server port").required(false).hasArgument(true).setOptionalArgument(false)
+    .valueIfNotSet("8983");
+
+  private static final Parameter endpoint = new Parameter().longName("endpoint").shortName("e")
+    .description("Solr endpoint").required(false).hasArgument(true).setOptionalArgument(true).valueIfNotSet("solr");
+
+  private static final Parameter zookeeperHost = new Parameter().longName("zookeeper-hostname").shortName("zh")
+    .description("Zookeeper server hostname or address").required(false).hasArgument(true).setOptionalArgument(false)
+    .valueIfNotSet("127.0.0.1");
+
+  private static final Parameter zookeeperPort = new Parameter().longName("zookeeper-port").shortName("zp")
+    .description("Zookeeper server port").required(false).hasArgument(true).setOptionalArgument(false)
+    .valueIfNotSet("9983");
 
   @Override
   public boolean producesImportModules() {
@@ -39,8 +56,11 @@ public class SolrModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Map<String, Parameter> getAllParameters() {
-    HashMap<String, Parameter> parameterHashMap = new HashMap<String, Parameter>();
-    parameterHashMap.put(dummy.longName(), dummy);
+    HashMap<String, Parameter> parameterHashMap = new HashMap<>();
+    parameterHashMap.put(hostname.longName(), hostname);
+    parameterHashMap.put(port.longName(), port);
+    parameterHashMap.put(zookeeperHost.longName(), zookeeperHost);
+    parameterHashMap.put(zookeeperPort.longName(), zookeeperPort);
     return parameterHashMap;
   }
 
@@ -51,7 +71,7 @@ public class SolrModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Parameters getExportModuleParameters() throws OperationNotSupportedException {
-    return new Parameters(Arrays.asList(dummy), null);
+    return new Parameters(Arrays.asList(hostname, port, zookeeperHost, zookeeperPort), null);
   }
 
   @Override
@@ -63,6 +83,38 @@ public class SolrModuleFactory implements DatabaseModuleFactory {
   @Override
   public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters)
     throws OperationNotSupportedException, LicenseNotAcceptedException {
-    return new SolrExportModule();
+    String pHostname = parameters.get(hostname);
+    if (StringUtils.isBlank(pHostname)) {
+      pHostname = hostname.valueIfNotSet();
+    }
+
+    Integer pPortNumber = null;
+    if (StringUtils.isNotBlank(parameters.get(port))) {
+      pPortNumber = Integer.parseInt(parameters.get(port));
+    } else {
+      pPortNumber = Integer.parseInt(port.valueIfNotSet());
+    }
+
+    String pEndpoint = parameters.get(endpoint);
+    if (StringUtils.isBlank(pEndpoint)) {
+      pEndpoint = endpoint.valueIfNotSet();
+    }
+
+    String pZookeperHostname = parameters.get(zookeeperHost);
+    if (StringUtils.isBlank(pZookeperHostname)) {
+      pZookeperHostname = zookeeperHost.valueIfNotSet();
+    }
+
+    Integer pZookeeperPortNumber = null;
+    if (StringUtils.isNotBlank(parameters.get(zookeeperPort))) {
+      pZookeeperPortNumber = Integer.parseInt(parameters.get(zookeeperPort));
+    } else {
+      pZookeeperPortNumber = Integer.parseInt(zookeeperPort.valueIfNotSet());
+    }
+
+    Reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "port", pPortNumber.toString(), "endpoint",
+      pEndpoint, "zookeeper-hostname", pZookeperHostname, "zookeeper-port", pZookeeperPortNumber.toString());
+
+    return new SolrExportModule(pHostname, pPortNumber, pEndpoint, pZookeperHostname, pZookeeperPortNumber);
   }
 }
