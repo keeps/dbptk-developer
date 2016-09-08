@@ -48,22 +48,45 @@ public class Oracle12cJDBCDatatypeImporter extends JDBCDatatypeImporter {
   }
 
   @Override
+  protected Type getVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+    Type type;
+    if ("VARCHAR2".equalsIgnoreCase(typeName)) {
+      type = new SimpleTypeString(2000, true);
+      type.setSql99TypeName("CHARACTER VARYING", 2000);
+      type.setSql2008TypeName("CHARACTER VARYING", 2000);
+    } else {
+      type = super.getVarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
+    }
+    return type;
+  }
+
+  @Override
+  protected Type getNationalVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+    // TODO: add charset
+    Type type;
+    if ("NVARCHAR2".equalsIgnoreCase(typeName)) {
+      type = new SimpleTypeString(2000, true);
+      type.setSql99TypeName("NATIONAL CHARACTER VARYING", 2000);
+      type.setSql2008TypeName("NATIONAL CHARACTER VARYING", 2000);
+    } else {
+      type = super.getNationalVarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
+    }
+    return type;
+  }
+
+  @Override
   protected Type getOtherType(int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
     throws UnknownTypeException {
     Type type;
     // TODO define charset
     if ("NCHAR".equalsIgnoreCase(typeName)) {
-      type = new SimpleTypeString(Integer.valueOf(columnSize), false, "CHARSET");
-      type.setSql99TypeName("CHARACTER");
-      type.setSql2008TypeName("CHARACTER");
+      type = getNationalCharType(typeName, columnSize, decimalDigits, numPrecRadix);
     } else if ("NVARCHAR2".equalsIgnoreCase(typeName)) {
-      type = new SimpleTypeString(Integer.valueOf(columnSize), true, "CHARSET");
-      type.setSql99TypeName("CHARACTER VARYING", columnSize);
-      type.setSql2008TypeName("CHARACTER VARYING", columnSize);
+      type = getNationalVarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
+    } else if ("VARCHAR2".equalsIgnoreCase(typeName)) {
+      type = getVarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
     } else if ("NCLOB".equalsIgnoreCase(typeName)) {
-      type = new SimpleTypeString(Integer.valueOf(columnSize), true, "CHARSET");
-      type.setSql99TypeName("CHARACTER LARGE OBJECT");
-      type.setSql2008TypeName("CHARACTER LARGE OBJECT");
+      type = getLongNationalVarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
     } else if ("ROWID".equalsIgnoreCase(typeName)) {
       type = new SimpleTypeString(Integer.valueOf(columnSize), true);
       type.setSql99TypeName("CHARACTER VARYING", columnSize);
