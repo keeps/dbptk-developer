@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- tableIndex.xsd version 0.9.2 -->
-<!-- Statens Arkiver 2013 -->
+<!-- tableIndex.xsd version 0.9.3 -->
+<!-- Rigsarkivet 2016-->
 <!-- -->
 <!-- Data definition language (DDL) for a relational database in XML Schema 1.0-->
 <!-- Platform : XML 1.0, XML Schema 2001 -->
@@ -372,7 +372,7 @@
 			<xs:pattern value="date|DATE"/>
 			<xs:pattern value="(time|TIME)(\s?\([1-9][0-9]*\))?(\s?((WITH TIME ZONE)|(WITHOUT TIME ZONE)))?"/>
 			<xs:pattern value="(timestamp|TIMESTAMP)(\s?\([1-9][0-9]*\))?(\s?(WITH TIME ZONE)|(WITHOUT TIME ZONE))?"/>
-			<xs:pattern value="(interval|INTERVAL) (YEAR|MONTH|DAY|HOUR|MINUTE|year|month|day|hour|minute) (\([1-9][0-9]*\))? (TO|to) (YEAR|MONTH|DAY|HOUR|MINUTE|year|month|day|hour|minute)|(second|SECOND)(\([1-9][0-9]*(,[1-9][0-9]*)?\))?"/>
+			<xs:pattern value="interval|INTERVAL"/>
 			<!-- <character string type> ::=
 				CHARACTER [ <left paren> <length> <right paren> ]
 			|	CHAR [ <left paren> <length> <right paren> ]

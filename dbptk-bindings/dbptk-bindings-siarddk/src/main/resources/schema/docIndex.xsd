@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- docIndex 0.8.2 -->
-<!-- SA 2010 -->
+<!-- docIndex 0.8.3 -->
+<!-- Rigsarkivet 2016 -->
 <xs:schema xmlns="http://www.sa.dk/xmlns/diark/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.sa.dk/xmlns/diark/1.0" elementFormDefault="qualified" attributeFormDefault="unqualified" blockDefault="#all" finalDefault="#all" version="0.8.2" id="docIndex">
 	<xs:element name="docIndex" type="docIndexType"/>
 	<xs:complexType name="docIndexType">
@@ -103,7 +103,8 @@
 			<xs:pattern value="jp2|JP2"/>
 			<xs:pattern value="gml|GML"/>
 			<xs:pattern value="xsd|XSD"/>
-			<xs:pattern value="bin"/>
+			<xs:pattern value="wav|WAV"/>
+			<xs:pattern value="bin|BIN"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="gmlXsdType">
