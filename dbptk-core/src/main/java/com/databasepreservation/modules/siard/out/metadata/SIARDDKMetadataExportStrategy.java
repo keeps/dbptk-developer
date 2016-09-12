@@ -169,9 +169,8 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     Path containerPath = container.getPath();
     Path localShared = Paths.get("Schemas/localShared");
     File folder = containerPath.resolve(localShared).toFile();
-    System.out.println(folder);
     try {
-      System.out.println(folder.mkdirs());
+      folder.mkdirs();
     } catch (SecurityException e) {
       e.printStackTrace();
     }
