@@ -234,6 +234,24 @@ public class TestLOBsTracker {
     assertEquals(20, lt.getAccumulatedLobsSize(), DELTA);
   }
 
+  @Test
+  public void shouldIncrementTotaleLOBsCountCorrectly() {
+    LOBsTracker lt = new LOBsTracker(3, 100);
+    assertEquals(0, lt.getLOBsCount());
+    lt.addLOB(0);
+    assertEquals(1, lt.getLOBsCount());
+    lt.addLOB(0);
+    lt.addLOB(0);
+    assertEquals(3, lt.getLOBsCount());
+    lt.addLOB(0);
+    assertEquals(4, lt.getLOBsCount());
+    lt.addLOB(0);
+    assertEquals(5, lt.getLOBsCount());
+    lt.addLOB(0);
+    lt.addLOB(0);
+    assertEquals(7, lt.getLOBsCount());
+  }
+
   private void addLOB(int size) {
     lobsTracker.addLOB(size);
   }
