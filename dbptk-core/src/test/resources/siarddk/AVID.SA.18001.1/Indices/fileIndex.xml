@@ -72,23 +72,8 @@
   </f>
   <f>
     <foN>AVID.SA.18001.1\Schemas\standard</foN>
-    <fiN>GML2.xsd</fiN>
-    <md5>9DDE884E4E394A78CFE8151F4F160964</md5>
-  </f>
-  <f>
-    <foN>AVID.SA.18001.1\Schemas\standard</foN>
-    <fiN>gmlsf.xsd</fiN>
-    <md5>DAB29204C38EBF1FD13128754EA68B22</md5>
-  </f>
-  <f>
-    <foN>AVID.SA.18001.1\Schemas\standard</foN>
-    <fiN>gmlsfLevels.xsd</fiN>
-    <md5>A9CBF732DD38282B8BADEB395B021F16</md5>
-  </f>
-  <f>
-    <foN>AVID.SA.18001.1\Schemas\standard</foN>
     <fiN>tableIndex.xsd</fiN>
-    <md5>9661F1CDC7B36EC85DB088A42D2E125F</md5>
+    <md5>00D24ABCCBEEFF6C5BEBD59F605D436F</md5>
   </f>
   <f>
     <foN>AVID.SA.18001.1\Schemas\standard</foN>
