@@ -1,8 +1,11 @@
 package com.databasepreservation.modules.siard.out.metadata;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
@@ -120,6 +123,9 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
         throw new ModuleException("Error writing docIndex.xml to the archive.", e);
       }
     }
+
+    createLocalSharedFolder(outputContainer);
+
   }
 
   @Override
@@ -155,6 +161,19 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
     } catch (IOException e) {
       throw new ModuleException("There was an error writing " + indexFile + ".xsd", e);
+    }
+  }
+
+  private void createLocalSharedFolder(SIARDArchiveContainer container) {
+
+    Path containerPath = container.getPath();
+    Path localShared = Paths.get("Schemas/localShared");
+    File folder = containerPath.resolve(localShared).toFile();
+    System.out.println(folder);
+    try {
+      System.out.println(folder.mkdirs());
+    } catch (SecurityException e) {
+      e.printStackTrace();
     }
   }
 }
