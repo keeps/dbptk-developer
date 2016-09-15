@@ -31,18 +31,24 @@ public final class JodaUtils {
     .appendOptional(new DateTimeFormatterBuilder().append(DateTimeFormat.forPattern("ZZ")).toParser()).toFormatter()
     .withChronology(DEFAULT_CHRONOLOGY);
 
-  private static final DateTimeFormatter FORMATTER_XS_TIME_WITH_TIMEZONE = DateTimeFormat.forPattern("HH:mm:ss.SSSZZ")
-    .withChronology(DEFAULT_CHRONOLOGY);
-  private static final DateTimeFormatter FORMATTER_XS_TIME_WITHOUT_TIMEZONE = DateTimeFormat.forPattern("HH:mm:ss.SSS")
-    .withChronology(DEFAULT_CHRONOLOGY);
   private static final DateTimeFormatter PARSER_XS_TIME = new DateTimeFormatterBuilder()
     .append(DateTimeFormat.forPattern("HH:mm:ss"))
     .appendOptional(new DateTimeFormatterBuilder().appendLiteral('.').appendFractionOfSecond(1, 50).toParser())
     .appendOptional(new DateTimeFormatterBuilder().append(DateTimeFormat.forPattern("ZZ")).toParser()).toFormatter()
     .withChronology(DEFAULT_CHRONOLOGY);
 
-  private static final DateTimeFormatter FORMATTER_SOLR_DATETIME_WITH_MILLIS_FORMAT = DateTimeFormat.forPattern(
+  private static final DateTimeFormatter FORMATTER_SOLR_DATETIME_WITH_MILLIS = DateTimeFormat.forPattern(
     "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withChronology(DEFAULT_CHRONOLOGY);
+
+  private static final DateTimeFormatter FORMATTER_SOLR_DATETIME_DISPLAY = DateTimeFormat.forPattern(
+    "yyyy-MM-dd HH:mm:ss.SSS z").withChronology(DEFAULT_CHRONOLOGY);
+
+  private static final DateTimeFormatter FORMATTER_SOLR_DATE_DISPLAY = DateTimeFormat.forPattern("yyyy-MM-dd z")
+    .withChronology(DEFAULT_CHRONOLOGY);
+
+  private static final DateTimeFormatter FORMATTER_SOLR_TIME_DISPLAY = DateTimeFormat.forPattern("HH:mm:ss.SSS z")
+    .withChronology(DEFAULT_CHRONOLOGY);
+
 
   private static final DateTimeFormatter PARSER_XS_DATETIME_AND_SOLR = new DateTimeFormatterBuilder()
     .append(DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss"))
@@ -106,6 +112,18 @@ public final class JodaUtils {
   }
 
   public static String solrDateFormat(DateTime dateTime) {
-    return dateTime.withZone(DateTimeZone.UTC).toString(FORMATTER_SOLR_DATETIME_WITH_MILLIS_FORMAT);
+    return dateTime.withZone(DateTimeZone.UTC).toString(FORMATTER_SOLR_DATETIME_WITH_MILLIS);
+  }
+
+  public static String solrDateTimeDisplay(DateTime dateTime){
+    return dateTime.withZone(DateTimeZone.UTC).toString(FORMATTER_SOLR_DATETIME_DISPLAY);
+  }
+
+  public static String solrDateDisplay(DateTime dateTime){
+    return dateTime.withZone(DateTimeZone.UTC).toString(FORMATTER_SOLR_DATE_DISPLAY);
+  }
+
+  public static String solrTimeDisplay(DateTime dateTime){
+    return dateTime.withZone(DateTimeZone.UTC).toString(FORMATTER_SOLR_TIME_DISPLAY);
   }
 }
