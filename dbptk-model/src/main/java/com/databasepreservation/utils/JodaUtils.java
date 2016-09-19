@@ -41,14 +41,17 @@ public final class JodaUtils {
     "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withChronology(DEFAULT_CHRONOLOGY);
 
   private static final DateTimeFormatter FORMATTER_SOLR_DATETIME_DISPLAY = DateTimeFormat.forPattern(
-    "yyyy-MM-dd HH:mm:ss.SSS z").withChronology(DEFAULT_CHRONOLOGY);
+    "yyyy-MM-dd HH:mm:ss").withChronology(DEFAULT_CHRONOLOGY);
+  private static final DateTimeFormatter FORMATTER_SOLR_DATETIME_MS_DISPLAY = DateTimeFormat.forPattern(
+    "yyyy-MM-dd HH:mm:ss.SSS").withChronology(DEFAULT_CHRONOLOGY);
 
-  private static final DateTimeFormatter FORMATTER_SOLR_DATE_DISPLAY = DateTimeFormat.forPattern("yyyy-MM-dd z")
+  private static final DateTimeFormatter FORMATTER_SOLR_DATE_DISPLAY = DateTimeFormat.forPattern("yyyy-MM-dd")
     .withChronology(DEFAULT_CHRONOLOGY);
 
-  private static final DateTimeFormatter FORMATTER_SOLR_TIME_DISPLAY = DateTimeFormat.forPattern("HH:mm:ss.SSS z")
+  private static final DateTimeFormatter FORMATTER_SOLR_TIME_DISPLAY = DateTimeFormat.forPattern("HH:mm:ss")
     .withChronology(DEFAULT_CHRONOLOGY);
-
+  private static final DateTimeFormatter FORMATTER_SOLR_TIME_MS_DISPLAY = DateTimeFormat.forPattern("HH:mm:ss.SSS")
+    .withChronology(DEFAULT_CHRONOLOGY);
 
   private static final DateTimeFormatter PARSER_XS_DATETIME_AND_SOLR = new DateTimeFormatterBuilder()
     .append(DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss"))
@@ -115,15 +118,25 @@ public final class JodaUtils {
     return dateTime.withZone(DateTimeZone.UTC).toString(FORMATTER_SOLR_DATETIME_WITH_MILLIS);
   }
 
-  public static String solrDateTimeDisplay(DateTime dateTime){
-    return dateTime.withZone(DateTimeZone.UTC).toString(FORMATTER_SOLR_DATETIME_DISPLAY);
+  public static String solrDateTimeDisplay(DateTime dateTime) {
+    DateTime utcDateTime = dateTime.withZone(DateTimeZone.UTC);
+    if (utcDateTime.getMillisOfSecond() == 0) {
+      return utcDateTime.toString(FORMATTER_SOLR_DATETIME_DISPLAY);
+    } else {
+      return utcDateTime.toString(FORMATTER_SOLR_DATETIME_MS_DISPLAY);
+    }
   }
 
-  public static String solrDateDisplay(DateTime dateTime){
+  public static String solrDateDisplay(DateTime dateTime) {
     return dateTime.withZone(DateTimeZone.UTC).toString(FORMATTER_SOLR_DATE_DISPLAY);
   }
 
-  public static String solrTimeDisplay(DateTime dateTime){
-    return dateTime.withZone(DateTimeZone.UTC).toString(FORMATTER_SOLR_TIME_DISPLAY);
+  public static String solrTimeDisplay(DateTime dateTime) {
+    DateTime utcDateTime = dateTime.withZone(DateTimeZone.UTC);
+    if (utcDateTime.getMillisOfSecond() == 0) {
+      return utcDateTime.toString(FORMATTER_SOLR_TIME_DISPLAY);
+    } else {
+      return utcDateTime.toString(FORMATTER_SOLR_TIME_MS_DISPLAY);
+    }
   }
 }
