@@ -8,6 +8,7 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.chrono.GJChronology;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.DateTimeFormatterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,18 +22,42 @@ public final class JodaUtils {
 
   public static final Chronology DEFAULT_CHRONOLOGY = GJChronology.getInstanceUTC();
 
-  private static final DateTimeFormatter FORMATTER_XS_DATE_WITHTIMEZONE = DateTimeFormat.forPattern("yyyy-MM-ddZZ")
+  private static final DateTimeFormatter FORMATTER_XS_DATE_WITH_TIMEZONE = DateTimeFormat.forPattern("yyyy-MM-ddZZ")
     .withChronology(DEFAULT_CHRONOLOGY);
-  private static final DateTimeFormatter FORMATTER_XS_DATE_WITHOUTTIMEZONE = DateTimeFormat.forPattern("yyyy-MM-dd")
+  private static final DateTimeFormatter FORMATTER_XS_DATE_WITHOUT_TIMEZONE = DateTimeFormat.forPattern("yyyy-MM-dd")
     .withChronology(DEFAULT_CHRONOLOGY);
-  private static final DateTimeFormatter FORMATTER_XS_DATETIME_WITH_MILLIS = DateTimeFormat.forPattern(
-    "yyyy-MM-dd'T'HH:mm:ss.SSSZZ").withChronology(DEFAULT_CHRONOLOGY);
-  private static final DateTimeFormatter FORMATTER_XS_DATETIME_WITHOUT_MILLIS = DateTimeFormat.forPattern(
-    "yyyy-MM-dd'T'HH:mm:ssZZ").withChronology(DEFAULT_CHRONOLOGY);
-  private static final DateTimeFormatter FORMATTER_SOLR_DATETIME_WITH_MILLIS_FORMAT = DateTimeFormat.forPattern(
+  private static final DateTimeFormatter PARSER_XS_DATE = new DateTimeFormatterBuilder()
+    .append(DateTimeFormat.forPattern("yyyy-MM-dd"))
+    .appendOptional(new DateTimeFormatterBuilder().append(DateTimeFormat.forPattern("ZZ")).toParser()).toFormatter()
+    .withChronology(DEFAULT_CHRONOLOGY);
+
+  private static final DateTimeFormatter PARSER_XS_TIME = new DateTimeFormatterBuilder()
+    .append(DateTimeFormat.forPattern("HH:mm:ss"))
+    .appendOptional(new DateTimeFormatterBuilder().appendLiteral('.').appendFractionOfSecond(1, 50).toParser())
+    .appendOptional(new DateTimeFormatterBuilder().append(DateTimeFormat.forPattern("ZZ")).toParser()).toFormatter()
+    .withChronology(DEFAULT_CHRONOLOGY);
+
+  private static final DateTimeFormatter FORMATTER_SOLR_DATETIME_WITH_MILLIS = DateTimeFormat.forPattern(
     "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withChronology(DEFAULT_CHRONOLOGY);
-  private static final DateTimeFormatter FORMATTER_SOLR_DATETIME_WITH_MILLIS_PARSE = DateTimeFormat.forPattern(
-    "yyyy-MM-dd'T'HH:mm:ss.SSSZZ").withChronology(DEFAULT_CHRONOLOGY);
+
+  private static final DateTimeFormatter FORMATTER_SOLR_DATETIME_DISPLAY = DateTimeFormat.forPattern(
+    "yyyy-MM-dd HH:mm:ss").withChronology(DEFAULT_CHRONOLOGY);
+  private static final DateTimeFormatter FORMATTER_SOLR_DATETIME_MS_DISPLAY = DateTimeFormat.forPattern(
+    "yyyy-MM-dd HH:mm:ss.SSS").withChronology(DEFAULT_CHRONOLOGY);
+
+  private static final DateTimeFormatter FORMATTER_SOLR_DATE_DISPLAY = DateTimeFormat.forPattern("yyyy-MM-dd")
+    .withChronology(DEFAULT_CHRONOLOGY);
+
+  private static final DateTimeFormatter FORMATTER_SOLR_TIME_DISPLAY = DateTimeFormat.forPattern("HH:mm:ss")
+    .withChronology(DEFAULT_CHRONOLOGY);
+  private static final DateTimeFormatter FORMATTER_SOLR_TIME_MS_DISPLAY = DateTimeFormat.forPattern("HH:mm:ss.SSS")
+    .withChronology(DEFAULT_CHRONOLOGY);
+
+  private static final DateTimeFormatter PARSER_XS_DATETIME_AND_SOLR = new DateTimeFormatterBuilder()
+    .append(DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss"))
+    .appendOptional(new DateTimeFormatterBuilder().appendLiteral('.').appendFractionOfSecond(1, 50).toParser())
+    .appendOptional(new DateTimeFormatterBuilder().append(DateTimeFormat.forPattern("ZZ")).toParser()).toFormatter()
+    .withChronology(DEFAULT_CHRONOLOGY);
 
   private JodaUtils() {
   }
@@ -49,16 +74,11 @@ public final class JodaUtils {
    * @return
    */
   public static DateTime xsDateParse(String date) {
+    return DateTime.parse(date, PARSER_XS_DATE);
+  }
 
-    DateTime result;
-    try {
-      result = DateTime.parse(date, FORMATTER_XS_DATE_WITHTIMEZONE);
-    } catch (IllegalArgumentException e1) {
-      LOGGER.trace("IllegalArgumentException when  parsing", e1);
-      result = DateTime.parse(date, FORMATTER_XS_DATE_WITHOUTTIMEZONE);
-    }
-
-    return result;
+  public static DateTime xsTimeParse(String time) {
+    return DateTime.parse(time, PARSER_XS_TIME);
   }
 
   /**
@@ -69,26 +89,21 @@ public final class JodaUtils {
    * @return
    */
   public static DateTime xsDatetimeParse(String datetime) {
-    try {
-      return DateTime.parse(datetime, FORMATTER_XS_DATETIME_WITH_MILLIS);
-    } catch (IllegalArgumentException e1) {
-      LOGGER.trace("IllegalArgumentException when  parsing", e1);
-      return DateTime.parse(datetime, FORMATTER_XS_DATETIME_WITHOUT_MILLIS);
-    }
+    return DateTime.parse(datetime, PARSER_XS_DATETIME_AND_SOLR);
   }
 
   public static DateTime solrDateParse(String datetime) {
-    return DateTime.parse(datetime, FORMATTER_SOLR_DATETIME_WITH_MILLIS_PARSE);
+    return DateTime.parse(datetime, PARSER_XS_DATETIME_AND_SOLR);
   }
 
   public static String xsDateFormat(DateTime date, boolean includeTimezone) {
-    String x;
+    String result;
     if (includeTimezone) {
-      x = date.toString(FORMATTER_XS_DATE_WITHTIMEZONE);
+      result = date.toString(FORMATTER_XS_DATE_WITH_TIMEZONE);
     } else {
-      x = date.toString(FORMATTER_XS_DATE_WITHOUTTIMEZONE);
+      result = date.toString(FORMATTER_XS_DATE_WITHOUT_TIMEZONE);
     }
-    return x;
+    return result;
   }
 
   public static String xsDateFormat(DateTime date) {
@@ -96,10 +111,32 @@ public final class JodaUtils {
   }
 
   public static DateTime xsDateRewrite(DateTime date) {
-    return DateTime.parse(xsDateFormat(date, true), FORMATTER_XS_DATE_WITHTIMEZONE);
+    return DateTime.parse(xsDateFormat(date, true), PARSER_XS_DATE);
   }
 
   public static String solrDateFormat(DateTime dateTime) {
-    return dateTime.withZone(DateTimeZone.UTC).toString(FORMATTER_SOLR_DATETIME_WITH_MILLIS_FORMAT);
+    return dateTime.withZone(DateTimeZone.UTC).toString(FORMATTER_SOLR_DATETIME_WITH_MILLIS);
+  }
+
+  public static String solrDateTimeDisplay(DateTime dateTime) {
+    DateTime utcDateTime = dateTime.withZone(DateTimeZone.UTC);
+    if (utcDateTime.getMillisOfSecond() == 0) {
+      return utcDateTime.toString(FORMATTER_SOLR_DATETIME_DISPLAY);
+    } else {
+      return utcDateTime.toString(FORMATTER_SOLR_DATETIME_MS_DISPLAY);
+    }
+  }
+
+  public static String solrDateDisplay(DateTime dateTime) {
+    return dateTime.withZone(DateTimeZone.UTC).toString(FORMATTER_SOLR_DATE_DISPLAY);
+  }
+
+  public static String solrTimeDisplay(DateTime dateTime) {
+    DateTime utcDateTime = dateTime.withZone(DateTimeZone.UTC);
+    if (utcDateTime.getMillisOfSecond() == 0) {
+      return utcDateTime.toString(FORMATTER_SOLR_TIME_DISPLAY);
+    } else {
+      return utcDateTime.toString(FORMATTER_SOLR_TIME_MS_DISPLAY);
+    }
   }
 }
