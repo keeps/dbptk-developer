@@ -23,7 +23,7 @@
     <f>
         <foN>AVID.HEX.1000.1\Schemas\standard</foN>
         <fiN>fileIndex.xsd</fiN>
-        <md5>133FF43642931AA3A10372D1B421078E</md5>
+        <md5>143BEC3B0E6D43E52B539F2CCD0B7A68</md5>
     </f>
     <f>
         <foN>AVID.HEX.1000.1\Schemas\standard</foN>
@@ -38,6 +38,6 @@
     <f>
         <foN>AVID.HEX.1000.1\Schemas\standard</foN>
         <fiN>tableIndex.xsd</fiN>
-        <md5>00D24ABCCBEEFF6C5BEBD59F605D436F</md5>
+        <md5>95F9F7F69FDAE49187D8367F16A25F0E</md5>
     </f>
 </fileIndex>
