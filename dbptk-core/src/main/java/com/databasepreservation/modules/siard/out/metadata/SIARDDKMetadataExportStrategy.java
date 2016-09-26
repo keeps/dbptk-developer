@@ -137,9 +137,9 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     writeSchemaFile(outputContainer, SIARDDKConstants.TABLE_INDEX, writeStrategy);
     writeSchemaFile(outputContainer, SIARDDKConstants.ARCHIVE_INDEX, writeStrategy);
     writeSchemaFile(outputContainer, SIARDDKConstants.CONTEXT_DOCUMENTATION_INDEX, writeStrategy);
-    writeSchemaFile(outputContainer, SIARDDKConstants.FILE_INDEX, writeStrategy);
+    writeSchemaFile(outputContainer, SIARDDKConstants.FILE_INDEX + "_original", writeStrategy);
     if (lobsTracker.getLOBsCount() > 0) {
-      writeSchemaFile(outputContainer, SIARDDKConstants.DOC_INDEX, writeStrategy);
+      writeSchemaFile(outputContainer, SIARDDKConstants.DOC_INDEX + "_original", writeStrategy);
     }
   }
 
@@ -149,6 +149,16 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     InputStream inputStream = this.getClass().getResourceAsStream(metadataPathStrategy.getXsdResourcePath(indexFile));
 
     String path = metadataPathStrategy.getXsdFilePath(indexFile);
+    if (indexFile.contains("original")) {
+      Path fullPath = Paths.get(path);
+      Path pathToFolder = Paths.get(path).getParent();
+      Path pathToFile = fullPath.getFileName();
+
+      String fileName = pathToFile.toString().split("_")[0] + ".xsd";
+      fullPath = pathToFolder.resolve(fileName);
+      path = fullPath.toString();
+      System.out.println(path);
+    }
 
     OutputStream outputStream = fileIndexFileStrategy.getWriter(container, path, writeStrategy);
 
