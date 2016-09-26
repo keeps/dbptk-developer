@@ -27,6 +27,8 @@ public class SIARDDKsql99ToXsdType {
       return "xs:time";
     } else if ("TIMESTAMP".equals(sql99Type) || "TIMESTAMP WITH TIME ZONE".equals(sql99Type)) {
       return "xs:dateTime";
+    } else if ("BIT VARYING".equals(sql99Type)) {
+      return "xs:hexBinary";
     }
 
     return null;

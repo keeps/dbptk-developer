@@ -7,6 +7,11 @@ import org.testng.annotations.Test;
 
 import com.databasepreservation.modules.siard.out.content.SIARDDKsql99ToXsdType;
 
+/**
+ * @author Andreas Kring <andreas@magenta.dk>
+ *
+ */
+@Test(groups = {"siarddk"})
 public class TestSIARDDKsql99ToXsdType {
 
   @Test
@@ -14,7 +19,7 @@ public class TestSIARDDKsql99ToXsdType {
     assertEquals("xs:decimal", SIARDDKsql99ToXsdType.convert("NUMERIC("));
   }
 
-  @Test
+  @Test(enabled = false)
   public void shouldReturnHexBinaryWhenSqlIsBit() {
     assertEquals("xs:hexBinary", SIARDDKsql99ToXsdType.convert("BIT"));
   }
