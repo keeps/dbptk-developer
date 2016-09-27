@@ -99,6 +99,7 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
         JAXBElement<FileIndexType> jaxbElement = (JAXBElement<FileIndexType>) unmarshaller.unmarshal(reader);
         xmlFileIndex = jaxbElement.getValue();
       } catch (JAXBException e) {
+        e.printStackTrace();
         throw new ModuleException("Error while Unmarshalling JAXB", e);
       } finally {
         try {
