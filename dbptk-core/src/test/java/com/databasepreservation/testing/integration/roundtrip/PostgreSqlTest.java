@@ -128,6 +128,8 @@ public class PostgreSqlTest {
     String singleTypeAndValue = "CREATE TABLE datatypes (col1 %s);\nINSERT INTO datatypes(col1) VALUES(%s);";
     ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
+    tests.add(new String[] {singleTypeAndValue, "BIT VARYING(5)", "B'101'"});
+    tests.add(new String[] {singleTypeAndValue, "BIT(5)", "B'01010'"});
     tests.add(new String[] {singleTypeAndValue, "\"char\" NOT NULL", "'a'"});
     tests.add(new String[] {singleTypeAndValue, "bigint", "123"});
     tests.add(new String[] {singleTypeAndValue, "boolean", "TRUE"});

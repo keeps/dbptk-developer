@@ -24,6 +24,8 @@ import com.databasepreservation.model.structure.type.UnsupportedDataType;
 /**
  * Convert sql99 types into XML or XSD types
  *
+ * This also supports some non-sql99 types to improve compatibility
+ *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class Sql99toXSDType {
@@ -39,6 +41,8 @@ public class Sql99toXSDType {
 
     // direct mapping
     sql99toXSDconstant.put("BINARY LARGE OBJECT", "blobType");
+    sql99toXSDconstant.put("BINARY VARYING", "blobType");
+    sql99toXSDconstant.put("BINARY", "blobType");
     sql99toXSDconstant.put("BIT VARYING", "xs:hexBinary");
     sql99toXSDconstant.put("BIT", "xs:hexBinary");
     sql99toXSDconstant.put("BLOB", "blobType");
@@ -67,6 +71,8 @@ public class Sql99toXSDType {
     // mapping using regex
     sql99toXSDregex.put("^BIT VARYING\\(\\d+\\)$", "xs:hexBinary");
     sql99toXSDregex.put("^BIT\\(\\d+\\)$", "xs:hexBinary");
+    sql99toXSDregex.put("^BINARY\\(\\d+\\)$", "blobType");
+    sql99toXSDregex.put("^BINARY VARYING\\(\\d+\\)$", "blobType");
     sql99toXSDregex.put("^CHARACTER VARYING\\(\\d+\\)$", "xs:string");
     sql99toXSDregex.put("^CHARACTER\\(\\d+\\)$", "xs:string");
     sql99toXSDregex.put("^DECIMAL\\(\\d+(,\\d+)?\\)$", "xs:decimal");
