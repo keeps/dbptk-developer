@@ -396,7 +396,8 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     PgResultSet rawData = (PgResultSet) genericRawData;
     Cell cell;
     InputStream binaryStream;
-    if ("bit".equalsIgnoreCase(cellType.getOriginalTypeName())) {
+    if ("bit".equalsIgnoreCase(cellType.getOriginalTypeName())
+      || "varbit".equalsIgnoreCase(cellType.getOriginalTypeName())) {
       String bitString = rawData.getString(columnName);
       String hexString = new BigInteger(bitString, 2).toString(16);
       if ((hexString.length() % 2) != 0) {
