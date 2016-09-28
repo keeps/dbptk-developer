@@ -52,6 +52,8 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
   protected final Map<String, String> folderNameLookupByTableId = new HashMap<String, String>();
   protected final Map<String, Path> archiveFolderLookupByFolderName = new HashMap<String, Path>();
 
+  private FileIndexXsdInputStreamStrategy fileIndexXsdInputStreamStrategy;
+
   protected final Pattern folderSperatorPattern = Pattern.compile("[\\\\\\/]");
   // protected byte[] fileIndexExpectedMD5Sum; --For some reason, no md5sum is
   // required for fileIndex.xml in the standard
@@ -59,12 +61,14 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
   protected boolean fileIndexIsParsed;
 
   public SIARDDKPathImportStrategy(SIARDArchiveContainer mainFolder, ReadStrategy readStrategy,
-    MetadataPathStrategy metadataPathStrategy, String importAsSchema) {
+    MetadataPathStrategy metadataPathStrategy, String importAsSchema,
+    FileIndexXsdInputStreamStrategy fileIndexXsdInputStreamStrategy) {
     super();
     this.mainFolder = mainFolder;
     this.readStrategy = readStrategy;
     this.metadataPathStrategy = metadataPathStrategy;
     this.importAsSchema = importAsSchema;
+    this.fileIndexXsdInputStreamStrategy = fileIndexXsdInputStreamStrategy;
   }
 
   public void parseFileIndexMetadata() throws ModuleException {
@@ -79,8 +83,7 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
 
       SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
       Schema xsdSchema = null;
-      InputStream xsdStream = readStrategy.createInputStream(mainFolder,
-        metadataPathStrategy.getXsdFilePath(SIARDDKConstants.FILE_INDEX));
+      InputStream xsdStream = fileIndexXsdInputStreamStrategy.getInputStream(this);
       try {
         xsdSchema = schemaFactory.newSchema(new StreamSource(xsdStream));
       } catch (SAXException e) {
@@ -99,6 +102,9 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
         JAXBElement<FileIndexType> jaxbElement = (JAXBElement<FileIndexType>) unmarshaller.unmarshal(reader);
         xmlFileIndex = jaxbElement.getValue();
       } catch (JAXBException e) {
+        // System.out.println(mainFolder.getPath() + " "
+        // + metadataPathStrategy.getXsdFilePath(SIARDDKConstants.FILE_INDEX));
+        e.printStackTrace();
         throw new ModuleException("Error while Unmarshalling JAXB", e);
       } finally {
         try {
@@ -286,4 +292,17 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
     return tabelIndexExpectedMD5Sum;
   }
 
+  /**
+   * @return the readStrategy
+   */
+  public ReadStrategy getReadStrategy() {
+    return readStrategy;
+  }
+
+  /**
+   * @return the mainFolder
+   */
+  public SIARDArchiveContainer getMainFolder() {
+    return mainFolder;
+  }
 }

@@ -157,7 +157,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
       String fileName = pathToFile.toString().split("_")[0] + ".xsd";
       fullPath = pathToFolder.resolve(fileName);
       path = fullPath.toString();
-      System.out.println(path);
+      // System.out.println(path);
     }
 
     OutputStream outputStream = fileIndexFileStrategy.getWriter(container, path, writeStrategy);
