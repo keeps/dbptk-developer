@@ -115,7 +115,10 @@ public class PostgreSQLJDBCDatatypeImporter extends JDBCDatatypeImporter {
   protected Type getOtherType(int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
     throws UnknownTypeException {
     if ("varbit".equals(typeName)) {
-      return getBitType(typeName, columnSize, decimalDigits, numPrecRadix);
+      Type type = new SimpleTypeBinary(columnSize);
+      type.setSql99TypeName("BIT VARYING", 8 * columnSize);
+      type.setSql2008TypeName("BIT VARYING");
+      return type;
     } else {
       return super.getOtherType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
     }
