@@ -374,7 +374,7 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
 
       result.setName(parameterType.getName());
       result.setMode(parameterType.getMode());
-      result.setType(SQLStandardDatatypeFactory.getSQL99StandardDatatypeImporter().getCheckedType(
+      result.setType(SQLStandardDatatypeFactory.getSQL2008StandardDatatypeImporter().getCheckedType(
         metadataCurrentDatabaseName, metadataCurrentSchemaName, metadataCurrentTableName + " (routine)",
         parameterType.getName() + " (parameter)", parameterType.getType(), parameterType.getTypeOriginal()));
       result.setDescription(parameterType.getDescription());
@@ -640,7 +640,7 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
 
       contentPathStrategy.associateColumnWithFolder(result.getId(), column.getFolder());
 
-      result.setType(SQLStandardDatatypeFactory.getSQL99StandardDatatypeImporter().getCheckedType(
+      result.setType(SQLStandardDatatypeFactory.getSQL2008StandardDatatypeImporter().getCheckedType(
         metadataCurrentDatabaseName, metadataCurrentSchemaName, metadataCurrentTableName, column.getName(),
         column.getType(), column.getTypeOriginal()));
 
