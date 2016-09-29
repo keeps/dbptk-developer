@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -41,6 +42,7 @@ import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.modules.siard.SIARDHelper;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
+import com.databasepreservation.modules.siard.out.content.Sql99toXSDType;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.JodaUtils;
@@ -577,7 +579,18 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
       columnType.setDescription(column.getDescription());
     }
 
-    columnType.setFolder(contentPathStrategy.getColumnFolderName(columnIndex));
+    // specific fields for lobs
+    String xsdTypeFromColumnSql99Type = null;
+    try {
+      xsdTypeFromColumnSql99Type = Sql99toXSDType.convert(column.getType());
+    } catch (UnknownTypeException e) {
+      throw new ModuleException("Could not get SQL2008 type", e);
+    }
+
+    if (xsdTypeFromColumnSql99Type != null
+      && ("clobType".equals(xsdTypeFromColumnSql99Type) || "blobType".equals(xsdTypeFromColumnSql99Type))) {
+      columnType.setFolder(contentPathStrategy.getColumnFolderName(columnIndex));
+    }
 
     return columnType;
   }
