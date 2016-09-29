@@ -24,6 +24,8 @@ import com.databasepreservation.model.structure.type.UnsupportedDataType;
 /**
  * Convert sql2008 types into XML or XSD types
  *
+ * This also supports some non-sql2008 types to improve compatibility
+ *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class Sql2008toXSDType {
@@ -39,6 +41,8 @@ public class Sql2008toXSDType {
 
     // direct mapping
     sql2008toXSDconstant.put("BINARY LARGE OBJECT", "blobType");
+    sql2008toXSDconstant.put("BINARY VARYING", "blobType");
+    sql2008toXSDconstant.put("BINARY", "blobType");
     sql2008toXSDconstant.put("BIT VARYING", "blobType");
     sql2008toXSDconstant.put("BIT", "blobType");
     sql2008toXSDconstant.put("BLOB", "blobType");
@@ -67,6 +71,8 @@ public class Sql2008toXSDType {
     // mapping using regex
     sql2008toXSDregex.put("^BIT VARYING\\(\\d+\\)$", "blobType");
     sql2008toXSDregex.put("^BIT\\(\\d+\\)$", "blobType");
+    sql2008toXSDregex.put("^BINARY\\(\\d+\\)$", "blobType");
+    sql2008toXSDregex.put("^BINARY VARYING\\(\\d+\\)$", "blobType");
     sql2008toXSDregex.put("^CHARACTER VARYING\\(\\d+\\)$", "xs:string");
     sql2008toXSDregex.put("^CHARACTER\\(\\d+\\)$", "xs:string");
     sql2008toXSDregex.put("^NATIONAL CHARACTER VARYING\\(\\d+\\)$", "xs:string");

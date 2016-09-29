@@ -1,3 +1,5 @@
+// TODO: this class needs some cleaning up 
+
 package com.databasepreservation.modules.siard.out.content;
 
 import java.io.BufferedInputStream;
@@ -9,6 +11,7 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.Tika;
 import org.jdom2.Document;
@@ -263,11 +266,23 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
           // LOBsTracker
 
           if (!(cell instanceof NullCell)) {
-            SimpleCell simpleCell = (SimpleCell) cell;
-            // System.out.println("SimpleData = " + simpleCell.getSimpleData());
-            tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-              .append(encodeText(simpleCell.getSimpleData())).append("</c").append(String.valueOf(columnIndex))
-              .append(">\n");
+            if (cell instanceof SimpleCell) {
+              SimpleCell simpleCell = (SimpleCell) cell;
+              // System.out.println("SimpleData = " +
+              // simpleCell.getSimpleData());
+              tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
+                .append(encodeText(simpleCell.getSimpleData())).append("</c").append(String.valueOf(columnIndex))
+                .append(">\n");
+            } else if (cell instanceof BinaryCell) {
+              BinaryCell binaryCell = (BinaryCell) cell;
+              InputStream in = binaryCell.createInputStream();
+
+              tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
+                .append(Hex.encodeHexString(IOUtils.toByteArray(in))).append("</c").append(String.valueOf(columnIndex))
+                .append(">\n");
+              in.close();
+              binaryCell.cleanResources();
+            }
           } else {
             tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
               .append(" xsi:nil=\"true\"/>").append("\n");

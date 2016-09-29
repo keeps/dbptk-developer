@@ -110,4 +110,17 @@ public class PostgreSQLJDBCDatatypeImporter extends JDBCDatatypeImporter {
     type.setSql2008TypeName("CHARACTER LARGE OBJECT");
     return type;
   }
+
+  @Override
+  protected Type getOtherType(int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException {
+    if ("varbit".equals(typeName)) {
+      Type type = new SimpleTypeBinary(columnSize);
+      type.setSql99TypeName("BIT VARYING", 8 * columnSize);
+      type.setSql2008TypeName("BIT VARYING");
+      return type;
+    } else {
+      return super.getOtherType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
+    }
+  }
 }
