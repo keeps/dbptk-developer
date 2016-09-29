@@ -80,4 +80,8 @@ public class SIARD1ContentPathExportStrategy implements ContentPathExportStrateg
       .append(XSD_EXTENSION).toString();
   }
 
+  @Override
+  public String getColumnFolderName(int columnIndex) {
+    return new StringBuilder().append(LOB_DIR).append(columnIndex).toString();
+  }
 }

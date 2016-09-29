@@ -48,6 +48,14 @@ public interface ContentPathExportStrategy {
   public String getSchemaFolderName(int schemaIndex);
 
   /**
+   * Returns the name of the table column folder
+   *
+   * @param columnIndex
+   *          table column index (begins at 1)
+   */
+  public String getColumnFolderName(int columnIndex);
+
+  /**
    * Returns the name of a table's folder
    *
    * @param tableIndex

@@ -24,6 +24,7 @@ public class SIARD2ContentPathExportStrategy implements ContentPathExportStrateg
   protected static final String RESOURCE_FILE_SEPARATOR = "/";
   protected static final String FILE_EXTENSION_SEPARATOR = ".";
 
+  @Override
   public String getColumnFolderName(int columnIndex) {
     return new StringBuilder().append(LOB_DIR).append(columnIndex).toString();
   }

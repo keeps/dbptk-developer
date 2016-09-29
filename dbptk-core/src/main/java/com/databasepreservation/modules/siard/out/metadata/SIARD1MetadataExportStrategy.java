@@ -526,8 +526,10 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
   private ColumnsType jaxbColumnsType(List<ColumnStructure> columns) throws ModuleException {
     if (columns != null && !columns.isEmpty()) {
       ColumnsType columnsType = new ColumnsType();
-      for (ColumnStructure columnStructure : columns) {
-        columnsType.getColumn().add(jaxbColumnType(columnStructure));
+      for (int index = 0; index < columns.size(); index++) {
+        ColumnStructure columnStructure = columns.get(index); // 0-based index
+        columnsType.getColumn().add(jaxbColumnType(columnStructure, index + 1)); // 1-based
+        // index
       }
       return columnsType;
     } else {
@@ -535,7 +537,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     }
   }
 
-  private ColumnType jaxbColumnType(ColumnStructure column) throws ModuleException {
+  private ColumnType jaxbColumnType(ColumnStructure column, int columnIndex) throws ModuleException {
     ColumnType columnType = new ColumnType();
 
     if (StringUtils.isNotBlank(column.getName())) {
@@ -575,7 +577,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
       columnType.setDescription(column.getDescription());
     }
 
-    // TODO: write folder element
+    columnType.setFolder(contentPathStrategy.getColumnFolderName(columnIndex));
 
     return columnType;
   }
