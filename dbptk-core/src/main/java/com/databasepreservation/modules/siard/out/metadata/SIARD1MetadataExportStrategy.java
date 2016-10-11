@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -41,6 +42,7 @@ import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.modules.siard.SIARDHelper;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
+import com.databasepreservation.modules.siard.out.content.Sql99toXSDType;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.JodaUtils;
@@ -526,8 +528,10 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
   private ColumnsType jaxbColumnsType(List<ColumnStructure> columns) throws ModuleException {
     if (columns != null && !columns.isEmpty()) {
       ColumnsType columnsType = new ColumnsType();
-      for (ColumnStructure columnStructure : columns) {
-        columnsType.getColumn().add(jaxbColumnType(columnStructure));
+      for (int index = 0; index < columns.size(); index++) {
+        ColumnStructure columnStructure = columns.get(index); // 0-based index
+        columnsType.getColumn().add(jaxbColumnType(columnStructure, index + 1)); // 1-based
+        // index
       }
       return columnsType;
     } else {
@@ -535,7 +539,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     }
   }
 
-  private ColumnType jaxbColumnType(ColumnStructure column) throws ModuleException {
+  private ColumnType jaxbColumnType(ColumnStructure column, int columnIndex) throws ModuleException {
     ColumnType columnType = new ColumnType();
 
     if (StringUtils.isNotBlank(column.getName())) {
@@ -575,7 +579,18 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
       columnType.setDescription(column.getDescription());
     }
 
-    // TODO: write folder element
+    // specific fields for lobs
+    String xsdTypeFromColumnSql99Type = null;
+    try {
+      xsdTypeFromColumnSql99Type = Sql99toXSDType.convert(column.getType());
+    } catch (UnknownTypeException e) {
+      throw new ModuleException("Could not get SQL2008 type", e);
+    }
+
+    if (xsdTypeFromColumnSql99Type != null
+      && ("clobType".equals(xsdTypeFromColumnSql99Type) || "blobType".equals(xsdTypeFromColumnSql99Type))) {
+      columnType.setFolder(contentPathStrategy.getColumnFolderName(columnIndex));
+    }
 
     return columnType;
   }
