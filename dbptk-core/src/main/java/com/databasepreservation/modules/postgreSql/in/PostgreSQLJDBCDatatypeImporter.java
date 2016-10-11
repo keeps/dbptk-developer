@@ -117,7 +117,7 @@ public class PostgreSQLJDBCDatatypeImporter extends JDBCDatatypeImporter {
     if ("varbit".equals(typeName)) {
       Type type = new SimpleTypeBinary(columnSize);
       type.setSql99TypeName("BIT VARYING", 8 * columnSize);
-      type.setSql2008TypeName("BIT VARYING");
+      type.setSql2008TypeName("BINARY VARYING", 8 * columnSize);
       return type;
     } else {
       return super.getOtherType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
