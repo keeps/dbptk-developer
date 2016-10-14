@@ -122,7 +122,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
           currentTable = table;
           boolean tableHandled = false;
           LOGGER.info("Obtaining contents from table '" + currentTable.getId() + "'");
-          this.rowIndex = 0;
+          this.rowIndex = 1;
           try {
             databaseExportModule.handleDataOpenTable(currentTable.getId());
             tableHandled = true;

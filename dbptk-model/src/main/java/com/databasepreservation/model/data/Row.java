@@ -27,7 +27,8 @@ public class Row {
    * TableStructure data row constructor
    *
    * @param index
-   *          the sequence number of the row in the table
+   *          the sequence number of the row in the table, the first row should
+   *          have index 1
    * @param cells
    *          the list of cell within this row
    */
@@ -37,7 +38,8 @@ public class Row {
   }
 
   /**
-   * @return the sequence number of the row in the table
+   * @return the sequence number of the row in the table, the first row will
+   *         have index 1
    */
   public long getIndex() {
     return index;
@@ -45,7 +47,8 @@ public class Row {
 
   /**
    * @param index
-   *          the sequence number of the row in the table
+   *          the sequence number of the row in the table, the first row should
+   *          have index 1
    */
   public void setIndex(long index) {
     this.index = index;

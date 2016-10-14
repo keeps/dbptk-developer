@@ -72,7 +72,7 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
   protected boolean isInNullValueCell;
   protected Row currentRow;
   protected Cell[] currentRowCells;
-  protected int rowIndex = 0;
+  protected int rowIndex = 1;
   private static final String SIARDDK_NIL_LOCAL_ATTR_NAME = "nil";
   protected TypeInfoProvider typeInfoProvider;
   protected TypeInfo xsdCellType;
