@@ -72,6 +72,10 @@ public class Main {
     logProgramStart();
     cli.logOperatingSystemInfo();
 
+    // avoid SAX processing limit of 50 million elements
+    System.setProperty("totalEntitySizeLimit", "0");
+    System.setProperty("jdk.xml.totalEntitySizeLimit", "0");
+
     int exitStatus = EXIT_CODE_GENERIC_ERROR;
     if (cli.usingUTF8()) {
       if (cli.shouldPrintHelp()) {
