@@ -69,8 +69,13 @@ public class SQL99StandardDatatypeImporter extends SQLStandardDatatypeImporter {
 
       case "BINARY VARYING":
       case "VARBINARY":
+      //case "BIT VARYING":
         type = getVarbinaryType(typeNameWithoutParameters, columnSize, decimalDigits, numPrecRadix);
         break;
+
+//      case "BIT":
+//        type = getBinaryType(typeNameWithoutParameters, columnSize, decimalDigits, numPrecRadix);
+//        break;
 
       case "BINARY LARGE OBJECT":
       case "BLOB":
