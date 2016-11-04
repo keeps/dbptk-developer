@@ -50,6 +50,12 @@ The toolkit is created as a platform that uses input and output modules. Each mo
 
 A new version of the this tool, together with a [new version of the SIARD preservation format](http://www.eark-project.com/resources/specificationdocs/32-specification-for-siard-format-v20), is currently being designed and developed on the [EARK project](http://www.eark-project.com/). Meanwhile, if you'd like to know more and even send us use cases and requirements, [contact us](http://www.eark-project.com/contacts).
 
+# Database Visualization Toolkit
+
+The Database Visualization Toolkit is a lightweight web viewer for relational databases, specially if preserved in SIARD 2, that uses SOLR as a backend, and allows browsing, search, and export. It uses the Database Preservation Toolkit to process new relational databases that are in the SIARD2 format or on the original live DBMS.
+
+For more information please visit https://github.com/keeps/db-visualization-toolkit
+
 ## How to use
 
 To use the program, open a command-line and try out the following command (replace x.y.z accordingly to the version of the binary in use):
