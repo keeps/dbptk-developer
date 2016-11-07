@@ -131,6 +131,14 @@ public class SiardTest {
       LOGGER.debug("toString() are equal!");
     }
 
+    if(other!=null){
+      for (SchemaStructure schemaStructure : other.getSchemas()) {
+        for (TableStructure tableStructure : schemaStructure.getTables()) {
+          
+        }
+      }
+    }
+
     assert original.equals(other) : "The final structure (from SIARD) differs from the original structure";
   }
 

@@ -5,7 +5,9 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,13 +68,19 @@ public class PathInputStreamProvider implements InputStreamProvider {
       }
     }
 
+    StringBuilder stackTraceBuilder = new StringBuilder();
+    for (StackTraceElement stackTraceElement : Thread.currentThread().getStackTrace()) {
+      stackTraceBuilder.append(stackTraceElement.toString()).append(System.lineSeparator());
+    }
+    final String stackTrace = stackTraceBuilder.toString();
+
     removeTemporaryFileHook = new Thread() {
       @Override
       public void run() {
         PathInputStreamProvider.this.removeTemporaryFileHook = null;
         PathInputStreamProvider.this.cleanResources();
         throw new IllegalStateException("A PathInputStreamProvider was cleaned by a shutdown hook. Path: "
-          + PathInputStreamProvider.this.path.toAbsolutePath().toString());
+          + PathInputStreamProvider.this.path.toAbsolutePath().toString() + ". Source: " + stackTrace);
       }
     };
 
