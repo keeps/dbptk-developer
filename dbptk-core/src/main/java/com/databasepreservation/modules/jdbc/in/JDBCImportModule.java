@@ -834,8 +834,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       pkColumns.add(rs.getString(4));
     }
 
-    // avoid using "PRIMARY" as the primary key name for all keys
-    if (pkName == null || "primary".equalsIgnoreCase(pkName)) {
+    if (pkName == null) {
       pkName = tableName + "_pkey";
     }
 
