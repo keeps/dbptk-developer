@@ -112,7 +112,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     WriteStrategy writeStrategy) throws ModuleException {
     JAXBContext context;
     try {
-      context = JAXBContext.newInstance(SiardArchive.class.getPackage().getName());
+      context = JAXBContext.newInstance(SiardArchive.class.getPackage().getName(), SiardArchive.class.getClassLoader());
     } catch (JAXBException e) {
       throw new ModuleException("Error loading JAXBContext", e);
     }
