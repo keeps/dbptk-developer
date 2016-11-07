@@ -834,14 +834,15 @@ public class JDBCImportModule implements DatabaseImportModule {
       pkColumns.add(rs.getString(4));
     }
 
-    if (pkName == null) {
+    // avoid using "PRIMARY" as the primary key name for all keys
+    if (pkName == null || "primary".equalsIgnoreCase(pkName)) {
       pkName = tableName + "_pkey";
     }
 
     PrimaryKey pk = new PrimaryKey();
     pk.setName(pkName);
     pk.setColumnNames(pkColumns);
-    return !pkColumns.isEmpty() ? pk : null;
+    return pkColumns.isEmpty() ? null : pk;
   }
 
   /**

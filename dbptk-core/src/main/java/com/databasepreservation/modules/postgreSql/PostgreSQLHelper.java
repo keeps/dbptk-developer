@@ -70,7 +70,7 @@ public class PostgreSQLHelper extends SQLHelper {
   protected String createTypeSQL(Type type, boolean isPkey, boolean isFkey) throws UnknownTypeException {
     String ret;
 
-    LOGGER.debug("Checking PSQL type " + type.getOriginalTypeName());
+    //LOGGER.debug("Checking PSQL type " + type.getOriginalTypeName());
     if (POSTGRESQL_TYPES.contains(type.getOriginalTypeName())) {
       // TODO verify if original database is also postgresql
       ret = type.getOriginalTypeName();
