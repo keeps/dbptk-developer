@@ -90,12 +90,12 @@ The Database Preservation Toolkit is also capable of loading preserved databases
 
 ### Examples
 
-If you want to connect to a live MySQL database and export its content to SIARD 1.0 format, you can use the following command.
+If you want to connect to a live MySQL database and export its content to SIARD 2.0 format, you can use the following command.
 
 ```text
 $ java -jar dbptk-app-x.y.z.jar \
 --import mysql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \
---export siard-1 --export-file=example.siard
+--export siard-2 --export-file=example.siard
 ```
 
 Or using the equivalent short version of the parameters:
@@ -103,7 +103,7 @@ Or using the equivalent short version of the parameters:
 ```text
 $ java -jar dbptk-app-x.y.z.jar \
 -i mysql -ih localhost -idb "example_db" -iu username -ip "p4ssw0rd" \
--e siard-1 -ef example.siard
+-e siard-2 -ef example.siard
 ```
 
 More examples containing only required parameters:
