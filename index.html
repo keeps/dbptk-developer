@@ -123,18 +123,18 @@ This information is also available in the <a href="https://github.com/keeps/db-p
 <h3>
 <a id="examples" class="anchor" href="#examples" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Examples</h3>
 
-<p>If you want to connect to a live MySQL database and export its content to SIARD 1.0 format, you can use the following command.</p>
+<p>If you want to connect to a live MySQL database and export its content to SIARD 2.0 format, you can use the following command.</p>
 
 <pre lang="text"><code>$ java -jar dbptk-app-x.y.z.jar \
 --import mysql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \
---export siard-1 --export-file=example.siard
+--export siard-2 --export-file=example.siard
 </code></pre>
 
 <p>Or using the equivalent short version of the parameters:</p>
 
 <pre lang="text"><code>$ java -jar dbptk-app-x.y.z.jar \
 -i mysql -ih localhost -idb "example_db" -iu username -ip "p4ssw0rd" \
--e siard-1 -ef example.siard
+-e siard-2 -ef example.siard
 </code></pre>
 
 <p>More examples containing only required parameters:</p>
