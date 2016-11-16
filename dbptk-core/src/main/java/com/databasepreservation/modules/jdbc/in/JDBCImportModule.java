@@ -475,9 +475,9 @@ public class JDBCImportModule implements DatabaseImportModule {
         routine.setDescription(rset.getString(7));
       } else {
         if (rset.getShort(8) == 1) {
-          routine.setDescription("Procedure does not " + "return a result");
+          routine.setDescription("Routine does not " + "return a result");
         } else if (rset.getShort(8) == 2) {
-          routine.setDescription("Procedure returns a result");
+          routine.setDescription("Routine returns a result");
         }
       }
       routines.add(routine);
@@ -841,7 +841,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     PrimaryKey pk = new PrimaryKey();
     pk.setName(pkName);
     pk.setColumnNames(pkColumns);
-    return !pkColumns.isEmpty() ? pk : null;
+    return pkColumns.isEmpty() ? null : pk;
   }
 
   /**

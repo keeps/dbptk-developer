@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,6 +91,8 @@ public class JDBCExportModule implements DatabaseExportModule {
   protected boolean currentIsIgnoredSchema;
 
   private final List<String> batchSQL = new ArrayList<>();
+
+  private Set<String> exportedPrimaryKeys = new HashSet<>();
 
   private List<CleanResourcesInterface> cleanResourcesList = new ArrayList<>();
 
@@ -368,10 +371,22 @@ public class JDBCExportModule implements DatabaseExportModule {
       LOGGER.debug("Adding to batch creation of table " + table.getName());
       LOGGER.debug("SQL: " + sqlHelper.createTableSQL(table));
       statementAddBatch(sqlHelper.createTableSQL(table));
-      String pkeySQL = sqlHelper.createPrimaryKeySQL(table.getId(), table.getPrimaryKey());
-      if (pkeySQL != null) {
-        LOGGER.debug("SQL: " + pkeySQL);
-        statementAddBatch(pkeySQL);
+
+      if (table.getPrimaryKey() != null) {
+        // avoid primary key name conflicts
+        String pkeyName = table.getPrimaryKey().getName();
+        if (StringUtils.isBlank(pkeyName) || exportedPrimaryKeys.contains(pkeyName)) {
+          pkeyName = "pkey_" + exportedPrimaryKeys.size();
+        }
+        exportedPrimaryKeys.add(pkeyName);
+        table.getPrimaryKey().setName(pkeyName);
+
+        // create the primary key
+        String pkeySQL = sqlHelper.createPrimaryKeySQL(table.getId(), table.getPrimaryKey());
+        if (pkeySQL != null) {
+          LOGGER.debug("SQL: " + pkeySQL);
+          statementAddBatch(pkeySQL);
+        }
       }
     }
   }

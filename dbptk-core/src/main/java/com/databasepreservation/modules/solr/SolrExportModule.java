@@ -27,14 +27,22 @@ public class SolrExportModule implements DatabaseExportModule {
 
   private ViewerTable currentTable;
 
+  private String preSetDatabaseUUID;
+
   private long rowIndex = 0;
 
   private final String zookeeperHostAndPort;
 
   public SolrExportModule(String hostname, Integer port, String endpoint, String zookeeperHost, Integer zookeeperPort) {
+    this(hostname, port, endpoint, zookeeperHost, zookeeperPort, null);
+  }
+
+  public SolrExportModule(String hostname, Integer port, String endpoint, String zookeeperHost, Integer zookeeperPort,
+    String databaseUUID) {
     zookeeperHostAndPort = zookeeperHost + ":" + zookeeperPort;
     String url = "http://" + hostname + ":" + port + "/" + endpoint;
     solrManager = new SolrManager(url);
+    preSetDatabaseUUID = databaseUUID;
   }
 
   /**

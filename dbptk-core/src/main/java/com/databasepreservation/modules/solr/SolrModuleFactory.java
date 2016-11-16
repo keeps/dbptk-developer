@@ -39,6 +39,9 @@ public class SolrModuleFactory implements DatabaseModuleFactory {
     .description("Zookeeper server port").required(false).hasArgument(true).setOptionalArgument(false)
     .valueIfNotSet("9983");
 
+  private static final Parameter databaseUUID = new Parameter().longName("database-id").shortName("dbid")
+    .description("Database UUID to use in Solr").required(false).hasArgument(true).setOptionalArgument(false);
+
   @Override
   public boolean producesImportModules() {
     return false;
@@ -88,6 +91,8 @@ public class SolrModuleFactory implements DatabaseModuleFactory {
       pHostname = hostname.valueIfNotSet();
     }
 
+    String pDatabaseUUID = parameters.get(databaseUUID);
+
     Integer pPortNumber = null;
     if (StringUtils.isNotBlank(parameters.get(port))) {
       pPortNumber = Integer.parseInt(parameters.get(port));
@@ -115,6 +120,11 @@ public class SolrModuleFactory implements DatabaseModuleFactory {
     Reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "port", pPortNumber.toString(), "endpoint",
       pEndpoint, "zookeeper-hostname", pZookeperHostname, "zookeeper-port", pZookeeperPortNumber.toString());
 
-    return new SolrExportModule(pHostname, pPortNumber, pEndpoint, pZookeperHostname, pZookeeperPortNumber);
+    if (StringUtils.isBlank(pDatabaseUUID)) {
+      return new SolrExportModule(pHostname, pPortNumber, pEndpoint, pZookeperHostname, pZookeeperPortNumber);
+    } else {
+      return new SolrExportModule(pHostname, pPortNumber, pEndpoint, pZookeperHostname, pZookeeperPortNumber,
+        pDatabaseUUID);
+    }
   }
 }

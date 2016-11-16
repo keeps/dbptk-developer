@@ -9,6 +9,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.databasepreservation.model.structure.RoutineStructure;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -231,5 +232,57 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   protected List<CheckConstraint> getCheckConstraints(String schemaName, String tableName) {
     Reporter.notYetSupported("check constraints", "MySQL");
     return new ArrayList<CheckConstraint>();
+  }
+
+  /**
+   * @param schemaName
+   * @return
+   * @throws SQLException
+   */
+  protected List<RoutineStructure> getRoutines(String schemaName) throws SQLException {
+    // TODO add optional fields to routine (use getProcedureColumns)
+    List<RoutineStructure> routines = new ArrayList<RoutineStructure>();
+
+    ResultSet rset = getMetadata().getProcedures(dbStructure.getName(), schemaName, "%");
+    while (rset.next()) {
+      String routineName = rset.getString(3);
+      RoutineStructure routine = new RoutineStructure();
+      routine.setName(routineName);
+      if (rset.getString(7) != null) {
+        routine.setDescription(rset.getString(7));
+      } else {
+        if (rset.getShort(8) == 1) {
+          routine.setDescription("Routine does not " + "return a result");
+        } else if (rset.getShort(8) == 2) {
+          routine.setDescription("Routine returns a result");
+        }
+      }
+
+      try {
+        ResultSet rsetCode = getStatement().executeQuery("SHOW CREATE PROCEDURE " + sqlHelper.escapeTableName(routineName));
+        if (rsetCode.next()) {
+          routine.setBody(rsetCode.getString("Create Procedure"));
+        }
+      }catch(SQLException e){
+        try {
+          ResultSet rsetCode = getStatement().executeQuery("SHOW CREATE FUNCTION " + sqlHelper.escapeTableName(routineName));
+          if (rsetCode.next()) {
+            routine.setBody(rsetCode.getString("Create Function"));
+          }
+        }catch(SQLException e1){
+          LOGGER.debug("Could not retrieve routine code (as routine).", e);
+          if(e.getNextException() != e){
+            LOGGER.debug("nextException:", e);
+          }
+          LOGGER.debug("Could not retrieve routine code (as function).", e1);
+          if(e1.getNextException() != e1){
+            LOGGER.debug("nextException:", e1);
+          }
+        }
+      }
+
+      routines.add(routine);
+    }
+    return routines;
   }
 }

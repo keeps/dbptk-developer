@@ -38,7 +38,7 @@ public class MySQLHelper extends SQLHelper {
   private String endQuote = "`";
 
   @Override
-  protected String escapeTableId(String tableId) throws ModuleException {
+  public String escapeTableId(String tableId) throws ModuleException {
     String[] parts = splitTableId(tableId);
     // String schema = parts[0];
     String table = parts[1];

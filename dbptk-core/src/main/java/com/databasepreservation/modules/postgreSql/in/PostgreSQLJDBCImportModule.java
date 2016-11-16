@@ -156,7 +156,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
         udtColumns.add(column);
       }
       columnNames.add(column.getName());
-      query.append(separator).append(column.getName());
+      query.append(separator).append(sqlHelper.escapeTableName(column.getName()));
       separator = ", ";
     }
 
@@ -166,7 +166,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
           columnNames));
     }
 
-    query.append(" FROM ").append(table.getId());
+    query.append(" FROM ").append(sqlHelper.escapeTableId(table.getId()));
 
     LOGGER.debug("query: " + query.toString());
 
