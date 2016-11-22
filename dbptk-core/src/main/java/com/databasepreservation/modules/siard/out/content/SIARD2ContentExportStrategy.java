@@ -214,6 +214,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     if (length <= 0) {
       NullCell nullCell = new NullCell(binaryCell.getId());
       writeNullCellData(nullCell, columnIndex);
+      binaryCell.cleanResources();
     } else if (Sql2008toXSDType.isLargeType(column.getType()) && length > THRESHOLD_TREAT_BINARY_AS_BLOB) {
       writeLargeObjectData(cell, columnIndex);
     } else {
@@ -221,11 +222,10 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       InputStream inputStream = binaryCell.createInputStream();
       byte[] bytes = IOUtils.toByteArray(inputStream);
       IOUtils.closeQuietly(inputStream);
+      binaryCell.cleanResources();
       SimpleCell simpleCell = new SimpleCell(binaryCell.getId(), Hex.encodeHexString(bytes));
       writeSimpleCellData(simpleCell, columnIndex);
     }
-
-    binaryCell.cleanResources();
   }
 
   protected void writeNullCellData(NullCell nullcell, int columnIndex) throws IOException {
