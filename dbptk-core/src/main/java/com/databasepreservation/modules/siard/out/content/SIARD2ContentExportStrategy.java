@@ -224,6 +224,8 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       SimpleCell simpleCell = new SimpleCell(binaryCell.getId(), Hex.encodeHexString(bytes));
       writeSimpleCellData(simpleCell, columnIndex);
     }
+
+    binaryCell.cleanResources();
   }
 
   protected void writeNullCellData(NullCell nullcell, int columnIndex) throws IOException {
