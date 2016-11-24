@@ -91,7 +91,7 @@ public class SolrExportModule implements DatabaseExportModule {
   @Override
   public void handleStructure(DatabaseStructure structure) throws ModuleException, UnknownTypeException {
     this.structure = structure;
-    this.viewerDatabase = ToolkitStructure2ViewerStructure.getDatabase(structure);
+    this.viewerDatabase = ToolkitStructure2ViewerStructure.getDatabase(structure, preSetDatabaseUUID);
     solrManager.addDatabase(viewerDatabase);
   }
 
