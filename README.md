@@ -54,7 +54,7 @@ A new version of the this tool, together with a [new version of the SIARD preser
 
 The Database Visualization Toolkit is a lightweight web viewer for relational databases, specially if preserved in SIARD 2, that uses SOLR as a backend, and allows browsing, search, and export. It uses the Database Preservation Toolkit to process new relational databases that are in the SIARD2 format or on the original live DBMS.
 
-For more information please visit https://github.com/keeps/db-visualization-toolkit
+For more information please visit http://visualization.database-preservation.com
 
 ## How to use
 
