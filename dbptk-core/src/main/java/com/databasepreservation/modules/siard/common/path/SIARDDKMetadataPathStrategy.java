@@ -57,7 +57,7 @@ public class SIARDDKMetadataPathStrategy implements MetadataPathStrategy {
     // Valid filenames
     String[] validFileNames = {SIARDDKConstants.TABLE_INDEX, SIARDDKConstants.ARCHIVE_INDEX,
       SIARDDKConstants.DOC_INDEX, SIARDDKConstants.CONTEXT_DOCUMENTATION_INDEX, SIARDDKConstants.FILE_INDEX,
-      SIARDDKConstants.DOCUMENT_IDENTIFICATION, SIARDDKConstants.XML_SCHEMA};
+      SIARDDKConstants.DOCUMENT_IDENTIFICATION, SIARDDKConstants.XML_SCHEMA, "fileIndex_original", "docIndex_original"};
 
     ArrayList<String> validFilenames = new ArrayList<String>(Arrays.asList(validFileNames));
     if (validFilenames.contains(filename)) {

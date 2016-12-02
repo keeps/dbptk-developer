@@ -38,6 +38,12 @@ public class SIARDDKTestUtil {
       + archiveFldToProcessPath.toString() + "] followed by export to siard-dk archive [" + archiveFldTmp.toString()
       + "] to succeed.";
 
+    // Hack: remove the empty (but mandatory) folder "localShared" from the
+    // Schemas folder
+    Path localShared = archiveFldTmp.resolve("Schemas/localShared");
+    File localSharedFolder = localShared.toFile();
+    localSharedFolder.delete();
+
     SIARDDKTestUtil.assertArchiveFoldersEqual(archFile, archiveFldExpectedPath.toFile());
 
   }

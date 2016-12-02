@@ -18,7 +18,10 @@ public class PostgreSQLJDBCDatatypeImporter extends JDBCDatatypeImporter {
   @Override
   protected Type getBinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeBinary(columnSize);
-    if ("bytea".equalsIgnoreCase(typeName)) {
+    if ("varbit".equals(typeName)) {
+      type.setSql99TypeName("BIT VARYING", 8 * columnSize);
+      type.setSql2008TypeName("BINARY VARYING", 8 * columnSize);
+    } else if ("bytea".equalsIgnoreCase(typeName)) {
       type.setSql99TypeName("BINARY LARGE OBJECT");
       type.setSql2008TypeName("BINARY LARGE OBJECT");
     } else {
@@ -115,7 +118,7 @@ public class PostgreSQLJDBCDatatypeImporter extends JDBCDatatypeImporter {
   protected Type getOtherType(int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
     throws UnknownTypeException {
     if ("varbit".equals(typeName)) {
-      return getBitType(typeName, columnSize, decimalDigits, numPrecRadix);
+      return getBinaryType(typeName, columnSize, decimalDigits, numPrecRadix);
     } else {
       return super.getOtherType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
     }

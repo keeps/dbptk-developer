@@ -69,7 +69,13 @@ public class SQL99StandardDatatypeImporter extends SQLStandardDatatypeImporter {
 
       case "BINARY VARYING":
       case "VARBINARY":
+      case "BIT VARYING":
         type = getVarbinaryType(typeNameWithoutParameters, columnSize, decimalDigits, numPrecRadix);
+        break;
+
+      case "BINARY":
+      case "BIT":
+        type = getBinaryType(typeNameWithoutParameters, columnSize, decimalDigits, numPrecRadix);
         break;
 
       case "BINARY LARGE OBJECT":
@@ -144,8 +150,26 @@ public class SQL99StandardDatatypeImporter extends SQLStandardDatatypeImporter {
     }
 
     if (StringUtils.isBlank(type.getSql2008TypeName())) {
-      // TODO: convert sql99 to sql2008
-      type.setSql2008TypeName(sql99TypeName);
+      // TODO: improve conversion from sql99 to sql2008
+      String sql2008TypeName;
+
+      String append = "";
+      if (leftParenthesisIndex >= 0 && rightParenthesisIndex >= 0) {
+        append = sql99TypeName.substring(leftParenthesisIndex);
+      }
+
+      switch (typeNameWithoutParameters) {
+        case "BIT":
+          sql2008TypeName = "BINARY" + append;
+          break;
+        case "BIT VARYING":
+          sql2008TypeName = "BINARY VARYING" + append;
+          break;
+        default:
+          sql2008TypeName = sql99TypeName;
+      }
+
+      type.setSql2008TypeName(sql2008TypeName);
     }
 
     return type;

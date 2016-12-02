@@ -1,3 +1,5 @@
+// TODO: this class needs some cleaning up 
+
 package com.databasepreservation.modules.siard.out.content;
 
 import java.io.BufferedInputStream;
@@ -9,6 +11,7 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.Tika;
 import org.jdom2.Document;
@@ -112,11 +115,10 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     builder.append("<?xml version=\"1.0\" encoding=\"").append(ENCODING).append("\"?>\n")
 
     .append("<table xsi:schemaLocation=\"")
-      .append(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableStructure.getIndex())).append(" ")
-      .append(contentPathExportStrategy.getTableXsdFileName(tableStructure.getIndex())).append("\" ")
-      .append("xmlns=\"")
-      .append(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableStructure.getIndex()))
-      .append("\" ").append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"").append(">").append("\n");
+      .append(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableCounter)).append(" ")
+      .append(contentPathExportStrategy.getTableXsdFileName(tableCounter)).append("\" ").append("xmlns=\"")
+      .append(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableCounter)).append("\" ")
+      .append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"").append(">").append("\n");
 
     try {
       tableXmlWriter.write(builder.toString());
@@ -129,14 +131,14 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
     // Set namespaces for schema
     Namespace defaultNamespace = Namespace.getNamespace(contentPathExportStrategy.getTableXsdNamespace(namespaceBase,
-      0, tableStructure.getIndex()));
+      0, tableCounter));
     Namespace xs = Namespace.getNamespace("xs", "http://www.w3.org/2001/XMLSchema");
 
     // Create root element
     Element schema = new Element("schema", xs);
     schema.addNamespaceDeclaration(defaultNamespace);
     schema.setAttribute("targetNamespace",
-      contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableStructure.getIndex()));
+      contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableCounter));
     schema.setAttribute("elementFormDefault", "qualified");
     schema.setAttribute("attributeFormDefault", "unqualified");
 
@@ -202,7 +204,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     // TO-DO: unfortunate name below: getLOBWriter (change the
     // FileIndexFileStrategy)
     tableXsdOutputStream = fileIndexFileStrategy.getLOBWriter(baseContainer,
-      contentPathExportStrategy.getTableXsdFilePath(0, tableStructure.getIndex()), writeStrategy);
+      contentPathExportStrategy.getTableXsdFilePath(0, tableCounter), writeStrategy);
     BufferedWriter xsdWriter = new BufferedWriter(new OutputStreamWriter(tableXsdOutputStream));
 
     Document d = new Document(schema);
@@ -212,10 +214,10 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
       outputter.output(d, xsdWriter);
       xsdWriter.close();
 
-      fileIndexFileStrategy.addFile(contentPathExportStrategy.getTableXsdFilePath(0, tableStructure.getIndex()));
+      fileIndexFileStrategy.addFile(contentPathExportStrategy.getTableXsdFilePath(0, tableCounter));
 
     } catch (IOException e) {
-      throw new ModuleException("Could not write table" + tableStructure.getIndex() + " to disk", e);
+      throw new ModuleException("Could not write table" + tableCounter + " to disk", e);
     }
     foundUnknownMimetype = false;
   }
@@ -226,7 +228,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
       tableXmlWriter.write("</table>");
       tableXmlWriter.close();
 
-      fileIndexFileStrategy.addFile(contentPathExportStrategy.getTableXmlFilePath(0, tableStructure.getIndex()));
+      fileIndexFileStrategy.addFile(contentPathExportStrategy.getTableXmlFilePath(0, tableCounter));
 
       if (foundClob) {
         logger.info("CLOB(s) found in table " + tableCounter + ". Archived as string");
@@ -264,11 +266,23 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
           // LOBsTracker
 
           if (!(cell instanceof NullCell)) {
-            SimpleCell simpleCell = (SimpleCell) cell;
-            // System.out.println("SimpleData = " + simpleCell.getSimpleData());
-            tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-              .append(encodeText(simpleCell.getSimpleData())).append("</c").append(String.valueOf(columnIndex))
-              .append(">\n");
+            if (cell instanceof SimpleCell) {
+              SimpleCell simpleCell = (SimpleCell) cell;
+              // System.out.println("SimpleData = " +
+              // simpleCell.getSimpleData());
+              tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
+                .append(encodeText(simpleCell.getSimpleData())).append("</c").append(String.valueOf(columnIndex))
+                .append(">\n");
+            } else if (cell instanceof BinaryCell) {
+              BinaryCell binaryCell = (BinaryCell) cell;
+              InputStream in = binaryCell.createInputStream();
+
+              tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
+                .append(Hex.encodeHexString(IOUtils.toByteArray(in))).append("</c").append(String.valueOf(columnIndex))
+                .append(">\n");
+              in.close();
+              binaryCell.cleanResources();
+            }
           } else {
             tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
               .append(" xsi:nil=\"true\"/>").append("\n");

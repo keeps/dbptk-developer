@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- fileIndex.xsd version 0.9.3 -->
-<!-- Statens Arkiver 2010 -->
-<xs:schema xmlns="http://www.sa.dk/xmlns/diark/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.sa.dk/xmlns/diark/1.0" elementFormDefault="qualified" attributeFormDefault="unqualified" blockDefault="#all" finalDefault="#all" version="0.9.2" id="fileIndex">
+<!-- fileIndex.xsd version 0.9.5 -->
+<!-- Rigsarkivet 2016 -->
+<xs:schema xmlns="http://www.sa.dk/xmlns/diark/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.sa.dk/xmlns/diark/1.0" elementFormDefault="qualified" attributeFormDefault="unqualified" blockDefault="#all" finalDefault="#all" version="0.9.5" id="fileIndex">
 	<xs:annotation>
 		<xs:documentation xml:lang="da">Dette skema angiver tilladte mappenavne og filnavne, men ikke hvilke filnavne, som er tilladt i hvilke mapper. Denne begrænsning skyldes ønsket om at anvende samme elementnavn 'foN' for alle mappenavne, og XML Schema tillader ikke at samme element kan være af forskellig type (Consistent Declaration Rule)</xs:documentation>
 		<xs:documentation xml:lang="en">This Schema defines legal folder names and file names, but not what file names are allowed in what folders. This limitation is due to a desire to use the same element name 'foN' for all folder names, and XML Schema does not allow the same element name to belong to different types (Consistent Declaration Rule)</xs:documentation>
@@ -58,7 +58,8 @@
 				<xs:documentation xml:lang="en">Lower case is required, but upper case for the following file type extensions is accepted to reduce the needed for renaming--></xs:documentation>
 			</xs:annotation>
 			<xs:pattern value="archiveIndex.xml|docIndex.xml|contextDocumentationIndex.xml|fileIndex.xml|tableIndex.xml"/>
-			<xs:pattern value="archiveIndex.xsd|docIndex.xsd|contextDocumentationIndex.xsd|fileIndex.xsd|tableIndex.xsd|XMLSchema.xsd|GML2.xsd|gmlsfLevels.xsd|xlinks.xsd|gmlsf.xsd"/>
+			<xs:pattern value="archiveIndex.xsd|docIndex.xsd|contextDocumentationIndex.xsd|fileIndex.xsd|tableIndex.xsd|XMLSchema.xsd"/>
+			<xs:pattern value="basicTypes.xsd|coordinateOperations.xsd|coordinateReferenceSystems.xsd|coordinateSystems.xsd|coverage.xsd|dataQuality.xsd|datums.xsd|defaultStyle.xsd|dictionary.xsd|direction.xsd|dynamicFeature.xsd|feature.xsd|geometryAggregates.xsd|geometryBasic0d1d.xsd|geometryBasic2d.xsd|geometryComplexes.xsd|geometryPrimitives.xsd|gml.xsd|gmlBase.xsd|grids.xsd|measures.xsd|observation.xsd|referenceSystems.xsd|smil20.xsd|smil20-language.xsd|temporal.xsd|temporalReferenceSystems.xsd|temporalTopology.xsd|topology.xsd|units.xsd|valueObjects.xsd|xlinks.xsd|xml-mod.xsd"/>
 			<xs:pattern value="table[1-9][0-9]{0,11}\.(xml|XML|xsd|XSD)"/>
 			<xs:pattern value="[1-9][0-9]{0,11}\.(tif|TIF)"/>
 			<xs:pattern value="[1-9][0-9]{0,11}\.(mp3|MP3)"/>
@@ -66,7 +67,7 @@
 			<xs:pattern value="[1-9][0-9]{0,11}\.(jp2|JP2)"/>
 			<xs:pattern value="[1-9][0-9]{0,11}\.(gml|GML)"/>
 			<xs:pattern value="[1-9][0-9]{0,11}\.(xsd|XSD)"/>
-			<xs:pattern value="[1-9][0-9]{0,11}\.(bin)"/>				
+			<xs:pattern value="[1-9][0-9]{0,11}\.(wav|WAV)"/>
 			<xs:pattern value="localSchema[1-9][0-9]{0,11}\.(xsd|XSD)"/>
 		</xs:restriction>
 	</xs:simpleType>

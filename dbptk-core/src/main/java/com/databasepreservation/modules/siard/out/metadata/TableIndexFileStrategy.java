@@ -145,6 +145,14 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
               } else {
                 column.setType(SIARDDKConstants.DEFAULT_CLOB_TYPE + "(1)");
               }
+            } else if (sql99DataType.startsWith("BIT VARYING") || sql99DataType.startsWith("BINARY VARYING")) {
+
+              // Convert BIT VARYING/BINARY VARYING TO CHARACTER VARYING
+
+              String length = sql99DataType.split("\\(")[1].trim();
+              length = length.substring(0, length.length() - 1);
+              column.setType("CHARACTER VARYING(" + length + ")");
+
             } else {
               column.setType(type.getSql99TypeName());
             }
