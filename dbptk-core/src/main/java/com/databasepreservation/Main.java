@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
+import com.databasepreservation.utils.MiscUtils;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,9 +43,6 @@ public class Main {
   public static final int EXIT_CODE_NOT_USING_UTF8 = 5;
 
   private static final String execID = UUID.randomUUID().toString();
-  public static final String APP_VERSION = getProgramVersion();
-
-  public static final String APP_NAME = "Database Preservation Toolkit";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
@@ -160,24 +158,15 @@ public class Main {
   private static void logProgramStart() {
     LOGGER.debug("#########################################################");
     LOGGER.debug("#   START-ID-" + execID);
-    LOGGER.debug("#   START v" + APP_VERSION);
+    LOGGER.debug("#   START v" + MiscUtils.APP_VERSION);
     LOGGER.debug("#########################################################");
   }
 
   private static void logProgramFinish(int exitStatus) {
     LOGGER.debug("#########################################################");
     LOGGER.debug("#   FINISH-ID-" + execID);
-    LOGGER.debug("#   FINISH v" + APP_VERSION);
+    LOGGER.debug("#   FINISH v" + MiscUtils.APP_VERSION);
     LOGGER.debug("#   EXIT CODE: " + exitStatus);
     LOGGER.debug("#########################################################");
-  }
-
-  private static String getProgramVersion() {
-    try {
-      return Main.class.getPackage().getImplementationVersion();
-    } catch (Exception e) {
-      LOGGER.debug("Problem getting program version", e);
-      return null;
-    }
   }
 }

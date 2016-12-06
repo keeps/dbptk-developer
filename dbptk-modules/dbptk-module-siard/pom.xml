@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <name>dbptk-module-siard</name>
+    <groupId>com.databasepreservation</groupId>
+    <artifactId>dbptk-module-siard</artifactId>
+    <version>2.0.0-SNAPSHOT</version>
+    <parent>
+        <groupId>com.databasepreservation</groupId>
+        <artifactId>dbptk-modules</artifactId>
+        <version>2.0.0-SNAPSHOT</version>
+        <relativePath>..</relativePath>
+    </parent>
+
+    <dependencies>
+        <!-- internal dependencies -->
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-model</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-module-list-tables</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-bindings-siard1</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-bindings-siard2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-bindings-siarddk</artifactId>
+        </dependency>
+
+        <!-- misc dependencies -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+        </dependency>
+
+        <!-- module-specific dependencies -->
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+            <version>1.10</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jdom</groupId>
+            <artifactId>jdom2</artifactId>
+            <version>2.0.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.7</version>
+        </dependency>
+    </dependencies>
+</project>

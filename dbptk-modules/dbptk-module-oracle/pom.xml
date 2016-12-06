@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <name>dbptk-module-oracle</name>
+    <groupId>com.databasepreservation</groupId>
+    <artifactId>dbptk-module-oracle</artifactId>
+    <version>2.0.0-SNAPSHOT</version>
+    <parent>
+        <groupId>com.databasepreservation</groupId>
+        <artifactId>dbptk-modules</artifactId>
+        <version>2.0.0-SNAPSHOT</version>
+        <relativePath>..</relativePath>
+    </parent>
+
+    <dependencies>
+        <!-- internal dependencies -->
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-model</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-module-jdbc</artifactId>
+        </dependency>
+
+        <!-- module-specific dependencies -->
+        <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>ojdbc6</artifactId>
+            <version>12.1.0.1</version>
+        </dependency>
+    </dependencies>
+</project>
