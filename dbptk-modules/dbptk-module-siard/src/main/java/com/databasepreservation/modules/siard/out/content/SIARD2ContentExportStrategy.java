@@ -12,7 +12,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.common.PathInputStreamProvider;
+import com.databasepreservation.common.TemporaryPathInputStreamProvider;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -267,7 +267,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       }
 
       ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
-      lob = new LargeObject(new PathInputStreamProvider(inputStream), contentPathStrategy.getClobFilePath(
+      lob = new LargeObject(new TemporaryPathInputStreamProvider(inputStream), contentPathStrategy.getClobFilePath(
         currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
 
       currentWriter.beginOpenTag("c" + columnIndex, 2).space().append("file=\"")

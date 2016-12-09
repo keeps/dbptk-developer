@@ -16,7 +16,7 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.common.PathInputStreamProvider;
+import com.databasepreservation.common.TemporaryPathInputStreamProvider;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
@@ -151,7 +151,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
       SimpleCell txtCell = (SimpleCell) cell;
       String data = txtCell.getSimpleData();
       ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes("UTF-8"));
-      lob = new LargeObject(new PathInputStreamProvider(inputStream), lobFileParameter);
+      lob = new LargeObject(new TemporaryPathInputStreamProvider(inputStream), lobFileParameter);
     }
 
     // decide to whether write the LOB right away or later
