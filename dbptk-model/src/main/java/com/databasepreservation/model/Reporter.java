@@ -250,8 +250,18 @@ public class Reporter {
       original = type.getOriginalTypeName().toUpperCase(Locale.ENGLISH);
     }
 
-    String sql99 = type.getSql99TypeName().toUpperCase(Locale.ENGLISH);
-    String sql2008 = type.getSql2008TypeName().toUpperCase(Locale.ENGLISH);
+    String sql99 = type.getSql99TypeName();
+    if (StringUtils.isNotBlank(sql99)) {
+      sql99 = sql99.toUpperCase(Locale.ENGLISH);
+    } else {
+      sql99 = "(unknown)";
+    }
+    String sql2008 = type.getSql2008TypeName();
+    if (StringUtils.isNotBlank(sql2008)) {
+      sql2008 = sql2008.toUpperCase(Locale.ENGLISH);
+    } else {
+      sql2008 = "(unknown)";
+    }
 
     StringBuilder message = new StringBuilder("Type conversion in import module: in ");
     appendAsCode(message, schemaName + "." + tableName + "." + columnName);
