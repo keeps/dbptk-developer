@@ -64,6 +64,7 @@ public class SolrModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(port.longName(), port);
     parameterHashMap.put(zookeeperHost.longName(), zookeeperHost);
     parameterHashMap.put(zookeeperPort.longName(), zookeeperPort);
+    parameterHashMap.put(databaseUUID.longName(), databaseUUID);
     return parameterHashMap;
   }
 
@@ -74,7 +75,7 @@ public class SolrModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Parameters getExportModuleParameters() throws OperationNotSupportedException {
-    return new Parameters(Arrays.asList(hostname, port, zookeeperHost, zookeeperPort), null);
+    return new Parameters(Arrays.asList(hostname, port, zookeeperHost, zookeeperPort, databaseUUID), null);
   }
 
   @Override
