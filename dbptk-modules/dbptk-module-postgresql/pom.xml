@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <name>dbptk-module-postgresql</name>
+    <groupId>com.databasepreservation</groupId>
+    <artifactId>dbptk-module-postgresql</artifactId>
+    <version>2.0.0-beta6.3</version>
+    <parent>
+        <groupId>com.databasepreservation</groupId>
+        <artifactId>dbptk-modules</artifactId>
+        <version>2.0.0-beta6.3</version>
+        <relativePath>..</relativePath>
+    </parent>
+
+    <dependencies>
+        <!-- internal dependencies -->
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-model</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-module-jdbc</artifactId>
+        </dependency>
+
+        <!-- module-specific dependencies -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>9.4.1208.jre7</version>
+        </dependency>
+    </dependencies>
+</project>

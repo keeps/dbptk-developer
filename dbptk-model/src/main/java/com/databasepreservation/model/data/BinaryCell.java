@@ -8,7 +8,7 @@ import java.sql.Blob;
 
 import com.databasepreservation.common.BlobInputStreamProvider;
 import com.databasepreservation.common.InputStreamProvider;
-import com.databasepreservation.common.PathInputStreamProvider;
+import com.databasepreservation.common.TemporaryPathInputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 
 /**
@@ -50,7 +50,7 @@ public class BinaryCell extends Cell implements InputStreamProvider {
    */
   public BinaryCell(String id, InputStream inputStream) throws ModuleException {
     super(id);
-    inputStreamProvider = new PathInputStreamProvider(inputStream);
+    inputStreamProvider = new TemporaryPathInputStreamProvider(inputStream);
   }
 
   /**

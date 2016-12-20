@@ -5,7 +5,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +32,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.Main;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
@@ -41,6 +39,7 @@ import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.ParameterGroup;
 import com.databasepreservation.model.parameters.Parameters;
+import com.databasepreservation.utils.MiscUtils;
 
 import net.xeoh.plugins.base.PluginManager;
 import net.xeoh.plugins.base.impl.PluginManagerFactory;
@@ -56,8 +55,6 @@ import net.xeoh.plugins.base.impl.PluginManagerFactory;
  */
 public class CLI {
   private static final Logger LOGGER = LoggerFactory.getLogger(CLI.class);
-  private static final String DEFAULT_HOSTNAME = "undefined";
-  private static String HOSTNAME = null;
 
   private final ArrayList<DatabaseModuleFactory> factories;
   private final List<String> commandLineArguments;
@@ -439,7 +436,7 @@ public class CLI {
 
     out
       .append("Database Preservation Toolkit")
-      .append(getApplicationVersion())
+      .append(MiscUtils.APP_NAME_AND_VERSION)
       .append("\nMore info: http://www.database-preservation.com")
       .append("\n")
       .append("Usage: dbptk [plugin] <importModule> [import module options] <exportModule> [export module options]\n\n");
@@ -529,38 +526,6 @@ public class CLI {
     out.append(parameter.description());
 
     return out.toString();
-  }
-
-  /**
-   * Gets the application version, as string with a prefix, ready to be included
-   * in the header part of the command line help text
-   *
-   * @return the application version
-   */
-  public static String getApplicationVersion() {
-    if (Main.APP_VERSION != null) {
-      return ", v" + Main.APP_VERSION;
-    } else {
-      return ""; // omit version if it is not known
-    }
-  }
-
-  /**
-   * Gets the DNS name of the local machine
-   * 
-   * @return the DNS name of the local machine as the machine sees itself, and
-   *         is not necessarily how it is known by other machines.
-   */
-  public static String getHostname() {
-    if (HOSTNAME == null) {
-      try {
-        HOSTNAME = java.net.InetAddress.getLocalHost().getHostName();
-      } catch (UnknownHostException e) {
-        HOSTNAME = DEFAULT_HOSTNAME;
-        LOGGER.debug("Could not obtain hostname, using the default (" + HOSTNAME + ")", e);
-      }
-    }
-    return HOSTNAME;
   }
 
   /**

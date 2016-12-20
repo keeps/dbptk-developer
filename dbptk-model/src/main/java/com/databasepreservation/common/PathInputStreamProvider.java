@@ -4,20 +4,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
-
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.exception.ModuleException;
 
 /**
- * An input stream provider serving streams from a file.
- *
- * When passed an InputStream, copies the contents of an input stream to a
- * temporary file and provides InputStreams to read that file.
+ * An input stream provider serving streams from an existing file.
  *
  * When passed a Path, provides InputStreams to read the file at that path.
  *
@@ -30,61 +21,11 @@ import com.databasepreservation.model.exception.ModuleException;
  * @author Luis Faria <lfaria@keep.pt>
  */
 public class PathInputStreamProvider implements InputStreamProvider {
-  private static final Logger LOGGER = LoggerFactory.getLogger(PathInputStreamProvider.class);
 
-  private final Path path;
-  private Thread removeTemporaryFileHook = null;
+  protected Path path;
 
-  /**
-   * Copies the data from the inputStream to a temporary file and closes the
-   * stream.
-   *
-   * @param inputStream
-   *          the stream to be read, saved as a temporary file, and closed
-   * @throws ModuleException
-   *           if some IO problem happens. The stream is still closed.
-   */
-  public PathInputStreamProvider(InputStream inputStream) throws ModuleException {
-    try {
-      path = Files.createTempFile("dbptk", "lob");
-    } catch (IOException e) {
-      try {
-        inputStream.close();
-      } catch (IOException e1) {
-        LOGGER.debug("Could not close the stream after an error occurred trying to create the temporary file", e1);
-      }
-      throw new ModuleException("Error creating temporary file", e);
-    }
-
-    try {
-      Files.copy(inputStream, path, StandardCopyOption.REPLACE_EXISTING);
-    } catch (IOException e) {
-      throw new ModuleException("Error copying stream to temp file", e);
-    } finally {
-      try {
-        inputStream.close();
-      } catch (IOException e) {
-        LOGGER.debug("Could not close the stream after an error occurred", e);
-      }
-    }
-
-    StringBuilder stackTraceBuilder = new StringBuilder();
-    for (StackTraceElement stackTraceElement : Thread.currentThread().getStackTrace()) {
-      stackTraceBuilder.append(stackTraceElement.toString()).append(System.lineSeparator());
-    }
-    final String stackTrace = stackTraceBuilder.toString();
-
-    removeTemporaryFileHook = new Thread() {
-      @Override
-      public void run() {
-        PathInputStreamProvider.this.removeTemporaryFileHook = null;
-        PathInputStreamProvider.this.cleanResources();
-        throw new IllegalStateException("A PathInputStreamProvider was cleaned by a shutdown hook. Path: "
-          + PathInputStreamProvider.this.path.toAbsolutePath().toString() + ". Source: " + stackTrace);
-      }
-    };
-
-    Runtime.getRuntime().addShutdownHook(removeTemporaryFileHook);
+  protected PathInputStreamProvider() {
+    // do nothing, used by subclasses
   }
 
   /**
@@ -100,7 +41,6 @@ public class PathInputStreamProvider implements InputStreamProvider {
       throw new ModuleException("Path " + fileLocation.toAbsolutePath().toString() + " is not readable.");
     }
     this.path = fileLocation;
-    removeTemporaryFileHook = null;
   }
 
   /**
@@ -127,15 +67,7 @@ public class PathInputStreamProvider implements InputStreamProvider {
    */
   @Override
   public void cleanResources() {
-    try {
-      Files.deleteIfExists(path);
-    } catch (IOException e) {
-      LOGGER.debug("Could not delete temporary file", e);
-    } finally {
-      if (removeTemporaryFileHook != null) {
-        Runtime.getRuntime().removeShutdownHook(removeTemporaryFileHook);
-      }
-    }
+    // nothing to do here
   }
 
   @Override
@@ -143,7 +75,7 @@ public class PathInputStreamProvider implements InputStreamProvider {
     try {
       return Files.size(path);
     } catch (IOException e) {
-      throw new ModuleException("Could not get lob file size", e);
+      throw new ModuleException("Could not get file size", e);
     }
   }
 }
