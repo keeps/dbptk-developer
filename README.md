@@ -97,46 +97,50 @@ The Database Preservation Toolkit is also capable of loading preserved databases
 If you want to connect to a live MySQL database and export its content to SIARD 2.0 format, you can use the following command.
 
 ```text
-$ java -jar dbptk-app-x.y.z.jar \ 
---import mysql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \ 
+$ java -jar dbptk-app-x.y.z.jar \
+--import mysql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \
 --export siard-2 --export-file=example.siard
 ```
 
 Or using the equivalent short version of the parameters:
 
 ```text
-$ java -jar dbptk-app-x.y.z.jar \ 
--i mysql -ih localhost -idb "example_db" -iu username -ip "p4ssw0rd" \ 
+$ java -jar dbptk-app-x.y.z.jar \
+-i mysql -ih localhost -idb "example_db" -iu username -ip "p4ssw0rd" \
 -e siard-2 -ef example.siard
 ```
 
 More examples containing only required parameters:
 
 **Oracle to SIARD 2**
+
 ```text
-$ java -jar dbptk-app-x.y.z.jar \ 
---import oracle --import-server-name=127.0.0.1 --import-database="example_db" --import-username=username --import-password="p4ssw0rd" --import-accept-license \ 
+$ java -jar dbptk-app-x.y.z.jar \
+--import oracle --import-server-name=127.0.0.1 --import-database="example_db" --import-username=username --import-password="p4ssw0rd" --import-accept-license \
 --export siard-2 --export-file=example.siard
 ```
 
 **MySQL to SIARD 2**
+
 ```text
-$ java -jar dbptk-app-x.y.z.jar \ 
---import mysql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \ 
+$ java -jar dbptk-app-x.y.z.jar \
+--import mysql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \
 --export siard-2 --export-file=example.siard
 ```
 
 **PostgreSQL to SIARD 2**
+
 ```text
-$ java -jar dbptk-app-x.y.z.jar \ 
---import postgresql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \ 
+$ java -jar dbptk-app-x.y.z.jar \
+--import postgresql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \
 --export siard-2 --export-file=example.siard
 ```
 
 **Microsoft SQL Server to SIARD 2**
+
 ```text
-$ java -jar dbptk-app-x.y.z.jar \ 
---import microsoft-sql-server --import-server-name=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \ 
+$ java -jar dbptk-app-x.y.z.jar \
+--import microsoft-sql-server --import-server-name=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \
 --export siard-2 --export-file=example.siard
 ```
 
@@ -164,18 +168,18 @@ A specialized module for the database, if available, would always be preferable 
 Using the method described above, the Windows command to extract a database from an Oracle database to SIARD 2 is as the following:
 
 ```text
-java -cp "C:\path\to\dbptk-app-x.y.z.jar;C:\path\to\jdbc_driver.jar" com.databasepreservation.Main \ 
-  --import=jdbc --import-driver=oracle.jdbc.driver.OracleDriver \ 
-    --import-connection="jdbc:oracle:thin:username/password@serverName:port/database" \ 
+java -cp "C:\path\to\dbptk-app-x.y.z.jar;C:\path\to\jdbc_driver.jar" com.databasepreservation.Main \
+  --import=jdbc --import-driver=oracle.jdbc.driver.OracleDriver \
+    --import-connection="jdbc:oracle:thin:username/password@serverName:port/database" \
   -e siard-2 -ef C:\path\to\output.siard
 ```
 
 And on Linux the equivalent command would be (note that the jarfile separator is `:` instead of `;`):
 
 ```text
-java -cp "/path/to/dbptk-app-x.y.z.jar:/path/to/jdbc_driver.jar" com.databasepreservation.Main \ 
-  --import=jdbc --import-driver=oracle.jdbc.driver.OracleDriver \ 
-    --import-connection="jdbc:oracle:thin:username/password@serverName:port/database" \ 
+java -cp "/path/to/dbptk-app-x.y.z.jar:/path/to/jdbc_driver.jar" com.databasepreservation.Main \
+  --import=jdbc --import-driver=oracle.jdbc.driver.OracleDriver \
+    --import-connection="jdbc:oracle:thin:username/password@serverName:port/database" \
   -e siard-2 -ef /path/to/output.siard
 ```
 
