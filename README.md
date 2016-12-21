@@ -56,6 +56,10 @@ The Database Visualization Toolkit is a lightweight web viewer for relational da
 
 For more information please visit http://visualization.database-preservation.com
 
+## Requirements
+
+To use the program, Java JRE 7 or higher needs to be installed. Instructions on how to do this are available at http://docs.oracle.com/javase/7/docs/webnotes/install/.
+
 ## How to use
 
 To use the program, open a command-line and try out the following command (replace x.y.z accordingly to the version of the binary in use):
