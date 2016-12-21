@@ -1,0 +1,8 @@
+title: db-preservation-toolkit
+description: Database Preservation Toolkit
+google_analytics: UA-42276300-3
+show_downloads: true
+theme: jekyll-theme-cayman
+
+gems:
+  - jekyll-mentions
