@@ -18,7 +18,7 @@ More detailed information about these tools and standards can be found on the fo
 
 RODA is a complete digital repository solution that delivers functionality for all the main functional units of the OAIS reference model. RODA is capable of ingesting, managing and providing access to the various types of digital content produced by large corporations or public bodies. RODA is based on open-source technologies and is supported by existing standards such as the Open Archival Information System (OAIS), Metadata Encoding and Transmission Standard (METS), Encoded Archival Description (EAD), Dublin Core (DC) and PREMIS (Preservation Metadata).
 
-For more information please visit https://github.com/keeps/roda 
+For more information please visit [https://github.com/keeps/roda](https://github.com/keeps/roda)
 
 ## RODA-in – The ultimate SIP creation tool
 
@@ -36,7 +36,7 @@ The tool includes features such as:
 * Creation of SIP of unlimited size
 * Creation of SIP in various formats: BagIt and E-ARK
 
-For more information please visit https://github.com/keeps/roda-in 
+For more information please visit [https://github.com/keeps/roda-in](https://github.com/keeps/roda-in)
 
 # Database Preservation Toolkit
 
@@ -54,11 +54,11 @@ A new version of the this tool, together with a [new version of the SIARD preser
 
 The Database Visualization Toolkit is a lightweight web viewer for relational databases, specially if preserved in SIARD 2, that uses SOLR as a backend, and allows browsing, search, and export. It uses the Database Preservation Toolkit to process new relational databases that are in the SIARD2 format or on the original live DBMS.
 
-For more information please visit http://visualization.database-preservation.com
+For more information please visit [http://visualization.database-preservation.com](http://visualization.database-preservation.com)
 
 ## Requirements
 
-To use the program, Java JRE 7 or higher needs to be installed. Instructions on how to do this are available at http://docs.oracle.com/javase/7/docs/webnotes/install/.
+To use the program, Java JRE 7 or higher needs to be installed. Instructions on how to do this are available at [http://docs.oracle.com/javase/7/docs/webnotes/install/](http://docs.oracle.com/javase/7/docs/webnotes/install/).
 
 ## How to use
 
@@ -97,16 +97,16 @@ The Database Preservation Toolkit is also capable of loading preserved databases
 If you want to connect to a live MySQL database and export its content to SIARD 2.0 format, you can use the following command.
 
 ```text
-$ java -jar dbptk-app-x.y.z.jar \
---import mysql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \
+$ java -jar dbptk-app-x.y.z.jar \ 
+--import mysql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \ 
 --export siard-2 --export-file=example.siard
 ```
 
 Or using the equivalent short version of the parameters:
 
 ```text
-$ java -jar dbptk-app-x.y.z.jar \
--i mysql -ih localhost -idb "example_db" -iu username -ip "p4ssw0rd" \
+$ java -jar dbptk-app-x.y.z.jar \ 
+-i mysql -ih localhost -idb "example_db" -iu username -ip "p4ssw0rd" \ 
 -e siard-2 -ef example.siard
 ```
 
@@ -114,29 +114,29 @@ More examples containing only required parameters:
 
 **Oracle to SIARD 2**
 ```text
-$ java -jar dbptk-app-x.y.z.jar \
---import oracle --import-server-name=127.0.0.1 --import-database="example_db" --import-username=username --import-password="p4ssw0rd" --import-accept-license \
+$ java -jar dbptk-app-x.y.z.jar \ 
+--import oracle --import-server-name=127.0.0.1 --import-database="example_db" --import-username=username --import-password="p4ssw0rd" --import-accept-license \ 
 --export siard-2 --export-file=example.siard
 ```
 
 **MySQL to SIARD 2**
 ```text
-$ java -jar dbptk-app-x.y.z.jar \
---import mysql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \
+$ java -jar dbptk-app-x.y.z.jar \ 
+--import mysql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \ 
 --export siard-2 --export-file=example.siard
 ```
 
 **PostgreSQL to SIARD 2**
 ```text
-$ java -jar dbptk-app-x.y.z.jar \
---import postgresql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \
+$ java -jar dbptk-app-x.y.z.jar \ 
+--import postgresql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \ 
 --export siard-2 --export-file=example.siard
 ```
 
 **Microsoft SQL Server to SIARD 2**
 ```text
-$ java -jar dbptk-app-x.y.z.jar \
---import microsoft-sql-server --import-server-name=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \
+$ java -jar dbptk-app-x.y.z.jar \ 
+--import microsoft-sql-server --import-server-name=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \ 
 --export siard-2 --export-file=example.siard
 ```
 
@@ -150,7 +150,7 @@ To use Database Preservation Toolkit with an unsupported database, one can conne
  JDBC driver class (and adding the JDBC driver to the classpath) and the JDBC connection string. The steps to run
  Database Preservation Toolkit this way are as follows:
 
-1. Obtain the JDBC driver for the database you want to use (this is typically a file with `jar` extension). For Oracle12C this file can be downloaded from http://www.oracle.com/technetwork/database/features/jdbc/index-091264.html;
+1. Obtain the JDBC driver for the database you want to use (this is typically a file with `jar` extension). For Oracle12C this file can be downloaded from [http://www.oracle.com/technetwork/database/features/jdbc/index-091264.html](http://www.oracle.com/technetwork/database/features/jdbc/index-091264.html);
 2. Identify the driver class. For Oracle 12C this would be something like `oracle.jdbc.driver.OracleDriver`;
 3. Prepare the connection string. For Oracle 12C this could be something like `jdbc:oracle:thin:username/password@serverName:port/database`;
 4. Run Database Preservation Toolkit by providing files to add to the classpath and the main entry point.
@@ -164,18 +164,18 @@ A specialized module for the database, if available, would always be preferable 
 Using the method described above, the Windows command to extract a database from an Oracle database to SIARD 2 is as the following:
 
 ```text
-java -cp "C:\path\to\dbptk-app-x.y.z.jar;C:\path\to\jdbc_driver.jar" com.databasepreservation.Main \
-  --import=jdbc --import-driver=oracle.jdbc.driver.OracleDriver \
-    --import-connection="jdbc:oracle:thin:username/password@serverName:port/database" \
+java -cp "C:\path\to\dbptk-app-x.y.z.jar;C:\path\to\jdbc_driver.jar" com.databasepreservation.Main \ 
+  --import=jdbc --import-driver=oracle.jdbc.driver.OracleDriver \ 
+    --import-connection="jdbc:oracle:thin:username/password@serverName:port/database" \ 
   -e siard-2 -ef C:\path\to\output.siard
 ```
 
 And on Linux the equivalent command would be (note that the jarfile separator is `:` instead of `;`):
 
 ```text
-java -cp "/path/to/dbptk-app-x.y.z.jar:/path/to/jdbc_driver.jar" com.databasepreservation.Main \
-  --import=jdbc --import-driver=oracle.jdbc.driver.OracleDriver \
-    --import-connection="jdbc:oracle:thin:username/password@serverName:port/database" \
+java -cp "/path/to/dbptk-app-x.y.z.jar:/path/to/jdbc_driver.jar" com.databasepreservation.Main \ 
+  --import=jdbc --import-driver=oracle.jdbc.driver.OracleDriver \ 
+    --import-connection="jdbc:oracle:thin:username/password@serverName:port/database" \ 
   -e siard-2 -ef /path/to/output.siard
 ```
 
@@ -183,11 +183,11 @@ java -cp "/path/to/dbptk-app-x.y.z.jar:/path/to/jdbc_driver.jar" com.databasepre
 
 ## How to build from source
 
-1. Download the [latest stable release](https://github.com/keeps/db-preservation-toolkit/releases).
+1. Download the [latest release](https://github.com/keeps/db-preservation-toolkit/releases) or clone the repository.
 2. Unzip and open the folder on a command-line terminal
 3. Build with Maven `mvn clean package`
 
-Binaries will be on the `target` folder
+Binaries will be on the `target` folder.
 
 ## Related publications & presentations
 
