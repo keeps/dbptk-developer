@@ -4,5 +4,9 @@ google_analytics: UA-42276300-3
 show_downloads: true
 theme: jekyll-theme-cayman
 
+latest:
+  tag: 2.0.0-beta6
+  name: 2-beta6
+
 gems:
   - jekyll-mentions
