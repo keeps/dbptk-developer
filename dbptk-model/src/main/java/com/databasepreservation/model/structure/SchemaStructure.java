@@ -3,6 +3,7 @@ package com.databasepreservation.model.structure;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.databasepreservation.model.structure.type.ComposedTypeDistinct;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.utils.ListUtils;
 
@@ -25,7 +26,9 @@ public class SchemaStructure {
 
   private List<RoutineStructure> routines;
 
-  private List<ComposedTypeStructure> userDefinedTypes;
+  private List<ComposedTypeStructure> userDefinedTypesComposed;
+
+  private List<ComposedTypeDistinct> userDefinedTypesDistinct;
 
   /**
    * @param name
@@ -34,10 +37,11 @@ public class SchemaStructure {
    * @param tables
    * @param views
    * @param routines
-   * @param userDefinedTypes
+   * @param userDefinedTypesComposed
    */
   public SchemaStructure(String name, String description, int index, List<TableStructure> tables,
-    List<ViewStructure> views, List<RoutineStructure> routines, List<ComposedTypeStructure> userDefinedTypes) {
+    List<ViewStructure> views, List<RoutineStructure> routines, List<ComposedTypeStructure> userDefinedTypesComposed,
+    List<ComposedTypeDistinct> userDefinedTypesDistinct) {
     super();
     this.name = name;
     this.description = description;
@@ -45,14 +49,16 @@ public class SchemaStructure {
     this.tables = tables;
     this.views = views;
     this.routines = routines;
-    this.userDefinedTypes = userDefinedTypes;
+    this.userDefinedTypesComposed = userDefinedTypesComposed;
+    this.userDefinedTypesDistinct = userDefinedTypesDistinct;
   }
 
   public SchemaStructure() {
     tables = new ArrayList<>();
     views = new ArrayList<>();
     routines = new ArrayList<>();
-    userDefinedTypes = new ArrayList<>();
+    userDefinedTypesComposed = new ArrayList<>();
+    userDefinedTypesDistinct = new ArrayList<>();
   }
 
   /**
@@ -133,16 +139,25 @@ public class SchemaStructure {
   /**
    * @return the user defined types
    */
-  public List<ComposedTypeStructure> getUserDefinedTypes() {
-    return userDefinedTypes;
+  public List<ComposedTypeStructure> getUserDefinedTypesComposed() {
+    return userDefinedTypesComposed;
   }
 
   /**
-   * @param userDefinedTypes
+   * @param userDefinedTypesComposed
    *          the user defined types to set
    */
-  public void setUserDefinedTypes(List<ComposedTypeStructure> userDefinedTypes) {
-    this.userDefinedTypes = userDefinedTypes;
+  public void setUserDefinedTypesComposed(List<ComposedTypeStructure> userDefinedTypesComposed) {
+    this.userDefinedTypesComposed = userDefinedTypesComposed;
+  }
+
+
+  public List<ComposedTypeDistinct> getUserDefinedTypesDistinct() {
+    return userDefinedTypesDistinct;
+  }
+
+  public void setUserDefinedTypesDistinct(List<ComposedTypeDistinct> userDefinedTypesDistinct) {
+    this.userDefinedTypesDistinct = userDefinedTypesDistinct;
   }
 
   /*
@@ -171,7 +186,7 @@ public class SchemaStructure {
     builder.append(routines);
     builder.append("\n");
     builder.append("udts=");
-    builder.append(userDefinedTypes);
+    builder.append(userDefinedTypesComposed);
     builder.append("\n");
     builder.append("****** END SCHEMA ******");
     builder.append("\n");
@@ -188,7 +203,7 @@ public class SchemaStructure {
     result = prime * result + ((routines == null) ? 0 : routines.hashCode());
     result = prime * result + ((tables == null) ? 0 : tables.hashCode());
     result = prime * result + ((views == null) ? 0 : views.hashCode());
-    result = prime * result + ((userDefinedTypes == null) ? 0 : userDefinedTypes.hashCode());
+    result = prime * result + ((userDefinedTypesComposed == null) ? 0 : userDefinedTypesComposed.hashCode());
     return result;
   }
 
@@ -242,11 +257,11 @@ public class SchemaStructure {
     } else if (!ListUtils.listEqualsWithoutOrder(views, other.views)) {
       return false;
     }
-    if (userDefinedTypes == null) {
-      if (other.userDefinedTypes != null) {
+    if (userDefinedTypesComposed == null) {
+      if (other.userDefinedTypesComposed != null) {
         return false;
       }
-    } else if (!ListUtils.listEqualsWithoutOrder(userDefinedTypes, other.userDefinedTypes)) {
+    } else if (!ListUtils.listEqualsWithoutOrder(userDefinedTypesComposed, other.userDefinedTypesComposed)) {
       return false;
     }
     return true;

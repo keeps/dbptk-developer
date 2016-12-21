@@ -271,7 +271,7 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
     }
 
     if (schema != null) {
-      for (ComposedTypeStructure udt : schema.getUserDefinedTypes()) {
+      for (ComposedTypeStructure udt : schema.getUserDefinedTypesComposed()) {
         if (udt.getOriginalTypeName().equalsIgnoreCase(typeName)) {
           type = udt;
           break;

@@ -50,6 +50,7 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.Trigger;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
+import com.databasepreservation.model.structure.type.ComposedTypeDistinct;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
@@ -131,10 +132,10 @@ public class SiardTest {
       LOGGER.debug("toString() are equal!");
     }
 
-    if(other!=null){
+    if (other != null) {
       for (SchemaStructure schemaStructure : other.getSchemas()) {
         for (TableStructure tableStructure : schemaStructure.getTables()) {
-          
+
         }
       }
     }
@@ -408,13 +409,17 @@ public class SiardTest {
                                                                                           // param02
 
     // create schemas with tables, views and routines
-    schemas.add(new SchemaStructure("schema01", "the first schema", 1, Arrays.asList(table01, table02),
-      new ArrayList<ViewStructure>(),// TODO: Arrays.asList(view01, view02),
-      new ArrayList<RoutineStructure>(), new ArrayList<ComposedTypeStructure>()));// TODO:
-                                                                                  // Arrays.asList(routine01,
-    // routine02)));
+    schemas
+      .add(new SchemaStructure("schema01", "the first schema", 1,
+        Arrays.asList(table01, table02),
+        new ArrayList<ViewStructure>(),// TODO: Arrays.asList(view01, view02),
+        new ArrayList<RoutineStructure>(), new ArrayList<ComposedTypeStructure>(),
+        new ArrayList<ComposedTypeDistinct>()));// TODO:
+                                                // Arrays.asList(routine01,
+                                                // routine02)));
     schemas.add(new SchemaStructure("schema02", "the second schema", 2, Arrays.asList(table03, table04),
-      new ArrayList<ViewStructure>(), new ArrayList<RoutineStructure>(), new ArrayList<ComposedTypeStructure>()));
+      new ArrayList<ViewStructure>(), new ArrayList<RoutineStructure>(), new ArrayList<ComposedTypeStructure>(),
+      new ArrayList<ComposedTypeDistinct>()));
 
     // create users
     List<UserStructure> users = Arrays.asList(new UserStructure("testUser1", "first TestUser description"),

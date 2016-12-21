@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.databasepreservation.utils.MiscUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +68,6 @@ import com.databasepreservation.model.structure.type.UnsupportedDataType;
 import com.databasepreservation.modules.SQLHelper;
 import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.JodaUtils;
-import com.databasepreservation.utils.MiscUtils;
 
 /**
  * @author Luis Faria <lfaria@keep.pt>
@@ -303,7 +303,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     actualSchema.setName(schemaName);
     actualSchema.setIndex(schemaIndex);
     // actualSchema.setUserDefinedTypes(getUDTs(actualSchema));
-    actualSchema.setUserDefinedTypes(new ArrayList<ComposedTypeStructure>());
+    actualSchema.setUserDefinedTypesComposed(new ArrayList<ComposedTypeStructure>());
     actualSchema.setTables(getTables(actualSchema));
     actualSchema.setViews(getViews(schemaName));
     actualSchema.setRoutines(getRoutines(schemaName));
@@ -782,6 +782,10 @@ public class JDBCImportModule implements DatabaseImportModule {
     // 22. SOURCE_DATA_TYPE short => source type of a distinct type or
     // user-generated Ref type, SQL type from java.sql.Types (null if
     // DATA_TYPE isn't DISTINCT or user-generated REF)
+    if (dataType == Types.DISTINCT) {
+      Integer sourceDataType = (int) rs.getShort(22);
+      dataType = sourceDataType;
+    }
     // 23. IS_AUTOINCREMENT String => Indicates whether this column is
     // auto incremented
     // YES --- if the column is auto incremented

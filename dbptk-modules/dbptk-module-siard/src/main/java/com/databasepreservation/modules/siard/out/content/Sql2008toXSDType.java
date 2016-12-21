@@ -105,7 +105,9 @@ public class Sql2008toXSDType {
       LOGGER.warn("Unsupported datatype: " + type.toString() + ". Using xs:string as xml type.");
       ret = "xs:string";
     } else if (type instanceof ComposedTypeArray) {
-      throw new ModuleException("Not yet supported type: ARRAY");
+      LOGGER.warn("Array datatype: " + type.toString() + ". Using xs:string as xml type.");
+      ret = "xs:string";
+      //throw new ModuleException("Not yet supported type: ARRAY");
     } else if (type instanceof ComposedTypeStructure) {
       ret = null;
     } else {

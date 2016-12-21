@@ -145,11 +145,11 @@ public class SQL99StandardDatatypeImporter extends SQLStandardDatatypeImporter {
     // TODO: add support for more types
     // TODO: support charsets
 
-    if (StringUtils.isBlank(type.getSql99TypeName())) {
+    if (StringUtils.isBlank(type.getSql99TypeName(false))) {
       type.setSql99TypeName(sql99TypeName);
     }
 
-    if (StringUtils.isBlank(type.getSql2008TypeName())) {
+    if (StringUtils.isBlank(type.getSql2008TypeName(false))) {
       // TODO: improve conversion from sql99 to sql2008
       String sql2008TypeName;
 

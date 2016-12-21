@@ -13,11 +13,14 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.databasepreservation.model.structure.SchemaStructure;
+import com.databasepreservation.model.structure.type.ComposedTypeDistinct;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.postgresql.PGConnection;
 import org.postgresql.core.Oid;
