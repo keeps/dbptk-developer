@@ -8,9 +8,9 @@ The most relevant initiatives in this context are the Database Preservation Tool
 
 The following screencast aims to illustrate how all these tools fit together in a full-cycle archiving and preservation workflow for relational databases.
 
-<!--[![Database preservation workflow screencast](https://img.youtube.com/vi/nPWmOH6pQwY/0.jpg)](https://www.youtube.com/watch?v=nPWmOH6pQwY)-->
+[![Database preservation workflow screencast](https://img.youtube.com/vi/nPWmOH6pQwY/maxresdefault.jpg)](https://www.youtube.com/watch?v=nPWmOH6pQwY)
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/nPWmOH6pQwY" frameborder="0" allowfullscreen></iframe>
+<!--<iframe width="560" height="315" src="https://www.youtube.com/embed/nPWmOH6pQwY" frameborder="0" allowfullscreen></iframe>-->
 
 More detailed information about these tools and standards can be found on the following sections.
 
