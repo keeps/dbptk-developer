@@ -54,7 +54,11 @@ A new version of the this tool, together with a [new version of the SIARD preser
 
 The Database Visualization Toolkit is a lightweight web viewer for relational databases, specially if preserved in SIARD 2, that uses SOLR as a backend, and allows browsing, search, and export. It uses the Database Preservation Toolkit to process new relational databases that are in the SIARD2 format or on the original live DBMS.
 
-For more information please visit https://github.com/keeps/db-visualization-toolkit
+For more information please visit http://visualization.database-preservation.com
+
+## Requirements
+
+To use the program, Java JRE 7 or higher needs to be installed. Instructions on how to do this are available at http://docs.oracle.com/javase/7/docs/webnotes/install/.
 
 ## How to use
 
@@ -90,12 +94,12 @@ The Database Preservation Toolkit is also capable of loading preserved databases
 
 ### Examples
 
-If you want to connect to a live MySQL database and export its content to SIARD 1.0 format, you can use the following command.
+If you want to connect to a live MySQL database and export its content to SIARD 2.0 format, you can use the following command.
 
 ```text
 $ java -jar dbptk-app-x.y.z.jar \
 --import mysql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \
---export siard-1 --export-file=example.siard
+--export siard-2 --export-file=example.siard
 ```
 
 Or using the equivalent short version of the parameters:
@@ -103,7 +107,7 @@ Or using the equivalent short version of the parameters:
 ```text
 $ java -jar dbptk-app-x.y.z.jar \
 -i mysql -ih localhost -idb "example_db" -iu username -ip "p4ssw0rd" \
--e siard-1 -ef example.siard
+-e siard-2 -ef example.siard
 ```
 
 More examples containing only required parameters:
