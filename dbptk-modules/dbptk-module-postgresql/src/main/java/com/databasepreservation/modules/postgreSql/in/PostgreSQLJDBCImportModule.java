@@ -411,8 +411,12 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
         cell = new BinaryCell(id, binaryStream);
       }
     } else if ("bytea".equalsIgnoreCase(cellType.getOriginalTypeName())) {
-      binaryStream = rawData.getBinaryStream(columnName);
-      if (binaryStream != null) {
+      // bferreira, 2016-12-27 - do not use getBinaryStream in PostgreSQL,
+      // because the driver has a memory leak in that method (and then it uses
+      // some getBytes-equivalent method to fetch the data)
+      byte[] bytes = rawData.getBytes(columnName);
+      if (bytes != null) {
+        binaryStream = new ByteArrayInputStream(bytes);
         cell = new BinaryCell(id, binaryStream);
       } else {
         cell = new NullCell(id);
