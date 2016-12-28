@@ -22,7 +22,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.databasepreservation.utils.MiscUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +66,7 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
 import com.databasepreservation.modules.SQLHelper;
 import com.databasepreservation.utils.JodaUtils;
+import com.databasepreservation.utils.MiscUtils;
 
 /**
  * @author Luis Faria <lfaria@keep.pt>
@@ -1244,7 +1244,7 @@ public class JDBCImportModule implements DatabaseImportModule {
           }
         }
       }
-    }catch(Exception e){
+    } catch (Exception e) {
       cell = new NullCell(id);
       Reporter.cellProcessingUsedNull(tableName, columnName, rowIndex, e);
     }
@@ -1509,22 +1509,26 @@ public class JDBCImportModule implements DatabaseImportModule {
           long tableRows = table.getRows();
           long lastProgressTimestamp = System.currentTimeMillis();
           if (moduleSettings.shouldFetchRows()) {
-            ResultSet tableRawData = getTableRawData(table);
-            while (tableRawData.next()) {
-              handler.handleDataRow(convertRawToRow(tableRawData, table));
-              nRows++;
-              if (nRows % 1000 == 0 && System.currentTimeMillis() - lastProgressTimestamp > 3000) {
-                lastProgressTimestamp = System.currentTimeMillis();
-                if (tableRows > 0) {
-                  LOGGER.info(String.format("Progress: %d rows of table %s.%s (%d%%)", nRows, table.getSchema(),
-                    table.getName(), nRows * 100 / tableRows));
-                } else {
-                  LOGGER.info(String.format("Progress: %d rows of table %s.%s", nRows, table.getSchema(),
-                    table.getName()));
+            try {
+              ResultSet tableRawData = getTableRawData(table);
+              while (tableRawData.next()) {
+                handler.handleDataRow(convertRawToRow(tableRawData, table));
+                nRows++;
+                if (nRows % 1000 == 0 && System.currentTimeMillis() - lastProgressTimestamp > 3000) {
+                  lastProgressTimestamp = System.currentTimeMillis();
+                  if (tableRows > 0) {
+                    LOGGER.info(String.format("Progress: %d rows of table %s.%s (%d%%)", nRows, table.getSchema(),
+                      table.getName(), nRows * 100 / tableRows));
+                  } else {
+                    LOGGER.info(String.format("Progress: %d rows of table %s.%s", nRows, table.getSchema(),
+                      table.getName()));
+                  }
                 }
               }
+              tableRawData.close();
+            } catch (SQLException | ModuleException me) {
+              LOGGER.error("Could not obtain all data from the current table.", me);
             }
-            tableRawData.close();
           }
           LOGGER.info("Total of " + nRows + " row(s) processed");
           getDatabaseStructure().lookupTableStructure(table.getId()).setRows(nRows);
