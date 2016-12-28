@@ -22,7 +22,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.databasepreservation.utils.MiscUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +66,7 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
 import com.databasepreservation.modules.SQLHelper;
 import com.databasepreservation.utils.JodaUtils;
+import com.databasepreservation.utils.MiscUtils;
 
 /**
  * @author Luis Faria <lfaria@keep.pt>
@@ -1180,67 +1180,73 @@ public class JDBCImportModule implements DatabaseImportModule {
     ResultSet rawData) throws SQLException, InvalidDataException, ModuleException {
     Cell cell;
     String id = tableName + "." + columnName + "." + rowIndex;
-    if (cellType instanceof ComposedTypeArray) {
-      ComposedTypeArray composedTypeArray = (ComposedTypeArray) cellType;
-      Array array = rawData.getArray(columnName);
-      LOGGER.debug("Parsing array of subtype " + composedTypeArray.getElementType().getClass().getSimpleName());
-      List<Cell> cells = parseArray(id, array);
-      cell = new ComposedCell(id, cells);
-    } else if (cellType instanceof ComposedTypeStructure) {
-      cell = rawToCellComposedTypeStructure(id, columnName, cellType, rawData);
-    } else if (cellType instanceof SimpleTypeBoolean) {
-      boolean booleanValue = rawData.getBoolean(columnName);
-      boolean wasNull = rawData.wasNull();
-      if (wasNull) {
-        cell = new NullCell(id);
-      } else {
-        cell = new SimpleCell(id, booleanValue ? "true" : "false");
-      }
 
-    } else if (cellType instanceof SimpleTypeNumericApproximate) {
-      cell = rawToCellSimpleTypeNumericApproximate(id, columnName, cellType, rawData);
-    } else if (cellType instanceof SimpleTypeDateTime) {
-      cell = rawToCellSimpleTypeDateTime(id, columnName, cellType, rawData);
-    } else if (cellType instanceof SimpleTypeBinary) {
-      cell = rawToCellSimpleTypeBinary(id, columnName, cellType, rawData);
-    } else if (cellType instanceof UnsupportedDataType) {
-      try {
-        cell = new SimpleCell(id, rawData.getString(columnName));
-      } catch (SQLException e) {
-        LOGGER.debug("Could not export cell of unsupported datatype: OTHER", e);
-        cell = new NullCell(id);
-      }
-    } else if (cellType instanceof SimpleTypeNumericExact) {
-      cell = rawToCellSimpleTypeNumericExact(id, columnName, cellType, rawData);
-    } else {
-      try {
-        if (rawData.getString(columnName) == null) {
+    try {
+      if (cellType instanceof ComposedTypeArray) {
+        ComposedTypeArray composedTypeArray = (ComposedTypeArray) cellType;
+        Array array = rawData.getArray(columnName);
+        LOGGER.debug("Parsing array of subtype " + composedTypeArray.getElementType().getClass().getSimpleName());
+        List<Cell> cells = parseArray(id, array);
+        cell = new ComposedCell(id, cells);
+      } else if (cellType instanceof ComposedTypeStructure) {
+        cell = rawToCellComposedTypeStructure(id, columnName, cellType, rawData);
+      } else if (cellType instanceof SimpleTypeBoolean) {
+        boolean booleanValue = rawData.getBoolean(columnName);
+        boolean wasNull = rawData.wasNull();
+        if (wasNull) {
           cell = new NullCell(id);
         } else {
-          cell = new SimpleCell(id, rawData.getString(columnName));
+          cell = new SimpleCell(id, booleanValue ? "true" : "false");
         }
-      } catch (SQLException e) {
-        LOGGER.debug("Could not export cell of unknown/undefined datatype", e);
-        cell = new NullCell(id);
-      } catch (NoClassDefFoundError e) {
+
+      } else if (cellType instanceof SimpleTypeNumericApproximate) {
+        cell = rawToCellSimpleTypeNumericApproximate(id, columnName, cellType, rawData);
+      } else if (cellType instanceof SimpleTypeDateTime) {
+        cell = rawToCellSimpleTypeDateTime(id, columnName, cellType, rawData);
+      } else if (cellType instanceof SimpleTypeBinary) {
+        cell = rawToCellSimpleTypeBinary(id, columnName, cellType, rawData);
+      } else if (cellType instanceof UnsupportedDataType) {
         try {
-          Object[] aStruct = ((Struct) rawData.getObject(columnName)).getAttributes();
-
-          StringBuilder value = new StringBuilder("(");
-          String separator = "";
-          for (Object o : aStruct) {
-            value.append(separator).append(o.toString());
-            separator = ",";
-          }
-          value.append(")");
-
-          cell = new SimpleCell(id, value.toString());
-        } catch (SQLException e1) {
-          LOGGER.debug("No Class Def Found when trying to getString", e);
-          LOGGER.debug("Could not export cell of unknown/undefined datatype", e1);
+          cell = new SimpleCell(id, rawData.getString(columnName));
+        } catch (SQLException e) {
+          LOGGER.debug("Could not export cell of unsupported datatype: OTHER", e);
           cell = new NullCell(id);
         }
+      } else if (cellType instanceof SimpleTypeNumericExact) {
+        cell = rawToCellSimpleTypeNumericExact(id, columnName, cellType, rawData);
+      } else {
+        try {
+          if (rawData.getString(columnName) == null) {
+            cell = new NullCell(id);
+          } else {
+            cell = new SimpleCell(id, rawData.getString(columnName));
+          }
+        } catch (SQLException e) {
+          LOGGER.debug("Could not export cell of unknown/undefined datatype", e);
+          cell = new NullCell(id);
+        } catch (NoClassDefFoundError e) {
+          try {
+            Object[] aStruct = ((Struct) rawData.getObject(columnName)).getAttributes();
+
+            StringBuilder value = new StringBuilder("(");
+            String separator = "";
+            for (Object o : aStruct) {
+              value.append(separator).append(o.toString());
+              separator = ",";
+            }
+            value.append(")");
+
+            cell = new SimpleCell(id, value.toString());
+          } catch (SQLException e1) {
+            LOGGER.debug("No Class Def Found when trying to getString", e);
+            LOGGER.debug("Could not export cell of unknown/undefined datatype", e1);
+            cell = new NullCell(id);
+          }
+        }
       }
+    } catch (Exception e) {
+      cell = new NullCell(id);
+      Reporter.cellProcessingUsedNull(tableName, columnName, rowIndex, e);
     }
     return cell;
   }
@@ -1503,20 +1509,25 @@ public class JDBCImportModule implements DatabaseImportModule {
           long tableRows = table.getRows();
           long lastProgressTimestamp = System.currentTimeMillis();
           if (moduleSettings.shouldFetchRows()) {
-            ResultSet tableRawData = getTableRawData(table);
-            while (tableRawData.next()) {
-              handler.handleDataRow(convertRawToRow(tableRawData, table));
-              nRows++;
-              if (nRows % 1000 == 0 && System.currentTimeMillis() - lastProgressTimestamp > 3000) {
-                lastProgressTimestamp = System.currentTimeMillis();
-                if (tableRows > 0) {
-                  LOGGER.info(String.format("Progress: %d rows of table %s.%s (%d%%)", nRows, table.getSchema(),
-                    table.getName(), nRows * 100 / tableRows));
-                } else {
-                  LOGGER.info(String.format("Progress: %d rows of table %s.%s", nRows, table.getSchema(),
-                    table.getName()));
+            try {
+              ResultSet tableRawData = getTableRawData(table);
+              while (tableRawData.next()) {
+                handler.handleDataRow(convertRawToRow(tableRawData, table));
+                nRows++;
+                if (nRows % 1000 == 0 && System.currentTimeMillis() - lastProgressTimestamp > 3000) {
+                  lastProgressTimestamp = System.currentTimeMillis();
+                  if (tableRows > 0) {
+                    LOGGER.info(String.format("Progress: %d rows of table %s.%s (%d%%)", nRows, table.getSchema(),
+                      table.getName(), nRows * 100 / tableRows));
+                  } else {
+                    LOGGER.info(String.format("Progress: %d rows of table %s.%s", nRows, table.getSchema(),
+                      table.getName()));
+                  }
                 }
               }
+              tableRawData.close();
+            } catch (SQLException | ModuleException me) {
+              LOGGER.error("Could not obtain all data from the current table.", me);
             }
           }
           LOGGER.info("Total of " + nRows + " row(s) processed");

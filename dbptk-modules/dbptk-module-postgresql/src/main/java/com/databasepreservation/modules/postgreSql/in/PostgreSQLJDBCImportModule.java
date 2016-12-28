@@ -24,6 +24,7 @@ import org.postgresql.core.Oid;
 import org.postgresql.jdbc.PgResultSet;
 import org.postgresql.largeobject.LargeObject;
 import org.postgresql.largeobject.LargeObjectManager;
+import org.postgresql.util.PSQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -169,10 +170,32 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 
     LOGGER.debug("query: " + query.toString());
 
+    // use a high fetchSize, reducing it if it proves to be too high
+    // since you are reading this, you might as well check if this related pull
+    // request https://github.com/pgjdbc/pgjdbc/pull/675 has already been merged
+    int fetchSize = 200;
     Statement st = getStatement();
-    st.setFetchSize(200);
-    ResultSet set = st.executeQuery(query.toString());
-    return set;
+    while (fetchSize > 0) {
+      st.setFetchSize(fetchSize);
+      try {
+        return st.executeQuery(query.toString());
+      } catch (PSQLException psqlException) {
+        if (psqlException.getCause() instanceof OutOfMemoryError) {
+          LOGGER.debug("FetchSize of {} resulted in out of memory", fetchSize, psqlException);
+          if (fetchSize > 1) {
+            fetchSize = 1;
+          } else {
+            fetchSize = 0;
+          }
+        } else {
+          throw psqlException;
+        }
+      }
+    }
+    Reporter.customMessage(this.getClass().getName(), "Could not retrieve all data from table '" + table.getId()
+      + "' due to insufficient memory.");
+    throw new ModuleException("Out of memory while trying to fetch table '" + table.getId()
+      + "' data. More information at www.database-preservation.com");
   }
 
   /**
@@ -411,8 +434,12 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
         cell = new BinaryCell(id, binaryStream);
       }
     } else if ("bytea".equalsIgnoreCase(cellType.getOriginalTypeName())) {
-      binaryStream = rawData.getBinaryStream(columnName);
-      if (binaryStream != null) {
+      // bferreira, 2016-12-27 - do not use getBinaryStream in PostgreSQL,
+      // because the driver has a memory leak in that method (and then it uses
+      // some getBytes-equivalent method to fetch the data)
+      byte[] bytes = rawData.getBytes(columnName);
+      if (bytes != null) {
+        binaryStream = new ByteArrayInputStream(bytes);
         cell = new BinaryCell(id, binaryStream);
       } else {
         cell = new NullCell(id);

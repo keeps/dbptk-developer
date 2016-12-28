@@ -201,18 +201,17 @@ public class Reporter {
     }
   }
 
-  public static void cellProcessingUsedNull(TableStructure table, ColumnStructure column, long rowIndex,
-    Throwable exception) {
+  public static void cellProcessingUsedNull(String tableId, String columnName, long rowIndex, Throwable exception) {
     conversionProblemsCounter++;
     StringBuilder message = new StringBuilder("Problem processing cell value and NULL was used instead, ");
 
-    if (table != null && column != null) {
+    if (StringUtils.isNotBlank(tableId) && StringUtils.isNotBlank(columnName)) {
       message.append("in table ");
-      appendAsCode(message, table.getId()).append(", in column ");
-      appendAsCode(message, column.getName()).append(", ");
-    } else if (column != null) {
+      appendAsCode(message, tableId).append(", in column ");
+      appendAsCode(message, columnName).append(", ");
+    } else if (StringUtils.isNotBlank(columnName)) {
       message.append("in column ");
-      appendAsCode(message, column.getName()).append(", ");
+      appendAsCode(message, columnName).append(", ");
     } else {
       message.append("in an unidentified table and column, ");
     }
@@ -220,6 +219,11 @@ public class Reporter {
 
     report(message);
     LOGGER.debug("cellProcessingUsedNull, message: " + message, exception);
+  }
+
+  public static void cellProcessingUsedNull(TableStructure table, ColumnStructure column, long rowIndex,
+    Throwable exception) {
+    cellProcessingUsedNull(table.getId(), column.getName(), rowIndex, exception);
   }
 
   public static void rowProcessingUsedNull(TableStructure table, long rowIndex, Throwable exception) {
