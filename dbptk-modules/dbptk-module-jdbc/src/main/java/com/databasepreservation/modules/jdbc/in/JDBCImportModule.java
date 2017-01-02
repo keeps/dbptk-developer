@@ -74,7 +74,9 @@ import com.databasepreservation.utils.MiscUtils;
  */
 public class JDBCImportModule implements DatabaseImportModule {
   // if fetch size is zero, then the driver decides the best fetch size
-  protected static final int ROW_FETCH_BLOCK_SIZE = 0;
+  protected static final int DEFAULT_ROW_FETCH_BLOCK_SIZE = 0;
+  protected static final int SMALL_ROW_FETCH_BLOCK_SIZE = 10;
+  protected static final int MINIMUM_ROW_FETCH_BLOCK_SIZE = 1;
 
   protected static final String DEFAULT_DATA_TIMESPAN = "(...)";
 
@@ -1464,9 +1466,83 @@ public class JDBCImportModule implements DatabaseImportModule {
   protected ResultSet getTableRawData(TableStructure table) throws SQLException, ModuleException {
     String query = sqlHelper.selectTableSQL(table.getId());
     LOGGER.debug("query: " + query);
-    ResultSet set = getStatement().executeQuery(query);
-    set.setFetchSize(ROW_FETCH_BLOCK_SIZE);
-    return set;
+    return getTableRawData(query, table.getId());
+  }
+
+  protected ResultSet getTableRawData(String query, String tableId) throws SQLException, ModuleException {
+    Statement st = getStatement();
+
+    st.setFetchSize(DEFAULT_ROW_FETCH_BLOCK_SIZE);
+    try {
+      return st.executeQuery(query.toString());
+    } catch (SQLException sqlException) {
+      LOGGER.debug("Error executing query with default fetch size of {}", st.getFetchSize(), sqlException);
+    }
+
+    st.setFetchSize(SMALL_ROW_FETCH_BLOCK_SIZE);
+    try {
+      return st.executeQuery(query.toString());
+    } catch (SQLException sqlException) {
+      LOGGER.debug("Error executing query with fetch size of {}", st.getFetchSize(), sqlException);
+    }
+
+    st.setFetchSize(MINIMUM_ROW_FETCH_BLOCK_SIZE);
+    try {
+      return st.executeQuery(query.toString());
+    } catch (SQLException sqlException) {
+      LOGGER.debug("Error executing query with fetch size of {}", st.getFetchSize(), sqlException);
+    }
+
+    String msg = "Could not retrieve data from table '" + tableId + "'. See log for details.";
+
+    Reporter.customMessage(this.getClass().getName(), msg);
+    throw new ModuleException(msg);
+  }
+
+  /**
+   * Advances to the next batch of results in a ResultSet. Also tries to adjust
+   * the fetch size in case it is too big. Setting it to
+   * SMALL_ROW_FETCH_BLOCK_SIZE (if it is bigger than that), and then (if that
+   * is still too big) trying with MINIMUM_ROW_FETCH_BLOCK_SIZE. Attempting to
+   * adjust the fetch size further is a NO-OP and returns false.
+   *
+   * @param tableResultSet
+   *          the tableResultSet with a big fetch size
+   * @return true if there are more results, false if the
+   */
+  protected boolean resultSetNext(ResultSet tableResultSet) throws ModuleException {
+    try {
+      return tableResultSet.next();
+    } catch (SQLException e) {
+      LOGGER.debug("Exception on ResultSet.next()", e);
+    }
+
+    int currentFetchSize;
+
+    try {
+      currentFetchSize = tableResultSet.getFetchSize();
+    } catch (SQLException e) {
+      throw new ModuleException("Could not obtain the next set of results from this table.", e);
+    }
+
+    try {
+      if (currentFetchSize <= MINIMUM_ROW_FETCH_BLOCK_SIZE && currentFetchSize > 0) {
+        // fail, because we can not reduce the fetch size anymore
+        LOGGER.debug("fetch size of '{}' is lower than MINIMUM_ROW_FETCH_BLOCK_SIZE={}", currentFetchSize,
+          MINIMUM_ROW_FETCH_BLOCK_SIZE);
+        throw new ModuleException("Could not obtain the next set of results from this table.");
+      } else if (currentFetchSize > SMALL_ROW_FETCH_BLOCK_SIZE || currentFetchSize == 0) {
+        // reduce fetch size and try again
+        tableResultSet.setFetchSize(SMALL_ROW_FETCH_BLOCK_SIZE);
+        return resultSetNext(tableResultSet);
+      } else {
+        // reduce fetch size and try again
+        tableResultSet.setFetchSize(MINIMUM_ROW_FETCH_BLOCK_SIZE);
+        return resultSetNext(tableResultSet);
+      }
+    } catch (SQLException e) {
+      throw new ModuleException("Could not obtain the next set of results from this table.", e);
+    }
   }
 
   /**
@@ -1509,9 +1585,12 @@ public class JDBCImportModule implements DatabaseImportModule {
           long tableRows = table.getRows();
           long lastProgressTimestamp = System.currentTimeMillis();
           if (moduleSettings.shouldFetchRows()) {
+            ResultSet tableRawData = null;
+
             try {
-              ResultSet tableRawData = getTableRawData(table);
-              while (tableRawData.next()) {
+              tableRawData = getTableRawData(table);
+
+              while (resultSetNext(tableRawData)) {
                 handler.handleDataRow(convertRawToRow(tableRawData, table));
                 nRows++;
                 if (nRows % 1000 == 0 && System.currentTimeMillis() - lastProgressTimestamp > 3000) {
@@ -1525,16 +1604,23 @@ public class JDBCImportModule implements DatabaseImportModule {
                   }
                 }
               }
-              tableRawData.close();
             } catch (SQLException | ModuleException me) {
               LOGGER.error("Could not obtain all data from the current table.", me);
+            } finally {
+              if (tableRawData != null) {
+                try {
+                  tableRawData.close();
+                } catch (SQLException e) {
+                  LOGGER.debug("Could not close tableRawData", e);
+                }
+              }
             }
           }
           LOGGER.info("Total of " + nRows + " row(s) processed");
           getDatabaseStructure().lookupTableStructure(table.getId()).setRows(nRows);
 
           handler.handleDataCloseTable(table.getId());
-          LOGGER.info("Obtained contents from table '" + table.getId() + "'");
+          LOGGER.info("Finished processing table '" + table.getId() + "'");
         }
         handler.handleDataCloseSchema(schema.getName());
       }

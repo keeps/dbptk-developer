@@ -9,7 +9,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.databasepreservation.model.structure.RoutineStructure;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +19,7 @@ import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.CheckConstraint;
+import com.databasepreservation.model.structure.RoutineStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.UserStructure;
@@ -167,13 +167,29 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 
   @Override
   protected ResultSet getTableRawData(TableStructure table) throws SQLException, ModuleException {
-    LOGGER.debug("query: " + sqlHelper.selectTableSQL(table.getId()));
+    String query = sqlHelper.selectTableSQL(table.getId());
+    LOGGER.debug("query: " + query);
+    return getTableRawData(query, table.getId());
+  }
 
-    Statement statement = getStatement();
-    statement.setFetchSize(Integer.MIN_VALUE);
+  @Override
+  protected ResultSet getTableRawData(String query, String tableId) throws SQLException, ModuleException {
+    Statement st = getStatement();
+    st.setFetchSize(Integer.MIN_VALUE);
+    return st.executeQuery(query.toString());
+  }
 
-    ResultSet set = statement.executeQuery(sqlHelper.selectTableSQL(table.getId()));
-    return set;
+  @Override
+  protected boolean resultSetNext(ResultSet tableResultSet) throws ModuleException {
+    try {
+      return tableResultSet.next();
+    } catch (SQLException e) {
+      LOGGER.debug("Exception trying to get fetch size", e);
+      // MySQL uses Integer.MIN_VALUE which is a special value meaning data
+      // should be streamed.
+      LOGGER.debug("MySQL fetch size is set to 'streaming'. It will not be adjusted further.");
+      return false;
+    }
   }
 
   @Override
@@ -259,23 +275,25 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
       }
 
       try {
-        ResultSet rsetCode = getStatement().executeQuery("SHOW CREATE PROCEDURE " + sqlHelper.escapeTableName(routineName));
+        ResultSet rsetCode = getStatement().executeQuery(
+          "SHOW CREATE PROCEDURE " + sqlHelper.escapeTableName(routineName));
         if (rsetCode.next()) {
           routine.setBody(rsetCode.getString("Create Procedure"));
         }
-      }catch(SQLException e){
+      } catch (SQLException e) {
         try {
-          ResultSet rsetCode = getStatement().executeQuery("SHOW CREATE FUNCTION " + sqlHelper.escapeTableName(routineName));
+          ResultSet rsetCode = getStatement().executeQuery(
+            "SHOW CREATE FUNCTION " + sqlHelper.escapeTableName(routineName));
           if (rsetCode.next()) {
             routine.setBody(rsetCode.getString("Create Function"));
           }
-        }catch(SQLException e1){
+        } catch (SQLException e1) {
           LOGGER.debug("Could not retrieve routine code (as routine).", e);
-          if(e.getNextException() != e){
+          if (e.getNextException() != e) {
             LOGGER.debug("nextException:", e);
           }
           LOGGER.debug("Could not retrieve routine code (as function).", e1);
-          if(e1.getNextException() != e1){
+          if (e1.getNextException() != e1) {
             LOGGER.debug("nextException:", e1);
           }
         }
