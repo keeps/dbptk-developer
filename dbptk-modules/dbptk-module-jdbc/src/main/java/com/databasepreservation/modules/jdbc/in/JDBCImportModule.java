@@ -65,6 +65,7 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
 import com.databasepreservation.modules.SQLHelper;
+import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.MiscUtils;
 
@@ -74,9 +75,12 @@ import com.databasepreservation.utils.MiscUtils;
  */
 public class JDBCImportModule implements DatabaseImportModule {
   // if fetch size is zero, then the driver decides the best fetch size
-  protected static final int DEFAULT_ROW_FETCH_BLOCK_SIZE = 0;
-  protected static final int SMALL_ROW_FETCH_BLOCK_SIZE = 10;
-  protected static final int MINIMUM_ROW_FETCH_BLOCK_SIZE = 1;
+  protected static final Integer DEFAULT_ROW_FETCH_BLOCK_SIZE = ConfigUtils.getProperty(0, "dbptk", "jdbc",
+    "fetchsize", "default");
+  protected static final Integer SMALL_ROW_FETCH_BLOCK_SIZE = ConfigUtils.getProperty(10, "dbptk", "jdbc", "fetchsize",
+    "small");
+  protected static final Integer MINIMUM_ROW_FETCH_BLOCK_SIZE = ConfigUtils.getProperty(1, "dbptk", "jdbc",
+    "fetchsize", "minimum");
 
   protected static final String DEFAULT_DATA_TIMESPAN = "(...)";
 
@@ -1524,6 +1528,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     } catch (SQLException e) {
       throw new ModuleException("Could not obtain the next set of results from this table.", e);
     }
+    LOGGER.debug("Current fetch size: {}", currentFetchSize);
 
     try {
       if (currentFetchSize <= MINIMUM_ROW_FETCH_BLOCK_SIZE && currentFetchSize > 0) {
@@ -1589,7 +1594,6 @@ public class JDBCImportModule implements DatabaseImportModule {
 
             try {
               tableRawData = getTableRawData(table);
-
               while (resultSetNext(tableRawData)) {
                 handler.handleDataRow(convertRawToRow(tableRawData, table));
                 nRows++;
@@ -1617,6 +1621,14 @@ public class JDBCImportModule implements DatabaseImportModule {
             }
           }
           LOGGER.info("Total of " + nRows + " row(s) processed");
+
+          if (nRows < tableRows) {
+            LOGGER.warn("The database reported a total of {} rows. Some data may have been lost.", tableRows);
+            Reporter.customMessage(this.getClass().getName(), "Only processed " + nRows + " out of " + tableRows
+              + " rows contained in table '" + table.getName()
+              + "'. The log file may contain more information to help diagnose this problem.");
+          }
+
           getDatabaseStructure().lookupTableStructure(table.getId()).setRows(nRows);
 
           handler.handleDataCloseTable(table.getId());
