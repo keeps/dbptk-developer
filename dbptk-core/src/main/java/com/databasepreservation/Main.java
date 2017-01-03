@@ -94,6 +94,7 @@ public class Main {
     }
 
     Reporter.finish();
+    LOGGER.info("Troubleshooting information can be found at http://www.database-preservation.com/#troubleshooting");
     LOGGER.info("Please report any problems at https://github.com/keeps/db-preservation-toolkit/issues/new");
     logProgramFinish(exitStatus);
 
