@@ -1195,7 +1195,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       if (cellType instanceof ComposedTypeArray) {
         ComposedTypeArray composedTypeArray = (ComposedTypeArray) cellType;
         Array array = rawData.getArray(columnName);
-        LOGGER.debug("Parsing array of subtype " + composedTypeArray.getElementType().getClass().getSimpleName());
+        LOGGER.trace("Parsing array of subtype " + composedTypeArray.getElementType().getClass().getSimpleName());
         List<Cell> cells = parseArray(id, array);
         cell = new ComposedCell(id, cells);
       } else if (cellType instanceof ComposedTypeStructure) {

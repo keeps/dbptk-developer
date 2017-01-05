@@ -24,4 +24,8 @@ public class ComposedTypeDistinct extends Type {
   public void setBaseType(String baseType) {
     this.baseType = baseType;
   }
+
+  @Override public String toString() {
+    return super.toString() + "-->ComposedTypeDistinct{" + "baseType='" + baseType + '\'' + '}';
+  }
 }

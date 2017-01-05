@@ -59,7 +59,7 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
     String optionalSpacing = " ?";
     String regexBase = "(?<" + partBase + ">[A-Za-z ]+?)";
     String regexOptionalParenthesis = "(\\((?<" + partParenthesis + ">[A-Za-z0-9 ]+?)\\)|\\((?<" + partPrecision
-      + ">X[0-9 ]+?),(?<" + partScale + ">[0-9 ]+?)\\))?";
+      + ">[0-9 ]+?),(?<" + partScale + ">[0-9 ]+?)\\))?";
     String regexExtraTimeOptional = "(?<" + partTimezoneInfo + ">with(?<" + partTimezoneExcluded + ">out)? time zone)?";
     String regexCharsetOptional = "(CHARACTER SET (?<" + partCharset + ">.+?))?";
     String regexCollateOptional = "(COLLATE (?<" + partCollate + ">.+?))?";
@@ -334,6 +334,7 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
   }
 
   static class SqlStandardType {
+    String original;
     String normalized;
     boolean isValid = false;
 
@@ -354,7 +355,8 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
     int arrayLength = 0;
 
     SqlStandardType(String sqlStandardType) {
-      normalized = sqlStandardType.replaceAll("\\s+", " ").toUpperCase(Locale.ENGLISH);
+      original = sqlStandardType;
+      normalized = original.replaceAll("\\s+", " ").toUpperCase(Locale.ENGLISH);
 
       Matcher matcher = typePattern.matcher(normalized);
 
@@ -406,6 +408,14 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
           }
         }
       }
+    }
+
+    @Override public String toString() {
+      return "SqlStandardType{" + "original='" + original + '\'' + ", normalized='" + normalized + '\'' + ", isValid="
+        + isValid + ", base='" + base + '\'' + ", hasTimezoneInfo=" + hasTimezoneInfo + ", includesTimezone="
+        + includesTimezone + ", typeTimezonePart='" + typeTimezonePart + '\'' + ", hasColumnSize=" + hasColumnSize
+        + ", columnSize=" + columnSize + ", hasDecimaldigits=" + hasDecimaldigits + ", decimalDigits=" + decimalDigits
+        + ", isArray=" + isArray + ", hasArrayLength=" + hasArrayLength + ", arrayLength=" + arrayLength + '}';
     }
   }
 }

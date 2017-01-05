@@ -16,4 +16,8 @@ public class SimpleTypeBoolean extends Type {
    */
   public SimpleTypeBoolean() {
   }
+
+  @Override public String toString() {
+    return super.toString() + "-->SimpleTypeBoolean{}";
+  }
 }

@@ -307,6 +307,8 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   @Override
   protected Type getArraySubTypeFromTypeName(String typeName, int columnSize, int decimalDigits, int numPrecRadix,
     int dataType) throws UnknownTypeException {
+    // TODO bferreira 04/01/2017 figure out how to extract base types from the
+    // array type info (also in other module implementations)
     Type subtype;
     if ("_char".equals(typeName)) {
       subtype = new SimpleTypeString(columnSize, false);
@@ -317,7 +319,9 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
       subtype = getTimeType(typeName, columnSize, decimalDigits, numPrecRadix);
     } else {
       LOGGER.debug("Unsupported array datatype with code " + dataType);
-      return new UnsupportedDataType(Types.ARRAY, typeName, columnSize, decimalDigits, numPrecRadix);
+      subtype = getFallbackType(typeName);
+      // subtype = new UnsupportedDataType(Types.ARRAY, typeName, columnSize,
+      // decimalDigits, numPrecRadix);
     }
     return subtype;
   }

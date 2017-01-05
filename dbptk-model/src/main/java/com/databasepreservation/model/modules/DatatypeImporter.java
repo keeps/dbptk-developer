@@ -104,8 +104,8 @@ public abstract class DatatypeImporter {
     } else {
       type.setOriginalTypeName("UNKNOWN");
     }
-    type.setSql99TypeName("CHARACTER LARGE OBJECT");
-    type.setSql2008TypeName("CHARACTER LARGE OBJECT");
+    type.setSql99TypeName("CHARACTER VARYING", Integer.MAX_VALUE);
+    type.setSql2008TypeName("CHARACTER VARYING", Integer.MAX_VALUE);
     return type;
   }
 

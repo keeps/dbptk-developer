@@ -9,11 +9,14 @@ import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.type.ComposedTypeArray;
 import com.databasepreservation.model.structure.type.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SQL2008StandardDatatypeImporter extends SQLStandardDatatypeImporter {
+  private static final Logger LOGGER = LoggerFactory.getLogger(SQL2008StandardDatatypeImporter.class);
 
   @Override
   protected Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName,
@@ -21,7 +24,9 @@ public class SQL2008StandardDatatypeImporter extends SQLStandardDatatypeImporter
     throws UnknownTypeException, SQLException, ClassNotFoundException {
 
     SqlStandardType standardType = new SqlStandardType(sql2008TypeName);
-    String typeNameWithoutParameters = standardType.normalized + standardType.typeTimezonePart;
+    String typeNameWithoutParameters = standardType.base + standardType.typeTimezonePart;
+
+    LOGGER.debug("name: {}, stdType: {}", typeNameWithoutParameters, standardType);
 
     Type type;
     switch (typeNameWithoutParameters) {
