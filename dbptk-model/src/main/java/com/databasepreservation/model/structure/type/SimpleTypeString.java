@@ -143,4 +143,9 @@ public class SimpleTypeString extends Type {
     return true;
   }
 
+  @Override
+  public String toString() {
+    return super.toString() + "-->SimpleTypeString{" + "length=" + length + ", lengthVariable=" + lengthVariable
+      + ", charset='" + charset + '\'' + '}';
+  }
 }

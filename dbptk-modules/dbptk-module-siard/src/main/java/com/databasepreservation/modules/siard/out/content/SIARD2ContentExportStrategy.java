@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
@@ -24,6 +26,7 @@ import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.type.ComposedTypeArray;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.common.LargeObject;
@@ -52,6 +55,9 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   int currentRowIndex;
   private List<LargeObject> LOBsToExport;
 
+  // <columnId, maxLength>
+  private Map<String, Integer> arrayMaximumLength;
+
   public SIARD2ContentExportStrategy(SIARD2ContentPathExportStrategy contentPathStrategy, WriteStrategy writeStrategy,
     SIARDArchiveContainer baseContainer, boolean prettyXMLOutput) {
     this.contentPathStrategy = contentPathStrategy;
@@ -61,6 +67,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     this.LOBsToExport = new ArrayList<LargeObject>();
     currentRowIndex = -1;
     this.prettyXMLOutput = prettyXMLOutput;
+    arrayMaximumLength = new HashMap<>();
   }
 
   @Override
@@ -158,6 +165,13 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
     ComposedCell composedCell = (ComposedCell) cell;
 
+    String cellPrefix = "";
+    if (column.getType() instanceof ComposedTypeArray) {
+      cellPrefix = "a";
+    } else if (column.getType() instanceof ComposedTypeStructure) {
+      cellPrefix = "u";
+    }
+
     currentWriter.openTag("c" + columnIndex, 2);
 
     int subCellIndex = 1;
@@ -167,9 +181,9 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       } else if (subCell instanceof SimpleCell) {
         SimpleCell simpleCell = (SimpleCell) subCell;
         if (simpleCell.getSimpleData() != null) {
-          currentWriter.inlineOpenTag("u" + subCellIndex, 3);
+          currentWriter.inlineOpenTag(cellPrefix + subCellIndex, 3);
           currentWriter.write(XMLUtils.encode(simpleCell.getSimpleData()));
-          currentWriter.closeTag("u" + subCellIndex);
+          currentWriter.closeTag(cellPrefix + subCellIndex);
         }
       } else if (subCell instanceof ComposedCell) {
         // currentWriter.inlineOpenTag("u" + subCellIndex, 3);
@@ -187,6 +201,16 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
       subCellIndex++;
     }
+
+    // update information about the maximum length of the array
+    if (column.getType() instanceof ComposedTypeArray) {
+      int newMax = subCellIndex - 1;
+      Integer max = arrayMaximumLength.get(column.getId());
+      if (max == null || max < newMax) {
+        arrayMaximumLength.put(column.getId(), newMax);
+      }
+    }
+
     currentWriter.closeTag("c" + columnIndex, 2);
   }
 
@@ -395,6 +419,45 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
         // subtypes differ then there would exist conflicting definitions for
         // elements u1, u2, u3, etc
         LOGGER.warn("XSD validation of tables containing UDT is not yet supported.");
+      } else if (col.getType() instanceof ComposedTypeArray) {
+        ComposedTypeArray arrayType = (ComposedTypeArray) col.getType();
+
+        // <xs:element minOccurs="0" name="c4">
+        xsdWriter.beginOpenTag("xs:element", 4);
+        if (col.isNillable()) {
+          xsdWriter.appendAttribute("minOccurs", "0");
+        }
+        xsdWriter.appendAttribute("name", "c" + columnIndex).endOpenTag();
+
+        // <xs:complexType>
+        xsdWriter.openTag("xs:complexType", 5);
+
+        // <xs:sequence>
+        xsdWriter.openTag("xs:sequence", 6);
+
+        String xsdType = null;
+        try {
+          xsdType = Sql2008toXSDType.convert(arrayType.getElementType());
+        } catch (UnknownTypeException e) {
+          LOGGER.error(String.format("An error occurred while getting the XSD subtype of array column c%d", columnIndex), e);
+        }
+
+        Integer maxLength = arrayMaximumLength.get(col.getId());
+
+        if(xsdType != null && maxLength != null) {
+          for (int i = 1; i <= maxLength; i++) {
+            xsdWriter.beginOpenTag("xs:element", 7).appendAttribute("minOccurs", "0");
+            xsdWriter.appendAttribute("name", "a" + i).appendAttribute("type", xsdType).endShorthandTag();
+          }
+        }
+
+        // </xs:sequence>
+        xsdWriter.closeTag("xs:sequence", 6);
+
+        // </xs:complexType>
+        xsdWriter.closeTag("xs:complexType", 5);
+
+        xsdWriter.closeTag("xs:element", 4);
       } else {
         try {
           String xsdType = Sql2008toXSDType.convert(col.getType());
@@ -411,8 +474,8 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
         } catch (UnknownTypeException e) {
           LOGGER.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
         }
-        columnIndex++;
       }
+      columnIndex++;
     }
 
     xsdWriter

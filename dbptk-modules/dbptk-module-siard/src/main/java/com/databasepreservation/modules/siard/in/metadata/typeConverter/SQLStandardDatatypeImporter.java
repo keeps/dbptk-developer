@@ -1,5 +1,11 @@
 package com.databasepreservation.modules.siard.in.metadata.typeConverter;
 
+import java.util.Locale;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +42,34 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
 
   private static final int MINIMUM_CLOB_SIZE = 65535;
 
+  private static final Pattern typePattern;
+  private static final String partBase = "base";
+  private static final String partParenthesis = "parenthesis";
+  private static final String partPrecision = "precision";
+  private static final String partScale = "scale";
+  private static final String partTimezoneInfo = "timezone";
+  private static final String partTimezoneExcluded = "withouttimezone";
+  private static final String partCharset = "charset";
+  private static final String partCollate = "collate";
+  private static final String partArrayInfo = "array";
+  private static final String partArrayLength = "arrlen";
+
+  static {
+    // TODO: missing INTERVAL, ROW, MULTISET, REF and SCOPE types
+    String optionalSpacing = " ?";
+    String regexBase = "(?<" + partBase + ">[A-Za-z ]+?)";
+    String regexOptionalParenthesis = "(\\((?<" + partParenthesis + ">[A-Za-z0-9 ]+?)\\)|\\((?<" + partPrecision
+      + ">[0-9 ]+?),(?<" + partScale + ">[0-9 ]+?)\\))?";
+    String regexExtraTimeOptional = "(?<" + partTimezoneInfo + ">with(?<" + partTimezoneExcluded + ">out)? time zone)?";
+    String regexCharsetOptional = "(CHARACTER SET (?<" + partCharset + ">.+?))?";
+    String regexCollateOptional = "(COLLATE (?<" + partCollate + ">.+?))?";
+    String regexArrayOptional = "(?<" + partArrayInfo + ">ARRAY( \\[ ?(?<" + partArrayLength + ">[0-9]+) ?\\])?)?";
+
+    typePattern = Pattern.compile("^" + regexBase + optionalSpacing + regexOptionalParenthesis + optionalSpacing
+      + regexExtraTimeOptional + optionalSpacing + regexCharsetOptional + optionalSpacing + regexCollateOptional
+      + optionalSpacing + regexArrayOptional + "$", Pattern.CASE_INSENSITIVE);
+  }
+
   /**
    * getCheckedType method, simplified to use with SIARD import modules
    */
@@ -47,32 +81,12 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
     SchemaStructure schema = new SchemaStructure();
     schema.setName(schemaName);
 
-    int columnSize = DEFAULT_COLUMN_SIZE;
-    int decimalDigits = DEFAULT_DECIMAL_DIGITS;
+    SqlStandardType standardType = new SqlStandardType(sqlStandardType);
+
     int numPrecRadix = DEFAULT_NUM_PREC_RADIX;
 
-    int indexOfOpen = sqlStandardType.indexOf('(');
-    int indexOfComma = sqlStandardType.indexOf(',', indexOfOpen);
-    int indexOfClose = sqlStandardType.indexOf(')', indexOfComma);
-
-    // attempt to parse SQL standard type
-    // TODO: support parameters other than those matching [+-]?[0-9]+
-    try {
-      if (indexOfOpen >= 0 && indexOfComma >= 0 && indexOfClose >= 0) {
-        // format like NAME(PARAM1,PARAM2)
-        columnSize = Integer.parseInt(sqlStandardType.substring(indexOfOpen + 1, indexOfComma).trim());
-        decimalDigits = Integer.parseInt(sqlStandardType.substring(indexOfComma + 1, indexOfClose).trim());
-      } else if (indexOfOpen >= 0 && indexOfClose >= 0) {
-        // format like NAME(PARAM1)
-        columnSize = Integer.parseInt(sqlStandardType.substring(indexOfOpen + 1, indexOfClose).trim());
-      }
-    } catch (NumberFormatException e) {
-      columnSize = DEFAULT_COLUMN_SIZE;
-      decimalDigits = DEFAULT_DECIMAL_DIGITS;
-    }
-
-    Type type = getCheckedType(database, schema, tableName, columnName, 0, sqlStandardType, columnSize, decimalDigits,
-      numPrecRadix);
+    Type type = getCheckedType(database, schema, tableName, columnName, 0, sqlStandardType, standardType.columnSize,
+      standardType.decimalDigits, numPrecRadix);
     type.setOriginalTypeName(originalType);
     return type;
   }
@@ -317,5 +331,91 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
     // this will be filled later, before returning from getCheckedType
     type.setOriginalTypeName(null);
     return type;
+  }
+
+  static class SqlStandardType {
+    String original;
+    String normalized;
+    boolean isValid = false;
+
+    String base;
+
+    boolean hasTimezoneInfo = false;
+    boolean includesTimezone = false;
+    String typeTimezonePart = "";
+
+    boolean hasColumnSize = false;
+    int columnSize = DEFAULT_COLUMN_SIZE;
+
+    boolean hasDecimaldigits = false;
+    int decimalDigits = DEFAULT_DECIMAL_DIGITS;
+
+    boolean isArray = false;
+    boolean hasArrayLength = false;
+    int arrayLength = 0;
+
+    SqlStandardType(String sqlStandardType) {
+      original = sqlStandardType;
+      normalized = original.replaceAll("\\s+", " ").toUpperCase(Locale.ENGLISH);
+
+      Matcher matcher = typePattern.matcher(normalized);
+
+      isValid = matcher.find();
+      if (isValid) {
+        // separate the type and parameter information
+        base = matcher.group(partBase).trim();
+        hasTimezoneInfo = StringUtils.isNotBlank(matcher.group(partTimezoneInfo));
+        if (hasTimezoneInfo) {
+          includesTimezone = StringUtils.isBlank(matcher.group(partTimezoneExcluded));
+          if (includesTimezone) {
+            typeTimezonePart = " WITH TIME ZONE";
+          } else {
+            typeTimezonePart = " WITHOUT TIME ZONE";
+          }
+        }
+
+        if (StringUtils.isNotBlank(matcher.group(partScale))) {
+          try {
+            columnSize = Integer.parseInt(matcher.group(partPrecision));
+            hasColumnSize = true;
+          } catch (NumberFormatException e) {
+            LOGGER.debug("Invalid SQL type precision part: {}", matcher.group(partPrecision), e);
+          }
+          try {
+            decimalDigits = Integer.parseInt(matcher.group(partScale));
+            hasDecimaldigits = true;
+          } catch (NumberFormatException e) {
+            LOGGER.debug("Invalid SQL type scale part: {}", matcher.group(partScale), e);
+          }
+        } else if (StringUtils.isNotBlank(matcher.group(partParenthesis))) {
+          try {
+            columnSize = Integer.parseInt(matcher.group(partParenthesis));
+            hasColumnSize = true;
+          } catch (NumberFormatException e) {
+            LOGGER.debug("Invalid SQL type parenthesis part: {}", matcher.group(partParenthesis), e);
+          }
+        }
+
+        isArray = StringUtils.isNotBlank(matcher.group(partArrayInfo));
+        if (isArray) {
+          if (StringUtils.isNotBlank(matcher.group(partArrayLength))) {
+            try {
+              arrayLength = Integer.parseInt(matcher.group(partArrayLength));
+              hasArrayLength = true;
+            } catch (NumberFormatException e) {
+              LOGGER.debug("Invalid SQL type array length part: {}", e, matcher.group(partArrayLength));
+            }
+          }
+        }
+      }
+    }
+
+    @Override public String toString() {
+      return "SqlStandardType{" + "original='" + original + '\'' + ", normalized='" + normalized + '\'' + ", isValid="
+        + isValid + ", base='" + base + '\'' + ", hasTimezoneInfo=" + hasTimezoneInfo + ", includesTimezone="
+        + includesTimezone + ", typeTimezonePart='" + typeTimezonePart + '\'' + ", hasColumnSize=" + hasColumnSize
+        + ", columnSize=" + columnSize + ", hasDecimaldigits=" + hasDecimaldigits + ", decimalDigits=" + decimalDigits
+        + ", isArray=" + isArray + ", hasArrayLength=" + hasArrayLength + ", arrayLength=" + arrayLength + '}';
+    }
   }
 }

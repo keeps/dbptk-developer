@@ -420,7 +420,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     schemaType.setTables(jaxbTablesType(schema, schema.getTables()));
     schemaType.setViews(jaxbViewsType(schema.getViews()));
     schemaType.setRoutines(jaxbRoutinesType(schema.getRoutines()));
-    schemaType.setTypes(jaxbTypesType(schema.getUserDefinedTypes()));
+    schemaType.setTypes(jaxbTypesType(schema.getUserDefinedTypesComposed()));
 
     return schemaType;
   }

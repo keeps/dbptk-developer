@@ -101,4 +101,8 @@ public class SimpleTypeNumericExact extends Type {
     }
     return true;
   }
+
+  @Override public String toString() {
+    return super.toString() + "-->SimpleTypeNumericExact{" + "precision=" + precision + ", scale=" + scale + '}';
+  }
 }

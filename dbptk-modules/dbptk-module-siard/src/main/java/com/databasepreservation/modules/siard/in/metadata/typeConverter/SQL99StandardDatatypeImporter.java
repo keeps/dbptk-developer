@@ -1,9 +1,10 @@
 package com.databasepreservation.modules.siard.in.metadata.typeConverter;
 
 import java.sql.SQLException;
-import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.DatabaseStructure;
@@ -14,25 +15,17 @@ import com.databasepreservation.model.structure.type.Type;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SQL99StandardDatatypeImporter extends SQLStandardDatatypeImporter {
+  private static final Logger LOGGER = LoggerFactory.getLogger(SQL99StandardDatatypeImporter.class);
+
   @Override
   protected Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName,
     String columnName, int dataType, String sql99TypeName, int columnSize, int decimalDigits, int numPrecRadix)
     throws UnknownTypeException, SQLException, ClassNotFoundException {
 
-    // obtain the type without parameter information
-    String typeNameWithoutParameters;
-    int leftParenthesisIndex = sql99TypeName.indexOf('(');
-    int rightParenthesisIndex = sql99TypeName.lastIndexOf(')');
-    if (leftParenthesisIndex >= 0 && rightParenthesisIndex >= 0) {
-      if (rightParenthesisIndex >= sql99TypeName.length()) {
-        rightParenthesisIndex = sql99TypeName.length() - 1;
-      }
-      typeNameWithoutParameters = sql99TypeName.substring(0, leftParenthesisIndex)
-        + sql99TypeName.substring(rightParenthesisIndex + 1);
-    } else {
-      typeNameWithoutParameters = sql99TypeName;
-    }
-    typeNameWithoutParameters = typeNameWithoutParameters.toUpperCase(Locale.ENGLISH);
+    SqlStandardType standardType = new SqlStandardType(sql99TypeName);
+    String typeNameWithoutParameters = standardType.base + standardType.typeTimezonePart;
+
+    LOGGER.debug("name: {}, stdType: {}", typeNameWithoutParameters, standardType);
 
     Type type;
     switch (typeNameWithoutParameters) {
@@ -145,31 +138,36 @@ public class SQL99StandardDatatypeImporter extends SQLStandardDatatypeImporter {
     // TODO: add support for more types
     // TODO: support charsets
 
-    if (StringUtils.isBlank(type.getSql99TypeName())) {
+    if (StringUtils.isBlank(type.getSql99TypeName(false))) {
       type.setSql99TypeName(sql99TypeName);
     }
 
-    if (StringUtils.isBlank(type.getSql2008TypeName())) {
+    if (StringUtils.isBlank(type.getSql2008TypeName(false))) {
       // TODO: improve conversion from sql99 to sql2008
       String sql2008TypeName;
 
-      String append = "";
-      if (leftParenthesisIndex >= 0 && rightParenthesisIndex >= 0) {
-        append = sql99TypeName.substring(leftParenthesisIndex);
-      }
-
       switch (typeNameWithoutParameters) {
         case "BIT":
-          sql2008TypeName = "BINARY" + append;
+          sql2008TypeName = "BINARY";
+          if (standardType.hasColumnSize) {
+            sql2008TypeName += "(" + standardType.columnSize + ")";
+          }
           break;
         case "BIT VARYING":
-          sql2008TypeName = "BINARY VARYING" + append;
+          sql2008TypeName = "BINARY VARYING";
+          if (standardType.hasColumnSize) {
+            sql2008TypeName += "(" + standardType.columnSize + ")";
+          }
           break;
         default:
           sql2008TypeName = sql99TypeName;
       }
 
       type.setSql2008TypeName(sql2008TypeName);
+    }
+
+    if (StringUtils.isBlank(type.getOriginalTypeName())) {
+      type.setOriginalTypeName(standardType.original);
     }
 
     return type;

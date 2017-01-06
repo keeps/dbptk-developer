@@ -17,6 +17,8 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class Type {
   private static final Logger LOGGER = LoggerFactory.getLogger(Type.class);
+  private static String FALLBACK_SQL2008_TYPE = "VARCHAR(2147483647)";
+  private static String FALLBACK_SQL99_TYPE = FALLBACK_SQL2008_TYPE;
 
   private String originalTypeName;
 
@@ -83,17 +85,29 @@ public abstract class Type {
   }
 
   /**
-   * @return The name of the SQL99 normalized type. null if not applicable
+   * @param fallback
+   *          set a default fallback type in case the SQL99 type has not been
+   *          set
+   * @return The name of the SQL99 normalized type.
    */
-  public String getSql99TypeName() {
+  public String getSql99TypeName(boolean fallback) {
     if (StringUtils.isBlank(sql99TypeName)) {
       setSql99fromSql2008();
     }
 
-    if (StringUtils.isBlank(sql99TypeName)) {
+    if (fallback && StringUtils.isBlank(sql99TypeName)) {
       // LOGGER.warn("SQL99 type is not defined for type " + this.toString());
+      sql99TypeName = FALLBACK_SQL99_TYPE;
     }
     return sql99TypeName;
+  }
+
+  /**
+   * @return The name of the SQL99 normalized type. If the type has not been
+   *         set, a default fallback type is set and returned.
+   */
+  public String getSql99TypeName() {
+    return getSql99TypeName(true);
   }
 
   /**
@@ -127,17 +141,29 @@ public abstract class Type {
   }
 
   /**
-   * @return The name of the SQL2008 normalized type. null if not applicable
+   * @param fallback
+   *          set a default fallback type in case the SQL2008 type has not been
+   *          set
+   * @return The name of the SQL2008 normalized type.
    */
-  public String getSql2008TypeName() {
+  public String getSql2008TypeName(boolean fallback) {
     if (StringUtils.isBlank(sql2008TypeName)) {
       setSql2008fromSql99();
     }
 
-    if (StringUtils.isBlank(sql2008TypeName)) {
+    if (fallback && StringUtils.isBlank(sql2008TypeName)) {
       // LOGGER.warn("SQL2008 type is not defined for type " + this.toString());
+      sql2008TypeName = FALLBACK_SQL2008_TYPE;
     }
     return sql2008TypeName;
+  }
+
+  /**
+   * @return The name of the SQL2008 normalized type. If the type has not been
+   *         set, a default fallback type is set and returned.
+   */
+  public String getSql2008TypeName() {
+    return getSql2008TypeName(true);
   }
 
   /**

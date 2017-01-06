@@ -34,7 +34,7 @@ public class ConfigUtils {
    * Get the value from the java properties (-Dxxx=yyy) or an environment
    * variable (in that order), ultimately returning the default value if one was
    * not found.
-   * 
+   *
    * @param defaultValue
    *          the value to return if no other value is found
    * @param parts
