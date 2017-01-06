@@ -149,13 +149,13 @@ public class SQL99StandardDatatypeImporter extends SQLStandardDatatypeImporter {
       switch (typeNameWithoutParameters) {
         case "BIT":
           sql2008TypeName = "BINARY";
-          if(standardType.hasColumnSize){
+          if (standardType.hasColumnSize) {
             sql2008TypeName += "(" + standardType.columnSize + ")";
           }
           break;
         case "BIT VARYING":
           sql2008TypeName = "BINARY VARYING";
-          if(standardType.hasColumnSize){
+          if (standardType.hasColumnSize) {
             sql2008TypeName += "(" + standardType.columnSize + ")";
           }
           break;
@@ -164,6 +164,10 @@ public class SQL99StandardDatatypeImporter extends SQLStandardDatatypeImporter {
       }
 
       type.setSql2008TypeName(sql2008TypeName);
+    }
+
+    if (StringUtils.isBlank(type.getOriginalTypeName())) {
+      type.setOriginalTypeName(standardType.original);
     }
 
     return type;
