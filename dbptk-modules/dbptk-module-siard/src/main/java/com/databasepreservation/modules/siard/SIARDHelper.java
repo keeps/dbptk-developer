@@ -1,9 +1,9 @@
 package com.databasepreservation.modules.siard;
 
+import java.net.UnknownHostException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.UnknownHostException;
 
 /**
  * @author Miguel Coutada

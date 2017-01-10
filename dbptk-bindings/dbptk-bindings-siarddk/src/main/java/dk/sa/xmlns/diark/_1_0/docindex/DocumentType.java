@@ -5,10 +5,10 @@
 // Generated on: 2016.09.21 at 01:40:35 PM CEST 
 //
 
-
 package dk.sa.xmlns.diark._1_0.docindex;
 
 import java.math.BigInteger;
+
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -19,13 +19,15 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.NormalizedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-
 /**
  * A type for a document
  * 
- * <p>Java class for documentType complex type.
+ * <p>
+ * Java class for documentType complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType name="documentType"&gt;
@@ -48,201 +50,174 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "documentType", propOrder = {
-    "did",
-    "pid",
-    "mid",
-    "dCf",
-    "oFn",
-    "aFt",
-    "gmlXsd"
-})
+@XmlType(name = "documentType", propOrder = {"did", "pid", "mid", "dCf", "oFn", "aFt", "gmlXsd"})
 public class DocumentType {
 
-    @XmlElement(name = "dID", required = true)
-    @XmlSchemaType(name = "positiveInteger")
-    protected BigInteger did;
-    @XmlElementRef(name = "pID", namespace = "http://www.sa.dk/xmlns/diark/1.0", type = JAXBElement.class, required = false)
-    protected JAXBElement<BigInteger> pid;
-    @XmlElement(name = "mID", required = true)
-    @XmlSchemaType(name = "positiveInteger")
-    protected BigInteger mid;
-    @XmlElement(required = true)
-    protected String dCf;
-    @XmlElement(required = true)
-    @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
-    @XmlSchemaType(name = "normalizedString")
-    protected String oFn;
-    @XmlElement(required = true)
-    protected String aFt;
-    protected String gmlXsd;
+  @XmlElement(name = "dID", required = true)
+  @XmlSchemaType(name = "positiveInteger")
+  protected BigInteger did;
+  @XmlElementRef(name = "pID", namespace = "http://www.sa.dk/xmlns/diark/1.0", type = JAXBElement.class, required = false)
+  protected JAXBElement<BigInteger> pid;
+  @XmlElement(name = "mID", required = true)
+  @XmlSchemaType(name = "positiveInteger")
+  protected BigInteger mid;
+  @XmlElement(required = true)
+  protected String dCf;
+  @XmlElement(required = true)
+  @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
+  @XmlSchemaType(name = "normalizedString")
+  protected String oFn;
+  @XmlElement(required = true)
+  protected String aFt;
+  protected String gmlXsd;
 
-    /**
-     * Gets the value of the did property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link BigInteger }
-     *     
-     */
-    public BigInteger getDID() {
-        return did;
-    }
+  /**
+   * Gets the value of the did property.
+   * 
+   * @return possible object is {@link BigInteger }
+   * 
+   */
+  public BigInteger getDID() {
+    return did;
+  }
 
-    /**
-     * Sets the value of the did property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link BigInteger }
-     *     
-     */
-    public void setDID(BigInteger value) {
-        this.did = value;
-    }
+  /**
+   * Sets the value of the did property.
+   * 
+   * @param value
+   *          allowed object is {@link BigInteger }
+   * 
+   */
+  public void setDID(BigInteger value) {
+    this.did = value;
+  }
 
-    /**
-     * Gets the value of the pid property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link JAXBElement }{@code <}{@link BigInteger }{@code >}
-     *     
-     */
-    public JAXBElement<BigInteger> getPID() {
-        return pid;
-    }
+  /**
+   * Gets the value of the pid property.
+   * 
+   * @return possible object is {@link JAXBElement }{@code <}{@link BigInteger }
+   *         {@code >}
+   * 
+   */
+  public JAXBElement<BigInteger> getPID() {
+    return pid;
+  }
 
-    /**
-     * Sets the value of the pid property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link JAXBElement }{@code <}{@link BigInteger }{@code >}
-     *     
-     */
-    public void setPID(JAXBElement<BigInteger> value) {
-        this.pid = value;
-    }
+  /**
+   * Sets the value of the pid property.
+   * 
+   * @param value
+   *          allowed object is {@link JAXBElement }{@code <}{@link BigInteger }
+   *          {@code >}
+   * 
+   */
+  public void setPID(JAXBElement<BigInteger> value) {
+    this.pid = value;
+  }
 
-    /**
-     * Gets the value of the mid property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link BigInteger }
-     *     
-     */
-    public BigInteger getMID() {
-        return mid;
-    }
+  /**
+   * Gets the value of the mid property.
+   * 
+   * @return possible object is {@link BigInteger }
+   * 
+   */
+  public BigInteger getMID() {
+    return mid;
+  }
 
-    /**
-     * Sets the value of the mid property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link BigInteger }
-     *     
-     */
-    public void setMID(BigInteger value) {
-        this.mid = value;
-    }
+  /**
+   * Sets the value of the mid property.
+   * 
+   * @param value
+   *          allowed object is {@link BigInteger }
+   * 
+   */
+  public void setMID(BigInteger value) {
+    this.mid = value;
+  }
 
-    /**
-     * Gets the value of the dCf property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDCf() {
-        return dCf;
-    }
+  /**
+   * Gets the value of the dCf property.
+   * 
+   * @return possible object is {@link String }
+   * 
+   */
+  public String getDCf() {
+    return dCf;
+  }
 
-    /**
-     * Sets the value of the dCf property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDCf(String value) {
-        this.dCf = value;
-    }
+  /**
+   * Sets the value of the dCf property.
+   * 
+   * @param value
+   *          allowed object is {@link String }
+   * 
+   */
+  public void setDCf(String value) {
+    this.dCf = value;
+  }
 
-    /**
-     * Gets the value of the oFn property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getOFn() {
-        return oFn;
-    }
+  /**
+   * Gets the value of the oFn property.
+   * 
+   * @return possible object is {@link String }
+   * 
+   */
+  public String getOFn() {
+    return oFn;
+  }
 
-    /**
-     * Sets the value of the oFn property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setOFn(String value) {
-        this.oFn = value;
-    }
+  /**
+   * Sets the value of the oFn property.
+   * 
+   * @param value
+   *          allowed object is {@link String }
+   * 
+   */
+  public void setOFn(String value) {
+    this.oFn = value;
+  }
 
-    /**
-     * Gets the value of the aFt property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getAFt() {
-        return aFt;
-    }
+  /**
+   * Gets the value of the aFt property.
+   * 
+   * @return possible object is {@link String }
+   * 
+   */
+  public String getAFt() {
+    return aFt;
+  }
 
-    /**
-     * Sets the value of the aFt property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setAFt(String value) {
-        this.aFt = value;
-    }
+  /**
+   * Sets the value of the aFt property.
+   * 
+   * @param value
+   *          allowed object is {@link String }
+   * 
+   */
+  public void setAFt(String value) {
+    this.aFt = value;
+  }
 
-    /**
-     * Gets the value of the gmlXsd property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getGmlXsd() {
-        return gmlXsd;
-    }
+  /**
+   * Gets the value of the gmlXsd property.
+   * 
+   * @return possible object is {@link String }
+   * 
+   */
+  public String getGmlXsd() {
+    return gmlXsd;
+  }
 
-    /**
-     * Sets the value of the gmlXsd property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setGmlXsd(String value) {
-        this.gmlXsd = value;
-    }
+  /**
+   * Sets the value of the gmlXsd property.
+   * 
+   * @param value
+   *          allowed object is {@link String }
+   * 
+   */
+  public void setGmlXsd(String value) {
+    this.gmlXsd = value;
+  }
 
 }

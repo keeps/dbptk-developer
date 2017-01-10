@@ -5,23 +5,25 @@
 // Generated on: 2016.09.21 at 01:32:34 PM CEST 
 //
 
-
 package dk.sa.xmlns.diark._1_0.tableindex;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
  * type for en tabelliste, bestående af én eller flere tabeller
  * 
- * <p>Java class for tablesType complex type.
+ * <p>
+ * Java class for tablesType complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType name="tablesType"&gt;
@@ -38,41 +40,39 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "tablesType", propOrder = {
-    "table"
-})
+@XmlType(name = "tablesType", propOrder = {"table"})
 public class TablesType {
 
-    @XmlElement(required = true)
-    protected List<TableType> table;
+  @XmlElement(required = true)
+  protected List<TableType> table;
 
-    /**
-     * Gets the value of the table property.
-     * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the table property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getTable().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link TableType }
-     * 
-     * 
-     */
-    public List<TableType> getTable() {
-        if (table == null) {
-            table = new ArrayList<TableType>();
-        }
-        return this.table;
+  /**
+   * Gets the value of the table property.
+   * 
+   * <p>
+   * This accessor method returns a reference to the live list, not a snapshot.
+   * Therefore any modification you make to the returned list will be present
+   * inside the JAXB object. This is why there is not a <CODE>set</CODE> method
+   * for the table property.
+   * 
+   * <p>
+   * For example, to add a new item, do as follows:
+   * 
+   * <pre>
+   * getTable().add(newItem);
+   * </pre>
+   * 
+   * 
+   * <p>
+   * Objects of the following type(s) are allowed in the list {@link TableType }
+   * 
+   * 
+   */
+  public List<TableType> getTable() {
+    if (table == null) {
+      table = new ArrayList<TableType>();
     }
+    return this.table;
+  }
 
 }

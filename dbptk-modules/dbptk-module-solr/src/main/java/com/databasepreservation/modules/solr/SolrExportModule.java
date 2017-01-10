@@ -19,6 +19,8 @@ import com.databasepreservation.visualization.utils.SolrUtils;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SolrExportModule implements DatabaseExportModule {
+  private final SolrModuleConfiguration configuration = SolrModuleConfiguration.getInstance();
+
   private final SolrManager solrManager;
 
   private DatabaseStructure structure;
@@ -136,7 +138,8 @@ public class SolrExportModule implements DatabaseExportModule {
    */
   @Override
   public void handleDataRow(Row row) throws InvalidDataException, ModuleException {
-    solrManager.addRow(currentTable, ToolkitStructure2ViewerStructure.getRow(currentTable, row, rowIndex++));
+    solrManager.addRow(currentTable,
+      ToolkitStructure2ViewerStructure.getRow(configuration, currentTable, row, rowIndex++));
   }
 
   /**

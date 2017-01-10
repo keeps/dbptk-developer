@@ -5,75 +5,74 @@
 // Generated on: 2016.09.21 at 01:40:35 PM CEST 
 //
 
-
 package dk.sa.xmlns.diark._1_0.docindex;
 
 import java.math.BigInteger;
+
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlElementDecl;
 import javax.xml.bind.annotation.XmlRegistry;
 import javax.xml.namespace.QName;
 
-
 /**
- * This object contains factory methods for each 
- * Java content interface and Java element interface 
- * generated in the dk.sa.xmlns.diark._1 package. 
- * <p>An ObjectFactory allows you to programatically 
- * construct new instances of the Java representation 
- * for XML content. The Java representation of XML 
- * content can consist of schema derived interfaces 
- * and classes representing the binding of schema 
- * type definitions, element declarations and model 
- * groups.  Factory methods for each of these are 
- * provided in this class.
+ * This object contains factory methods for each Java content interface and Java
+ * element interface generated in the dk.sa.xmlns.diark._1 package.
+ * <p>
+ * An ObjectFactory allows you to programatically construct new instances of the
+ * Java representation for XML content. The Java representation of XML content
+ * can consist of schema derived interfaces and classes representing the binding
+ * of schema type definitions, element declarations and model groups. Factory
+ * methods for each of these are provided in this class.
  * 
  */
 @XmlRegistry
 public class ObjectFactory {
 
-    private final static QName _DocIndex_QNAME = new QName("http://www.sa.dk/xmlns/diark/1.0", "docIndex");
-    private final static QName _DocumentTypePID_QNAME = new QName("http://www.sa.dk/xmlns/diark/1.0", "pID");
+  private final static QName _DocIndex_QNAME = new QName("http://www.sa.dk/xmlns/diark/1.0", "docIndex");
+  private final static QName _DocumentTypePID_QNAME = new QName("http://www.sa.dk/xmlns/diark/1.0", "pID");
 
-    /**
-     * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: dk.sa.xmlns.diark._1
-     * 
-     */
-    public ObjectFactory() {
-    }
+  /**
+   * Create a new ObjectFactory that can be used to create new instances of
+   * schema derived classes for package: dk.sa.xmlns.diark._1
+   * 
+   */
+  public ObjectFactory() {
+  }
 
-    /**
-     * Create an instance of {@link DocIndexType }
-     * 
-     */
-    public DocIndexType createDocIndexType() {
-        return new DocIndexType();
-    }
+  /**
+   * Create an instance of {@link DocIndexType }
+   * 
+   */
+  public DocIndexType createDocIndexType() {
+    return new DocIndexType();
+  }
 
-    /**
-     * Create an instance of {@link DocumentType }
-     * 
-     */
-    public DocumentType createDocumentType() {
-        return new DocumentType();
-    }
+  /**
+   * Create an instance of {@link DocumentType }
+   * 
+   */
+  public DocumentType createDocumentType() {
+    return new DocumentType();
+  }
 
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link DocIndexType }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://www.sa.dk/xmlns/diark/1.0", name = "docIndex")
-    public JAXBElement<DocIndexType> createDocIndex(DocIndexType value) {
-        return new JAXBElement<DocIndexType>(_DocIndex_QNAME, DocIndexType.class, null, value);
-    }
+  /**
+   * Create an instance of {@link JAXBElement }{@code <}{@link DocIndexType }
+   * {@code >}
+   * 
+   */
+  @XmlElementDecl(namespace = "http://www.sa.dk/xmlns/diark/1.0", name = "docIndex")
+  public JAXBElement<DocIndexType> createDocIndex(DocIndexType value) {
+    return new JAXBElement<DocIndexType>(_DocIndex_QNAME, DocIndexType.class, null, value);
+  }
 
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link BigInteger }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://www.sa.dk/xmlns/diark/1.0", name = "pID", scope = DocumentType.class)
-    public JAXBElement<BigInteger> createDocumentTypePID(BigInteger value) {
-        return new JAXBElement<BigInteger>(_DocumentTypePID_QNAME, BigInteger.class, DocumentType.class, value);
-    }
+  /**
+   * Create an instance of {@link JAXBElement }{@code <}{@link BigInteger }
+   * {@code >}
+   * 
+   */
+  @XmlElementDecl(namespace = "http://www.sa.dk/xmlns/diark/1.0", name = "pID", scope = DocumentType.class)
+  public JAXBElement<BigInteger> createDocumentTypePID(BigInteger value) {
+    return new JAXBElement<BigInteger>(_DocumentTypePID_QNAME, BigInteger.class, DocumentType.class, value);
+  }
 
 }

@@ -5,7 +5,6 @@
 // Generated on: 2016.09.21 at 01:32:34 PM CEST 
 //
 
-
 package dk.sa.xmlns.diark._1_0.tableindex;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -16,13 +15,15 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-
 /**
  * View element in siardDiark Archive
  * 
- * <p>Java class for viewType complex type.
+ * <p>
+ * Java class for viewType complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType name="viewType"&gt;
@@ -41,91 +42,78 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "viewType", propOrder = {
-    "name",
-    "queryOriginal",
-    "description"
-})
+@XmlType(name = "viewType", propOrder = {"name", "queryOriginal", "description"})
 public class ViewType {
 
-    @XmlElement(required = true)
-    @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
-    @XmlSchemaType(name = "token")
-    protected String name;
-    @XmlElement(required = true)
-    protected String queryOriginal;
-    protected String description;
+  @XmlElement(required = true)
+  @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
+  @XmlSchemaType(name = "token")
+  protected String name;
+  @XmlElement(required = true)
+  protected String queryOriginal;
+  protected String description;
 
-    /**
-     * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getName() {
-        return name;
-    }
+  /**
+   * Gets the value of the name property.
+   * 
+   * @return possible object is {@link String }
+   * 
+   */
+  public String getName() {
+    return name;
+  }
 
-    /**
-     * Sets the value of the name property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setName(String value) {
-        this.name = value;
-    }
+  /**
+   * Sets the value of the name property.
+   * 
+   * @param value
+   *          allowed object is {@link String }
+   * 
+   */
+  public void setName(String value) {
+    this.name = value;
+  }
 
-    /**
-     * Gets the value of the queryOriginal property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getQueryOriginal() {
-        return queryOriginal;
-    }
+  /**
+   * Gets the value of the queryOriginal property.
+   * 
+   * @return possible object is {@link String }
+   * 
+   */
+  public String getQueryOriginal() {
+    return queryOriginal;
+  }
 
-    /**
-     * Sets the value of the queryOriginal property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setQueryOriginal(String value) {
-        this.queryOriginal = value;
-    }
+  /**
+   * Sets the value of the queryOriginal property.
+   * 
+   * @param value
+   *          allowed object is {@link String }
+   * 
+   */
+  public void setQueryOriginal(String value) {
+    this.queryOriginal = value;
+  }
 
-    /**
-     * Gets the value of the description property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDescription() {
-        return description;
-    }
+  /**
+   * Gets the value of the description property.
+   * 
+   * @return possible object is {@link String }
+   * 
+   */
+  public String getDescription() {
+    return description;
+  }
 
-    /**
-     * Sets the value of the description property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDescription(String value) {
-        this.description = value;
-    }
+  /**
+   * Sets the value of the description property.
+   * 
+   * @param value
+   *          allowed object is {@link String }
+   * 
+   */
+  public void setDescription(String value) {
+    this.description = value;
+  }
 
 }

@@ -5,11 +5,11 @@
 // Generated on: 2016.09.21 at 01:32:34 PM CEST 
 //
 
-
 package dk.sa.xmlns.diark._1_0.tableindex;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -18,13 +18,15 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-
 /**
  * Column element in siardDiark Archive
  * 
- * <p>Java class for columnType complex type.
+ * <p>
+ * Java class for columnType complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType name="columnType"&gt;
@@ -54,225 +56,200 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "columnType", propOrder = {
-    "name",
-    "columnID",
-    "type",
-    "typeOriginal",
-    "defaultValue",
-    "nullable",
-    "description",
-    "functionalDescription"
-})
+@XmlType(name = "columnType", propOrder = {"name", "columnID", "type", "typeOriginal", "defaultValue", "nullable",
+  "description", "functionalDescription"})
 public class ColumnType {
 
-    @XmlElement(required = true)
-    @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
-    @XmlSchemaType(name = "token")
-    protected String name;
-    @XmlElement(required = true)
-    protected String columnID;
-    @XmlElement(required = true)
-    @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
-    @XmlSchemaType(name = "token")
-    protected String type;
-    @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
-    @XmlSchemaType(name = "token")
-    protected String typeOriginal;
-    protected String defaultValue;
-    protected boolean nullable;
-    @XmlElement(required = true)
-    protected String description;
-    @XmlSchemaType(name = "NMTOKEN")
-    protected List<FunctionalDescriptionType> functionalDescription;
+  @XmlElement(required = true)
+  @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
+  @XmlSchemaType(name = "token")
+  protected String name;
+  @XmlElement(required = true)
+  protected String columnID;
+  @XmlElement(required = true)
+  @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
+  @XmlSchemaType(name = "token")
+  protected String type;
+  @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
+  @XmlSchemaType(name = "token")
+  protected String typeOriginal;
+  protected String defaultValue;
+  protected boolean nullable;
+  @XmlElement(required = true)
+  protected String description;
+  @XmlSchemaType(name = "NMTOKEN")
+  protected List<FunctionalDescriptionType> functionalDescription;
 
-    /**
-     * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getName() {
-        return name;
-    }
+  /**
+   * Gets the value of the name property.
+   * 
+   * @return possible object is {@link String }
+   * 
+   */
+  public String getName() {
+    return name;
+  }
 
-    /**
-     * Sets the value of the name property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setName(String value) {
-        this.name = value;
-    }
+  /**
+   * Sets the value of the name property.
+   * 
+   * @param value
+   *          allowed object is {@link String }
+   * 
+   */
+  public void setName(String value) {
+    this.name = value;
+  }
 
-    /**
-     * Gets the value of the columnID property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getColumnID() {
-        return columnID;
-    }
+  /**
+   * Gets the value of the columnID property.
+   * 
+   * @return possible object is {@link String }
+   * 
+   */
+  public String getColumnID() {
+    return columnID;
+  }
 
-    /**
-     * Sets the value of the columnID property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setColumnID(String value) {
-        this.columnID = value;
-    }
+  /**
+   * Sets the value of the columnID property.
+   * 
+   * @param value
+   *          allowed object is {@link String }
+   * 
+   */
+  public void setColumnID(String value) {
+    this.columnID = value;
+  }
 
-    /**
-     * Gets the value of the type property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getType() {
-        return type;
-    }
+  /**
+   * Gets the value of the type property.
+   * 
+   * @return possible object is {@link String }
+   * 
+   */
+  public String getType() {
+    return type;
+  }
 
-    /**
-     * Sets the value of the type property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setType(String value) {
-        this.type = value;
-    }
+  /**
+   * Sets the value of the type property.
+   * 
+   * @param value
+   *          allowed object is {@link String }
+   * 
+   */
+  public void setType(String value) {
+    this.type = value;
+  }
 
-    /**
-     * Gets the value of the typeOriginal property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getTypeOriginal() {
-        return typeOriginal;
-    }
+  /**
+   * Gets the value of the typeOriginal property.
+   * 
+   * @return possible object is {@link String }
+   * 
+   */
+  public String getTypeOriginal() {
+    return typeOriginal;
+  }
 
-    /**
-     * Sets the value of the typeOriginal property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setTypeOriginal(String value) {
-        this.typeOriginal = value;
-    }
+  /**
+   * Sets the value of the typeOriginal property.
+   * 
+   * @param value
+   *          allowed object is {@link String }
+   * 
+   */
+  public void setTypeOriginal(String value) {
+    this.typeOriginal = value;
+  }
 
-    /**
-     * Gets the value of the defaultValue property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDefaultValue() {
-        return defaultValue;
-    }
+  /**
+   * Gets the value of the defaultValue property.
+   * 
+   * @return possible object is {@link String }
+   * 
+   */
+  public String getDefaultValue() {
+    return defaultValue;
+  }
 
-    /**
-     * Sets the value of the defaultValue property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDefaultValue(String value) {
-        this.defaultValue = value;
-    }
+  /**
+   * Sets the value of the defaultValue property.
+   * 
+   * @param value
+   *          allowed object is {@link String }
+   * 
+   */
+  public void setDefaultValue(String value) {
+    this.defaultValue = value;
+  }
 
-    /**
-     * Gets the value of the nullable property.
-     * 
-     */
-    public boolean isNullable() {
-        return nullable;
-    }
+  /**
+   * Gets the value of the nullable property.
+   * 
+   */
+  public boolean isNullable() {
+    return nullable;
+  }
 
-    /**
-     * Sets the value of the nullable property.
-     * 
-     */
-    public void setNullable(boolean value) {
-        this.nullable = value;
-    }
+  /**
+   * Sets the value of the nullable property.
+   * 
+   */
+  public void setNullable(boolean value) {
+    this.nullable = value;
+  }
 
-    /**
-     * Gets the value of the description property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getDescription() {
-        return description;
-    }
+  /**
+   * Gets the value of the description property.
+   * 
+   * @return possible object is {@link String }
+   * 
+   */
+  public String getDescription() {
+    return description;
+  }
 
-    /**
-     * Sets the value of the description property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setDescription(String value) {
-        this.description = value;
-    }
+  /**
+   * Sets the value of the description property.
+   * 
+   * @param value
+   *          allowed object is {@link String }
+   * 
+   */
+  public void setDescription(String value) {
+    this.description = value;
+  }
 
-    /**
-     * Gets the value of the functionalDescription property.
-     * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the functionalDescription property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getFunctionalDescription().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link FunctionalDescriptionType }
-     * 
-     * 
-     */
-    public List<FunctionalDescriptionType> getFunctionalDescription() {
-        if (functionalDescription == null) {
-            functionalDescription = new ArrayList<FunctionalDescriptionType>();
-        }
-        return this.functionalDescription;
+  /**
+   * Gets the value of the functionalDescription property.
+   * 
+   * <p>
+   * This accessor method returns a reference to the live list, not a snapshot.
+   * Therefore any modification you make to the returned list will be present
+   * inside the JAXB object. This is why there is not a <CODE>set</CODE> method
+   * for the functionalDescription property.
+   * 
+   * <p>
+   * For example, to add a new item, do as follows:
+   * 
+   * <pre>
+   * getFunctionalDescription().add(newItem);
+   * </pre>
+   * 
+   * 
+   * <p>
+   * Objects of the following type(s) are allowed in the list
+   * {@link FunctionalDescriptionType }
+   * 
+   * 
+   */
+  public List<FunctionalDescriptionType> getFunctionalDescription() {
+    if (functionalDescription == null) {
+      functionalDescription = new ArrayList<FunctionalDescriptionType>();
     }
+    return this.functionalDescription;
+  }
 
 }

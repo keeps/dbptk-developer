@@ -5,19 +5,21 @@
 // Generated on: 2016.09.21 at 01:32:34 PM CEST 
 //
 
-
 package dk.sa.xmlns.diark._1_0.tableindex;
 
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
- * <p>Java class for functionalDescriptionType.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
+ * Java class for functionalDescriptionType.
+ * 
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
+ * <p>
+ * 
  * <pre>
  * &lt;simpleType name="functionalDescriptionType"&gt;
  *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}NMTOKEN"&gt;
@@ -42,106 +44,120 @@ import javax.xml.bind.annotation.XmlType;
 @XmlEnum
 public enum FunctionalDescriptionType {
 
+  /**
+   * Den eller de kolonner i arkiveringsversionen, som indeholder oplysninger om
+   * hvilken myndighed, der har registreret sagen eller dokumentet.
+   * 
+   */
+  @XmlEnumValue("Myndighedsidentifikation")
+  MYNDIGHEDSIDENTIFIKATION("Myndighedsidentifikation"),
 
-    /**
-     * Den eller de kolonner i arkiveringsversionen, som indeholder oplysninger om hvilken myndighed, der har registreret sagen eller dokumentet.
-     * 
-     */
-    @XmlEnumValue("Myndighedsidentifikation")
-    MYNDIGHEDSIDENTIFIKATION("Myndighedsidentifikation"),
+  /**
+   * Bruges til at angive den eller de kolonner i arkiveringsversionen, som
+   * beskriver dokumenternes entydige identifikation.
+   * 
+   */
+  @XmlEnumValue("Dokumentidentifikation")
+  DOKUMENTIDENTIFIKATION("Dokumentidentifikation"),
 
-    /**
-     * Bruges til at angive den eller de kolonner i arkiveringsversionen, som beskriver dokumenternes entydige identifikation.
-     * 
-     */
-    @XmlEnumValue("Dokumentidentifikation")
-    DOKUMENTIDENTIFIKATION("Dokumentidentifikation"),
+  /**
+   * Bruges til at angive den eller de kolonner i arkiveringsversionen, som
+   * beskriver, om dokumentet er lagret elektronisk, på papir eller delvist på
+   * papir. Helt eller delvis digitalt = 1, papir = 2, ikke relevant = 3
+   * 
+   */
+  @XmlEnumValue("Lagringsform")
+  LAGRINGSFORM("Lagringsform"),
 
-    /**
-     * Bruges til at angive den eller de kolonner i arkiveringsversionen, som beskriver, om dokumentet er lagret elektronisk, på papir eller delvist på papir. Helt eller delvis digitalt = 1, papir = 2, ikke relevant = 3
-     * 
-     */
-    @XmlEnumValue("Lagringsform")
-    LAGRINGSFORM("Lagringsform"),
+  /**
+   * Bruges ved aflevering af øjebliksbilleder m.v. til at angive den eller de
+   * kolonner i arkiveringsversionen, som beskriver, om dokumentet allerede er
+   * afleveret i en tidligere arkiveringsversion. Tidligere afleveret = 1, ikke
+   * tidligere afleveret = 2
+   * 
+   */
+  @XmlEnumValue("Afleveret")
+  AFLEVERET("Afleveret"),
 
-    /**
-     * Bruges ved aflevering af øjebliksbilleder m.v. til at angive den eller de kolonner i arkiveringsversionen, som beskriver, om dokumentet allerede er afleveret i en tidligere arkiveringsversion. Tidligere afleveret = 1, ikke tidligere afleveret = 2
-     * 
-     */
-    @XmlEnumValue("Afleveret")
-    AFLEVERET("Afleveret"),
+  /**
+   * Den eller de kolonner i arkiveringsversionen, som beskriver sagernes
+   * entydige identifikation
+   * 
+   */
+  @XmlEnumValue("Sagsidentifikation")
+  SAGSIDENTIFIKATION("Sagsidentifikation"),
 
-    /**
-     * Den eller de kolonner i arkiveringsversionen, som beskriver sagernes entydige identifikation
-     * 
-     */
-    @XmlEnumValue("Sagsidentifikation")
-    SAGSIDENTIFIKATION("Sagsidentifikation"),
+  /**
+   * Den eller de kolonner i arkiveringsversionen, som indeholder sagernes
+   * titler.
+   * 
+   */
+  @XmlEnumValue("Sagstitel")
+  SAGSTITEL("Sagstitel"),
 
-    /**
-     * Den eller de kolonner i arkiveringsversionen, som indeholder sagernes titler.
-     * 
-     */
-    @XmlEnumValue("Sagstitel")
-    SAGSTITEL("Sagstitel"),
+  /**
+   * Den eller de kolonner i arkiveringsversionen, som indeholder dokumenternes
+   * titler/beskrivelser.
+   * 
+   */
+  @XmlEnumValue("Dokumenttitel")
+  DOKUMENTTITEL("Dokumenttitel"),
 
-    /**
-     * Den eller de kolonner i arkiveringsversionen, som indeholder dokumenternes titler/beskrivelser.
-     * 
-     */
-    @XmlEnumValue("Dokumenttitel")
-    DOKUMENTTITEL("Dokumenttitel"),
+  /**
+   * Den eller de kolonner i arkiveringsversionen, som indeholder oplysninger om
+   * dokumenternes afsendelses- og modtagelsesdatoer.
+   * 
+   */
+  @XmlEnumValue("Dokumentdato")
+  DOKUMENTDATO("Dokumentdato"),
 
-    /**
-     * Den eller de kolonner i arkiveringsversionen, som indeholder oplysninger om dokumenternes afsendelses- og modtagelsesdatoer. 
-     * 
-     */
-    @XmlEnumValue("Dokumentdato")
-    DOKUMENTDATO("Dokumentdato"),
+  /**
+   * Den eller de kolonner i arkiveringsversionen, som indeholder oplysninger om
+   * et dokuments afsender eller modtager.
+   * 
+   */
+  @XmlEnumValue("Afsender_modtager")
+  AFSENDER_MODTAGER("Afsender_modtager"),
 
-    /**
-     * Den eller de kolonner i arkiveringsversionen, som indeholder oplysninger om et dokuments afsender eller modtager.
-     * 
-     */
-    @XmlEnumValue("Afsender_modtager")
-    AFSENDER_MODTAGER("Afsender_modtager"),
+  /**
+   * Den eller de kolonner i arkiveringsversionen, som indeholder oplysninger,
+   * der uddraget fra en digital signatur
+   * 
+   */
+  @XmlEnumValue("Digital_signatur")
+  DIGITAL_SIGNATUR("Digital_signatur"),
 
-    /**
-     * Den eller de kolonner i arkiveringsversionen, som indeholder oplysninger, der uddraget fra en digital signatur
-     * 
-     */
-    @XmlEnumValue("Digital_signatur")
-    DIGITAL_SIGNATUR("Digital_signatur"),
+  /**
+   * Den eller de kolonner i arkiveringsversionen, som indeholder reference til
+   * FORM (Den fællesoffentlige forretningsreferencemodel)
+   * 
+   */
+  FORM("FORM"),
 
-    /**
-     * Den eller de kolonner i arkiveringsversionen, som indeholder reference til FORM (Den fællesoffentlige forretningsreferencemodel)
-     * 
-     */
-    FORM("FORM"),
+  /**
+   * Den eller de kolonner i arkiveringsversionen, som indeholder oplysninger om
+   * bevaring og kassation
+   * 
+   */
+  @XmlEnumValue("Kassation")
+  KASSATION("Kassation");
+  private final String value;
 
-    /**
-     * Den eller de kolonner i arkiveringsversionen, som indeholder oplysninger om bevaring og kassation
-     * 
-     */
-    @XmlEnumValue("Kassation")
-    KASSATION("Kassation");
-    private final String value;
+  FunctionalDescriptionType(String v) {
+    value = v;
+  }
 
-    FunctionalDescriptionType(String v) {
-        value = v;
+  public String value() {
+    return value;
+  }
+
+  public static FunctionalDescriptionType fromValue(String v) {
+    for (FunctionalDescriptionType c : FunctionalDescriptionType.values()) {
+      if (c.value.equals(v)) {
+        return c;
+      }
     }
-
-    public String value() {
-        return value;
-    }
-
-    public static FunctionalDescriptionType fromValue(String v) {
-        for (FunctionalDescriptionType c: FunctionalDescriptionType.values()) {
-            if (c.value.equals(v)) {
-                return c;
-            }
-        }
-        throw new IllegalArgumentException(v);
-    }
+    throw new IllegalArgumentException(v);
+  }
 
 }
