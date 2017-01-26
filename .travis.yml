@@ -6,11 +6,14 @@ addons:
       secure: ccxxJ80A2fo5zKRxu8Rko61b3QIo1z2jqkjqamGO6zPfpwzKcXt5wjYWksJOlV7m3uNNkVV0Z7YeiTQ3nr+XMa5lhgOip1/ZnNI2pbUR9csE+0NTRFBe5e9nho/BUC5j79yrH1A8GTi6nTqZbxUOl9karfpjrCcs3CMojYtN5Dk=
 script:
     # the following command line builds the project, runs the tests with coverage and then execute the SonarQube analysis
-  - travis_wait 30 mvn -Dtestng.groups="travis-ci" -Dlogback.configurationFile=logback-travis.xml clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar
+  - travis_wait 30 mvn -Dtestng.groups="travis-ci" -Dlogback.configurationFile=logback-travis.xml clean org.jacoco:jacoco-maven-plugin:prepare-agent install $SONARPLUGIN
 jdk:
-- oraclejdk8
-- oraclejdk7
-- openjdk7
+  - oraclejdk7
+  - openjdk7
+matrix:
+  include:
+  - jdk: oraclejdk8
+    env: SONARPLUGIN=sonar:sonar
 os:
 - linux
 notifications:

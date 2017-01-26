@@ -1,9 +1,10 @@
 package com.databasepreservation.modules.siard.out.path;
 
+import org.apache.commons.lang3.NotImplementedException;
+
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.out.content.LOBsTracker;
 import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
-import org.apache.commons.lang3.NotImplementedException;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>

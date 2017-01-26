@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
-import com.databasepreservation.utils.MiscUtils;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +28,7 @@ import com.databasepreservation.modules.siard.SIARD2ModuleFactory;
 import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
 import com.databasepreservation.modules.solr.SolrModuleFactory;
 import com.databasepreservation.modules.sqlServer.SQLServerJDBCModuleFactory;
+import com.databasepreservation.utils.MiscUtils;
 
 /**
  * @author Luis Faria <lfaria@keep.pt>
