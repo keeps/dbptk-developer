@@ -14,9 +14,9 @@ matrix:
   - jdk: oraclejdk8
     env: SONARPLUGIN=sonar:sonar
   - jdk: oraclejdk7
-    env: SONARPLUGIN=org.sonarsource.scanner.maven:sonar-maven-plugin:3.1.1:sonar
+    env: SONARPLUGIN=org.sonarsource.scanner.maven:sonar-maven-plugin:3.1:sonar
   - jdk: openjdk7
-    env: SONARPLUGIN=org.sonarsource.scanner.maven:sonar-maven-plugin:3.1.1:sonar
+    env: SONARPLUGIN=org.sonarsource.scanner.maven:sonar-maven-plugin:3.1:sonar
   exclude:
   - jdk: oraclejdk8
 os:
