@@ -3,14 +3,14 @@ package com.databasepreservation.modules.siard.in.metadata.typeConverter;
 import java.sql.SQLException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.type.ComposedTypeArray;
 import com.databasepreservation.model.structure.type.Type;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -146,7 +146,7 @@ public class SQL2008StandardDatatypeImporter extends SQLStandardDatatypeImporter
       type.setSql2008TypeName(sql2008TypeName);
     }
 
-    if(StringUtils.isBlank(type.getOriginalTypeName())){
+    if (StringUtils.isBlank(type.getOriginalTypeName())) {
       type.setOriginalTypeName(standardType.original);
     }
 

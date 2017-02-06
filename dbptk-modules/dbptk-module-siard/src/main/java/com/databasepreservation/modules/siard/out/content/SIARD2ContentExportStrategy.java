@@ -439,12 +439,13 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
         try {
           xsdType = Sql2008toXSDType.convert(arrayType.getElementType());
         } catch (UnknownTypeException e) {
-          LOGGER.error(String.format("An error occurred while getting the XSD subtype of array column c%d", columnIndex), e);
+          LOGGER.error(
+            String.format("An error occurred while getting the XSD subtype of array column c%d", columnIndex), e);
         }
 
         Integer maxLength = arrayMaximumLength.get(col.getId());
 
-        if(xsdType != null && maxLength != null) {
+        if (xsdType != null && maxLength != null) {
           for (int i = 1; i <= maxLength; i++) {
             xsdWriter.beginOpenTag("xs:element", 7).appendAttribute("minOccurs", "0");
             xsdWriter.appendAttribute("name", "a" + i).appendAttribute("type", xsdType).endShorthandTag();

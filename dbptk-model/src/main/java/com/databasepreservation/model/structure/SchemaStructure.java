@@ -151,7 +151,6 @@ public class SchemaStructure {
     this.userDefinedTypesComposed = userDefinedTypesComposed;
   }
 
-
   public List<ComposedTypeDistinct> getUserDefinedTypesDistinct() {
     return userDefinedTypesDistinct;
   }

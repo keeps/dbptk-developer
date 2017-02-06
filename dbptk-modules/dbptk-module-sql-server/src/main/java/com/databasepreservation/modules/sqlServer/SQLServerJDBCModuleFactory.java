@@ -7,6 +7,8 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
@@ -81,21 +83,22 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public Parameters getImportModuleParameters() {
+  public Parameters getImportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(
       Arrays.asList(serverName, database, username, password, useIntegratedLogin, disableEncryption),
       Arrays.asList(instanceName_portNumber));
   }
 
   @Override
-  public Parameters getExportModuleParameters() {
+  public Parameters getExportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(
       Arrays.asList(serverName, database, username, password, useIntegratedLogin, disableEncryption),
       Arrays.asList(instanceName_portNumber));
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
+    LicenseNotAcceptedException {
     // String values
     String pServerName = parameters.get(serverName);
     String pDatabase = parameters.get(database);
@@ -136,7 +139,8 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) {
+  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
+    LicenseNotAcceptedException {
     // String values
     String pServerName = parameters.get(serverName);
     String pDatabase = parameters.get(database);

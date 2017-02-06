@@ -220,8 +220,10 @@ public class ComposedTypeStructure extends Type {
     return true;
   }
 
-  @Override public String toString() {
-    return super.toString() + "-->ComposedTypeStructure{" + "leafsByColumnId=" + leafsByColumnId + ", containedTypes=" + containedTypes + '}';
+  @Override
+  public String toString() {
+    return super.toString() + "-->ComposedTypeStructure{" + "leafsByColumnId=" + leafsByColumnId + ", containedTypes="
+      + containedTypes + '}';
   }
 
   /**

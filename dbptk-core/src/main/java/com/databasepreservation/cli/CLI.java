@@ -17,8 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import javax.naming.OperationNotSupportedException;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -33,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
@@ -255,8 +254,8 @@ public class CLI {
         databaseModuleFactoriesArguments.getImportModuleArguments());
       exportModule = databaseModuleFactoriesPair.getExportModuleFactory().buildExportModule(
         databaseModuleFactoriesArguments.getExportModuleArguments());
-    } catch (OperationNotSupportedException e) {
-      LOGGER.debug("OperationNotSupportedException", e);
+    } catch (UnsupportedModuleException e) {
+      LOGGER.debug("UnsupportedModuleException", e);
       throw new ParseException("Module does not support the requested mode.");
     }
   }
@@ -340,7 +339,7 @@ public class CLI {
    *           If the arguments could not be parsed or are invalid
    */
   private DatabaseModuleFactoriesArguments getModuleArguments(DatabaseModuleFactoriesPair factoriesPair,
-    List<String> args) throws ParseException, OperationNotSupportedException {
+    List<String> args) throws ParseException, UnsupportedModuleException {
     DatabaseModuleFactory importModuleFactory = factoriesPair.getImportModuleFactory();
     DatabaseModuleFactory exportModuleFactory = factoriesPair.getExportModuleFactory();
 
@@ -351,31 +350,47 @@ public class CLI {
 
     HashMap<String, Parameter> mapOptionToParameter = new HashMap<String, Parameter>();
 
-    for (Parameter parameter : importModuleFactory.getImportModuleParameters().getParameters()) {
-      Option option = parameter.toOption("i", "import");
-      options.addOption(option);
-      mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
-    }
-    for (ParameterGroup parameterGroup : importModuleFactory.getImportModuleParameters().getGroups()) {
-      OptionGroup optionGroup = parameterGroup.toOptionGroup("i", "import");
-      options.addOptionGroup(optionGroup);
-
-      for (Parameter parameter : parameterGroup.getParameters()) {
-        mapOptionToParameter.put(getUniqueOptionIdentifier(parameter.toOption("i", "import")), parameter);
+    try {
+      for (Parameter parameter : importModuleFactory.getImportModuleParameters().getParameters()) {
+        Option option = parameter.toOption("i", "import");
+        options.addOption(option);
+        mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
       }
+    } catch (com.databasepreservation.model.exception.UnsupportedModuleException e) {
+      e.printStackTrace();
     }
-    for (Parameter parameter : exportModuleFactory.getExportModuleParameters().getParameters()) {
-      Option option = parameter.toOption("e", "export");
-      options.addOption(option);
-      mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
-    }
-    for (ParameterGroup parameterGroup : exportModuleFactory.getExportModuleParameters().getGroups()) {
-      OptionGroup optionGroup = parameterGroup.toOptionGroup("e", "export");
-      options.addOptionGroup(optionGroup);
+    try {
+      for (ParameterGroup parameterGroup : importModuleFactory.getImportModuleParameters().getGroups()) {
+        OptionGroup optionGroup = parameterGroup.toOptionGroup("i", "import");
+        options.addOptionGroup(optionGroup);
 
-      for (Parameter parameter : parameterGroup.getParameters()) {
-        mapOptionToParameter.put(getUniqueOptionIdentifier(parameter.toOption("e", "export")), parameter);
+        for (Parameter parameter : parameterGroup.getParameters()) {
+          mapOptionToParameter.put(getUniqueOptionIdentifier(parameter.toOption("i", "import")), parameter);
+        }
       }
+    } catch (com.databasepreservation.model.exception.UnsupportedModuleException e) {
+      e.printStackTrace();
+    }
+    try {
+      for (Parameter parameter : exportModuleFactory.getExportModuleParameters().getParameters()) {
+        Option option = parameter.toOption("e", "export");
+        options.addOption(option);
+        mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
+      }
+    } catch (com.databasepreservation.model.exception.UnsupportedModuleException e) {
+      e.printStackTrace();
+    }
+    try {
+      for (ParameterGroup parameterGroup : exportModuleFactory.getExportModuleParameters().getGroups()) {
+        OptionGroup optionGroup = parameterGroup.toOptionGroup("e", "export");
+        options.addOptionGroup(optionGroup);
+
+        for (Parameter parameter : parameterGroup.getParameters()) {
+          mapOptionToParameter.put(getUniqueOptionIdentifier(parameter.toOption("e", "export")), parameter);
+        }
+      }
+    } catch (com.databasepreservation.model.exception.UnsupportedModuleException e) {
+      e.printStackTrace();
     }
 
     Option importOption = Option.builder("i").longOpt("import").hasArg().optionalArg(false).build();
@@ -453,8 +468,8 @@ public class CLI {
         try {
           out.append(printModuleHelp("Import module: " + factory.getModuleName(), "i", "import",
             factory.getImportModuleParameters()));
-        } catch (OperationNotSupportedException e) {
-          LOGGER.debug("This should not occur a this point", e);
+        } catch (com.databasepreservation.model.exception.UnsupportedModuleException e) {
+          e.printStackTrace();
         }
       }
     }
@@ -465,8 +480,8 @@ public class CLI {
         try {
           out.append(printModuleHelp("Export module: " + factory.getModuleName(), "e", "export",
             factory.getExportModuleParameters()));
-        } catch (OperationNotSupportedException e) {
-          LOGGER.debug("This should not occur a this point", e);
+        } catch (com.databasepreservation.model.exception.UnsupportedModuleException e) {
+          e.printStackTrace();
         }
       }
     }

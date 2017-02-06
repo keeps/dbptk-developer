@@ -513,8 +513,9 @@ public class JDBCExportModule implements DatabaseExportModule {
         } catch (SQLException e) {
           LOGGER.error("Error executing part of a batch of queries.");
           LOGGER.debug("This is the SQLException@{} for the previous error.", e.hashCode(), e);
-          if(e.getNextException() != null){
-            LOGGER.debug("This is the corresponding SQLException@{}.getNextException", e.hashCode(), e.getNextException());
+          if (e.getNextException() != null) {
+            LOGGER.debug("This is the corresponding SQLException@{}.getNextException", e.hashCode(),
+              e.getNextException());
           }
 
           Reporter.failed("In table `" + currentTableStructure.getId() + "`, inserting rows with index from "

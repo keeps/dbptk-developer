@@ -22,7 +22,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.databasepreservation.utils.MiscUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +67,7 @@ import com.databasepreservation.model.structure.type.UnsupportedDataType;
 import com.databasepreservation.modules.SQLHelper;
 import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.JodaUtils;
+import com.databasepreservation.utils.MiscUtils;
 
 /**
  * @author Luis Faria <lfaria@keep.pt>

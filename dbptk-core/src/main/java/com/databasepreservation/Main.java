@@ -10,13 +10,13 @@ import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.cli.CLI;
 import com.databasepreservation.model.Reporter;
-import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.modules.dbml.DBMLModuleFactory;
 import com.databasepreservation.modules.jdbc.JDBCModuleFactory;
 import com.databasepreservation.modules.listTables.ListTablesModuleFactory;
 import com.databasepreservation.modules.msAccess.MsAccessUCanAccessModuleFactory;
@@ -49,7 +49,8 @@ public class Main {
   private static final DatabaseModuleFactory[] databaseModuleFactories = new DatabaseModuleFactory[] {
     new JDBCModuleFactory(), new ListTablesModuleFactory(), new MsAccessUCanAccessModuleFactory(),
     new MySQLModuleFactory(), new Oracle12cModuleFactory(), new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(),
-    new SIARD2ModuleFactory(), new SIARDDKModuleFactory(), new SolrModuleFactory(), new SQLServerJDBCModuleFactory()};
+    new SIARD2ModuleFactory(), new SIARDDKModuleFactory(), new SolrModuleFactory(), new SQLServerJDBCModuleFactory(),
+    new DBMLModuleFactory()};
 
   /**
    * @param args
@@ -148,7 +149,7 @@ public class Main {
       } else {
         LOGGER.error("Fatal error while converting the database (" + e.getMessage() + ")", e);
       }
-    } catch (UnknownTypeException | InvalidDataException e) {
+    } catch (UnknownTypeException e) {
       LOGGER.error("Fatal error while converting the database (" + e.getMessage() + ")", e);
     } catch (Exception e) {
       LOGGER.error("Fatal error: Unexpected exception (" + e.getMessage() + ")", e);

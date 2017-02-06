@@ -144,7 +144,8 @@ public class SimpleTypeEnumeration extends Type {
     return true;
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return super.toString() + "-->SimpleTypeEnumeration{" + "options=" + options + '}';
   }
 }

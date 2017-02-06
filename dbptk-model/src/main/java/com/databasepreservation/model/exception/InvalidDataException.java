@@ -6,11 +6,7 @@ package com.databasepreservation.model.exception;
 /**
  * @author Luis Faria
  */
-public class InvalidDataException extends Exception {
-
-  /**
-         *
-         */
+public class InvalidDataException extends ModuleException {
   private static final long serialVersionUID = -5706032629612775911L;
 
   /**

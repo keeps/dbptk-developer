@@ -1,5 +1,7 @@
-package com.databasepreservation.modules.msAccess;
+package com.databasepreservation.modules.dbml;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,14 +14,13 @@ import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
-import com.databasepreservation.modules.msAccess.in.MsAccessUCanAccessImportModule;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class MsAccessUCanAccessModuleFactory implements DatabaseModuleFactory {
-  private static final Parameter accessFilePath = new Parameter().shortName("f").longName("file")
-    .description("path to the Microsoft Access file").hasArgument(true).setOptionalArgument(false).required(true);
+public class DBMLModuleFactory implements DatabaseModuleFactory {
+  private static final Parameter file = new Parameter().shortName("f").longName("file")
+    .description("Path to DBML file").hasArgument(true).setOptionalArgument(false).required(true);
 
   @Override
   public boolean producesImportModules() {
@@ -33,19 +34,19 @@ public class MsAccessUCanAccessModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public String getModuleName() {
-    return "microsoft-access";
+    return "dbml-alpha";
   }
 
   @Override
   public Map<String, Parameter> getAllParameters() {
     HashMap<String, Parameter> parameterHashMap = new HashMap<String, Parameter>();
-    parameterHashMap.put(accessFilePath.longName(), accessFilePath);
+    parameterHashMap.put(file.longName(), file);
     return parameterHashMap;
   }
 
   @Override
   public Parameters getImportModuleParameters() throws UnsupportedModuleException {
-    return new Parameters(Arrays.asList(accessFilePath), null);
+    return new Parameters(Arrays.asList(file), null);
   }
 
   @Override
@@ -56,10 +57,10 @@ public class MsAccessUCanAccessModuleFactory implements DatabaseModuleFactory {
   @Override
   public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
     LicenseNotAcceptedException {
-    String pAccessFilePath = parameters.get(accessFilePath);
+    Path pFile = Paths.get(parameters.get(file));
 
-    Reporter.importModuleParameters(getModuleName(), "file", pAccessFilePath);
-    return new MsAccessUCanAccessImportModule(pAccessFilePath);
+    Reporter.importModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString());
+    return new DBMLImportModule(pFile);
   }
 
   @Override

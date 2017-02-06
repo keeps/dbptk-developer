@@ -8,11 +8,11 @@ public class ComposedTypeDistinct extends Type {
 
   private String baseType;
 
-  public ComposedTypeDistinct(){
+  public ComposedTypeDistinct() {
     baseType = null;
   }
 
-  public ComposedTypeDistinct(String originalTypeName, String baseTypeName){
+  public ComposedTypeDistinct(String originalTypeName, String baseTypeName) {
     this.baseType = baseTypeName;
     setOriginalTypeName(originalTypeName);
   }
@@ -25,7 +25,8 @@ public class ComposedTypeDistinct extends Type {
     this.baseType = baseType;
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return super.toString() + "-->ComposedTypeDistinct{" + "baseType='" + baseType + '\'' + '}';
   }
 }
