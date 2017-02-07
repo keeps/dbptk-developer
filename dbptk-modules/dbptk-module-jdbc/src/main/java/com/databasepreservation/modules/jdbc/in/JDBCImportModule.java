@@ -1448,7 +1448,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     Cell cell;
 
     Blob blob = rawData.getBlob(columnName);
-    if (blob != null) {
+    if (blob != null && !rawData.wasNull()) {
       cell = new BinaryCell(id, blob);
     } else {
       cell = new NullCell(id);
