@@ -25,6 +25,7 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.modules.SQLUtils;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.mySql.MySQLHelper;
 
@@ -115,6 +116,8 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
         } else {
           LOGGER.error("It was not possible to retrieve the list of database users.", e);
         }
+      } finally {
+        SQLUtils.closeQuietly(rs);
       }
     }
 
@@ -204,14 +207,21 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   protected List<ViewStructure> getViews(String schemaName) throws SQLException {
     List<ViewStructure> views = super.getViews(schemaName);
     for (ViewStructure v : views) {
-      Statement statement = getConnection().createStatement();
-      String query = "SHOW CREATE VIEW " + sqlHelper.escapeViewName(v.getName());
-      ResultSet rset = statement.executeQuery(query);
-      rset.next(); // Returns only one tuple
+      Statement statement = null;
+      ResultSet rset = null;
+      try {
+        statement = getConnection().createStatement();
+        String query = "SHOW CREATE VIEW " + sqlHelper.escapeViewName(v.getName());
+        rset = statement.executeQuery(query);
+        rset.next(); // Returns only one tuple
 
-      // TO-DO: the string given below by rset.getString(2) has to be parsed a
-      // little before it is set to as the view
-      v.setQueryOriginal(rset.getString(2));
+        // TO-DO: the string given below by rset.getString(2) has to be parsed a
+        // little before it is set to as the view
+        v.setQueryOriginal(rset.getString(2));
+      } finally {
+        SQLUtils.closeQuietly(rset);
+        SQLUtils.closeQuietly(statement);
+      }
     }
     return views;
   }

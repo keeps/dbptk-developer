@@ -1,5 +1,6 @@
 package com.databasepreservation.modules.sqlServer.in;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -13,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.structure.ViewStructure;
+import com.databasepreservation.modules.SQLUtils;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.sqlServer.SQLServerHelper;
 import com.microsoft.sqlserver.jdbc.SQLServerConnection;
@@ -113,6 +115,8 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 
       SQLServerStatement sqlServerStatement = statement.unwrap(com.microsoft.sqlserver.jdbc.SQLServerStatement.class);
       sqlServerStatement.setResponseBuffering("adaptive");
+
+      statement = sqlServerStatement;
     }
     return statement;
   }
@@ -181,29 +185,38 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 
     List<ViewStructure> views = super.getViews(schemaName);
     for (ViewStructure v : views) {
-      Statement statement = getConnection().createStatement();
       String originalQuery = null;
+      ResultSet rset = null;
+      PreparedStatement statement = getConnection().prepareStatement(
+        "SELECT OBJECT_DEFINITION (OBJECT_ID(" + sqlHelper.escapeViewName(schemaName, v.getName()) + ")) AS ?");
+      statement.setString(1, fieldName);
 
       try {
         // https://technet.microsoft.com/en-us/library/ms175067.aspx
-        String query = "SELECT OBJECT_DEFINITION (OBJECT_ID(" + sqlHelper.escapeViewName(schemaName, v.getName())
-          + ")) AS " + fieldName;
-        ResultSet rset = statement.executeQuery(query);
+        rset = statement.executeQuery();
         rset.next();
         originalQuery = rset.getString(fieldName);
       } catch (Exception e) {
         LOGGER.debug("Exception trying to get view SQL in SQL Server (method #1)", e);
+      } finally {
+        SQLUtils.closeQuietly(rset);
+        SQLUtils.closeQuietly(statement);
       }
 
       try {
         // https://technet.microsoft.com/en-us/library/ms175067.aspx
-        String query = "SELECT " + fieldName + " FROM sys.sql_modules WHERE object_id = OBJECT_ID("
-          + sqlHelper.escapeViewName(schemaName, v.getName()) + ")";
-        ResultSet rset = statement.executeQuery(query);
+        statement = getConnection().prepareStatement(
+          "SELECT ? FROM sys.sql_modules WHERE object_id = OBJECT_ID("
+            + sqlHelper.escapeViewName(schemaName, v.getName()) + ")");
+        statement.setString(1, fieldName);
+        rset = statement.executeQuery();
         rset.next();
         originalQuery = rset.getString(fieldName);
       } catch (Exception e) {
         LOGGER.debug("Exception trying to get view SQL in SQL Server (method #2)", e);
+      } finally {
+        SQLUtils.closeQuietly(rset);
+        SQLUtils.closeQuietly(statement);
       }
 
       if (StringUtils.isBlank(originalQuery)) {

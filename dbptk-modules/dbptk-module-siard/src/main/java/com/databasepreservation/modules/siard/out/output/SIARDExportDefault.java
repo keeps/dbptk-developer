@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -73,10 +74,11 @@ public class SIARDExportDefault implements DatabaseExportModule {
     if (tableFilter == null) {
       moduleSettings = new ModuleSettings();
     } else {
+      InputStream inputStream = null;
       try {
         // attempt to get a table list from the file at tableFilter and use that
         // list as selectedTables in the ModuleSettings
-        InputStream inputStream = Files.newInputStream(tableFilter);
+        inputStream = Files.newInputStream(tableFilter);
         InputStreamReader inputStreamReader = new InputStreamReader(inputStream, "UTF8");
         BufferedReader reader = new BufferedReader(inputStreamReader);
 
@@ -101,6 +103,8 @@ public class SIARDExportDefault implements DatabaseExportModule {
         };
       } catch (IOException e) {
         throw new ModuleException("Could not read table list from file " + tableFilter.toAbsolutePath().toString(), e);
+      } finally {
+        IOUtils.closeQuietly(inputStream);
       }
     }
     return moduleSettings;

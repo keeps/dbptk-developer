@@ -177,13 +177,31 @@ public class JDBCImportModule implements DatabaseImportModule {
    *
    * @throws SQLException
    */
-  public void closeConnection() throws SQLException {
-    if (connection != null) {
-      connection.close();
-      connection = null;
-      dbMetadata = null;
-      dbStructure = null;
+  public void closeConnection() {
+    if (statement != null) {
+      try {
+        statement.close();
+      } catch (SQLException e) {
+        LOGGER.debug("problem closing statement", e);
+      }
     }
+
+    Connection connection = null;
+    try {
+      connection = getConnection();
+    } catch (SQLException e) {
+      LOGGER.debug("could not obtain connection in order to close it", e);
+    }
+    if (connection != null) {
+      try {
+        connection.close();
+      } catch (SQLException e) {
+        LOGGER.debug("problem closing connection", e);
+      }
+    }
+    this.connection = null;
+    dbMetadata = null;
+    dbStructure = null;
   }
 
   /**
@@ -1645,12 +1663,8 @@ public class JDBCImportModule implements DatabaseImportModule {
     } catch (SQLException e) {
       throw new ModuleException("SQL error while connecting", e);
     } finally {
-      try {
-        LOGGER.debug("Closing connection to source database");
-        closeConnection();
-      } catch (SQLException e) {
-        LOGGER.debug("Error while closing connection", e);
-      }
+      LOGGER.debug("Closing connection to source database");
+      closeConnection();
     }
   }
 

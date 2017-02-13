@@ -185,23 +185,23 @@ public class JDBCExportModule implements DatabaseExportModule {
    * @throws ModuleException
    */
   public Connection getConnection(String databaseName, String connectionURL) throws ModuleException {
-    Connection connection;
-    try {
-      LOGGER.debug("Database: " + databaseName);
-      LOGGER.debug("Loading JDBC Driver " + driverClassName);
-      Class.forName(driverClassName);
-      LOGGER.debug("Getting admin connection");
-      // LOGGER.debug("Connection URL: " + connectionURL);
-      connection = DriverManager.getConnection(connectionURL);
-      connection.setAutoCommit(true);
-      LOGGER.debug("Connected");
-      connections.put(databaseName, connection);
-    } catch (ClassNotFoundException e) {
-      throw new ModuleException("JDBC driver class could not be found", e);
-    } catch (SQLException e) {
-      throw new ModuleException("SQL error creating connection", e);
+    if (connection == null) {
+      try {
+        LOGGER.debug("Database: " + databaseName);
+        LOGGER.debug("Loading JDBC Driver " + driverClassName);
+        Class.forName(driverClassName);
+        LOGGER.debug("Getting admin connection");
+        // LOGGER.debug("Connection URL: " + connectionURL);
+        connection = DriverManager.getConnection(connectionURL);
+        connection.setAutoCommit(true);
+        LOGGER.debug("Connected");
+        connections.put(databaseName, connection);
+      } catch (ClassNotFoundException e) {
+        throw new ModuleException("JDBC driver class could not be found", e);
+      } catch (SQLException e) {
+        throw new ModuleException("SQL error creating connection", e);
+      }
     }
-
     return connection;
   }
 
@@ -220,8 +220,9 @@ public class JDBCExportModule implements DatabaseExportModule {
   public boolean databaseExists(String defaultConnectionDb, String database, String connectionURL)
     throws ModuleException {
     boolean found = false;
+    ResultSet result = null;
     try {
-      ResultSet result = getConnection(defaultConnectionDb, connectionURL).createStatement().executeQuery(
+      result = getConnection(defaultConnectionDb, connectionURL).createStatement().executeQuery(
         sqlHelper.getDatabases(database));
       while (result.next() && !found) {
         if (result.getString(1).equalsIgnoreCase(database)) {
@@ -230,6 +231,14 @@ public class JDBCExportModule implements DatabaseExportModule {
       }
     } catch (SQLException e) {
       throw new ModuleException("Error checking if database " + database + " exists", e);
+    } finally {
+      if (result != null) {
+        try {
+          result.close();
+        } catch (SQLException e) {
+
+        }
+      }
     }
     return found;
   }

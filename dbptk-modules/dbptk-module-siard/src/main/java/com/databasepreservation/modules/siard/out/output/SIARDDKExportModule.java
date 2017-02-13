@@ -9,8 +9,6 @@ package com.databasepreservation.modules.siard.out.output;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.databasepreservation.model.modules.DatabaseExportModule;
@@ -48,13 +46,11 @@ public class SIARDDKExportModule {
   private Path tableFilter;
 
   private Map<String, String> exportModuleArgs;
-  private Map<Integer, List<Integer>> LOBsTracker;
   private FileIndexFileStrategy fileIndexFileStrategy;
   private DocIndexFileStrategy docIndexFileStrategy;
 
   public SIARDDKExportModule(Map<String, String> exportModuleArgs, Path tableFilter) {
     this.exportModuleArgs = exportModuleArgs;
-    LOBsTracker = new HashMap<Integer, List<Integer>>();
 
     Path rootPath = FileSystems.getDefault().getPath(exportModuleArgs.get("folder"));
     this.tableFilter = tableFilter;
@@ -117,10 +113,6 @@ public class SIARDDKExportModule {
 
   public SIARDArchiveContainer getMainContainer() {
     return mainContainer;
-  }
-
-  public Map<Integer, List<Integer>> getLOBsTracker() {
-    return LOBsTracker;
   }
 
   /**
