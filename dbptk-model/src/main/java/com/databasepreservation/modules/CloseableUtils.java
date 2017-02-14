@@ -1,5 +1,7 @@
 package com.databasepreservation.modules;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -11,14 +13,24 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SQLUtils {
-  private static final Logger LOGGER = LoggerFactory.getLogger(SQLUtils.class);
+public class CloseableUtils {
+  private static final Logger LOGGER = LoggerFactory.getLogger(CloseableUtils.class);
 
   public static void closeQuietly(ResultSet resultSet) {
     if (resultSet != null) {
       try {
         resultSet.close();
       } catch (SQLException e) {
+        LOGGER.debug("Problem trying to close ResultSet", e);
+      }
+    }
+  }
+
+  public static void closeQuietly(Closeable closeable) {
+    if (closeable != null) {
+      try {
+        closeable.close();
+      } catch (IOException e) {
         LOGGER.debug("Problem trying to close ResultSet", e);
       }
     }

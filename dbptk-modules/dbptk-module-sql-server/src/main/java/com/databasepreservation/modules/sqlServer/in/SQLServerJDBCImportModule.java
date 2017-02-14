@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.structure.ViewStructure;
-import com.databasepreservation.modules.SQLUtils;
+import com.databasepreservation.modules.CloseableUtils;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.sqlServer.SQLServerHelper;
 import com.microsoft.sqlserver.jdbc.SQLServerConnection;
@@ -199,8 +199,8 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
       } catch (Exception e) {
         LOGGER.debug("Exception trying to get view SQL in SQL Server (method #1)", e);
       } finally {
-        SQLUtils.closeQuietly(rset);
-        SQLUtils.closeQuietly(statement);
+        CloseableUtils.closeQuietly(rset);
+        CloseableUtils.closeQuietly(statement);
       }
 
       try {
@@ -215,8 +215,8 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
       } catch (Exception e) {
         LOGGER.debug("Exception trying to get view SQL in SQL Server (method #2)", e);
       } finally {
-        SQLUtils.closeQuietly(rset);
-        SQLUtils.closeQuietly(statement);
+        CloseableUtils.closeQuietly(rset);
+        CloseableUtils.closeQuietly(statement);
       }
 
       if (StringUtils.isBlank(originalQuery)) {

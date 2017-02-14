@@ -25,7 +25,7 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.Type;
-import com.databasepreservation.modules.SQLUtils;
+import com.databasepreservation.modules.CloseableUtils;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.mySql.MySQLHelper;
 
@@ -117,7 +117,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
           LOGGER.error("It was not possible to retrieve the list of database users.", e);
         }
       } finally {
-        SQLUtils.closeQuietly(rs);
+        CloseableUtils.closeQuietly(rs);
       }
     }
 
@@ -219,8 +219,8 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
         // little before it is set to as the view
         v.setQueryOriginal(rset.getString(2));
       } finally {
-        SQLUtils.closeQuietly(rset);
-        SQLUtils.closeQuietly(statement);
+        CloseableUtils.closeQuietly(rset);
+        CloseableUtils.closeQuietly(statement);
       }
     }
     return views;
