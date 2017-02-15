@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
@@ -20,6 +22,9 @@ import com.databasepreservation.modules.msAccess.in.MsAccessUCanAccessImportModu
 public class MsAccessUCanAccessModuleFactory implements DatabaseModuleFactory {
   private static final Parameter accessFilePath = new Parameter().shortName("f").longName("file")
     .description("path to the Microsoft Access file").hasArgument(true).setOptionalArgument(false).required(true);
+
+  private static final Parameter accessPassword = new Parameter().shortName("p").longName("password")
+    .description("password to the Microsoft Access file").hasArgument(true).setOptionalArgument(false).required(false);
 
   @Override
   public boolean producesImportModules() {
@@ -40,12 +45,13 @@ public class MsAccessUCanAccessModuleFactory implements DatabaseModuleFactory {
   public Map<String, Parameter> getAllParameters() {
     HashMap<String, Parameter> parameterHashMap = new HashMap<String, Parameter>();
     parameterHashMap.put(accessFilePath.longName(), accessFilePath);
+    parameterHashMap.put(accessPassword.longName(), accessPassword);
     return parameterHashMap;
   }
 
   @Override
   public Parameters getImportModuleParameters() throws UnsupportedModuleException {
-    return new Parameters(Arrays.asList(accessFilePath), null);
+    return new Parameters(Arrays.asList(accessFilePath, accessPassword), null);
   }
 
   @Override
@@ -58,8 +64,17 @@ public class MsAccessUCanAccessModuleFactory implements DatabaseModuleFactory {
     LicenseNotAcceptedException {
     String pAccessFilePath = parameters.get(accessFilePath);
 
+    String pAccessPassword = null;
+    if (StringUtils.isNotBlank(parameters.get(accessPassword))) {
+      pAccessPassword = parameters.get(accessPassword);
+    }
+
     Reporter.importModuleParameters(getModuleName(), "file", pAccessFilePath);
-    return new MsAccessUCanAccessImportModule(pAccessFilePath);
+    if (pAccessPassword != null) {
+      return new MsAccessUCanAccessImportModule(pAccessFilePath, pAccessPassword);
+    } else {
+      return new MsAccessUCanAccessImportModule(pAccessFilePath);
+    }
   }
 
   @Override

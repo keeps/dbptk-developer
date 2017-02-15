@@ -1,6 +1,8 @@
 package com.databasepreservation.modules.msAccess.in;
 
 import java.io.File;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -33,14 +35,45 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
   private static final Logger LOGGER = LoggerFactory.getLogger(MsAccessUCanAccessImportModule.class);
 
   private static String INVALID_CHARACTERS_IN_TABLE_NAME = "\'";
+  private String password = null;
 
   public MsAccessUCanAccessImportModule(File msAccessFile) {
     super("net.ucanaccess.jdbc.UcanaccessDriver", "jdbc:ucanaccess://" + msAccessFile.getAbsolutePath()
       + ";showSchema=true;", new MsAccessHelper(), new MsAccessUCanAccessDatatypeImporter());
   }
 
+  public MsAccessUCanAccessImportModule(File msAccessFile, String password) {
+    this(msAccessFile);
+    this.password = password;
+  }
+
   public MsAccessUCanAccessImportModule(String accessFilePath) {
     this(new File(accessFilePath));
+  }
+
+  public MsAccessUCanAccessImportModule(String accessFilePath, String password) {
+    this(new File(accessFilePath), password);
+  }
+
+  public Connection getConnection() throws SQLException {
+    if (connection == null) {
+      LOGGER.debug("Loading JDBC Driver " + driverClassName);
+      try {
+        Class.forName(driverClassName);
+      } catch (ClassNotFoundException e) {
+        throw new SQLException("Could not find SQL driver class: " + driverClassName, e);
+      }
+      LOGGER.debug("Getting connection");
+      if (password == null) {
+        connection = DriverManager.getConnection(connectionURL);
+      } else {
+
+        connection = DriverManager.getConnection(connectionURL + "jackcessOpener=" + CryptCodecOpener.class.getName(),
+          null /* username is ignored */, password);
+      }
+      LOGGER.debug("Connected");
+    }
+    return connection;
   }
 
   @Override
