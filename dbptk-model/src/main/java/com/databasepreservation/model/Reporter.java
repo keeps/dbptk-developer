@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.utils.ConfigUtils;
 
 /**
  * Reports warnings regarding data losses and transformations during the
@@ -29,6 +30,9 @@ public class Reporter {
   // constants
   public static final String MESSAGE_FILTERED = "<filtered>";
   public static final String CODE_DELIMITER = "`";
+
+  public static final String[] REPORT_FOLDER = new String[] {"dbptk", "report", "folder"};
+  public static final String DEFAULT_REPORT_FOLDER = ".";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Reporter.class);
   private static final String[] NUMBER_SUFFIXES = new String[] {"th", "st", "nd", "rd", "th", "th", "th", "th", "th",
@@ -56,10 +60,11 @@ public class Reporter {
   }
 
   private Reporter() {
+    String directory = ConfigUtils.getProperty(DEFAULT_REPORT_FOLDER, REPORT_FOLDER);
     String filename_prefix = "dbptk-report-";
     String filename_timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
     String filename_suffix = ".txt";
-    outputfile = Paths.get(".").toAbsolutePath().resolve(filename_prefix + filename_timestamp + filename_suffix);
+    outputfile = Paths.get(directory).toAbsolutePath().resolve(filename_prefix + filename_timestamp + filename_suffix);
     try {
       outputfile = Files.createFile(outputfile);
     } catch (IOException e) {
