@@ -8,6 +8,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.type.ComposedTypeArray;
@@ -102,7 +103,8 @@ public class Sql2008toXSDType {
       ret = convert(type.getSql2008TypeName());
 
     } else if (type instanceof UnsupportedDataType) {
-      LOGGER.warn("Unsupported datatype: " + type.toString() + ". Using xs:string as xml type.");
+      Reporter.savedAsString();
+      LOGGER.debug("Found an unsupported datatype and saved it as xs:string: {}", type);
       ret = "xs:string";
     } else if (type instanceof ComposedTypeArray) {
       Type subtype = ((ComposedTypeArray) type).getElementType();

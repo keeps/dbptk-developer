@@ -47,6 +47,8 @@ public class Reporter {
 
   private static long conversionProblemsCounter = 0;
 
+  private static boolean warnedAboutSavedAsString = false;
+
   // //////////////////////////////////////////////////
   // instance
   private Path outputfile;
@@ -347,6 +349,13 @@ public class Reporter {
 
   public static void customMessage(String invokerNameForDebug, String customMessage) {
     customMessage(invokerNameForDebug, customMessage, null);
+  }
+
+  public static void savedAsString() {
+    if (!warnedAboutSavedAsString) {
+      warnedAboutSavedAsString = true;
+      report(new StringBuilder("Found an unsupported datatype value, and an attempt was made to save it as text."));
+    }
   }
 
   public static void ignored(String whatWasIgnored, String whyItWasIgnored) {

@@ -1234,12 +1234,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       } else if (cellType instanceof SimpleTypeBinary) {
         cell = rawToCellSimpleTypeBinary(id, columnName, cellType, rawData);
       } else if (cellType instanceof UnsupportedDataType) {
-        try {
-          cell = new SimpleCell(id, rawData.getString(columnName));
-        } catch (SQLException e) {
-          LOGGER.debug("Could not export cell of unsupported datatype: OTHER", e);
-          cell = new NullCell(id);
-        }
+        cell = rawToCellUnsupportedDataType(id, columnName, cellType, rawData);
       } else if (cellType instanceof SimpleTypeNumericExact) {
         cell = rawToCellSimpleTypeNumericExact(id, columnName, cellType, rawData);
       } else {
@@ -1282,6 +1277,18 @@ public class JDBCImportModule implements DatabaseImportModule {
   protected Cell rawToCellComposedTypeStructure(String id, String columnName, Type cellType, ResultSet rawData)
     throws InvalidDataException {
     throw new InvalidDataException("Convert data of struct type not yet supported");
+  }
+
+  protected Cell rawToCellUnsupportedDataType(String id, String columnName, Type cellType, ResultSet rawData)
+    throws InvalidDataException {
+    Cell cell;
+    try {
+      cell = new SimpleCell(id, rawData.getString(columnName));
+    } catch (SQLException e) {
+      LOGGER.debug("Could not export cell of unsupported datatype: OTHER", e);
+      cell = new NullCell(id);
+    }
+    return cell;
   }
 
   protected Cell rawToCellSimpleTypeNumericExact(String id, String columnName, Type cellType, ResultSet rawData)

@@ -1,6 +1,7 @@
 package com.databasepreservation.modules.msAccess.in;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -18,6 +19,7 @@ import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
+import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.PrivilegeStructure;
 import com.databasepreservation.model.structure.RoutineStructure;
@@ -26,6 +28,10 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.msAccess.MsAccessHelper;
+import com.healthmarketscience.jackcess.Database;
+
+import net.ucanaccess.complex.SingleValue;
+import net.ucanaccess.jdbc.UcanaccessConnection;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -74,6 +80,19 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
       LOGGER.debug("Connected");
     }
     return connection;
+  }
+
+  private Database getInternalDatabase() throws SQLException {
+    return ((UcanaccessConnection) getConnection()).getDbIO();
+  }
+
+  private Set<String> getTableNames() throws ModuleException {
+    try {
+      Database db = getInternalDatabase();
+      return db.getTableNames();
+    } catch (SQLException | IOException e) {
+      throw new ModuleException("could not get table names", e);
+    }
   }
 
   @Override
@@ -150,20 +169,6 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
   }
 
   /**
-   * Gets the schemas that won't be imported. Defaults to MsAccess are all
-   * INFORMATION_SCHEMA_XX
-   *
-   * @return the schemas to be ignored at import
-   */
-  @Override
-  protected Set<String> getIgnoredImportedSchemas() {
-    Set<String> ignoredSchemas = new HashSet<String>();
-    // ignoredSchemas.add("INFORMATION_SCHEMA.*");
-
-    return ignoredSchemas;
-  }
-
-  /**
    * @return the database privileges
    * @throws SQLException
    */
@@ -171,6 +176,15 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
   protected List<PrivilegeStructure> getPrivileges() throws SQLException {
     Reporter.notYetSupported("roles importing", "MS Access import module");
     return new ArrayList<PrivilegeStructure>();
+  }
+
+  @Override
+  protected Set<String> getIgnoredImportedSchemas() {
+    HashSet ignore = new HashSet<String>();
+    ignore.add("INFORMATION_SCHEMA");
+    ignore.add("SYSTEM_LOBS");
+    ignore.add("UCA_METADATA");
+    return ignore;
   }
 
   /**
@@ -183,10 +197,25 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
   @Override
   protected List<TableStructure> getTables(SchemaStructure schema) throws SQLException {
     List<TableStructure> tables = new ArrayList<>();
+
+    Set<String> tableNames = null;
+    try {
+      tableNames = getTableNames();
+    } catch (ModuleException e) {
+      tableNames = new HashSet<>();
+      LOGGER.debug("Could not obtain table names list, exporting everything", e);
+    }
+
     ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"TABLE"});
     int tableIndex = 1;
     while (rset.next()) {
       String tableName = rset.getString(3);
+
+      // add only "real" tables, or all if table info is not available
+      if (!tableNames.isEmpty() && !tableNames.contains(tableName)) {
+        continue;
+      }
+
       String tableDescription = rset.getString(5);
 
       if (StringUtils.containsAny(tableName, INVALID_CHARACTERS_IN_TABLE_NAME)) {
@@ -203,5 +232,31 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
       }
     }
     return tables;
+  }
+
+  @Override
+  protected Cell rawToCellUnsupportedDataType(String id, String columnName, Type cellType, ResultSet rawData)
+    throws InvalidDataException {
+    Cell cell;
+    try {
+      SingleValue[] data = (SingleValue[]) rawData.getObject(columnName);
+      if (data == null || data.length == 0) {
+        cell = new NullCell(id);
+      } else {
+        cell = new SimpleCell(id, singleValueArrayToString(data));
+      }
+    } catch (ClassCastException | SQLException e) {
+      LOGGER.debug("Could not export cell of unsupported datatype: OTHER", e);
+      cell = new NullCell(id);
+    }
+    return cell;
+  }
+
+  private String singleValueArrayToString(SingleValue[] values) {
+    StringBuilder str = new StringBuilder(values[0].getValue().toString());
+    for (int i = 1; i < values.length; i++) {
+      str.append(", ").append(values[i].getValue().toString());
+    }
+    return str.toString();
   }
 }
