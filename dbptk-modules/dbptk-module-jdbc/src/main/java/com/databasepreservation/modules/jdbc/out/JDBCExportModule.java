@@ -185,22 +185,36 @@ public class JDBCExportModule implements DatabaseExportModule {
    * @throws ModuleException
    */
   public Connection getConnection(String databaseName, String connectionURL) throws ModuleException {
-    if (connection == null) {
+    Connection connection = null;
+
+    // re-use connection if it exists
+    if (connections.containsKey(databaseName)) {
+      connection = connections.get(databaseName);
       try {
-        LOGGER.debug("Database: " + databaseName);
-        LOGGER.debug("Loading JDBC Driver " + driverClassName);
-        Class.forName(driverClassName);
-        LOGGER.debug("Getting admin connection");
-        // LOGGER.debug("Connection URL: " + connectionURL);
-        connection = DriverManager.getConnection(connectionURL);
-        connection.setAutoCommit(true);
-        LOGGER.debug("Connected");
-        connections.put(databaseName, connection);
-      } catch (ClassNotFoundException e) {
-        throw new ModuleException("JDBC driver class could not be found", e);
+        if (!connection.isClosed()) {
+          return connection;
+        } else {
+          LOGGER.debug("Re-opening a closed connection to database {}", databaseName);
+        }
       } catch (SQLException e) {
-        throw new ModuleException("SQL error creating connection", e);
+        LOGGER.debug("Error checking if connection is closed", e);
       }
+    }
+
+    // create it if it does not exist or has been closed
+    try {
+      LOGGER.debug("Database: " + databaseName);
+      LOGGER.debug("Loading JDBC Driver " + driverClassName);
+      Class.forName(driverClassName);
+      LOGGER.debug("Getting admin connection");
+      connection = DriverManager.getConnection(connectionURL);
+      connection.setAutoCommit(true);
+      LOGGER.debug("Connected");
+      connections.put(databaseName, connection);
+    } catch (ClassNotFoundException e) {
+      throw new ModuleException("JDBC driver class could not be found", e);
+    } catch (SQLException e) {
+      throw new ModuleException("SQL error creating connection", e);
     }
     return connection;
   }
@@ -725,10 +739,18 @@ public class JDBCExportModule implements DatabaseExportModule {
       }
       handleForeignKeys();
     }
-    closeConnection();
+    closeConnections();
   }
 
-  public void closeConnection() throws ModuleException {
+  public void closeConnections() throws ModuleException {
+    for (Map.Entry<String, Connection> databaseConnectionEntry : connections.entrySet()) {
+      try {
+        databaseConnectionEntry.getValue().close();
+      } catch (SQLException e) {
+        LOGGER.debug("Could not close connection to database '{}'", databaseConnectionEntry.getKey());
+      }
+    }
+
     if (connection != null) {
       LOGGER.debug("Closing connection");
       try {

@@ -209,6 +209,6 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
         LOGGER.info("Problem activating \"unique\" checks.", e);
       }
     }
-    closeConnection();
+    closeConnections();
   }
 }
