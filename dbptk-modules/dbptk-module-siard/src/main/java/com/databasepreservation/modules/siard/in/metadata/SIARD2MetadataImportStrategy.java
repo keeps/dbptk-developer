@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.CandidateKey;
@@ -38,7 +39,8 @@ import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQLStandardDatatypeFactory;
+import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQL2008StandardDatatypeImporter;
+import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQLStandardDatatypeImporter;
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
@@ -86,6 +88,8 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
   private final ContentPathImportStrategy contentPathStrategy;
   private ModuleSettings moduleSettings;
 
+  private SQLStandardDatatypeImporter sqlStandardDatatypeImporter;
+
   private int currentSchemaIndex = 1;
   private int currentTableIndex;
 
@@ -93,10 +97,13 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
   private String metadataCurrentSchemaName = "<information not available>";
   private String metadataCurrentTableName = "<information not available>";
 
+  private Reporter reporter;
+
   public SIARD2MetadataImportStrategy(MetadataPathStrategy metadataPathStrategy,
     ContentPathImportStrategy contentPathImportStrategy) {
     this.metadataPathStrategy = metadataPathStrategy;
     this.contentPathStrategy = contentPathImportStrategy;
+    sqlStandardDatatypeImporter = new SQL2008StandardDatatypeImporter();
   }
 
   @Override
@@ -168,6 +175,12 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
     } else {
       throw new ModuleException("getDatabaseStructure must not be called before loadMetadata");
     }
+  }
+
+  @Override
+  public void setOnceReporter(Reporter reporter) {
+    this.reporter = reporter;
+    sqlStandardDatatypeImporter.setOnceReporter(reporter);
   }
 
   private DatabaseStructure getDatabaseStructure(SiardArchive siardArchive) throws ModuleException {
@@ -374,9 +387,9 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
 
       result.setName(parameterType.getName());
       result.setMode(parameterType.getMode());
-      result.setType(SQLStandardDatatypeFactory.getSQL2008StandardDatatypeImporter().getCheckedType(
-        metadataCurrentDatabaseName, metadataCurrentSchemaName, metadataCurrentTableName + " (routine)",
-        parameterType.getName() + " (parameter)", parameterType.getType(), parameterType.getTypeOriginal()));
+      result.setType(sqlStandardDatatypeImporter.getCheckedType(metadataCurrentDatabaseName, metadataCurrentSchemaName,
+        metadataCurrentTableName + " (routine)", parameterType.getName() + " (parameter)", parameterType.getType(),
+        parameterType.getTypeOriginal()));
       result.setDescription(parameterType.getDescription());
 
       // todo: deal with these fields (related to complex types)
@@ -640,9 +653,8 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
 
       contentPathStrategy.associateColumnWithFolder(result.getId(), column.getFolder());
 
-      result.setType(SQLStandardDatatypeFactory.getSQL2008StandardDatatypeImporter().getCheckedType(
-        metadataCurrentDatabaseName, metadataCurrentSchemaName, metadataCurrentTableName, column.getName(),
-        column.getType(), column.getTypeOriginal()));
+      result.setType(sqlStandardDatatypeImporter.getCheckedType(metadataCurrentDatabaseName, metadataCurrentSchemaName,
+        metadataCurrentTableName, column.getName(), column.getType(), column.getTypeOriginal()));
 
       result.setNillable(column.isNullable());
       result.setDefaultValue(column.getDefaultValue());

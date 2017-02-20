@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.databasepreservation.model.NoOpReporter;
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.Row;
@@ -559,6 +561,9 @@ public class SiardTest {
         break;
     }
 
+    Reporter mockReporter = new NoOpReporter();
+    exporter.setOnceReporter(mockReporter);
+
     // behaviour
     LOGGER.debug("initializing database");
     exporter.initDatabase();
@@ -612,6 +617,7 @@ public class SiardTest {
           .getDatabaseImportModule();
         break;
     }
+    importer.setOnceReporter(mockReporter);
 
     ArgumentCaptor<DatabaseStructure> dbStructureCaptor = ArgumentCaptor.forClass(DatabaseStructure.class);
     importer.getDatabase(mocked);

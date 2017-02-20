@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
@@ -47,6 +48,7 @@ public class SIARDExportDefault implements DatabaseExportModule {
   private SchemaStructure currentSchema;
   private TableStructure currentTable;
   private Map<String, String> descriptiveMetadata;
+  private Reporter reporter;
 
   public SIARDExportDefault(ContentExportStrategy contentStrategy, SIARDArchiveContainer mainContainer,
     WriteStrategy writeStrategy, MetadataExportStrategy metadataStrategy, Path tableFilter,
@@ -193,5 +195,20 @@ public class SIARDExportDefault implements DatabaseExportModule {
     metadataStrategy.writeMetadataXML(dbStructure, mainContainer, writeStrategy);
     metadataStrategy.writeMetadataXSD(dbStructure, mainContainer, writeStrategy);
     writeStrategy.finish(mainContainer);
+  }
+
+  /**
+   * Provide a reporter through which potential conversion problems should be
+   * reported. This reporter should be provided only once for the export module
+   * instance.
+   *
+   * @param reporter
+   *          The initialized reporter instance.
+   */
+  @Override
+  public void setOnceReporter(Reporter reporter) {
+    this.reporter = reporter;
+    contentStrategy.setOnceReporter(reporter);
+    metadataStrategy.setOnceReporter(reporter);
   }
 }

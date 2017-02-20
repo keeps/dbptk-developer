@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.CandidateKey;
@@ -37,7 +38,8 @@ import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQLStandardDatatypeFactory;
+import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQL99StandardDatatypeImporter;
+import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQLStandardDatatypeImporter;
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.utils.JodaUtils;
@@ -89,14 +91,19 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
   private int currentSchemaIndex = 1;
   private int currentTableIndex;
 
+  private SQLStandardDatatypeImporter sqlStandardDatatypeImporter;
+
   private String metadataCurrentDatabaseName = "<information not available>";
   private String metadataCurrentSchemaName = "<information not available>";
   private String metadataCurrentTableName = "<information not available>";
+
+  private Reporter reporter;
 
   public SIARD1MetadataImportStrategy(MetadataPathStrategy metadataPathStrategy,
     ContentPathImportStrategy contentPathImportStrategy) {
     this.metadataPathStrategy = metadataPathStrategy;
     this.contentPathStrategy = contentPathImportStrategy;
+    this.sqlStandardDatatypeImporter = new SQL99StandardDatatypeImporter();
   }
 
   @Override
@@ -168,6 +175,12 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
     } else {
       throw new ModuleException("getDatabaseStructure must not be called before loadMetadata");
     }
+  }
+
+  @Override
+  public void setOnceReporter(Reporter reporter) {
+    this.reporter = reporter;
+    sqlStandardDatatypeImporter.setOnceReporter(reporter);
   }
 
   private DatabaseStructure getDatabaseStructure(SiardArchive siardArchive) throws ModuleException {
@@ -367,9 +380,9 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 
       result.setName(parameterType.getName());
       result.setMode(parameterType.getMode());
-      result.setType(SQLStandardDatatypeFactory.getSQL99StandardDatatypeImporter().getCheckedType(
-        metadataCurrentDatabaseName, metadataCurrentSchemaName, metadataCurrentTableName + " (routine)",
-        parameterType.getName() + " (parameter)", parameterType.getType(), parameterType.getTypeOriginal()));
+      result.setType(sqlStandardDatatypeImporter.getCheckedType(metadataCurrentDatabaseName, metadataCurrentSchemaName,
+        metadataCurrentTableName + " (routine)", parameterType.getName() + " (parameter)", parameterType.getType(),
+        parameterType.getTypeOriginal()));
       result.setDescription(parameterType.getDescription());
 
       return result;
@@ -614,9 +627,8 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
       result.setId(tableId + "." + result.getName());
       contentPathStrategy.associateColumnWithFolder(result.getId(), column.getFolder());
 
-      result.setType(SQLStandardDatatypeFactory.getSQL99StandardDatatypeImporter().getCheckedType(
-        metadataCurrentDatabaseName, metadataCurrentSchemaName, metadataCurrentTableName, column.getName(),
-        column.getType(), column.getTypeOriginal()));
+      result.setType(sqlStandardDatatypeImporter.getCheckedType(metadataCurrentDatabaseName, metadataCurrentSchemaName,
+        metadataCurrentTableName, column.getName(), column.getType(), column.getTypeOriginal()));
 
       result.setNillable(column.isNullable());
       result.setDefaultValue(column.getDefaultValue());

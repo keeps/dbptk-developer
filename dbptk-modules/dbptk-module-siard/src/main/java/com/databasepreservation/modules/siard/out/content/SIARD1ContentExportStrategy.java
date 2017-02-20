@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.common.TemporaryPathInputStreamProvider;
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -50,6 +51,8 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
   int currentRowIndex;
   private List<LargeObject> LOBsToExport;
   boolean warnedAboutUDT = false;
+
+  private Reporter reporter;
 
   public SIARD1ContentExportStrategy(ContentPathExportStrategy contentPathStrategy, WriteStrategy writeStrategy,
     SIARDArchiveContainer baseContainer, boolean prettyXMLOutput) {
@@ -148,6 +151,11 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     }
   }
 
+  @Override
+  public void setOnceReporter(Reporter reporter) {
+    this.reporter = reporter;
+  }
+
   private void writeComposedCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException,
     IOException {
     if (!warnedAboutUDT) {
@@ -165,7 +173,8 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
   private void writeSimpleCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException, IOException {
     SimpleCell simpleCell = (SimpleCell) cell;
 
-    if (Sql99toXSDType.isLargeType(column.getType()) && simpleCell.getBytesSize() > THRESHOLD_TREAT_STRING_AS_CLOB) {
+    if (Sql99toXSDType.isLargeType(column.getType(), reporter)
+      && simpleCell.getBytesSize() > THRESHOLD_TREAT_STRING_AS_CLOB) {
       writeLargeObjectData(cell, columnIndex);
     } else {
       writeSimpleCellData(simpleCell, columnIndex);
@@ -180,7 +189,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
       // TODO: make sure this never happens
       NullCell nullCell = new NullCell(binaryCell.getId());
       writeNullCellData(nullCell, columnIndex);
-    } else if (Sql99toXSDType.isLargeType(column.getType()) && length > THRESHOLD_TREAT_BINARY_AS_BLOB) {
+    } else if (Sql99toXSDType.isLargeType(column.getType(), reporter) && length > THRESHOLD_TREAT_BINARY_AS_BLOB) {
       writeLargeObjectData(cell, columnIndex);
     } else {
       // inline binary data
@@ -356,7 +365,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     int columnIndex = 1;
     for (ColumnStructure col : currentTable.getColumns()) {
       try {
-        String xsdType = Sql99toXSDType.convert(col.getType());
+        String xsdType = Sql99toXSDType.convert(col.getType(), reporter);
 
         xsdWriter.beginOpenTag("xs:element", 4);
 

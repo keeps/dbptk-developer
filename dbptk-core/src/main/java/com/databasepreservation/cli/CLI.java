@@ -3,6 +3,7 @@ package com.databasepreservation.cli;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
@@ -30,6 +31,8 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.model.NoOpReporter;
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
@@ -75,13 +78,12 @@ public class CLI {
   public CLI(List<String> commandLineArguments, List<Class<? extends DatabaseModuleFactory>> databaseModuleFactories) {
     factories = new ArrayList<DatabaseModuleFactory>();
     this.commandLineArguments = commandLineArguments;
+    Reporter mockReporter = new NoOpReporter();
     try {
       for (Class<? extends DatabaseModuleFactory> factoryClass : databaseModuleFactories) {
-        factories.add(factoryClass.newInstance());
+        factories.add(factoryClass.getDeclaredConstructor(Reporter.class).newInstance(mockReporter));
       }
-    } catch (InstantiationException e) {
-      LOGGER.error("Error initializing CLI", e);
-    } catch (IllegalAccessException e) {
+    } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
       LOGGER.error("Error initializing CLI", e);
     }
     includePluginModules();

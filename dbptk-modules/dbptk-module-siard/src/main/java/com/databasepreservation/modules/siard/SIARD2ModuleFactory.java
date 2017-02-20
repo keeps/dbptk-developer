@@ -103,6 +103,15 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     .required(false).hasArgument(true).setOptionalArgument(true)
     .valueIfNotSet(SIARDHelper.getMachineHostname() + " (fetched automatically)");
 
+  private Reporter reporter;
+
+  private SIARD2ModuleFactory() {
+  }
+
+  public SIARD2ModuleFactory(Reporter reporter) {
+    this.reporter = reporter;
+  }
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -155,7 +164,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     LicenseNotAcceptedException {
     Path pFile = Paths.get(parameters.get(file));
 
-    Reporter.importModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString());
+    reporter.importModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString());
     return new SIARD2ImportModule(pFile).getDatabaseImportModule();
   }
 
@@ -237,12 +246,12 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
 
     if (pExternalLobs) {
       if (pTableFilter == null) {
-        Reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
+        reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
           "compress", String.valueOf(pCompress), "pretty xml", String.valueOf(pPrettyPrintXML),
           "external lobs per folder", String.valueOf(pExternalLobsPerFolder), "external lobs folder size",
           String.valueOf(pExternalLobsFolderSize));
       } else {
-        Reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
+        reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
           "compress", String.valueOf(pCompress), "pretty xml", String.valueOf(pPrettyPrintXML), "table filter",
           pTableFilter.normalize().toAbsolutePath().toString(), "external lobs per folder",
           String.valueOf(pExternalLobsPerFolder), "external lobs folder size", String.valueOf(pExternalLobsFolderSize));
@@ -252,10 +261,10 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
         pExternalLobsFolderSize, descriptiveMetadataParameterValues).getDatabaseHandler();
     } else {
       if (pTableFilter == null) {
-        Reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
+        reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
           "compress", String.valueOf(pCompress), "pretty xml", String.valueOf(pPrettyPrintXML));
       } else {
-        Reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
+        reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
           "compress", String.valueOf(pCompress), "pretty xml", String.valueOf(pPrettyPrintXML), "table filter",
           pTableFilter.normalize().toAbsolutePath().toString());
       }

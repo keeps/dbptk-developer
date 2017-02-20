@@ -21,6 +21,7 @@ import org.jdom2.output.XMLOutputter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -66,6 +67,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   private LOBsTracker lobsTracker;
   private MimetypeHandler mimetypeHandler;
   private Tika tika;
+
+  private Reporter reporter;
 
   public SIARDDKContentExportStrategy(SIARDDKExportModule siarddkExportModule) {
 
@@ -381,6 +384,11 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     } catch (IOException e) {
       throw new ModuleException("Could not write row " + row.toString(), e);
     }
+  }
+
+  @Override
+  public void setOnceReporter(Reporter reporter) {
+    this.reporter = reporter;
   }
 
   private void writeColumnElement(int columnIndex, Object value) {

@@ -26,6 +26,15 @@ public class MsAccessUCanAccessModuleFactory implements DatabaseModuleFactory {
   private static final Parameter accessPassword = new Parameter().shortName("p").longName("password")
     .description("password to the Microsoft Access file").hasArgument(true).setOptionalArgument(false).required(false);
 
+  private Reporter reporter;
+
+  private MsAccessUCanAccessModuleFactory() {
+  }
+
+  public MsAccessUCanAccessModuleFactory(Reporter reporter) {
+    this.reporter = reporter;
+  }
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -69,7 +78,7 @@ public class MsAccessUCanAccessModuleFactory implements DatabaseModuleFactory {
       pAccessPassword = parameters.get(accessPassword);
     }
 
-    Reporter.importModuleParameters(getModuleName(), "file", pAccessFilePath);
+    reporter.importModuleParameters(getModuleName(), "file", pAccessFilePath);
     if (pAccessPassword != null) {
       return new MsAccessUCanAccessImportModule(pAccessFilePath, pAccessPassword);
     } else {

@@ -27,6 +27,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -83,6 +84,8 @@ public class DBMLImportModule implements DatabaseImportModule {
   private SAXParser saxParser;
 
   private InputStream dbml;
+
+  private Reporter reporter;
 
   /**
    * Interface to handle the binary inputstream lookup
@@ -164,6 +167,19 @@ public class DBMLImportModule implements DatabaseImportModule {
     } catch (IOException e) {
       throw new ModuleException("Error reading DBML", e);
     }
+  }
+
+  /**
+   * Provide a reporter through which potential conversion problems should be
+   * reported. This reporter should be provided only once for the export module
+   * instance.
+   *
+   * @param reporter
+   *          The initialized reporter instance.
+   */
+  @Override
+  public void setOnceReporter(Reporter reporter) {
+    this.reporter = reporter;
   }
 
   /**

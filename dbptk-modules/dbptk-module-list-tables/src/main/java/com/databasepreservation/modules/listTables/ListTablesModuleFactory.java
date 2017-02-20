@@ -27,6 +27,15 @@ public class ListTablesModuleFactory implements DatabaseModuleFactory {
     .description("Path to output file that can be read by SIARD2 export module").hasArgument(true)
     .setOptionalArgument(false).required(true);
 
+  private Reporter reporter;
+
+  private ListTablesModuleFactory() {
+  }
+
+  public ListTablesModuleFactory(Reporter reporter) {
+    this.reporter = reporter;
+  }
+
   @Override
   public boolean producesImportModules() {
     return false;
@@ -70,7 +79,7 @@ public class ListTablesModuleFactory implements DatabaseModuleFactory {
     LicenseNotAcceptedException {
     Path pFile = Paths.get(parameters.get(file));
 
-    Reporter.exportModuleParameters(this.getModuleName(), "file", pFile.normalize().toAbsolutePath().toString());
+    reporter.exportModuleParameters(this.getModuleName(), "file", pFile.normalize().toAbsolutePath().toString());
     return new ListTables(pFile);
   }
 }

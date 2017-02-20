@@ -13,7 +13,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
@@ -256,7 +255,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    */
   @Override
   protected List<CheckConstraint> getCheckConstraints(String schemaName, String tableName) {
-    Reporter.notYetSupported("check constraints", "MySQL");
+    reporter.notYetSupported("check constraints", "MySQL");
     return new ArrayList<CheckConstraint>();
   }
 

@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.common.InputStreamProvider;
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -250,7 +249,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
               colStruct.getType(), rawData);
           } catch (Exception e) {
             cell = new SimpleCell(tableStructure.getName() + "." + colStruct.getName() + "." + (i + 1), null);
-            Reporter.cellProcessingUsedNull(tableStructure, colStruct, currentRow, e);
+            reporter.cellProcessingUsedNull(tableStructure, colStruct, currentRow, e);
           }
           cells.add(cell);
         }
@@ -281,7 +280,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
               subtype.getType(), rawData);
           } catch (Exception e) {
             cell = new SimpleCell(tableStructure.getName() + "." + aliasColumnName + "." + (udtColumnIndex + 1), null);
-            Reporter.cellProcessingUsedNull(tableStructure, udtColumn, currentRow, e);
+            reporter.cellProcessingUsedNull(tableStructure, udtColumn, currentRow, e);
           }
           udtCells.add(cell);
 
@@ -302,7 +301,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       }
       row = new Row(tableStructure.getCurrentRow(), cells);
 
-      Reporter.rowProcessingUsedNull(tableStructure, tableStructure.getCurrentRow(), new ModuleException(
+      reporter.rowProcessingUsedNull(tableStructure, tableStructure.getCurrentRow(), new ModuleException(
         "isRowValid returned false"));
     }
     tableStructure.incrementCurrentRow();

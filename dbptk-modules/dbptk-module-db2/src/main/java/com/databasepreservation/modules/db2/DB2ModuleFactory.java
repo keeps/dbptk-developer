@@ -37,6 +37,15 @@ public class DB2ModuleFactory implements DatabaseModuleFactory {
     .description("the password of the user to use in connection").hasArgument(true).setOptionalArgument(false)
     .required(true);
 
+  private Reporter reporter;
+
+  private DB2ModuleFactory() {
+  }
+
+  public DB2ModuleFactory(Reporter reporter) {
+    this.reporter = reporter;
+  }
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -82,8 +91,8 @@ public class DB2ModuleFactory implements DatabaseModuleFactory {
     String pPassword = parameters.get(password);
     Integer pPortNumber = Integer.parseInt(parameters.get(portNumber));
 
-    Reporter.importModuleParameters(this.getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
-      pUsername, "password", Reporter.MESSAGE_FILTERED);
+    reporter.importModuleParameters(this.getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
+      pUsername, "password", reporter.MESSAGE_FILTERED);
     return new DB2JDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword);
   }
 
@@ -96,8 +105,8 @@ public class DB2ModuleFactory implements DatabaseModuleFactory {
     String pPassword = parameters.get(password);
     Integer pPortNumber = Integer.parseInt(parameters.get(portNumber));
 
-    Reporter.exportModuleParameters(this.getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
-      pUsername, "password", Reporter.MESSAGE_FILTERED);
+    reporter.exportModuleParameters(this.getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
+      pUsername, "password", reporter.MESSAGE_FILTERED);
     return new DB2JDBCExportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword);
   }
 }

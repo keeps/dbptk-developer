@@ -10,7 +10,6 @@ import java.util.Calendar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
@@ -47,7 +46,7 @@ public class DB2JDBCExportModule extends JDBCExportModule {
   @Override
   public void finishDatabase() throws ModuleException {
     if (databaseStructure != null) {
-      Reporter.notYetSupported("foreign key", "db2 export module");
+      reporter.notYetSupported("foreign key", "db2 export module");
       // handleForeignKeys();
       try {
         commit();

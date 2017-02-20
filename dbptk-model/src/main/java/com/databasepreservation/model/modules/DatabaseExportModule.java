@@ -5,6 +5,7 @@ package com.databasepreservation.model.modules;
 
 import java.util.Set;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
@@ -112,4 +113,14 @@ public interface DatabaseExportModule {
    * @throws ModuleException
    */
   void finishDatabase() throws ModuleException;
+
+  /**
+   * Provide a reporter through which potential conversion problems should be
+   * reported. This reporter should be provided only once for the export module
+   * instance.
+   * 
+   * @param reporter
+   *          The initialized reporter instance.
+   */
+  void setOnceReporter(Reporter reporter);
 }

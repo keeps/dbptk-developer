@@ -92,7 +92,7 @@ public class Sql99toXSDType {
    * @throws UnknownTypeException
    *           if the type is not known
    */
-  public static String convert(Type type) throws ModuleException, UnknownTypeException {
+  public static String convert(Type type, Reporter reporter) throws ModuleException, UnknownTypeException {
     String ret = null;
     if (type instanceof SimpleTypeString || type instanceof SimpleTypeNumericExact
       || type instanceof SimpleTypeNumericApproximate || type instanceof SimpleTypeBoolean
@@ -101,7 +101,7 @@ public class Sql99toXSDType {
       ret = convert(type.getSql99TypeName());
 
     } else if (type instanceof UnsupportedDataType) {
-      Reporter.savedAsString();
+      reporter.savedAsString();
       LOGGER.debug("Found an unsupported datatype and saved it as xs:string: {}", type);
       return "xs:string";
     } else if (type instanceof ComposedTypeArray) {
@@ -146,14 +146,14 @@ public class Sql99toXSDType {
    *          the type to check
    * @return true if the type is a BLOB or CLOB (large type); false otherwise
    */
-  public static boolean isLargeType(Type type) {
+  public static boolean isLargeType(Type type, Reporter reporter) {
     Boolean result = largeObjects.get(type);
     if (result != null) {
       return result;
     }
 
     try {
-      String xmlType = convert(type);
+      String xmlType = convert(type, reporter);
       for (String largeType : largeTypes) {
         if (xmlType.equals(largeType)) {
           result = true;

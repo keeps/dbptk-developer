@@ -95,6 +95,15 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
   // tiff").hasArgument(true)
   // .setOptionalArgument(false).required(false).valueIfNotSet(SIARDDKConstants.DEFAULT_MAX_CLOB_LENGTH);
 
+  private Reporter reporter;
+
+  private SIARDDKModuleFactory() {
+  }
+
+  public SIARDDKModuleFactory(Reporter reporter) {
+    this.reporter = reporter;
+  }
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -149,7 +158,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
   @Override
   public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
     LicenseNotAcceptedException {
-    Reporter.importModuleParameters(getModuleName(), "file", Paths.get(parameters.get(PARAM_IMPORT_FOLDER)).normalize()
+    reporter.importModuleParameters(getModuleName(), "file", Paths.get(parameters.get(PARAM_IMPORT_FOLDER)).normalize()
       .toAbsolutePath().toString(), PARAM_IMPORT_AS_SCHEMA.longName(), parameters.get(PARAM_IMPORT_AS_SCHEMA));
     return new SIARDDKImportModule(Paths.get(parameters.get(PARAM_IMPORT_FOLDER)),
       parameters.get(PARAM_IMPORT_AS_SCHEMA)).getDatabaseImportModule();
@@ -222,7 +231,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
       exportModuleParameters.add(lobsFolderSize.longName());
       exportModuleParameters.add(pLobsFolderSize);
     }
-    Reporter.exportModuleParameters(getModuleName(),
+    reporter.exportModuleParameters(getModuleName(),
       exportModuleParameters.toArray(new String[exportModuleParameters.size()]));
 
     return new SIARDDKExportModule(exportModuleArgs, pTableFilter).getDatabaseExportModule();

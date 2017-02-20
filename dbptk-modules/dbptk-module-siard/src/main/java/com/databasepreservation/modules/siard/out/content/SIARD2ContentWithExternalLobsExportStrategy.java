@@ -70,7 +70,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
   @Override
   protected void writeSimpleCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException,
     IOException {
-    if (Sql2008toXSDType.isLargeType(column.getType())) {
+    if (Sql2008toXSDType.isLargeType(column.getType(), reporter)) {
       writeLargeObjectData(cell, columnIndex);
     } else {
       writeSimpleCellData((SimpleCell) cell, columnIndex);
@@ -82,7 +82,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
     IOException {
     BinaryCell binaryCell = (BinaryCell) cell;
 
-    if (Sql2008toXSDType.isLargeType(column.getType())) {
+    if (Sql2008toXSDType.isLargeType(column.getType(), reporter)) {
       writeLargeObjectData(cell, columnIndex);
     } else {
       // inline non-BLOB binary data

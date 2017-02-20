@@ -10,6 +10,7 @@ import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
@@ -31,6 +32,8 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
   private DocIndexFileStrategy docIndexFileStrategy;
   private Map<String, String> exportModuleArgs;
   private LOBsTracker lobsTracker;
+
+  private Reporter reporter;
 
   public SIARDDKMetadataExportStrategy(SIARDDKExportModule siarddkExportModule) {
     siardMarshaller = siarddkExportModule.getSiardMarshaller();
@@ -141,6 +144,11 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     if (lobsTracker.getLOBsCount() > 0) {
       writeSchemaFile(outputContainer, SIARDDKConstants.DOC_INDEX + "_original", writeStrategy);
     }
+  }
+
+  @Override
+  public void setOnceReporter(Reporter reporter) {
+    this.reporter = reporter;
   }
 
   private void writeSchemaFile(SIARDArchiveContainer container, String indexFile, WriteStrategy writeStrategy)

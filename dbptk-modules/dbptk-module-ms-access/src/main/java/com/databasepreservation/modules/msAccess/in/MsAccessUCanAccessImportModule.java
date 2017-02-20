@@ -15,7 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
@@ -174,7 +173,7 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
    */
   @Override
   protected List<PrivilegeStructure> getPrivileges() throws SQLException {
-    Reporter.notYetSupported("roles importing", "MS Access import module");
+    reporter.notYetSupported("roles importing", "MS Access import module");
     return new ArrayList<PrivilegeStructure>();
   }
 
@@ -221,7 +220,7 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
       if (StringUtils.containsAny(tableName, INVALID_CHARACTERS_IN_TABLE_NAME)) {
         LOGGER.warn("Ignoring table " + tableName + " in schema " + schema.getName()
           + " because it contains one of these non-supported characters: " + INVALID_CHARACTERS_IN_TABLE_NAME);
-        Reporter.ignored("table " + tableName + " in schema " + schema.getName(),
+        reporter.ignored("table " + tableName + " in schema " + schema.getName(),
           "it contains one of these non-supported characters: " + INVALID_CHARACTERS_IN_TABLE_NAME);
       } else if (getModuleSettings().isSelectedTable(schema.getName(), tableName)) {
         LOGGER.info("Obtaining table structure for " + schema.getName() + "." + tableName);

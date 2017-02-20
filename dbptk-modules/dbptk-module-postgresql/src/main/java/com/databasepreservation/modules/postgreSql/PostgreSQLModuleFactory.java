@@ -44,6 +44,15 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
     .description("the PostgreSQL server port number, default is 5432").hasArgument(true).setOptionalArgument(false)
     .required(false).valueIfNotSet("5432");
 
+  private Reporter reporter;
+
+  private PostgreSQLModuleFactory() {
+  }
+
+  public PostgreSQLModuleFactory(Reporter reporter) {
+    this.reporter = reporter;
+  }
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -100,8 +109,8 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
       pPortNumber = Integer.parseInt(portNumber.valueIfNotSet());
     }
 
-    Reporter.importModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
-      pUsername, "password", Reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
+    reporter.importModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
+      pUsername, "password", reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
     return new PostgreSQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt);
   }
 
@@ -124,8 +133,8 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
       pPortNumber = Integer.parseInt(portNumber.valueIfNotSet());
     }
 
-    Reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
-      pUsername, "password", Reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
+    reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
+      pUsername, "password", reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
     return new PostgreSQLJDBCExportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt);
   }
 }

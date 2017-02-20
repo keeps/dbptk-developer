@@ -1,5 +1,6 @@
 package com.databasepreservation.modules.siard.out.metadata;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
@@ -14,4 +15,6 @@ public interface MetadataExportStrategy {
 
   void writeMetadataXSD(DatabaseStructure databaseStructure, SIARDArchiveContainer container,
     WriteStrategy writeStrategy) throws ModuleException;
+
+  void setOnceReporter(Reporter reporter);
 }

@@ -34,6 +34,15 @@ public class JDBCModuleFactory implements DatabaseModuleFactory {
   private static final Parameter params = new Parameter().shortName("p").longName("parameter").required(false)
     .valueIfNotSet(null).hasArgument(true).setOptionalArgument(false);
 
+  private Reporter reporter;
+
+  private JDBCModuleFactory() {
+  }
+
+  public JDBCModuleFactory(Reporter reporter) {
+    this.reporter = reporter;
+  }
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -75,7 +84,7 @@ public class JDBCModuleFactory implements DatabaseModuleFactory {
     String pConnection = parameters.get(connection);
     // String pParams = parameters.get(params);
 
-    Reporter.importModuleParameters(this.getModuleName(), "driver", pDriver, "connection", pConnection);
+    reporter.importModuleParameters(this.getModuleName(), "driver", pDriver, "connection", pConnection);
     return new JDBCImportModule(pDriver, pConnection);
   }
 
@@ -86,7 +95,7 @@ public class JDBCModuleFactory implements DatabaseModuleFactory {
     String pConnection = parameters.get(connection);
     // String pParams = parameters.get(params);
 
-    Reporter.exportModuleParameters(this.getModuleName(), "driver", pDriver, "connection", pConnection);
+    reporter.exportModuleParameters(this.getModuleName(), "driver", pDriver, "connection", pConnection);
     return new JDBCExportModule(pDriver, pConnection);
   }
 }

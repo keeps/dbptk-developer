@@ -53,6 +53,15 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
 
   private static final ParameterGroup instanceName_portNumber = new ParameterGroup(false, instanceName, portNumber);
 
+  private Reporter reporter;
+
+  private SQLServerJDBCModuleFactory() {
+  }
+
+  public SQLServerJDBCModuleFactory(Reporter reporter) {
+    this.reporter = reporter;
+  }
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -120,20 +129,20 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
     }
 
     if (pPortNumber != null) {
-      Reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
-        pUsername, "password", Reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin),
+      reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
+        pUsername, "password", reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin),
         "port number", pPortNumber.toString());
       return new SQLServerJDBCImportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword,
         pUseIntegratedLogin, pEncrypt);
     } else if (pInstanceName != null) {
-      Reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
-        pUsername, "password", Reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin),
+      reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
+        pUsername, "password", reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin),
         "instance name", pInstanceName);
       return new SQLServerJDBCImportModule(pServerName, pInstanceName, pDatabase, pUsername, pPassword,
         pUseIntegratedLogin, pEncrypt);
     } else {
-      Reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
-        pUsername, "password", Reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin));
+      reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
+        pUsername, "password", reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin));
       return new SQLServerJDBCImportModule(pServerName, pDatabase, pUsername, pPassword, pUseIntegratedLogin, pEncrypt);
     }
   }
@@ -162,20 +171,20 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
     }
 
     if (pPortNumber != null) {
-      Reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
-        pUsername, "password", Reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin),
+      reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
+        pUsername, "password", reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin),
         "port number", pPortNumber.toString());
       return new SQLServerJDBCExportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword,
         pUseIntegratedLogin, pEncrypt);
     } else if (pInstanceName != null) {
-      Reporter.exportModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
-        pUsername, "password", Reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin),
+      reporter.exportModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
+        pUsername, "password", reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin),
         "instance name", pInstanceName);
       return new SQLServerJDBCExportModule(pServerName, pInstanceName, pDatabase, pUsername, pPassword,
         pUseIntegratedLogin, pEncrypt);
     } else {
-      Reporter.exportModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
-        pUsername, "password", Reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin));
+      reporter.exportModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
+        pUsername, "password", reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin));
       return new SQLServerJDBCExportModule(pServerName, pDatabase, pUsername, pPassword, pUseIntegratedLogin, pEncrypt);
     }
   }

@@ -22,6 +22,15 @@ public class DBMLModuleFactory implements DatabaseModuleFactory {
   private static final Parameter file = new Parameter().shortName("f").longName("file")
     .description("Path to DBML file").hasArgument(true).setOptionalArgument(false).required(true);
 
+  private Reporter reporter;
+
+  private DBMLModuleFactory() {
+  }
+
+  public DBMLModuleFactory(Reporter reporter) {
+    this.reporter = reporter;
+  }
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -59,7 +68,7 @@ public class DBMLModuleFactory implements DatabaseModuleFactory {
     LicenseNotAcceptedException {
     Path pFile = Paths.get(parameters.get(file));
 
-    Reporter.importModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString());
+    reporter.importModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString());
     return new DBMLImportModule(pFile);
   }
 

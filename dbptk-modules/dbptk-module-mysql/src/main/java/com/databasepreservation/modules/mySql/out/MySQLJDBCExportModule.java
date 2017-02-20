@@ -13,7 +13,6 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ForeignKey;
@@ -102,12 +101,12 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 
     if (databaseExists(MYSQL_CONNECTION_DATABASE, database, connectionURL)) {
       LOGGER.info("Target database already exists, reusing it.");
-      Reporter.customMessage(getClass().getName(), "target database existed and was used anyway");
+      reporter.customMessage(getClass().getName(), "target database existed and was used anyway");
     } else {
       try {
         LOGGER.info("Target database does not exist. Creating database " + database);
-        Reporter.customMessage(getClass().getName(), "target database with name " + Reporter.CODE_DELIMITER + database
-          + Reporter.CODE_DELIMITER + " did not exist and was created");
+        reporter.customMessage(getClass().getName(), "target database with name " + reporter.CODE_DELIMITER + database
+          + reporter.CODE_DELIMITER + " did not exist and was created");
         getConnection(MYSQL_CONNECTION_DATABASE, connectionURL).createStatement().executeUpdate(
           sqlHelper.createDatabaseSQL(database));
 

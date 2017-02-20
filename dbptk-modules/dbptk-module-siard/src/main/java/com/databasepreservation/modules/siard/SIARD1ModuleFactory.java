@@ -79,6 +79,15 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
     .required(false).hasArgument(true).setOptionalArgument(true)
     .valueIfNotSet(SIARDHelper.getMachineHostname() + " (fetched automatically)");
 
+  private Reporter reporter;
+
+  private SIARD1ModuleFactory() {
+  }
+
+  public SIARD1ModuleFactory(Reporter reporter) {
+    this.reporter = reporter;
+  }
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -126,7 +135,7 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
     LicenseNotAcceptedException {
     Path pFile = Paths.get(parameters.get(file));
 
-    Reporter.importModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString());
+    reporter.importModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString());
     return new SIARD1ImportModule(pFile).getDatabaseImportModule();
   }
 
@@ -181,10 +190,10 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
     }
 
     if (pTableFilter == null) {
-      Reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
+      reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
         "compress", String.valueOf(pCompress), "pretty xml", String.valueOf(pPrettyPrintXML));
     } else {
-      Reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
+      reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
         "compress", String.valueOf(pCompress), "pretty xml", String.valueOf(pPrettyPrintXML), "table filter",
         pTableFilter.normalize().toAbsolutePath().toString());
     }

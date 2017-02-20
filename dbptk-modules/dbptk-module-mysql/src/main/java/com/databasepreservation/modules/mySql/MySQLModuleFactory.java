@@ -39,6 +39,15 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
     .description("the password of the user to use in connection").hasArgument(true).setOptionalArgument(false)
     .required(true);
 
+  private Reporter reporter;
+
+  private MySQLModuleFactory() {
+  }
+
+  public MySQLModuleFactory(Reporter reporter) {
+    this.reporter = reporter;
+  }
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -90,12 +99,12 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
     }
 
     if (pPortNumber == null) {
-      Reporter.importModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
-        pUsername, "password", Reporter.MESSAGE_FILTERED);
+      reporter.importModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
+        pUsername, "password", reporter.MESSAGE_FILTERED);
       return new MySQLJDBCImportModule(pHostname, pDatabase, pUsername, pPassword);
     } else {
-      Reporter.importModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
-        pUsername, "password", Reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
+      reporter.importModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
+        pUsername, "password", reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
       return new MySQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword);
     }
   }
@@ -115,12 +124,12 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
     }
 
     if (pPortNumber == null) {
-      Reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
-        pUsername, "password", Reporter.MESSAGE_FILTERED);
+      reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
+        pUsername, "password", reporter.MESSAGE_FILTERED);
       return new MySQLJDBCExportModule(pHostname, pDatabase, pUsername, pPassword);
     } else {
-      Reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
-        pUsername, "password", Reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
+      reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
+        pUsername, "password", reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
       return new MySQLJDBCExportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword);
     }
   }

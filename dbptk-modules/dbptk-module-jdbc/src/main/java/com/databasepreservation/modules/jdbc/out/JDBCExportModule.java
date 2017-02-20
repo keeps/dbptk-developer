@@ -96,6 +96,8 @@ public class JDBCExportModule implements DatabaseExportModule {
 
   private List<CleanResourcesInterface> cleanResourcesList = new ArrayList<>();
 
+  protected Reporter reporter;
+
   /**
    * Shorthand instance to obtain a no-op (no operation, do nothing)
    * CleanResourcesInterface
@@ -541,7 +543,7 @@ public class JDBCExportModule implements DatabaseExportModule {
               e.getNextException());
           }
 
-          Reporter.failed("In table `" + currentTableStructure.getId() + "`, inserting rows with index from "
+          reporter.failed("In table `" + currentTableStructure.getId() + "`, inserting rows with index from "
             + currentRowBatchStartIndex + " to " + currentRowBatchEndIndex + " ",
             " there was an error with at least one of the rows");
         } finally {
@@ -742,6 +744,19 @@ public class JDBCExportModule implements DatabaseExportModule {
     closeConnections();
   }
 
+  /**
+   * Provide a reporter through which potential conversion problems should be
+   * reported. This reporter should be provided only once for the export module
+   * instance.
+   *
+   * @param reporter
+   *          The initialized reporter instance.
+   */
+  @Override
+  public void setOnceReporter(Reporter reporter) {
+    this.reporter = reporter;
+  }
+
   public void closeConnections() throws ModuleException {
     for (Map.Entry<String, Connection> databaseConnectionEntry : connections.entrySet()) {
       try {
@@ -870,14 +885,14 @@ public class JDBCExportModule implements DatabaseExportModule {
             String failedQuery = batchSQL.get(i);
             batchSQL.remove(i);
             LOGGER.error("Error executing query: " + failedQuery);
-            Reporter
+            reporter
               .failed("Execution of query ``" + failedQuery + "``", "of the following error: " + reasonForFailing);
           } else {
             String strangeQuery = batchSQL.get(i);
             batchSQL.remove(i);
             LOGGER.debug("Error executing query: " + strangeQuery, new ModuleException("Query returned result of "
               + result[i]));
-            Reporter.failed("Execution of query ``" + strangeQuery + "``", "of the following error: "
+            reporter.failed("Execution of query ``" + strangeQuery + "``", "of the following error: "
               + reasonForFailing);
           }
         }
@@ -891,7 +906,7 @@ public class JDBCExportModule implements DatabaseExportModule {
           String failedQuery = batchSQL.get(0);
           batchSQL.remove(0);
           LOGGER.error("Error executing query: " + failedQuery);
-          Reporter.failed("Execution of query ``" + failedQuery + "``", "of the following error: " + reasonForFailing);
+          reporter.failed("Execution of query ``" + failedQuery + "``", "of the following error: " + reasonForFailing);
         }
 
         // clear batch and re-add queries that were left out

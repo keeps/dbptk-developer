@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
@@ -34,6 +35,7 @@ public class ListTables implements DatabaseExportModule {
   private Path outputFile;
   private OutputStream outStream;
   private Writer out;
+  private Reporter reporter;
 
   public ListTables(Path outputFile) {
     this.outputFile = outputFile;
@@ -203,5 +205,18 @@ public class ListTables implements DatabaseExportModule {
     } catch (IOException e) {
       throw new ModuleException("Could not close file stream (file: " + outputFile.toAbsolutePath().toString() + ")", e);
     }
+  }
+
+  /**
+   * Provide a reporter through which potential conversion problems should be
+   * reported. This reporter should be provided only once for the export module
+   * instance.
+   *
+   * @param reporter
+   *          The initialized reporter instance.
+   */
+  @Override
+  public void setOnceReporter(Reporter reporter) {
+    this.reporter = reporter;
   }
 }

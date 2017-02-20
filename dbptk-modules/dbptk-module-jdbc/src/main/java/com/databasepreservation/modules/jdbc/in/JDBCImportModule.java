@@ -105,6 +105,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   private ModuleSettings moduleSettings;
 
+  protected Reporter reporter;
+
   /**
    * Create a new JDBC import module
    *
@@ -399,7 +401,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     for (ComposedTypeStructure udt : udts) {
       // TODO: remove after adding support for LOBs inside UDTs
       if (udt.containsLOBs()) {
-        Reporter.notYetSupported("LOBs inside UDTs", "the current import module");
+        reporter.notYetSupported("LOBs inside UDTs", "the current import module");
         LOGGER.debug("LOBs inside UDTs are not supported yet. Only the first level of hierarchy will be exported. UDT "
           + udt.getOriginalTypeName() + " detected as containing LOBs.", new ModuleException("UDT containing LOBs:"
           + udt.toString()));
@@ -407,7 +409,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
       // TODO: remove after adding support for hierarchical UDTs
       if (udt.isHierarchical()) {
-        Reporter.notYetSupported("UDTs inside UDTs", "the current import module");
+        reporter.notYetSupported("UDTs inside UDTs", "the current import module");
         LOGGER.debug("UDTs inside UDTs are not supported yet. Only the first level of hierarchy will be exported. UDT "
           + udt.getOriginalTypeName() + " detected as hierarchical.",
           new ModuleException("hierarchical UDT:" + udt.toString()));
@@ -417,7 +419,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       // recursive types
       // TODO: remove after adding support for recursive UDTs
       if (udt.isRecursive()) {
-        Reporter.notYetSupported("Recursive UDTs", "the current import module");
+        reporter.notYetSupported("Recursive UDTs", "the current import module");
         LOGGER.debug(
           "Recursive UDTs are not supported yet. Only the first level of data will be exported. UDT "
             + udt.getOriginalTypeName() + " detected as recursive.",
@@ -472,7 +474,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       view.setColumns(getColumns(schemaName, viewName));
 
       if (view.getColumns().isEmpty()) {
-        Reporter.ignored("View " + viewName + " in schema " + schemaName, "it contains no columns");
+        reporter.ignored("View " + viewName + " in schema " + schemaName, "it contains no columns");
       } else {
         views.add(view);
       }
@@ -590,7 +592,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       users.add(new UserStructure("UNDEFINED_USER", "DESCRIPTION"));
       LOGGER.debug("Users were not imported: not supported yet on " + getClass().getSimpleName() + "\n"
         + "UNDEFINED_USER will be set as user name");
-      Reporter.notYetSupported("Importing of users", "this import module");
+      reporter.notYetSupported("Importing of users", "this import module");
     }
     return users;
   }
@@ -626,7 +628,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         roles.add(role);
       }
     } else {
-      Reporter.notYetSupported("importing roles", "this import module");
+      reporter.notYetSupported("importing roles", "this import module");
     }
     return roles;
   }
@@ -1063,7 +1065,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         LOGGER.debug(message, e);
       }
     } else {
-      Reporter.notYetSupported("importing check constraints", "this import module");
+      reporter.notYetSupported("importing check constraints", "this import module");
     }
     return checkConstraints;
   }
@@ -1184,7 +1186,7 @@ public class JDBCImportModule implements DatabaseImportModule {
           cells.add(cell);
         } catch (Exception e) {
           cells.add(new NullCell(tableStructure.getName() + "." + colStruct.getName() + "." + (i + 1)));
-          Reporter.cellProcessingUsedNull(tableStructure, colStruct, currentRow, e);
+          reporter.cellProcessingUsedNull(tableStructure, colStruct, currentRow, e);
         }
       }
       row = new Row(currentRow, cells);
@@ -1197,7 +1199,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
       row = new Row(tableStructure.getCurrentRow(), cells);
 
-      Reporter.rowProcessingUsedNull(tableStructure, tableStructure.getCurrentRow(), new ModuleException(
+      reporter.rowProcessingUsedNull(tableStructure, tableStructure.getCurrentRow(), new ModuleException(
         "isRowValid returned false"));
     }
     tableStructure.incrementCurrentRow();
@@ -1269,7 +1271,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
     } catch (Exception e) {
       cell = new NullCell(id);
-      Reporter.cellProcessingUsedNull(tableName, columnName, rowIndex, e);
+      reporter.cellProcessingUsedNull(tableName, columnName, rowIndex, e);
     }
     return cell;
   }
@@ -1330,18 +1332,18 @@ public class JDBCImportModule implements DatabaseImportModule {
                 newValue = "0";
               } else {
                 newValue = String.valueOf(Math.pow(fstNum, sndNum));
-                Reporter.valueChanged(stringValue, newValue, " exact numeric values can not have exponent (`E`) ",
+                reporter.valueChanged(stringValue, newValue, " exact numeric values can not have exponent (`E`) ",
                   "column " + columnName);
               }
             } else if (fstNum != null) {
               // fstNum != null && sndNum == null
               newValue = fst;
-              Reporter.valueChanged(stringValue, newValue, " exact numeric values can not have exponent (`E`) ",
+              reporter.valueChanged(stringValue, newValue, " exact numeric values can not have exponent (`E`) ",
                 "column " + columnName);
             } else {
               // fstNum == null && sndNum != null
               newValue = "0";
-              Reporter.valueChanged(stringValue, newValue, " exact numeric values can not have exponent (`E`) ",
+              reporter.valueChanged(stringValue, newValue, " exact numeric values can not have exponent (`E`) ",
                 "column " + columnName);
             }
             cell = new SimpleCell(id, newValue);
@@ -1407,7 +1409,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
     } catch (SQLFeatureNotSupportedException e) {
       LOGGER.debug("Got a problem getting Array value", e);
-      Reporter.customMessage(getClass().getName(),
+      reporter.customMessage(getClass().getName(),
         "Obtaining array elements as strings as no better type could be identified.");
       ResultSet rs = array.getResultSet();
       while (rs.next()) {
@@ -1528,7 +1530,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
     String msg = "Could not retrieve data from table '" + tableId + "'. See log for details.";
 
-    Reporter.customMessage(this.getClass().getName(), msg);
+    reporter.customMessage(this.getClass().getName(), msg);
     throw new ModuleException(msg);
   }
 
@@ -1653,7 +1655,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
           if (nRows < tableRows) {
             LOGGER.warn("The database reported a total of {} rows. Some data may have been lost.", tableRows);
-            Reporter.customMessage(this.getClass().getName(), "Only processed " + nRows + " out of " + tableRows
+            reporter.customMessage(this.getClass().getName(), "Only processed " + nRows + " out of " + tableRows
               + " rows contained in table '" + table.getName()
               + "'. The log file may contain more information to help diagnose this problem.");
           }
@@ -1673,6 +1675,20 @@ public class JDBCImportModule implements DatabaseImportModule {
       LOGGER.debug("Closing connection to source database");
       closeConnection();
     }
+  }
+
+  /**
+   * Provide a reporter through which potential conversion problems should be
+   * reported. This reporter should be provided only once for the export module
+   * instance.
+   *
+   * @param reporter
+   *          The initialized reporter instance.
+   */
+  @Override
+  public void setOnceReporter(Reporter reporter) {
+    this.reporter = reporter;
+    datatypeImporter.setOnceReporter(reporter);
   }
 
   public ModuleSettings getModuleSettings() {

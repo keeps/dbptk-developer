@@ -1,5 +1,6 @@
 package com.databasepreservation.modules.siard.in.metadata;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.DatabaseStructure;
@@ -14,4 +15,6 @@ public interface MetadataImportStrategy {
     throws ModuleException;
 
   DatabaseStructure getDatabaseStructure() throws ModuleException;
+
+  void setOnceReporter(Reporter reporter);
 }

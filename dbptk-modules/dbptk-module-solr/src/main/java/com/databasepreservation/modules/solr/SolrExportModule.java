@@ -2,6 +2,7 @@ package com.databasepreservation.modules.solr;
 
 import java.util.Set;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
@@ -34,6 +35,8 @@ public class SolrExportModule implements DatabaseExportModule {
   private long rowIndex = 0;
 
   private final String zookeeperHostAndPort;
+
+  private Reporter reporter;
 
   public SolrExportModule(String hostname, Integer port, String endpoint, String zookeeperHost, Integer zookeeperPort) {
     this(hostname, port, endpoint, zookeeperHost, zookeeperPort, null);
@@ -178,5 +181,18 @@ public class SolrExportModule implements DatabaseExportModule {
   public void finishDatabase() throws ModuleException {
     solrManager.commitAll();
     solrManager.freeResources();
+  }
+
+  /**
+   * Provide a reporter through which potential conversion problems should be
+   * reported. This reporter should be provided only once for the export module
+   * instance.
+   *
+   * @param reporter
+   *          The initialized reporter instance.
+   */
+  @Override
+  public void setOnceReporter(Reporter reporter) {
+    this.reporter = reporter;
   }
 }
