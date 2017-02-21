@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.Type;
-import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.MiscUtils;
 
 /**
@@ -39,9 +38,6 @@ public class Reporter implements Closeable {
   // constants
   public static final String MESSAGE_FILTERED = "<filtered>";
   public static final String CODE_DELIMITER = "`";
-
-  public static final String[] REPORT_FOLDER = new String[] {"dbptk", "report", "folder"};
-  public static final String DEFAULT_REPORT_FOLDER = ".";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Reporter.class);
   private static final String[] NUMBER_SUFFIXES = new String[] {"th", "st", "nd", "rd", "th", "th", "th", "th", "th",
@@ -77,18 +73,18 @@ public class Reporter implements Closeable {
 
   protected void initialize(String directory) {
     if (directory == null) {
-      directory = ConfigUtils.getProperty(DEFAULT_REPORT_FOLDER, REPORT_FOLDER);
+      directory = ".";
     }
-    String filename_prefix = "dbptk-report-";
-    String filename_timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
-    String filename_suffix = ".txt";
-    outputfile = Paths.get(directory).toAbsolutePath().resolve(filename_prefix + filename_timestamp + filename_suffix);
+    String filenamePrefix = "dbptk-report-";
+    String filenameTimestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
+    String filenameSuffix = ".txt";
+    outputfile = Paths.get(directory).toAbsolutePath().resolve(filenamePrefix + filenameTimestamp + filenameSuffix);
     try {
       outputfile = Files.createFile(outputfile);
     } catch (IOException e) {
       LOGGER.warn("Could not create report file in current working directory. Attempting to use a temporary file", e);
       try {
-        outputfile = Files.createTempFile(filename_prefix, filename_suffix);
+        outputfile = Files.createTempFile(filenamePrefix, filenameSuffix);
       } catch (IOException e1) {
         LOGGER.error("Could not create report temporary file. Reporting will not function.", e1);
       }
