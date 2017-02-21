@@ -755,6 +755,7 @@ public class JDBCExportModule implements DatabaseExportModule {
   @Override
   public void setOnceReporter(Reporter reporter) {
     this.reporter = reporter;
+    sqlHelper.setOnceReporter(reporter);
   }
 
   public void closeConnections() throws ModuleException {

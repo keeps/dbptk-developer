@@ -1688,6 +1688,7 @@ public class JDBCImportModule implements DatabaseImportModule {
   @Override
   public void setOnceReporter(Reporter reporter) {
     this.reporter = reporter;
+    sqlHelper.setOnceReporter(reporter);
     datatypeImporter.setOnceReporter(reporter);
   }
 
