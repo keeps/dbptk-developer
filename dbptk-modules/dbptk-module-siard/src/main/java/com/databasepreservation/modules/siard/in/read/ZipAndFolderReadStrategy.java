@@ -8,6 +8,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 
@@ -19,6 +22,7 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class ZipAndFolderReadStrategy implements ReadStrategy {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ZipAndFolderReadStrategy.class);
   private final ZipReadStrategy zipRead;
   private final SIARDArchiveContainer mainContainer;
 
@@ -65,8 +69,10 @@ public class ZipAndFolderReadStrategy implements ReadStrategy {
     if (container == mainContainer) {
       return zipRead.getFilepathStream(container);
     } else {
+      DirectoryStream<Path> nullableDirectoryStream = null;
       try {
-        final DirectoryStream<Path> directoryStream = Files.newDirectoryStream(container.getPath());
+        nullableDirectoryStream = Files.newDirectoryStream(container.getPath());
+        final DirectoryStream<Path> directoryStream = nullableDirectoryStream;
         final Iterator<Path> iterator = directoryStream.iterator();
         return new CloseableIterable<String>() {
           @Override
@@ -96,6 +102,14 @@ public class ZipAndFolderReadStrategy implements ReadStrategy {
         };
       } catch (IOException e) {
         throw new ModuleException("", e);
+      } finally {
+        if (nullableDirectoryStream != null) {
+          try {
+            nullableDirectoryStream.close();
+          } catch (IOException e) {
+            LOGGER.debug("Problem trying to close directory stream", e);
+          }
+        }
       }
     }
   }

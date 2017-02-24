@@ -4,10 +4,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.naming.OperationNotSupportedException;
-
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
@@ -56,6 +55,15 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
     .description("declare that you accept OTN License Agreement, which is necessary to use this module")
     .hasArgument(false).valueIfSet("true").valueIfNotSet("false").required(false);
 
+  private Reporter reporter;
+
+  private Oracle12cModuleFactory() {
+  }
+
+  public Oracle12cModuleFactory(Reporter reporter) {
+    this.reporter = reporter;
+  }
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -85,19 +93,19 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public Parameters getImportModuleParameters() throws OperationNotSupportedException {
+  public Parameters getImportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(Arrays.asList(serverName, database, username, password, portNumber, acceptLicense), null);
   }
 
   @Override
-  public Parameters getExportModuleParameters() throws OperationNotSupportedException {
+  public Parameters getExportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(Arrays.asList(serverName, database, username, password, portNumber, acceptLicense,
       sourceSchema), null);
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters)
-    throws OperationNotSupportedException, LicenseNotAcceptedException {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
+    LicenseNotAcceptedException {
     String pServerName = parameters.get(serverName);
     String pDatabase = parameters.get(database);
     String pUsername = parameters.get(username);
@@ -111,14 +119,14 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
 
     Integer pPortNumber = Integer.parseInt(parameters.get(portNumber));
 
-    Reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
-      pUsername, "password", Reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
+    reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
+      pUsername, "password", reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
     return new Oracle12cJDBCImportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword);
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters)
-    throws OperationNotSupportedException, LicenseNotAcceptedException {
+  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
+    LicenseNotAcceptedException {
     String pServerName = parameters.get(serverName);
     String pDatabase = parameters.get(database);
     String pUsername = parameters.get(username);
@@ -133,8 +141,8 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
 
     Integer pPortNumber = Integer.parseInt(parameters.get(portNumber));
 
-    Reporter.exportModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
-      pUsername, "password", Reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString(), "source schema",
+    reporter.exportModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
+      pUsername, "password", reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString(), "source schema",
       pSourceSchema);
     return new Oracle12cJDBCExportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword, pSourceSchema);
   }

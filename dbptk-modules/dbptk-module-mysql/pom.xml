@@ -6,11 +6,11 @@
     <name>dbptk-module-mysql</name>
     <groupId>com.databasepreservation</groupId>
     <artifactId>dbptk-module-mysql</artifactId>
-    <version>2.0.0-beta7.1</version>
+    <version>2.0.0-beta7.2</version>
     <parent>
         <groupId>com.databasepreservation</groupId>
         <artifactId>dbptk-modules</artifactId>
-        <version>2.0.0-beta7.1</version>
+        <version>2.0.0-beta7.2</version>
         <relativePath>..</relativePath>
     </parent>
 

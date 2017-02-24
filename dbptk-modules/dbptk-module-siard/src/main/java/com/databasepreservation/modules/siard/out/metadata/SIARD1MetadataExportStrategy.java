@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.CandidateKey;
@@ -91,6 +92,8 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARD1MetadataExportStrategy.class);
   private final ContentPathExportStrategy contentPathStrategy;
   private final MetadataPathStrategy metadataPathStrategy;
+
+  private Reporter reporter;
 
   public SIARD1MetadataExportStrategy(MetadataPathStrategy metadataPathStrategy, ContentPathExportStrategy paths) {
     this.contentPathStrategy = paths;
@@ -170,6 +173,11 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     } catch (IOException e) {
       throw new ModuleException("Could not close stream", e);
     }
+  }
+
+  @Override
+  public void setOnceReporter(Reporter reporter) {
+    this.reporter = reporter;
   }
 
   private SiardArchive jaxbSiardArchive(DatabaseStructure db) throws ModuleException {
@@ -582,7 +590,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     // specific fields for lobs
     String xsdTypeFromColumnSql99Type = null;
     try {
-      xsdTypeFromColumnSql99Type = Sql99toXSDType.convert(column.getType());
+      xsdTypeFromColumnSql99Type = Sql99toXSDType.convert(column.getType(), reporter);
     } catch (UnknownTypeException e) {
       throw new ModuleException("Could not get SQL2008 type", e);
     }

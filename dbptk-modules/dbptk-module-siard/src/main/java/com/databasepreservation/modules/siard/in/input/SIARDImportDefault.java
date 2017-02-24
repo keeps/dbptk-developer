@@ -1,5 +1,6 @@
 package com.databasepreservation.modules.siard.in.input;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
@@ -21,6 +22,7 @@ public class SIARDImportDefault implements DatabaseImportModule {
   private final ContentImportStrategy contentStrategy;
   private final MetadataImportStrategy metadataStrategy;
   private ModuleSettings moduleSettings;
+  private Reporter reporter;
 
   public SIARDImportDefault(ContentImportStrategy contentStrategy, SIARDArchiveContainer mainContainer,
     ReadStrategy readStrategy, MetadataImportStrategy metadataStrategy) {
@@ -51,5 +53,19 @@ public class SIARDImportDefault implements DatabaseImportModule {
     } finally {
       readStrategy.finish(mainContainer);
     }
+  }
+
+  /**
+   * Provide a reporter through which potential conversion problems should be
+   * reported. This reporter should be provided only once for the export module
+   * instance.
+   *
+   * @param reporter
+   *          The initialized reporter instance.
+   */
+  @Override
+  public void setOnceReporter(Reporter reporter) {
+    this.reporter = reporter;
+    metadataStrategy.setOnceReporter(reporter);
   }
 }

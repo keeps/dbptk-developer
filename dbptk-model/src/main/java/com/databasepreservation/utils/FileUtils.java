@@ -24,10 +24,12 @@ public final class FileUtils {
    *          The firectory to remove
    */
   public static void deleteDirectoryRecursiveQuietly(Path directory) {
-    try {
-      deleteDirectoryRecursive(directory);
-    } catch (IOException e) {
-      // do nothing
+    if (directory != null) {
+      try {
+        deleteDirectoryRecursive(directory);
+      } catch (IOException e) {
+        // do nothing
+      }
     }
   }
 

@@ -86,7 +86,8 @@ public class SimpleTypeInterval extends Type {
     DURATION
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return super.toString() + "-->SimpleTypeInterval{" + "type=" + type + '}';
   }
 }

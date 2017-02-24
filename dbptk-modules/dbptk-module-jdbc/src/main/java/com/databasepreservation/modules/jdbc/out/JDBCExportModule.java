@@ -96,6 +96,8 @@ public class JDBCExportModule implements DatabaseExportModule {
 
   private List<CleanResourcesInterface> cleanResourcesList = new ArrayList<>();
 
+  protected Reporter reporter;
+
   /**
    * Shorthand instance to obtain a no-op (no operation, do nothing)
    * CleanResourcesInterface
@@ -185,13 +187,28 @@ public class JDBCExportModule implements DatabaseExportModule {
    * @throws ModuleException
    */
   public Connection getConnection(String databaseName, String connectionURL) throws ModuleException {
-    Connection connection;
+    Connection connection = null;
+
+    // re-use connection if it exists
+    if (connections.containsKey(databaseName)) {
+      connection = connections.get(databaseName);
+      try {
+        if (!connection.isClosed()) {
+          return connection;
+        } else {
+          LOGGER.debug("Re-opening a closed connection to database {}", databaseName);
+        }
+      } catch (SQLException e) {
+        LOGGER.debug("Error checking if connection is closed", e);
+      }
+    }
+
+    // create it if it does not exist or has been closed
     try {
       LOGGER.debug("Database: " + databaseName);
       LOGGER.debug("Loading JDBC Driver " + driverClassName);
       Class.forName(driverClassName);
       LOGGER.debug("Getting admin connection");
-      // LOGGER.debug("Connection URL: " + connectionURL);
       connection = DriverManager.getConnection(connectionURL);
       connection.setAutoCommit(true);
       LOGGER.debug("Connected");
@@ -201,7 +218,6 @@ public class JDBCExportModule implements DatabaseExportModule {
     } catch (SQLException e) {
       throw new ModuleException("SQL error creating connection", e);
     }
-
     return connection;
   }
 
@@ -220,8 +236,9 @@ public class JDBCExportModule implements DatabaseExportModule {
   public boolean databaseExists(String defaultConnectionDb, String database, String connectionURL)
     throws ModuleException {
     boolean found = false;
+    ResultSet result = null;
     try {
-      ResultSet result = getConnection(defaultConnectionDb, connectionURL).createStatement().executeQuery(
+      result = getConnection(defaultConnectionDb, connectionURL).createStatement().executeQuery(
         sqlHelper.getDatabases(database));
       while (result.next() && !found) {
         if (result.getString(1).equalsIgnoreCase(database)) {
@@ -230,6 +247,14 @@ public class JDBCExportModule implements DatabaseExportModule {
       }
     } catch (SQLException e) {
       throw new ModuleException("Error checking if database " + database + " exists", e);
+    } finally {
+      if (result != null) {
+        try {
+          result.close();
+        } catch (SQLException e) {
+
+        }
+      }
     }
     return found;
   }
@@ -513,11 +538,12 @@ public class JDBCExportModule implements DatabaseExportModule {
         } catch (SQLException e) {
           LOGGER.error("Error executing part of a batch of queries.");
           LOGGER.debug("This is the SQLException@{} for the previous error.", e.hashCode(), e);
-          if(e.getNextException() != null){
-            LOGGER.debug("This is the corresponding SQLException@{}.getNextException", e.hashCode(), e.getNextException());
+          if (e.getNextException() != null) {
+            LOGGER.debug("This is the corresponding SQLException@{}.getNextException", e.hashCode(),
+              e.getNextException());
           }
 
-          Reporter.failed("In table `" + currentTableStructure.getId() + "`, inserting rows with index from "
+          reporter.failed("In table `" + currentTableStructure.getId() + "`, inserting rows with index from "
             + currentRowBatchStartIndex + " to " + currentRowBatchEndIndex + " ",
             " there was an error with at least one of the rows");
         } finally {
@@ -715,10 +741,32 @@ public class JDBCExportModule implements DatabaseExportModule {
       }
       handleForeignKeys();
     }
-    closeConnection();
+    closeConnections();
   }
 
-  public void closeConnection() throws ModuleException {
+  /**
+   * Provide a reporter through which potential conversion problems should be
+   * reported. This reporter should be provided only once for the export module
+   * instance.
+   *
+   * @param reporter
+   *          The initialized reporter instance.
+   */
+  @Override
+  public void setOnceReporter(Reporter reporter) {
+    this.reporter = reporter;
+    sqlHelper.setOnceReporter(reporter);
+  }
+
+  public void closeConnections() throws ModuleException {
+    for (Map.Entry<String, Connection> databaseConnectionEntry : connections.entrySet()) {
+      try {
+        databaseConnectionEntry.getValue().close();
+      } catch (SQLException e) {
+        LOGGER.debug("Could not close connection to database '{}'", databaseConnectionEntry.getKey());
+      }
+    }
+
     if (connection != null) {
       LOGGER.debug("Closing connection");
       try {
@@ -838,14 +886,14 @@ public class JDBCExportModule implements DatabaseExportModule {
             String failedQuery = batchSQL.get(i);
             batchSQL.remove(i);
             LOGGER.error("Error executing query: " + failedQuery);
-            Reporter
+            reporter
               .failed("Execution of query ``" + failedQuery + "``", "of the following error: " + reasonForFailing);
           } else {
             String strangeQuery = batchSQL.get(i);
             batchSQL.remove(i);
             LOGGER.debug("Error executing query: " + strangeQuery, new ModuleException("Query returned result of "
               + result[i]));
-            Reporter.failed("Execution of query ``" + strangeQuery + "``", "of the following error: "
+            reporter.failed("Execution of query ``" + strangeQuery + "``", "of the following error: "
               + reasonForFailing);
           }
         }
@@ -859,7 +907,7 @@ public class JDBCExportModule implements DatabaseExportModule {
           String failedQuery = batchSQL.get(0);
           batchSQL.remove(0);
           LOGGER.error("Error executing query: " + failedQuery);
-          Reporter.failed("Execution of query ``" + failedQuery + "``", "of the following error: " + reasonForFailing);
+          reporter.failed("Execution of query ``" + failedQuery + "``", "of the following error: " + reasonForFailing);
         }
 
         // clear batch and re-add queries that were left out

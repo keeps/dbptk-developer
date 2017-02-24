@@ -7,7 +7,7 @@
         </encoder>
     </appender>
 
-    <logger name="com.databasepreservation.model.Reporter" additivity="false">
+    <logger name="com.databasepreservation.model.ReporterOld" additivity="false">
         <level value="DEBUG"/>
         <appender-ref ref="STDOUT"/>
     </logger>

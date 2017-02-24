@@ -47,6 +47,8 @@ public class SQLHelper {
 
   private String separatorSchemaTable = ".";
 
+  protected Reporter reporter;
+
   public String getName() {
     return name;
   }
@@ -134,7 +136,7 @@ public class SQLHelper {
     String sqlType = createTypeSQL(column.getType(), isPrimaryKey, isForeignKey);
 
     if (sqlType.equalsIgnoreCase(column.getType().getOriginalTypeName())) {
-      Reporter.dataTypeChangedOnExport(this.getClass().getName(), column, sqlType);
+      reporter.dataTypeChangedOnExport(this.getClass().getName(), column, sqlType);
     }
 
     StringBuilder result = new StringBuilder().append(escapeColumnName(column.getName())).append(" ").append(sqlType);
@@ -513,5 +515,9 @@ public class SQLHelper {
      * @throws ModuleException
      */
     public byte[] createCellSQL(Cell cell, ColumnStructure column) throws InvalidDataException, ModuleException;
+  }
+
+  public void setOnceReporter(Reporter reporter) {
+    this.reporter = reporter;
   }
 }

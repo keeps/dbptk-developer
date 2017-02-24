@@ -6,7 +6,7 @@ package com.databasepreservation.model.exception;
  * 
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class LicenseNotAcceptedException extends Exception {
+public class LicenseNotAcceptedException extends ModuleException {
   private final String license;
 
   /**

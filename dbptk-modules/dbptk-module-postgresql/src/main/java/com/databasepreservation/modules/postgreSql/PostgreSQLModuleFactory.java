@@ -4,11 +4,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.naming.OperationNotSupportedException;
-
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
@@ -44,6 +44,15 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
     .description("the PostgreSQL server port number, default is 5432").hasArgument(true).setOptionalArgument(false)
     .required(false).valueIfNotSet("5432");
 
+  private Reporter reporter;
+
+  private PostgreSQLModuleFactory() {
+  }
+
+  public PostgreSQLModuleFactory(Reporter reporter) {
+    this.reporter = reporter;
+  }
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -72,18 +81,18 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public Parameters getImportModuleParameters() throws OperationNotSupportedException {
+  public Parameters getImportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(Arrays.asList(hostname, database, username, password, disableEncryption, portNumber), null);
   }
 
   @Override
-  public Parameters getExportModuleParameters() throws OperationNotSupportedException {
+  public Parameters getExportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(Arrays.asList(hostname, database, username, password, disableEncryption, portNumber), null);
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters)
-    throws OperationNotSupportedException {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
+    LicenseNotAcceptedException {
     String pHostname = parameters.get(hostname);
     String pDatabase = parameters.get(database);
     String pUsername = parameters.get(username);
@@ -100,14 +109,14 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
       pPortNumber = Integer.parseInt(portNumber.valueIfNotSet());
     }
 
-    Reporter.importModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
-      pUsername, "password", Reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
+    reporter.importModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
+      pUsername, "password", reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
     return new PostgreSQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt);
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters)
-    throws OperationNotSupportedException {
+  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
+    LicenseNotAcceptedException {
     String pHostname = parameters.get(hostname);
     String pDatabase = parameters.get(database);
     String pUsername = parameters.get(username);
@@ -124,8 +133,8 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
       pPortNumber = Integer.parseInt(portNumber.valueIfNotSet());
     }
 
-    Reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
-      pUsername, "password", Reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
+    reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
+      pUsername, "password", reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
     return new PostgreSQLJDBCExportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt);
   }
 }

@@ -6,11 +6,11 @@
     <name>dbptk-core</name>
     <groupId>com.databasepreservation</groupId>
     <artifactId>dbptk-core</artifactId>
-    <version>2.0.0-beta7.1</version>
+    <version>2.0.0-beta7.2</version>
     <parent>
         <groupId>com.databasepreservation</groupId>
         <artifactId>dbptk</artifactId>
-        <version>2.0.0-beta7.1</version>
+        <version>2.0.0-beta7.2</version>
         <relativePath>..</relativePath>
     </parent>
     <properties>
@@ -102,6 +102,9 @@
         </dependency>
 
         <!-- modules (with sources) -->
+        <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-dbml</artifactId></dependency>
+        <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-dbml</artifactId><classifier>sources</classifier></dependency>
+
         <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-jdbc</artifactId></dependency>
         <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-jdbc</artifactId><classifier>sources</classifier></dependency>
 

@@ -1,5 +1,6 @@
 package com.databasepreservation;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
@@ -10,13 +11,13 @@ import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.cli.CLI;
 import com.databasepreservation.model.Reporter;
-import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.modules.dbml.DBMLModuleFactory;
 import com.databasepreservation.modules.jdbc.JDBCModuleFactory;
 import com.databasepreservation.modules.listTables.ListTablesModuleFactory;
 import com.databasepreservation.modules.msAccess.MsAccessUCanAccessModuleFactory;
@@ -46,23 +47,42 @@ public class Main {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
-  private static final DatabaseModuleFactory[] databaseModuleFactories = new DatabaseModuleFactory[] {
-    new JDBCModuleFactory(), new ListTablesModuleFactory(), new MsAccessUCanAccessModuleFactory(),
-    new MySQLModuleFactory(), new Oracle12cModuleFactory(), new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(),
-    new SIARD2ModuleFactory(), new SIARDDKModuleFactory(), new SolrModuleFactory(), new SQLServerJDBCModuleFactory()};
+  private static Reporter reporter = null;
+
+  private static Reporter getReporter() {
+    if (reporter == null) {
+      reporter = new Reporter();
+    }
+    return reporter;
+  }
+
+  private static DatabaseModuleFactory[] databaseModuleFactories = null;
+
+  private static DatabaseModuleFactory[] getDatabaseModuleFactories() {
+    if (databaseModuleFactories == null) {
+      databaseModuleFactories = new DatabaseModuleFactory[] {new JDBCModuleFactory(getReporter()),
+        new ListTablesModuleFactory(getReporter()), new MsAccessUCanAccessModuleFactory(getReporter()),
+        new MySQLModuleFactory(getReporter()), new Oracle12cModuleFactory(getReporter()),
+        new PostgreSQLModuleFactory(getReporter()), new SIARD1ModuleFactory(getReporter()),
+        new SIARD2ModuleFactory(getReporter()), new SIARDDKModuleFactory(getReporter()),
+        new SolrModuleFactory(getReporter()), new SQLServerJDBCModuleFactory(getReporter()),
+        new DBMLModuleFactory(getReporter())};
+    }
+    return databaseModuleFactories;
+  }
 
   /**
    * @param args
    *          the console arguments
    */
   public static void main(String[] args) {
-    CLI cli = new CLI(Arrays.asList(args), databaseModuleFactories);
+    CLI cli = new CLI(Arrays.asList(args), getDatabaseModuleFactories());
     System.exit(internal_main(cli));
   }
 
   // used in testing
   public static int internal_main(String... args) {
-    CLI cli = new CLI(Arrays.asList(args), databaseModuleFactories);
+    CLI cli = new CLI(Arrays.asList(args), getDatabaseModuleFactories());
     return internal_main(cli);
   }
 
@@ -93,7 +113,11 @@ public class Main {
       LOGGER.info("   java \"-Dfile.encoding=UTF-8\" -jar ...");
     }
 
-    Reporter.finish();
+    try {
+      getReporter().close();
+    } catch (IOException e) {
+      LOGGER.debug("There was a problem closing the report file.", e);
+    }
     LOGGER.info("Troubleshooting information can be found at http://www.database-preservation.com/#troubleshooting");
     LOGGER.info("Please report any problems at https://github.com/keeps/db-preservation-toolkit/issues/new");
     logProgramFinish(exitStatus);
@@ -107,7 +131,9 @@ public class Main {
 
     try {
       importModule = cli.getImportModule();
+      importModule.setOnceReporter(getReporter());
       exportModule = cli.getExportModule();
+      exportModule.setOnceReporter(getReporter());
     } catch (ParseException e) {
       LOGGER.error(e.getMessage(), e);
       logProgramFinish(EXIT_CODE_COMMAND_PARSE_ERROR);
@@ -123,7 +149,6 @@ public class Main {
     }
 
     int exitStatus = EXIT_CODE_GENERIC_ERROR;
-
     try {
       long startTime = System.currentTimeMillis();
       LOGGER.info("Converting database: " + cli.getImportModuleName() + " to " + cli.getExportModuleName());
@@ -148,7 +173,7 @@ public class Main {
       } else {
         LOGGER.error("Fatal error while converting the database (" + e.getMessage() + ")", e);
       }
-    } catch (UnknownTypeException | InvalidDataException e) {
+    } catch (UnknownTypeException e) {
       LOGGER.error("Fatal error while converting the database (" + e.getMessage() + ")", e);
     } catch (Exception e) {
       LOGGER.error("Fatal error: Unexpected exception (" + e.getMessage() + ")", e);

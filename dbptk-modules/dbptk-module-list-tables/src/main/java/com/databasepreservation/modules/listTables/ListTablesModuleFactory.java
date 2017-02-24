@@ -6,10 +6,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.naming.OperationNotSupportedException;
-
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
@@ -27,6 +26,15 @@ public class ListTablesModuleFactory implements DatabaseModuleFactory {
   private static final Parameter file = new Parameter().shortName("f").longName("file")
     .description("Path to output file that can be read by SIARD2 export module").hasArgument(true)
     .setOptionalArgument(false).required(true);
+
+  private Reporter reporter;
+
+  private ListTablesModuleFactory() {
+  }
+
+  public ListTablesModuleFactory(Reporter reporter) {
+    this.reporter = reporter;
+  }
 
   @Override
   public boolean producesImportModules() {
@@ -51,27 +59,27 @@ public class ListTablesModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public Parameters getImportModuleParameters() throws OperationNotSupportedException {
-    throw DatabaseModuleFactory.ExceptionBuilder.OperationNotSupportedExceptionForImportModule();
+  public Parameters getImportModuleParameters() throws UnsupportedModuleException {
+    throw DatabaseModuleFactory.ExceptionBuilder.UnsupportedModuleExceptionForImportModule();
   }
 
   @Override
-  public Parameters getExportModuleParameters() throws OperationNotSupportedException {
+  public Parameters getExportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(Arrays.asList(file), null);
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters)
-    throws OperationNotSupportedException, LicenseNotAcceptedException {
-    throw DatabaseModuleFactory.ExceptionBuilder.OperationNotSupportedExceptionForImportModule();
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
+    LicenseNotAcceptedException {
+    throw DatabaseModuleFactory.ExceptionBuilder.UnsupportedModuleExceptionForImportModule();
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters)
-    throws OperationNotSupportedException, LicenseNotAcceptedException {
+  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
+    LicenseNotAcceptedException {
     Path pFile = Paths.get(parameters.get(file));
 
-    Reporter.exportModuleParameters(this.getModuleName(), "file", pFile.normalize().toAbsolutePath().toString());
+    reporter.exportModuleParameters(this.getModuleName(), "file", pFile.normalize().toAbsolutePath().toString());
     return new ListTables(pFile);
   }
 }

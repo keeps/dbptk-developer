@@ -4,12 +4,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.naming.OperationNotSupportedException;
-
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
@@ -42,6 +41,15 @@ public class SolrModuleFactory implements DatabaseModuleFactory {
   private static final Parameter databaseUUID = new Parameter().longName("database-id").shortName("dbid")
     .description("Database UUID to use in Solr").required(false).hasArgument(true).setOptionalArgument(false);
 
+  private Reporter reporter;
+
+  private SolrModuleFactory() {
+  }
+
+  public SolrModuleFactory(Reporter reporter) {
+    this.reporter = reporter;
+  }
+
   @Override
   public boolean producesImportModules() {
     return false;
@@ -69,24 +77,24 @@ public class SolrModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public Parameters getImportModuleParameters() throws OperationNotSupportedException {
-    throw DatabaseModuleFactory.ExceptionBuilder.OperationNotSupportedExceptionForImportModule();
+  public Parameters getImportModuleParameters() throws UnsupportedModuleException {
+    throw DatabaseModuleFactory.ExceptionBuilder.UnsupportedModuleExceptionForImportModule();
   }
 
   @Override
-  public Parameters getExportModuleParameters() throws OperationNotSupportedException {
+  public Parameters getExportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(Arrays.asList(hostname, port, zookeeperHost, zookeeperPort, databaseUUID), null);
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters)
-    throws OperationNotSupportedException, LicenseNotAcceptedException {
-    throw DatabaseModuleFactory.ExceptionBuilder.OperationNotSupportedExceptionForImportModule();
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
+    LicenseNotAcceptedException {
+    throw DatabaseModuleFactory.ExceptionBuilder.UnsupportedModuleExceptionForImportModule();
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters)
-    throws OperationNotSupportedException, LicenseNotAcceptedException {
+  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
+    LicenseNotAcceptedException {
     String pHostname = parameters.get(hostname);
     if (StringUtils.isBlank(pHostname)) {
       pHostname = hostname.valueIfNotSet();
@@ -118,7 +126,7 @@ public class SolrModuleFactory implements DatabaseModuleFactory {
       pZookeeperPortNumber = Integer.parseInt(zookeeperPort.valueIfNotSet());
     }
 
-    Reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "port", pPortNumber.toString(), "endpoint",
+    reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "port", pPortNumber.toString(), "endpoint",
       pEndpoint, "zookeeper-hostname", pZookeperHostname, "zookeeper-port", pZookeeperPortNumber.toString());
 
     if (StringUtils.isBlank(pDatabaseUUID)) {

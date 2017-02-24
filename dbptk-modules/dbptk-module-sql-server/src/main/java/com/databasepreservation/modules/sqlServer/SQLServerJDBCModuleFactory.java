@@ -7,6 +7,8 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
@@ -51,6 +53,15 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
 
   private static final ParameterGroup instanceName_portNumber = new ParameterGroup(false, instanceName, portNumber);
 
+  private Reporter reporter;
+
+  private SQLServerJDBCModuleFactory() {
+  }
+
+  public SQLServerJDBCModuleFactory(Reporter reporter) {
+    this.reporter = reporter;
+  }
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -81,21 +92,22 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public Parameters getImportModuleParameters() {
+  public Parameters getImportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(
       Arrays.asList(serverName, database, username, password, useIntegratedLogin, disableEncryption),
       Arrays.asList(instanceName_portNumber));
   }
 
   @Override
-  public Parameters getExportModuleParameters() {
+  public Parameters getExportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(
       Arrays.asList(serverName, database, username, password, useIntegratedLogin, disableEncryption),
       Arrays.asList(instanceName_portNumber));
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
+    LicenseNotAcceptedException {
     // String values
     String pServerName = parameters.get(serverName);
     String pDatabase = parameters.get(database);
@@ -117,26 +129,27 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
     }
 
     if (pPortNumber != null) {
-      Reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
-        pUsername, "password", Reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin),
+      reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
+        pUsername, "password", reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin),
         "port number", pPortNumber.toString());
       return new SQLServerJDBCImportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword,
         pUseIntegratedLogin, pEncrypt);
     } else if (pInstanceName != null) {
-      Reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
-        pUsername, "password", Reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin),
+      reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
+        pUsername, "password", reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin),
         "instance name", pInstanceName);
       return new SQLServerJDBCImportModule(pServerName, pInstanceName, pDatabase, pUsername, pPassword,
         pUseIntegratedLogin, pEncrypt);
     } else {
-      Reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
-        pUsername, "password", Reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin));
+      reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
+        pUsername, "password", reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin));
       return new SQLServerJDBCImportModule(pServerName, pDatabase, pUsername, pPassword, pUseIntegratedLogin, pEncrypt);
     }
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) {
+  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
+    LicenseNotAcceptedException {
     // String values
     String pServerName = parameters.get(serverName);
     String pDatabase = parameters.get(database);
@@ -158,20 +171,20 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
     }
 
     if (pPortNumber != null) {
-      Reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
-        pUsername, "password", Reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin),
+      reporter.importModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
+        pUsername, "password", reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin),
         "port number", pPortNumber.toString());
       return new SQLServerJDBCExportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword,
         pUseIntegratedLogin, pEncrypt);
     } else if (pInstanceName != null) {
-      Reporter.exportModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
-        pUsername, "password", Reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin),
+      reporter.exportModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
+        pUsername, "password", reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin),
         "instance name", pInstanceName);
       return new SQLServerJDBCExportModule(pServerName, pInstanceName, pDatabase, pUsername, pPassword,
         pUseIntegratedLogin, pEncrypt);
     } else {
-      Reporter.exportModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
-        pUsername, "password", Reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin));
+      reporter.exportModuleParameters(getModuleName(), "server name", pServerName, "database", pDatabase, "username",
+        pUsername, "password", reporter.MESSAGE_FILTERED, "integrated login", String.valueOf(pUseIntegratedLogin));
       return new SQLServerJDBCExportModule(pServerName, pDatabase, pUsername, pPassword, pUseIntegratedLogin, pEncrypt);
     }
   }

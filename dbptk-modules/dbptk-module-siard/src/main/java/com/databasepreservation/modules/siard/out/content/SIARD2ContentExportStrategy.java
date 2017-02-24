@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.common.TemporaryPathInputStreamProvider;
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -57,6 +58,8 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
   // <columnId, maxLength>
   private Map<String, Integer> arrayMaximumLength;
+
+  protected Reporter reporter;
 
   public SIARD2ContentExportStrategy(SIARD2ContentPathExportStrategy contentPathStrategy, WriteStrategy writeStrategy,
     SIARDArchiveContainer baseContainer, boolean prettyXMLOutput) {
@@ -160,6 +163,11 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     }
   }
 
+  @Override
+  public void setOnceReporter(Reporter reporter) {
+    this.reporter = reporter;
+  }
+
   private void writeComposedCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException,
     IOException {
 
@@ -223,7 +231,8 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     IOException {
     SimpleCell simpleCell = (SimpleCell) cell;
 
-    if (Sql2008toXSDType.isLargeType(column.getType()) && simpleCell.getBytesSize() > THRESHOLD_TREAT_STRING_AS_CLOB) {
+    if (Sql2008toXSDType.isLargeType(column.getType(), reporter)
+      && simpleCell.getBytesSize() > THRESHOLD_TREAT_STRING_AS_CLOB) {
       writeLargeObjectData(cell, columnIndex);
     } else {
       writeSimpleCellData(simpleCell, columnIndex);
@@ -239,7 +248,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       NullCell nullCell = new NullCell(binaryCell.getId());
       writeNullCellData(nullCell, columnIndex);
       binaryCell.cleanResources();
-    } else if (Sql2008toXSDType.isLargeType(column.getType()) && length > THRESHOLD_TREAT_BINARY_AS_BLOB) {
+    } else if (Sql2008toXSDType.isLargeType(column.getType(), reporter) && length > THRESHOLD_TREAT_BINARY_AS_BLOB) {
       writeLargeObjectData(cell, columnIndex);
     } else {
       // inline binary data
@@ -437,14 +446,15 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
         String xsdType = null;
         try {
-          xsdType = Sql2008toXSDType.convert(arrayType.getElementType());
+          xsdType = Sql2008toXSDType.convert(arrayType.getElementType(), reporter);
         } catch (UnknownTypeException e) {
-          LOGGER.error(String.format("An error occurred while getting the XSD subtype of array column c%d", columnIndex), e);
+          LOGGER.error(
+            String.format("An error occurred while getting the XSD subtype of array column c%d", columnIndex), e);
         }
 
         Integer maxLength = arrayMaximumLength.get(col.getId());
 
-        if(xsdType != null && maxLength != null) {
+        if (xsdType != null && maxLength != null) {
           for (int i = 1; i <= maxLength; i++) {
             xsdWriter.beginOpenTag("xs:element", 7).appendAttribute("minOccurs", "0");
             xsdWriter.appendAttribute("name", "a" + i).appendAttribute("type", xsdType).endShorthandTag();
@@ -460,7 +470,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
         xsdWriter.closeTag("xs:element", 4);
       } else {
         try {
-          String xsdType = Sql2008toXSDType.convert(col.getType());
+          String xsdType = Sql2008toXSDType.convert(col.getType(), reporter);
 
           xsdWriter.beginOpenTag("xs:element", 4);
 

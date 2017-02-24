@@ -133,8 +133,9 @@ public class SimpleTypeBinary extends Type {
     return true;
   }
 
-  @Override public String toString() {
-    return super.toString() + "-->SimpleTypeBinary{" + "formatRegistryName='" + formatRegistryName + '\'' + ", formatRegistryKey='"
-      + formatRegistryKey + '\'' + ", length=" + length + '}';
+  @Override
+  public String toString() {
+    return super.toString() + "-->SimpleTypeBinary{" + "formatRegistryName='" + formatRegistryName + '\''
+      + ", formatRegistryKey='" + formatRegistryKey + '\'' + ", length=" + length + '}';
   }
 }

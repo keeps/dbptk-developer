@@ -23,6 +23,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -60,6 +61,8 @@ public class SQLFileExportModule implements DatabaseExportModule {
   protected DatabaseStructure structure;
 
   protected TableStructure currentTable;
+
+  protected Reporter reporter;
 
   /**
    * Create a new SQLFile export module, specifying the SQL helper to use
@@ -360,4 +363,16 @@ public class SQLFileExportModule implements DatabaseExportModule {
     }
   }
 
+  /**
+   * Provide a reporter through which potential conversion problems should be
+   * reported. This reporter should be provided only once for the export module
+   * instance.
+   *
+   * @param reporter
+   *          The initialized reporter instance.
+   */
+  @Override
+  public void setOnceReporter(Reporter reporter) {
+    this.reporter = reporter;
+  }
 }

@@ -7,11 +7,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.naming.OperationNotSupportedException;
-
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
@@ -79,6 +79,15 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
     .required(false).hasArgument(true).setOptionalArgument(true)
     .valueIfNotSet(SIARDHelper.getMachineHostname() + " (fetched automatically)");
 
+  private Reporter reporter;
+
+  private SIARD1ModuleFactory() {
+  }
+
+  public SIARD1ModuleFactory(Reporter reporter) {
+    this.reporter = reporter;
+  }
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -111,28 +120,28 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public Parameters getImportModuleParameters() throws OperationNotSupportedException {
+  public Parameters getImportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(Arrays.asList(file), null);
   }
 
   @Override
-  public Parameters getExportModuleParameters() throws OperationNotSupportedException {
+  public Parameters getExportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(Arrays.asList(file, compress, prettyPrintXML, tableFilter, metaDescription, metaArchiver,
       metaArchiverContact, metaDataOwner, metaDataOriginTimespan, metaClientMachine), null);
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters)
-    throws OperationNotSupportedException {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
+    LicenseNotAcceptedException {
     Path pFile = Paths.get(parameters.get(file));
 
-    Reporter.importModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString());
+    reporter.importModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString());
     return new SIARD1ImportModule(pFile).getDatabaseImportModule();
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters)
-    throws OperationNotSupportedException {
+  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
+    LicenseNotAcceptedException {
     Path pFile = Paths.get(parameters.get(file));
 
     // optional
@@ -181,10 +190,10 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
     }
 
     if (pTableFilter == null) {
-      Reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
+      reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
         "compress", String.valueOf(pCompress), "pretty xml", String.valueOf(pPrettyPrintXML));
     } else {
-      Reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
+      reporter.exportModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString(),
         "compress", String.valueOf(pCompress), "pretty xml", String.valueOf(pPrettyPrintXML), "table filter",
         pTableFilter.normalize().toAbsolutePath().toString());
     }

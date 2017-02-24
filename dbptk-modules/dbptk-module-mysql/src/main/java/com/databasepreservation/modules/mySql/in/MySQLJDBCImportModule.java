@@ -13,7 +13,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
@@ -25,6 +24,7 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.modules.CloseableUtils;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.mySql.MySQLHelper;
 
@@ -115,6 +115,8 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
         } else {
           LOGGER.error("It was not possible to retrieve the list of database users.", e);
         }
+      } finally {
+        CloseableUtils.closeQuietly(rs);
       }
     }
 
@@ -204,14 +206,21 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   protected List<ViewStructure> getViews(String schemaName) throws SQLException {
     List<ViewStructure> views = super.getViews(schemaName);
     for (ViewStructure v : views) {
-      Statement statement = getConnection().createStatement();
-      String query = "SHOW CREATE VIEW " + sqlHelper.escapeViewName(v.getName());
-      ResultSet rset = statement.executeQuery(query);
-      rset.next(); // Returns only one tuple
+      Statement statement = null;
+      ResultSet rset = null;
+      try {
+        statement = getConnection().createStatement();
+        String query = "SHOW CREATE VIEW " + sqlHelper.escapeViewName(v.getName());
+        rset = statement.executeQuery(query);
+        rset.next(); // Returns only one tuple
 
-      // TO-DO: the string given below by rset.getString(2) has to be parsed a
-      // little before it is set to as the view
-      v.setQueryOriginal(rset.getString(2));
+        // TO-DO: the string given below by rset.getString(2) has to be parsed a
+        // little before it is set to as the view
+        v.setQueryOriginal(rset.getString(2));
+      } finally {
+        CloseableUtils.closeQuietly(rset);
+        CloseableUtils.closeQuietly(statement);
+      }
     }
     return views;
   }
@@ -246,7 +255,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    */
   @Override
   protected List<CheckConstraint> getCheckConstraints(String schemaName, String tableName) {
-    Reporter.notYetSupported("check constraints", "MySQL");
+    reporter.notYetSupported("check constraints", "MySQL");
     return new ArrayList<CheckConstraint>();
   }
 

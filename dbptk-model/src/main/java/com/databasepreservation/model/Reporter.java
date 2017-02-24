@@ -1,6 +1,7 @@
 package com.databasepreservation.model;
 
 import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -17,14 +18,22 @@ import org.slf4j.LoggerFactory;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.utils.MiscUtils;
 
 /**
- * Reports warnings regarding data losses and transformations during the
- * database conversion.
+ * This reporter is used to report potential conversion problems/warnings.
+ *
+ * When using the Reporter in the Database Preservation Toolkit, the Main class
+ * handles creating and providing the reporter to the import and export modules.
+ *
+ * When using the Reporter as a library import, a single instance should be
+ * created per conversion job, and provided to the import and export modules
+ * that will handling that conversion job. The Reporter should not be closed by
+ * the modules, but by having the user code call the close() method.
  * 
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class Reporter {
+public class Reporter implements Closeable {
   // //////////////////////////////////////////////////
   // constants
   public static final String MESSAGE_FILTERED = "<filtered>";
@@ -39,33 +48,43 @@ public class Reporter {
   private static final String EMPTY_MESSAGE_LINE = "";
   private static final String NEWLINE = System.getProperty("line.separator", "\n");
 
-  private static int countModuleInfoReported = 0;
-
-  private static long conversionProblemsCounter = 0;
-
   // //////////////////////////////////////////////////
-  // instance
+  // instance variables
+  private int countModuleInfoReported = 0;
+
+  private long conversionProblemsCounter = 0;
+
+  private boolean warnedAboutSavedAsString = false;
+
   private Path outputfile;
   private BufferedWriter writer;
 
   /**
-   * initializes message prefixes
+   * Creates a new reporter using the directory specified in
+   * Reporter.REPORT_FOLDER
    */
-  static {
-    getInstance();
+  public Reporter() {
+    this(null);
   }
 
-  private Reporter() {
-    String filename_prefix = "dbptk-report-";
-    String filename_timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
-    String filename_suffix = ".txt";
-    outputfile = Paths.get(".").toAbsolutePath().resolve(filename_prefix + filename_timestamp + filename_suffix);
+  public Reporter(String directory) {
+    initialize(directory);
+  }
+
+  protected void initialize(String directory) {
+    if (directory == null) {
+      directory = ".";
+    }
+    String filenamePrefix = "dbptk-report-";
+    String filenameTimestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
+    String filenameSuffix = ".txt";
+    outputfile = Paths.get(directory).toAbsolutePath().resolve(filenamePrefix + filenameTimestamp + filenameSuffix);
     try {
       outputfile = Files.createFile(outputfile);
     } catch (IOException e) {
       LOGGER.warn("Could not create report file in current working directory. Attempting to use a temporary file", e);
       try {
-        outputfile = Files.createTempFile(filename_prefix, filename_suffix);
+        outputfile = Files.createTempFile(filenamePrefix, filenameSuffix);
       } catch (IOException e1) {
         LOGGER.error("Could not create report temporary file. Reporting will not function.", e1);
       }
@@ -74,6 +93,11 @@ public class Reporter {
     if (outputfile != null) {
       try {
         writer = Files.newBufferedWriter(outputfile, StandardCharsets.UTF_8);
+
+        String conversionReportLine = MiscUtils.APP_NAME_AND_VERSION + " -- Conversion Report";
+        writeLine(conversionReportLine);
+        writeLine(StringUtils.repeat('=', conversionReportLine.length()));
+        writeLine(EMPTY_MESSAGE_LINE);
       } catch (IOException e) {
         LOGGER.error("Could not get a writer for the report file.", e);
       }
@@ -97,57 +121,18 @@ public class Reporter {
     }
   }
 
-  // //////////////////////////////////////////////////
-  // static
-  private static Reporter reporterInstance;
-
-  private static void report(StringBuilder message) {
+  private void report(StringBuilder message) {
     report(message, MESSAGE_LINE_PREFIX_ALL);
   }
 
-  private static void report(StringBuilder message, String prefix) {
-    Reporter reporter = getInstance();
-    if (prefix != null) {
+  private void report(StringBuilder message, String prefix) {
+    if (StringUtils.isNotBlank(prefix)) {
       message.insert(0, prefix);
     }
-    reporter.writeLine(message.toString());
+    writeLine(message.toString());
   }
 
-  private static Reporter getInstance() {
-    if (reporterInstance == null) {
-      reporterInstance = new Reporter();
-
-      reporterInstance.writeLine("Database Preservation Toolkit -- Conversion Report");
-      reporterInstance.writeLine("==================================================");
-      reporterInstance.writeLine(EMPTY_MESSAGE_LINE);
-    }
-    return reporterInstance;
-  }
-
-  /**
-   * Utility to get the ordinal suffix for a number
-   */
-  private static String ordinal(long i) {
-    switch ((int) i % 100) {
-      case 11:
-      case 12:
-      case 13:
-        return NUMBER_SUFFIXES[0];
-      default:
-        return NUMBER_SUFFIXES[(int) i % 10];
-
-    }
-  }
-
-  /**
-   * Adds the code string delimited by the CODE_DELIMITER to the string builder
-   */
-  private static StringBuilder appendAsCode(StringBuilder sb, String code) {
-    sb.append(CODE_DELIMITER).append(code).append(CODE_DELIMITER);
-    return sb;
-  }
-
-  private static void moduleParameters(String moduleName, String importOrExport, String... parameters) {
+  private void moduleParameters(String moduleName, String importOrExport, String... parameters) {
     StringBuilder message;
 
     if (countModuleInfoReported == 0) {
@@ -176,32 +161,8 @@ public class Reporter {
   }
 
   // //////////////////////////////////////////////////
-  // static public
-  public static void finish() {
-    Reporter reporter = getInstance();
-    try {
-      if (reporter.writer != null) {
-        reporter.writer.close();
-        if (conversionProblemsCounter == 0) {
-          Files.deleteIfExists(reporter.outputfile);
-        }
-      }
-    } catch (IOException e) {
-      LOGGER.debug("Unable to close Reporter file", e);
-    }
-
-    if (conversionProblemsCounter != 0) {
-      if (reporter.writer != null) {
-        LOGGER.info("A report was generated with a listing of information that was modified during the conversion.");
-        LOGGER.info("The report file is located at " + reporter.outputfile.normalize().toAbsolutePath().toString());
-      } else {
-        LOGGER
-          .info("A report with a listing of information that was modified during the conversion could not be generated, please submit a bug report to help us fix this.");
-      }
-    }
-  }
-
-  public static void cellProcessingUsedNull(String tableId, String columnName, long rowIndex, Throwable exception) {
+  // public
+  public void cellProcessingUsedNull(String tableId, String columnName, long rowIndex, Throwable exception) {
     conversionProblemsCounter++;
     StringBuilder message = new StringBuilder("Problem processing cell value and NULL was used instead, ");
 
@@ -221,12 +182,11 @@ public class Reporter {
     LOGGER.debug("cellProcessingUsedNull, message: " + message, exception);
   }
 
-  public static void cellProcessingUsedNull(TableStructure table, ColumnStructure column, long rowIndex,
-    Throwable exception) {
+  public void cellProcessingUsedNull(TableStructure table, ColumnStructure column, long rowIndex, Throwable exception) {
     cellProcessingUsedNull(table.getId(), column.getName(), rowIndex, exception);
   }
 
-  public static void rowProcessingUsedNull(TableStructure table, long rowIndex, Throwable exception) {
+  public void rowProcessingUsedNull(TableStructure table, long rowIndex, Throwable exception) {
     conversionProblemsCounter++;
     StringBuilder message = new StringBuilder(
       "Problem processing row values and NULL was used instead for all cells, in table ");
@@ -236,7 +196,7 @@ public class Reporter {
     LOGGER.debug("cellProcessingUsedNull, message: " + message, exception);
   }
 
-  public static void notYetSupported(String feature, String module) {
+  public void notYetSupported(String feature, String module) {
     conversionProblemsCounter++;
     StringBuilder message = new StringBuilder(MESSAGE_LINE_DEFAULT_PREFIX).append(feature)
       .append(" is not yet supported for ").append(module).append(". But support may be added in the future");
@@ -245,7 +205,7 @@ public class Reporter {
     LOGGER.debug("notYetSupported, message: " + message);
   }
 
-  public static void dataTypeChangedOnImport(String invokerNameForDebug, String schemaName, String tableName,
+  public void dataTypeChangedOnImport(String invokerNameForDebug, String schemaName, String tableName,
     String columnName, Type type) {
     conversionProblemsCounter++;
 
@@ -294,7 +254,7 @@ public class Reporter {
       + type);
   }
 
-  public static void dataTypeChangedOnExport(String invokerNameForDebug, ColumnStructure column, String typeSQL) {
+  public void dataTypeChangedOnExport(String invokerNameForDebug, ColumnStructure column, String typeSQL) {
     conversionProblemsCounter++;
 
     String original = column.getType().getOriginalTypeName().toUpperCase(Locale.ENGLISH);
@@ -320,15 +280,15 @@ public class Reporter {
       + "; and column: " + column);
   }
 
-  public static void exportModuleParameters(String moduleName, String... parameters) {
+  public void exportModuleParameters(String moduleName, String... parameters) {
     moduleParameters(moduleName, "Export", parameters);
   }
 
-  public static void importModuleParameters(String moduleName, String... parameters) {
+  public void importModuleParameters(String moduleName, String... parameters) {
     moduleParameters(moduleName, "Import", parameters);
   }
 
-  public static void customMessage(String invokerNameForDebug, String customMessage, String prefix) {
+  public void customMessage(String invokerNameForDebug, String customMessage, String prefix) {
     StringBuilder message = new StringBuilder();
     if (prefix != null) {
       message.append(prefix).append(": ");
@@ -340,11 +300,18 @@ public class Reporter {
     LOGGER.debug("customMessage, invoker: " + invokerNameForDebug + "; message: " + message.toString());
   }
 
-  public static void customMessage(String invokerNameForDebug, String customMessage) {
+  public void customMessage(String invokerNameForDebug, String customMessage) {
     customMessage(invokerNameForDebug, customMessage, null);
   }
 
-  public static void ignored(String whatWasIgnored, String whyItWasIgnored) {
+  public void savedAsString() {
+    if (!warnedAboutSavedAsString) {
+      warnedAboutSavedAsString = true;
+      report(new StringBuilder("Found an unsupported datatype value, and an attempt was made to save it as text."));
+    }
+  }
+
+  public void ignored(String whatWasIgnored, String whyItWasIgnored) {
     conversionProblemsCounter++;
     StringBuilder message = new StringBuilder(MESSAGE_LINE_DEFAULT_PREFIX);
     appendAsCode(message, whatWasIgnored).append(" was ignored because ").append(whyItWasIgnored);
@@ -353,7 +320,7 @@ public class Reporter {
     LOGGER.debug("something was ignored, message: " + message);
   }
 
-  public static void failed(String whatFailed, String whyItFailed) {
+  public void failed(String whatFailed, String whyItFailed) {
     conversionProblemsCounter++;
     StringBuilder message = new StringBuilder(MESSAGE_LINE_DEFAULT_PREFIX).append(whatFailed)
       .append(" failed because ").append(whyItFailed);
@@ -362,7 +329,7 @@ public class Reporter {
     LOGGER.debug("something failed, message: " + message);
   }
 
-  public static void valueChanged(String originalValue, String newValue, String reason, String location) {
+  public void valueChanged(String originalValue, String newValue, String reason, String location) {
     conversionProblemsCounter++;
     StringBuilder message = new StringBuilder("Warning: ");
     appendAsCode(message, originalValue).append(" changed to ");
@@ -370,5 +337,58 @@ public class Reporter {
 
     report(message);
     LOGGER.debug("something failed, message: " + message);
+  }
+
+  /**
+   * Closes the Reporter instance and underlying resources. And also logs the
+   * location of the Reporter file.
+   *
+   * @throws IOException
+   *           if an I/O error occurs
+   */
+  @Override
+  public void close() throws IOException {
+    try {
+      if (writer != null) {
+        writer.close();
+        if (conversionProblemsCounter == 0) {
+          Files.deleteIfExists(outputfile);
+        }
+      }
+    } catch (IOException e) {
+      LOGGER.debug("Unable to close Reporter file", e);
+    }
+    if (conversionProblemsCounter != 0) {
+      if (writer != null) {
+        LOGGER.info("A report was generated with a listing of information that was modified during the conversion.");
+        LOGGER.info("The report file is located at " + outputfile.normalize().toAbsolutePath().toString());
+      } else {
+        LOGGER
+          .info("A report with a listing of information that was modified during the conversion could not be generated, please submit a bug report to help us fix this.");
+      }
+    }
+  }
+
+  /**
+   * Adds the code string delimited by the CODE_DELIMITER to the string builder
+   */
+  private static StringBuilder appendAsCode(StringBuilder sb, String code) {
+    sb.append(CODE_DELIMITER).append(code).append(CODE_DELIMITER);
+    return sb;
+  }
+
+  /**
+   * Utility to get the ordinal suffix for a number
+   */
+  private static String ordinal(long i) {
+    switch ((int) i % 100) {
+      case 11:
+      case 12:
+      case 13:
+        return NUMBER_SUFFIXES[0];
+      default:
+        return NUMBER_SUFFIXES[(int) i % 10];
+
+    }
   }
 }

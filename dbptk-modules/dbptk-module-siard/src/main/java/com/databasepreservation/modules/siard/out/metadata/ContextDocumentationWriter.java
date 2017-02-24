@@ -72,29 +72,25 @@ public class ContextDocumentationWriter {
         path = path.resolve(name);
         Path pathRelativeToMainContainerPath = mainContainerPath.relativize(path);
 
+        InputStream fis = null;
+        OutputStream fos = null;
         try {
 
-          InputStream fis = new FileInputStream(file);
-          OutputStream fos = fileIndexFileStrategy.getWriter(mainContainer, pathRelativeToMainContainerPath.toString(),
+          fis = new FileInputStream(file);
+          fos = fileIndexFileStrategy.getWriter(mainContainer, pathRelativeToMainContainerPath.toString(),
             writeStrategy);
 
           try {
             IOUtils.copy(fis, fos);
-            fis.close();
-            fos.close();
-
             fileIndexFileStrategy.addFile(pathRelativeToMainContainerPath.toString());
-
           } catch (IOException e) {
             throw new ModuleException("There was an error writing " + path, e);
           }
-
-          fis.close();
-
         } catch (FileNotFoundException e) {
           throw new ModuleException("File not found: " + file.toString(), e);
-        } catch (IOException e) {
-          throw new ModuleException("There was a problem closing the file " + file.toString(), e);
+        } finally {
+          IOUtils.closeQuietly(fis);
+          IOUtils.closeQuietly(fos);
         }
 
         path = path.getParent();

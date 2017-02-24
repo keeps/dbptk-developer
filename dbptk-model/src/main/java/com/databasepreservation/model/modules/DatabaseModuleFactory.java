@@ -2,9 +2,8 @@ package com.databasepreservation.model.modules;
 
 import java.util.Map;
 
-import javax.naming.OperationNotSupportedException;
-
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
 
@@ -26,23 +25,23 @@ public interface DatabaseModuleFactory extends Plugin {
 
   Map<String, Parameter> getAllParameters();
 
-  Parameters getImportModuleParameters() throws OperationNotSupportedException;
+  Parameters getImportModuleParameters() throws UnsupportedModuleException;
 
-  Parameters getExportModuleParameters() throws OperationNotSupportedException;
+  Parameters getExportModuleParameters() throws UnsupportedModuleException;
 
-  DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws OperationNotSupportedException,
+  DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
     LicenseNotAcceptedException;
 
-  DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws OperationNotSupportedException,
+  DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
     LicenseNotAcceptedException;
 
   class ExceptionBuilder {
-    public static OperationNotSupportedException OperationNotSupportedExceptionForImportModule() {
-      return new OperationNotSupportedException("Import module not available");
+    public static UnsupportedModuleException UnsupportedModuleExceptionForImportModule() {
+      return new UnsupportedModuleException("Import module not available");
     }
 
-    public static OperationNotSupportedException OperationNotSupportedExceptionForExportModule() {
-      return new OperationNotSupportedException("Export module not available");
+    public static UnsupportedModuleException UnsupportedModuleExceptionForExportModule() {
+      return new UnsupportedModuleException("Export module not available");
     }
   }
 }

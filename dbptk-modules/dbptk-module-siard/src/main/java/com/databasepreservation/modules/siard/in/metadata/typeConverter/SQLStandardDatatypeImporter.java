@@ -1,7 +1,6 @@
 package com.databasepreservation.modules.siard.in.metadata.typeConverter;
 
 import java.util.Locale;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -410,7 +409,8 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
       }
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
       return "SqlStandardType{" + "original='" + original + '\'' + ", normalized='" + normalized + '\'' + ", isValid="
         + isValid + ", base='" + base + '\'' + ", hasTimezoneInfo=" + hasTimezoneInfo + ", includesTimezone="
         + includesTimezone + ", typeTimezonePart='" + typeTimezonePart + '\'' + ", hasColumnSize=" + hasColumnSize
