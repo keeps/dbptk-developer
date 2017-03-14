@@ -59,34 +59,30 @@ public class Reporter implements Closeable {
   private Path outputfile;
   private BufferedWriter writer;
 
-  /**
-   * Creates a new reporter using the directory specified in
-   * Reporter.REPORT_FOLDER
-   */
   public Reporter() {
-    this(null);
+    this(null, null);
   }
 
-  public Reporter(String directory) {
-    initialize(directory);
-  }
-
-  protected void initialize(String directory) {
+  public Reporter(String directory, String name) {
+    // set defaults if needed
     if (directory == null) {
       directory = ".";
     }
-    String filenamePrefix = "dbptk-report-";
-    String filenameTimestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
-    String filenameSuffix = ".txt";
-    outputfile = Paths.get(directory).toAbsolutePath().resolve(filenamePrefix + filenameTimestamp + filenameSuffix);
-    try {
-      outputfile = Files.createFile(outputfile);
-    } catch (IOException e) {
-      LOGGER.warn("Could not create report file in current working directory. Attempting to use a temporary file", e);
+    if (StringUtils.isBlank(name)) {
+      name = "dbptk-report-" + new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date()) + ".txt";
+    }
+
+    outputfile = Paths.get(directory).toAbsolutePath().resolve(name);
+    if (Files.notExists(outputfile)) {
       try {
-        outputfile = Files.createTempFile(filenamePrefix, filenameSuffix);
-      } catch (IOException e1) {
-        LOGGER.error("Could not create report temporary file. Reporting will not function.", e1);
+        outputfile = Files.createFile(outputfile);
+      } catch (IOException e) {
+        LOGGER.warn("Could not create report file in current working directory. Attempting to use a temporary file", e);
+        try {
+          outputfile = Files.createTempFile("dbptk-report-", ".txt");
+        } catch (IOException e1) {
+          LOGGER.error("Could not create report temporary file. Reporting will not function.", e1);
+        }
       }
     }
 

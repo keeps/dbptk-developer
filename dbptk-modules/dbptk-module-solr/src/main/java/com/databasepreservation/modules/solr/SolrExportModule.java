@@ -179,6 +179,7 @@ public class SolrExportModule implements DatabaseExportModule {
    */
   @Override
   public void finishDatabase() throws ModuleException {
+    solrManager.markDatabaseAsReady(viewerDatabase);
     solrManager.commitAll();
     solrManager.freeResources();
   }

@@ -20,7 +20,6 @@ public class NoOpReporter extends Reporter {
   public NoOpReporter(String directory) {
   }
 
-  @Override
   protected void initialize(String directory) {
   }
 

@@ -26,6 +26,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.databasepreservation.common.ObservableModule;
 import com.databasepreservation.common.PathInputStreamProvider;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
@@ -81,6 +82,8 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
   private Row row;
   private long rowIndex;
   private long currentTableTotalRows;
+  private ObservableModule observable;
+  private DatabaseStructure databaseStructure;
 
   private long lastProgressTimestamp;
 
@@ -93,10 +96,13 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
 
   @Override
   public void importContent(DatabaseExportModule handler, SIARDArchiveContainer container,
-    DatabaseStructure databaseStructure, ModuleSettings moduleSettings) throws ModuleException {
+    DatabaseStructure databaseStructure, ModuleSettings moduleSettings, ObservableModule observable)
+    throws ModuleException {
     // set instance state
     this.databaseExportModule = handler;
     this.contentContainer = container;
+    this.observable = observable;
+    this.databaseStructure = databaseStructure;
 
     // pre-setup parser and validation
     SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -107,9 +113,13 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
     SAXParser saxParser = null;
 
     // process tables
+    long completedSchemas = 0;
+    long completedTablesInSchema;
     for (SchemaStructure schema : databaseStructure.getSchemas()) {
       boolean schemaHandled = false;
       currentSchema = schema;
+      completedTablesInSchema = 0;
+      observable.notifyOpenSchema(databaseStructure, schema, completedSchemas, completedTablesInSchema);
       try {
         databaseExportModule.handleDataOpenSchema(currentSchema.getName());
         schemaHandled = true;
@@ -129,6 +139,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
           } catch (ModuleException e) {
             LOGGER.error("An error occurred while handling data open table", e);
           }
+          observable.notifyOpenTable(databaseStructure, table, completedSchemas, completedTablesInSchema);
           this.currentTableTotalRows = currentTable.getRows();
           lastProgressTimestamp = System.currentTimeMillis();
 
@@ -192,6 +203,8 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
 
           LOGGER.info("Total of " + rowIndex + " row(s) processed");
 
+          completedTablesInSchema++;
+          observable.notifyCloseTable(databaseStructure, table, completedSchemas, completedTablesInSchema);
           try {
             databaseExportModule.handleDataCloseTable(currentTable.getId());
           } catch (ModuleException e) {
@@ -202,6 +215,8 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
         }
       }
 
+      completedSchemas++;
+      observable.notifyCloseSchema(databaseStructure, schema, completedSchemas, schema.getTables().size());
       try {
         databaseExportModule.handleDataCloseSchema(currentSchema.getName());
       } catch (ModuleException e) {
@@ -324,6 +339,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
 
       if (rowIndex % 1000 == 0 && System.currentTimeMillis() - lastProgressTimestamp > 3000) {
         lastProgressTimestamp = System.currentTimeMillis();
+        observable.notifyTableProgress(databaseStructure, currentTable, rowIndex - 2, currentTableTotalRows);
         if (currentTableTotalRows > 0) {
           LOGGER.info(String.format("Progress: %d rows of table %s.%s (%d%%)", rowIndex, currentTable.getSchema(),
             currentTable.getName(), rowIndex * 100 / currentTableTotalRows));
