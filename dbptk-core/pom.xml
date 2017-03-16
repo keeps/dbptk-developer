@@ -6,11 +6,11 @@
     <name>dbptk-core</name>
     <groupId>com.databasepreservation</groupId>
     <artifactId>dbptk-core</artifactId>
-    <version>2.0.0-beta7.3</version>
+    <version>2.0.0-beta7.3-dev</version>
     <parent>
         <groupId>com.databasepreservation</groupId>
         <artifactId>dbptk</artifactId>
-        <version>2.0.0-beta7.3</version>
+        <version>2.0.0-beta7.3-dev</version>
         <relativePath>..</relativePath>
     </parent>
     <properties>
