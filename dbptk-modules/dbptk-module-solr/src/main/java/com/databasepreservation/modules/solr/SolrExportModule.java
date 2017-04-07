@@ -1,5 +1,6 @@
 package com.databasepreservation.modules.solr;
 
+import java.nio.file.Path;
 import java.util.Set;
 
 import com.databasepreservation.model.Reporter;
@@ -20,7 +21,7 @@ import com.databasepreservation.visualization.utils.SolrUtils;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SolrExportModule implements DatabaseExportModule {
-  private final SolrModuleConfiguration configuration = SolrModuleConfiguration.getInstance();
+  private final SolrModuleConfiguration configuration;
 
   private final SolrManager solrManager;
 
@@ -38,16 +39,18 @@ public class SolrExportModule implements DatabaseExportModule {
 
   private Reporter reporter;
 
-  public SolrExportModule(String hostname, Integer port, String endpoint, String zookeeperHost, Integer zookeeperPort) {
-    this(hostname, port, endpoint, zookeeperHost, zookeeperPort, null);
+  public SolrExportModule(String hostname, Integer port, String endpoint, String zookeeperHost, Integer zookeeperPort,
+    Path moduleDirectory) {
+    this(hostname, port, endpoint, zookeeperHost, zookeeperPort, null, moduleDirectory);
   }
 
   public SolrExportModule(String hostname, Integer port, String endpoint, String zookeeperHost, Integer zookeeperPort,
-    String databaseUUID) {
+    String databaseUUID, Path moduleDirectory) {
     zookeeperHostAndPort = zookeeperHost + ":" + zookeeperPort;
     String url = "http://" + hostname + ":" + port + "/" + endpoint;
     solrManager = new SolrManager(url);
     preSetDatabaseUUID = databaseUUID;
+    configuration = SolrModuleConfiguration.getInstance(moduleDirectory);
   }
 
   /**

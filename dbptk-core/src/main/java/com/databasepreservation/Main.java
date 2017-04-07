@@ -29,6 +29,7 @@ import com.databasepreservation.modules.siard.SIARD2ModuleFactory;
 import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
 import com.databasepreservation.modules.solr.SolrModuleFactory;
 import com.databasepreservation.modules.sqlServer.SQLServerJDBCModuleFactory;
+import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.MiscUtils;
 
 /**
@@ -36,6 +37,11 @@ import com.databasepreservation.utils.MiscUtils;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class Main {
+  static {
+    // initialize logging
+    ConfigUtils.initialize();
+  }
+
   public static final int EXIT_CODE_OK = 0;
   public static final int EXIT_CODE_GENERIC_ERROR = 1;
   public static final int EXIT_CODE_COMMAND_PARSE_ERROR = 2;

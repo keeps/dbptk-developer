@@ -75,12 +75,11 @@ import com.databasepreservation.utils.MiscUtils;
  */
 public class JDBCImportModule implements DatabaseImportModule {
   // if fetch size is zero, then the driver decides the best fetch size
-  protected static final Integer DEFAULT_ROW_FETCH_BLOCK_SIZE = ConfigUtils.getProperty(0, "dbptk", "jdbc",
-    "fetchsize", "default");
-  protected static final Integer SMALL_ROW_FETCH_BLOCK_SIZE = ConfigUtils.getProperty(10, "dbptk", "jdbc", "fetchsize",
-    "small");
-  protected static final Integer MINIMUM_ROW_FETCH_BLOCK_SIZE = ConfigUtils.getProperty(1, "dbptk", "jdbc",
-    "fetchsize", "minimum");
+  protected static final Integer DEFAULT_ROW_FETCH_BLOCK_SIZE = ConfigUtils.getProperty(0,
+    "dbptk.jdbc.fetchsize.default");
+  protected static final Integer SMALL_ROW_FETCH_BLOCK_SIZE = ConfigUtils.getProperty(10, "dbptk.jdbc.fetchsize.small");
+  protected static final Integer MINIMUM_ROW_FETCH_BLOCK_SIZE = ConfigUtils.getProperty(1,
+    "dbptk.jdbc.fetchsize.minimum");
 
   protected static final String DEFAULT_DATA_TIMESPAN = "(...)";
 
