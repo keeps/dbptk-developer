@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.MiscUtils;
 
 /**
@@ -64,15 +65,21 @@ public class Reporter implements Closeable {
   }
 
   public Reporter(String directory, String name) {
+    init(directory, name);
+  }
+
+  protected void init(String directory, String name) {
     // set defaults if needed
-    if (directory == null) {
-      directory = ".";
-    }
     if (StringUtils.isBlank(name)) {
       name = "dbptk-report-" + new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date()) + ".txt";
     }
 
-    outputfile = Paths.get(directory).toAbsolutePath().resolve(name);
+    if (StringUtils.isBlank(directory)) {
+      outputfile = ConfigUtils.getReportsDirectory().resolve(name);
+    } else {
+      outputfile = Paths.get(directory).toAbsolutePath().resolve(name);
+    }
+
     if (Files.notExists(outputfile)) {
       try {
         outputfile = Files.createFile(outputfile);

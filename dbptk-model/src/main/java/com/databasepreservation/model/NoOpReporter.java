@@ -17,10 +17,9 @@ public class NoOpReporter extends Reporter {
   public NoOpReporter() {
   }
 
-  public NoOpReporter(String directory) {
-  }
-
-  protected void initialize(String directory) {
+  @Override
+  protected void init(String directory, String name) {
+    // do nothing
   }
 
   @Override

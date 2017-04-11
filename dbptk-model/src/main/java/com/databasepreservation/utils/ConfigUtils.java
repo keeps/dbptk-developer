@@ -1,11 +1,13 @@
 package com.databasepreservation.utils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +28,7 @@ public class ConfigUtils {
   private static final Logger LOGGER = LoggerFactory.getLogger(ConfigUtils.class);
   private static boolean initialized = false;
 
-  private static Path homeDirectory, logDirectory, modulesDirectory;
+  private static Path homeDirectory, logDirectory, modulesDirectory, reportsDirectory;
 
   public static void initialize() {
     if (!initialized) {
@@ -42,8 +44,9 @@ public class ConfigUtils {
 
       logDirectory = homeDirectory.resolve(Constants.SUBDIRECTORY_LOG);
       modulesDirectory = homeDirectory.resolve(Constants.SUBDIRECTORY_MODULES);
+      reportsDirectory = homeDirectory.resolve(Constants.SUBDIRECTORY_REPORTS);
 
-      instantiateEssentialDirectories(homeDirectory, logDirectory, modulesDirectory);
+      instantiateEssentialDirectories(homeDirectory, logDirectory, modulesDirectory, reportsDirectory);
 
       configureLogback();
       initialized = true;
@@ -58,6 +61,10 @@ public class ConfigUtils {
     Path moduleDirectory = modulesDirectory.resolve(moduleFactory.getModuleName());
     instantiateEssentialDirectories(moduleDirectory);
     return moduleDirectory;
+  }
+
+  public static Path getReportsDirectory() {
+    return reportsDirectory;
   }
 
   private static void instantiateEssentialDirectories(Path... directories) {
@@ -94,6 +101,21 @@ public class ConfigUtils {
     } catch (JoranException e) {
       LOGGER.error("Error configuring logback", e);
     }
+  }
+
+  public static String getVersionInfo() {
+    InputStream versionInfoAsStream = ConfigUtils.class.getClassLoader().getSystemResourceAsStream(
+      Constants.VERSION_INFO_FILE);
+    String ret;
+    try {
+      ret = IOUtils.toString(versionInfoAsStream);
+    } catch (IOException e) {
+      LOGGER.debug("Could not obtain resource {}" + Constants.VERSION_INFO_FILE);
+      ret = "<unavailable>";
+    } finally {
+      IOUtils.closeQuietly(versionInfoAsStream);
+    }
+    return ret;
   }
 
   /**

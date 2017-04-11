@@ -189,8 +189,9 @@ public class Main {
 
   private static void logProgramStart() {
     LOGGER.debug("#########################################################");
-    LOGGER.debug("#   START-ID-" + execID);
-    LOGGER.debug("#   START v" + MiscUtils.APP_VERSION);
+    LOGGER.debug("#   START-ID-{}", execID);
+    LOGGER.debug("#   START v{}", MiscUtils.APP_VERSION);
+    LOGGER.debug("#   version info: {}", ConfigUtils.getVersionInfo());
     LOGGER.debug("#########################################################");
   }
 
