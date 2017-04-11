@@ -13,6 +13,7 @@ dbptk-report-*
 dbptk-app.log
 dbptk-app.log.txt
 exported-dbs/
+dbptk-model/src/main/resources/dbptk-version.json
 
 **/pom.xml.versionsBackup
 
