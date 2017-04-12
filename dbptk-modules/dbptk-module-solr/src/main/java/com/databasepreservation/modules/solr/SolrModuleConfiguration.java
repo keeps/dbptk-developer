@@ -15,14 +15,16 @@ import com.databasepreservation.visualization.utils.ViewerAbstractConfiguration;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SolrModuleConfiguration extends ViewerAbstractConfiguration {
+  private final Path moduleDirectory;
   private Path workspaceDirectory = null;
   private Path workspaceForLobs = null;
 
   /**
    * Private constructor, use getInstance() instead
    */
-  private SolrModuleConfiguration() {
+  private SolrModuleConfiguration(Path moduleDirectory) {
     super(new SystemConfiguration());
+    this.moduleDirectory = moduleDirectory;
   }
 
   /*
@@ -31,9 +33,9 @@ public class SolrModuleConfiguration extends ViewerAbstractConfiguration {
    */
   private static SolrModuleConfiguration instance = null;
 
-  public static SolrModuleConfiguration getInstance() {
+  public static SolrModuleConfiguration getInstance(Path moduleDirectory) {
     if (instance == null) {
-      instance = new SolrModuleConfiguration();
+      instance = new SolrModuleConfiguration(moduleDirectory);
     }
     return instance;
   }
@@ -70,8 +72,7 @@ public class SolrModuleConfiguration extends ViewerAbstractConfiguration {
       } else if (StringUtils.isNotBlank(env)) {
         workspaceDirectory = Paths.get(env);
       } else {
-        workspaceDirectory = Paths.get(System.getProperty("user.home"),
-          ViewerConstants.INSTALL_FOLDER_DEFAULT_SUBFOLDER_UNDER_HOME);
+        workspaceDirectory = moduleDirectory;
       }
     }
     return workspaceDirectory;

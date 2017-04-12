@@ -31,6 +31,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.databasepreservation.common.ObservableModule;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
@@ -76,6 +77,8 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
   private static final String SIARDDK_NIL_LOCAL_ATTR_NAME = "nil";
   protected TypeInfoProvider typeInfoProvider;
   protected TypeInfo xsdCellType;
+  private ObservableModule observable;
+  private DatabaseStructure databaseStructure;
 
   /**
    * @author Thomas Kristensen <tk@bithuset.dk>
@@ -91,7 +94,10 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
 
   @Override
   public void importContent(DatabaseExportModule dbExportHandler, SIARDArchiveContainer mainFolder,
-    DatabaseStructure databaseStructure, ModuleSettings moduleSettings) throws ModuleException {
+    DatabaseStructure databaseStructure, ModuleSettings moduleSettings, ObservableModule observable)
+    throws ModuleException {
+    this.observable = observable;
+    this.databaseStructure = databaseStructure;
     pathStrategy.parseFileIndexMetadata();
     this.dbExportHandler = dbExportHandler;
     Map<Path, SIARDArchiveContainer> archiveContainerByAbsPath = new HashMap<Path, SIARDArchiveContainer>();
@@ -105,11 +111,16 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
     SIARDArchiveContainer currentFolder = null;
     assert (databaseStructure.getSchemas().size() == 1);
     this.dbExportHandler.handleDataOpenSchema(importAsSchema);
+    long completedSchemas = 0;
+    long completedTablesInSchema;
     for (SchemaStructure schema : databaseStructure.getSchemas()) {
+      completedTablesInSchema = 0;
+      observable.notifyOpenSchema(databaseStructure, schema, completedSchemas, completedTablesInSchema);
       assert (schema.getName().equals(importAsSchema));
       for (TableStructure table : schema.getTables()) {
         currentTable = table;
         this.dbExportHandler.handleDataOpenTable(table.getId());
+        observable.notifyOpenTable(databaseStructure, table, completedSchemas, completedTablesInSchema);
         rowIndex = 0;
         String xsdFileName = pathStrategy.getTableXSDFilePath(schema.getName(), table.getId());
         String xmlFileName = pathStrategy.getTableXMLFilePath(schema.getName(), table.getId());
@@ -173,8 +184,12 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
         readStrategy.closeAndVerifyMD5Sum(currentTableInputStream);
         readStrategy.closeAndVerifyMD5Sum(xsdInputStream);
 
+        completedTablesInSchema++;
+        observable.notifyCloseTable(databaseStructure, table, completedSchemas, completedTablesInSchema);
         this.dbExportHandler.handleDataCloseTable(table.getId());
       }
+      completedSchemas++;
+      observable.notifyCloseSchema(databaseStructure, schema, completedSchemas, schema.getTables().size());
       this.dbExportHandler.handleDataCloseSchema(importAsSchema);
     }
 
@@ -231,6 +246,7 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
         assert !lstCells.contains(null);
         currentRow.setCells(lstCells);
         try {
+          observable.notifyTableProgress(databaseStructure, currentTable, rowIndex - 2, currentTable.getRows());
           this.dbExportHandler.handleDataRow(currentRow);
         } catch (InvalidDataException e) {
           throw new SAXException(e.getMessage() + " Row index:" + rowIndex, e);

@@ -1,5 +1,6 @@
 package com.databasepreservation.modules.siard.in.input;
 
+import com.databasepreservation.common.ObservableModule;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
@@ -16,7 +17,7 @@ import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SIARDImportDefault implements DatabaseImportModule {
+public class SIARDImportDefault extends ObservableModule implements DatabaseImportModule {
   private final ReadStrategy readStrategy;
   private final SIARDArchiveContainer mainContainer;
   private final ContentImportStrategy contentStrategy;
@@ -38,6 +39,7 @@ public class SIARDImportDefault implements DatabaseImportModule {
     moduleSettings = handler.getModuleSettings();
     readStrategy.setup(mainContainer);
     handler.initDatabase();
+    notifyOpenDatabase();
     try {
       metadataStrategy.loadMetadata(readStrategy, mainContainer, moduleSettings);
 
@@ -46,9 +48,11 @@ public class SIARDImportDefault implements DatabaseImportModule {
       // handler.setIgnoredSchemas(null);
 
       handler.handleStructure(dbStructure);
+      notifyStructureObtained(dbStructure);
 
-      contentStrategy.importContent(handler, mainContainer, dbStructure, moduleSettings);
+      contentStrategy.importContent(handler, mainContainer, dbStructure, moduleSettings, (ObservableModule) this);
 
+      notifyCloseDatabase(dbStructure);
       handler.finishDatabase();
     } finally {
       readStrategy.finish(mainContainer);

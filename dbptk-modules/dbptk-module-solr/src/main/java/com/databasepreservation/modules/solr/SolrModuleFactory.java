@@ -1,5 +1,6 @@
 package com.databasepreservation.modules.solr;
 
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +15,7 @@ import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
+import com.databasepreservation.utils.ConfigUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -129,11 +131,14 @@ public class SolrModuleFactory implements DatabaseModuleFactory {
     reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "port", pPortNumber.toString(), "endpoint",
       pEndpoint, "zookeeper-hostname", pZookeperHostname, "zookeeper-port", pZookeeperPortNumber.toString());
 
+    Path moduleDirectory = ConfigUtils.getModuleDirectory(this);
+
     if (StringUtils.isBlank(pDatabaseUUID)) {
-      return new SolrExportModule(pHostname, pPortNumber, pEndpoint, pZookeperHostname, pZookeeperPortNumber);
+      return new SolrExportModule(pHostname, pPortNumber, pEndpoint, pZookeperHostname, pZookeeperPortNumber,
+        moduleDirectory);
     } else {
       return new SolrExportModule(pHostname, pPortNumber, pEndpoint, pZookeperHostname, pZookeeperPortNumber,
-        pDatabaseUUID);
+        pDatabaseUUID, moduleDirectory);
     }
   }
 }
