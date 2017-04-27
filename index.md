@@ -65,7 +65,7 @@ To use the program, Java JRE 7 or higher needs to be installed. Instructions on 
 To use the program, open a command-line and try out the following command (replace x.y.z accordingly to the version of the binary in use):
 
 ```text
-$ java -jar dbptk-app-X.Y.Z.jar
+java -jar "-Dfile.encoding=UTF-8" dbptk-app-X.Y.Z.jar
 ```
 
 Using this command you will be presented with the application usage, describing all supported modules and their parameters.
@@ -97,17 +97,13 @@ The Database Preservation Toolkit is also capable of loading preserved databases
 If you want to connect to a live MySQL database and export its content to SIARD 2.0 format, you can use the following command.
 
 ```text
-$ java -jar dbptk-app-x.y.z.jar \
---import mysql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \
---export siard-2 --export-file=example.siard
+java -jar "-Dfile.encoding=UTF-8" dbptk-app-x.y.z.jar --import mysql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" --export siard-2 --export-file=example.siard
 ```
 
 Or using the equivalent short version of the parameters:
 
 ```text
-$ java -jar dbptk-app-x.y.z.jar \
--i mysql -ih localhost -idb "example_db" -iu username -ip "p4ssw0rd" \
--e siard-2 -ef example.siard
+java -jar "-Dfile.encoding=UTF-8" dbptk-app-x.y.z.jar -i mysql -ih localhost -idb "example_db" -iu username -ip "p4ssw0rd" -e siard-2 -ef example.siard
 ```
 
 More examples containing only required parameters:
@@ -115,33 +111,25 @@ More examples containing only required parameters:
 **Oracle to SIARD 2**
 
 ```text
-$ java -jar dbptk-app-x.y.z.jar \
---import oracle --import-server-name=127.0.0.1 --import-database="example_db" --import-username=username --import-password="p4ssw0rd" --import-accept-license \
---export siard-2 --export-file=example.siard
+java -jar "-Dfile.encoding=UTF-8" dbptk-app-x.y.z.jar --import oracle --import-server-name=127.0.0.1 --import-database="example_db" --import-username=username --import-password="p4ssw0rd" --import-accept-license --export siard-2 --export-file=example.siard
 ```
 
 **MySQL to SIARD 2**
 
 ```text
-$ java -jar dbptk-app-x.y.z.jar \
---import mysql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \
---export siard-2 --export-file=example.siard
+java -jar "-Dfile.encoding=UTF-8" dbptk-app-x.y.z.jar --import mysql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" --export siard-2 --export-file=example.siard
 ```
 
 **PostgreSQL to SIARD 2**
 
 ```text
-$ java -jar dbptk-app-x.y.z.jar \
---import postgresql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \
---export siard-2 --export-file=example.siard
+java -jar "-Dfile.encoding=UTF-8" dbptk-app-x.y.z.jar --import postgresql --import-hostname=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" --export siard-2 --export-file=example.siard
 ```
 
 **Microsoft SQL Server to SIARD 2**
 
 ```text
-$ java -jar dbptk-app-x.y.z.jar \
---import microsoft-sql-server --import-server-name=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" \
---export siard-2 --export-file=example.siard
+java -jar "-Dfile.encoding=UTF-8" dbptk-app-x.y.z.jar --import microsoft-sql-server --import-server-name=localhost --import-database="example_db" --import-username=username --import-password="p4ssw0rd" --export siard-2 --export-file=example.siard
 ```
 
 The conversion in the opposite direction is also possible, check the complete
@@ -168,19 +156,13 @@ A specialized module for the database, if available, would always be preferable 
 Using the method described above, the Windows command to extract a database from an Oracle database to SIARD 2 is as the following:
 
 ```text
-java -cp "C:\path\to\dbptk-app-x.y.z.jar;C:\path\to\jdbc_driver.jar" com.databasepreservation.Main \
-  --import=jdbc --import-driver=oracle.jdbc.driver.OracleDriver \
-    --import-connection="jdbc:oracle:thin:username/password@serverName:port/database" \
-  -e siard-2 -ef C:\path\to\output.siard
+java -cp "C:\path\to\dbptk-app-x.y.z.jar;C:\path\to\jdbc_driver.jar" com.databasepreservation.Main   --import=jdbc --import-driver=oracle.jdbc.driver.OracleDriver     --import-connection="jdbc:oracle:thin:username/password@serverName:port/database"   -e siard-2 -ef C:\path\to\output.siard
 ```
 
 And on Linux the equivalent command would be (note that the jarfile separator is `:` instead of `;`):
 
 ```text
-java -cp "/path/to/dbptk-app-x.y.z.jar:/path/to/jdbc_driver.jar" com.databasepreservation.Main \
-  --import=jdbc --import-driver=oracle.jdbc.driver.OracleDriver \
-    --import-connection="jdbc:oracle:thin:username/password@serverName:port/database" \
-  -e siard-2 -ef /path/to/output.siard
+java -cp "/path/to/dbptk-app-x.y.z.jar:/path/to/jdbc_driver.jar" com.databasepreservation.Main   --import=jdbc --import-driver=oracle.jdbc.driver.OracleDriver     --import-connection="jdbc:oracle:thin:username/password@serverName:port/database"   -e siard-2 -ef /path/to/output.siard
 ```
 
 
