@@ -6,6 +6,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Locale;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -58,7 +59,7 @@ public class ConfigUtils {
       initialize();
     }
 
-    Path moduleDirectory = modulesDirectory.resolve(moduleFactory.getModuleName());
+    Path moduleDirectory = modulesDirectory.resolve(moduleFactory.getModuleName().toLowerCase(Locale.ENGLISH));
     instantiateEssentialDirectories(moduleDirectory);
     return moduleDirectory;
   }

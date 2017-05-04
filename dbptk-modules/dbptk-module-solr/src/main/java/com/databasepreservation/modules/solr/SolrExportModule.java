@@ -145,7 +145,7 @@ public class SolrExportModule implements DatabaseExportModule {
   @Override
   public void handleDataRow(Row row) throws InvalidDataException, ModuleException {
     solrManager.addRow(currentTable,
-      ToolkitStructure2ViewerStructure.getRow(configuration, currentTable, row, rowIndex++));
+      ToolkitStructure2ViewerStructure.getRow(configuration, viewerDatabase.getUUID(), currentTable, row, rowIndex++));
   }
 
   /**
