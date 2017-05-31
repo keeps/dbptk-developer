@@ -139,7 +139,7 @@ public class Reporter implements Closeable {
     StringBuilder message;
 
     if (countModuleInfoReported == 0) {
-      message = new StringBuilder("## Parameters").append(NEWLINE);
+      message = new StringBuilder("## Parameters").append(NEWLINE).append(NEWLINE);
     } else {
       message = new StringBuilder();
     }
@@ -156,7 +156,7 @@ public class Reporter implements Closeable {
     if (countModuleInfoReported == 2) {
       message.append(NEWLINE).append(NEWLINE).append("Date: ")
         .append(new SimpleDateFormat("yyyy-MM-dd").format(new Date())).append(NEWLINE).append(NEWLINE)
-        .append("## Details");
+        .append("## Details").append(NEWLINE);
     } else {
       message.append(NEWLINE);
     }
@@ -210,8 +210,6 @@ public class Reporter implements Closeable {
 
   public void dataTypeChangedOnImport(String invokerNameForDebug, String schemaName, String tableName,
     String columnName, Type type) {
-    conversionProblemsCounter++;
-
     String original = null;
     if (type != null && StringUtils.isNotBlank(type.getOriginalTypeName())) {
       original = type.getOriginalTypeName().toUpperCase(Locale.ENGLISH);
@@ -250,16 +248,16 @@ public class Reporter implements Closeable {
       appendAsCode(message, sql2008).append(" (SQL99 and SQL2008 standard)");
     }
 
-    if (original != null) {
+    // report only if the data type actually changed
+    if (original != null && (!original.equals(sql99) || !original.equals(sql2008))) {
+      conversionProblemsCounter++;
       report(message);
+      LOGGER.debug("dataTypeChangedOnImport, invoker: " + invokerNameForDebug + "; message: " + message
+        + "; and type: " + type);
     }
-    LOGGER.debug("dataTypeChangedOnImport, invoker: " + invokerNameForDebug + "; message: " + message + "; and type: "
-      + type);
   }
 
   public void dataTypeChangedOnExport(String invokerNameForDebug, ColumnStructure column, String typeSQL) {
-    conversionProblemsCounter++;
-
     String original = column.getType().getOriginalTypeName().toUpperCase(Locale.ENGLISH);
     String sql99 = column.getType().getSql99TypeName().toUpperCase(Locale.ENGLISH);
     String sql2008 = column.getType().getSql2008TypeName().toUpperCase(Locale.ENGLISH);
@@ -278,9 +276,13 @@ public class Reporter implements Closeable {
     message.append(", will be created as ");
     appendAsCode(message, typeSQL).append(" in the target database");
 
-    report(message);
-    LOGGER.debug("dataTypeChangedOnExport, invoker: " + invokerNameForDebug + "; message: " + message
-      + "; and column: " + column);
+    // report only if the data type actually changed
+    if (!original.equals(sql99) || !original.equals(sql2008)) {
+      conversionProblemsCounter++;
+      report(message);
+      LOGGER.debug("dataTypeChangedOnExport, invoker: " + invokerNameForDebug + "; message: " + message
+        + "; and column: " + column);
+    }
   }
 
   public void exportModuleParameters(String moduleName, String... parameters) {
@@ -353,10 +355,10 @@ public class Reporter implements Closeable {
   public void close() throws IOException {
     try {
       if (writer != null) {
-        writer.close();
         if (conversionProblemsCounter == 0) {
-          Files.deleteIfExists(outputfile);
+          report(new StringBuilder("No issues to report."));
         }
+        writer.close();
       }
     } catch (IOException e) {
       LOGGER.debug("Unable to close Reporter file", e);

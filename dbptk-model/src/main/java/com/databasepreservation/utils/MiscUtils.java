@@ -1,7 +1,10 @@
 package com.databasepreservation.utils;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
 
 /**
  * Utility class to get application name and version information.
@@ -16,11 +19,15 @@ public class MiscUtils {
   public static final String APP_NAME_AND_VERSION = APP_NAME + " (version " + APP_VERSION + ")";
 
   private static String getProgramVersion() {
+    InputStream resourceAsStream = null;
     try {
-      return MiscUtils.class.getPackage().getImplementationVersion();
+      resourceAsStream = MiscUtils.class.getResourceAsStream("/dbptk-common.version");
+      return IOUtils.toString(resourceAsStream).trim();
     } catch (Exception e) {
-      LOGGER.debug("Problem getting program version", e);
+      LOGGER.debug("Problem getting program version using dbptk-common.version", e);
       return null;
+    } finally {
+      IOUtils.closeQuietly(resourceAsStream);
     }
   }
 }
