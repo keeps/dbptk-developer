@@ -97,13 +97,8 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
     List<UserStructure> users = new ArrayList<>();
 
     String query = sqlHelper.getUsersSQL(null);
-    Statement statement = getStatement();
     if (query != null) {
-      ResultSet rs = null;
-
-      try {
-        rs = statement.executeQuery(sqlHelper.getUsersSQL(null));
-
+      try (Statement st = getStatement(); ResultSet rs = st.executeQuery(query)) {
         while (rs.next()) {
           UserStructure user = new UserStructure(rs.getString(2) + "@" + rs.getString(1), null);
           users.add(user);
@@ -115,8 +110,6 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
         } else {
           LOGGER.error("It was not possible to retrieve the list of database users.", e);
         }
-      } finally {
-        CloseableUtils.closeQuietly(rs);
       }
     }
 
@@ -149,14 +142,10 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
         .append(
           "SELECT TABLE_COMMENT FROM information_schema.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = '")
         .append(schema.getName()).append("' AND TABLE_NAME = '").append(tableName).append("'").toString();
-      try {
-        boolean gotResultSet = getStatement().execute(query);
-        if (gotResultSet) {
-          ResultSet rs = getStatement().getResultSet();
-          if (rs.next()) {
-            String tableComment = rs.getString(1);
-            tableStructure.setDescription(tableComment);
-          }
+      try (Statement st = getStatement(); ResultSet rs = st.executeQuery(query)) {
+        if (rs.next()) {
+          String tableComment = rs.getString(1);
+          tableStructure.setDescription(tableComment);
         }
       } catch (Exception e) {
         LOGGER.debug("Exception while trying to obtain MySQL table '" + tableIndex
@@ -176,9 +165,10 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 
   @Override
   protected ResultSet getTableRawData(String query, String tableId) throws SQLException, ModuleException {
-    Statement st = getStatement();
-    st.setFetchSize(Integer.MIN_VALUE);
-    return st.executeQuery(query.toString());
+    try (Statement st = getStatement()) {
+      st.setFetchSize(Integer.MIN_VALUE);
+      return st.executeQuery(query.toString());
+    }
   }
 
   @Override
@@ -206,20 +196,13 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   protected List<ViewStructure> getViews(String schemaName) throws SQLException {
     List<ViewStructure> views = super.getViews(schemaName);
     for (ViewStructure v : views) {
-      Statement statement = null;
-      ResultSet rset = null;
-      try {
-        statement = getConnection().createStatement();
-        String query = "SHOW CREATE VIEW " + sqlHelper.escapeViewName(v.getName());
-        rset = statement.executeQuery(query);
-        rset.next(); // Returns only one tuple
+      String query = "SHOW CREATE VIEW " + sqlHelper.escapeViewName(v.getName());
+      try (Statement st = getStatement(); ResultSet rs = st.executeQuery(query)) {
+        rs.next(); // Returns only one tuple
 
-        // TO-DO: the string given below by rset.getString(2) has to be parsed a
+        // TO-DO: the string given below by rs.getString(2) has to be parsed a
         // little before it is set to as the view
-        v.setQueryOriginal(rset.getString(2));
-      } finally {
-        CloseableUtils.closeQuietly(rset);
-        CloseableUtils.closeQuietly(statement);
+        v.setQueryOriginal(rs.getString(2));
       }
     }
     return views;
@@ -283,18 +266,16 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
         }
       }
 
-      try {
-        ResultSet rsetCode = getStatement().executeQuery(
-          "SHOW CREATE PROCEDURE " + sqlHelper.escapeTableName(routineName));
-        if (rsetCode.next()) {
-          routine.setBody(rsetCode.getString("Create Procedure"));
+      String query = "SHOW CREATE PROCEDURE " + sqlHelper.escapeTableName(routineName);
+      try (Statement st = getStatement(); ResultSet rs = st.executeQuery(query)) {
+        if (rs.next()) {
+          routine.setBody(rs.getString("Create Procedure"));
         }
       } catch (SQLException e) {
-        try {
-          ResultSet rsetCode = getStatement().executeQuery(
-            "SHOW CREATE FUNCTION " + sqlHelper.escapeTableName(routineName));
-          if (rsetCode.next()) {
-            routine.setBody(rsetCode.getString("Create Function"));
+        query = "SHOW CREATE FUNCTION " + sqlHelper.escapeTableName(routineName);
+        try (Statement st = getStatement(); ResultSet rs = st.executeQuery(query)) {
+          if (rs.next()) {
+            routine.setBody(rs.getString("Create Function"));
           }
         } catch (SQLException e1) {
           LOGGER.debug("Could not retrieve routine code (as routine).", e);

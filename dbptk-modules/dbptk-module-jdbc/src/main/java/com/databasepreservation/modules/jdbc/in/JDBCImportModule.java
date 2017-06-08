@@ -187,15 +187,15 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
     }
 
-    Connection connection = null;
+    Connection conn = null;
     try {
-      connection = getConnection();
+      conn = getConnection();
     } catch (SQLException e) {
       LOGGER.debug("could not obtain connection in order to close it", e);
     }
-    if (connection != null) {
+    if (conn != null) {
       try {
-        connection.close();
+        conn.close();
       } catch (SQLException e) {
         LOGGER.debug("problem closing connection", e);
       }
@@ -540,11 +540,12 @@ public class JDBCImportModule implements DatabaseImportModule {
   private int getRows(String schemaName, String tableName) throws SQLException {
     String query = sqlHelper.getRowsSQL(schemaName, tableName);
     LOGGER.debug("count query: " + query);
-    ResultSet rs = getStatement().executeQuery(query);
 
     int count = -1;
-    if (rs.next()) {
-      count = rs.getInt(1);
+    try (Statement st = getStatement(); ResultSet rs = st.executeQuery(query)) {
+      if (rs.next()) {
+        count = rs.getInt(1);
+      }
     }
     LOGGER.debug("Counted " + count + " rows");
 
@@ -581,11 +582,12 @@ public class JDBCImportModule implements DatabaseImportModule {
     List<UserStructure> users = new ArrayList<UserStructure>();
     String query = sqlHelper.getUsersSQL(getDbName());
     if (query != null) {
-      ResultSet rs = getStatement().executeQuery(query);
-      while (rs.next()) {
-        UserStructure user = new UserStructure();
-        user.setName(rs.getString("USER_NAME"));
-        users.add(user);
+      try (Statement st = getStatement(); ResultSet rs = st.executeQuery(query)) {
+        while (rs.next()) {
+          UserStructure user = new UserStructure();
+          user.setName(rs.getString("USER_NAME"));
+          users.add(user);
+        }
       }
     } else {
       users.add(new UserStructure("UNDEFINED_USER", "DESCRIPTION"));
@@ -604,27 +606,28 @@ public class JDBCImportModule implements DatabaseImportModule {
     List<RoleStructure> roles = new ArrayList<RoleStructure>();
     String query = sqlHelper.getRolesSQL();
     if (query != null) {
-      ResultSet rs = getStatement().executeQuery(query);
-      while (rs.next()) {
-        RoleStructure role = new RoleStructure();
-        String roleName;
-        try {
-          roleName = rs.getString("ROLE_NAME");
-        } catch (SQLException e) {
-          LOGGER.debug("handled SQLException", e);
-          roleName = "";
-        }
-        role.setName(roleName);
+      try (Statement st = getStatement(); ResultSet rs = st.executeQuery(query)) {
+        while (rs.next()) {
+          RoleStructure role = new RoleStructure();
+          String roleName;
+          try {
+            roleName = rs.getString("ROLE_NAME");
+          } catch (SQLException e) {
+            LOGGER.debug("handled SQLException", e);
+            roleName = "";
+          }
+          role.setName(roleName);
 
-        String admin = "";
-        try {
-          admin = rs.getString("ADMIN");
-        } catch (SQLException e) {
-          LOGGER.trace("handled SQLException", e);
-        }
-        role.setAdmin(admin);
+          String admin = "";
+          try {
+            admin = rs.getString("ADMIN");
+          } catch (SQLException e) {
+            LOGGER.trace("handled SQLException", e);
+          }
+          role.setAdmin(admin);
 
-        roles.add(role);
+          roles.add(role);
+        }
       }
     } else {
       reporter.notYetSupported("importing roles", "this import module");
@@ -1023,36 +1026,37 @@ public class JDBCImportModule implements DatabaseImportModule {
     String query = sqlHelper.getCheckConstraintsSQL(schemaName, tableName);
     if (query != null) {
       try {
-        ResultSet rs = getStatement().executeQuery(query);
-        while (rs.next()) {
-          CheckConstraint checkConst = new CheckConstraint();
+        try (Statement st = getStatement(); ResultSet rs = st.executeQuery(query)) {
+          while (rs.next()) {
+            CheckConstraint checkConst = new CheckConstraint();
 
-          String checkName = "";
-          try {
-            checkName = rs.getString("CHECK_NAME");
-          } catch (SQLException e) {
-            LOGGER.trace("handled SQLException", e);
-          }
-          checkConst.setName(checkName);
+            String checkName = "";
+            try {
+              checkName = rs.getString("CHECK_NAME");
+            } catch (SQLException e) {
+              LOGGER.trace("handled SQLException", e);
+            }
+            checkConst.setName(checkName);
 
-          String checkCondition = "UNKNOWN";
-          try {
-            checkCondition = rs.getString("CHECK_CONDITION");
-          } catch (SQLException e) {
-            LOGGER.trace("handled SQLException", e);
-          }
-          checkConst.setCondition(checkCondition);
+            String checkCondition = "UNKNOWN";
+            try {
+              checkCondition = rs.getString("CHECK_CONDITION");
+            } catch (SQLException e) {
+              LOGGER.trace("handled SQLException", e);
+            }
+            checkConst.setCondition(checkCondition);
 
-          String checkDescription = null;
-          try {
-            checkDescription = rs.getString("CHECK_DESCRIPTION");
-          } catch (SQLException e) {
-            LOGGER.trace("handled SQLException", e);
+            String checkDescription = null;
+            try {
+              checkDescription = rs.getString("CHECK_DESCRIPTION");
+            } catch (SQLException e) {
+              LOGGER.trace("handled SQLException", e);
+            }
+            if (checkDescription != null) {
+              checkConst.setDescription(checkDescription);
+            }
+            checkConstraints.add(checkConst);
           }
-          if (checkDescription != null) {
-            checkConst.setDescription(checkDescription);
-          }
-          checkConstraints.add(checkConst);
         }
       } catch (SQLException e) {
         String message = "Check constraints were not imported for " + schemaName + "." + tableName + ". ";
@@ -1082,59 +1086,59 @@ public class JDBCImportModule implements DatabaseImportModule {
     String query = sqlHelper.getTriggersSQL(schemaName, tableName);
     if (query != null) {
       try {
-        ResultSet rs = getStatement().executeQuery(sqlHelper.getTriggersSQL(schemaName, tableName));
+        try (Statement st = getStatement(); ResultSet rs = st.executeQuery(query)) {
+          while (rs.next()) {
+            Trigger trigger = new Trigger();
 
-        while (rs.next()) {
-          Trigger trigger = new Trigger();
+            String triggerName;
+            try {
+              triggerName = rs.getString("TRIGGER_NAME");
+            } catch (SQLException e) {
+              LOGGER.debug("handled SQLException", e);
+              triggerName = "";
+            }
+            trigger.setName(triggerName);
 
-          String triggerName;
-          try {
-            triggerName = rs.getString("TRIGGER_NAME");
-          } catch (SQLException e) {
-            LOGGER.debug("handled SQLException", e);
-            triggerName = "";
+            String actionTime;
+            try {
+              actionTime = processActionTime(rs.getString("ACTION_TIME"));
+            } catch (SQLException e) {
+              LOGGER.debug("handled SQLException", e);
+              actionTime = "";
+            }
+            trigger.setActionTime(actionTime);
+
+            String triggerEvent;
+            try {
+              triggerEvent = processTriggerEvent(rs.getString("TRIGGER_EVENT"));
+            } catch (SQLException e) {
+              LOGGER.debug("handled SQLException", e);
+              triggerEvent = "";
+            }
+            trigger.setTriggerEvent(triggerEvent);
+
+            String triggeredAction;
+            try {
+              triggeredAction = rs.getString("TRIGGERED_ACTION");
+            } catch (SQLException e) {
+              LOGGER.debug("handled SQLException", e);
+              triggeredAction = "";
+            }
+            trigger.setTriggeredAction(triggeredAction);
+
+            String description;
+            try {
+              description = rs.getString("REMARKS");
+            } catch (SQLException e) {
+              LOGGER.debug("handled SQLException", e);
+              description = null;
+            }
+            if (description != null) {
+              trigger.setDescription(description);
+            }
+
+            triggers.add(trigger);
           }
-          trigger.setName(triggerName);
-
-          String actionTime;
-          try {
-            actionTime = processActionTime(rs.getString("ACTION_TIME"));
-          } catch (SQLException e) {
-            LOGGER.debug("handled SQLException", e);
-            actionTime = "";
-          }
-          trigger.setActionTime(actionTime);
-
-          String triggerEvent;
-          try {
-            triggerEvent = processTriggerEvent(rs.getString("TRIGGER_EVENT"));
-          } catch (SQLException e) {
-            LOGGER.debug("handled SQLException", e);
-            triggerEvent = "";
-          }
-          trigger.setTriggerEvent(triggerEvent);
-
-          String triggeredAction;
-          try {
-            triggeredAction = rs.getString("TRIGGERED_ACTION");
-          } catch (SQLException e) {
-            LOGGER.debug("handled SQLException", e);
-            triggeredAction = "";
-          }
-          trigger.setTriggeredAction(triggeredAction);
-
-          String description;
-          try {
-            description = rs.getString("REMARKS");
-          } catch (SQLException e) {
-            LOGGER.debug("handled SQLException", e);
-            description = null;
-          }
-          if (description != null) {
-            trigger.setDescription(description);
-          }
-
-          triggers.add(trigger);
         }
       } catch (SQLException e) {
         LOGGER.debug("No triggers imported for " + schemaName + "." + tableName, e);
@@ -1504,27 +1508,27 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   protected ResultSet getTableRawData(String query, String tableId) throws SQLException, ModuleException {
-    Statement st = getStatement();
+    try (Statement st = getStatement()) {
+      st.setFetchSize(DEFAULT_ROW_FETCH_BLOCK_SIZE);
+      try {
+        return st.executeQuery(query);
+      } catch (SQLException sqlException) {
+        LOGGER.debug("Error executing query with default fetch size of {}", st.getFetchSize(), sqlException);
+      }
 
-    st.setFetchSize(DEFAULT_ROW_FETCH_BLOCK_SIZE);
-    try {
-      return st.executeQuery(query.toString());
-    } catch (SQLException sqlException) {
-      LOGGER.debug("Error executing query with default fetch size of {}", st.getFetchSize(), sqlException);
-    }
+      st.setFetchSize(SMALL_ROW_FETCH_BLOCK_SIZE);
+      try {
+        return st.executeQuery(query);
+      } catch (SQLException sqlException) {
+        LOGGER.debug("Error executing query with fetch size of {}", st.getFetchSize(), sqlException);
+      }
 
-    st.setFetchSize(SMALL_ROW_FETCH_BLOCK_SIZE);
-    try {
-      return st.executeQuery(query.toString());
-    } catch (SQLException sqlException) {
-      LOGGER.debug("Error executing query with fetch size of {}", st.getFetchSize(), sqlException);
-    }
-
-    st.setFetchSize(MINIMUM_ROW_FETCH_BLOCK_SIZE);
-    try {
-      return st.executeQuery(query.toString());
-    } catch (SQLException sqlException) {
-      LOGGER.debug("Error executing query with fetch size of {}", st.getFetchSize(), sqlException);
+      st.setFetchSize(MINIMUM_ROW_FETCH_BLOCK_SIZE);
+      try {
+        return st.executeQuery(query);
+      } catch (SQLException sqlException) {
+        LOGGER.debug("Error executing query with fetch size of {}", st.getFetchSize(), sqlException);
+      }
     }
 
     String msg = "Could not retrieve data from table '" + tableId + "'. See log for details.";
@@ -1620,10 +1624,7 @@ public class JDBCImportModule implements DatabaseImportModule {
           long tableRows = table.getRows();
           long lastProgressTimestamp = System.currentTimeMillis();
           if (moduleSettings.shouldFetchRows()) {
-            ResultSet tableRawData = null;
-
-            try {
-              tableRawData = getTableRawData(table);
+            try(ResultSet tableRawData = getTableRawData(table)) {
               while (resultSetNext(tableRawData)) {
                 handler.handleDataRow(convertRawToRow(tableRawData, table));
                 nRows++;
@@ -1640,14 +1641,6 @@ public class JDBCImportModule implements DatabaseImportModule {
               }
             } catch (SQLException | ModuleException me) {
               LOGGER.error("Could not obtain all data from the current table.", me);
-            } finally {
-              if (tableRawData != null) {
-                try {
-                  tableRawData.close();
-                } catch (SQLException e) {
-                  LOGGER.debug("Could not close tableRawData", e);
-                }
-              }
             }
           }
           LOGGER.info("Total of " + nRows + " row(s) processed");
