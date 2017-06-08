@@ -6,11 +6,11 @@
     <name>dbptk-module-sql-server</name>
     <groupId>com.databasepreservation</groupId>
     <artifactId>dbptk-module-sql-server</artifactId>
-    <version>2.0.0-rc2</version>
+    <version>2.0.0-rc2-cursors</version>
     <parent>
         <groupId>com.databasepreservation</groupId>
         <artifactId>dbptk-modules</artifactId>
-        <version>2.0.0-rc2</version>
+        <version>2.0.0-rc2-cursors</version>
         <relativePath>..</relativePath>
     </parent>
 
