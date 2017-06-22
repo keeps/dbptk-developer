@@ -4,8 +4,8 @@ google_analytics: UA-42276300-3
 show_downloads: true
 theme: jekyll-theme-cayman
 
-releasetag: 2.0.0-beta7.2
-releasename: 2-beta7.2
+releasetag: 2.0.0
+releasename: 2.0.0
 
 gems:
   - jekyll-mentions
