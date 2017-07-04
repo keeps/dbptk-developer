@@ -89,6 +89,7 @@ public class JDBCImportModule implements DatabaseImportModule {
   private static final Logger LOGGER = LoggerFactory.getLogger(JDBCImportModule.class);
   protected Connection connection;
 
+  // TODO 2017-07-04 bferreira: change this to private and use the getter
   protected Statement statement;
 
   protected DatabaseMetaData dbMetadata;
@@ -153,7 +154,7 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   protected Statement getStatement() throws SQLException {
-    if (statement == null) {
+    if (statement == null || statement.isClosed()) {
       statement = getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY,
         ResultSet.CLOSE_CURSORS_AT_COMMIT);
     }
@@ -542,7 +543,8 @@ public class JDBCImportModule implements DatabaseImportModule {
     LOGGER.debug("count query: " + query);
 
     int count = -1;
-    try (Statement st = getStatement(); ResultSet rs = st.executeQuery(query)) {
+    Statement st = getStatement();
+    try (ResultSet rs = st.executeQuery(query)) {
       if (rs.next()) {
         count = rs.getInt(1);
       }
@@ -582,7 +584,8 @@ public class JDBCImportModule implements DatabaseImportModule {
     List<UserStructure> users = new ArrayList<UserStructure>();
     String query = sqlHelper.getUsersSQL(getDbName());
     if (query != null) {
-      try (Statement st = getStatement(); ResultSet rs = st.executeQuery(query)) {
+      Statement st = getStatement();
+      try (ResultSet rs = st.executeQuery(query)) {
         while (rs.next()) {
           UserStructure user = new UserStructure();
           user.setName(rs.getString("USER_NAME"));
@@ -606,7 +609,8 @@ public class JDBCImportModule implements DatabaseImportModule {
     List<RoleStructure> roles = new ArrayList<RoleStructure>();
     String query = sqlHelper.getRolesSQL();
     if (query != null) {
-      try (Statement st = getStatement(); ResultSet rs = st.executeQuery(query)) {
+      Statement st = getStatement();
+      try (ResultSet rs = st.executeQuery(query)) {
         while (rs.next()) {
           RoleStructure role = new RoleStructure();
           String roleName;
@@ -1026,7 +1030,8 @@ public class JDBCImportModule implements DatabaseImportModule {
     String query = sqlHelper.getCheckConstraintsSQL(schemaName, tableName);
     if (query != null) {
       try {
-        try (Statement st = getStatement(); ResultSet rs = st.executeQuery(query)) {
+        Statement st = getStatement();
+        try (ResultSet rs = st.executeQuery(query)) {
           while (rs.next()) {
             CheckConstraint checkConst = new CheckConstraint();
 
@@ -1086,7 +1091,8 @@ public class JDBCImportModule implements DatabaseImportModule {
     String query = sqlHelper.getTriggersSQL(schemaName, tableName);
     if (query != null) {
       try {
-        try (Statement st = getStatement(); ResultSet rs = st.executeQuery(query)) {
+        Statement st = getStatement();
+        try (ResultSet rs = st.executeQuery(query)) {
           while (rs.next()) {
             Trigger trigger = new Trigger();
 
@@ -1508,27 +1514,26 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   protected ResultSet getTableRawData(String query, String tableId) throws SQLException, ModuleException {
-    try (Statement st = getStatement()) {
-      st.setFetchSize(DEFAULT_ROW_FETCH_BLOCK_SIZE);
-      try {
-        return st.executeQuery(query);
-      } catch (SQLException sqlException) {
-        LOGGER.debug("Error executing query with default fetch size of {}", st.getFetchSize(), sqlException);
-      }
+    Statement st = getStatement();
+    st.setFetchSize(DEFAULT_ROW_FETCH_BLOCK_SIZE);
+    try {
+      return st.executeQuery(query);
+    } catch (SQLException sqlException) {
+      LOGGER.debug("Error executing query with default fetch size of {}", st.getFetchSize(), sqlException);
+    }
 
-      st.setFetchSize(SMALL_ROW_FETCH_BLOCK_SIZE);
-      try {
-        return st.executeQuery(query);
-      } catch (SQLException sqlException) {
-        LOGGER.debug("Error executing query with fetch size of {}", st.getFetchSize(), sqlException);
-      }
+    st.setFetchSize(SMALL_ROW_FETCH_BLOCK_SIZE);
+    try {
+      return st.executeQuery(query);
+    } catch (SQLException sqlException) {
+      LOGGER.debug("Error executing query with fetch size of {}", st.getFetchSize(), sqlException);
+    }
 
-      st.setFetchSize(MINIMUM_ROW_FETCH_BLOCK_SIZE);
-      try {
-        return st.executeQuery(query);
-      } catch (SQLException sqlException) {
-        LOGGER.debug("Error executing query with fetch size of {}", st.getFetchSize(), sqlException);
-      }
+    st.setFetchSize(MINIMUM_ROW_FETCH_BLOCK_SIZE);
+    try {
+      return st.executeQuery(query);
+    } catch (SQLException sqlException) {
+      LOGGER.debug("Error executing query with fetch size of {}", st.getFetchSize(), sqlException);
     }
 
     String msg = "Could not retrieve data from table '" + tableId + "'. See log for details.";
@@ -1624,7 +1629,7 @@ public class JDBCImportModule implements DatabaseImportModule {
           long tableRows = table.getRows();
           long lastProgressTimestamp = System.currentTimeMillis();
           if (moduleSettings.shouldFetchRows()) {
-            try(ResultSet tableRawData = getTableRawData(table)) {
+            try (ResultSet tableRawData = getTableRawData(table)) {
               while (resultSetNext(tableRawData)) {
                 handler.handleDataRow(convertRawToRow(tableRawData, table));
                 nRows++;

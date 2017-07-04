@@ -135,7 +135,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 
   @Override
   protected Statement getStatement() throws SQLException {
-    if (statement == null) {
+    if (statement == null || statement.isClosed()) {
       statement = getConnection().createStatement();
     }
     return statement;

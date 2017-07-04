@@ -43,7 +43,7 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
 
   @Override
   protected Statement getStatement() throws SQLException {
-    if (statement == null) {
+    if (statement == null || statement.isClosed()) {
       statement = getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY,
         ResultSet.HOLD_CURSORS_OVER_COMMIT);
     }

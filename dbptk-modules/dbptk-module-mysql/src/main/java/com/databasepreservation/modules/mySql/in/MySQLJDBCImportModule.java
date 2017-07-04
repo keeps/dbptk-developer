@@ -24,7 +24,6 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.Type;
-import com.databasepreservation.modules.CloseableUtils;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.mySql.MySQLHelper;
 
@@ -98,7 +97,8 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 
     String query = sqlHelper.getUsersSQL(null);
     if (query != null) {
-      try (Statement st = getStatement(); ResultSet rs = st.executeQuery(query)) {
+      Statement st = getStatement();
+      try (ResultSet rs = st.executeQuery(query)) {
         while (rs.next()) {
           UserStructure user = new UserStructure(rs.getString(2) + "@" + rs.getString(1), null);
           users.add(user);
@@ -142,7 +142,8 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
         .append(
           "SELECT TABLE_COMMENT FROM information_schema.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = '")
         .append(schema.getName()).append("' AND TABLE_NAME = '").append(tableName).append("'").toString();
-      try (Statement st = getStatement(); ResultSet rs = st.executeQuery(query)) {
+      Statement st = getStatement();
+      try (ResultSet rs = st.executeQuery(query)) {
         if (rs.next()) {
           String tableComment = rs.getString(1);
           tableStructure.setDescription(tableComment);
@@ -159,16 +160,15 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   @Override
   protected ResultSet getTableRawData(TableStructure table) throws SQLException, ModuleException {
     String query = sqlHelper.selectTableSQL(table.getId());
-    LOGGER.debug("query: " + query);
+    LOGGER.debug("query: {}", query);
     return getTableRawData(query, table.getId());
   }
 
   @Override
   protected ResultSet getTableRawData(String query, String tableId) throws SQLException, ModuleException {
-    try (Statement st = getStatement()) {
-      st.setFetchSize(Integer.MIN_VALUE);
-      return st.executeQuery(query.toString());
-    }
+    Statement st = getStatement();
+    st.setFetchSize(Integer.MIN_VALUE);
+    return st.executeQuery(query);
   }
 
   @Override
@@ -186,7 +186,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 
   @Override
   protected Statement getStatement() throws SQLException {
-    if (statement == null) {
+    if (statement == null || statement.isClosed()) {
       statement = getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
     }
     return statement;
@@ -197,7 +197,8 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
     List<ViewStructure> views = super.getViews(schemaName);
     for (ViewStructure v : views) {
       String query = "SHOW CREATE VIEW " + sqlHelper.escapeViewName(v.getName());
-      try (Statement st = getStatement(); ResultSet rs = st.executeQuery(query)) {
+      Statement st = getStatement();
+      try (ResultSet rs = st.executeQuery(query)) {
         rs.next(); // Returns only one tuple
 
         // TO-DO: the string given below by rs.getString(2) has to be parsed a
@@ -267,13 +268,14 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
       }
 
       String query = "SHOW CREATE PROCEDURE " + sqlHelper.escapeTableName(routineName);
-      try (Statement st = getStatement(); ResultSet rs = st.executeQuery(query)) {
+      Statement st = getStatement();
+      try (ResultSet rs = st.executeQuery(query)) {
         if (rs.next()) {
           routine.setBody(rs.getString("Create Procedure"));
         }
       } catch (SQLException e) {
         query = "SHOW CREATE FUNCTION " + sqlHelper.escapeTableName(routineName);
-        try (Statement st = getStatement(); ResultSet rs = st.executeQuery(query)) {
+        try (ResultSet rs = st.executeQuery(query)) {
           if (rs.next()) {
             routine.setBody(rs.getString("Create Function"));
           }

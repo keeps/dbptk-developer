@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.dbutils.DbUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,9 @@ import com.microsoft.sqlserver.jdbc.SQLServerStatement;
  */
 public class SQLServerJDBCImportModule extends JDBCImportModule {
   private static final Logger LOGGER = LoggerFactory.getLogger(SQLServerJDBCImportModule.class);
+
+  private Statement genericStatement = null;
+  private SQLServerStatement specificStatement = null;
 
   /**
    * Create a new Microsoft SQL Server import module using the default instance.
@@ -108,16 +112,53 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 
   @Override
   protected Statement getStatement() throws SQLException {
-    if (statement == null) {
+    if (statement == null || statement.isClosed()) {
+      DbUtils.closeQuietly(specificStatement);
+      DbUtils.closeQuietly(genericStatement);
+
       statement = ((SQLServerConnection) getConnection()).createStatement(SQLServerResultSet.TYPE_FORWARD_ONLY,
         SQLServerResultSet.CONCUR_READ_ONLY);
 
-      SQLServerStatement sqlServerStatement = statement.unwrap(com.microsoft.sqlserver.jdbc.SQLServerStatement.class);
-      sqlServerStatement.setResponseBuffering("adaptive");
+      // 2017-07-04 bferreira: save the statement in order to close it later. It
+      // can not be closed now because statement#unwrap might return a new
+      // object or a proxy for the same object. If it is a new object, we could
+      // close the old statement after the unwrap, but if it is not, closing the
+      // old one would also close the active statement
+      genericStatement = statement;
 
-      statement = sqlServerStatement;
+      specificStatement = statement.unwrap(com.microsoft.sqlserver.jdbc.SQLServerStatement.class);
+      specificStatement.setResponseBuffering("adaptive");
+
+      statement = specificStatement;
     }
     return statement;
+  }
+
+  /**
+   * Close current connection (including specific statements created for use
+   * with SQL Server)
+   *
+   * @throws SQLException
+   */
+  @Override
+  public void closeConnection() {
+    if (genericStatement != null) {
+      try {
+        genericStatement.close();
+      } catch (SQLException e) {
+        LOGGER.debug("problem closing generic statement", e);
+      }
+    }
+
+    if (specificStatement != null) {
+      try {
+        specificStatement.close();
+      } catch (SQLException e) {
+        LOGGER.debug("problem closing specific statement", e);
+      }
+    }
+
+    super.closeConnection();
   }
 
   @Override
