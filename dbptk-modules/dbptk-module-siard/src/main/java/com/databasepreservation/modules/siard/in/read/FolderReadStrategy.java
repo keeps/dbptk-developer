@@ -4,6 +4,7 @@ import java.io.InputStream;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.constants.SIARDConstants;
 
 /**
  * @author Thomas Kristensen <tk@bithuset.dk>
@@ -46,5 +47,4 @@ public class FolderReadStrategy implements ReadStrategy {
   public CloseableIterable<String> getFilepathStream(SIARDArchiveContainer container) throws ModuleException {
     return zipAndFolderReadStrategy.getFilepathStream(container);
   }
-
 }

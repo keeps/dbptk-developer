@@ -9,15 +9,17 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 
 /**
- * @author Luis Faria
+ * @author Luis Faria <lfaria@keep.pt>
+ * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public interface DatabaseImportModule {
   /**
    * Import the database model.
    *
    * @param databaseExportModule
-   *          The database model handler to be called when importing the
-   *          database.
+   *          The database model handler to be called when importing the database.
+   * @return Return null unless this DatabaseImportModule also implements
+   *         DatabaseExportModule
    * @throws UnknownTypeException
    *           a type used in the original database structure is unknown and
    *           cannot be mapped
@@ -26,8 +28,7 @@ public interface DatabaseImportModule {
    * @throws ModuleException
    *           generic module exception
    */
-  void getDatabase(DatabaseExportModule databaseExportModule) throws ModuleException, UnknownTypeException,
-    InvalidDataException;
+  DatabaseExportModule migrateDatabaseTo(DatabaseExportModule databaseExportModule) throws ModuleException;
 
   /**
    * Provide a reporter through which potential conversion problems should be

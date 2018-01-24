@@ -23,8 +23,8 @@ public class SimpleTypeString extends Type {
    * @param length
    *          the maximum string length (required)
    * @param lengthVariable
-   *          true if the string size can vary up to the maximum length, false
-   *          if it fixed to length (required)
+   *          true if the string size can vary up to the maximum length, false if
+   *          it fixed to length (required)
    */
   public SimpleTypeString(Integer length, Boolean lengthVariable) {
     this.length = length;
@@ -38,8 +38,8 @@ public class SimpleTypeString extends Type {
    * @param length
    *          the maximum string length (required)
    * @param lengthVariable
-   *          true if the string size can vary up to the maximum length, false
-   *          if it fixed to length (required)
+   *          true if the string size can vary up to the maximum length, false if
+   *          it fixed to length (required)
    * @param charset
    *          the character repertoire used to create the string, e.g. UTF-8
    *          (optional)
@@ -90,8 +90,8 @@ public class SimpleTypeString extends Type {
 
   /**
    * @param lengthVariable
-   *          true if the string size can vary up to the maximum length, false
-   *          if it fixed to lenght
+   *          true if the string size can vary up to the maximum length, false if
+   *          it fixed to lenght
    */
   public void setLengthVariable(Boolean lengthVariable) {
     this.lengthVariable = lengthVariable;

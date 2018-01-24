@@ -42,8 +42,8 @@ public class SimpleTypeBinary extends Type {
    * @param formatRegistryName
    *          a file format registry, like MIME or PRONOM
    * @param formatRegistryKey
-   *          the file format according to the designated registry, e.g.
-   *          image/png for MIME Type
+   *          the file format according to the designated registry, e.g. image/png
+   *          for MIME Type
    */
   public SimpleTypeBinary(String formatRegistryName, String formatRegistryKey) {
     this.formatRegistryName = formatRegistryName;
@@ -59,8 +59,8 @@ public class SimpleTypeBinary extends Type {
   }
 
   /**
-   * @return the file format according to the designated registry, e.g.
-   *         image/png for MIME Type
+   * @return the file format according to the designated registry, e.g. image/png
+   *         for MIME Type
    */
   public String getFormatRegistryName() {
     return formatRegistryName;

@@ -17,11 +17,11 @@ public interface WriteStrategy {
    * @param container
    *          The container where the data will be written
    * @param path
-   *          The path (relative to the container) to the file where the data
-   *          from the stream should be written to
-   * @return an OutputStream that is able to write to the specified location in
-   *         a way specific to the WriteStrategy, this stream should be closed
-   *         after use by calling the close() method
+   *          The path (relative to the container) to the file where the data from
+   *          the stream should be written to
+   * @return an OutputStream that is able to write to the specified location in a
+   *         way specific to the WriteStrategy, this stream should be closed after
+   *         use by calling the close() method
    */
   OutputStream createOutputStream(SIARDArchiveContainer container, String path) throws ModuleException;
 
@@ -32,16 +32,14 @@ public interface WriteStrategy {
   boolean isSimultaneousWritingSupported();
 
   /**
-   * Handles closing of the underlying structure used by this WriteStrategy
-   * object
+   * Handles closing of the underlying structure used by this WriteStrategy object
    *
    * @throws ModuleException
    */
   void finish(SIARDArchiveContainer container) throws ModuleException;
 
   /**
-   * Handles setting up the underlying structure used by this WriteStrategy
-   * object
+   * Handles setting up the underlying structure used by this WriteStrategy object
    *
    * @throws ModuleException
    */

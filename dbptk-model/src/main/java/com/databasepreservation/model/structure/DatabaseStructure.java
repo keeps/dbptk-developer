@@ -128,8 +128,8 @@ public class DatabaseStructure {
     String productName, String productVersion, String databaseUser, Integer defaultTransactionIsolationLevel,
     String extraNameCharacters, String stringFunctions, String systemFunctions, String timeDateFunctions, String url,
     Boolean supportsANSI92EntryLevelSQL, Boolean supportsANSI92IntermediateSQL, Boolean supportsANSI92FullSQL,
-    Boolean supportsCoreSQLGrammar, List<SchemaStructure> schemas, List<UserStructure> users,
-    List<RoleStructure> roles, List<PrivilegeStructure> privileges) {
+    Boolean supportsCoreSQLGrammar, List<SchemaStructure> schemas, List<UserStructure> users, List<RoleStructure> roles,
+    List<PrivilegeStructure> privileges) {
     super();
     this.name = name;
     this.description = description;
@@ -310,8 +310,7 @@ public class DatabaseStructure {
   }
 
   /**
-   * @return comma-separated list of string functions available with this
-   *         database
+   * @return comma-separated list of string functions available with this database
    */
   public String getStringFunctions() {
     return stringFunctions;
@@ -387,8 +386,7 @@ public class DatabaseStructure {
   }
 
   /**
-   * @return comma-separated list of systemfunctions available with this
-   *         database
+   * @return comma-separated list of systemfunctions available with this database
    */
   public String getSystemFunctions() {
     return systemFunctions;
@@ -545,13 +543,12 @@ public class DatabaseStructure {
    *          the table id
    * @return the table structure
    */
-  public TableStructure lookupTableStructure(String tableId) {
+  public TableStructure getTableById(String tableId) {
     TableStructure ret = null;
     for (SchemaStructure schema : getSchemas()) {
-      for (TableStructure tableStructure : schema.getTables()) {
-        if (tableStructure.getId().equalsIgnoreCase(tableId)) {
-          ret = tableStructure;
-        }
+      ret = schema.getTableById(tableId);
+      if (ret != null) {
+        break;
       }
     }
     return ret;

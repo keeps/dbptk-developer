@@ -45,8 +45,8 @@ public class TableStructure {
   private HashMap<String, String> udtAlias;
 
   /**
-   * Empty table constructor. All fields are null except columns and foreign
-   * keys, which are empty lists
+   * Empty table constructor. All fields are null except columns and foreign keys,
+   * which are empty lists
    */
   public TableStructure() {
     id = null;

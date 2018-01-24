@@ -29,8 +29,9 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
   private static final Logger logger = LoggerFactory.getLogger(SIARDDKDatabaseExportModule.class);
 
   public SIARDDKDatabaseExportModule(SIARDDKExportModule siarddkExportModule) {
-    super(siarddkExportModule.getContentExportStrategy(), siarddkExportModule.getMainContainer(), siarddkExportModule
-      .getWriteStrategy(), siarddkExportModule.getMetadataExportStrategy(), siarddkExportModule.getTableFilter(), null);
+    super(siarddkExportModule.getContentExportStrategy(), siarddkExportModule.getMainContainer(),
+      siarddkExportModule.getWriteStrategy(), siarddkExportModule.getMetadataExportStrategy(),
+      siarddkExportModule.getTableFilter(), null);
 
     this.siarddkExportModule = siarddkExportModule;
   }

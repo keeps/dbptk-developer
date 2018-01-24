@@ -18,8 +18,8 @@ public class Oracle12cJDBCDatatypeImporter extends JDBCDatatypeImporter {
   @Override
   protected Type getLongVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
     throws UnknownTypeException {
-    throw new UnknownTypeException("Unsuported JDBC type, code: -1. Oracle " + typeName
-      + " data type is not supported.");
+    throw new UnknownTypeException(
+      "Unsuported JDBC type, code: -1. Oracle " + typeName + " data type is not supported.");
   }
 
   @Override

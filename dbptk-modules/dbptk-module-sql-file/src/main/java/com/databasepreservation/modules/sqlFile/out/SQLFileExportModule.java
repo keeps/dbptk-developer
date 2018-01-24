@@ -31,7 +31,6 @@ import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -244,7 +243,7 @@ public class SQLFileExportModule implements DatabaseExportModule {
   }
 
   @Override
-  public void handleStructure(DatabaseStructure structure) throws ModuleException, UnknownTypeException {
+  public void handleStructure(DatabaseStructure structure) throws ModuleException {
     try {
       this.structure = structure;
       for (SchemaStructure schema : structure.getSchemas()) {
@@ -271,14 +270,14 @@ public class SQLFileExportModule implements DatabaseExportModule {
   @Override
   public void handleDataOpenTable(String tableId) throws ModuleException {
     if (structure != null) {
-      currentTable = structure.lookupTableStructure(tableId);
+      currentTable = structure.getTableById(tableId);
     } else {
       throw new ModuleException("Table " + tableId + " opened before struture was defined");
     }
   }
 
   @Override
-  public void handleDataRow(Row row) throws InvalidDataException, ModuleException {
+  public void handleDataRow(Row row) throws ModuleException {
     if (currentTable != null) {
       byte[] rowSQL = sqlHelper.createRowSQL(currentTable, row, new CellSQLHandler() {
 

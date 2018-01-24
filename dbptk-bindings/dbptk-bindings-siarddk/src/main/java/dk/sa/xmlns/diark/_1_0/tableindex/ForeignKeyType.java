@@ -119,8 +119,8 @@ public class ForeignKeyType {
    * 
    * 
    * <p>
-   * Objects of the following type(s) are allowed in the list
-   * {@link ReferenceType }
+   * Objects of the following type(s) are allowed in the list {@link ReferenceType
+   * }
    * 
    * 
    */

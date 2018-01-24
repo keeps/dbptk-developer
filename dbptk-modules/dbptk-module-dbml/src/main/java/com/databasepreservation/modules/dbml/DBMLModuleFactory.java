@@ -19,17 +19,10 @@ import com.databasepreservation.model.parameters.Parameters;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class DBMLModuleFactory implements DatabaseModuleFactory {
-  private static final Parameter file = new Parameter().shortName("f").longName("file")
+  public static final String PARAMETER_FILE = "file";
+
+  private static final Parameter file = new Parameter().shortName("f").longName(PARAMETER_FILE)
     .description("Path to DBML file").hasArgument(true).setOptionalArgument(false).required(true);
-
-  private Reporter reporter;
-
-  private DBMLModuleFactory() {
-  }
-
-  public DBMLModuleFactory(Reporter reporter) {
-    this.reporter = reporter;
-  }
 
   @Override
   public boolean producesImportModules() {
@@ -64,17 +57,17 @@ public class DBMLModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
-    LicenseNotAcceptedException {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
+    throws UnsupportedModuleException, LicenseNotAcceptedException {
     Path pFile = Paths.get(parameters.get(file));
 
-    reporter.importModuleParameters(getModuleName(), "file", pFile.normalize().toAbsolutePath().toString());
+    reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString());
     return new DBMLImportModule(pFile);
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
-    LicenseNotAcceptedException {
+  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
+    throws UnsupportedModuleException, LicenseNotAcceptedException {
     throw DatabaseModuleFactory.ExceptionBuilder.UnsupportedModuleExceptionForExportModule();
   }
 }

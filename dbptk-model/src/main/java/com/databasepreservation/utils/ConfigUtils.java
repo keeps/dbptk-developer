@@ -6,7 +6,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Locale;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -14,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.Constants;
-import com.databasepreservation.model.modules.DatabaseModuleFactory;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
@@ -29,11 +27,26 @@ public class ConfigUtils {
   private static final Logger LOGGER = LoggerFactory.getLogger(ConfigUtils.class);
   private static boolean initialized = false;
 
-  private static Path homeDirectory, logDirectory, modulesDirectory, reportsDirectory;
+  private static Path homeDirectory;
 
   public static void initialize() {
     if (!initialized) {
-      String homeDirectoryAsString = getProperty(Constants.DEFAULT_HOME_DIRECTORY, Constants.PROPERTY_KEY_HOME);
+      Path defaultHome;
+
+      Path jarPath = FileUtils.getJarPath();
+      if (jarPath != null) {
+        defaultHome = jarPath.getParent();
+      } else {
+        try {
+          defaultHome = Files.createTempDirectory("dbptk_home_");
+        } catch (IOException e) {
+          LOGGER.debug("Could not create dbptk home in temporary folder", e);
+          defaultHome = Paths.get(".");
+        }
+      }
+
+      String homeDirectoryAsString = getProperty(defaultHome.toString(), Constants.PROPERTY_KEY_HOME);
+
       initialize(Paths.get(homeDirectoryAsString).toAbsolutePath());
     }
   }
@@ -43,35 +56,22 @@ public class ConfigUtils {
       homeDirectory = dbptkHome;
       System.setProperty(Constants.PROPERTY_KEY_HOME, homeDirectory.toAbsolutePath().toString());
 
-      logDirectory = homeDirectory.resolve(Constants.SUBDIRECTORY_LOG);
-      modulesDirectory = homeDirectory.resolve(Constants.SUBDIRECTORY_MODULES);
-      reportsDirectory = homeDirectory.resolve(Constants.SUBDIRECTORY_REPORTS);
-
-      instantiateEssentialDirectories(homeDirectory, logDirectory, modulesDirectory, reportsDirectory);
+      instantiateEssentialDirectories(homeDirectory);
 
       configureLogback();
       initialized = true;
     }
   }
 
-  public static Path getModuleDirectory(DatabaseModuleFactory moduleFactory) {
-    if (!initialized) {
-      initialize();
-    }
-
-    Path moduleDirectory = modulesDirectory.resolve(moduleFactory.getModuleName().toLowerCase(Locale.ENGLISH));
-    instantiateEssentialDirectories(moduleDirectory);
-    return moduleDirectory;
-  }
-
   public static Path getReportsDirectory() {
-    return reportsDirectory;
+    return homeDirectory;
   }
 
   private static void instantiateEssentialDirectories(Path... directories) {
     for (Path path : directories) {
       try {
         if (!Files.exists(path)) {
+          LOGGER.error("CREATING: " + path);
           Files.createDirectories(path);
         }
       } catch (IOException e) {
@@ -104,11 +104,12 @@ public class ConfigUtils {
   }
 
   public static String getVersionInfo() {
-    InputStream versionInfoAsStream = ConfigUtils.class.getClassLoader().getSystemResourceAsStream(
-      Constants.VERSION_INFO_FILE);
+    InputStream versionInfoAsStream = ConfigUtils.class.getClassLoader()
+      .getSystemResourceAsStream(Constants.VERSION_INFO_FILE);
     String ret;
     try {
       ret = IOUtils.toString(versionInfoAsStream);
+
     } catch (IOException e) {
       LOGGER.debug("Could not obtain resource {}" + Constants.VERSION_INFO_FILE);
       ret = "<unavailable>";

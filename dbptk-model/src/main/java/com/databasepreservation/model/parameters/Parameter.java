@@ -86,8 +86,8 @@ public class Parameter {
   }
 
   /**
-   * Get the long name for this parameter. This does not include the
-   * import/export prefix.
+   * Get the long name for this parameter. This does not include the import/export
+   * prefix.
    * 
    * @return the long name for this parameter
    */
@@ -96,14 +96,12 @@ public class Parameter {
   }
 
   /**
-   * Set the long name for this parameter. This name should only contain
-   * letters, numbers and hyphens, but no check is made to ensure/enforce this
-   * policy.
+   * Set the long name for this parameter. This name should only contain letters,
+   * numbers and hyphens, but no check is made to ensure/enforce this policy.
    * 
-   * Example: for a "Server name" parameter, this long name could be
-   * "server-name" and that would generate the command line parameter
-   * "--import-server-name" (for an import module) and "--export-server-name"
-   * (for an export module).
+   * Example: for a "Server name" parameter, this long name could be "server-name"
+   * and that would generate the command line parameter "--import-server-name"
+   * (for an import module) and "--export-server-name" (for an export module).
    * 
    * @param longName
    *          Set the long name for this parameter
@@ -148,8 +146,8 @@ public class Parameter {
    * letters but no check is made to ensure/enforce this policy.
    *
    * Example: for a "Server name" parameter, this short name could be "sn" and
-   * that would generate the command line parameter "-isn" (for an import
-   * module) and "-esn" (for an export module).
+   * that would generate the command line parameter "-isn" (for an import module)
+   * and "-esn" (for an export module).
    * 
    * @param shortName
    *          Set the short name for this parameter
@@ -187,8 +185,7 @@ public class Parameter {
    * If the parameter has no arguments, then this should be the value associated
    * with the presence of the parameter
    * 
-   * @return the parameter value when it is present but does not require
-   *         arguments
+   * @return the parameter value when it is present but does not require arguments
    */
   public String valueIfSet() {
     return valueIfSet;
@@ -212,8 +209,8 @@ public class Parameter {
    * CommonsCLI)
    * 
    * The Option object is saved after creation, so that subsequent calls to this
-   * method using the same arguments do not return a new object and instead
-   * return the previously returned object. Calls to this method using different
+   * method using the same arguments do not return a new object and instead return
+   * the previously returned object. Calls to this method using different
    * arguments produce different objects. This allows the comparison of objects
    * using ==
    *
@@ -221,9 +218,8 @@ public class Parameter {
    *          the prefix to use for the command line option (usually "i" for
    *          import module parameters and "e" for export module parameters)
    * @param longNamePrefix
-   *          the prefix to use for the command line option (usually "import"
-   *          for import module parameters and "export" for export module
-   *          parameters)
+   *          the prefix to use for the command line option (usually "import" for
+   *          import module parameters and "export" for export module parameters)
    * @return the option to be used by CommonsCLI
    */
   public Option toOption(String shortNamePrefix, String longNamePrefix) {

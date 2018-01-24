@@ -26,19 +26,20 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
    *
    * @param serverName
    *          the name (host name) of the server
-   * @param database
-   *          the name of the database we'll be accessing
+   * @param instance
+   *          the name of the instance we'll be accessing
    * @param username
    *          the name of the user to use in the connection
    * @param password
    *          the password of the user to use in the connection
    */
-  public Oracle12cJDBCImportModule(String serverName, int port, String database, String username, String password) {
+  public Oracle12cJDBCImportModule(String serverName, int port, String instance, String username, String password) {
 
-    super("oracle.jdbc.driver.OracleDriver", "jdbc:oracle:thin:" + username + "/" + password + "@//" + serverName + ":"
-      + port + "/" + database, new OracleHelper(), new Oracle12cJDBCDatatypeImporter());
+    super("oracle.jdbc.driver.OracleDriver",
+      "jdbc:oracle:thin:" + username + "/" + password + "@//" + serverName + ":" + port + "/" + instance,
+      new OracleHelper(), new Oracle12cJDBCDatatypeImporter());
 
-    LOGGER.debug("jdbc:oracle:thin:<username>/<password>@//" + serverName + ":" + port + "/" + database);
+    LOGGER.debug("jdbc:oracle:thin:<username>/<password>@//" + serverName + ":" + port + "/" + instance);
   }
 
   @Override

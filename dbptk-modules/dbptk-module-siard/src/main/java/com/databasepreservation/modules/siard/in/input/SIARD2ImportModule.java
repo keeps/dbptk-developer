@@ -2,6 +2,7 @@ package com.databasepreservation.modules.siard.in.input;
 
 import java.nio.file.Path;
 
+import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
@@ -32,15 +33,15 @@ public class SIARD2ImportModule {
 
   /**
    * Constructor used to initialize required objects to get a database import
-   * module
+   * module for SIARD 2 (all minor versions)
    *
    * @param siardPackagePath
    *          Path to the main SIARD file (file with extension .siard)
    * @param auxiliaryContainersInZipFormat
-   *          (optional) In some SIARD2 archives, LOBs are saved outside the
-   *          main SIARD archive container. These LOBs may be saved in a ZIP or
-   *          simply saved to folders. When reading those LOBs it's important to
-   *          know if they are inside a simple folder or a zip container.
+   *          (optional) In some SIARD2 archives, LOBs are saved outside the main
+   *          SIARD archive container. These LOBs may be saved in a ZIP or simply
+   *          saved to folders. When reading those LOBs it's important to know if
+   *          they are inside a simple folder or a zip container.
    */
   public SIARD2ImportModule(Path siardPackagePath, boolean auxiliaryContainersInZipFormat) {
     Path siardPackageNormalizedPath = siardPackagePath.toAbsolutePath().normalize();
@@ -52,6 +53,14 @@ public class SIARD2ImportModule {
       readStrategy = new ZipReadStrategy();
     } else {
       readStrategy = new ZipAndFolderReadStrategy(mainContainer);
+    }
+
+    // identify version before creating metadata/content import strategy instances
+    try {
+      readStrategy.setup(mainContainer);
+      mainContainer.setVersion(MetadataPathStrategy.VersionIdentifier.getVersion(readStrategy, mainContainer));
+    } catch (ModuleException e) {
+      // do nothing and let it fail later
     }
 
     ContentPathImportStrategy contentPathStrategy = new SIARD2ContentPathImportStrategy();

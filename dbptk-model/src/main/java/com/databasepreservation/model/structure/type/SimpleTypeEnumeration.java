@@ -47,8 +47,8 @@ public class SimpleTypeEnumeration extends Type {
    * Enumeration type constructor, with descriptions
    *
    * @param options
-   *          A map where the keys are the possible options and the values are
-   *          the descriptions of each option
+   *          A map where the keys are the possible options and the values are the
+   *          descriptions of each option
    */
   public SimpleTypeEnumeration(Map<String, String> options) {
     super();
@@ -74,8 +74,8 @@ public class SimpleTypeEnumeration extends Type {
   }
 
   /**
-   * @return A map where the keys are the possible options and the values are
-   *         the descriptions of each option
+   * @return A map where the keys are the possible options and the values are the
+   *         descriptions of each option
    */
   public Map<String, String> getOptionsWithDescription() {
     return options;
@@ -83,8 +83,8 @@ public class SimpleTypeEnumeration extends Type {
 
   /**
    * @param options
-   *          A map where the keys are the possible options and the values are
-   *          the descriptions of each option
+   *          A map where the keys are the possible options and the values are the
+   *          descriptions of each option
    */
   public void setOptionsWithDescription(Map<String, String> options) {
     this.options = options;

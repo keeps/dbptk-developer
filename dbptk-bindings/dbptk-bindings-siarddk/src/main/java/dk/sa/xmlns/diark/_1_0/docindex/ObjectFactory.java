@@ -32,8 +32,8 @@ public class ObjectFactory {
   private final static QName _DocumentTypePID_QNAME = new QName("http://www.sa.dk/xmlns/diark/1.0", "pID");
 
   /**
-   * Create a new ObjectFactory that can be used to create new instances of
-   * schema derived classes for package: dk.sa.xmlns.diark._1
+   * Create a new ObjectFactory that can be used to create new instances of schema
+   * derived classes for package: dk.sa.xmlns.diark._1
    * 
    */
   public ObjectFactory() {

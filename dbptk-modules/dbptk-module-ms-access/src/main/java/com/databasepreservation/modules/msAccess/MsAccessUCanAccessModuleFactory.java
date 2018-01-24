@@ -20,20 +20,14 @@ import com.databasepreservation.modules.msAccess.in.MsAccessUCanAccessImportModu
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class MsAccessUCanAccessModuleFactory implements DatabaseModuleFactory {
-  private static final Parameter accessFilePath = new Parameter().shortName("f").longName("file")
+  public static final String PARAMETER_FILE = "file";
+  public static final String PARAMETER_PASSWORD = "password";
+
+  private static final Parameter accessFilePath = new Parameter().shortName("f").longName(PARAMETER_FILE)
     .description("path to the Microsoft Access file").hasArgument(true).setOptionalArgument(false).required(true);
 
-  private static final Parameter accessPassword = new Parameter().shortName("p").longName("password")
+  private static final Parameter accessPassword = new Parameter().shortName("p").longName(PARAMETER_PASSWORD)
     .description("password to the Microsoft Access file").hasArgument(true).setOptionalArgument(false).required(false);
-
-  private Reporter reporter;
-
-  private MsAccessUCanAccessModuleFactory() {
-  }
-
-  public MsAccessUCanAccessModuleFactory(Reporter reporter) {
-    this.reporter = reporter;
-  }
 
   @Override
   public boolean producesImportModules() {
@@ -69,8 +63,8 @@ public class MsAccessUCanAccessModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
-    LicenseNotAcceptedException {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
+    throws UnsupportedModuleException, LicenseNotAcceptedException {
     String pAccessFilePath = parameters.get(accessFilePath);
 
     String pAccessPassword = null;
@@ -78,7 +72,7 @@ public class MsAccessUCanAccessModuleFactory implements DatabaseModuleFactory {
       pAccessPassword = parameters.get(accessPassword);
     }
 
-    reporter.importModuleParameters(getModuleName(), "file", pAccessFilePath);
+    reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pAccessFilePath);
     if (pAccessPassword != null) {
       return new MsAccessUCanAccessImportModule(pAccessFilePath, pAccessPassword);
     } else {
@@ -87,8 +81,8 @@ public class MsAccessUCanAccessModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
-    LicenseNotAcceptedException {
+  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
+    throws UnsupportedModuleException, LicenseNotAcceptedException {
     throw DatabaseModuleFactory.ExceptionBuilder.UnsupportedModuleExceptionForExportModule();
   }
 }

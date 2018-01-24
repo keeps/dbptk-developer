@@ -14,7 +14,9 @@ import java.util.Map;
 import org.apache.commons.cli.ParseException;
 
 import com.databasepreservation.cli.CLI;
+import com.databasepreservation.model.NoOpReporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
@@ -27,20 +29,22 @@ import com.databasepreservation.model.parameters.Parameter;
  */
 // TODO: incomplete because default values of optional parameters are not tested
 public class ModuleFactoryTestHelper {
-  private final List<Class<? extends DatabaseModuleFactory>> module;
+  private final Class<? extends DatabaseModuleFactory> moduleFactory;
+  private final List<Class<? extends DatabaseModuleFactory>> moduleFactories;
   private final Class<? extends DatabaseImportModule> importModuleClass;
   private final Class<? extends DatabaseExportModule> exportModuleClass;
 
-  protected ModuleFactoryTestHelper(Class<? extends DatabaseModuleFactory> module,
+  protected ModuleFactoryTestHelper(Class<? extends DatabaseModuleFactory> moduleFactory,
     Class<? extends DatabaseImportModule> importModuleClass, Class<? extends DatabaseExportModule> exportModuleClass) {
-    this.module = new ArrayList<Class<? extends DatabaseModuleFactory>>();
-    this.module.add(module);
+    this.moduleFactory = moduleFactory;
+    this.moduleFactories = new ArrayList<>();
+    this.moduleFactories.add(this.moduleFactory);
     this.importModuleClass = importModuleClass;
     this.exportModuleClass = exportModuleClass;
   }
 
   private CLI buildCli(List<String> args) {
-    return new CLI(args, module);
+    return new CLI(args, moduleFactories);
   }
 
   private Map<Parameter, String> getImportModuleArguments(List<String> args) {
@@ -53,7 +57,7 @@ public class ModuleFactoryTestHelper {
 
   private Map<Parameter, String> getModuleArguments(boolean forImportModule, List<String> args) {
     try {
-      CLI cli = new CLI(args, module);
+      CLI cli = new CLI(args, moduleFactories);
 
       Method getModuleFactories = CLI.class.getDeclaredMethod("getModuleFactories", List.class);
       getModuleFactories.setAccessible(true);
@@ -82,7 +86,7 @@ public class ModuleFactoryTestHelper {
 
   private Map<String, Parameter> getModuleParameters(List<String> args) {
     try {
-      CLI cli = new CLI(args, module);
+      CLI cli = new CLI(args, moduleFactories);
 
       Method getModuleFactories = CLI.class.getDeclaredMethod("getModuleFactories", List.class);
       getModuleFactories.setAccessible(true);
@@ -104,12 +108,31 @@ public class ModuleFactoryTestHelper {
 
     DatabaseImportModule databaseImportModule;
     DatabaseExportModule databaseExportModule;
+    DatabaseModuleFactory databaseImportModuleFactory;
+    DatabaseModuleFactory databaseExportModuleFactory;
+    Map<Parameter, String> importModuleParameters;
+    Map<Parameter, String> exportModuleParameters;
     try {
-      databaseImportModule = cli.getImportModule();
-      databaseExportModule = cli.getExportModule();
+      databaseImportModuleFactory = cli.getImportModuleFactory();
+      databaseExportModuleFactory = cli.getExportModuleFactory();
+      importModuleParameters = cli.getImportModuleParameters();
+      exportModuleParameters = cli.getExportModuleParameters();
     } catch (ParseException e) {
       throw new RuntimeException(e);
     } catch (LicenseNotAcceptedException e) {
+      throw new RuntimeException(e);
+    }
+
+    assertThat("import module factory must be " + moduleFactory.toString(), databaseImportModuleFactory,
+      instanceOf(moduleFactory));
+
+    assertThat("export module factory must be " + moduleFactory.toString(), databaseExportModuleFactory,
+      instanceOf(moduleFactory));
+
+    try {
+      databaseImportModule = databaseImportModuleFactory.buildImportModule(importModuleParameters, new NoOpReporter());
+      databaseExportModule = databaseExportModuleFactory.buildExportModule(exportModuleParameters, new NoOpReporter());
+    } catch (UnsupportedModuleException | LicenseNotAcceptedException e) {
       throw new RuntimeException(e);
     }
 

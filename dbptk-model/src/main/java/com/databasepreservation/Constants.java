@@ -8,13 +8,7 @@ public class Constants {
 
   public static final String PROPERTY_KEY_HOME = "dbptk.home";
 
-  public static final String DEFAULT_HOME_DIRECTORY = "./dbptk";
-
-  public static final String SUBDIRECTORY_LOG = "log";
   public static final String LOGBACK_FILE_NAME = "logback_manual.xml";
 
-  public static final String SUBDIRECTORY_MODULES = "modules";
-
-  public static final String SUBDIRECTORY_REPORTS = "reports";
-
+  public static final int CLI_LINE_WIDTH = 80;
 }

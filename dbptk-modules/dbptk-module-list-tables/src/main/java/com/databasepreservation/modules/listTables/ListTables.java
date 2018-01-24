@@ -74,8 +74,8 @@ public class ListTables implements DatabaseExportModule {
   }
 
   /**
-   * Set ignored schemas. Ignored schemas won't be exported. This method should
-   * be called before handleStructure. However, if not called it will be assumed
+   * Set ignored schemas. Ignored schemas won't be exported. This method should be
+   * called before handleStructure. However, if not called it will be assumed
    * there are not ignored schemas.
    *
    * @param ignoredSchemas
@@ -96,7 +96,7 @@ public class ListTables implements DatabaseExportModule {
    * @throws UnknownTypeException
    */
   @Override
-  public void handleStructure(DatabaseStructure structure) throws ModuleException, UnknownTypeException {
+  public void handleStructure(DatabaseStructure structure) throws ModuleException {
     if (structure == null) {
       throw new ModuleException("Database structure must not be null");
     }
@@ -105,8 +105,8 @@ public class ListTables implements DatabaseExportModule {
   }
 
   /**
-   * Prepare to handle the data of a new schema. This method will be called
-   * after handleStructure or handleDataCloseSchema.
+   * Prepare to handle the data of a new schema. This method will be called after
+   * handleStructure or handleDataCloseSchema.
    *
    * @param schemaName
    *          the schema name
@@ -134,7 +134,7 @@ public class ListTables implements DatabaseExportModule {
   @Override
   public void handleDataOpenTable(String tableId) throws ModuleException {
     try {
-      currentTable = dbStructure.lookupTableStructure(tableId);
+      currentTable = dbStructure.getTableById(tableId);
       if (currentTable == null) {
         throw new ModuleException("Couldn't find table with id: " + tableId);
       }
@@ -155,7 +155,7 @@ public class ListTables implements DatabaseExportModule {
    * @throws ModuleException
    */
   @Override
-  public void handleDataRow(Row row) throws InvalidDataException, ModuleException {
+  public void handleDataRow(Row row) throws ModuleException {
     // nothing to do
   }
 
@@ -196,14 +196,15 @@ public class ListTables implements DatabaseExportModule {
     try {
       out.close();
     } catch (IOException e) {
-      throw new ModuleException("Could not close file writer stream (file: " + outputFile.toAbsolutePath().toString()
-        + ")", e);
+      throw new ModuleException(
+        "Could not close file writer stream (file: " + outputFile.toAbsolutePath().toString() + ")", e);
     }
 
     try {
       outStream.close();
     } catch (IOException e) {
-      throw new ModuleException("Could not close file stream (file: " + outputFile.toAbsolutePath().toString() + ")", e);
+      throw new ModuleException("Could not close file stream (file: " + outputFile.toAbsolutePath().toString() + ")",
+        e);
     }
   }
 

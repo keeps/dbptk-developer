@@ -32,8 +32,8 @@ import com.databasepreservation.modules.siard.out.write.ZipWithExternalLobsWrite
 
 /**
  * SIARD 2 external LOBs export strategy, that exports LOBs according to the
- * recommendation for external LOBs folder structure (version 0.16) available <a
- * href=
+ * recommendation for external LOBs folder structure (version 0.16) available
+ * <a href=
  * "project_root/doc/SIARD2.0_Recommendation_for_external_LOB_folder_structure.pdf"
  * >locally</a> or <a href=
  * "https://github.com/keeps/db-preservation-toolkit/raw/master/doc/SIARD2.0_Recommendation_for_external_LOB_folder_structure.pdf"
@@ -68,8 +68,8 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
   }
 
   @Override
-  protected void writeSimpleCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException,
-    IOException {
+  protected void writeSimpleCell(Cell cell, ColumnStructure column, int columnIndex)
+    throws ModuleException, IOException {
     if (Sql2008toXSDType.isLargeType(column.getType(), reporter)) {
       writeLargeObjectData(cell, columnIndex);
     } else {
@@ -78,8 +78,8 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
   }
 
   @Override
-  protected void writeBinaryCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException,
-    IOException {
+  protected void writeBinaryCell(Cell cell, ColumnStructure column, int columnIndex)
+    throws ModuleException, IOException {
     BinaryCell binaryCell = (BinaryCell) cell;
 
     if (Sql2008toXSDType.isLargeType(column.getType(), reporter)) {
@@ -127,8 +127,8 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
 
     if (maximumLobsFolderSize > 0 && lobSizeParameter >= maximumLobsFolderSize) {
       LOGGER.warn("LOB size is " + lobSizeParameter / MB_TO_BYTE_RATIO
-        + "MB, which is more or equal to the maximum LOB size per folder of " + maximumLobsFolderSize
-        / MB_TO_BYTE_RATIO + "MB");
+        + "MB, which is more or equal to the maximum LOB size per folder of " + maximumLobsFolderSize / MB_TO_BYTE_RATIO
+        + "MB");
     }
 
     // IF the LOB would exceed current folder size limit,
@@ -163,17 +163,18 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
     }
 
     // something like "../filename.siard2/"
-    String lobURI = Paths.get(
-      ".." + File.separator + currentExternalContainer.getPath().getFileName().toString() + File.separator,
-      lobFileParameter).toString();
+    String lobURI = Paths
+      .get(".." + File.separator + currentExternalContainer.getPath().getFileName().toString() + File.separator,
+        lobFileParameter)
+      .toString();
 
     // write the LOB XML element
-    currentWriter.beginOpenTag("c" + columnIndex, 2).appendAttribute("file", lobURI)
-      .appendAttribute("length", String.valueOf(lobSizeParameter));
+    currentWriter.beginOpenTag("c" + columnIndex, 2).appendAttribute("file", lobURI).appendAttribute("length",
+      String.valueOf(lobSizeParameter));
 
     if (lobDigestChecksum != null) {
-      currentWriter.appendAttribute("messageDigest", ZipWithExternalLobsWriteStrategy.DIGEST_ALGORITHM
-        + lobDigestChecksum);
+      currentWriter.appendAttribute("messageDigest",
+        ZipWithExternalLobsWriteStrategy.DIGEST_ALGORITHM + lobDigestChecksum);
       lobDigestChecksum = null; // reset it to the default value
     }
 

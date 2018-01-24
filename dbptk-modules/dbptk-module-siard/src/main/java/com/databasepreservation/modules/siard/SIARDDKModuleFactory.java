@@ -28,56 +28,49 @@ import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
  *
  */
 public class SIARDDKModuleFactory implements DatabaseModuleFactory {
+  public static final String PARAMETER_FOLDER = "folder";
+  public static final String PARAMETER_TABLE_FILTER = "table-filter";
+  public static final String PARAMETER_ARCHIVE_INDEX = "archiveIndex";
+  public static final String PARAMETER_CONTEXT_DOCUMENTATION_INDEX = "contextDocumentationIndex";
+  public static final String PARAMETER_CONTEXT_DOCUMENTATION_FOLDER = SIARDDKConstants.CONTEXT_DOCUMENTATION_FOLDER;
+  public static final String PARAMETER_AS_SCHEMA = "as-schema";
+  public static final String PARAMETER_LOBS_PER_FOLDER = "lobs-per-folder";
+  public static final String PARAMETER_LOBS_FOLDER_SIZE = "lobs-folder-size";
+
   // TODO: As things are now, are we not always generating the '.1' version of
   // the archive (indicating that the last .[1-9][0-9] should perhaps not be
   // inputed by the user - but added by the code automatically? )
-  public static final Parameter folder = new Parameter()
-    .shortName("f")
-    .longName("folder")
-    .description(
-      "Path to SIARDDK archive folder. Archive folder name must match the expression AVID.[A-ZÆØÅ]{2,4}.[1-9][0-9]*.[1-9][0-9]")
+  private static final Parameter folder = new Parameter().shortName("f").longName(PARAMETER_FOLDER).description(
+    "Path to (the first) SIARDDK archive folder. Archive folder name must match the expression AVID.[A-ZÆØÅ]{2,4}.[1-9][0-9]*.1 Any additional parts of the archive (eg. with suffixes .2 .3 etc) referenced in the tableIndex.xml will also be processed.")
     .hasArgument(true).setOptionalArgument(false).required(true);
 
-  private static final Parameter tableFilter = new Parameter()
-    .shortName("tf")
-    .longName("table-filter")
+  private static final Parameter tableFilter = new Parameter().shortName("tf").longName(PARAMETER_TABLE_FILTER)
     .description(
       "file with the list of tables that should be exported (this file can be created by the list-tables export module).")
     .required(false).hasArgument(true).setOptionalArgument(false);
 
-  public static final Parameter archiveIndex = new Parameter().shortName("ai").longName("archiveIndex")
+  private static final Parameter archiveIndex = new Parameter().shortName("ai").longName(PARAMETER_ARCHIVE_INDEX)
     .description("Path to archiveIndex.xml input file").hasArgument(true).setOptionalArgument(false).required(false);
 
-  public static final Parameter contextDocumentationIndex = new Parameter().shortName("ci")
-    .longName("contextDocumentationIndex").description("Path to contextDocumentationIndex.xml input file")
+  private static final Parameter contextDocumentationIndex = new Parameter().shortName("ci")
+    .longName(PARAMETER_CONTEXT_DOCUMENTATION_INDEX).description("Path to contextDocumentationIndex.xml input file")
     .hasArgument(true).setOptionalArgument(false).required(false);
 
-  public static final Parameter contextDocmentationFolder = new Parameter().shortName("cf")
-    .longName(SIARDDKConstants.CONTEXT_DOCUMENTATION_FOLDER)
+  private static final Parameter contextDocmentationFolder = new Parameter().shortName("cf")
+    .longName(PARAMETER_CONTEXT_DOCUMENTATION_FOLDER)
     .description("Path to contextDocumentation folder which should contain the context documentation for the archive")
     .hasArgument(true).setOptionalArgument(false).required(false);
 
-  public static final Parameter PARAM_IMPORT_AS_SCHEMA = new Parameter()
-    .shortName("as")
-    .longName("as-schema")
+  private static final Parameter PARAM_IMPORT_AS_SCHEMA = new Parameter().shortName("as").longName(PARAMETER_AS_SCHEMA)
     .description(
       "Name of the database schema to use when importing the SIARDDK archive. Suggested values: PostgreSQL:'public', MySQL:'<name of database>', MSSQL:'dbo'")
     .required(true).hasArgument(true);
 
-  public static final Parameter PARAM_IMPORT_FOLDER = new Parameter()
-    .shortName("f")
-    .longName("folder")
-    .description(
-      "Path to (the first) SIARDDK archive folder. Archive folder name must match the expression AVID.[A-ZÆØÅ]{2,4}.[1-9][0-9]*.1 Any additional parts of the archive (eg. with suffixes .2 .3 etc) referenced in the tableIndex.xml will also be processed.")
-    .hasArgument(true).setOptionalArgument(false).required(true);
-
-  private static final Parameter lobsPerFolder = new Parameter()
-    .shortName("lpf")
-    .longName("lobs-per-folder")
+  private static final Parameter lobsPerFolder = new Parameter().shortName("lpf").longName(PARAMETER_LOBS_PER_FOLDER)
     .description("The maximum number of documents (i.e. folders) present in a docCollection folder (default is 10000).")
     .required(false).hasArgument(true).setOptionalArgument(false).valueIfNotSet("10000");
 
-  private static final Parameter lobsFolderSize = new Parameter().shortName("lfs").longName("lobs-folder-size")
+  private static final Parameter lobsFolderSize = new Parameter().shortName("lfs").longName(PARAMETER_LOBS_FOLDER_SIZE)
     .description("The maximum size (in megabytes) of the docCollection folders (default is 1000 MB").required(false)
     .hasArgument(true).setOptionalArgument(false).valueIfNotSet("1000");
 
@@ -94,15 +87,6 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
   // .description("The threshold length of CLOBs before converting to
   // tiff").hasArgument(true)
   // .setOptionalArgument(false).required(false).valueIfNotSet(SIARDDKConstants.DEFAULT_MAX_CLOB_LENGTH);
-
-  private Reporter reporter;
-
-  private SIARDDKModuleFactory() {
-  }
-
-  public SIARDDKModuleFactory(Reporter reporter) {
-    this.reporter = reporter;
-  }
 
   @Override
   public boolean producesImportModules() {
@@ -129,7 +113,6 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     parameterMap.put(contextDocumentationIndex.longName(), contextDocumentationIndex);
     parameterMap.put(contextDocmentationFolder.longName(), contextDocmentationFolder);
     parameterMap.put(PARAM_IMPORT_AS_SCHEMA.longName(), PARAM_IMPORT_AS_SCHEMA);
-    parameterMap.put(PARAM_IMPORT_FOLDER.longName(), PARAM_IMPORT_FOLDER);
     parameterMap.put(lobsPerFolder.longName(), lobsPerFolder);
     parameterMap.put(lobsFolderSize.longName(), lobsFolderSize);
     // to be used later...
@@ -141,7 +124,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Parameters getImportModuleParameters() throws UnsupportedModuleException {
-    return new Parameters(Arrays.asList(PARAM_IMPORT_FOLDER, PARAM_IMPORT_AS_SCHEMA), null);
+    return new Parameters(Arrays.asList(folder, PARAM_IMPORT_AS_SCHEMA), null);
   }
 
   @Override
@@ -156,17 +139,18 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
-    LicenseNotAcceptedException {
-    reporter.importModuleParameters(getModuleName(), "file", Paths.get(parameters.get(PARAM_IMPORT_FOLDER)).normalize()
-      .toAbsolutePath().toString(), PARAM_IMPORT_AS_SCHEMA.longName(), parameters.get(PARAM_IMPORT_AS_SCHEMA));
-    return new SIARDDKImportModule(Paths.get(parameters.get(PARAM_IMPORT_FOLDER)),
-      parameters.get(PARAM_IMPORT_AS_SCHEMA)).getDatabaseImportModule();
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
+    throws UnsupportedModuleException, LicenseNotAcceptedException {
+    reporter.importModuleParameters(getModuleName(), "file",
+      Paths.get(parameters.get(folder)).normalize().toAbsolutePath().toString(), PARAM_IMPORT_AS_SCHEMA.longName(),
+      parameters.get(PARAM_IMPORT_AS_SCHEMA));
+    return new SIARDDKImportModule(Paths.get(parameters.get(folder)), parameters.get(PARAM_IMPORT_AS_SCHEMA))
+      .getDatabaseImportModule();
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
-    LicenseNotAcceptedException {
+  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
+    throws UnsupportedModuleException, LicenseNotAcceptedException {
 
     // Get the values passed to the parameter flags from the command line
 

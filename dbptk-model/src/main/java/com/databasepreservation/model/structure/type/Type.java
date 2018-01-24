@@ -86,8 +86,7 @@ public abstract class Type {
 
   /**
    * @param fallback
-   *          set a default fallback type in case the SQL99 type has not been
-   *          set
+   *          set a default fallback type in case the SQL99 type has not been set
    * @return The name of the SQL99 normalized type.
    */
   public String getSql99TypeName(boolean fallback) {
@@ -103,8 +102,8 @@ public abstract class Type {
   }
 
   /**
-   * @return The name of the SQL99 normalized type. If the type has not been
-   *         set, a default fallback type is set and returned.
+   * @return The name of the SQL99 normalized type. If the type has not been set,
+   *         a default fallback type is set and returned.
    */
   public String getSql99TypeName() {
     return getSql99TypeName(true);

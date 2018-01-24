@@ -80,8 +80,7 @@ public class SimpleTypeInterval extends Type {
      */
     DURATION_ENDDATE,
     /**
-     * Duration only, such as "P1Y2M10DT2H30M", with additional context
-     * information
+     * Duration only, such as "P1Y2M10DT2H30M", with additional context information
      */
     DURATION
   }

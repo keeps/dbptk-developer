@@ -66,8 +66,8 @@ public class DocIndexType {
    * 
    * 
    * <p>
-   * Objects of the following type(s) are allowed in the list
-   * {@link DocumentType }
+   * Objects of the following type(s) are allowed in the list {@link DocumentType
+   * }
    * 
    * 
    */

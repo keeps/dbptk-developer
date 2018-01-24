@@ -21,32 +21,29 @@ import com.databasepreservation.modules.mySql.out.MySQLJDBCExportModule;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class MySQLModuleFactory implements DatabaseModuleFactory {
-  private static final Parameter hostname = new Parameter().shortName("h").longName("hostname")
+  public static final String PARAMETER_HOSTNAME = "hostname";
+  public static final String PARAMETER_PORT_NUMBER = "port-number";
+  public static final String PARAMETER_DATABASE = "database";
+  public static final String PARAMETER_USERNAME = "username";
+  public static final String PARAMETER_PASSWORD = "password";
+
+  private static final Parameter hostname = new Parameter().shortName("h").longName(PARAMETER_HOSTNAME)
     .description("the hostname of the MySQL server").hasArgument(true).setOptionalArgument(false).required(true);
 
-  private static final Parameter portNumber = new Parameter().shortName("pn").longName("port-number")
+  private static final Parameter portNumber = new Parameter().shortName("pn").longName(PARAMETER_PORT_NUMBER)
     .description("the port that the MySQL server is listening").hasArgument(true).setOptionalArgument(false)
     .required(false);
 
-  private static final Parameter database = new Parameter().shortName("db").longName("database")
+  private static final Parameter database = new Parameter().shortName("db").longName(PARAMETER_DATABASE)
     .description("the name of the MySQL database").hasArgument(true).setOptionalArgument(false).required(true);
 
-  private static final Parameter username = new Parameter().shortName("u").longName("username")
+  private static final Parameter username = new Parameter().shortName("u").longName(PARAMETER_USERNAME)
     .description("the name of the user to use in connection").hasArgument(true).setOptionalArgument(false)
     .required(true);
 
-  private static final Parameter password = new Parameter().shortName("p").longName("password")
+  private static final Parameter password = new Parameter().shortName("p").longName(PARAMETER_PASSWORD)
     .description("the password of the user to use in connection").hasArgument(true).setOptionalArgument(false)
     .required(true);
-
-  private Reporter reporter;
-
-  private MySQLModuleFactory() {
-  }
-
-  public MySQLModuleFactory(Reporter reporter) {
-    this.reporter = reporter;
-  }
 
   @Override
   public boolean producesImportModules() {
@@ -85,8 +82,8 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
-    LicenseNotAcceptedException {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
+    throws UnsupportedModuleException, LicenseNotAcceptedException {
     String pHostname = parameters.get(hostname);
     String pDatabase = parameters.get(database);
     String pUsername = parameters.get(username);
@@ -99,19 +96,20 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
     }
 
     if (pPortNumber == null) {
-      reporter.importModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
-        pUsername, "password", reporter.MESSAGE_FILTERED);
+      reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
+        PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED);
       return new MySQLJDBCImportModule(pHostname, pDatabase, pUsername, pPassword);
     } else {
-      reporter.importModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
-        pUsername, "password", reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
+      reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
+        PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
+        pPortNumber.toString());
       return new MySQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword);
     }
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
-    LicenseNotAcceptedException {
+  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
+    throws UnsupportedModuleException, LicenseNotAcceptedException {
     String pHostname = parameters.get(hostname);
     String pDatabase = parameters.get(database);
     String pUsername = parameters.get(username);
@@ -124,12 +122,13 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
     }
 
     if (pPortNumber == null) {
-      reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
-        pUsername, "password", reporter.MESSAGE_FILTERED);
+      reporter.exportModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
+        PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED);
       return new MySQLJDBCExportModule(pHostname, pDatabase, pUsername, pPassword);
     } else {
-      reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
-        pUsername, "password", reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
+      reporter.exportModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
+        PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
+        pPortNumber.toString());
       return new MySQLJDBCExportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword);
     }
   }

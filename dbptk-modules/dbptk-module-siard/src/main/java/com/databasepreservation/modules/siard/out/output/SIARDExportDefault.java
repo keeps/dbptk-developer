@@ -18,9 +18,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Row;
-import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.DatabaseStructure;
@@ -28,6 +26,7 @@ import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.modules.listTables.ListTables;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.out.content.ContentExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
@@ -123,7 +122,7 @@ public class SIARDExportDefault implements DatabaseExportModule {
   }
 
   @Override
-  public void handleStructure(DatabaseStructure structure) throws ModuleException, UnknownTypeException {
+  public void handleStructure(DatabaseStructure structure) throws ModuleException {
     if (structure == null) {
       throw new ModuleException("Database structure must not be null");
     }
@@ -132,12 +131,13 @@ public class SIARDExportDefault implements DatabaseExportModule {
 
     // update database structure with descriptive metadata from parameters
     if (descriptiveMetadata != null) {
-      dbStructure.setDescription(descriptiveMetadata.get("Description"));
-      dbStructure.setArchiver(descriptiveMetadata.get("Archiver"));
-      dbStructure.setArchiverContact(descriptiveMetadata.get("ArchiverContact"));
-      dbStructure.setDataOwner(descriptiveMetadata.get("DataOwner"));
-      dbStructure.setDataOriginTimespan(descriptiveMetadata.get("DataOriginTimespan"));
-      dbStructure.setClientMachine(descriptiveMetadata.get("ClientMachine"));
+      dbStructure.setDescription(descriptiveMetadata.get(SIARDConstants.DESCRIPTIVE_METADATA_DESCRIPTION));
+      dbStructure.setArchiver(descriptiveMetadata.get(SIARDConstants.DESCRIPTIVE_METADATA_ARCHIVER));
+      dbStructure.setArchiverContact(descriptiveMetadata.get(SIARDConstants.DESCRIPTIVE_METADATA_ARCHIVER_CONTACT));
+      dbStructure.setDataOwner(descriptiveMetadata.get(SIARDConstants.DESCRIPTIVE_METADATA_DATA_OWNER));
+      dbStructure
+        .setDataOriginTimespan(descriptiveMetadata.get(SIARDConstants.DESCRIPTIVE_METADATA_DATA_ORIGIN_TIMESPAN));
+      dbStructure.setClientMachine(descriptiveMetadata.get(SIARDConstants.DESCRIPTIVE_METADATA_CLIENT_MACHINE));
     }
   }
 
@@ -154,7 +154,7 @@ public class SIARDExportDefault implements DatabaseExportModule {
 
   @Override
   public void handleDataOpenTable(String tableId) throws ModuleException {
-    currentTable = dbStructure.lookupTableStructure(tableId);
+    currentTable = dbStructure.getTableById(tableId);
 
     if (currentTable == null) {
       throw new ModuleException("Couldn't find table with id: " + tableId);
@@ -165,7 +165,7 @@ public class SIARDExportDefault implements DatabaseExportModule {
 
   @Override
   public void handleDataCloseTable(String tableId) throws ModuleException {
-    currentTable = dbStructure.lookupTableStructure(tableId);
+    currentTable = dbStructure.getTableById(tableId);
 
     if (currentTable == null) {
       throw new ModuleException("Couldn't find table with id: " + tableId);
@@ -186,7 +186,7 @@ public class SIARDExportDefault implements DatabaseExportModule {
   }
 
   @Override
-  public void handleDataRow(Row row) throws InvalidDataException, ModuleException {
+  public void handleDataRow(Row row) throws ModuleException {
     contentStrategy.tableRow(row);
   }
 

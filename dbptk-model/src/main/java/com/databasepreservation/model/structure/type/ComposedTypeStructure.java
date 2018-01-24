@@ -104,20 +104,19 @@ public class ComposedTypeStructure extends Type {
   }
 
   /**
-   * Gets the subtypes that are direct children of this composed type (ie: if
-   * this ComposedType is an hierarchy with more ComposedTypes, only the direct
+   * Gets the subtypes that are direct children of this composed type (ie: if this
+   * ComposedType is an hierarchy with more ComposedTypes, only the direct
    * descendants of the root type are returned)
    * 
-   * @return an HashMap with the names and types that have been added with
-   *         addType
+   * @return an HashMap with the names and types that have been added with addType
    */
   public Map<String, Type> getDirectDescendantSubTypes() {
     return containedTypes;
   }
 
   /**
-   * Gets the direct subtypes (direct children) of this composed type that are
-   * not ComposedTypes (ie: if this ComposedType is an hierarchy with more
+   * Gets the direct subtypes (direct children) of this composed type that are not
+   * ComposedTypes (ie: if this ComposedType is an hierarchy with more
    * ComposedTypes, only the first level of the hierarchy is returned and all
    * ComposedTypes are ignored)
    *
@@ -138,10 +137,10 @@ public class ComposedTypeStructure extends Type {
   }
 
   /**
-   * Gets the subtypes (children) of this composed type that are not
-   * ComposedTypes (ie: if this ComposedType is an hierarchy with more
-   * ComposedTypes, only the extremities of the hierarchy are returned, all
-   * children composedTypes found are explored looking for more types)
+   * Gets the subtypes (children) of this composed type that are not ComposedTypes
+   * (ie: if this ComposedType is an hierarchy with more ComposedTypes, only the
+   * extremities of the hierarchy are returned, all children composedTypes found
+   * are explored looking for more types)
    *
    * @param columnId
    *          ID of the column which type is this ComposedType (ie:
@@ -170,15 +169,16 @@ public class ComposedTypeStructure extends Type {
    *          the name of the composedType and the composedType itself being
    *          processed in this iteration
    * @param currentPath
-   *          list with the path from the root composedType to the leaf
-   *          (auxiliary accumulator)
+   *          list with the path from the root composedType to the leaf (auxiliary
+   *          accumulator)
    */
   private void getLeafTypesFromComposedTypeTree(ArrayList<SubType> allTypes,
     Pair<String, ComposedTypeStructure> stringAndComposedTypePair, ArrayList<String> currentPath) {
 
     currentPath.add(stringAndComposedTypePair.getLeft());
 
-    for (Map.Entry<String, Type> child : stringAndComposedTypePair.getValue().getDirectDescendantSubTypes().entrySet()) {
+    for (Map.Entry<String, Type> child : stringAndComposedTypePair.getValue().getDirectDescendantSubTypes()
+      .entrySet()) {
       if (child.getValue() instanceof ComposedTypeStructure) {
         ArrayList<String> namesContinued = new ArrayList<>(currentPath);
         Pair<String, ComposedTypeStructure> nextNameAndType = new ImmutablePair<>(child.getKey(),
@@ -227,8 +227,8 @@ public class ComposedTypeStructure extends Type {
   }
 
   /**
-   * Determines if the composited type structure contains itself somewhere down
-   * in its hierarchy.
+   * Determines if the composited type structure contains itself somewhere down in
+   * its hierarchy.
    * 
    * @return true if the ComposedTypeStructure is recursive
    */

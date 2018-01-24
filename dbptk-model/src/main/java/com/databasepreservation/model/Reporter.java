@@ -1,7 +1,6 @@
 package com.databasepreservation.model;
 
 import java.io.BufferedWriter;
-import java.io.Closeable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -34,7 +33,7 @@ import com.databasepreservation.utils.MiscUtils;
  * 
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class Reporter implements Closeable {
+public class Reporter implements AutoCloseable {
   // //////////////////////////////////////////////////
   // constants
   public static final String MESSAGE_FILTERED = "<filtered>";
@@ -252,8 +251,8 @@ public class Reporter implements Closeable {
     if (original != null && (!original.equals(sql99) || !original.equals(sql2008))) {
       conversionProblemsCounter++;
       report(message);
-      LOGGER.debug("dataTypeChangedOnImport, invoker: " + invokerNameForDebug + "; message: " + message
-        + "; and type: " + type);
+      LOGGER.debug(
+        "dataTypeChangedOnImport, invoker: " + invokerNameForDebug + "; message: " + message + "; and type: " + type);
     }
   }
 
@@ -327,8 +326,8 @@ public class Reporter implements Closeable {
 
   public void failed(String whatFailed, String whyItFailed) {
     conversionProblemsCounter++;
-    StringBuilder message = new StringBuilder(MESSAGE_LINE_DEFAULT_PREFIX).append(whatFailed)
-      .append(" failed because ").append(whyItFailed);
+    StringBuilder message = new StringBuilder(MESSAGE_LINE_DEFAULT_PREFIX).append(whatFailed).append(" failed because ")
+      .append(whyItFailed);
 
     report(message);
     LOGGER.debug("something failed, message: " + message);
@@ -362,14 +361,15 @@ public class Reporter implements Closeable {
       }
     } catch (IOException e) {
       LOGGER.debug("Unable to close Reporter file", e);
-    }
-    if (conversionProblemsCounter != 0) {
-      if (writer != null) {
-        LOGGER.info("A report was generated with a listing of information that was modified during the conversion.");
-        LOGGER.info("The report file is located at " + outputfile.normalize().toAbsolutePath().toString());
-      } else {
-        LOGGER
-          .info("A report with a listing of information that was modified during the conversion could not be generated, please submit a bug report to help us fix this.");
+    } finally {
+      if (conversionProblemsCounter != 0) {
+        if (writer != null) {
+          LOGGER.info("A report was generated with a listing of information that was modified during the conversion.");
+          LOGGER.info("The report file is located at {}", outputfile.normalize().toAbsolutePath().toString());
+        } else {
+          LOGGER.info(
+            "A report with a listing of information that was modified during the conversion could not be generated, please submit a bug report to help us fix this.");
+        }
       }
     }
   }

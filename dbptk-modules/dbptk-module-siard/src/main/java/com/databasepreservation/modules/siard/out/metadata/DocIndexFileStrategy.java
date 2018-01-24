@@ -50,7 +50,8 @@ public class DocIndexFileStrategy implements IndexFileStrategy {
    *          ...
    * @return the doc element containing the given data
    */
-  public DocumentType addDoc(int dID, int pID, int mID, int docCollectionNumber, String oFn, String aFt, String gmlXsd) {
+  public DocumentType addDoc(int dID, int pID, int mID, int docCollectionNumber, String oFn, String aFt,
+    String gmlXsd) {
     DocumentType doc = new DocumentType();
 
     doc.setDID(BigInteger.valueOf(dID));

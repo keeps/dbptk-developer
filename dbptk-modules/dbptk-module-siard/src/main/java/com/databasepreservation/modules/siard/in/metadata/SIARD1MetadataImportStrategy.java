@@ -44,35 +44,35 @@ import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.utils.JodaUtils;
 
-import ch.admin.bar.xmlns.siard._1_0.metadata.CandidateKeyType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.CandidateKeysType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.CheckConstraintType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.CheckConstraintsType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.ColumnType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.ColumnsType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.ForeignKeyType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.ForeignKeysType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.ParameterType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.ParametersType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.PrimaryKeyType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.PrivilegeType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.PrivilegesType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.ReferenceType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.RoleType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.RolesType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.RoutineType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.RoutinesType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.SchemaType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.SchemasType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.SiardArchive;
-import ch.admin.bar.xmlns.siard._1_0.metadata.TableType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.TablesType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.TriggerType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.TriggersType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.UserType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.UsersType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.ViewType;
-import ch.admin.bar.xmlns.siard._1_0.metadata.ViewsType;
+import com.databasepreservation.modules.siard.bindings.siard_1.CandidateKeyType;
+import com.databasepreservation.modules.siard.bindings.siard_1.CandidateKeysType;
+import com.databasepreservation.modules.siard.bindings.siard_1.CheckConstraintType;
+import com.databasepreservation.modules.siard.bindings.siard_1.CheckConstraintsType;
+import com.databasepreservation.modules.siard.bindings.siard_1.ColumnType;
+import com.databasepreservation.modules.siard.bindings.siard_1.ColumnsType;
+import com.databasepreservation.modules.siard.bindings.siard_1.ForeignKeyType;
+import com.databasepreservation.modules.siard.bindings.siard_1.ForeignKeysType;
+import com.databasepreservation.modules.siard.bindings.siard_1.ParameterType;
+import com.databasepreservation.modules.siard.bindings.siard_1.ParametersType;
+import com.databasepreservation.modules.siard.bindings.siard_1.PrimaryKeyType;
+import com.databasepreservation.modules.siard.bindings.siard_1.PrivilegeType;
+import com.databasepreservation.modules.siard.bindings.siard_1.PrivilegesType;
+import com.databasepreservation.modules.siard.bindings.siard_1.ReferenceType;
+import com.databasepreservation.modules.siard.bindings.siard_1.RoleType;
+import com.databasepreservation.modules.siard.bindings.siard_1.RolesType;
+import com.databasepreservation.modules.siard.bindings.siard_1.RoutineType;
+import com.databasepreservation.modules.siard.bindings.siard_1.RoutinesType;
+import com.databasepreservation.modules.siard.bindings.siard_1.SchemaType;
+import com.databasepreservation.modules.siard.bindings.siard_1.SchemasType;
+import com.databasepreservation.modules.siard.bindings.siard_1.SiardArchive;
+import com.databasepreservation.modules.siard.bindings.siard_1.TableType;
+import com.databasepreservation.modules.siard.bindings.siard_1.TablesType;
+import com.databasepreservation.modules.siard.bindings.siard_1.TriggerType;
+import com.databasepreservation.modules.siard.bindings.siard_1.TriggersType;
+import com.databasepreservation.modules.siard.bindings.siard_1.UserType;
+import com.databasepreservation.modules.siard.bindings.siard_1.UsersType;
+import com.databasepreservation.modules.siard.bindings.siard_1.ViewType;
+import com.databasepreservation.modules.siard.bindings.siard_1.ViewsType;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -124,8 +124,8 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
     try {
       xsdSchema = schemaFactory.newSchema(new StreamSource(xsdStream));
     } catch (SAXException e) {
-      throw new ModuleException("Error reading metadata XSD file: "
-        + metadataPathStrategy.getXsdFilePath(METADATA_FILENAME), e);
+      throw new ModuleException(
+        "Error reading metadata XSD file: " + metadataPathStrategy.getXsdFilePath(METADATA_FILENAME), e);
     }
 
     InputStream reader = null;
@@ -138,8 +138,8 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
       reader = readStrategy.createInputStream(container, metadataPathStrategy.getXmlFilePath(METADATA_FILENAME));
       xmlRoot = (SiardArchive) unmarshaller.unmarshal(reader);
     } catch (JAXBException e) {
-      LOGGER.warn("The metadata.xml file did not pass the XML Schema validation.", new ModuleException(
-        "Error while Unmarshalling JAXB with XSD", e));
+      LOGGER.warn("The metadata.xml file did not pass the XML Schema validation.",
+        new ModuleException("Error while Unmarshalling JAXB with XSD", e));
       if (reader != null) {
         try {
           reader.close();

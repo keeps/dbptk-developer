@@ -62,8 +62,8 @@ public class ForeignKey {
    * @param updateAction
    * @param description
    */
-  public ForeignKey(String id, String name, String referencedSchema, String referencedTable,
-    List<Reference> references, String matchType, String deleteAction, String updateAction, String description) {
+  public ForeignKey(String id, String name, String referencedSchema, String referencedTable, List<Reference> references,
+    String matchType, String deleteAction, String updateAction, String description) {
     this.id = id;
     this.name = name;
     this.referencedSchema = referencedSchema;

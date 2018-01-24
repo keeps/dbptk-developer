@@ -72,8 +72,8 @@ public class SIARD2ExportModule {
     mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.MAIN);
 
     metadataStrategy = new SIARD2MetadataExportStrategy(metadataPathStrategy, contentPathStrategy, true);
-    contentStrategy = new SIARD2ContentWithExternalLobsExportStrategy(contentPathStrategy, writeStrategy,
-      mainContainer, prettyXML, externalLobsPerFolder, externalLobsFolderSize);
+    contentStrategy = new SIARD2ContentWithExternalLobsExportStrategy(contentPathStrategy, writeStrategy, mainContainer,
+      prettyXML, externalLobsPerFolder, externalLobsFolderSize);
 
     this.tableFilter = tableFilter;
   }

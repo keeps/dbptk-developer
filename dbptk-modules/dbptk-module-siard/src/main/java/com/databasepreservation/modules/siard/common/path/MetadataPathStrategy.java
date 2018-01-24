@@ -1,5 +1,12 @@
 package com.databasepreservation.modules.siard.common.path;
 
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.constants.SIARDConstants;
+import com.databasepreservation.modules.siard.in.read.CloseableIterable;
+import com.databasepreservation.modules.siard.in.read.ReadStrategy;
+
+import java.io.IOException;
 import java.security.InvalidParameterException;
 
 /**
@@ -30,4 +37,29 @@ public interface MetadataPathStrategy {
    * @throws InvalidParameterException
    */
   public String getXsdResourcePath(String filename) throws InvalidParameterException;
+
+  class VersionIdentifier {
+    private static String[] paths2_0 = new String[]{"header/version/2.0/", "header/version/2.0"};
+    private static String[] paths2_1 = new String[]{"header/siardversion/2.1/", "header/siardversion/2.1"};
+
+    public static SIARDConstants.SiardVersion getVersion(ReadStrategy readStrategy, SIARDArchiveContainer mainContainer){
+      try(CloseableIterable<String> pathIterator = readStrategy.getFilepathStream(mainContainer)){
+        for (String path : pathIterator) {
+          for (String p : paths2_0) {
+            if(p.equalsIgnoreCase(path)){
+              return SIARDConstants.SiardVersion.V2_0;
+            }
+          }
+          for (String p : paths2_1) {
+            if(p.equalsIgnoreCase(path)){
+              return SIARDConstants.SiardVersion.V2_1;
+            }
+          }
+        }
+      } catch (IOException | ModuleException e) {
+        // ignore
+      }
+      return null;
+    }
+  }
 }

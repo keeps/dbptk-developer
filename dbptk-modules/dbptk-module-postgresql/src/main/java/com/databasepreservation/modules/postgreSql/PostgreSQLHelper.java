@@ -25,8 +25,8 @@ import com.databasepreservation.modules.SQLHelper;
  */
 public class PostgreSQLHelper extends SQLHelper {
 
-  private static final Set<String> POSTGRESQL_TYPES = new HashSet<String>(Arrays.asList("char", "int8", "varchar",
-    "bigserial", "name", "numeric"));
+  private static final Set<String> POSTGRESQL_TYPES = new HashSet<String>(
+    Arrays.asList("char", "int8", "varchar", "bigserial", "name", "numeric"));
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgreSQLHelper.class);
 
@@ -126,7 +126,8 @@ public class PostgreSQLHelper extends SQLHelper {
     return "SELECT tc.constraint_name AS CHECK_NAME FROM information_schema.table_constraints tc "
       + "WHERE table_name='" + tableName + "' AND table_schema='" + schemaName + "' AND constraint_type = 'CHECK'";
     // return
-    // "SELECT conname AS CHECK_NAME, obj_description(oid, 'pg_constraint') AS CHECK_DESCRIPTION FROM pg_catalog.pg_constraint WHERE conrelid = '"
+    // "SELECT conname AS CHECK_NAME, obj_description(oid, 'pg_constraint') AS
+    // CHECK_DESCRIPTION FROM pg_catalog.pg_constraint WHERE conrelid = '"
     // + tableName +
     // "'::regclass AND connamespace=(select oid FROM pg_namespace WHERE nspname='"
     // + schemaName + "')";

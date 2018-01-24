@@ -50,8 +50,8 @@ public class PostgreSqlTest {
     env_var_target.put("PGDATABASE", db_target);
 
     Set<PosixFilePermission> executablePermissions = PosixFilePermissions.fromString("rwxr-xr-x");
-    Files.setAttribute(Paths.get(getClass().getResource("/postgreSql/scripts/setup.sh").getPath()),
-      "posix:permissions", executablePermissions);
+    Files.setAttribute(Paths.get(getClass().getResource("/postgreSql/scripts/setup.sh").getPath()), "posix:permissions",
+      executablePermissions);
     Files.setAttribute(Paths.get(getClass().getResource("/postgreSql/scripts/teardown.sh").getPath()),
       "posix:permissions", executablePermissions);
 
@@ -72,8 +72,8 @@ public class PostgreSqlTest {
 
       new String[] {"--import=siard-1", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=postgresql",
         "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
-        "--export-password", db_tmp_password, "--export-disable-encryption"}, new PostgreSqlDumpDiffExpectations(),
-      env_var_source, env_var_target);
+        "--export-password", db_tmp_password, "--export-disable-encryption"},
+      new PostgreSqlDumpDiffExpectations(), env_var_source, env_var_target);
 
     rt_siard2 = new Roundtrip(
       String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass().getResource("/postgreSql/scripts/setup.sh").getPath(),
@@ -90,8 +90,8 @@ public class PostgreSqlTest {
 
       new String[] {"--import=siard-2", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=postgresql",
         "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
-        "--export-password", db_tmp_password, "--export-disable-encryption"}, new PostgreSqlDumpDiffExpectations(),
-      env_var_source, env_var_target);
+        "--export-password", db_tmp_password, "--export-disable-encryption"},
+      new PostgreSqlDumpDiffExpectations(), env_var_source, env_var_target);
 
     rt_siard2ex = new Roundtrip(
       String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass().getResource("/postgreSql/scripts/setup.sh").getPath(),
@@ -109,16 +109,18 @@ public class PostgreSqlTest {
 
       new String[] {"--import=siard-2", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=postgresql",
         "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
-        "--export-password", db_tmp_password, "--export-disable-encryption"}, new PostgreSqlDumpDiffExpectations(),
-      env_var_source, env_var_target);
+        "--export-password", db_tmp_password, "--export-disable-encryption"},
+      new PostgreSqlDumpDiffExpectations(), env_var_source, env_var_target);
   }
 
-  @Test(description = "[siard-1] PostgreSql server is available and accessible", groups = {"postgresql-siard1"}, dependsOnMethods = {"setup"})
+  @Test(description = "[siard-1] PostgreSql server is available and accessible", groups = {
+    "postgresql-siard1"}, dependsOnMethods = {"setup"})
   public void testConnectionSiard1() throws IOException, InterruptedException {
     rt_siard1.checkConnection();
   }
 
-  @Test(description = "[siard-2] PostgreSql server is available and accessible", groups = {"postgresql-siard2"}, dependsOnMethods = {"setup"})
+  @Test(description = "[siard-2] PostgreSql server is available and accessible", groups = {
+    "postgresql-siard2"}, dependsOnMethods = {"setup"})
   public void testConnectionSiard2() throws IOException, InterruptedException {
     rt_siard2.checkConnection();
   }
@@ -158,7 +160,8 @@ public class PostgreSqlTest {
     return tests.iterator();
   }
 
-  @Test(description = "[siard-1] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnectionSiard1"}, groups = {"postgresql-siard1"})
+  @Test(description = "[siard-1] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {
+    "testConnectionSiard1"}, groups = {"postgresql-siard1"})
   public void testQueriesSiard1(String... args) throws IOException, InterruptedException {
 
     String[] fields = new String[args.length - 1];
@@ -167,7 +170,8 @@ public class PostgreSqlTest {
     assert rt_siard1.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], (Object[]) fields);
   }
 
-  @Test(description = "[siard-2] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnectionSiard2"}, groups = {"postgresql-siard2"})
+  @Test(description = "[siard-2] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {
+    "testConnectionSiard2"}, groups = {"postgresql-siard2"})
   public void testQueriesSiard2(String... args) throws IOException, InterruptedException {
 
     String[] fields = new String[args.length - 1];
@@ -176,7 +180,8 @@ public class PostgreSqlTest {
     assert rt_siard2.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], (Object[]) fields);
   }
 
-  @Test(description = "[siard-2-ex] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnectionSiard2"}, groups = {"postgresql-siard2"})
+  @Test(description = "[siard-2-ex] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {
+    "testConnectionSiard2"}, groups = {"postgresql-siard2"})
   public void testQueriesSiard2ex(String... args) throws IOException, InterruptedException {
 
     String[] fields = new String[args.length - 1];
@@ -201,7 +206,8 @@ public class PostgreSqlTest {
     return tests.iterator();
   }
 
-  @Test(description = "[siard-2-ex] Tests external lobs specific examples", dataProvider = "lobQueriesProvider", dependsOnMethods = {"testConnectionSiard2"}, groups = {"postgresql-siard2"})
+  @Test(description = "[siard-2-ex] Tests external lobs specific examples", dataProvider = "lobQueriesProvider", dependsOnMethods = {
+    "testConnectionSiard2"}, groups = {"postgresql-siard2"})
   public void testQueriesSiard2exSpecific(String... args) throws IOException, InterruptedException {
     String[] fields = new String[args.length - 1];
     System.arraycopy(args, 1, fields, 0, args.length - 1);
@@ -233,17 +239,20 @@ public class PostgreSqlTest {
     return tests.iterator();
   }
 
-  @Test(description = "[siard-1] Tests PostgreSQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnectionSiard1"}, groups = {"postgresql-siard1"})
+  @Test(description = "[siard-1] Tests PostgreSQL files", dataProvider = "testFilesProvider", dependsOnMethods = {
+    "testConnectionSiard1"}, groups = {"postgresql-siard1"})
   public void testFilesSiard1(Path... file) throws IOException, InterruptedException, URISyntaxException {
     assert rt_siard1.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
   }
 
-  @Test(description = "[siard-2] Tests PostgreSQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnectionSiard2"}, groups = {"postgresql-siard2"})
+  @Test(description = "[siard-2] Tests PostgreSQL files", dataProvider = "testFilesProvider", dependsOnMethods = {
+    "testConnectionSiard2"}, groups = {"postgresql-siard2"})
   public void testFilesSiard2(Path... file) throws IOException, InterruptedException, URISyntaxException {
     assert rt_siard2.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
   }
 
-  @Test(description = "[siard-2-ex] Tests PostgreSQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnectionSiard2"}, groups = {"postgresql-siard2"})
+  @Test(description = "[siard-2-ex] Tests PostgreSQL files", dataProvider = "testFilesProvider", dependsOnMethods = {
+    "testConnectionSiard2"}, groups = {"postgresql-siard2"})
   public void testFilesSiard2ex(Path... file) throws IOException, InterruptedException, URISyntaxException {
     assert rt_siard2ex.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
   }

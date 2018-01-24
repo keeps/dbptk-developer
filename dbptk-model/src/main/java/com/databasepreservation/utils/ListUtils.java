@@ -40,8 +40,7 @@ public final class ListUtils {
   }
 
   /**
-   * Checks if two lists have the same elements, not necessarily in the same
-   * order
+   * Checks if two lists have the same elements, not necessarily in the same order
    *
    * @param fst
    * @param snd

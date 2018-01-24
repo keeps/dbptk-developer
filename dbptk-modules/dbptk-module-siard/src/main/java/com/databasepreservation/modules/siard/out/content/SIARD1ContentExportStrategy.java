@@ -21,7 +21,6 @@ import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
@@ -156,8 +155,8 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     this.reporter = reporter;
   }
 
-  private void writeComposedCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException,
-    IOException {
+  private void writeComposedCell(Cell cell, ColumnStructure column, int columnIndex)
+    throws ModuleException, IOException {
     if (!warnedAboutUDT) {
       warnedAboutUDT = true;
       LOGGER.warn("User Defined Types are not supported in SIARD1");
@@ -263,21 +262,15 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
   }
 
   private void writeXmlOpenTable() throws IOException {
-    currentWriter
-      .append("<?xml version=\"1.0\" encoding=\"")
-      .append(ENCODING)
-      .append("\"?>")
-      .newline()
+    currentWriter.append("<?xml version=\"1.0\" encoding=\"").append(ENCODING).append("\"?>").newline()
 
       .beginOpenTag("table", 0)
 
-      .appendAttribute(
-        "xsi:schemaLocation",
+      .appendAttribute("xsi:schemaLocation",
         contentPathStrategy.getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(),
           currentTable.getIndex()) + " " + contentPathStrategy.getTableXsdFileName(currentTable.getIndex()))
 
-      .appendAttribute(
-        "xmlns",
+      .appendAttribute("xmlns",
         contentPathStrategy.getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(),
           currentTable.getIndex()))
 
@@ -314,17 +307,12 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
 
     xsdWriter
       // ?xml tag
-      .append("<?xml version=\"1.0\" encoding=\"")
-      .append(ENCODING)
-      .append("\"?>")
-      .newline()
+      .append("<?xml version=\"1.0\" encoding=\"").append(ENCODING).append("\"?>").newline()
 
       // xs:schema tag
-      .beginOpenTag("xs:schema", 0)
-      .appendAttribute("xmlns:xs", "http://www.w3.org/2001/XMLSchema")
+      .beginOpenTag("xs:schema", 0).appendAttribute("xmlns:xs", "http://www.w3.org/2001/XMLSchema")
 
-      .appendAttribute(
-        "xmlns",
+      .appendAttribute("xmlns",
         contentPathStrategy.getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(),
           currentTable.getIndex()))
 
@@ -332,8 +320,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
 
       .appendAttribute("elementFormDefault", "qualified")
 
-      .appendAttribute(
-        "targetNamespace",
+      .appendAttribute("targetNamespace",
         contentPathStrategy.getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(),
           currentTable.getIndex()))
 
@@ -376,14 +363,12 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
         xsdWriter.appendAttribute("name", "c" + columnIndex).appendAttribute("type", xsdType).endShorthandTag();
       } catch (ModuleException e) {
         LOGGER.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
-      } catch (UnknownTypeException e) {
-        LOGGER.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
       }
       columnIndex++;
     }
 
     xsdWriter
-    // close tags for xs:sequence and xs:complexType
+      // close tags for xs:sequence and xs:complexType
       .closeTag("xs:sequence", 2)
 
       .closeTag("xs:complexType", 1);
@@ -391,9 +376,9 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     // xs:complexType name="clobType"
     xsdWriter.beginOpenTag("xs:complexType", 1).appendAttribute("name", "clobType").endOpenTag()
 
-    .openTag("xs:annotation", 2)
+      .openTag("xs:annotation", 2)
 
-    .inlineOpenTag("xs:documentation", 3).append("Type to refer CLOB types. Either inline or in a separate file.")
+      .inlineOpenTag("xs:documentation", 3).append("Type to refer CLOB types. Either inline or in a separate file.")
       .closeTag("xs:documentation")
 
       .closeTag("xs:annotation", 2)
@@ -420,9 +405,9 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     // xs:complexType name="blobType"
     xsdWriter.beginOpenTag("xs:complexType", 1).appendAttribute("name", "blobType").endOpenTag()
 
-    .openTag("xs:annotation", 2)
+      .openTag("xs:annotation", 2)
 
-    .inlineOpenTag("xs:documentation", 3).append("Type to refer BLOB types. Either inline or in a separate file.")
+      .inlineOpenTag("xs:documentation", 3).append("Type to refer BLOB types. Either inline or in a separate file.")
       .closeTag("xs:documentation")
 
       .closeTag("xs:annotation", 2)

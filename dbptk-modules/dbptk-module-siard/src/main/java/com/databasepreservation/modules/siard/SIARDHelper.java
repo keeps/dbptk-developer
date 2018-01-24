@@ -37,8 +37,8 @@ public class SIARDHelper {
   }
 
   /**
-   * Checks whether a check constraint condition string is valid to be exported
-   * to SIARD format
+   * Checks whether a check constraint condition string is valid to be exported to
+   * SIARD format
    *
    * @param condition
    * @return
@@ -52,8 +52,8 @@ public class SIARDHelper {
   }
 
   /**
-   * Checks whether a trigger action time string is valid to be exported to
-   * SIARD format
+   * Checks whether a trigger action time string is valid to be exported to SIARD
+   * format
    *
    * @param actionTime
    * @return
@@ -99,8 +99,8 @@ public class SIARDHelper {
   /**
    * Gets the DNS name of the local machine
    *
-   * @return the DNS name of the local machine as the machine sees itself, and
-   *         is not necessarily how it is known by other machines.
+   * @return the DNS name of the local machine as the machine sees itself, and is
+   *         not necessarily how it is known by other machines.
    */
   public static String getMachineHostname() {
     if (MACHINE_HOSTNAME == null) {

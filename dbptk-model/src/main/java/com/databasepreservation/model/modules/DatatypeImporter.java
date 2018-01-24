@@ -51,8 +51,8 @@ public abstract class DatatypeImporter {
    * @param decimalDigits
    *          the number of decimal digits for the type
    * @param numPrecRadix
-   *          Indicates the numeric radix of this data type, which is usually 2
-   *          or 10
+   *          Indicates the numeric radix of this data type, which is usually 2 or
+   *          10
    * @return the normalized type
    * @throws UnknownTypeException
    *           the original type is unknown and cannot be mapped
@@ -89,9 +89,9 @@ public abstract class DatatypeImporter {
   private void checkType(Type type, DatabaseStructure database, SchemaStructure currentSchema, String tableName,
     String columnName, int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     if (StringUtils.isBlank(type.getSql99TypeName())) {
-      reporter
-        .customMessage(this.getClass().getName(), "Could not determine SQL99 type for " + type.getOriginalTypeName(),
-          "Possibility of incomplete type definition");
+      reporter.customMessage(this.getClass().getName(),
+        "Could not determine SQL99 type for " + type.getOriginalTypeName(),
+        "Possibility of incomplete type definition");
     }
 
     if (StringUtils.isBlank(type.getSql2008TypeName())) {
@@ -210,8 +210,8 @@ public abstract class DatatypeImporter {
     int numPrecRadix) throws UnknownTypeException;
 
   /**
-   * Gets the UnsupportedDataType. This data type is a placeholder for
-   * unsupported data types
+   * Gets the UnsupportedDataType. This data type is a placeholder for unsupported
+   * data types
    *
    * @param dataType
    * @param typeName

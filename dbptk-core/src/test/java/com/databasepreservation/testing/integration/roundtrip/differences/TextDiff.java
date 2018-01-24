@@ -69,9 +69,9 @@ public class TextDiff {
    * Unescape selected chars for compatability with JavaScript's encodeURI. In
    * speed critical applications this could be dropped since the receiving
    * application will certainly decode these fine. Note that this function is
-   * case-sensitive. Thus "%3f" would not be unescaped. But this is ok because
-   * it is only called with the output of URLEncoder.encode which returns
-   * uppercase hex.
+   * case-sensitive. Thus "%3f" would not be unescaped. But this is ok because it
+   * is only called with the output of URLEncoder.encode which returns uppercase
+   * hex.
    * <p>
    * Example: "%3F" -> "?", "%24" -> "$", etc.
    *
@@ -88,8 +88,8 @@ public class TextDiff {
 
   /**
    * Find the differences between two texts. Run a faster, slightly less optimal
-   * diff. This method allows the 'checklines' of diff_main() to be optional.
-   * Most of the time checklines is wanted, so default to true.
+   * diff. This method allows the 'checklines' of diff_main() to be optional. Most
+   * of the time checklines is wanted, so default to true.
    *
    * @param text1
    *          Old string to be diffed.
@@ -110,8 +110,8 @@ public class TextDiff {
    *          New string to be diffed.
    * @param checklines
    *          Speedup flag. If false, then don't run a line-level diff first to
-   *          identify the changed areas. If true, then run a faster slightly
-   *          less optimal diff.
+   *          identify the changed areas. If true, then run a faster slightly less
+   *          optimal diff.
    * @return Linked List of Diff objects.
    */
   public LinkedList<Diff> diff_main(String text1, String text2, boolean checklines) {
@@ -135,8 +135,8 @@ public class TextDiff {
    *          New string to be diffed.
    * @param checklines
    *          Speedup flag. If false, then don't run a line-level diff first to
-   *          identify the changed areas. If true, then run a faster slightly
-   *          less optimal diff.
+   *          identify the changed areas. If true, then run a faster slightly less
+   *          optimal diff.
    * @param deadline
    *          Time when the diff should be complete by. Used internally for
    *          recursive calls. Users should set DiffTimeout instead.
@@ -195,8 +195,8 @@ public class TextDiff {
    *          New string to be diffed.
    * @param checklines
    *          Speedup flag. If false, then don't run a line-level diff first to
-   *          identify the changed areas. If true, then run a faster slightly
-   *          less optimal diff.
+   *          identify the changed areas. If true, then run a faster slightly less
+   *          optimal diff.
    * @param deadline
    *          Time when the diff should be complete by.
    * @return Linked List of Diff objects.
@@ -263,8 +263,8 @@ public class TextDiff {
   }
 
   /**
-   * Do a quick line-level diff on both strings, then rediff the parts for
-   * greater accuracy. This speedup can produce non-minimal diffs.
+   * Do a quick line-level diff on both strings, then rediff the parts for greater
+   * accuracy. This speedup can produce non-minimal diffs.
    *
    * @param text1
    *          Old string to be diffed.
@@ -671,9 +671,9 @@ public class TextDiff {
    *          First string.
    * @param text2
    *          Second string.
-   * @return Five element String array, containing the prefix of text1, the
-   *         suffix of text1, the prefix of text2, the suffix of text2 and the
-   *         common middle. Or null if there was no match.
+   * @return Five element String array, containing the prefix of text1, the suffix
+   *         of text1, the prefix of text2, the suffix of text2 and the common
+   *         middle. Or null if there was no match.
    */
   protected String[] diff_halfMatch(String text1, String text2) {
     if (Diff_Timeout <= 0) {
@@ -723,8 +723,8 @@ public class TextDiff {
    * @param i
    *          Start index of quarter length substring within longtext.
    * @return Five element String array, containing the prefix of longtext, the
-   *         suffix of longtext, the prefix of shorttext, the suffix of
-   *         shorttext and the common middle. Or null if there was no match.
+   *         suffix of longtext, the prefix of shorttext, the suffix of shorttext
+   *         and the common middle. Or null if there was no match.
    */
   private String[] diff_halfMatchI(String longtext, String shorttext, int i) {
     // Start with a 1/4 length substring at position i as a seed.
@@ -988,9 +988,8 @@ public class TextDiff {
   }
 
   /**
-   * Given two strings, compute a score representing whether the internal
-   * boundary falls on logical boundaries. Scores range from 6 (best) to 0
-   * (worst).
+   * Given two strings, compute a score representing whether the internal boundary
+   * falls on logical boundaries. Scores range from 6 (best) to 0 (worst).
    *
    * @param one
    *          First string.
@@ -1089,17 +1088,13 @@ public class TextDiff {
           post_ins = true;
         }
         /*
-         * Five types to be split:
-         * <ins>A</ins><del>B</del>XY<ins>C</ins><del>D</del>
-         * <ins>A</ins>X<ins>C</ins><del>D</del>
-         * <ins>A</ins><del>B</del>X<ins>C</ins>
-         * <ins>A</del>X<ins>C</ins><del>D</del>
-         * <ins>A</ins><del>B</del>X<del>C</del>
+         * Five types to be split: <ins>A</ins><del>B</del>XY<ins>C</ins><del>D</del>
+         * <ins>A</ins>X<ins>C</ins><del>D</del> <ins>A</ins><del>B</del>X<ins>C</ins>
+         * <ins>A</del>X<ins>C</ins><del>D</del> <ins>A</ins><del>B</del>X<del>C</del>
          */
         if (lastequality != null
-          && ((pre_ins && pre_del && post_ins && post_del) || ((lastequality.length() < Diff_EditCost / 2) && ((pre_ins ? 1
-            : 0)
-            + (pre_del ? 1 : 0) + (post_ins ? 1 : 0) + (post_del ? 1 : 0)) == 3))) {
+          && ((pre_ins && pre_del && post_ins && post_del) || ((lastequality.length() < Diff_EditCost / 2)
+            && ((pre_ins ? 1 : 0) + (pre_del ? 1 : 0) + (post_ins ? 1 : 0) + (post_del ? 1 : 0)) == 3))) {
           // System.out.println("Splitting: '" + lastequality + "'");
           // Walk back to offending equality.
           while (thisDiff != equalities.lastElement()) {
@@ -1153,8 +1148,8 @@ public class TextDiff {
   }
 
   /**
-   * Reorder and merge like edit sections. Merge equalities. Any edit section
-   * can move as long as it doesn't cross an equality.
+   * Reorder and merge like edit sections. Merge equalities. Any edit section can
+   * move as long as it doesn't cross an equality.
    *
    * @param diffs
    *          LinkedList of Diff objects.
@@ -1251,8 +1246,8 @@ public class TextDiff {
 
     /*
      * Second pass: look for single edits surrounded on both sides by equalities
-     * which can be shifted sideways to eliminate an equality. e.g:
-     * A<ins>BA</ins>C -> <ins>AB</ins>AC
+     * which can be shifted sideways to eliminate an equality. e.g: A<ins>BA</ins>C
+     * -> <ins>AB</ins>AC
      */
     boolean changes = false;
     // Create a new iterator at the start.
@@ -1355,8 +1350,8 @@ public class TextDiff {
     html.append("<!DOCTYPE html><html><head><title>Diff ").append(dateFormat.format(dNow))
       .append("</title></head><body><h2>").append(header).append("</h2>");
     for (Diff aDiff : diffs) {
-      String text = aDiff.text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        .replace("\n", "&para;<br>");
+      String text = aDiff.text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n",
+        "&para;<br>");
       switch (aDiff.operation) {
         case INSERT:
           html.append("<ins style=\"background:#e6ffe6;\">").append(text).append("</ins>");
@@ -1529,10 +1524,10 @@ public class TextDiff {
   }
 
   /**
-   * Crush the diff into an encoded string which describes the operations
-   * required to transform text1 into text2. E.g. =3\t-2\t+ing -> Keep 3 chars,
-   * delete 2 chars, insert 'ing'. Operations are tab-separated. Inserted text
-   * is escaped using %xx notation.
+   * Crush the diff into an encoded string which describes the operations required
+   * to transform text1 into text2. E.g. =3\t-2\t+ing -> Keep 3 chars, delete 2
+   * chars, insert 'ing'. Operations are tab-separated. Inserted text is escaped
+   * using %xx notation.
    *
    * @param diffs
    *          Array of Diff objects.
@@ -1623,8 +1618,8 @@ public class TextDiff {
           try {
             text = text1.substring(pointer, pointer += n);
           } catch (StringIndexOutOfBoundsException e) {
-            throw new IllegalArgumentException("Delta length (" + pointer + ") larger than source text length ("
-              + text1.length() + ").", e);
+            throw new IllegalArgumentException(
+              "Delta length (" + pointer + ") larger than source text length (" + text1.length() + ").", e);
           }
           if (token.charAt(0) == '=') {
             diffs.add(new Diff(Operation.EQUAL, text));
@@ -1638,8 +1633,8 @@ public class TextDiff {
       }
     }
     if (pointer != text1.length()) {
-      throw new IllegalArgumentException("Delta length (" + pointer + ") smaller than source text length ("
-        + text1.length() + ").");
+      throw new IllegalArgumentException(
+        "Delta length (" + pointer + ") smaller than source text length (" + text1.length() + ").");
     }
     return diffs;
   }
@@ -1647,8 +1642,8 @@ public class TextDiff {
   /**
    * The data structure representing a diff is a Linked list of Diff objects:
    * {Diff(Operation.DELETE, "Hello"), Diff(Operation.INSERT, "Goodbye"),
-   * Diff(Operation.EQUAL, " world.")} which means: delete "Hello", add
-   * "Goodbye" and keep " world."
+   * Diff(Operation.EQUAL, " world.")} which means: delete "Hello", add "Goodbye"
+   * and keep " world."
    */
   public enum Operation {
     DELETE, INSERT, EQUAL

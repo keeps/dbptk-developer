@@ -98,6 +98,17 @@ public class SchemaStructure {
     return tables;
   }
 
+  public TableStructure getTableById(String tableId) {
+    TableStructure ret = null;
+    for (TableStructure tableStructure : tables) {
+      if (tableStructure.getId().equalsIgnoreCase(tableId)) {
+        ret = tableStructure;
+        break;
+      }
+    }
+    return ret;
+  }
+
   /**
    * @param tables
    *          the tables to set

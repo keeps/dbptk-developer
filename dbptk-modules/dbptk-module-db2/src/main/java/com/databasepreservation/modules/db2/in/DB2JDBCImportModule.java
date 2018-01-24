@@ -37,8 +37,9 @@ public class DB2JDBCImportModule extends JDBCImportModule {
    *          the password of the user to use in connection
    */
   public DB2JDBCImportModule(String hostname, int port, String database, String username, String password) {
-    super("com.ibm.db2.jcc.DB2Driver", "jdbc:db2://" + hostname + ":" + port + "/" + database + ":user=" + username
-      + ";password=" + password + ";", new DB2Helper(), new DB2JDBCDatatypeImporter());
+    super("com.ibm.db2.jcc.DB2Driver",
+      "jdbc:db2://" + hostname + ":" + port + "/" + database + ":user=" + username + ";password=" + password + ";",
+      new DB2Helper(), new DB2JDBCDatatypeImporter());
     dbName = database;
   }
 
@@ -103,8 +104,8 @@ public class DB2JDBCImportModule extends JDBCImportModule {
    * @throws ClassNotFoundException
    */
   // VERIFY Need of custom getForeignKeys
-  protected List<ForeignKey> getForeignKeys(String tableName) throws SQLException, UnknownTypeException,
-    ClassNotFoundException {
+  protected List<ForeignKey> getForeignKeys(String tableName)
+    throws SQLException, UnknownTypeException, ClassNotFoundException {
     List<ForeignKey> foreignKeys = new ArrayList<ForeignKey>();
     if (aliasTables == null) {
       aliasTables = getAliasTables();

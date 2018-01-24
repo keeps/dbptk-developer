@@ -103,7 +103,8 @@ public class SqlServerTest {
     s.execute("EXEC sp_bindefault 'def_phone', 'UDT_phone'");
 
     // This is the code for the rule:
-    s.execute("CREATE RULE rule_phone AS (@phone='UNKNOWN') OR (LEN(@phone)=12 AND ISNUMERIC(LEFT(@phone,3))=1 AND SUBSTRING(@phone,4,1)=' ' AND ISNUMERIC(SUBSTRING(@phone,5,3))=1 AND SUBSTRING(@phone,8,1)='-' AND ISNUMERIC(RIGHT(@phone,4))=1 )");
+    s.execute(
+      "CREATE RULE rule_phone AS (@phone='UNKNOWN') OR (LEN(@phone)=12 AND ISNUMERIC(LEFT(@phone,3))=1 AND SUBSTRING(@phone,4,1)=' ' AND ISNUMERIC(SUBSTRING(@phone,5,3))=1 AND SUBSTRING(@phone,8,1)='-' AND ISNUMERIC(RIGHT(@phone,4))=1 )");
 
     // Binding the rule to the UDT:
     s.execute("EXEC sp_bindrule 'rule_phone', 'UDT_phone'");
@@ -123,8 +124,8 @@ public class SqlServerTest {
   public void testConnection() throws IOException, InterruptedException, SQLException {
     setup();
 
-    Main.internal_main("-i", "microsoft-sql-server", "-is", SERVER_NAME, "-iin", INSTANCE_NAME, "-idb", db_source,
-      "-iu", USERNAME, "-ip", PASSWORD, "-e", "siard-1", "-ef", SIARD_FILE, "-ide");
+    Main.internalMainUsedOnlyByTestClasses("-i", "microsoft-sql-server", "-is", SERVER_NAME, "-iin", INSTANCE_NAME,
+      "-idb", db_source, "-iu", USERNAME, "-ip", PASSWORD, "-e", "siard-1", "-ef", SIARD_FILE, "-ide");
 
   }
 }

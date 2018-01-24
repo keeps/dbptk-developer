@@ -80,16 +80,15 @@ public enum FunctionalDescriptionType {
   AFLEVERET("Afleveret"),
 
   /**
-   * Den eller de kolonner i arkiveringsversionen, som beskriver sagernes
-   * entydige identifikation
+   * Den eller de kolonner i arkiveringsversionen, som beskriver sagernes entydige
+   * identifikation
    * 
    */
   @XmlEnumValue("Sagsidentifikation")
   SAGSIDENTIFIKATION("Sagsidentifikation"),
 
   /**
-   * Den eller de kolonner i arkiveringsversionen, som indeholder sagernes
-   * titler.
+   * Den eller de kolonner i arkiveringsversionen, som indeholder sagernes titler.
    * 
    */
   @XmlEnumValue("Sagstitel")
@@ -120,8 +119,8 @@ public enum FunctionalDescriptionType {
   AFSENDER_MODTAGER("Afsender_modtager"),
 
   /**
-   * Den eller de kolonner i arkiveringsversionen, som indeholder oplysninger,
-   * der uddraget fra en digital signatur
+   * Den eller de kolonner i arkiveringsversionen, som indeholder oplysninger, der
+   * uddraget fra en digital signatur
    * 
    */
   @XmlEnumValue("Digital_signatur")

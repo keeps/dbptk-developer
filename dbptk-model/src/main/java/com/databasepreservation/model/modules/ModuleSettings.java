@@ -28,8 +28,8 @@ public class ModuleSettings {
   }
 
   /**
-   * Set of tables that should be processed. If null is returned all tables
-   * should be processed.
+   * Set of tables that should be processed. If null is returned all tables should
+   * be processed.
    * 
    * @return The set of tables to process, each entry should be a pair like
    *         Pair(schemaName,tableName). Return `null` to process all tables. An

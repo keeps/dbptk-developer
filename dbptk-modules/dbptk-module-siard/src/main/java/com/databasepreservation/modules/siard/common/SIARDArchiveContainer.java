@@ -2,12 +2,15 @@ package com.databasepreservation.modules.siard.common;
 
 import java.nio.file.Path;
 
+import com.databasepreservation.modules.siard.constants.SIARDConstants;
+
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARDArchiveContainer {
   private final Path path;
   private final OutputContainerType type;
+  private SIARDConstants.SiardVersion version;
 
   public SIARDArchiveContainer(Path path, OutputContainerType type) {
     this.path = path;
@@ -20,6 +23,14 @@ public class SIARDArchiveContainer {
 
   public OutputContainerType getType() {
     return type;
+  }
+
+  public SIARDConstants.SiardVersion getVersion() {
+    return version;
+  }
+
+  public void setVersion(SIARDConstants.SiardVersion version) {
+    this.version = version;
   }
 
   @Override

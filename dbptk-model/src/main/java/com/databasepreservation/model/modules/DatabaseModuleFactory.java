@@ -2,6 +2,7 @@ package com.databasepreservation.model.modules;
 
 import java.util.Map;
 
+import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.parameters.Parameter;
@@ -29,11 +30,11 @@ public interface DatabaseModuleFactory extends Plugin {
 
   Parameters getExportModuleParameters() throws UnsupportedModuleException;
 
-  DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
-    LicenseNotAcceptedException;
+  DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
+    throws UnsupportedModuleException, LicenseNotAcceptedException;
 
-  DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
-    LicenseNotAcceptedException;
+  DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
+    throws UnsupportedModuleException, LicenseNotAcceptedException;
 
   class ExceptionBuilder {
     public static UnsupportedModuleException UnsupportedModuleExceptionForImportModule() {

@@ -1,11 +1,10 @@
-package com.databasepreservation.modules.solr;
+package com.databasepreservation.modules.dbvtk;
 
 import java.nio.file.Path;
 import java.util.Set;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Row;
-import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
@@ -20,8 +19,8 @@ import com.databasepreservation.visualization.utils.SolrUtils;
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SolrExportModule implements DatabaseExportModule {
-  private final SolrModuleConfiguration configuration;
+public class DbvtkExportModule implements DatabaseExportModule {
+  private final DbvtkModuleConfiguration configuration;
 
   private final SolrManager solrManager;
 
@@ -39,18 +38,18 @@ public class SolrExportModule implements DatabaseExportModule {
 
   private Reporter reporter;
 
-  public SolrExportModule(String hostname, Integer port, String endpoint, String zookeeperHost, Integer zookeeperPort,
-    Path moduleDirectory) {
-    this(hostname, port, endpoint, zookeeperHost, zookeeperPort, null, moduleDirectory);
+  public DbvtkExportModule(String hostname, Integer port, String endpoint, String zookeeperHost, Integer zookeeperPort,
+    Path lobFolder) {
+    this(hostname, port, endpoint, zookeeperHost, zookeeperPort, null, lobFolder);
   }
 
-  public SolrExportModule(String hostname, Integer port, String endpoint, String zookeeperHost, Integer zookeeperPort,
-    String databaseUUID, Path moduleDirectory) {
+  public DbvtkExportModule(String hostname, Integer port, String endpoint, String zookeeperHost, Integer zookeeperPort,
+    String databaseUUID, Path lobFolder) {
     zookeeperHostAndPort = zookeeperHost + ":" + zookeeperPort;
     String url = "http://" + hostname + ":" + port + "/" + endpoint;
     solrManager = new SolrManager(url);
     preSetDatabaseUUID = databaseUUID;
-    configuration = SolrModuleConfiguration.getInstance(moduleDirectory);
+    configuration = DbvtkModuleConfiguration.getInstance(lobFolder);
   }
 
   /**
@@ -75,8 +74,8 @@ public class SolrExportModule implements DatabaseExportModule {
   }
 
   /**
-   * Set ignored schemas. Ignored schemas won't be exported. This method should
-   * be called before handleStructure. However, if not called it will be assumed
+   * Set ignored schemas. Ignored schemas won't be exported. This method should be
+   * called before handleStructure. However, if not called it will be assumed
    * there are not ignored schemas.
    *
    * @param ignoredSchemas
@@ -97,15 +96,15 @@ public class SolrExportModule implements DatabaseExportModule {
    * @throws UnknownTypeException
    */
   @Override
-  public void handleStructure(DatabaseStructure structure) throws ModuleException, UnknownTypeException {
+  public void handleStructure(DatabaseStructure structure) throws ModuleException {
     this.structure = structure;
     this.viewerDatabase = ToolkitStructure2ViewerStructure.getDatabase(structure, preSetDatabaseUUID);
     solrManager.addDatabase(viewerDatabase);
   }
 
   /**
-   * Prepare to handle the data of a new schema. This method will be called
-   * after handleStructure or handleDataCloseSchema.
+   * Prepare to handle the data of a new schema. This method will be called after
+   * handleStructure or handleDataCloseSchema.
    *
    * @param schemaName
    *          the schema name
@@ -139,12 +138,11 @@ public class SolrExportModule implements DatabaseExportModule {
    *
    * @param row
    *          the table row
-   * @throws InvalidDataException
    * @throws ModuleException
    */
   @Override
-  public void handleDataRow(Row row) throws InvalidDataException, ModuleException {
-    solrManager.addRow(currentTable,
+  public void handleDataRow(Row row) throws ModuleException {
+    solrManager.addRow(viewerDatabase,
       ToolkitStructure2ViewerStructure.getRow(configuration, viewerDatabase.getUUID(), currentTable, row, rowIndex++));
   }
 

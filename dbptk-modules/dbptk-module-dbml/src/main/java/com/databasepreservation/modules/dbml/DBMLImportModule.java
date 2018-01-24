@@ -64,13 +64,12 @@ import com.databasepreservation.utils.JodaUtils;
  */
 public class DBMLImportModule implements DatabaseImportModule {
   /*
-   * Most code in this file is taken from this commit
-   * https://github.com/keeps/db
-   * -preservation-toolkit/tree/c574fde9655e1c44bf36b719dbe0f2eda8687a54 and
-   * some of the methods had their signature changed. This file should be
-   * reviewed to fix some of the DBML features that were implemented but were
-   * ignored due to method signature changes. This is made easier by looking at
-   * the linked commit or its parents.
+   * Most code in this file is taken from this commit https://github.com/keeps/db
+   * -preservation-toolkit/tree/c574fde9655e1c44bf36b719dbe0f2eda8687a54 and some
+   * of the methods had their signature changed. This file should be reviewed to
+   * fix some of the DBML features that were implemented but were ignored due to
+   * method signature changes. This is made easier by looking at the linked commit
+   * or its parents.
    */
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DBMLImportModule.class);
@@ -120,12 +119,7 @@ public class DBMLImportModule implements DatabaseImportModule {
     this.dbmlFilePath = dbmlFilePath;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.databasepreservation.Import.DatabaseImportModule#getDatabase ()
-   */
-  public void getDatabase(DatabaseExportModule databaseExportModule) throws UnknownTypeException, ModuleException {
+  public DatabaseExportModule migrateDatabaseTo(DatabaseExportModule databaseExportModule) throws ModuleException {
     this.binLookup = new DBMLBinaryLookup() {
       @Override
       public InputStream getBinary(final String id) throws ModuleException {
@@ -154,19 +148,18 @@ public class DBMLImportModule implements DatabaseImportModule {
 
     DBMLSAXHandler dbmlSAXHandler = new DBMLSAXHandler(binLookup, databaseExportModule);
     try {
-      LOGGER.debug("Init Database");
       databaseExportModule.initDatabase();
       saxParser.parse(dbml, dbmlSAXHandler);
       if (dbmlSAXHandler.getErrors().size() > 0) {
         throw new ModuleException(dbmlSAXHandler.getErrors());
       }
-      LOGGER.debug("Finish Database");
       databaseExportModule.finishDatabase();
     } catch (SAXException e) {
       throw new ModuleException("Error parsing DBML", e);
     } catch (IOException e) {
       throw new ModuleException("Error reading DBML", e);
     }
+    return null;
   }
 
   /**
@@ -235,8 +228,7 @@ public class DBMLImportModule implements DatabaseImportModule {
      * The DBML Sax handler constructor
      * 
      * @param binLookup
-     *          the interface to lookup binary inputstreams referenced by the
-     *          DBML
+     *          the interface to lookup binary inputstreams referenced by the DBML
      * @param databaseExportModule
      */
     public DBMLSAXHandler(DBMLBinaryLookup binLookup, DatabaseExportModule databaseExportModule) {
@@ -274,11 +266,11 @@ public class DBMLImportModule implements DatabaseImportModule {
     }
 
     /**
-     * Get all the errors that occured while parsing the DBML file and sending
-     * to the database handler
+     * Get all the errors that occured while parsing the DBML file and sending to
+     * the database handler
      * 
-     * @return A map of errors, where the key is the errors message and the
-     *         value is the exception or null if there was no exception
+     * @return A map of errors, where the key is the errors message and the value is
+     *         the exception or null if there was no exception
      */
     public Map<String, Throwable> getErrors() {
       return errors;
@@ -477,8 +469,6 @@ public class DBMLImportModule implements DatabaseImportModule {
         } catch (ModuleException e) {
           errors.put("Error handling structure", e);
 
-        } catch (UnknownTypeException e) {
-          errors.put("Error handling structure", e);
         }
       } else if (qname.equals("table")) {
         currentTableStructure = null;
@@ -515,7 +505,7 @@ public class DBMLImportModule implements DatabaseImportModule {
         }
       } else if (qname.equals("tableData")) {
         try {
-          structure.lookupTableStructure(currentTableDataId).setRows(rowsCount);
+          structure.getTableById(currentTableDataId).setRows(rowsCount);
           databaseExportModule.handleDataCloseTable(currentTableDataId);
         } catch (ModuleException e) {
           errors.put("Error closing table", null);
@@ -624,8 +614,9 @@ public class DBMLImportModule implements DatabaseImportModule {
       }
 
       if (!attr.getValue("schemaVersion").equals(SCHEMA_VERSION)) {
-        errors.put("Schema version is different from the supported " + attr.getValue("schemaVersion") + "!="
-          + SCHEMA_VERSION, null);
+        errors.put(
+          "Schema version is different from the supported " + attr.getValue("schemaVersion") + "!=" + SCHEMA_VERSION,
+          null);
       }
     }
 
@@ -670,8 +661,8 @@ public class DBMLImportModule implements DatabaseImportModule {
     private Type createType(String qname, Attributes attr) {
       Type type = null;
       if (qname.equals("simpleTypeString")) {
-        type = new SimpleTypeString(parseInteger(attr.getValue("length")),
-          parseBoolean(attr.getValue("variableLegth")), attr.getValue("charSet"));
+        type = new SimpleTypeString(parseInteger(attr.getValue("length")), parseBoolean(attr.getValue("variableLegth")),
+          attr.getValue("charSet"));
       } else if (qname.equals("simpleTypeNumericExact")) {
         type = new SimpleTypeNumericExact(parseInteger(attr.getValue("precision")),
           parseInteger(attr.getValue("scale")));
@@ -812,8 +803,8 @@ public class DBMLImportModule implements DatabaseImportModule {
 
   /**
    * The (old) DBML module was changing the value of the SimpleCell, which is no
-   * longer allowed, so a new class was created to allow it until this module
-   * can be refactored.
+   * longer allowed, so a new class was created to allow it until this module can
+   * be refactored.
    */
   private static class CustomSimpleCell extends SimpleCell {
     private String simpleData;

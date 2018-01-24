@@ -1,10 +1,7 @@
 package com.databasepreservation.modules.siard.in.input;
 
-import com.databasepreservation.common.ObservableModule;
 import com.databasepreservation.model.Reporter;
-import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.ModuleSettings;
@@ -17,7 +14,7 @@ import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SIARDImportDefault extends ObservableModule implements DatabaseImportModule {
+public class SIARDImportDefault implements DatabaseImportModule {
   private final ReadStrategy readStrategy;
   private final SIARDArchiveContainer mainContainer;
   private final ContentImportStrategy contentStrategy;
@@ -34,12 +31,10 @@ public class SIARDImportDefault extends ObservableModule implements DatabaseImpo
   }
 
   @Override
-  public void getDatabase(DatabaseExportModule handler) throws ModuleException, UnknownTypeException,
-    InvalidDataException {
+  public DatabaseExportModule migrateDatabaseTo(DatabaseExportModule handler) throws ModuleException {
     moduleSettings = handler.getModuleSettings();
     readStrategy.setup(mainContainer);
     handler.initDatabase();
-    notifyOpenDatabase();
     try {
       metadataStrategy.loadMetadata(readStrategy, mainContainer, moduleSettings);
 
@@ -48,15 +43,14 @@ public class SIARDImportDefault extends ObservableModule implements DatabaseImpo
       // handler.setIgnoredSchemas(null);
 
       handler.handleStructure(dbStructure);
-      notifyStructureObtained(dbStructure);
 
-      contentStrategy.importContent(handler, mainContainer, dbStructure, moduleSettings, (ObservableModule) this);
+      contentStrategy.importContent(handler, mainContainer, dbStructure, moduleSettings);
 
-      notifyCloseDatabase(dbStructure);
       handler.finishDatabase();
     } finally {
       readStrategy.finish(mainContainer);
     }
+    return null;
   }
 
   /**

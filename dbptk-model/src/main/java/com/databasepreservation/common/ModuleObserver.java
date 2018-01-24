@@ -1,5 +1,6 @@
 package com.databasepreservation.common;
 
+import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
@@ -20,11 +21,10 @@ public interface ModuleObserver {
   void notifyOpenTable(DatabaseStructure structure, TableStructure table, long completedSchemas,
     long completedTablesInSchema);
 
-  /**
-   * Notify about progress in converting a table. Delta between 2 reports may be
-   * more than a single row.
-   */
-  void notifyTableProgress(DatabaseStructure structure, TableStructure table, long completedRows, long totalRows);
+  void notifyTableProgressSparse(DatabaseStructure structure, TableStructure table, long completedRows, long totalRows);
+
+  void notifyTableProgressDetailed(DatabaseStructure structure, TableStructure table, Row row, long completedRows,
+    long totalRows);
 
   void notifyCloseTable(DatabaseStructure structure, TableStructure table, long completedSchemas,
     long completedTablesInSchema);

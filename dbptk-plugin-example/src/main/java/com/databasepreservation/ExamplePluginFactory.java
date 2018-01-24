@@ -63,7 +63,7 @@ public class ExamplePluginFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters)
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
     throws OperationNotSupportedException {
     String pText = parameters.get(text);
 
@@ -77,7 +77,7 @@ public class ExamplePluginFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters)
+  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
     throws OperationNotSupportedException {
     String pText = parameters.get(text);
     return new ExampleExportModule(pText);

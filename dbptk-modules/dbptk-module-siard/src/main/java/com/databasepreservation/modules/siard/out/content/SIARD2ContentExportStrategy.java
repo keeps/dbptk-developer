@@ -168,8 +168,8 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     this.reporter = reporter;
   }
 
-  private void writeComposedCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException,
-    IOException {
+  private void writeComposedCell(Cell cell, ColumnStructure column, int columnIndex)
+    throws ModuleException, IOException {
 
     ComposedCell composedCell = (ComposedCell) cell;
 
@@ -227,8 +227,8 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     writeNullCellData(nullCell, columnIndex);
   }
 
-  protected void writeSimpleCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException,
-    IOException {
+  protected void writeSimpleCell(Cell cell, ColumnStructure column, int columnIndex)
+    throws ModuleException, IOException {
     SimpleCell simpleCell = (SimpleCell) cell;
 
     if (Sql2008toXSDType.isLargeType(column.getType(), reporter)
@@ -239,8 +239,8 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     }
   }
 
-  protected void writeBinaryCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException,
-    IOException {
+  protected void writeBinaryCell(Cell cell, ColumnStructure column, int columnIndex)
+    throws ModuleException, IOException {
     BinaryCell binaryCell = (BinaryCell) cell;
 
     long length = binaryCell.getSize();
@@ -300,8 +300,8 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       }
 
       ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
-      lob = new LargeObject(new TemporaryPathInputStreamProvider(inputStream), contentPathStrategy.getClobFilePath(
-        currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
+      lob = new LargeObject(new TemporaryPathInputStreamProvider(inputStream), contentPathStrategy
+        .getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
 
       currentWriter.beginOpenTag("c" + columnIndex, 2).space().append("file=\"")
         .append(contentPathStrategy.getClobFileName(currentRowIndex + 1)).append('"').space().append("length=\"")
@@ -319,21 +319,15 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   }
 
   private void writeXmlOpenTable() throws IOException {
-    currentWriter
-      .append("<?xml version=\"1.0\" encoding=\"")
-      .append(ENCODING)
-      .append("\"?>")
-      .newline()
+    currentWriter.append("<?xml version=\"1.0\" encoding=\"").append(ENCODING).append("\"?>").newline()
 
       .beginOpenTag("table", 0)
 
-      .appendAttribute(
-        "xsi:schemaLocation",
+      .appendAttribute("xsi:schemaLocation",
         contentPathStrategy.getTableXsdNamespace("http://www.admin.ch/xmlns/siard/2.0/", currentSchema.getIndex(),
           currentTable.getIndex()) + " " + contentPathStrategy.getTableXsdFileName(currentTable.getIndex()))
 
-      .appendAttribute(
-        "xmlns",
+      .appendAttribute("xmlns",
         contentPathStrategy.getTableXsdNamespace("http://www.admin.ch/xmlns/siard/2.0/", currentSchema.getIndex(),
           currentTable.getIndex()))
 
@@ -372,17 +366,12 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
     xsdWriter
       // ?xml tag
-      .append("<?xml version=\"1.0\" encoding=\"")
-      .append(ENCODING)
-      .append("\" standalone=\"no\"?>")
-      .newline()
+      .append("<?xml version=\"1.0\" encoding=\"").append(ENCODING).append("\" standalone=\"no\"?>").newline()
 
       // xs:schema tag
-      .beginOpenTag("xs:schema", 0)
-      .appendAttribute("xmlns:xs", "http://www.w3.org/2001/XMLSchema")
+      .beginOpenTag("xs:schema", 0).appendAttribute("xmlns:xs", "http://www.w3.org/2001/XMLSchema")
 
-      .appendAttribute(
-        "xmlns",
+      .appendAttribute("xmlns",
         contentPathStrategy.getTableXsdNamespace("http://www.admin.ch/xmlns/siard/2.0/", currentSchema.getIndex(),
           currentTable.getIndex()))
 
@@ -390,8 +379,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
       .appendAttribute("elementFormDefault", "qualified")
 
-      .appendAttribute(
-        "targetNamespace",
+      .appendAttribute("targetNamespace",
         contentPathStrategy.getTableXsdNamespace("http://www.admin.ch/xmlns/siard/2.0/", currentSchema.getIndex(),
           currentTable.getIndex()))
 
@@ -481,15 +469,13 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
           xsdWriter.appendAttribute("name", "c" + columnIndex).appendAttribute("type", xsdType).endShorthandTag();
         } catch (ModuleException e) {
           LOGGER.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
-        } catch (UnknownTypeException e) {
-          LOGGER.error(String.format("An error occurred while getting the XSD type of column c%d", columnIndex), e);
         }
       }
       columnIndex++;
     }
 
     xsdWriter
-    // close tags for xs:sequence and xs:complexType
+      // close tags for xs:sequence and xs:complexType
       .closeTag("xs:sequence", 2)
 
       .closeTag("xs:complexType", 1);
@@ -497,9 +483,9 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     // xs:complexType name="clobType"
     xsdWriter.beginOpenTag("xs:complexType", 1).appendAttribute("name", "clobType").endOpenTag()
 
-    .openTag("xs:annotation", 2)
+      .openTag("xs:annotation", 2)
 
-    .inlineOpenTag("xs:documentation", 3).append("Type to refer CLOB types. Either inline or in a separate file.")
+      .inlineOpenTag("xs:documentation", 3).append("Type to refer CLOB types. Either inline or in a separate file.")
       .closeTag("xs:documentation")
 
       .closeTag("xs:annotation", 2)
@@ -526,9 +512,9 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     // xs:complexType name="blobType"
     xsdWriter.beginOpenTag("xs:complexType", 1).appendAttribute("name", "blobType").endOpenTag()
 
-    .openTag("xs:annotation", 2)
+      .openTag("xs:annotation", 2)
 
-    .inlineOpenTag("xs:documentation", 3).append("Type to refer BLOB types. Either inline or in a separate file.")
+      .inlineOpenTag("xs:documentation", 3).append("Type to refer BLOB types. Either inline or in a separate file.")
       .closeTag("xs:documentation")
 
       .closeTag("xs:annotation", 2)
@@ -555,9 +541,9 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     // xs:simpleType name="dateType"
     xsdWriter.beginOpenTag("xs:simpleType", 1).appendAttribute("name", "dateType").endOpenTag()
 
-    .openTag("xs:annotation", 2)
+      .openTag("xs:annotation", 2)
 
-    .inlineOpenTag("xs:documentation", 3)
+      .inlineOpenTag("xs:documentation", 3)
       .append("dateType restricts xs:date to dates between 0001 and 9999 and is in UTC (no +/- but an optional Z)")
       .closeTag("xs:documentation")
 
@@ -578,9 +564,9 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     // xs:simpleType name="timeType"
     xsdWriter.beginOpenTag("xs:simpleType", 1).appendAttribute("name", "timeType").endOpenTag()
 
-    .openTag("xs:annotation", 2)
+      .openTag("xs:annotation", 2)
 
-    .inlineOpenTag("xs:documentation", 3)
+      .inlineOpenTag("xs:documentation", 3)
       .append("timeType restricts xs:date to dates between 0001 and 9999 and is in UTC (no +/- but an optional Z)")
       .closeTag("xs:documentation")
 
@@ -595,10 +581,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       .closeTag("xs:simpleType", 1);
 
     // xs:simpleType name="dateTimeType"
-    xsdWriter
-      .beginOpenTag("xs:simpleType", 1)
-      .appendAttribute("name", "dateTimeType")
-      .endOpenTag()
+    xsdWriter.beginOpenTag("xs:simpleType", 1).appendAttribute("name", "dateTimeType").endOpenTag()
 
       .openTag("xs:annotation", 2)
 

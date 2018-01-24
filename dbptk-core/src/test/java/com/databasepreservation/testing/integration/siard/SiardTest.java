@@ -94,8 +94,8 @@ public class SiardTest {
   }
 
   /**
-   * Sends a database structure through SIARD exporter and importer, then
-   * verifies that the new database has the same data as the original.
+   * Sends a database structure through SIARD exporter and importer, then verifies
+   * that the new database has the same data as the original.
    *
    * @throws ModuleException
    * @throws IOException
@@ -103,8 +103,8 @@ public class SiardTest {
    * @throws InvalidDataException
    */
   @Test(dataProvider = "siardVersionsProvider")
-  public void SIARD_Roundtrip(SIARDVersion version) throws ModuleException, IOException, UnknownTypeException,
-    InvalidDataException {
+  public void SIARD_Roundtrip(SIARDVersion version)
+    throws ModuleException, IOException, UnknownTypeException, InvalidDataException {
     Path tmpFile = Files.createTempFile("roundtripSIARD_", ".zip");
     // Path tmpFile = Files.createTempDirectory("roundtripSIARD_");
 
@@ -154,11 +154,11 @@ public class SiardTest {
    */
   protected DatabaseStructure generateDatabaseStructure() throws ModuleException, IOException {
     /*
-     * covered: - all lists (schemas, tables, columns, rows, routines,
-     * parameters, views, etc) have more than one element - more than one table
-     * per schema - more than one column per table - tables with and without
-     * rows - users, roles and privileges - most parameters are different so if
-     * anything is swapped the test fails
+     * covered: - all lists (schemas, tables, columns, rows, routines, parameters,
+     * views, etc) have more than one element - more than one table per schema -
+     * more than one column per table - tables with and without rows - users, roles
+     * and privileges - most parameters are different so if anything is swapped the
+     * test fails
      */
 
     // create lists
@@ -175,8 +175,8 @@ public class SiardTest {
       false, "it's the key", "1", true));
     columns_table11.add(new ColumnStructure("schema01.table01.col112", "col112", new SimpleTypeBoolean(), true,
       "just a boolean", "1", false));
-    columns_table11.add(new ColumnStructure("schema01.table01.col113", "col113", new SimpleTypeNumericExact(5, 2),
-      true, "precision 5, scale 2", "60", false));
+    columns_table11.add(new ColumnStructure("schema01.table01.col113", "col113", new SimpleTypeNumericExact(5, 2), true,
+      "precision 5, scale 2", "60", false));
 
     columns_table11.get(0).getType().setOriginalTypeName("int", 10, 0);
     columns_table11.get(0).getType().setSql99TypeName("INTEGER");
@@ -200,8 +200,8 @@ public class SiardTest {
       true, "it's the key from the first table", null, false));
     columns_table12.add(new ColumnStructure("schema01.table02.col123", "col123", new SimpleTypeString(250, true), true,
       "just a 1string", "yey1", false));
-    columns_table12.add(new ColumnStructure("schema01.table02.col124", "col124", new SimpleTypeString(230, false),
-      true, "just a 2string", "yey2", false));
+    columns_table12.add(new ColumnStructure("schema01.table02.col124", "col124", new SimpleTypeString(230, false), true,
+      "just a 2string", "yey2", false));
     columns_table12.add(new ColumnStructure("schema01.table02.col125", "col125", new SimpleTypeBinary(), false,
       "this one will be big", null, false));
     // columns_table12.add(new ColumnStructure("schema01.table02.col126",
@@ -257,8 +257,8 @@ public class SiardTest {
       false, "zit's the key", "1", true));
     columns_table21.add(new ColumnStructure("schema02.table01.col212", "col212", new SimpleTypeBoolean(), true,
       "zjust a boolean", "1", false));
-    columns_table21.add(new ColumnStructure("schema02.table01.col213", "col213", new SimpleTypeNumericExact(5, 2),
-      true, "zprecision 5, scale 2", "0", false));
+    columns_table21.add(new ColumnStructure("schema02.table01.col213", "col213", new SimpleTypeNumericExact(5, 2), true,
+      "zprecision 5, scale 2", "0", false));
 
     columns_table21.get(0).getType().setOriginalTypeName("int", 10, 0);
     columns_table21.get(0).getType().setSql99TypeName("INTEGER");
@@ -282,8 +282,8 @@ public class SiardTest {
       true, "it's zthe key from the first table", null, false));
     columns_table22.add(new ColumnStructure("schema02.table02.col223", "col223", new SimpleTypeString(250, true), true,
       "just za 1string", "yey1", false));
-    columns_table22.add(new ColumnStructure("schema02.table02.col224", "col224", new SimpleTypeString(230, false),
-      true, "just za 2string", "yey2", false));
+    columns_table22.add(new ColumnStructure("schema02.table02.col224", "col224", new SimpleTypeString(230, false), true,
+      "just za 2string", "yey2", false));
 
     columns_table22.get(0).getType().setOriginalTypeName("int", 10, 0);
     columns_table22.get(0).getType().setSql99TypeName("INTEGER");
@@ -314,8 +314,8 @@ public class SiardTest {
     columns_table22.get(3).getType().setDescription("col224 description");
 
     // TODO: remove this to allow autoincrement to be set correctly
-    for (List<ColumnStructure> table : Arrays
-      .asList(columns_table11, columns_table12, columns_table21, columns_table22)) {
+    for (List<ColumnStructure> table : Arrays.asList(columns_table11, columns_table12, columns_table21,
+      columns_table22)) {
       for (ColumnStructure column : table) {
         column.setIsAutoIncrement(null);
         column.getType().setDescription(null);
@@ -329,9 +329,11 @@ public class SiardTest {
         new CandidateKey("candidate01", "1st candidate key for first table", Arrays.asList("col111", "col113")),
         new CandidateKey("candidate02", "2st candidate key for first table", Arrays.asList("col111", "col112"))),
       Arrays.asList(new CheckConstraint("constraint01", "1st constraint condition", "1st constraint description"),
-        new CheckConstraint("constraint02", "2st constraint condition", "2st constraint description")), Arrays.asList(
+        new CheckConstraint("constraint02", "2st constraint condition", "2st constraint description")),
+      Arrays.asList(
         new Trigger("trigger01", "BEFORE", "triggerEvent01", "aliasList01", "triggeredAction01", "description01"),
-        new Trigger("trigger02", "AFTER", "triggerEvent02", "aliasList02", "triggeredAction02", "description02")), 3);
+        new Trigger("trigger02", "AFTER", "triggerEvent02", "aliasList02", "triggeredAction02", "description02")),
+      3);
     table01.setIndex(1);
     table01.setCurrentRow(1);
     tables.add(table01);
@@ -339,16 +341,16 @@ public class SiardTest {
     // create second table
     TableStructure table02 = new TableStructure("schema01.table02", "table02", "the second table", columns_table12,
       Arrays.asList(
-        new ForeignKey("schema01.table02.fk01", "fk01", "schema01", "table01", Arrays.asList(new Reference("col122",
-          "col111"), new Reference("col_122", "col_111")), "FULL", "1st deleteAction", "1st updateAction",
-          "1st description"),
-        new ForeignKey("schema01.table02.fk02", "fk02", "schema01", "table01", Arrays.asList(new Reference("col122",
-          "col111"), new Reference("col_122", "col_111")), "PARTIAL", "1st deleteAction", "1st updateAction",
-          "1st description"),
-        new ForeignKey("schema01.table02.fk03", "fk03", "schema01", "table01", Arrays.asList(new Reference("col122",
-          "col111"), new Reference("col_122", "col_111")), "SIMPLE", "1st deleteAction", "1st updateAction",
-          "1st description")), null, new ArrayList<CandidateKey>(), new ArrayList<CheckConstraint>(),
-      new ArrayList<Trigger>(), 3);
+        new ForeignKey("schema01.table02.fk01", "fk01", "schema01", "table01",
+          Arrays.asList(new Reference("col122", "col111"), new Reference("col_122", "col_111")), "FULL",
+          "1st deleteAction", "1st updateAction", "1st description"),
+        new ForeignKey("schema01.table02.fk02", "fk02", "schema01", "table01",
+          Arrays.asList(new Reference("col122", "col111"), new Reference("col_122", "col_111")), "PARTIAL",
+          "1st deleteAction", "1st updateAction", "1st description"),
+        new ForeignKey("schema01.table02.fk03", "fk03", "schema01", "table01",
+          Arrays.asList(new Reference("col122", "col111"), new Reference("col_122", "col_111")), "SIMPLE",
+          "1st deleteAction", "1st updateAction", "1st description")),
+      null, new ArrayList<CandidateKey>(), new ArrayList<CheckConstraint>(), new ArrayList<Trigger>(), 3);
     table02.setIndex(2);
     table02.setCurrentRow(1);
     tables.add(table02);
@@ -411,14 +413,12 @@ public class SiardTest {
                                                                                           // param02
 
     // create schemas with tables, views and routines
-    schemas
-      .add(new SchemaStructure("schema01", "the first schema", 1,
-        Arrays.asList(table01, table02),
-        new ArrayList<ViewStructure>(),// TODO: Arrays.asList(view01, view02),
-        new ArrayList<RoutineStructure>(), new ArrayList<ComposedTypeStructure>(),
-        new ArrayList<ComposedTypeDistinct>()));// TODO:
-                                                // Arrays.asList(routine01,
-                                                // routine02)));
+    schemas.add(new SchemaStructure("schema01", "the first schema", 1, Arrays.asList(table01, table02),
+      new ArrayList<ViewStructure>(), // TODO: Arrays.asList(view01, view02),
+      new ArrayList<RoutineStructure>(), new ArrayList<ComposedTypeStructure>(),
+      new ArrayList<ComposedTypeDistinct>()));// TODO:
+                                              // Arrays.asList(routine01,
+                                              // routine02)));
     schemas.add(new SchemaStructure("schema02", "the second schema", 2, Arrays.asList(table03, table04),
       new ArrayList<ViewStructure>(), new ArrayList<RoutineStructure>(), new ArrayList<ComposedTypeStructure>(),
       new ArrayList<ComposedTypeDistinct>()));
@@ -478,30 +478,37 @@ public class SiardTest {
       null, // Boolean supportsCoreSQLGrammar
       schemas, // List<SchemaStructure> schemas
       users, // List<UserStructure> users
-      new ArrayList<RoleStructure>(),// roles, // TODO: List<RoleStructure>
-                                     // roles
+      new ArrayList<RoleStructure>(), // roles, // TODO: List<RoleStructure>
+                                      // roles
       new ArrayList<PrivilegeStructure>()// privileges // TODO:
                                          // List<PrivilegeStructure> privileges
     );
 
     tableRows = new HashMap<String, List<Row>>();
-    tableRows.put("schema01.table01", Arrays.asList(
-      new Row(1, Arrays.asList((Cell) new SimpleCell("table01.col111.0", "1"), (Cell) new SimpleCell(
-        "table01.col112.0", "1"), (Cell) new SimpleCell("table01.col113.0", "123.45"))),
-      new Row(2, Arrays.asList((Cell) new SimpleCell("table01.col111.1", "2"), (Cell) new SimpleCell(
-        "table01.col112.1", "0"), (Cell) new SimpleCell("table01.col113.1", "133.45"))),
-      new Row(3, Arrays.asList((Cell) new SimpleCell("table01.col111.2", "3"), (Cell) new SimpleCell(
-        "table01.col112.2", "1"), (Cell) new SimpleCell("table01.col113.2", "126.45")))));
-    tableRows.put("schema01.table02", Arrays.asList(
-      new Row(1, Arrays.asList(new SimpleCell("table02.col121.0", "1"), new SimpleCell("table02.col122.0", "3"),
-        new SimpleCell("table02.col123.0", "abc"), new SimpleCell("table02.col124.0", "def"), new BinaryCell(
-          "table02.col125.0", newBlob()))),
-      new Row(2, Arrays.asList(new SimpleCell("table02.col121.1", "2"), new SimpleCell("table02.col122.1", "1"),
-        new SimpleCell("table02.col123.1", "dns"), new SimpleCell("table02.col124.1", "dud"), new BinaryCell(
-          "table02.col125.1", newBlob()))),
-      new Row(3, Arrays.asList(new SimpleCell("table02.col121.2", "3"), new SimpleCell("table02.col122.2", "2"),
-        new SimpleCell("table02.col123.2", "usl"), new SimpleCell("table02.col124.2", "aps"), new BinaryCell(
-          "table02.col125.2", newBlob())))));
+    tableRows.put("schema01.table01",
+      Arrays.asList(
+        new Row(1,
+          Arrays.asList((Cell) new SimpleCell("table01.col111.0", "1"), (Cell) new SimpleCell("table01.col112.0", "1"),
+            (Cell) new SimpleCell("table01.col113.0", "123.45"))),
+        new Row(2,
+          Arrays.asList((Cell) new SimpleCell("table01.col111.1", "2"), (Cell) new SimpleCell("table01.col112.1", "0"),
+            (Cell) new SimpleCell("table01.col113.1", "133.45"))),
+        new Row(3, Arrays.asList((Cell) new SimpleCell("table01.col111.2", "3"),
+          (Cell) new SimpleCell("table01.col112.2", "1"), (Cell) new SimpleCell("table01.col113.2", "126.45")))));
+    tableRows.put("schema01.table02",
+      Arrays.asList(
+        new Row(1,
+          Arrays.asList(new SimpleCell("table02.col121.0", "1"), new SimpleCell("table02.col122.0", "3"),
+            new SimpleCell("table02.col123.0", "abc"), new SimpleCell("table02.col124.0", "def"),
+            new BinaryCell("table02.col125.0", newBlob()))),
+        new Row(2,
+          Arrays.asList(new SimpleCell("table02.col121.1", "2"), new SimpleCell("table02.col122.1", "1"),
+            new SimpleCell("table02.col123.1", "dns"), new SimpleCell("table02.col124.1", "dud"),
+            new BinaryCell("table02.col125.1", newBlob()))),
+        new Row(3,
+          Arrays.asList(new SimpleCell("table02.col121.2", "3"), new SimpleCell("table02.col122.2", "2"),
+            new SimpleCell("table02.col123.2", "usl"), new SimpleCell("table02.col124.2", "aps"),
+            new BinaryCell("table02.col125.2", newBlob())))));
     tableRows.put("schema02.table01", new ArrayList<Row>());
     tableRows.put("schema02.table02", new ArrayList<Row>());
 
@@ -554,9 +561,9 @@ public class SiardTest {
         break;
       case SIARD_DK:
         Map<String, String> exportModuleArgs = new HashMap<String, String>();
-        exportModuleArgs.put(SIARDDKModuleFactory.folder.longName(), tmpFile.toString());
-        exportModuleArgs.put("lobs-per-folder", "10000");
-        exportModuleArgs.put("lobs-folder-size", "1000");
+        exportModuleArgs.put(SIARDDKModuleFactory.PARAMETER_FOLDER, tmpFile.toString());
+        exportModuleArgs.put(SIARDDKModuleFactory.PARAMETER_LOBS_PER_FOLDER, "10000");
+        exportModuleArgs.put(SIARDDKModuleFactory.PARAMETER_LOBS_FOLDER_SIZE, "1000");
         exporter = new SIARDDKExportModule(exportModuleArgs, null).getDatabaseExportModule();
         break;
     }
@@ -620,7 +627,7 @@ public class SiardTest {
     importer.setOnceReporter(mockReporter);
 
     ArgumentCaptor<DatabaseStructure> dbStructureCaptor = ArgumentCaptor.forClass(DatabaseStructure.class);
-    importer.getDatabase(mocked);
+    importer.migrateDatabaseTo(mocked);
     Mockito.verify(mocked).handleStructure(dbStructureCaptor.capture());
     return dbStructureCaptor.getValue();
   }

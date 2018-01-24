@@ -46,8 +46,8 @@ public class PathInputStreamProvider implements InputStreamProvider {
   /**
    * Create a new input stream to read data
    * <p>
-   * Contract: The stream must be closed elsewhere. It is not closed
-   * automatically in any way, not even by cleanResources
+   * Contract: The stream must be closed elsewhere. It is not closed automatically
+   * in any way, not even by cleanResources
    *
    * @return the new input stream
    * @throws ModuleException

@@ -10,14 +10,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.cli.CLI;
+import com.databasepreservation.model.NoOpReporter;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.exception.UnknownTypeException;
-import com.databasepreservation.model.modules.DatabaseExportModule;
-import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.filters.ObservableFilter;
+import com.databasepreservation.model.modules.filters.ProgressLoggerObserver;
 import com.databasepreservation.modules.dbml.DBMLModuleFactory;
+import com.databasepreservation.modules.dbvtk.DbvtkModuleFactory;
 import com.databasepreservation.modules.jdbc.JDBCModuleFactory;
 import com.databasepreservation.modules.listTables.ListTablesModuleFactory;
 import com.databasepreservation.modules.msAccess.MsAccessUCanAccessModuleFactory;
@@ -27,7 +28,6 @@ import com.databasepreservation.modules.postgreSql.PostgreSQLModuleFactory;
 import com.databasepreservation.modules.siard.SIARD1ModuleFactory;
 import com.databasepreservation.modules.siard.SIARD2ModuleFactory;
 import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
-import com.databasepreservation.modules.solr.SolrModuleFactory;
 import com.databasepreservation.modules.sqlServer.SQLServerJDBCModuleFactory;
 import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.MiscUtils;
@@ -66,13 +66,10 @@ public class Main {
 
   private static DatabaseModuleFactory[] getDatabaseModuleFactories() {
     if (databaseModuleFactories == null) {
-      databaseModuleFactories = new DatabaseModuleFactory[] {new JDBCModuleFactory(getReporter()),
-        new ListTablesModuleFactory(getReporter()), new MsAccessUCanAccessModuleFactory(getReporter()),
-        new MySQLModuleFactory(getReporter()), new Oracle12cModuleFactory(getReporter()),
-        new PostgreSQLModuleFactory(getReporter()), new SIARD1ModuleFactory(getReporter()),
-        new SIARD2ModuleFactory(getReporter()), new SIARDDKModuleFactory(getReporter()),
-        new SolrModuleFactory(getReporter()), new SQLServerJDBCModuleFactory(getReporter()),
-        new DBMLModuleFactory(getReporter())};
+      databaseModuleFactories = new DatabaseModuleFactory[] {new JDBCModuleFactory(), new ListTablesModuleFactory(),
+        new MsAccessUCanAccessModuleFactory(), new MySQLModuleFactory(), new Oracle12cModuleFactory(),
+        new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(), new SIARD2ModuleFactory(), new SIARDDKModuleFactory(),
+        new DbvtkModuleFactory(), new SQLServerJDBCModuleFactory(), new DBMLModuleFactory()};
     }
     return databaseModuleFactories;
   }
@@ -83,16 +80,20 @@ public class Main {
    */
   public static void main(String[] args) {
     CLI cli = new CLI(Arrays.asList(args), getDatabaseModuleFactories());
-    System.exit(internal_main(cli));
+    System.exit(internalMain(cli));
   }
 
-  // used in testing
-  public static int internal_main(String... args) {
+  public static int internalMainUsedOnlyByTestClasses(String... args) {
+    // start by setting reporter to NoOpReporter, since during whole-application
+    // testing we should not create reports
+    if (reporter == null) {
+      reporter = new NoOpReporter();
+    }
     CLI cli = new CLI(Arrays.asList(args), getDatabaseModuleFactories());
-    return internal_main(cli);
+    return internalMain(cli);
   }
 
-  public static int internal_main(CLI cli) {
+  public static int internalMain(CLI cli) {
     logProgramStart();
     cli.logOperatingSystemInfo();
 
@@ -132,14 +133,14 @@ public class Main {
   }
 
   private static int run(CLI cli) {
-    DatabaseImportModule importModule;
-    DatabaseExportModule exportModule;
+    DatabaseMigration databaseMigration;
 
+    // obtain parameters and module factories, failing early if the command line
+    // parameters are invalid
     try {
-      importModule = cli.getImportModule();
-      importModule.setOnceReporter(getReporter());
-      exportModule = cli.getExportModule();
-      exportModule.setOnceReporter(getReporter());
+      databaseMigration = DatabaseMigration.newInstance().importModule(cli.getImportModuleFactory())
+        .exportModule(cli.getExportModuleFactory()).importModuleParameters(cli.getImportModuleParameters())
+        .exportModuleParameters(cli.getExportModuleParameters()).reporter(getReporter());
     } catch (ParseException e) {
       LOGGER.error(e.getMessage(), e);
       logProgramFinish(EXIT_CODE_COMMAND_PARSE_ERROR);
@@ -154,13 +155,18 @@ public class Main {
       return EXIT_CODE_LICENSE_NOT_ACCEPTED;
     }
 
+    // adds a default filter, which for now just does progress logging
+    databaseMigration.filter(new ObservableFilter(new ProgressLoggerObserver()));
+
+    // converts the database using the specified modules, module parameters, and
+    // filters
     int exitStatus = EXIT_CODE_GENERIC_ERROR;
     try {
       long startTime = System.currentTimeMillis();
-      LOGGER.info("Converting database: " + cli.getImportModuleName() + " to " + cli.getExportModuleName());
-      importModule.getDatabase(exportModule);
+      LOGGER.info("Converting database: {} to {}", cli.getImportModuleName(), cli.getExportModuleName());
+      databaseMigration.migrate();
       long duration = System.currentTimeMillis() - startTime;
-      LOGGER.info("Run time " + (duration / 60000) + "m " + (duration % 60000 / 1000) + "s");
+      LOGGER.info("Run time {}m {}s", duration / 60000, duration % 60000 / 1000);
       exitStatus = EXIT_CODE_OK;
     } catch (ModuleException e) {
       if (e.getCause() != null && e.getCause() instanceof ClassNotFoundException
@@ -179,8 +185,6 @@ public class Main {
       } else {
         LOGGER.error("Fatal error while converting the database (" + e.getMessage() + ")", e);
       }
-    } catch (UnknownTypeException e) {
-      LOGGER.error("Fatal error while converting the database (" + e.getMessage() + ")", e);
     } catch (Exception e) {
       LOGGER.error("Fatal error: Unexpected exception (" + e.getMessage() + ")", e);
     }
@@ -197,9 +201,9 @@ public class Main {
 
   private static void logProgramFinish(int exitStatus) {
     LOGGER.debug("#########################################################");
-    LOGGER.debug("#   FINISH-ID-" + execID);
-    LOGGER.debug("#   FINISH v" + MiscUtils.APP_VERSION);
-    LOGGER.debug("#   EXIT CODE: " + exitStatus);
+    LOGGER.debug("#   FINISH-ID-{}", execID);
+    LOGGER.debug("#   FINISH v{}", MiscUtils.APP_VERSION);
+    LOGGER.debug("#   EXIT CODE: {}", exitStatus);
     LOGGER.debug("#########################################################");
   }
 }

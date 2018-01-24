@@ -25,7 +25,7 @@
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>DEBUG</level>
         </filter>
-        <file>${dbptk.home}/log/dbptk-app.log.txt</file>
+        <file>${dbptk.home}/dbptk-app.log.txt</file>
         <append>true</append>
         <encoder>
             <pattern>%d [%thread] %-5level \(%logger{5}\) %msg%n%exception{full}</pattern>

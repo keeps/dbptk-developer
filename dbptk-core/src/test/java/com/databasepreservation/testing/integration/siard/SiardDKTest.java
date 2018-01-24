@@ -75,8 +75,8 @@ public class SiardDKTest extends SiardTest {
       // primary key is mandatory in siard-dk. Description of key is not
       // supported, though.
       if (table.getPrimaryKey() == null) {
-        PrimaryKey primaryKey = new PrimaryKey("key" + index++,
-          Lists.newArrayList(table.getColumns().get(0).getName()), null);
+        PrimaryKey primaryKey = new PrimaryKey("key" + index++, Lists.newArrayList(table.getColumns().get(0).getName()),
+          null);
         table.setPrimaryKey(primaryKey);
       } else {
         table.getPrimaryKey().setDescription(null); // Description of key is not

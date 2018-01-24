@@ -143,7 +143,8 @@ public class PostgreSQLJDBCDatatypeImporter extends JDBCDatatypeImporter {
   // ClassNotFoundException | SQLException e) {
   // LOGGER
   // .debug(
-  // "Exception trying to obtain array subtype for {typeName='{}', columnSize={}, decimalDigits={}, numPrecRadix={}, dataType={}}",
+  // "Exception trying to obtain array subtype for {typeName='{}', columnSize={},
+  // decimalDigits={}, numPrecRadix={}, dataType={}}",
   // typeName, columnSize, decimalDigits, numPrecRadix, dataType, e);
   // }
   // }

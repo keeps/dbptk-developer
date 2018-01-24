@@ -39,8 +39,8 @@ public class ZipAndFolderReadStrategy implements ReadStrategy {
       try {
         return Files.newInputStream(container.getPath().resolve(Paths.get(path)));
       } catch (IOException e) {
-        throw new ModuleException(String.format("Could not open file at %s for reading.",
-          container.getPath().resolve(Paths.get(path))), e);
+        throw new ModuleException(
+          String.format("Could not open file at %s for reading.", container.getPath().resolve(Paths.get(path))), e);
       }
     }
   }

@@ -8,7 +8,7 @@ package com.databasepreservation.model.exception;
  *
  * @author Luis Faria
  */
-public class UnknownTypeException extends Exception {
+public class UnknownTypeException extends ModuleException {
 
   /**
          *

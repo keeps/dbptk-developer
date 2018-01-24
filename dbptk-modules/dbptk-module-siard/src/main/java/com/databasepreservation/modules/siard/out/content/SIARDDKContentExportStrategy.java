@@ -117,7 +117,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     StringBuilder builder = new StringBuilder();
     builder.append("<?xml version=\"1.0\" encoding=\"").append(ENCODING).append("\"?>\n")
 
-    .append("<table xsi:schemaLocation=\"")
+      .append("<table xsi:schemaLocation=\"")
       .append(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableCounter)).append(" ")
       .append(contentPathExportStrategy.getTableXsdFileName(tableCounter)).append("\" ").append("xmlns=\"")
       .append(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableCounter)).append("\" ")
@@ -133,8 +133,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     // rows due to the LOBsTracker
 
     // Set namespaces for schema
-    Namespace defaultNamespace = Namespace.getNamespace(contentPathExportStrategy.getTableXsdNamespace(namespaceBase,
-      0, tableCounter));
+    Namespace defaultNamespace = Namespace
+      .getNamespace(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableCounter));
     Namespace xs = Namespace.getNamespace("xs", "http://www.w3.org/2001/XMLSchema");
 
     // Create root element
@@ -185,9 +185,9 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
       String xsdType = SIARDDKsql99ToXsdType.convert(sql99Type);
       if (xsdType == null) {
-        throw new ModuleException("Unable to export column [" + columnStructure.getName() + "] in table ["
-          + tableStructure.getName() + "], as siard-dk doesn't support the normalized SQL data type of the column: ["
-          + sql99Type + "] ");
+        throw new ModuleException(
+          "Unable to export column [" + columnStructure.getName() + "] in table [" + tableStructure.getName()
+            + "], as siard-dk doesn't support the normalized SQL data type of the column: [" + sql99Type + "] ");
       }
 
       c.setAttribute("type", xsdType);

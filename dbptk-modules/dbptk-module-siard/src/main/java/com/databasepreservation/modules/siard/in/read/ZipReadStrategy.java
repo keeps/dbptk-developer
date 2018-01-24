@@ -71,13 +71,13 @@ public class ZipReadStrategy implements ReadStrategy {
   public void setup(SIARDArchiveContainer container) throws ModuleException {
     try {
       if (zipFiles.containsKey(container)) {
-        throw new IllegalStateException("Method 'setup' was already called for this container");
+        return;
       }
 
       zipFiles.put(container, new ZipFile(container.getPath().toAbsolutePath().toString()));
     } catch (IOException e) {
-      throw new ModuleException(String.format("Could not open zip file \"%s\"", container.getPath().toAbsolutePath()
-        .toString()), e);
+      throw new ModuleException(
+        String.format("Could not open zip file \"%s\"", container.getPath().toAbsolutePath().toString()), e);
     }
   }
 

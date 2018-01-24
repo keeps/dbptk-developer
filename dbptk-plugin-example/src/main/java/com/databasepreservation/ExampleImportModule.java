@@ -19,8 +19,8 @@ public class ExampleImportModule implements DatabaseImportModule {
   }
 
   @Override
-  public void getDatabase(DatabaseExportModule databaseExportModule) throws ModuleException, UnknownTypeException,
-    InvalidDataException {
+  public void getDatabase(DatabaseExportModule databaseExportModule)
+    throws ModuleException, UnknownTypeException, InvalidDataException {
     databaseExportModule.initDatabase();
 
     System.out.println("[ExampleImportModule] active = " + active);

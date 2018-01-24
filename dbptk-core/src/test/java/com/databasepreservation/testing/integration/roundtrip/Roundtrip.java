@@ -162,9 +162,9 @@ public class Roundtrip {
     printTmpFileOnError(processSTDERR, p.waitFor());
 
     // convert from the database to siard
-    if (Main.internal_main(reviewArguments(forward_conversion_arguments)) == 0) {
+    if (Main.internalMainUsedOnlyByTestClasses(reviewArguments(forward_conversion_arguments)) == 0) {
       // and if that succeeded, convert back to the database
-      if (Main.internal_main(reviewArguments(backward_conversion_arguments)) == 0) {
+      if (Main.internalMainUsedOnlyByTestClasses(reviewArguments(backward_conversion_arguments)) == 0) {
         // both conversions succeeded. going to compare the database dumps
         dump = new ProcessBuilder("bash", "-c", dump_target_command);
         dump.redirectOutput(dump_target.toFile());

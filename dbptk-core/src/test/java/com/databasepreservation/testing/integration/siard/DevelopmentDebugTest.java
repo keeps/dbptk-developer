@@ -32,6 +32,7 @@ public class DevelopmentDebugTest {
   public void Run() throws ModuleException {
     String args[] = new String[] {/* arguments */};
 
-    assert Main.internal_main(args) == Main.EXIT_CODE_OK : "Test was unsuccessful. Exit status was not success";
+    assert Main.internalMainUsedOnlyByTestClasses(
+      args) == Main.EXIT_CODE_OK : "Test was unsuccessful. Exit status was not success";
   }
 }

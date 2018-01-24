@@ -39,9 +39,9 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure;
+import com.databasepreservation.model.structure.type.ComposedTypeStructure.SubType;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.Type;
-import com.databasepreservation.model.structure.type.ComposedTypeStructure.SubType;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.postgreSql.PostgreSQLHelper;
 
@@ -86,10 +86,10 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
    * @param encrypt
    *          encrypt connection
    */
-  public PostgreSQLJDBCImportModule(String hostname, String database, String username, String password, boolean encrypt) {
-    super("org.postgresql.Driver", "jdbc:postgresql://" + hostname + "/" + database + "?user=" + username
-      + "&password=" + password + (encrypt ? "&ssl=true" : ""), new PostgreSQLHelper(),
-      new PostgreSQLJDBCDatatypeImporter());
+  public PostgreSQLJDBCImportModule(String hostname, String database, String username, String password,
+    boolean encrypt) {
+    super("org.postgresql.Driver", "jdbc:postgresql://" + hostname + "/" + database + "?user=" + username + "&password="
+      + password + (encrypt ? "&ssl=true" : ""), new PostgreSQLHelper(), new PostgreSQLJDBCDatatypeImporter());
   }
 
   /**
@@ -111,9 +111,10 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
    */
   public PostgreSQLJDBCImportModule(String hostname, int port, String database, String username, String password,
     boolean encrypt) {
-    super("org.postgresql.Driver", "jdbc:postgresql://" + hostname + ":" + port + "/" + database + "?user=" + username
-      + "&password=" + password + (encrypt ? "&ssl=true" : ""), new PostgreSQLHelper(),
-      new PostgreSQLJDBCDatatypeImporter());
+    super(
+      "org.postgresql.Driver", "jdbc:postgresql://" + hostname + ":" + port + "/" + database + "?user=" + username
+        + "&password=" + password + (encrypt ? "&ssl=true" : ""),
+      new PostgreSQLHelper(), new PostgreSQLJDBCDatatypeImporter());
   }
 
   @Override
@@ -159,9 +160,8 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     }
 
     for (ColumnStructure column : udtColumns) {
-      query.append(separator).append(
-        getFieldNamesFromComposedTypeStructure(column.getId(), (ComposedTypeStructure) column.getType(), table,
-          columnNames));
+      query.append(separator).append(getFieldNamesFromComposedTypeStructure(column.getId(),
+        (ComposedTypeStructure) column.getType(), table, columnNames));
     }
 
     query.append(" FROM ").append(sqlHelper.escapeTableId(table.getId()));
@@ -222,8 +222,8 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected Row convertRawToRow(ResultSet rawData, TableStructure tableStructure) throws InvalidDataException,
-    SQLException, ModuleException {
+  protected Row convertRawToRow(ResultSet rawData, TableStructure tableStructure)
+    throws InvalidDataException, SQLException, ModuleException {
     Row row = null;
     if (isRowValid(rawData, tableStructure)) {
       List<Cell> cells = new ArrayList<Cell>(tableStructure.getColumns().size());
@@ -287,8 +287,8 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
           i++;
         }
 
-        cells.set(udtColumnIndex, new ComposedCell(tableStructure.getName() + "." + udtColumn.getName() + "."
-          + currentRow, udtCells));
+        cells.set(udtColumnIndex,
+          new ComposedCell(tableStructure.getName() + "." + udtColumn.getName() + "." + currentRow, udtCells));
       }
 
       row = new Row(currentRow, cells);
@@ -301,8 +301,8 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       }
       row = new Row(tableStructure.getCurrentRow(), cells);
 
-      reporter.rowProcessingUsedNull(tableStructure, tableStructure.getCurrentRow(), new ModuleException(
-        "isRowValid returned false"));
+      reporter.rowProcessingUsedNull(tableStructure, tableStructure.getCurrentRow(),
+        new ModuleException("isRowValid returned false"));
     }
     tableStructure.incrementCurrentRow();
     return row;
@@ -479,17 +479,17 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
   }
 
   /**
-   * This binary cell uses PostgreSQL specific code to postpone obtaining the
-   * LOB until it is really necessary and then provides streams to read the lob.
+   * This binary cell uses PostgreSQL specific code to postpone obtaining the LOB
+   * until it is really necessary and then provides streams to read the lob.
    *
    * Using PostgreSQL default implementation and BinaryCell, the LOB would be
    * loaded to memory, written to a temporary file, then read from the temporary
    * file to whatever destination the export module had prepared.
    *
-   * This implementation does not avoid loading the whole LOB to memory but
-   * avoids wasting time and resources by skipping the temporary file and
-   * providing the export module with a stream coming directly from the LOB
-   * representation provided by PostgreSQL.
+   * This implementation does not avoid loading the whole LOB to memory but avoids
+   * wasting time and resources by skipping the temporary file and providing the
+   * export module with a stream coming directly from the LOB representation
+   * provided by PostgreSQL.
    */
   private static class PostgresBinaryCell extends BinaryCell {
     public PostgresBinaryCell(String id, Connection connection, final Long objectId) {

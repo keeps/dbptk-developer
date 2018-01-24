@@ -21,8 +21,8 @@ public class BinaryCell extends Cell implements InputStreamProvider {
   private InputStreamProvider inputStreamProvider;
 
   /**
-   * Creates a binary cell. This binary cell will mostly just be a wrapper
-   * around the SQL Blob object.
+   * Creates a binary cell. This binary cell will mostly just be a wrapper around
+   * the SQL Blob object.
    *
    * @param id
    *          the cell id
@@ -35,9 +35,8 @@ public class BinaryCell extends Cell implements InputStreamProvider {
   }
 
   /**
-   * Creates a binary cell. The binary contents are read and saved to a
-   * temporary file, so they can be read later without keeping an open
-   * InputStreams.
+   * Creates a binary cell. The binary contents are read and saved to a temporary
+   * file, so they can be read later without keeping an open InputStreams.
    *
    * The inputStream is closed after use.
    * 

@@ -37,13 +37,13 @@ public final class JodaUtils {
     .appendOptional(new DateTimeFormatterBuilder().append(DateTimeFormat.forPattern("ZZ")).toParser()).toFormatter()
     .withChronology(DEFAULT_CHRONOLOGY);
 
-  private static final DateTimeFormatter FORMATTER_SOLR_DATETIME_WITH_MILLIS = DateTimeFormat.forPattern(
-    "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withChronology(DEFAULT_CHRONOLOGY);
+  private static final DateTimeFormatter FORMATTER_SOLR_DATETIME_WITH_MILLIS = DateTimeFormat
+    .forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withChronology(DEFAULT_CHRONOLOGY);
 
-  private static final DateTimeFormatter FORMATTER_SOLR_DATETIME_DISPLAY = DateTimeFormat.forPattern(
-    "yyyy-MM-dd HH:mm:ss").withChronology(DEFAULT_CHRONOLOGY);
-  private static final DateTimeFormatter FORMATTER_SOLR_DATETIME_MS_DISPLAY = DateTimeFormat.forPattern(
-    "yyyy-MM-dd HH:mm:ss.SSS").withChronology(DEFAULT_CHRONOLOGY);
+  private static final DateTimeFormatter FORMATTER_SOLR_DATETIME_DISPLAY = DateTimeFormat
+    .forPattern("yyyy-MM-dd HH:mm:ss").withChronology(DEFAULT_CHRONOLOGY);
+  private static final DateTimeFormatter FORMATTER_SOLR_DATETIME_MS_DISPLAY = DateTimeFormat
+    .forPattern("yyyy-MM-dd HH:mm:ss.SSS").withChronology(DEFAULT_CHRONOLOGY);
 
   private static final DateTimeFormatter FORMATTER_SOLR_DATE_DISPLAY = DateTimeFormat.forPattern("yyyy-MM-dd")
     .withChronology(DEFAULT_CHRONOLOGY);
@@ -67,8 +67,8 @@ public final class JodaUtils {
   }
 
   /**
-   * Converts the given string representing a date in xs:date format to a
-   * DateTime object
+   * Converts the given string representing a date in xs:date format to a DateTime
+   * object
    *
    * @param date
    * @return
@@ -82,8 +82,8 @@ public final class JodaUtils {
   }
 
   /**
-   * Converts the given string representing a date and time in xs:dateTime
-   * format to a DateTime object
+   * Converts the given string representing a date and time in xs:dateTime format
+   * to a DateTime object
    *
    * @param datetime
    * @return

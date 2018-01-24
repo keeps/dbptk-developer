@@ -1,10 +1,10 @@
 package com.databasepreservation.utils;
 
+import java.io.InputStream;
+
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.InputStream;
 
 /**
  * Utility class to get application name and version information.

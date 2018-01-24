@@ -34,7 +34,7 @@ public class SIARDDKTestUtil {
       archiveFldToProcessPath.toString(), "--export", "siard-dk", "--export-folder",
       archFile.getAbsolutePath().toString()};
 
-    assert Main.internal_main(argumentsToMain) == 0 : "Expected import of siard-dk archive ["
+    assert Main.internalMainUsedOnlyByTestClasses(argumentsToMain) == 0 : "Expected import of siard-dk archive ["
       + archiveFldToProcessPath.toString() + "] followed by export to siard-dk archive [" + archiveFldTmp.toString()
       + "] to succeed.";
 

@@ -155,8 +155,8 @@ public class JDBCExportModule implements DatabaseExportModule {
    *
    * @return the connection
    * @throws ModuleException
-   *           This exception can be thrown if the JDBC driver class is not
-   *           found or an SQL error occurs while connecting
+   *           This exception can be thrown if the JDBC driver class is not found
+   *           or an SQL error occurs while connecting
    */
   public Connection getConnection() throws ModuleException {
     if (connection == null) {
@@ -238,8 +238,8 @@ public class JDBCExportModule implements DatabaseExportModule {
     boolean found = false;
     ResultSet result = null;
     try {
-      result = getConnection(defaultConnectionDb, connectionURL).createStatement().executeQuery(
-        sqlHelper.getDatabases(database));
+      result = getConnection(defaultConnectionDb, connectionURL).createStatement()
+        .executeQuery(sqlHelper.getDatabases(database));
       while (result.next() && !found) {
         if (result.getString(1).equalsIgnoreCase(database)) {
           found = true;
@@ -300,7 +300,7 @@ public class JDBCExportModule implements DatabaseExportModule {
   }
 
   @Override
-  public void handleStructure(DatabaseStructure structure) throws ModuleException, UnknownTypeException {
+  public void handleStructure(DatabaseStructure structure) throws ModuleException {
     this.databaseStructure = structure;
     try {
       this.existingSchemas = getExistingSchemasNames();
@@ -310,7 +310,6 @@ public class JDBCExportModule implements DatabaseExportModule {
     createDatabase(structure.getName());
     int[] batchResult = null;
     if (getStatement() != null) {
-      LOGGER.info("Exporting database structure");
       for (SchemaStructure schema : structure.getSchemas()) {
         // won't export ignored schemas
         if (isIgnoredSchema(schema.getName())) {
@@ -324,7 +323,6 @@ public class JDBCExportModule implements DatabaseExportModule {
       }
       LOGGER.debug("Executing table creation batch");
       statementExecuteAndClearBatch();
-      LOGGER.info("Exporting database structure finished");
     }
   }
 
@@ -392,10 +390,12 @@ public class JDBCExportModule implements DatabaseExportModule {
 
   protected void handleTableStructure(TableStructure table) throws ModuleException, UnknownTypeException {
     if (getStatement() != null) {
-      LOGGER.info("Exporting table structure for " + table.getName());
-      LOGGER.debug("Adding to batch creation of table " + table.getName());
-      LOGGER.debug("SQL: " + sqlHelper.createTableSQL(table));
-      statementAddBatch(sqlHelper.createTableSQL(table));
+      LOGGER.info("Exporting table structure for {}", table.getName());
+      LOGGER.debug("Adding to batch creation of table {}", table.getName());
+
+      String tableSQL = sqlHelper.createTableSQL(table);
+      LOGGER.debug("SQL: {}", tableSQL);
+      statementAddBatch(tableSQL);
 
       if (table.getPrimaryKey() != null) {
         // avoid primary key name conflicts
@@ -409,7 +409,7 @@ public class JDBCExportModule implements DatabaseExportModule {
         // create the primary key
         String pkeySQL = sqlHelper.createPrimaryKeySQL(table.getId(), table.getPrimaryKey());
         if (pkeySQL != null) {
-          LOGGER.debug("SQL: " + pkeySQL);
+          LOGGER.debug("SQL: {}", pkeySQL);
           statementAddBatch(pkeySQL);
         }
       }
@@ -417,8 +417,7 @@ public class JDBCExportModule implements DatabaseExportModule {
   }
 
   /**
-   * Sets the schemas to be ignored on the export. These schemas won't be
-   * exported
+   * Sets the schemas to be ignored on the export. These schemas won't be exported
    *
    * @param ignoredSchemas
    *          ignored schemas name to be added to the list
@@ -455,15 +454,14 @@ public class JDBCExportModule implements DatabaseExportModule {
   public void handleDataOpenTable(String tableId) throws ModuleException {
     LOGGER.debug("Started data open: " + tableId);
     if (databaseStructure != null) {
-      TableStructure table = databaseStructure.lookupTableStructure(tableId);
+      TableStructure table = databaseStructure.getTableById(tableId);
       this.currentTableStructure = table;
       if (currentTableStructure != null) {
         if (!currentIsIgnoredSchema) {
           try {
-            LOGGER.info("Exporting content to table for " + table.getId());
             getConnection().setAutoCommit(false);
-            currentRowBatchInsertStatement = getConnection().prepareStatement(
-              sqlHelper.createRowSQL(currentTableStructure));
+            currentRowBatchInsertStatement = getConnection()
+              .prepareStatement(sqlHelper.createRowSQL(currentTableStructure));
             currentRowBatchStartIndex = 0;
             LOGGER.debug("sql: " + sqlHelper.createRowSQL(currentTableStructure));
 
@@ -513,7 +511,7 @@ public class JDBCExportModule implements DatabaseExportModule {
   }
 
   @Override
-  public void handleDataRow(Row row) throws InvalidDataException, ModuleException {
+  public void handleDataRow(Row row) throws ModuleException {
     if (!currentIsIgnoredSchema) {
       if (currentTableStructure != null && currentRowBatchInsertStatement != null) {
         Iterator<ColumnStructure> columnIterator = currentTableStructure.getColumns().iterator();
@@ -543,8 +541,9 @@ public class JDBCExportModule implements DatabaseExportModule {
               e.getNextException());
           }
 
-          reporter.failed("In table `" + currentTableStructure.getId() + "`, inserting rows with index from "
-            + currentRowBatchStartIndex + " to " + currentRowBatchEndIndex + " ",
+          reporter.failed(
+            "In table `" + currentTableStructure.getId() + "`, inserting rows with index from "
+              + currentRowBatchStartIndex + " to " + currentRowBatchEndIndex + " ",
             " there was an error with at least one of the rows");
         } finally {
           if (batch_index == 0) {
@@ -602,8 +601,8 @@ public class JDBCExportModule implements DatabaseExportModule {
             ps.setNull(index, Types.BINARY);
           }
         } else {
-          throw new InvalidDataException(type.getClass().getSimpleName() + " not applicable to simple cell or "
-            + "not yet supported");
+          throw new InvalidDataException(
+            type.getClass().getSimpleName() + " not applicable to simple cell or " + "not yet supported");
         }
       } else if (cell instanceof BinaryCell) {
         final BinaryCell bin = (BinaryCell) cell;
@@ -653,8 +652,8 @@ public class JDBCExportModule implements DatabaseExportModule {
     }
   }
 
-  protected void handleSimpleTypeNumericExactDataCell(String data, PreparedStatement ps, int index, Cell cell, Type type)
-    throws NumberFormatException, SQLException {
+  protected void handleSimpleTypeNumericExactDataCell(String data, PreparedStatement ps, int index, Cell cell,
+    Type type) throws NumberFormatException, SQLException {
     if (data != null) {
       // LOGGER.debug("big decimal: " + data);
       BigDecimal bd = new BigDecimal(data);
@@ -723,8 +722,8 @@ public class JDBCExportModule implements DatabaseExportModule {
   /**
    * @return the created InputStream, so it can be closed.
    */
-  protected InputStream handleSimpleTypeString(PreparedStatement ps, int index, BinaryCell bin) throws SQLException,
-    ModuleException {
+  protected InputStream handleSimpleTypeString(PreparedStatement ps, int index, BinaryCell bin)
+    throws SQLException, ModuleException {
     InputStream inputStream = bin.createInputStream();
     ps.setClob(index, new InputStreamReader(inputStream), bin.getSize());
     return inputStream;
@@ -792,7 +791,7 @@ public class JDBCExportModule implements DatabaseExportModule {
 
           String tableId = originalReferencedSchema + "." + fkey.getReferencedTable();
 
-          TableStructure tableAux = databaseStructure.lookupTableStructure(tableId);
+          TableStructure tableAux = databaseStructure.getTableById(tableId);
           if (tableAux != null) {
             if (isIgnoredSchema(tableAux.getSchema())) {
               LOGGER.debug("Foreign key not exported: referenced schema (" + fkey.getReferencedSchema()
@@ -886,15 +885,15 @@ public class JDBCExportModule implements DatabaseExportModule {
             String failedQuery = batchSQL.get(i);
             batchSQL.remove(i);
             LOGGER.error("Error executing query: " + failedQuery);
-            reporter
-              .failed("Execution of query ``" + failedQuery + "``", "of the following error: " + reasonForFailing);
+            reporter.failed("Execution of query ``" + failedQuery + "``",
+              "of the following error: " + reasonForFailing);
           } else {
             String strangeQuery = batchSQL.get(i);
             batchSQL.remove(i);
-            LOGGER.debug("Error executing query: " + strangeQuery, new ModuleException("Query returned result of "
-              + result[i]));
-            reporter.failed("Execution of query ``" + strangeQuery + "``", "of the following error: "
-              + reasonForFailing);
+            LOGGER.debug("Error executing query: " + strangeQuery,
+              new ModuleException("Query returned result of " + result[i]));
+            reporter.failed("Execution of query ``" + strangeQuery + "``",
+              "of the following error: " + reasonForFailing);
           }
         }
 

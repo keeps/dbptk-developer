@@ -152,8 +152,8 @@ public class SQLHelper {
 
   /**
    * Convert a column type (from model) to the database type. This method should
-   * be overridden for each specific DBMS export module implementation to use
-   * the specific data types.
+   * be overridden for each specific DBMS export module implementation to use the
+   * specific data types.
    *
    * @param type
    *          the column type
@@ -337,8 +337,8 @@ public class SQLHelper {
    * @throws ModuleException
    * @throws InvalidDataException
    */
-  public byte[] createRowSQL(TableStructure table, Row row, CellSQLHandler cellSQLHandler) throws InvalidDataException,
-    ModuleException {
+  public byte[] createRowSQL(TableStructure table, Row row, CellSQLHandler cellSQLHandler)
+    throws InvalidDataException, ModuleException {
     ByteArrayOutputStream sqlOut = new ByteArrayOutputStream();
     try {
       sqlOut.write(("INSERT INTO " + escapeTableName(table.getName()) + " VALUES (").getBytes());

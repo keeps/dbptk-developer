@@ -49,8 +49,9 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    *          the password of the user to use in connection
    */
   public MySQLJDBCImportModule(String hostname, String database, String username, String password) {
-    super("com.mysql.jdbc.Driver", "jdbc:mysql://" + hostname + "/" + database + "?" + "user=" + username
-      + "&password=" + password, new MySQLHelper(), new MySQLDatatypeImporter());
+    super("com.mysql.jdbc.Driver",
+      "jdbc:mysql://" + hostname + "/" + database + "?" + "user=" + username + "&password=" + password,
+      new MySQLHelper(), new MySQLDatatypeImporter());
     this.username = username;
   }
 
@@ -69,8 +70,9 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    *          the password of the user to use in connection
    */
   public MySQLJDBCImportModule(String hostname, int port, String database, String username, String password) {
-    super("com.mysql.jdbc.Driver", "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?" + "user=" + username
-      + "&password=" + password, new MySQLHelper(), new MySQLDatatypeImporter());
+    super("com.mysql.jdbc.Driver",
+      "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?" + "user=" + username + "&password=" + password,
+      new MySQLHelper(), new MySQLDatatypeImporter());
     this.username = username;
   }
 
@@ -109,9 +111,10 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
           users.add(user);
         }
       } catch (SQLException e) {
-        if (e.getMessage().startsWith("SELECT command denied to user ") && e.getMessage().endsWith(" for table 'user'")) {
-          LOGGER
-            .warn("The selected MySQL user does not have permissions to list database users. This permission can be granted with the command \"GRANT SELECT ON mysql.user TO 'username'@'localhost' IDENTIFIED BY 'password';\"");
+        if (e.getMessage().startsWith("SELECT command denied to user ")
+          && e.getMessage().endsWith(" for table 'user'")) {
+          LOGGER.warn(
+            "The selected MySQL user does not have permissions to list database users. This permission can be granted with the command \"GRANT SELECT ON mysql.user TO 'username'@'localhost' IDENTIFIED BY 'password';\"");
         } else {
           LOGGER.error("It was not possible to retrieve the list of database users.", e);
         }
@@ -159,8 +162,8 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
           }
         }
       } catch (Exception e) {
-        LOGGER.debug("Exception while trying to obtain MySQL table '" + tableIndex
-          + "' description (comment). with query ", e);
+        LOGGER.debug(
+          "Exception while trying to obtain MySQL table '" + tableIndex + "' description (comment). with query ", e);
       }
     }
 
@@ -284,15 +287,15 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
       }
 
       try {
-        ResultSet rsetCode = getStatement().executeQuery(
-          "SHOW CREATE PROCEDURE " + sqlHelper.escapeTableName(routineName));
+        ResultSet rsetCode = getStatement()
+          .executeQuery("SHOW CREATE PROCEDURE " + sqlHelper.escapeTableName(routineName));
         if (rsetCode.next()) {
           routine.setBody(rsetCode.getString("Create Procedure"));
         }
       } catch (SQLException e) {
         try {
-          ResultSet rsetCode = getStatement().executeQuery(
-            "SHOW CREATE FUNCTION " + sqlHelper.escapeTableName(routineName));
+          ResultSet rsetCode = getStatement()
+            .executeQuery("SHOW CREATE FUNCTION " + sqlHelper.escapeTableName(routineName));
           if (rsetCode.next()) {
             routine.setBody(rsetCode.getString("Create Function"));
           }

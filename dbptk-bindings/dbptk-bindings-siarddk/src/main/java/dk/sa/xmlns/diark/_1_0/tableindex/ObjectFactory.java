@@ -24,8 +24,8 @@ import javax.xml.bind.annotation.XmlRegistry;
 public class ObjectFactory {
 
   /**
-   * Create a new ObjectFactory that can be used to create new instances of
-   * schema derived classes for package: dk.sa.xmlns.diark._1
+   * Create a new ObjectFactory that can be used to create new instances of schema
+   * derived classes for package: dk.sa.xmlns.diark._1
    * 
    */
   public ObjectFactory() {

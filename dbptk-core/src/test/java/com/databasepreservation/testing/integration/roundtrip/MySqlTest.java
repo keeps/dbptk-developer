@@ -44,92 +44,95 @@ public class MySqlTest {
 
     rt_siard1 = new Roundtrip(
 
-    String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/setup.sh").getPath(),
-      db_source, db_target, db_tmp_username, db_tmp_password),
+      String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/setup.sh").getPath(),
+        db_source, db_target, db_tmp_username, db_tmp_password),
 
-    String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/teardown.sh").getPath(), db_source,
-      db_target, db_tmp_username),
+      String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/teardown.sh").getPath(),
+        db_source, db_target, db_tmp_username),
 
-    String.format("mysql --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" --database=\"%s\"", db_tmp_username,
-      db_tmp_password, db_source),
+      String.format("mysql --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" --database=\"%s\"", db_tmp_username,
+        db_tmp_password, db_source),
 
-    String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
-      db_tmp_password, db_source),
+      String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
+        db_tmp_password, db_source),
 
-    String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
-      db_tmp_password, db_target),
+      String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
+        db_tmp_password, db_target),
 
-    new String[] {"--import=mysql", "--import-hostname=127.0.0.1", "--import-database", db_source, "--import-username",
-      db_tmp_username, "--import-password", db_tmp_password, "--export=siard-1", "--export-compress", "--export-file",
-      Roundtrip.TMP_FILE_SIARD_VAR, "--export-pretty-xml"},
+      new String[] {"--import=mysql", "--import-hostname=127.0.0.1", "--import-database", db_source,
+        "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--export=siard-1",
+        "--export-compress", "--export-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export-pretty-xml"},
 
-    new String[] {"--import=siard-1", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=mysql",
-      "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
-      "--export-password", db_tmp_password},
+      new String[] {"--import=siard-1", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=mysql",
+        "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
+        "--export-password", db_tmp_password},
 
-    new MySqlDumpDiffExpectations(), null, null);
+      new MySqlDumpDiffExpectations(), null, null);
 
     rt_siard2 = new Roundtrip(
 
-    String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/setup.sh").getPath(),
-      db_source, db_target, db_tmp_username, db_tmp_password),
+      String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/setup.sh").getPath(),
+        db_source, db_target, db_tmp_username, db_tmp_password),
 
-    String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/teardown.sh").getPath(), db_source,
-      db_target, db_tmp_username),
+      String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/teardown.sh").getPath(),
+        db_source, db_target, db_tmp_username),
 
-    String.format("mysql --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" --database=\"%s\"", db_tmp_username,
-      db_tmp_password, db_source),
+      String.format("mysql --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" --database=\"%s\"", db_tmp_username,
+        db_tmp_password, db_source),
 
-    String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
-      db_tmp_password, db_source),
+      String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
+        db_tmp_password, db_source),
 
-    String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
-      db_tmp_password, db_target),
+      String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
+        db_tmp_password, db_target),
 
-    new String[] {"--import=mysql", "--import-hostname=127.0.0.1", "--import-database", db_source, "--import-username",
-      db_tmp_username, "--import-password", db_tmp_password, "--export=siard-2", "--export-compress", "--export-file",
-      Roundtrip.TMP_FILE_SIARD_VAR, "--export-pretty-xml"},
+      new String[] {"--import=mysql", "--import-hostname=127.0.0.1", "--import-database", db_source,
+        "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--export=siard-2",
+        "--export-compress", "--export-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export-pretty-xml"},
 
-    new String[] {"--import=siard-2", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=mysql",
-      "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
-      "--export-password", db_tmp_password},
+      new String[] {"--import=siard-2", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=mysql",
+        "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
+        "--export-password", db_tmp_password},
 
-    new MySqlDumpDiffExpectations(), null, null);
+      new MySqlDumpDiffExpectations(), null, null);
 
     rt_siard2ex = new Roundtrip(
 
-    String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/setup.sh").getPath(),
-      db_source, db_target, db_tmp_username, db_tmp_password),
+      String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/setup.sh").getPath(),
+        db_source, db_target, db_tmp_username, db_tmp_password),
 
-    String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/teardown.sh").getPath(), db_source,
-      db_target, db_tmp_username),
+      String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/teardown.sh").getPath(),
+        db_source, db_target, db_tmp_username),
 
-    String.format("mysql --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" --database=\"%s\"", db_tmp_username,
-      db_tmp_password, db_source),
+      String.format("mysql --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" --database=\"%s\"", db_tmp_username,
+        db_tmp_password, db_source),
 
-    String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
-      db_tmp_password, db_source),
+      String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
+        db_tmp_password, db_source),
 
-    String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
-      db_tmp_password, db_target),
+      String.format("mysqldump -v  --host=\"127.0.0.1\" --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
+        db_tmp_password, db_target),
 
-    new String[] {"--import=mysql", "--import-hostname=127.0.0.1", "--import-database", db_source, "--import-username",
-      db_tmp_username, "--import-password", db_tmp_password, "--export=siard-2", "--export-compress", "--export-file",
-      Roundtrip.TMP_FILE_SIARD_VAR, "--export-pretty-xml", "--export-external-lobs"},
+      new String[] {"--import=mysql", "--import-hostname=127.0.0.1", "--import-database", db_source,
+        "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--export=siard-2",
+        "--export-compress", "--export-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export-pretty-xml",
+        "--export-external-lobs"},
 
-    new String[] {"--import=siard-2", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=mysql",
-      "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
-      "--export-password", db_tmp_password},
+      new String[] {"--import=siard-2", "--import-file", Roundtrip.TMP_FILE_SIARD_VAR, "--export=mysql",
+        "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username", db_tmp_username,
+        "--export-password", db_tmp_password},
 
-    new MySqlDumpDiffExpectations(), null, null);
+      new MySqlDumpDiffExpectations(), null, null);
   }
 
-  @Test(description = "[siard-1] MySql server is available and accessible", groups = {"mysql-siard1"}, dependsOnMethods = {"setup"})
+  @Test(description = "[siard-1] MySql server is available and accessible", groups = {
+    "mysql-siard1"}, dependsOnMethods = {"setup"})
   public void testConnectionSiard1() throws IOException, InterruptedException {
     rt_siard1.checkConnection();
   }
 
-  @Test(description = "[siard-2] MySql server is available and accessible", groups = {"mysql-siard2"}, dependsOnMethods = {"setup"})
+  @Test(description = "[siard-2] MySql server is available and accessible", groups = {
+    "mysql-siard2"}, dependsOnMethods = {"setup"})
   public void testConnectionSiard2() throws IOException, InterruptedException {
     rt_siard2.checkConnection();
   }
@@ -255,7 +258,8 @@ public class MySqlTest {
     return tests.iterator();
   }
 
-  @Test(description = "[siard-1] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnectionSiard1"}, groups = {"mysql-siard1"})
+  @Test(description = "[siard-1] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {
+    "testConnectionSiard1"}, groups = {"mysql-siard1"})
   public void testQueriesSiard1(String... args) throws IOException, InterruptedException {
 
     String[] fields = new String[args.length - 1];
@@ -264,7 +268,8 @@ public class MySqlTest {
     assert rt_siard1.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], (Object[]) fields);
   }
 
-  @Test(description = "[siard-2] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnectionSiard2"}, groups = {"mysql-siard2"})
+  @Test(description = "[siard-2] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {
+    "testConnectionSiard2"}, groups = {"mysql-siard2"})
   public void testQueriesSiard2(String... args) throws IOException, InterruptedException {
 
     String[] fields = new String[args.length - 1];
@@ -273,7 +278,8 @@ public class MySqlTest {
     assert rt_siard2.testTypeAndValue(args[0], fields) : "Query failed: " + String.format(args[0], (Object[]) fields);
   }
 
-  @Test(description = "[siard-2-ex] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnectionSiard2"}, groups = {"mysql-siard2"})
+  @Test(description = "[siard-2-ex] Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {
+    "testConnectionSiard2"}, groups = {"mysql-siard2"})
   public void testQueriesSiard2ex(String... args) throws IOException, InterruptedException {
 
     String[] fields = new String[args.length - 1];
@@ -298,7 +304,8 @@ public class MySqlTest {
     return tests.iterator();
   }
 
-  @Test(description = "[siard-2-ex] Tests external lobs specific examples", dataProvider = "lobQueriesProvider", dependsOnMethods = {"testConnectionSiard2"}, groups = {"mysql-siard2"})
+  @Test(description = "[siard-2-ex] Tests external lobs specific examples", dataProvider = "lobQueriesProvider", dependsOnMethods = {
+    "testConnectionSiard2"}, groups = {"mysql-siard2"})
   public void testQueriesSiard2exSpecific(String... args) throws IOException, InterruptedException {
     String[] fields = new String[args.length - 1];
     System.arraycopy(args, 1, fields, 0, args.length - 1);
@@ -325,17 +332,20 @@ public class MySqlTest {
     return tests.iterator();
   }
 
-  @Test(description = "[siard-1] Tests MySQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnectionSiard1"}, groups = {"mysql-siard1"})
+  @Test(description = "[siard-1] Tests MySQL files", dataProvider = "testFilesProvider", dependsOnMethods = {
+    "testConnectionSiard1"}, groups = {"mysql-siard1"})
   public void testFilesSiard1(Path... file) throws IOException, InterruptedException, URISyntaxException {
     assert rt_siard1.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
   }
 
-  @Test(description = "[siard-2] Tests MySQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnectionSiard2"}, groups = {"mysql-siard2"})
+  @Test(description = "[siard-2] Tests MySQL files", dataProvider = "testFilesProvider", dependsOnMethods = {
+    "testConnectionSiard2"}, groups = {"mysql-siard2"})
   public void testFilesSiard2(Path... file) throws IOException, InterruptedException, URISyntaxException {
     assert rt_siard2.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
   }
 
-  @Test(description = "[siard-2-ex] Tests MySQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnectionSiard2"}, groups = {"mysql-siard2"})
+  @Test(description = "[siard-2-ex] Tests MySQL files", dataProvider = "testFilesProvider", dependsOnMethods = {
+    "testConnectionSiard2"}, groups = {"mysql-siard2"})
   public void testFilesSiard2ex(Path... file) throws IOException, InterruptedException, URISyntaxException {
     assert rt_siard2ex.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
   }

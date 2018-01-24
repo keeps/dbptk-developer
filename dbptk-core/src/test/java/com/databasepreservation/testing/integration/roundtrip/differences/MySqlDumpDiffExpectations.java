@@ -14,8 +14,8 @@ import org.apache.commons.lang3.tuple.Pair;
  */
 public class MySqlDumpDiffExpectations extends DumpDiffExpectations {
   /**
-   * List of regular expressions to match and replacements to apply to the
-   * source database dump
+   * List of regular expressions to match and replacements to apply to the source
+   * database dump
    */
   private static final ArrayList<Pair<Pattern, String>> directReplacements;
 
@@ -23,48 +23,48 @@ public class MySqlDumpDiffExpectations extends DumpDiffExpectations {
     directReplacements = new ArrayList<Pair<Pattern, String>>();
 
     // tinyint(N) -> smallint(6)
-    directReplacements.add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)tinyint\\(\\d+\\)(?=\\W)"),
-      "smallint(6)"));
+    directReplacements
+      .add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)tinyint\\(\\d+\\)(?=\\W)"), "smallint(6)"));
 
     // mediumint(N) -> int(11)
-    directReplacements.add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)mediumint\\(\\d+\\)(?=\\W)"),
-      "int(11)"));
+    directReplacements
+      .add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)mediumint\\(\\d+\\)(?=\\W)"), "int(11)"));
 
     // bigint(N) -> decimal(19,0)
-    directReplacements.add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)bigint\\(\\d+\\)(?=\\W)"),
-      "decimal(19,0)"));
+    directReplacements
+      .add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)bigint\\(\\d+\\)(?=\\W)"), "decimal(19,0)"));
 
     // float(12,0) -> float
-    directReplacements.add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)float\\(12,0\\)(?=\\W)"),
-      "float"));
+    directReplacements
+      .add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)float\\(12,0\\)(?=\\W)"), "float"));
 
     // float(N,M) -> decimal(N,M)
     // where N != 12 and M != 0 (ensured by the order of the patterns in the
     // ArrayList)
-    directReplacements.add(new ImmutablePair<Pattern, String>(Pattern
-      .compile("(?<=\\W)float\\((\\d+),(\\d+)\\)(?=\\W)"), "decimal($1,$2)"));
+    directReplacements.add(
+      new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)float\\((\\d+),(\\d+)\\)(?=\\W)"), "decimal($1,$2)"));
 
     // double(22,0) -> float
-    directReplacements.add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)double\\(22,0\\)(?=\\W)"),
-      "double"));
+    directReplacements
+      .add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)double\\(22,0\\)(?=\\W)"), "double"));
 
     // double(N,M) -> decimal(N,M)
     // where N != 22 and M != 0 (ensured by the order of the patterns in the
     // ArrayList)
-    directReplacements.add(new ImmutablePair<Pattern, String>(Pattern
-      .compile("(?<=\\W)double\\((\\d+),(\\d+)\\)(?=\\W)"), "decimal($1,$2)"));
+    directReplacements.add(new ImmutablePair<Pattern, String>(
+      Pattern.compile("(?<=\\W)double\\((\\d+),(\\d+)\\)(?=\\W)"), "decimal($1,$2)"));
 
     // year(N) -> decimal(4,0)
-    directReplacements.add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)year\\((\\d+)\\)(?=\\W)"),
-      "decimal(4,0)"));
+    directReplacements
+      .add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)year\\((\\d+)\\)(?=\\W)"), "decimal(4,0)"));
 
     // bit(N) -> longblob
-    directReplacements.add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)bit\\((\\d+)\\)(?=\\W)"),
-      "longblob"));
+    directReplacements
+      .add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)bit\\((\\d+)\\)(?=\\W)"), "longblob"));
 
     // Remove AUTO_INCREMENT info
-    directReplacements.add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)AUTO_INCREMENT(=[0-9]*)*\\W"),
-      ""));
+    directReplacements
+      .add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)AUTO_INCREMENT(=[0-9]*)*\\W"), ""));
 
   }
 

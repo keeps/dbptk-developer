@@ -16,8 +16,8 @@ public class SimpleCell extends Cell {
   private Long size;
 
   /**
-   * Simple cell constructor with empty data. This should not be used to
-   * represent NULL, instead a NullCell should be created.
+   * Simple cell constructor with empty data. This should not be used to represent
+   * NULL, instead a NullCell should be created.
    *
    * @param id
    *          the cell id
@@ -51,8 +51,7 @@ public class SimpleCell extends Cell {
    * Gets the size of the simpleData in bytes (which may be different from the
    * string length measured in characters) using UTF-8 encoding
    * 
-   * @return the size of the string in bytes; -1 is returned if the string is
-   *         null
+   * @return the size of the string in bytes; -1 is returned if the string is null
    */
   public long getBytesSize() {
     return getBytesSize(null);
@@ -63,10 +62,9 @@ public class SimpleCell extends Cell {
    * string length measured in characters)
    * 
    * @param encoding
-   *          the encoding to use when getting the string size in bytes; if
-   *          null, UTF-8 encoding is used
-   * @return the size of the string in bytes; -1 is returned if the string is
-   *         null
+   *          the encoding to use when getting the string size in bytes; if null,
+   *          UTF-8 encoding is used
+   * @return the size of the string in bytes; -1 is returned if the string is null
    */
   public long getBytesSize(String encoding) {
     // if the size is known, return it

@@ -29,16 +29,17 @@ public class Oracle12cJDBCExportModule extends JDBCExportModule {
    *
    * @param serverName
    *          the name (host name) of the server
-   * @param database
-   *          the name of the database we'll be accessing
+   * @param instance
+   *          the name of the instance we'll be accessing
    * @param username
    *          the name of the user to use in the connection
    * @param password
    *          the password of the user to use in the connection
    */
-  public Oracle12cJDBCExportModule(String serverName, int port, String database, String username, String password) {
-    super("oracle.jdbc.driver.OracleDriver", "jdbc:oracle:thin:" + username + "/" + password + "@//" + serverName + ":"
-      + port + "/" + database, new OracleHelper());
+  public Oracle12cJDBCExportModule(String serverName, int port, String instance, String username, String password) {
+    super("oracle.jdbc.driver.OracleDriver",
+      "jdbc:oracle:thin:" + username + "/" + password + "@//" + serverName + ":" + port + "/" + instance,
+      new OracleHelper());
 
     this.username = username;
   }
@@ -78,19 +79,14 @@ public class Oracle12cJDBCExportModule extends JDBCExportModule {
 
     try {
       if (!isExistingSchema(schema.getName())) {
-        throw new ModuleException(
-          "Schema (tablespace) "
-            + schema.getName()
-            + " does not exist in target database. The schema/tablespace must be created before inserting the data into the target database.");
+        throw new ModuleException("Schema (tablespace) " + schema.getName()
+          + " does not exist in target database. The schema/tablespace must be created before inserting the data into the target database.");
       }
 
       if (!isDefaultTableSpace(schema.getName())) {
-        throw new ModuleException(
-          "Schema/Tablespace "
-            + schema.getName()
-            + " is not the default tablespace for user "
-            + username
-            + ". The tablespace must be set as the default tablespace for this user before inserting the data into the target database.");
+        throw new ModuleException("Schema/Tablespace " + schema.getName() + " is not the default tablespace for user "
+          + username
+          + ". The tablespace must be set as the default tablespace for this user before inserting the data into the target database.");
       }
 
       for (TableStructure table : schema.getTables()) {

@@ -89,8 +89,8 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
       }
     }
     if (!tablesWithNoPrimaryKeys.isEmpty()) {
-      logger.warn("No primary keys in the following table(s): "
-        + tableListBuilder.substring(0, tableListBuilder.length() - 2));
+      logger.warn(
+        "No primary keys in the following table(s): " + tableListBuilder.substring(0, tableListBuilder.length() - 2));
     }
 
     for (SchemaStructure schemaStructure : schemas) {

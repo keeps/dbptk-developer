@@ -88,8 +88,8 @@ public class SQLServerHelper extends SQLHelper {
       } else if ("TIMESTAMP".equals(sql99TypeName)) {
         ret = "datetime2";
       } else {
-        LOGGER.warn("Using string instead of datetime type because "
-          + "SQL Server doesn't support dates before 1753-01-01");
+        LOGGER.warn(
+          "Using string instead of datetime type because " + "SQL Server doesn't support dates before 1753-01-01");
         ret = "char(23)";
       }
     } else if (type instanceof SimpleTypeBinary) {

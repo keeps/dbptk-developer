@@ -35,7 +35,6 @@ import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatatypeImporter;
@@ -276,7 +275,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   /**
    * @return the database schemas (not ignored by default and/or user) @throws
-   * SQLException @throws
+   *         SQLException @throws
    */
   protected List<SchemaStructure> getSchemas() throws SQLException {
     List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
@@ -1600,51 +1599,35 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   @Override
-  public void getDatabase(DatabaseExportModule handler) throws ModuleException, InvalidDataException,
-    UnknownTypeException {
+  public DatabaseExportModule migrateDatabaseTo(DatabaseExportModule exportModule) throws ModuleException {
     try {
-      moduleSettings = handler.getModuleSettings();
+      moduleSettings = exportModule.getModuleSettings();
 
-      LOGGER.info("Initializing target database");
-      handler.initDatabase();
-      // sets schemas won't be exported
-      handler.setIgnoredSchemas(getIgnoredExportedSchemas());
-      LOGGER.info("Converting database structure");
-      handler.handleStructure(getDatabaseStructure());
-      LOGGER.info("Database structure converted");
-      // LOGGER.debug("db struct: " + getDatabaseStructure().toString());
+      exportModule.initDatabase();
+
+      exportModule.setIgnoredSchemas(getIgnoredExportedSchemas());
+
+      exportModule.handleStructure(getDatabaseStructure());
 
       for (SchemaStructure schema : getDatabaseStructure().getSchemas()) {
-        handler.handleDataOpenSchema(schema.getName());
+        exportModule.handleDataOpenSchema(schema.getName());
         for (TableStructure table : schema.getTables()) {
-          LOGGER.info("Getting contents from table '" + table.getId() + "'");
-          handler.handleDataOpenTable(table.getId());
+          exportModule.handleDataOpenTable(table.getId());
 
           long nRows = 0;
           long tableRows = table.getRows();
-          long lastProgressTimestamp = System.currentTimeMillis();
           if (moduleSettings.shouldFetchRows()) {
 
             try (ResultSet tableRawData = getTableRawData(table)) {
               while (resultSetNext(tableRawData)) {
-                handler.handleDataRow(convertRawToRow(tableRawData, table));
+                exportModule.handleDataRow(convertRawToRow(tableRawData, table));
                 nRows++;
-                if (nRows % 1000 == 0 && System.currentTimeMillis() - lastProgressTimestamp > 3000) {
-                  lastProgressTimestamp = System.currentTimeMillis();
-                  if (tableRows > 0) {
-                    LOGGER.info(String.format("Progress: %d rows of table %s.%s (%d%%)", nRows, table.getSchema(),
-                      table.getName(), nRows * 100 / tableRows));
-                  } else {
-                    LOGGER.info(String.format("Progress: %d rows of table %s.%s", nRows, table.getSchema(),
-                      table.getName()));
-                  }
-                }
               }
             } catch (SQLException | ModuleException me) {
               LOGGER.error("Could not obtain all data from the current table.", me);
             }
           }
-          LOGGER.info("Total of " + nRows + " row(s) processed");
+          LOGGER.debug("Total of " + nRows + " row(s) processed");
 
           if (nRows < tableRows) {
             LOGGER.warn("The database reported a total of {} rows. Some data may have been lost.", tableRows);
@@ -1653,21 +1636,21 @@ public class JDBCImportModule implements DatabaseImportModule {
                 + "'. The log file may contain more information to help diagnose this problem.");
           }
 
-          getDatabaseStructure().lookupTableStructure(table.getId()).setRows(nRows);
+          getDatabaseStructure().getTableById(table.getId()).setRows(nRows);
 
-          handler.handleDataCloseTable(table.getId());
-          LOGGER.info("Finished processing table '" + table.getId() + "'");
+          exportModule.handleDataCloseTable(table.getId());
         }
-        handler.handleDataCloseSchema(schema.getName());
+        exportModule.handleDataCloseSchema(schema.getName());
       }
       LOGGER.debug("Freeing resources");
-      handler.finishDatabase();
+      exportModule.finishDatabase();
     } catch (SQLException e) {
       throw new ModuleException("SQL error while connecting", e);
     } finally {
       LOGGER.debug("Closing connection to source database");
       closeConnection();
     }
+    return null;
   }
 
   /**

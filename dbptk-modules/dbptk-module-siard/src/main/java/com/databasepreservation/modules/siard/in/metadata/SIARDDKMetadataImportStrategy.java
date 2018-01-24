@@ -98,8 +98,8 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
     try {
       xsdSchema = schemaFactory.newSchema(new StreamSource(xsdInputStream));
     } catch (SAXException e) {
-      throw new ModuleException("Error reading metadata XSD file: "
-        + pathStrategy.getXsdFilePath(SIARDDKConstants.TABLE_INDEX), e);
+      throw new ModuleException(
+        "Error reading metadata XSD file: " + pathStrategy.getXsdFilePath(SIARDDKConstants.TABLE_INDEX), e);
     }
     DigestInputStream inputStreamXml = null;
     SiardDiark xmlRoot;
@@ -215,9 +215,9 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
         columnDptkl.setName(columnXml.getName());
         columnDptkl.setId(String.format("%s.%s", tableId, columnDptkl.getName()));
         String typeOriginal = StringUtils.isNotBlank(columnXml.getTypeOriginal()) ? columnXml.getTypeOriginal() : null;
-        columnDptkl.setType(sqlStandardDatatypeImporter.getCheckedType("<information unavailable>",
-          "<information unavailable>", "<information unavailable>", "<information unavailable>", columnXml.getType(),
-          typeOriginal));
+        columnDptkl
+          .setType(sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
+            "<information unavailable>", "<information unavailable>", columnXml.getType(), typeOriginal));
         columnDptkl.setDescription(columnXml.getDescription());
         String defaultValue = StringUtils.isNotBlank(columnXml.getDefaultValue()) ? columnXml.getDefaultValue() : null;
         columnDptkl.setDefaultValue(defaultValue);
@@ -237,12 +237,8 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
     try {
       return numRows.longValue();
     } catch (ArithmeticException e) {
-      throw new ModuleException(
-        "Unable to import table ["
-          + tableName
-          + "], as the number of rows ["
-          + numRows
-          + "] exceeds the max value of the long datatype used to store the number.(Consult the vendor/a programmer for a fix of this problem, if needed)",
+      throw new ModuleException("Unable to import table [" + tableName + "], as the number of rows [" + numRows
+        + "] exceeds the max value of the long datatype used to store the number.(Consult the vendor/a programmer for a fix of this problem, if needed)",
         e);
     }
   }

@@ -38,8 +38,8 @@ public class Row {
   }
 
   /**
-   * @return the sequence number of the row in the table, the first row will
-   *         have index 1
+   * @return the sequence number of the row in the table, the first row will have
+   *         index 1
    */
   public long getIndex() {
     return index;

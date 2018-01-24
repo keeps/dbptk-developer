@@ -150,8 +150,8 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
    * @param path
    *          The path in the outputContainer (already has the correct format,
    *          since this method gets it from the MetadataPathStrategy)
-   * @return md5sum of file Pre-condition: writer to calculate md5sum from
-   *         should be finished and closed.
+   * @return md5sum of file Pre-condition: writer to calculate md5sum from should
+   *         be finished and closed.
    */
   public byte[] addFile(String path) {
 

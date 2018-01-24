@@ -21,18 +21,18 @@ public class XMLUtils {
    */
   private static final CharSequenceTranslator SIARD_ESCAPE = new AggregateTranslator(
 
-  new SIARDUnicodeEscaper(),
+    new SIARDUnicodeEscaper(),
 
-  new LookupTranslator(EntityArrays.BASIC_ESCAPE()), new LookupTranslator(EntityArrays.APOS_ESCAPE()));
+    new LookupTranslator(EntityArrays.BASIC_ESCAPE()), new LookupTranslator(EntityArrays.APOS_ESCAPE()));
 
   /**
    * Translator to convert escaped text in a SIARD file back to unescaped text
    */
   private static final CharSequenceTranslator SIARD_UNESCAPE = new AggregateTranslator(
 
-  new LookupTranslator(EntityArrays.APOS_UNESCAPE()), new LookupTranslator(EntityArrays.BASIC_UNESCAPE()),
+    new LookupTranslator(EntityArrays.APOS_UNESCAPE()), new LookupTranslator(EntityArrays.BASIC_UNESCAPE()),
 
-  new UnicodeUnescaper());
+    new UnicodeUnescaper());
 
   /**
    * Encodes a data string as defined by SIARD formats
@@ -131,11 +131,11 @@ public class XMLUtils {
       // hardcoded characters to escape
       if (codepoint == 0x5C || codepoint == 0xB || codepoint == 0xC || codepoint == 0xE || codepoint == 0xF
 
-      || (codepoint >= 0x0 && codepoint <= 0x8) || (codepoint >= 0x10 && codepoint < 0x20)
+        || (codepoint >= 0x0 && codepoint <= 0x8) || (codepoint >= 0x10 && codepoint < 0x20)
 
-      || (codepoint >= 0x1A && codepoint <= 0x1F) || (codepoint >= 0x7F && codepoint <= 0x9F)
+        || (codepoint >= 0x1A && codepoint <= 0x1F) || (codepoint >= 0x7F && codepoint <= 0x9F)
 
-      || codepoint == 0xFFFE || codepoint == 0xFFFF) {
+        || codepoint == 0xFFFE || codepoint == 0xFFFF) {
 
         if (codepoint > 0xffff) {
           out.write(toUtf16Escape(codepoint));

@@ -21,37 +21,35 @@ import com.databasepreservation.modules.postgreSql.out.PostgreSQLJDBCExportModul
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
-  private static final Parameter hostname = new Parameter().shortName("h").longName("hostname")
-    .description("the name of the PostgreSQL server host (e.g. localhost)").hasArgument(true)
-    .setOptionalArgument(false).required(true);
+  public static final String PARAMETER_HOSTNAME = "hostname";
+  public static final String PARAMETER_DATABASE = "database";
+  public static final String PARAMETER_USERNAME = "username";
+  public static final String PARAMETER_PASSWORD = "password";
+  public static final String PARAMETER_DISABLE_ENCRYPTION = "disable-encryption";
+  public static final String PARAMETER_PORT_NUMBER = "port-number";
 
-  private static final Parameter database = new Parameter().shortName("db").longName("database")
+  private static final Parameter hostname = new Parameter().shortName("h").longName(PARAMETER_HOSTNAME)
+    .description("the name of the PostgreSQL server host (e.g. localhost)").hasArgument(true).setOptionalArgument(false)
+    .required(true);
+
+  private static final Parameter database = new Parameter().shortName("db").longName(PARAMETER_DATABASE)
     .description("the name of the database to connect to").hasArgument(true).setOptionalArgument(false).required(true);
 
-  private static final Parameter username = new Parameter().shortName("u").longName("username")
+  private static final Parameter username = new Parameter().shortName("u").longName(PARAMETER_USERNAME)
     .description("the name of the user to use in connection").hasArgument(true).setOptionalArgument(false)
     .required(true);
 
-  private static final Parameter password = new Parameter().shortName("p").longName("password")
+  private static final Parameter password = new Parameter().shortName("p").longName(PARAMETER_PASSWORD)
     .description("the password of the user to use in connection").hasArgument(true).setOptionalArgument(false)
     .required(true);
 
-  private static final Parameter disableEncryption = new Parameter().shortName("de").longName("disable-encryption")
-    .description("use to turn off encryption in the connection").hasArgument(false).required(false)
-    .valueIfNotSet("false").valueIfSet("true");
+  private static final Parameter disableEncryption = new Parameter().shortName("de")
+    .longName(PARAMETER_DISABLE_ENCRYPTION).description("use to turn off encryption in the connection")
+    .hasArgument(false).required(false).valueIfNotSet("false").valueIfSet("true");
 
-  private static final Parameter portNumber = new Parameter().shortName("pn").longName("port-number")
+  private static final Parameter portNumber = new Parameter().shortName("pn").longName(PARAMETER_PORT_NUMBER)
     .description("the PostgreSQL server port number, default is 5432").hasArgument(true).setOptionalArgument(false)
     .required(false).valueIfNotSet("5432");
-
-  private Reporter reporter;
-
-  private PostgreSQLModuleFactory() {
-  }
-
-  public PostgreSQLModuleFactory(Reporter reporter) {
-    this.reporter = reporter;
-  }
 
   @Override
   public boolean producesImportModules() {
@@ -91,8 +89,8 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
-    LicenseNotAcceptedException {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
+    throws UnsupportedModuleException, LicenseNotAcceptedException {
     String pHostname = parameters.get(hostname);
     String pDatabase = parameters.get(database);
     String pUsername = parameters.get(username);
@@ -109,14 +107,15 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
       pPortNumber = Integer.parseInt(portNumber.valueIfNotSet());
     }
 
-    reporter.importModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
-      pUsername, "password", reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
+    reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
+      PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
+      pPortNumber.toString());
     return new PostgreSQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt);
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters) throws UnsupportedModuleException,
-    LicenseNotAcceptedException {
+  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
+    throws UnsupportedModuleException, LicenseNotAcceptedException {
     String pHostname = parameters.get(hostname);
     String pDatabase = parameters.get(database);
     String pUsername = parameters.get(username);
@@ -133,8 +132,9 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
       pPortNumber = Integer.parseInt(portNumber.valueIfNotSet());
     }
 
-    reporter.exportModuleParameters(getModuleName(), "hostname", pHostname, "database", pDatabase, "username",
-      pUsername, "password", reporter.MESSAGE_FILTERED, "port number", pPortNumber.toString());
+    reporter.exportModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
+      PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
+      pPortNumber.toString());
     return new PostgreSQLJDBCExportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt);
   }
 }

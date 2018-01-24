@@ -38,8 +38,9 @@ public class DB2JDBCExportModule extends JDBCExportModule {
    *          the password of the user to use in connection
    */
   public DB2JDBCExportModule(String hostname, int port, String database, String username, String password) {
-    super("com.ibm.db2.jcc.DB2Driver", "jdbc:db2://" + hostname + ":" + port + "/" + database + ":user=" + username
-      + ";password=" + password + ";", new DB2Helper());
+    super("com.ibm.db2.jcc.DB2Driver",
+      "jdbc:db2://" + hostname + ":" + port + "/" + database + ":user=" + username + ";password=" + password + ";",
+      new DB2Helper());
 
   }
 

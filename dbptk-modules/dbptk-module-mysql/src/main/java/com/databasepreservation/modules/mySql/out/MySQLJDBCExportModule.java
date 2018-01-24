@@ -77,7 +77,8 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
    *          the password of the user to use in connection
    */
   public MySQLJDBCExportModule(String hostname, int port, String database, String username, String password) {
-    super("com.mysql.jdbc.Driver", createConnectionURL(hostname, port, database, username, password), new MySQLHelper());
+    super("com.mysql.jdbc.Driver", createConnectionURL(hostname, port, database, username, password),
+      new MySQLHelper());
     this.hostname = hostname;
     this.port = port;
     this.database = database;
@@ -86,7 +87,8 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
     this.ignoredSchemas = new TreeSet<String>(Arrays.asList(IGNORED_SCHEMAS));
   }
 
-  public static String createConnectionURL(String hostname, int port, String database, String username, String password) {
+  public static String createConnectionURL(String hostname, int port, String database, String username,
+    String password) {
     return "jdbc:mysql://" + hostname + (port >= 0 ? ":" + port : "") + "/" + database + "?" + "user=" + username
       + "&password=" + password + "&rewriteBatchedStatements=true";
   }
@@ -107,8 +109,8 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
         LOGGER.info("Target database does not exist. Creating database " + database);
         reporter.customMessage(getClass().getName(), "target database with name " + reporter.CODE_DELIMITER + database
           + reporter.CODE_DELIMITER + " did not exist and was created");
-        getConnection(MYSQL_CONNECTION_DATABASE, connectionURL).createStatement().executeUpdate(
-          sqlHelper.createDatabaseSQL(database));
+        getConnection(MYSQL_CONNECTION_DATABASE, connectionURL).createStatement()
+          .executeUpdate(sqlHelper.createDatabaseSQL(database));
 
       } catch (SQLException e) {
         throw new ModuleException("Error creating database " + database, e);
@@ -143,7 +145,7 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 
           String tableId = originalReferencedSchema + "." + fkey.getReferencedTable();
 
-          TableStructure tableAux = databaseStructure.lookupTableStructure(tableId);
+          TableStructure tableAux = databaseStructure.getTableById(tableId);
           if (tableAux != null) {
             if (isIgnoredSchema(tableAux.getSchema())) {
               LOGGER.warn("Foreign key not exported: " + "referenced schema (" + fkey.getReferencedSchema()
@@ -176,13 +178,13 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
   }
 
   protected void handleSchemaStructure(SchemaStructure schema) throws ModuleException, UnknownTypeException {
-    LOGGER.info("Handling schema structure " + schema.getName());
+    LOGGER.debug("Handling schema structure {}", schema.getName());
     // for mysql the schema never needs to be created, because it is the same as
     // the database and the database must already exist
     for (TableStructure table : schema.getTables()) {
       handleTableStructure(table);
     }
-    LOGGER.info("Handling schema structure " + schema.getName() + " finished");
+    LOGGER.debug("Handling schema structure {} finished", schema.getName());
   }
 
   @Override

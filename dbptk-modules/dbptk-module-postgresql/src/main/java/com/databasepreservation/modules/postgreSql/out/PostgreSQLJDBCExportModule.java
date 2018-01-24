@@ -72,7 +72,8 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
    * @param encrypt
    *          encrypt connection
    */
-  public PostgreSQLJDBCExportModule(String hostname, String database, String username, String password, boolean encrypt) {
+  public PostgreSQLJDBCExportModule(String hostname, String database, String username, String password,
+    boolean encrypt) {
     super("org.postgresql.Driver", createConnectionURL(hostname, -1, database, username, password, encrypt),
       new PostgreSQLHelper());
     this.hostname = hostname;
@@ -114,8 +115,8 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
     this.ignoredSchemas = new TreeSet<String>(Arrays.asList(IGNORED_SCHEMAS));
   }
 
-  public static String createConnectionURL(String hostname, int port, String database, String username,
-    String password, boolean encrypt) {
+  public static String createConnectionURL(String hostname, int port, String database, String username, String password,
+    boolean encrypt) {
     return "jdbc:postgresql://" + hostname + (port >= 0 ? ":" + port : "") + "/" + database + "?user=" + username
       + "&password=" + password + (encrypt ? "&ssl=true" : "");
   }
@@ -130,8 +131,8 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 
     if (canDropDatabase) {
       try {
-        getConnection(POSTGRES_CONNECTION_DATABASE, connectionURL).createStatement().executeUpdate(
-          sqlHelper.dropDatabase(database));
+        getConnection(POSTGRES_CONNECTION_DATABASE, connectionURL).createStatement()
+          .executeUpdate(sqlHelper.dropDatabase(database));
       } catch (SQLException e) {
         throw new ModuleException("Error droping database " + database, e);
       }
@@ -146,8 +147,8 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
         LOGGER.info("Target database does not exist. Creating database " + database);
         reporter.customMessage(getClass().getName(), "target database with name " + reporter.CODE_DELIMITER + database
           + reporter.CODE_DELIMITER + " did not exist and was created");
-        getConnection(POSTGRES_CONNECTION_DATABASE, connectionURL).createStatement().executeUpdate(
-          sqlHelper.createDatabaseSQL(database));
+        getConnection(POSTGRES_CONNECTION_DATABASE, connectionURL).createStatement()
+          .executeUpdate(sqlHelper.createDatabaseSQL(database));
 
       } catch (SQLException e) {
         throw new ModuleException("Error creating database " + database, e);
@@ -205,8 +206,8 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
   }
 
   @Override
-  protected InputStream handleSimpleTypeString(PreparedStatement ps, int index, BinaryCell bin) throws SQLException,
-    ModuleException {
+  protected InputStream handleSimpleTypeString(PreparedStatement ps, int index, BinaryCell bin)
+    throws SQLException, ModuleException {
     InputStream inputStream = bin.createInputStream();
     ps.setBinaryStream(index, inputStream, bin.getSize());
     return inputStream;

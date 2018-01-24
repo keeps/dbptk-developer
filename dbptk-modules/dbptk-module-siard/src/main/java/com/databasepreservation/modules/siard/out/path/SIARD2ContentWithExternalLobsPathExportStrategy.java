@@ -20,15 +20,15 @@ public class SIARD2ContentWithExternalLobsPathExportStrategy extends SIARD2Conte
   public String getClobFilePath(int schemaIndex, int tableIndex, int columnIndex, int rowIndex) {
     return new StringBuilder().append(CONTENT_DIR).append(FILE_SEPARATOR).append(SCHEMA_DIR).append(schemaIndex)
       .append(FILE_SEPARATOR).append(TABLE_DIR).append(tableIndex).append(FILE_SEPARATOR).append(LOB_DIR)
-      .append(columnIndex).append(FILE_SEPARATOR).append(LOB_FILENAME).append(rowIndex)
-      .append(FILE_EXTENSION_SEPARATOR).append(CLOB_EXTENSION).toString();
+      .append(columnIndex).append(FILE_SEPARATOR).append(LOB_FILENAME).append(rowIndex).append(FILE_EXTENSION_SEPARATOR)
+      .append(CLOB_EXTENSION).toString();
   }
 
   @Override
   public String getBlobFilePath(int schemaIndex, int tableIndex, int columnIndex, int rowIndex) {
     return new StringBuilder().append(CONTENT_DIR).append(FILE_SEPARATOR).append(SCHEMA_DIR).append(schemaIndex)
       .append(FILE_SEPARATOR).append(TABLE_DIR).append(tableIndex).append(FILE_SEPARATOR).append(LOB_DIR)
-      .append(columnIndex).append(FILE_SEPARATOR).append(LOB_FILENAME).append(rowIndex)
-      .append(FILE_EXTENSION_SEPARATOR).append(BLOB_EXTENSION).toString();
+      .append(columnIndex).append(FILE_SEPARATOR).append(LOB_FILENAME).append(rowIndex).append(FILE_EXTENSION_SEPARATOR)
+      .append(BLOB_EXTENSION).toString();
   }
 }

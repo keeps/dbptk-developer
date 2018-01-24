@@ -19,8 +19,8 @@ public class SQL2008StandardDatatypeImporter extends SQLStandardDatatypeImporter
   private static final Logger LOGGER = LoggerFactory.getLogger(SQL2008StandardDatatypeImporter.class);
 
   @Override
-  protected Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName,
-    String columnName, int dataType, String sql2008TypeName, int columnSize, int decimalDigits, int numPrecRadix)
+  protected Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName, String columnName,
+    int dataType, String sql2008TypeName, int columnSize, int decimalDigits, int numPrecRadix)
     throws UnknownTypeException, SQLException, ClassNotFoundException {
 
     SqlStandardType standardType = new SqlStandardType(sql2008TypeName);

@@ -18,8 +18,8 @@ public class SQL99StandardDatatypeImporter extends SQLStandardDatatypeImporter {
   private static final Logger LOGGER = LoggerFactory.getLogger(SQL99StandardDatatypeImporter.class);
 
   @Override
-  protected Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName,
-    String columnName, int dataType, String sql99TypeName, int columnSize, int decimalDigits, int numPrecRadix)
+  protected Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName, String columnName,
+    int dataType, String sql99TypeName, int columnSize, int decimalDigits, int numPrecRadix)
     throws UnknownTypeException, SQLException, ClassNotFoundException {
 
     SqlStandardType standardType = new SqlStandardType(sql99TypeName);

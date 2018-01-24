@@ -13,8 +13,8 @@ public class ResourceFileIndexInputStreamStrategy implements FileIndexXsdInputSt
   /*
    * (non-Javadoc)
    * 
-   * @see
-   * com.databasepreservation.modules.siard.in.path.FileIndexXsdInputStreamStrategy
+   * @see com.databasepreservation.modules.siard.in.path.
+   * FileIndexXsdInputStreamStrategy
    * #getInputStream(com.databasepreservation.modules.siard.in.path.
    * SIARDDKPathImportStrategy)
    */

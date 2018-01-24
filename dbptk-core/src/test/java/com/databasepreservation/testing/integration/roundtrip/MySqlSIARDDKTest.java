@@ -43,14 +43,17 @@ public class MySqlSIARDDKTest {
     archiveFullPath = FileSystems.getDefault()
       .getPath(System.getProperty("java.io.tmpdir"), ROUND_TRIP_SIARD_ARCHIVE_FILENAME).toString();
 
-    rt = new Roundtrip(String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass()
-      .getResource("/mySql/scripts/setup.sh").getPath(), db_source, db_target, db_tmp_username, db_tmp_password),
+    rt = new Roundtrip(
+      String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/setup.sh").getPath(),
+        db_source, db_target, db_tmp_username, db_tmp_password),
       String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/teardown.sh").getPath(),
-        db_source, db_target, db_tmp_username), String.format(
-        "mysql  --user=\"%s\" --password=\"%s\" --database=\"%s\"", db_tmp_username, db_tmp_password, db_source),
+        db_source, db_target, db_tmp_username),
+      String.format("mysql  --user=\"%s\" --password=\"%s\" --database=\"%s\"", db_tmp_username, db_tmp_password,
+        db_source),
       String.format("mysqldump -v --user=\"%s\" --password=\"%s\" %s --compact ", db_tmp_username, db_tmp_password,
-        db_source), String.format("mysqldump -v --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username,
-        db_tmp_password, db_target),
+        db_source),
+      String.format("mysqldump -v --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username, db_tmp_password,
+        db_target),
 
       new String[] {"--import=mysql", "--import-hostname=localhost", "--import-database", db_source,
         "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--export=siard-dk",
@@ -204,22 +207,23 @@ public class MySqlSIARDDKTest {
     // TODO: TK: FIX blob test when issue is fixed:
     // https://github.com/keeps/db-preservation-toolkit/issues/128
     /*
-     * tests.add(new String[] {singleTypeAndValue, "BLOB", "NULL"});
-     * tests.add(new String[] {singleTypeAndValue, "MEDIUMBLOB", "NULL"});
-     * tests.add(new String[] {singleTypeAndValue, "LONGBLOB", "NULL"});
-     * tests.add(new String[] {singleTypeAndValue, "TINYTEXT", "NULL"});
-     * tests.add(new String[] {singleTypeAndValue, "TEXT", "NULL"});
-     * tests.add(new String[] {singleTypeAndValue, "MEDIUMTEXT", "NULL"}); //
-     * tests.add(new String[] {singleTypeAndValue, "LONGTEXT", "NULL"}); //
-     * tests.add(new String[]{singleTypeAndValue, //
-     * "ENUM('small','medium','large')", "NULL"}); // tests.add(new
-     * String[]{singleTypeAndValue, "SET('one','two','three')", // "NULL"});
+     * tests.add(new String[] {singleTypeAndValue, "BLOB", "NULL"}); tests.add(new
+     * String[] {singleTypeAndValue, "MEDIUMBLOB", "NULL"}); tests.add(new String[]
+     * {singleTypeAndValue, "LONGBLOB", "NULL"}); tests.add(new String[]
+     * {singleTypeAndValue, "TINYTEXT", "NULL"}); tests.add(new String[]
+     * {singleTypeAndValue, "TEXT", "NULL"}); tests.add(new String[]
+     * {singleTypeAndValue, "MEDIUMTEXT", "NULL"}); // tests.add(new String[]
+     * {singleTypeAndValue, "LONGTEXT", "NULL"}); // tests.add(new
+     * String[]{singleTypeAndValue, // "ENUM('small','medium','large')", "NULL"});
+     * // tests.add(new String[]{singleTypeAndValue, "SET('one','two','three')", //
+     * "NULL"});
      */
 
     return tests.iterator();
   }
 
-  @Test(description = "Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {"testConnection"})
+  @Test(description = "Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {
+    "testConnection"})
   public void testQueries(String... args) throws IOException, InterruptedException {
     File archFile = new File(archiveFullPath);
     if (archFile.exists()) {

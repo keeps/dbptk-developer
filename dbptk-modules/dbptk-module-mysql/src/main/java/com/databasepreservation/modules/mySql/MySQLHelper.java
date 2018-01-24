@@ -28,8 +28,8 @@ import com.databasepreservation.modules.SQLHelper;
  * @author Luis Faria
  */
 public class MySQLHelper extends SQLHelper {
-  private static final Set<String> MYSQL_TYPES = new HashSet<String>(Arrays.asList("BLOB", "MEDIUMBLOB", "LONGBLOB",
-    "TINYBLOB", "TINYTEXT", "TEXT", "MEDIUMTEXT"));
+  private static final Set<String> MYSQL_TYPES = new HashSet<String>(
+    Arrays.asList("BLOB", "MEDIUMBLOB", "LONGBLOB", "TINYBLOB", "TINYTEXT", "TEXT", "MEDIUMTEXT"));
   private static final Logger logger = LoggerFactory.getLogger(MySQLHelper.class);
   private String name = "MySQL";
 

@@ -29,8 +29,8 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   private static final Logger LOGGER = LoggerFactory.getLogger(JDBCDatatypeImporter.class);
 
   @Override
-  protected Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName,
-    String columnName, int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+  protected Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName, String columnName,
+    int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
     throws UnknownTypeException, SQLException, ClassNotFoundException {
     Type type;
 
@@ -462,8 +462,8 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   }
 
   /**
-   * Gets the UnsupportedDataType. This data type is a placeholder for
-   * unsupported data types
+   * Gets the UnsupportedDataType. This data type is a placeholder for unsupported
+   * data types
    *
    * @param dataType
    * @param typeName

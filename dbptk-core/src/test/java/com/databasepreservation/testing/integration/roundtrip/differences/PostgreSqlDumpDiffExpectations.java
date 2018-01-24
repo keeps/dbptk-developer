@@ -19,12 +19,12 @@ public class PostgreSqlDumpDiffExpectations extends DumpDiffExpectations {
     directReplacements = new ArrayList<Pair<Pattern, String>>();
 
     // "char" -> character(1)
-    directReplacements.add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)\"char\"(?=\\W)"),
-      "character(1)"));
+    directReplacements
+      .add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)\"char\"(?=\\W)"), "character(1)"));
 
     // bit varying -> bytea
-    directReplacements.add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)bit varying\\(5\\)(?=\\W)"),
-      "bytea"));
+    directReplacements
+      .add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)bit varying\\(5\\)(?=\\W)"), "bytea"));
 
     // B'101' -> '\x05'
     directReplacements.add(new ImmutablePair<Pattern, String>(Pattern.compile("(?<=\\W)B'101'(?=\\W)"), "'\\\\x05'"));

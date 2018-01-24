@@ -46,15 +46,16 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
    */
   public SQLServerJDBCImportModule(String serverName, String database, String username, String password,
     boolean integratedSecurity, boolean encrypt) {
-    super("com.microsoft.sqlserver.jdbc.SQLServerDriver", new StringBuilder("jdbc:sqlserver://").append(serverName)
-      .append(";database=").append(database).append(";user=").append(username).append(";password=").append(password)
-      .append(";integratedSecurity=").append(integratedSecurity).append(";encrypt=").append(encrypt).toString(),
+    super("com.microsoft.sqlserver.jdbc.SQLServerDriver",
+      new StringBuilder("jdbc:sqlserver://").append(serverName).append(";database=").append(database).append(";user=")
+        .append(username).append(";password=").append(password).append(";integratedSecurity=")
+        .append(integratedSecurity).append(";encrypt=").append(encrypt).toString(),
       new SQLServerHelper(), new SQLServerDatatypeImporter());
   }
 
   /**
-   * Create a new Microsoft SQL Server import module using the instance name.
-   * The constructor using the port number is preferred over this to avoid a
+   * Create a new Microsoft SQL Server import module using the instance name. The
+   * constructor using the port number is preferred over this to avoid a
    * round-trip to the server to discover the instance port number.
    *
    * @param serverName
@@ -74,10 +75,11 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
    */
   public SQLServerJDBCImportModule(String serverName, String instanceName, String database, String username,
     String password, boolean integratedSecurity, boolean encrypt) {
-    super("com.microsoft.sqlserver.jdbc.SQLServerDriver", new StringBuilder("jdbc:sqlserver://").append(serverName)
-      .append("\\").append(instanceName).append(";database=").append(database).append(";user=").append(username)
-      .append(";password=").append(password).append(";integratedSecurity=").append(integratedSecurity)
-      .append(";encrypt=").append(encrypt).toString(), new SQLServerHelper(), new SQLServerDatatypeImporter());
+    super("com.microsoft.sqlserver.jdbc.SQLServerDriver",
+      new StringBuilder("jdbc:sqlserver://").append(serverName).append("\\").append(instanceName).append(";database=")
+        .append(database).append(";user=").append(username).append(";password=").append(password)
+        .append(";integratedSecurity=").append(integratedSecurity).append(";encrypt=").append(encrypt).toString(),
+      new SQLServerHelper(), new SQLServerDatatypeImporter());
   }
 
   /**
@@ -98,12 +100,13 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
    * @param encrypt
    *          true to use encryption in the connection
    */
-  public SQLServerJDBCImportModule(String serverName, int portNumber, String database, String username,
-    String password, boolean integratedSecurity, boolean encrypt) {
-    super("com.microsoft.sqlserver.jdbc.SQLServerDriver", new StringBuilder("jdbc:sqlserver://").append(serverName)
-      .append(":").append(portNumber).append(";database=").append(database).append(";user=").append(username)
-      .append(";password=").append(password).append(";integratedSecurity=").append(integratedSecurity)
-      .append(";encrypt=").append(encrypt).toString(), new SQLServerHelper(), new SQLServerDatatypeImporter());
+  public SQLServerJDBCImportModule(String serverName, int portNumber, String database, String username, String password,
+    boolean integratedSecurity, boolean encrypt) {
+    super("com.microsoft.sqlserver.jdbc.SQLServerDriver",
+      new StringBuilder("jdbc:sqlserver://").append(serverName).append(":").append(portNumber).append(";database=")
+        .append(database).append(";user=").append(username).append(";password=").append(password)
+        .append(";integratedSecurity=").append(integratedSecurity).append(";encrypt=").append(encrypt).toString(),
+      new SQLServerHelper(), new SQLServerDatatypeImporter());
   }
 
   @Override
@@ -204,9 +207,8 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 
       try {
         // https://technet.microsoft.com/en-us/library/ms175067.aspx
-        statement = getConnection().prepareStatement(
-          "SELECT ? FROM sys.sql_modules WHERE object_id = OBJECT_ID("
-            + sqlHelper.escapeViewName(schemaName, v.getName()) + ")");
+        statement = getConnection().prepareStatement("SELECT ? FROM sys.sql_modules WHERE object_id = OBJECT_ID("
+          + sqlHelper.escapeViewName(schemaName, v.getName()) + ")");
         statement.setString(1, fieldName);
         rset = statement.executeQuery();
         rset.next();

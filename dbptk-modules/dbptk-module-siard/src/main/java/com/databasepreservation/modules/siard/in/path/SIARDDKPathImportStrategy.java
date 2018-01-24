@@ -87,8 +87,8 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
       try {
         xsdSchema = schemaFactory.newSchema(new StreamSource(xsdStream));
       } catch (SAXException e) {
-        throw new ModuleException("Error reading metadata XSD file: "
-          + metadataPathStrategy.getXsdFilePath(SIARDDKConstants.FILE_INDEX), e);
+        throw new ModuleException(
+          "Error reading metadata XSD file: " + metadataPathStrategy.getXsdFilePath(SIARDDKConstants.FILE_INDEX), e);
       }
       InputStream reader = null;
       FileIndexType xmlFileIndex;
@@ -151,9 +151,9 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
             if (fileInfo.getFiN().equals(SIARDDKConstants.TABLE_INDEX + "." + SIARDDKConstants.XML_EXTENSION)) {
               tabelIndexExpectedMD5Sum = fileInfo.getMd5();
             } /*
-               * else { if (fileInfo.getFiN().equals(SIARDDKConstants.FILE_INDEX
-               * + "." + SIARDDKConstants.XML_EXTENSION)) {
-               * fileIndexExpectedMD5Sum = fileInfo.getMd5(); }
+               * else { if (fileInfo.getFiN().equals(SIARDDKConstants.FILE_INDEX + "." +
+               * SIARDDKConstants.XML_EXTENSION)) { fileIndexExpectedMD5Sum =
+               * fileInfo.getMd5(); }
                */
 
           }
@@ -280,8 +280,8 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
    * (fileIndexExpectedMD5Sum == null && fileIndexIsParsed) { throw new
    * ModuleException("Parsing of " + SIARDDKConstants.FILE_INDEX + "." +
    * SIARDDKConstants.XML_EXTENSION + " did not provide a md5sum for " +
-   * SIARDDKConstants.FILE_INDEX + "." + SIARDDKConstants.XML_EXTENSION); }
-   * return fileIndexExpectedMD5Sum; }
+   * SIARDDKConstants.FILE_INDEX + "." + SIARDDKConstants.XML_EXTENSION); } return
+   * fileIndexExpectedMD5Sum; }
    */
 
   public byte[] getTabelIndexExpectedMD5Sum() throws ModuleException {
