@@ -206,11 +206,11 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   /**
-   * Some driver may not report correctly (due to cursor setup, etc) the number
-   * of the row currently being processed (ResultSet.getRow).
+   * Some driver may not report correctly (due to cursor setup, etc) the number of
+   * the row currently being processed (ResultSet.getRow).
    * <p>
-   * If its known that a particular import module doesn't support it,
-   * re-implement this method in that particular module to return false
+   * If its known that a particular import module doesn't support it, re-implement
+   * this method in that particular module to return false
    *
    * @return true if ResultSet.getRow reports correctly the number of the row
    *         being processed; false otherwise
@@ -275,23 +275,23 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   /**
-   * @return the database schemas (not ignored by default and/or user)
-   * @throws SQLException
-   * @throws
+   * @return the database schemas (not ignored by default and/or user) @throws
+   * SQLException @throws
    */
   protected List<SchemaStructure> getSchemas() throws SQLException {
     List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
 
-    ResultSet rs = getMetadata().getSchemas();
-    int schemaIndex = 1;
-    while (rs.next()) {
-      String schemaName = rs.getString(1);
-      // does not import ignored schemas
-      if (isIgnoredImportedSchema(schemaName)) {
-        continue;
+    try (ResultSet rs = getMetadata().getSchemas()) {
+      int schemaIndex = 1;
+      while (rs.next()) {
+        String schemaName = rs.getString(1);
+        // does not import ignored schemas
+        if (isIgnoredImportedSchema(schemaName)) {
+          continue;
+        }
+        schemas.add(getSchemaStructure(schemaName, schemaIndex));
+        schemaIndex++;
       }
-      schemas.add(getSchemaStructure(schemaName, schemaIndex));
-      schemaIndex++;
     }
     return schemas;
   }
@@ -331,54 +331,54 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   protected ArrayList<ComposedTypeStructure> getUDTs(SchemaStructure schema) throws SQLException {
-    ResultSet udtTypes = getMetadata().getUDTs(dbStructure.getName(), schema.getName(), null, null);
-
     // possibleUDT because it may also be a table name, which in some cases may
     // also be used as a type
     ArrayList<String> possibleUDTs = new ArrayList<>();
 
-    while (udtTypes.next()) {
-      int dataType = udtTypes.getInt(5);
-      if (dataType == Types.STRUCT) {
-        possibleUDTs.add(udtTypes.getString(3));
-      } else {
-        StringBuilder debug = new StringBuilder();
+    try (ResultSet udtTypes = getMetadata().getUDTs(dbStructure.getName(), schema.getName(), null, null)) {
+      while (udtTypes.next()) {
+        int dataType = udtTypes.getInt(5);
+        if (dataType == Types.STRUCT) {
+          possibleUDTs.add(udtTypes.getString(3));
+        } else {
+          StringBuilder debug = new StringBuilder();
 
-        // 1. TYPE_CAT String => the type's catalog (may be null)
-        debug.append("\nTYPE_CAT: ").append(udtTypes.getString(1));
-        // 2. TYPE_SCHEM String => type's schema (may be null)
-        debug.append("\nTYPE_SCHEM: ").append(udtTypes.getString(2));
-        // 3. TYPE_NAME String => type name
-        debug.append("\nTYPE_NAME: ").append(udtTypes.getString(3));
-        // 4. CLASS_NAME String => Java class name
-        debug.append("\nCLASS_NAME: ").append(udtTypes.getString(4)).append("\n");
-        // 5. DATA_TYPE int => type value defined in java.sql.Types. One of
-        // JAVA_OBJECT, STRUCT, or DISTINCT
-        switch (dataType) {
-          case Types.JAVA_OBJECT:
-            debug.append("DATA_TYPE: JAVA_OBJECT");
-            break;
-          case Types.STRUCT:
-            debug.append("DATA_TYPE: STRUCT");
-            break;
-          case Types.DISTINCT:
-            debug.append("DATA_TYPE: DISTINCT");
-            break;
-          default:
-            debug.append("DATA_TYPE: " + dataType + "(unknown)");
+          // 1. TYPE_CAT String => the type's catalog (may be null)
+          debug.append("\nTYPE_CAT: ").append(udtTypes.getString(1));
+          // 2. TYPE_SCHEM String => type's schema (may be null)
+          debug.append("\nTYPE_SCHEM: ").append(udtTypes.getString(2));
+          // 3. TYPE_NAME String => type name
+          debug.append("\nTYPE_NAME: ").append(udtTypes.getString(3));
+          // 4. CLASS_NAME String => Java class name
+          debug.append("\nCLASS_NAME: ").append(udtTypes.getString(4)).append("\n");
+          // 5. DATA_TYPE int => type value defined in java.sql.Types. One of
+          // JAVA_OBJECT, STRUCT, or DISTINCT
+          switch (dataType) {
+            case Types.JAVA_OBJECT:
+              debug.append("DATA_TYPE: JAVA_OBJECT");
+              break;
+            case Types.STRUCT:
+              debug.append("DATA_TYPE: STRUCT");
+              break;
+            case Types.DISTINCT:
+              debug.append("DATA_TYPE: DISTINCT");
+              break;
+            default:
+              debug.append("DATA_TYPE: " + dataType + "(unknown)");
+          }
+          // 6. REMARKS String => explanatory comment on the type
+          debug.append("\nREMARKS: ").append(udtTypes.getString(6));
+          /*
+           * 7. BASE_TYPE short => type code of the source type of a DISTINCT type or the
+           * type that implements the user-generated reference type of the
+           * SELF_REFERENCING_COLUMN of a structured type as defined in java.sql.Types
+           * (null if DATA_TYPE is not DISTINCT or not STRUCT with REFERENCE_GENERATION =
+           * USER_DEFINED)
+           */
+          debug.append("\nBASE_TYPE: ").append(udtTypes.getShort(7));
+          LOGGER.debug("Possible UDT is not a STRUCT. " + debug.toString());
+          LOGGER.debug("Unsupported UDT found: " + debug.toString());
         }
-        // 6. REMARKS String => explanatory comment on the type
-        debug.append("\nREMARKS: ").append(udtTypes.getString(6));
-        /*
-         * 7. BASE_TYPE short => type code of the source type of a DISTINCT type
-         * or the type that implements the user-generated reference type of the
-         * SELF_REFERENCING_COLUMN of a structured type as defined in
-         * java.sql.Types (null if DATA_TYPE is not DISTINCT or not STRUCT with
-         * REFERENCE_GENERATION = USER_DEFINED)
-         */
-        debug.append("\nBASE_TYPE: ").append(udtTypes.getShort(7));
-        LOGGER.debug("Possible UDT is not a STRUCT. " + debug.toString());
-        LOGGER.debug("Unsupported UDT found: " + debug.toString());
       }
     }
 
@@ -401,16 +401,18 @@ public class JDBCImportModule implements DatabaseImportModule {
       // TODO: remove after adding support for LOBs inside UDTs
       if (udt.containsLOBs()) {
         reporter.notYetSupported("LOBs inside UDTs", "the current import module");
-        LOGGER.debug("LOBs inside UDTs are not supported yet. Only the first level of hierarchy will be exported. UDT "
-          + udt.getOriginalTypeName() + " detected as containing LOBs.", new ModuleException("UDT containing LOBs:"
-          + udt.toString()));
+        LOGGER.debug(
+          "LOBs inside UDTs are not supported yet. Only the first level of hierarchy will be exported. UDT "
+            + udt.getOriginalTypeName() + " detected as containing LOBs.",
+          new ModuleException("UDT containing LOBs:" + udt.toString()));
       }
 
       // TODO: remove after adding support for hierarchical UDTs
       if (udt.isHierarchical()) {
         reporter.notYetSupported("UDTs inside UDTs", "the current import module");
-        LOGGER.debug("UDTs inside UDTs are not supported yet. Only the first level of hierarchy will be exported. UDT "
-          + udt.getOriginalTypeName() + " detected as hierarchical.",
+        LOGGER.debug(
+          "UDTs inside UDTs are not supported yet. Only the first level of hierarchy will be exported. UDT "
+            + udt.getOriginalTypeName() + " detected as hierarchical.",
           new ModuleException("hierarchical UDT:" + udt.toString()));
       }
 
@@ -434,22 +436,23 @@ public class JDBCImportModule implements DatabaseImportModule {
    *          the schema structure
    * @return the database tables of a given schema
    * @throws SQLException
-   * @throws
    */
   protected List<TableStructure> getTables(SchemaStructure schema) throws SQLException {
     List<TableStructure> tables = new ArrayList<TableStructure>();
-    ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"TABLE"});
-    int tableIndex = 1;
-    while (rset.next()) {
-      String tableName = rset.getString(3);
-      String tableDescription = rset.getString(5);
+    try (
+      ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"TABLE"})) {
+      int tableIndex = 1;
+      while (rset.next()) {
+        String tableName = rset.getString(3);
+        String tableDescription = rset.getString(5);
 
-      if (getModuleSettings().isSelectedTable(schema.getName(), tableName)) {
-        LOGGER.info("Obtaining table structure for " + schema.getName() + "." + tableName);
-        tables.add(getTableStructure(schema, tableName, tableIndex, tableDescription));
-        tableIndex++;
-      } else {
-        LOGGER.info("Ignoring table " + schema.getName() + "." + tableName);
+        if (getModuleSettings().isSelectedTable(schema.getName(), tableName)) {
+          LOGGER.info("Obtaining table structure for " + schema.getName() + "." + tableName);
+          tables.add(getTableStructure(schema, tableName, tableIndex, tableDescription));
+          tableIndex++;
+        } else {
+          LOGGER.info("Ignoring table " + schema.getName() + "." + tableName);
+        }
       }
     }
     return tables;
@@ -460,22 +463,22 @@ public class JDBCImportModule implements DatabaseImportModule {
    *          the schema name
    * @return the database views of a given schema
    * @throws SQLException
-   * @throws
    */
   protected List<ViewStructure> getViews(String schemaName) throws SQLException {
     List<ViewStructure> views = new ArrayList<ViewStructure>();
-    ResultSet rset = getMetadata().getTables(dbStructure.getName(), schemaName, "%", new String[] {"VIEW"});
-    while (rset.next()) {
-      String viewName = rset.getString(3);
-      ViewStructure view = new ViewStructure();
-      view.setName(viewName);
-      view.setDescription(rset.getString(5));
-      view.setColumns(getColumns(schemaName, viewName));
+    try (ResultSet rset = getMetadata().getTables(dbStructure.getName(), schemaName, "%", new String[] {"VIEW"})) {
+      while (rset.next()) {
+        String viewName = rset.getString(3);
+        ViewStructure view = new ViewStructure();
+        view.setName(viewName);
+        view.setDescription(rset.getString(5));
+        view.setColumns(getColumns(schemaName, viewName));
 
-      if (view.getColumns().isEmpty()) {
-        reporter.ignored("View " + viewName + " in schema " + schemaName, "it contains no columns");
-      } else {
-        views.add(view);
+        if (view.getColumns().isEmpty()) {
+          reporter.ignored("View " + viewName + " in schema " + schemaName, "it contains no columns");
+        } else {
+          views.add(view);
+        }
       }
     }
     return views;
@@ -490,21 +493,22 @@ public class JDBCImportModule implements DatabaseImportModule {
     // TODO add optional fields to routine (use getProcedureColumns)
     List<RoutineStructure> routines = new ArrayList<RoutineStructure>();
 
-    ResultSet rset = getMetadata().getProcedures(dbStructure.getName(), schemaName, "%");
-    while (rset.next()) {
-      String routineName = rset.getString(3);
-      RoutineStructure routine = new RoutineStructure();
-      routine.setName(routineName);
-      if (rset.getString(7) != null) {
-        routine.setDescription(rset.getString(7));
-      } else {
-        if (rset.getShort(8) == 1) {
-          routine.setDescription("Routine does not " + "return a result");
-        } else if (rset.getShort(8) == 2) {
-          routine.setDescription("Routine returns a result");
+    try (ResultSet rset = getMetadata().getProcedures(dbStructure.getName(), schemaName, "%")) {
+      while (rset.next()) {
+        String routineName = rset.getString(3);
+        RoutineStructure routine = new RoutineStructure();
+        routine.setName(routineName);
+        if (rset.getString(7) != null) {
+          routine.setDescription(rset.getString(7));
+        } else {
+          if (rset.getShort(8) == 1) {
+            routine.setDescription("Routine does not " + "return a result");
+          } else if (rset.getShort(8) == 2) {
+            routine.setDescription("Routine returns a result");
+          }
         }
+        routines.add(routine);
       }
-      routines.add(routine);
     }
     return routines;
   }
@@ -540,15 +544,17 @@ public class JDBCImportModule implements DatabaseImportModule {
   private int getRows(String schemaName, String tableName) throws SQLException {
     String query = sqlHelper.getRowsSQL(schemaName, tableName);
     LOGGER.debug("count query: " + query);
-    ResultSet rs = getStatement().executeQuery(query);
+    try (ResultSet rs = getStatement().executeQuery(query)) {
+      int count;
 
-    int count = -1;
-    if (rs.next()) {
-      count = rs.getInt(1);
+      count = -1;
+      if (rs.next()) {
+        count = rs.getInt(1);
+      }
+      LOGGER.debug("Counted " + count + " rows");
+
+      return count;
     }
-    LOGGER.debug("Counted " + count + " rows");
-
-    return count;
   }
 
   /**
@@ -581,11 +587,12 @@ public class JDBCImportModule implements DatabaseImportModule {
     List<UserStructure> users = new ArrayList<UserStructure>();
     String query = sqlHelper.getUsersSQL(getDbName());
     if (query != null) {
-      ResultSet rs = getStatement().executeQuery(query);
-      while (rs.next()) {
-        UserStructure user = new UserStructure();
-        user.setName(rs.getString("USER_NAME"));
-        users.add(user);
+      try (ResultSet rs = getStatement().executeQuery(query)) {
+        while (rs.next()) {
+          UserStructure user = new UserStructure();
+          user.setName(rs.getString("USER_NAME"));
+          users.add(user);
+        }
       }
     } else {
       users.add(new UserStructure("UNDEFINED_USER", "DESCRIPTION"));
@@ -604,27 +611,28 @@ public class JDBCImportModule implements DatabaseImportModule {
     List<RoleStructure> roles = new ArrayList<RoleStructure>();
     String query = sqlHelper.getRolesSQL();
     if (query != null) {
-      ResultSet rs = getStatement().executeQuery(query);
-      while (rs.next()) {
-        RoleStructure role = new RoleStructure();
-        String roleName;
-        try {
-          roleName = rs.getString("ROLE_NAME");
-        } catch (SQLException e) {
-          LOGGER.debug("handled SQLException", e);
-          roleName = "";
-        }
-        role.setName(roleName);
+      try (ResultSet rs = getStatement().executeQuery(query)) {
+        while (rs.next()) {
+          RoleStructure role = new RoleStructure();
+          String roleName;
+          try {
+            roleName = rs.getString("ROLE_NAME");
+          } catch (SQLException e) {
+            LOGGER.debug("handled SQLException", e);
+            roleName = "";
+          }
+          role.setName(roleName);
 
-        String admin = "";
-        try {
-          admin = rs.getString("ADMIN");
-        } catch (SQLException e) {
-          LOGGER.trace("handled SQLException", e);
-        }
-        role.setAdmin(admin);
+          String admin = "";
+          try {
+            admin = rs.getString("ADMIN");
+          } catch (SQLException e) {
+            LOGGER.trace("handled SQLException", e);
+          }
+          role.setAdmin(admin);
 
-        roles.add(role);
+          roles.add(role);
+        }
       }
     } else {
       reporter.notYetSupported("importing roles", "this import module");
@@ -641,42 +649,40 @@ public class JDBCImportModule implements DatabaseImportModule {
 
     for (SchemaStructure schema : dbStructure.getSchemas()) {
       for (TableStructure table : schema.getTables()) {
-        ResultSet rs;
-        try {
-          rs = getMetadata().getTablePrivileges(dbStructure.getName(), schema.getName(), table.getName());
-        } catch (SQLException e) {
-          LOGGER
-            .warn(
-              "It was not possible to retrieve the list of all database permissions. Please ensure the current user has permissions to list all database permissions.",
-              e);
-          break;
-        }
-        while (rs.next()) {
-          PrivilegeStructure privilege = new PrivilegeStructure();
-          String grantor = rs.getString("GRANTOR");
-          if (grantor == null) {
-            grantor = "";
-          }
-          privilege.setGrantor(grantor);
-
-          String grantee = rs.getString("GRANTEE");
-          if (grantee == null) {
-            grantee = "";
-          }
-          privilege.setGrantee(grantee);
-          privilege.setType(rs.getString("PRIVILEGE"));
-
-          String option = "false";
-          String isGrantable = rs.getString("IS_GRANTABLE");
-          if (isGrantable != null) {
-            if ("yes".equalsIgnoreCase(isGrantable)) {
-              option = "true";
+        try (
+          ResultSet rs = getMetadata().getTablePrivileges(dbStructure.getName(), schema.getName(), table.getName())) {
+          while (rs.next()) {
+            PrivilegeStructure privilege = new PrivilegeStructure();
+            String grantor = rs.getString("GRANTOR");
+            if (grantor == null) {
+              grantor = "";
             }
-          }
-          privilege.setOption(option);
-          privilege.setObject("TABLE \"" + schema.getName() + "\".\"" + table.getName() + "\"");
+            privilege.setGrantor(grantor);
 
-          privileges.add(privilege);
+            String grantee = rs.getString("GRANTEE");
+            if (grantee == null) {
+              grantee = "";
+            }
+            privilege.setGrantee(grantee);
+            privilege.setType(rs.getString("PRIVILEGE"));
+
+            String option = "false";
+            String isGrantable = rs.getString("IS_GRANTABLE");
+            if (isGrantable != null) {
+              if ("yes".equalsIgnoreCase(isGrantable)) {
+                option = "true";
+              }
+            }
+            privilege.setOption(option);
+            privilege.setObject("TABLE \"" + schema.getName() + "\".\"" + table.getName() + "\"");
+
+            privileges.add(privilege);
+          }
+        } catch (SQLException e) {
+          LOGGER.warn(
+            "It was not possible to retrieve the list of all database permissions. Please ensure the current user has permissions to list all database permissions.",
+            e);
+          break;
         }
       }
     }
@@ -690,17 +696,16 @@ public class JDBCImportModule implements DatabaseImportModule {
    *          the UDT name
    * @return the columns of a given schema.table
    * @throws SQLException
-   * @throws
    */
   protected List<ColumnStructure> getUDTColumns(String schemaName, String udtName) throws SQLException {
 
     // LOGGER.debug("id: " + schemaName + "." + udtName);
     List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
-    ResultSet rs = getMetadata().getColumns(dbStructure.getName(), schemaName, udtName, "%");
-    LOGGER.debug("Getting structure of (possible) UDT " + schemaName + "." + udtName);
-
-    while (rs.next()) {
-      columns.add(getColumn(rs, udtName));
+    try (ResultSet rs = getMetadata().getColumns(dbStructure.getName(), schemaName, udtName, "%")) {
+      LOGGER.debug("Getting structure of (possible) UDT " + schemaName + "." + udtName);
+      while (rs.next()) {
+        columns.add(getColumn(rs, udtName));
+      }
     }
 
     return columns;
@@ -713,16 +718,15 @@ public class JDBCImportModule implements DatabaseImportModule {
    *          the table name
    * @return the columns of a given schema.table
    * @throws SQLException
-   * @throws
    */
   protected List<ColumnStructure> getColumns(String schemaName, String tableName) throws SQLException {
 
     // LOGGER.debug("id: " + schemaName + "." + tableName);
     List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
-    ResultSet rs = getMetadata().getColumns(dbStructure.getName(), schemaName, tableName, "%");
-
-    while (rs.next()) {
-      columns.add(getColumn(rs, tableName));
+    try (ResultSet rs = getMetadata().getColumns(dbStructure.getName(), schemaName, tableName, "%")) {
+      while (rs.next()) {
+        columns.add(getColumn(rs, tableName));
+      }
     }
 
     return columns;
@@ -855,11 +859,11 @@ public class JDBCImportModule implements DatabaseImportModule {
     String pkName = null;
     List<String> pkColumns = new ArrayList<String>();
 
-    ResultSet rs = getMetadata().getPrimaryKeys(getDatabaseStructure().getName(), schemaName, tableName);
-
-    while (rs.next()) {
-      pkName = rs.getString(6);
-      pkColumns.add(rs.getString(4));
+    try (ResultSet rs = getMetadata().getPrimaryKeys(getDatabaseStructure().getName(), schemaName, tableName)) {
+      while (rs.next()) {
+        pkName = rs.getString(6);
+        pkColumns.add(rs.getString(4));
+      }
     }
 
     if (pkName == null) {
@@ -887,39 +891,40 @@ public class JDBCImportModule implements DatabaseImportModule {
 
     List<ForeignKey> foreignKeys = new ArrayList<ForeignKey>();
 
-    ResultSet rs = getMetadata().getImportedKeys(getDatabaseStructure().getName(), schemaName, tableName);
-    while (rs.next()) {
-      List<Reference> references = new ArrayList<Reference>();
-      boolean found = false;
-      Reference reference = new Reference(rs.getString("FKCOLUMN_NAME"), rs.getString("PKCOLUMN_NAME"));
+    try (ResultSet rs = getMetadata().getImportedKeys(getDatabaseStructure().getName(), schemaName, tableName)) {
+      while (rs.next()) {
+        List<Reference> references = new ArrayList<Reference>();
+        boolean found = false;
+        Reference reference = new Reference(rs.getString("FKCOLUMN_NAME"), rs.getString("PKCOLUMN_NAME"));
 
-      String fkeyName = rs.getString("FK_NAME");
-      if (fkeyName == null) {
-        fkeyName = "FK_" + rs.getString("FKCOLUMN_NAME");
-      }
-
-      for (ForeignKey key : foreignKeys) {
-        if (key.getName().equals(fkeyName)) {
-          references = key.getReferences();
-          references.add(reference);
-          key.setReferences(references);
-          found = true;
-          break;
+        String fkeyName = rs.getString("FK_NAME");
+        if (fkeyName == null) {
+          fkeyName = "FK_" + rs.getString("FKCOLUMN_NAME");
         }
-      }
 
-      if (!found) {
-        ForeignKey fkey = new ForeignKey();
-        fkey.setId(tableName + "." + rs.getString("FKCOLUMN_NAME"));
-        fkey.setName(fkeyName);
-        fkey.setReferencedSchema(getReferencedSchema(rs.getString("PKTABLE_SCHEM")));
-        fkey.setReferencedTable(rs.getString("PKTABLE_NAME"));
-        references.add(reference);
-        fkey.setReferences(references);
-        // TODO add: fkey.setMatchType(??);
-        fkey.setUpdateAction(getUpdateRule(rs.getShort("UPDATE_RULE")));
-        fkey.setDeleteAction(getDeleteRule(rs.getShort("DELETE_RULE")));
-        foreignKeys.add(fkey);
+        for (ForeignKey key : foreignKeys) {
+          if (key.getName().equals(fkeyName)) {
+            references = key.getReferences();
+            references.add(reference);
+            key.setReferences(references);
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          ForeignKey fkey = new ForeignKey();
+          fkey.setId(tableName + "." + rs.getString("FKCOLUMN_NAME"));
+          fkey.setName(fkeyName);
+          fkey.setReferencedSchema(getReferencedSchema(rs.getString("PKTABLE_SCHEM")));
+          fkey.setReferencedTable(rs.getString("PKTABLE_NAME"));
+          references.add(reference);
+          fkey.setReferences(references);
+          // TODO add: fkey.setMatchType(??);
+          fkey.setUpdateAction(getUpdateRule(rs.getShort("UPDATE_RULE")));
+          fkey.setDeleteAction(getDeleteRule(rs.getShort("DELETE_RULE")));
+          foreignKeys.add(fkey);
+        }
       }
     }
     return foreignKeys;
@@ -982,28 +987,29 @@ public class JDBCImportModule implements DatabaseImportModule {
   protected List<CandidateKey> getCandidateKeys(String schemaName, String tableName) throws SQLException {
     List<CandidateKey> candidateKeys = new ArrayList<CandidateKey>();
 
-    ResultSet rs = getMetadata().getIndexInfo(dbStructure.getName(), schemaName, tableName, true, true);
-    while (rs.next()) {
-      List<String> columns = new ArrayList<String>();
-      boolean found = false;
+    try (ResultSet rs = getMetadata().getIndexInfo(dbStructure.getName(), schemaName, tableName, true, true)) {
+      while (rs.next()) {
+        List<String> columns = new ArrayList<String>();
+        boolean found = false;
 
-      for (CandidateKey key : candidateKeys) {
-        if (key.getName().equals(rs.getString(6))) {
-          columns = key.getColumns();
-          columns.add(rs.getString(9));
-          key.setColumns(columns);
-          found = true;
-          break;
+        for (CandidateKey key : candidateKeys) {
+          if (key.getName().equals(rs.getString(6))) {
+            columns = key.getColumns();
+            columns.add(rs.getString(9));
+            key.setColumns(columns);
+            found = true;
+            break;
+          }
         }
-      }
 
-      if (!found) {
-        if (rs.getString(6) != null) {
-          CandidateKey candidateKey = new CandidateKey();
-          candidateKey.setName(rs.getString(6));
-          columns.add(rs.getString(9));
-          candidateKey.setColumns(columns);
-          candidateKeys.add(candidateKey);
+        if (!found) {
+          if (rs.getString(6) != null) {
+            CandidateKey candidateKey = new CandidateKey();
+            candidateKey.setName(rs.getString(6));
+            columns.add(rs.getString(9));
+            candidateKey.setColumns(columns);
+            candidateKeys.add(candidateKey);
+          }
         }
       }
     }
@@ -1022,8 +1028,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
     String query = sqlHelper.getCheckConstraintsSQL(schemaName, tableName);
     if (query != null) {
-      try {
-        ResultSet rs = getStatement().executeQuery(query);
+      try (ResultSet rs = getStatement().executeQuery(query)) {
         while (rs.next()) {
           CheckConstraint checkConst = new CheckConstraint();
 
@@ -1081,9 +1086,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
     String query = sqlHelper.getTriggersSQL(schemaName, tableName);
     if (query != null) {
-      try {
-        ResultSet rs = getStatement().executeQuery(sqlHelper.getTriggersSQL(schemaName, tableName));
-
+      try (ResultSet rs = getStatement().executeQuery(sqlHelper.getTriggersSQL(schemaName, tableName))) {
         while (rs.next()) {
           Trigger trigger = new Trigger();
 
@@ -1165,8 +1168,8 @@ public class JDBCImportModule implements DatabaseImportModule {
     return string;
   }
 
-  protected Row convertRawToRow(ResultSet rawData, TableStructure tableStructure) throws InvalidDataException,
-    SQLException, ModuleException {
+  protected Row convertRawToRow(ResultSet rawData, TableStructure tableStructure)
+    throws InvalidDataException, SQLException, ModuleException {
     Row row = null;
     if (isRowValid(rawData, tableStructure)) {
       List<Cell> cells = new ArrayList<Cell>(tableStructure.getColumns().size());
@@ -1198,8 +1201,8 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
       row = new Row(tableStructure.getCurrentRow(), cells);
 
-      reporter.rowProcessingUsedNull(tableStructure, tableStructure.getCurrentRow(), new ModuleException(
-        "isRowValid returned false"));
+      reporter.rowProcessingUsedNull(tableStructure, tableStructure.getCurrentRow(),
+        new ModuleException("isRowValid returned false"));
     }
     tableStructure.incrementCurrentRow();
     return row;
@@ -1410,10 +1413,11 @@ public class JDBCImportModule implements DatabaseImportModule {
       LOGGER.debug("Got a problem getting Array value", e);
       reporter.customMessage(getClass().getName(),
         "Obtaining array elements as strings as no better type could be identified.");
-      ResultSet rs = array.getResultSet();
-      while (rs.next()) {
-        String item = rs.getString(1);
-        cells.add(new SimpleCell(baseid, item));
+      try (ResultSet rs = array.getResultSet()) {
+        while (rs.next()) {
+          String item = rs.getString(1);
+          cells.add(new SimpleCell(baseid, item));
+        }
       }
     }
 
@@ -1536,9 +1540,9 @@ public class JDBCImportModule implements DatabaseImportModule {
   /**
    * Advances to the next batch of results in a ResultSet. Also tries to adjust
    * the fetch size in case it is too big. Setting it to
-   * SMALL_ROW_FETCH_BLOCK_SIZE (if it is bigger than that), and then (if that
-   * is still too big) trying with MINIMUM_ROW_FETCH_BLOCK_SIZE. Attempting to
-   * adjust the fetch size further is a NO-OP and returns false.
+   * SMALL_ROW_FETCH_BLOCK_SIZE (if it is bigger than that), and then (if that is
+   * still too big) trying with MINIMUM_ROW_FETCH_BLOCK_SIZE. Attempting to adjust
+   * the fetch size further is a NO-OP and returns false.
    *
    * @param tableResultSet
    *          the tableResultSet with a big fetch size
@@ -1620,10 +1624,8 @@ public class JDBCImportModule implements DatabaseImportModule {
           long tableRows = table.getRows();
           long lastProgressTimestamp = System.currentTimeMillis();
           if (moduleSettings.shouldFetchRows()) {
-            ResultSet tableRawData = null;
 
-            try {
-              tableRawData = getTableRawData(table);
+            try (ResultSet tableRawData = getTableRawData(table)) {
               while (resultSetNext(tableRawData)) {
                 handler.handleDataRow(convertRawToRow(tableRawData, table));
                 nRows++;
@@ -1640,23 +1642,15 @@ public class JDBCImportModule implements DatabaseImportModule {
               }
             } catch (SQLException | ModuleException me) {
               LOGGER.error("Could not obtain all data from the current table.", me);
-            } finally {
-              if (tableRawData != null) {
-                try {
-                  tableRawData.close();
-                } catch (SQLException e) {
-                  LOGGER.debug("Could not close tableRawData", e);
-                }
-              }
             }
           }
           LOGGER.info("Total of " + nRows + " row(s) processed");
 
           if (nRows < tableRows) {
             LOGGER.warn("The database reported a total of {} rows. Some data may have been lost.", tableRows);
-            reporter.customMessage(this.getClass().getName(), "Only processed " + nRows + " out of " + tableRows
-              + " rows contained in table '" + table.getName()
-              + "'. The log file may contain more information to help diagnose this problem.");
+            reporter.customMessage(this.getClass().getName(),
+              "Only processed " + nRows + " out of " + tableRows + " rows contained in table '" + table.getName()
+                + "'. The log file may contain more information to help diagnose this problem.");
           }
 
           getDatabaseStructure().lookupTableStructure(table.getId()).setRows(nRows);
