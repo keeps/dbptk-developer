@@ -91,12 +91,11 @@ public class ConfigUtils {
     URL logbackFileResource = ClassLoader.getSystemResource(Constants.LOGBACK_FILE_NAME);
 
     try {
-      LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-      JoranConfigurator configurator = new JoranConfigurator();
-      configurator.setContext(context);
-      context.reset();
-
       if (logbackFileResource != null) {
+        LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+        JoranConfigurator configurator = new JoranConfigurator();
+        configurator.setContext(context);
+        context.reset();
         configurator.doConfigure(logbackFileResource);
       }
     } catch (JoranException e) {
