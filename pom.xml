@@ -20,7 +20,7 @@
     <properties>
         <version.java>1.7</version.java>
         <projectLocalRepository>${project.basedir}/vendor-libs/repository</projectLocalRepository>
-        <version.dbvtk>1.0.0</version.dbvtk>
+        <version.dbvtk>1.0.3</version.dbvtk>
     </properties>
     <repositories>
         <repository>
