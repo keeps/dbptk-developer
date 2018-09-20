@@ -194,6 +194,8 @@ Troubleshooting information can be found in a separate [Troubleshooting](https:/
 
 ## Information & Commercial support
 
+Database Preservation Toolkit logos can be downloaded [here](https://github.com/keeps/db-preservation-toolkit/wiki/Logos).
+
 For more information or commercial support, contact [KEEP SOLUTIONS](http://www.keep.pt/contactos/?lang=en).
 
 ## Development [![Build Status](https://travis-ci.org/keeps/db-preservation-toolkit.png?branch=master)](https://travis-ci.org/keeps/db-preservation-toolkit)
