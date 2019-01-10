@@ -97,6 +97,34 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>net.revelc.code</groupId>
+                <artifactId>formatter-maven-plugin</artifactId>
+                <version>0.5.2</version>
+                <configuration>
+                    <configFile>${session.executionRootDirectory}/code-style/eclipse_formatter.xml</configFile>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>3.0</version>
+                <configuration>
+                    <!--<header>com/mycila/maven/plugin/license/templates/LGPL-3.txt</header> -->
+                    <header>LICENSE_HEADER.txt</header>
+                    <keywords>
+                        <keyword>license</keyword>
+                        <keyword>copyright</keyword>
+                    </keywords>
+                    <properties>
+                        <!--<project.name>Database Preservation Toolkit</project.name> -->
+                        <project.license.url>https://github.com/keeps/db-preservation-toolkit</project.license.url>
+                    </properties>
+                    <includes>
+                        <include>**/*.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
         </plugins>
         <pluginManagement>
             <plugins>

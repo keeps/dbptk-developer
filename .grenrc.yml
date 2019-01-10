@@ -1,0 +1,43 @@
+---
+  dataSource: "issues"
+  ignoreLabels:
+    - "Epic"
+    - "hide from changelog"
+    - "access"
+    - "bug"
+    - "data loss"
+    - "dbvtk"
+    - "discussion/question"
+    - "duplicate"
+    - "enhancement"
+    - "feature"
+    - "linux"
+    - "mac os"
+    - "ms sql"
+    - "mysql"
+    - "needs more info"
+    - "oracle"
+    - "postgres"
+    - "QA"
+    - "siard-dk"
+    - "siard 1"
+    - "siard 2"
+    - "windows"
+  ignoreIssuesWith:
+    - "Epic"
+    - "duplicate"
+    - "hide from changelog"
+  ignoreTagsWith:
+    - "-rc"
+    - "-alpha"
+    - "-beta"
+  onlyMilestones: false
+  groupBy:
+    New features::
+      - "feature"
+    Enhancements::
+      - "enhancement"
+    Bug Fixes::
+      - "bug"
+  changelogFilename: "CHANGELOG.md"
+  prefix: ""

@@ -16,7 +16,7 @@ matrix:
   - jdk: oraclejdk8
     env: SONARPLUGIN=sonar:sonar
 os:
-- linux
+  - linux
 notifications:
   slack:
     secure: M7jJ1dmO1cx//vgzY5UgE650Fe/lm21Dm8WLDXJfz66hmjQihoYCzW19Id/ySgPs/exjEvS1Lvxa4r4t5mgQOe+uPpQOZKEK3IfQ6h7zIv40Rbsa6mY9GaAW4x1Obji5a7HNGD7BQiolYDX1jmtBxOcSetesvL5iX1Bru0E/R78=
