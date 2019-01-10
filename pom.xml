@@ -28,18 +28,6 @@
             <name>KEEP Artifacts-releases</name>
             <url>http://artifactory.keep.pt/keep</url>
         </repository>
-        <repository>
-            <id>vendorDependencies</id>
-            <name>Vendor dependencies</name>
-            <releases>
-                <enabled>true</enabled>
-                <checksumPolicy>ignore</checksumPolicy>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <url>file://${projectLocalRepository}/</url>
-        </repository>
     </repositories>
     <distributionManagement>
         <repository>
@@ -220,7 +208,7 @@
     </build>
     <dependencyManagement>
         <dependencies>
-            <!-- interal -->
+            <!-- internal -->
             <dependency>
                 <groupId>com.databasepreservation</groupId>
                 <artifactId>dbptk-model</artifactId>
@@ -242,61 +230,110 @@
                 <groupId>com.databasepreservation.visualization</groupId>
                 <artifactId>dbvtk-model</artifactId>
                 <version>${version.dbvtk}</version>
-                <classifier>sources</classifier>
             </dependency>
 
-            <!-- modules (with sources) -->
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-db2</artifactId><version>2.0.1-SNAPSHOT</version></dependency>
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-db2</artifactId><version>2.0.1-SNAPSHOT</version><classifier>sources</classifier></dependency>
+            <!-- modules (also internal) -->
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-module-db2</artifactId>
+                <version>2.0.1-SNAPSHOT</version>
+            </dependency>
 
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-dbml</artifactId><version>2.0.1-SNAPSHOT</version></dependency>
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-dbml</artifactId><version>2.0.1-SNAPSHOT</version><classifier>sources</classifier></dependency>
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-module-dbml</artifactId>
+                <version>2.0.1-SNAPSHOT</version>
+            </dependency>
 
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-jdbc</artifactId><version>2.0.1-SNAPSHOT</version></dependency>
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-jdbc</artifactId><version>2.0.1-SNAPSHOT</version><classifier>sources</classifier></dependency>
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-module-jdbc</artifactId>
+                <version>2.0.1-SNAPSHOT</version>
+            </dependency>
 
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-list-tables</artifactId><version>2.0.1-SNAPSHOT</version></dependency>
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-list-tables</artifactId><version>2.0.1-SNAPSHOT</version><classifier>sources</classifier></dependency>
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-module-list-tables</artifactId>
+                <version>2.0.1-SNAPSHOT</version>
+            </dependency>
 
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-ms-access</artifactId><version>2.0.1-SNAPSHOT</version></dependency>
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-ms-access</artifactId><version>2.0.1-SNAPSHOT</version><classifier>sources</classifier></dependency>
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-module-ms-access</artifactId>
+                <version>2.0.1-SNAPSHOT</version>
+            </dependency>
 
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-mysql</artifactId><version>2.0.1-SNAPSHOT</version></dependency>
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-mysql</artifactId><version>2.0.1-SNAPSHOT</version><classifier>sources</classifier></dependency>
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-module-mysql</artifactId>
+                <version>2.0.1-SNAPSHOT</version>
+            </dependency>
 
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-odbc</artifactId><version>2.0.1-SNAPSHOT</version></dependency>
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-odbc</artifactId><version>2.0.1-SNAPSHOT</version><classifier>sources</classifier></dependency>
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-module-odbc</artifactId>
+                <version>2.0.1-SNAPSHOT</version>
+            </dependency>
 
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-oracle</artifactId><version>2.0.1-SNAPSHOT</version></dependency>
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-oracle</artifactId><version>2.0.1-SNAPSHOT</version><classifier>sources</classifier></dependency>
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-module-oracle</artifactId>
+                <version>2.0.1-SNAPSHOT</version>
+            </dependency>
 
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-postgresql</artifactId><version>2.0.1-SNAPSHOT</version></dependency>
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-postgresql</artifactId><version>2.0.1-SNAPSHOT</version><classifier>sources</classifier></dependency>
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-module-postgresql</artifactId>
+                <version>2.0.1-SNAPSHOT</version>
+            </dependency>
 
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-siard</artifactId><version>2.0.1-SNAPSHOT</version></dependency>
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-siard</artifactId><version>2.0.1-SNAPSHOT</version><classifier>sources</classifier></dependency>
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-module-siard</artifactId>
+                <version>2.0.1-SNAPSHOT</version>
+            </dependency>
 
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-bindings-siard1</artifactId><version>1.4.0</version></dependency>
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-bindings-siard1</artifactId><version>1.4.0</version><classifier>sources</classifier></dependency>
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-bindings-siard1</artifactId>
+                <version>1.4.0</version>
+            </dependency>
 
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-bindings-siard2-0</artifactId><version>1.4.0</version></dependency>
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-bindings-siard2-0</artifactId><version>1.4.0</version><classifier>sources</classifier></dependency>
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-bindings-siard2-0</artifactId>
+                <version>1.4.0</version>
+            </dependency>
 
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-bindings-siard2-1</artifactId><version>1.4.0</version></dependency>
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-bindings-siard2-1</artifactId><version>1.4.0</version><classifier>sources</classifier></dependency>
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-bindings-siard2-1</artifactId>
+                <version>1.4.0</version>
+            </dependency>
 
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-bindings-siarddk</artifactId><version>1.4.0</version></dependency>
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-bindings-siarddk</artifactId><version>1.4.0</version><classifier>sources</classifier></dependency>
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-bindings-siarddk</artifactId>
+                <version>1.4.0</version>
+            </dependency>
 
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-dbvtk</artifactId><version>2.0.1-SNAPSHOT</version></dependency>
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-dbvtk</artifactId><version>2.0.1-SNAPSHOT</version><classifier>sources</classifier></dependency>
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-module-dbvtk</artifactId>
+                <version>2.0.1-SNAPSHOT</version>
+            </dependency>
 
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-sql-file</artifactId><version>2.0.1-SNAPSHOT</version></dependency>
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-sql-file</artifactId><version>2.0.1-SNAPSHOT</version><classifier>sources</classifier></dependency>
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-module-sql-file</artifactId>
+                <version>2.0.1-SNAPSHOT</version>
+            </dependency>
 
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-sql-server</artifactId><version>2.0.1-SNAPSHOT</version></dependency>
-            <dependency><groupId>com.databasepreservation</groupId><artifactId>dbptk-module-sql-server</artifactId><version>2.0.1-SNAPSHOT</version><classifier>sources</classifier></dependency>
-
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-module-sql-server</artifactId>
+                <version>2.0.1-SNAPSHOT</version>
+            </dependency>
 
             <!-- plugin modules handling -->
             <dependency>
