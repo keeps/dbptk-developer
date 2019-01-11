@@ -20,13 +20,24 @@
     <properties>
         <version.java>1.7</version.java>
         <projectLocalRepository>${project.basedir}/vendor-libs/repository</projectLocalRepository>
-        <version.dbvtk>1.1.0</version.dbvtk>
     </properties>
     <repositories>
         <repository>
             <id>KEEPS-Artifacts</id>
             <name>KEEP Artifacts-releases</name>
             <url>http://artifactory.keep.pt/keep</url>
+        </repository>
+        <repository>
+            <id>vendorDependencies</id>
+            <name>Vendor dependencies</name>
+            <releases>
+                <enabled>true</enabled>
+                <checksumPolicy>ignore</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <url>file://${projectLocalRepository}/</url>
         </repository>
     </repositories>
     <distributionManagement>
@@ -57,6 +68,18 @@
                 <module>dbptk-model</module>
                 <module>dbptk-bindings</module>
                 <module>dbptk-modules</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>modules</id>
+            <modules>
+                <module>dbptk-modules</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>model</id>
+            <modules>
+                <module>dbptk-model</module>
             </modules>
         </profile>
         <profile>
@@ -214,23 +237,6 @@
                 <artifactId>dbptk-model</artifactId>
                 <version>2.0.1-SNAPSHOT</version>
             </dependency>
-            <dependency>
-                <groupId>com.databasepreservation</groupId>
-                <artifactId>dbptk-model</artifactId>
-                <version>2.0.1-SNAPSHOT</version>
-                <classifier>sources</classifier>
-            </dependency>
-
-            <dependency>
-                <groupId>com.databasepreservation.visualization</groupId>
-                <artifactId>dbvtk-model</artifactId>
-                <version>${version.dbvtk}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.databasepreservation.visualization</groupId>
-                <artifactId>dbvtk-model</artifactId>
-                <version>${version.dbvtk}</version>
-            </dependency>
 
             <!-- modules (also internal) -->
             <dependency>
@@ -295,36 +301,6 @@
 
             <dependency>
                 <groupId>com.databasepreservation</groupId>
-                <artifactId>dbptk-bindings-siard1</artifactId>
-                <version>1.4.0</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.databasepreservation</groupId>
-                <artifactId>dbptk-bindings-siard2-0</artifactId>
-                <version>1.4.0</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.databasepreservation</groupId>
-                <artifactId>dbptk-bindings-siard2-1</artifactId>
-                <version>1.4.0</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.databasepreservation</groupId>
-                <artifactId>dbptk-bindings-siarddk</artifactId>
-                <version>1.4.0</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.databasepreservation</groupId>
-                <artifactId>dbptk-module-dbvtk</artifactId>
-                <version>2.0.1-SNAPSHOT</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.databasepreservation</groupId>
                 <artifactId>dbptk-module-sql-file</artifactId>
                 <version>2.0.1-SNAPSHOT</version>
             </dependency>
@@ -333,6 +309,30 @@
                 <groupId>com.databasepreservation</groupId>
                 <artifactId>dbptk-module-sql-server</artifactId>
                 <version>2.0.1-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-bindings-siard1</artifactId>
+                <version>1.5.0-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-bindings-siard2-0</artifactId>
+                <version>1.5.0-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-bindings-siard2-1</artifactId>
+                <version>1.5.0-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-bindings-siarddk</artifactId>
+                <version>1.5.0-SNAPSHOT</version>
             </dependency>
 
             <!-- plugin modules handling -->

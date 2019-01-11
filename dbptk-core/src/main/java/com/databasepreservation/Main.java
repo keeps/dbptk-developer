@@ -18,7 +18,6 @@ import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.modules.filters.ObservableFilter;
 import com.databasepreservation.model.modules.filters.ProgressLoggerObserver;
 import com.databasepreservation.modules.dbml.DBMLModuleFactory;
-import com.databasepreservation.modules.dbvtk.DbvtkModuleFactory;
 import com.databasepreservation.modules.jdbc.JDBCModuleFactory;
 import com.databasepreservation.modules.listTables.ListTablesModuleFactory;
 import com.databasepreservation.modules.msAccess.MsAccessUCanAccessModuleFactory;
@@ -69,7 +68,7 @@ public class Main {
       databaseModuleFactories = new DatabaseModuleFactory[] {new JDBCModuleFactory(), new ListTablesModuleFactory(),
         new MsAccessUCanAccessModuleFactory(), new MySQLModuleFactory(), new Oracle12cModuleFactory(),
         new PostgreSQLModuleFactory(), new SIARD1ModuleFactory(), new SIARD2ModuleFactory(), new SIARDDKModuleFactory(),
-        new DbvtkModuleFactory(), new SQLServerJDBCModuleFactory(), new DBMLModuleFactory()};
+        new SQLServerJDBCModuleFactory(), new DBMLModuleFactory()};
     }
     return databaseModuleFactories;
   }
