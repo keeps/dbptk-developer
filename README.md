@@ -2,9 +2,9 @@
 
 Relational databases are one of the most important technologies supporting today’s information management activities. They are designed to store, organize and explore digital records that not only support but also document day-to-day business operations. Very often, these records are irreplaceable or prohibitively expensive to reacquire by other means rendering the preservation of databases a serious concern.
 
-This page focus on workflows, tools and standards to allow information managers to extract, archive and preserve records of information currently managed by relational databases. 
+This page focus on workflows, tools and standards to allow information managers to extract, archive and preserve records of information currently managed by relational databases.
 
-The most relevant initiatives in this context are the Database Preservation Toolkit, the Database Visualization Toolkit and the SIARD 2.0 preservation format. 
+The most relevant initiatives in this context are the Database Preservation Toolkit, the Database Visualization Toolkit and the SIARD 2.0 preservation format.
 
 The following screencast aims to illustrate how all these tools fit together in a full-cycle archiving and preservation workflow for relational databases.
 
@@ -166,15 +166,6 @@ java -cp "/path/to/dbptk-app-x.y.z.jar:/path/to/jdbc_driver.jar" com.databasepre
 ```
 
 
-
-## How to build from source
-
-1. Download the [latest release](https://github.com/keeps/db-preservation-toolkit/releases) or clone the repository.
-2. Unzip and open the folder on a command-line terminal
-3. Build with Maven `mvn clean package`
-
-Binaries will be on the `target` folder.
-
 ## Related publications & presentations
 
 * Presentation ["Database migration: CLI"](http://hdl.handle.net/1822/17856) by José Ramalho at "A Pratical Approach to Database Archiving", Danish National Archives, Copenhagen, Denmark, 2012-02-07.
@@ -198,35 +189,17 @@ Database Preservation Toolkit logos can be downloaded [here](https://github.com/
 
 For more information or commercial support, contact [KEEP SOLUTIONS](http://www.keep.pt/contactos/?lang=en).
 
-## Development [![Build Status](https://travis-ci.org/keeps/db-preservation-toolkit.png?branch=master)](https://travis-ci.org/keeps/db-preservation-toolkit)
 
-To develop we recommend the use of Maven and Eclipse (or Intellij with Eclipse Code Formatter plugin).
+## Developers
 
-The following plugins should be installed in Eclipse:
+To develop new components for DBPTK check the [Developer notes](https://github.com/keeps/db-preservation-toolkit/blob/master/DEV_NOTES.md) which has information on:
 
-* [ANSI Escape in Console](http://marketplace.eclipse.org/content/ansi-escape-console) to have coloured output in tests
-
-And the following environment variables should be set:
-
-* **DPT_MYSQL_USER** - MySQL user that must be able to create new users and give them permissions (uses 'root' if not defined)
-* **DPT_MYSQL_PASS** - MySQL user's password (uses blank password if not defined)
-* **DPT_POSTGRESQL_USER** - PostgreSQL user that must be able to create new users and give them permissions (uses 'postgres' if not defined)
-* **DPT_POSTGRESQL_PASS** - PostgreSQL user's password (uses blank password if not defined)
-
-To run PostgreSQL tests, a local PostgreSQL database is required and *postgres* user or another user with permission to create new databases and users can be used. This user must be accessible by IP connection on localhost. The access can be tested with ```psql -U username -h 127.0.0.1 -d postgres -W```.
-
-To run MySQL tests, a local MySQL (or MariaDB) database is required and 'root' user or another user with permission to create new databases and users can be used. This user must be accessible by IP connection on localhost. The access can be tested with ```mysql --user="username" -p --database="mysql" --host="127.0.0.1"```.
-
-### Building common parts that may be used by other projects
-
-Use ```mvn clean install -Pcommon``` to locally install the common artifacts so they can be used by other projects.
-Note that this is not necessary unless you do not have access to KEEPS Artifactory or you want to make changes to the common artifacts to use in other projects.
-
-### Changing XML Schema files
-
-After changing SIARD XML Schema files, maven must be used to compile a new artifact from the XML Schema (using JAXB). To do this, run ```mvn clean install -Pdbptk-bindings``` from project root folder.
-This will install the artifacts locally and they will be used instead of the ones in KEEPS Artifactory.
-
+- How to build from the source code
+- How to make a new release
+- How to set up the development environment
+- Code structure
+- How to contribute
+- etc.
 
 ## License
 
