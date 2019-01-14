@@ -4,7 +4,6 @@ import java.io.InputStream;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.databasepreservation.modules.siard.constants.SIARDConstants;
 
 /**
  * Defines the behaviour for reading data

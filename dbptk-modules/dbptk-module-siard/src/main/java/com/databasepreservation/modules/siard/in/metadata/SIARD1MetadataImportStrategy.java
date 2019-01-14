@@ -36,14 +36,6 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.Trigger;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
-import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQL99StandardDatatypeImporter;
-import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQLStandardDatatypeImporter;
-import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
-import com.databasepreservation.modules.siard.in.read.ReadStrategy;
-import com.databasepreservation.utils.JodaUtils;
-
 import com.databasepreservation.modules.siard.bindings.siard_1.CandidateKeyType;
 import com.databasepreservation.modules.siard.bindings.siard_1.CandidateKeysType;
 import com.databasepreservation.modules.siard.bindings.siard_1.CheckConstraintType;
@@ -73,6 +65,13 @@ import com.databasepreservation.modules.siard.bindings.siard_1.UserType;
 import com.databasepreservation.modules.siard.bindings.siard_1.UsersType;
 import com.databasepreservation.modules.siard.bindings.siard_1.ViewType;
 import com.databasepreservation.modules.siard.bindings.siard_1.ViewsType;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
+import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQL99StandardDatatypeImporter;
+import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQLStandardDatatypeImporter;
+import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
+import com.databasepreservation.modules.siard.in.read.ReadStrategy;
+import com.databasepreservation.utils.JodaUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>

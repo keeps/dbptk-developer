@@ -37,15 +37,6 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.Trigger;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
-import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQL2008StandardDatatypeImporter;
-import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQLStandardDatatypeImporter;
-import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
-import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStrategy;
-import com.databasepreservation.modules.siard.in.read.ReadStrategy;
-import com.databasepreservation.utils.JodaUtils;
-
 import com.databasepreservation.modules.siard.bindings.siard_2_0.CandidateKeyType;
 import com.databasepreservation.modules.siard.bindings.siard_2_0.CandidateKeysType;
 import com.databasepreservation.modules.siard.bindings.siard_2_0.CheckConstraintType;
@@ -75,6 +66,14 @@ import com.databasepreservation.modules.siard.bindings.siard_2_0.UserType;
 import com.databasepreservation.modules.siard.bindings.siard_2_0.UsersType;
 import com.databasepreservation.modules.siard.bindings.siard_2_0.ViewType;
 import com.databasepreservation.modules.siard.bindings.siard_2_0.ViewsType;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
+import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQL2008StandardDatatypeImporter;
+import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQLStandardDatatypeImporter;
+import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStrategy;
+import com.databasepreservation.modules.siard.in.read.ReadStrategy;
+import com.databasepreservation.utils.JodaUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>

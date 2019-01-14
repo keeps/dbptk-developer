@@ -147,7 +147,8 @@ public class SQLServerHelper extends SQLHelper {
       + "+ CAST(OBJECTPROPERTY(id, 'ExecIsDeleteTrigger') AS char(1)) AS TRIGGER_EVENT"
       + ", OBJECT_DEFINITION(o.id) AS TRIGGERED_ACTION FROM sysobjects o"
       + " INNER JOIN sys.tables tab ON o.parent_obj = tab.object_id"
-      + " INNER JOIN sys.schemas s ON tab.schema_id = s.schema_id WHERE o.type = 'TR' AND tab.name = '" + tableName + "'";
+      + " INNER JOIN sys.schemas s ON tab.schema_id = s.schema_id WHERE o.type = 'TR' AND tab.name = '" + tableName
+      + "'";
   }
 
   @Override

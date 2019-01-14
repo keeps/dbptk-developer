@@ -188,8 +188,9 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
   }
 
   /**
-   * @param schema the schema structure @return the database tables of a given
-   * schema @throws SQLException @throws
+   * @param schema
+   *          the schema structure @return the database tables of a given
+   *          schema @throws SQLException @throws
    */
   @Override
   protected List<TableStructure> getTables(SchemaStructure schema) throws SQLException {

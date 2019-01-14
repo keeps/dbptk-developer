@@ -41,14 +41,6 @@ import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.modules.siard.SIARDHelper;
-import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.out.content.Sql99toXSDType;
-import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
-import com.databasepreservation.modules.siard.out.write.WriteStrategy;
-import com.databasepreservation.utils.JodaUtils;
-import com.databasepreservation.utils.XMLUtils;
-
 import com.databasepreservation.modules.siard.bindings.siard_1.ActionTimeType;
 import com.databasepreservation.modules.siard.bindings.siard_1.CandidateKeyType;
 import com.databasepreservation.modules.siard.bindings.siard_1.CandidateKeysType;
@@ -81,6 +73,13 @@ import com.databasepreservation.modules.siard.bindings.siard_1.UserType;
 import com.databasepreservation.modules.siard.bindings.siard_1.UsersType;
 import com.databasepreservation.modules.siard.bindings.siard_1.ViewType;
 import com.databasepreservation.modules.siard.bindings.siard_1.ViewsType;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
+import com.databasepreservation.modules.siard.out.content.Sql99toXSDType;
+import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.write.WriteStrategy;
+import com.databasepreservation.utils.JodaUtils;
+import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>

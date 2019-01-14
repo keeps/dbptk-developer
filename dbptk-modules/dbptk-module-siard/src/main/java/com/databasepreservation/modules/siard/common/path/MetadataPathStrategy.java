@@ -1,13 +1,13 @@
 package com.databasepreservation.modules.siard.common.path;
 
+import java.io.IOException;
+import java.security.InvalidParameterException;
+
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.in.read.CloseableIterable;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
-
-import java.io.IOException;
-import java.security.InvalidParameterException;
 
 /**
  * Defines an API to get the locations of the main XML metadata file and the
@@ -39,19 +39,20 @@ public interface MetadataPathStrategy {
   public String getXsdResourcePath(String filename) throws InvalidParameterException;
 
   class VersionIdentifier {
-    private static String[] paths2_0 = new String[]{"header/version/2.0/", "header/version/2.0"};
-    private static String[] paths2_1 = new String[]{"header/siardversion/2.1/", "header/siardversion/2.1"};
+    private static String[] paths2_0 = new String[] {"header/version/2.0/", "header/version/2.0"};
+    private static String[] paths2_1 = new String[] {"header/siardversion/2.1/", "header/siardversion/2.1"};
 
-    public static SIARDConstants.SiardVersion getVersion(ReadStrategy readStrategy, SIARDArchiveContainer mainContainer){
-      try(CloseableIterable<String> pathIterator = readStrategy.getFilepathStream(mainContainer)){
+    public static SIARDConstants.SiardVersion getVersion(ReadStrategy readStrategy,
+      SIARDArchiveContainer mainContainer) {
+      try (CloseableIterable<String> pathIterator = readStrategy.getFilepathStream(mainContainer)) {
         for (String path : pathIterator) {
           for (String p : paths2_0) {
-            if(p.equalsIgnoreCase(path)){
+            if (p.equalsIgnoreCase(path)) {
               return SIARDConstants.SiardVersion.V2_0;
             }
           }
           for (String p : paths2_1) {
-            if(p.equalsIgnoreCase(path)){
+            if (p.equalsIgnoreCase(path)) {
               return SIARDConstants.SiardVersion.V2_1;
             }
           }
