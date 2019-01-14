@@ -18,7 +18,6 @@
         <version.java>1.7</version.java>
     </properties>
     <modules>
-        <module>dbptk-module-db2</module>
         <module>dbptk-module-dbml</module>
         <module>dbptk-module-jdbc</module>
         <module>dbptk-module-list-tables</module>
