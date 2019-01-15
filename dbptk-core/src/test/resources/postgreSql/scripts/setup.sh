@@ -7,8 +7,8 @@
 # temporary user password
 
 #ENVIRONMENT VARS:
-# DPT_MYSQL_USER - mysql username for a user with permission to create a new user (defaults to "root")
-# DPT_MYSQL_PASS - mysql password for the DPT_MYSQL_USER user (defaults to empty)
+# DPT_POSTGRESQL_USER - postgres username for a user with permission to create a new user (defaults to "root")
+# DPT_POSTGRESQL_PASS - postgres password for the DPT_MYSQL_USER user (defaults to empty)
 
 TEST_DB_SOURCE="$1"
 TEST_DB_TARGET="$2"

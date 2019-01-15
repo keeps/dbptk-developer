@@ -94,7 +94,7 @@ import com.databasepreservation.utils.XMLUtils;
 public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
   private static final String ENCODING = "UTF-8";
   private static final String METADATA_FILENAME = "metadata";
-  private static final String METADATA_RESOURCE_FILENAME = "siard2-metadata";
+  private static final String METADATA_RESOURCE_FILENAME = "siard2-0-metadata";
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2MetadataExportStrategy.class);
   private final SIARD2ContentPathExportStrategy contentPathStrategy;
   private final MetadataPathStrategy metadataPathStrategy;

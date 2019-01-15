@@ -12,7 +12,7 @@ public class SIARD2MetadataPathStrategy implements MetadataPathStrategy {
 
   // names for files
   private static final String METADATA_FILENAME = "metadata";
-  private static final String METADATA_RESOURCE_FILENAME = "siard2-metadata";
+  private static final String METADATA_RESOURCE_FILENAME = "siard2-0-metadata";
 
   // extensions for files
   private static final String XML_EXTENSION = "xml";

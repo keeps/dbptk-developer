@@ -55,12 +55,12 @@ public class MySqlSIARDDKTest {
       String.format("mysqldump -v --user=\"%s\" --password=\"%s\" %s --compact", db_tmp_username, db_tmp_password,
         db_target),
 
-      new String[] {"--import=mysql", "--import-hostname=localhost", "--import-database", db_source,
+      new String[] {"--import=mysql", "--import-hostname=127.0.0.1", "--import-database", db_source,
         "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--export=siard-dk",
         "--export-folder", archiveFullPath},
 
       new String[] {"--import=siard-dk", "--import-as-schema=dpttest", "--import-folder", archiveFullPath,
-        "--export=mysql", "--export-hostname=localhost", "--export-database", db_target, "--export-username",
+        "--export=mysql", "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username",
         db_tmp_username, "--export-password", db_tmp_password},
 
       new MySqlDumpDiffExpectations(), null, null);

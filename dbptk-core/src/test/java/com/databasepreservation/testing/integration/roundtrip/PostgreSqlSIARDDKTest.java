@@ -63,16 +63,16 @@ public class PostgreSqlSIARDDKTest {
         db_source, db_target, db_tmp_username, db_tmp_password),
       String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/postgreSql/scripts/teardown.sh").getPath(),
         db_source, db_target, db_tmp_username),
-      "psql -h localhost --single-transaction -v ON_ERROR_STOP=1 ",
-      "pg_dump -h localhost --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces --exclude-table=tbl_datatypes_prikey_seq",
-      "pg_dump -h localhost --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces --exclude-table=tbl_datatypes_prikey_seq",
+      "psql -h 127.0.0.1 --single-transaction -v ON_ERROR_STOP=1 ",
+      "pg_dump -h 127.0.0.1 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces --exclude-table=tbl_datatypes_prikey_seq",
+      "pg_dump -h 127.0.0.1 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces --exclude-table=tbl_datatypes_prikey_seq",
 
-      new String[] {"--import=postgresql", "--import-hostname=localhost", "--import-database", db_source,
+      new String[] {"--import=postgresql", "--import-hostname=127.0.0.1", "--import-database", db_source,
         "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--import-disable-encryption",
         "--export=siard-dk", "--export-folder", archiveFullPath},
 
       new String[] {"--import=siard-dk", "--import-as-schema=public", "--import-folder", archiveFullPath,
-        "--export=postgresql", "--export-hostname=localhost", "--export-database", db_target, "--export-username",
+        "--export=postgresql", "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username",
         db_tmp_username, "--export-password", db_tmp_password, "--export-disable-encryption"},
       sqlDumpDiffExpectationsPrepQueue, env_var_source, env_var_target);
   }

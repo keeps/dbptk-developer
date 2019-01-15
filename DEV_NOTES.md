@@ -10,9 +10,16 @@ Besides these notes, the [contributions guide](https://github.com/keeps/db-prese
 
 1. Download the [latest release](https://github.com/keeps/db-preservation-toolkit/releases) or clone the repository.
 2. Unzip and open the folder on a command-line terminal
-3. Build with Maven `mvn -Dmaven.test.skip -Denforcer.skip clean package`
+3. Build with Maven `mvn -Dmaven.test.skip clean package`
 
 Binaries will be on the `target` folder.
+
+### Configure access to Oracle Maven repository
+
+The Oracle module uses JDBC Drivers from Oracle's Maven repository.
+This repository requires an account, which must be created and configured in order to be used by your maven client.
+
+For more info visit the [registration page](http://www.oracle.com/webapps/maven/register/license.html) and [maven configuration page](https://maven.oracle.com/doc.html).
 
 ## Development environment
 
