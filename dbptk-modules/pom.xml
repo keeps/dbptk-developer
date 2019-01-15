@@ -27,7 +27,6 @@
         <module>dbptk-module-oracle</module>
         <module>dbptk-module-postgresql</module>
         <module>dbptk-module-siard</module>
-        <module>dbptk-module-sql-file</module>
         <module>dbptk-module-sql-server</module>
     </modules>
 

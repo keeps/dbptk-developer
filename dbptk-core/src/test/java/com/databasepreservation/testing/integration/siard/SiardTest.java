@@ -604,7 +604,8 @@ public class SiardTest {
 
     LOGGER.debug("SIARD file: " + tmpFile.toUri().toString());
     DatabaseExportModule mocked = Mockito.mock(DatabaseExportModule.class);
-    Mockito.stub(mocked.getModuleSettings()).toReturn(new ModuleSettings());
+
+    Mockito.when(mocked.getModuleSettings()).thenReturn(new ModuleSettings());
 
     DatabaseImportModule importer = null;
     switch (version) {
