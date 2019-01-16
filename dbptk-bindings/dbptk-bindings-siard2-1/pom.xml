@@ -5,11 +5,11 @@
     <name>dbptk-bindings-siard2-1</name>
     <groupId>com.databasepreservation</groupId>
     <artifactId>dbptk-bindings-siard2-1</artifactId>
-    <version>1.5.0-SNAPSHOT</version>
+    <version>1.5.0</version>
     <parent>
         <groupId>com.databasepreservation</groupId>
         <artifactId>dbptk-bindings</artifactId>
-        <version>1.5.0-SNAPSHOT</version>
+        <version>1.5.0</version>
         <relativePath>..</relativePath>
     </parent>
     <properties>
