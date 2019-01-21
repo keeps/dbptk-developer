@@ -113,7 +113,7 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
       reporter.customMessage(getClass().getName(), "target database existed and was used anyway");
     } else {
       try {
-        LOGGER.info("Target database does not exist. Creating database " + database);
+        LOGGER.info("Target database does not exist. Creating database {}", database);
         reporter.customMessage(getClass().getName(), "target database with name " + reporter.CODE_DELIMITER + database
           + reporter.CODE_DELIMITER + " did not exist and was created");
         getConnection(MYSQL_CONNECTION_DATABASE, connectionURL).createStatement()
@@ -134,6 +134,14 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
       getConnection().createStatement().execute("SET UNIQUE_CHECKS = 0");
     } catch (SQLException e) {
       LOGGER.info("Could not temporarily disable \"unique\" checks. Performance may be affected.", e);
+    }
+
+    try {
+      // magic number "1073741824" means 1GB of size
+      getConnection().createStatement().execute("SET GLOBAL max_allowed_packet=1073741824");
+      connection.setClientInfo("max_allowed_packet", "1073741824");
+    } catch (SQLException e) {
+      LOGGER.info("Could not set max_allowed_packet to 1GB. Some data may be lost.", e);
     }
   }
 
