@@ -57,12 +57,6 @@
 
         <!-- module-specific dependencies -->
         <dependency>
-            <groupId>org.apache.tika</groupId>
-            <artifactId>tika-core</artifactId>
-            <!-- The next versions will require Java 8 -->
-            <version>1.18</version>
-        </dependency>
-        <dependency>
             <groupId>org.jdom</groupId>
             <artifactId>jdom2</artifactId>
             <version>2.0.6</version>

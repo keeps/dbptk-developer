@@ -20,7 +20,6 @@ import java.util.List;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
-import org.apache.tika.Tika;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
@@ -73,7 +72,6 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   private WriteStrategy writeStrategy;
   private LOBsTracker lobsTracker;
   private MimetypeHandler mimetypeHandler;
-  private Tika tika;
 
   private Reporter reporter;
 
@@ -84,7 +82,6 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     foundUnknownMimetype = false;
 
     mimetypeHandler = new SIARDDKMimetypeHandler();
-    tika = new Tika();
 
     contentPathExportStrategy = siarddkExportModule.getContentPathExportStrategy();
     fileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
@@ -336,8 +333,9 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
             // supports marks)
 
             InputStream is = new BufferedInputStream(binaryCell.createInputStream());
-            String mimeType = tika.detect(is); // Automatically resets the
-                                               // inputstream after use
+            // Removed because TIKA was a security vulnerability and this feature was not
+            // needed/not fully implemented (see #341)
+            String mimeType = "unsupported";
             IOUtils.closeQuietly(is);
 
             // Archive BLOB - simultaneous writing always supported for
