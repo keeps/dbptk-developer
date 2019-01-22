@@ -16,6 +16,7 @@ import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
+import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCDatatypeImporter;
@@ -134,6 +135,26 @@ public class PostgreSQLJDBCDatatypeImporter extends JDBCDatatypeImporter {
     } else {
       return super.getOtherType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
     }
+  }
+
+  @Override
+  protected Type getNumericType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+    Type type = new SimpleTypeNumericExact(columnSize, decimalDigits);
+
+    // The maximum allowed precision when explicitly specified in the type
+    // declaration is 1000, so if we find more than that it means that this type was
+    // declared without precision nor scale
+    if (columnSize > 1000) {
+      type.setSql99TypeName("NUMERIC");
+      type.setSql2008TypeName("NUMERIC");
+    } else if (decimalDigits > 0) {
+      type.setSql99TypeName("NUMERIC", columnSize, decimalDigits);
+      type.setSql2008TypeName("NUMERIC", columnSize, decimalDigits);
+    } else {
+      type.setSql99TypeName("NUMERIC", columnSize);
+      type.setSql2008TypeName("NUMERIC", columnSize);
+    }
+    return type;
   }
 
   // @Override
