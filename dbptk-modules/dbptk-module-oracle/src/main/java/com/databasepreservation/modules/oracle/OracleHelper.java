@@ -28,6 +28,17 @@ public class OracleHelper extends SQLHelper {
 
   private String endQuote = "";
 
+  private String sourceSchema = null;
+  private String targetSchema = null;
+
+  public void setSourceSchema(String sourceSchema) {
+    this.sourceSchema = sourceSchema;
+  }
+
+  public void setTargetSchema(String targetSchema) {
+    this.targetSchema = targetSchema;
+  }
+
   @Override
   public String getStartQuote() {
     return startQuote;
@@ -40,14 +51,14 @@ public class OracleHelper extends SQLHelper {
 
   @Override
   public String getCheckConstraintsSQL(String schemaName, String tableName) {
-    return "SELECT constraint_name AS CHECK_NAME, " + "search_condition AS CHECK_CONDITION " + "FROM all_constraints "
-      + "WHERE table_name = '" + tableName + "' AND constraint_type = 'C'";
+    return "SELECT constraint_name AS CHECK_NAME, search_condition AS CHECK_CONDITION FROM all_constraints WHERE table_name = '"
+      + tableName + "' AND constraint_type = 'C'";
   }
 
   @Override
   public String getTriggersSQL(String schemaName, String tableName) {
-    return "SELECT TRIGGER_NAME, TRIGGER_TYPE AS ACTION_TIME, " + "TRIGGERING_EVENT AS TRIGGER_EVENT, "
-      + "TRIGGER_BODY AS TRIGGERED_ACTION " + "FROM ALL_TRIGGERS " + "WHERE TABLE_NAME = '" + tableName + "'";
+    return "SELECT TRIGGER_NAME, TRIGGER_TYPE AS ACTION_TIME, TRIGGERING_EVENT AS TRIGGER_EVENT, TRIGGER_BODY AS TRIGGERED_ACTION FROM ALL_TRIGGERS WHERE TABLE_NAME = '"
+      + tableName + "'";
   }
 
   @Override
@@ -100,5 +111,12 @@ public class OracleHelper extends SQLHelper {
       ret = super.createTypeSQL(type, isPrimaryKey, isForeignKey);
     }
     return ret;
+  }
+
+  @Override public String escapeSchemaName(String schema) {
+    if(schema.equalsIgnoreCase(sourceSchema) && targetSchema != null){
+      schema = targetSchema;
+    }
+    return super.escapeSchemaName(schema);
   }
 }

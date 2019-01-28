@@ -56,10 +56,8 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
     .required(true);
 
   private static final Parameter sourceSchema = new Parameter().shortName("sc").longName(PARAMETER_SOURCE_SCHEMA)
-    .hasArgument(true).setOptionalArgument(false).required(false)
-    .description("the name of the source schema to export to the Oracle instance. A schema with this name must exist in"
-      + " the Oracle instance and it must be the default tablespace for the specified user. If omitted, the name of"
-      + " the first schema will be used");
+    .hasArgument(true).setOptionalArgument(false).required(false).description(
+      "name of the specific schema (from import) that should be exported to oracle (default: the first schema is exported)");
 
   private static final Parameter acceptLicense = new Parameter().shortName("al").longName(PARAMETER_ACCEPT_LICENSE)
     .description("declare that you accept OTN License Agreement, which is necessary to use this module")

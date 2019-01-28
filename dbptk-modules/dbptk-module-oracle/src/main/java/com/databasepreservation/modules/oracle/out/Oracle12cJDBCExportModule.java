@@ -9,6 +9,7 @@ package com.databasepreservation.modules.oracle.out;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,32 +30,36 @@ public class Oracle12cJDBCExportModule extends JDBCExportModule {
   private static final Logger LOGGER = LoggerFactory.getLogger(Oracle12cJDBCExportModule.class);
 
   private final String username;
-  private String sourceSchema = null;
 
-  /**
-   * Create a new Oracle12c import module
-   *
-   * @param serverName
-   *          the name (host name) of the server
-   * @param instance
-   *          the name of the instance we'll be accessing
-   * @param username
-   *          the name of the user to use in the connection
-   * @param password
-   *          the password of the user to use in the connection
-   */
-  public Oracle12cJDBCExportModule(String serverName, int port, String instance, String username, String password) {
+  private String sourceSchema = null;
+  private String targetSchema = null;
+
+  public Oracle12cJDBCExportModule(String serverName, int port, String instance, String username, String password,
+    String sourceSchema) {
     super("oracle.jdbc.driver.OracleDriver",
       "jdbc:oracle:thin:" + username + "/" + password + "@//" + serverName + ":" + port + "/" + instance,
       new OracleHelper());
 
     this.username = username;
+    this.sourceSchema = sourceSchema;
   }
 
-  public Oracle12cJDBCExportModule(String serverName, int port, String database, String username, String password,
-    String sourceSchema) {
-    this(serverName, port, database, username, password);
-    this.sourceSchema = sourceSchema;
+  @Override
+  public void initDatabase() throws ModuleException {
+    super.initDatabase();
+
+    try(Statement statement = getConnection().createStatement()) {
+      statement.execute("select sys_context('USERENV', 'CURRENT_SCHEMA') from dual");
+      try(ResultSet resultSet = statement.getResultSet()){
+        if (resultSet.next()) {
+          targetSchema = resultSet.getString(1);
+          ((OracleHelper) getSqlHelper()).setTargetSchema(targetSchema);
+          LOGGER.info("Exporting into oracle user's default schema ({})", targetSchema);
+        }
+      }
+    } catch (SQLException e) {
+      LOGGER.error("Could not get user default schema", e);
+    }
   }
 
   @Override
@@ -84,56 +89,12 @@ public class Oracle12cJDBCExportModule extends JDBCExportModule {
       sourceSchema = schema.getName();
     }
 
-    try {
-      if (!isExistingSchema(schema.getName())) {
-        throw new ModuleException("Schema (tablespace) " + schema.getName()
-          + " does not exist in target database. The schema/tablespace must be created before inserting the data into the target database.");
-      }
+    ((OracleHelper) getSqlHelper()).setSourceSchema(sourceSchema);
 
-      if (!isDefaultTableSpace(schema.getName())) {
-        throw new ModuleException("Schema/Tablespace " + schema.getName() + " is not the default tablespace for user "
-          + username
-          + ". The tablespace must be set as the default tablespace for this user before inserting the data into the target database.");
-      }
-
-      for (TableStructure table : schema.getTables()) {
-        handleTableStructure(table);
-      }
-
-      LOGGER.info("Handling schema structure " + schema.getName() + " finished");
-    } catch (SQLException e) {
-      LOGGER.error("Error handling schema structure", e);
-      SQLException nextException = e.getNextException();
-      if (nextException != null) {
-        LOGGER.error("Error details", nextException);
-      }
-      throw new ModuleException("Error while adding schema SQL to batch", e);
+    for (TableStructure table : schema.getTables()) {
+      handleTableStructure(table);
     }
-  }
 
-  /**
-   * Checks if the specified schema is the default tablespace for the user being
-   * used in the connection to the database
-   * 
-   * @param expectedDefaultTablespaceName
-   *          the tablespace name that should be the default for this user
-   * @return the actual and expected tablespace names match
-   * @throws ModuleException
-   * @throws SQLException
-   */
-  private boolean isDefaultTableSpace(String expectedDefaultTablespaceName) throws ModuleException, SQLException {
-    String query = "select default_tablespace from user_users";
-    LOGGER.debug("Getting default tablespace: " + query);
-    ResultSet rs = getStatement().executeQuery(query);
-
-    if (rs.next()) {
-      String defaultTablespaceName = rs.getString(1);
-      LOGGER.debug("Default tablespace for user " + username + " is " + defaultTablespaceName + " (expected it to be: "
-        + expectedDefaultTablespaceName + ").");
-      if (defaultTablespaceName.equalsIgnoreCase(expectedDefaultTablespaceName)) {
-        return true;
-      }
-    }
-    return false;
+    LOGGER.info("Handling schema structure {} finished", schema.getName());
   }
 }
