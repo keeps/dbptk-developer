@@ -140,7 +140,7 @@ public class ObservableFilter extends IdentityFilter {
     super.handleDataCloseSchema(schemaName);
 
     int completedSchemas = schema.getIndex();
-    int completedTables = table.getIndex();
+    int completedTables = table != null ? table.getIndex() : 0;
     for (ModuleObserver observer : observers) {
       observer.notifyCloseSchema(structure, schema, completedSchemas, completedTables);
     }
