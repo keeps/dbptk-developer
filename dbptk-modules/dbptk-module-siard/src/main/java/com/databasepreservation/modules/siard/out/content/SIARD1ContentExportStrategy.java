@@ -93,7 +93,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     try {
       writeXmlOpenTable();
     } catch (IOException e) {
-      throw new ModuleException("Error handling open table " + table.getId(), e);
+      throw new ModuleException().withMessage("Error handling open table " + table.getId()).withCause(e);
     }
   }
 
@@ -104,7 +104,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
       writeXmlCloseTable();
       currentWriter.close();
     } catch (IOException e) {
-      throw new ModuleException("Error handling close table " + table.getId(), e);
+      throw new ModuleException().withMessage("Error handling close table " + table.getId()).withCause(e);
     }
 
     // write lobs if they have not been written yet
@@ -118,7 +118,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     try {
       writeXsd();
     } catch (IOException e) {
-      throw new ModuleException("Error writing table XSD", e);
+      throw new ModuleException().withMessage("Error writing table XSD").withCause(e);
     }
 
     // reset variables
@@ -153,7 +153,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
       currentWriter.closeTag("row", 1);
       currentRowIndex++;
     } catch (IOException e) {
-      throw new ModuleException("Could not write row" + row.toString(), e);
+      throw new ModuleException().withMessage("Could not write row" + row.toString()).withCause(e);
     }
   }
 
@@ -298,7 +298,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     try {
       IOUtils.copy(in, out);
     } catch (IOException e) {
-      throw new ModuleException("Could not write lob", e);
+      throw new ModuleException().withMessage("Could not write lob").withCause(e);
     } finally {
       // close resources
       IOUtils.closeQuietly(in);

@@ -183,15 +183,15 @@ public class DatabaseMigration {
   private void validate() throws ModuleException {
     // import and export modules exist
     if (importModuleFactory == null) {
-      throw new ModuleException("Import module was not defined");
+      throw new ModuleException().withMessage("Import module was not defined");
     }
     if (exportModuleFactory == null) {
-      throw new ModuleException("Export module was not defined");
+      throw new ModuleException().withMessage("Export module was not defined");
     }
 
     // reporter is present
     if (reporter == null) {
-      throw new ModuleException("Reporter was not defined");
+      throw new ModuleException().withMessage("Reporter was not defined");
     }
   }
 

@@ -26,6 +26,7 @@ import com.databasepreservation.model.structure.ForeignKey;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.modules.jdbc.out.JDBCExportModule;
+import com.databasepreservation.modules.mySql.MySQLExceptionNormalizer;
 import com.databasepreservation.modules.mySql.MySQLHelper;
 
 /**
@@ -91,7 +92,7 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
     this.database = database;
     this.username = username;
     this.password = password;
-    this.ignoredSchemas = new TreeSet<String>(Arrays.asList(IGNORED_SCHEMAS));
+    this.ignoredSchemas = new TreeSet<>(Arrays.asList(IGNORED_SCHEMAS));
   }
 
   public static String createConnectionURL(String hostname, int port, String database, String username,
@@ -120,7 +121,7 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
           .executeUpdate(sqlHelper.createDatabaseSQL(database));
 
       } catch (SQLException e) {
-        throw new ModuleException("Error creating database " + database, e);
+        throw new ModuleException().withMessage("Error creating database " + database).withCause(e);
       }
     }
 
@@ -209,7 +210,8 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
         commit();
         getConnection().setAutoCommit(true);
       } catch (SQLException e) {
-        throw new ModuleException("Could not enable autocommit before creating foreign keys", e);
+        throw new ModuleException().withMessage("Could not enable autocommit before creating foreign keys")
+          .withCause(e);
       }
       handleForeignKeys();
 
@@ -226,5 +228,18 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
       }
     }
     closeConnections();
+  }
+
+  @Override
+  public ModuleException normalizeException(Exception exception, String contextMessage) {
+    ModuleException moduleException = MySQLExceptionNormalizer.getInstance().normalizeException(exception,
+      contextMessage);
+
+    // in case the exception normalizer could not handle this exception
+    if (moduleException == null) {
+      moduleException = super.normalizeException(exception, contextMessage);
+    }
+
+    return moduleException;
   }
 }

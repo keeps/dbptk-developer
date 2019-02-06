@@ -37,7 +37,7 @@ public class StandardSIARDMarshaller implements SIARDMarshaller {
     try {
       context = JAXBContext.newInstance(contextStr);
     } catch (JAXBException e) {
-      throw new ModuleException("Error loading JAXBContent", e);
+      throw new ModuleException().withMessage("Error loading JAXBContent").withCause(e);
     }
 
     SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -47,9 +47,10 @@ public class StandardSIARDMarshaller implements SIARDMarshaller {
       xsdSchema = schemaFactory.newSchema(new StreamSource(in));
       in.close();
     } catch (SAXException e) {
-      throw new ModuleException("XSD file has errors: " + getClass().getResource(localeSchemaLocation).getPath(), e);
+      throw new ModuleException()
+        .withMessage("XSD file has errors: " + getClass().getResource(localeSchemaLocation).getPath()).withCause(e);
     } catch (IOException e) {
-      throw new ModuleException("Could not close InputStream", e);
+      throw new ModuleException().withMessage("Could not close InputStream").withCause(e);
     }
 
     Marshaller m;
@@ -66,10 +67,7 @@ public class StandardSIARDMarshaller implements SIARDMarshaller {
       m.marshal(jaxbElement, writer);
 
     } catch (JAXBException e) {
-      e.printStackTrace();
-      System.out.println(localeSchemaLocation);
-      e.printStackTrace();
-      throw new ModuleException("Error while Marshalling JAXB", e);
+      throw new ModuleException().withMessage("Error while Marshalling JAXB").withCause(e);
     }
   }
 }

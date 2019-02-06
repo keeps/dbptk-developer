@@ -57,7 +57,7 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
     String regex = "AVID.[A-ZÆØÅ]{2,4}.[1-9][0-9]*.[1-9][0-9]*";
     String folderName = pathToArchive.getFileName().toString();
     if (!folderName.matches(regex)) {
-      throw new ModuleException("Archive folder name must match the expression " + regex);
+      throw new ModuleException().withMessage("Archive folder name must match the expression " + regex);
     }
 
     // Backup output folder if it already exists
@@ -77,7 +77,7 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
 
         logger.info("Backed up an already existing archive folder to: " + oldArchiveDir);
       } catch (IOException e) {
-        throw new ModuleException("Error deleting existing directory", e);
+        throw new ModuleException().withMessage("Error deleting existing directory").withCause(e);
       }
     }
   }
@@ -110,7 +110,7 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
     try {
       fileIndexFileStrategy.generateXML(null);
     } catch (ModuleException e) {
-      throw new ModuleException("Error writing fileIndex.xml", e);
+      throw new ModuleException().withMessage("Error writing fileIndex.xml").withCause(e);
     }
 
     try {
@@ -125,7 +125,7 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
 
       writer.close();
     } catch (IOException e) {
-      throw new ModuleException("Error writing fileIndex to the archive.", e);
+      throw new ModuleException().withMessage("Error writing fileIndex to the archive.").withCause(e);
     }
 
   }

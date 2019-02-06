@@ -13,6 +13,7 @@ import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.modules.DefaultExceptionNormalizer;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.in.content.ContentImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.MetadataImportStrategy;
@@ -72,5 +73,10 @@ public class SIARDImportDefault implements DatabaseImportModule {
   public void setOnceReporter(Reporter reporter) {
     this.reporter = reporter;
     metadataStrategy.setOnceReporter(reporter);
+  }
+
+  @Override
+  public ModuleException normalizeException(Exception exception, String contextMessage) {
+    return DefaultExceptionNormalizer.getInstance().normalizeException(exception, contextMessage);
   }
 }

@@ -30,14 +30,14 @@ public class FolderWriteStrategy implements WriteStrategy {
         }
         Files.createFile(filepath);
       } catch (IOException e) {
-        throw new ModuleException("Error while creating the file: " + filepath.toString(), e);
+        throw new ModuleException().withMessage("Error while creating the file: " + filepath.toString()).withCause(e);
       }
     }
 
     try {
       return Files.newOutputStream(filepath);
     } catch (IOException e) {
-      throw new ModuleException("Error while getting the file: " + filepath.toString(), e);
+      throw new ModuleException().withMessage("Error while getting the file: " + filepath.toString()).withCause(e);
     }
   }
 

@@ -33,6 +33,7 @@ import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.CloseableUtils;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
+import com.databasepreservation.modules.mySql.MySQLExceptionNormalizer;
 import com.databasepreservation.modules.mySql.MySQLHelper;
 
 /**
@@ -89,20 +90,21 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected List<SchemaStructure> getSchemas() throws SQLException {
+  protected List<SchemaStructure> getSchemas() throws SQLException, ModuleException {
     List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
-    String schemaName = getConnection().getCatalog();
+    String schemaName = null;
+    schemaName = getConnection().getCatalog();
     schemas.add(getSchemaStructure(schemaName, 1));
     return schemas;
   }
 
   @Override
-  protected String getReferencedSchema(String s) throws SQLException {
+  protected String getReferencedSchema(String s) throws SQLException, ModuleException {
     return (s == null) ? getConnection().getCatalog() : s;
   }
 
   @Override
-  protected List<UserStructure> getUsers() throws SQLException {
+  protected List<UserStructure> getUsers(String databaseName) throws SQLException, ModuleException {
     List<UserStructure> users = new ArrayList<>();
 
     String query = sqlHelper.getUsersSQL(null);
@@ -149,7 +151,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    */
   @Override
   protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex,
-    String description) throws SQLException {
+    String description) throws SQLException, ModuleException {
     TableStructure tableStructure = super.getTableStructure(schema, tableName, tableIndex, description);
 
     // obtain mysql remarks/comments (unsupported by the mysql driver up to
@@ -205,7 +207,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected Statement getStatement() throws SQLException {
+  protected Statement getStatement() throws SQLException, ModuleException {
     if (statement == null) {
       statement = getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
     }
@@ -213,7 +215,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected List<ViewStructure> getViews(String schemaName) throws SQLException {
+  protected List<ViewStructure> getViews(String schemaName) throws SQLException, ModuleException {
     List<ViewStructure> views = super.getViews(schemaName);
     for (ViewStructure v : views) {
       Statement statement = null;
@@ -274,7 +276,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    * @return
    * @throws SQLException
    */
-  protected List<RoutineStructure> getRoutines(String schemaName) throws SQLException {
+  protected List<RoutineStructure> getRoutines(String schemaName) throws SQLException, ModuleException {
     // TODO add optional fields to routine (use getProcedureColumns)
     List<RoutineStructure> routines = new ArrayList<RoutineStructure>();
 
@@ -321,5 +323,18 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
       routines.add(routine);
     }
     return routines;
+  }
+
+  @Override
+  public ModuleException normalizeException(Exception exception, String contextMessage) {
+    ModuleException moduleException = MySQLExceptionNormalizer.getInstance().normalizeException(exception,
+      contextMessage);
+
+    // in case the exception normalizer could not handle this exception
+    if (moduleException == null) {
+      moduleException = super.normalizeException(exception, contextMessage);
+    }
+
+    return moduleException;
   }
 }

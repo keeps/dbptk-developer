@@ -74,6 +74,10 @@ public class ConfigUtils {
     return homeDirectory;
   }
 
+  public static Path getHomeDirectory() {
+    return homeDirectory;
+  }
+
   private static void instantiateEssentialDirectories(Path... directories) {
     for (Path path : directories) {
       try {

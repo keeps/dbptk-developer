@@ -91,10 +91,10 @@ public class ContextDocumentationWriter {
             IOUtils.copy(fis, fos);
             fileIndexFileStrategy.addFile(pathRelativeToMainContainerPath.toString());
           } catch (IOException e) {
-            throw new ModuleException("There was an error writing " + path, e);
+            throw new ModuleException().withMessage("There was an error writing " + path).withCause(e);
           }
         } catch (FileNotFoundException e) {
-          throw new ModuleException("File not found: " + file.toString(), e);
+          throw new ModuleException().withMessage("File not found: " + file.toString()).withCause(e);
         } finally {
           IOUtils.closeQuietly(fis);
           IOUtils.closeQuietly(fos);

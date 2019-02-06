@@ -111,6 +111,6 @@ public class ZipWithExternalLobsWriteStrategy implements WriteStrategy {
    * Creates a new exception informing that the container type is not supported
    */
   private ModuleException createUnsupportedOutputContainerType(SIARDArchiveContainer container) {
-    return new ModuleException("OutputContainerType not supported: " + container.getType().toString());
+    return new ModuleException().withMessage("OutputContainerType not supported: " + container.getType().toString());
   }
 }

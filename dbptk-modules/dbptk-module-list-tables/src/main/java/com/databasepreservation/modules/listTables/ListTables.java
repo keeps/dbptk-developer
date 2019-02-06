@@ -25,6 +25,7 @@ import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.modules.DefaultExceptionNormalizer;
 
 /**
  * Export module that produces a list of tables contained in the database. This
@@ -76,7 +77,8 @@ public class ListTables implements DatabaseExportModule {
       out = new OutputStreamWriter(outStream, "UTF8");
 
     } catch (IOException e) {
-      throw new ModuleException("Could not create file " + outputFile.toAbsolutePath().toString(), e);
+      throw new ModuleException().withMessage("Could not create file " + outputFile.toAbsolutePath().toString())
+        .withCause(e);
     }
   }
 
@@ -105,14 +107,14 @@ public class ListTables implements DatabaseExportModule {
   @Override
   public void handleStructure(DatabaseStructure structure) throws ModuleException {
     if (structure == null) {
-      throw new ModuleException("Database structure must not be null");
+      throw new ModuleException().withMessage("Database structure must not be null");
     }
 
     dbStructure = structure;
   }
 
   /**
-   * Prepare to handle the data of a new schema. This method will be called after
+   * Prepare to build the data of a new schema. This method will be called after
    * handleStructure or handleDataCloseSchema.
    *
    * @param schemaName
@@ -124,12 +126,12 @@ public class ListTables implements DatabaseExportModule {
     currentSchema = dbStructure.getSchemaByName(schemaName);
 
     if (currentSchema == null) {
-      throw new ModuleException("Couldn't find schema with name: " + schemaName);
+      throw new ModuleException().withMessage("Couldn't find schema with name: " + schemaName);
     }
   }
 
   /**
-   * Prepare to handle the data of a new table. This method will be called after
+   * Prepare to build the data of a new table. This method will be called after
    * the handleDataOpenSchema, and before some calls to handleDataRow. If there
    * are no rows in the table, then handleDataCloseTable is called after this
    * method.
@@ -143,12 +145,13 @@ public class ListTables implements DatabaseExportModule {
     try {
       currentTable = dbStructure.getTableById(tableId);
       if (currentTable == null) {
-        throw new ModuleException("Couldn't find table with id: " + tableId);
+        throw new ModuleException().withMessage("Couldn't find table with id: " + tableId);
       }
 
       out.append(currentSchema.getName()).append(schemaTableSeparator).append(currentTable.getName()).append("\n");
     } catch (IOException e) {
-      throw new ModuleException("Could not write to file (" + outputFile.toAbsolutePath().toString() + ")", e);
+      throw new ModuleException()
+        .withMessage("Could not write to file (" + outputFile.toAbsolutePath().toString() + ")").withCause(e);
     }
   }
 
@@ -203,15 +206,16 @@ public class ListTables implements DatabaseExportModule {
     try {
       out.close();
     } catch (IOException e) {
-      throw new ModuleException(
-        "Could not close file writer stream (file: " + outputFile.toAbsolutePath().toString() + ")", e);
+      throw new ModuleException()
+        .withMessage("Could not close file writer stream (file: " + outputFile.toAbsolutePath().toString() + ")")
+        .withCause(e);
     }
 
     try {
       outStream.close();
     } catch (IOException e) {
-      throw new ModuleException("Could not close file stream (file: " + outputFile.toAbsolutePath().toString() + ")",
-        e);
+      throw new ModuleException()
+        .withMessage("Could not close file stream (file: " + outputFile.toAbsolutePath().toString() + ")").withCause(e);
     }
   }
 
@@ -226,5 +230,10 @@ public class ListTables implements DatabaseExportModule {
   @Override
   public void setOnceReporter(Reporter reporter) {
     this.reporter = reporter;
+  }
+
+  @Override
+  public ModuleException normalizeException(Exception exception, String contextMessage) {
+    return DefaultExceptionNormalizer.getInstance().normalizeException(exception, contextMessage);
   }
 }

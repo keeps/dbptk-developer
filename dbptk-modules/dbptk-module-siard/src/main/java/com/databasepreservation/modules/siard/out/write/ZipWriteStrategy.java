@@ -40,7 +40,7 @@ public class ZipWriteStrategy implements WriteStrategy {
     try {
       zipOut.putArchiveEntry(archiveEntry);
     } catch (IOException e) {
-      throw new ModuleException("Error creating new entry in zip file", e);
+      throw new ModuleException().withMessage("Error creating new entry in zip file").withCause(e);
     }
     return zipOut;
   }
@@ -64,7 +64,7 @@ public class ZipWriteStrategy implements WriteStrategy {
       zipOut.finish();
       zipOut.protectedClose();
     } catch (IOException e) {
-      throw new ModuleException("Problem while finalizing zip output stream", e);
+      throw new ModuleException().withMessage("Problem while finalizing zip output stream").withCause(e);
     }
   }
 
@@ -83,10 +83,10 @@ public class ZipWriteStrategy implements WriteStrategy {
           zipOut.setMethod(ZipArchiveOutputStream.STORED);
           break;
         default:
-          throw new ModuleException("Invalid compression method: " + compressionMethod);
+          throw new ModuleException().withMessage("Invalid compression method: " + compressionMethod);
       }
     } catch (IOException e) {
-      throw new ModuleException("Error creating SIARD archive file: " + compressionMethod, e);
+      throw new ModuleException().withMessage("Error creating SIARD archive file: " + compressionMethod).withCause(e);
     }
   }
 

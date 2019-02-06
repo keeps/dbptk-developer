@@ -13,73 +13,68 @@ package com.databasepreservation.model.exception;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * @author Luis Faria
  */
 public class ModuleException extends Exception {
 
-  /**
-         *
-         */
-  private static final long serialVersionUID = -200829472177640163L;
+  protected Map<String, Throwable> exceptionMap = null;
+  protected String message;
 
-  private HashMap<String, Throwable> errors = null;
-
-  /**
-   * Create an empty generic module exception
-   */
   public ModuleException() {
+    super();
   }
 
-  /**
-   * Create a generic module exception
-   *
-   * @param mesg
-   *          the error message
-   */
-  public ModuleException(String mesg) {
-    super(mesg);
+  public ModuleException withCause(Throwable cause) {
+    initCause(cause);
+    return this;
   }
 
-  /**
-   * Create a generic module exception specifying the cause
-   *
-   * @param cause
-   *          the underlying error
-   */
-  public ModuleException(Throwable cause) {
-    super(cause);
+  public ModuleException withExceptionMap(Map<String, Throwable> errors) {
+    this.exceptionMap = new HashMap<>(errors);
+    return this;
   }
 
-  /**
-   * Create a generic module exception specifying a message and the cause
-   *
-   * @param message
-   *          the error message
-   * @param cause
-   *          the underlying error
-   */
-  public ModuleException(String message, Throwable cause) {
-    super(message, cause);
+  public ModuleException withMessage(String message) {
+    this.message = message;
+    return this;
   }
 
-  /**
-   * Create a generic module exception with a map of error messages and causes
-   *
-   * @param errors
-   *          the errors messages and causes
-   */
-  public ModuleException(Map<String, Throwable> errors) {
-    this.errors = new HashMap<>(errors);
+  public <T extends ModuleException> T as(Class<T> subModuleExceptionClass) {
+    return (T) this;
   }
 
-  /**
-   * Get the error messages as defined by the specialized constructor
-   *
-   * @return The errors or null if none
-   */
-  public Map<String, Throwable> getModuleErrors() {
-    return errors;
+  @Deprecated
+  public Map<String, Throwable> getExceptionMap() {
+    return exceptionMap;
   }
 
+  @Override
+  public String getMessage() {
+    String mainMessage;
+    if (StringUtils.isNotBlank(message)) {
+      mainMessage = message;
+    } else if (getCause() != null) {
+      mainMessage = getCause().getMessage();
+    } else {
+      mainMessage = getMessage();
+    }
+
+    if(StringUtils.isNotBlank(mainMessage)){
+      mainMessage = mainMessage.replaceAll("\\n+", "\\n");
+    }
+
+    return messagePrefix() + mainMessage;
+  }
+
+  @Override
+  public String getLocalizedMessage() {
+    return getMessage();
+  }
+
+  protected String messagePrefix() {
+    return "";
+  }
 }

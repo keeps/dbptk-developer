@@ -38,7 +38,7 @@ public class SIARDDKMimetypeHandler implements MimetypeHandler {
     // mimetypeMap.put("audio/wav", "wav");
     // mimetypeMap.put("audio/x-wav", "wav");
 
-    // TO-DO: handle (how?) GML files
+    // TO-DO: build (how?) GML files
   }
 
   /*

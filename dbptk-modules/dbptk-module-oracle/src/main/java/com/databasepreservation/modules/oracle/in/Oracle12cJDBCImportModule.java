@@ -16,6 +16,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.oracle.OracleHelper;
@@ -50,7 +51,7 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected Statement getStatement() throws SQLException {
+  protected Statement getStatement() throws SQLException, ModuleException {
     if (statement == null) {
       statement = getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY,
         ResultSet.HOLD_CURSORS_OVER_COMMIT);
@@ -59,12 +60,12 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected String getDbName() throws SQLException {
+  protected String getDbName() throws SQLException, ModuleException {
     return getMetadata().getUserName();
   }
 
   @Override
-  protected List<SchemaStructure> getSchemas() throws SQLException {
+  protected List<SchemaStructure> getSchemas() throws SQLException, ModuleException {
     List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
     String schemaName = getMetadata().getUserName();
     schemas.add(getSchemaStructure(schemaName, 1));

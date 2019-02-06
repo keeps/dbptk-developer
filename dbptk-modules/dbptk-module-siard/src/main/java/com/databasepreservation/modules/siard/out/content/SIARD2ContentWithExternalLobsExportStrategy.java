@@ -203,7 +203,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
     try {
       IOUtils.copy(in, out);
     } catch (IOException e) {
-      throw new ModuleException("Could not write lob", e);
+      throw new ModuleException().withMessage("Could not write lob").withCause(e);
     } finally {
       // close resources
       IOUtils.closeQuietly(in);

@@ -14,10 +14,10 @@
         <relativePath>..</relativePath>
     </parent>
     <dependencies>
-        <!-- plugin modules handling -->
+        <!-- external modules handling -->
         <dependency>
-            <groupId>jspf.core</groupId>
-            <artifactId>jspf.core</artifactId>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
         </dependency>
 
 

@@ -103,19 +103,19 @@ public class SIARD2ContentPathImportStrategy implements ContentPathImportStrateg
   @Override
   public String getTableXMLFilePath(String schemaName, String tableId) throws ModuleException {
     if (StringUtils.isBlank(schemaName)) {
-      throw new ModuleException("schema name can not be null");
+      throw new ModuleException().withMessage("schema name can not be null");
     }
     if (StringUtils.isBlank(tableId)) {
-      throw new ModuleException("table id can not be null");
+      throw new ModuleException().withMessage("table id can not be null");
     }
     String schemaFolder = schemaFolders.get(schemaName);
     String tableFolder = tableFolders.get(tableId);
 
     if (StringUtils.isBlank(schemaFolder)) {
-      throw new ModuleException("No folder name for schema name \"" + schemaName + "\"");
+      throw new ModuleException().withMessage("No folder name for schema name \"" + schemaName + "\"");
     }
     if (StringUtils.isBlank(tableFolder)) {
-      throw new ModuleException("No folder name for table id \"" + tableId + "\"");
+      throw new ModuleException().withMessage("No folder name for table id \"" + tableId + "\"");
     }
 
     return new StringBuilder().append(CONTENT_FOLDER).append(RESOURCE_FILE_SEPARATOR).append(schemaFolder)
@@ -126,19 +126,19 @@ public class SIARD2ContentPathImportStrategy implements ContentPathImportStrateg
   @Override
   public String getTableXSDFilePath(String schemaName, String tableId) throws ModuleException {
     if (StringUtils.isBlank(schemaName)) {
-      throw new ModuleException("schema name can not be null");
+      throw new ModuleException().withMessage("schema name can not be null");
     }
     if (StringUtils.isBlank(tableId)) {
-      throw new ModuleException("table id can not be null");
+      throw new ModuleException().withMessage("table id can not be null");
     }
     String schemaFolder = schemaFolders.get(schemaName);
     String tableFolder = tableFolders.get(tableId);
 
     if (StringUtils.isBlank(schemaFolder)) {
-      throw new ModuleException("No folder name for schema name \"" + schemaName + "\"");
+      throw new ModuleException().withMessage("No folder name for schema name \"" + schemaName + "\"");
     }
     if (StringUtils.isBlank(tableFolder)) {
-      throw new ModuleException("No folder name for table id \"" + tableId + "\"");
+      throw new ModuleException().withMessage("No folder name for table id \"" + tableId + "\"");
     }
 
     return new StringBuilder().append(CONTENT_FOLDER).append(RESOURCE_FILE_SEPARATOR).append(schemaFolder)

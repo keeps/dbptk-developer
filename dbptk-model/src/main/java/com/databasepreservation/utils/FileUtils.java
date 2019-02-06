@@ -177,7 +177,7 @@ public final class FileUtils {
     try {
       return new URL(path).toURI();
     } catch (MalformedURLException | URISyntaxException e) {
-      throw new ModuleException(e);
+      throw new ModuleException().withCause(e);
     }
   }
 
@@ -200,7 +200,7 @@ public final class FileUtils {
       path = path.substring(4, index);
     }
     try {
-      // handle Windows file:C:/...
+      // build Windows file:C:/...
       if (path.matches("file:[A-Za-z]:.*")) {
         path = "file:/" + path.substring(5);
       }
@@ -213,6 +213,6 @@ public final class FileUtils {
       path = path.substring(5);
       return Paths.get(path);
     }
-    throw new ModuleException("Invalid URL: " + url);
+    throw new ModuleException().withMessage("Invalid URL: " + url);
   }
 }

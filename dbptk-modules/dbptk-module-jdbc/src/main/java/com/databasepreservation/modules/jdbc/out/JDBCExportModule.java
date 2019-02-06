@@ -62,6 +62,7 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
+import com.databasepreservation.modules.DefaultExceptionNormalizer;
 import com.databasepreservation.modules.SQLHelper;
 
 /**
@@ -176,9 +177,9 @@ public class JDBCExportModule implements DatabaseExportModule {
         connection.setAutoCommit(true);
         LOGGER.debug("Connected");
       } catch (ClassNotFoundException e) {
-        throw new ModuleException("JDBC driver class could not be found", e);
+        throw new ModuleException().withMessage("JDBC driver class could not be found").withCause(e);
       } catch (SQLException e) {
-        throw new ModuleException("SQL error creating connection", e);
+        throw new ModuleException().withMessage("SQL error creating connection").withCause(e);
       }
     }
     return connection;
@@ -221,9 +222,9 @@ public class JDBCExportModule implements DatabaseExportModule {
       LOGGER.debug("Connected");
       connections.put(databaseName, connection);
     } catch (ClassNotFoundException e) {
-      throw new ModuleException("JDBC driver class could not be found", e);
+      throw new ModuleException().withMessage("JDBC driver class could not be found").withCause(e);
     } catch (SQLException e) {
-      throw new ModuleException("SQL error creating connection", e);
+      throw new ModuleException().withMessage("SQL error creating connection").withCause(e);
     }
     return connection;
   }
@@ -253,7 +254,7 @@ public class JDBCExportModule implements DatabaseExportModule {
         }
       }
     } catch (SQLException e) {
-      throw new ModuleException("Error checking if database " + database + " exists", e);
+      throw new ModuleException().withMessage("Error checking if database " + database + " exists").withCause(e);
     } finally {
       if (result != null) {
         try {
@@ -271,7 +272,7 @@ public class JDBCExportModule implements DatabaseExportModule {
       try {
         statement = getConnection().createStatement();
       } catch (SQLException e) {
-        throw new ModuleException("SQL error creating statement", e);
+        throw new ModuleException().withMessage("SQL error creating statement").withCause(e);
       }
     }
     return statement;
@@ -353,7 +354,7 @@ public class JDBCExportModule implements DatabaseExportModule {
       LOGGER.debug("Exporting schema structure " + schema.getName() + " completed");
     } catch (SQLException e) {
       LOGGER.error("Error exporting schema structure", e);
-      throw new ModuleException("Error while adding schema SQL to batch", e);
+      throw new ModuleException().withMessage("Error while adding schema SQL to batch").withCause(e);
     }
   }
 
@@ -473,14 +474,15 @@ public class JDBCExportModule implements DatabaseExportModule {
             LOGGER.debug("sql: " + sqlHelper.createRowSQL(currentTableStructure));
 
           } catch (SQLException e) {
-            throw new ModuleException("Error creating table " + tableId + " prepared statement", e);
+            throw new ModuleException().withMessage("Error creating table " + tableId + " prepared statement")
+              .withCause(e);
           }
         }
       } else {
-        throw new ModuleException("Could not find table id '" + tableId + "' in database structure");
+        throw new ModuleException().withMessage("Could not find table id '" + tableId + "' in database structure");
       }
     } else {
-      throw new ModuleException("Cannot open table before database structure is created");
+      throw new ModuleException().withMessage("Cannot open table before database structure is created");
     }
   }
 
@@ -559,7 +561,8 @@ public class JDBCExportModule implements DatabaseExportModule {
           }
         }
       } else if (databaseStructure != null) {
-        throw new ModuleException("Cannot handle data row before a table is open and insert statement created");
+        throw new ModuleException()
+          .withMessage("Cannot build data row before a table is open and insert statement created");
       }
     }
   }
@@ -640,12 +643,12 @@ public class JDBCExportModule implements DatabaseExportModule {
       } else if (cell instanceof ComposedCell) {
         // ComposedCell comp = (ComposedCell) cell;
         // TODO export composed data
-        throw new ModuleException("Composed data not yet supported");
+        throw new ModuleException().withMessage("Composed data not yet supported");
       } else {
-        throw new ModuleException("Unsuported cell type " + cell.getClass().getName());
+        throw new ModuleException().withMessage("Unsuported cell type " + cell.getClass().getName());
       }
     } catch (SQLException e) {
-      throw new ModuleException("SQL error while handling cell " + cell.getId(), e);
+      throw new ModuleException().withMessage("SQL error while handling cell " + cell.getId()).withCause(e);
     }
     return ret;
   }
@@ -743,7 +746,8 @@ public class JDBCExportModule implements DatabaseExportModule {
         commit();
         getConnection().setAutoCommit(true);
       } catch (SQLException e) {
-        throw new ModuleException("Could not enable autocommit before creating foreign keys", e);
+        throw new ModuleException().withMessage("Could not enable autocommit before creating foreign keys")
+          .withCause(e);
       }
       handleForeignKeys();
     }
@@ -779,7 +783,7 @@ public class JDBCExportModule implements DatabaseExportModule {
         connection.close();
         connection = null;
       } catch (SQLException e) {
-        throw new ModuleException("Error while closing connection", e);
+        throw new ModuleException().withMessage("Error while closing connection").withCause(e);
       }
     }
   }
@@ -867,7 +871,7 @@ public class JDBCExportModule implements DatabaseExportModule {
         reasonForFailing = e.getMessage();
         LOGGER.debug("Got a batch update exception while executing a batch statement", e);
 
-        // handle next-exceptions
+        // build next-exceptions
         int maxNextException = 10;
         SQLException sqlException = e.getNextException();
         while (sqlException != null && maxNextException >= 0) {
@@ -898,7 +902,7 @@ public class JDBCExportModule implements DatabaseExportModule {
             String strangeQuery = batchSQL.get(i);
             batchSQL.remove(i);
             LOGGER.debug("Error executing query: " + strangeQuery,
-              new ModuleException("Query returned result of " + result[i]));
+              new ModuleException().withMessage("Query returned result of " + result[i]));
             reporter.failed("Execution of query ``" + strangeQuery + "``",
               "of the following error: " + reasonForFailing);
           }
@@ -932,7 +936,7 @@ public class JDBCExportModule implements DatabaseExportModule {
         }
       } catch (SQLException e) {
         // worst case scenario, something else failed
-        throw new ModuleException("Error executing batch statement", e);
+        throw new ModuleException().withMessage("Error executing batch statement").withCause(e);
       }
     }
 
@@ -940,7 +944,7 @@ public class JDBCExportModule implements DatabaseExportModule {
     try {
       statement.clearBatch();
     } catch (SQLException e) {
-      throw new ModuleException("Connection to database stopped working", e);
+      throw new ModuleException().withMessage("Connection to database stopped working").withCause(e);
     }
   }
 
@@ -949,7 +953,12 @@ public class JDBCExportModule implements DatabaseExportModule {
       getStatement().addBatch(sql);
       batchSQL.add(sql);
     } catch (SQLException e) {
-      throw new ModuleException("Could not add SQL to batch '" + sql + "'", e);
+      throw new ModuleException().withMessage("Could not add SQL to batch '" + sql + "'").withCause(e);
     }
+  }
+
+  @Override
+  public ModuleException normalizeException(Exception exception, String contextMessage) {
+    return DefaultExceptionNormalizer.getInstance().normalizeException(exception, contextMessage);
   }
 }

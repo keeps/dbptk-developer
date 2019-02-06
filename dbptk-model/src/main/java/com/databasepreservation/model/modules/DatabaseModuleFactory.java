@@ -15,8 +15,6 @@ import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
 
-import net.xeoh.plugins.base.Plugin;
-
 /**
  * Defines a factory used to create Import and Export Modules. This factory
  * should also be able to inform the parameters needed to create a new import or
@@ -24,12 +22,14 @@ import net.xeoh.plugins.base.Plugin;
  *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public interface DatabaseModuleFactory extends Plugin {
+public interface DatabaseModuleFactory {
   boolean producesImportModules();
 
   boolean producesExportModules();
 
   String getModuleName();
+
+  boolean isEnabled();
 
   Map<String, Parameter> getAllParameters();
 

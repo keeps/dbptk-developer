@@ -360,7 +360,7 @@ public class SQLHelper {
       }
       sqlOut.write(")".getBytes());
     } catch (IOException e) {
-      throw new ModuleException("Error creating row SQL", e);
+      throw new ModuleException().withMessage("Error creating row SQL").withCause(e);
     }
     return sqlOut.toByteArray();
   }
@@ -430,8 +430,8 @@ public class SQLHelper {
 
   protected String[] splitTableId(String tableId) throws ModuleException {
     String[] parts = tableId.split("\\.");
-    if (parts.length < 2) {
-      throw new ModuleException("An error ocurred while spliting table id: " + "tableId is malformed");
+    if (parts.length != 2) {
+      throw new ModuleException().withMessage("An error occurred while splitting table id: tableId is malformed");
     }
     return parts;
   }

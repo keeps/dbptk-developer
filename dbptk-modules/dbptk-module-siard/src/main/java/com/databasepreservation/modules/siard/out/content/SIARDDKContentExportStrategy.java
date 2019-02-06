@@ -112,7 +112,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     try {
       tableXmlWriter = new BufferedWriter(new OutputStreamWriter(tableXmlOutputStream, ENCODING));
     } catch (UnsupportedEncodingException e1) {
-      throw new ModuleException(e1);
+      throw new ModuleException().withCause(e1);
     }
 
     // Note: cannot use JAXB or JDOM to generate XML for tables, since the
@@ -130,7 +130,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     try {
       tableXmlWriter.write(builder.toString());
     } catch (IOException e) {
-      throw new ModuleException("Error handling open table " + tableStructure.getId(), e);
+      throw new ModuleException().withMessage("Error handling open table " + tableStructure.getId()).withCause(e);
     }
 
     // Code to write table XSDs - this has to happen before writing the table
@@ -189,7 +189,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
       String xsdType = SIARDDKsql99ToXsdType.convert(sql99Type);
       if (xsdType == null) {
-        throw new ModuleException(
+        throw new ModuleException().withMessage(
           "Unable to export column [" + columnStructure.getName() + "] in table [" + tableStructure.getName()
             + "], as siard-dk doesn't support the normalized SQL data type of the column: [" + sql99Type + "] ");
       }
@@ -224,7 +224,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
       fileIndexFileStrategy.addFile(contentPathExportStrategy.getTableXsdFilePath(0, tableCounter));
 
     } catch (IOException e) {
-      throw new ModuleException("Could not write table" + tableCounter + " to disk", e);
+      throw new ModuleException().withMessage("Could not write table" + tableCounter + " to disk").withCause(e);
     }
     foundUnknownMimetype = false;
   }
@@ -244,7 +244,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
       tableCounter += 1;
 
     } catch (IOException e) {
-      throw new ModuleException("Error handling close table " + tableStructure.getId(), e);
+      throw new ModuleException().withMessage("Error handling close table " + tableStructure.getId()).withCause(e);
     }
 
     if (foundUnknownMimetype) {
@@ -265,7 +265,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
         columnIndex++;
 
         if (cell instanceof ComposedCell) {
-          throw new ModuleException("Cannot handle composed cells yet");
+          throw new ModuleException().withMessage("Cannot build composed cells yet");
         }
 
         if (lobsTracker.getLOBsType(tableCounter, columnIndex) == null) {
@@ -306,7 +306,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
             // CLOB is not NULL
 
             // CLOB case - save as string
-            // TO-DO: handle case, where CLOB is archived as tiff
+            // TO-DO: build case, where CLOB is archived as tiff
 
             SimpleCell simpleCell = (SimpleCell) cell;
 
@@ -387,7 +387,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
       tableXmlWriter.append(TAB).append("</row>\n");
 
     } catch (IOException e) {
-      throw new ModuleException("Could not write row " + row.toString(), e);
+      throw new ModuleException().withMessage("Could not write row " + row.toString()).withCause(e);
     }
   }
 

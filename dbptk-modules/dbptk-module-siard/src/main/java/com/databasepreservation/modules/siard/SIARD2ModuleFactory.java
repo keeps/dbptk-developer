@@ -135,6 +135,11 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
+  public boolean isEnabled() {
+    return true;
+  }
+
+  @Override
   public Map<String, Parameter> getAllParameters() {
     HashMap<String, Parameter> parameterHashMap = new HashMap<String, Parameter>();
     parameterHashMap.put(file.longName(), file);
@@ -222,7 +227,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
       }
     }
 
-    // handle descriptive metadata
+    // build descriptive metadata
     HashMap<String, String> descriptiveMetadataParameterValues = new HashMap<>();
     addDescriptiveMetadataParameterValue(parameters, descriptiveMetadataParameterValues,
       SIARDConstants.DESCRIPTIVE_METADATA_DESCRIPTION, metaDescription);

@@ -94,7 +94,7 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
     try {
       context = JAXBContext.newInstance(SiardDiark.class.getPackage().getName());
     } catch (JAXBException e) {
-      throw new ModuleException("Error loading JAXBContext", e);
+      throw new ModuleException().withMessage("Error loading JAXBContext").withCause(e);
     }
 
     SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -105,8 +105,9 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
     try {
       xsdSchema = schemaFactory.newSchema(new StreamSource(xsdInputStream));
     } catch (SAXException e) {
-      throw new ModuleException(
-        "Error reading metadata XSD file: " + pathStrategy.getXsdFilePath(SIARDDKConstants.TABLE_INDEX), e);
+      throw new ModuleException()
+        .withMessage("Error reading metadata XSD file: " + pathStrategy.getXsdFilePath(SIARDDKConstants.TABLE_INDEX))
+        .withCause(e);
     }
     DigestInputStream inputStreamXml = null;
     SiardDiark xmlRoot;
@@ -118,7 +119,7 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
         pathStrategy.getXmlFilePath(SIARDDKConstants.TABLE_INDEX), pathStrategy.getTabelIndexExpectedMD5Sum());
       xmlRoot = (SiardDiark) unmarshaller.unmarshal(inputStreamXml);
     } catch (JAXBException e) {
-      throw new ModuleException("Error while Unmarshalling JAXB", e);
+      throw new ModuleException().withMessage("Error while Unmarshalling JAXB").withCause(e);
     } finally {
       try {
         xsdInputStream.close();
@@ -139,7 +140,7 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
     if (databaseStructure != null) {
       return databaseStructure;
     } else {
-      throw new ModuleException("getDatabaseStructure must not be called before loadMetadata");
+      throw new ModuleException().withMessage("getDatabaseStructure must not be called before loadMetadata");
     }
   }
 
@@ -244,9 +245,10 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
     try {
       return numRows.longValue();
     } catch (ArithmeticException e) {
-      throw new ModuleException("Unable to import table [" + tableName + "], as the number of rows [" + numRows
-        + "] exceeds the max value of the long datatype used to store the number.(Consult the vendor/a programmer for a fix of this problem, if needed)",
-        e);
+      throw new ModuleException().withMessage("Unable to import table [" + tableName + "], as the number of rows ["
+        + numRows
+        + "] exceeds the max value of the long datatype used to store the number.(Consult the vendor/a programmer for a fix of this problem, if needed)")
+        .withCause(e);
     }
   }
 

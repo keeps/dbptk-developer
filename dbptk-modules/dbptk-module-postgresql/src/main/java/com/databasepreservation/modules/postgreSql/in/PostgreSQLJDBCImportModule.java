@@ -125,24 +125,20 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  public Connection getConnection() throws SQLException {
-    if (connection == null) {
-      LOGGER.debug("Loading JDBC Driver " + driverClassName);
-      try {
-        Class.forName(driverClassName);
-      } catch (ClassNotFoundException e) {
-        throw new SQLException("Could not find SQL driver class: " + driverClassName, e);
-      }
-      LOGGER.debug("Getting connection");
+  protected Connection createConnection() throws ModuleException {
+    Connection connection;
+    try {
       connection = DriverManager.getConnection(connectionURL);
       connection.setAutoCommit(false);
-      LOGGER.debug("Connected");
+    } catch (SQLException e) {
+      throw normalizeException(e, null);
     }
+    LOGGER.debug("Connected");
     return connection;
   }
 
   @Override
-  protected Statement getStatement() throws SQLException {
+  protected Statement getStatement() throws SQLException, ModuleException {
     if (statement == null) {
       statement = getConnection().createStatement();
     }
@@ -246,7 +242,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
         ColumnStructure colStruct = tableStructure.getColumns().get(i);
 
         if (colStruct.getType() instanceof ComposedTypeStructure) {
-          // handle composed types later
+          // build composed types later
           udtColumnsIndexes.add(i);
           cells.add(null);
         } else {
@@ -262,7 +258,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
         }
       }
 
-      // handle composed types
+      // build composed types
       for (Integer udtColumnIndex : udtColumnsIndexes) {
         List<Cell> udtCells = new ArrayList<>();
         ColumnStructure udtColumn = tableStructure.getColumns().get(udtColumnIndex);
@@ -309,7 +305,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       row = new Row(tableStructure.getCurrentRow(), cells);
 
       reporter.rowProcessingUsedNull(tableStructure, tableStructure.getCurrentRow(),
-        new ModuleException("isRowValid returned false"));
+        new ModuleException().withMessage("isRowValid returned false"));
     }
     tableStructure.incrementCurrentRow();
     return row;
@@ -392,7 +388,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
   }
 
   /**
-   * Treats bit strings, as the default behavior does not handle PostgreSQL byte
+   * Treats bit strings, as the default behavior does not build PostgreSQL byte
    * streams correctly
    */
   @Override
@@ -537,7 +533,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
           }
         };
       } catch (SQLException e) {
-        throw new ModuleException("Could not open blob stream", e);
+        throw new ModuleException().withMessage("Could not open blob stream").withCause(e);
       }
     }
 
@@ -555,7 +551,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
         largeObject = largeObjectManager.open(objectId);
         ret = largeObject.size64();
       } catch (SQLException e) {
-        throw new ModuleException("Could not get blob size", e);
+        throw new ModuleException().withMessage("Could not get blob size").withCause(e);
       } finally {
         if (largeObject != null) {
           try {

@@ -41,7 +41,7 @@ public class BlobInputStreamProvider implements InputStreamProvider {
     try {
       return blob.getBinaryStream();
     } catch (SQLException e) {
-      throw new ModuleException("Could not obtain BLOB data as stream", e);
+      throw new ModuleException().withMessage("Could not obtain BLOB data as stream").withCause(e);
     }
   }
 
@@ -59,7 +59,7 @@ public class BlobInputStreamProvider implements InputStreamProvider {
     try {
       return blob.length();
     } catch (SQLException e) {
-      throw new ModuleException("Could not get blob size", e);
+      throw new ModuleException().withMessage("Could not get blob size").withCause(e);
     }
   }
 }

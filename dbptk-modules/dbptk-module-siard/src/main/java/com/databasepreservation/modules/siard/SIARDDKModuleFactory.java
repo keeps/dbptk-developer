@@ -111,6 +111,11 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
+  public boolean isEnabled() {
+    return true;
+  }
+
+  @Override
   public Map<String, Parameter> getAllParameters() {
     HashMap<String, Parameter> parameterMap = new HashMap<String, Parameter>();
 

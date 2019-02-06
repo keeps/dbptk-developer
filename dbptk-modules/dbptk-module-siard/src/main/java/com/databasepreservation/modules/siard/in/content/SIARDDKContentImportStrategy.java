@@ -149,8 +149,9 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
           // saxParser.setProperty(JAXP_SCHEMA_SOURCE, xsdInputStream);
         } catch (SAXException e) {
           logger.error("Error validating schema", e);
-          throw new ModuleException("Error reading XSD file: "
-            + pathStrategy.getTableXSDFilePath(schema.getName(), table.getId()) + " for table:" + table.getId(), e);
+          throw new ModuleException().withMessage("Error reading XSD file: "
+            + pathStrategy.getTableXSDFilePath(schema.getName(), table.getId()) + " for table:" + table.getId())
+            .withCause(e);
         }
         DigestInputStream currentTableInputStream = readStrategy.createInputStream(currentFolder, xmlFileName,
           pathStrategy.getTableXMLFileMD5(schema.getName(), table.getId()));
@@ -167,17 +168,19 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
           xmlReader.parse(new InputSource(currentTableInputStream));
 
         } catch (SAXException e) {
-          throw new ModuleException(
-            "A SAX error occurred during processing of XML table file for table:" + table.getId(), e);
+          throw new ModuleException()
+            .withMessage("A SAX error occurred during processing of XML table file for table:" + table.getId())
+            .withCause(e);
         } catch (IOException e) {
-          throw new ModuleException("Error while reading XML table file for table:" + table.getId(), e);
+          throw new ModuleException().withMessage("Error while reading XML table file for table:" + table.getId())
+            .withCause(e);
         } catch (ParserConfigurationException e) {
           logger.error("Error creating XML SAXparser", e);
-          throw new ModuleException(e);
+          throw new ModuleException().withCause(e);
         }
 
         if (saxErrorHandler.hasError()) {
-          throw new ModuleException(
+          throw new ModuleException().withMessage(
             "Parsing or validation error occurred while reading XML table file for table:" + table.getId());
 
         }
@@ -264,7 +267,8 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
           Cell cell;
           String preparedCellVal = currentTagContentStrBld.toString().trim();
           if (currentCellType instanceof SimpleTypeBinary) {
-            ModuleException ex = new ModuleException("Siard-dk does not support import of binary values into the db");
+            ModuleException ex = new ModuleException()
+              .withMessage("Siard-dk does not support import of binary values into the db");
             logger.error("Siard-dk does not support the import of binary values into the db", ex);
             throw new SAXException(ex);
           } else {

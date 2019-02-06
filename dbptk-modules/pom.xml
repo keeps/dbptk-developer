@@ -23,7 +23,6 @@
         <module>dbptk-module-list-tables</module>
         <module>dbptk-module-ms-access</module>
         <module>dbptk-module-mysql</module>
-        <module>dbptk-module-odbc</module>
         <module>dbptk-module-oracle</module>
         <module>dbptk-module-postgresql</module>
         <module>dbptk-module-siard</module>

@@ -137,7 +137,7 @@ public class SiardDKTest extends SiardTest {
       try {
         FileUtils.deleteDirectory(archFolder);
       } catch (IOException e) {
-        throw new ModuleException(e);
+        throw new ModuleException().withCause(e);
       }
     }
 

@@ -55,13 +55,13 @@ public class TemporaryPathInputStreamProvider extends PathInputStreamProvider {
       } catch (IOException e1) {
         LOGGER.debug("Could not close the stream after an error occurred trying to create the temporary file", e1);
       }
-      throw new ModuleException("Error creating temporary file", e);
+      throw new ModuleException().withMessage("Error creating temporary file").withCause(e);
     }
 
     try {
       Files.copy(inputStream, path, StandardCopyOption.REPLACE_EXISTING);
     } catch (IOException e) {
-      throw new ModuleException("Error copying stream to temp file", e);
+      throw new ModuleException().withMessage("Error copying stream to temp file").withCause(e);
     } finally {
       try {
         inputStream.close();

@@ -47,6 +47,11 @@ public class DBMLModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
+  public boolean isEnabled() {
+    return false;
+  }
+
+  @Override
   public Map<String, Parameter> getAllParameters() {
     HashMap<String, Parameter> parameterHashMap = new HashMap<String, Parameter>();
     parameterHashMap.put(file.longName(), file);

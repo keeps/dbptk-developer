@@ -45,7 +45,7 @@ public class PathInputStreamProvider implements InputStreamProvider {
    */
   public PathInputStreamProvider(Path fileLocation) throws ModuleException {
     if (!Files.isReadable(fileLocation)) {
-      throw new ModuleException("Path " + fileLocation.toAbsolutePath().toString() + " is not readable.");
+      throw new ModuleException().withMessage("Path " + fileLocation.toAbsolutePath().toString() + " is not readable.");
     }
     this.path = fileLocation;
   }
@@ -65,7 +65,7 @@ public class PathInputStreamProvider implements InputStreamProvider {
     try {
       return Files.newInputStream(path);
     } catch (IOException e) {
-      throw new ModuleException("Could not create an input stream", e);
+      throw new ModuleException().withMessage("Could not create an input stream").withCause(e);
     }
   }
 
@@ -82,7 +82,7 @@ public class PathInputStreamProvider implements InputStreamProvider {
     try {
       return Files.size(path);
     } catch (IOException e) {
-      throw new ModuleException("Could not get file size", e);
+      throw new ModuleException().withMessage("Could not get file size").withCause(e);
     }
   }
 }

@@ -74,6 +74,11 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
+  public boolean isEnabled() {
+    return true;
+  }
+
+  @Override
   public Map<String, Parameter> getAllParameters() {
     HashMap<String, Parameter> parameterHashMap = new HashMap<String, Parameter>();
     parameterHashMap.put(hostname.longName(), hostname);

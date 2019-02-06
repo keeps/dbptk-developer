@@ -120,7 +120,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
     try {
       context = JAXBContext.newInstance(SiardArchive.class.getPackage().getName(), SiardArchive.class.getClassLoader());
     } catch (JAXBException e) {
-      throw new ModuleException("Error loading JAXBContext", e);
+      throw new ModuleException().withMessage("Error loading JAXBContext").withCause(e);
     }
 
     SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -130,8 +130,9 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
     try {
       xsdSchema = schemaFactory.newSchema(new StreamSource(xsdStream));
     } catch (SAXException e) {
-      throw new ModuleException(
-        "Error reading metadata XSD file: " + metadataPathStrategy.getXsdFilePath(METADATA_FILENAME), e);
+      throw new ModuleException()
+        .withMessage("Error reading metadata XSD file: " + metadataPathStrategy.getXsdFilePath(METADATA_FILENAME))
+        .withCause(e);
     }
 
     InputStream reader = null;
@@ -145,7 +146,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
       xmlRoot = (SiardArchive) unmarshaller.unmarshal(reader);
     } catch (JAXBException e) {
       LOGGER.warn("The metadata.xml file did not pass the XML Schema validation.",
-        new ModuleException("Error while Unmarshalling JAXB with XSD", e));
+        new ModuleException().withMessage("Error while Unmarshalling JAXB with XSD").withCause(e));
       if (reader != null) {
         try {
           reader.close();
@@ -158,7 +159,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
         reader = readStrategy.createInputStream(container, metadataPathStrategy.getXmlFilePath(METADATA_FILENAME));
         xmlRoot = (SiardArchive) unmarshaller.unmarshal(reader);
       } catch (JAXBException e1) {
-        throw new ModuleException("The metadata.xml file could not be read.", e1);
+        throw new ModuleException().withMessage("The metadata.xml file could not be read.").withCause(e1);
       }
     } finally {
       try {
@@ -179,7 +180,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
     if (databaseStructure != null) {
       return databaseStructure;
     } else {
-      throw new ModuleException("getDatabaseStructure must not be called before loadMetadata");
+      throw new ModuleException().withMessage("getDatabaseStructure must not be called before loadMetadata");
     }
   }
 

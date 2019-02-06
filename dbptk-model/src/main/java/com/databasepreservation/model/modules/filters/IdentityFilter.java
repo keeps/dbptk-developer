@@ -15,6 +15,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.modules.DefaultExceptionNormalizer;
 
 /**
  * A filter that does not change anything. Its purpose is to provide a sane base
@@ -104,5 +105,10 @@ public class IdentityFilter implements DatabaseFilterModule {
   @Override
   public void finishDatabase() throws ModuleException {
     this.exportModule.finishDatabase();
+  }
+
+  @Override
+  public ModuleException normalizeException(Exception exception, String contextMessage) {
+    return DefaultExceptionNormalizer.getInstance().normalizeException(exception, contextMessage);
   }
 }

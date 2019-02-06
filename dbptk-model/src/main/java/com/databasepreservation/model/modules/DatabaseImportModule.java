@@ -19,7 +19,7 @@ import com.databasepreservation.model.exception.UnknownTypeException;
  * @author Luis Faria <lfaria@keep.pt>
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public interface DatabaseImportModule {
+public interface DatabaseImportModule extends ExceptionNormalizer {
   /**
    * Import the database model.
    *

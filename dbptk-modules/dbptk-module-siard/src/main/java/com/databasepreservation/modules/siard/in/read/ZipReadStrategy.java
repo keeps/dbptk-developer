@@ -44,12 +44,13 @@ public class ZipReadStrategy implements ReadStrategy {
       ZipArchiveEntry entry = zipFile.getEntry(path);
 
       if (entry == null) {
-        throw new ModuleException(String.format("File \"%s\" is missing in container", path));
+        throw new ModuleException().withMessage(String.format("File \"%s\" is missing in container", path));
       }
 
       stream = zipFile.getInputStream(entry);
     } catch (IOException e) {
-      throw new ModuleException(String.format("Error while accessing file \"%s\" in container", path), e);
+      throw new ModuleException().withMessage(String.format("Error while accessing file \"%s\" in container", path))
+        .withCause(e);
     }
     return stream;
   }
@@ -70,7 +71,7 @@ public class ZipReadStrategy implements ReadStrategy {
 
       zipFile.close();
     } catch (IOException e) {
-      throw new ModuleException("Could not close zip file", e);
+      throw new ModuleException().withMessage("Could not close zip file").withCause(e);
     }
   }
 
@@ -83,8 +84,9 @@ public class ZipReadStrategy implements ReadStrategy {
 
       zipFiles.put(container, new ZipFile(container.getPath().toAbsolutePath().toString()));
     } catch (IOException e) {
-      throw new ModuleException(
-        String.format("Could not open zip file \"%s\"", container.getPath().toAbsolutePath().toString()), e);
+      throw new ModuleException()
+        .withMessage(String.format("Could not open zip file \"%s\"", container.getPath().toAbsolutePath().toString()))
+        .withCause(e);
     }
   }
 

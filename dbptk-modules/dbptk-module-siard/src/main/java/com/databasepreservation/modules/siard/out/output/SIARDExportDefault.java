@@ -31,6 +31,7 @@ import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.modules.DefaultExceptionNormalizer;
 import com.databasepreservation.modules.listTables.ListTables;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
@@ -95,7 +96,7 @@ public class SIARDExportDefault implements DatabaseExportModule {
         while ((line = reader.readLine()) != null) {
           if (StringUtils.isNotBlank(line)) {
             if (StringUtils.countMatches(line, ListTables.schemaTableSeparator) != 1) {
-              throw new ModuleException("Malformed entry in table list: " + line);
+              throw new ModuleException().withMessage("Malformed entry in table list: " + line);
             }
 
             String[] parts = line.split(Pattern.quote(ListTables.schemaTableSeparator));
@@ -110,7 +111,8 @@ public class SIARDExportDefault implements DatabaseExportModule {
           }
         };
       } catch (IOException e) {
-        throw new ModuleException("Could not read table list from file " + tableFilter.toAbsolutePath().toString(), e);
+        throw new ModuleException()
+          .withMessage("Could not read table list from file " + tableFilter.toAbsolutePath().toString()).withCause(e);
       } finally {
         IOUtils.closeQuietly(inputStream);
       }
@@ -131,7 +133,7 @@ public class SIARDExportDefault implements DatabaseExportModule {
   @Override
   public void handleStructure(DatabaseStructure structure) throws ModuleException {
     if (structure == null) {
-      throw new ModuleException("Database structure must not be null");
+      throw new ModuleException().withMessage("Database structure must not be null");
     }
 
     dbStructure = structure;
@@ -153,7 +155,7 @@ public class SIARDExportDefault implements DatabaseExportModule {
     currentSchema = dbStructure.getSchemaByName(schemaName);
 
     if (currentSchema == null) {
-      throw new ModuleException("Couldn't find schema with name: " + schemaName);
+      throw new ModuleException().withMessage("Couldn't find schema with name: " + schemaName);
     }
 
     contentStrategy.openSchema(currentSchema);
@@ -164,7 +166,7 @@ public class SIARDExportDefault implements DatabaseExportModule {
     currentTable = dbStructure.getTableById(tableId);
 
     if (currentTable == null) {
-      throw new ModuleException("Couldn't find table with id: " + tableId);
+      throw new ModuleException().withMessage("Couldn't find table with id: " + tableId);
     }
 
     contentStrategy.openTable(currentTable);
@@ -175,7 +177,7 @@ public class SIARDExportDefault implements DatabaseExportModule {
     currentTable = dbStructure.getTableById(tableId);
 
     if (currentTable == null) {
-      throw new ModuleException("Couldn't find table with id: " + tableId);
+      throw new ModuleException().withMessage("Couldn't find table with id: " + tableId);
     }
 
     contentStrategy.closeTable(currentTable);
@@ -186,7 +188,7 @@ public class SIARDExportDefault implements DatabaseExportModule {
     currentSchema = dbStructure.getSchemaByName(schemaName);
 
     if (currentSchema == null) {
-      throw new ModuleException("Couldn't find schema with name: " + schemaName);
+      throw new ModuleException().withMessage("Couldn't find schema with name: " + schemaName);
     }
 
     contentStrategy.closeSchema(currentSchema);
@@ -217,5 +219,10 @@ public class SIARDExportDefault implements DatabaseExportModule {
     this.reporter = reporter;
     contentStrategy.setOnceReporter(reporter);
     metadataStrategy.setOnceReporter(reporter);
+  }
+
+  @Override
+  public ModuleException normalizeException(Exception exception, String contextMessage) {
+    return DefaultExceptionNormalizer.getInstance().normalizeException(exception, contextMessage);
   }
 }

@@ -46,8 +46,10 @@ public class ZipAndFolderReadStrategy implements ReadStrategy {
       try {
         return Files.newInputStream(container.getPath().resolve(Paths.get(path)));
       } catch (IOException e) {
-        throw new ModuleException(
-          String.format("Could not open file at %s for reading.", container.getPath().resolve(Paths.get(path))), e);
+        throw new ModuleException()
+          .withMessage(
+            String.format("Could not open file at %s for reading.", container.getPath().resolve(Paths.get(path))))
+          .withCause(e);
       }
     }
   }
@@ -108,7 +110,7 @@ public class ZipAndFolderReadStrategy implements ReadStrategy {
           }
         };
       } catch (IOException e) {
-        throw new ModuleException("", e);
+        throw new ModuleException().withCause(e);
       } finally {
         if (nullableDirectoryStream != null) {
           try {

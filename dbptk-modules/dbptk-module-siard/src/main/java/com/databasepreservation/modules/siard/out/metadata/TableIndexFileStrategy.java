@@ -245,7 +245,8 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
           if (tableStructure.getRows() >= 0) {
             tableType.setRows(BigInteger.valueOf(tableStructure.getRows()));
           } else {
-            throw new ModuleException("Error while exporting table structure: number of table rows not set");
+            throw new ModuleException()
+              .withMessage("Error while exporting table structure: number of table rows not set");
           }
 
           tablesType.getTable().add(tableType);

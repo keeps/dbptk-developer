@@ -141,7 +141,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
         getConnection(POSTGRES_CONNECTION_DATABASE, connectionURL).createStatement()
           .executeUpdate(sqlHelper.dropDatabase(database));
       } catch (SQLException e) {
-        throw new ModuleException("Error droping database " + database, e);
+        throw new ModuleException().withMessage("Error droping database " + database).withCause(e);
       }
 
     }
@@ -158,7 +158,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
           .executeUpdate(sqlHelper.createDatabaseSQL(database));
 
       } catch (SQLException e) {
-        throw new ModuleException("Error creating database " + database, e);
+        throw new ModuleException().withMessage("Error creating database " + database).withCause(e);
       }
     }
   }

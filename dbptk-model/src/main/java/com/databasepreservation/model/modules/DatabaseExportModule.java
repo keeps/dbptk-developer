@@ -25,7 +25,7 @@ import com.databasepreservation.model.structure.DatabaseStructure;
  * @author Luis Faria <lfaria@keep.pt>
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public interface DatabaseExportModule {
+public interface DatabaseExportModule extends ExceptionNormalizer {
   /**
    * Gets custom settings set by the export module that modify behaviour of the
    * import module.
@@ -63,7 +63,7 @@ public interface DatabaseExportModule {
   void handleStructure(DatabaseStructure structure) throws ModuleException;
 
   /**
-   * Prepare to handle the data of a new schema. This method will be called after
+   * Prepare to build the data of a new schema. This method will be called after
    * handleStructure or handleDataCloseSchema.
    *
    * @param schemaName
@@ -73,7 +73,7 @@ public interface DatabaseExportModule {
   void handleDataOpenSchema(String schemaName) throws ModuleException;
 
   /**
-   * Prepare to handle the data of a new table. This method will be called after
+   * Prepare to build the data of a new table. This method will be called after
    * the handleDataOpenSchema, and before some calls to handleDataRow. If there
    * are no rows in the table, then handleDataCloseTable is called after this
    * method.

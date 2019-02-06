@@ -68,37 +68,34 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
     this(new File(accessFilePath), password);
   }
 
-  public Connection getConnection() throws SQLException {
-    if (connection == null) {
-      LOGGER.debug("Loading JDBC Driver " + driverClassName);
-      try {
-        Class.forName(driverClassName);
-      } catch (ClassNotFoundException e) {
-        throw new SQLException("Could not find SQL driver class: " + driverClassName, e);
-      }
-      LOGGER.debug("Getting connection");
+  @Override
+  protected Connection createConnection() throws ModuleException {
+    Connection connection;
+    try {
       if (password == null) {
         connection = DriverManager.getConnection(connectionURL);
       } else {
-
         connection = DriverManager.getConnection(connectionURL + "jackcessOpener=" + CryptCodecOpener.class.getName(),
           null /* username is ignored */, password);
       }
-      LOGGER.debug("Connected");
+    } catch (SQLException e) {
+      throw normalizeException(e, null);
     }
+    LOGGER.debug("Connected");
     return connection;
   }
 
-  private Database getInternalDatabase() throws SQLException {
+  private Database getInternalDatabase() throws ModuleException {
     return ((UcanaccessConnection) getConnection()).getDbIO();
+
   }
 
   private Set<String> getTableNames() throws ModuleException {
     try {
       Database db = getInternalDatabase();
       return db.getTableNames();
-    } catch (SQLException | IOException e) {
-      throw new ModuleException("could not get table names", e);
+    } catch (IOException e) {
+      throw new ModuleException().withMessage("could not get table names").withCause(e);
     }
   }
 
@@ -115,7 +112,7 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
    * @throws SQLException
    */
   @Override
-  protected List<RoutineStructure> getRoutines(String schemaName) throws SQLException {
+  protected List<RoutineStructure> getRoutines(String schemaName) throws SQLException, ModuleException {
     // TODO add optional fields to routine (use getProcedureColumns)
     Set<RoutineStructure> routines = new HashSet<RoutineStructure>();
 
@@ -200,7 +197,7 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
    *          schema @throws SQLException @throws
    */
   @Override
-  protected List<TableStructure> getTables(SchemaStructure schema) throws SQLException {
+  protected List<TableStructure> getTables(SchemaStructure schema) throws SQLException, ModuleException {
     List<TableStructure> tables = new ArrayList<>();
 
     Set<String> tableNames = null;

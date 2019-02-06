@@ -85,7 +85,7 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
       try {
         context = JAXBContext.newInstance(FileIndexType.class.getPackage().getName());
       } catch (JAXBException e) {
-        throw new ModuleException("Error loading JAXBContext", e);
+        throw new ModuleException().withMessage("Error loading JAXBContext").withCause(e);
       }
 
       SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -94,8 +94,10 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
       try {
         xsdSchema = schemaFactory.newSchema(new StreamSource(xsdStream));
       } catch (SAXException e) {
-        throw new ModuleException(
-          "Error reading metadata XSD file: " + metadataPathStrategy.getXsdFilePath(SIARDDKConstants.FILE_INDEX), e);
+        throw new ModuleException()
+          .withMessage(
+            "Error reading metadata XSD file: " + metadataPathStrategy.getXsdFilePath(SIARDDKConstants.FILE_INDEX))
+          .withCause(e);
       }
       InputStream reader = null;
       FileIndexType xmlFileIndex;
@@ -109,10 +111,7 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
         JAXBElement<FileIndexType> jaxbElement = (JAXBElement<FileIndexType>) unmarshaller.unmarshal(reader);
         xmlFileIndex = jaxbElement.getValue();
       } catch (JAXBException e) {
-        // System.out.println(mainFolder.getPath() + " "
-        // + metadataPathStrategy.getXsdFilePath(SIARDDKConstants.FILE_INDEX));
-        e.printStackTrace();
-        throw new ModuleException("Error while Unmarshalling JAXB", e);
+        throw new ModuleException().withMessage("Error while Unmarshalling JAXB").withCause(e);
       } finally {
         try {
           xsdStream.close();
@@ -137,14 +136,14 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
           archiveFolderLookupByFolderName.put(folderName, archivePath);
           if (fileInfo.getFiN().toLowerCase().endsWith(SIARDDKConstants.XML_EXTENSION)) {
             if (xmlFilePathLookupByFolderName.containsKey(folderName)) {
-              throw new ModuleException("Inconsistent data in the " + SIARDDKConstants.FILE_INDEX
+              throw new ModuleException().withMessage("Inconsistent data in the " + SIARDDKConstants.FILE_INDEX
                 + " for table files. Multiple entries for the xml file for folder [" + folderName + "].");
             }
             xmlFilePathLookupByFolderName.put(folderName, fileInfo);
           } else {
             if (fileInfo.getFiN().toLowerCase().endsWith(SIARDDKConstants.XSD_EXTENSION)) {
               if (xsdFilePathLookupByFolderName.containsKey(folderName)) {
-                throw new ModuleException("Inconsistent data in the " + SIARDDKConstants.FILE_INDEX
+                throw new ModuleException().withMessage("Inconsistent data in the " + SIARDDKConstants.FILE_INDEX
                   + " for table files. Multiple entries for the xsd file for folder [" + folderName + "].");
               }
               xsdFilePathLookupByFolderName.put(folderName, fileInfo);
@@ -193,12 +192,12 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
 
   protected void canLookupTable(String schemaName, String tableId) throws ModuleException {
     if (!schemaName.equals(schemaName)) {
-      throw new ModuleException("SIARDDK does not support multiple schemas. The given schema [" + schemaName
-        + "] is not identical to the schema name given on start up: [" + this.importAsSchema + "]");
+      throw new ModuleException().withMessage("SIARDDK does not support multiple schemas. The given schema ["
+        + schemaName + "] is not identical to the schema name given on start up: [" + this.importAsSchema + "]");
     }
 
     if (!folderNameLookupByTableId.containsKey(tableId)) {
-      throw new ModuleException(
+      throw new ModuleException().withMessage(
         "No folder name has - during the parsing of the database sctructure - been associated with the given table id:"
           + tableId);
     }
@@ -206,7 +205,7 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
 
   protected void canLookupXMLFilePath(String folderName) throws ModuleException {
     if (!xmlFilePathLookupByFolderName.containsKey(folderName)) {
-      throw new ModuleException(
+      throw new ModuleException().withMessage(
         "No xml file path has - during the parsing of the file index - been associated with the folder name:"
           + folderName);
     }
@@ -223,7 +222,7 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
 
   protected void canLookupXSDFilePath(String folderName) throws ModuleException {
     if (!xsdFilePathLookupByFolderName.containsKey(folderName)) {
-      throw new ModuleException(
+      throw new ModuleException().withMessage(
         "No xsd file path has - during the parsing of the file index - been associated with the folder name:"
           + folderName);
     }
@@ -293,8 +292,9 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
 
   public byte[] getTabelIndexExpectedMD5Sum() throws ModuleException {
     if (tabelIndexExpectedMD5Sum == null && fileIndexIsParsed) {
-      throw new ModuleException("Parsing of " + SIARDDKConstants.FILE_INDEX + "." + SIARDDKConstants.XML_EXTENSION
-        + " did not provide a md5sum for " + SIARDDKConstants.TABLE_INDEX + "." + SIARDDKConstants.XML_EXTENSION);
+      throw new ModuleException()
+        .withMessage("Parsing of " + SIARDDKConstants.FILE_INDEX + "." + SIARDDKConstants.XML_EXTENSION
+          + " did not provide a md5sum for " + SIARDDKConstants.TABLE_INDEX + "." + SIARDDKConstants.XML_EXTENSION);
     }
     return tabelIndexExpectedMD5Sum;
   }

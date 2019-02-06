@@ -16,6 +16,8 @@ import java.nio.file.Paths;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
@@ -32,6 +34,7 @@ import com.databasepreservation.modules.siard.out.write.WriteStrategy;
  *
  */
 public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARDDKMetadataExportStrategy.class);
 
   private SIARDMarshaller siardMarshaller;
   private MetadataPathStrategy metadataPathStrategy;
@@ -75,7 +78,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
       fileIndexFileStrategy.addFile(path);
 
     } catch (IOException e) {
-      throw new ModuleException("Error writing tableIndex.xml to the archive.", e);
+      throw new ModuleException().withMessage("Error writing tableIndex.xml to the archive.").withCause(e);
     }
 
     // Generate archiveIndex.xml
@@ -92,7 +95,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
         fileIndexFileStrategy.addFile(path);
 
       } catch (IOException e) {
-        throw new ModuleException("Error writing archiveIndex.xml to the archive", e);
+        throw new ModuleException().withMessage("Error writing archiveIndex.xml to the archive").withCause(e);
       }
     }
 
@@ -111,7 +114,8 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
         fileIndexFileStrategy.addFile(path);
 
       } catch (IOException e) {
-        throw new ModuleException("Error writing contextDocumentationIndex.xml to the archive", e);
+        throw new ModuleException().withMessage("Error writing contextDocumentationIndex.xml to the archive")
+          .withCause(e);
       }
     }
 
@@ -130,7 +134,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
         fileIndexFileStrategy.addFile(path);
 
       } catch (IOException e) {
-        throw new ModuleException("Error writing docIndex.xml to the archive.", e);
+        throw new ModuleException().withMessage("Error writing docIndex.xml to the archive.").withCause(e);
       }
     }
 
@@ -185,19 +189,18 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
       fileIndexFileStrategy.addFile(path);
 
     } catch (IOException e) {
-      throw new ModuleException("There was an error writing " + indexFile + ".xsd", e);
+      throw new ModuleException().withMessage("There was an error writing " + indexFile + ".xsd").withCause(e);
     }
   }
 
   private void createLocalSharedFolder(SIARDArchiveContainer container) {
-
     Path containerPath = container.getPath();
     Path localShared = Paths.get("Schemas/localShared");
     File folder = containerPath.resolve(localShared).toFile();
     try {
       folder.mkdirs();
     } catch (SecurityException e) {
-      e.printStackTrace();
+      LOGGER.error("Could not create directories", e);
     }
   }
 }

@@ -112,7 +112,7 @@ public class Sql99toXSDType {
       LOGGER.debug("Found an unsupported datatype and saved it as xs:string: {}", type);
       return "xs:string";
     } else if (type instanceof ComposedTypeArray) {
-      throw new ModuleException("Not yet supported type: ARRAY");
+      throw new ModuleException().withMessage("Not yet supported type: ARRAY");
     } else if (type instanceof ComposedTypeStructure) {
       LOGGER.error("User Defined Types are not supported by SIARD 1.");
       ret = null;

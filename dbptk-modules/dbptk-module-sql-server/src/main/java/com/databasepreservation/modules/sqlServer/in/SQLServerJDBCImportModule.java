@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.modules.CloseableUtils;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
@@ -117,7 +118,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected Statement getStatement() throws SQLException {
+  protected Statement getStatement() throws SQLException, ModuleException {
     if (statement == null) {
       statement = ((SQLServerConnection) getConnection()).createStatement(SQLServerResultSet.TYPE_FORWARD_ONLY,
         SQLServerResultSet.CONCUR_READ_ONLY);
@@ -188,7 +189,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected List<ViewStructure> getViews(String schemaName) throws SQLException {
+  protected List<ViewStructure> getViews(String schemaName) throws SQLException, ModuleException {
     final String fieldName = "objdefinition";
     final String defaultValue = "unknown";
 
@@ -196,7 +197,8 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
     for (ViewStructure v : views) {
       String originalQuery = null;
       ResultSet rset = null;
-      PreparedStatement statement = getConnection().prepareStatement(
+      PreparedStatement statement = null;
+      statement = getConnection().prepareStatement(
         "SELECT OBJECT_DEFINITION (OBJECT_ID(" + sqlHelper.escapeViewName(schemaName, v.getName()) + ")) AS ?");
       statement.setString(1, fieldName);
 

@@ -63,6 +63,7 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximat
 import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.modules.DefaultExceptionNormalizer;
 import com.databasepreservation.utils.JodaUtils;
 
 /**
@@ -94,7 +95,7 @@ public class DBMLImportModule implements DatabaseImportModule {
   private Reporter reporter;
 
   /**
-   * Interface to handle the binary inputstream lookup
+   * Interface to build the binary inputstream lookup
    * 
    * @author Luis Faria
    */
@@ -133,7 +134,7 @@ public class DBMLImportModule implements DatabaseImportModule {
         try {
           return Files.newInputStream(dbmlFilePath.getParent().resolve(id));
         } catch (IOException e) {
-          throw new ModuleException("Could not open the specified DBML LOB file", e);
+          throw new ModuleException().withMessage("Could not open the specified DBML LOB file").withCause(e);
         }
       }
     };
@@ -141,16 +142,16 @@ public class DBMLImportModule implements DatabaseImportModule {
     try {
       dbml = Files.newInputStream(dbmlFilePath);
     } catch (IOException e) {
-      throw new ModuleException("Could not open the specified DBML file", e);
+      throw new ModuleException().withMessage("Could not open the specified DBML file").withCause(e);
     }
 
     SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
     try {
       saxParser = saxParserFactory.newSAXParser();
     } catch (SAXException e) {
-      throw new ModuleException("Error initializing SAX parser", e);
+      throw new ModuleException().withMessage("Error initializing SAX parser").withCause(e);
     } catch (ParserConfigurationException e) {
-      throw new ModuleException("Error initializing SAX parser", e);
+      throw new ModuleException().withMessage("Error initializing SAX parser").withCause(e);
     }
 
     DBMLSAXHandler dbmlSAXHandler = new DBMLSAXHandler(binLookup, databaseExportModule);
@@ -158,13 +159,13 @@ public class DBMLImportModule implements DatabaseImportModule {
       databaseExportModule.initDatabase();
       saxParser.parse(dbml, dbmlSAXHandler);
       if (dbmlSAXHandler.getErrors().size() > 0) {
-        throw new ModuleException(dbmlSAXHandler.getErrors());
+        throw new ModuleException().withExceptionMap(dbmlSAXHandler.getErrors());
       }
       databaseExportModule.finishDatabase();
     } catch (SAXException e) {
-      throw new ModuleException("Error parsing DBML", e);
+      throw new ModuleException().withMessage("Error parsing DBML").withCause(e);
     } catch (IOException e) {
-      throw new ModuleException("Error reading DBML", e);
+      throw new ModuleException().withMessage("Error reading DBML").withCause(e);
     }
     return null;
   }
@@ -430,7 +431,7 @@ public class DBMLImportModule implements DatabaseImportModule {
         if (currentCell != null && currentCellId != null) {
           BinaryCell b;
           String fileName = attr.getValue("file");
-          // TODO 2017-02-02 bferreira: handle file formats
+          // TODO 2017-02-02 bferreira: build file formats
           String formatRegistryName = attr.getValue("formatRegistryName");
           String formatRegistryKey = attr.getValue("formatRegistryKey");
           try {
@@ -834,5 +835,10 @@ public class DBMLImportModule implements DatabaseImportModule {
     void setSimpleData(String simpleData) {
       this.simpleData = simpleData;
     }
+  }
+
+  @Override
+  public ModuleException normalizeException(Exception exception, String contextMessage) {
+    return DefaultExceptionNormalizer.getInstance().normalizeException(exception, contextMessage);
   }
 }

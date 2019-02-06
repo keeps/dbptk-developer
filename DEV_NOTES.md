@@ -74,7 +74,7 @@ npm install github-release-notes -g
 Example release 2.2.0 and prepare for next version 2.3.0.
 
 1. Run `./scripts/release.sh 2.2.0`
-2. Wait for [travis tag build](https://travis-ci.org/keeps/roda/) to be finished and successful
+2. Wait for [travis tag build](https://travis-ci.org/keeps/db-preservation-toolkit/) to be finished and successful
 3. Local compile to generate dbptk-app.jar artifact `mvn clean package -Dmaven.test.skip`
 4. `gren release --draft -t v2.2.0..v2.1.0`
 5. Review release and accept release:

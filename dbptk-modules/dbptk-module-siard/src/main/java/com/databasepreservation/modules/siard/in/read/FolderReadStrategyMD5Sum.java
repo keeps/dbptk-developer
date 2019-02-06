@@ -46,7 +46,7 @@ public class FolderReadStrategyMD5Sum extends FolderReadStrategy {
       archiveAssociatedWithStream.put(digestInputStream, container);
       return digestInputStream;
     } catch (NoSuchAlgorithmException e) {
-      throw new ModuleException(e);
+      throw new ModuleException().withCause(e);
     }
   }
 
@@ -60,7 +60,8 @@ public class FolderReadStrategyMD5Sum extends FolderReadStrategy {
         if (!MessageDigest.isEqual(computedMD5Sum, expectedMD5Sum)) {
           String expectedMD5SumStr = Hex.encodeHexString(expectedMD5Sum);
           String computedMD5SumStr = Hex.encodeHexString(computedMD5Sum);
-          throw new ModuleException("Error verifying MD5sum for file [" + path + "]. Computed: " + computedMD5SumStr
+          throw new ModuleException()
+            .withMessage("Error verifying MD5sum for file [" + path + "]. Computed: " + computedMD5SumStr
             + " Expected:" + expectedMD5SumStr + " - during processing of archive [" + container.getPath() + "]");
         }
       } else {

@@ -119,6 +119,14 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.0.0-M2</version>
+                <configuration>
+                    <rules><dependencyConvergence/></rules>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
                 <version>3.0</version>
@@ -243,12 +251,6 @@
 
             <dependency>
                 <groupId>com.databasepreservation</groupId>
-                <artifactId>dbptk-module-odbc</artifactId>
-                <version>2.1.0-SNAPSHOT</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.databasepreservation</groupId>
                 <artifactId>dbptk-module-oracle</artifactId>
                 <version>2.1.0-SNAPSHOT</version>
             </dependency>
@@ -295,11 +297,11 @@
                 <version>1.5.0</version>
             </dependency>
 
-            <!-- plugin modules handling -->
+            <!-- external modules handling -->
             <dependency>
-                <groupId>jspf.core</groupId>
-                <artifactId>jspf.core</artifactId>
-                <version>1.0.2</version>
+                <groupId>org.reflections</groupId>
+                <artifactId>reflections</artifactId>
+                <version>0.9.11</version>
             </dependency>
 
             <!-- common -->
@@ -328,7 +330,6 @@
                 <artifactId>logback-core</artifactId>
                 <version>1.1.7</version>
             </dependency>
-
 
 
             <dependency>

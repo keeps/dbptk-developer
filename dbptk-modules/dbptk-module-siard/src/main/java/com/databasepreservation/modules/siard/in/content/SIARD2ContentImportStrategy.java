@@ -171,27 +171,28 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
                 tableInputSource.setEncoding("UTF-8");
                 xmlReader.parse(tableInputSource);
               } catch (SAXException e) {
-                throw new ModuleException(
-                  "A SAX error occurred during processing of XML table file at " + tableFilename, e);
+                throw new ModuleException()
+                  .withMessage("A SAX error occurred during processing of XML table file at " + tableFilename)
+                  .withCause(e);
               } catch (IOException e) {
-                throw new ModuleException("Error while reading XML table file", e);
+                throw new ModuleException().withMessage("Error while reading XML table file").withCause(e);
               }
 
               if (errorHandler.hasError()) {
-                throw new ModuleException(
-                  "Parsing or validation error occurred while reading XML table file (details are above)");
+                throw new ModuleException()
+                  .withMessage("Parsing or validation error occurred while reading XML table file (details are above)");
               }
 
               try {
                 currentTableStream.close();
               } catch (IOException e) {
-                throw new ModuleException("Could not close XML table input stream", e);
+                throw new ModuleException().withMessage("Could not close XML table input stream").withCause(e);
               }
 
               try {
                 xsdStream.close();
               } catch (IOException e) {
-                throw new ModuleException("Could not close table XSD schema input stream", e);
+                throw new ModuleException().withMessage("Could not close table XSD schema input stream").withCause(e);
               }
             } catch (ModuleException e) {
               LOGGER.error("An error occurred converting table contents", e);

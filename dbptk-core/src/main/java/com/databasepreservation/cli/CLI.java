@@ -10,12 +10,10 @@ package com.databasepreservation.cli;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -44,15 +42,13 @@ import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.UnreachableException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.ParameterGroup;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.utils.MiscUtils;
-
-import net.xeoh.plugins.base.PluginManager;
-import net.xeoh.plugins.base.impl.PluginManagerFactory;
 
 /**
  * Handles command line interface.
@@ -87,17 +83,9 @@ public class CLI {
    * @param databaseModuleFactories
    *          List of available module factories
    */
-  public CLI(List<String> commandLineArguments, List<Class<? extends DatabaseModuleFactory>> databaseModuleFactories) {
-    factories = new ArrayList<>();
+  public CLI(List<String> commandLineArguments, Collection<DatabaseModuleFactory> databaseModuleFactories) {
+    factories = new ArrayList<>(databaseModuleFactories);
     this.commandLineArguments = sanitizeCommandLineArguments(commandLineArguments);
-    try {
-      for (Class<? extends DatabaseModuleFactory> factoryClass : databaseModuleFactories) {
-        factories.add(factoryClass.getDeclaredConstructor().newInstance());
-      }
-    } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-      LOGGER.error("Error initializing CLI", e);
-    }
-    includePluginModules();
   }
 
   /**
@@ -106,12 +94,10 @@ public class CLI {
    * @param commandLineArguments
    *          List of command line parameters as they are received by Main.main
    * @param databaseModuleFactories
-   *          Array of available module factories
+   *          Array of module factories
    */
   public CLI(List<String> commandLineArguments, DatabaseModuleFactory... databaseModuleFactories) {
-    factories = new ArrayList<>(Arrays.asList(databaseModuleFactories));
-    this.commandLineArguments = sanitizeCommandLineArguments(commandLineArguments);
-    includePluginModules();
+    this(commandLineArguments, Arrays.asList(databaseModuleFactories));
   }
 
   /**
@@ -125,39 +111,6 @@ public class CLI {
       result.add(pattern.matcher(commandLineArgument).replaceAll("--"));
     }
     return result;
-  }
-
-  private void includePluginModules() {
-    // find plugins in command line arguments
-    String pluginString = null;
-    Iterator<String> argsIterator = commandLineArguments.iterator();
-    while (argsIterator.hasNext()) {
-      String arg = argsIterator.next();
-      if ("-p".equals(arg) || "--plugin".equals(arg)) {
-        pluginString = argsIterator.next();
-        break;
-      } else if (StringUtils.startsWith(arg, "--plugin=")) {
-        // 9 is the size of the string "--plugin="
-        pluginString = arg.substring(9);
-        break;
-      }
-    }
-
-    if (pluginString != null) {
-      for (String plugin : pluginString.split(";")) {
-        PluginManager pm = PluginManagerFactory.createPluginManager();
-        try {
-          URI pluginURI = new URI(plugin);
-          if (pluginURI.getScheme() == null) {
-            pluginURI = new URI("file://" + plugin);
-          }
-          pm.addPluginsFrom(pluginURI);
-        } catch (URISyntaxException e) {
-          LOGGER.warn("Plugin not found: " + plugin, e);
-        }
-        factories.add(pm.getPlugin(DatabaseModuleFactory.class));
-      }
-    }
   }
 
   /**
@@ -361,6 +314,7 @@ public class CLI {
       LOGGER.debug("NoSuchElementException", e);
       throw new ParseException("Missing module name.");
     }
+
     if (importModulesFound != 1 || exportModulesFound != 1) {
       throw new ParseException("Exactly one import module and one export module must be specified.");
     }
@@ -410,55 +364,40 @@ public class CLI {
 
     HashMap<String, Parameter> mapOptionToParameter = new HashMap<String, Parameter>();
 
-    try {
-      for (Parameter parameter : importModuleFactory.getImportModuleParameters().getParameters()) {
-        Option option = parameter.toOption("i", "import");
-        options.addOption(option);
-        mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
-      }
-    } catch (com.databasepreservation.model.exception.UnsupportedModuleException e) {
-      e.printStackTrace();
+    for (Parameter parameter : importModuleFactory.getImportModuleParameters().getParameters()) {
+      Option option = parameter.toOption("i", "import");
+      options.addOption(option);
+      mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
     }
-    try {
-      for (ParameterGroup parameterGroup : importModuleFactory.getImportModuleParameters().getGroups()) {
-        OptionGroup optionGroup = parameterGroup.toOptionGroup("i", "import");
-        options.addOptionGroup(optionGroup);
 
-        for (Parameter parameter : parameterGroup.getParameters()) {
-          mapOptionToParameter.put(getUniqueOptionIdentifier(parameter.toOption("i", "import")), parameter);
-        }
-      }
-    } catch (com.databasepreservation.model.exception.UnsupportedModuleException e) {
-      e.printStackTrace();
-    }
-    try {
-      for (Parameter parameter : exportModuleFactory.getExportModuleParameters().getParameters()) {
-        Option option = parameter.toOption("e", "export");
-        options.addOption(option);
-        mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
-      }
-    } catch (com.databasepreservation.model.exception.UnsupportedModuleException e) {
-      e.printStackTrace();
-    }
-    try {
-      for (ParameterGroup parameterGroup : exportModuleFactory.getExportModuleParameters().getGroups()) {
-        OptionGroup optionGroup = parameterGroup.toOptionGroup("e", "export");
-        options.addOptionGroup(optionGroup);
+    for (ParameterGroup parameterGroup : importModuleFactory.getImportModuleParameters().getGroups()) {
+      OptionGroup optionGroup = parameterGroup.toOptionGroup("i", "import");
+      options.addOptionGroup(optionGroup);
 
-        for (Parameter parameter : parameterGroup.getParameters()) {
-          mapOptionToParameter.put(getUniqueOptionIdentifier(parameter.toOption("e", "export")), parameter);
-        }
+      for (Parameter parameter : parameterGroup.getParameters()) {
+        mapOptionToParameter.put(getUniqueOptionIdentifier(parameter.toOption("i", "import")), parameter);
       }
-    } catch (com.databasepreservation.model.exception.UnsupportedModuleException e) {
-      e.printStackTrace();
+    }
+
+    for (Parameter parameter : exportModuleFactory.getExportModuleParameters().getParameters()) {
+      Option option = parameter.toOption("e", "export");
+      options.addOption(option);
+      mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
+    }
+
+    for (ParameterGroup parameterGroup : exportModuleFactory.getExportModuleParameters().getGroups()) {
+      OptionGroup optionGroup = parameterGroup.toOptionGroup("e", "export");
+      options.addOptionGroup(optionGroup);
+
+      for (Parameter parameter : parameterGroup.getParameters()) {
+        mapOptionToParameter.put(getUniqueOptionIdentifier(parameter.toOption("e", "export")), parameter);
+      }
     }
 
     Option importOption = Option.builder("i").longOpt("import").hasArg().optionalArg(false).build();
     Option exportOption = Option.builder("e").longOpt("export").hasArg().optionalArg(false).build();
-    Option pluginOption = Option.builder("p").longOpt("plugin").hasArg().optionalArg(false).build();
     options.addOption(importOption);
     options.addOption(exportOption);
-    options.addOption(pluginOption);
 
     // new HelpFormatter().printHelp(80, "dbptk", "\nModule Options:", options,
     // null, true);
@@ -536,7 +475,7 @@ public class CLI {
 
       for (DatabaseModuleFactory factory : modulesList) {
         if (factory.producesImportModules()) {
-          out.append(spaceMedium).append(factory.getModuleName()).append("\n").append(spaceMedium);
+          out.append(spaceMedium).append(factory.getModuleName()).append("\n");
         }
       }
 
@@ -548,41 +487,22 @@ public class CLI {
       }
 
     } else {
-      boolean introShown = false;
-
-      for (DatabaseModuleFactory factory : modulesList) {
-        if (factory.producesImportModules() && visibleModules.contains(factory.getModuleName())) {
-          // if (!introShown) {
-          // out.append("\n## Available import modules: -i <module>, --import=module\n");
-          // introShown = true;
-          // }
-
-          try {
+      try {
+        for (DatabaseModuleFactory factory : modulesList) {
+          if (factory.producesImportModules() && visibleModules.contains(factory.getModuleName())) {
             out.append(
               printModuleHelp("Import module: -i " + factory.getModuleName() + ", --import=" + factory.getModuleName(),
                 "i", "import", factory.getImportModuleParameters()));
-          } catch (com.databasepreservation.model.exception.UnsupportedModuleException e) {
-            e.printStackTrace();
           }
-        }
-      }
 
-      introShown = false;
-      for (DatabaseModuleFactory factory : modulesList) {
-        if (factory.producesExportModules() && visibleModules.contains(factory.getModuleName())) {
-          // if (!introShown) {
-          // out.append("\n## Available export modules: -e <module>, --export=module\n");
-          // introShown = true;
-          // }
-
-          try {
+          if (factory.producesExportModules() && visibleModules.contains(factory.getModuleName())) {
             out.append(
               printModuleHelp("Export module: -e " + factory.getModuleName() + ", --export=" + factory.getModuleName(),
                 "e", "export", factory.getExportModuleParameters()));
-          } catch (com.databasepreservation.model.exception.UnsupportedModuleException e) {
-            e.printStackTrace();
           }
         }
+      } catch (UnsupportedModuleException e) {
+        throw new UnreachableException(e);
       }
     }
 

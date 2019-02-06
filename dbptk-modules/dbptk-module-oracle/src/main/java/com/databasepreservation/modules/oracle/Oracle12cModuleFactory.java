@@ -79,6 +79,11 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
+  public boolean isEnabled() {
+    return true;
+  }
+
+  @Override
   public Map<String, Parameter> getAllParameters() {
     HashMap<String, Parameter> parameterHashMap = new HashMap<String, Parameter>();
     parameterHashMap.put(serverName.longName(), serverName);
@@ -113,7 +118,7 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
     boolean pAcceptLicense = Boolean.parseBoolean(parameters.get(acceptLicense));
 
     if (!pAcceptLicense) {
-      throw new LicenseNotAcceptedException(getLicenseText("--import-" + acceptLicense.longName()));
+      throw new LicenseNotAcceptedException().withLicenseInfo(getLicenseText("--import-" + acceptLicense.longName()));
     }
 
     Integer pPortNumber = Integer.parseInt(parameters.get(portNumber));
@@ -136,7 +141,7 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
     boolean pAcceptLicense = Boolean.parseBoolean(parameters.get(acceptLicense));
 
     if (!pAcceptLicense) {
-      throw new LicenseNotAcceptedException(getLicenseText("--export-" + acceptLicense.longName()));
+      throw new LicenseNotAcceptedException().withLicenseInfo(getLicenseText("--export-" + acceptLicense.longName()));
     }
 
     Integer pPortNumber = Integer.parseInt(parameters.get(portNumber));

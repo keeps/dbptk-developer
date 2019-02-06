@@ -14,7 +14,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 /**
- * Class to handle SAX Parsing errors
+ * Class to build SAX Parsing errors
  *
  * @author bferreira
  */

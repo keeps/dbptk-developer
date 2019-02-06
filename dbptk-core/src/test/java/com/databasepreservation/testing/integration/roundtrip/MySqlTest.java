@@ -183,7 +183,7 @@ public class MySqlTest {
 
     tests.add(new String[] {singleTypeAndValue, "DOUBLE", "1234567890.12345"});
     tests.add(new String[] {singleTypeAndValue, "DOUBLE(22,0)", "1234567890.12345"});
-    tests.add(new String[] {singleTypeAndValue, "DOUBLE(10,2)", "1234567890.12345"});
+    tests.add(new String[] {singleTypeAndValue, "DOUBLE(10,2)", "34567890.12"});
 
     // TODO: fix in #177
     // tests.add(new String[] {singleTypeAndValue, "BIT", "b'1'"});

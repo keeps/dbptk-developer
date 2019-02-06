@@ -70,6 +70,7 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximat
 import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
+import com.databasepreservation.modules.DefaultExceptionNormalizer;
 import com.databasepreservation.modules.SQLHelper;
 import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.JodaUtils;
@@ -143,22 +144,39 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @throws SQLException
    *           the JDBC driver could not be found in classpath
    */
-  public Connection getConnection() throws SQLException {
+  public Connection getConnection() throws ModuleException {
     if (connection == null) {
       LOGGER.debug("Loading JDBC Driver " + driverClassName);
       try {
         Class.forName(driverClassName);
       } catch (ClassNotFoundException e) {
-        throw new SQLException("Could not find SQL driver class: " + driverClassName, e);
+        throw normalizeException(e, "Could not find SQL driver class: " + driverClassName);
       }
       LOGGER.debug("Getting connection");
-      connection = DriverManager.getConnection(connectionURL);
-      LOGGER.debug("Connected");
+
+      connection = createConnection();
     }
     return connection;
   }
 
-  protected Statement getStatement() throws SQLException {
+  /**
+   * Connect to the server using the properties defined in the constructor
+   * 
+   * @return the new connection
+   * @throws ModuleException
+   */
+  protected Connection createConnection() throws ModuleException {
+    Connection connection;
+    try {
+      connection = DriverManager.getConnection(connectionURL);
+    } catch (SQLException e) {
+      throw normalizeException(e, null);
+    }
+    LOGGER.debug("Connected");
+    return connection;
+  }
+
+  protected Statement getStatement() throws SQLException, ModuleException {
     if (statement == null) {
       statement = getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY,
         ResultSet.CLOSE_CURSORS_AT_COMMIT);
@@ -172,7 +190,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return the database metadata
    * @throws SQLException
    */
-  public DatabaseMetaData getMetadata() throws SQLException {
+  public DatabaseMetaData getMetadata() throws SQLException, ModuleException {
     if (dbMetadata == null) {
       dbMetadata = getConnection().getMetaData();
     }
@@ -184,7 +202,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    *
    * @throws SQLException
    */
-  public void closeConnection() {
+  public void closeConnection() throws ModuleException {
     if (statement != null) {
       try {
         statement.close();
@@ -194,11 +212,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     }
 
     Connection connection = null;
-    try {
-      connection = getConnection();
-    } catch (SQLException e) {
-      LOGGER.debug("could not obtain connection in order to close it", e);
-    }
+    connection = getConnection();
     if (connection != null) {
       try {
         connection.close();
@@ -229,37 +243,41 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return the database structure
    * @throws SQLException
    */
-  protected DatabaseStructure getDatabaseStructure() throws SQLException {
+  protected DatabaseStructure getDatabaseStructure() throws ModuleException {
     if (dbStructure == null) {
       dbStructure = new DatabaseStructure();
-      LOGGER.debug("driver version: " + getMetadata().getDriverVersion());
-      dbStructure.setName(getDbName());
-      dbStructure.setProductName(getMetadata().getDatabaseProductName());
-      dbStructure.setProductVersion(getMetadata().getDatabaseProductVersion());
-      dbStructure.setDataOwner(System.getProperty("user.name"));
-      dbStructure.setDataOriginTimespan(DEFAULT_DATA_TIMESPAN);
-      dbStructure.setProducerApplication(MiscUtils.APP_NAME_AND_VERSION);
-      String clientMachine = "";
       try {
-        clientMachine = InetAddress.getLocalHost().getHostName();
-      } catch (UnknownHostException e) {
-        LOGGER.debug("UnknownHostException", e);
+        LOGGER.debug("driver version: {}", getMetadata().getDriverVersion());
+        dbStructure.setName(getDbName());
+        dbStructure.setProductName(getMetadata().getDatabaseProductName());
+        dbStructure.setProductVersion(getMetadata().getDatabaseProductVersion());
+        dbStructure.setDataOwner(System.getProperty("user.name"));
+        dbStructure.setDataOriginTimespan(DEFAULT_DATA_TIMESPAN);
+        dbStructure.setProducerApplication(MiscUtils.APP_NAME_AND_VERSION);
+        String clientMachine = "";
+        try {
+          clientMachine = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+          LOGGER.debug("UnknownHostException", e);
+        }
+        dbStructure.setClientMachine(clientMachine);
+
+        dbStructure.setSchemas(getSchemas());
+        actualSchema = null;
+
+        dbStructure.setUsers(getUsers(dbStructure.getName()));
+        dbStructure.setRoles(getRoles());
+        dbStructure.setPrivileges(getPrivileges());
+
+        LOGGER.debug("Database structure obtained");
+      } catch (SQLException e) {
+        throw normalizeException(e, null);
       }
-      dbStructure.setClientMachine(clientMachine);
-
-      dbStructure.setSchemas(getSchemas());
-      actualSchema = null;
-
-      dbStructure.setUsers(getUsers());
-      dbStructure.setRoles(getRoles());
-      dbStructure.setPrivileges(getPrivileges());
-
-      LOGGER.debug("Database structure obtained");
     }
     return dbStructure;
   }
 
-  protected String getDbName() throws SQLException {
+  protected String getDbName() throws SQLException, ModuleException {
     return getConnection().getCatalog();
   }
 
@@ -284,7 +302,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return the database schemas (not ignored by default and/or user) @throws
    *         SQLException @throws
    */
-  protected List<SchemaStructure> getSchemas() throws SQLException {
+  protected List<SchemaStructure> getSchemas() throws SQLException, ModuleException {
     List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
 
     try (ResultSet rs = getMetadata().getSchemas()) {
@@ -323,7 +341,8 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return the schema structure of a given schema name
    * @throws ModuleException
    */
-  protected SchemaStructure getSchemaStructure(String schemaName, int schemaIndex) throws SQLException {
+  protected SchemaStructure getSchemaStructure(String schemaName, int schemaIndex)
+    throws SQLException, ModuleException {
     actualSchema = new SchemaStructure();
     actualSchema.setName(schemaName);
     actualSchema.setIndex(schemaIndex);
@@ -336,7 +355,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     return actualSchema;
   }
 
-  protected ArrayList<ComposedTypeStructure> getUDTs(SchemaStructure schema) throws SQLException {
+  protected ArrayList<ComposedTypeStructure> getUDTs(SchemaStructure schema) throws SQLException, ModuleException {
     // possibleUDT because it may also be a table name, which in some cases may
     // also be used as a type
     ArrayList<String> possibleUDTs = new ArrayList<>();
@@ -410,7 +429,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         LOGGER.debug(
           "LOBs inside UDTs are not supported yet. Only the first level of hierarchy will be exported. UDT "
             + udt.getOriginalTypeName() + " detected as containing LOBs.",
-          new ModuleException("UDT containing LOBs:" + udt.toString()));
+          new ModuleException().withMessage("UDT containing LOBs:" + udt.toString()));
       }
 
       // TODO: remove after adding support for hierarchical UDTs
@@ -419,7 +438,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         LOGGER.debug(
           "UDTs inside UDTs are not supported yet. Only the first level of hierarchy will be exported. UDT "
             + udt.getOriginalTypeName() + " detected as hierarchical.",
-          new ModuleException("hierarchical UDT:" + udt.toString()));
+          new ModuleException().withMessage("hierarchical UDT:" + udt.toString()));
       }
 
       // all recursive UDTs are hierarchical, so two warnings are expected on
@@ -430,7 +449,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         LOGGER.debug(
           "Recursive UDTs are not supported yet. Only the first level of data will be exported. UDT "
             + udt.getOriginalTypeName() + " detected as recursive.",
-          new ModuleException("recursive UDT:" + udt.toString()));
+          new ModuleException().withMessage("recursive UDT:" + udt.toString()));
       }
     }
 
@@ -443,7 +462,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return the database tables of a given schema
    * @throws SQLException
    */
-  protected List<TableStructure> getTables(SchemaStructure schema) throws SQLException {
+  protected List<TableStructure> getTables(SchemaStructure schema) throws SQLException, ModuleException {
     List<TableStructure> tables = new ArrayList<TableStructure>();
     try (
       ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"TABLE"})) {
@@ -470,7 +489,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return the database views of a given schema
    * @throws SQLException
    */
-  protected List<ViewStructure> getViews(String schemaName) throws SQLException {
+  protected List<ViewStructure> getViews(String schemaName) throws SQLException, ModuleException {
     List<ViewStructure> views = new ArrayList<ViewStructure>();
     try (ResultSet rset = getMetadata().getTables(dbStructure.getName(), schemaName, "%", new String[] {"VIEW"})) {
       while (rset.next()) {
@@ -495,7 +514,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return
    * @throws SQLException
    */
-  protected List<RoutineStructure> getRoutines(String schemaName) throws SQLException {
+  protected List<RoutineStructure> getRoutines(String schemaName) throws SQLException, ModuleException {
     // TODO add optional fields to routine (use getProcedureColumns)
     List<RoutineStructure> routines = new ArrayList<RoutineStructure>();
 
@@ -527,7 +546,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @throws ModuleException
    */
   protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex,
-    String description) throws SQLException {
+    String description) throws SQLException, ModuleException {
     TableStructure table = new TableStructure();
     table.setId(schema.getName() + "." + tableName);
     table.setName(tableName);
@@ -547,7 +566,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     return table;
   }
 
-  private int getRows(String schemaName, String tableName) throws SQLException {
+  private int getRows(String schemaName, String tableName) throws SQLException, ModuleException {
     String query = sqlHelper.getRowsSQL(schemaName, tableName);
     LOGGER.debug("count query: " + query);
     try (ResultSet rs = getStatement().executeQuery(query)) {
@@ -589,9 +608,9 @@ public class JDBCImportModule implements DatabaseImportModule {
     return column;
   }
 
-  protected List<UserStructure> getUsers() throws SQLException {
+  protected List<UserStructure> getUsers(String databaseName) throws SQLException, ModuleException {
     List<UserStructure> users = new ArrayList<UserStructure>();
-    String query = sqlHelper.getUsersSQL(getDbName());
+    String query = sqlHelper.getUsersSQL(databaseName);
     if (query != null) {
       try (ResultSet rs = getStatement().executeQuery(query)) {
         while (rs.next()) {
@@ -613,7 +632,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return the database roles
    * @throws SQLException
    */
-  protected List<RoleStructure> getRoles() throws SQLException {
+  protected List<RoleStructure> getRoles() throws SQLException, ModuleException {
     List<RoleStructure> roles = new ArrayList<RoleStructure>();
     String query = sqlHelper.getRolesSQL();
     if (query != null) {
@@ -650,7 +669,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return the database privileges
    * @throws SQLException
    */
-  protected List<PrivilegeStructure> getPrivileges() throws SQLException {
+  protected List<PrivilegeStructure> getPrivileges() throws SQLException, ModuleException {
     List<PrivilegeStructure> privileges = new ArrayList<PrivilegeStructure>();
 
     for (SchemaStructure schema : dbStructure.getSchemas()) {
@@ -703,7 +722,8 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return the columns of a given schema.table
    * @throws SQLException
    */
-  protected List<ColumnStructure> getUDTColumns(String schemaName, String udtName) throws SQLException {
+  protected List<ColumnStructure> getUDTColumns(String schemaName, String udtName)
+    throws SQLException, ModuleException {
 
     // LOGGER.debug("id: " + schemaName + "." + udtName);
     List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
@@ -725,7 +745,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return the columns of a given schema.table
    * @throws SQLException
    */
-  protected List<ColumnStructure> getColumns(String schemaName, String tableName) throws SQLException {
+  protected List<ColumnStructure> getColumns(String schemaName, String tableName) throws SQLException, ModuleException {
 
     // LOGGER.debug("id: " + schemaName + "." + tableName);
     List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
@@ -861,7 +881,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @throws SQLException
    * @throws ModuleException
    */
-  protected PrimaryKey getPrimaryKey(String schemaName, String tableName) throws SQLException {
+  protected PrimaryKey getPrimaryKey(String schemaName, String tableName) throws SQLException, ModuleException {
     String pkName = null;
     List<String> pkColumns = new ArrayList<String>();
 
@@ -893,7 +913,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @throws SQLException
    * @throws ModuleException
    */
-  protected List<ForeignKey> getForeignKeys(String schemaName, String tableName) throws SQLException {
+  protected List<ForeignKey> getForeignKeys(String schemaName, String tableName) throws SQLException, ModuleException {
 
     List<ForeignKey> foreignKeys = new ArrayList<ForeignKey>();
 
@@ -936,7 +956,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     return foreignKeys;
   }
 
-  protected String getReferencedSchema(String s) throws SQLException {
+  protected String getReferencedSchema(String s) throws SQLException, ModuleException {
     return s;
   }
 
@@ -990,7 +1010,8 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @throws SQLException
    */
   // VERIFY adding PKs
-  protected List<CandidateKey> getCandidateKeys(String schemaName, String tableName) throws SQLException {
+  protected List<CandidateKey> getCandidateKeys(String schemaName, String tableName)
+    throws SQLException, ModuleException {
     List<CandidateKey> candidateKeys = new ArrayList<CandidateKey>();
 
     try (ResultSet rs = getMetadata().getIndexInfo(dbStructure.getName(), schemaName, tableName, true, true)) {
@@ -1029,7 +1050,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @param tableName
    * @return
    */
-  protected List<CheckConstraint> getCheckConstraints(String schemaName, String tableName) {
+  protected List<CheckConstraint> getCheckConstraints(String schemaName, String tableName) throws ModuleException {
     List<CheckConstraint> checkConstraints = new ArrayList<CheckConstraint>();
 
     String query = sqlHelper.getCheckConstraintsSQL(schemaName, tableName);
@@ -1087,7 +1108,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @param tableName
    * @return
    */
-  protected List<Trigger> getTriggers(String schemaName, String tableName) {
+  protected List<Trigger> getTriggers(String schemaName, String tableName) throws ModuleException {
     List<Trigger> triggers = new ArrayList<Trigger>();
 
     String query = sqlHelper.getTriggersSQL(schemaName, tableName);
@@ -1208,7 +1229,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       row = new Row(tableStructure.getCurrentRow(), cells);
 
       reporter.rowProcessingUsedNull(tableStructure, tableStructure.getCurrentRow(),
-        new ModuleException("isRowValid returned false"));
+        new ModuleException().withMessage("isRowValid returned false"));
     }
     tableStructure.incrementCurrentRow();
     return row;
@@ -1333,7 +1354,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
           if (fstNum == null && sndNum == null) {
             // this will save the value as NULL and trigger the Reporter
-            throw new ModuleException("Could not parse `" + stringValue + "` as an exact numeric value");
+            throw new ModuleException().withMessage("Could not parse `" + stringValue + "` as an exact numeric value");
           } else {
             if (fstNum != null && sndNum != null) {
               if (fstNum == 0 || sndNum == 0) {
@@ -1540,7 +1561,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     String msg = "Could not retrieve data from table '" + tableId + "'. See log for details.";
 
     reporter.customMessage(this.getClass().getName(), msg);
-    throw new ModuleException(msg);
+    throw new ModuleException().withMessage(msg);
   }
 
   /**
@@ -1566,7 +1587,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     try {
       currentFetchSize = tableResultSet.getFetchSize();
     } catch (SQLException e) {
-      throw new ModuleException("Could not obtain the next set of results from this table.", e);
+      throw new ModuleException().withMessage("Could not obtain the next set of results from this table.").withCause(e);
     }
     LOGGER.debug("Current fetch size: {}", currentFetchSize);
 
@@ -1575,7 +1596,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         // fail, because we can not reduce the fetch size anymore
         LOGGER.debug("fetch size of '{}' is lower than MINIMUM_ROW_FETCH_BLOCK_SIZE={}", currentFetchSize,
           MINIMUM_ROW_FETCH_BLOCK_SIZE);
-        throw new ModuleException("Could not obtain the next set of results from this table.");
+        throw new ModuleException().withMessage("Could not obtain the next set of results from this table.");
       } else if (currentFetchSize > SMALL_ROW_FETCH_BLOCK_SIZE || currentFetchSize == 0) {
         // reduce fetch size and try again
         tableResultSet.setFetchSize(SMALL_ROW_FETCH_BLOCK_SIZE);
@@ -1586,7 +1607,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         return resultSetNext(tableResultSet);
       }
     } catch (SQLException e) {
-      throw new ModuleException("Could not obtain the next set of results from this table.", e);
+      throw new ModuleException().withMessage("Could not obtain the next set of results from this table.").withCause(e);
     }
   }
 
@@ -1651,8 +1672,6 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
       LOGGER.debug("Freeing resources");
       exportModule.finishDatabase();
-    } catch (SQLException e) {
-      throw new ModuleException("SQL error while connecting", e);
     } finally {
       LOGGER.debug("Closing connection to source database");
       closeConnection();
@@ -1677,5 +1696,10 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   public ModuleSettings getModuleSettings() {
     return moduleSettings;
+  }
+
+  @Override
+  public ModuleException normalizeException(Exception exception, String contextMessage) {
+    return DefaultExceptionNormalizer.getInstance().normalizeException(exception, contextMessage);
   }
 }

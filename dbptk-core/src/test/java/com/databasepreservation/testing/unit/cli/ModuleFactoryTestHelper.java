@@ -28,6 +28,7 @@ import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.utils.ReflectionUtils;
 
 /**
  * Helper class to help test ModuleFactories
@@ -37,15 +38,20 @@ import com.databasepreservation.model.parameters.Parameter;
 // TODO: incomplete because default values of optional parameters are not tested
 public class ModuleFactoryTestHelper {
   private final Class<? extends DatabaseModuleFactory> moduleFactory;
-  private final List<Class<? extends DatabaseModuleFactory>> moduleFactories;
+  private final List<DatabaseModuleFactory> moduleFactories;
   private final Class<? extends DatabaseImportModule> importModuleClass;
   private final Class<? extends DatabaseExportModule> exportModuleClass;
 
   protected ModuleFactoryTestHelper(Class<? extends DatabaseModuleFactory> moduleFactory,
     Class<? extends DatabaseImportModule> importModuleClass, Class<? extends DatabaseExportModule> exportModuleClass) {
     this.moduleFactory = moduleFactory;
-    this.moduleFactories = new ArrayList<>();
-    this.moduleFactories.add(this.moduleFactory);
+    this.moduleFactories = new ArrayList<>(ReflectionUtils.collectDatabaseModuleFactories());
+
+    try {
+      this.moduleFactories.add(this.moduleFactory.getConstructor().newInstance());
+    } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+      throw new RuntimeException(e);
+    }
     this.importModuleClass = importModuleClass;
     this.exportModuleClass = exportModuleClass;
   }

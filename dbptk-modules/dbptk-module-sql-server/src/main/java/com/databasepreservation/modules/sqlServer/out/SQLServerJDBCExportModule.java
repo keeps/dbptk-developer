@@ -128,7 +128,7 @@ public class SQLServerJDBCExportModule extends JDBCExportModule {
           ps.setNull(index, Types.CHAR);
         }
       } catch (SQLException e) {
-        throw new ModuleException("SQL error while handling cell " + cell.getId(), e);
+        throw new ModuleException().withMessage("SQL error while handling cell " + cell.getId()).withCause(e);
       }
     } else {
       return super.handleDataCell(ps, index, cell, type);

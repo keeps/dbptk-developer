@@ -86,14 +86,14 @@ public class CommandLineIndexFileStrategy implements IndexFileStrategy {
       try {
         xmlOutputter.output(document, writer);
       } catch (IOException e) {
-        throw new ModuleException("Could not write metadata index file to archive", e);
+        throw new ModuleException().withMessage("Could not write metadata index file to archive").withCause(e);
       }
     } catch (JDOMParseException e) {
-      throw new ModuleException("The given index.xml file is not valid according to schema", e);
+      throw new ModuleException().withMessage("The given index.xml file is not valid according to schema").withCause(e);
     } catch (JDOMException e) {
-      throw new ModuleException("Problem creating JDOM schema factory", e);
+      throw new ModuleException().withMessage("Problem creating JDOM schema factory").withCause(e);
     } catch (IOException e) {
-      throw new ModuleException("There was a problem reading the file " + pathStr, e);
+      throw new ModuleException().withMessage("There was a problem reading the file " + pathStr).withCause(e);
     }
 
     return null;
