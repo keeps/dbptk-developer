@@ -1,5 +1,19 @@
 # Changelog
 
+## v2.1.0-BETA (07/02/2019)
+
+#### Enhancements:
+
+-  Oracle schema/tablespace error. [#215](https://github.com/keeps/db-preservation-toolkit/issues/215)
+
+#### Bug Fixes:
+
+-  NPE when migrating schema without tables [#369](https://github.com/keeps/db-preservation-toolkit/issues/369)
+-  Using -ede still tries to use encryption in postgresql export module [#286](https://github.com/keeps/db-preservation-toolkit/issues/286)
+-  Exporting to mysql error: Packet for query is too large [#251](https://github.com/keeps/db-preservation-toolkit/issues/251)
+
+---
+
 ## v2.0.1 (17/01/2019)
 
 #### Enhancements:
