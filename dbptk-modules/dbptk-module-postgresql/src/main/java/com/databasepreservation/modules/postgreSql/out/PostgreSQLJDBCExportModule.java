@@ -25,6 +25,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.out.JDBCExportModule;
+import com.databasepreservation.modules.postgreSql.PostgreSQLExceptionNormalizer;
 import com.databasepreservation.modules.postgreSql.PostgreSQLHelper;
 
 /**
@@ -218,5 +219,18 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
     InputStream inputStream = bin.createInputStream();
     ps.setBinaryStream(index, inputStream, bin.getSize());
     return inputStream;
+  }
+
+  @Override
+  public ModuleException normalizeException(Exception exception, String contextMessage) {
+    ModuleException moduleException = PostgreSQLExceptionNormalizer.getInstance().normalizeException(exception,
+      contextMessage);
+
+    // in case the exception normalizer could not handle this exception
+    if (moduleException == null) {
+      moduleException = super.normalizeException(exception, contextMessage);
+    }
+
+    return moduleException;
   }
 }
