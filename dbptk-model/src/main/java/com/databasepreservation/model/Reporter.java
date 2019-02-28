@@ -195,6 +195,20 @@ public class Reporter implements AutoCloseable {
     cellProcessingUsedNull(table.getId(), column.getName(), rowIndex, exception);
   }
 
+  public void failedToGetDescription(Exception e, String designation, String... scopes) {
+    StringBuilder message = new StringBuilder(MESSAGE_LINE_DEFAULT_PREFIX);
+    message.append("could not get description for ").append(designation);
+
+    if (scopes.length > 0) {
+      message.append(" (");
+      appendAsCode(message, StringUtils.join(scopes, "."));
+      message.append(")");
+    }
+
+    report(message);
+    LOGGER.debug("failedToGetDescription, message: {}", message.toString(), e);
+  }
+
   public void rowProcessingUsedNull(TableStructure table, long rowIndex, Throwable exception) {
     conversionProblemsCounter++;
     StringBuilder message = new StringBuilder(

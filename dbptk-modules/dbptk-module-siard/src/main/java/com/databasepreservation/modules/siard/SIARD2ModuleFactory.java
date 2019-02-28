@@ -7,6 +7,8 @@
  */
 package com.databasepreservation.modules.siard;
 
+import static com.databasepreservation.Constants.UNSPECIFIED_METADATA_VALUE;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -89,28 +91,28 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
 
   private static final Parameter metaDescription = new Parameter().shortName("md").longName(PARAMETER_META_DESCRIPTION)
     .description("SIARD descriptive metadata field: Description of database meaning and content as a whole.")
-    .required(false).hasArgument(true).setOptionalArgument(true).valueIfNotSet("unspecified");
+    .required(false).hasArgument(true).setOptionalArgument(true).valueIfNotSet(UNSPECIFIED_METADATA_VALUE);
 
   private static final Parameter metaArchiver = new Parameter().shortName("ma").longName(PARAMETER_META_ARCHIVER)
     .description("SIARD descriptive metadata field: Name of the person who carried out the archiving of the database.")
-    .required(false).hasArgument(true).setOptionalArgument(true).valueIfNotSet("unspecified");
+    .required(false).hasArgument(true).setOptionalArgument(true).valueIfNotSet(UNSPECIFIED_METADATA_VALUE);
 
   private static final Parameter metaArchiverContact = new Parameter().shortName("mac")
     .longName(PARAMETER_META_ARCHIVER_CONTACT)
     .description(
       "SIARD descriptive metadata field: Contact details (telephone, email) of the person who carried out the archiving of the database.")
-    .required(false).hasArgument(true).setOptionalArgument(true).valueIfNotSet("unspecified");
+    .required(false).hasArgument(true).setOptionalArgument(true).valueIfNotSet(UNSPECIFIED_METADATA_VALUE);
 
   private static final Parameter metaDataOwner = new Parameter().shortName("mdo").longName(PARAMETER_META_DATA_OWNER)
     .description(
       "SIARD descriptive metadata field: Owner of the data in the database. The person or institution that, at the time of archiving, has the right to grant usage rights for the data and is responsible for compliance with legal obligations such as data protection guidelines.")
-    .required(false).hasArgument(true).setOptionalArgument(true).valueIfNotSet("unspecified");
+    .required(false).hasArgument(true).setOptionalArgument(true).valueIfNotSet(UNSPECIFIED_METADATA_VALUE);
 
   private static final Parameter metaDataOriginTimespan = new Parameter().shortName("mdot")
     .longName(PARAMETER_META_DATA_ORIGIN_TIMESPAN)
     .description(
       "SIARD descriptive metadata field: Origination period of the data in the database (approximate indication in text form).")
-    .required(false).hasArgument(true).setOptionalArgument(true).valueIfNotSet("unspecified");
+    .required(false).hasArgument(true).setOptionalArgument(true).valueIfNotSet(UNSPECIFIED_METADATA_VALUE);
 
   private static final Parameter metaClientMachine = new Parameter().shortName("mcm")
     .longName(PARAMETER_META_CLIENT_MACHINE)

@@ -23,10 +23,17 @@ import oracle.jdbc.OracleTypes;
  */
 public class Oracle12cJDBCDatatypeImporter extends JDBCDatatypeImporter {
   @Override
-  protected Type getLongVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
-    throws UnknownTypeException {
-    throw new UnknownTypeException(
-      "Unsupported JDBC type, code: -1. Oracle " + typeName + " data type is not supported.");
+  protected Type getLongVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+    return getClobType(typeName, columnSize, decimalDigits, numPrecRadix);
+  }
+
+  @Override
+  protected Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+    if (typeName.equalsIgnoreCase("RAW") || typeName.equalsIgnoreCase("LONG RAW")) {
+      return getLongVarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
+    } else {
+      return super.getVarbinaryType(typeName, columnSize, decimalDigits, numPrecRadix);
+    }
   }
 
   @Override

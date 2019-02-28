@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -43,8 +44,14 @@ import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.ColumnStructure;
+import com.databasepreservation.model.structure.ForeignKey;
+import com.databasepreservation.model.structure.RoleStructure;
+import com.databasepreservation.model.structure.RoutineStructure;
+import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.Trigger;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure.SubType;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
@@ -577,5 +584,171 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     }
 
     return moduleException;
+  }
+
+  @Override
+  protected List<CheckConstraint> getCheckConstraints(String schemaName, String tableName) throws ModuleException {
+    List<CheckConstraint> checkConstraints = super.getCheckConstraints(schemaName, tableName);
+
+    try (PreparedStatement ps = getConnection().prepareStatement(
+      "SELECT obj_description(oid, 'pg_constraint') FROM pg_constraint WHERE conname = ? AND conrelid = ?::regclass")) {
+      for (CheckConstraint checkConstraint : checkConstraints) {
+        ps.setString(1, checkConstraint.getName());
+        ps.setString(2, schemaName + '.' + tableName);
+
+        try (ResultSet rs = ps.execute() ? ps.getResultSet() : null) {
+          if (rs != null && rs.next()) {
+            checkConstraint.setDescription(rs.getString(1));
+          }
+        } catch (SQLException e) {
+          reporter.failedToGetDescription(e, "constraint", schemaName, tableName, checkConstraint.getName());
+        }
+      }
+    } catch (SQLException e) {
+      reporter.failedToGetDescription(e, "constraints", schemaName, tableName);
+    }
+
+    return checkConstraints;
+  }
+
+  @Override
+  protected List<ForeignKey> getForeignKeys(String schemaName, String tableName) throws SQLException, ModuleException {
+    List<ForeignKey> foreignKeys = super.getForeignKeys(schemaName, tableName);
+
+    try (PreparedStatement ps = getConnection().prepareStatement(
+      "SELECT obj_description(oid, 'pg_constraint') FROM pg_constraint WHERE conname = ? AND conrelid = ?::regclass")) {
+      for (ForeignKey foreignKey : foreignKeys) {
+        ps.setString(1, foreignKey.getName());
+        ps.setString(2, schemaName + '.' + tableName);
+
+        try (ResultSet rs = ps.execute() ? ps.getResultSet() : null) {
+          if (rs != null && rs.next()) {
+            foreignKey.setDescription(rs.getString(1));
+          }
+        } catch (SQLException e) {
+          reporter.failedToGetDescription(e, "table foreign key", schemaName, tableName, foreignKey.getName());
+        }
+      }
+    } catch (SQLException e) {
+      reporter.failedToGetDescription(e, "table foreign keys", schemaName, tableName);
+    }
+
+    return foreignKeys;
+  }
+
+  @Override
+  protected List<RoutineStructure> getRoutines(String schemaName) throws SQLException, ModuleException {
+    List<RoutineStructure> routines = super.getRoutines(schemaName);
+
+    try (PreparedStatement ps = getConnection().prepareStatement(
+      "SELECT d.description FROM pg_proc p INNER JOIN pg_namespace n ON n.oid = p.pronamespace LEFT JOIN pg_description As d ON (d.objoid = p.oid ) WHERE n.nspname = ? and p.proname = ? LIMIT 1")) {
+      for (RoutineStructure routine : routines) {
+        ps.setString(1, schemaName);
+        ps.setString(2, routine.getName());
+
+        try (ResultSet rs = ps.execute() ? ps.getResultSet() : null) {
+          if (rs != null && rs.next()) {
+            routine.setDescription(rs.getString(1));
+          }
+        } catch (SQLException e) {
+          reporter.failedToGetDescription(e, "routine", schemaName, routine.getName());
+        }
+      }
+    } catch (SQLException e) {
+      reporter.failedToGetDescription(e, "routines", schemaName);
+    }
+
+    return routines;
+  }
+
+  @Override
+  protected List<RoleStructure> getRoles() throws SQLException, ModuleException {
+    List<RoleStructure> roles = super.getRoles();
+
+    try (PreparedStatement ps = getConnection().prepareStatement(
+      "SELECT pg_catalog.shobj_description(r.oid, 'pg_authid') AS description FROM pg_catalog.pg_roles r where r.rolname = ? LIMIT 1")) {
+      for (RoleStructure role : roles) {
+        ps.setString(1, role.getName());
+
+        try (ResultSet rs = ps.execute() ? ps.getResultSet() : null) {
+          if (rs != null && rs.next()) {
+            role.setDescription(rs.getString(1));
+          }
+        } catch (SQLException e) {
+          reporter.failedToGetDescription(e, "role", role.getName());
+        }
+      }
+    } catch (SQLException e) {
+      reporter.failedToGetDescription(e, "roles");
+    }
+
+    return roles;
+  }
+
+  @Override
+  protected List<SchemaStructure> getSchemas() throws SQLException, ModuleException {
+    List<SchemaStructure> schemas = super.getSchemas();
+
+    try (PreparedStatement ps = getConnection().prepareStatement(
+      "SELECT pg_catalog.obj_description(n.oid, 'pg_namespace') FROM pg_catalog.pg_namespace n WHERE n.nspname = ? LIMIT 1")) {
+      for (SchemaStructure schema : schemas) {
+        ps.setString(1, schema.getName());
+
+        try (ResultSet rs = ps.execute() ? ps.getResultSet() : null) {
+          if (rs != null && rs.next()) {
+            schema.setDescription(rs.getString(1));
+          }
+        } catch (SQLException e) {
+          reporter.failedToGetDescription(e, "schema", schema.getName());
+        }
+      }
+    } catch (SQLException e) {
+      reporter.failedToGetDescription(e, "schemas");
+    }
+
+    return schemas;
+  }
+
+  @Override
+  protected String getDatabaseDescription(String name) throws ModuleException {
+    String description = null;
+
+    try (PreparedStatement ps = getConnection().prepareStatement(
+      "SELECT pg_catalog.shobj_description(oid, 'pg_database') FROM pg_catalog.pg_database WHERE datname = ? LIMIT 1")) {
+      ps.setString(1, name);
+      try (ResultSet rs = ps.execute() ? ps.getResultSet() : null) {
+        if (rs != null && rs.next()) {
+          description = rs.getString(1);
+        }
+      }
+    } catch (SQLException e) {
+      reporter.failedToGetDescription(e, "database", name);
+    }
+
+    return description;
+  }
+
+  @Override
+  protected List<Trigger> getTriggers(String schemaName, String tableName) throws ModuleException {
+    List<Trigger> triggers = super.getTriggers(schemaName, tableName);
+
+    try (PreparedStatement ps = getConnection().prepareStatement(
+      "select d.description from pg_description as d inner join pg_trigger t on t.oid = d.objoid where tgname = ?")) {
+      for (Trigger trigger : triggers) {
+        ps.setString(1, trigger.getName());
+
+        try (ResultSet rs = ps.execute() ? ps.getResultSet() : null) {
+          if (rs != null && rs.next()) {
+            trigger.setDescription(rs.getString(1));
+          }
+        } catch (SQLException e) {
+          reporter.failedToGetDescription(e, "trigger", schemaName, tableName, trigger.getName());
+        }
+      }
+    } catch (SQLException e) {
+      reporter.failedToGetDescription(e, "triggers", schemaName, tableName);
+    }
+
+    return triggers;
   }
 }

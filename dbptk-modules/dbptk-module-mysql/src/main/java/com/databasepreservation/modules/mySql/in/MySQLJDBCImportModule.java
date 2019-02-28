@@ -134,7 +134,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
 
     if (users.isEmpty()) {
       users.add(new UserStructure(username, ""));
-      LOGGER.warn("Users were not imported. '" + username + "' will be set as the user name.");
+      LOGGER.warn("Users were not imported. '{}' will be set as the user name.", username);
     }
 
     return users;
@@ -289,7 +289,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
         routine.setDescription(rset.getString(7));
       } else {
         if (rset.getShort(8) == 1) {
-          routine.setDescription("Routine does not " + "return a result");
+          routine.setDescription("Routine does not return a result");
         } else if (rset.getShort(8) == 2) {
           routine.setDescription("Routine returns a result");
         }

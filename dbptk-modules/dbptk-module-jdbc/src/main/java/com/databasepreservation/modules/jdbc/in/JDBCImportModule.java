@@ -248,7 +248,8 @@ public class JDBCImportModule implements DatabaseImportModule {
       dbStructure = new DatabaseStructure();
       try {
         LOGGER.debug("driver version: {}", getMetadata().getDriverVersion());
-        dbStructure.setName(getDbName());
+        dbStructure.setName(getDatabaseName());
+        dbStructure.setDescription(getDatabaseDescription(dbStructure.getName()));
         dbStructure.setProductName(getMetadata().getDatabaseProductName());
         dbStructure.setProductVersion(getMetadata().getDatabaseProductVersion());
         dbStructure.setDataOwner(System.getProperty("user.name"));
@@ -277,7 +278,11 @@ public class JDBCImportModule implements DatabaseImportModule {
     return dbStructure;
   }
 
-  protected String getDbName() throws SQLException, ModuleException {
+  protected String getDatabaseDescription(String name) throws ModuleException {
+    return null;
+  }
+
+  protected String getDatabaseName() throws SQLException, ModuleException {
     return getConnection().getCatalog();
   }
 

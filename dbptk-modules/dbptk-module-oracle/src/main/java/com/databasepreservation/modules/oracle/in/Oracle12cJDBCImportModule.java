@@ -7,6 +7,7 @@
  */
 package com.databasepreservation.modules.oracle.in;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -17,7 +18,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
+import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.oracle.OracleExceptionManager;
 import com.databasepreservation.modules.oracle.OracleHelper;
@@ -61,7 +64,7 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected String getDbName() throws SQLException, ModuleException {
+  protected String getDatabaseName() throws SQLException, ModuleException {
     return getMetadata().getUserName();
   }
 
@@ -94,5 +97,57 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
     }
 
     return moduleException;
+  }
+
+  @Override
+  protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex,
+    String description) throws SQLException, ModuleException {
+    TableStructure tableStructure = super.getTableStructure(schema, tableName, tableIndex, description);
+
+    try (PreparedStatement statement = getConnection()
+      .prepareStatement("SELECT COMMENTS FROM ALL_TAB_COMMENTS WHERE OWNER = ? AND TABLE_NAME = ?")) {
+
+      statement.setString(1, schema.getName());
+      statement.setString(2, tableName);
+      statement.execute();
+
+      try (ResultSet rs = statement.getResultSet()) {
+        if (rs.next()) {
+          tableStructure.setDescription(rs.getString(1));
+        }
+      }
+    } catch (SQLException e) {
+      reporter.failedToGetDescription(e, "table", schema.getName(), tableName);
+    }
+
+    return tableStructure;
+  }
+
+  @Override
+  protected List<ColumnStructure> getColumns(String schemaName, String tableName) throws SQLException, ModuleException {
+    List<ColumnStructure> columns = super.getColumns(schemaName, tableName);
+
+    try (PreparedStatement statement = getConnection().prepareStatement(
+      "SELECT COMMENTS FROM ALL_COL_COMMENTS WHERE OWNER = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?")) {
+
+      for (ColumnStructure column : columns) {
+        statement.setString(1, schemaName);
+        statement.setString(2, tableName);
+        statement.setString(3, column.getName());
+        statement.execute();
+
+        try (ResultSet rs = statement.getResultSet()) {
+          if (rs.next()) {
+            column.setDescription(rs.getString(1));
+          }
+        } catch (SQLException e) {
+          reporter.failedToGetDescription(e, "column", schemaName, tableName, column.getName());
+        }
+      }
+    } catch (SQLException e) {
+      reporter.failedToGetDescription(e, "columns", schemaName, tableName);
+    }
+
+    return columns;
   }
 }

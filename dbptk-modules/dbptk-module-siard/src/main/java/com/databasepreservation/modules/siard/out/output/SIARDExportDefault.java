@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+import com.databasepreservation.Constants;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.exception.ModuleException;
@@ -140,7 +141,12 @@ public class SIARDExportDefault implements DatabaseExportModule {
 
     // update database structure with descriptive metadata from parameters
     if (descriptiveMetadata != null) {
-      dbStructure.setDescription(descriptiveMetadata.get(SIARDConstants.DESCRIPTIVE_METADATA_DESCRIPTION));
+      String descriptionFromMetadata = descriptiveMetadata.get(SIARDConstants.DESCRIPTIVE_METADATA_DESCRIPTION);
+      if (StringUtils.isBlank(dbStructure.getDescription())
+        || !descriptionFromMetadata.equals(Constants.UNSPECIFIED_METADATA_VALUE)) {
+        dbStructure.setDescription(descriptionFromMetadata);
+      }
+
       dbStructure.setArchiver(descriptiveMetadata.get(SIARDConstants.DESCRIPTIVE_METADATA_ARCHIVER));
       dbStructure.setArchiverContact(descriptiveMetadata.get(SIARDConstants.DESCRIPTIVE_METADATA_ARCHIVER_CONTACT));
       dbStructure.setDataOwner(descriptiveMetadata.get(SIARDConstants.DESCRIPTIVE_METADATA_DATA_OWNER));

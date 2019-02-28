@@ -17,5 +17,7 @@ public class Constants {
 
   public static final String LOGBACK_FILE_NAME = "logback_manual.xml";
 
+  public static final String UNSPECIFIED_METADATA_VALUE = "unspecified";
+
   public static final int CLI_LINE_WIDTH = 80;
 }

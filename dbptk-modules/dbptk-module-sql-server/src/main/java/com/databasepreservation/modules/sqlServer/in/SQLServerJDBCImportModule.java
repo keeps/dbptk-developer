@@ -20,6 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.structure.ColumnStructure;
+import com.databasepreservation.model.structure.SchemaStructure;
+import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.modules.CloseableUtils;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
@@ -199,9 +202,8 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
       String originalQuery = null;
       ResultSet rset = null;
       PreparedStatement statement = null;
-      statement = getConnection().prepareStatement(
-        "SELECT OBJECT_DEFINITION (OBJECT_ID('" + sqlHelper.escapeViewName(schemaName, v.getName())
-          + "')) AS objdefinition");
+      statement = getConnection().prepareStatement("SELECT OBJECT_DEFINITION (OBJECT_ID('"
+        + sqlHelper.escapeViewName(schemaName, v.getName()) + "')) AS objdefinition");
 
       try {
         // https://technet.microsoft.com/en-us/library/ms175067.aspx
@@ -252,5 +254,101 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
     }
 
     return moduleException;
+  }
+
+  private String getDescriptionForDatabase() throws ModuleException {
+    try {
+      return getDescription(null, null, null, null, null, null);
+    } catch (SQLException e) {
+      reporter.failedToGetDescription(e, "database");
+    }
+    return null;
+  }
+
+  private String getDescriptionForSchema(String schema) throws ModuleException {
+    try {
+      return getDescription("Schema", schema, null, null, null, null);
+    } catch (SQLException e) {
+      reporter.failedToGetDescription(e, "schema", schema);
+    }
+    return null;
+  }
+
+  private String getDescriptionForTable(String schema, String table) throws ModuleException {
+    try {
+      return getDescription("Schema", schema, "Table", table, null, null);
+    } catch (SQLException e) {
+      reporter.failedToGetDescription(e, "table", schema, table);
+    }
+    return null;
+  }
+
+  private String getDescriptionForColumn(String schema, String table, String column) throws ModuleException {
+    try {
+      return getDescription("Schema", schema, "Table", table, "Column", column);
+    } catch (SQLException e) {
+      reporter.failedToGetDescription(e, "column", schema, table, column);
+    }
+    return null;
+  }
+
+  private String getDescription(String scope1, String value1, String scope2, String value2, String scope3,
+    String value3) throws ModuleException, SQLException {
+
+    String description = null;
+
+    // example: SELECT * FROM ::fn_listextendedproperty ('MS_Description', 'Schema',
+    // 'dbo', 'Table', 'spt_monitor', NULL, NULL)
+
+    try (PreparedStatement statement = getConnection().prepareStatement(
+      "SELECT CONVERT(varchar, value) As 'description' FROM ::fn_listextendedproperty ('MS_Description', ?, ?, ?, ?, ?, ?)")) {
+
+      statement.setString(1, scope1);
+      statement.setString(2, value1);
+      statement.setString(3, scope2);
+      statement.setString(4, value2);
+      statement.setString(5, scope3);
+      statement.setString(6, value3);
+      statement.execute();
+
+      try (ResultSet rs = statement.getResultSet()) {
+        if (rs.next()) {
+          description = rs.getString(1);
+        }
+      }
+    }
+
+    return description;
+  }
+
+  @Override
+  protected List<SchemaStructure> getSchemas() throws SQLException, ModuleException {
+    getDatabaseStructure().setDescription(getDescriptionForDatabase());
+    return super.getSchemas();
+  }
+
+  @Override
+  protected SchemaStructure getSchemaStructure(String schemaName, int schemaIndex)
+    throws SQLException, ModuleException {
+    SchemaStructure schemaStructure = super.getSchemaStructure(schemaName, schemaIndex);
+    schemaStructure.setDescription(getDescriptionForSchema(schemaName));
+    return schemaStructure;
+  }
+
+  @Override
+  protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex,
+    String description) throws SQLException, ModuleException {
+    TableStructure tableStructure = super.getTableStructure(schema, tableName, tableIndex, description);
+    tableStructure.setDescription(getDescriptionForTable(schema.getName(), tableName));
+    return tableStructure;
+  }
+
+  @Override
+  protected List<ColumnStructure> getColumns(String schemaName, String tableName) throws SQLException, ModuleException {
+    List<ColumnStructure> columns = super.getColumns(schemaName, tableName);
+    for (ColumnStructure column : columns) {
+      column.setDescription(getDescriptionForColumn(schemaName, tableName, column.getName()));
+    }
+    return columns;
   }
 }
