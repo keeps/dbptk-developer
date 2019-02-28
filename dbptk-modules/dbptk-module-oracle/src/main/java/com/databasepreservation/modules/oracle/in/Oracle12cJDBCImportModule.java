@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
+import com.databasepreservation.modules.oracle.OracleExceptionManager;
 import com.databasepreservation.modules.oracle.OracleHelper;
 
 /**
@@ -80,5 +81,18 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
       res += " OF";
     }
     return res;
+  }
+
+  @Override
+  public ModuleException normalizeException(Exception exception, String contextMessage) {
+    ModuleException moduleException = OracleExceptionManager.getInstance().normalizeException(exception,
+      contextMessage);
+
+    // in case the exception normalizer could not handle this exception
+    if (moduleException == null) {
+      moduleException = super.normalizeException(exception, contextMessage);
+    }
+
+    return moduleException;
   }
 }

@@ -8,6 +8,10 @@
 package com.databasepreservation.model.exception;
 
 /**
+ * Exceptions related to not having the required permissions to execute the
+ * action. Usually granting the appropriate permissions (via GRANT, chmod, etc)
+ * should be enough to fix these kind of errors.
+ *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class PermissionDeniedException extends ModuleException {

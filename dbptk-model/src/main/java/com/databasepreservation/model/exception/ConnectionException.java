@@ -8,6 +8,9 @@
 package com.databasepreservation.model.exception;
 
 /**
+ * Exception about problems connecting to the server (except if they are
+ * permission problems, in which case the PermissionDeniedException is used).
+ *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class ConnectionException extends ModuleException {

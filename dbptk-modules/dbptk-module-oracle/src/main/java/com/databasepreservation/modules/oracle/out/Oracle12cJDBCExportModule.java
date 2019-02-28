@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import com.databasepreservation.modules.oracle.OracleExceptionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,5 +97,18 @@ public class Oracle12cJDBCExportModule extends JDBCExportModule {
     }
 
     LOGGER.info("Handling schema structure {} finished", schema.getName());
+  }
+
+  @Override
+  public ModuleException normalizeException(Exception exception, String contextMessage) {
+    ModuleException moduleException = OracleExceptionManager.getInstance().normalizeException(exception,
+      contextMessage);
+
+    // in case the exception normalizer could not handle this exception
+    if (moduleException == null) {
+      moduleException = super.normalizeException(exception, contextMessage);
+    }
+
+    return moduleException;
   }
 }

@@ -8,6 +8,9 @@
 package com.databasepreservation.model.exception;
 
 /**
+ * Exceptions that probably require the database administrator to fix them. eg:
+ * configuration problems, quota exceeded
+ *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class ServerException extends ModuleException {

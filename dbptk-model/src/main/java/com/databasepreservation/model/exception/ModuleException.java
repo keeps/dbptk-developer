@@ -63,7 +63,8 @@ public class ModuleException extends Exception {
     }
 
     if(StringUtils.isNotBlank(mainMessage)){
-      mainMessage = mainMessage.replaceAll("\\n+", "\\n");
+      // normalize whitespace and trim all whitespace
+      mainMessage = mainMessage.replaceAll("\\n+", "\n").replaceAll("(^\\s+|\\s+$)", "");
     }
 
     return messagePrefix() + mainMessage;
