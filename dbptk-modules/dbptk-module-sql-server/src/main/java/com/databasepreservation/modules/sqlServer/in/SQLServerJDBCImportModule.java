@@ -23,6 +23,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.modules.CloseableUtils;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
+import com.databasepreservation.modules.sqlServer.SQLServerExceptionNormalizer;
 import com.databasepreservation.modules.sqlServer.SQLServerHelper;
 import com.microsoft.sqlserver.jdbc.SQLServerConnection;
 import com.microsoft.sqlserver.jdbc.SQLServerResultSet;
@@ -238,5 +239,18 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
       v.setQueryOriginal(originalQuery);
     }
     return views;
+  }
+
+  @Override
+  public ModuleException normalizeException(Exception exception, String contextMessage) {
+    ModuleException moduleException = SQLServerExceptionNormalizer.getInstance().normalizeException(exception,
+      contextMessage);
+
+    // in case the exception normalizer could not handle this exception
+    if (moduleException == null) {
+      moduleException = super.normalizeException(exception, contextMessage);
+    }
+
+    return moduleException;
   }
 }

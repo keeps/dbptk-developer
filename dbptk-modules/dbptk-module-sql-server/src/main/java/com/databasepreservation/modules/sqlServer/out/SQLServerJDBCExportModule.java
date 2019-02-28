@@ -26,6 +26,7 @@ import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.out.JDBCExportModule;
+import com.databasepreservation.modules.sqlServer.SQLServerExceptionNormalizer;
 import com.databasepreservation.modules.sqlServer.SQLServerHelper;
 
 /**
@@ -147,5 +148,18 @@ public class SQLServerJDBCExportModule extends JDBCExportModule {
       existingSchemas.add("public");
     }
     super.handleSchemaStructure(schema);
+  }
+
+  @Override
+  public ModuleException normalizeException(Exception exception, String contextMessage) {
+    ModuleException moduleException = SQLServerExceptionNormalizer.getInstance().normalizeException(exception,
+      contextMessage);
+
+    // in case the exception normalizer could not handle this exception
+    if (moduleException == null) {
+      moduleException = super.normalizeException(exception, contextMessage);
+    }
+
+    return moduleException;
   }
 }
