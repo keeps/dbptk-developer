@@ -200,8 +200,8 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
       ResultSet rset = null;
       PreparedStatement statement = null;
       statement = getConnection().prepareStatement(
-        "SELECT OBJECT_DEFINITION (OBJECT_ID(" + sqlHelper.escapeViewName(schemaName, v.getName()) + ")) AS ?");
-      statement.setString(1, fieldName);
+        "SELECT OBJECT_DEFINITION (OBJECT_ID('" + sqlHelper.escapeViewName(schemaName, v.getName())
+          + "')) AS objdefinition");
 
       try {
         // https://technet.microsoft.com/en-us/library/ms175067.aspx
@@ -217,9 +217,9 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 
       try {
         // https://technet.microsoft.com/en-us/library/ms175067.aspx
-        statement = getConnection().prepareStatement("SELECT ? FROM sys.sql_modules WHERE object_id = OBJECT_ID("
-          + sqlHelper.escapeViewName(schemaName, v.getName()) + ")");
-        statement.setString(1, fieldName);
+        statement = getConnection()
+          .prepareStatement("SELECT definition AS objdefinition FROM sys.sql_modules WHERE object_id = OBJECT_ID('"
+            + sqlHelper.escapeViewName(schemaName, v.getName()) + "')");
         rset = statement.executeQuery();
         rset.next();
         originalQuery = rset.getString(fieldName);
