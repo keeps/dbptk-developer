@@ -1,6 +1,10 @@
 # Changelog
 
-## v2.1.0-BETA (07/02/2019)
+## v2.1.0-RC (04/03/2019)
+
+#### New features:
+
+-  Support exporting database, schema, table and column descriptions [#174](https://github.com/keeps/db-preservation-toolkit/issues/174)
 
 #### Enhancements:
 
@@ -9,6 +13,7 @@
 #### Bug Fixes:
 
 -  NPE when migrating schema without tables [#369](https://github.com/keeps/db-preservation-toolkit/issues/369)
+-  Possible bug in sql-server module, failing to get SQL for views [#327](https://github.com/keeps/db-preservation-toolkit/issues/327)
 -  Using -ede still tries to use encryption in postgresql export module [#286](https://github.com/keeps/db-preservation-toolkit/issues/286)
 -  Exporting to mysql error: Packet for query is too large [#251](https://github.com/keeps/db-preservation-toolkit/issues/251)
 
