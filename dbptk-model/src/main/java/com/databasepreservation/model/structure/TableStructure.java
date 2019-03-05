@@ -13,6 +13,7 @@ package com.databasepreservation.model.structure;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.utils.ListUtils;
@@ -424,20 +425,8 @@ public class TableStructure {
 
   @Override
   public int hashCode() {
-    int result = id != null ? id.hashCode() : 0;
-    result = 31 * result + (name != null ? name.hashCode() : 0);
-    result = 31 * result + (description != null ? description.hashCode() : 0);
-    result = 31 * result + (columns != null ? columns.hashCode() : 0);
-    result = 31 * result + (primaryKey != null ? primaryKey.hashCode() : 0);
-    result = 31 * result + (foreignKeys != null ? foreignKeys.hashCode() : 0);
-    result = 31 * result + (candidateKeys != null ? candidateKeys.hashCode() : 0);
-    result = 31 * result + (checkConstraints != null ? checkConstraints.hashCode() : 0);
-    result = 31 * result + (triggers != null ? triggers.hashCode() : 0);
-    result = 31 * result + (int) (rows ^ (rows >>> 32));
-    result = 31 * result + (schema != null ? schema.hashCode() : 0);
-    result = 31 * result + (int) (currentRow ^ (currentRow >>> 32));
-    result = 31 * result + index;
-    return result;
+    return Objects.hash(id, name, description, columns, primaryKey, foreignKeys, candidateKeys, checkConstraints,
+      triggers, rows, schema, currentRow, index, udtAlias);
   }
 
   public int getIndex() {

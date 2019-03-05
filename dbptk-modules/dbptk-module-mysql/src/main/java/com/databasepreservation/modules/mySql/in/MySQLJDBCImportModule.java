@@ -180,13 +180,6 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected ResultSet getTableRawData(TableStructure table) throws SQLException, ModuleException {
-    String query = sqlHelper.selectTableSQL(table.getId());
-    LOGGER.debug("query: " + query);
-    return getTableRawData(query, table.getId());
-  }
-
-  @Override
   protected ResultSet getTableRawData(String query, String tableId) throws SQLException, ModuleException {
     Statement st = getStatement();
     st.setFetchSize(Integer.MIN_VALUE);

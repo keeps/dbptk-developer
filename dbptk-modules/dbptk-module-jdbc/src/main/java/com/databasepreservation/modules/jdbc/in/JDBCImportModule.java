@@ -26,6 +26,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -559,7 +560,16 @@ public class JDBCImportModule implements DatabaseImportModule {
     table.setIndex(tableIndex);
     table.setDescription(description);
 
-    table.setColumns(getColumns(schema.getName(), tableName));
+    List<ColumnStructure> columns = getColumns(schema.getName(), tableName);
+    Iterator<ColumnStructure> columnsIterator = columns.iterator();
+    while (columnsIterator.hasNext()) {
+      ColumnStructure column = columnsIterator.next();
+      if (!moduleSettings.isSelectedColumn(schema.getName(), tableName, column.getName())) {
+        columnsIterator.remove();
+      }
+    }
+
+    table.setColumns(columns);
     table.setPrimaryKey(getPrimaryKey(schema.getName(), tableName));
     table.setForeignKeys(getForeignKeys(schema.getName(), tableName));
     table.setCandidateKeys(getCandidateKeys(schema.getName(), tableName));
@@ -1534,7 +1544,7 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   protected ResultSet getTableRawData(TableStructure table) throws SQLException, ModuleException {
-    String query = sqlHelper.selectTableSQL(table.getId());
+    String query = sqlHelper.selectTableSQL(table);
     LOGGER.debug("query: " + query);
     return getTableRawData(query, table.getId());
   }
@@ -1544,21 +1554,21 @@ public class JDBCImportModule implements DatabaseImportModule {
 
     st.setFetchSize(DEFAULT_ROW_FETCH_BLOCK_SIZE);
     try {
-      return st.executeQuery(query.toString());
+      return st.executeQuery(query);
     } catch (SQLException sqlException) {
       LOGGER.debug("Error executing query with default fetch size of {}", st.getFetchSize(), sqlException);
     }
 
     st.setFetchSize(SMALL_ROW_FETCH_BLOCK_SIZE);
     try {
-      return st.executeQuery(query.toString());
+      return st.executeQuery(query);
     } catch (SQLException sqlException) {
       LOGGER.debug("Error executing query with fetch size of {}", st.getFetchSize(), sqlException);
     }
 
     st.setFetchSize(MINIMUM_ROW_FETCH_BLOCK_SIZE);
     try {
-      return st.executeQuery(query.toString());
+      return st.executeQuery(query);
     } catch (SQLException sqlException) {
       LOGGER.debug("Error executing query with fetch size of {}", st.getFetchSize(), sqlException);
     }
@@ -1660,9 +1670,9 @@ public class JDBCImportModule implements DatabaseImportModule {
               LOGGER.error("Could not obtain all data from the current table.", me);
             }
           }
-          LOGGER.debug("Total of " + nRows + " row(s) processed");
+          LOGGER.debug("Total of {} row(s) processed", nRows);
 
-          if (nRows < tableRows) {
+          if (nRows < tableRows && moduleSettings.shouldFetchRows()) {
             LOGGER.warn("The database reported a total of {} rows. Some data may have been lost.", tableRows);
             reporter.customMessage(this.getClass().getName(),
               "Only processed " + nRows + " out of " + tableRows + " rows contained in table '" + table.getName()

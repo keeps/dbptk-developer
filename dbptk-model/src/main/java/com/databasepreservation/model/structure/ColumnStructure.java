@@ -7,6 +7,8 @@
  */
 package com.databasepreservation.model.structure;
 
+import java.util.Objects;
+
 import com.databasepreservation.model.structure.type.Type;
 
 /**
@@ -152,10 +154,6 @@ public class ColumnStructure {
     this.isAutoIncrement = isAutoIncrement;
   }
 
-  public Boolean getNillable() {
-    return nillable;
-  }
-
   /**
    * @param nillable
    *          true if values of this column can be null, false otherwise
@@ -166,37 +164,14 @@ public class ColumnStructure {
 
   @Override
   public String toString() {
-    StringBuilder builder = new StringBuilder();
-    builder.append("ColumnStructure [id=");
-    builder.append(id);
-    builder.append(", name=");
-    builder.append(name);
-    builder.append(", type=");
-    builder.append(type);
-    builder.append(", defaultValue=");
-    builder.append(defaultValue);
-    builder.append(", nillable=");
-    builder.append(nillable);
-    builder.append(", description=");
-    builder.append(description);
-    builder.append(", isAutoIncrement=");
-    builder.append(isAutoIncrement);
-    builder.append("]");
-    return builder.toString();
+    return "ColumnStructure{" + "id='" + id + '\'' + ", name='" + name + '\'' + ", type=" + type + ", defaultValue='"
+      + defaultValue + '\'' + ", nillable=" + nillable + ", description='" + description + '\'' + ", isAutoIncrement="
+      + isAutoIncrement + '}';
   }
 
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((defaultValue == null) ? 0 : defaultValue.hashCode());
-    result = prime * result + ((description == null) ? 0 : description.hashCode());
-    result = prime * result + ((id == null) ? 0 : id.hashCode());
-    result = prime * result + ((isAutoIncrement == null) ? 0 : isAutoIncrement.hashCode());
-    result = prime * result + ((name == null) ? 0 : name.hashCode());
-    result = prime * result + ((nillable == null) ? 0 : nillable.hashCode());
-    result = prime * result + ((type == null) ? 0 : type.hashCode());
-    return result;
+    return Objects.hash(id, name, type, defaultValue, nillable, description, isAutoIncrement);
   }
 
   @Override

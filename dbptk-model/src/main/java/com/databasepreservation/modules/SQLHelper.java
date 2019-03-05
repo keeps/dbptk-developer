@@ -75,13 +75,22 @@ public class SQLHelper {
   /**
    * SQL to get all rows from a table
    *
-   * @param tableId
+   * @param table
    *          the table ID
    * @return the SQL
    * @throws ModuleException
    */
-  public String selectTableSQL(String tableId) throws ModuleException {
-    return "SELECT * FROM " + escapeTableId(tableId);
+  public String selectTableSQL(TableStructure table) throws ModuleException {
+    StringBuilder query = new StringBuilder("SELECT ");
+
+    String separator = "";
+    for (ColumnStructure column : table.getColumns()) {
+      query.append(separator).append(escapeTableName(column.getName()));
+      separator = ", ";
+    }
+
+    query.append(" FROM ").append(escapeTableId(table.getId()));
+    return query.toString();
   }
 
   /**

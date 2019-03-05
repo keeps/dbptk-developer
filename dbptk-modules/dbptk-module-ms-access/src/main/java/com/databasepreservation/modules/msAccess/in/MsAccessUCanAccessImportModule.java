@@ -99,13 +99,6 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
     }
   }
 
-  @Override
-  protected ResultSet getTableRawData(TableStructure table) throws SQLException, ModuleException {
-    String query = sqlHelper.selectTableSQL(table.getId());
-    LOGGER.debug("query: " + query);
-    return getTableRawData(query, table.getId());
-  }
-
   /**
    * @param schemaName
    * @return

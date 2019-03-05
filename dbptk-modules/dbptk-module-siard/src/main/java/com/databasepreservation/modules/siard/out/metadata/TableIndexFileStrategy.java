@@ -175,7 +175,7 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
             }
 
             // Set nullable
-            column.setNullable(columnStructure.getNillable());
+            column.setNullable(columnStructure.isNillable());
 
             // Set description
             if (columnStructure.getDescription() != null && !columnStructure.getDescription().trim().isEmpty()) {

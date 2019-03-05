@@ -195,7 +195,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
       }
 
       c.setAttribute("type", xsdType);
-      if (columnStructure.getNillable()) {
+      if (columnStructure.isNillable()) {
         c.setAttribute("nillable", "true");
       }
       sequenceRowType.addContent(c);

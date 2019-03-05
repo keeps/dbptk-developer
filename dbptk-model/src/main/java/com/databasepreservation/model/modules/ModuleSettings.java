@@ -9,7 +9,7 @@ package com.databasepreservation.model.modules;
 
 import java.util.Set;
 
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 
 /**
  * Custom settings set by the export module that modify behaviour of the import
@@ -42,7 +42,7 @@ public class ModuleSettings {
    *         Pair(schemaName,tableName). Return `null` to process all tables. An
    *         empty set ignores all tables.
    */
-  public Set<Pair<String, String>> selectedTables() {
+  public Set<Triple<String, String, String>> selectedTables() {
     return null;
   }
 
@@ -56,18 +56,21 @@ public class ModuleSettings {
    * @return true if the table is selected, false otherwise
    */
   public boolean isSelectedTable(String schemaName, String tableName) {
-    if (selectedTables() == null) {
-      return true;
-    }
+    return selectedTables() == null || selectedTables().contains(Triple.of(schemaName, tableName, null));
+  }
 
-    for (Pair<String, String> pair : selectedTables()) {
-      String pairSchemaName = pair.getLeft();
-      String pairTableName = pair.getRight();
-
-      if (pairSchemaName.equals(schemaName) && pairTableName.equals(tableName)) {
-        return true;
-      }
-    }
-    return false;
+  /**
+   * Use the selectedTables set to determine if a column is selected.
+   *
+   * @param schemaName
+   *          the schema name
+   * @param tableName
+   *          the table name
+   * @param columnName
+   *          the column name
+   * @return true if the column is selected, false otherwise
+   */
+  public boolean isSelectedColumn(String schemaName, String tableName, String columnName) {
+    return selectedTables() == null || selectedTables().contains(Triple.of(schemaName, tableName, columnName));
   }
 }

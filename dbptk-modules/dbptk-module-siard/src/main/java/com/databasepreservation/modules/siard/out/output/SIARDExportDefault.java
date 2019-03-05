@@ -16,12 +16,11 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.Reporter;
@@ -92,22 +91,34 @@ public class SIARDExportDefault implements DatabaseExportModule {
         InputStreamReader inputStreamReader = new InputStreamReader(inputStream, "UTF8");
         BufferedReader reader = new BufferedReader(inputStreamReader);
 
-        final HashSet<Pair<String, String>> selectedTables = new HashSet<>();
+        final HashSet<Triple<String, String, String>> selectedTables = new HashSet<>();
         String line;
         while ((line = reader.readLine()) != null) {
           if (StringUtils.isNotBlank(line)) {
-            if (StringUtils.countMatches(line, ListTables.schemaTableSeparator) != 1) {
+
+            Matcher lineMatcher = ListTables.LINE_PATTERN.matcher(line);
+            if (!lineMatcher.matches()) {
               throw new ModuleException().withMessage("Malformed entry in table list: " + line);
             }
 
-            String[] parts = line.split(Pattern.quote(ListTables.schemaTableSeparator));
-            selectedTables.add(new ImmutablePair<String, String>(parts[0], parts[1]));
+            String schemaPart = lineMatcher.group(1);
+            String tablePart = lineMatcher.group(2);
+            String columnPart = lineMatcher.group(3);
+            String[] columns = columnPart.split(ListTables.COLUMNS_SEPARATOR);
+
+            selectedTables.add(Triple.of(schemaPart, tablePart, (String) null));
+
+            for (String column : columns) {
+              if (StringUtils.isNotBlank(column)) {
+                selectedTables.add(Triple.of(schemaPart, tablePart, column));
+              }
+            }
           }
         }
 
         moduleSettings = new ModuleSettings() {
           @Override
-          public Set<Pair<String, String>> selectedTables() {
+          public Set<Triple<String, String, String>> selectedTables() {
             return selectedTables;
           }
         };

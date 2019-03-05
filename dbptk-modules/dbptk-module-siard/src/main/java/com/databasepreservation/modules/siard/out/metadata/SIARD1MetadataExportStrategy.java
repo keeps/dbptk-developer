@@ -584,7 +584,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
         columnType.setTypeOriginal(column.getType().getOriginalTypeName());
 
         if (column.isNillable() != null) {
-          columnType.setNullable(column.getNillable());
+          columnType.setNullable(column.isNillable());
         } else {
           LOGGER.debug("column nullable property was null. changed it to false");
         }

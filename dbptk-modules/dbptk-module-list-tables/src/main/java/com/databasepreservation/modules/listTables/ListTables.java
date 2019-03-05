@@ -14,6 +14,7 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Row;
@@ -22,6 +23,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.ModuleSettings;
+import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
@@ -35,7 +37,27 @@ import com.databasepreservation.modules.DefaultExceptionNormalizer;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class ListTables implements DatabaseExportModule {
-  public static final String schemaTableSeparator = ".";
+  public static final String SCHEMA_TABLE_SEPARATOR = ".";
+  public static final String COLUMNS_START = "{";
+  public static final String COLUMNS_END = "}";
+  public static final String COLUMNS_SEPARATOR = ";";
+
+  /**
+   * Pattern that should be followed by all lines in the table list file. DEV
+   * NOTE: Depends on the separators declared above, keep them in sync.
+   *
+   * Examples:
+   * 
+   * <code>
+   *     schema.table{col1}
+   *     schema.table{col1;col2}
+   *     schema.table{col1;col2;col3}
+   *     schema.table{col1;;col3}
+   *     schema.table{col1;;col3;;}
+   * </code>
+   */
+  public static final Pattern LINE_PATTERN = Pattern
+    .compile("^([^\\s\\.\\{\\}\\;]+)\\.([^\\s\\.\\{\\}\\;]+)\\{((?:[^\\s\\.\\{\\}\\;]*\\;)*[^\\s\\.\\{\\}\\;]*)\\}$");
 
   private DatabaseStructure dbStructure;
   private SchemaStructure currentSchema;
@@ -148,7 +170,14 @@ public class ListTables implements DatabaseExportModule {
         throw new ModuleException().withMessage("Couldn't find table with id: " + tableId);
       }
 
-      out.append(currentSchema.getName()).append(schemaTableSeparator).append(currentTable.getName()).append("\n");
+      out.append(currentSchema.getName()).append(SCHEMA_TABLE_SEPARATOR).append(currentTable.getName())
+        .append(COLUMNS_START);
+
+      for (ColumnStructure column : currentTable.getColumns()) {
+        out.append(column.getName()).append(COLUMNS_SEPARATOR);
+      }
+
+      out.append(COLUMNS_END).append("\n");
     } catch (IOException e) {
       throw new ModuleException()
         .withMessage("Could not write to file (" + outputFile.toAbsolutePath().toString() + ")").withCause(e);
