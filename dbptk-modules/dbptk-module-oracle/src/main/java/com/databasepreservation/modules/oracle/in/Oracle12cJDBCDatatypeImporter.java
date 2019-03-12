@@ -8,6 +8,8 @@
 package com.databasepreservation.modules.oracle.in;
 
 import com.databasepreservation.model.exception.UnknownTypeException;
+import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
@@ -164,5 +166,15 @@ public class Oracle12cJDBCDatatypeImporter extends JDBCDatatypeImporter {
         break;
     }
     return type;
+  }
+
+  @Override
+  protected Type getComposedTypeStructure(DatabaseStructure database, SchemaStructure currentSchema, int dataType,
+    String typeName) {
+    if ("SDO_GEOMETRY".equalsIgnoreCase(typeName)) {
+      return getLongVarcharType(typeName, 0, 0, 0);
+    } else {
+      return super.getComposedTypeStructure(database, currentSchema, dataType, typeName);
+    }
   }
 }

@@ -53,16 +53,14 @@ public class ModuleException extends Exception {
 
   @Override
   public String getMessage() {
-    String mainMessage;
+    String mainMessage = StringUtils.EMPTY;
     if (StringUtils.isNotBlank(message)) {
       mainMessage = message;
-    } else if (getCause() != null) {
+    } else if (getCause() != null && getCause() != this) {
       mainMessage = getCause().getMessage();
-    } else {
-      mainMessage = getMessage();
     }
 
-    if(StringUtils.isNotBlank(mainMessage)){
+    if (StringUtils.isNotBlank(mainMessage)) {
       // normalize whitespace and trim all whitespace
       mainMessage = mainMessage.replaceAll("\\n+", "\n").replaceAll("(^\\s+|\\s+$)", "");
     }

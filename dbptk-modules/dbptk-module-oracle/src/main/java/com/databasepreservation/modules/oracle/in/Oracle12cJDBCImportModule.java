@@ -2,7 +2,7 @@
  * The contents of this file are subject to the license and copyright
  * detailed in the LICENSE file at the root of the source
  * tree and available online at
- *
+ * <p>
  * https://github.com/keeps/db-preservation-toolkit
  */
 package com.databasepreservation.modules.oracle.in;
@@ -14,16 +14,26 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import oracle.sql.STRUCT;
+import org.geotools.data.oracle.sdo.GeometryConverter;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.gml2.GMLWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.oracle.OracleExceptionManager;
 import com.databasepreservation.modules.oracle.OracleHelper;
+
+import oracle.jdbc.OracleConnection;
+import oracle.jdbc.OracleResultSet;
 
 /**
  * Microsoft SQL Server JDBC import module.
@@ -149,5 +159,24 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
     }
 
     return columns;
+  }
+
+  @Override
+  protected Cell convertRawToCell(String tableName, String columnName, int columnIndex, long rowIndex, Type cellType,
+    ResultSet rawData) throws SQLException, ModuleException {
+    if ("SDO_GEOMETRY".equalsIgnoreCase(cellType.getOriginalTypeName())) {
+      String id = tableName + "." + columnName + "." + rowIndex;
+
+      GeometryConverter geometryConverter = new GeometryConverter(null);
+      STRUCT asStruct = ((OracleResultSet) rawData).getSTRUCT(columnName);
+      Geometry geometry = geometryConverter.asGeometry(asStruct);
+
+      GMLWriter gmlWriter = new GMLWriter();
+
+      return new SimpleCell(id, gmlWriter.write(geometry));
+
+    } else {
+      return super.convertRawToCell(tableName, columnName, columnIndex, rowIndex, cellType, rawData);
+    }
   }
 }

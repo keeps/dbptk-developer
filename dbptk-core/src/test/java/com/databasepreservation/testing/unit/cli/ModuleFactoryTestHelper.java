@@ -132,8 +132,6 @@ public class ModuleFactoryTestHelper {
       exportModuleParameters = cli.getExportModuleParameters();
     } catch (ParseException e) {
       throw new RuntimeException(e);
-    } catch (LicenseNotAcceptedException e) {
-      throw new RuntimeException(e);
     }
 
     assertThat("import module factory must be " + moduleFactory.toString(), databaseImportModuleFactory,

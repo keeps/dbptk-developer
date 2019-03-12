@@ -129,14 +129,6 @@ public class Main {
       LOGGER.error(e.getMessage(), e);
       logProgramFinish(EXIT_CODE_COMMAND_PARSE_ERROR);
       return EXIT_CODE_COMMAND_PARSE_ERROR;
-    } catch (LicenseNotAcceptedException e) {
-      LOGGER.trace("LicenseNotAcceptedException", e);
-      LOGGER.info("The license must be accepted to use this module.");
-      LOGGER.info("==================================================");
-      LOGGER.info(e.getLicenseInfo());
-      LOGGER.info("==================================================");
-      logProgramFinish(EXIT_CODE_LICENSE_NOT_ACCEPTED);
-      return EXIT_CODE_LICENSE_NOT_ACCEPTED;
     }
 
     // adds a default filter, which for now just does progress logging
@@ -152,6 +144,14 @@ public class Main {
       long duration = System.currentTimeMillis() - startTime;
       LOGGER.info("Database migration took {}m {}s to complete.", duration / 60000, duration % 60000 / 1000);
       exitStatus = EXIT_CODE_OK;
+    } catch (LicenseNotAcceptedException e) {
+      LOGGER.trace("LicenseNotAcceptedException", e);
+      LOGGER.info("The license must be accepted to use this module.");
+      LOGGER.info("==================================================");
+      LOGGER.info(e.getLicenseInfo());
+      LOGGER.info("==================================================");
+      logProgramFinish(EXIT_CODE_LICENSE_NOT_ACCEPTED);
+      return EXIT_CODE_LICENSE_NOT_ACCEPTED;
     } catch (ModuleException e) {
       if (!e.getClass().equals(ModuleException.class)) {
         LOGGER.error(e.getMessage(), e);

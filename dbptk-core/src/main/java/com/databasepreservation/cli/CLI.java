@@ -123,7 +123,7 @@ public class CLI {
    * @throws LicenseNotAcceptedException
    *           if the license for using a module was not accepted
    */
-  public Map<Parameter, String> getImportModuleParameters() throws ParseException, LicenseNotAcceptedException {
+  public Map<Parameter, String> getImportModuleParameters() throws ParseException {
     if (importModuleFactory == null) {
       parse(commandLineArguments);
     }
@@ -140,7 +140,7 @@ public class CLI {
    * @throws LicenseNotAcceptedException
    *           if the license for using a module was not accepted
    */
-  public DatabaseModuleFactory getImportModuleFactory() throws ParseException, LicenseNotAcceptedException {
+  public DatabaseModuleFactory getImportModuleFactory() throws ParseException {
     if (importModuleFactory == null) {
       parse(commandLineArguments);
     }
@@ -157,7 +157,7 @@ public class CLI {
    * @throws LicenseNotAcceptedException
    *           if the license for using a module was not accepted
    */
-  public Map<Parameter, String> getExportModuleParameters() throws ParseException, LicenseNotAcceptedException {
+  public Map<Parameter, String> getExportModuleParameters() throws ParseException {
     if (exportModuleFactory == null) {
       parse(commandLineArguments);
     }
@@ -174,7 +174,7 @@ public class CLI {
    * @throws LicenseNotAcceptedException
    *           if the license for using a module was not accepted
    */
-  public DatabaseModuleFactory getExportModuleFactory() throws ParseException, LicenseNotAcceptedException {
+  public DatabaseModuleFactory getExportModuleFactory() throws ParseException {
     if (exportModuleFactory == null) {
       parse(commandLineArguments);
     }
@@ -231,7 +231,7 @@ public class CLI {
    * @throws ParseException
    *           If the arguments could not be parsed or are invalid
    */
-  private void parse(List<String> args) throws ParseException, LicenseNotAcceptedException {
+  private void parse(List<String> args) throws ParseException {
     DatabaseModuleFactoriesPair databaseModuleFactoriesPair = getModuleFactories(args);
 
     importModuleFactory = databaseModuleFactoriesPair.getImportModuleFactory();
