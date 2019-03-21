@@ -75,33 +75,34 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
   }
 
   @Override
-  protected void writeSimpleCell(Cell cell, ColumnStructure column, int columnIndex)
+  protected void writeSimpleCell(String cellPrefix, Cell cell, ColumnStructure column, int columnIndex)
     throws ModuleException, IOException {
     if (Sql2008toXSDType.isLargeType(column.getType(), reporter)) {
-      writeLargeObjectData(cell, columnIndex);
+      writeLargeObjectData(cellPrefix, cell, columnIndex);
     } else {
-      writeSimpleCellData((SimpleCell) cell, columnIndex);
+      writeSimpleCellData(cellPrefix, (SimpleCell) cell, columnIndex);
     }
   }
 
   @Override
-  protected void writeBinaryCell(Cell cell, ColumnStructure column, int columnIndex)
+  protected void writeBinaryCell(String cellPrefix, Cell cell, ColumnStructure column, int columnIndex)
     throws ModuleException, IOException {
     BinaryCell binaryCell = (BinaryCell) cell;
 
     if (Sql2008toXSDType.isLargeType(column.getType(), reporter)) {
-      writeLargeObjectData(cell, columnIndex);
+      writeLargeObjectData(cellPrefix, cell, columnIndex);
     } else {
       // inline non-BLOB binary data
       InputStream inputStream = binaryCell.createInputStream();
       byte[] bytes = IOUtils.toByteArray(inputStream);
       IOUtils.closeQuietly(inputStream);
       SimpleCell simpleCell = new SimpleCell(binaryCell.getId(), Hex.encodeHexString(bytes));
-      writeSimpleCellData(simpleCell, columnIndex);
+      writeSimpleCellData(cellPrefix, simpleCell, columnIndex);
     }
   }
 
-  protected void writeLargeObjectData(Cell cell, int columnIndex) throws IOException, ModuleException {
+  protected void writeLargeObjectData(String cellPrefix, Cell cell, int columnIndex)
+    throws IOException, ModuleException {
     String lobFileParameter = null;
     long lobSizeParameter = 0;
     LargeObject lob = null;
@@ -128,7 +129,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
 
     if (lobSizeParameter < 0) {
       // NULL content
-      writeNullCellData(new NullCell(cell.getId()), columnIndex);
+      writeNullCellData(cellPrefix, new NullCell(cell.getId()), columnIndex);
       return;
     }
 

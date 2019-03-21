@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.common.TemporaryPathInputStreamProvider;
 import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -143,6 +144,9 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
           writeBinaryCell(cell, column, columnIndex);
         } else if (cell instanceof SimpleCell) {
           writeSimpleCell(cell, column, columnIndex);
+        } else if (cell instanceof ArrayCell) {
+          reporter.cellProcessingUsedNull(currentTable, column, currentRowIndex,
+            new ModuleException().withMessage("SIARD 1 does not support arrays."));
         } else if (cell instanceof ComposedCell) {
           writeComposedCell(cell, column, columnIndex);
         } else if (cell instanceof NullCell) {

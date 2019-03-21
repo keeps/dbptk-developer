@@ -12,17 +12,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.common.TemporaryPathInputStreamProvider;
 import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -30,7 +34,6 @@ import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
@@ -50,6 +53,9 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   private final static String ENCODING = "UTF-8";
   private final static int THRESHOLD_TREAT_STRING_AS_CLOB = 4000;
   private final static int THRESHOLD_TREAT_BINARY_AS_BLOB = 2000;
+  private final static String CELL_PREFIX_DEFAULT = "c";
+  private final static String CELL_PREFIX_ARRAY = "a";
+  private final static String CELL_PREFIX_UDT = "u";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2ContentExportStrategy.class);
   protected final SIARD2ContentPathExportStrategy contentPathStrategy;
@@ -63,9 +69,6 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   int currentRowIndex;
   private List<LargeObject> LOBsToExport;
 
-  // <columnId, maxLength>
-  private Map<String, Integer> arrayMaximumLength;
-
   protected Reporter reporter;
 
   public SIARD2ContentExportStrategy(SIARD2ContentPathExportStrategy contentPathStrategy, WriteStrategy writeStrategy,
@@ -77,7 +80,6 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     this.LOBsToExport = new ArrayList<LargeObject>();
     currentRowIndex = -1;
     this.prettyXMLOutput = prettyXMLOutput;
-    arrayMaximumLength = new HashMap<>();
   }
 
   @Override
@@ -153,13 +155,15 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
         ColumnStructure column = currentTable.getColumns().get(columnIndex);
         columnIndex++;
         if (cell instanceof BinaryCell) {
-          writeBinaryCell(cell, column, columnIndex);
+          writeBinaryCell(CELL_PREFIX_DEFAULT, cell, column, columnIndex);
         } else if (cell instanceof SimpleCell) {
-          writeSimpleCell(cell, column, columnIndex);
+          writeSimpleCell(CELL_PREFIX_DEFAULT, cell, column, columnIndex);
+        } else if (cell instanceof ArrayCell) {
+          writeArrayCell(CELL_PREFIX_DEFAULT, cell, column, columnIndex);
         } else if (cell instanceof ComposedCell) {
-          writeComposedCell(cell, column, columnIndex);
+          writeComposedCell(CELL_PREFIX_DEFAULT, cell, column, columnIndex);
         } else if (cell instanceof NullCell) {
-          writeNullCell(cell, column, columnIndex);
+          writeNullCell(CELL_PREFIX_DEFAULT, cell, column, columnIndex);
         }
       }
 
@@ -175,19 +179,90 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     this.reporter = reporter;
   }
 
-  private void writeComposedCell(Cell cell, ColumnStructure column, int columnIndex)
+  private void writeArrayCell(String cellPrefix, Cell cell, ColumnStructure column, int columnIndex)
+    throws ModuleException, IOException {
+
+    ArrayCell arrayCell = (ArrayCell) cell;
+
+    // currently open array-index tags in the XML
+    List<Integer> tags = new ArrayList<>();
+
+    // these two form a diff between the tags used in the last cell and the tags
+    // that need to exist for the next cell
+    Deque<Integer> tagsToOpen, tagsToClose;
+
+    currentWriter.openTag(cellPrefix + columnIndex, 2);
+    for (Pair<List<Integer>, Cell> listCellPair : arrayCell) {
+      List<Integer> indexes = listCellPair.getLeft();
+      Cell subCell = listCellPair.getRight();
+
+      // get a diff between the last indexes and the new indexes. tagsToOpen will be
+      // the "additions" part of the diff, while tagsToClose will be the "removals"
+      // part of the diff.
+
+      tagsToOpen = new LinkedList<>(indexes);
+      for (Integer alreadyOpened : tags) {
+        if (!tagsToOpen.isEmpty() && tagsToOpen.peek().equals(alreadyOpened)) {
+          tagsToOpen.pop();
+        } else {
+          break;
+        }
+      }
+
+      tagsToClose = new LinkedList<>(tags);
+      for (Integer newIndexThatMayBeAlreadyOpened : indexes) {
+        if (!tagsToClose.isEmpty() && tagsToClose.peek().equals(newIndexThatMayBeAlreadyOpened)) {
+          tagsToClose.pop();
+        } else {
+          break;
+        }
+      }
+
+      // close the tags that need to be closed, starting with the innermost
+      Iterator<Integer> tagsToCloseReverseIterator = tagsToClose.descendingIterator();
+      while (tagsToCloseReverseIterator.hasNext()) {
+        currentWriter.closeTag(CELL_PREFIX_ARRAY + tagsToCloseReverseIterator.next(), 2);
+      }
+
+      // update current tags tracker
+      tags = tags.subList(0, tags.size() - tagsToClose.size());
+
+      // open the new tags
+      Integer cellTag = tagsToOpen.pollLast();
+      for (Integer index : tagsToOpen) {
+        currentWriter.openTag(CELL_PREFIX_ARRAY + index, 2);
+        tags.add(index);
+      }
+
+      if (subCell instanceof BinaryCell) {
+        writeBinaryCell(CELL_PREFIX_ARRAY, subCell, column, cellTag);
+      } else if (subCell instanceof SimpleCell) {
+        writeSimpleCell(CELL_PREFIX_ARRAY, subCell, column, cellTag);
+      } else if (subCell instanceof ComposedCell) {
+        writeComposedCell(CELL_PREFIX_ARRAY, subCell, column, cellTag);
+      } else if (subCell instanceof NullCell) {
+        writeNullCell(CELL_PREFIX_ARRAY, subCell, column, cellTag);
+      } else if (subCell instanceof ArrayCell) {
+        writeArrayCell(CELL_PREFIX_ARRAY, subCell, column, cellTag);
+      }
+    }
+
+    // close all array tags
+    Collections.reverse(tags);
+    for (Integer index : tags) {
+      currentWriter.closeTag(CELL_PREFIX_ARRAY + index, 2);
+    }
+
+    currentWriter.closeTag(cellPrefix + columnIndex, 2);
+
+  }
+
+  private void writeComposedCell(String cellPrefix, Cell cell, ColumnStructure column, int columnIndex)
     throws ModuleException, IOException {
 
     ComposedCell composedCell = (ComposedCell) cell;
 
-    String cellPrefix = "";
-    if (column.getType() instanceof ComposedTypeArray) {
-      cellPrefix = "a";
-    } else if (column.getType() instanceof ComposedTypeStructure) {
-      cellPrefix = "u";
-    }
-
-    currentWriter.openTag("c" + columnIndex, 2);
+    currentWriter.openTag(cellPrefix + columnIndex, 2);
 
     int subCellIndex = 1;
     for (Cell subCell : composedCell.getComposedData()) {
@@ -196,20 +271,25 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       } else if (subCell instanceof SimpleCell) {
         SimpleCell simpleCell = (SimpleCell) subCell;
         if (simpleCell.getSimpleData() != null) {
-          currentWriter.inlineOpenTag(cellPrefix + subCellIndex, 3);
+          currentWriter.inlineOpenTag(CELL_PREFIX_UDT + subCellIndex, 3);
           currentWriter.write(XMLUtils.encode(simpleCell.getSimpleData()));
-          currentWriter.closeTag(cellPrefix + subCellIndex);
+          currentWriter.closeTag(CELL_PREFIX_UDT + subCellIndex);
         }
       } else if (subCell instanceof ComposedCell) {
-        // currentWriter.inlineOpenTag("u" + subCellIndex, 3);
-        // currentWriter.closeTag("u" + subCellIndex);
+        // currentWriter.inlineOpenTag(CELL_PREFIX_UDT + subCellIndex, 3);
+        // currentWriter.closeTag(CELL_PREFIX_UDT + subCellIndex);
 
         LOGGER.warn("UDT inside UDT not yet supported. Saving as null.");
       } else if (subCell instanceof BinaryCell) {
-        // currentWriter.inlineOpenTag("u" + subCellIndex, 3);
-        // currentWriter.closeTag("u" + subCellIndex);
+        // currentWriter.inlineOpenTag(CELL_PREFIX_UDT + subCellIndex, 3);
+        // currentWriter.closeTag(CELL_PREFIX_UDT + subCellIndex);
 
         LOGGER.warn("LOBs inside UDT not yet supported. Saving as null.");
+      } else if (subCell instanceof ArrayCell) {
+        // currentWriter.inlineOpenTag(CELL_PREFIX_UDT + subCellIndex, 3);
+        // currentWriter.closeTag(CELL_PREFIX_UDT + subCellIndex);
+
+        LOGGER.warn("Arrays inside UDT not yet supported. Saving as null.");
       } else {
         LOGGER.error("Unexpected cell type");
       }
@@ -217,46 +297,38 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       subCellIndex++;
     }
 
-    // update information about the maximum length of the array
-    if (column.getType() instanceof ComposedTypeArray) {
-      int newMax = subCellIndex - 1;
-      Integer max = arrayMaximumLength.get(column.getId());
-      if (max == null || max < newMax) {
-        arrayMaximumLength.put(column.getId(), newMax);
-      }
-    }
-
-    currentWriter.closeTag("c" + columnIndex, 2);
+    currentWriter.closeTag(cellPrefix + columnIndex, 2);
   }
 
-  protected void writeNullCell(Cell cell, ColumnStructure column, int columnIndex) throws ModuleException, IOException {
+  protected void writeNullCell(String cellPrefix, Cell cell, ColumnStructure column, int columnIndex)
+    throws ModuleException, IOException {
     NullCell nullCell = (NullCell) cell;
-    writeNullCellData(nullCell, columnIndex);
+    writeNullCellData(cellPrefix, nullCell, columnIndex);
   }
 
-  protected void writeSimpleCell(Cell cell, ColumnStructure column, int columnIndex)
+  protected void writeSimpleCell(String cellPrefix, Cell cell, ColumnStructure column, int columnIndex)
     throws ModuleException, IOException {
     SimpleCell simpleCell = (SimpleCell) cell;
 
     if (Sql2008toXSDType.isLargeType(column.getType(), reporter)
       && simpleCell.getBytesSize() > THRESHOLD_TREAT_STRING_AS_CLOB) {
-      writeLargeObjectData(cell, columnIndex);
+      writeLargeObjectData(cellPrefix, cell, columnIndex);
     } else {
-      writeSimpleCellData(simpleCell, columnIndex);
+      writeSimpleCellData(cellPrefix, simpleCell, columnIndex);
     }
   }
 
-  protected void writeBinaryCell(Cell cell, ColumnStructure column, int columnIndex)
+  protected void writeBinaryCell(String cellPrefix, Cell cell, ColumnStructure column, int columnIndex)
     throws ModuleException, IOException {
     BinaryCell binaryCell = (BinaryCell) cell;
 
     long length = binaryCell.getSize();
     if (length <= 0) {
       NullCell nullCell = new NullCell(binaryCell.getId());
-      writeNullCellData(nullCell, columnIndex);
+      writeNullCellData(cellPrefix, nullCell, columnIndex);
       binaryCell.cleanResources();
     } else if (Sql2008toXSDType.isLargeType(column.getType(), reporter) && length > THRESHOLD_TREAT_BINARY_AS_BLOB) {
-      writeLargeObjectData(cell, columnIndex);
+      writeLargeObjectData(cellPrefix, cell, columnIndex);
     } else {
       // inline binary data
       InputStream inputStream = binaryCell.createInputStream();
@@ -264,23 +336,24 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       IOUtils.closeQuietly(inputStream);
       binaryCell.cleanResources();
       SimpleCell simpleCell = new SimpleCell(binaryCell.getId(), Hex.encodeHexString(bytes));
-      writeSimpleCellData(simpleCell, columnIndex);
+      writeSimpleCellData(cellPrefix, simpleCell, columnIndex);
     }
   }
 
-  protected void writeNullCellData(NullCell nullcell, int columnIndex) throws IOException {
+  protected void writeNullCellData(String cellPrefix, NullCell nullcell, int columnIndex) throws IOException {
     // do nothing, as null cells are simply omitted
   }
 
-  protected void writeSimpleCellData(SimpleCell simpleCell, int columnIndex) throws IOException {
+  protected void writeSimpleCellData(String cellPrefix, SimpleCell simpleCell, int columnIndex) throws IOException {
     if (simpleCell.getSimpleData() != null) {
-      currentWriter.inlineOpenTag("c" + columnIndex, 2);
+      currentWriter.inlineOpenTag(cellPrefix + columnIndex, 2);
       currentWriter.write(XMLUtils.encode(simpleCell.getSimpleData()));
-      currentWriter.closeTag("c" + columnIndex);
+      currentWriter.closeTag(cellPrefix + columnIndex);
     }
   }
 
-  protected void writeLargeObjectData(Cell cell, int columnIndex) throws IOException, ModuleException {
+  protected void writeLargeObjectData(String cellPrefix, Cell cell, int columnIndex)
+    throws IOException, ModuleException {
 
     LargeObject lob = null;
 
@@ -290,7 +363,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       lob = new LargeObject(binCell, contentPathStrategy.getBlobFilePath(currentSchema.getIndex(),
         currentTable.getIndex(), columnIndex, currentRowIndex + 1));
 
-      currentWriter.beginOpenTag("c" + columnIndex, 2).space().append("file=\"")
+      currentWriter.beginOpenTag(cellPrefix + columnIndex, 2).space().append("file=\"")
         .append(contentPathStrategy.getBlobFileName(currentRowIndex + 1)).append('"').space().append("length=\"")
         .append(String.valueOf(binCell.getSize())).append("\"");
 
@@ -302,7 +375,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
       if (txtCell.getBytesSize() < 0) {
         // NULL content
-        writeNullCellData(new NullCell(cell.getId()), columnIndex);
+        writeNullCellData(cellPrefix, new NullCell(cell.getId()), columnIndex);
         return;
       }
 
@@ -310,7 +383,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       lob = new LargeObject(new TemporaryPathInputStreamProvider(inputStream), contentPathStrategy
         .getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
 
-      currentWriter.beginOpenTag("c" + columnIndex, 2).space().append("file=\"")
+      currentWriter.beginOpenTag(cellPrefix + columnIndex, 2).space().append("file=\"")
         .append(contentPathStrategy.getClobFileName(currentRowIndex + 1)).append('"').space().append("length=\"")
         .append(String.valueOf(txtCell.getBytesSize())).append("\"");
     }
@@ -439,22 +512,8 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
         // <xs:sequence>
         xsdWriter.openTag("xs:sequence", 6);
 
-        String xsdType = null;
-        try {
-          xsdType = Sql2008toXSDType.convert(arrayType.getElementType(), reporter);
-        } catch (UnknownTypeException e) {
-          LOGGER.error(
-            String.format("An error occurred while getting the XSD subtype of array column c%d", columnIndex), e);
-        }
-
-        Integer maxLength = arrayMaximumLength.get(col.getId());
-
-        if (xsdType != null && maxLength != null) {
-          for (int i = 1; i <= maxLength; i++) {
-            xsdWriter.beginOpenTag("xs:element", 7).appendAttribute("minOccurs", "0");
-            xsdWriter.appendAttribute("name", "a" + i).appendAttribute("type", xsdType).endShorthandTag();
-          }
-        }
+        xsdWriter.beginOpenTag("xs:any", 7).appendAttribute("minOccurs", "0").appendAttribute("maxOccurs", "unbounded")
+          .appendAttribute("processContents", "skip").endShorthandTag();
 
         // </xs:sequence>
         xsdWriter.closeTag("xs:sequence", 6);

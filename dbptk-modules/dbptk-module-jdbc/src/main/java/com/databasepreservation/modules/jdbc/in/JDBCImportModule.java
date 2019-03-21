@@ -30,14 +30,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
-import com.databasepreservation.model.data.ComposedCell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
@@ -1264,8 +1265,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         ComposedTypeArray composedTypeArray = (ComposedTypeArray) cellType;
         Array array = rawData.getArray(columnName);
         LOGGER.trace("Parsing array of subtype " + composedTypeArray.getElementType().getClass().getSimpleName());
-        List<Cell> cells = parseArray(id, array);
-        cell = new ComposedCell(id, cells);
+        cell = parseArray(id, array);
       } else if (cellType instanceof ComposedTypeStructure) {
         cell = rawToCellComposedTypeStructure(id, columnName, cellType, rawData);
       } else if (cellType instanceof SimpleTypeBoolean) {
@@ -1408,53 +1408,63 @@ public class JDBCImportModule implements DatabaseImportModule {
     return cell;
   }
 
-  protected List<Cell> parseArray(String baseid, Array array) throws SQLException, InvalidDataException {
-    if (array == null) {
-      return null;
-    }
-    int baseType = array.getBaseType();
-    List<Cell> cells = new ArrayList<Cell>();
-    Object[] items;
-    try {
-      items = (Object[]) array.getArray();
+  private void arrayToArrayCell(int baseType, ArrayCell arrayCell, int distanceToSimpleArray, Integer[] path,
+    Object[] items) {
+    if (distanceToSimpleArray == 1) {
+      String baseId = arrayCell.getId();
+      for (int i = 0; i < items.length; i++) {
 
-      switch (baseType) {
-        case Types.CHAR:
-        case Types.VARCHAR:
-          for (int i = 0; i < items.length; i++) {
-            String item = (String) items[i];
-            cells.add(new SimpleCell(baseid + "." + i, item));
-          }
-          break;
-        case Types.BIT:
-          for (int i = 0; i < items.length; i++) {
-            Boolean item = (Boolean) items[i];
-            cells.add(new SimpleCell(baseid + "." + i, item.toString()));
-          }
-          break;
-        case Types.DATE:
-          for (int i = 0; i < items.length; i++) {
-            Date item = (Date) items[i];
-            // TODO should date be formatted as ISO8601?
-            cells.add(new SimpleCell(baseid + "." + i, item.toString()));
-          }
-          break;
-        case Types.INTEGER:
-          for (int i = 0; i < items.length; i++) {
-            Integer item = (Integer) items[i];
-            cells.add(new SimpleCell(baseid + "." + i, item.toString()));
-          }
-          break;
-        case Types.DOUBLE:
-          for (int i = 0; i < items.length; i++) {
-            Double item = (Double) items[i];
-            cells.add(new SimpleCell(baseid + "." + i, item.toString()));
-          }
-          break;
-        default:
-          throw new InvalidDataException("Convert data of array of base type '" + baseType
-            + "' not yet supported! Java class type is " + items.getClass());
+        StringBuilder id = new StringBuilder(baseId);
+        if (path.length > 0) {
+          id.append(".").append(StringUtils.join(path, "."));
+        }
+        id.append(".").append(i + 1); // 1-based ids
+
+        arrayCell.put(getArrayCell(id.toString(), baseType, items[i]), ArrayUtils.add(path, i + 1));
       }
+    } else if (items instanceof Object[][]) {
+      Object[][] matrix = (Object[][]) items;
+      for (int i = 0; i < items.length; i++) {
+        arrayToArrayCell(baseType, arrayCell, distanceToSimpleArray - 1, ArrayUtils.add(path, i + 1), matrix[i]);
+      }
+    }
+  }
+
+  protected Cell getArrayCell(String id, int baseType, Object value) {
+    switch (baseType) {
+      case Types.CHAR:
+      case Types.VARCHAR:
+        return new SimpleCell(id, ((String) value));
+
+      case Types.BIT:
+        return new SimpleCell(id, ((Boolean) value).toString());
+
+      case Types.DATE:
+        return new SimpleCell(id, ((Date) value).toString());
+
+      case Types.INTEGER:
+        return new SimpleCell(id, ((Integer) value).toString());
+
+      case Types.DOUBLE:
+        return new SimpleCell(id, ((Double) value).toString());
+
+      default:
+        LOGGER.error("1");
+        return new NullCell(id);
+    }
+  }
+
+  protected Cell parseArray(String baseid, Array array) throws SQLException, InvalidDataException {
+    if (array == null) {
+      return new NullCell(baseid);
+    }
+
+    int baseType = array.getBaseType();
+    try {
+      int dimensions = StringUtils.countMatches(array.getArray().getClass().toString(), '[');
+      ArrayCell arrayCell = new ArrayCell(baseid);
+      arrayToArrayCell(baseType, arrayCell, dimensions, new Integer[] {}, (Object[]) array.getArray());
+      return arrayCell;
     } catch (SQLFeatureNotSupportedException e) {
       LOGGER.debug("Got a problem getting Array value", e);
       reporter.customMessage(getClass().getName(),
@@ -1462,12 +1472,12 @@ public class JDBCImportModule implements DatabaseImportModule {
       try (ResultSet rs = array.getResultSet()) {
         while (rs.next()) {
           String item = rs.getString(1);
-          cells.add(new SimpleCell(baseid, item));
+          return new SimpleCell(baseid, item);
         }
       }
     }
 
-    return cells;
+    return new NullCell(baseid);
   }
 
   protected Cell rawToCellSimpleTypeNumericApproximate(String id, String columnName, Type cellType, ResultSet rawData)
