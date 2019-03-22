@@ -28,4 +28,12 @@ public class SQLServerDatatypeImporter extends JDBCDatatypeImporter {
     type.setSql2008TypeName("BINARY LARGE OBJECT");
     return type;
   }
+
+  @Override
+  protected Type getBinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+    if (typeName.equalsIgnoreCase("timestamp") || typeName.equalsIgnoreCase("rowversion")) {
+      return getVarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
+    }
+    return super.getBinaryType(typeName, columnSize, decimalDigits, numPrecRadix);
+  }
 }
