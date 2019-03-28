@@ -98,8 +98,8 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
   }
 
   @Override
-  protected Type getArray(String typeName, int columnSize, int decimalDigits, int numPrecRadix, int dataType)
-    throws UnknownTypeException {
+  protected Type getArray(String typeName, int columnSize, int decimalDigits, int numPrecRadix, int dataType,
+    Type subType) throws UnknownTypeException {
     throw new UnknownTypeException();
   }
 
@@ -229,8 +229,8 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
   }
 
   @Override
-  protected Type getArraySubTypeFromTypeName(String typeName, int columnSize, int decimalDigits, int numPrecRadix,
-    int dataType) throws UnknownTypeException {
+  protected Type getArraySubTypeFromTypeName(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException {
     return getFallbackType(typeName);
   }
 

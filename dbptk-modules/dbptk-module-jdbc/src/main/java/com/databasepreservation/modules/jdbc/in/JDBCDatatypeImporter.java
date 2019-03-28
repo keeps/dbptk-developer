@@ -73,7 +73,6 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
         break;
       case Types.DECIMAL:
         type = getDecimalType(typeName, columnSize, decimalDigits, numPrecRadix);
-        // TODO: make sure this check is not needed and remove it
         if (StringUtils.isBlank(type.getOriginalTypeName())) {
           type.setOriginalTypeName(typeName, columnSize, decimalDigits);
         }
@@ -124,7 +123,8 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
         type = getNationalVarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
         break;
       case Types.ARRAY:
-        type = getArray(typeName, columnSize, decimalDigits, numPrecRadix, dataType);
+        Type subtype = getArraySubTypeFromTypeName(typeName, columnSize, decimalDigits, numPrecRadix);
+        type = getArray(typeName, columnSize, decimalDigits, numPrecRadix, dataType, subtype);
         break;
       case Types.STRUCT:
         type = getComposedTypeStructure(database, currentSchema, dataType, typeName);
@@ -156,10 +156,11 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   }
 
   @Override
-  protected Type getArray(String typeName, int columnSize, int decimalDigits, int numPrecRadix, int dataType)
-    throws UnknownTypeException {
-    Type subtype = getArraySubTypeFromTypeName(typeName, columnSize, decimalDigits, numPrecRadix, dataType);
-    ComposedTypeArray type = new ComposedTypeArray(subtype);
+  protected Type getArray(String typeName, int columnSize, int decimalDigits, int numPrecRadix, int dataType,
+    Type subType) {
+    ComposedTypeArray type = new ComposedTypeArray(subType);
+    type.setSql99TypeName(subType.getSql99TypeName() + " ARRAY");
+    type.setSql2008TypeName(subType.getSql2008TypeName() + " ARRAY");
     return type;
   }
 
@@ -312,25 +313,9 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   }
 
   @Override
-  protected Type getArraySubTypeFromTypeName(String typeName, int columnSize, int decimalDigits, int numPrecRadix,
-    int dataType) throws UnknownTypeException {
-    // TODO bferreira 04/01/2017 figure out how to extract base types from the
-    // array type info (also in other module implementations)
-    Type subtype;
-    if ("_char".equals(typeName)) {
-      subtype = new SimpleTypeString(columnSize, false);
-      subtype.setSql99TypeName("CHARACTER");
-      subtype.setSql2008TypeName("CHARACTER");
-
-    } else if ("_abstime".equals(typeName)) {
-      subtype = getTimeType(typeName, columnSize, decimalDigits, numPrecRadix);
-    } else {
-      LOGGER.debug("Unsupported array datatype with code " + dataType);
-      subtype = getFallbackType(typeName);
-      // subtype = new UnsupportedDataType(Types.ARRAY, typeName, columnSize,
-      // decimalDigits, numPrecRadix);
-    }
-    return subtype;
+  protected Type getArraySubTypeFromTypeName(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException {
+    return getFallbackType(typeName);
   }
 
   @Override

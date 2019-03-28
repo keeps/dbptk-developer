@@ -7,9 +7,14 @@
  */
 package com.databasepreservation.modules.postgreSql.in;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
@@ -20,6 +25,7 @@ import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCDatatypeImporter;
+import com.databasepreservation.modules.postgreSql.PostgreSQLExceptionNormalizer;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -157,30 +163,34 @@ public class PostgreSQLJDBCDatatypeImporter extends JDBCDatatypeImporter {
     return type;
   }
 
-  // @Override
-  // protected Type getArraySubTypeFromTypeName(String typeName, int columnSize,
-  // int decimalDigits, int numPrecRadix,
-  // int dataType) throws UnknownTypeException {
-  // Type subtype = null;
-  //
-  // if (typeName != null && typeName.startsWith("_")) {
-  // try {
-  // subtype = getType(null, null, null, null, dataType, typeName.substring(1),
-  // columnSize, decimalDigits, numPrecRadix);
-  // } catch (NullPointerException | UnknownTypeException |
-  // ClassNotFoundException | SQLException e) {
-  // LOGGER
-  // .debug(
-  // "Exception trying to obtain array subtype for {typeName='{}', columnSize={},
-  // decimalDigits={}, numPrecRadix={}, dataType={}}",
-  // typeName, columnSize, decimalDigits, numPrecRadix, dataType, e);
-  // }
-  // }
-  //
-  // if(subtype == null){
-  // subtype = super.getArraySubTypeFromTypeName(typeName, columnSize,
-  // decimalDigits, numPrecRadix, dataType);
-  // }
-  // return subtype;
-  // }
+  @Override
+  protected Type getArraySubTypeFromTypeName(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException {
+
+    Type subtype = null;
+
+    if (typeName.startsWith("_")) {
+      try {
+        String arraySubtypeQuery = "select '{}'::" + typeName;
+
+        try (PreparedStatement ps = connection.prepareStatement(arraySubtypeQuery); ResultSet rs = ps.executeQuery()) {
+          rs.next();
+          int sqlSubType = rs.getArray(1).getBaseType();
+          subtype = getType(null, null, null, null, sqlSubType, typeName, columnSize, decimalDigits, numPrecRadix);
+        } catch (SQLException | ClassNotFoundException e) {
+          throw PostgreSQLExceptionNormalizer.getInstance().normalizeException(e, "Error obtaining array subtype");
+        }
+      } catch (ModuleException e) {
+        LOGGER.debug("Error obtaining array subtype with typename {}", typeName, e);
+      }
+    } else {
+      LOGGER.debug("Unsupported array datatype with typename {}", typeName);
+    }
+
+    if (subtype == null) {
+      subtype = getFallbackType(typeName);
+    }
+
+    return subtype;
+  }
 }

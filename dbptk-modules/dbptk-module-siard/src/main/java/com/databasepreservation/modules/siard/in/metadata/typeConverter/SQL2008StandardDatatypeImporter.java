@@ -162,8 +162,8 @@ public class SQL2008StandardDatatypeImporter extends SQLStandardDatatypeImporter
       type = new ComposedTypeArray(subtype);
       type.setOriginalTypeName(subtype.getOriginalTypeName());
       type.setDescription(subtype.getDescription());
-      type.setSql99TypeName(sql2008TypeName);
-      type.setSql2008TypeName(sql2008TypeName);
+      type.setSql99TypeName(subtype.getSql99TypeName());
+      type.setSql2008TypeName(subtype.getSql2008TypeName());
 
       String typeNameWithoutArrayPart = standardType.normalized.substring(0, standardType.normalized.indexOf(" ARRAY"));
       subtype.setSql99TypeName(typeNameWithoutArrayPart);

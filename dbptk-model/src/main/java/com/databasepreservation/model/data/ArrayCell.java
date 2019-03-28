@@ -99,4 +99,42 @@ public class ArrayCell extends Cell implements Iterable<Pair<List<Integer>, Cell
       return Integer.compare(this.size(), other.size());
     }
   }
+
+  public boolean isEmpty() {
+    return arrayData.isEmpty();
+  }
+
+  /**
+   * Calculates the dimension of the multidimensional array based on current
+   * values. A special value is returned if the array is not coherent, ie. has
+   * values in multiple dimensions (eg: positions [1,2] and [1,2,3] both having
+   * values)
+   * 
+   * @return the dimension of the multidimensional array; or 0 if the array is
+   *         empty; or -1 if the array is not coherent
+   */
+  public int calculateDimensions() {
+    if (arrayData.isEmpty()) {
+      return 0;
+    }
+
+    Map<Integer, Integer> dimensionAndFrequency = new TreeMap<>();
+
+    // get dimensions and their frequency
+    Iterator<ComparableIntegerList> arrayKeysIterator = arrayData.keySet().iterator();
+    while (arrayKeysIterator.hasNext()) {
+      Integer size = arrayKeysIterator.next().size();
+      Integer freq = dimensionAndFrequency.get(size);
+      if (freq == null) {
+        freq = 0;
+      }
+      dimensionAndFrequency.put(size, freq + 1);
+    }
+
+    if (dimensionAndFrequency.size() == 1) {
+      return dimensionAndFrequency.entrySet().iterator().next().getKey();
+    } else {
+      return -1;
+    }
+  }
 }

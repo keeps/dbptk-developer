@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
+import com.databasepreservation.model.structure.type.ComposedTypeArray;
 import com.databasepreservation.model.structure.type.Type;
 
 /**
@@ -175,6 +176,19 @@ public class SQL99StandardDatatypeImporter extends SQLStandardDatatypeImporter {
 
     if (StringUtils.isBlank(type.getOriginalTypeName())) {
       type.setOriginalTypeName(standardType.original);
+    }
+
+    if (standardType.isArray) {
+      Type subtype = type;
+      type = new ComposedTypeArray(subtype);
+      type.setOriginalTypeName(subtype.getOriginalTypeName());
+      type.setDescription(subtype.getDescription());
+      type.setSql99TypeName(subtype.getSql99TypeName());
+      type.setSql2008TypeName(subtype.getSql2008TypeName());
+
+      String typeNameWithoutArrayPart = standardType.normalized.substring(0, standardType.normalized.indexOf(" ARRAY"));
+      subtype.setSql99TypeName(typeNameWithoutArrayPart);
+      subtype.setSql2008TypeName(typeNameWithoutArrayPart);
     }
 
     return type;

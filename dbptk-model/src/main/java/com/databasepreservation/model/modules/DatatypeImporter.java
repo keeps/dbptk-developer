@@ -7,6 +7,7 @@
  */
 package com.databasepreservation.model.modules;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +36,11 @@ public abstract class DatatypeImporter {
   private static final int FALLBACK_TYPE_SIZE = 65535;
 
   protected Reporter reporter;
+  protected Connection connection;
+
+  public void setConnection(Connection connection) {
+    this.connection = connection;
+  }
 
   public void setOnceReporter(Reporter reporter) {
     this.reporter = reporter;
@@ -126,66 +132,89 @@ public abstract class DatatypeImporter {
     String columnName, int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
     throws UnknownTypeException, SQLException, ClassNotFoundException;
 
-  protected abstract Type getArray(String typeName, int columnSize, int decimalDigits, int numPrecRadix, int dataType)
+  protected abstract Type getArray(String typeName, int columnSize, int decimalDigits, int numPrecRadix, int dataType,
+    Type subType) throws UnknownTypeException;
+
+  protected abstract Type getNationalVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
     throws UnknownTypeException;
 
-  protected abstract Type getNationalVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getTinyintType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
-  protected abstract Type getTinyintType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
-
-  protected abstract Type getSmallIntType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getSmallIntType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
   protected abstract Type getLongNationalVarcharType(String typeName, int columnSize, int decimalDigits,
-    int numPrecRadix);
+    int numPrecRadix) throws UnknownTypeException;
 
-  protected abstract Type getIntegerType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getIntegerType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
-  protected abstract Type getClobType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getClobType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
-  protected abstract Type getNationalCharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getNationalCharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
-  protected abstract Type getCharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getCharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
-  protected abstract Type getBooleanType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getBooleanType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
-  protected abstract Type getBlobType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getBlobType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
-  protected abstract Type getBitType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getBitType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
-  protected abstract Type getBigIntType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getBigIntType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
   protected abstract Type getComposedTypeStructure(DatabaseStructure database, SchemaStructure currentSchema,
-    int dataType, String typeName);
+    int dataType, String typeName) throws UnknownTypeException;
 
-  protected abstract Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
-  protected abstract Type getRealType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getRealType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
   protected abstract Type getArraySubTypeFromTypeName(String typeName, int columnSize, int decimalDigits,
-    int numPrecRadix, int dataType) throws UnknownTypeException;
+    int numPrecRadix) throws UnknownTypeException;
 
-  protected abstract Type getBinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getBinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
-  protected abstract Type getDateType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getDateType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
-  protected abstract Type getDecimalType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getDecimalType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
-  protected abstract Type getNumericType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getNumericType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
-  protected abstract Type getDoubleType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getDoubleType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
-  protected abstract Type getFloatType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getFloatType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
-  protected abstract Type getLongVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getLongVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
   protected abstract Type getLongVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
     throws UnknownTypeException;
 
-  protected abstract Type getTimeType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getTimeType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
-  protected abstract Type getTimestampType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getTimestampType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
-  protected abstract Type getVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix);
+  protected abstract Type getVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException;
 
   /**
    * Gets data types defined as Types.OTHER. The data type is inferred by

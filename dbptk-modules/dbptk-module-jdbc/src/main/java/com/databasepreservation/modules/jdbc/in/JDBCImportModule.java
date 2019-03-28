@@ -157,6 +157,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       LOGGER.debug("Getting connection");
 
       connection = createConnection();
+      datatypeImporter.setConnection(connection);
     }
     return connection;
   }

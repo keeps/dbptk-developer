@@ -44,6 +44,8 @@ public class PostgreSQLExceptionNormalizer implements ExceptionNormalizer {
         String message = e.getMessage();
         if (message != null) {
           message = message.replaceAll("(.*?: )?(.*?)(\\n[\\s\\S]*)?", "$2");
+        } else {
+          message = contextMessage;
         }
 
         // see: https://www.postgresql.org/docs/10/errcodes-appendix.html

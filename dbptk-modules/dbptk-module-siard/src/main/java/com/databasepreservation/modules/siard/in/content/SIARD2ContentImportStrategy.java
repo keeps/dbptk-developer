@@ -13,7 +13,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Stack;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
@@ -34,6 +38,7 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 import com.databasepreservation.common.PathInputStreamProvider;
+import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
@@ -46,6 +51,7 @@ import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.type.ComposedTypeArray;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
@@ -67,13 +73,14 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
   private static final String SCHEMA_KEYWORD = "schema";
   private static final String TABLE_KEYWORD = "table";
   private static final String COLUMN_KEYWORD = "c";
+  private static final String ARRAY_KEYWORD = "a";
   private static final String ROW_KEYWORD = "row";
   private static final String FILE_KEYWORD = "file";
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2ContentImportStrategy.class);
   // ImportStrategy
   private final ContentPathImportStrategy contentPathStrategy;
   private final ReadStrategy readStrategy;
-  private final Stack<String> tagsStack = new Stack<String>();
+  private final Deque<String> tagsStack = new LinkedList<String>();
   private final StringBuilder tempVal = new StringBuilder();
   private SIARDArchiveContainer contentContainer;
   private SIARDArchiveContainer lobContainer;
@@ -85,6 +92,8 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
   private InputStream currentTableStream;
   private BinaryCell currentBlobCell;
   private SimpleCell currentClobCell;
+  private ArrayCell currentArrayCell;
+  private int currentColumnIndex;
   private Row row;
   private long rowIndex;
   private long currentTableTotalRows;
@@ -253,12 +262,13 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
         row.getCells().add(null);
       }
     } else if (qName.startsWith(COLUMN_KEYWORD)) {
+      currentColumnIndex = Integer.parseInt(qName.substring(1));
+
       if (attr.getValue(FILE_KEYWORD) != null) {
         String lobDir = attr.getValue(FILE_KEYWORD);
-        int columnIndex = Integer.parseInt(qName.substring(1));
 
         String lobPath = contentPathStrategy.getLobPath(null, currentSchema.getName(), currentTable.getId(),
-          currentTable.getColumns().get(columnIndex - 1).getId(), lobDir);
+          currentTable.getColumns().get(currentColumnIndex - 1).getId(), lobDir);
 
         SIARDArchiveContainer container;
         if (lobDir.startsWith("..")) {
@@ -273,10 +283,12 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
             // existing LOB file instead of copying it to a temporary directory
             if (container.getType().equals(SIARDArchiveContainer.OutputContainerType.AUXILIARY)) {
               LOGGER.debug("lobContainer: {}\ncontentContainer: {}", lobContainer, contentContainer);
-              currentBlobCell = new BinaryCell(currentTable.getColumns().get(columnIndex - 1).getId() + "." + rowIndex,
+              currentBlobCell = new BinaryCell(
+                currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex,
                 new PathInputStreamProvider(container.getPath().resolve(Paths.get(lobPath))));
             } else {
-              currentBlobCell = new BinaryCell(currentTable.getColumns().get(columnIndex - 1).getId() + "." + rowIndex,
+              currentBlobCell = new BinaryCell(
+                currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex,
                 readStrategy.createInputStream(container, lobPath));
             }
 
@@ -284,18 +296,19 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
               String.format("BLOB cell %s on row #%d with lob dir %s", currentBlobCell.getId(), rowIndex, lobDir));
           } else if (lobDir.endsWith(SIARD2ContentPathExportStrategy.CLOB_EXTENSION)) {
             String data = IOUtils.toString(readStrategy.createInputStream(container, lobPath));
-            currentClobCell = new SimpleCell(currentTable.getColumns().get(columnIndex - 1).getId() + "." + rowIndex,
-              data);
+            currentClobCell = new SimpleCell(
+              currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex, data);
 
-            LOGGER.debug(
-              String.format("CLOB cell %s on row #%d with lob dir %s", currentClobCell.getId(), rowIndex, lobDir));
+            LOGGER.debug("CLOB cell {} on row #{} with lob dir {}", currentClobCell.getId(), rowIndex, lobDir);
           }
         } catch (ModuleException | IOException e) {
           LOGGER.error("Failed to open lob at " + lobDir, e);
         }
-      } else {
-        currentBlobCell = null;
-        currentClobCell = null;
+      }
+    } else if (qName.startsWith(ARRAY_KEYWORD)) {
+      if (currentArrayCell == null && qName.equalsIgnoreCase(ARRAY_KEYWORD + "1")) {
+        currentArrayCell = new ArrayCell(
+          currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex);
       }
     }
   }
@@ -330,11 +343,52 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
       } catch (ModuleException e) {
         LOGGER.error("An error occurred while handling data row", e);
       }
-    } else if (tag.contains(COLUMN_KEYWORD)) {
+    } else if (tag.startsWith(COLUMN_KEYWORD) && currentArrayCell != null) {
+      row.getCells().set(currentColumnIndex - 1, currentArrayCell);
+      currentArrayCell = null;
+    } else if (tag.startsWith(ARRAY_KEYWORD) && currentArrayCell != null) {
+      Type type = currentTable.getColumns().get(currentColumnIndex - 1).getType();
+      Integer arrayPosition = Integer.parseInt(qName.substring(ARRAY_KEYWORD.length()));
+      Cell cell = null;
+
+      List<Integer> arrayCellPositions = getArrayCellPositions(arrayPosition, tagsStack);
+
+      // avoid trying to save a new array element when closing parent xml tags in a
+      // multidimensional array situation
+      if (currentArrayCell.isEmpty() || currentArrayCell.calculateDimensions() == arrayCellPositions.size()) {
+
+        if (type instanceof ComposedTypeArray) {
+          ComposedTypeArray arrayType = (ComposedTypeArray) type;
+
+          String subId = currentArrayCell.getId() + "." + StringUtils.join(arrayCellPositions, '.');
+
+          if (arrayType.getElementType() instanceof SimpleTypeString) {
+            localVal = XMLUtils.decode(localVal);
+            cell = new SimpleCell(subId, localVal);
+          } else if (arrayType.getElementType() instanceof SimpleTypeBinary) {
+            if (StringUtils.isNotBlank(localVal)) {
+              // binary data with less than 2000 bytes does not have its own file
+              try {
+                InputStream is = new ByteArrayInputStream(Hex.decodeHex(localVal.toCharArray()));
+                cell = new BinaryCell(subId, is);
+              } catch (ModuleException e) {
+                LOGGER.error("An error occurred while importing in-table binary cell", e);
+              } catch (DecoderException e) {
+                LOGGER.error(String.format("Illegal characters in hexadecimal string \"%s\"", localVal), e);
+              }
+            } else {
+              cell = new SimpleCell(subId, localVal);
+            }
+          } else if (StringUtils.isNotBlank(localVal)) {
+            cell = new SimpleCell(subId, localVal);
+          }
+        }
+
+        currentArrayCell.put(cell, arrayCellPositions);
+      }
+    } else if (tag.startsWith(COLUMN_KEYWORD)) {
       // TODO Support other cell types
-      String[] subStrings = tag.split(COLUMN_KEYWORD);
-      Integer columnIndex = Integer.valueOf(subStrings[1]);
-      Type type = currentTable.getColumns().get(columnIndex - 1).getType();
+      Type type = currentTable.getColumns().get(currentColumnIndex - 1).getType();
 
       if (type instanceof SimpleTypeString) {
         localVal = XMLUtils.decode(localVal);
@@ -343,10 +397,12 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
       Cell cell = null;
       if (currentBlobCell != null) {
         cell = currentBlobCell;
+        currentBlobCell = null;
       } else if (currentClobCell != null) {
         cell = currentClobCell;
+        currentClobCell = null;
       } else {
-        String id = currentTable.getColumns().get(columnIndex - 1).getId() + "." + rowIndex;
+        String id = currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex;
 
         if (type instanceof SimpleTypeBinary && StringUtils.isNotBlank(localVal)) {
           // binary data with less than 2000 bytes does not have its own file
@@ -362,12 +418,33 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
           cell = new SimpleCell(id, localVal);
         }
       }
-      row.getCells().set(columnIndex - 1, cell);
+      row.getCells().set(currentColumnIndex - 1, cell);
     }
+    tempVal.setLength(0);
   }
 
   @Override
   public void characters(char buf[], int offset, int len) {
     tempVal.append(buf, offset, len);
+  }
+
+  private List<Integer> getArrayCellPositions(Integer current, Deque<String> parentTags) {
+    List<Integer> positions = new ArrayList<>();
+
+    Iterator<String> iterator = parentTags.iterator();
+    while (iterator.hasNext()) {
+      String tag = iterator.next();
+      if (StringUtils.isNotBlank(tag) && tag.startsWith(ARRAY_KEYWORD)) {
+        Integer position = Integer.parseInt(tag.substring(1));
+        positions.add(position);
+      } else {
+        break;
+      }
+    }
+
+    Collections.reverse(positions);
+    positions.add(current);
+
+    return positions;
   }
 }
