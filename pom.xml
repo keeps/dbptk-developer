@@ -282,7 +282,7 @@
             <dependency>
                 <groupId>com.databasepreservation</groupId>
                 <artifactId>dbptk-bindings-siard2-0</artifactId>
-                <version>1.5.0</version>
+                <version>1.5.1</version>
             </dependency>
 
             <dependency>
