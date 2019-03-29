@@ -19,4 +19,9 @@ public class UnsupportedModuleException extends ModuleException {
     this();
     withMessage(mesg);
   }
+
+  public UnsupportedModuleException(Exception cause) {
+    this();
+    withCause(cause);
+  }
 }

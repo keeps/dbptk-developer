@@ -32,7 +32,6 @@ import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.oracle.OracleExceptionManager;
 import com.databasepreservation.modules.oracle.OracleHelper;
 
-import oracle.jdbc.OracleConnection;
 import oracle.jdbc.OracleResultSet;
 
 /**

@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
@@ -27,6 +28,7 @@ import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.in.input.SIARD2ImportModule;
+import com.databasepreservation.modules.siard.out.output.GMLExtractorFilter;
 import com.databasepreservation.modules.siard.out.output.SIARD2ExportModule;
 
 /**
@@ -46,6 +48,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_META_DATA_OWNER = "meta-data-owner";
   public static final String PARAMETER_META_DATA_ORIGIN_TIMESPAN = "meta-data-origin-timespan";
   public static final String PARAMETER_META_CLIENT_MACHINE = "meta-client-machine";
+  public static final String PARAMETER_GML_DIRECTORY = "gml-directory";
 
   private static final Parameter file = new Parameter().shortName("f").longName(PARAMETER_FILE)
     .description("Path to SIARD2 archive file").hasArgument(true).setOptionalArgument(false).required(true);
@@ -121,6 +124,10 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     .required(false).hasArgument(true).setOptionalArgument(true)
     .valueIfNotSet(SIARDHelper.getMachineHostname() + " (fetched automatically)");
 
+  private static final Parameter gmlDirectory = new Parameter().shortName("gml").longName(PARAMETER_GML_DIRECTORY)
+    .description("directory in which to create .gml files from tables with geometry data").required(false)
+    .hasArgument(true).setOptionalArgument(false);
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -157,6 +164,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(metaDataOwner.longName(), metaDataOwner);
     parameterHashMap.put(metaDataOriginTimespan.longName(), metaDataOriginTimespan);
     parameterHashMap.put(metaClientMachine.longName(), metaClientMachine);
+    parameterHashMap.put(gmlDirectory.longName(), gmlDirectory);
 
     return parameterHashMap;
   }
@@ -170,7 +178,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
   public Parameters getExportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(Arrays.asList(file, compress, prettyPrintXML, tableFilter, externalLobs,
       externalLobsPerFolder, externalLobsFolderSize, metaDescription, metaArchiver, metaArchiverContact, metaDataOwner,
-      metaDataOriginTimespan, metaClientMachine), null);
+      metaDataOriginTimespan, metaClientMachine, gmlDirectory), null);
   }
 
   @Override
@@ -229,6 +237,12 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
       }
     }
 
+    // optional
+    Path pGMLDirectory = null;
+    if (StringUtils.isNotBlank(parameters.get(gmlDirectory))) {
+      pGMLDirectory = Paths.get(parameters.get(gmlDirectory));
+    }
+
     // build descriptive metadata
     HashMap<String, String> descriptiveMetadataParameterValues = new HashMap<>();
     addDescriptiveMetadataParameterValue(parameters, descriptiveMetadataParameterValues,
@@ -258,8 +272,18 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
           PARAMETER_EXTERNAL_LOBS_FOLDER_SIZE, String.valueOf(pExternalLobsFolderSize));
       }
 
-      return new SIARD2ExportModule(pFile, pCompress, pPrettyPrintXML, pTableFilter, pExternalLobsPerFolder,
-        pExternalLobsFolderSize, descriptiveMetadataParameterValues).getDatabaseHandler();
+      if (pGMLDirectory != null) {
+        try {
+          return new GMLExtractorFilter(pGMLDirectory).migrateDatabaseTo(
+            new SIARD2ExportModule(pFile, pCompress, pPrettyPrintXML, pTableFilter, pExternalLobsPerFolder,
+              pExternalLobsFolderSize, descriptiveMetadataParameterValues).getDatabaseHandler());
+        } catch (ModuleException e) {
+          throw new UnsupportedModuleException(e);
+        }
+      } else {
+        return new SIARD2ExportModule(pFile, pCompress, pPrettyPrintXML, pTableFilter, pExternalLobsPerFolder,
+          pExternalLobsFolderSize, descriptiveMetadataParameterValues).getDatabaseHandler();
+      }
     } else {
       if (pTableFilter == null) {
         reporter.exportModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString(),
@@ -269,9 +293,18 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
           PARAMETER_COMPRESS, String.valueOf(pCompress), PARAMETER_PRETTY_XML, String.valueOf(pPrettyPrintXML),
           PARAMETER_TABLE_FILTER, pTableFilter.normalize().toAbsolutePath().toString());
       }
-
-      return new SIARD2ExportModule(pFile, pCompress, pPrettyPrintXML, pTableFilter, descriptiveMetadataParameterValues)
-        .getDatabaseHandler();
+      if (pGMLDirectory != null) {
+        try {
+          return new GMLExtractorFilter(pGMLDirectory).migrateDatabaseTo(
+            new SIARD2ExportModule(pFile, pCompress, pPrettyPrintXML, pTableFilter, descriptiveMetadataParameterValues)
+              .getDatabaseHandler());
+        } catch (Exception e) {
+          throw new UnsupportedModuleException(e);
+        }
+      } else {
+        return new SIARD2ExportModule(pFile, pCompress, pPrettyPrintXML, pTableFilter,
+          descriptiveMetadataParameterValues).getDatabaseHandler();
+      }
     }
   }
 
