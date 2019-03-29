@@ -45,7 +45,7 @@ public class SQLServerHelper extends SQLHelper {
   }
 
   @Override
-  protected String createTypeSQL(Type type, boolean isPkey, boolean isFkey) throws UnknownTypeException {
+  public String createTypeSQL(Type type, boolean isPkey, boolean isFkey) throws UnknownTypeException {
     String ret = null;
     if (type instanceof SimpleTypeString) {
       SimpleTypeString string = (SimpleTypeString) type;

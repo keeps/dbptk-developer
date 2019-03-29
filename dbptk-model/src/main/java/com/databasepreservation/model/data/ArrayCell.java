@@ -10,6 +10,7 @@
  */
 package com.databasepreservation.model.data;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -20,6 +21,7 @@ import java.util.TreeMap;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import com.databasepreservation.model.exception.InvalidDataException;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
 
@@ -136,5 +138,50 @@ public class ArrayCell extends Cell implements Iterable<Pair<List<Integer>, Cell
     } else {
       return -1;
     }
+  }
+
+  private static <T> void toArraySetValue(Object array, T value, Integer... indexes) {
+    if (indexes.length == 1) {
+      ((T[]) array)[indexes[0] - 1] = value;
+    } else {
+      toArraySetValue(Array.get(array, indexes[0] - 1), value, Arrays.copyOfRange(indexes, 1, indexes.length));
+    }
+  }
+
+  public <T> Object[] toArray(Function<Cell, T> cellToObject, Class<T> objectClass) throws InvalidDataException {
+    if (arrayData.isEmpty()) {
+      return new Object[] {};
+    }
+
+    int dimensions = calculateDimensions();
+    if (dimensions < 0) {
+      throw (InvalidDataException) new InvalidDataException()
+        .withMessage("Impossible to convert into native java array. Array dimensions are not coherent");
+    }
+
+    int[] sizes = new int[dimensions];
+    Arrays.fill(sizes, 0);
+
+    for (ComparableIntegerList positions : arrayData.keySet()) {
+      for (int i = 0; i < positions.size(); i++) {
+        if (positions.get(i) > sizes[i]) {
+          sizes[i] = positions.get(i);
+        }
+      }
+    }
+
+    Object multidimensionalArray = Array.newInstance(objectClass, sizes);
+
+    Iterator<Pair<List<Integer>, Cell>> i = iterator();
+    while (i.hasNext()) {
+      Pair<List<Integer>, Cell> pair = i.next();
+      Integer[] positions = pair.getLeft().toArray(new Integer[] {});
+      Cell cell = pair.getRight();
+      T value = cellToObject.apply(cell);
+
+      toArraySetValue(multidimensionalArray, value, positions);
+    }
+
+    return (Object[]) multidimensionalArray;
   }
 }

@@ -1450,7 +1450,6 @@ public class JDBCImportModule implements DatabaseImportModule {
         return new SimpleCell(id, ((Double) value).toString());
 
       default:
-        LOGGER.error("1");
         return new NullCell(id);
     }
   }

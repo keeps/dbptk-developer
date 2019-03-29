@@ -8,6 +8,7 @@
 package com.databasepreservation.modules.postgreSql.out;
 
 import java.io.InputStream;
+import java.sql.Array;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
@@ -19,14 +20,18 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.structure.ColumnStructure;
+import com.databasepreservation.model.structure.type.ComposedTypeArray;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
-import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.out.JDBCExportModule;
 import com.databasepreservation.modules.postgreSql.PostgreSQLExceptionNormalizer;
 import com.databasepreservation.modules.postgreSql.PostgreSQLHelper;
+import com.google.common.base.Function;
 
 /**
  * <p>
@@ -177,10 +182,10 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
   }
 
   @Override
-  protected void handleSimpleTypeDateTimeDataCell(String data, PreparedStatement ps, int index, Cell cell, Type type)
-    throws SQLException {
-    SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
-    if (dateTime.getTimeDefined()) {
+  protected void handleSimpleTypeDateTimeDataCell(String data, PreparedStatement ps, int index, Cell cell,
+    ColumnStructure column) throws SQLException, ModuleException {
+    SimpleTypeDateTime type = (SimpleTypeDateTime) column.getType();
+    if (type.getTimeDefined()) {
       if ("TIME WITH TIME ZONE".equalsIgnoreCase(type.getSql99TypeName())) {
         if (data != null) {
           Calendar cal = javax.xml.bind.DatatypeConverter.parseTime(data);
@@ -191,19 +196,19 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
           ps.setNull(index, Types_TIME_WITH_TIMEZONE);
         }
       } else {
-        super.handleSimpleTypeDateTimeDataCell(data, ps, index, cell, type);
+        super.handleSimpleTypeDateTimeDataCell(data, ps, index, cell, column);
       }
     } else {
-      super.handleSimpleTypeDateTimeDataCell(data, ps, index, cell, type);
+      super.handleSimpleTypeDateTimeDataCell(data, ps, index, cell, column);
     }
   }
 
   @Override
   protected void handleSimpleTypeNumericApproximateDataCell(String data, PreparedStatement ps, int index, Cell cell,
-    Type type) throws NumberFormatException, SQLException {
+    ColumnStructure column) throws NumberFormatException, SQLException {
     if (data != null) {
       LOGGER.debug("set approx: " + data);
-      if ("FLOAT".equalsIgnoreCase(type.getSql99TypeName())) {
+      if ("FLOAT".equalsIgnoreCase(column.getType().getSql99TypeName())) {
         ps.setFloat(index, Float.valueOf(data));
       } else {
         ps.setDouble(index, Double.valueOf(data));
@@ -214,7 +219,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
   }
 
   @Override
-  protected InputStream handleSimpleTypeString(PreparedStatement ps, int index, BinaryCell bin)
+  protected InputStream handleSimpleTypeString(PreparedStatement ps, int index, BinaryCell bin, ColumnStructure column)
     throws SQLException, ModuleException {
     InputStream inputStream = bin.createInputStream();
     ps.setBinaryStream(index, inputStream, bin.getSize());
@@ -232,5 +237,31 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
     }
 
     return moduleException;
+  }
+
+  @Override
+  protected void handleComposedTypeArrayDataCell(final ArrayCell arrayCell, PreparedStatement ps, int index,
+    ColumnStructure column) throws SQLException, ModuleException {
+
+    ComposedTypeArray arrayType = (ComposedTypeArray) column.getType();
+
+    Function<Cell, String> conversionFunction = new Function<Cell, String>() {
+      @Override
+      public String apply(Cell cell) {
+        if (cell instanceof SimpleCell) {
+          return ((SimpleCell) cell).getSimpleData();
+        } else {
+          LOGGER.debug("Exporting composed data inside an array is not supported.");
+          return null;
+        }
+      }
+    };
+
+    Object[] array = arrayCell.toArray(conversionFunction, String.class);
+
+    Array sqlArray = getConnection().createArrayOf(sqlHelper.createTypeSQL(arrayType.getElementType(), false, false),
+      array);
+
+    ps.setArray(index, sqlArray);
   }
 }

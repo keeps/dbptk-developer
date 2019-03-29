@@ -22,9 +22,9 @@ import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
+import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
-import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.out.JDBCExportModule;
 import com.databasepreservation.modules.sqlServer.SQLServerExceptionNormalizer;
 import com.databasepreservation.modules.sqlServer.SQLServerHelper;
@@ -117,9 +117,9 @@ public class SQLServerJDBCExportModule extends JDBCExportModule {
   }
 
   @Override
-  protected CleanResourcesInterface handleDataCell(PreparedStatement ps, int index, Cell cell, Type type)
+  protected CleanResourcesInterface handleDataCell(PreparedStatement ps, int index, Cell cell, ColumnStructure column)
     throws InvalidDataException, ModuleException {
-    if (cell instanceof SimpleCell && type instanceof SimpleTypeDateTime) {
+    if (cell instanceof SimpleCell && column.getType() instanceof SimpleTypeDateTime) {
       SimpleCell simple = (SimpleCell) cell;
       String data = simple.getSimpleData();
       try {
@@ -132,7 +132,7 @@ public class SQLServerJDBCExportModule extends JDBCExportModule {
         throw new ModuleException().withMessage("SQL error while handling cell " + cell.getId()).withCause(e);
       }
     } else {
-      return super.handleDataCell(ps, index, cell, type);
+      return super.handleDataCell(ps, index, cell, column);
     }
     return noOpCleanResourcesInterface;
   }

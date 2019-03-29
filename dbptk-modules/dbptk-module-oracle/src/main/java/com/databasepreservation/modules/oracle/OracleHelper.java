@@ -88,7 +88,7 @@ public class OracleHelper extends SQLHelper {
   }
 
   @Override
-  protected String createTypeSQL(Type type, boolean isPrimaryKey, boolean isForeignKey) throws UnknownTypeException {
+  public String createTypeSQL(Type type, boolean isPrimaryKey, boolean isForeignKey) throws UnknownTypeException {
     String ret;
     if (type instanceof SimpleTypeString) {
       SimpleTypeString string = (SimpleTypeString) type;
@@ -113,8 +113,9 @@ public class OracleHelper extends SQLHelper {
     return ret;
   }
 
-  @Override public String escapeSchemaName(String schema) {
-    if(schema.equalsIgnoreCase(sourceSchema) && targetSchema != null){
+  @Override
+  public String escapeSchemaName(String schema) {
+    if (schema.equalsIgnoreCase(sourceSchema) && targetSchema != null) {
       schema = targetSchema;
     }
     return super.escapeSchemaName(schema);

@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -526,8 +527,7 @@ public class JDBCExportModule implements DatabaseExportModule {
         int index = 1;
         for (Cell cell : row.getCells()) {
           ColumnStructure column = columnIterator.next();
-          CleanResourcesInterface cleanResources = handleDataCell(currentRowBatchInsertStatement, index, cell,
-            column.getType());
+          CleanResourcesInterface cleanResources = handleDataCell(currentRowBatchInsertStatement, index, cell, column);
           cleanResourcesList.add(cleanResources);
           index++;
         }
@@ -577,9 +577,10 @@ public class JDBCExportModule implements DatabaseExportModule {
     resourcesList.clear();
   }
 
-  protected CleanResourcesInterface handleDataCell(PreparedStatement ps, int index, Cell cell, Type type)
+  protected CleanResourcesInterface handleDataCell(PreparedStatement ps, int index, Cell cell, ColumnStructure column)
     throws InvalidDataException, ModuleException {
     CleanResourcesInterface ret = noOpCleanResourcesInterface;
+    Type type = column.getType();
     try {
       // TODO: better null handling
       if (cell instanceof NullCell) {
@@ -592,17 +593,17 @@ public class JDBCExportModule implements DatabaseExportModule {
         // LOGGER.debug("data: " + data);
         // LOGGER.debug("type: " + type.getOriginalTypeName());
         if (type instanceof SimpleTypeString) {
-          handleSimpleTypeStringDataCell(data, ps, index, cell, type);
+          handleSimpleTypeStringDataCell(data, ps, index, cell, column);
         } else if (type instanceof SimpleTypeNumericExact) {
-          handleSimpleTypeNumericExactDataCell(data, ps, index, cell, type);
+          handleSimpleTypeNumericExactDataCell(data, ps, index, cell, column);
         } else if (type instanceof SimpleTypeNumericApproximate) {
-          handleSimpleTypeNumericApproximateDataCell(data, ps, index, cell, type);
+          handleSimpleTypeNumericApproximateDataCell(data, ps, index, cell, column);
         } else if (type instanceof SimpleTypeDateTime) {
-          handleSimpleTypeDateTimeDataCell(data, ps, index, cell, type);
+          handleSimpleTypeDateTimeDataCell(data, ps, index, cell, column);
         } else if (type instanceof SimpleTypeBoolean) {
-          handleSimpleTypeBooleanDataCell(data, ps, index, cell, type);
+          handleSimpleTypeBooleanDataCell(data, ps, index, cell, column);
         } else if (type instanceof UnsupportedDataType) {
-          handleSimpleTypeStringDataCell(data, ps, index, cell, type);
+          handleSimpleTypeStringDataCell(data, ps, index, cell, column);
         } else if (type instanceof SimpleTypeBinary) {
           if (data != null) {
             ps.setString(index, data);
@@ -627,7 +628,7 @@ public class JDBCExportModule implements DatabaseExportModule {
             }
           };
         } else if (type instanceof SimpleTypeString) {
-          final InputStream inputStream = handleSimpleTypeString(ps, index, bin);
+          final InputStream inputStream = handleSimpleTypeString(ps, index, bin, column);
           ret = new CleanResourcesInterface() {
             @Override
             public void clean() throws ModuleException {
@@ -639,6 +640,9 @@ public class JDBCExportModule implements DatabaseExportModule {
           LOGGER.error("Binary cell found when column type is " + type.getClass().getSimpleName());
         }
 
+      } else if (cell instanceof ArrayCell) {
+        ArrayCell arrayCell = (ArrayCell) cell;
+        handleComposedTypeArrayDataCell(arrayCell, ps, index, column);
       } else if (cell instanceof ComposedCell) {
         // ComposedCell comp = (ComposedCell) cell;
         // TODO export composed data
@@ -652,8 +656,13 @@ public class JDBCExportModule implements DatabaseExportModule {
     return ret;
   }
 
-  protected void handleSimpleTypeStringDataCell(String data, PreparedStatement ps, int index, Cell cell, Type type)
-    throws SQLException {
+  protected void handleComposedTypeArrayDataCell(ArrayCell arrayCell, PreparedStatement ps, int index,
+    ColumnStructure column) throws SQLException, ModuleException {
+    throw new ModuleException().withMessage("Arrays are not supported for this DBMS");
+  }
+
+  protected void handleSimpleTypeStringDataCell(String data, PreparedStatement ps, int index, Cell cell,
+    ColumnStructure column) throws SQLException, ModuleException {
     if (data != null) {
       ps.setString(index, data);
     } else {
@@ -662,7 +671,7 @@ public class JDBCExportModule implements DatabaseExportModule {
   }
 
   protected void handleSimpleTypeNumericExactDataCell(String data, PreparedStatement ps, int index, Cell cell,
-    Type type) throws NumberFormatException, SQLException {
+    ColumnStructure column) throws NumberFormatException, SQLException, ModuleException {
     if (data != null) {
       // LOGGER.debug("big decimal: " + data);
       BigDecimal bd = new BigDecimal(data);
@@ -673,7 +682,7 @@ public class JDBCExportModule implements DatabaseExportModule {
   }
 
   protected void handleSimpleTypeNumericApproximateDataCell(String data, PreparedStatement ps, int index, Cell cell,
-    Type type) throws NumberFormatException, SQLException {
+    ColumnStructure column) throws NumberFormatException, SQLException, ModuleException {
     if (data != null) {
       ps.setString(index, data);
     } else {
@@ -681,10 +690,10 @@ public class JDBCExportModule implements DatabaseExportModule {
     }
   }
 
-  protected void handleSimpleTypeDateTimeDataCell(String data, PreparedStatement ps, int index, Cell cell, Type type)
-    throws SQLException {
-    SimpleTypeDateTime dateTime = (SimpleTypeDateTime) type;
-    if (dateTime.getTimeDefined()) {
+  protected void handleSimpleTypeDateTimeDataCell(String data, PreparedStatement ps, int index, Cell cell,
+    ColumnStructure column) throws SQLException, ModuleException {
+    SimpleTypeDateTime type = (SimpleTypeDateTime) column.getType();
+    if (type.getTimeDefined()) {
       if ("TIMESTAMP".equalsIgnoreCase(type.getSql99TypeName())
         || "TIMESTAMP WITH TIME ZONE".equalsIgnoreCase(type.getSql99TypeName())) {
         if (data != null) {
@@ -718,8 +727,8 @@ public class JDBCExportModule implements DatabaseExportModule {
     }
   }
 
-  protected void handleSimpleTypeBooleanDataCell(String data, PreparedStatement ps, int index, Cell cell, Type type)
-    throws SQLException {
+  protected void handleSimpleTypeBooleanDataCell(String data, PreparedStatement ps, int index, Cell cell,
+    ColumnStructure column) throws SQLException, ModuleException {
     if (data != null) {
       // LOGGER.debug("boolData: " + data);
       ps.setBoolean(index, Boolean.valueOf(data));
@@ -731,7 +740,7 @@ public class JDBCExportModule implements DatabaseExportModule {
   /**
    * @return the created InputStream, so it can be closed.
    */
-  protected InputStream handleSimpleTypeString(PreparedStatement ps, int index, BinaryCell bin)
+  protected InputStream handleSimpleTypeString(PreparedStatement ps, int index, BinaryCell bin, ColumnStructure column)
     throws SQLException, ModuleException {
     InputStream inputStream = bin.createInputStream();
     ps.setClob(index, new InputStreamReader(inputStream), bin.getSize());

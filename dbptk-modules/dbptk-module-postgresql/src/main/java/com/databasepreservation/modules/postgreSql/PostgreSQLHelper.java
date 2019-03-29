@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
+import com.databasepreservation.model.structure.type.ComposedTypeArray;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
@@ -74,8 +75,14 @@ public class PostgreSQLHelper extends SQLHelper {
   }
 
   @Override
-  protected String createTypeSQL(Type type, boolean isPkey, boolean isFkey) throws UnknownTypeException {
+  public String createTypeSQL(Type type, boolean isPkey, boolean isFkey) throws UnknownTypeException {
     String ret;
+
+    boolean isArray = false;
+    if (type instanceof ComposedTypeArray) {
+      type = ((ComposedTypeArray) type).getElementType();
+      isArray = true;
+    }
 
     // LOGGER.debug("Checking PSQL type " + type.getOriginalTypeName());
     if (POSTGRESQL_TYPES.contains(type.getOriginalTypeName())) {
@@ -125,6 +132,11 @@ public class PostgreSQLHelper extends SQLHelper {
     } else {
       ret = super.createTypeSQL(type, isPkey, isFkey);
     }
+
+    if (isArray) {
+      ret = ret + " ARRAY";
+    }
+
     return ret;
   }
 

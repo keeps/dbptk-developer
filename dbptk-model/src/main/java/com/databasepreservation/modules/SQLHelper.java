@@ -176,7 +176,7 @@ public class SQLHelper {
    * @return the string representation of the database type
    * @throws UnknownTypeException
    */
-  protected String createTypeSQL(Type type, boolean isPrimaryKey, boolean isForeignKey) throws UnknownTypeException {
+  public String createTypeSQL(Type type, boolean isPrimaryKey, boolean isForeignKey) throws UnknownTypeException {
     String ret;
     if (type instanceof SimpleTypeString) {
       SimpleTypeString string = (SimpleTypeString) type;

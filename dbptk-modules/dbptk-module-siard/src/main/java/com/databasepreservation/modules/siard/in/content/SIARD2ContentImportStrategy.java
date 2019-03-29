@@ -344,7 +344,11 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
         LOGGER.error("An error occurred while handling data row", e);
       }
     } else if (tag.startsWith(COLUMN_KEYWORD) && currentArrayCell != null) {
-      row.getCells().set(currentColumnIndex - 1, currentArrayCell);
+      if (currentArrayCell.isEmpty()) {
+        row.getCells().set(currentColumnIndex - 1, new NullCell(currentArrayCell.getId()));
+      } else {
+        row.getCells().set(currentColumnIndex - 1, currentArrayCell);
+      }
       currentArrayCell = null;
     } else if (tag.startsWith(ARRAY_KEYWORD) && currentArrayCell != null) {
       Type type = currentTable.getColumns().get(currentColumnIndex - 1).getType();
