@@ -219,8 +219,6 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
         rset = statement.executeQuery(query);
         rset.next(); // Returns only one tuple
 
-        // TO-DO: the string given below by rset.getString(2) has to be parsed a
-        // little before it is set to as the view
         v.setQueryOriginal(rset.getString(2));
       } finally {
         CloseableUtils.closeQuietly(rset);

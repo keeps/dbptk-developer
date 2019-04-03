@@ -503,8 +503,12 @@ public class JDBCImportModule implements DatabaseImportModule {
         ViewStructure view = new ViewStructure();
         view.setName(viewName);
         view.setDescription(rset.getString(5));
-        view.setColumns(getColumns(schemaName, viewName));
-
+        try {
+          view.setColumns(getColumns(schemaName, viewName));
+        } catch (SQLException e) {
+          reporter.ignored("Columns from view " + viewName + " in schema " + schemaName,
+            "there was a problem retrieving them form the database");
+        }
         if (view.getColumns().isEmpty()) {
           reporter.ignored("View " + viewName + " in schema " + schemaName, "it contains no columns");
         } else {
