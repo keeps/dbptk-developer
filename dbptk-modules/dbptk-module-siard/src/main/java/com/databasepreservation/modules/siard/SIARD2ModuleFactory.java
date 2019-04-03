@@ -25,6 +25,7 @@ import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.parameters.ParameterGroup;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.in.input.SIARD2ImportModule;
@@ -35,6 +36,8 @@ import com.databasepreservation.modules.siard.out.output.SIARD2ExportModule;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARD2ModuleFactory implements DatabaseModuleFactory {
+  public static final String PARAMETER_VERSION_0 = "version-2.0";
+  public static final String PARAMETER_VERSION_1 = "version-2.1";
   public static final String PARAMETER_FILE = "file";
   public static final String PARAMETER_COMPRESS = "compress";
   public static final String PARAMETER_PRETTY_XML = "pretty-xml";
@@ -50,19 +53,18 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_META_CLIENT_MACHINE = "meta-client-machine";
   public static final String PARAMETER_GML_DIRECTORY = "gml-directory";
 
+  private static final Parameter version0 = new Parameter().shortName("v0").longName(PARAMETER_VERSION_0)
+    .description("Use SIARD version 2.0").hasArgument(false).required(false)
+    .valueIfSet(SIARDConstants.SiardVersion.V2_0.name());
+
+  private static final Parameter version1 = new Parameter().shortName("v1").longName(PARAMETER_VERSION_1)
+    .description("Use SIARD version 2.1").hasArgument(false).required(false)
+    .valueIfSet(SIARDConstants.SiardVersion.V2_1.name());
+
+  private static final ParameterGroup version = new ParameterGroup(false, version0, version1);
+
   private static final Parameter file = new Parameter().shortName("f").longName(PARAMETER_FILE)
     .description("Path to SIARD2 archive file").hasArgument(true).setOptionalArgument(false).required(true);
-
-  // TODO: check if this argument is really necessary
-  // private static final Parameter auxiliaryContainersInZipFormat = new
-  // Parameter().shortName("...").longName("...").description(
-  // "In some SIARD2 archives, LOBs are saved outside the main SIARD archive
-  // container. These LOBs "+
-  // "may be saved in a ZIP or simply saved to folders. When reading those LOBs
-  // it's important "+
-  // "to know if they are inside a simple folder or a zip
-  // container.").hasArgument(false).required(false)
-  // .valueIfNotSet("false").valueIfSet("true");
 
   private static final Parameter compress = new Parameter().shortName("c").longName(PARAMETER_COMPRESS)
     .description("use to compress the SIARD2 archive file with deflate method").hasArgument(false).required(false)
@@ -151,6 +153,8 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
   @Override
   public Map<String, Parameter> getAllParameters() {
     HashMap<String, Parameter> parameterHashMap = new HashMap<String, Parameter>();
+    parameterHashMap.put(version0.longName(), version0);
+    parameterHashMap.put(version1.longName(), version1);
     parameterHashMap.put(file.longName(), file);
     parameterHashMap.put(compress.longName(), compress);
     parameterHashMap.put(prettyPrintXML.longName(), prettyPrintXML);
@@ -178,7 +182,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
   public Parameters getExportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(Arrays.asList(file, compress, prettyPrintXML, tableFilter, externalLobs,
       externalLobsPerFolder, externalLobsFolderSize, metaDescription, metaArchiver, metaArchiverContact, metaDataOwner,
-      metaDataOriginTimespan, metaClientMachine, gmlDirectory), null);
+      metaDataOriginTimespan, metaClientMachine, gmlDirectory), Arrays.asList(version));
   }
 
   @Override
@@ -194,6 +198,15 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
   public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
     throws UnsupportedModuleException, LicenseNotAcceptedException {
     Path pFile = Paths.get(parameters.get(file));
+
+    // optional group, defaulting to version1
+    SIARDConstants.SiardVersion pVersion = SIARDConstants.SiardVersion.fromString(version1.valueIfSet());
+    for (Parameter versionParameter : version.getParameters()) {
+      if (StringUtils.isNotBlank(parameters.get(versionParameter))) {
+        pVersion = SIARDConstants.SiardVersion.fromString(parameters.get(versionParameter));
+        break;
+      }
+    }
 
     // optional
     boolean pCompress = Boolean.parseBoolean(compress.valueIfNotSet());
@@ -275,13 +288,13 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
       if (pGMLDirectory != null) {
         try {
           return new GMLExtractorFilter(pGMLDirectory).migrateDatabaseTo(
-            new SIARD2ExportModule(pFile, pCompress, pPrettyPrintXML, pTableFilter, pExternalLobsPerFolder,
+            new SIARD2ExportModule(pVersion, pFile, pCompress, pPrettyPrintXML, pTableFilter, pExternalLobsPerFolder,
               pExternalLobsFolderSize, descriptiveMetadataParameterValues).getDatabaseHandler());
         } catch (ModuleException e) {
           throw new UnsupportedModuleException(e);
         }
       } else {
-        return new SIARD2ExportModule(pFile, pCompress, pPrettyPrintXML, pTableFilter, pExternalLobsPerFolder,
+        return new SIARD2ExportModule(pVersion, pFile, pCompress, pPrettyPrintXML, pTableFilter, pExternalLobsPerFolder,
           pExternalLobsFolderSize, descriptiveMetadataParameterValues).getDatabaseHandler();
       }
     } else {
@@ -295,14 +308,13 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
       }
       if (pGMLDirectory != null) {
         try {
-          return new GMLExtractorFilter(pGMLDirectory).migrateDatabaseTo(
-            new SIARD2ExportModule(pFile, pCompress, pPrettyPrintXML, pTableFilter, descriptiveMetadataParameterValues)
-              .getDatabaseHandler());
+          return new GMLExtractorFilter(pGMLDirectory).migrateDatabaseTo(new SIARD2ExportModule(pVersion, pFile,
+            pCompress, pPrettyPrintXML, pTableFilter, descriptiveMetadataParameterValues).getDatabaseHandler());
         } catch (Exception e) {
           throw new UnsupportedModuleException(e);
         }
       } else {
-        return new SIARD2ExportModule(pFile, pCompress, pPrettyPrintXML, pTableFilter,
+        return new SIARD2ExportModule(pVersion, pFile, pCompress, pPrettyPrintXML, pTableFilter,
           descriptiveMetadataParameterValues).getDatabaseHandler();
       }
     }

@@ -222,7 +222,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
   private SIARDArchiveContainer getAnotherExternalContainer() {
     if (contentPathStrategy instanceof SIARD2ContentWithExternalLobsPathExportStrategy) {
       SIARD2ContentWithExternalLobsPathExportStrategy paths = (SIARD2ContentWithExternalLobsPathExportStrategy) contentPathStrategy;
-      return new SIARDArchiveContainer(paths.nextContainerBasePath(baseContainer.getPath()),
+      return new SIARDArchiveContainer(baseContainer.getVersion(), paths.nextContainerBasePath(baseContainer.getPath()),
         SIARDArchiveContainer.OutputContainerType.AUXILIARY);
     } else {
       throw new NotImplementedException("Unsupported ContentPathStrategy");

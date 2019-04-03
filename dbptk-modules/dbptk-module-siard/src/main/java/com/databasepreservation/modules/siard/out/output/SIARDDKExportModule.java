@@ -22,6 +22,7 @@ import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARDDKMetadataPathStrategy;
+import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.out.content.ContentExportStrategy;
 import com.databasepreservation.modules.siard.out.content.LOBsTracker;
 import com.databasepreservation.modules.siard.out.content.SIARDDKContentExportStrategy;
@@ -62,7 +63,8 @@ public class SIARDDKExportModule {
     Path rootPath = FileSystems.getDefault().getPath(exportModuleArgs.get("folder"));
     this.tableFilter = tableFilter;
 
-    mainContainer = new SIARDArchiveContainer(rootPath, SIARDArchiveContainer.OutputContainerType.MAIN);
+    mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.DK, rootPath,
+      SIARDArchiveContainer.OutputContainerType.MAIN);
     writeStrategy = new FolderWriteStrategy();
     siardMarshaller = new StandardSIARDMarshaller();
     fileIndexFileStrategy = new FileIndexFileStrategy();

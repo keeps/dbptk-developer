@@ -40,6 +40,7 @@ import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.modules.siard.common.LargeObject;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.out.metadata.DocIndexFileStrategy;
 import com.databasepreservation.modules.siard.out.metadata.FileIndexFileStrategy;
@@ -55,7 +56,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
   private static final String ENCODING = "utf-8";
   private static final String TAB = "  ";
-  private static final String namespaceBase = "http://www.sa.dk/xmlns/siard/1.0/";
+  private static final String namespaceBase = "http://www.sa.dk/xmlns/siard/"
+    + SIARDConstants.SiardVersion.DK.getNamespace() + "/";
   private static final Logger logger = LoggerFactory.getLogger(SIARDDKContentExportStrategy.class);
 
   private int tableCounter;

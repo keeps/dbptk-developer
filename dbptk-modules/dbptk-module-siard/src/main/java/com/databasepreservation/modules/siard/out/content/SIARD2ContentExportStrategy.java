@@ -404,12 +404,15 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       .beginOpenTag("table", 0)
 
       .appendAttribute("xsi:schemaLocation",
-        contentPathStrategy.getTableXsdNamespace("http://www.admin.ch/xmlns/siard/2.0/", currentSchema.getIndex(),
-          currentTable.getIndex()) + " " + contentPathStrategy.getTableXsdFileName(currentTable.getIndex()))
+        contentPathStrategy.getTableXsdNamespace(
+          "http://www.admin.ch/xmlns/siard/" + baseContainer.getVersion().getNamespace() + "/",
+          currentSchema.getIndex(), currentTable.getIndex()) + " "
+          + contentPathStrategy.getTableXsdFileName(currentTable.getIndex()))
 
       .appendAttribute("xmlns",
-        contentPathStrategy.getTableXsdNamespace("http://www.admin.ch/xmlns/siard/2.0/", currentSchema.getIndex(),
-          currentTable.getIndex()))
+        contentPathStrategy.getTableXsdNamespace(
+          "http://www.admin.ch/xmlns/siard/" + baseContainer.getVersion().getNamespace() + "/",
+          currentSchema.getIndex(), currentTable.getIndex()))
 
       .appendAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
 
@@ -421,20 +424,15 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   }
 
   protected void writeLOB(LargeObject lob) throws ModuleException, IOException {
-    OutputStream out = writeStrategy.createOutputStream(baseContainer, lob.getOutputPath());
-    InputStream in = lob.getInputStreamProvider().createInputStream();
-
-    LOGGER.debug("Writing lob to " + lob.getOutputPath());
+    LOGGER.debug("Writing lob to {}", lob.getOutputPath());
 
     // copy lob to output
-    try {
+    try (OutputStream out = writeStrategy.createOutputStream(baseContainer, lob.getOutputPath());
+      InputStream in = lob.getInputStreamProvider().createInputStream()) {
       IOUtils.copy(in, out);
     } catch (IOException e) {
       throw new ModuleException().withMessage("Could not write lob").withCause(e);
     } finally {
-      // close resources
-      IOUtils.closeQuietly(in);
-      IOUtils.closeQuietly(out);
       lob.getInputStreamProvider().cleanResources();
     }
   }
@@ -452,16 +450,18 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       .beginOpenTag("xs:schema", 0).appendAttribute("xmlns:xs", "http://www.w3.org/2001/XMLSchema")
 
       .appendAttribute("xmlns",
-        contentPathStrategy.getTableXsdNamespace("http://www.admin.ch/xmlns/siard/2.0/", currentSchema.getIndex(),
-          currentTable.getIndex()))
+        contentPathStrategy.getTableXsdNamespace(
+          "http://www.admin.ch/xmlns/siard/" + baseContainer.getVersion().getNamespace() + "/",
+          currentSchema.getIndex(), currentTable.getIndex()))
 
       .appendAttribute("attributeFormDefault", "unqualified")
 
       .appendAttribute("elementFormDefault", "qualified")
 
       .appendAttribute("targetNamespace",
-        contentPathStrategy.getTableXsdNamespace("http://www.admin.ch/xmlns/siard/2.0/", currentSchema.getIndex(),
-          currentTable.getIndex()))
+        contentPathStrategy.getTableXsdNamespace(
+          "http://www.admin.ch/xmlns/siard/" + baseContainer.getVersion().getNamespace() + "/",
+          currentSchema.getIndex(), currentTable.getIndex()))
 
       .endOpenTag()
 

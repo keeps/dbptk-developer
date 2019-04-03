@@ -44,35 +44,34 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.Trigger;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.CandidateKeyType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.CandidateKeysType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.CheckConstraintType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.CheckConstraintsType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.ColumnType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.ColumnsType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.ForeignKeyType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.ForeignKeysType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.ParameterType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.ParametersType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.PrimaryKeyType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.PrivilegeType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.PrivilegesType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.ReferenceType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.RoleType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.RolesType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.RoutineType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.RoutinesType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.SchemaType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.SchemasType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.SiardArchive;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.TableType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.TablesType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.TriggerType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.TriggersType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.UserType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.UsersType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.ViewType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.ViewsType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.CandidateKeysType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.CheckConstraintType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.CheckConstraintsType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.ColumnType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.ColumnsType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.ForeignKeyType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.ForeignKeysType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.ParameterType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.ParametersType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.PrivilegeType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.PrivilegesType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.ReferenceType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.RoleType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.RolesType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.RoutineType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.RoutinesType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.SchemaType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.SchemasType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.SiardArchive;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.TableType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.TablesType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.TriggerType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.TriggersType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.UniqueKeyType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.UserType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.UsersType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.ViewType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.ViewsType;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQL2008StandardDatatypeImporter;
@@ -81,12 +80,13 @@ import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.utils.JodaUtils;
+import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
-  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2MetadataImportStrategy.class);
+public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD21MetadataImportStrategy.class);
   private static final String METADATA_FILENAME = "metadata";
 
   private DatabaseStructure databaseStructure;
@@ -105,7 +105,7 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
 
   private Reporter reporter;
 
-  public SIARD2MetadataImportStrategy(MetadataPathStrategy metadataPathStrategy,
+  public SIARD21MetadataImportStrategy(MetadataPathStrategy metadataPathStrategy,
     ContentPathImportStrategy contentPathImportStrategy) {
     this.metadataPathStrategy = metadataPathStrategy;
     this.contentPathStrategy = contentPathImportStrategy;
@@ -368,7 +368,7 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
       result.setReturnType(routineType.getReturnType());
       // TODO: XSD has name attributes but has type ParametersType, find out if
       // this is a typo
-      result.setParameters(getParameters(routineType.getAttributes()));
+      result.setParameters(getParameters(routineType.getParameters()));
 
       return result;
     } else {
@@ -509,11 +509,11 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
     if (triggerType != null) {
       Trigger result = new Trigger();
 
-      result.setName(triggerType.getName());
+      result.setName(XMLUtils.decode(triggerType.getName()));
       result.setActionTime(triggerType.getActionTime().value());
-      result.setTriggerEvent(triggerType.getTriggerEvent());
+      result.setTriggerEvent(XMLUtils.decode(triggerType.getTriggerEvent()));
       result.setAliasList(triggerType.getAliasList());
-      result.setTriggeredAction(triggerType.getTriggeredAction());
+      result.setTriggeredAction(XMLUtils.decode(triggerType.getTriggeredAction()));
       result.setDescription(triggerType.getDescription());
 
       return result;
@@ -552,7 +552,7 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
     List<CandidateKey> result = new ArrayList<CandidateKey>();
 
     if (candidateKeys != null && !candidateKeys.getCandidateKey().isEmpty()) {
-      for (CandidateKeyType candidateKeyType : candidateKeys.getCandidateKey()) {
+      for (UniqueKeyType candidateKeyType : candidateKeys.getCandidateKey()) {
         result.add(getCandidateKey(candidateKeyType));
       }
     }
@@ -560,7 +560,7 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
     return result;
   }
 
-  private CandidateKey getCandidateKey(CandidateKeyType candidateKeyType) {
+  private CandidateKey getCandidateKey(UniqueKeyType candidateKeyType) {
     if (candidateKeyType != null) {
       CandidateKey result = new CandidateKey();
 
@@ -597,8 +597,8 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
       if (foreignKey.getMatchType() != null) {
         result.setMatchType(foreignKey.getMatchType().value());
       }
-      result.setDeleteAction(foreignKey.getDeleteAction());
-      result.setUpdateAction(foreignKey.getUpdateAction());
+      result.setDeleteAction(foreignKey.getDeleteAction() != null ? foreignKey.getDeleteAction().value() : null);
+      result.setUpdateAction(foreignKey.getUpdateAction() != null ? foreignKey.getUpdateAction().value() : null);
       result.setDescription(foreignKey.getDescription());
 
       result.setReferences(getReferences(foreignKey.getReference()));
@@ -653,12 +653,12 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
       result.setName(column.getName());
       result.setId(tableId + "." + result.getName());
 
-      String lobFolder = column.getFolder();
+      String lobFolder = column.getLobFolder();
       if (StringUtils.isBlank(lobFolder)) {
         lobFolder = column.getLobFolder();
       }
 
-      contentPathStrategy.associateColumnWithFolder(result.getId(), column.getFolder());
+      contentPathStrategy.associateColumnWithFolder(result.getId(), column.getLobFolder());
 
       result.setType(sqlStandardDatatypeImporter.getCheckedType(metadataCurrentDatabaseName, metadataCurrentSchemaName,
         metadataCurrentTableName, column.getName(), column.getType(), column.getTypeOriginal()));
@@ -680,7 +680,7 @@ public class SIARD2MetadataImportStrategy implements MetadataImportStrategy {
     }
   }
 
-  private PrimaryKey getPrimaryKey(PrimaryKeyType primaryKey) {
+  private PrimaryKey getPrimaryKey(UniqueKeyType primaryKey) {
     if (primaryKey != null) {
       PrimaryKey result = new PrimaryKey();
 

@@ -24,6 +24,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.out.metadata.FileIndexFileStrategy;
 import com.databasepreservation.modules.siard.out.write.FolderWriteStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
@@ -46,7 +47,8 @@ public class TestFileIndexFileStrategy {
     File f = new File(rootPath.toString());
     FileUtils.deleteDirectory(f);
 
-    mainContainer = new SIARDArchiveContainer(rootPath, SIARDArchiveContainer.OutputContainerType.MAIN);
+    mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.DK, rootPath,
+      SIARDArchiveContainer.OutputContainerType.MAIN);
     writeStrategy = new FolderWriteStrategy();
     fileIndexFileStrategy = new FileIndexFileStrategy();
   }

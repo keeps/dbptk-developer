@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
@@ -47,43 +48,49 @@ import com.databasepreservation.model.structure.Trigger;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure;
+import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.SIARDHelper;
-import com.databasepreservation.modules.siard.bindings.siard_1.ActionTimeType;
-import com.databasepreservation.modules.siard.bindings.siard_1.CandidateKeyType;
-import com.databasepreservation.modules.siard.bindings.siard_1.CandidateKeysType;
-import com.databasepreservation.modules.siard.bindings.siard_1.CheckConstraintType;
-import com.databasepreservation.modules.siard.bindings.siard_1.CheckConstraintsType;
-import com.databasepreservation.modules.siard.bindings.siard_1.ColumnType;
-import com.databasepreservation.modules.siard.bindings.siard_1.ColumnsType;
-import com.databasepreservation.modules.siard.bindings.siard_1.ForeignKeyType;
-import com.databasepreservation.modules.siard.bindings.siard_1.ForeignKeysType;
-import com.databasepreservation.modules.siard.bindings.siard_1.MatchTypeType;
-import com.databasepreservation.modules.siard.bindings.siard_1.ParameterType;
-import com.databasepreservation.modules.siard.bindings.siard_1.ParametersType;
-import com.databasepreservation.modules.siard.bindings.siard_1.PrimaryKeyType;
-import com.databasepreservation.modules.siard.bindings.siard_1.PrivOptionType;
-import com.databasepreservation.modules.siard.bindings.siard_1.PrivilegeType;
-import com.databasepreservation.modules.siard.bindings.siard_1.PrivilegesType;
-import com.databasepreservation.modules.siard.bindings.siard_1.ReferenceType;
-import com.databasepreservation.modules.siard.bindings.siard_1.RoleType;
-import com.databasepreservation.modules.siard.bindings.siard_1.RolesType;
-import com.databasepreservation.modules.siard.bindings.siard_1.RoutineType;
-import com.databasepreservation.modules.siard.bindings.siard_1.RoutinesType;
-import com.databasepreservation.modules.siard.bindings.siard_1.SchemaType;
-import com.databasepreservation.modules.siard.bindings.siard_1.SchemasType;
-import com.databasepreservation.modules.siard.bindings.siard_1.SiardArchive;
-import com.databasepreservation.modules.siard.bindings.siard_1.TableType;
-import com.databasepreservation.modules.siard.bindings.siard_1.TablesType;
-import com.databasepreservation.modules.siard.bindings.siard_1.TriggerType;
-import com.databasepreservation.modules.siard.bindings.siard_1.TriggersType;
-import com.databasepreservation.modules.siard.bindings.siard_1.UserType;
-import com.databasepreservation.modules.siard.bindings.siard_1.UsersType;
-import com.databasepreservation.modules.siard.bindings.siard_1.ViewType;
-import com.databasepreservation.modules.siard.bindings.siard_1.ViewsType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.ActionTimeType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.AttributeType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.AttributesType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.CandidateKeyType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.CandidateKeysType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.CategoryType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.CheckConstraintType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.CheckConstraintsType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.ColumnType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.ColumnsType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.ForeignKeyType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.ForeignKeysType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.MatchTypeType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.ParameterType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.ParametersType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.PrimaryKeyType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.PrivOptionType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.PrivilegeType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.PrivilegesType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.ReferenceType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.RoleType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.RolesType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.RoutineType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.RoutinesType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.SchemaType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.SchemasType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.SiardArchive;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.TableType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.TablesType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.TriggerType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.TriggersType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.TypeType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.TypesType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.UserType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.UsersType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.ViewType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.ViewsType;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.out.content.Sql99toXSDType;
-import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.content.Sql2008toXSDType;
+import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.XMLUtils;
@@ -91,19 +98,22 @@ import com.databasepreservation.utils.XMLUtils;
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
+public class SIARD20MetadataExportStrategy implements MetadataExportStrategy {
   private static final String ENCODING = "UTF-8";
   private static final String METADATA_FILENAME = "metadata";
-  private static final String METADATA_RESOURCE_FILENAME = "siard1-metadata";
-  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD1MetadataExportStrategy.class);
-  private final ContentPathExportStrategy contentPathStrategy;
+  private static final String METADATA_RESOURCE_FILENAME = "siard2-0-metadata";
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD20MetadataExportStrategy.class);
+  private final SIARD2ContentPathExportStrategy contentPathStrategy;
   private final MetadataPathStrategy metadataPathStrategy;
+  private final boolean savingLobsExternally;
 
   private Reporter reporter;
 
-  public SIARD1MetadataExportStrategy(MetadataPathStrategy metadataPathStrategy, ContentPathExportStrategy paths) {
+  public SIARD20MetadataExportStrategy(MetadataPathStrategy metadataPathStrategy, SIARD2ContentPathExportStrategy paths,
+    boolean savingLobsExternally) {
     this.contentPathStrategy = paths;
     this.metadataPathStrategy = metadataPathStrategy;
+    this.savingLobsExternally = savingLobsExternally;
   }
 
   @Override
@@ -146,10 +156,18 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     } catch (IOException e) {
       throw new ModuleException().withMessage("Error while closing the data writer").withCause(e);
     }
+
+    // create subfolder header/version/2.0
+    OutputStream writer = writeStrategy.createOutputStream(container, "header/version/2.0/");
+    try {
+      writer.close();
+    } catch (IOException e) {
+      throw new ModuleException().withMessage("Error while closing the data writer").withCause(e);
+    }
   }
 
   @Override
-  public void writeMetadataXSD(DatabaseStructure dbStructure, SIARDArchiveContainer container,
+  public void writeMetadataXSD(DatabaseStructure databaseStructure, SIARDArchiveContainer container,
     WriteStrategy writeStrategy) throws ModuleException {
     // prepare to write
     OutputStream out = writeStrategy.createOutputStream(container,
@@ -188,79 +206,83 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     this.reporter = reporter;
   }
 
-  private SiardArchive jaxbSiardArchive(DatabaseStructure db) throws ModuleException {
-    SiardArchive elem = new SiardArchive();
-    elem.setArchivalDate(JodaUtils.xsDateFormat(db.getArchivalDate()));
+  private SiardArchive jaxbSiardArchive(DatabaseStructure dbStructure) throws ModuleException {
+    SiardArchive siardArchive = new SiardArchive();
+    siardArchive.setArchivalDate(JodaUtils.xsDateFormat(dbStructure.getArchivalDate()));
 
-    elem.setVersion("1.0");
+    siardArchive.setVersion("2.0");
 
-    if (StringUtils.isNotBlank(db.getName())) {
-      elem.setDbname(db.getName());
+    if (StringUtils.isNotBlank(dbStructure.getName())) {
+      siardArchive.setDbname(dbStructure.getName());
     } else {
       throw new ModuleException().withMessage("Error while exporting structure: dbname cannot be blank");
     }
 
-    if (StringUtils.isNotBlank(db.getDescription())) {
-      elem.setDescription(db.getDescription());
+    if (StringUtils.isNotBlank(dbStructure.getDescription())) {
+      siardArchive.setDescription(dbStructure.getDescription());
     }
 
-    if (StringUtils.isNotBlank(db.getArchiver())) {
-      elem.setArchiver(db.getArchiver());
+    if (StringUtils.isNotBlank(dbStructure.getArchiver())) {
+      siardArchive.setArchiver(dbStructure.getArchiver());
     }
 
-    if (StringUtils.isNotBlank(db.getArchiverContact())) {
-      elem.setArchiverContact(db.getArchiverContact());
+    if (StringUtils.isNotBlank(dbStructure.getArchiverContact())) {
+      siardArchive.setArchiverContact(dbStructure.getArchiverContact());
     }
 
-    if (StringUtils.isNotBlank(db.getDataOwner())) {
-      elem.setDataOwner(db.getDataOwner());
+    if (StringUtils.isNotBlank(dbStructure.getDataOwner())) {
+      siardArchive.setDataOwner(dbStructure.getDataOwner());
     } else {
       throw new ModuleException().withMessage("Error while exporting structure: data owner cannot be blank");
     }
 
-    if (StringUtils.isNotBlank(db.getDataOriginTimespan())) {
-      elem.setDataOriginTimespan(db.getDataOriginTimespan());
+    if (StringUtils.isNotBlank(dbStructure.getDataOriginTimespan())) {
+      siardArchive.setDataOriginTimespan(dbStructure.getDataOriginTimespan());
     } else {
       throw new ModuleException().withMessage("Error while exporting structure: data origin timestamp cannot be blank");
     }
 
-    if (StringUtils.isNotBlank(db.getProducerApplication())) {
-      elem.setProducerApplication(db.getProducerApplication());
+    if (StringUtils.isNotBlank(dbStructure.getProducerApplication())) {
+      siardArchive.setProducerApplication(dbStructure.getProducerApplication());
     }
 
-    if (db.getArchivalDate() != null) {
-      elem.setArchivalDate(JodaUtils.xsDateFormat(db.getArchivalDate()));
+    if (dbStructure.getArchivalDate() != null) {
+      siardArchive.setArchivalDate(JodaUtils.xsDateFormat(dbStructure.getArchivalDate()));
     }
 
-    // TODO: use some kind of message digest
-    elem.setMessageDigest("");
+    // TODO: set message digest
+    // siardArchive.setMessageDigest("");
 
-    if (StringUtils.isNotBlank(db.getProductName())) {
-      if (StringUtils.isBlank(db.getProductVersion())) {
-        elem.setDatabaseProduct(db.getProductName());
+    if (StringUtils.isNotBlank(dbStructure.getProductName())) {
+      if (StringUtils.isBlank(dbStructure.getProductVersion())) {
+        siardArchive.setDatabaseProduct(dbStructure.getProductName());
       } else {
-        elem.setDatabaseProduct(db.getProductName() + " " + db.getProductVersion());
+        siardArchive.setDatabaseProduct(dbStructure.getProductName() + " " + dbStructure.getProductVersion());
       }
     }
 
-    if (StringUtils.isNotBlank(db.getUrl())) {
-      elem.setConnection(db.getUrl());
+    if (StringUtils.isNotBlank(dbStructure.getUrl())) {
+      siardArchive.setConnection(dbStructure.getUrl());
     }
 
-    if (StringUtils.isNotBlank(db.getDatabaseUser())) {
-      elem.setDatabaseUser(db.getDatabaseUser());
+    if (StringUtils.isNotBlank(dbStructure.getDatabaseUser())) {
+      siardArchive.setDatabaseUser(dbStructure.getDatabaseUser());
     }
 
-    if (StringUtils.isNotBlank(db.getClientMachine())) {
-      elem.setClientMachine(db.getClientMachine());
+    if (StringUtils.isNotBlank(dbStructure.getClientMachine())) {
+      siardArchive.setClientMachine(dbStructure.getClientMachine());
     }
 
-    elem.setSchemas(jaxbSchemasType(db.getSchemas()));
-    elem.setUsers(jaxbUsersType(db.getUsers()));
-    elem.setRoles(jaxbRolesType(db.getRoles()));
-    elem.setPrivileges(jaxbPrivilegesType(db.getPrivileges()));
+    siardArchive.setSchemas(jaxbSchemasType(dbStructure.getSchemas()));
+    siardArchive.setUsers(jaxbUsersType(dbStructure.getUsers()));
+    siardArchive.setRoles(jaxbRolesType(dbStructure.getRoles()));
+    siardArchive.setPrivileges(jaxbPrivilegesType(dbStructure.getPrivileges()));
 
-    return elem;
+    if (!savingLobsExternally) {
+      siardArchive.setLobFolder("content");
+    }
+
+    return siardArchive;
   }
 
   private PrivilegesType jaxbPrivilegesType(List<PrivilegeStructure> privileges) throws ModuleException {
@@ -415,8 +437,89 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     schemaType.setTables(jaxbTablesType(schema, schema.getTables()));
     schemaType.setViews(jaxbViewsType(schema.getViews()));
     schemaType.setRoutines(jaxbRoutinesType(schema.getRoutines()));
+    schemaType.setTypes(jaxbTypesType(schema.getUserDefinedTypesComposed()));
 
     return schemaType;
+  }
+
+  private TypesType jaxbTypesType(List<ComposedTypeStructure> userDefinedTypes) throws ModuleException {
+    if (userDefinedTypes != null && !userDefinedTypes.isEmpty()) {
+      TypesType typesType = new TypesType();
+      for (ComposedTypeStructure userDefinedType : userDefinedTypes) {
+        typesType.getType().add(jaxbTypeType(userDefinedType));
+      }
+      return typesType;
+    } else {
+      return null;
+    }
+  }
+
+  private TypeType jaxbTypeType(ComposedTypeStructure userDefinedType) throws ModuleException {
+    TypeType typeType = new TypeType();
+
+    // TODO: support type hierarchy
+
+    // TODO: support other kinds of UDT
+    typeType.setCategory(CategoryType.UDT);
+
+    // TODO: this is the common case; support other options
+    typeType.setInstantiable(true);
+    typeType.setFinal(false);
+
+    if (StringUtils.isNotBlank(userDefinedType.getOriginalTypeName())) {
+      typeType.setName(userDefinedType.getOriginalTypeName());
+    } else {
+      throw new ModuleException().withMessage("Error while exporting UDT structure: type name cannot be null");
+    }
+
+    typeType.setAttributes(jaxbAttributesType(userDefinedType.getDirectDescendantSubTypes()));
+
+    return typeType;
+  }
+
+  private AttributesType jaxbAttributesType(Map<String, Type> directDescendantSubTypes) throws ModuleException {
+    if (directDescendantSubTypes != null && !directDescendantSubTypes.isEmpty()) {
+      AttributesType attributesType = new AttributesType();
+      for (Map.Entry<String, Type> nameAndType : directDescendantSubTypes.entrySet()) {
+        attributesType.getAttribute().add(jaxbAttributeType(nameAndType.getKey(), nameAndType.getValue()));
+      }
+      return attributesType;
+    } else {
+      return null;
+    }
+  }
+
+  private AttributeType jaxbAttributeType(String name, Type type) throws ModuleException {
+    AttributeType attributeType = new AttributeType();
+
+    if (StringUtils.isNotBlank(name)) {
+      attributeType.setName(name);
+    } else {
+      throw new ModuleException().withMessage("Error while exporting attribute structure: type name cannot be null");
+    }
+
+    if (type != null) {
+      if (type instanceof ComposedTypeStructure) {
+        LOGGER.debug("Saving UDT type '" + type.getOriginalTypeName() + "'(internal_id:" + type.hashCode() + ")");
+        attributeType.setTypeName(type.getOriginalTypeName());
+      } else {
+        LOGGER.debug("Saving type '" + type.getOriginalTypeName() + "'(internal_id:" + type.hashCode() + ") as "
+          + type.getSql2008TypeName());
+        attributeType.setType(type.getSql2008TypeName());
+        attributeType.setTypeOriginal(type.getOriginalTypeName());
+      }
+    } else {
+      throw new ModuleException().withMessage("Error while exporting table structure: column type cannot be null");
+    }
+
+    // TODO: default value for type
+    // if (StringUtils.isNotBlank(type.get)) {
+    // columnType.setDefaultValue(type.getDefaultValue());
+    // }
+
+    // TODO: somehow set fields related to lob and complex types
+
+    return attributeType;
   }
 
   private RoutinesType jaxbRoutinesType(List<RoutineStructure> routines) throws ModuleException {
@@ -460,7 +563,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
       routineType.setReturnType(routine.getReturnType());
     }
 
-    routineType.setParameters(jaxbParametersType(routine.getParameters()));
+    routineType.setAttributes(jaxbParametersType(routine.getParameters()));
 
     return routineType;
   }
@@ -495,7 +598,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (parameter.getType() != null) {
-      parameterType.setType(parameter.getType().getSql99TypeName());
+      parameterType.setType(parameter.getType().getSql2008TypeName());
       parameterType.setTypeOriginal(parameter.getType().getOriginalTypeName());
     } else {
       throw new ModuleException()
@@ -505,6 +608,11 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     if (StringUtils.isNotBlank(parameter.getDescription())) {
       parameterType.setDescription(parameter.getDescription());
     }
+
+    // todo: set these for complex types
+    // parameterType.setTypeSchema(null);
+    // parameterType.setTypeName(null);
+    // parameterType.setParameterFields(null);
 
     return parameterType;
   }
@@ -553,7 +661,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
       for (int index = 0; index < columns.size(); index++) {
         ColumnStructure columnStructure = columns.get(index); // 0-based index
         columnsType.getColumn().add(jaxbColumnType(columnStructure, index + 1)); // 1-based
-        // index
+                                                                                 // index
       }
       return columnsType;
     } else {
@@ -572,15 +680,9 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
 
     if (column.getType() != null) {
       if (column.getType() instanceof ComposedTypeStructure) {
-        LOGGER.debug("ignoring composed type '" + column.getType().getOriginalTypeName() + "'");
-        columnType.setType("SMALLINT");
-        columnType.setNullable(true);
-
-        columnType.setTypeOriginal(column.getType().getOriginalTypeName());
+        columnType.setTypeName(column.getType().getOriginalTypeName());
       } else {
-        LOGGER.debug("Saving type '" + column.getType().getOriginalTypeName() + "'(internal_id:"
-          + column.getType().hashCode() + ") as " + column.getType().getSql99TypeName());
-        columnType.setType(column.getType().getSql99TypeName());
+        columnType.setType(column.getType().getSql2008TypeName());
         columnType.setTypeOriginal(column.getType().getOriginalTypeName());
 
         if (column.isNillable() != null) {
@@ -601,18 +703,27 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
       columnType.setDescription(column.getDescription());
     }
 
+    // TODO: set fields related to lob and complex types
+
     // specific fields for lobs
-    String xsdTypeFromColumnSql99Type = null;
+    String xsdTypeFromColumnSql2008Type = null;
     try {
-      xsdTypeFromColumnSql99Type = Sql99toXSDType.convert(column.getType(), reporter);
+      xsdTypeFromColumnSql2008Type = Sql2008toXSDType.convert(column.getType(), reporter);
     } catch (UnknownTypeException e) {
       throw new ModuleException().withMessage("Could not get SQL2008 type").withCause(e);
     }
 
-    if (xsdTypeFromColumnSql99Type != null
-      && ("clobType".equals(xsdTypeFromColumnSql99Type) || "blobType".equals(xsdTypeFromColumnSql99Type))) {
+    // don't set Folder if LOBs are being saved externally
+    if (xsdTypeFromColumnSql2008Type != null && !savingLobsExternally
+      && ("clobType".equals(xsdTypeFromColumnSql2008Type) || "blobType".equals(xsdTypeFromColumnSql2008Type))) {
       columnType.setFolder(contentPathStrategy.getColumnFolderName(columnIndex));
     }
+
+    // columnType.setLobFolder(null);
+    // columnType.setTypeSchema(null);
+    // columnType.setTypeName(null);
+    // columnType.setFields(null);
+    // columnType.setMimeType(null);
 
     return columnType;
   }
@@ -686,6 +797,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
         // empty");
         LOGGER.warn("Error while exporting primary key: column list cannot be empty");
       }
+
       return primaryKeyType;
     } else {
       return null;

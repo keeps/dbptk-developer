@@ -9,6 +9,9 @@ package com.databasepreservation.modules.siard.in.input;
 
 import java.nio.file.Path;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
@@ -17,7 +20,8 @@ import com.databasepreservation.modules.siard.common.path.SIARD2MetadataPathStra
 import com.databasepreservation.modules.siard.in.content.ContentImportStrategy;
 import com.databasepreservation.modules.siard.in.content.SIARD2ContentImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.MetadataImportStrategy;
-import com.databasepreservation.modules.siard.in.metadata.SIARD2MetadataImportStrategy;
+import com.databasepreservation.modules.siard.in.metadata.SIARD20MetadataImportStrategy;
+import com.databasepreservation.modules.siard.in.metadata.SIARD21MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
@@ -33,6 +37,7 @@ public class SIARD2ImportModule {
   private final SIARDArchiveContainer lobContainer;
   private final MetadataImportStrategy metadataStrategy;
   private final ContentImportStrategy contentStrategy;
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2ImportModule.class);
 
   public SIARD2ImportModule(Path siardPackage) {
     this(siardPackage, false);
@@ -52,6 +57,7 @@ public class SIARD2ImportModule {
    */
   public SIARD2ImportModule(Path siardPackagePath, boolean auxiliaryContainersInZipFormat) {
     Path siardPackageNormalizedPath = siardPackagePath.toAbsolutePath().normalize();
+
     mainContainer = new SIARDArchiveContainer(siardPackageNormalizedPath,
       SIARDArchiveContainer.OutputContainerType.MAIN);
     lobContainer = new SIARDArchiveContainer(siardPackageNormalizedPath.getParent(),
@@ -65,16 +71,24 @@ public class SIARD2ImportModule {
     // identify version before creating metadata/content import strategy instances
     try {
       readStrategy.setup(mainContainer);
-      mainContainer.setVersion(MetadataPathStrategy.VersionIdentifier.getVersion(readStrategy, mainContainer));
     } catch (ModuleException e) {
-      // do nothing and let it fail later
+      LOGGER.debug("Problem setting up container", e);
     }
 
     ContentPathImportStrategy contentPathStrategy = new SIARD2ContentPathImportStrategy();
     contentStrategy = new SIARD2ContentImportStrategy(readStrategy, contentPathStrategy, lobContainer);
 
     MetadataPathStrategy metadataPathStrategy = new SIARD2MetadataPathStrategy();
-    metadataStrategy = new SIARD2MetadataImportStrategy(metadataPathStrategy, contentPathStrategy);
+    switch (mainContainer.getVersion()) {
+      case V2_0:
+        metadataStrategy = new SIARD20MetadataImportStrategy(metadataPathStrategy, contentPathStrategy);
+        break;
+      case V2_1:
+        metadataStrategy = new SIARD21MetadataImportStrategy(metadataPathStrategy, contentPathStrategy);
+        break;
+      default:
+        metadataStrategy = null;
+    }
   }
 
   public DatabaseImportModule getDatabaseImportModule() {

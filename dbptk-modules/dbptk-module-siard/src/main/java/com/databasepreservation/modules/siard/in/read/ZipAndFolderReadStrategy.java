@@ -70,6 +70,9 @@ public class ZipAndFolderReadStrategy implements ReadStrategy {
   public void setup(SIARDArchiveContainer container) throws ModuleException {
     if (container == mainContainer) {
       zipRead.setup(container);
+    } else if (mainContainer != null && mainContainer.getVersion() != null && container != null
+      && container.getVersion() == null) {
+      container.setVersion(mainContainer.getVersion());
     }
   }
 

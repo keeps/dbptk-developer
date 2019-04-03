@@ -7,6 +7,11 @@
  */
 package com.databasepreservation.testing.integration.siard;
 
+import static com.databasepreservation.modules.siard.constants.SIARDConstants.SiardVersion;
+import static com.databasepreservation.modules.siard.constants.SIARDConstants.SiardVersion.V1_0;
+import static com.databasepreservation.modules.siard.constants.SIARDConstants.SiardVersion.V2_0;
+import static com.databasepreservation.modules.siard.constants.SIARDConstants.SiardVersion.V2_1;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,7 +77,6 @@ import com.databasepreservation.modules.siard.in.input.SIARDDKImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD1ExportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD2ExportModule;
 import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
-import com.databasepreservation.testing.SIARDVersion;
 import com.databasepreservation.testing.integration.roundtrip.differences.TextDiff;
 import com.databasepreservation.utils.JodaUtils;
 
@@ -94,8 +98,9 @@ public class SiardTest {
   public Iterator<Object[]> siardVersionsProvider() {
     ArrayList<Object[]> tests = new ArrayList<Object[]>();
 
-    tests.add(new SIARDVersion[] {SIARDVersion.SIARD_1});
-    tests.add(new SIARDVersion[] {SIARDVersion.SIARD_2});
+    tests.add(new SiardVersion[] {V1_0});
+    tests.add(new SiardVersion[] {V2_0});
+    tests.add(new SiardVersion[] {V2_1});
 
     return tests.iterator();
   }
@@ -110,7 +115,7 @@ public class SiardTest {
    * @throws InvalidDataException
    */
   @Test(dataProvider = "siardVersionsProvider")
-  public void SIARD_Roundtrip(SIARDVersion version)
+  public void SIARD_Roundtrip(SiardVersion version)
     throws ModuleException, IOException, UnknownTypeException, InvalidDataException {
     Path tmpFile = Files.createTempFile("roundtripSIARD_", ".zip");
     // Path tmpFile = Files.createTempDirectory("roundtripSIARD_");
@@ -555,18 +560,19 @@ public class SiardTest {
    * @throws UnknownTypeException
    * @throws InvalidDataException
    */
-  protected DatabaseStructure roundtrip(DatabaseStructure dbStructure, Path tmpFile, SIARDVersion version)
+  protected DatabaseStructure roundtrip(DatabaseStructure dbStructure, Path tmpFile, SiardVersion version)
     throws FileNotFoundException, ModuleException, UnknownTypeException, InvalidDataException {
     DatabaseExportModule exporter = null;
 
     switch (version) {
-      case SIARD_1:
+      case V1_0:
         exporter = new SIARD1ExportModule(tmpFile, true, false, null, null).getDatabaseHandler();
         break;
-      case SIARD_2:
-        exporter = new SIARD2ExportModule(tmpFile, true, false, null, null).getDatabaseHandler();
+      case V2_0:
+      case V2_1:
+        exporter = new SIARD2ExportModule(version, tmpFile, true, false, null, null).getDatabaseHandler();
         break;
-      case SIARD_DK:
+      case DK:
         Map<String, String> exportModuleArgs = new HashMap<String, String>();
         exportModuleArgs.put(SIARDDKModuleFactory.PARAMETER_FOLDER, tmpFile.toString());
         exportModuleArgs.put(SIARDDKModuleFactory.PARAMETER_LOBS_PER_FOLDER, "10000");
@@ -616,14 +622,15 @@ public class SiardTest {
 
     DatabaseImportModule importer = null;
     switch (version) {
-      case SIARD_1:
+      case V1_0:
         importer = new SIARD1ImportModule(tmpFile).getDatabaseImportModule();
         break;
-      case SIARD_2:
+      case V2_0:
+      case V2_1:
         importer = new SIARD2ImportModule(tmpFile).getDatabaseImportModule();
         break;
 
-      case SIARD_DK:
+      case DK:
         // Notice: SIARD DK doesn't support schemas in the archive format.
         // Therefore it uses a special 'importAsSchema' parameter, to make it
         // compatible with the format of the dptkl internal database structure

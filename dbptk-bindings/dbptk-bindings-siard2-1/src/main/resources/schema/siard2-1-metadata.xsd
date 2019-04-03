@@ -631,30 +631,30 @@ Copyright  : 2007, 2014, 2018, Swiss Federal Archives, Berne, Switzerland
         </xs:annotation>
         <xs:restriction base="xs:string">
             <!-- exact numerics (BIGINT from SQL:2008) -->
-            <xs:pattern value="INTEGER|INT|SMALLINT|BIGINT"/>
-            <xs:pattern value="(NUMERIC|DECIMAL|DEC)(\s*\(\s*[1-9]\d*\s*(,\s*\d+\s*)?\))?"/>
+            <xs:pattern value="(INTEGER|INT|SMALLINT|BIGINT)(\s+ARRAY(\s+\[[0-9]+\])?)?"/>
+            <xs:pattern value="(NUMERIC|DECIMAL|DEC)(\s*\(\s*[1-9]\d*\s*(,\s*\d+\s*)?\))?(\s+ARRAY(\s+\[[0-9]+\])?)?"/>
             <!-- approximate numerics -->
-            <xs:pattern value="REAL|DOUBLE PRECISION"/>
-            <xs:pattern value="FLOAT(\s*\(\s*[1-9]\d*\s*\))?"/>
+            <xs:pattern value="REAL|DOUBLE PRECISION(\s+ARRAY(\s+\[[0-9]+\])?)?"/>
+            <xs:pattern value="FLOAT(\s*\(\s*[1-9]\d*\s*\))?(\s+ARRAY(\s+\[[0-9]+\])?)?"/>
             <!-- character strings -->
-            <xs:pattern value="(CHARACTER|CHAR)(\s*\(\s*[1-9]\d*\s*\))?"/>
-            <xs:pattern value="(CHARACTER\s+VARYING|CHAR\s+VARYING|VARCHAR)(\s*\(\s*[1-9]\d*\s*\))"/>
-            <xs:pattern value="(CHARACTER\s+LARGE\s+OBJECT|CLOB)(\s*\(\s*[1-9]\d*(\s*(K|M|G))?\s*\))?"/>
-            <xs:pattern value="(NATIONAL\s+CHARACTER|NATIONAL\s+CHAR|NCHAR)(\s*\(\s*[1-9]\d*\s*\))?"/>
-            <xs:pattern value="(NATIONAL\s+CHARACTER\s+VARYING|NATIONAL\s+CHAR\s+VARYING|NCHAR VARYING)(\s*\(\s*[1-9]\d*\s*\))"/>
-            <xs:pattern value="(NATIONAL\s+CHARACTER\s+LARGE\s+OBJECT|NCHAR\s+LARGE\s+OBJECT|NCLOB)(\s*\(\s*[1-9]\d*(\s*(K|M|G))?\s*\))?"/>
-            <xs:pattern value="XML"/>
+            <xs:pattern value="(CHARACTER|CHAR)(\s*\(\s*[1-9]\d*\s*\))?(\s+ARRAY(\s+\[[0-9]+\])?)?"/>
+            <xs:pattern value="(CHARACTER\s+VARYING|CHAR\s+VARYING|VARCHAR)(\s*\(\s*[1-9]\d*\s*\))(\s+ARRAY(\s+\[[0-9]+\])?)?"/>
+            <xs:pattern value="(CHARACTER\s+LARGE\s+OBJECT|CLOB)(\s*\(\s*[1-9]\d*(\s*(K|M|G))?\s*\))?(\s+ARRAY(\s+\[[0-9]+\])?)?"/>
+            <xs:pattern value="(NATIONAL\s+CHARACTER|NATIONAL\s+CHAR|NCHAR)(\s*\(\s*[1-9]\d*\s*\))?(\s+ARRAY(\s+\[[0-9]+\])?)?"/>
+            <xs:pattern value="(NATIONAL\s+CHARACTER\s+VARYING|NATIONAL\s+CHAR\s+VARYING|NCHAR VARYING)(\s*\(\s*[1-9]\d*\s*\))(\s+ARRAY(\s+\[[0-9]+\])?)?"/>
+            <xs:pattern value="(NATIONAL\s+CHARACTER\s+LARGE\s+OBJECT|NCHAR\s+LARGE\s+OBJECT|NCLOB)(\s*\(\s*[1-9]\d*(\s*(K|M|G))?\s*\))?(\s+ARRAY(\s+\[[0-9]+\])?)?"/>
+            <xs:pattern value="XML(\s+ARRAY(\s+\[[0-9]+\])?)?"/>
             <!-- BINARY strings from SQL:2008 -->
-            <xs:pattern value="BINARY(\s*\(\s*[1-9]\d*\s*\))?"/>
-            <xs:pattern value="(BINARY\s+VARYING|VARBINARY)(\s*\(\s*[1-9]\d*\s*\))"/>
-            <xs:pattern value="(BINARY\s+LARGE\s+OBJECT|BLOB)(\s*\(\s*[1-9]\d*(\s*(K|M|G))?\s*\))?"/>
+            <xs:pattern value="BINARY(\s*\(\s*[1-9]\d*\s*\))?(\s+ARRAY(\s+\[[0-9]+\])?)?"/>
+            <xs:pattern value="(BINARY\s+VARYING|VARBINARY)(\s*\(\s*[1-9]\d*\s*\))(\s+ARRAY(\s+\[[0-9]+\])?)?"/>
+            <xs:pattern value="(BINARY\s+LARGE\s+OBJECT|BLOB)(\s*\(\s*[1-9]\d*(\s*(K|M|G))?\s*\))?(\s+ARRAY(\s+\[[0-9]+\])?)?"/>
             <!-- datetimes -->
-            <xs:pattern value="DATE"/>
-            <xs:pattern value="(TIME|TIME\s+WITH\s+TIME\s+ZONE)(\s*\(\s*[1-9]\d*\s*\))?"/>
-            <xs:pattern value="(TIMESTAMP|TIMESTAMP\s+WITH\s+TIME\s+ZONE)(\s*\(\s*(0|([1-9]\d*))\s*\))?"/>
-            <xs:pattern value="INTERVAL\s+(((YEAR|MONTH|DAY|HOUR|MINUTE)(\s*\(\s*[1-9]\d*\s*\))?(\s+TO\s+(MONTH|DAY|HOUR|MINUTE|SECOND)(\s*\(\s*[1-9]\d*\s*\))?)?)|(SECOND(\s*\(\s*[1-9]\d*\s*(,\s*\d+\s*)?\))?))"/>
+            <xs:pattern value="DATE(\s+ARRAY(\s+\[[0-9]+\])?)?"/>
+            <xs:pattern value="(TIME|TIME\s+WITH\s+TIME\s+ZONE)(\s*\(\s*[1-9]\d*\s*\))?(\s+ARRAY(\s+\[[0-9]+\])?)?"/>
+            <xs:pattern value="(TIMESTAMP|TIMESTAMP\s+WITH\s+TIME\s+ZONE)(\s*\(\s*(0|([1-9]\d*))\s*\))?(\s+ARRAY(\s+\[[0-9]+\])?)?"/>
+            <xs:pattern value="INTERVAL\s+(((YEAR|MONTH|DAY|HOUR|MINUTE)(\s*\(\s*[1-9]\d*\s*\))?(\s+TO\s+(MONTH|DAY|HOUR|MINUTE|SECOND)(\s*\(\s*[1-9]\d*\s*\))?)?)|(SECOND(\s*\(\s*[1-9]\d*\s*(,\s*\d+\s*)?\))?))(\s+ARRAY(\s+\[[0-9]+\])?)?"/>
             <!-- BOOLEAN -->
-            <xs:pattern value="BOOLEAN"/>
+            <xs:pattern value="BOOLEAN(\s+ARRAY(\s+\[[0-9]+\])?)?"/>
         </xs:restriction>
     </xs:simpleType>
 

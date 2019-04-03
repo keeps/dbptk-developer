@@ -21,6 +21,8 @@ import java.util.regex.Matcher;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.Reporter;
@@ -56,6 +58,8 @@ public class SIARDExportDefault implements DatabaseExportModule {
   private TableStructure currentTable;
   private Map<String, String> descriptiveMetadata;
   private Reporter reporter;
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARDExportDefault.class);
 
   public SIARDExportDefault(ContentExportStrategy contentStrategy, SIARDArchiveContainer mainContainer,
     WriteStrategy writeStrategy, MetadataExportStrategy metadataStrategy, Path tableFilter,
@@ -135,6 +139,7 @@ public class SIARDExportDefault implements DatabaseExportModule {
   @Override
   public void initDatabase() throws ModuleException {
     writeStrategy.setup(mainContainer);
+    LOGGER.info("Exporting SIARD version {}", mainContainer.getVersion().getDisplayName());
   }
 
   @Override

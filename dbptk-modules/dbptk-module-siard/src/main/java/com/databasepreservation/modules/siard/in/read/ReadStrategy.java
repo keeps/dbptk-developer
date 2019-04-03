@@ -36,7 +36,7 @@ public interface ReadStrategy {
 
   /**
    * Handles setting up the underlying structure used by this ReadStrategy object
-   * to use this container
+   * to use this container. Also sets the version in the container.
    *
    * @throws ModuleException
    */

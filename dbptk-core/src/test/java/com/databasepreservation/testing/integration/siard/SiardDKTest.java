@@ -32,8 +32,8 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.Trigger;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
+import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
-import com.databasepreservation.testing.SIARDVersion;
 
 /*
  * This subclass of SiardTest contains the adjustments to make to round trip test run for siard-dk. 
@@ -127,7 +127,8 @@ public class SiardDKTest extends SiardTest {
   }
 
   @Override
-  protected DatabaseStructure roundtrip(DatabaseStructure orgDbStructure, Path tmpFile, SIARDVersion version)
+  protected DatabaseStructure roundtrip(DatabaseStructure orgDbStructure, Path tmpFile,
+    SIARDConstants.SiardVersion version)
     throws FileNotFoundException, ModuleException, UnknownTypeException, InvalidDataException {
 
     Path archiveFolderPath = FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"),

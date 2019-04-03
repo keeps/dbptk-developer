@@ -278,12 +278,15 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
       .beginOpenTag("table", 0)
 
       .appendAttribute("xsi:schemaLocation",
-        contentPathStrategy.getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(),
-          currentTable.getIndex()) + " " + contentPathStrategy.getTableXsdFileName(currentTable.getIndex()))
+        contentPathStrategy.getTableXsdNamespace(
+          "http://www.admin.ch/xmlns/siard/" + baseContainer.getVersion().getNamespace() + "/",
+          currentSchema.getIndex(), currentTable.getIndex()) + " "
+          + contentPathStrategy.getTableXsdFileName(currentTable.getIndex()))
 
       .appendAttribute("xmlns",
-        contentPathStrategy.getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(),
-          currentTable.getIndex()))
+        contentPathStrategy.getTableXsdNamespace(
+          "http://www.admin.ch/xmlns/siard/" + baseContainer.getVersion().getNamespace() + "/",
+          currentSchema.getIndex(), currentTable.getIndex()))
 
       .appendAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
 
@@ -324,16 +327,18 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
       .beginOpenTag("xs:schema", 0).appendAttribute("xmlns:xs", "http://www.w3.org/2001/XMLSchema")
 
       .appendAttribute("xmlns",
-        contentPathStrategy.getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(),
-          currentTable.getIndex()))
+        contentPathStrategy.getTableXsdNamespace(
+          "http://www.admin.ch/xmlns/siard/" + baseContainer.getVersion().getNamespace() + "/",
+          currentSchema.getIndex(), currentTable.getIndex()))
 
       .appendAttribute("attributeFormDefault", "unqualified")
 
       .appendAttribute("elementFormDefault", "qualified")
 
       .appendAttribute("targetNamespace",
-        contentPathStrategy.getTableXsdNamespace("http://www.admin.ch/xmlns/siard/1.0/", currentSchema.getIndex(),
-          currentTable.getIndex()))
+        contentPathStrategy.getTableXsdNamespace(
+          "http://www.admin.ch/xmlns/siard/" + baseContainer.getVersion().getNamespace() + "/",
+          currentSchema.getIndex(), currentTable.getIndex()))
 
       .endOpenTag()
 

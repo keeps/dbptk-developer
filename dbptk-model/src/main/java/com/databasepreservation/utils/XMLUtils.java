@@ -71,6 +71,10 @@ public class XMLUtils {
    * @return the original string
    */
   public static String decode(String text) {
+    if (text == null) {
+      return null;
+    }
+
     text = SIARD_UNESCAPE.translate(text);
     return text;
   }

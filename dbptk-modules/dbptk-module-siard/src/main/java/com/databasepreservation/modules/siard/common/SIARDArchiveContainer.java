@@ -19,6 +19,12 @@ public class SIARDArchiveContainer {
   private final OutputContainerType type;
   private SIARDConstants.SiardVersion version;
 
+  public SIARDArchiveContainer(SIARDConstants.SiardVersion version, Path path, OutputContainerType type) {
+    this.path = path;
+    this.type = type;
+    this.version = version;
+  }
+
   public SIARDArchiveContainer(Path path, OutputContainerType type) {
     this.path = path;
     this.type = type;
@@ -42,8 +48,7 @@ public class SIARDArchiveContainer {
 
   @Override
   public String toString() {
-    return new StringBuilder("Container(Type: ").append(type.toString()).append(", Path: '").append(path.toString())
-      .append("')").toString();
+    return "SIARDArchiveContainer{" + "path=" + path + ", type=" + type + ", version=" + version + '}';
   }
 
   public enum OutputContainerType {

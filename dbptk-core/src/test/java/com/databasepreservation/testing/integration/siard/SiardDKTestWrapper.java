@@ -17,7 +17,7 @@ import org.testng.annotations.Test;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
-import com.databasepreservation.testing.SIARDVersion;
+import com.databasepreservation.modules.siard.constants.SIARDConstants.SiardVersion;
 
 /**
  * This class facilitates testing SIARD-DK without depending on a real database.
@@ -33,14 +33,14 @@ public class SiardDKTestWrapper {
   @DataProvider
   public Iterator<Object[]> siardVersionsProvider() {
     ArrayList<Object[]> tests = new ArrayList<Object[]>();
-    tests.add(new Object[] {SIARDVersion.SIARD_DK, 0}); // int is index of
-                                                        // schema to use in test
-    tests.add(new Object[] {SIARDVersion.SIARD_DK, 1});
+    tests.add(new Object[] {SiardVersion.DK, 0}); // int is index of
+                                                  // schema to use in test
+    tests.add(new Object[] {SiardVersion.DK, 1});
     return tests.iterator();
   }
 
   @Test(dataProvider = "siardVersionsProvider")
-  public void SIARD_Roundtrip(SIARDVersion siardVersion, int schemaIndex)
+  public void SIARD_Roundtrip(SiardVersion siardVersion, int schemaIndex)
     throws ModuleException, IOException, UnknownTypeException, InvalidDataException {
     SiardDKTest siardDKTest = new SiardDKTest(schemaIndex);
     siardDKTest.SIARD_Roundtrip(siardVersion);

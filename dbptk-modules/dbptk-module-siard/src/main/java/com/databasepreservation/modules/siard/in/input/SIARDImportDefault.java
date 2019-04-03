@@ -7,6 +7,9 @@
  */
 package com.databasepreservation.modules.siard.in.input;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
@@ -29,6 +32,7 @@ public class SIARDImportDefault implements DatabaseImportModule {
   private final MetadataImportStrategy metadataStrategy;
   private ModuleSettings moduleSettings;
   private Reporter reporter;
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARDImportDefault.class);
 
   public SIARDImportDefault(ContentImportStrategy contentStrategy, SIARDArchiveContainer mainContainer,
     ReadStrategy readStrategy, MetadataImportStrategy metadataStrategy) {
@@ -42,6 +46,7 @@ public class SIARDImportDefault implements DatabaseImportModule {
   public DatabaseExportModule migrateDatabaseTo(DatabaseExportModule handler) throws ModuleException {
     moduleSettings = handler.getModuleSettings();
     readStrategy.setup(mainContainer);
+    LOGGER.info("Importing SIARD version {}", mainContainer.getVersion().getDisplayName());
     handler.initDatabase();
     try {
       metadataStrategy.loadMetadata(readStrategy, mainContainer, moduleSettings);

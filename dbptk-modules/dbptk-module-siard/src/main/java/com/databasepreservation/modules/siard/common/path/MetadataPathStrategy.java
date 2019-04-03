@@ -47,8 +47,12 @@ public interface MetadataPathStrategy {
 
   class VersionIdentifier {
     private static String[] paths2_0 = new String[] {"header/version/2.0/", "header/version/2.0"};
-    private static String[] paths2_1 = new String[] {"header/siardversion/2.1/", "header/siardversion/2.1"};
+    private static String[] paths2_1 = new String[] {"header/version/2.1/", "header/version/2.1",
+      "header/siardversion/2.1/", "header/siardversion/2.1"};
 
+    /**
+     * Identifies the SIARD 2 minor version
+     */
     public static SIARDConstants.SiardVersion getVersion(ReadStrategy readStrategy,
       SIARDArchiveContainer mainContainer) {
       try (CloseableIterable<String> pathIterator = readStrategy.getFilepathStream(mainContainer)) {
@@ -67,7 +71,7 @@ public interface MetadataPathStrategy {
       } catch (IOException | ModuleException e) {
         // ignore
       }
-      return null;
+      return SIARDConstants.SiardVersion.V2_0;
     }
   }
 }

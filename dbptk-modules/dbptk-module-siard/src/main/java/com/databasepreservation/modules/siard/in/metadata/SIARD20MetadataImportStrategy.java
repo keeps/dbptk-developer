@@ -20,6 +20,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -43,40 +44,41 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.Trigger;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
-import com.databasepreservation.modules.siard.bindings.siard_1.CandidateKeyType;
-import com.databasepreservation.modules.siard.bindings.siard_1.CandidateKeysType;
-import com.databasepreservation.modules.siard.bindings.siard_1.CheckConstraintType;
-import com.databasepreservation.modules.siard.bindings.siard_1.CheckConstraintsType;
-import com.databasepreservation.modules.siard.bindings.siard_1.ColumnType;
-import com.databasepreservation.modules.siard.bindings.siard_1.ColumnsType;
-import com.databasepreservation.modules.siard.bindings.siard_1.ForeignKeyType;
-import com.databasepreservation.modules.siard.bindings.siard_1.ForeignKeysType;
-import com.databasepreservation.modules.siard.bindings.siard_1.ParameterType;
-import com.databasepreservation.modules.siard.bindings.siard_1.ParametersType;
-import com.databasepreservation.modules.siard.bindings.siard_1.PrimaryKeyType;
-import com.databasepreservation.modules.siard.bindings.siard_1.PrivilegeType;
-import com.databasepreservation.modules.siard.bindings.siard_1.PrivilegesType;
-import com.databasepreservation.modules.siard.bindings.siard_1.ReferenceType;
-import com.databasepreservation.modules.siard.bindings.siard_1.RoleType;
-import com.databasepreservation.modules.siard.bindings.siard_1.RolesType;
-import com.databasepreservation.modules.siard.bindings.siard_1.RoutineType;
-import com.databasepreservation.modules.siard.bindings.siard_1.RoutinesType;
-import com.databasepreservation.modules.siard.bindings.siard_1.SchemaType;
-import com.databasepreservation.modules.siard.bindings.siard_1.SchemasType;
-import com.databasepreservation.modules.siard.bindings.siard_1.SiardArchive;
-import com.databasepreservation.modules.siard.bindings.siard_1.TableType;
-import com.databasepreservation.modules.siard.bindings.siard_1.TablesType;
-import com.databasepreservation.modules.siard.bindings.siard_1.TriggerType;
-import com.databasepreservation.modules.siard.bindings.siard_1.TriggersType;
-import com.databasepreservation.modules.siard.bindings.siard_1.UserType;
-import com.databasepreservation.modules.siard.bindings.siard_1.UsersType;
-import com.databasepreservation.modules.siard.bindings.siard_1.ViewType;
-import com.databasepreservation.modules.siard.bindings.siard_1.ViewsType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.CandidateKeyType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.CandidateKeysType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.CheckConstraintType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.CheckConstraintsType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.ColumnType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.ColumnsType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.ForeignKeyType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.ForeignKeysType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.ParameterType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.ParametersType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.PrimaryKeyType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.PrivilegeType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.PrivilegesType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.ReferenceType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.RoleType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.RolesType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.RoutineType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.RoutinesType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.SchemaType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.SchemasType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.SiardArchive;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.TableType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.TablesType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.TriggerType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.TriggersType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.UserType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.UsersType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.ViewType;
+import com.databasepreservation.modules.siard.bindings.siard_2_0.ViewsType;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQL99StandardDatatypeImporter;
+import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQL2008StandardDatatypeImporter;
 import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQLStandardDatatypeImporter;
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.XMLUtils;
@@ -84,21 +86,19 @@ import com.databasepreservation.utils.XMLUtils;
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
-  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD1MetadataImportStrategy.class);
-
+public class SIARD20MetadataImportStrategy implements MetadataImportStrategy {
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD20MetadataImportStrategy.class);
   private static final String METADATA_FILENAME = "metadata";
 
+  private DatabaseStructure databaseStructure;
   private final MetadataPathStrategy metadataPathStrategy;
   private final ContentPathImportStrategy contentPathStrategy;
   private ModuleSettings moduleSettings;
-  private DatabaseStructure databaseStructure;
-  private String messageDigest = null;
+
+  private SQLStandardDatatypeImporter sqlStandardDatatypeImporter;
 
   private int currentSchemaIndex = 1;
   private int currentTableIndex;
-
-  private SQLStandardDatatypeImporter sqlStandardDatatypeImporter;
 
   private String metadataCurrentDatabaseName = "<information not available>";
   private String metadataCurrentSchemaName = "<information not available>";
@@ -106,11 +106,11 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 
   private Reporter reporter;
 
-  public SIARD1MetadataImportStrategy(MetadataPathStrategy metadataPathStrategy,
+  public SIARD20MetadataImportStrategy(MetadataPathStrategy metadataPathStrategy,
     ContentPathImportStrategy contentPathImportStrategy) {
     this.metadataPathStrategy = metadataPathStrategy;
     this.contentPathStrategy = contentPathImportStrategy;
-    this.sqlStandardDatatypeImporter = new SQL99StandardDatatypeImporter();
+    sqlStandardDatatypeImporter = new SQL2008StandardDatatypeImporter();
   }
 
   @Override
@@ -200,25 +200,29 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
     databaseStructure.setDataOwner(siardArchive.getDataOwner());
     databaseStructure.setDataOriginTimespan(siardArchive.getDataOriginTimespan());
     databaseStructure.setProducerApplication(siardArchive.getProducerApplication());
-    databaseStructure.setArchivalDate(JodaUtils.xsDateParse(siardArchive.getArchivalDate()));
     databaseStructure.setClientMachine(siardArchive.getClientMachine());
     databaseStructure.setDatabaseUser(siardArchive.getDatabaseUser());
 
     metadataCurrentDatabaseName = siardArchive.getDbname();
     databaseStructure.setName(metadataCurrentDatabaseName);
 
-    // TODO: validate files
-    messageDigest = siardArchive.getMessageDigest();
-
+    databaseStructure.setArchivalDate(JodaUtils.xsDateParse(siardArchive.getArchivalDate()));
+    // TODO:
+    // databaseStructure.setMessageDigest(siardArchive.getMessageDigest());
     databaseStructure.setProductName(siardArchive.getDatabaseProduct());
-    databaseStructure.setUrl(siardArchive.getConnection());
     // databaseStructure.setProductVersion(null); //TODO: SIARD has no field for
     // product version
 
+    databaseStructure.setUrl(siardArchive.getConnection());
     databaseStructure.setSchemas(getSchemas(siardArchive.getSchemas()));
     databaseStructure.setUsers(getUsers(siardArchive.getUsers()));
     databaseStructure.setRoles(getRoles(siardArchive.getRoles()));
     databaseStructure.setPrivileges(getPrivileges(siardArchive.getPrivileges()));
+
+    if (contentPathStrategy instanceof SIARD2ContentPathImportStrategy) {
+      SIARD2ContentPathImportStrategy siard2ContentPathImportStrategy = (SIARD2ContentPathImportStrategy) contentPathStrategy;
+      siard2ContentPathImportStrategy.setMetadataLobFolder(siardArchive.getLobFolder());
+    }
 
     return databaseStructure;
   }
@@ -321,12 +325,13 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
     if (schema != null) {
       SchemaStructure result = new SchemaStructure();
 
-      result.setIndex(currentSchemaIndex++);
       metadataCurrentSchemaName = schema.getName();
       result.setName(metadataCurrentSchemaName);
       result.setDescription(schema.getDescription());
-
+      result.setIndex(currentSchemaIndex++);
       contentPathStrategy.associateSchemaWithFolder(schema.getName(), schema.getFolder());
+
+      // TODO: complex types: result.setTypes(getTypes(schema.getTypes()));
 
       currentTableIndex = 1;
       result.setTables(getTablesStructure(schema.getTables(), schema.getName()));
@@ -362,7 +367,9 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
       result.setBody(routineType.getBody());
       result.setCharacteristic(routineType.getCharacteristic());
       result.setReturnType(routineType.getReturnType());
-      result.setParameters(getParameters(routineType.getParameters()));
+      // TODO: XSD has name attributes but has type ParametersType, find out if
+      // this is a typo
+      result.setParameters(getParameters(routineType.getAttributes()));
 
       return result;
     } else {
@@ -392,6 +399,18 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
         metadataCurrentTableName + " (routine)", parameterType.getName() + " (parameter)", parameterType.getType(),
         parameterType.getTypeOriginal()));
       result.setDescription(parameterType.getDescription());
+
+      // todo: deal with these fields (related to complex types)
+
+      // this is null except if the type is a complex datatype defined in a
+      // different schema
+      // parameterType.getTypeSchema();
+
+      // this is the name of the complex datatype
+      // parameterType.getTypeName();
+
+      // this is list of fields of the parameter
+      // parameterType.getParameterFields();
 
       return result;
     } else {
@@ -423,6 +442,7 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
                                                                 // what to put
                                                                 // here as table
                                                                 // name
+      // TODO: result.setRows(getRows(viewType.getRows()));
 
       return result;
     } else {
@@ -633,6 +653,12 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
 
       result.setName(column.getName());
       result.setId(tableId + "." + result.getName());
+
+      String lobFolder = column.getFolder();
+      if (StringUtils.isBlank(lobFolder)) {
+        lobFolder = column.getLobFolder();
+      }
+
       contentPathStrategy.associateColumnWithFolder(result.getId(), column.getFolder());
 
       result.setType(sqlStandardDatatypeImporter.getCheckedType(metadataCurrentDatabaseName, metadataCurrentSchemaName,
@@ -641,6 +667,13 @@ public class SIARD1MetadataImportStrategy implements MetadataImportStrategy {
       result.setNillable(column.isNullable());
       result.setDefaultValue(column.getDefaultValue());
       result.setDescription(column.getDescription());
+
+      // todo: deal with these fields
+      // column.getLobFolder();
+      // column.getTypeSchema();
+      // column.getTypeName();
+      // column.getFields();
+      // column.getMimeType();
 
       return result;
     } else {

@@ -50,43 +50,43 @@ import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.SIARDHelper;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.ActionTimeType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.AttributeType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.AttributesType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.CandidateKeyType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.CandidateKeysType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.CategoryType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.CheckConstraintType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.CheckConstraintsType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.ColumnType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.ColumnsType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.ForeignKeyType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.ForeignKeysType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.MatchTypeType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.ParameterType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.ParametersType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.PrimaryKeyType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.PrivOptionType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.PrivilegeType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.PrivilegesType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.ReferenceType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.RoleType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.RolesType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.RoutineType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.RoutinesType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.SchemaType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.SchemasType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.SiardArchive;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.TableType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.TablesType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.TriggerType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.TriggersType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.TypeType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.TypesType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.UserType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.UsersType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.ViewType;
-import com.databasepreservation.modules.siard.bindings.siard_2_0.ViewsType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.ActionTimeType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.AttributeType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.AttributesType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.CandidateKeysType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.CategoryType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.CheckConstraintType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.CheckConstraintsType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.ColumnType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.ColumnsType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.ForeignKeyType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.ForeignKeysType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.MatchTypeType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.ParameterType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.ParametersType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.PrivOptionType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.PrivilegeType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.PrivilegesType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.ReferenceType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.ReferentialActionType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.RoleType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.RolesType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.RoutineType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.RoutinesType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.SchemaType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.SchemasType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.SiardArchive;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.TableType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.TablesType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.TriggerType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.TriggersType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.TypeType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.TypesType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.UniqueKeyType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.UserType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.UsersType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.ViewType;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.ViewsType;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.content.Sql2008toXSDType;
@@ -98,18 +98,18 @@ import com.databasepreservation.utils.XMLUtils;
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
+public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
   private static final String ENCODING = "UTF-8";
   private static final String METADATA_FILENAME = "metadata";
-  private static final String METADATA_RESOURCE_FILENAME = "siard2-0-metadata";
-  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2MetadataExportStrategy.class);
+  private static final String METADATA_RESOURCE_FILENAME = "siard2-1-metadata";
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD21MetadataExportStrategy.class);
   private final SIARD2ContentPathExportStrategy contentPathStrategy;
   private final MetadataPathStrategy metadataPathStrategy;
   private final boolean savingLobsExternally;
 
   private Reporter reporter;
 
-  public SIARD2MetadataExportStrategy(MetadataPathStrategy metadataPathStrategy, SIARD2ContentPathExportStrategy paths,
+  public SIARD21MetadataExportStrategy(MetadataPathStrategy metadataPathStrategy, SIARD2ContentPathExportStrategy paths,
     boolean savingLobsExternally) {
     this.contentPathStrategy = paths;
     this.metadataPathStrategy = metadataPathStrategy;
@@ -144,7 +144,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
       m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
       m.setProperty(Marshaller.JAXB_ENCODING, ENCODING);
       m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
-        "http://www.bar.admin.ch/xmlns/siard/2.0/metadata.xsd metadata.xsd");
+        "http://www.bar.admin.ch/xmlns/siard/" + container.getVersion().getNamespace() + "/metadata.xsd metadata.xsd");
 
       // m.marshal(xmlroot, System.out);
 
@@ -159,8 +159,8 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
       throw new ModuleException().withMessage("Error while closing the data writer").withCause(e);
     }
 
-    // create subfolder header/version/2.0
-    OutputStream writer = writeStrategy.createOutputStream(container, "header/version/2.0/");
+    // create subfolder header/version/2.1
+    OutputStream writer = writeStrategy.createOutputStream(container, "header/version/2.1/");
     try {
       writer.close();
     } catch (IOException e) {
@@ -212,7 +212,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     SiardArchive siardArchive = new SiardArchive();
     siardArchive.setArchivalDate(JodaUtils.xsDateFormat(dbStructure.getArchivalDate()));
 
-    siardArchive.setVersion("2.0");
+    siardArchive.setVersion("2.1");
 
     if (StringUtils.isNotBlank(dbStructure.getName())) {
       siardArchive.setDbname(dbStructure.getName());
@@ -438,7 +438,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
 
     schemaType.setTables(jaxbTablesType(schema, schema.getTables()));
     schemaType.setViews(jaxbViewsType(schema.getViews()));
-    schemaType.setRoutines(jaxbRoutinesType(schema.getRoutines()));
+    schemaType.setRoutines(jaxbRoutinesType(schema.getName(), schema.getRoutines()));
     schemaType.setTypes(jaxbTypesType(schema.getUserDefinedTypesComposed()));
 
     return schemaType;
@@ -524,11 +524,11 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     return attributeType;
   }
 
-  private RoutinesType jaxbRoutinesType(List<RoutineStructure> routines) throws ModuleException {
+  private RoutinesType jaxbRoutinesType(String schemaName, List<RoutineStructure> routines) throws ModuleException {
     if (routines != null && !routines.isEmpty()) {
       RoutinesType routinesType = new RoutinesType();
       for (RoutineStructure routineStructure : routines) {
-        routinesType.getRoutine().add(jaxbRoutineType(routineStructure));
+        routinesType.getRoutine().add(jaxbRoutineType(schemaName, routineStructure));
       }
       return routinesType;
     } else {
@@ -536,11 +536,12 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     }
   }
 
-  private RoutineType jaxbRoutineType(RoutineStructure routine) throws ModuleException {
+  private RoutineType jaxbRoutineType(String schemaName, RoutineStructure routine) throws ModuleException {
     RoutineType routineType = new RoutineType();
 
     if (StringUtils.isNotBlank(routine.getName())) {
       routineType.setName(routine.getName());
+      routineType.setSpecificName(schemaName + "." + routine.getName());
     } else {
       throw new ModuleException().withMessage("Error while exporting routine: routine name cannot be blank");
     }
@@ -565,7 +566,7 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
       routineType.setReturnType(routine.getReturnType());
     }
 
-    routineType.setAttributes(jaxbParametersType(routine.getParameters()));
+    routineType.setParameters(jaxbParametersType(routine.getParameters()));
 
     return routineType;
   }
@@ -718,10 +719,9 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     // don't set Folder if LOBs are being saved externally
     if (xsdTypeFromColumnSql2008Type != null && !savingLobsExternally
       && ("clobType".equals(xsdTypeFromColumnSql2008Type) || "blobType".equals(xsdTypeFromColumnSql2008Type))) {
-      columnType.setFolder(contentPathStrategy.getColumnFolderName(columnIndex));
+      columnType.setLobFolder(contentPathStrategy.getColumnFolderName(columnIndex));
     }
 
-    // columnType.setLobFolder(null);
     // columnType.setTypeSchema(null);
     // columnType.setTypeName(null);
     // columnType.setFields(null);
@@ -778,9 +778,9 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     return tableType;
   }
 
-  private PrimaryKeyType jaxbPrimaryKeyType(PrimaryKey primaryKey) throws ModuleException {
+  private UniqueKeyType jaxbPrimaryKeyType(PrimaryKey primaryKey) throws ModuleException {
     if (primaryKey != null) {
-      PrimaryKeyType primaryKeyType = new PrimaryKeyType();
+      UniqueKeyType primaryKeyType = new UniqueKeyType();
       if (StringUtils.isNotBlank(primaryKey.getName())) {
         primaryKeyType.setName(primaryKey.getName());
       } else {
@@ -908,8 +908,8 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     }
   }
 
-  private CandidateKeyType jaxbCandidateKeyType(CandidateKey candidateKey) throws ModuleException {
-    CandidateKeyType candidateKeyType = new CandidateKeyType();
+  private UniqueKeyType jaxbCandidateKeyType(CandidateKey candidateKey) throws ModuleException {
+    UniqueKeyType candidateKeyType = new UniqueKeyType();
 
     if (StringUtils.isNotBlank(candidateKey.getName())) {
       candidateKeyType.setName(candidateKey.getName());
@@ -976,12 +976,12 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
       foreignKeyType.setMatchType(MatchTypeType.fromValue(foreignKey.getMatchType()));
     }
 
-    if (StringUtils.isNotBlank(foreignKey.getDeleteAction())) {
-      foreignKeyType.setDeleteAction(foreignKey.getDeleteAction());
+    if (jaxbReferentialActionType(foreignKey.getDeleteAction()) != null) {
+      foreignKeyType.setDeleteAction(jaxbReferentialActionType(foreignKey.getDeleteAction()));
     }
 
-    if (StringUtils.isNotBlank(foreignKey.getUpdateAction())) {
-      foreignKeyType.setUpdateAction(foreignKey.getUpdateAction());
+    if (jaxbReferentialActionType(foreignKey.getUpdateAction()) != null) {
+      foreignKeyType.setUpdateAction(jaxbReferentialActionType(foreignKey.getUpdateAction()));
     }
 
     if (StringUtils.isNotBlank(foreignKey.getDescription())) {
@@ -1003,5 +1003,15 @@ public class SIARD2MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     return referenceType;
+  }
+
+  private ReferentialActionType jaxbReferentialActionType(String referentialAction) {
+    for (ReferentialActionType enumValue : ReferentialActionType.values()) {
+      if (enumValue.value().equalsIgnoreCase(referentialAction)) {
+        return enumValue;
+      }
+    }
+
+    return null;
   }
 }

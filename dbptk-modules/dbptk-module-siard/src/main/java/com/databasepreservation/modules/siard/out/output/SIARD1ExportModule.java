@@ -14,6 +14,7 @@ import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD1MetadataPathStrategy;
+import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.out.content.ContentExportStrategy;
 import com.databasepreservation.modules.siard.out.content.SIARD1ContentExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
@@ -50,7 +51,8 @@ public class SIARD1ExportModule {
     } else {
       writeStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.STORE);
     }
-    mainContainer = new SIARDArchiveContainer(siardPackage, SIARDArchiveContainer.OutputContainerType.MAIN);
+    mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.V1_0, siardPackage,
+      SIARDArchiveContainer.OutputContainerType.MAIN);
 
     metadataStrategy = new SIARD1MetadataExportStrategy(metadataPathStrategy, contentPathStrategy);
     contentStrategy = new SIARD1ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer, prettyXML);

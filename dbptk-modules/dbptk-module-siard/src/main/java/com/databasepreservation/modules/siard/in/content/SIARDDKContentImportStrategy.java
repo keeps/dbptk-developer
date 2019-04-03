@@ -54,6 +54,7 @@ import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer.OutputContainerType;
+import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.in.path.SIARDDKPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
 import com.databasepreservation.utils.XMLUtils;
@@ -129,8 +130,8 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
 
         Path archiveFolderActualPath = mainFolder.getPath().resolveSibling(archiveFolderLogicalPath);
         if (!archiveContainerByAbsPath.containsKey(archiveFolderActualPath)) {
-          archiveContainerByAbsPath.put(archiveFolderActualPath,
-            new SIARDArchiveContainer(archiveFolderActualPath, OutputContainerType.MAIN));
+          archiveContainerByAbsPath.put(archiveFolderActualPath, new SIARDArchiveContainer(
+            SIARDConstants.SiardVersion.DK, archiveFolderActualPath, OutputContainerType.MAIN));
         }
         currentFolder = archiveContainerByAbsPath.get(archiveFolderActualPath);
         ValidatorHandler validatorHandler = null;

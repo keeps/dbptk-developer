@@ -19,7 +19,8 @@ public class SIARD2MetadataPathStrategy implements MetadataPathStrategy {
 
   // names for files
   private static final String METADATA_FILENAME = "metadata";
-  private static final String METADATA_RESOURCE_FILENAME = "siard2-0-metadata";
+  private static final String METADATA_RESOURCE_FILENAME_SIARD_20 = "siard2-0-metadata";
+  private static final String METADATA_RESOURCE_FILENAME_SIARD_21 = "siard2-1-metadata";
 
   // extensions for files
   private static final String XML_EXTENSION = "xml";
@@ -36,7 +37,8 @@ public class SIARD2MetadataPathStrategy implements MetadataPathStrategy {
       return new StringBuilder().append(HEADER_DIR).append(RESOURCE_FILE_SEPARATOR).append(METADATA_FILENAME)
         .append(FILE_EXTENSION_SEPARATOR).append(XML_EXTENSION).toString();
     } else {
-      throw new InvalidParameterException("Invalid metadata filename");
+      throw new InvalidParameterException(
+        "Invalid metadata filename. Expected '" + METADATA_FILENAME + "', got '" + filename + "'.");
     }
   }
 
@@ -46,18 +48,20 @@ public class SIARD2MetadataPathStrategy implements MetadataPathStrategy {
       return new StringBuilder().append(HEADER_DIR).append(RESOURCE_FILE_SEPARATOR).append(METADATA_FILENAME)
         .append(FILE_EXTENSION_SEPARATOR).append(XSD_EXTENSION).toString();
     } else {
-      throw new InvalidParameterException("Invalid metadata filename");
+      throw new InvalidParameterException(
+        "Invalid metadata filename. Expected '" + METADATA_FILENAME + "', got '" + filename + "'.");
     }
   }
 
   @Override
   public String getXsdResourcePath(String filename) throws InvalidParameterException {
-    if (filename.equals(METADATA_RESOURCE_FILENAME)) {
+    if (filename.equals(METADATA_RESOURCE_FILENAME_SIARD_20) || filename.equals(METADATA_RESOURCE_FILENAME_SIARD_21)) {
       return new StringBuilder().append(RESOURCE_FILE_SEPARATOR).append(SCHEMA_RESOURCE_DIR)
         .append(RESOURCE_FILE_SEPARATOR).append(filename).append(FILE_EXTENSION_SEPARATOR).append(XSD_EXTENSION)
         .toString();
     } else {
-      throw new InvalidParameterException("Invalid metadata filename");
+      throw new InvalidParameterException("Invalid metadata filename. Expected '" + METADATA_RESOURCE_FILENAME_SIARD_20
+        + "' or '" + METADATA_RESOURCE_FILENAME_SIARD_21 + "', got '" + filename + "'.");
     }
   }
 

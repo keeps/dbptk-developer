@@ -20,6 +20,7 @@ import org.apache.commons.compress.archivers.zip.ZipFile;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -78,11 +79,13 @@ public class ZipReadStrategy implements ReadStrategy {
   @Override
   public void setup(SIARDArchiveContainer container) throws ModuleException {
     try {
-      if (zipFiles.containsKey(container)) {
-        return;
+      if (!zipFiles.containsKey(container)) {
+        zipFiles.put(container, new ZipFile(container.getPath().toAbsolutePath().toString()));
       }
 
-      zipFiles.put(container, new ZipFile(container.getPath().toAbsolutePath().toString()));
+      if (container.getVersion() == null) {
+        container.setVersion(MetadataPathStrategy.VersionIdentifier.getVersion(this, container));
+      }
     } catch (IOException e) {
       throw new ModuleException()
         .withMessage(String.format("Could not open zip file \"%s\"", container.getPath().toAbsolutePath().toString()))

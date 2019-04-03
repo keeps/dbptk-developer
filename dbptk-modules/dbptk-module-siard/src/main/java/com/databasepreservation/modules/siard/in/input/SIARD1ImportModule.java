@@ -13,6 +13,7 @@ import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD1MetadataPathStrategy;
+import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.in.content.ContentImportStrategy;
 import com.databasepreservation.modules.siard.in.content.SIARD1ContentImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.MetadataImportStrategy;
@@ -34,7 +35,7 @@ public class SIARD1ImportModule {
   public SIARD1ImportModule(Path siardPackagePath) {
     Path siardPackageNormalizedPath = siardPackagePath.toAbsolutePath().normalize();
     readStrategy = new ZipReadStrategy();
-    mainContainer = new SIARDArchiveContainer(siardPackageNormalizedPath,
+    mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.V1_0, siardPackageNormalizedPath,
       SIARDArchiveContainer.OutputContainerType.MAIN);
 
     ContentPathImportStrategy contentPathStrategy = new SIARD1ContentPathImportStrategy();
