@@ -355,13 +355,13 @@ public class SiardTest {
       Arrays.asList(
         new ForeignKey("schema01.table02.fk01", "fk01", "schema01", "table01",
           Arrays.asList(new Reference("col122", "col111"), new Reference("col_122", "col_111")), "FULL",
-          "1st deleteAction", "1st updateAction", "1st description"),
+          "CASCADE", "NO ACTION", "1st description"),
         new ForeignKey("schema01.table02.fk02", "fk02", "schema01", "table01",
           Arrays.asList(new Reference("col122", "col111"), new Reference("col_122", "col_111")), "PARTIAL",
-          "1st deleteAction", "1st updateAction", "1st description"),
+          "SET NULL", "SET DEFAULT", "1st description"),
         new ForeignKey("schema01.table02.fk03", "fk03", "schema01", "table01",
           Arrays.asList(new Reference("col122", "col111"), new Reference("col_122", "col_111")), "SIMPLE",
-          "1st deleteAction", "1st updateAction", "1st description")),
+          "RESTRICT", "CASCADE", "1st description")),
       null, new ArrayList<CandidateKey>(), new ArrayList<CheckConstraint>(), new ArrayList<Trigger>(), 3);
     table02.setIndex(2);
     table02.setCurrentRow(1);
