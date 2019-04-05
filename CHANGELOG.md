@@ -1,5 +1,21 @@
 # Changelog
 
+## v2.2.0-BETA (05/04/2019)
+
+#### New features:
+
+-  Oracle: views from another database [#345](https://github.com/keeps/db-preservation-toolkit/issues/345)
+-  Oracle: alternative solution for exporting SDO_GEOMETRY when conversion to GML is not possible [#344](https://github.com/keeps/db-preservation-toolkit/issues/344)
+-  Oracle: Convert SDO_geometry column content to GML [#343](https://github.com/keeps/db-preservation-toolkit/issues/343)
+-  Skip the import/export of specific columns [#342](https://github.com/keeps/db-preservation-toolkit/issues/342)
+-  Support the new SIARD 2.1 [#329](https://github.com/keeps/db-preservation-toolkit/issues/329)
+
+#### Bug Fixes:
+
+-  Error converting SQL Server timestamp field [#322](https://github.com/keeps/db-preservation-toolkit/issues/322)
+
+---
+
 ## v2.1.0 (12/03/2019)
 
 #### New features:
