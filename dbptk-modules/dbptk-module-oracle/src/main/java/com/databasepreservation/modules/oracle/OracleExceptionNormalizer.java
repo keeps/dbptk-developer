@@ -18,8 +18,8 @@ import com.databasepreservation.model.modules.ExceptionNormalizer;
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class OracleExceptionManager implements ExceptionNormalizer {
-  private static final OracleExceptionManager instance = new OracleExceptionManager();
+public class OracleExceptionNormalizer implements ExceptionNormalizer {
+  private static final OracleExceptionNormalizer instance = new OracleExceptionNormalizer();
 
   /**
    * Although this class is not necessarily a singleton, it can be used like a

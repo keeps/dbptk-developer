@@ -7,6 +7,7 @@
  */
 package com.databasepreservation.modules.oracle.in;
 
+import java.sql.Array;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,25 +15,29 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import oracle.sql.STRUCT;
 import org.geotools.data.oracle.sdo.GeometryConverter;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.gml2.GMLWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
+import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
-import com.databasepreservation.modules.oracle.OracleExceptionManager;
+import com.databasepreservation.modules.oracle.OracleExceptionNormalizer;
 import com.databasepreservation.modules.oracle.OracleHelper;
 
+import oracle.jdbc.OracleArray;
 import oracle.jdbc.OracleResultSet;
+import oracle.sql.STRUCT;
 
 /**
  * Microsoft SQL Server JDBC import module.
@@ -97,7 +102,7 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
 
   @Override
   public ModuleException normalizeException(Exception exception, String contextMessage) {
-    ModuleException moduleException = OracleExceptionManager.getInstance().normalizeException(exception,
+    ModuleException moduleException = OracleExceptionNormalizer.getInstance().normalizeException(exception,
       contextMessage);
 
     // in case the exception normalizer could not handle this exception
@@ -176,6 +181,29 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
 
     } else {
       return super.convertRawToCell(tableName, columnName, columnIndex, rowIndex, cellType, rawData);
+    }
+  }
+
+  @Override
+  protected Cell parseArray(String baseId, Array array) throws SQLException, InvalidDataException {
+    if (array == null) {
+      return new NullCell(baseId);
+    }
+
+    ArrayCell cell = new ArrayCell(baseId);
+
+    if (array instanceof OracleArray) {
+      int counter = 1;
+      try (ResultSet arrayData = array.getResultSet()) {
+        while (arrayData.next()) {
+          SimpleCell subCell = new SimpleCell(baseId + "." + counter, arrayData.getString(2));
+          cell.put(subCell, counter);
+          counter++;
+        }
+      }
+      return cell;
+    } else {
+      throw new InvalidDataException("unexpected array instance type");
     }
   }
 }

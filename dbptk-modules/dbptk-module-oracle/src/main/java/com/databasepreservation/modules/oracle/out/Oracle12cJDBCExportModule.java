@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import com.databasepreservation.modules.oracle.OracleExceptionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +19,7 @@ import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.modules.jdbc.out.JDBCExportModule;
+import com.databasepreservation.modules.oracle.OracleExceptionNormalizer;
 import com.databasepreservation.modules.oracle.OracleHelper;
 
 /**
@@ -49,9 +49,9 @@ public class Oracle12cJDBCExportModule extends JDBCExportModule {
   public void initDatabase() throws ModuleException {
     super.initDatabase();
 
-    try(Statement statement = getConnection().createStatement()) {
+    try (Statement statement = getConnection().createStatement()) {
       statement.execute("select sys_context('USERENV', 'CURRENT_SCHEMA') from dual");
-      try(ResultSet resultSet = statement.getResultSet()){
+      try (ResultSet resultSet = statement.getResultSet()) {
         if (resultSet.next()) {
           targetSchema = resultSet.getString(1);
           ((OracleHelper) getSqlHelper()).setTargetSchema(targetSchema);
@@ -101,7 +101,7 @@ public class Oracle12cJDBCExportModule extends JDBCExportModule {
 
   @Override
   public ModuleException normalizeException(Exception exception, String contextMessage) {
-    ModuleException moduleException = OracleExceptionManager.getInstance().normalizeException(exception,
+    ModuleException moduleException = OracleExceptionNormalizer.getInstance().normalizeException(exception,
       contextMessage);
 
     // in case the exception normalizer could not handle this exception
