@@ -12,6 +12,7 @@ import static com.databasepreservation.Constants.UNSPECIFIED_METADATA_VALUE;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,8 +37,9 @@ import com.databasepreservation.modules.siard.out.output.SIARD2ExportModule;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARD2ModuleFactory implements DatabaseModuleFactory {
-  public static final String PARAMETER_VERSION_0 = "version-2.0";
-  public static final String PARAMETER_VERSION_1 = "version-2.1";
+  public static final String PARAMETER_VERSION = "version";
+  public static final String PARAMETER_VERSION_2_0 = SIARDConstants.SiardVersion.V2_0.getDisplayName();
+  public static final String PARAMETER_VERSION_2_1 = SIARDConstants.SiardVersion.V2_1.getDisplayName();
   public static final String PARAMETER_FILE = "file";
   public static final String PARAMETER_COMPRESS = "compress";
   public static final String PARAMETER_PRETTY_XML = "pretty-xml";
@@ -53,15 +55,12 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_META_CLIENT_MACHINE = "meta-client-machine";
   public static final String PARAMETER_GML_DIRECTORY = "gml-directory";
 
-  private static final Parameter version0 = new Parameter().shortName("v0").longName(PARAMETER_VERSION_0)
-    .description("Use SIARD version 2.0").hasArgument(false).required(false)
-    .valueIfSet(SIARDConstants.SiardVersion.V2_0.name());
+  // humanized list of supported SIARD 2 versions
+  private static final String versionsString = PARAMETER_VERSION_2_0 + " or " + PARAMETER_VERSION_2_1;
 
-  private static final Parameter version1 = new Parameter().shortName("v1").longName(PARAMETER_VERSION_1)
-    .description("Use SIARD version 2.1").hasArgument(false).required(false)
-    .valueIfSet(SIARDConstants.SiardVersion.V2_1.name());
-
-  private static final ParameterGroup version = new ParameterGroup(false, version0, version1);
+  private static final Parameter version = new Parameter().shortName("v").longName(PARAMETER_VERSION)
+    .description("Choose SIARD version (" + versionsString + "). Default: latest (" + PARAMETER_VERSION_2_1 + ")")
+    .hasArgument(true).required(false).setOptionalArgument(false).valueIfNotSet(PARAMETER_VERSION_2_1);
 
   private static final Parameter file = new Parameter().shortName("f").longName(PARAMETER_FILE)
     .description("Path to SIARD2 archive file").hasArgument(true).setOptionalArgument(false).required(true);
@@ -153,8 +152,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
   @Override
   public Map<String, Parameter> getAllParameters() {
     HashMap<String, Parameter> parameterHashMap = new HashMap<String, Parameter>();
-    parameterHashMap.put(version0.longName(), version0);
-    parameterHashMap.put(version1.longName(), version1);
+    parameterHashMap.put(version.longName(), version);
     parameterHashMap.put(file.longName(), file);
     parameterHashMap.put(compress.longName(), compress);
     parameterHashMap.put(prettyPrintXML.longName(), prettyPrintXML);
@@ -180,9 +178,9 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Parameters getExportModuleParameters() throws UnsupportedModuleException {
-    return new Parameters(Arrays.asList(file, compress, prettyPrintXML, tableFilter, externalLobs,
+    return new Parameters(Arrays.asList(version, file, compress, prettyPrintXML, tableFilter, externalLobs,
       externalLobsPerFolder, externalLobsFolderSize, metaDescription, metaArchiver, metaArchiverContact, metaDataOwner,
-      metaDataOriginTimespan, metaClientMachine, gmlDirectory), Arrays.asList(version));
+      metaDataOriginTimespan, metaClientMachine, gmlDirectory), Collections.<ParameterGroup> emptyList());
   }
 
   @Override
@@ -199,12 +197,13 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     throws UnsupportedModuleException, LicenseNotAcceptedException {
     Path pFile = Paths.get(parameters.get(file));
 
-    // optional group, defaulting to version1
-    SIARDConstants.SiardVersion pVersion = SIARDConstants.SiardVersion.fromString(version1.valueIfSet());
-    for (Parameter versionParameter : version.getParameters()) {
-      if (StringUtils.isNotBlank(parameters.get(versionParameter))) {
-        pVersion = SIARDConstants.SiardVersion.fromString(parameters.get(versionParameter));
-        break;
+    // optional group, defaulting to latest version
+    SIARDConstants.SiardVersion pVersion = SIARDConstants.SiardVersion.fromString(version.valueIfNotSet());
+    if (StringUtils.isNotBlank(parameters.get(version))) {
+      pVersion = SIARDConstants.SiardVersion.fromString(parameters.get(version));
+      if (pVersion == null) {
+        throw new UnsupportedModuleException(
+          "Version " + parameters.get(version) + " is not valid. Supported versions are: " + versionsString);
       }
     }
 
@@ -271,53 +270,30 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     addDescriptiveMetadataParameterValue(parameters, descriptiveMetadataParameterValues,
       SIARDConstants.DESCRIPTIVE_METADATA_CLIENT_MACHINE, metaClientMachine);
 
-    if (pExternalLobs) {
-      if (pTableFilter == null) {
-        reporter.exportModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString(),
-          PARAMETER_COMPRESS, String.valueOf(pCompress), PARAMETER_PRETTY_XML, String.valueOf(pPrettyPrintXML),
-          PARAMETER_EXTERNAL_LOBS_PER_FOLDER, String.valueOf(pExternalLobsPerFolder),
-          PARAMETER_EXTERNAL_LOBS_FOLDER_SIZE, String.valueOf(pExternalLobsFolderSize));
-      } else {
-        reporter.exportModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString(),
-          PARAMETER_COMPRESS, String.valueOf(pCompress), PARAMETER_PRETTY_XML, String.valueOf(pPrettyPrintXML),
-          PARAMETER_TABLE_FILTER, pTableFilter.normalize().toAbsolutePath().toString(),
-          PARAMETER_EXTERNAL_LOBS_PER_FOLDER, String.valueOf(pExternalLobsPerFolder),
-          PARAMETER_EXTERNAL_LOBS_FOLDER_SIZE, String.valueOf(pExternalLobsFolderSize));
-      }
+    report(reporter, getModuleName(), PARAMETER_VERSION, String.valueOf(pVersion), PARAMETER_FILE, pFile,
+      PARAMETER_COMPRESS, String.valueOf(pCompress), PARAMETER_PRETTY_XML, String.valueOf(pPrettyPrintXML),
+      PARAMETER_EXTERNAL_LOBS, String.valueOf(pExternalLobs), PARAMETER_EXTERNAL_LOBS_PER_FOLDER,
+      String.valueOf(pExternalLobsPerFolder), PARAMETER_EXTERNAL_LOBS_FOLDER_SIZE,
+      String.valueOf(pExternalLobsFolderSize), PARAMETER_TABLE_FILTER, pTableFilter);
 
-      if (pGMLDirectory != null) {
-        try {
-          return new GMLExtractorFilter(pGMLDirectory).migrateDatabaseTo(
-            new SIARD2ExportModule(pVersion, pFile, pCompress, pPrettyPrintXML, pTableFilter, pExternalLobsPerFolder,
-              pExternalLobsFolderSize, descriptiveMetadataParameterValues).getDatabaseHandler());
-        } catch (ModuleException e) {
-          throw new UnsupportedModuleException(e);
-        }
-      } else {
-        return new SIARD2ExportModule(pVersion, pFile, pCompress, pPrettyPrintXML, pTableFilter, pExternalLobsPerFolder,
-          pExternalLobsFolderSize, descriptiveMetadataParameterValues).getDatabaseHandler();
-      }
+    DatabaseExportModule module;
+    if (pExternalLobs) {
+      module = new SIARD2ExportModule(pVersion, pFile, pCompress, pPrettyPrintXML, pTableFilter, pExternalLobsPerFolder,
+        pExternalLobsFolderSize, descriptiveMetadataParameterValues).getDatabaseHandler();
     } else {
-      if (pTableFilter == null) {
-        reporter.exportModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString(),
-          PARAMETER_COMPRESS, String.valueOf(pCompress), PARAMETER_PRETTY_XML, String.valueOf(pPrettyPrintXML));
-      } else {
-        reporter.exportModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString(),
-          PARAMETER_COMPRESS, String.valueOf(pCompress), PARAMETER_PRETTY_XML, String.valueOf(pPrettyPrintXML),
-          PARAMETER_TABLE_FILTER, pTableFilter.normalize().toAbsolutePath().toString());
-      }
-      if (pGMLDirectory != null) {
-        try {
-          return new GMLExtractorFilter(pGMLDirectory).migrateDatabaseTo(new SIARD2ExportModule(pVersion, pFile,
-            pCompress, pPrettyPrintXML, pTableFilter, descriptiveMetadataParameterValues).getDatabaseHandler());
-        } catch (Exception e) {
-          throw new UnsupportedModuleException(e);
-        }
-      } else {
-        return new SIARD2ExportModule(pVersion, pFile, pCompress, pPrettyPrintXML, pTableFilter,
-          descriptiveMetadataParameterValues).getDatabaseHandler();
-      }
+      module = new SIARD2ExportModule(pVersion, pFile, pCompress, pPrettyPrintXML, pTableFilter,
+        descriptiveMetadataParameterValues).getDatabaseHandler();
     }
+
+    try {
+      if (pGMLDirectory != null) {
+        module = new GMLExtractorFilter(pGMLDirectory).migrateDatabaseTo(module);
+      }
+    } catch (ModuleException e) {
+      throw new UnsupportedModuleException(e);
+    }
+
+    return module;
   }
 
   private void addDescriptiveMetadataParameterValue(Map<Parameter, String> parameters,
@@ -326,5 +302,29 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     if (StringUtils.isBlank(descriptiveMetadataParameterValues.get(description))) {
       descriptiveMetadataParameterValues.put(description, metaDescription.valueIfNotSet());
     }
+  }
+
+  private void report(Reporter reporter, String moduleName, String parameterVersion, String parameterVersionValue,
+    String parameterFile, Path parameterFileValue, String parameterCompress, String parameterCompressValue,
+    String parameterPrettyXml, String parameterExternalLobs, String parameterExternalLobsValue,
+    String parameterPrettyXmlValue, String parameterExternalLobsPerFolder, String parameterExternalLobsPerFolderValue,
+    String parameterExternalLobsFolderSize, String parameterExternalLobsFolderSizeValue, String parameterTableFilter,
+    Path parameterTableFilterValue) {
+
+    String parameterFileValueString = null;
+    if (parameterFileValue != null) {
+      parameterFileValueString = parameterFileValue.normalize().toAbsolutePath().toString();
+    }
+
+    String parameterTableFilterValueString = null;
+    if (parameterTableFilterValue != null) {
+      parameterTableFilterValueString = parameterTableFilterValue.normalize().toAbsolutePath().toString();
+    }
+
+    reporter.exportModuleParameters(moduleName, parameterVersion, parameterVersionValue, parameterFile,
+      parameterFileValueString, parameterCompress, parameterCompressValue, parameterPrettyXml, parameterExternalLobs,
+      parameterExternalLobsValue, parameterPrettyXmlValue, parameterExternalLobsPerFolder,
+      parameterExternalLobsPerFolderValue, parameterExternalLobsFolderSize, parameterExternalLobsFolderSizeValue,
+      parameterTableFilter, parameterTableFilterValueString);
   }
 }

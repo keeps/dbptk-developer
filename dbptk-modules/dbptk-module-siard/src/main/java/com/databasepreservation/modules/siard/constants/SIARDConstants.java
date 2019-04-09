@@ -60,14 +60,14 @@ public class SIARDConstants {
       return display;
     }
 
-    public static SiardVersion fromString(String labelOrAlias) {
+    public static SiardVersion fromString(String displayNameOrAlias) {
       for (SiardVersion siardVersion : SiardVersion.values()) {
-        if (siardVersion.name().equalsIgnoreCase(labelOrAlias)) {
+        if (siardVersion.name().equalsIgnoreCase(displayNameOrAlias)) {
           return siardVersion;
         }
 
         for (String alias : siardVersion.alias) {
-          if (alias.equalsIgnoreCase(labelOrAlias)) {
+          if (alias.equalsIgnoreCase(displayNameOrAlias)) {
             return siardVersion;
           }
         }
