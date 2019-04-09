@@ -1,18 +1,51 @@
 # Changelog
 
-## v2.2.0-BETA (05/04/2019)
+## v2.2.0-RC (09/04/2019)
 
 #### New features:
 
--  Oracle: views from another database [#345](https://github.com/keeps/db-preservation-toolkit/issues/345)
--  Oracle: alternative solution for exporting SDO_GEOMETRY when conversion to GML is not possible [#344](https://github.com/keeps/db-preservation-toolkit/issues/344)
 -  Oracle: Convert SDO_geometry column content to GML [#343](https://github.com/keeps/db-preservation-toolkit/issues/343)
 -  Skip the import/export of specific columns [#342](https://github.com/keeps/db-preservation-toolkit/issues/342)
 -  Support the new SIARD 2.1 [#329](https://github.com/keeps/db-preservation-toolkit/issues/329)
+-  Add support for arrays [#129](https://github.com/keeps/db-preservation-toolkit/issues/129)
+
+#### Enhancements:
+
+-  Inversion of control in module loading [#361](https://github.com/keeps/db-preservation-toolkit/issues/361)
 
 #### Bug Fixes:
 
+-  Undefined datatypes error when migrating view from another DBMS [#345](https://github.com/keeps/db-preservation-toolkit/issues/345)
 -  Error converting SQL Server timestamp field [#322](https://github.com/keeps/db-preservation-toolkit/issues/322)
+
+-----
+
+#### Using the new features:
+
+##### To extract GML files from `SDO_GEOMETRY` cells in Oracle DBMS
+
+* Use the parameter `-egml <directory>` or `--export-gml-directory=<directory>` to specify the directory in which the GML files should be created;
+* The GML directory parameter can be used when exporting to SIARD 2 (version 2.0 and 2.1);
+* One GML file is created per table (and only for tables containing SDO_GEOMETRY data).
+
+##### To skip the import/export of specific columns
+
+Documentation about this feature is available at [project-wiki/List-Tables-Module](https://github.com/keeps/db-preservation-toolkit/wiki/List-Tables-Module)
+
+##### To use the new SIARD 2.1
+
+* **In the import module**
+    No action needed. DBPTK will auto-detect the SIARD 2 version.
+* **In the export module**
+    Defaults to version 2.1;
+    2.0 can still be used by using the `-v 2.0` or `--siard-version 2.0` parameter.
+* **Extra functionality**
+    When using any SIARD modules, the versions are logged before the migration starts like:
+    ```
+    Importing SIARD version 1.0
+    Exporting SIARD version 2.1
+    ```
+
 
 ---
 
