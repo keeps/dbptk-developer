@@ -1533,11 +1533,15 @@ public class JDBCImportModule implements DatabaseImportModule {
     throws SQLException, ModuleException {
     Cell cell;
 
-    Blob blob = rawData.getBlob(columnName);
-    if (blob != null && !rawData.wasNull()) {
-      cell = new BinaryCell(id, blob);
+    if(cellType instanceof SimpleTypeBinary && ((SimpleTypeBinary) cellType).isOutsideDatabase()) {
+      cell = new SimpleCell(id, rawData.getString(columnName));
     } else {
-      cell = new NullCell(id);
+      Blob blob = rawData.getBlob(columnName);
+      if (blob != null && !rawData.wasNull()) {
+        cell = new BinaryCell(id, blob);
+      } else {
+        cell = new NullCell(id);
+      }
     }
     return cell;
   }

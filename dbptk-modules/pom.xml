@@ -27,6 +27,7 @@
         <module>dbptk-module-postgresql</module>
         <module>dbptk-module-siard</module>
         <module>dbptk-module-sql-server</module>
+        <module>dbptk-filter-external-lobs</module>
     </modules>
 
     <dependencyManagement>

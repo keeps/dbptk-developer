@@ -62,7 +62,8 @@ public class Main {
    *          the console arguments
    */
   public static void main(String[] args) {
-    CLI cli = new CLI(Arrays.asList(args), ReflectionUtils.collectDatabaseModuleFactories());
+    CLI cli = new CLI(Arrays.asList(args), ReflectionUtils.collectDatabaseModuleFactories(),
+      ReflectionUtils.collectDatabaseFilterFactory());
     System.exit(internalMain(cli));
   }
 
@@ -72,7 +73,8 @@ public class Main {
     if (reporter == null) {
       reporter = new NoOpReporter();
     }
-    CLI cli = new CLI(Arrays.asList(args), ReflectionUtils.collectDatabaseModuleFactories());
+    CLI cli = new CLI(Arrays.asList(args), ReflectionUtils.collectDatabaseModuleFactories(),
+      ReflectionUtils.collectDatabaseFilterFactory());
     return internalMain(cli);
   }
 
@@ -124,7 +126,8 @@ public class Main {
     try {
       databaseMigration = DatabaseMigration.newInstance().importModule(cli.getImportModuleFactory())
         .exportModule(cli.getExportModuleFactory()).importModuleParameters(cli.getImportModuleParameters())
-        .exportModuleParameters(cli.getExportModuleParameters()).reporter(getReporter());
+        .exportModuleParameters(cli.getExportModuleParameters()).filterFactories(cli.getFilterFactories())
+        .filterParameters(cli.getFilterParameters()).reporter(getReporter());
     } catch (ParseException e) {
       LOGGER.error(e.getMessage(), e);
       logProgramFinish(EXIT_CODE_COMMAND_PARSE_ERROR);
@@ -133,6 +136,7 @@ public class Main {
 
     // adds a default filter, which for now just does progress logging
     databaseMigration.filter(new ObservableFilter(new ProgressLoggerObserver()));
+
 
     // converts the database using the specified modules, module parameters, and
     // filters

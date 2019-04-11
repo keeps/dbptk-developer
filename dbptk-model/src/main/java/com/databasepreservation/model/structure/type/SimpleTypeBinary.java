@@ -24,6 +24,12 @@ public class SimpleTypeBinary extends Type {
   private Integer length;
 
   /**
+   * True if this binary type was created from a reference to a LOB outside the
+   * database
+   */
+  private boolean isOutsideDatabase;
+
+  /**
    * Binary type constructor, with no optional fields. Format registry name and
    * key will be null
    */
@@ -144,5 +150,21 @@ public class SimpleTypeBinary extends Type {
   public String toString() {
     return super.toString() + "-->SimpleTypeBinary{" + "formatRegistryName='" + formatRegistryName + '\''
       + ", formatRegistryKey='" + formatRegistryKey + '\'' + ", length=" + length + '}';
+  }
+
+  /**
+   * @return True if this binary type was created from a reference to a LOB
+   *         outside the database
+   */
+  public boolean isOutsideDatabase() {
+    return isOutsideDatabase;
+  }
+
+  /**
+   * Set by external lob filter module to indicate that this LOB type was created
+   * from a reference to a LOB outside the database
+   */
+  public void setOutsideDatabase(boolean outsideDatabase) {
+    isOutsideDatabase = outsideDatabase;
   }
 }

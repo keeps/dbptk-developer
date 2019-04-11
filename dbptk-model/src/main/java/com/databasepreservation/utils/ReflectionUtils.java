@@ -13,12 +13,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
+
+import javax.xml.crypto.Data;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -27,6 +30,7 @@ public class ReflectionUtils {
   private static Logger LOGGER = LoggerFactory.getLogger(ReflectionUtils.class);
 
   private static List<Constructor<? extends DatabaseModuleFactory>> databaseModuleFactoryConstructors = new ArrayList<>();
+  private static List<Constructor<? extends DatabaseFilterFactory>> databaseFilterFactoryConstructors = new ArrayList<>();
 
   public static Set<DatabaseModuleFactory> collectDatabaseModuleFactories() {
     return collectDatabaseModuleFactories(false);
@@ -62,6 +66,43 @@ public class ReflectionUtils {
     }
 
     return databaseModuleFactories;
+  }
+
+  public static List<DatabaseFilterFactory> collectDatabaseFilterFactory() {
+    return collectDatabaseFilterFactory(false);
+  }
+
+  public static List<DatabaseFilterFactory> collectDatabaseFilterFactory(boolean includeDisabled) {
+    List<DatabaseFilterFactory> databaseFilterFactories = new ArrayList<>();
+
+    if (databaseFilterFactoryConstructors.isEmpty()) {
+      Reflections reflections = new Reflections("com.databasepreservation.modules", new SubTypesScanner());
+
+      Set<Class<? extends DatabaseFilterFactory>> filterFactoryClasses = reflections
+              .getSubTypesOf(DatabaseFilterFactory.class);
+
+      for (Class<? extends DatabaseFilterFactory> filterFactoryClass : filterFactoryClasses) {
+        try {
+          Constructor<? extends DatabaseFilterFactory> constructor = filterFactoryClass.getConstructor();
+          databaseFilterFactoryConstructors.add(constructor);
+        } catch (NoSuchMethodException e) {
+          LOGGER.info("Filter factory {} could not be loaded", filterFactoryClass.getName(), e);
+        }
+      }
+    }
+
+    for (Constructor<? extends DatabaseFilterFactory> constructor : databaseFilterFactoryConstructors) {
+      try {
+        DatabaseFilterFactory instance = constructor.newInstance();
+        if (includeDisabled || instance.isEnabled()) {
+          databaseFilterFactories.add(instance);
+        }
+      } catch (Exception e) {
+        LOGGER.info("Filter factory {} could not be loaded", constructor.getDeclaringClass().getName(), e);
+      }
+    }
+
+    return databaseFilterFactories;
   }
 
 }

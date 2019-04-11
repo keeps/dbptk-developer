@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.databasepreservation.model.Reporter;
@@ -36,6 +37,9 @@ public class DatabaseMigration {
   private DatabaseModuleFactory exportModuleFactory;
   private HashMap<String, String> exportModuleFactoryStringParameters = new HashMap<>();
 
+  private List<DatabaseFilterFactory> filterFactories;
+  private List<HashMap<String, String>> filterFactoriesStringParameters = new ArrayList<>();
+
   private List<DatabaseFilterModule> filterModules = new ArrayList<>();
 
   private DatabaseMigration() {
@@ -58,8 +62,17 @@ public class DatabaseMigration {
     DatabaseImportModule importModule = importModuleFactory.buildImportModule(importParameters, reporter);
     DatabaseExportModule exportModule = exportModuleFactory.buildExportModule(exportParameters, reporter);
 
+    List<DatabaseFilterModule> userDefinedFilterModules = new ArrayList<>();
+    for(int i=0; i<filterFactories.size(); i++) {
+      Map<Parameter, String> filterParameters = buildParametersFromStringParameters(filterFactories.get(i), filterFactoriesStringParameters.get(i));
+      userDefinedFilterModules.add(filterFactories.get(i).buildFilterModule(filterParameters, reporter));
+    }
+
     // set reporters
     importModule.setOnceReporter(reporter);
+    for (DatabaseFilterModule userDefinedFilterModule : userDefinedFilterModules) {
+      userDefinedFilterModule.setOnceReporter(reporter);
+    }
     for (DatabaseFilterModule filterModule : filterModules) {
       filterModule.setOnceReporter(reporter);
     }
@@ -67,8 +80,12 @@ public class DatabaseMigration {
 
     // create module chain with filters in the middle
     Collections.reverse(filterModules);
+    Collections.reverse(userDefinedFilterModules);
 
     DatabaseExportModule moduleChain = exportModule;
+    for (DatabaseFilterModule userDefinedFilterModule : userDefinedFilterModules) {
+      moduleChain = userDefinedFilterModule.migrateDatabaseTo(moduleChain);
+    }
     for (DatabaseFilterModule filterModule : filterModules) {
       moduleChain = filterModule.migrateDatabaseTo(moduleChain);
     }
@@ -160,6 +177,39 @@ public class DatabaseMigration {
   }
 
   /**
+   * Sets the filter factories that will be used to produce the user specified filters
+   */
+  public DatabaseMigration filterFactories(List<DatabaseFilterFactory> filterFactories) {
+    this.filterFactories = filterFactories;
+
+    return this;
+  }
+
+  /**
+   * Adds the specified parameter to be used in the specific filter during the
+   * migration
+   */
+  public DatabaseMigration filterParameter(String parameterLongName, String parameterValue, int filterIndex) {
+    filterFactoriesStringParameters.get(filterIndex).put(parameterLongName, parameterValue);
+    return this;
+  }
+
+  /**
+   * Adds the specified parameters to be used in the export module during the
+   * migration
+   */
+  public DatabaseMigration filterParameters(List<Map<Parameter, String>> parameters) {
+    for(int i=0;i<parameters.size();i++) {
+      filterFactoriesStringParameters.add(new HashMap<String, String>());
+
+      for (Map.Entry<Parameter, String> entry : parameters.get(i).entrySet()) {
+        filterParameter(entry.getKey().longName(), entry.getValue(), i);
+      }
+    }
+    return this;
+  }
+
+  /**
    * Adds the specified filter to this database migration. Multiple filters can be
    * added, and the database information will go through them in the same order
    * they were added here
@@ -201,6 +251,20 @@ public class DatabaseMigration {
 
     for (Map.Entry<String, String> entry : stringModuleFactoryParameters.entrySet()) {
       Parameter key = moduleFactory.getAllParameters().get(entry.getKey());
+      if (key != null) {
+        parameters.put(key, entry.getValue());
+      }
+    }
+
+    return parameters;
+  }
+
+  private static Map<Parameter, String> buildParametersFromStringParameters(DatabaseFilterFactory filterFactory,
+    HashMap<String, String> stringFilterFactoryParameters) {
+    Map<Parameter, String> parameters = new HashMap<>();
+
+    for (Map.Entry<String, String> entry : stringFilterFactoryParameters.entrySet()) {
+      Parameter key = filterFactory.getAllParameters().get(entry.getKey());
       if (key != null) {
         parameters.put(key, entry.getValue());
       }

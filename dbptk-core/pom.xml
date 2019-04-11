@@ -142,6 +142,11 @@
             <artifactId>dbptk-module-sql-server</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-filter-external-lobs</artifactId>
+        </dependency>
+
         <!-- common -->
         <dependency>
             <groupId>commons-codec</groupId>

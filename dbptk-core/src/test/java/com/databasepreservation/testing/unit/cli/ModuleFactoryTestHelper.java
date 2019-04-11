@@ -74,14 +74,14 @@ public class ModuleFactoryTestHelper {
 
       Method getModuleFactories = CLI.class.getDeclaredMethod("getModuleFactories", List.class);
       getModuleFactories.setAccessible(true);
-      CLI.DatabaseModuleFactoriesPair databaseModuleFactoriesPair = (CLI.DatabaseModuleFactoriesPair) getModuleFactories
+      CLI.DatabaseModuleFactories databaseModuleFactories = (CLI.DatabaseModuleFactories) getModuleFactories
         .invoke(cli, args);
 
       Method getModuleArguments = CLI.class.getDeclaredMethod("getModuleArguments",
-        CLI.DatabaseModuleFactoriesPair.class, List.class);
+        CLI.DatabaseModuleFactories.class, List.class);
       getModuleArguments.setAccessible(true);
       CLI.DatabaseModuleFactoriesArguments databaseModuleFactoriesArguments = (CLI.DatabaseModuleFactoriesArguments) getModuleArguments
-        .invoke(cli, databaseModuleFactoriesPair, args);
+        .invoke(cli, databaseModuleFactories, args);
 
       if (forImportModule) {
         return databaseModuleFactoriesArguments.getImportModuleArguments();
@@ -103,10 +103,10 @@ public class ModuleFactoryTestHelper {
 
       Method getModuleFactories = CLI.class.getDeclaredMethod("getModuleFactories", List.class);
       getModuleFactories.setAccessible(true);
-      CLI.DatabaseModuleFactoriesPair databaseModuleFactoriesPair = (CLI.DatabaseModuleFactoriesPair) getModuleFactories
+      CLI.DatabaseModuleFactories databaseModuleFactories = (CLI.DatabaseModuleFactories) getModuleFactories
         .invoke(cli, args);
 
-      return databaseModuleFactoriesPair.getImportModuleFactory().getAllParameters();
+      return databaseModuleFactories.getImportModuleFactory().getAllParameters();
     } catch (NoSuchMethodException e) {
       throw new RuntimeException(e);
     } catch (InvocationTargetException e) {

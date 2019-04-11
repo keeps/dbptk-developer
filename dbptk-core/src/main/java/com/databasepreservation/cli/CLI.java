@@ -23,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -45,6 +46,7 @@ import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.UnreachableException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.ParameterGroup;
 import com.databasepreservation.model.parameters.Parameters;
@@ -62,7 +64,9 @@ import com.databasepreservation.utils.MiscUtils;
 public class CLI {
   private static final Logger LOGGER = LoggerFactory.getLogger(CLI.class);
 
-  private final ArrayList<DatabaseModuleFactory> factories;
+  private final ArrayList<DatabaseModuleFactory> allModuleFactories;
+  private final ArrayList<DatabaseFilterFactory> allFilterFactories;
+
   private final List<String> commandLineArguments;
 
   private String importModuleName;
@@ -72,6 +76,10 @@ public class CLI {
   private String exportModuleName;
   private DatabaseModuleFactory exportModuleFactory;
   private Map<Parameter, String> exportModuleParameters;
+
+  private List<String> filterNames;
+  private List<DatabaseFilterFactory> filterFactories;
+  private List<Map<Parameter, String>> filterParameters;
 
   private boolean forceDisableEncryption = false;
 
@@ -84,7 +92,17 @@ public class CLI {
    *          List of available module factories
    */
   public CLI(List<String> commandLineArguments, Collection<DatabaseModuleFactory> databaseModuleFactories) {
-    factories = new ArrayList<>(databaseModuleFactories);
+    allModuleFactories = new ArrayList<>(databaseModuleFactories);
+    allFilterFactories = new ArrayList<>();
+    filterNames = new ArrayList<>();
+    this.commandLineArguments = sanitizeCommandLineArguments(commandLineArguments);
+  }
+
+  public CLI(List<String> commandLineArguments, Collection<DatabaseModuleFactory> databaseModuleFactories,
+    Collection<DatabaseFilterFactory> databaseFilterFactories) {
+    allModuleFactories = new ArrayList<>(databaseModuleFactories);
+    allFilterFactories = new ArrayList<>(databaseFilterFactories);
+    filterNames = new ArrayList<>();
     this.commandLineArguments = sanitizeCommandLineArguments(commandLineArguments);
   }
 
@@ -205,6 +223,18 @@ public class CLI {
     return importModuleName;
   }
 
+  public List<String> getFilterNames() {
+    return filterNames;
+  }
+
+  public List<DatabaseFilterFactory> getFilterFactories() {
+    return filterFactories;
+  }
+
+  public List<Map<Parameter, String>> getFilterParameters() {
+    return filterParameters;
+  }
+
   /**
    * Outputs the help text to STDOUT
    */
@@ -232,16 +262,22 @@ public class CLI {
    *           If the arguments could not be parsed or are invalid
    */
   private void parse(List<String> args) throws ParseException {
-    DatabaseModuleFactoriesPair databaseModuleFactoriesPair = getModuleFactories(args);
+    DatabaseModuleFactories databaseModuleFactories = getModuleFactories(args);
 
-    importModuleFactory = databaseModuleFactoriesPair.getImportModuleFactory();
-    exportModuleFactory = databaseModuleFactoriesPair.getExportModuleFactory();
+    importModuleFactory = databaseModuleFactories.getImportModuleFactory();
+    exportModuleFactory = databaseModuleFactories.getExportModuleFactory();
+    filterFactories = databaseModuleFactories.getFilterFactories();
 
     try {
       importModuleName = importModuleFactory.getModuleName();
       exportModuleName = exportModuleFactory.getModuleName();
+
+      for (DatabaseFilterFactory factory : filterFactories) {
+        filterNames.add(factory.getFilterName());
+      }
+
       DatabaseModuleFactoriesArguments databaseModuleFactoriesArguments = getModuleArguments(
-        databaseModuleFactoriesPair, args);
+        databaseModuleFactories, args);
 
       if (forceDisableEncryption) {
         // inject disable encryption for import module
@@ -267,6 +303,8 @@ public class CLI {
 
       importModuleParameters = databaseModuleFactoriesArguments.getImportModuleArguments();
       exportModuleParameters = databaseModuleFactoriesArguments.getExportModuleArguments();
+      filterParameters = databaseModuleFactoriesArguments.getFilterModulesArguments();
+
     } catch (UnsupportedModuleException e) {
       LOGGER.debug("UnsupportedModuleException", e);
       throw new ParseException("Module does not support the requested mode.");
@@ -284,12 +322,15 @@ public class CLI {
    * @throws ParseException
    *           If the arguments could not be parsed or are invalid
    */
-  private DatabaseModuleFactoriesPair getModuleFactories(List<String> args) throws ParseException {
+  private DatabaseModuleFactories getModuleFactories(List<String> args) throws ParseException {
     // check if args contains exactly one import and one export module
     String importModuleName = null;
     String exportModuleName = null;
+    List<String> filterModuleNames = new ArrayList<>();
+
     int importModulesFound = 0;
     int exportModulesFound = 0;
+
     Iterator<String> argsIterator = args.iterator();
     try {
       while (argsIterator.hasNext()) {
@@ -308,6 +349,13 @@ public class CLI {
           // 9 is the size of the string "--export="
           exportModuleName = arg.substring(9);
           exportModulesFound++;
+        } else if ("-f".equals(arg) || "--filter".equals(arg) || "--filters".equals(arg)) {
+          String filterNames = argsIterator.next();
+          filterModuleNames = Arrays.asList(filterNames.split(","));
+        } else if (StringUtils.startsWith(arg, "--filter=")) {
+          filterModuleNames = Arrays.asList(arg.substring(9).split(","));
+        } else if (StringUtils.startsWith(arg, "--filters=")) {
+          filterModuleNames = Arrays.asList(arg.substring(10).split(","));
         }
       }
     } catch (NoSuchElementException e) {
@@ -322,7 +370,8 @@ public class CLI {
     // check if both module names correspond to real module names
     DatabaseModuleFactory importModuleFactory = null;
     DatabaseModuleFactory exportModuleFactory = null;
-    for (DatabaseModuleFactory factory : factories) {
+    List<DatabaseFilterFactory> filterModuleFactories = new ArrayList<>();
+    for (DatabaseModuleFactory factory : allModuleFactories) {
       String moduleName = factory.getModuleName();
       if (moduleName.equalsIgnoreCase(importModuleName) && factory.producesImportModules()) {
         importModuleFactory = factory;
@@ -331,18 +380,35 @@ public class CLI {
         exportModuleFactory = factory;
       }
     }
+
+    // check if filter names correspond to real filter module names
+    for (String filterModuleName : filterModuleNames) {
+      boolean isRealFilterName = false;
+      for (DatabaseFilterFactory factory : allFilterFactories) {
+        String filterName = factory.getFilterName();
+        if (filterName.equalsIgnoreCase(filterModuleName)) {
+          filterModuleFactories.add(factory);
+          isRealFilterName = true;
+          break;
+        }
+      }
+      if (!isRealFilterName) {
+        throw new ParseException("Invalid filter module '" + filterModuleName + "'.");
+      }
+    }
+
     if (importModuleFactory == null) {
       throw new ParseException("Invalid import module.");
     } else if (exportModuleFactory == null) {
       throw new ParseException("Invalid export module.");
     }
-    return new DatabaseModuleFactoriesPair(importModuleFactory, exportModuleFactory);
+    return new DatabaseModuleFactories(importModuleFactory, exportModuleFactory, filterModuleFactories);
   }
 
   /**
    * Obtains the arguments needed to create new import and export modules
    *
-   * @param factoriesPair
+   * @param factories
    *          A pair of DatabaseModuleFactory objects containing the selected
    *          import and export module factories
    * @param args
@@ -352,10 +418,11 @@ public class CLI {
    * @throws ParseException
    *           If the arguments could not be parsed or are invalid
    */
-  private DatabaseModuleFactoriesArguments getModuleArguments(DatabaseModuleFactoriesPair factoriesPair,
-    List<String> args) throws ParseException, UnsupportedModuleException {
-    DatabaseModuleFactory importModuleFactory = factoriesPair.getImportModuleFactory();
-    DatabaseModuleFactory exportModuleFactory = factoriesPair.getExportModuleFactory();
+  private DatabaseModuleFactoriesArguments getModuleArguments(DatabaseModuleFactories factories, List<String> args)
+    throws ParseException, UnsupportedModuleException {
+    DatabaseModuleFactory importModuleFactory = factories.getImportModuleFactory();
+    DatabaseModuleFactory exportModuleFactory = factories.getExportModuleFactory();
+    List<DatabaseFilterFactory> filterFactories = factories.getFilterFactories();
 
     // get appropriate command line options
     CommandLineParser commandLineParser = new DefaultParser();
@@ -394,10 +461,20 @@ public class CLI {
       }
     }
 
+    for (int i = 0; i < filterFactories.size(); i++) {
+      for (Parameter parameter : filterFactories.get(i).getParameters().getParameters()) {
+        Option option = parameter.toOption("f" + (i+1), "filter" + (i+1));
+        options.addOption(option);
+        mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
+      }
+    }
+
     Option importOption = Option.builder("i").longOpt("import").hasArg().optionalArg(false).build();
     Option exportOption = Option.builder("e").longOpt("export").hasArg().optionalArg(false).build();
+    Option filtersOption = Option.builder("f").longOpt("filter").hasArg().optionalArg(false).required(false).build();
     options.addOption(importOption);
     options.addOption(exportOption);
+    options.addOption(filtersOption);
 
     // new HelpFormatter().printHelp(80, "dbptk", "\nModule Options:", options,
     // null, true);
@@ -420,8 +497,13 @@ public class CLI {
     }
 
     // create arguments to pass to factory
-    HashMap<Parameter, String> importModuleArguments = new HashMap<Parameter, String>();
-    HashMap<Parameter, String> exportModuleArguments = new HashMap<Parameter, String>();
+    HashMap<Parameter, String> importModuleArguments = new HashMap<>();
+    HashMap<Parameter, String> exportModuleArguments = new HashMap<>();
+    List<Map<Parameter, String>> filterModuleArguments = new ArrayList<>();
+    for (int i = 0; i < filterFactories.size(); i++) {
+      filterModuleArguments.add(new HashMap<Parameter, String>());
+    }
+
     for (Option option : commandLine.getOptions()) {
       Parameter p = mapOptionToParameter.get(getUniqueOptionIdentifier(option));
       if (p != null) {
@@ -437,12 +519,26 @@ public class CLI {
           } else {
             exportModuleArguments.put(p, p.valueIfSet());
           }
+        } else if (isFilterModuleOption(option)) {
+          // find out which filter the option refers to
+          int filterIndex = new Scanner(option.getOpt()).useDelimiter("\\D+").nextInt();
+
+          if (filterIndex > filterModuleArguments.size()) {
+            throw new ParseException(
+              "No filter matching index given '" + filterIndex + "' in parameter '" + option.getOpt() + "'.");
+          } else {
+            if (p.hasArgument()) {
+              filterModuleArguments.get(filterIndex - 1).put(p, option.getValue(p.valueIfNotSet()));
+            } else {
+              filterModuleArguments.get(filterIndex - 1).put(p, p.valueIfSet());
+            }
+          }
         } else {
           throw new ParseException("Unexpected parse exception occurred.");
         }
       }
     }
-    return new DatabaseModuleFactoriesArguments(importModuleArguments, exportModuleArguments);
+    return new DatabaseModuleFactoriesArguments(importModuleArguments, exportModuleArguments, filterModuleArguments);
   }
 
   private void printHelp(PrintStream printStream) {
@@ -459,10 +555,14 @@ public class CLI {
 
     out.append("Database Preservation Toolkit").append(MiscUtils.APP_NAME_AND_VERSION)
       .append("\nMore info: http://www.database-preservation.com").append("\n")
-      .append("\nUsage: dbptk <importModule> [import module options] <exportModule> [export module options]\n");
+      .append(
+        "\nUsage: dbptk <importModule> [import module options] <exportModule> [export module options] [<filterModule(s)> [filter module options]]\n");
 
-    ArrayList<DatabaseModuleFactory> modulesList = new ArrayList<>(factories);
+    ArrayList<DatabaseModuleFactory> modulesList = new ArrayList<>(allModuleFactories);
     Collections.sort(modulesList, new DatabaseModuleFactoryNameComparator());
+
+    ArrayList<DatabaseFilterFactory> filterModulesList = new ArrayList<>(allFilterFactories);
+    Collections.sort(filterModulesList, new DatabaseFilterFactoryNameComparator());
 
     if (visibleModules.isEmpty()) {
       String spaceSmall = "      ";
@@ -486,6 +586,11 @@ public class CLI {
         }
       }
 
+      out.append("\n\n").append(spaceSmall).append("Filter modules: \n");
+      for (DatabaseFilterFactory factory : filterModulesList) {
+        out.append(spaceMedium).append(factory.getFilterName()).append("\n");
+      }
+
     } else {
       try {
         for (DatabaseModuleFactory factory : modulesList) {
@@ -499,6 +604,13 @@ public class CLI {
             out.append(
               printModuleHelp("Export module: -e " + factory.getModuleName() + ", --export=" + factory.getModuleName(),
                 "e", "export", factory.getExportModuleParameters()));
+          }
+        }
+        for (DatabaseFilterFactory factory : filterModulesList) {
+          if (visibleModules.contains(factory.getFilterName())) {
+            out.append(printModuleHelp(
+              "Filter module: -f " + factory.getFilterName() + ", --filter=" + factory.getFilterName(), "f<n>",
+              "filter<n>", factory.getParameters()));
           }
         }
       } catch (UnsupportedModuleException e) {
@@ -612,6 +724,13 @@ public class CLI {
     }
   }
 
+  private static class DatabaseFilterFactoryNameComparator implements Comparator<DatabaseFilterFactory> {
+    @Override
+    public int compare(DatabaseFilterFactory o1, DatabaseFilterFactory o2) {
+      return o1.getFilterName().compareTo(o2.getFilterName());
+    }
+  }
+
   private static String getUniqueOptionIdentifier(Option option) {
     // some string that should never occur in option shortName nor longName
     final String delimiter = "\r\f\n";
@@ -639,6 +758,16 @@ public class CLI {
     return false;
   }
 
+  private static boolean isFilterModuleOption(Option option) {
+    final String type = "f";
+    if (StringUtils.isNotBlank(option.getOpt())) {
+      return option.getOpt().startsWith(type);
+    } else if (StringUtils.isNotBlank(option.getLongOpt())) {
+      return option.getLongOpt().startsWith(type);
+    }
+    return false;
+  }
+
   private static String getDefaultCharSet() {
     OutputStreamWriter dummyWriter = new OutputStreamWriter(new ByteArrayOutputStream());
     String encoding = dummyWriter.getEncoding();
@@ -648,10 +777,10 @@ public class CLI {
   /**
    * Pair containing the import and export module factories
    */
-  public class DatabaseModuleFactoriesPair {
+  public class DatabaseModuleFactories {
     // left: import, right: export
     private final ImmutablePair<DatabaseModuleFactory, DatabaseModuleFactory> factories;
-
+    private final List<DatabaseFilterFactory> filterFactories;
     /**
      * Create a new pair with an import module factory and an export module factory
      *
@@ -660,10 +789,16 @@ public class CLI {
      * @param exportModuleFactory
      *          the export module factory
      */
-    public DatabaseModuleFactoriesPair(DatabaseModuleFactory importModuleFactory,
+    public DatabaseModuleFactories(DatabaseModuleFactory importModuleFactory,
       DatabaseModuleFactory exportModuleFactory) {
-      factories = new ImmutablePair<DatabaseModuleFactory, DatabaseModuleFactory>(importModuleFactory,
-        exportModuleFactory);
+      factories = new ImmutablePair<>(importModuleFactory, exportModuleFactory);
+      filterFactories = new ArrayList<>();
+    }
+
+    public DatabaseModuleFactories(DatabaseModuleFactory importModuleFactory, DatabaseModuleFactory exportModuleFactory,
+      List<DatabaseFilterFactory> filterFactories) {
+      factories = new ImmutablePair<>(importModuleFactory, exportModuleFactory);
+      this.filterFactories = filterFactories;
     }
 
     /**
@@ -679,6 +814,10 @@ public class CLI {
     public DatabaseModuleFactory getExportModuleFactory() {
       return factories.getRight();
     }
+
+    public List<DatabaseFilterFactory> getFilterFactories() {
+      return filterFactories;
+    }
   }
 
   /**
@@ -687,7 +826,7 @@ public class CLI {
   public class DatabaseModuleFactoriesArguments {
     // left: import, right: export
     private final ImmutablePair<Map<Parameter, String>, Map<Parameter, String>> factories;
-
+    private final List<Map<Parameter, String>> filterFactories;
     /**
      * Create a new pair with the import module arguments and the export module
      * arguments
@@ -701,8 +840,14 @@ public class CLI {
      */
     public DatabaseModuleFactoriesArguments(Map<Parameter, String> importModuleArguments,
       Map<Parameter, String> exportModuleArguments) {
-      factories = new ImmutablePair<Map<Parameter, String>, Map<Parameter, String>>(importModuleArguments,
-        exportModuleArguments);
+      factories = new ImmutablePair<>(importModuleArguments, exportModuleArguments);
+      filterFactories = new ArrayList<>();
+    }
+
+    public DatabaseModuleFactoriesArguments(Map<Parameter, String> importModuleArguments,
+      Map<Parameter, String> exportModuleArguments, List<Map<Parameter, String>> filterModulesArguments) {
+      factories = new ImmutablePair<>(importModuleArguments, exportModuleArguments);
+      filterFactories = filterModulesArguments;
     }
 
     /**
@@ -719,6 +864,10 @@ public class CLI {
      */
     public Map<Parameter, String> getExportModuleArguments() {
       return factories.getRight();
+    }
+
+    public List<Map<Parameter, String>> getFilterModulesArguments() {
+      return filterFactories;
     }
   }
 }
