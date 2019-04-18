@@ -28,6 +28,7 @@ import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
+import com.databasepreservation.model.structure.RoutineStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.Type;
@@ -207,5 +208,39 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
     } else {
       throw new InvalidDataException("unexpected array instance type");
     }
+  }
+
+  @Override
+  protected List<RoutineStructure> getRoutines(String schemaName) throws SQLException, ModuleException {
+    List<RoutineStructure> routines = new ArrayList<RoutineStructure>();
+
+    try(ResultSet resultSet = getStatement()
+            .executeQuery("SELECT UNIQUE name FROM user_source WHERE type='PROCEDURE' or type='FUNCTION'")) {
+      List<String> routineNames = new ArrayList<>();
+      while (resultSet.next()) {
+        routineNames.add(resultSet.getString(1));
+      }
+
+      for (String routineName : routineNames) {
+        //String routineName = resultSet.getString(1);
+        RoutineStructure routine = new RoutineStructure();
+        routine.setName(routineName);
+
+        try(ResultSet rsetCode = getStatement()
+                .executeQuery("SELECT text FROM user_source WHERE name='" + routineName + "' ORDER BY line")) {
+          StringBuilder sb = new StringBuilder();
+          while (rsetCode.next()) {
+            sb.append(rsetCode.getString("TEXT"));
+          }
+          routine.setBody(sb.toString());
+        } catch (SQLException e) {
+          LOGGER.debug("Could not retrieve routine code (as routine).", e);
+        }
+        routines.add(routine);
+      }
+    } catch (SQLException e) {
+      LOGGER.debug("Could not retrieve routines.", e);
+    }
+    return routines;
   }
 }

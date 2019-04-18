@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
+import com.databasepreservation.model.structure.RoutineStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.ViewStructure;
@@ -350,5 +352,40 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
       column.setDescription(getDescriptionForColumn(schemaName, tableName, column.getName()));
     }
     return columns;
+  }
+
+  @Override
+  protected List<RoutineStructure> getRoutines(String schemaName) throws SQLException, ModuleException {
+    List<RoutineStructure> routines = new ArrayList<RoutineStructure>();
+
+    try (ResultSet rset = getMetadata().getProcedures(dbStructure.getName(), schemaName, "%")) {
+      while (rset.next()) {
+        String routineName = rset.getString(3);
+        RoutineStructure routine = new RoutineStructure();
+        routine.setName(routineName);
+        if (rset.getString(7) != null) {
+          routine.setDescription(rset.getString(7));
+        } else {
+          if (rset.getShort(8) == 1) {
+            routine.setDescription("Routine does not " + "return a result");
+          } else if (rset.getShort(8) == 2) {
+            routine.setDescription("Routine returns a result");
+          }
+        }
+
+        try {
+          routineName = routineName.replaceAll(";[0-9]+$","");
+          ResultSet rsetCode = getStatement().executeQuery("SELECT ROUTINE_DEFINITION FROM " + getDatabaseName()
+            + ".information_schema.routines WHERE specific_name='" + routineName + "'");
+          if (rsetCode.next()) {
+            routine.setBody(rsetCode.getString("ROUTINE_DEFINITION"));
+          }
+        } catch (SQLException e) {
+          LOGGER.debug("Could not retrieve routine code (as routine).", e);
+        }
+        routines.add(routine);
+      }
+    }
+    return routines;
   }
 }

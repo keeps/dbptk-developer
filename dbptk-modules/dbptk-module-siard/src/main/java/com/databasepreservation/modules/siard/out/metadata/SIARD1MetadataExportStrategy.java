@@ -435,7 +435,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     RoutineType routineType = new RoutineType();
 
     if (StringUtils.isNotBlank(routine.getName())) {
-      routineType.setName(routine.getName());
+      routineType.setName(XMLUtils.encode(routine.getName()));
     } else {
       throw new ModuleException().withMessage("Error while exporting routine: routine name cannot be blank");
     }
@@ -449,7 +449,7 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (StringUtils.isNotBlank(routine.getBody())) {
-      routineType.setBody(routine.getBody());
+      routineType.setBody(XMLUtils.encode(routine.getBody()));
     }
 
     if (StringUtils.isNotBlank(routine.getCharacteristic())) {
