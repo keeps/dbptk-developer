@@ -173,12 +173,14 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
 
       GeometryConverter geometryConverter = new GeometryConverter(null);
       STRUCT asStruct = ((OracleResultSet) rawData).getSTRUCT(columnName);
-      Geometry geometry = geometryConverter.asGeometry(asStruct);
 
-      GMLWriter gmlWriter = new GMLWriter();
-
-      return new SimpleCell(id, gmlWriter.write(geometry));
-
+      try {
+        Geometry geometry = geometryConverter.asGeometry(asStruct);
+        GMLWriter gmlWriter = new GMLWriter();
+        return new SimpleCell(id, gmlWriter.write(geometry));
+      } catch (Exception e) {
+        throw normalizeException(e, "Could not convert SDO_GEOMETRY to GML");
+      }
     } else {
       return super.convertRawToCell(tableName, columnName, columnIndex, rowIndex, cellType, rawData);
     }
