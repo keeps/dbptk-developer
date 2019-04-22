@@ -1,5 +1,41 @@
 # Changelog
 
+## v2.3.0-RC (22/04/2019)
+
+#### New features:
+
+-  Handle LOBs that exist outside the database [#346](https://github.com/keeps/db-preservation-toolkit/issues/346)
+- Option to add Filter Modules when using dbptk (implemented to support [#346](https://github.com/keeps/db-preservation-toolkit/issues/346))
+
+#### Enhancements: 
+
+-  Enhance support for import of stored procedures and triggers [#347](https://github.com/keeps/db-preservation-toolkit/issues/347)
+
+-----
+
+#### Using the new features:
+
+##### To use one or more Filter Modules
+
+* Use `-h` or `--help` to see available filter modules;
+* Use `-h <filter name>` or `--help <filter name>` to see the list of parameters accepted by that filter;
+* Use `-f <filter name list>` or `--filter <filter name list>` ( filter names should be separated by ',' without spaces) to inject these filters (in the same order they are written in) into dbptk workflow;
+* Use `-f<n><param short name>` or `--filter<n>-<param long name>` (where 'n' is the position of the filter in the list [starting at 1]) to specify parameters for each filter declared before (even if the list only contains one filter it should be referenced using n=1).
+
+
+##### To declare columns that reference LOBs external to the database
+
+* Use `-f external-lobs` or `--filter external-lobs` to inject this filter into the workflow;
+* Use the parameter `-f<n>cl <path to file>` or `--filter<n>-column-list <path to file>` to point to the file containing the list of columns in the database that reference external LOBs (this file should follow the same syntax as the one exported from the 'list-tables' module;
+* Use the parameter `-f<n>t <reference type>` or `--filter<n>-reference-type <reference type>` to define the strategy to use when fetching external lobs (the help page for this module should list all supported strategies; in this version only 'file-system' is supported);
+* **Usage example:**
+    ```
+    -f external-lobs --filter1-reference-type file-system --filter1-column-list /path/to/file.txt
+    ```
+
+
+---
+
 ## v2.2.0 (22/04/2019)
 
 #### New features:
