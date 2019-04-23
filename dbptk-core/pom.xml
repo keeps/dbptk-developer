@@ -144,6 +144,16 @@
 
         <dependency>
             <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-module-sybase</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-module-openedge</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
             <artifactId>dbptk-filter-external-lobs</artifactId>
         </dependency>
 

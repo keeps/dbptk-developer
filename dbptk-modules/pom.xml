@@ -28,6 +28,8 @@
         <module>dbptk-module-siard</module>
         <module>dbptk-module-sql-server</module>
         <module>dbptk-filter-external-lobs</module>
+        <module>dbptk-module-sybase</module>
+        <module>dbptk-module-openedge</module>
     </modules>
 
     <dependencyManagement>
