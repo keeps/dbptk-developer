@@ -243,4 +243,9 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
     }
     return routines;
   }
+
+  @Override
+  public String escapeObjectName(String objectName) {
+    return "\""+objectName+"\"";
+  }
 }

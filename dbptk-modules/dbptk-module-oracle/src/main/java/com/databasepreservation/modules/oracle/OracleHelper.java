@@ -24,9 +24,9 @@ public class OracleHelper extends SQLHelper {
   private static final int MAX_SIZE_VARCHAR = 4000;
   private static final int MAX_SIZE_CHAR = 2000;
 
-  private String startQuote = "";
+  private String startQuote = "\"";
 
-  private String endQuote = "";
+  private String endQuote = "\"";
 
   private String sourceSchema = null;
   private String targetSchema = null;

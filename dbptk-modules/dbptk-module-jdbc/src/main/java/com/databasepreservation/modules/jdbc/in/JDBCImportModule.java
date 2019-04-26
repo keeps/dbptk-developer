@@ -1035,7 +1035,8 @@ public class JDBCImportModule implements DatabaseImportModule {
     throws SQLException, ModuleException {
     List<CandidateKey> candidateKeys = new ArrayList<CandidateKey>();
 
-    try (ResultSet rs = getMetadata().getIndexInfo(dbStructure.getName(), schemaName, tableName, true, true)) {
+    try (ResultSet rs = getMetadata().getIndexInfo(dbStructure.getName(), schemaName, escapeObjectName(tableName), true,
+      true)) {
       while (rs.next()) {
         List<String> columns = new ArrayList<String>();
         boolean found = false;
@@ -1734,5 +1735,9 @@ public class JDBCImportModule implements DatabaseImportModule {
   @Override
   public ModuleException normalizeException(Exception exception, String contextMessage) {
     return DefaultExceptionNormalizer.getInstance().normalizeException(exception, contextMessage);
+  }
+
+  public String escapeObjectName(String objectName) {
+    return objectName;
   }
 }
