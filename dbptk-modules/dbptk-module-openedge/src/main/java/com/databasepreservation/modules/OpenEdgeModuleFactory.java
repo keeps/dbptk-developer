@@ -102,12 +102,12 @@ public class OpenEdgeModuleFactory implements DatabaseModuleFactory {
     if (pPortNumber == null) {
       reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
           PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED);
-      return new OpenEdgeJDBCImportModule(pDatabase, pUsername, pPassword, pHostname);
+      return new OpenEdgeJDBCImportModule(pHostname, pDatabase, pUsername, pPassword);
     } else {
       reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
           PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
           pPortNumber.toString());
-      return new OpenEdgeJDBCImportModule(pPortNumber, pDatabase, pUsername, pPassword, pHostname);
+      return new OpenEdgeJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword);
     }
   }
 

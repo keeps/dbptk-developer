@@ -21,7 +21,6 @@ import java.util.Map;
 public class SybaseModuleFactory implements DatabaseModuleFactory {
     public static final String PARAMETER_USERNAME = "username";
     public static final String PARAMETER_PASSWORD = "password";
-    //public static final String PARAMETER_SERVER_NAME = "server-name";
     public static final String PARAMETER_HOSTNAME = "hostname";
     public static final String PARAMETER_DATABASE = "database";
     public static final String PARAMETER_PORT_NUMBER = "port-number";
@@ -34,9 +33,6 @@ public class SybaseModuleFactory implements DatabaseModuleFactory {
         .description("the password of the user to use in the connection").hasArgument(true).setOptionalArgument(false)
         .required(true);
 
-    //private static final Parameter serverName = new Parameter().shortName("S").longName(PARAMETER_SERVER_NAME)
-    //    .description("the name of the server").hasArgument(true).setOptionalArgument(false).required(true);
-
     private static final Parameter portNumber = new Parameter().shortName("pn").longName(PARAMETER_PORT_NUMBER)
         .description("the server port number").hasArgument(true).setOptionalArgument(false).required(true);
 
@@ -47,32 +43,22 @@ public class SybaseModuleFactory implements DatabaseModuleFactory {
         .description("the name (host name) of the server").hasArgument(true).setOptionalArgument(false).required(false);
 
     @Override
-    public boolean producesImportModules() {
-        return true;
-    }
+    public boolean producesImportModules() { return true; }
 
     @Override
-    public boolean producesExportModules() {
-        return false;
-    }
+    public boolean producesExportModules() { return false; }
 
     @Override
-    public String getModuleName() {
-        return "sybase";
-    }
+    public String getModuleName() { return "sybase"; }
 
     @Override
-    public boolean isEnabled() {
-        return true;
-    }
-
+    public boolean isEnabled() { return true; }
 
     @Override
     public Map<String, Parameter> getAllParameters() {
         HashMap<String, Parameter> parameterHashMap = new HashMap<String, Parameter>();
         parameterHashMap.put(username.longName(), username);
         parameterHashMap.put(password.longName(), password);
-        //parameterHashMap.put(serverName.longName(), serverName);
         parameterHashMap.put(portNumber.longName(), portNumber);
         parameterHashMap.put(database.longName(), database);
         parameterHashMap.put(hostname.longName(), hostname);
@@ -95,7 +81,6 @@ public class SybaseModuleFactory implements DatabaseModuleFactory {
         String pUsername    = parameters.get(username);
         String pPassword    = parameters.get(password);
         String pHostname    = parameters.get(hostname);
-        //String pServerName  = parameters.get(serverName);
         String pDatabase    = parameters.get(database);
 
         // optional
@@ -107,12 +92,12 @@ public class SybaseModuleFactory implements DatabaseModuleFactory {
         if (pPortNumber == null) {
             reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
                 PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED);
-            return new SybaseJDBCImportModule(pDatabase, pUsername, pPassword, pHostname);
+            return new SybaseJDBCImportModule(pHostname, pDatabase, pUsername, pPassword);
         } else {
             reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
                 PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
                 pPortNumber.toString());
-            return new SybaseJDBCImportModule(pPortNumber, pDatabase, pUsername, pPassword, pHostname);
+            return new SybaseJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword);
         }
     }
 

@@ -16,10 +16,21 @@ public class SybaseHelper extends SQLHelper {
     return "SELECT so2.name AS TRIGGER_NAME FROM sysobjects so1, sysobjects so2 WHERE (so2.id = so1.deltrig OR so2.id = so1.instrig OR so2.id=so1.updtrig OR so2.id=so1.seltrig) AND so1.name='" + tableName + "'";
   }
 
+  @Override
   public String getCheckConstraintsSQL(String schemaName, String tableName) {
     return "SELECT object_name(sys_const.tableid) AS TABLE_NAME, object_name(sys_const.constrid) as CHECK_NAME, sys_comm.text as CHECK_CONDITION" +
     " FROM sysconstraints sys_const, syscomments sys_comm" +
     " WHERE sys_const.status=128 AND sys_const.constrid=sys_comm.id AND object_name(sys_const.tableid)='" + tableName + "'";
+  }
+
+  @Override
+  public String getUsersSQL(String dbName) {
+    return "SELECT name AS USER_NAME FROM dbo.sysusers WHERE uid < 16384";
+  }
+
+  @Override
+  public String getRolesSQL() {
+    return "SELECT name as ROLE_NAME FROM master..sysloginroles AS a, master.dbo.syssrvroles as b where a.srid = b.srid";
   }
 
   public String getTriggerEventSQL(String schemaName, String tableName) {
