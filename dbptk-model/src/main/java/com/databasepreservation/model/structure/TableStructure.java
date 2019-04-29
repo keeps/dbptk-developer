@@ -52,6 +52,8 @@ public class TableStructure {
 
   private HashMap<String, String> udtAlias;
 
+  private boolean fromView = false;
+
   /**
    * Empty table constructor. All fields are null except columns and foreign keys,
    * which are empty lists
@@ -327,6 +329,14 @@ public class TableStructure {
   public long incrementCurrentRow() {
     currentRow = currentRow + 1;
     return currentRow;
+  }
+
+  public boolean isFromView() {
+    return fromView;
+  }
+
+  public void setFromView(boolean fromView) {
+    this.fromView = fromView;
   }
 
   @Override

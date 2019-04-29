@@ -83,6 +83,8 @@ import com.databasepreservation.utils.MiscUtils;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class JDBCImportModule implements DatabaseImportModule {
+
+  private final String VIEW_NAME_PREFIX = "VIEW_";
   // if fetch size is zero, then the driver decides the best fetch size
   protected static final Integer DEFAULT_ROW_FETCH_BLOCK_SIZE = ConfigUtils.getProperty(0,
     "dbptk.jdbc.fetchsize.default");
@@ -472,9 +474,9 @@ public class JDBCImportModule implements DatabaseImportModule {
    */
   protected List<TableStructure> getTables(SchemaStructure schema) throws SQLException, ModuleException {
     List<TableStructure> tables = new ArrayList<TableStructure>();
+    int tableIndex = 1;
     try (
       ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"TABLE"})) {
-      int tableIndex = 1;
       while (rset.next()) {
         String tableName = rset.getString(3);
         String tableDescription = rset.getString(5);
@@ -485,6 +487,21 @@ public class JDBCImportModule implements DatabaseImportModule {
           tableIndex++;
         } else {
           LOGGER.info("Ignoring table " + schema.getName() + "." + tableName);
+        }
+      }
+    }
+    try (
+      ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"VIEW"})) {
+      while (rset.next()) {
+        String viewName = rset.getString(3);
+        String viewDescription = rset.getString(5);
+
+        if (getModuleSettings().isSelectedTable(schema.getName(), viewName)) {
+          LOGGER.info("Obtaining table structure for view " + schema.getName() + "." + viewName);
+          tables.add(getViewStructure(schema, viewName, tableIndex, viewDescription));
+          tableIndex++;
+        } else {
+          LOGGER.info("Ignoring view " + schema.getName() + "." + viewName);
         }
       }
     }
@@ -585,6 +602,16 @@ public class JDBCImportModule implements DatabaseImportModule {
     table.setRows(getRows(schema.getName(), tableName));
 
     return table;
+  }
+
+  protected TableStructure getViewStructure(SchemaStructure schema, String tableName, int tableIndex,
+    String description) throws SQLException, ModuleException {
+    TableStructure view = getTableStructure(schema, tableName, tableIndex, description);
+    view.setFromView(true);
+    view.setName(VIEW_NAME_PREFIX+view.getName());
+    view.setDescription("Table materialized from view.\n"+view.getDescription());
+
+    return view;
   }
 
   private int getRows(String schemaName, String tableName) throws SQLException, ModuleException {
