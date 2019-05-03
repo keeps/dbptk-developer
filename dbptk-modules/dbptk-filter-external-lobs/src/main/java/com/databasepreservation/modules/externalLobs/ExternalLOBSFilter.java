@@ -12,23 +12,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.databasepreservation.model.data.NullCell;
-import com.databasepreservation.model.data.SimpleCell;
-import com.databasepreservation.model.structure.type.SimpleTypeBinary;
-import com.databasepreservation.model.structure.type.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.Reporter;
-import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
+import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.model.structure.SchemaStructure;
+import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.type.SimpleTypeBinary;
+import com.databasepreservation.model.structure.type.Type;
 
 public class ExternalLOBSFilter implements DatabaseFilterModule {
   private static final Logger LOGGER = LoggerFactory.getLogger(ExternalLOBSFilter.class);
@@ -77,26 +78,36 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
   @Override
   public void handleStructure(DatabaseStructure structure) throws ModuleException {
     for (String schema : externalLOBS.keySet()) {
-      for (String table : externalLOBS.get(schema).keySet()) {
-        List<String> columns = externalLOBS.get(schema).get(table);
-        try {
-          for (ColumnStructure column : structure.getSchemaByName(schema).getTableById(schema + "." + table).getColumns()) {
-            if (columns.contains(column.getName())) {
-              // todo: handle both BLOBS and CLOBS (possibly through params)
-              Type original = column.getType();
-              Type newType = new SimpleTypeBinary();
-              newType.setDescription(cellHandler.handleTypeDescription(original.getDescription()));
-              newType.setSql99TypeName("BINARY VARYING",1);
-              newType.setSql2008TypeName("BINARY VARYING",1);
-              newType.setOriginalTypeName(original.getOriginalTypeName());
-              ((SimpleTypeBinary) newType).setOutsideDatabase(true);
+      SchemaStructure schemaStructure = structure.getSchemaByName(schema);
+      if (schemaStructure != null) {
+        for (String table : externalLOBS.get(schema).keySet()) {
+          List<String> columns = externalLOBS.get(schema).get(table);
+          try {
+            TableStructure tableStructure = schemaStructure.getTableById(schema + "." + table);
+            if (tableStructure != null) {
+              for (ColumnStructure column : tableStructure.getColumns()) {
+                if (columns.contains(column.getName())) {
+                  // todo: handle both BLOBS and CLOBS (possibly through params)
+                  Type original = column.getType();
+                  Type newType = new SimpleTypeBinary();
+                  newType.setDescription(cellHandler.handleTypeDescription(original.getDescription()));
+                  newType.setSql99TypeName("BINARY VARYING", 1);
+                  newType.setSql2008TypeName("BINARY VARYING", 1);
+                  newType.setOriginalTypeName(original.getOriginalTypeName());
+                  ((SimpleTypeBinary) newType).setOutsideDatabase(true);
 
-              column.setType(newType);
+                  column.setType(newType);
+                }
+              }
+            } else {
+              LOGGER.warn("Table {}, referenced in column list file, was not found in schema {}", table, schema);
             }
+          } catch (Exception e) {
+            throw new ModuleException().withMessage("Error setting column type in structure").withCause(e);
           }
-        } catch (Exception e) {
-          throw new ModuleException().withMessage("Error setting column type in structure").withCause(e);
         }
+      } else {
+        LOGGER.warn("Schema {}, referenced in column list file, was not found in the database", schema);
       }
     }
 
@@ -141,8 +152,14 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
         Cell cell = rowCells.get(index);
 
         if(cell instanceof SimpleCell){
-          BinaryCell newCell = cellHandler.handleCell(cell.getId() ,((SimpleCell) cell).getSimpleData());
-          rowCells.set(index, newCell);
+          String reference = ((SimpleCell) cell).getSimpleData();
+          if (reference != null && !reference.isEmpty()) {
+            Cell newCell = cellHandler.handleCell(cell.getId(), ((SimpleCell) cell).getSimpleData());
+            rowCells.set(index, newCell);
+          } else {
+            reporter.ignored("Cell " + cell.getId(), "reference to external LOB is null");
+            rowCells.set(index, new NullCell(cell.getId()));
+          }
         } else {
           LOGGER.error("Reference to LOB is not a SimpleCell");
           rowCells.set(index, new NullCell(cell.getId()));

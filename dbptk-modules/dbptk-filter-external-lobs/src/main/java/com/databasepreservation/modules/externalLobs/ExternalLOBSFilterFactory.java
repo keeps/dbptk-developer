@@ -95,7 +95,7 @@ public class ExternalLOBSFilterFactory implements DatabaseFilterFactory {
         pBasePath = Paths.get(basePath.valueIfSet());
       }
 
-      cellHandler = new ExternalLOBSCellHandlerFileSystem(pBasePath);
+      cellHandler = new ExternalLOBSCellHandlerFileSystem(pBasePath, reporter);
     } else {
       throw new ModuleException().withMessage("Unrecognized reference type " + pCellHandlerType);
     }

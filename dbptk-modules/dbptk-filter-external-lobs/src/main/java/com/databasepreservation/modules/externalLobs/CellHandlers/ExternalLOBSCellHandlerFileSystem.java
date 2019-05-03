@@ -7,39 +7,52 @@
  */
 package com.databasepreservation.modules.externalLobs.CellHandlers;
 
-import com.databasepreservation.model.data.BinaryCell;
-import com.databasepreservation.model.data.Cell;
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.modules.externalLobs.ExternalLOBSCellHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.data.BinaryCell;
+import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.NullCell;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.modules.externalLobs.ExternalLOBSCellHandler;
+
 public class ExternalLOBSCellHandlerFileSystem implements ExternalLOBSCellHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(ExternalLOBSCellHandlerFileSystem.class);
   private Path basePath;
+  private Reporter reporter;
 
   public ExternalLOBSCellHandlerFileSystem() {
     basePath = null;
   }
 
-  public ExternalLOBSCellHandlerFileSystem(Path basePath) {
+  public ExternalLOBSCellHandlerFileSystem(Path basePath, Reporter reporter) {
     this.basePath = basePath;
+    this.reporter = reporter;
   }
 
   @Override
-  public BinaryCell handleCell(String cellId, String cellValue) throws ModuleException {
+  public Cell handleCell(String cellId, String cellValue) throws ModuleException {
     Path blobPath = basePath.resolve(cellValue);
-    BinaryCell newCell = null;
+    Cell newCell = new NullCell(cellId);
 
-    try (InputStream stream = Files.newInputStream(blobPath)) {
-      newCell = new BinaryCell(cellId, stream);
-    } catch (IOException e) {
-      LOGGER.debug("Could not open stream to file", e);
+    if (Files.exists(blobPath)) {
+      if (Files.isRegularFile(blobPath)) {
+        try (InputStream stream = Files.newInputStream(blobPath)) {
+          newCell = new BinaryCell(cellId, stream);
+        } catch (IOException e) {
+          LOGGER.debug("Could not open stream to file", e);
+        }
+      } else {
+        reporter.ignored("Cell " + cellId, blobPath.toString() + " is not a file");
+      }
+    } else {
+      reporter.ignored("Cell " + cellId, blobPath.toString() + " could not be found");
     }
     return newCell;
   }
