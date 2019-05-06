@@ -47,7 +47,7 @@ public interface MetadataPathStrategy {
 
   class VersionIdentifier {
     private static String[] paths2_0 = new String[] {"header/version/2.0/", "header/version/2.0"};
-    private static String[] paths2_1 = new String[] {"header/version/2.1/", "header/version/2.1",
+    private static String[] paths2_1 = new String[] {"header/siardversion/2.1/", "header/siardversion/2.1",
       "header/siardversion/2.1/", "header/siardversion/2.1"};
 
     /**

@@ -159,8 +159,8 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
       throw new ModuleException().withMessage("Error while closing the data writer").withCause(e);
     }
 
-    // create subfolder header/version/2.1
-    OutputStream writer = writeStrategy.createOutputStream(container, "header/version/2.1/");
+    // create subfolder header/siardversion/2.1
+    OutputStream writer = writeStrategy.createOutputStream(container, "header/siardversion/2.1/");
     try {
       writer.close();
     } catch (IOException e) {
