@@ -86,16 +86,28 @@ public class Main {
     System.setProperty("totalEntitySizeLimit", "0");
     System.setProperty("jdk.xml.totalEntitySizeLimit", "0");
 
+    boolean shouldHelp = cli.shouldPrintHelp();
+    boolean shouldMigrate = cli.shouldMigrate();
+    boolean shouldEdit = cli.shouldEdit();
+
+
     int exitStatus = EXIT_CODE_GENERIC_ERROR;
     if (cli.usingUTF8()) {
-      if (cli.shouldPrintHelp()) {
+      if (shouldHelp) {
         cli.printHelp();
       } else {
-        exitStatus = run(cli);
+        if (shouldMigrate) {
+          LOGGER.info("Migrate option selected.");
+          exitStatus = runMigration(cli);
+        }
+        if (shouldEdit) {
+          LOGGER.info("Edit option selected.");
+          exitStatus = runEdition(cli);
+        }
         if (exitStatus == EXIT_CODE_CONNECTION_ERROR) {
           LOGGER.info("Disabling connection encryption (for modules that support it) and trying again.");
           cli.disableEncryption();
-          exitStatus = run(cli);
+          //exitStatus = run(cli);
         }
       }
     } else {
@@ -110,6 +122,13 @@ public class Main {
     } catch (IOException e) {
       LOGGER.debug("There was a problem closing the report file.", e);
     }
+
+    if (!cli.getRecognizedOption()) {
+      LOGGER.error("Option '" + cli.getArgCommand() + "' not a valid option.");
+      cli.printUsage();
+      exitStatus = EXIT_CODE_OK;
+    }
+
     LOGGER.info("Log files and migration reports were saved in {}", ConfigUtils.getHomeDirectory());
     LOGGER.info("Troubleshooting information can be found at http://www.database-preservation.com/#troubleshooting");
     LOGGER.info("Please report any problems at https://github.com/keeps/db-preservation-toolkit/issues/new");
@@ -118,7 +137,14 @@ public class Main {
     return exitStatus;
   }
 
-  private static int run(CLI cli) {
+  private static int runEdition(CLI cli) {
+    cli.removeCommand();
+    System.out.println("EDIT OPTION");
+    return EXIT_CODE_OK;
+  }
+
+  private static int runMigration(CLI cli) {
+    cli.removeCommand();
     DatabaseMigration databaseMigration;
 
     // obtain parameters and module factories, failing early if the command line

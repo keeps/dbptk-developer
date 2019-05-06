@@ -82,6 +82,8 @@ public class CLI {
   private List<Map<Parameter, String>> filterParameters;
 
   private boolean forceDisableEncryption = false;
+  private boolean option = false;
+  private boolean recognizedOption = false;
 
   /**
    * Create a new CLI handler
@@ -240,6 +242,13 @@ public class CLI {
    */
   public void printHelp() {
     printHelp(System.out);
+  }
+
+  /**
+   * Outputs the usage text to STDOUT
+   */
+  public void printUsage() {
+    printUsage(System.out);
   }
 
   /**
@@ -541,85 +550,200 @@ public class CLI {
     return new DatabaseModuleFactoriesArguments(importModuleArguments, exportModuleArguments, filterModuleArguments);
   }
 
-  private void printHelp(PrintStream printStream) {
+  /**
+   * Prints the header
+   *
+   * @param printStream
+   */
+  private void printHeader(PrintStream printStream) {
     StringBuilder out = new StringBuilder();
 
-    Set<String> visibleModules;
-
-    if (commandLineArguments.size() <= 1) {
-      // print module list
-      visibleModules = new HashSet<>();
-    } else {
-      visibleModules = new HashSet<>(commandLineArguments);
-    }
-
     out.append("Database Preservation Toolkit").append(MiscUtils.APP_NAME_AND_VERSION)
-      .append("\nMore info: http://www.database-preservation.com").append("\n")
-      .append(
-        "\nUsage: dbptk <importModule> [import module options] <exportModule> [export module options] [<filterModule(s)> [filter module options]]\n");
+        .append("\n")
+        .append("More info: http://www.database-preservation.com")
+        .append("\n");
 
-    ArrayList<DatabaseModuleFactory> modulesList = new ArrayList<>(allModuleFactories);
+    out.append("\n");
+    printStream.append(out).flush();
+  }
+
+  /**
+   * Prints the usage text
+   *
+   * @param printStream
+   */
+  private void printUsage(PrintStream printStream) {
+    StringBuilder out = new StringBuilder();
+
+    printHeader(printStream);
+
+    out.append("Usage: dbptk COMMAND [OPTIONS]\n");
+
+    out.append("\n");
+    out.append("Commands:");
+    out.append("\n\n");
+    out.append("\t").append(Constants.DBPTK_OPTION_MIGRATE).append("\t\t").append("Migrate text").append("\n");
+    out.append("\t").append(Constants.DBPTK_OPTION_EDIT).append("\t\t").append("Edit text").append("\n");
+
+    out.append("\n");
+    out.append("Run 'dbptk help COMMAND' for more information on a command.").append("\n");
+
+    out.append("\n");
+
+    printStream.append(out).flush();
+  }
+
+  /**
+   * Prints the edit command usage text
+   *
+   * @param printStream
+   */
+  private void printEditUsage(PrintStream printStream) {
+    StringBuilder out = new StringBuilder();
+
+    printHeader(printStream);
+
+    out.append("Usage: dbptk edit siard-file [siard options]");
+    out.append("\n\n");
+
+    // TODO: ADD OPTIONS AND USAGE EXAMPLES
+
+    out.append("\n");
+    printStream.append(out).flush();
+  }
+
+  /**
+   * Prints the migrate text
+   *
+   * @param printStream
+   */
+  private void printMigrateHelp(PrintStream printStream) {
+    StringBuilder out = new StringBuilder();
+
+    ArrayList<DatabaseModuleFactory> modulesList = new ArrayList<>(factories);
     Collections.sort(modulesList, new DatabaseModuleFactoryNameComparator());
 
     ArrayList<DatabaseFilterFactory> filterModulesList = new ArrayList<>(allFilterFactories);
     Collections.sort(filterModulesList, new DatabaseFilterFactoryNameComparator());
 
-    if (visibleModules.isEmpty()) {
-      String spaceSmall = "      ";
-      String spaceMedium = spaceSmall + "  ";
+    out.append("\n").append(Constants.SMALL_SPACE).append("Import modules: \n");
 
-      out.append("\n").append(spaceSmall).append("For help on specific modules use:\n").append(spaceSmall)
-        .append("dbptk -h|help [modules...]\n");
-
-      out.append("\n").append(spaceSmall).append("Import modules: \n");
-
-      for (DatabaseModuleFactory factory : modulesList) {
-        if (factory.producesImportModules()) {
-          out.append(spaceMedium).append(factory.getModuleName()).append("\n");
-        }
-      }
-
-      out.append("\n\n").append(spaceSmall).append("Export modules: \n");
-      for (DatabaseModuleFactory factory : modulesList) {
-        if (factory.producesExportModules()) {
-          out.append(spaceMedium).append(factory.getModuleName()).append("\n");
-        }
-      }
-
-      out.append("\n\n").append(spaceSmall).append("Filter modules: \n");
-      for (DatabaseFilterFactory factory : filterModulesList) {
-        out.append(spaceMedium).append(factory.getFilterName()).append("\n");
-      }
-
-    } else {
-      try {
-        for (DatabaseModuleFactory factory : modulesList) {
-          if (factory.producesImportModules() && visibleModules.contains(factory.getModuleName())) {
-            out.append(
-              printModuleHelp("Import module: -i " + factory.getModuleName() + ", --import=" + factory.getModuleName(),
-                "i", "import", factory.getImportModuleParameters()));
-          }
-
-          if (factory.producesExportModules() && visibleModules.contains(factory.getModuleName())) {
-            out.append(
-              printModuleHelp("Export module: -e " + factory.getModuleName() + ", --export=" + factory.getModuleName(),
-                "e", "export", factory.getExportModuleParameters()));
-          }
-        }
-        for (DatabaseFilterFactory factory : filterModulesList) {
-          if (visibleModules.contains(factory.getFilterName())) {
-            out.append(printModuleHelp(
-              "Filter module: -f " + factory.getFilterName() + ", --filter=" + factory.getFilterName(), "f<n>",
-              "filter<n>", factory.getParameters()));
-          }
-        }
-      } catch (UnsupportedModuleException e) {
-        throw new UnreachableException(e);
+    for (DatabaseModuleFactory factory : modulesList) {
+      if (factory.producesImportModules()) {
+        out.append(Constants.MEDIUM_SPACE).append(factory.getModuleName()).append("\n");
       }
     }
 
+    out.append("\n\n").append(Constants.SMALL_SPACE).append("Export modules: \n");
+    for (DatabaseModuleFactory factory : modulesList) {
+      if (factory.producesExportModules()) {
+        out.append(Constants.MEDIUM_SPACE).append(factory.getModuleName()).append("\n");
+      }
+    }
+
+    out.append("\n\n").append(spaceSmall).append("Filter modules: \n");
+    for (DatabaseFilterFactory factory : filterModulesList) {
+      out.append(spaceMedium).append(factory.getFilterName()).append("\n");
+    }
+
+    out.append("\n");
+    out.append("Run 'dbptk -h|help migrate [module ...]' for more information on a command.").append("\n");
+
     out.append("\n");
     printStream.append(out).flush();
+  }
+
+  /**
+   * Prints the migrate module text
+   *
+   * @param printStream
+   */
+  private void printMigrateModuleHelp(PrintStream printStream) {
+    StringBuilder out = new StringBuilder();
+
+    int count=0;
+
+    Set<String> visibleModules = new HashSet<>(commandLineArguments);
+
+    ArrayList<DatabaseModuleFactory> modulesList = new ArrayList<>(factories);
+    Collections.sort(modulesList, new DatabaseModuleFactoryNameComparator());
+
+    try {
+      for (DatabaseModuleFactory factory : modulesList) {
+        if (factory.producesImportModules() && visibleModules.contains(factory.getModuleName())) {
+          count++;
+          out.append(
+              printModuleHelp("Import module: -i " + factory.getModuleName() + ", --import=" + factory.getModuleName(),
+                  "i", "import", factory.getImportModuleParameters()));
+        }
+        if (factory.producesExportModules() && visibleModules.contains(factory.getModuleName())) {
+          count++;
+          out.append(
+              printModuleHelp("Export module: -e " + factory.getModuleName() + ", --export=" + factory.getModuleName(),
+                  "e", "export", factory.getExportModuleParameters()));
+        }
+      }
+      for (DatabaseFilterFactory factory : filterModulesList) {
+        if (visibleModules.contains(factory.getFilterName())) {
+          out.append(printModuleHelp(
+            "Filter module: -f " + factory.getFilterName() + ", --filter=" + factory.getFilterName(), "f<n>",
+            "filter<n>", factory.getParameters()));
+        }
+      }
+      
+      if (count == 0) {
+        printMigrateHelp(printStream);
+      }
+
+      out.append("\n");
+      printStream.append(out).flush();
+    } catch (UnsupportedModuleException e) {
+      throw new UnreachableException(e);
+    }
+  }
+
+  /**
+   * Prints the migrate usage text
+   *
+   * @param printStream
+   */
+  private void printMigrateUsage(PrintStream printStream) {
+    StringBuilder out = new StringBuilder();
+
+    printHeader(printStream);
+
+    out.append("Usage: dbptk <importModule> [import module options] <exportModule> [export module options] [<filterModule(s)> [filter module options]]");
+    out.append("\n\n");
+
+    out.append("\n");
+    printStream.append(out).flush();
+
+    if (commandLineArguments.size() >= 3) {
+      printMigrateModuleHelp(printStream);
+    } else {
+      printMigrateHelp(printStream);
+    }
+  }
+
+  /**
+   * Prints the help text
+   *
+   * @param printStream
+   */
+  private void printHelp(PrintStream printStream) {
+    if (commandLineArguments.size() <= 1) {
+      printUsage(printStream);
+    } else {
+      String arg = commandLineArguments.get(1);
+
+      switch (arg) {
+        case Constants.DBPTK_OPTION_EDIT: printEditUsage(printStream);
+        break;
+        case Constants.DBPTK_OPTION_MIGRATE: printMigrateUsage(printStream);
+        break;
+        default: printUsage(printStream);
+      }
+    }
   }
 
   private String printModuleHelp(String moduleDesignation, String shortParameterPrefix, String longParameterPrefix,
@@ -704,13 +828,102 @@ public class CLI {
     }
   }
 
+  /**
+   * Checks if the CLI command is help
+   * @return true if help is needed otherwise false
+   */
   public boolean shouldPrintHelp() {
     if (commandLineArguments.isEmpty()) {
+      recognizedOption = true;
       return true;
     } else {
       String arg = commandLineArguments.get(0);
-      return "-h".equalsIgnoreCase(arg) || "--help".equalsIgnoreCase(arg) || "help".equalsIgnoreCase(arg);
+      boolean value = "-h".equalsIgnoreCase(arg) || "--help".equalsIgnoreCase(arg) || "help".equalsIgnoreCase(arg);
+      if (value) {
+        recognizedOption = true;
+        return true;
+      }
     }
+
+    return false;
+  }
+
+  /**
+   * Checks if the CLI command is migrate
+   * @return true if migration is needed otherwise false
+   */
+  public boolean shouldMigrate() {
+    if (commandLineArguments.isEmpty()) {
+      return false;
+    }
+    String arg = commandLineArguments.get(0);
+    boolean value = Constants.DBPTK_OPTION_MIGRATE.equalsIgnoreCase(arg)
+        || Constants.DBPTK_OPTION_MIGRATE_DOUBLE.equalsIgnoreCase(arg)
+        || Constants.DBPTK_OPTION_MIGRATE_SINGLE.equalsIgnoreCase(arg);
+
+    if (!option && value) {
+      option = true;
+      recognizedOption = true;
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Checks if the CLI command is edit
+   * @return true if edition is needed otherwise false
+   */
+  public boolean shouldEdit() {
+    if (commandLineArguments.isEmpty()) {
+      return false;
+    }
+    String arg = commandLineArguments.get(0);
+    boolean value = Constants.DBPTK_OPTION_EDIT.equalsIgnoreCase(arg)
+        || Constants.DBPTK_OPTION_EDIT_DOUBLE.equalsIgnoreCase(arg)
+        || Constants.DBPTK_OPTION_EDIT_SINGLE.equalsIgnoreCase(arg);
+
+    if (!option && value) {
+      option = true;
+      recognizedOption = true;
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Removes the command argument from the {@link #commandLineArguments} variable
+   *
+   * @return true if succeed otherwise returns false
+   */
+  public boolean removeCommand() {
+    if (option) {
+      String removed = commandLineArguments.remove(0);
+
+      if (removed.contains(Constants.DBPTK_OPTION_EDIT) ^ removed.contains(Constants.DBPTK_OPTION_MIGRATE)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Returns the command argument
+   *
+   * @return the command argument
+   */
+  public String getArgCommand() {
+    return this.commandLineArguments.get(0);
+  }
+
+  /**
+   * Checks if any command was recognized by the CLI
+   *
+   * @return true if succeed otherwise returns false
+   */
+  public boolean getRecognizedOption() {
+    return this.recognizedOption;
   }
 
   public boolean usingUTF8() {

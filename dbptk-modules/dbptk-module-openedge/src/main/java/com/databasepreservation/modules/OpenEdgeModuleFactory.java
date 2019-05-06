@@ -42,10 +42,10 @@ public class OpenEdgeModuleFactory implements DatabaseModuleFactory {
       .required(true);
 
   private static final Parameter portNumber = new Parameter().shortName("pn").longName(PARAMETER_PORT_NUMBER)
-      .description("the server port number").hasArgument(true).setOptionalArgument(false).required(true);
+      .description("the server port number").hasArgument(true).setOptionalArgument(true).required(false);
 
   private static final Parameter database = new Parameter().shortName("db").longName(PARAMETER_DATABASE)
-      .description("the name of the database we'll be accessing").hasArgument(true).setOptionalArgument(false).required(false);
+      .description("the name of the database we'll be accessing").hasArgument(true).setOptionalArgument(false).required(true);
 
   private static final Parameter hostname = new Parameter().shortName("h").longName(PARAMETER_HOSTNAME)
       .description("the name (host name) of the server").hasArgument(true).setOptionalArgument(false).required(true);
