@@ -87,7 +87,6 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
             if (tableStructure != null) {
               for (ColumnStructure column : tableStructure.getColumns()) {
                 if (columns.contains(column.getName())) {
-                  // todo: handle both BLOBS and CLOBS (possibly through params)
                   Type original = column.getType();
                   Type newType = new SimpleTypeBinary();
                   newType.setDescription(cellHandler.handleTypeDescription(original.getDescription()));

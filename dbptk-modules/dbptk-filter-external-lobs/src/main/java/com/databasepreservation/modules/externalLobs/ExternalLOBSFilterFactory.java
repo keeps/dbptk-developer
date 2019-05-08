@@ -92,7 +92,7 @@ public class ExternalLOBSFilterFactory implements DatabaseFilterFactory {
     if ("file-system".equalsIgnoreCase(pCellHandlerType)) {
       Path pBasePath = Paths.get(basePath.valueIfNotSet());
       if (StringUtils.isNotBlank(parameters.get(basePath))) {
-        pBasePath = Paths.get(basePath.valueIfSet());
+        pBasePath = Paths.get(parameters.get(basePath));
       }
 
       cellHandler = new ExternalLOBSCellHandlerFileSystem(pBasePath, reporter);

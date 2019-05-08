@@ -46,6 +46,7 @@ public class ExternalLOBSCellHandlerFileSystem implements ExternalLOBSCellHandle
         try (InputStream stream = Files.newInputStream(blobPath)) {
           newCell = new BinaryCell(cellId, stream);
         } catch (IOException e) {
+          reporter.ignored("Cell " + cellId, "there was an error accessing the file " + blobPath.toString());
           LOGGER.debug("Could not open stream to file", e);
         }
       } else {
