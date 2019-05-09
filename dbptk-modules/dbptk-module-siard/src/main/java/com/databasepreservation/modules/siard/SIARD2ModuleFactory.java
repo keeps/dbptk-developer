@@ -198,6 +198,13 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     return new SIARD2ImportModule(pFile).getDatabaseImportModule();
   }
 
+  public SIARD2ImportModule buildSiardModule(Map<Parameter, String> parameters, Reporter reporter) {
+    Path pFile = Paths.get(parameters.get(file));
+
+    reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString());
+    return  new SIARD2ImportModule(pFile);
+  }
+
   @Override
   public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
     throws UnsupportedModuleException, LicenseNotAcceptedException {

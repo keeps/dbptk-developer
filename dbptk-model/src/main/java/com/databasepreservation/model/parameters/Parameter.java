@@ -24,8 +24,8 @@ public class Parameter {
   private boolean optionalArgument = false;
   private boolean required = false;
   private String valueIfSet = null; // for parameters without argument
-  private String valueIfNotSet = null; // for optional parameters that were not
-                                       // set
+  private String valueIfNotSet = null; // for optional parameters that were not set
+  private Integer numberOfArgs = null; // for parameters that receive more than one argument
 
   private HashMap<String, Option> options = new HashMap<String, Option>();
 
@@ -212,6 +212,26 @@ public class Parameter {
   }
 
   /**
+   * Gets the number of arguments for this parameter.
+   *
+   * @return the number of arguments for this parameter.
+   */
+  public Integer numberOfArgs() { return numberOfArgs; }
+
+  /**
+   * If the parameter has more than one argument, then this should be the value associated
+   * with the number of arguments of the parameter
+   *
+   * @param numberOfArgs
+   *          value of the parameter when it is present
+   * @return This parameter, for method chaining.
+   */
+  public Parameter numberOfArgs(Integer numberOfArgs) {
+    this.numberOfArgs = numberOfArgs;
+    return this;
+  }
+
+  /**
    * Convert this parameter into a command line option (used internally by
    * CommonsCLI)
    * 
@@ -249,6 +269,44 @@ public class Parameter {
 
       options.put(optionID, option);
     }
+
+    return option;
+  }
+
+  /**
+   * Convert this parameter into a command line option (used internally by
+   * CommonsCLI)
+   *
+   * The Option object is saved after creation, so that subsequent calls to this
+   * method using the same arguments do not return a new object and instead return
+   * the previously returned object. Calls to this method using different
+   * arguments produce different objects. This allows the comparison of objects
+   * using ==
+   *
+   * @return the option to be used by CommonsCLI
+   */
+  public Option toOption() {
+    Option option = null;
+
+    if (longName == null) {
+      throw new RuntimeException("Parameter has no long name. All Parameter instances must have a long name.");
+    }
+
+    Option.Builder optionBuilder = Option.builder();
+
+    if (shortName != null) {
+      optionBuilder = Option.builder(shortName);
+    }
+
+    if (numberOfArgs == null) {
+      option = optionBuilder.longOpt(longName).desc(description).hasArg(hasArgument)
+          .required(required).optionalArg(optionalArgument).build();
+    } else {
+      option = optionBuilder.longOpt(longName).desc(description).hasArg(hasArgument)
+          .required(required).numberOfArgs(numberOfArgs).optionalArg(optionalArgument).build();
+    }
+
+    options.put(option.getLongOpt(), option);
 
     return option;
   }

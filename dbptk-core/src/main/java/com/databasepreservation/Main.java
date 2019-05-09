@@ -9,9 +9,14 @@ package com.databasepreservation;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.databasepreservation.cli.CLIEdit;
+import com.databasepreservation.cli.CLIHelp;
+import com.databasepreservation.cli.CLIMigrate;
+import com.databasepreservation.model.parameters.Parameter;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +68,7 @@ public class Main {
    */
   public static void main(String[] args) {
     CLI cli = new CLI(Arrays.asList(args), ReflectionUtils.collectDatabaseModuleFactories(),
-      ReflectionUtils.collectDatabaseFilterFactory());
+      ReflectionUtils.collectDatabaseFilterFactory(), ReflectionUtils.collectEditModuleFactories());
     System.exit(internalMain(cli));
   }
 
@@ -74,7 +79,7 @@ public class Main {
       reporter = new NoOpReporter();
     }
     CLI cli = new CLI(Arrays.asList(args), ReflectionUtils.collectDatabaseModuleFactories(),
-      ReflectionUtils.collectDatabaseFilterFactory());
+      ReflectionUtils.collectDatabaseFilterFactory(), ReflectionUtils.collectEditModuleFactories());
     return internalMain(cli);
   }
 
@@ -82,51 +87,58 @@ public class Main {
     logProgramStart();
     cli.logOperatingSystemInfo();
 
+    int exitStatus = EXIT_CODE_GENERIC_ERROR;
+
     // avoid SAX processing limit of 50 million elements
     System.setProperty("totalEntitySizeLimit", "0");
     System.setProperty("jdk.xml.totalEntitySizeLimit", "0");
 
-    boolean shouldHelp = cli.shouldPrintHelp();
-    boolean shouldMigrate = cli.shouldMigrate();
-    boolean shouldEdit = cli.shouldEdit();
+    boolean isGUI = cli.isGUI();
+    boolean isHelp = cli.isHelp();
+    boolean isMigrate = cli.isMigration();
+    boolean isEdit = cli.isEdition();
 
-
-    int exitStatus = EXIT_CODE_GENERIC_ERROR;
-    if (cli.usingUTF8()) {
-      if (shouldHelp) {
-        cli.printHelp();
-      } else {
-        if (shouldMigrate) {
-          LOGGER.info("Migrate option selected.");
-          exitStatus = runMigration(cli);
-        }
-        if (shouldEdit) {
-          LOGGER.info("Edit option selected.");
-          exitStatus = runEdition(cli);
-        }
-        if (exitStatus == EXIT_CODE_CONNECTION_ERROR) {
-          LOGGER.info("Disabling connection encryption (for modules that support it) and trying again.");
-          cli.disableEncryption();
-          //exitStatus = run(cli);
-        }
-      }
+    if (!cli.getRecognizedCommand()) {
+      LOGGER.error("Command '" + cli.getArgCommand() + "' not a valid command.");
+      cli.printUsage();
+      exitStatus = EXIT_CODE_OK;
     } else {
-      exitStatus = EXIT_CODE_NOT_USING_UTF8;
-      LOGGER.error("The charset in use is not UTF-8.");
-      LOGGER.info("Please try forcing UTF-8 charset by running the application with:");
-      LOGGER.info("   java \"-Dfile.encoding=UTF-8\" -jar ...");
+      if (cli.usingUTF8()) {
+        if (isGUI) {
+          // NOT IMPLEMENTED YET
+          getReporter().notYetSupported("GUI", "DBPTK");
+          exitStatus = EXIT_CODE_OK;
+        } else {
+          if (isHelp) {
+            exitStatus = runHelp(cli.getCLIHelp());
+          } else {
+            if (isMigrate) {
+              LOGGER.info("Migrate option selected.");
+              exitStatus = runMigration(cli.getCLIMigrate());
+            }
+            if (isEdit) {
+              LOGGER.info("Edit option selected.");
+              exitStatus = runEdition(cli.getCLIEdit());
+            }
+            if (exitStatus == EXIT_CODE_CONNECTION_ERROR) {
+              LOGGER.info("Disabling connection encryption (for modules that support it) and trying again.");
+              cli.disableEncryption();
+              exitStatus = runMigration(cli.getCLIMigrate());
+            }
+          }
+        }
+      } else {
+        exitStatus = EXIT_CODE_NOT_USING_UTF8;
+        LOGGER.error("The charset in use is not UTF-8.");
+        LOGGER.info("Please try forcing UTF-8 charset by running the application with:");
+        LOGGER.info("   java \"-Dfile.encoding=UTF-8\" -jar ...");
+      }
     }
 
     try {
       getReporter().close();
     } catch (IOException e) {
       LOGGER.debug("There was a problem closing the report file.", e);
-    }
-
-    if (!cli.getRecognizedOption()) {
-      LOGGER.error("Option '" + cli.getArgCommand() + "' not a valid option.");
-      cli.printUsage();
-      exitStatus = EXIT_CODE_OK;
     }
 
     LOGGER.info("Log files and migration reports were saved in {}", ConfigUtils.getHomeDirectory());
@@ -137,13 +149,60 @@ public class Main {
     return exitStatus;
   }
 
-  private static int runEdition(CLI cli) {
-    cli.removeCommand();
-    System.out.println("EDIT OPTION");
+  private static int runHelp(CLIHelp cli) {
+    cli.printHelp(System.out);
     return EXIT_CODE_OK;
   }
 
-  private static int runMigration(CLI cli) {
+  private static int runEdition(CLIEdit cli) {
+    cli.removeCommand();
+
+    try {
+      Map<Parameter, List<String>> editModuleParameters = cli.getEditModuleParameters();
+
+      System.out.println(editModuleParameters.toString());
+
+    } catch (ParseException e) {
+      LOGGER.error(e.getMessage(), e);
+      logProgramFinish(EXIT_CODE_COMMAND_PARSE_ERROR);
+      return EXIT_CODE_COMMAND_PARSE_ERROR;
+    }
+
+    //EditSIARD editSIARD;
+    // editSIARD = EditSIARD.newInstance().editModule(cli.getEditModuleFactory())
+    //  .editModuleParameters(cli.getEditModuleParameters).reporter(getReporter());
+    // editSIARD.edit();
+
+    /*HashMap<Parameter, String> importModuleParameters = new HashMap<>();
+
+    Parameter p = new Parameter().shortName("f").longName("file")
+        .description("Path to SIARD2 archive file").hasArgument(true).setOptionalArgument(false).required(true);
+
+    importModuleParameters.put(p, "/home/mguimaraes/Desktop/mysql.siard");
+
+    importModuleParameters.get(p);
+
+    SIARD2ModuleFactory factory = new SIARD2ModuleFactory();
+
+    try {
+      SIARD2ImportModule siard2ImportModule = factory.buildSiardModule(cli.getImportModuleParameters(), getReporter());
+
+      SIARDImportDefault databaseImportModule = (SIARDImportDefault) siard2ImportModule.getDatabaseImportModule();
+      databaseImportModule.setOnceReporter(getReporter());
+      DatabaseStructure dbStructure = databaseImportModule.test();
+
+      System.out.println(dbStructure.getClientMachine());
+
+    } catch (ModuleException e) {
+      e.printStackTrace();
+    } catch (ParseException e) {
+      e.printStackTrace();
+    }
+*/
+    return EXIT_CODE_OK;
+  }
+
+  private static int runMigration(CLIMigrate cli) {
     cli.removeCommand();
     DatabaseMigration databaseMigration;
 

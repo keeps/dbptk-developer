@@ -74,7 +74,7 @@
         </plugins>
     </build>
     <dependencies>
-        <!-- interal -->
+        <!-- internal -->
         <dependency>
             <groupId>com.databasepreservation</groupId>
             <artifactId>dbptk-model</artifactId>
@@ -155,6 +155,11 @@
         <dependency>
             <groupId>com.databasepreservation</groupId>
             <artifactId>dbptk-filter-external-lobs</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-edit-siard</artifactId>
         </dependency>
 
         <!-- common -->

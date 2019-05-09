@@ -13,7 +13,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.databasepreservation.model.modules.edits.EditModule;
+import com.databasepreservation.model.modules.edits.EditModuleFactory;
 import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
+import javafx.scene.effect.Reflection;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.slf4j.Logger;
@@ -31,6 +34,7 @@ public class ReflectionUtils {
 
   private static List<Constructor<? extends DatabaseModuleFactory>> databaseModuleFactoryConstructors = new ArrayList<>();
   private static List<Constructor<? extends DatabaseFilterFactory>> databaseFilterFactoryConstructors = new ArrayList<>();
+  private static List<Constructor<? extends EditModuleFactory>> editModuleFactoryConstructors         = new ArrayList<>();
 
   public static Set<DatabaseModuleFactory> collectDatabaseModuleFactories() {
     return collectDatabaseModuleFactories(false);
@@ -105,4 +109,39 @@ public class ReflectionUtils {
     return databaseFilterFactories;
   }
 
+  public static Set<EditModuleFactory> collectEditModuleFactories() {
+    return collectEditModuleFactories(false);
+  }
+
+  public static Set<EditModuleFactory> collectEditModuleFactories(boolean includeDisabled) {
+    Set<EditModuleFactory> editModuleFactories = new HashSet<>();
+
+    if (editModuleFactoryConstructors.isEmpty()) {
+      Reflections reflections = new Reflections("com.databasepreservation.modules", new SubTypesScanner());
+
+      Set<Class<? extends EditModuleFactory>> editFactoryClasses = reflections.getSubTypesOf(EditModuleFactory.class);
+
+      for (Class<? extends EditModuleFactory> editModuleClass : editFactoryClasses) {
+        try {
+          Constructor<? extends EditModuleFactory> constructor = editModuleClass.getConstructor();
+          editModuleFactoryConstructors.add(constructor);
+        } catch (NoSuchMethodException e) {
+          LOGGER.info("Filter factory {} could not be loaded", editModuleClass.getName(), e);
+        }
+      }
+    }
+
+    for (Constructor<? extends EditModuleFactory> constructor : editModuleFactoryConstructors) {
+      try {
+        EditModuleFactory instance = constructor.newInstance();
+        if (includeDisabled || instance.isEnabled()) {
+          editModuleFactories.add(instance);
+        }
+      } catch (Exception e) {
+        LOGGER.info("Filter factory {} could not be loaded", constructor.getDeclaringClass().getName(), e);
+      }
+    }
+
+    return editModuleFactories;
+  }
 }

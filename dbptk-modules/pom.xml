@@ -30,6 +30,7 @@
         <module>dbptk-filter-external-lobs</module>
         <module>dbptk-module-sybase</module>
         <module>dbptk-module-openedge</module>
+        <module>dbptk-edit-siard</module>
     </modules>
 
     <dependencyManagement>
