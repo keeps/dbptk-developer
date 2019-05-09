@@ -45,6 +45,8 @@ public class SIARD2ExportModule {
 
   private HashMap<String, String> descriptiveMetadata;
 
+  private boolean validate = false;
+
   public SIARD2ExportModule(SIARDConstants.SiardVersion version, Path siardPackage, boolean compressZip,
     boolean prettyXML, Path tableFilter, HashMap<String, String> descriptiveMetadata) {
     this.descriptiveMetadata = descriptiveMetadata;
@@ -106,6 +108,10 @@ public class SIARD2ExportModule {
 
   public DatabaseExportModule getDatabaseHandler() {
     return new SIARDExportDefault(contentStrategy, mainContainer, writeStrategy, metadataStrategy, tableFilter,
-      descriptiveMetadata);
+      descriptiveMetadata, validate);
+  }
+
+  public void setValidate(boolean validate) {
+    this.validate = validate;
   }
 }

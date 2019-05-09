@@ -36,6 +36,7 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.modules.DefaultExceptionNormalizer;
 import com.databasepreservation.modules.listTables.ListTables;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.common.SIARDValidator;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.out.content.ContentExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
@@ -59,6 +60,8 @@ public class SIARDExportDefault implements DatabaseExportModule {
   private Map<String, String> descriptiveMetadata;
   private Reporter reporter;
 
+  private boolean validate = false;
+
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARDExportDefault.class);
 
   public SIARDExportDefault(ContentExportStrategy contentStrategy, SIARDArchiveContainer mainContainer,
@@ -70,6 +73,18 @@ public class SIARDExportDefault implements DatabaseExportModule {
     this.writeStrategy = writeStrategy;
     this.metadataStrategy = metadataStrategy;
     this.tableFilter = tableFilter;
+  }
+
+  public SIARDExportDefault(ContentExportStrategy contentStrategy, SIARDArchiveContainer mainContainer,
+    WriteStrategy writeStrategy, MetadataExportStrategy metadataStrategy, Path tableFilter,
+    Map<String, String> descriptiveMetadata, boolean validate) {
+    this.descriptiveMetadata = descriptiveMetadata;
+    this.contentStrategy = contentStrategy;
+    this.mainContainer = mainContainer;
+    this.writeStrategy = writeStrategy;
+    this.metadataStrategy = metadataStrategy;
+    this.tableFilter = tableFilter;
+    this.validate = validate;
   }
 
   /**
@@ -226,6 +241,12 @@ public class SIARDExportDefault implements DatabaseExportModule {
     metadataStrategy.writeMetadataXML(dbStructure, mainContainer, writeStrategy);
     metadataStrategy.writeMetadataXSD(dbStructure, mainContainer, writeStrategy);
     writeStrategy.finish(mainContainer);
+
+    if (validate) {
+      SIARDValidator validator = new SIARDValidator(mainContainer, writeStrategy);
+      validator.setReporter(reporter);
+      validator.validateSIARD();
+    }
   }
 
   /**

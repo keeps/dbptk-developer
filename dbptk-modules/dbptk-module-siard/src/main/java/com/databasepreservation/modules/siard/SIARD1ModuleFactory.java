@@ -43,6 +43,7 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_META_DATA_OWNER = "meta-data-owner";
   public static final String PARAMETER_META_DATA_ORIGIN_TIMESPAN = "meta-data-origin-timespan";
   public static final String PARAMETER_META_CLIENT_MACHINE = "meta-client-machine";
+  public static final String PARAMETER_VALIDATE = "validate";
 
   private static final Parameter file = new Parameter().shortName("f").longName(PARAMETER_FILE)
     .description("Path to SIARD1 archive file").hasArgument(true).setOptionalArgument(false).required(true);
@@ -92,6 +93,10 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
     .required(false).hasArgument(true).setOptionalArgument(true)
     .valueIfNotSet(SIARDHelper.getMachineHostname() + " (fetched automatically)");
 
+  private static final Parameter validate = new Parameter().shortName("v").longName(PARAMETER_VALIDATE)
+    .description("use to validate the SIARD1 archive file after exporting").hasArgument(false).required(false)
+    .valueIfNotSet("false").valueIfSet("true");
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -125,6 +130,7 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(metaDataOwner.longName(), metaDataOwner);
     parameterHashMap.put(metaDataOriginTimespan.longName(), metaDataOriginTimespan);
     parameterHashMap.put(metaClientMachine.longName(), metaClientMachine);
+    parameterHashMap.put(validate.longName(), validate);
     return parameterHashMap;
   }
 
@@ -136,7 +142,7 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
   @Override
   public Parameters getExportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(Arrays.asList(file, compress, prettyPrintXML, tableFilter, metaDescription, metaArchiver,
-      metaArchiverContact, metaDataOwner, metaDataOriginTimespan, metaClientMachine), null);
+      metaArchiverContact, metaDataOwner, metaDataOriginTimespan, metaClientMachine, validate), null);
   }
 
   @Override
@@ -192,8 +198,15 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
         PARAMETER_COMPRESS, String.valueOf(pCompress), PARAMETER_PRETTY_XML, String.valueOf(pPrettyPrintXML),
         PARAMETER_TABLE_FILTER, pTableFilter.normalize().toAbsolutePath().toString());
     }
-    return new SIARD1ExportModule(pFile, pCompress, pPrettyPrintXML, pTableFilter, descriptiveMetadataParameterValues)
-      .getDatabaseHandler();
+
+    SIARD1ExportModule exportModule = new SIARD1ExportModule(pFile, pCompress, pPrettyPrintXML, pTableFilter,
+      descriptiveMetadataParameterValues);
+
+    if (StringUtils.isNotBlank(parameters.get(validate))) {
+      exportModule.setValidate(Boolean.parseBoolean(validate.valueIfSet()));
+    }
+
+    return exportModule.getDatabaseHandler();
   }
 
   private void addDescriptiveMetadataParameterValue(Map<Parameter, String> parameters,
