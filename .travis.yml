@@ -38,7 +38,9 @@ script:
 deploy:
   provider: script
   script: .travis/deploy.sh
-  all_branches: true
+  on:
+    all_branches: true
+    tags: true
 
 after_script:
   - rm $HOME/.m2/settings.xml
