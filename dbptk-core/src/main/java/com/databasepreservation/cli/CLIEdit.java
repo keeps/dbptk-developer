@@ -27,6 +27,8 @@ public class CLIEdit extends CLIHandler {
   private EditModuleFactory editModuleFactory;
   private Map<Parameter, List<String>> editModuleParameters;
 
+  private String siardPackage;
+
   public CLIEdit(List<String> commandLineArguments, Collection<EditModuleFactory> editModuleFactories) {
     super(commandLineArguments);
     allEditFactories          = new ArrayList<>(editModuleFactories);
@@ -53,6 +55,10 @@ public class CLIEdit extends CLIHandler {
       parse(commandLineArguments);
     }
     return editModuleFactory;
+  }
+
+  public String getSIARDPackage() {
+    return siardPackage;
   }
 
   private void parse(List<String> args) throws ParseException {
@@ -120,9 +126,15 @@ public class CLIEdit extends CLIHandler {
       if (p != null) {
         if (isImportOption(option)) {
           if (p.hasArgument()) {
+            if (p.longName().contentEquals("file")) {
+              siardPackage = option.getValue(p.valueIfNotSet());
+            }
             ArrayList<String> values = updateArgs(editModuleArguments, p, option.getValue(p.valueIfNotSet()));
             editModuleArguments.put(p, values);
           } else {
+            if (p.longName().contentEquals("file")) {
+              siardPackage = option.getValue(p.valueIfSet());
+            }
             ArrayList<String> values = updateArgs(editModuleArguments, p, option.getValue(p.valueIfSet()));
             editModuleArguments.put(p, values);
           }

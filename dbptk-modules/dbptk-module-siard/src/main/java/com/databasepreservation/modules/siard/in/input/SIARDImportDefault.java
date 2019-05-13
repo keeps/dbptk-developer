@@ -66,30 +66,6 @@ public class SIARDImportDefault implements DatabaseImportModule {
     return null;
   }
 
-  public DatabaseStructure test() throws ModuleException {
-    moduleSettings = new ModuleSettings();
-    readStrategy.setup(mainContainer);
-    LOGGER.info("Importing SIARD version {}", mainContainer.getVersion().getDisplayName());
-    DatabaseStructure dbStructure;
-
-    try {
-      metadataStrategy.loadMetadata(readStrategy, mainContainer, moduleSettings);
-
-      dbStructure = metadataStrategy.getDatabaseStructure();
-
-      // handler.setIgnoredSchemas(null);
-
-     // handler.handleStructure(dbStructure);
-
-      //contentStrategy.importContent(handler, mainContainer, dbStructure, moduleSettings);
-
-      //handler.finishDatabase();
-    } finally {
-      readStrategy.finish(mainContainer);
-    }
-    return dbStructure;
-  }
-
   /**
    * Provide a reporter through which potential conversion problems should be
    * reported. This reporter should be provided only once for the export module

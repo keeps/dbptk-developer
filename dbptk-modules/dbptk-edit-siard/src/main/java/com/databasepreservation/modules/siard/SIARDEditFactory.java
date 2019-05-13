@@ -13,6 +13,7 @@ import com.databasepreservation.model.modules.edits.EditModule;
 import com.databasepreservation.model.modules.edits.EditModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
+import com.databasepreservation.modules.siard.in.input.SIARD2ImportModule;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,11 +35,11 @@ public class SIARDEditFactory implements EditModuleFactory {
       .description("Path to SIARD2 archive file").hasArgument(true).setOptionalArgument(false).required(true);
 
   private static final Parameter set = new Parameter().shortName("s").longName(PARAMETER_SET)
-      .description("Set a SIARD database metadata field parameter").hasArgument(true).numberOfArgs(2)
+      .description("Set a SIARD database metadata pair").hasArgument(true).numberOfArgs(2)
       .setOptionalArgument(false).required(false);
 
   private static final Parameter list = new Parameter().shortName("l").longName(PARAMETER_LIST)
-      .description("List all the metadata for the SIARD2 archive").hasArgument(false).valueIfNotSet("all").required(false);
+      .description("List all the metadata pairs for the SIARD2 archive").hasArgument(false).valueIfNotSet("all").required(false);
 
   /*  private static final Parameter regex = new Parameter().shortName("regex").longName(PARAMETER_FILE)
       .description("").hasArgument(true).setOptionalArgument(false).required(true);*/
@@ -58,11 +59,18 @@ public class SIARDEditFactory implements EditModuleFactory {
   public Parameters getParameters() { return  new Parameters(Arrays.asList(set, list), null); }
 
   @Override
-  public Map<String, Parameter> getAllParameters() {
-    HashMap<String, Parameter> parameterHashMap = new HashMap<String, Parameter>();
-    parameterHashMap.put(file.longName(), file);
-    parameterHashMap.put(set.longName(), set);
-    parameterHashMap.put(list.longName(), list);
+  public Map<Parameter, String> getAllParameters() {
+    HashMap<Parameter, String> parameterHashMap = new HashMap<>();
+    parameterHashMap.put(file, file.longName());
+    parameterHashMap.put(set, set.longName());
+    parameterHashMap.put(list, list.longName());
+
+    return parameterHashMap;
+  }
+
+  public Map<Parameter, String> getSetParameters() {
+    HashMap<Parameter, String> parameterHashMap = new HashMap<>();
+    parameterHashMap.put(set, set.longName());
 
     return parameterHashMap;
   }
@@ -72,6 +80,6 @@ public class SIARDEditFactory implements EditModuleFactory {
     Path pFile = Paths.get(parameters.get(file));
 
     reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString());
-    return new SIARDEditImport(pFile);
+    return new SIARD2ImportModule(pFile, true).getEditModule();
   }
 }

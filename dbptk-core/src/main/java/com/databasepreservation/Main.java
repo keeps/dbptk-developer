@@ -9,14 +9,12 @@ package com.databasepreservation;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import com.databasepreservation.cli.CLIEdit;
 import com.databasepreservation.cli.CLIHelp;
 import com.databasepreservation.cli.CLIMigrate;
-import com.databasepreservation.model.parameters.Parameter;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -156,17 +154,25 @@ public class Main {
 
   private static int runEdition(CLIEdit cli) {
     cli.removeCommand();
+    SIARDEdition siardEdition;
 
     try {
-      Map<Parameter, List<String>> editModuleParameters = cli.getEditModuleParameters();
-
-      System.out.println(editModuleParameters.toString());
-
+      siardEdition = SIARDEdition.newInstance().editModule(cli.getEditModuleFactory())
+          .editModuleParameters(cli.getEditModuleParameters()).reporter(getReporter());
     } catch (ParseException e) {
       LOGGER.error(e.getMessage(), e);
       logProgramFinish(EXIT_CODE_COMMAND_PARSE_ERROR);
       return EXIT_CODE_COMMAND_PARSE_ERROR;
     }
+
+    int exitStatus;
+
+    long startTime = System.currentTimeMillis();
+    LOGGER.info("Edit SIARD metadata of {}", cli.getSIARDPackage());
+    siardEdition.edit();
+    long duration = System.currentTimeMillis() - startTime;
+    LOGGER.info("Edit SIARD metadata took {}m {}s to complete.", duration / 60000, duration % 60000 / 1000);
+    exitStatus = EXIT_CODE_OK;
 
     //EditSIARD editSIARD;
     // editSIARD = EditSIARD.newInstance().editModule(cli.getEditModuleFactory())
@@ -199,7 +205,7 @@ public class Main {
       e.printStackTrace();
     }
 */
-    return EXIT_CODE_OK;
+    return exitStatus;
   }
 
   private static int runMigration(CLIMigrate cli) {

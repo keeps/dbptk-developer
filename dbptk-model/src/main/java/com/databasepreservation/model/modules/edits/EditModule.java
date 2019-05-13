@@ -9,28 +9,25 @@ package com.databasepreservation.model.modules.edits;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.modules.DatabaseImportModule;
+import com.databasepreservation.model.modules.ExceptionNormalizer;
+import com.databasepreservation.model.structure.DatabaseStructure;
+
+import java.util.List;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
-public interface EditModule extends DatabaseImportModule {
+public interface EditModule extends ExceptionNormalizer {
+
   /**
    * The reporter is set specifically for each module/filter
    *
    * @param reporter
-   *          The reporter that should be used by this DatabaseFilterModule
+   *          The reporter that should be used by this EditModule
    */
-  @Override
   void setOnceReporter(Reporter reporter);
 
-  /**
-   * Import the database model.
-   *
-   *
-   * @return Return itself, to allow chaining multiple getDatabase methods
-   * @throws ModuleException
-   *           generic module exception
-   */
-  DatabaseImportModule edit() throws ModuleException;
+  DatabaseStructure getMetadata() throws ModuleException;
+
+  List<String> getXSD() throws ModuleException;
 }

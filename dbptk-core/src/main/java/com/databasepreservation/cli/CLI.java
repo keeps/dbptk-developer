@@ -120,9 +120,8 @@ public class CLI {
     String arg = commandLineArguments.get(0);
     boolean value = Constants.DBPTK_OPTION_MIGRATE.equalsIgnoreCase(arg);
 
-    if (!option && value) {
-      option = true;
-      recognizedOption = true;
+    if (value) {
+      recognizedCommand = true;
       return true;
     }
 
@@ -140,9 +139,8 @@ public class CLI {
     String arg = commandLineArguments.get(0);
     boolean value = Constants.DBPTK_OPTION_EDIT.equalsIgnoreCase(arg);
 
-    if (!option && value) {
-      option = true;
-      recognizedOption = true;
+    if (value) {
+      recognizedCommand = true;
       return true;
     }
 
@@ -172,8 +170,8 @@ public class CLI {
    *
    * @return true if succeed otherwise returns false
    */
-  public boolean getRecognizedOption() {
-    return this.recognizedOption;
+  public boolean getRecognizedCommand() {
+    return this.recognizedCommand;
   }
 
   public boolean usingUTF8() {

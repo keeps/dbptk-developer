@@ -302,7 +302,7 @@ public class CLIHelp extends CLIHandler {
 
     if (parameter.hasArgument()) {
       if (parameter.numberOfArgs() != null && parameter.numberOfArgs() > 1) {
-        out.append(" SIARD_property value");
+        out.append(" key value");
       } else {
         if (parameter.isOptionalArgument()) {
           out.append("[");

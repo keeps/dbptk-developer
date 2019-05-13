@@ -30,7 +30,9 @@ public interface EditModuleFactory {
 
     Parameters getParameters();
 
-    Map<String, Parameter> getAllParameters();
+    Map<Parameter, String> getSetParameters();
+
+    Map<Parameter, String> getAllParameters();
 
     EditModule buildEditModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException;
 }
