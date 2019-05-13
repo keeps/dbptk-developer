@@ -1,6 +1,20 @@
 # Changelog
 
-## v2.3.0-RC2 (09/05/2019)
+## v2.4.0-BETA (13/05/2019)
+#### New features:
+
+- Materialised views (as tables) [#348](https://github.com/keeps/db-preservation-toolkit/issues/348)
+-  Add enhanced support for Sybase ASA DBMS [#349](https://github.com/keeps/db-preservation-toolkit/issues/349)
+- Add support for Progress OpenEdge RDBMS [#350](https://github.com/keeps/db-preservation-toolkit/issues/350))
+
+#### Bug Fixes:
+
+-  SIARD table data is not validated against XSD [#113](https://github.com/keeps/db-preservation-toolkit/issues/113)
+
+
+---
+
+## v2.3.0 (13/05/2019)
 
 #### New features:
 
@@ -11,10 +25,9 @@
 
 -  Enhance support for import of stored procedures and triggers [#347](https://github.com/keeps/db-preservation-toolkit/issues/347)
 
-#### Bug Fixes
+#### Bug Fixes:
 
-- SIARD 2.1 version folder (P_4.2-4) [#376](https://github.com/keeps/db-preservation-toolkit/issues/376)
-- External-lobs filter parameter 'base-path' not working
+-  SIARD 2.1 version folder (P_4.2-4) [#376](https://github.com/keeps/db-preservation-toolkit/issues/376)
 
 -----
 
@@ -37,6 +50,7 @@
     ```
     -f external-lobs --filter1-reference-type file-system --filter1-column-list /path/to/file.txt
     ```
+
 
 
 
