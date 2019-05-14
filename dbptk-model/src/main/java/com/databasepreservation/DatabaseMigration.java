@@ -37,7 +37,7 @@ public class DatabaseMigration {
   private DatabaseModuleFactory exportModuleFactory;
   private HashMap<String, String> exportModuleFactoryStringParameters = new HashMap<>();
 
-  private List<DatabaseFilterFactory> filterFactories;
+  private List<DatabaseFilterFactory> filterFactories = new ArrayList<>();
   private List<HashMap<String, String>> filterFactoriesStringParameters = new ArrayList<>();
 
   private List<DatabaseFilterModule> filterModules = new ArrayList<>();
