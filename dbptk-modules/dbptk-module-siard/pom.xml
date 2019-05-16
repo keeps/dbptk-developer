@@ -66,5 +66,10 @@
             <artifactId>commons-compress</artifactId>
             <version>1.18</version>
         </dependency>
+        <dependency>
+            <groupId>com.oracle.jdbc</groupId>
+            <artifactId>xmlparserv2</artifactId>
+            <version>12.1.0.2</version>
+        </dependency>
     </dependencies>
 </project>

@@ -14,6 +14,8 @@ import com.databasepreservation.model.structure.type.ComposedTypeDistinct;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.utils.ListUtils;
 
+import javax.swing.text.View;
+
 /**
  * @author Miguel Coutada
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -114,6 +116,33 @@ public class SchemaStructure {
       }
     }
     return ret;
+  }
+
+  public TableStructure getTableByName(String tableName) {
+    for (TableStructure tableStructure : tables) {
+      if (tableStructure.getName().equalsIgnoreCase(tableName)) {
+       return tableStructure;
+      }
+    }
+    return null;
+  }
+
+  public ViewStructure getViewByName(String viewName) {
+    for (ViewStructure viewStructure : views) {
+      if (viewStructure.getName().equalsIgnoreCase(viewName)) {
+        return viewStructure;
+      }
+    }
+    return null;
+  }
+
+  public RoutineStructure getRoutineByName(String routineName) {
+    for(RoutineStructure routineStructure : routines) {
+      if (routineStructure.getName().equalsIgnoreCase(routineName)) {
+        return routineStructure;
+      }
+    }
+    return null;
   }
 
   /**

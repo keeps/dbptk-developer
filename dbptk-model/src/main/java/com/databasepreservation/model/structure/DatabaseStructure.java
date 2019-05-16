@@ -562,14 +562,178 @@ public class DatabaseStructure {
   }
 
   public SchemaStructure getSchemaByName(String schemaName) {
-    SchemaStructure retSchema = null;
     for (SchemaStructure schema : schemas) {
       if (schema.getName().equalsIgnoreCase(schemaName)) {
-        retSchema = schema;
-        break;
+        return schema;
       }
     }
-    return retSchema;
+    return null;
+  }
+
+  public boolean updateSchemaDescription(String schemaName, String description) {
+    SchemaStructure schema = getSchemaByName(schemaName);
+
+    if (schema != null) {
+      schema.setDescription(description);
+      return true;
+    }
+
+    return false;
+  }
+
+  public boolean updateTableDescription(String schemaName, String tableName, String description) {
+    for (SchemaStructure schema : schemas) {
+      if (schema.getName().equalsIgnoreCase(schemaName)) {
+        schema.getTableByName(tableName).setDescription(description);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean updateTableColumnDescription(String schemaName, String tableName, String columnName,
+    String description) {
+    SchemaStructure schema = getSchemaByName(schemaName);
+
+    if (schema != null) {
+      for (ColumnStructure column : schema.getTableByName(tableName).getColumns()) {
+        if (column.getName().equalsIgnoreCase(columnName)) {
+          column.setDescription(description);
+          return true;
+        }
+      }
+
+    }
+    return false;
+  }
+
+  public boolean updateTriggerDescription(String schemaName, String tableName, String triggerName, String description) {
+    SchemaStructure schema = getSchemaByName(schemaName);
+
+    if (schema != null) {
+      for (Trigger trigger : schema.getTableByName(tableName).getTriggers()) {
+        if (trigger.getName().equalsIgnoreCase(triggerName)) {
+          trigger.setDescription(description);
+          return true;
+        }
+
+      }
+    }
+    return false;
+  }
+
+  public boolean updatePrimaryKeyDescription(String schemaName, String tableName, String primaryKeyName,
+    String description) {
+    SchemaStructure schema = getSchemaByName(schemaName);
+
+    if (schema != null) {
+      PrimaryKey primaryKey = schema.getTableByName(tableName).getPrimaryKey();
+      if (primaryKey.getName().equalsIgnoreCase(primaryKeyName)) {
+        primaryKey.setDescription(description);
+        return true;
+      }
+
+    }
+    return false;
+  }
+
+  public boolean updateForeignKeyDescription(String schemaName, String tableName, String foreignKeyName,
+    String description) {
+    SchemaStructure schema = getSchemaByName(schemaName);
+
+    if (schema != null) {
+      for (ForeignKey foreignKey : schema.getTableByName(tableName).getForeignKeys()) {
+        if (foreignKey.getName().equalsIgnoreCase(foreignKeyName)) {
+          foreignKey.setDescription(description);
+          return true;
+        }
+      }
+
+    }
+    return false;
+  }
+
+  public boolean updateCandidateKeyDescription(String schemaName, String tableName, String candidateKeyName,
+    String description) {
+    SchemaStructure schema = getSchemaByName(schemaName);
+
+    if (schema != null) {
+      for (CandidateKey candidateKey : schema.getTableByName(tableName).getCandidateKeys()) {
+        if (candidateKey.getName().equalsIgnoreCase(candidateKeyName)) {
+          candidateKey.setDescription(description);
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  public boolean updateCheckConstraintDescription(String schemaName, String tableName, String constraintName,
+    String description) {
+    SchemaStructure schema = getSchemaByName(schemaName);
+
+    if (schema != null) {
+      for (CheckConstraint checkConstraint : schema.getTableByName(tableName).getCheckConstraints()) {
+        if (checkConstraint.getName().equalsIgnoreCase(constraintName)) {
+          checkConstraint.setDescription(description);
+          return true;
+        }
+      }
+
+    }
+    return false;
+  }
+
+  public boolean updateViewDescription(String schemaName, String viewName, String description) {
+    SchemaStructure schema = getSchemaByName(schemaName);
+
+    if (schema != null) {
+      schema.getViewByName(viewName).setDescription(description);
+      return true;
+    }
+
+    return false;
+  }
+
+  public boolean updateViewColumnDescription(String schemaName, String viewName, String columnName,
+    String description) {
+    SchemaStructure schema = getSchemaByName(schemaName);
+
+    if (schema != null) {
+      for (ColumnStructure column : schema.getViewByName(viewName).getColumns()) {
+        if (column.getName().equalsIgnoreCase(columnName)) {
+          column.setDescription(description);
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  public boolean updateRoutineDescription(String schemaName, String routineName, String description) {
+    SchemaStructure schema = getSchemaByName(schemaName);
+
+    if (schema != null) {
+      schema.getRoutineByName(routineName).setDescription(description);
+    }
+
+    return false;
+  }
+
+  public boolean updateRoutineParameterDescription(String schemaName, String routineName, String parameterName, String description) {
+    SchemaStructure schema = getSchemaByName(schemaName);
+
+    if (schema != null) {
+      for (Parameter parameter : schema.getRoutineByName(routineName).getParameters()) {
+        if (parameter.getName().equalsIgnoreCase(parameterName)) {
+          parameter.setDescription(description);
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   /*

@@ -9,6 +9,7 @@ package com.databasepreservation.model.modules.edits;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.metadata.SIARDDatabaseMetadata;
 import com.databasepreservation.model.modules.ExceptionNormalizer;
 import com.databasepreservation.model.structure.DatabaseStructure;
 
@@ -17,7 +18,7 @@ import java.util.List;
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
-public interface EditModule extends ExceptionNormalizer {
+public interface EditImportModule extends ExceptionNormalizer {
 
   /**
    * The reporter is set specifically for each module/filter
@@ -29,5 +30,9 @@ public interface EditModule extends ExceptionNormalizer {
 
   DatabaseStructure getMetadata() throws ModuleException;
 
-  List<String> getXSD() throws ModuleException;
+  List<String> getDescriptiveSIARDMetadataKeys() throws ModuleException;
+
+  List<SIARDDatabaseMetadata> getDatabaseMetadataKeys() throws ModuleException;
+
+  void saveMetadata(DatabaseStructure dbStructure) throws ModuleException;
 }

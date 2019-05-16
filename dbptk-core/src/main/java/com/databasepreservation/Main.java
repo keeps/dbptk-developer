@@ -165,46 +165,22 @@ public class Main {
       return EXIT_CODE_COMMAND_PARSE_ERROR;
     }
 
-    int exitStatus;
-
-    long startTime = System.currentTimeMillis();
-    LOGGER.info("Edit SIARD metadata of {}", cli.getSIARDPackage());
-    siardEdition.edit();
-    long duration = System.currentTimeMillis() - startTime;
-    LOGGER.info("Edit SIARD metadata took {}m {}s to complete.", duration / 60000, duration % 60000 / 1000);
-    exitStatus = EXIT_CODE_OK;
-
-    //EditSIARD editSIARD;
-    // editSIARD = EditSIARD.newInstance().editModule(cli.getEditModuleFactory())
-    //  .editModuleParameters(cli.getEditModuleParameters).reporter(getReporter());
-    // editSIARD.edit();
-
-    /*HashMap<Parameter, String> importModuleParameters = new HashMap<>();
-
-    Parameter p = new Parameter().shortName("f").longName("file")
-        .description("Path to SIARD2 archive file").hasArgument(true).setOptionalArgument(false).required(true);
-
-    importModuleParameters.put(p, "/home/mguimaraes/Desktop/mysql.siard");
-
-    importModuleParameters.get(p);
-
-    SIARD2ModuleFactory factory = new SIARD2ModuleFactory();
-
+    int exitStatus = EXIT_CODE_GENERIC_ERROR;
     try {
-      SIARD2ImportModule siard2ImportModule = factory.buildSiardModule(cli.getImportModuleParameters(), getReporter());
-
-      SIARDImportDefault databaseImportModule = (SIARDImportDefault) siard2ImportModule.getDatabaseImportModule();
-      databaseImportModule.setOnceReporter(getReporter());
-      DatabaseStructure dbStructure = databaseImportModule.test();
-
-      System.out.println(dbStructure.getClientMachine());
-
+      long startTime = System.currentTimeMillis();
+      LOGGER.info("Edit SIARD metadata of {}", cli.getSIARDPackage());
+      siardEdition.edit();
+      long duration = System.currentTimeMillis() - startTime;
+      LOGGER.info("Edit SIARD metadata took {}m {}s to complete.", duration / 60000, duration % 60000 / 1000);
+      exitStatus = EXIT_CODE_OK;
     } catch (ModuleException e) {
-      e.printStackTrace();
-    } catch (ParseException e) {
-      e.printStackTrace();
+      if (!e.getClass().equals(ModuleException.class)) {
+        LOGGER.error(e.getMessage(), e);
+      } else {
+        LOGGER.error("Fatal error while converting the database (" + e.getMessage() + ")", e);
+      }
     }
-*/
+
     return exitStatus;
   }
 

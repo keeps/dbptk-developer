@@ -9,11 +9,14 @@ package com.databasepreservation.modules.siard;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.modules.edits.EditModule;
+import com.databasepreservation.model.modules.edits.EditExportModule;
+import com.databasepreservation.model.modules.edits.EditImportModule;
 import com.databasepreservation.model.modules.edits.EditModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
+import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.in.input.SIARD2ImportModule;
+import com.databasepreservation.modules.siard.out.output.SIARD2ExportModule;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -35,7 +38,7 @@ public class SIARDEditFactory implements EditModuleFactory {
       .description("Path to SIARD2 archive file").hasArgument(true).setOptionalArgument(false).required(true);
 
   private static final Parameter set = new Parameter().shortName("s").longName(PARAMETER_SET)
-      .description("Set a SIARD database metadata pair").hasArgument(true).numberOfArgs(2)
+      .description("Set a new value for a SIARD2 metadata pair").hasArgument(true).numberOfArgs(2)
       .setOptionalArgument(false).required(false);
 
   private static final Parameter list = new Parameter().shortName("l").longName(PARAMETER_LIST)
@@ -45,10 +48,14 @@ public class SIARDEditFactory implements EditModuleFactory {
       .description("").hasArgument(true).setOptionalArgument(false).required(true);*/
 
   @Override
-  public String getModuleName() { return "edit-siard"; }
+  public String getModuleName() {
+    return "edit-siard";
+  }
 
   @Override
-  public boolean isEnabled() { return true; }
+  public boolean isEnabled() {
+    return true;
+  }
 
   @Override
   public Parameters getImportParameters() {
@@ -56,7 +63,9 @@ public class SIARDEditFactory implements EditModuleFactory {
   }
 
   @Override
-  public Parameters getParameters() { return  new Parameters(Arrays.asList(set, list), null); }
+  public Parameters getParameters() {
+    return new Parameters(Arrays.asList(set, list), null);
+  }
 
   @Override
   public Map<Parameter, String> getAllParameters() {
@@ -76,7 +85,7 @@ public class SIARDEditFactory implements EditModuleFactory {
   }
 
   @Override
-  public EditModule buildEditModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException {
+  public EditImportModule buildEditModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException {
     Path pFile = Paths.get(parameters.get(file));
 
     reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString());

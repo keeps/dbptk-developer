@@ -31,13 +31,12 @@ public class CLIEdit extends CLIHandler {
 
   public CLIEdit(List<String> commandLineArguments, Collection<EditModuleFactory> editModuleFactories) {
     super(commandLineArguments);
-    allEditFactories          = new ArrayList<>(editModuleFactories);
-    editModuleNames           = new ArrayList<>();
+    allEditFactories = new ArrayList<>(editModuleFactories);
+    editModuleNames = new ArrayList<>();
   }
 
   /**
-   * Gets the edit module parameters, obtained by parsing the
-   * parameters
+   * Gets the edit module parameters, obtained by parsing the parameters
    *
    * @return The edit module configuration parameters
    * @throws ParseException
@@ -67,7 +66,8 @@ public class CLIEdit extends CLIHandler {
     editModuleParameters = getEditArguments(factory, args);
   }
 
-  private HashMap<Parameter, List<String>> getEditArguments(EditModuleFactory factory, List<String> args) throws ParseException {
+  private HashMap<Parameter, List<String>> getEditArguments(EditModuleFactory factory, List<String> args)
+    throws ParseException {
     // get appropriate command line options
     CommandLineParser commandLineParser = new DefaultParser();
     CommandLine commandLine;
@@ -90,7 +90,7 @@ public class CLIEdit extends CLIHandler {
       }
     }
 
-    for (Parameter parameter: factory.getParameters().getParameters()) {
+    for (Parameter parameter : factory.getParameters().getParameters()) {
       Option option = parameter.toOption();
       options.addOption(option);
       mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
@@ -141,14 +141,13 @@ public class CLIEdit extends CLIHandler {
         } else if (isSetFieldOption(option)) {
           if (p.hasArgument()) {
             StringBuilder sb = new StringBuilder();
-
             for (String s : option.getValues()) {
               sb.append(s).append(Constants.SEPARATOR);
             }
             ArrayList<String> values = updateArgs(editModuleArguments, p, sb.toString());
-            editModuleArguments.put(p,values);
+            editModuleArguments.put(p, values);
           }
-        } else if(isListOption(option)) {
+        } else if (isListOption(option)) {
           if (p.hasArgument()) {
 
           } else {

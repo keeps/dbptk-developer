@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.databasepreservation.model.modules.edits.EditModule;
+import com.databasepreservation.model.modules.edits.EditImportModule;
 import com.databasepreservation.model.modules.edits.EditModuleFactory;
 import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
 import javafx.scene.effect.Reflection;

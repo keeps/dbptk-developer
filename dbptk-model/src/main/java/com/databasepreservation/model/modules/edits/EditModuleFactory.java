@@ -22,17 +22,19 @@ import java.util.Map;
  */
 public interface EditModuleFactory {
 
-    String getModuleName();
+  String getModuleName();
 
-    boolean isEnabled();
+  boolean isEnabled();
 
-    Parameters getImportParameters();
+  Parameters getImportParameters();
 
-    Parameters getParameters();
+  Parameters getParameters();
 
-    Map<Parameter, String> getSetParameters();
+  Map<Parameter, String> getSetParameters();
 
-    Map<Parameter, String> getAllParameters();
+  Map<Parameter, String> getAllParameters();
 
-    EditModule buildEditModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException;
+  EditImportModule buildEditModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException;
+
+  //EditExportModule buildExportModule(Reporter reporter) throws ModuleException;
 }
