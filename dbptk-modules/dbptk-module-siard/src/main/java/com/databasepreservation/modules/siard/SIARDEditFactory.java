@@ -9,15 +9,15 @@ package com.databasepreservation.modules.siard;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.modules.edits.EditExportModule;
-import com.databasepreservation.model.modules.edits.EditImportModule;
+import com.databasepreservation.model.exception.SiardNotFoundException;
+import com.databasepreservation.model.modules.edits.EditModule;
 import com.databasepreservation.model.modules.edits.EditModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
-import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.in.input.SIARD2ImportModule;
-import com.databasepreservation.modules.siard.out.output.SIARD2ExportModule;
+import com.databasepreservation.modules.siard.update.SIARDEditModule;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -85,10 +85,15 @@ public class SIARDEditFactory implements EditModuleFactory {
   }
 
   @Override
-  public EditImportModule buildEditModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException {
+  public EditModule buildModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException {
     Path pFile = Paths.get(parameters.get(file));
 
+    if (Files.notExists(pFile)) {
+      throw new SiardNotFoundException().withPath(pFile.toAbsolutePath().toString()).withMessage("The path to the siard file appears to be incorrect");
+    }
+
     reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString());
-    return new SIARD2ImportModule(pFile, true).getEditModule();
+
+    return new SIARDEditModule(pFile);
   }
 }

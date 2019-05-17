@@ -7,24 +7,19 @@
  */
 package com.databasepreservation.utils;
 
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import com.databasepreservation.model.modules.edits.EditImportModule;
+import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.modules.edits.EditModuleFactory;
 import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
-import javafx.scene.effect.Reflection;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.model.modules.DatabaseModuleFactory;
-
-import javax.xml.crypto.Data;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>

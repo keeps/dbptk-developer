@@ -5,18 +5,25 @@
  * <p>
  * https://github.com/keeps/db-preservation-toolkit
  */
-package com.databasepreservation.modules.siard.in.input;
+package com.databasepreservation.modules.siard.update;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.metadata.SIARDDatabaseMetadata;
 import com.databasepreservation.model.modules.ModuleSettings;
-import com.databasepreservation.model.modules.edits.EditImportModule;
+import com.databasepreservation.model.modules.edits.EditModule;
 import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.modules.DefaultExceptionNormalizer;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD2MetadataPathStrategy;
 import com.databasepreservation.modules.siard.in.metadata.MetadataImportStrategy;
+import com.databasepreservation.modules.siard.in.metadata.SIARD20MetadataImportStrategy;
+import com.databasepreservation.modules.siard.in.metadata.SIARD21MetadataImportStrategy;
+import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
+import com.databasepreservation.modules.siard.in.read.ZipAndFolderReadStrategy;
 import com.databasepreservation.modules.siard.in.read.ZipReadStrategy;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARD21MetadataExportStrategy;
@@ -29,12 +36,15 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import javax.print.Doc;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.*;
 import java.io.*;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -42,22 +52,49 @@ import java.util.List;
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
-public class SIARDImportEdit implements EditImportModule {
+public class SIARDEditModule implements EditModule {
   private final ReadStrategy readStrategy;
   private final SIARDArchiveContainer mainContainer;
   private final MetadataImportStrategy metadataImportStrategy;
-  private MetadataExportStrategy metadataExportStrategy;
 
   private Reporter reporter;
-  private static final Logger LOGGER = LoggerFactory.getLogger(SIARDImportEdit.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARDEditModule.class);
 
   private static final String METADATA_FILENAME = "metadata";
 
-  public SIARDImportEdit(SIARDArchiveContainer mainContainer, ReadStrategy readStrategy,
-    MetadataImportStrategy metadataImportStrategy) {
-    this.readStrategy = readStrategy;
-    this.mainContainer = mainContainer;
-    this.metadataImportStrategy = metadataImportStrategy;
+  /**
+   * Constructor used to initialize required objects to get an edit import module
+   * for SIARD 2 (all minor versions)
+   *
+   * @param siardPackagePath
+   *          Path to the main SIARD file (file with extension .siard)
+   */
+  public SIARDEditModule(Path siardPackagePath) {
+    Path siardPackageNormalizedPath = siardPackagePath.toAbsolutePath().normalize();
+    mainContainer = new SIARDArchiveContainer(siardPackageNormalizedPath,
+      SIARDArchiveContainer.OutputContainerType.MAIN);
+    readStrategy = new ZipAndFolderReadStrategy(mainContainer);
+
+    // identify version before creating metadata import strategy instance
+    try {
+      readStrategy.setup(mainContainer);
+    } catch (ModuleException e) {
+      LOGGER.debug("Problem setting up container", e);
+    }
+
+    MetadataPathStrategy metadataPathStrategy = new SIARD2MetadataPathStrategy();
+    ContentPathImportStrategy contentPathStrategy = new SIARD2ContentPathImportStrategy();
+
+    switch (mainContainer.getVersion()) {
+      case V2_0:
+        metadataImportStrategy = new SIARD20MetadataImportStrategy(metadataPathStrategy, contentPathStrategy);
+        break;
+      case V2_1:
+        metadataImportStrategy = new SIARD21MetadataImportStrategy(metadataPathStrategy, contentPathStrategy);
+        break;
+      default:
+        metadataImportStrategy = null;
+    }
   }
 
   @Override
@@ -78,7 +115,6 @@ public class SIARDImportEdit implements EditImportModule {
     return dbStructure;
   }
 
-  @Override
   public void saveMetadata(DatabaseStructure dbStructure) throws ModuleException {
 
     SIARD2MetadataPathStrategy siard2MetadataPathStrategy = new SIARD2MetadataPathStrategy();
@@ -153,9 +189,12 @@ public class SIARDImportEdit implements EditImportModule {
       // "/ns:siardArchive/ns:privileges/ns:privilege/ns:name/text()"; -- confirmar os
       // campos a usar para identificar unicamente um privilégio
 
-      List<SIARDDatabaseMetadata> metadataSchema = getSchemaMetadata(doc, xpathExpressionSchemas);
+      List<SIARDDatabaseMetadata> schemaMetadata = getSchemaMetadata(doc, xpathExpressionSchemas);
+      List<SIARDDatabaseMetadata> usersMetadata = getUsersMetadata(doc, xpathExpressionUsers);
+      List<SIARDDatabaseMetadata> rolesMetadata = getRolesMetadata(doc, xpathExpressionRoles);
 
-      SIARDDatabaseMetadataKeys.addAll(metadataSchema);
+      SIARDDatabaseMetadataKeys.addAll(schemaMetadata);
+      SIARDDatabaseMetadataKeys.addAll(usersMetadata);
 
     } catch (ParserConfigurationException e) {
       throw new ModuleException()
@@ -163,11 +202,11 @@ public class SIARDImportEdit implements EditImportModule {
         .withCause(e);
     } catch (SAXException e) {
       throw new ModuleException()
-        .withMessage("Error reading metadata XSD file: " + siard2MetadataPathStrategy.getXmlFilePath(METADATA_FILENAME))
+        .withMessage("Error reading metadata XML file: " + siard2MetadataPathStrategy.getXmlFilePath(METADATA_FILENAME))
         .withCause(e);
     } catch (IOException e) {
       throw new ModuleException()
-        .withMessage("Error open the XSD file: " + siard2MetadataPathStrategy.getXmlFilePath(METADATA_FILENAME))
+        .withMessage("Error open the XML file: " + siard2MetadataPathStrategy.getXmlFilePath(METADATA_FILENAME))
         .withCause(e);
     }
 
@@ -184,32 +223,70 @@ public class SIARDImportEdit implements EditImportModule {
 
   @Override
   public ModuleException normalizeException(Exception exception, String contextMessage) {
-    return null;
+    return DefaultExceptionNormalizer.getInstance().normalizeException(exception, contextMessage);
   }
 
-  private static List<SIARDDatabaseMetadata> getSchemaMetadata(Document document, String xpathExpression) {
+  // auxiliary internal methods
+
+  private static List<SIARDDatabaseMetadata> getUsersMetadata(Document document, String xpathExpression) throws ModuleException{
     XPathFactory xPathFactory = XPathFactory.newInstance();
     XPath xpath = xPathFactory.newXPath();
 
-    xpath.setNamespaceContext(new NamespaceContext() {
-      @Override
-      public Iterator getPrefixes(String arg0) {
-        return null;
+    xpath = setXPathForXML(xpath);
+
+    List<SIARDDatabaseMetadata> metadata = new ArrayList<>();
+
+    try {
+
+      XPathExpression expr = xpath.compile(xpathExpression);
+
+      NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
+
+      for (int i = 0; i < nodes.getLength(); i++) {
+        SIARDDatabaseMetadata dbMetadata = new SIARDDatabaseMetadata();
+        dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.USER, nodes.item(i).getNodeValue());
+        metadata.add(dbMetadata);
       }
 
-      @Override
-      public String getPrefix(String arg0) {
-        return null;
+    } catch (XPathExpressionException e) {
+      throw new ModuleException().withMessage("Error on xpath expression: " + xpathExpression).withCause(e);
+    }
+
+    return metadata;
+  }
+
+  private static List<SIARDDatabaseMetadata> getRolesMetadata(Document document, String xpathExpression) throws ModuleException{
+    XPathFactory xPathFactory = XPathFactory.newInstance();
+    XPath xpath = xPathFactory.newXPath();
+
+    xpath = setXPathForXML(xpath);
+
+    List<SIARDDatabaseMetadata> metadata = new ArrayList<>();
+
+    try {
+
+      XPathExpression expr = xpath.compile(xpathExpression);
+
+      NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
+
+      for (int i = 0; i < nodes.getLength(); i++) {
+        SIARDDatabaseMetadata dbMetadata = new SIARDDatabaseMetadata();
+        dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.ROLE, nodes.item(i).getNodeValue());
+        metadata.add(dbMetadata);
       }
 
-      @Override
-      public String getNamespaceURI(String arg0) {
-        if ("ns".equals(arg0)) {
-          return "http://www.bar.admin.ch/xmlns/siard/2/metadata.xsd";
-        }
-        return null;
-      }
-    });
+    } catch (XPathExpressionException e) {
+      throw new ModuleException().withMessage("Error on xpath expression: " + xpathExpression).withCause(e);
+    }
+
+    return metadata;
+  }
+
+  private static List<SIARDDatabaseMetadata> getSchemaMetadata(Document document, String xpathExpression) throws ModuleException {
+    XPathFactory xPathFactory = XPathFactory.newInstance();
+    XPath xpath = xPathFactory.newXPath();
+
+    xpath = setXPathForXML(xpath);
 
     List<SIARDDatabaseMetadata> siardatabaseMetadata = new ArrayList<>();
 
@@ -223,7 +300,7 @@ public class SIARDImportEdit implements EditImportModule {
 
         String schemaName = schema.getElementsByTagName("name").item(0).getTextContent();
         SIARDDatabaseMetadata dbMetadata = new SIARDDatabaseMetadata();
-        dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA,schemaName);
+        dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
         siardatabaseMetadata.add(dbMetadata);
 
         NodeList tableNodes = schema.getElementsByTagName("table");
@@ -231,8 +308,8 @@ public class SIARDImportEdit implements EditImportModule {
           Element table = (Element) tableNodes.item(j);
           String tableName = table.getElementsByTagName("name").item(0).getTextContent();
           dbMetadata = new SIARDDatabaseMetadata();
-          dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA,schemaName);
-          dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE,tableName);
+          dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
+          dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE, tableName);
           siardatabaseMetadata.add(dbMetadata);
 
           NodeList columnsNodes = table.getElementsByTagName("columns");
@@ -245,9 +322,9 @@ public class SIARDImportEdit implements EditImportModule {
 
               String columnName = column.getElementsByTagName("name").item(0).getTextContent();
               dbMetadata = new SIARDDatabaseMetadata();
-              dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA,schemaName);
-              dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE,tableName);
-              dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE_COLUMN,columnName);
+              dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
+              dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE, tableName);
+              dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE_COLUMN, columnName);
               siardatabaseMetadata.add(dbMetadata);
             }
           }
@@ -258,9 +335,9 @@ public class SIARDImportEdit implements EditImportModule {
 
             String primaryKeyName = primaryKey.getElementsByTagName("name").item(0).getTextContent();
             dbMetadata = new SIARDDatabaseMetadata();
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA,schemaName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE,tableName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.PRIMARY_KEY,primaryKeyName);
+            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
+            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE, tableName);
+            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.PRIMARY_KEY, primaryKeyName);
             siardatabaseMetadata.add(dbMetadata);
           }
 
@@ -269,9 +346,9 @@ public class SIARDImportEdit implements EditImportModule {
             Element candidateKey = (Element) candidateKeyNodes.item(n);
             String candidateKeyName = candidateKey.getElementsByTagName("name").item(0).getTextContent();
             dbMetadata = new SIARDDatabaseMetadata();
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA,schemaName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE,tableName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.CANDIDATE_KEY,candidateKeyName);
+            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
+            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE, tableName);
+            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.CANDIDATE_KEY, candidateKeyName);
             siardatabaseMetadata.add(dbMetadata);
           }
 
@@ -280,9 +357,9 @@ public class SIARDImportEdit implements EditImportModule {
             Element foreignKey = (Element) foreignKeyNodes.item(n);
             String foreignKeyName = foreignKey.getElementsByTagName("name").item(0).getTextContent();
             dbMetadata = new SIARDDatabaseMetadata();
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA,schemaName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE,tableName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.FOREIGN_KEY,foreignKeyName);
+            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
+            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE, tableName);
+            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.FOREIGN_KEY, foreignKeyName);
             siardatabaseMetadata.add(dbMetadata);
           }
 
@@ -291,9 +368,9 @@ public class SIARDImportEdit implements EditImportModule {
             Element trigger = (Element) triggerNodes.item(n);
             String triggerName = trigger.getElementsByTagName("name").item(0).getTextContent();
             dbMetadata = new SIARDDatabaseMetadata();
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA,schemaName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE,tableName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TRIGGER,triggerName);
+            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
+            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE, tableName);
+            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TRIGGER, triggerName);
             siardatabaseMetadata.add(dbMetadata);
           }
 
@@ -302,9 +379,9 @@ public class SIARDImportEdit implements EditImportModule {
             Element constraint = (Element) checkConstraintNodes.item(n);
             String constraintName = constraint.getElementsByTagName("name").item(0).getTextContent();
             dbMetadata = new SIARDDatabaseMetadata();
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA,schemaName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE,tableName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.CHECK_CONSTRAINT,constraintName);
+            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
+            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE, tableName);
+            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.CHECK_CONSTRAINT, constraintName);
             siardatabaseMetadata.add(dbMetadata);
           }
         }
@@ -314,8 +391,8 @@ public class SIARDImportEdit implements EditImportModule {
           Element view = (Element) viewNodes.item(j);
           String viewName = view.getElementsByTagName("name").item(0).getTextContent();
           dbMetadata = new SIARDDatabaseMetadata();
-          dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA,schemaName);
-          dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.VIEW,viewName);
+          dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
+          dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.VIEW, viewName);
           siardatabaseMetadata.add(dbMetadata);
 
           NodeList columnsViewNodes = view.getElementsByTagName("columns");
@@ -328,9 +405,9 @@ public class SIARDImportEdit implements EditImportModule {
 
               String columnName = column.getElementsByTagName("name").item(0).getTextContent();
               dbMetadata = new SIARDDatabaseMetadata();
-              dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA,schemaName);
-              dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.VIEW,viewName);
-              dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.VIEW_COLUMN,columnName);
+              dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
+              dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.VIEW, viewName);
+              dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.VIEW_COLUMN, columnName);
               siardatabaseMetadata.add(dbMetadata);
             }
           }
@@ -341,8 +418,8 @@ public class SIARDImportEdit implements EditImportModule {
           Element routine = (Element) routineNodes.item(j);
           String routineName = routine.getElementsByTagName("name").item(0).getTextContent();
           dbMetadata = new SIARDDatabaseMetadata();
-          dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA,schemaName);
-          dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.ROUTINE,routineName);
+          dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
+          dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.ROUTINE, routineName);
           siardatabaseMetadata.add(dbMetadata);
 
           NodeList routineParametersNode = routine.getElementsByTagName("parameters");
@@ -350,15 +427,15 @@ public class SIARDImportEdit implements EditImportModule {
             Element parameter = (Element) routineParametersNode.item(k);
             String parameterName = parameter.getElementsByTagName("name").item(0).getTextContent();
             dbMetadata = new SIARDDatabaseMetadata();
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA,schemaName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.ROUTINE,routineName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.ROUTINE_PARAMETER,parameterName);
+            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
+            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.ROUTINE, routineName);
+            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.ROUTINE_PARAMETER, parameterName);
             siardatabaseMetadata.add(dbMetadata);
           }
         }
       }
     } catch (XPathExpressionException e) {
-      e.printStackTrace();
+      throw new ModuleException().withMessage("Error on xpath expression: " + xpathExpression).withCause(e);
     }
 
     return siardatabaseMetadata;
@@ -415,5 +492,29 @@ public class SIARDImportEdit implements EditImportModule {
     DocumentBuilder builder = factory.newDocumentBuilder();
 
     return builder.parse(inputStream);
+  }
+
+  private static XPath setXPathForXML(XPath xPath) {
+    xPath.setNamespaceContext(new NamespaceContext() {
+      @Override
+      public Iterator getPrefixes(String arg0) {
+        return null;
+      }
+
+      @Override
+      public String getPrefix(String arg0) {
+        return null;
+      }
+
+      @Override
+      public String getNamespaceURI(String arg0) {
+        if ("ns".equals(arg0)) {
+          return "http://www.bar.admin.ch/xmlns/siard/2/metadata.xsd";
+        }
+        return null;
+      }
+    });
+
+    return xPath;
   }
 }

@@ -8,8 +8,6 @@
 package com.databasepreservation.modules.siard.in.input;
 
 import java.nio.file.Path;
-
-import com.databasepreservation.model.modules.edits.EditImportModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,9 +92,5 @@ public class SIARD2ImportModule {
 
   public DatabaseImportModule getDatabaseImportModule() {
     return new SIARDImportDefault(contentStrategy, mainContainer, readStrategy, metadataStrategy);
-  }
-
-  public EditImportModule getEditModule() {
-    return new SIARDImportEdit(mainContainer, readStrategy, metadataStrategy);
   }
 }

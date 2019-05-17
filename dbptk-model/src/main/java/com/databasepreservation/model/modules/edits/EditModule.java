@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
-public interface EditImportModule extends ExceptionNormalizer {
+public interface EditModule extends ExceptionNormalizer {
 
   /**
    * The reporter is set specifically for each module/filter

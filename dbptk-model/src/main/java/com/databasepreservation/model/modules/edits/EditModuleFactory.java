@@ -22,6 +22,10 @@ import java.util.Map;
  */
 public interface EditModuleFactory {
 
+  /**
+   *
+   * @return
+   */
   String getModuleName();
 
   boolean isEnabled();
@@ -34,7 +38,5 @@ public interface EditModuleFactory {
 
   Map<Parameter, String> getAllParameters();
 
-  EditImportModule buildEditModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException;
-
-  //EditExportModule buildExportModule(Reporter reporter) throws ModuleException;
+  EditModule buildModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException;
 }

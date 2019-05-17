@@ -16,6 +16,7 @@ import com.databasepreservation.cli.CLIEdit;
 import com.databasepreservation.cli.CLIHelp;
 import com.databasepreservation.cli.CLIMigrate;
 import com.databasepreservation.model.exception.EditDatabaseMetadataParserException;
+import com.databasepreservation.model.exception.SiardNotFoundException;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -159,7 +160,7 @@ public class Main {
 
     try {
       siardEdition = SIARDEdition.newInstance().editModule(cli.getEditModuleFactory())
-          .editModuleParameters(cli.getEditModuleParameters()).reporter(getReporter());
+        .editModuleParameters(cli.getEditModuleParameters()).reporter(getReporter());
     } catch (ParseException e) {
       LOGGER.error(e.getMessage(), e);
       logProgramFinish(EXIT_CODE_COMMAND_PARSE_ERROR);
@@ -178,6 +179,8 @@ public class Main {
       LOGGER.error(e.getMessage() + " on: " + e.getFaultyArgument(), e);
 
       return EXIT_CODE_COMMAND_PARSE_ERROR;
+    } catch (SiardNotFoundException e) {
+      LOGGER.error(e.getMessage() + ": " + e.getPath());
     } catch (ModuleException e) {
       if (!e.getClass().equals(ModuleException.class)) {
         LOGGER.error(e.getMessage(), e);
@@ -206,7 +209,6 @@ public class Main {
 
     // adds a default filter, which for now just does progress logging
     databaseMigration.filter(new ObservableFilter(new ProgressLoggerObserver()));
-
 
     // converts the database using the specified modules, module parameters, and
     // filters

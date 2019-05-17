@@ -11,7 +11,7 @@ import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.EditDatabaseMetadataParserException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.metadata.SIARDDatabaseMetadata;
-import com.databasepreservation.model.modules.edits.EditImportModule;
+import com.databasepreservation.model.modules.edits.EditModule;
 import com.databasepreservation.model.modules.edits.EditModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.structure.DatabaseStructure;
@@ -20,7 +20,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,32 +42,66 @@ public class SIARDEdition {
     return new SIARDEdition();
   }
 
+  /**
+   * Sets the edit module factory that will be used to produce the edit module
+   */
   public SIARDEdition editModule(EditModuleFactory factory) {
     this.editModuleFactory = factory;
     return this;
   }
 
+  /**
+   * Adds the specified parameter to be used in the edit module during the edition
+   */
   public SIARDEdition editModuleParameters(Map<Parameter, List<String>> parameters) {
     this.editModuleParameters = new HashMap<>(parameters);
     return this;
   }
 
+  /**
+   * Sets the reporter to be used by all modules during the edition
+   */
   public SIARDEdition reporter(Reporter reporter) {
     this.reporter = reporter;
     return this;
   }
 
+  /**
+   *
+   *
+   * @throws ModuleException
+   */
+  public void list() throws ModuleException {
+    HashMap<Parameter, String> importParameters = buildImportParameters(editModuleParameters, editModuleFactory);
+
+    EditModule editModule = editModuleFactory.buildModule(importParameters, reporter);
+    editModule.setOnceReporter(reporter);
+
+    List<SIARDDatabaseMetadata> SIARDDatabaseMetadataKeys = editModule.getDatabaseMetadataKeys();
+
+  }
+
+  /**
+   * Edits the {@link DatabaseStructure} according to the key value pairs received
+   *
+   * @throws EditDatabaseMetadataParserException
+   *           The metadata path is not a valid one
+   * @throws ModuleException
+   *           Generic module exception
+   *
+   */
   public void edit() throws ModuleException {
 
     HashMap<Parameter, String> importParameters = buildImportParameters(editModuleParameters, editModuleFactory);
     HashMap<String, String> metadataPairs = buildMetadataPairs(editModuleParameters, editModuleFactory);
 
-    EditImportModule editModule = editModuleFactory.buildEditModule(importParameters, reporter);
+    EditModule editModule = editModuleFactory.buildModule(importParameters, reporter);
     editModule.setOnceReporter(reporter);
 
-    List<String> descriptiveMetadataKeys = editModule.getDescriptiveSIARDMetadataKeys(); // COMES FROM THE XSD FILE
-    List<SIARDDatabaseMetadata> SIARDDatabaseMetadataKeys = editModule.getDatabaseMetadataKeys(); // COMES FROM THE XML
-                                                                                                  // FILE
+    // COMES FROM THE XSD FILE
+    List<String> descriptiveMetadataKeys = editModule.getDescriptiveSIARDMetadataKeys();
+    // COMES FROM THE XML FILE
+    List<SIARDDatabaseMetadata> SIARDDatabaseMetadataKeys = editModule.getDatabaseMetadataKeys();
 
     List<String> malformedMetadataKeys = validateMetadataKeys(descriptiveMetadataKeys, SIARDDatabaseMetadataKeys,
       metadataPairs.keySet());
@@ -78,12 +116,16 @@ public class SIARDEdition {
       editModule.saveMetadata(updated);
     } else {
       if (malformedMetadataKeys.size() == 1) {
-        throw new EditDatabaseMetadataParserException("Metadata path not found on ").withFaultyArgument(malformedMetadataKeys.get(0));
+        throw new EditDatabaseMetadataParserException("Metadata path not found")
+          .withFaultyArgument(malformedMetadataKeys.get(0));
       } else {
-        throw new EditDatabaseMetadataParserException("Invalid metadata key:").withFaultyArgument(malformedMetadataKeys.toString());
+        throw new EditDatabaseMetadataParserException("Invalid metadata paths")
+          .withFaultyArgument(malformedMetadataKeys.toString());
       }
     }
   }
+
+  // auxiliary internal methods
 
   private static HashMap<Parameter, String> buildImportParameters(HashMap<Parameter, List<String>> editModuleParameters,
     EditModuleFactory editModuleFactory) {
@@ -471,13 +513,13 @@ public class SIARDEdition {
           dbStructure.updateSchemaDescription(metadata.getSchema(), metadata.getValue());
           break;
         case SIARDDatabaseMetadata.ROLE:
-
+          dbStructure.updateRoleDescription(metadata.getRole(), metadata.getValue());
           break;
         case SIARDDatabaseMetadata.USER:
-
+          dbStructure.updateUserDescription(metadata.getUser(), metadata.getValue());
           break;
         case SIARDDatabaseMetadata.PRIVILEGE:
-
+          // TODO: Implement
           break;
         case SIARDDatabaseMetadata.TABLE:
           dbStructure.updateTableDescription(metadata.getSchema(), metadata.getTable(), metadata.getValue());

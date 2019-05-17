@@ -570,6 +570,24 @@ public class DatabaseStructure {
     return null;
   }
 
+  public UserStructure getUserByName(String userName) {
+    for (UserStructure user : users) {
+      if (user.getName().equalsIgnoreCase(userName)) {
+        return user;
+      }
+    }
+    return null;
+  }
+
+  public RoleStructure getRoleByName(String userName) {
+    for (RoleStructure role : roles) {
+      if (role.getName().equalsIgnoreCase(userName)) {
+        return role;
+      }
+    }
+    return null;
+  }
+
   public boolean updateSchemaDescription(String schemaName, String description) {
     SchemaStructure schema = getSchemaByName(schemaName);
 
@@ -731,6 +749,28 @@ public class DatabaseStructure {
           return true;
         }
       }
+    }
+
+    return false;
+  }
+
+  public boolean updateUserDescription(String userName, String description) {
+    UserStructure user = getUserByName(userName);
+
+    if (user != null) {
+      user.setDescription(description);
+      return true;
+    }
+
+    return false;
+  }
+
+  public boolean updateRoleDescription(String roleName, String description) {
+    RoleStructure role = getRoleByName(roleName);
+
+    if (role != null) {
+      role.setDescription(description);
+      return true;
     }
 
     return false;
