@@ -35,4 +35,6 @@ public interface UpdateStrategy {
    *          the stream should be written to
    */
   void updateSIARDArchive(SIARDArchiveContainer container, String path) throws ModuleException;
+
+  void close() throws ModuleException;
 }

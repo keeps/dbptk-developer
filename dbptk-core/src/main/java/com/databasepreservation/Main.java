@@ -15,6 +15,7 @@ import java.util.UUID;
 import com.databasepreservation.cli.CLIEdit;
 import com.databasepreservation.cli.CLIHelp;
 import com.databasepreservation.cli.CLIMigrate;
+import com.databasepreservation.model.exception.EditDatabaseMetadataParserException;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -173,11 +174,13 @@ public class Main {
       long duration = System.currentTimeMillis() - startTime;
       LOGGER.info("Edit SIARD metadata took {}m {}s to complete.", duration / 60000, duration % 60000 / 1000);
       exitStatus = EXIT_CODE_OK;
+    } catch (EditDatabaseMetadataParserException e) {
+      LOGGER.error(e.getMessage() + " on: " + e.getFaultyArgument(), e);
+
+      return EXIT_CODE_COMMAND_PARSE_ERROR;
     } catch (ModuleException e) {
       if (!e.getClass().equals(ModuleException.class)) {
         LOGGER.error(e.getMessage(), e);
-      } else {
-        LOGGER.error("Fatal error while converting the database (" + e.getMessage() + ")", e);
       }
     }
 

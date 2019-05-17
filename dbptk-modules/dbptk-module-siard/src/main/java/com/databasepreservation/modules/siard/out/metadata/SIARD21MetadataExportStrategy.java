@@ -151,14 +151,13 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
 
       OutputStream metadataOutputStream = updateStrategy.createOutputStream();
       m.marshal(xmlroot, metadataOutputStream);
-      metadataOutputStream.close();
+
+      updateStrategy.close();
 
       updateStrategy.updateSIARDArchive(container, metadataPathStrategy.getXmlFilePath(METADATA_FILENAME));
 
     } catch (JAXBException e) {
       throw new ModuleException().withMessage("Error while Marshalling JAXB").withCause(e);
-    } catch (IOException e) {
-      throw new ModuleException().withMessage("Error while closing the data writer").withCause(e);
     }
   }
 

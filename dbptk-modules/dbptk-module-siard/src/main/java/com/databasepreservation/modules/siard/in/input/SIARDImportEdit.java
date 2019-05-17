@@ -128,6 +128,8 @@ public class SIARDImportEdit implements EditImportModule {
         .withCause(e);
     }
 
+    zipReadStrategy.finish(mainContainer);
+
     return descriptiveMetadata;
   }
 
@@ -168,6 +170,8 @@ public class SIARDImportEdit implements EditImportModule {
         .withMessage("Error open the XSD file: " + siard2MetadataPathStrategy.getXmlFilePath(METADATA_FILENAME))
         .withCause(e);
     }
+
+    zipReadStrategy.finish(mainContainer);
 
     return SIARDDatabaseMetadataKeys;
   }

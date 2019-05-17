@@ -8,6 +8,7 @@
 package com.databasepreservation;
 
 import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.exception.EditDatabaseMetadataParserException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.metadata.SIARDDatabaseMetadata;
 import com.databasepreservation.model.modules.edits.EditImportModule;
@@ -77,9 +78,9 @@ public class SIARDEdition {
       editModule.saveMetadata(updated);
     } else {
       if (malformedMetadataKeys.size() == 1) {
-        LOGGER.error("Invalid metadata key: " + malformedMetadataKeys.get(0));
+        throw new EditDatabaseMetadataParserException("Metadata path not found on ").withFaultyArgument(malformedMetadataKeys.get(0));
       } else {
-        LOGGER.error("Invalid metadata keys: " + malformedMetadataKeys.toString());
+        throw new EditDatabaseMetadataParserException("Invalid metadata key:").withFaultyArgument(malformedMetadataKeys.toString());
       }
     }
   }
@@ -173,7 +174,7 @@ public class SIARDEdition {
 
     Pattern schemaPattern = Pattern.compile("schema:'(.*?)'"); // solo
     Pattern tablePattern = Pattern.compile("table:'(.*?)'"); // schema
-    Pattern columnPattern = Pattern.compile("column:'(.*?)'"); // table
+    Pattern columnPattern = Pattern.compile("column:'(.*?)'"); // table | view
     Pattern triggerPattern = Pattern.compile("trigger:'(.*?)'"); // table
     Pattern viewPattern = Pattern.compile("view:'(.*?)'"); // schema
     Pattern routinePattern = Pattern.compile("routine:'(.*?)'"); // schema
@@ -207,11 +208,13 @@ public class SIARDEdition {
     int countKey = schemaCount + countUser + countRole + countPrivilege;
 
     if (countAll != (spaces + 1)) {
-      return null;
+      throw new EditDatabaseMetadataParserException("The metadata path is poorly constructed")
+        .withFaultyArgument(toParse);
     }
 
     if (countKey != 1) {
-      throw new ModuleException().withMessage("Missing keyword: schema, user, role, or privilege");
+      throw new EditDatabaseMetadataParserException("Missing keyword: schema, user, role, or privilege")
+        .withFaultyArgument(toParse);
     }
 
     String schemaName = null;
@@ -227,6 +230,9 @@ public class SIARDEdition {
           Matcher m = schemaPattern.matcher(toParse);
           while (m.find()) {
             schemaName = m.group(1);
+            if (StringUtils.isBlank(schemaName)) {
+              throw new EditDatabaseMetadataParserException("Missing schema name").withFaultyArgument(toParse);
+            }
             metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
           }
           return metadata;
@@ -248,18 +254,26 @@ public class SIARDEdition {
           return metadata;
         }
       } else {
-        return null;
+        throw new EditDatabaseMetadataParserException("Expecting schema, user, role, or privilege")
+          .withFaultyArgument(toParse);
       }
     } else if (countAll == 2 && schemaCount == 1) {
       Matcher m = schemaPattern.matcher(toParse);
       while (m.find()) {
         schemaName = m.group(1);
+        if (StringUtils.isBlank(schemaName)) {
+          throw new EditDatabaseMetadataParserException("Missing schema name").withFaultyArgument(toParse);
+        }
       }
       if (viewCount == 1 ^ tableCount == 1 ^ routineCount == 1) {
         if (viewCount == 1) {
           metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
           m = viewPattern.matcher(toParse);
           while (m.find()) {
+            String parsed = m.group(1);
+            if (StringUtils.isBlank(parsed)) {
+              throw new EditDatabaseMetadataParserException("Missing view name").withFaultyArgument(toParse);
+            }
             metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.VIEW, m.group(1));
           }
           return metadata;
@@ -269,34 +283,43 @@ public class SIARDEdition {
           metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
           m = tablePattern.matcher(toParse);
           while (m.find()) {
-            String exported = m.group(1);
-            if (StringUtils.isNotBlank(exported)) {
-              metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE, m.group(1));
-            } else {
-              return null;
+            String parsed = m.group(1);
+            if (StringUtils.isBlank(parsed)) {
+              throw new EditDatabaseMetadataParserException("Missing table name").withFaultyArgument(toParse);
             }
+            metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE, parsed);
           }
           return metadata;
         } else {
           metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
           m = routinePattern.matcher(toParse);
           while (m.find()) {
-            metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.ROUTINE, m.group(1));
+            String parsed = m.group(1);
+            if (StringUtils.isBlank(parsed)) {
+              throw new EditDatabaseMetadataParserException("Missing routine name").withFaultyArgument(toParse);
+            }
+            metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.ROUTINE, parsed);
           }
           return metadata;
         }
       } else {
-        return null;
+        throw new EditDatabaseMetadataParserException("Missing table, view, or routine").withFaultyArgument(toParse);
       }
     } else if (countAll == 3 && schemaCount == 1) {
       Matcher m = schemaPattern.matcher(toParse);
       while (m.find()) {
         schemaName = m.group(1);
+        if (StringUtils.isBlank(schemaName)) {
+          throw new EditDatabaseMetadataParserException("Missing schema name").withFaultyArgument(toParse);
+        }
       }
       if (tableCount == 1 && routineCount == 0 && viewCount == 0) {
         m = tablePattern.matcher(toParse);
         while (m.find()) {
           tableName = m.group(1);
+          if (StringUtils.isBlank(tableName)) {
+            throw new EditDatabaseMetadataParserException("Missing table name").withFaultyArgument(toParse);
+          }
         }
         if (columnCount == 1 ^ triggerCount == 1 ^ primaryKeyCount == 1 ^ candidateKeyCount == 1 ^ foreignKeyCount == 1
           ^ constraintCount == 1) {
@@ -305,61 +328,78 @@ public class SIARDEdition {
           if (columnCount == 1) {
             m = columnPattern.matcher(toParse);
             while (m.find()) {
-              String extracted = m.group(1);
-              if (StringUtils.isNotBlank(extracted)) {
-                metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE_COLUMN, m.group(1));
-              } else {
-                return null;
+              String parsed = m.group(1);
+              if (StringUtils.isBlank(parsed)) {
+                throw new EditDatabaseMetadataParserException("Missing column name").withFaultyArgument(toParse);
               }
+              metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE_COLUMN, parsed);
             }
             return metadata;
           }
           if (triggerCount == 1) {
             m = triggerPattern.matcher(toParse);
             while (m.find()) {
-              String extracted = m.group(1);
-              if (StringUtils.isNotBlank(extracted)) {
-                metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TRIGGER, m.group(1));
-              } else {
-                return null;
+              String parsed = m.group(1);
+              if (StringUtils.isBlank(parsed)) {
+                throw new EditDatabaseMetadataParserException("Missing trigger name").withFaultyArgument(toParse);
               }
+              metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TRIGGER, parsed);
             }
             return metadata;
           }
           if (primaryKeyCount == 1) {
             m = primaryKeyPattern.matcher(toParse);
             while (m.find()) {
-              metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.PRIMARY_KEY, m.group(1));
+              String parsed = m.group(1);
+              if (StringUtils.isBlank(parsed)) {
+                throw new EditDatabaseMetadataParserException("Missing primary key name").withFaultyArgument(toParse);
+              }
+              metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.PRIMARY_KEY, parsed);
             }
             return metadata;
           }
           if (candidateKeyCount == 1) {
             m = candidateKeyPattern.matcher(toParse);
             while (m.find()) {
-              metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.CANDIDATE_KEY, m.group(1));
+              String parsed = m.group(1);
+              if (StringUtils.isBlank(parsed)) {
+                throw new EditDatabaseMetadataParserException("Missing candidate key name").withFaultyArgument(toParse);
+              }
+              metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.CANDIDATE_KEY, parsed);
             }
             return metadata;
           }
           if (foreignKeyCount == 1) {
             m = foreignKeyPattern.matcher(toParse);
             while (m.find()) {
-              metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.FOREIGN_KEY, m.group(1));
+              String parsed = m.group(1);
+              if (StringUtils.isBlank(parsed)) {
+                throw new EditDatabaseMetadataParserException("Missing foreign key name").withFaultyArgument(toParse);
+              }
+              metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.FOREIGN_KEY, parsed);
             }
             return metadata;
           } else {
             m = checkConstraintPattern.matcher(toParse);
             while (m.find()) {
-              metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.CHECK_CONSTRAINT, m.group(1));
+              String parsed = m.group(1);
+              if (StringUtils.isBlank(parsed)) {
+                throw new EditDatabaseMetadataParserException("Missing check constraint name")
+                  .withFaultyArgument(toParse);
+              }
+              metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.CHECK_CONSTRAINT, parsed);
             }
             return metadata;
           }
         } else {
-          return null;
+          throw new EditDatabaseMetadataParserException("The metadata path is poorly constructed")
+            .withFaultyArgument(toParse);
         }
       }
 
       if (tableCount == 1 && (routineCount == 1 || viewCount == 1)) {
-        return null;
+        throw new EditDatabaseMetadataParserException("The metadata path is poorly constructed")
+          .withFaultyArgument(toParse);
       }
 
       if (tableCount == 0 && routineCount == 1 && viewCount == 0) {
@@ -367,15 +407,23 @@ public class SIARDEdition {
         m = routinePattern.matcher(toParse);
         while (m.find()) {
           routineName = m.group(1);
+          if (StringUtils.isBlank(routineName)) {
+            throw new EditDatabaseMetadataParserException("Missing routine name").withFaultyArgument(toParse);
+          }
         }
         metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.ROUTINE, routineName);
         if (parameterCount == 1) {
           m = parameterPattern.matcher(toParse);
           while (m.find()) {
-            metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.ROUTINE_PARAMETER, m.group(1));
+            String parsed = m.group(1);
+            if (StringUtils.isBlank(parsed)) {
+              throw new EditDatabaseMetadataParserException("Missing parameter name").withFaultyArgument(toParse);
+            }
+            metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.ROUTINE_PARAMETER, parsed);
           }
         } else {
-          return null;
+          throw new EditDatabaseMetadataParserException("The metadata path is poorly constructed")
+            .withFaultyArgument(toParse);
         }
       }
 
@@ -384,19 +432,28 @@ public class SIARDEdition {
         m = viewPattern.matcher(toParse);
         while (m.find()) {
           viewName = m.group(1);
+          if (StringUtils.isBlank(viewName)) {
+            throw new EditDatabaseMetadataParserException("Missing parameter name").withFaultyArgument(toParse);
+          }
         }
         metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.VIEW, viewName);
         if (columnCount == 1) {
           m = columnPattern.matcher(toParse);
           while (m.find()) {
-            metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.VIEW_COLUMN, m.group(1));
+            String parsed = m.group(1);
+            if (StringUtils.isBlank(parsed)) {
+              throw new EditDatabaseMetadataParserException("Missing column name").withFaultyArgument(toParse);
+            }
+            metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.VIEW_COLUMN, parsed);
           }
         } else {
-          return null;
+          throw new EditDatabaseMetadataParserException("The metadata path is poorly constructed")
+            .withFaultyArgument(toParse);
         }
       }
     } else {
-      return null;
+      throw new EditDatabaseMetadataParserException("The metadata path is poorly constructed")
+        .withFaultyArgument(toParse);
     }
 
     return metadata;
