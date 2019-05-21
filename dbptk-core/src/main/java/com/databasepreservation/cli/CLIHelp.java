@@ -64,7 +64,7 @@ public class CLIHelp extends CLIHandler {
    * @param printStream
    */
   private void printInternalHelp(PrintStream printStream) {
-    if (commandLineArguments.size() == 1) {
+    if (commandLineArguments.size() <= 1) {
       printInternalUsage(printStream);
     } else {
       String arg = commandLineArguments.get(1);
@@ -111,8 +111,8 @@ public class CLIHelp extends CLIHandler {
     out.append("\n");
     out.append("Commands:");
     out.append("\n\n");
-    out.append("\t").append(Constants.DBPTK_OPTION_MIGRATE).append("\t\t").append("Migrate text").append("\n");
-    out.append("\t").append(Constants.DBPTK_OPTION_EDIT).append("\t\t").append("Edit text").append("\n");
+    out.append("\t").append(Constants.DBPTK_OPTION_MIGRATE).append("\t\t").append("Migrates data and metadata from an import module to an export module.").append("\n");
+    out.append("\t").append(Constants.DBPTK_OPTION_EDIT).append("\t\t").append("Edit the metadata information from a SIARD archive.").append("\n");
 
     out.append("\n");
     out.append("Run 'dbptk -h|help COMMAND' for more information on a command.").append("\n");
