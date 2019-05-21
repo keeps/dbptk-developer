@@ -17,6 +17,19 @@ public class OpenEdgeHelper extends  SQLHelper {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OpenEdgeHelper.class);
 
+  private String startQuote = "\"";
+  private String endQuote = "\"";
+
+  @Override
+  public String getStartQuote() {
+    return startQuote;
+  }
+
+  @Override
+  public String getEndQuote() {
+    return endQuote;
+  }
+
   public String getViewSQL(String viewName) {
     return "SELECT \"_Viewtext\" AS TEXT FROM PUB.\"_Sysviews\" WHERE \"_Viewname\" ='" + viewName + "'";
   }
