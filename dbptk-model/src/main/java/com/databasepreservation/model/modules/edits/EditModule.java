@@ -30,9 +30,9 @@ public interface EditModule extends ExceptionNormalizer {
 
   DatabaseStructure getMetadata() throws ModuleException;
 
-  List<String> getDescriptiveSIARDMetadataKeys() throws ModuleException;
+  List<SIARDDatabaseMetadata> getDescriptiveSIARDMetadataKeys() throws ModuleException;
 
   List<SIARDDatabaseMetadata> getDatabaseMetadataKeys() throws ModuleException;
 
-  void saveMetadata(DatabaseStructure dbStructure) throws ModuleException;
+  void updateMetadata(DatabaseStructure dbStructure) throws ModuleException;
 }

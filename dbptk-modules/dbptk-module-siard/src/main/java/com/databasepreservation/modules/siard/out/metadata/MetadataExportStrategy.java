@@ -11,6 +11,7 @@ import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.out.update.UpdateStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
 /**

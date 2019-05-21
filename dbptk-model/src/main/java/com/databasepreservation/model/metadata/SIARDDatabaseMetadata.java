@@ -44,6 +44,7 @@ public class SIARDDatabaseMetadata {
   public static final int SIARD_DATABASE_PRODUCT = 26;
   public static final int SIARD_CONNECTION = 27;
   public static final int SIARD_DATABASE_USER = 28;
+  public static final int NONE = -1;
 
   private String schema;
   private String table;
@@ -64,9 +65,12 @@ public class SIARDDatabaseMetadata {
   private int toUpdate;
   private String value;
 
-  public SIARDDatabaseMetadata() { }
+  public SIARDDatabaseMetadata() {
+  }
 
-  public SIARDDatabaseMetadata(String schema, String table, String tableColumn, String trigger, String primaryKey, String candidateKey, String foreignKey, String checkConstraint, String view, String viewColumn, String routine, String routineParameter, String user, String role, String privilege) {
+  public SIARDDatabaseMetadata(String schema, String table, String tableColumn, String trigger, String primaryKey,
+    String candidateKey, String foreignKey, String checkConstraint, String view, String viewColumn, String routine,
+    String routineParameter, String user, String role, String privilege) {
     this.schema = schema;
     this.table = table;
     this.tableColumn = tableColumn;
@@ -84,22 +88,41 @@ public class SIARDDatabaseMetadata {
     this.privilege = privilege;
   }
 
+  public SIARDDatabaseMetadata(String type, String value) {
+    this.setToUpdate(getSIARDMetadataType(type));
+    this.setValue(value);
+  }
+
   public static int getSIARDMetadataType(String type) {
     switch (type) {
-      case "dbname": return SIARDDatabaseMetadata.SIARD_DBNAME;
-      case "description": return SIARDDatabaseMetadata.SIARD_DESCRIPTION;
-      case "archiver": return SIARDDatabaseMetadata.SIARD_ARCHIVER;
-      case "archiverContact": return SIARDDatabaseMetadata.SIARD_ARCHIVER_CONTACT;
-      case "dataOwner": return SIARDDatabaseMetadata.SIARD_DATA_OWNER;
-      case "dataOriginTimespan": return SIARDDatabaseMetadata.SIARD_DATA_ORIGIN_TIMESPAN;
-      case "producerApplication": return SIARDDatabaseMetadata.SIARD_PRODUCER_APPLICATION;
-      case "archivalDate": return SIARDDatabaseMetadata.SIARD_ARCHIVAL_DATE;
-      case "messageDigest": return SIARDDatabaseMetadata.SIARD_MESSAGE_DIGEST;
-      case "clientMachine": return SIARDDatabaseMetadata.SIARD_CLIENT_MACHINE;
-      case "databaseProduct": return SIARDDatabaseMetadata.SIARD_DATABASE_PRODUCT;
-      case "connection": return SIARDDatabaseMetadata.SIARD_CONNECTION;
-      case "databaseUser": return SIARDDatabaseMetadata.SIARD_DATABASE_USER;
-      default: return -1;
+      case "dbname":
+        return SIARDDatabaseMetadata.SIARD_DBNAME;
+      case "description":
+        return SIARDDatabaseMetadata.SIARD_DESCRIPTION;
+      case "archiver":
+        return SIARDDatabaseMetadata.SIARD_ARCHIVER;
+      case "archiverContact":
+        return SIARDDatabaseMetadata.SIARD_ARCHIVER_CONTACT;
+      case "dataOwner":
+        return SIARDDatabaseMetadata.SIARD_DATA_OWNER;
+      case "dataOriginTimespan":
+        return SIARDDatabaseMetadata.SIARD_DATA_ORIGIN_TIMESPAN;
+      case "producerApplication":
+        return SIARDDatabaseMetadata.SIARD_PRODUCER_APPLICATION;
+      case "archivalDate":
+        return SIARDDatabaseMetadata.SIARD_ARCHIVAL_DATE;
+      case "messageDigest":
+        return SIARDDatabaseMetadata.SIARD_MESSAGE_DIGEST;
+      case "clientMachine":
+        return SIARDDatabaseMetadata.SIARD_CLIENT_MACHINE;
+      case "databaseProduct":
+        return SIARDDatabaseMetadata.SIARD_DATABASE_PRODUCT;
+      case "connection":
+        return SIARDDatabaseMetadata.SIARD_CONNECTION;
+      case "databaseUser":
+        return SIARDDatabaseMetadata.SIARD_DATABASE_USER;
+      default:
+        return SIARDDatabaseMetadata.NONE;
     }
   }
 
@@ -164,8 +187,10 @@ public class SIARDDatabaseMetadata {
       case SIARDDatabaseMetadata.SIARD_CONNECTION:
       case SIARDDatabaseMetadata.SIARD_DATABASE_USER:
         this.setDescriptiveMetadata(key);
-
-      default: ;
+        break;
+      case SIARDDatabaseMetadata.NONE:
+      default:
+        break;
     }
 
     this.setToUpdate(type);
@@ -291,66 +316,92 @@ public class SIARDDatabaseMetadata {
     this.privilege = privilege;
   }
 
-  public String getDescriptiveMetadata() { return descriptiveMetadata; }
+  public String getDescriptiveMetadata() {
+    return descriptiveMetadata;
+  }
 
-  public void setDescriptiveMetadata(String descriptiveMetadata) { this.descriptiveMetadata = descriptiveMetadata; }
+  public void setDescriptiveMetadata(String descriptiveMetadata) {
+    this.descriptiveMetadata = descriptiveMetadata;
+  }
 
-  public int getToUpdate() { return toUpdate; }
+  public int getToUpdate() {
+    return toUpdate;
+  }
 
-  public void setToUpdate(int toUpdate) { this.toUpdate = toUpdate; }
+  public void setToUpdate(int toUpdate) {
+    this.toUpdate = toUpdate;
+  }
 
-  public String getValue() { return value;}
+  public String getValue() {
+    return value;
+  }
 
-  public void setValue(String value) { this.value = value; }
+  public void setValue(String value) {
+    this.value = value;
+  }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
     SIARDDatabaseMetadata that = (SIARDDatabaseMetadata) o;
-    return Objects.equals(getSchema(), that.getSchema()) &&
-        Objects.equals(getTable(), that.getTable()) &&
-        Objects.equals(getTableColumn(), that.getTableColumn()) &&
-        Objects.equals(getTrigger(), that.getTrigger()) &&
-        Objects.equals(getPrimaryKey(), that.getPrimaryKey()) &&
-        Objects.equals(getCandidateKey(), that.getCandidateKey()) &&
-        Objects.equals(getForeignKey(), that.getForeignKey()) &&
-        Objects.equals(getCheckConstraint(), that.getCheckConstraint()) &&
-        Objects.equals(getView(), that.getView()) &&
-        Objects.equals(getViewColumn(), that.getViewColumn()) &&
-        Objects.equals(getRoutine(), that.getRoutine()) &&
-        Objects.equals(getRoutineParameter(), that.getRoutineParameter()) &&
-        Objects.equals(getUser(), that.getUser()) &&
-        Objects.equals(getRole(), that.getRole()) &&
-        Objects.equals(getPrivilege(), that.getPrivilege()) &&
-        Objects.equals(getToUpdate(), that.getToUpdate());
+    return Objects.equals(getSchema(), that.getSchema()) && Objects.equals(getTable(), that.getTable())
+      && Objects.equals(getTableColumn(), that.getTableColumn()) && Objects.equals(getTrigger(), that.getTrigger())
+      && Objects.equals(getPrimaryKey(), that.getPrimaryKey())
+      && Objects.equals(getCandidateKey(), that.getCandidateKey())
+      && Objects.equals(getForeignKey(), that.getForeignKey())
+      && Objects.equals(getCheckConstraint(), that.getCheckConstraint()) && Objects.equals(getView(), that.getView())
+      && Objects.equals(getViewColumn(), that.getViewColumn()) && Objects.equals(getRoutine(), that.getRoutine())
+      && Objects.equals(getRoutineParameter(), that.getRoutineParameter()) && Objects.equals(getUser(), that.getUser())
+      && Objects.equals(getRole(), that.getRole()) && Objects.equals(getPrivilege(), that.getPrivilege())
+      && Objects.equals(getToUpdate(), that.getToUpdate());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getSchema(), getTable(), getTableColumn(), getTrigger(), getPrimaryKey(), getCandidateKey(), getForeignKey(), getCheckConstraint(), getView(), getViewColumn(), getRoutine(), getRoutineParameter(), getUser(), getRole(), getPrivilege(), getToUpdate());
+    return Objects.hash(getSchema(), getTable(), getTableColumn(), getTrigger(), getPrimaryKey(), getCandidateKey(),
+      getForeignKey(), getCheckConstraint(), getView(), getViewColumn(), getRoutine(), getRoutineParameter(), getUser(),
+      getRole(), getPrivilege(), getToUpdate());
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
 
-    if (StringUtils.isNotBlank(getSchema())) sb.append("schema:").append(getSchema()).append(" ");
-    if (StringUtils.isNotBlank(getTable())) sb.append("table:").append(getTable()).append(" ");
-    if (StringUtils.isNotBlank(getTableColumn())) sb.append("column:").append(getTableColumn());
-    if (StringUtils.isNotBlank(getTrigger())) sb.append("trigger:").append(getTrigger());
-    if (StringUtils.isNotBlank(getPrimaryKey())) sb.append("primaryKey:").append(getPrimaryKey());
-    if (StringUtils.isNotBlank(getForeignKey())) sb.append("foreignKey:").append(getForeignKey());
-    if (StringUtils.isNotBlank(getCandidateKey())) sb.append("candidateKey:").append(getCandidateKey());
-    if (StringUtils.isNotBlank(getCheckConstraint())) sb.append("checkConstraint:").append(getCheckConstraint());
-    if (StringUtils.isNotBlank(getView())) sb.append("view:").append(getView()).append(" ");
-    if (StringUtils.isNotBlank(getViewColumn())) sb.append("column:").append(getViewColumn());
-    if (StringUtils.isNotBlank(getRoutine())) sb.append("routine:").append(getRoutine()).append(" ");
-    if (StringUtils.isNotBlank(getRoutineParameter())) sb.append("parameter:").append(getRoutineParameter());
-    if (StringUtils.isNotBlank(getUser())) sb.append("user:").append(getUser());
-    if (StringUtils.isNotBlank(getRole())) sb.append("role:").append(getRole());
-    if (StringUtils.isNotBlank(getPrivilege())) sb.append("privilege:").append(getPrivilege());
-    if (StringUtils.isNotBlank(getDescriptiveMetadata())) sb.append(getDescriptiveMetadata()).append(" ");
+    if (StringUtils.isNotBlank(getSchema()))
+      sb.append("schema:").append(getSchema()).append(" ");
+    if (StringUtils.isNotBlank(getTable()))
+      sb.append("table:").append(getTable()).append(" ");
+    if (StringUtils.isNotBlank(getTableColumn()))
+      sb.append("column:").append(getTableColumn());
+    if (StringUtils.isNotBlank(getTrigger()))
+      sb.append("trigger:").append(getTrigger());
+    if (StringUtils.isNotBlank(getPrimaryKey()))
+      sb.append("primaryKey:").append(getPrimaryKey());
+    if (StringUtils.isNotBlank(getForeignKey()))
+      sb.append("foreignKey:").append(getForeignKey());
+    if (StringUtils.isNotBlank(getCandidateKey()))
+      sb.append("candidateKey:").append(getCandidateKey());
+    if (StringUtils.isNotBlank(getCheckConstraint()))
+      sb.append("checkConstraint:").append(getCheckConstraint());
+    if (StringUtils.isNotBlank(getView()))
+      sb.append("view:").append(getView()).append(" ");
+    if (StringUtils.isNotBlank(getViewColumn()))
+      sb.append("column:").append(getViewColumn());
+    if (StringUtils.isNotBlank(getRoutine()))
+      sb.append("routine:").append(getRoutine()).append(" ");
+    if (StringUtils.isNotBlank(getRoutineParameter()))
+      sb.append("parameter:").append(getRoutineParameter());
+    if (StringUtils.isNotBlank(getUser()))
+      sb.append("user:").append(getUser());
+    if (StringUtils.isNotBlank(getRole()))
+      sb.append("role:").append(getRole());
+    if (StringUtils.isNotBlank(getPrivilege()))
+      sb.append("privilege:").append(getPrivilege());
+    if (StringUtils.isNotBlank(getDescriptiveMetadata()))
+      sb.append(getDescriptiveMetadata()).append(" ");
 
     String output = sb.toString();
 

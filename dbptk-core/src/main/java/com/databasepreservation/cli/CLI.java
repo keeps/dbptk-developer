@@ -38,6 +38,7 @@ public class CLI {
   private final List<String> commandLineArguments;
 
   private boolean recognizedCommand = false;
+
   /**
    * Create a new CLI handler
    *
@@ -47,21 +48,29 @@ public class CLI {
    *          List of available module factories
    */
   public CLI(List<String> commandLineArguments, Collection<DatabaseModuleFactory> databaseModuleFactories,
-             Collection<DatabaseFilterFactory> databaseFilterFactories, Collection<EditModuleFactory> editModuleFactories) {
+    Collection<DatabaseFilterFactory> databaseFilterFactories, Collection<EditModuleFactory> editModuleFactories) {
     this.commandLineArguments = commandLineArguments;
     this.migrate = new CLIMigrate(commandLineArguments, databaseModuleFactories, databaseFilterFactories);
     this.edit = new CLIEdit(commandLineArguments, editModuleFactories);
     this.help = new CLIHelp(commandLineArguments);
-    prepareCLIHelp(databaseModuleFactories,databaseFilterFactories, editModuleFactories);
+    prepareCLIHelp(databaseModuleFactories, databaseFilterFactories, editModuleFactories);
   }
 
-  public CLIMigrate getCLIMigrate() { return this.migrate; }
+  public CLIMigrate getCLIMigrate() {
+    return this.migrate;
+  }
 
-  public CLIEdit getCLIEdit() { return this.edit; }
+  public CLIEdit getCLIEdit() {
+    return this.edit;
+  }
 
-  public CLIHelp getCLIHelp() { return this.help; }
+  public CLIHelp getCLIHelp() {
+    return this.help;
+  }
 
-  public void disableEncryption() { getCLIMigrate().disableEncryption(); }
+  public void disableEncryption() {
+    getCLIMigrate().disableEncryption();
+  }
 
   /**
    * Outputs the usage text to STDOUT
@@ -71,7 +80,7 @@ public class CLI {
   }
 
   private void prepareCLIHelp(Collection<DatabaseModuleFactory> databaseModuleFactories,
-         Collection<DatabaseFilterFactory> databaseFilterFactories, Collection<EditModuleFactory> editModuleFactories) {
+    Collection<DatabaseFilterFactory> databaseFilterFactories, Collection<EditModuleFactory> editModuleFactories) {
     getCLIHelp().setDatabaseModuleFactory(databaseModuleFactories);
     getCLIHelp().setDatabaseFilterFactory(databaseFilterFactories);
     getCLIHelp().setEditModuleFactories(editModuleFactories);
@@ -79,6 +88,7 @@ public class CLI {
 
   /**
    * Checks if the CLI command is GUI
+   * 
    * @return true if GUI is needed otherwise false
    */
   public boolean isGUI() {
@@ -91,6 +101,7 @@ public class CLI {
 
   /**
    * Checks if the CLI command is help
+   * 
    * @return true if help is needed otherwise false
    */
   public boolean isHelp() {
@@ -100,7 +111,7 @@ public class CLI {
 
     String arg = commandLineArguments.get(0);
     boolean value = Constants.DBPTK_OPTION_HELP.equalsIgnoreCase(arg)
-        || Constants.DBPTK_OPTION_HELP_SMALL.equalsIgnoreCase(arg);
+      || Constants.DBPTK_OPTION_HELP_SMALL.equalsIgnoreCase(arg);
     if (value) {
       recognizedCommand = true;
       return true;
@@ -111,6 +122,7 @@ public class CLI {
 
   /**
    * Checks if the CLI command is migrate
+   * 
    * @return true if migration is needed otherwise false
    */
   public boolean isMigration() {
@@ -130,6 +142,7 @@ public class CLI {
 
   /**
    * Checks if the CLI command is edit
+   * 
    * @return true if edition is needed otherwise false
    */
   public boolean isEdition() {

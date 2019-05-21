@@ -35,17 +35,21 @@ public class SIARDEditFactory implements EditModuleFactory {
   // public static final String PARAMETER_SET_REGEX = "regex"; -- IDEA
 
   private static final Parameter file = new Parameter().shortName("f").longName(PARAMETER_FILE)
-      .description("Path to SIARD2 archive file").hasArgument(true).setOptionalArgument(false).required(true);
+    .description("Path to SIARD2 archive file").hasArgument(true).setOptionalArgument(false).required(true);
 
   private static final Parameter set = new Parameter().shortName("s").longName(PARAMETER_SET)
-      .description("Set a new value for a SIARD2 metadata pair").hasArgument(true).numberOfArgs(2)
-      .setOptionalArgument(false).required(false);
+    .description("Set a new value for a SIARD2 metadata pair").hasArgument(true).numberOfArgs(5)
+    .setOptionalArgument(false).required(false);
 
   private static final Parameter list = new Parameter().shortName("l").longName(PARAMETER_LIST)
-      .description("List all the metadata pairs for the SIARD2 archive").hasArgument(false).valueIfNotSet("all").required(false);
+    .description("List all the metadata pairs for the SIARD2 archive").hasArgument(false).valueIfNotSet("all")
+    .required(false);
 
-  /*  private static final Parameter regex = new Parameter().shortName("regex").longName(PARAMETER_FILE)
-      .description("").hasArgument(true).setOptionalArgument(false).required(true);*/
+  /*
+   * private static final Parameter regex = new
+   * Parameter().shortName("regex").longName(PARAMETER_FILE)
+   * .description("").hasArgument(true).setOptionalArgument(false).required(true);
+   */
 
   @Override
   public String getModuleName() {
@@ -77,6 +81,7 @@ public class SIARDEditFactory implements EditModuleFactory {
     return parameterHashMap;
   }
 
+  @Override
   public Map<Parameter, String> getSetParameters() {
     HashMap<Parameter, String> parameterHashMap = new HashMap<>();
     parameterHashMap.put(set, set.longName());
@@ -89,7 +94,8 @@ public class SIARDEditFactory implements EditModuleFactory {
     Path pFile = Paths.get(parameters.get(file));
 
     if (Files.notExists(pFile)) {
-      throw new SiardNotFoundException().withPath(pFile.toAbsolutePath().toString()).withMessage("The path to the siard file appears to be incorrect");
+      throw new SiardNotFoundException().withPath(pFile.toAbsolutePath().toString())
+        .withMessage("The path to the siard file appears to be incorrect");
     }
 
     reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString());

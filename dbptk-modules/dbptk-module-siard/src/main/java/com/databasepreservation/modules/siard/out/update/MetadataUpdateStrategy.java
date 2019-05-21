@@ -9,7 +9,6 @@ package com.databasepreservation.modules.siard.out.update;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.sun.nio.zipfs.ZipFileSystem;
 
 import java.io.File;
 import java.io.FileOutputStream;

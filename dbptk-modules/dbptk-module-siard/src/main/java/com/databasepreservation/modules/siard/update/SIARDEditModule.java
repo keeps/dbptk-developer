@@ -26,7 +26,9 @@ import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.modules.siard.in.read.ZipAndFolderReadStrategy;
 import com.databasepreservation.modules.siard.in.read.ZipReadStrategy;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
+import com.databasepreservation.modules.siard.out.metadata.SIARD20MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARD21MetadataExportStrategy;
+import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.update.MetadataUpdateStrategy;
 import com.databasepreservation.modules.siard.out.update.UpdateStrategy;
@@ -115,40 +117,52 @@ public class SIARDEditModule implements EditModule {
     return dbStructure;
   }
 
-  public void saveMetadata(DatabaseStructure dbStructure) throws ModuleException {
+  public void updateMetadata(DatabaseStructure dbStructure) throws ModuleException {
 
-    SIARD2MetadataPathStrategy siard2MetadataPathStrategy = new SIARD2MetadataPathStrategy();
+    MetadataPathStrategy metadataPathStrategy = new SIARD2MetadataPathStrategy();
 
     SIARD2ContentPathExportStrategy contentPathExportStrategy = new SIARD2ContentPathExportStrategy();
 
-    SIARD21MetadataExportStrategy metadataExportStrategy = new SIARD21MetadataExportStrategy(siard2MetadataPathStrategy,
-      contentPathExportStrategy, false);
-
     UpdateStrategy updateStrategy = new MetadataUpdateStrategy();
 
-    metadataExportStrategy.setOnceReporter(reporter);
-    metadataExportStrategy.updateMetadataXML(dbStructure, mainContainer, updateStrategy);
+    switch (mainContainer.getVersion()) {
+      case V2_0:
+        SIARD20MetadataExportStrategy metadata20ExportStrategy = new SIARD20MetadataExportStrategy(metadataPathStrategy,
+          contentPathExportStrategy, false);
+        metadata20ExportStrategy.setOnceReporter(reporter);
+        metadata20ExportStrategy.updateMetadataXML(dbStructure, mainContainer, updateStrategy);
+        break;
+      case V2_1:
+        SIARD21MetadataExportStrategy metadata21ExportStrategy = new SIARD21MetadataExportStrategy(metadataPathStrategy,
+          contentPathExportStrategy, false);
+        metadata21ExportStrategy.setOnceReporter(reporter);
+        metadata21ExportStrategy.updateMetadataXML(dbStructure, mainContainer, updateStrategy);
+        break;
+      default:
+        ;
+    }
   }
 
-  public List<String> getDescriptiveSIARDMetadataKeys() throws ModuleException {
+  public List<SIARDDatabaseMetadata> getDescriptiveSIARDMetadataKeys() throws ModuleException {
     SIARD2MetadataPathStrategy siard2MetadataPathStrategy = new SIARD2MetadataPathStrategy();
     ZipReadStrategy zipReadStrategy = new ZipReadStrategy();
     zipReadStrategy.setup(mainContainer);
 
-    List<String> descriptiveMetadata = new ArrayList<>();
+    List<SIARDDatabaseMetadata> descriptiveMetadata = new ArrayList<>();
 
     try (InputStream XSDStream = zipReadStrategy.createInputStream(mainContainer,
       siard2MetadataPathStrategy.getXsdFilePath(METADATA_FILENAME))) {
       Document doc = getDocument(XSDStream);
       String xpathExpression = "//xs:element[@name='siardArchive']/xs:complexType/xs:sequence/xs:element/@name";
 
-      descriptiveMetadata.addAll(getSIARDMetadata(doc, xpathExpression));
+      ArrayList<String> ignoredMetadataKeys = new ArrayList<>();
+      ignoredMetadataKeys.add("lobFolder");
+      ignoredMetadataKeys.add("schemas");
+      ignoredMetadataKeys.add("users");
+      ignoredMetadataKeys.add("roles");
+      ignoredMetadataKeys.add("privileges");
 
-      descriptiveMetadata.remove("lobFolder");
-      descriptiveMetadata.remove("schemas");
-      descriptiveMetadata.remove("users");
-      descriptiveMetadata.remove("roles");
-      descriptiveMetadata.remove("privileges");
+      descriptiveMetadata.addAll(getSIARDMetadata(doc, xpathExpression, ignoredMetadataKeys));
 
     } catch (ParserConfigurationException e) {
       throw new ModuleException()
@@ -228,7 +242,8 @@ public class SIARDEditModule implements EditModule {
 
   // auxiliary internal methods
 
-  private static List<SIARDDatabaseMetadata> getUsersMetadata(Document document, String xpathExpression) throws ModuleException{
+  private static List<SIARDDatabaseMetadata> getUsersMetadata(Document document, String xpathExpression)
+    throws ModuleException {
     XPathFactory xPathFactory = XPathFactory.newInstance();
     XPath xpath = xPathFactory.newXPath();
 
@@ -255,7 +270,8 @@ public class SIARDEditModule implements EditModule {
     return metadata;
   }
 
-  private static List<SIARDDatabaseMetadata> getRolesMetadata(Document document, String xpathExpression) throws ModuleException{
+  private static List<SIARDDatabaseMetadata> getRolesMetadata(Document document, String xpathExpression)
+    throws ModuleException {
     XPathFactory xPathFactory = XPathFactory.newInstance();
     XPath xpath = xPathFactory.newXPath();
 
@@ -282,7 +298,8 @@ public class SIARDEditModule implements EditModule {
     return metadata;
   }
 
-  private static List<SIARDDatabaseMetadata> getSchemaMetadata(Document document, String xpathExpression) throws ModuleException {
+  private static List<SIARDDatabaseMetadata> getSchemaMetadata(Document document, String xpathExpression)
+    throws ModuleException {
     XPathFactory xPathFactory = XPathFactory.newInstance();
     XPath xpath = xPathFactory.newXPath();
 
@@ -441,7 +458,8 @@ public class SIARDEditModule implements EditModule {
     return siardatabaseMetadata;
   }
 
-  private static List<String> getSIARDMetadata(Document document, String xpathExpression) {
+  private static List<SIARDDatabaseMetadata> getSIARDMetadata(Document document, String xpathExpression,
+    List<String> ignoredMetadataKeys) {
     XPathFactory xPathFactory = XPathFactory.newInstance();
 
     XPath xpath = xPathFactory.newXPath();
@@ -469,14 +487,22 @@ public class SIARDEditModule implements EditModule {
       }
     });
 
-    List<String> values = new ArrayList<>();
+    List<SIARDDatabaseMetadata> values = new ArrayList<>();
 
     try {
       XPathExpression expr = xpath.compile(xpathExpression);
       NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
 
+      SIARDDatabaseMetadata metadata;
+
       for (int i = 0; i < nodes.getLength(); i++) {
-        values.add(nodes.item(i).getNodeValue());
+        String metadataKey = nodes.item(i).getNodeValue();
+        if (ignoredMetadataKeys != null) {
+          if (!ignoredMetadataKeys.contains(metadataKey)) {
+            metadata = new SIARDDatabaseMetadata(metadataKey, "");
+            values.add(metadata);
+          }
+        }
       }
     } catch (XPathExpressionException e) {
       e.printStackTrace();

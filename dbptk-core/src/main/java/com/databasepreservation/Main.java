@@ -48,6 +48,7 @@ public class Main {
   public static final int EXIT_CODE_LICENSE_NOT_ACCEPTED = 3;
   public static final int EXIT_CODE_CONNECTION_ERROR = 4;
   public static final int EXIT_CODE_NOT_USING_UTF8 = 5;
+  public static final int EXIT_CODE_FILE_NOT_FOUND = 6;
 
   private static final String execID = UUID.randomUUID().toString();
 
@@ -106,19 +107,19 @@ public class Main {
       if (cli.usingUTF8()) {
         if (isGUI) {
           // NOT IMPLEMENTED YET
-          getReporter().notYetSupported("GUI", "DBPTK");
-          exitStatus = EXIT_CODE_OK;
+          // getReporter().notYetSupported("GUI", "DBPTK");
+          exitStatus = runHelp(cli.getCLIHelp());
         } else {
           if (isHelp) {
             exitStatus = runHelp(cli.getCLIHelp());
           } else {
             if (isMigrate) {
-              LOGGER.info("Migrate option selected.");
+              // LOGGER.info("Migrate option selected.");
               exitStatus = runMigration(cli.getCLIMigrate());
             }
             if (isEdit) {
-              LOGGER.info("Edit option selected.");
-              exitStatus = runEdition(cli.getCLIEdit());
+              // LOGGER.info("Edit option selected.");
+              exitStatus = runEdition(cli.getCLIEdit(), cli.getCLIHelp());
             }
             if (exitStatus == EXIT_CODE_CONNECTION_ERROR) {
               LOGGER.info("Disabling connection encryption (for modules that support it) and trying again.");
@@ -154,36 +155,57 @@ public class Main {
     return EXIT_CODE_OK;
   }
 
-  private static int runEdition(CLIEdit cli) {
-    cli.removeCommand();
+  private static int runEdition(CLIEdit cli, CLIHelp help) {
+    cli.removeCommand(); // removes the edit argument
+
     SIARDEdition siardEdition;
-
-    try {
-      siardEdition = SIARDEdition.newInstance().editModule(cli.getEditModuleFactory())
-        .editModuleParameters(cli.getEditModuleParameters()).reporter(getReporter());
-    } catch (ParseException e) {
-      LOGGER.error(e.getMessage(), e);
-      logProgramFinish(EXIT_CODE_COMMAND_PARSE_ERROR);
-      return EXIT_CODE_COMMAND_PARSE_ERROR;
-    }
-
     int exitStatus = EXIT_CODE_GENERIC_ERROR;
-    try {
-      long startTime = System.currentTimeMillis();
-      LOGGER.info("Edit SIARD metadata of {}", cli.getSIARDPackage());
-      siardEdition.edit();
-      long duration = System.currentTimeMillis() - startTime;
-      LOGGER.info("Edit SIARD metadata took {}m {}s to complete.", duration / 60000, duration % 60000 / 1000);
-      exitStatus = EXIT_CODE_OK;
-    } catch (EditDatabaseMetadataParserException e) {
-      LOGGER.error(e.getMessage() + " on: " + e.getFaultyArgument(), e);
 
-      return EXIT_CODE_COMMAND_PARSE_ERROR;
-    } catch (SiardNotFoundException e) {
-      LOGGER.error(e.getMessage() + ": " + e.getPath());
-    } catch (ModuleException e) {
-      if (!e.getClass().equals(ModuleException.class)) {
+    if (cli.emptyArguments()) {
+      help.printEditUsage(System.out);
+      exitStatus = EXIT_CODE_OK;
+    } else {
+      try {
+        siardEdition = SIARDEdition.newInstance().editModule(cli.getEditModuleFactory())
+          .editModuleParameters(cli.getEditModuleParameters()).reporter(getReporter());
+      } catch (ParseException e) {
         LOGGER.error(e.getMessage(), e);
+        logProgramFinish(EXIT_CODE_COMMAND_PARSE_ERROR);
+        return EXIT_CODE_COMMAND_PARSE_ERROR;
+      }
+
+      try {
+        long startTime = System.currentTimeMillis();
+        long duration;
+        switch (cli.option()) {
+          case "list":
+            LOGGER.info("Listing SIARD metadata of {}", cli.getSIARDPackage());
+            siardEdition.list();
+            duration = System.currentTimeMillis() - startTime;
+            LOGGER.info("Listing SIARD metadata took {}m {}s to complete.", duration / 60000, duration % 60000 / 1000);
+            break;
+          case "set":
+            LOGGER.info("Edit SIARD metadata of {}", cli.getSIARDPackage());
+            siardEdition.edit();
+            duration = System.currentTimeMillis() - startTime;
+            LOGGER.info("Edit SIARD metadata took {}m {}s to complete.", duration / 60000, duration % 60000 / 1000);
+            break;
+          default:
+            ;
+        }
+
+        exitStatus = EXIT_CODE_OK;
+      } catch (EditDatabaseMetadataParserException e) {
+        LOGGER.error(e.getMessage() + " on: " + e.getFaultyArgument(), e);
+
+        return EXIT_CODE_COMMAND_PARSE_ERROR;
+      } catch (SiardNotFoundException e) {
+        LOGGER.error(e.getMessage() + ": " + e.getPath());
+        return EXIT_CODE_FILE_NOT_FOUND;
+      } catch (ModuleException e) {
+        if (!e.getClass().equals(ModuleException.class)) {
+          LOGGER.error(e.getMessage(), e);
+        }
       }
     }
 

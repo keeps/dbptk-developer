@@ -8,6 +8,7 @@
 package com.databasepreservation.cli;
 
 import com.databasepreservation.Constants;
+import com.databasepreservation.model.exception.TooMuchArgumentsException;
 import com.databasepreservation.model.modules.edits.EditModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.ParameterGroup;
@@ -21,18 +22,18 @@ import java.util.*;
  */
 public class CLIEdit extends CLIHandler {
 
-  private final ArrayList<EditModuleFactory> allEditFactories;
+  private static final String LIST_OPTION = "list";
+  private static final String SET_OPTION = "set";
+  private static final String NO_OPTION = "none";
 
-  private List<String> editModuleNames;
+  private final ArrayList<EditModuleFactory> allEditFactories;
   private EditModuleFactory editModuleFactory;
   private Map<Parameter, List<String>> editModuleParameters;
-
   private String siardPackage;
 
   public CLIEdit(List<String> commandLineArguments, Collection<EditModuleFactory> editModuleFactories) {
     super(commandLineArguments);
     allEditFactories = new ArrayList<>(editModuleFactories);
-    editModuleNames = new ArrayList<>();
   }
 
   /**
@@ -58,6 +59,36 @@ public class CLIEdit extends CLIHandler {
 
   public String getSIARDPackage() {
     return siardPackage;
+  }
+
+  public boolean emptyArguments() {
+    return commandLineArguments.isEmpty();
+  }
+
+  /**
+   * Gets the option name. Note that this method does not trigger
+   * the lazy loading mechanism for parsing the parameters, so the value may be
+   * null if no calls to {@code getEditModuleParameters()} were made.
+   *
+   * @return The option name. null if the command line parameters have not
+   *         been parsed yet
+   */
+  public String option() {
+
+    if (editModuleParameters.isEmpty()) return NO_OPTION;
+
+    if (editModuleParameters.size() == 1) return LIST_OPTION;
+
+    for (Parameter p : editModuleParameters.keySet()) {
+      if (p.longName().equalsIgnoreCase("list") || p.shortName().equalsIgnoreCase("l")) {
+        return LIST_OPTION;
+      }
+      if (p.longName().equalsIgnoreCase("set") || p.shortName().equalsIgnoreCase("s")) {
+        return SET_OPTION;
+      }
+    }
+
+    return NO_OPTION;
   }
 
   private void parse(List<String> args) throws ParseException {
@@ -115,7 +146,7 @@ public class CLIEdit extends CLIHandler {
       // use long names instead of short names in the error message
       Option faulty = e.getOption();
       LOGGER.debug("MissingArgumentException (the original, unmodified exception)", e);
-      throw new MissingArgumentException("Missing the argument for the set: " + faulty.getValue(0));
+      throw new MissingArgumentException("Missing the argument for the "  + e.getOption().getLongOpt() + " option");
     }
 
     // create arguments to pass to factory
@@ -140,6 +171,11 @@ public class CLIEdit extends CLIHandler {
           }
         } else if (isSetFieldOption(option)) {
           if (p.hasArgument()) {
+
+            if (option.getValues().length >= 6) {
+              throw new TooMuchArgumentsException("Too much arguments for the " + option.getLongOpt() + " option");
+            }
+
             StringBuilder sb = new StringBuilder();
             for (String s : option.getValues()) {
               sb.append(s).append(Constants.SEPARATOR);

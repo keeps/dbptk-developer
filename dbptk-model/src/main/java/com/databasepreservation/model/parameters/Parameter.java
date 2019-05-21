@@ -303,7 +303,9 @@ public class Parameter {
           .required(required).optionalArg(optionalArgument).build();
     } else {
       option = optionBuilder.longOpt(longName).desc(description).hasArg(hasArgument)
-          .required(required).numberOfArgs(numberOfArgs).optionalArg(optionalArgument).build();
+          .required(required).optionalArg(optionalArgument).build();
+
+      option.setArgs(Option.UNLIMITED_VALUES);
     }
 
     options.put(option.getLongOpt(), option);

@@ -56,6 +56,8 @@ public class CLIHelp extends CLIHandler {
     printInternalUsage(printStream);
   }
 
+  public void printEditUsage(PrintStream printStream) { printInternalEditUsage(printStream); }
+
   /**
    * Prints the help text
    *
@@ -68,7 +70,7 @@ public class CLIHelp extends CLIHandler {
       String arg = commandLineArguments.get(1);
 
       switch (arg) {
-        case Constants.DBPTK_OPTION_EDIT: printEditUsage(printStream);
+        case Constants.DBPTK_OPTION_EDIT: printInternalEditUsage(printStream);
           break;
         case Constants.DBPTK_OPTION_MIGRATE: printMigrateUsage(printStream);
           break;
@@ -124,12 +126,12 @@ public class CLIHelp extends CLIHandler {
    *
    * @param printStream
    */
-  protected void printEditUsage(PrintStream printStream) {
+  protected void printInternalEditUsage(PrintStream printStream) {
     StringBuilder out = new StringBuilder();
 
     printHeader(printStream);
 
-    out.append("Usage: dbptk edit <siard package> [OPTIONS]");
+    out.append("Usage: dbptk edit [OPTIONS]");
     out.append("\n\n");
 
     out.append("Options: ");
