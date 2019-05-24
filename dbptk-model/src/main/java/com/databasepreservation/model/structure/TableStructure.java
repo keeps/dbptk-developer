@@ -297,6 +297,38 @@ public class TableStructure {
     return null;
   }
 
+  public Trigger getTriggerByName(String triggerName) {
+    for (Trigger trigger : triggers) {
+      if (trigger.getName().equalsIgnoreCase(triggerName)) return trigger;
+    }
+
+    return null;
+  }
+
+  public ForeignKey getForeignKeyByName(String foreignKeyName) {
+    for (ForeignKey fk : foreignKeys) {
+      if (fk.getName().equalsIgnoreCase(foreignKeyName)) return fk;
+    }
+
+    return null;
+  }
+
+  public CandidateKey getCandidateKeyByName(String candidateKeyName) {
+    for (CandidateKey candidateKey : candidateKeys) {
+      if (candidateKey.getName().equalsIgnoreCase(candidateKeyName)) return candidateKey;
+    }
+
+    return null;
+  }
+
+  public CheckConstraint getCheckConstraintByName(String checkConstraintName) {
+    for (CheckConstraint ck : checkConstraints) {
+      if (ck.getName().equalsIgnoreCase(checkConstraintName)) return ck;
+    }
+
+    return null;
+  }
+
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();

@@ -25,10 +25,8 @@ import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStr
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.modules.siard.in.read.ZipAndFolderReadStrategy;
 import com.databasepreservation.modules.siard.in.read.ZipReadStrategy;
-import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARD20MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARD21MetadataExportStrategy;
-import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.update.MetadataUpdateStrategy;
 import com.databasepreservation.modules.siard.out.update.UpdateStrategy;
@@ -39,7 +37,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import javax.print.Doc;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -57,7 +54,7 @@ import java.util.List;
 public class SIARDEditModule implements EditModule {
   private final ReadStrategy readStrategy;
   private final SIARDArchiveContainer mainContainer;
-  private final MetadataImportStrategy metadataImportStrategy;
+  private MetadataImportStrategy metadataImportStrategy;
 
   private Reporter reporter;
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARDEditModule.class);
@@ -94,11 +91,23 @@ public class SIARDEditModule implements EditModule {
       case V2_1:
         metadataImportStrategy = new SIARD21MetadataImportStrategy(metadataPathStrategy, contentPathStrategy);
         break;
+      case DK:
+      case V1_0:
       default:
         metadataImportStrategy = null;
     }
   }
 
+  /**
+   * Gets a <code>DatabaseStructure</code> with all the metadata imported from the
+   * SIARD archive.
+   *
+   * @return A <code>DatabaseStructure</code>
+   * @throws NullPointerException
+   *          If the SIARD archive version were not 2.0 or 2.1
+   * @throws ModuleException
+   *          Generic module exception
+   */
   @Override
   public DatabaseStructure getMetadata() throws ModuleException {
     ModuleSettings moduleSettings = new ModuleSettings();
@@ -110,13 +119,21 @@ public class SIARDEditModule implements EditModule {
       metadataImportStrategy.loadMetadata(readStrategy, mainContainer, moduleSettings);
 
       dbStructure = metadataImportStrategy.getDatabaseStructure();
-
+    } catch (NullPointerException e) {
+      throw new ModuleException().withMessage("Metadata editing only supports SIARD 2 version").withCause(e);
     } finally {
       readStrategy.finish(mainContainer);
     }
     return dbStructure;
   }
 
+
+  /**
+   * @param dbStructure The {@link DatabaseStructure} with the updated values.
+   * @throws ModuleException
+   *          Generic module exception
+   */
+  @Override
   public void updateMetadata(DatabaseStructure dbStructure) throws ModuleException {
 
     MetadataPathStrategy metadataPathStrategy = new SIARD2MetadataPathStrategy();
@@ -138,11 +155,19 @@ public class SIARDEditModule implements EditModule {
         metadata21ExportStrategy.setOnceReporter(reporter);
         metadata21ExportStrategy.updateMetadataXML(dbStructure, mainContainer, updateStrategy);
         break;
+      case DK:
+      case V1_0:
       default:
-        ;
     }
   }
 
+
+  /**
+   * @return A list of <code>SIARDDatabaseMetadata</code>
+   * @throws ModuleException
+   *          Generic module exception
+   */
+  @Override
   public List<SIARDDatabaseMetadata> getDescriptiveSIARDMetadataKeys() throws ModuleException {
     SIARD2MetadataPathStrategy siard2MetadataPathStrategy = new SIARD2MetadataPathStrategy();
     ZipReadStrategy zipReadStrategy = new ZipReadStrategy();
@@ -209,6 +234,7 @@ public class SIARDEditModule implements EditModule {
 
       SIARDDatabaseMetadataKeys.addAll(schemaMetadata);
       SIARDDatabaseMetadataKeys.addAll(usersMetadata);
+      SIARDDatabaseMetadataKeys.addAll(rolesMetadata);
 
     } catch (ParserConfigurationException e) {
       throw new ModuleException()
@@ -240,7 +266,7 @@ public class SIARDEditModule implements EditModule {
     return DefaultExceptionNormalizer.getInstance().normalizeException(exception, contextMessage);
   }
 
-  // auxiliary internal methods
+  // Auxiliary Internal Methods
 
   private static List<SIARDDatabaseMetadata> getUsersMetadata(Document document, String xpathExpression)
     throws ModuleException {
@@ -259,7 +285,7 @@ public class SIARDEditModule implements EditModule {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         SIARDDatabaseMetadata dbMetadata = new SIARDDatabaseMetadata();
-        dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.USER, nodes.item(i).getNodeValue());
+        dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.USER, nodes.item(i).getNodeValue());
         metadata.add(dbMetadata);
       }
 
@@ -287,7 +313,7 @@ public class SIARDEditModule implements EditModule {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         SIARDDatabaseMetadata dbMetadata = new SIARDDatabaseMetadata();
-        dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.ROLE, nodes.item(i).getNodeValue());
+        dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.ROLE, nodes.item(i).getNodeValue());
         metadata.add(dbMetadata);
       }
 
@@ -317,7 +343,7 @@ public class SIARDEditModule implements EditModule {
 
         String schemaName = schema.getElementsByTagName("name").item(0).getTextContent();
         SIARDDatabaseMetadata dbMetadata = new SIARDDatabaseMetadata();
-        dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
+        dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.SCHEMA, schemaName);
         siardatabaseMetadata.add(dbMetadata);
 
         NodeList tableNodes = schema.getElementsByTagName("table");
@@ -325,8 +351,8 @@ public class SIARDEditModule implements EditModule {
           Element table = (Element) tableNodes.item(j);
           String tableName = table.getElementsByTagName("name").item(0).getTextContent();
           dbMetadata = new SIARDDatabaseMetadata();
-          dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
-          dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE, tableName);
+          dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.SCHEMA, schemaName);
+          dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.TABLE, tableName);
           siardatabaseMetadata.add(dbMetadata);
 
           NodeList columnsNodes = table.getElementsByTagName("columns");
@@ -339,9 +365,9 @@ public class SIARDEditModule implements EditModule {
 
               String columnName = column.getElementsByTagName("name").item(0).getTextContent();
               dbMetadata = new SIARDDatabaseMetadata();
-              dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
-              dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE, tableName);
-              dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE_COLUMN, columnName);
+              dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.SCHEMA, schemaName);
+              dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.TABLE, tableName);
+              dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.TABLE_COLUMN, columnName);
               siardatabaseMetadata.add(dbMetadata);
             }
           }
@@ -352,9 +378,9 @@ public class SIARDEditModule implements EditModule {
 
             String primaryKeyName = primaryKey.getElementsByTagName("name").item(0).getTextContent();
             dbMetadata = new SIARDDatabaseMetadata();
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE, tableName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.PRIMARY_KEY, primaryKeyName);
+            dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.SCHEMA, schemaName);
+            dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.TABLE, tableName);
+            dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.PRIMARY_KEY, primaryKeyName);
             siardatabaseMetadata.add(dbMetadata);
           }
 
@@ -363,9 +389,9 @@ public class SIARDEditModule implements EditModule {
             Element candidateKey = (Element) candidateKeyNodes.item(n);
             String candidateKeyName = candidateKey.getElementsByTagName("name").item(0).getTextContent();
             dbMetadata = new SIARDDatabaseMetadata();
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE, tableName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.CANDIDATE_KEY, candidateKeyName);
+            dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.SCHEMA, schemaName);
+            dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.TABLE, tableName);
+            dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.CANDIDATE_KEY, candidateKeyName);
             siardatabaseMetadata.add(dbMetadata);
           }
 
@@ -374,9 +400,9 @@ public class SIARDEditModule implements EditModule {
             Element foreignKey = (Element) foreignKeyNodes.item(n);
             String foreignKeyName = foreignKey.getElementsByTagName("name").item(0).getTextContent();
             dbMetadata = new SIARDDatabaseMetadata();
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE, tableName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.FOREIGN_KEY, foreignKeyName);
+            dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.SCHEMA, schemaName);
+            dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.TABLE, tableName);
+            dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.FOREIGN_KEY, foreignKeyName);
             siardatabaseMetadata.add(dbMetadata);
           }
 
@@ -385,9 +411,9 @@ public class SIARDEditModule implements EditModule {
             Element trigger = (Element) triggerNodes.item(n);
             String triggerName = trigger.getElementsByTagName("name").item(0).getTextContent();
             dbMetadata = new SIARDDatabaseMetadata();
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE, tableName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TRIGGER, triggerName);
+            dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.SCHEMA, schemaName);
+            dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.TABLE, tableName);
+            dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.TRIGGER, triggerName);
             siardatabaseMetadata.add(dbMetadata);
           }
 
@@ -396,9 +422,9 @@ public class SIARDEditModule implements EditModule {
             Element constraint = (Element) checkConstraintNodes.item(n);
             String constraintName = constraint.getElementsByTagName("name").item(0).getTextContent();
             dbMetadata = new SIARDDatabaseMetadata();
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE, tableName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.CHECK_CONSTRAINT, constraintName);
+            dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.SCHEMA, schemaName);
+            dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.TABLE, tableName);
+            dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.CHECK_CONSTRAINT, constraintName);
             siardatabaseMetadata.add(dbMetadata);
           }
         }
@@ -408,8 +434,8 @@ public class SIARDEditModule implements EditModule {
           Element view = (Element) viewNodes.item(j);
           String viewName = view.getElementsByTagName("name").item(0).getTextContent();
           dbMetadata = new SIARDDatabaseMetadata();
-          dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
-          dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.VIEW, viewName);
+          dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.SCHEMA, schemaName);
+          dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.VIEW, viewName);
           siardatabaseMetadata.add(dbMetadata);
 
           NodeList columnsViewNodes = view.getElementsByTagName("columns");
@@ -422,9 +448,9 @@ public class SIARDEditModule implements EditModule {
 
               String columnName = column.getElementsByTagName("name").item(0).getTextContent();
               dbMetadata = new SIARDDatabaseMetadata();
-              dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
-              dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.VIEW, viewName);
-              dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.VIEW_COLUMN, columnName);
+              dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.SCHEMA, schemaName);
+              dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.VIEW, viewName);
+              dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.VIEW_COLUMN, columnName);
               siardatabaseMetadata.add(dbMetadata);
             }
           }
@@ -435,8 +461,8 @@ public class SIARDEditModule implements EditModule {
           Element routine = (Element) routineNodes.item(j);
           String routineName = routine.getElementsByTagName("name").item(0).getTextContent();
           dbMetadata = new SIARDDatabaseMetadata();
-          dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
-          dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.ROUTINE, routineName);
+          dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.SCHEMA, schemaName);
+          dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.ROUTINE, routineName);
           siardatabaseMetadata.add(dbMetadata);
 
           NodeList routineParametersNode = routine.getElementsByTagName("parameters");
@@ -444,9 +470,9 @@ public class SIARDEditModule implements EditModule {
             Element parameter = (Element) routineParametersNode.item(k);
             String parameterName = parameter.getElementsByTagName("name").item(0).getTextContent();
             dbMetadata = new SIARDDatabaseMetadata();
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.ROUTINE, routineName);
-            dbMetadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.ROUTINE_PARAMETER, parameterName);
+            dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.SCHEMA, schemaName);
+            dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.ROUTINE, routineName);
+            dbMetadata.setDatabaseMetadata(SIARDDatabaseMetadata.ROUTINE_PARAMETER, parameterName);
             siardatabaseMetadata.add(dbMetadata);
           }
         }

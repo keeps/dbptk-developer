@@ -203,6 +203,7 @@ public class Main {
         LOGGER.error(e.getMessage() + ": " + e.getPath());
         return EXIT_CODE_FILE_NOT_FOUND;
       } catch (ModuleException e) {
+        if (e.getCause().getClass().equals(NullPointerException.class)) LOGGER.error(e.getMessage());
         if (!e.getClass().equals(ModuleException.class)) {
           LOGGER.error(e.getMessage(), e);
         }

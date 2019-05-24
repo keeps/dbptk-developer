@@ -12,6 +12,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Objects;
 
 /**
+ * SIARD metadata specification.
+ *
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 public class SIARDDatabaseMetadata {
@@ -70,7 +72,7 @@ public class SIARDDatabaseMetadata {
 
   public SIARDDatabaseMetadata(String schema, String table, String tableColumn, String trigger, String primaryKey,
     String candidateKey, String foreignKey, String checkConstraint, String view, String viewColumn, String routine,
-    String routineParameter, String user, String role, String privilege) {
+    String routineParameter, String user, String role, String privilege, String descriptiveMetadata, Integer toUpdate, String value) {
     this.schema = schema;
     this.table = table;
     this.tableColumn = tableColumn;
@@ -86,13 +88,25 @@ public class SIARDDatabaseMetadata {
     this.user = user;
     this.role = role;
     this.privilege = privilege;
+    this.descriptiveMetadata = descriptiveMetadata;
+    this.toUpdate = toUpdate;
+    this.value = value;
   }
 
   public SIARDDatabaseMetadata(String type, String value) {
     this.setToUpdate(getSIARDMetadataType(type));
+    this.setDatabaseMetadata(getSIARDMetadataType(type), value);
     this.setValue(value);
   }
 
+  /**
+   * Gets the metadata type name from an input string. If the input does not
+   * match any of the defined metadata type names returns NONE.
+   *
+   * @param type
+   *          The input type string to be transformed
+   * @return Returns the metadata name or NONE if no match.
+   */
   public static int getSIARDMetadataType(String type) {
     switch (type) {
       case "dbname":
@@ -126,68 +140,98 @@ public class SIARDDatabaseMetadata {
     }
   }
 
-  public void setDatabaseMetadataKey(int type, String key) {
+  /**
+   * Assigns a value for a metadata type.
+   * 
+   * @param type
+   *          The metadata type
+   * @param value
+   *          The value to be assign for 
+   */
+  public void setDatabaseMetadata(int type, String value) {
     switch (type) {
       case SIARDDatabaseMetadata.SCHEMA:
-        this.setSchema(key);
+        this.setSchema(value);
         break;
       case SIARDDatabaseMetadata.ROLE:
-        this.setRole(key);
+        this.setRole(value);
         break;
       case SIARDDatabaseMetadata.USER:
-        this.setUser(key);
+        this.setUser(value);
         break;
       case SIARDDatabaseMetadata.PRIVILEGE:
-        this.setPrivilege(key);
+        this.setPrivilege(value);
         break;
       case SIARDDatabaseMetadata.TABLE:
-        this.setTable(key);
+        this.setTable(value);
         break;
       case SIARDDatabaseMetadata.TABLE_COLUMN:
-        this.setTableColumn(key);
+        this.setTableColumn(value);
         break;
       case SIARDDatabaseMetadata.TRIGGER:
-        this.setTrigger(key);
+        this.setTrigger(value);
         break;
       case SIARDDatabaseMetadata.PRIMARY_KEY:
-        this.setPrimaryKey(key);
+        this.setPrimaryKey(value);
         break;
       case SIARDDatabaseMetadata.FOREIGN_KEY:
-        this.setForeignKey(key);
+        this.setForeignKey(value);
         break;
       case SIARDDatabaseMetadata.CANDIDATE_KEY:
-        this.setCandidateKey(key);
+        this.setCandidateKey(value);
         break;
       case SIARDDatabaseMetadata.CHECK_CONSTRAINT:
-        this.setCheckConstraint(key);
+        this.setCheckConstraint(value);
         break;
       case SIARDDatabaseMetadata.VIEW:
-        this.setView(key);
+        this.setView(value);
         break;
       case SIARDDatabaseMetadata.VIEW_COLUMN:
-        this.setViewColumn(key);
+        this.setViewColumn(value);
         break;
       case SIARDDatabaseMetadata.ROUTINE:
-        this.setRoutine(key);
+        this.setRoutine(value);
         break;
       case SIARDDatabaseMetadata.ROUTINE_PARAMETER:
-        this.setRoutineParameter(key);
+        this.setRoutineParameter(value);
         break;
       case SIARDDatabaseMetadata.SIARD_DBNAME:
-      case SIARDDatabaseMetadata.SIARD_DESCRIPTION:
-      case SIARDDatabaseMetadata.SIARD_ARCHIVER:
-      case SIARDDatabaseMetadata.SIARD_ARCHIVER_CONTACT:
-      case SIARDDatabaseMetadata.SIARD_DATA_OWNER:
-      case SIARDDatabaseMetadata.SIARD_DATA_ORIGIN_TIMESPAN:
-      case SIARDDatabaseMetadata.SIARD_PRODUCER_APPLICATION:
-      case SIARDDatabaseMetadata.SIARD_ARCHIVAL_DATE:
-      case SIARDDatabaseMetadata.SIARD_MESSAGE_DIGEST:
-      case SIARDDatabaseMetadata.SIARD_CLIENT_MACHINE:
-      case SIARDDatabaseMetadata.SIARD_DATABASE_PRODUCT:
-      case SIARDDatabaseMetadata.SIARD_CONNECTION:
-      case SIARDDatabaseMetadata.SIARD_DATABASE_USER:
-        this.setDescriptiveMetadata(key);
+        this.setDescriptiveMetadata("dbname");
         break;
+      case SIARDDatabaseMetadata.SIARD_DESCRIPTION:
+        this.setDescriptiveMetadata("description");
+        break;
+      case SIARDDatabaseMetadata.SIARD_ARCHIVER:
+        this.setDescriptiveMetadata("archiver");
+        break;
+      case SIARDDatabaseMetadata.SIARD_ARCHIVER_CONTACT:
+        this.setDescriptiveMetadata("archiverContact");
+        break;
+      case SIARDDatabaseMetadata.SIARD_DATA_OWNER:
+        this.setDescriptiveMetadata("dataOwner");
+        break;
+      case SIARDDatabaseMetadata.SIARD_DATA_ORIGIN_TIMESPAN:
+        this.setDescriptiveMetadata("dataOriginTimespan");
+        break;
+      case SIARDDatabaseMetadata.SIARD_PRODUCER_APPLICATION:
+        this.setDescriptiveMetadata("producerApplication");
+        break;
+      case SIARDDatabaseMetadata.SIARD_ARCHIVAL_DATE:
+        this.setDescriptiveMetadata("archivalDate");
+        break;
+      case SIARDDatabaseMetadata.SIARD_CLIENT_MACHINE:
+        this.setDescriptiveMetadata("clientMachine");
+        break;
+      case SIARDDatabaseMetadata.SIARD_DATABASE_PRODUCT:
+        this.setDescriptiveMetadata("databaseProduct");
+        break;
+      case SIARDDatabaseMetadata.SIARD_CONNECTION:
+        this.setDescriptiveMetadata("connection");
+        break;
+      case SIARDDatabaseMetadata.SIARD_DATABASE_USER:
+        this.setDescriptiveMetadata("databaseUser");
+        break;
+      case SIARDDatabaseMetadata.SIARD_MESSAGE_DIGEST:
       case SIARDDatabaseMetadata.NONE:
       default:
         break;
@@ -402,7 +446,6 @@ public class SIARDDatabaseMetadata {
       sb.append("privilege:").append(getPrivilege());
     if (StringUtils.isNotBlank(getDescriptiveMetadata()))
       sb.append(getDescriptiveMetadata()).append(" ");
-
     String output = sb.toString();
 
     while (output.endsWith(" ")) {

@@ -162,6 +162,14 @@ public class RoutineStructure {
     this.parameters = parameters;
   }
 
+  public Parameter getParameterByName(String parameterName) {
+    for (Parameter p : parameters) {
+      if (p.getName().equalsIgnoreCase(parameterName)) return p;
+    }
+
+    return null;
+  }
+
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();

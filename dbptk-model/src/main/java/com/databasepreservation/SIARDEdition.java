@@ -18,17 +18,18 @@ import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.PrintUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * Class responsible for handling all the logic for update database level
+ * metadata from a SIARD version 2 archive.
+ *
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 public class SIARDEdition {
@@ -68,9 +69,10 @@ public class SIARDEdition {
   }
 
   /**
-   *
+   * lists all the possible changes in a SIARD archive.
    *
    * @throws ModuleException
+   *           Generic module exception
    */
   public void list() throws ModuleException {
     HashMap<Parameter, String> importParameters = buildImportParameters(editModuleParameters, editModuleFactory);
@@ -84,7 +86,8 @@ public class SIARDEdition {
   }
 
   /**
-   * Edits the {@link DatabaseStructure} according to the key value pairs received
+   * Edits the <code>DatabaseStructure</code>, updating a certain attribute to a
+   * new value.
    *
    * @throws EditDatabaseMetadataParserException
    *           The metadata path is not a valid one
@@ -97,6 +100,7 @@ public class SIARDEdition {
     List<SIARDDatabaseMetadata> metadataPairs = buildMetadataPairs(editModuleParameters, editModuleFactory);
 
     EditModule editModule = editModuleFactory.buildModule(importParameters, reporter);
+    reporter.metadataParameters(editModuleFactory.getModuleName(), metadataPairs);
     editModule.setOnceReporter(reporter);
 
     // COMES FROM THE XSD FILE
@@ -123,7 +127,7 @@ public class SIARDEdition {
     }
   }
 
-  // auxiliary internal methods
+  // Auxiliary Internal Methods
 
   private static HashMap<Parameter, String> buildImportParameters(HashMap<Parameter, List<String>> editModuleParameters,
     EditModuleFactory editModuleFactory) {
@@ -165,7 +169,7 @@ public class SIARDEdition {
   }
 
   private static List<String> validateMetadataKeys(List<SIARDDatabaseMetadata> validDescriptiveMetadataKeys,
-    List<SIARDDatabaseMetadata> validMetadataInput, List<SIARDDatabaseMetadata> metadataPairs) throws ModuleException {
+    List<SIARDDatabaseMetadata> validMetadataInput, List<SIARDDatabaseMetadata> metadataPairs) {
     List<String> malformedMetadataKeys = new ArrayList<>();
 
     for (SIARDDatabaseMetadata pair : metadataPairs) {
@@ -183,12 +187,18 @@ public class SIARDEdition {
 
     SIARDDatabaseMetadata metadata;
 
+    int args = count(Constants.SEPARATOR, toParse);
+
     Pattern descriptiveMetadataPattern = Pattern
-      .compile("(\\w+)" + Constants.SEPARATOR + "(.*?)" + Constants.SEPARATOR);
+      .compile("^(\\w+)" + Constants.SEPARATOR + "(.*?)" + Constants.SEPARATOR + "$");
 
     Matcher matcher = descriptiveMetadataPattern.matcher(toParse);
 
     if (matcher.matches()) {
+      if (args != 2) {
+        throw new EditDatabaseMetadataParserException("Descriptive metadata receives only two arguments")
+          .withFaultyArgument(toParse.replace(Constants.SEPARATOR, " "));
+      }
       return new SIARDDatabaseMetadata(matcher.group(1), matcher.group(2));
     }
 
@@ -197,7 +207,8 @@ public class SIARDEdition {
 
     matcher = databaseMetadataPattern.matcher(toParse);
 
-    if (matcher.matches()) { // For now group(2) is only needed to verify that is description the field to update.
+    if (matcher.matches()) { // For now group(2) is only needed to verify that is description the field to
+                             // update.
                              // Just added on the pattern for possible future use
       String metadataPath = matcher.group(1);
       String fieldToUpdate = matcher.group(2);
@@ -205,10 +216,10 @@ public class SIARDEdition {
 
       if (!fieldToUpdate.equalsIgnoreCase("description" + Constants.SEPARATOR)) {
         throw new EditDatabaseMetadataParserException("Only metadata 'description' can be updated")
-            .withFaultyArgument(toParse.replace(Constants.SEPARATOR, " "));
+          .withFaultyArgument(toParse.replace(Constants.SEPARATOR, " "));
       }
 
-      metadata = get(metadataPath, StringUtils.removeEnd(value, Constants.SEPARATOR));
+      metadata = decompose(metadataPath, StringUtils.removeEnd(value, Constants.SEPARATOR));
     } else {
       throw new EditDatabaseMetadataParserException("The metadata path is poorly constructed")
         .withFaultyArgument(toParse.replace(Constants.SEPARATOR, " "));
@@ -217,9 +228,9 @@ public class SIARDEdition {
     return metadata;
   }
 
-  private static SIARDDatabaseMetadata get(String metadataPath, String value) throws ModuleException {
+  private static SIARDDatabaseMetadata decompose(String metadataPath, String value) throws ModuleException {
 
-    SIARDDatabaseMetadata metadata = null;
+    SIARDDatabaseMetadata metadata;
     String normalizedMetadataPath = StringUtils.replace(metadataPath, Constants.SEPARATOR, " ");
 
     Pattern schemaPattern = Pattern.compile("schema:(.*?)" + Constants.SEPARATOR); // solo
@@ -237,25 +248,29 @@ public class SIARDEdition {
     Pattern rolePattern = Pattern.compile("role:(.*?)" + Constants.SEPARATOR); // solo
     Pattern privilegePattern = Pattern.compile("privilege:(.*?)" + Constants.SEPARATOR); // solo
 
-    int schemaCount = count(schemaPattern.pattern(), metadataPath);
-    int tableCount = count(tablePattern.pattern(), metadataPath);
-    int columnCount = count(columnPattern.pattern(), metadataPath);
-    int triggerCount = count(triggerPattern.pattern(), metadataPath);
-    int viewCount = count(viewPattern.pattern(), metadataPath);
-    int routineCount = count(routinePattern.pattern(), metadataPath);
-    int primaryKeyCount = count(primaryKeyPattern.pattern(), metadataPath);
-    int foreignKeyCount = count(foreignKeyPattern.pattern(), metadataPath);
-    int candidateKeyCount = count(candidateKeyPattern.pattern(), metadataPath);
-    int parameterCount = count(parameterPattern.pattern(), metadataPath);
-    int constraintCount = count(checkConstraintPattern.pattern(), metadataPath);
-    int countUser = count(userPattern.pattern(), metadataPath);
-    int countRole = count(rolePattern.pattern(), metadataPath);
-    int countPrivilege = count(privilegePattern.pattern(), metadataPath);
+    HashMap<String, Integer> counters = new HashMap<>();
 
-    int countAll = schemaCount + tableCount + columnCount + triggerCount + viewCount + routineCount + primaryKeyCount
-      + foreignKeyCount + candidateKeyCount + parameterCount + constraintCount + countUser + countRole + countPrivilege;
+    counters.put("schema", count(schemaPattern.pattern(), metadataPath));
+    counters.put("table", count(tablePattern.pattern(), metadataPath));
+    counters.put("column", count(columnPattern.pattern(), metadataPath));
+    counters.put("trigger", count(triggerPattern.pattern(), metadataPath));
+    counters.put("view", count(viewPattern.pattern(), metadataPath));
+    counters.put("primaryKey", count(primaryKeyPattern.pattern(), metadataPath));
+    counters.put("foreignKey", count(foreignKeyPattern.pattern(), metadataPath));
+    counters.put("candidateKey", count(candidateKeyPattern.pattern(), metadataPath));
+    counters.put("parameter", count(parameterPattern.pattern(), metadataPath));
+    counters.put("routine", count(routinePattern.pattern(), metadataPath));
+    counters.put("checkConstraint", count(checkConstraintPattern.pattern(), metadataPath));
+    counters.put("user", count(userPattern.pattern(), metadataPath));
+    counters.put("role", count(rolePattern.pattern(), metadataPath));
+    counters.put("privilege", count(privilegePattern.pattern(), metadataPath));
 
-    int countKey = schemaCount + countUser + countRole + countPrivilege;
+    int countAll = counters.get("schema") + counters.get("table") + counters.get("column") + counters.get("trigger")
+      + counters.get("view") + counters.get("routine") + counters.get("primaryKey") + counters.get("foreignKey")
+      + counters.get("candidateKey") + counters.get("parameter") + counters.get("checkConstraint")
+      + counters.get("user") + counters.get("role") + counters.get("privilege");
+
+    int countKey = counters.get("schema") + counters.get("user") + counters.get("role") + counters.get("privilege");
 
     if (countKey != 1) {
       throw new EditDatabaseMetadataParserException("Missing keyword: schema, user, role, or privilege")
@@ -270,8 +285,9 @@ public class SIARDEdition {
     metadata = new SIARDDatabaseMetadata();
 
     if (countAll == 1) {
-      if (schemaCount == 1 ^ countUser == 1 ^ countRole == 1 ^ countPrivilege == 1) {
-        if (schemaCount == 1) {
+      if (counters.get("schema") == 1 ^ counters.get("user") == 1 ^ counters.get("role") == 1
+        ^ counters.get("privilege") == 1) {
+        if (counters.get("schema") == 1) {
           Matcher m = schemaPattern.matcher(metadataPath);
           while (m.find()) {
             schemaName = m.group(1);
@@ -279,25 +295,25 @@ public class SIARDEdition {
               throw new EditDatabaseMetadataParserException("Missing schema name")
                 .withFaultyArgument(normalizedMetadataPath);
             }
-            metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
+            metadata.setDatabaseMetadata(SIARDDatabaseMetadata.SCHEMA, schemaName);
             metadata.setValue(value);
           }
           return metadata;
         }
-        if (countUser == 1) {
+        if (counters.get("user") == 1) {
           metadata = new SIARDDatabaseMetadata();
           Matcher m = userPattern.matcher(metadataPath);
           while (m.find()) {
-            metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.USER, m.group(1));
+            metadata.setDatabaseMetadata(SIARDDatabaseMetadata.USER, m.group(1));
             metadata.setValue(value);
           }
           return metadata;
         }
-        if (countPrivilege == 1) {
+        if (counters.get("privilege") == 1) {
           metadata = new SIARDDatabaseMetadata();
           Matcher m = privilegePattern.matcher(metadataPath);
           while (m.find()) {
-            metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.PRIVILEGE, m.group(1));
+            metadata.setDatabaseMetadata(SIARDDatabaseMetadata.PRIVILEGE, m.group(1));
             metadata.setValue(value);
           }
           return metadata;
@@ -306,7 +322,7 @@ public class SIARDEdition {
         throw new EditDatabaseMetadataParserException("Expecting schema, user, role, or privilege")
           .withFaultyArgument(normalizedMetadataPath);
       }
-    } else if (countAll == 2 && schemaCount == 1) {
+    } else if (countAll == 2 && counters.get("schema") == 1) {
       Matcher m = schemaPattern.matcher(metadataPath);
       while (m.find()) {
         schemaName = m.group(1);
@@ -315,9 +331,9 @@ public class SIARDEdition {
             .withFaultyArgument(normalizedMetadataPath);
         }
       }
-      if (viewCount == 1 ^ tableCount == 1 ^ routineCount == 1) {
-        if (viewCount == 1) {
-          metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
+      if (counters.get("view") == 1 ^ counters.get("table") == 1 ^ counters.get("routine") == 1) {
+        if (counters.get("view") == 1) {
+          metadata.setDatabaseMetadata(SIARDDatabaseMetadata.SCHEMA, schemaName);
           m = viewPattern.matcher(metadataPath);
           while (m.find()) {
             String parsed = m.group(1);
@@ -325,14 +341,14 @@ public class SIARDEdition {
               throw new EditDatabaseMetadataParserException("Missing view name")
                 .withFaultyArgument(normalizedMetadataPath);
             }
-            metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.VIEW, m.group(1));
+            metadata.setDatabaseMetadata(SIARDDatabaseMetadata.VIEW, m.group(1));
             metadata.setValue(value);
           }
           return metadata;
         }
 
-        if (tableCount == 1) {
-          metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
+        if (counters.get("table") == 1) {
+          metadata.setDatabaseMetadata(SIARDDatabaseMetadata.SCHEMA, schemaName);
           m = tablePattern.matcher(metadataPath);
           while (m.find()) {
             String parsed = m.group(1);
@@ -340,12 +356,12 @@ public class SIARDEdition {
               throw new EditDatabaseMetadataParserException("Missing table name")
                 .withFaultyArgument(normalizedMetadataPath);
             }
-            metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE, parsed);
+            metadata.setDatabaseMetadata(SIARDDatabaseMetadata.TABLE, parsed);
             metadata.setValue(value);
           }
           return metadata;
         } else {
-          metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
+          metadata.setDatabaseMetadata(SIARDDatabaseMetadata.SCHEMA, schemaName);
           m = routinePattern.matcher(metadataPath);
           while (m.find()) {
             String parsed = m.group(1);
@@ -353,7 +369,7 @@ public class SIARDEdition {
               throw new EditDatabaseMetadataParserException("Missing routine name")
                 .withFaultyArgument(normalizedMetadataPath);
             }
-            metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.ROUTINE, parsed);
+            metadata.setDatabaseMetadata(SIARDDatabaseMetadata.ROUTINE, parsed);
             metadata.setValue(value);
           }
           return metadata;
@@ -362,7 +378,7 @@ public class SIARDEdition {
         throw new EditDatabaseMetadataParserException("Missing table, view, or routine")
           .withFaultyArgument(normalizedMetadataPath);
       }
-    } else if (countAll == 3 && schemaCount == 1) {
+    } else if (countAll == 3 && counters.get("schema") == 1) {
       Matcher m = schemaPattern.matcher(metadataPath);
       while (m.find()) {
         schemaName = m.group(1);
@@ -371,7 +387,7 @@ public class SIARDEdition {
             .withFaultyArgument(normalizedMetadataPath);
         }
       }
-      if (tableCount == 1 && routineCount == 0 && viewCount == 0) {
+      if (counters.get("table") == 1 && counters.get("routine") == 0 && counters.get("view") == 0) {
         m = tablePattern.matcher(metadataPath);
         while (m.find()) {
           tableName = m.group(1);
@@ -380,11 +396,12 @@ public class SIARDEdition {
               .withFaultyArgument(normalizedMetadataPath);
           }
         }
-        if (columnCount == 1 ^ triggerCount == 1 ^ primaryKeyCount == 1 ^ candidateKeyCount == 1 ^ foreignKeyCount == 1
-          ^ constraintCount == 1) {
-          metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
-          metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE, tableName);
-          if (columnCount == 1) {
+        if (counters.get("column") == 1 ^ counters.get("trigger") == 1 ^ counters.get("primaryKey") == 1
+          ^ counters.get("candidateKey") == 1 ^ counters.get("foreignKey") == 1
+          ^ counters.get("checkConstraint") == 1) {
+          metadata.setDatabaseMetadata(SIARDDatabaseMetadata.SCHEMA, schemaName);
+          metadata.setDatabaseMetadata(SIARDDatabaseMetadata.TABLE, tableName);
+          if (counters.get("column") == 1) {
             m = columnPattern.matcher(metadataPath);
             while (m.find()) {
               String parsed = m.group(1);
@@ -392,12 +409,12 @@ public class SIARDEdition {
                 throw new EditDatabaseMetadataParserException("Missing column name")
                   .withFaultyArgument(normalizedMetadataPath);
               }
-              metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TABLE_COLUMN, parsed);
+              metadata.setDatabaseMetadata(SIARDDatabaseMetadata.TABLE_COLUMN, parsed);
               metadata.setValue(value);
             }
             return metadata;
           }
-          if (triggerCount == 1) {
+          if (counters.get("trigger") == 1) {
             m = triggerPattern.matcher(metadataPath);
             while (m.find()) {
               String parsed = m.group(1);
@@ -405,12 +422,12 @@ public class SIARDEdition {
                 throw new EditDatabaseMetadataParserException("Missing trigger name")
                   .withFaultyArgument(normalizedMetadataPath);
               }
-              metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.TRIGGER, parsed);
+              metadata.setDatabaseMetadata(SIARDDatabaseMetadata.TRIGGER, parsed);
               metadata.setValue(value);
             }
             return metadata;
           }
-          if (primaryKeyCount == 1) {
+          if (counters.get("primaryKey") == 1) {
             m = primaryKeyPattern.matcher(metadataPath);
             while (m.find()) {
               String parsed = m.group(1);
@@ -418,12 +435,12 @@ public class SIARDEdition {
                 throw new EditDatabaseMetadataParserException("Missing primary key name")
                   .withFaultyArgument(normalizedMetadataPath);
               }
-              metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.PRIMARY_KEY, parsed);
+              metadata.setDatabaseMetadata(SIARDDatabaseMetadata.PRIMARY_KEY, parsed);
               metadata.setValue(value);
             }
             return metadata;
           }
-          if (candidateKeyCount == 1) {
+          if (counters.get("candidateKey") == 1) {
             m = candidateKeyPattern.matcher(metadataPath);
             while (m.find()) {
               String parsed = m.group(1);
@@ -431,12 +448,12 @@ public class SIARDEdition {
                 throw new EditDatabaseMetadataParserException("Missing candidate key name")
                   .withFaultyArgument(normalizedMetadataPath);
               }
-              metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.CANDIDATE_KEY, parsed);
+              metadata.setDatabaseMetadata(SIARDDatabaseMetadata.CANDIDATE_KEY, parsed);
               metadata.setValue(value);
             }
             return metadata;
           }
-          if (foreignKeyCount == 1) {
+          if (counters.get("foreignKey") == 1) {
             m = foreignKeyPattern.matcher(metadataPath);
             while (m.find()) {
               String parsed = m.group(1);
@@ -444,7 +461,7 @@ public class SIARDEdition {
                 throw new EditDatabaseMetadataParserException("Missing foreign key name")
                   .withFaultyArgument(normalizedMetadataPath);
               }
-              metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.FOREIGN_KEY, parsed);
+              metadata.setDatabaseMetadata(SIARDDatabaseMetadata.FOREIGN_KEY, parsed);
               metadata.setValue(value);
             }
             return metadata;
@@ -456,7 +473,7 @@ public class SIARDEdition {
                 throw new EditDatabaseMetadataParserException("Missing check constraint name")
                   .withFaultyArgument(normalizedMetadataPath);
               }
-              metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.CHECK_CONSTRAINT, parsed);
+              metadata.setDatabaseMetadata(SIARDDatabaseMetadata.CHECK_CONSTRAINT, parsed);
               metadata.setValue(value);
             }
             return metadata;
@@ -467,13 +484,13 @@ public class SIARDEdition {
         }
       }
 
-      if (tableCount == 1 && (routineCount == 1 || viewCount == 1)) {
+      if (counters.get("table") == 1 && (counters.get("routine") == 1 || counters.get("view") == 1)) {
         throw new EditDatabaseMetadataParserException("The metadata path is poorly constructed")
           .withFaultyArgument(normalizedMetadataPath);
       }
 
-      if (tableCount == 0 && routineCount == 1 && viewCount == 0) {
-        metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
+      if (counters.get("table") == 0 && counters.get("routine") == 1 && counters.get("view") == 0) {
+        metadata.setDatabaseMetadata(SIARDDatabaseMetadata.SCHEMA, schemaName);
         m = routinePattern.matcher(metadataPath);
         while (m.find()) {
           routineName = m.group(1);
@@ -482,8 +499,8 @@ public class SIARDEdition {
               .withFaultyArgument(normalizedMetadataPath);
           }
         }
-        metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.ROUTINE, routineName);
-        if (parameterCount == 1) {
+        metadata.setDatabaseMetadata(SIARDDatabaseMetadata.ROUTINE, routineName);
+        if (counters.get("parameter") == 1) {
           m = parameterPattern.matcher(metadataPath);
           while (m.find()) {
             String parsed = m.group(1);
@@ -491,7 +508,7 @@ public class SIARDEdition {
               throw new EditDatabaseMetadataParserException("Missing parameter name")
                 .withFaultyArgument(normalizedMetadataPath);
             }
-            metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.ROUTINE_PARAMETER, parsed);
+            metadata.setDatabaseMetadata(SIARDDatabaseMetadata.ROUTINE_PARAMETER, parsed);
             metadata.setValue(value);
           }
         } else {
@@ -500,8 +517,8 @@ public class SIARDEdition {
         }
       }
 
-      if (tableCount == 0 && routineCount == 0 && viewCount == 1) {
-        metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.SCHEMA, schemaName);
+      if (counters.get("table") == 0 && counters.get("routine") == 0 && counters.get("view") == 1) {
+        metadata.setDatabaseMetadata(SIARDDatabaseMetadata.SCHEMA, schemaName);
         m = viewPattern.matcher(metadataPath);
         while (m.find()) {
           viewName = m.group(1);
@@ -510,8 +527,8 @@ public class SIARDEdition {
               .withFaultyArgument(normalizedMetadataPath);
           }
         }
-        metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.VIEW, viewName);
-        if (columnCount == 1) {
+        metadata.setDatabaseMetadata(SIARDDatabaseMetadata.VIEW, viewName);
+        if (counters.get("column") == 1) {
           m = columnPattern.matcher(metadataPath);
           while (m.find()) {
             String parsed = m.group(1);
@@ -519,7 +536,7 @@ public class SIARDEdition {
               throw new EditDatabaseMetadataParserException("Missing column name")
                 .withFaultyArgument(normalizedMetadataPath);
             }
-            metadata.setDatabaseMetadataKey(SIARDDatabaseMetadata.VIEW_COLUMN, parsed);
+            metadata.setDatabaseMetadata(SIARDDatabaseMetadata.VIEW_COLUMN, parsed);
             metadata.setValue(value);
           }
         } else {
@@ -535,111 +552,374 @@ public class SIARDEdition {
     return metadata;
   }
 
-  private static int count(String pattern, String input) {
-    return (input.split(pattern, -1).length - 1);
-  }
-
-  private static DatabaseStructure update(DatabaseStructure dbStructure, List<SIARDDatabaseMetadata> metadataList) {
-
+  private DatabaseStructure update(DatabaseStructure dbStructure, List<SIARDDatabaseMetadata> metadataList)
+    throws ModuleException {
     for (SIARDDatabaseMetadata metadata : metadataList) {
       switch (metadata.getToUpdate()) {
         case SIARDDatabaseMetadata.SCHEMA:
-          dbStructure.updateSchemaDescription(metadata.getSchema(), metadata.getValue());
+          try {
+            reporter.metadataUpdated("Changing schema:" + metadata.getSchema() + " description from '"
+              + emptyString(dbStructure.getSchemaByName(metadata.getSchema()).getDescription()) + "' to '"
+              + metadata.getValue() + "'");
+
+            dbStructure.updateSchemaDescription(metadata.getSchema(), metadata.getValue());
+
+            reporter.metadataUpdated("Metadata for schema:" + metadata.getSchema() + " successfully updated",
+              "Success: ");
+          } catch (NullPointerException e) {
+            reporter.failed("updating schema description", "schema '" + metadata.getSchema() + "' not found");
+            throw new ModuleException()
+              .withMessage("Error updating the SIARD metadata, please check the log file for more information")
+              .withCause(e);
+          }
           break;
         case SIARDDatabaseMetadata.ROLE:
-          dbStructure.updateRoleDescription(metadata.getRole(), metadata.getValue());
+          try {
+            reporter.metadataUpdated("Changing role:" + metadata.getRole() + " description from '"
+              + emptyString(dbStructure.getRoleByName(metadata.getRole()).getDescription()) + "' to '"
+              + metadata.getValue() + "'");
+
+            dbStructure.updateRoleDescription(metadata.getRole(), metadata.getValue());
+            reporter.metadataUpdated("Metadata for role:" + metadata.getRole() + " successfully updated", "Success: ");
+          } catch (NullPointerException e) {
+            reporter.failed("updating role description", "role '" + metadata.getRole() + "' not found");
+            throw new ModuleException()
+              .withMessage("Error updating the SIARD metadata, please check the log file for more information")
+              .withCause(e);
+          }
           break;
         case SIARDDatabaseMetadata.USER:
-          dbStructure.updateUserDescription(metadata.getUser(), metadata.getValue());
+          try {
+            reporter.metadataUpdated("Changing user:" + metadata.getUser() + "description from '"
+              + emptyString(dbStructure.getUserByName(metadata.getUser()).getDescription()) + "' to '"
+              + metadata.getValue() + "'");
+
+            dbStructure.updateUserDescription(metadata.getUser(), metadata.getValue());
+            reporter.metadataUpdated("Metadata for user:" + metadata.getUser() + " successfully updated", "Success: ");
+          } catch (NullPointerException e) {
+            reporter.failed("updating user description", "user '" + metadata.getUser() + "' not found");
+            throw new ModuleException()
+              .withMessage("Error updating the SIARD metadata, please check the log file for more information")
+              .withCause(e);
+          }
           break;
         case SIARDDatabaseMetadata.PRIVILEGE:
           // TODO: Implement
           break;
         case SIARDDatabaseMetadata.TABLE:
-          dbStructure.updateTableDescription(metadata.getSchema(), metadata.getTable(), metadata.getValue());
+          try {
+            reporter.metadataUpdated("Changing schema:" + metadata.getSchema() + " table:" + metadata.getTable()
+              + " description from '"
+              + emptyString(
+                dbStructure.getSchemaByName(metadata.getSchema()).getTableByName(metadata.getTable()).getDescription())
+              + "' to '" + metadata.getValue() + "'");
+
+            dbStructure.updateTableDescription(metadata.getSchema(), metadata.getTable(), metadata.getValue());
+            reporter.metadataUpdated(
+              "Metadata for schema:" + metadata.getSchema() + " table:" + metadata.getTable() + " successfully updated",
+              "Success: ");
+          } catch (NullPointerException e) {
+            reporter.failed("updating table description", "table '" + metadata.getTable() + "' not found");
+            throw new ModuleException()
+              .withMessage("Error updating the SIARD metadata, please check the log file for more information")
+              .withCause(e);
+          }
           break;
         case SIARDDatabaseMetadata.TABLE_COLUMN:
-          dbStructure.updateTableColumnDescription(metadata.getSchema(), metadata.getTable(), metadata.getTableColumn(),
-            metadata.getValue());
+          try {
+            reporter.metadataUpdated("Changing schema:"
+              + metadata.getSchema() + " table:" + metadata.getTable() + " column:" + metadata.getTableColumn()
+              + " description from '" + emptyString(dbStructure.getSchemaByName(metadata.getSchema())
+                .getTableByName(metadata.getTable()).getColumnByName(metadata.getTableColumn()).getDescription())
+              + "' to '" + metadata.getValue() + "'");
+
+            dbStructure.updateTableColumnDescription(metadata.getSchema(), metadata.getTable(),
+              metadata.getTableColumn(), metadata.getValue());
+            reporter.metadataUpdated("Metadata for schema:" + metadata.getSchema() + " table:" + metadata.getTable()
+              + " column:" + metadata.getTableColumn() + " successfully updated", "Success: ");
+          } catch (NullPointerException e) {
+            reporter.failed("updating column description", "column '" + metadata.getTableColumn() + "' not found");
+            throw new ModuleException()
+              .withMessage("Error updating the SIARD metadata, please check the log file for more information")
+              .withCause(e);
+          }
           break;
         case SIARDDatabaseMetadata.TRIGGER:
-          dbStructure.updateTriggerDescription(metadata.getSchema(), metadata.getTable(), metadata.getTrigger(),
-            metadata.getValue());
+          try {
+            reporter.metadataUpdated("Changing schema:"
+              + metadata.getSchema() + " table:" + metadata.getTable() + " trigger:" + metadata.getTableColumn()
+              + " description from '" + emptyString(dbStructure.getSchemaByName(metadata.getSchema())
+                .getTableByName(metadata.getTable()).getTriggerByName(metadata.getTrigger()).getDescription())
+              + "' to '" + metadata.getValue() + "'");
+
+            dbStructure.updateTriggerDescription(metadata.getSchema(), metadata.getTable(), metadata.getTrigger(),
+              metadata.getValue());
+            reporter.metadataUpdated("Metadata for schema:" + metadata.getSchema() + " table:" + metadata.getTable()
+              + " trigger:" + metadata.getTrigger() + " successfully updated", "Success: ");
+          } catch (NullPointerException e) {
+            reporter.failed("updating trigger description", "trigger '" + metadata.getTrigger() + "' not found");
+            throw new ModuleException()
+              .withMessage("Error updating the SIARD metadata, please check the log file for more information")
+              .withCause(e);
+          }
           break;
         case SIARDDatabaseMetadata.PRIMARY_KEY:
-          dbStructure.updatePrimaryKeyDescription(metadata.getSchema(), metadata.getTable(), metadata.getPrimaryKey(),
-            metadata.getValue());
+          try {
+            reporter.metadataUpdated("Changing schema:"
+              + metadata.getSchema() + " table:" + metadata.getTable() + " primaryKey:" + metadata.getTableColumn()
+              + " description from '" + emptyString(dbStructure.getSchemaByName(metadata.getSchema())
+                .getTableByName(metadata.getTable()).getPrimaryKey().getDescription())
+              + "' to '" + metadata.getValue() + "'");
+
+            dbStructure.updatePrimaryKeyDescription(metadata.getSchema(), metadata.getTable(), metadata.getPrimaryKey(),
+              metadata.getValue());
+            reporter.metadataUpdated("Metadata for schema:" + metadata.getSchema() + " table:" + metadata.getTable()
+              + " primaryKey:" + metadata.getPrimaryKey() + " successfully updated", "Success: ");
+          } catch (NullPointerException e) {
+            reporter.failed("updating primaryKey description",
+              "primaryKey '" + metadata.getPrimaryKey() + "' not found");
+            throw new ModuleException()
+              .withMessage("Error updating the SIARD metadata, please check the log file for more information")
+              .withCause(e);
+          }
           break;
         case SIARDDatabaseMetadata.FOREIGN_KEY:
-          dbStructure.updateForeignKeyDescription(metadata.getSchema(), metadata.getTable(), metadata.getForeignKey(),
-            metadata.getValue());
+          try {
+            reporter.metadataUpdated("Changing schema:" + metadata.getSchema() + " table:" + metadata.getTable()
+              + " foreignKey:" + metadata.getTableColumn() + " description from '"
+              + emptyString(dbStructure.getSchemaByName(metadata.getSchema()).getTableByName(metadata.getTable())
+                .getForeignKeyByName(metadata.getForeignKey()).getDescription())
+              + "' to '" + metadata.getValue() + "'");
+
+            dbStructure.updateForeignKeyDescription(metadata.getSchema(), metadata.getTable(), metadata.getForeignKey(),
+              metadata.getValue());
+            reporter.metadataUpdated("Metadata for schema:" + metadata.getSchema() + " table:" + metadata.getTable()
+              + " foreignKey:" + metadata.getForeignKey() + " successfully updated", "Success: ");
+          } catch (NullPointerException e) {
+            reporter.failed("updating foreignKey description",
+              "foreignKey '" + metadata.getForeignKey() + "' not found");
+            throw new ModuleException()
+              .withMessage("Error updating the SIARD metadata, please check the log file for more information")
+              .withCause(e);
+          }
           break;
         case SIARDDatabaseMetadata.CANDIDATE_KEY:
-          dbStructure.updateCandidateKeyDescription(metadata.getSchema(), metadata.getTable(),
-            metadata.getCandidateKey(), metadata.getValue());
+          try {
+            reporter.metadataUpdated("Changing schema:" + metadata.getSchema() + " table:" + metadata.getTable()
+              + " candidateKey:" + metadata.getTableColumn() + " description from '"
+              + emptyString(dbStructure.getSchemaByName(metadata.getSchema()).getTableByName(metadata.getTable())
+                .getCandidateKeyByName(metadata.getCandidateKey()).getDescription())
+              + "' to '" + metadata.getValue() + "'");
+
+            dbStructure.updateCandidateKeyDescription(metadata.getSchema(), metadata.getTable(),
+              metadata.getCandidateKey(), metadata.getValue());
+            reporter.metadataUpdated("Metadata for schema:" + metadata.getSchema() + " table:" + metadata.getTable()
+              + " candidateKey:" + metadata.getCandidateKey() + " successfully updated", "Success: ");
+          } catch (NullPointerException e) {
+            reporter.failed("updating candidateKey description",
+              "candidateKey '" + metadata.getCandidateKey() + "' not found");
+            throw new ModuleException()
+              .withMessage("Error updating the SIARD metadata, please check the log file for more information")
+              .withCause(e);
+          }
           break;
         case SIARDDatabaseMetadata.CHECK_CONSTRAINT:
-          dbStructure.updateCheckConstraintDescription(metadata.getSchema(), metadata.getTable(),
-            metadata.getCheckConstraint(), metadata.getValue());
+          try {
+            reporter.metadataUpdated("Changing schema:" + metadata.getSchema() + " table:" + metadata.getTable()
+              + " checkConstraint:" + metadata.getTableColumn() + " description from '"
+              + emptyString(dbStructure.getSchemaByName(metadata.getSchema()).getTableByName(metadata.getTable())
+                .getCheckConstraintByName(metadata.getCheckConstraint()).getDescription())
+              + "' to '" + metadata.getValue() + "'");
+
+            dbStructure.updateCheckConstraintDescription(metadata.getSchema(), metadata.getTable(),
+              metadata.getCheckConstraint(), metadata.getValue());
+            reporter.metadataUpdated("Metadata for schema:" + metadata.getSchema() + " table:" + metadata.getTable()
+              + " checkConstraint:" + metadata.getCheckConstraint() + " successfully updated", "Success: ");
+          } catch (NullPointerException e) {
+            reporter.failed("updating checkConstraint description",
+              "candidateKey '" + metadata.getCheckConstraint() + "' not found");
+            throw new ModuleException()
+              .withMessage("Error updating the SIARD metadata, please check the log file for more information")
+              .withCause(e);
+          }
           break;
         case SIARDDatabaseMetadata.VIEW:
-          dbStructure.updateViewDescription(metadata.getSchema(), metadata.getView(), metadata.getValue());
+          try {
+            reporter.metadataUpdated(
+              "Changing schema:" + metadata.getSchema() + " view:" + metadata.getView() + " description from '"
+                + emptyString(
+                  dbStructure.getSchemaByName(metadata.getSchema()).getViewByName(metadata.getView()).getDescription())
+                + "' to '" + metadata.getValue() + "'");
+
+            dbStructure.updateViewDescription(metadata.getSchema(), metadata.getView(), metadata.getValue());
+            reporter.metadataUpdated(
+              "Metadata for schema:" + metadata.getSchema() + " view:" + metadata.getView() + " successfully updated",
+              "Success: ");
+          } catch (NullPointerException e) {
+            reporter.failed("updating view description", "view '" + metadata.getView() + "' not found");
+            throw new ModuleException()
+              .withMessage("Error updating the SIARD metadata, please check the log file for more information")
+              .withCause(e);
+          }
           break;
         case SIARDDatabaseMetadata.VIEW_COLUMN:
-          dbStructure.updateViewColumnDescription(metadata.getSchema(), metadata.getView(), metadata.getViewColumn(),
-            metadata.getValue());
+          try {
+            reporter.metadataUpdated("Changing schema:"
+              + metadata.getSchema() + " view:" + metadata.getView() + "column:" + metadata.getViewColumn()
+              + " description from '" + emptyString(dbStructure.getSchemaByName(metadata.getSchema())
+                .getViewByName(metadata.getView()).getColumnByName(metadata.getViewColumn()).getDescription())
+              + "' to '" + metadata.getValue() + "'");
+
+            dbStructure.updateViewColumnDescription(metadata.getSchema(), metadata.getView(), metadata.getViewColumn(),
+              metadata.getValue());
+            reporter.metadataUpdated("Metadata for schema:" + metadata.getSchema() + " view:" + metadata.getView()
+              + "column:" + metadata.getViewColumn() + " successfully updated", "Success: ");
+          } catch (NullPointerException e) {
+            reporter.failed("updating column description", "column '" + metadata.getViewColumn() + "' not found");
+            throw new ModuleException()
+              .withMessage("Error updating the SIARD metadata, please check the log file for more information")
+              .withCause(e);
+          }
           break;
         case SIARDDatabaseMetadata.ROUTINE:
-          dbStructure.updateRoutineDescription(metadata.getSchema(), metadata.getRoutine(), metadata.getValue());
+          try {
+            reporter.metadataUpdated("Changing schema:" + metadata.getSchema() + " routine:" + metadata.getRoutine()
+              + " description from '" + emptyString(dbStructure.getSchemaByName(metadata.getSchema())
+                .getRoutineByName(metadata.getRoutine()).getDescription())
+              + "' to '" + metadata.getValue() + "'");
+
+            dbStructure.updateRoutineDescription(metadata.getSchema(), metadata.getRoutine(), metadata.getValue());
+            reporter.metadataUpdated("Metadata for schema:" + metadata.getSchema() + " routine:" + metadata.getRoutine()
+              + " successfully updated", "Success: ");
+          } catch (NullPointerException e) {
+            reporter.failed("updating routine description", "routine '" + metadata.getRoutine() + "' not found");
+            throw new ModuleException()
+              .withMessage("Error updating the SIARD metadata, please check the log file for more information")
+              .withCause(e);
+          }
           break;
         case SIARDDatabaseMetadata.ROUTINE_PARAMETER:
-          dbStructure.updateRoutineParameterDescription(metadata.getSchema(), metadata.getRoutine(),
-            metadata.getRoutineParameter(), metadata.getValue());
+          try {
+            reporter.metadataUpdated("Changing schema:" + metadata.getSchema() + " routine:" + metadata.getRoutine()
+              + "parameter:" + metadata.getRoutineParameter() + " description from '"
+              + emptyString(dbStructure.getSchemaByName(metadata.getSchema()).getRoutineByName(metadata.getRoutine())
+                .getParameterByName(metadata.getRoutineParameter()).getDescription())
+              + "' to '" + metadata.getValue() + "'");
+
+            dbStructure.updateRoutineParameterDescription(metadata.getSchema(), metadata.getRoutine(),
+              metadata.getRoutineParameter(), metadata.getValue());
+            reporter.metadataUpdated("Metadata for schema:" + metadata.getSchema() + " routine:" + metadata.getRoutine()
+              + "parameter:" + metadata.getRoutineParameter() + " successfully updated", "Success: ");
+          } catch (NullPointerException e) {
+            reporter.failed("updating routine parameter description",
+              "parameter '" + metadata.getRoutineParameter() + "' not found");
+            throw new ModuleException()
+              .withMessage("Error updating the SIARD metadata, please check the log file for more information")
+              .withCause(e);
+          }
           break;
         case SIARDDatabaseMetadata.SIARD_DBNAME:
+          reporter.metadataUpdated(
+            "Changing dbname from '" + emptyString(dbStructure.getName()) + "' to '" + metadata.getValue() + "'");
           dbStructure.setName(metadata.getValue());
+          reporter.metadataUpdated("Metadata for dbname successfully updated", "Success: ");
           break;
         case SIARDDatabaseMetadata.SIARD_DESCRIPTION:
+          reporter.metadataUpdated("Changing description from '" + emptyString(dbStructure.getDescription()) + "' to '"
+            + metadata.getValue() + "'");
           dbStructure.setDescription(metadata.getValue());
+          reporter.metadataUpdated("Metadata for description successfully updated", "Success: ");
           break;
         case SIARDDatabaseMetadata.SIARD_ARCHIVER:
+          reporter.metadataUpdated(
+            "Changing archiver from '" + emptyString(dbStructure.getArchiver()) + "' to '" + metadata.getValue() + "'");
           dbStructure.setArchiver(metadata.getValue());
+          reporter.metadataUpdated("Metadata for archive successfully updated", "Success: ");
           break;
         case SIARDDatabaseMetadata.SIARD_ARCHIVER_CONTACT:
+          reporter.metadataUpdated("Changing archiverContact from '" + emptyString(dbStructure.getArchiverContact())
+            + "' to '" + metadata.getValue() + "'");
           dbStructure.setArchiverContact(metadata.getValue());
+          reporter.metadataUpdated("Metadata for archiverContact successfully updated", "Success: ");
           break;
         case SIARDDatabaseMetadata.SIARD_DATA_OWNER:
+          reporter.metadataUpdated("Changing dataOwner from '" + emptyString(dbStructure.getDataOwner()) + "' to '"
+            + metadata.getValue() + "'");
           dbStructure.setDataOwner(metadata.getValue());
+          reporter.metadataUpdated("Metadata for dataOwner successfully updated", "Success: ");
           break;
         case SIARDDatabaseMetadata.SIARD_DATA_ORIGIN_TIMESPAN:
+          reporter.metadataUpdated("Changing dataOriginTimespan from '"
+            + emptyString(dbStructure.getDataOriginTimespan()) + "' to '" + metadata.getValue() + "'");
           dbStructure.setDataOriginTimespan(metadata.getValue());
+          reporter.metadataUpdated("Metadata for dataOriginTimespan successfully updated", "Success: ");
           break;
         case SIARDDatabaseMetadata.SIARD_PRODUCER_APPLICATION:
+          reporter.metadataUpdated("Changing producerApplication from '"
+            + emptyString(dbStructure.getProducerApplication()) + "' to '" + metadata.getValue() + "'");
           dbStructure.setProducerApplication(metadata.getValue());
+          reporter.metadataUpdated("Metadata for producerApplication successfully updated", "Success: ");
           break;
         case SIARDDatabaseMetadata.SIARD_ARCHIVAL_DATE:
+          reporter.metadataUpdated("Changing archivalDate from '" + emptyString(dbStructure.getArchivalDate())
+            + "' to '" + metadata.getValue() + "'");
           dbStructure.setArchivalDate(JodaUtils.xsDateParse(metadata.getValue()));
+          reporter.metadataUpdated("Metadata for archivalDate successfully updated", "Success: ");
           break;
         case SIARDDatabaseMetadata.SIARD_MESSAGE_DIGEST:
           // TODO: implement message digest
           break;
         case SIARDDatabaseMetadata.SIARD_CLIENT_MACHINE:
+          reporter.metadataUpdated("Changing clientMachine from '" + emptyString(dbStructure.getClientMachine())
+            + "' to '" + metadata.getValue() + "'");
           dbStructure.setClientMachine(metadata.getValue());
+          reporter.metadataUpdated("Metadata for clientMachine successfully updated", "Success: ");
           break;
         case SIARDDatabaseMetadata.SIARD_DATABASE_PRODUCT:
+          reporter.metadataUpdated("Changing databaseProduct from '" + emptyString(dbStructure.getProductName())
+            + "' to '" + metadata.getValue() + "'");
           dbStructure.setProductName(metadata.getValue());
+          reporter.metadataUpdated("Metadata for databaseProduct successfully updated", "Success: ");
           break;
         case SIARDDatabaseMetadata.SIARD_CONNECTION:
+          reporter.metadataUpdated(
+            "Changing connection from '" + emptyString(dbStructure.getUrl()) + "' to '" + metadata.getValue() + "'");
           dbStructure.setUrl(metadata.getValue());
+          reporter.metadataUpdated("Metadata for connection successfully updated", "Success: ");
           break;
         case SIARDDatabaseMetadata.SIARD_DATABASE_USER:
+          reporter.metadataUpdated("Changing databaseUser from '" + emptyString(dbStructure.getDatabaseUser())
+            + "' to '" + metadata.getValue() + "'");
           dbStructure.setDatabaseUser(metadata.getValue());
+          reporter.metadataUpdated("Metadata for databaseUser successfully updated", "Success: ");
           break;
+        case SIARDDatabaseMetadata.NONE:
         default:
-          ;
+          return dbStructure;
       }
     }
 
     return dbStructure;
+
   }
+
+  private static String emptyString(String input) {
+    if (StringUtils.isBlank(input))
+      return "";
+    else
+      return input;
+  }
+
+  private static String emptyString(DateTime input) {
+    String s = JodaUtils.xsDateFormat(input);
+    if (StringUtils.isBlank(s))
+      return "";
+    else
+      return s;
+  }
+
+  private static int count(String pattern, String input) {
+    return (input.split(pattern, -1).length - 1);
+  }
+
 }

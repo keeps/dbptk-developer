@@ -50,6 +50,13 @@ public class CLIEdit extends CLIHandler {
     return editModuleParameters;
   }
 
+  /**
+   * Gets the edit module factory, obtained by parsing the parameters
+   *
+   * @return The edit module configuration parameters
+   * @throws ParseException
+   *           if there was an error parsing the command line parameters
+   */
   public EditModuleFactory getEditModuleFactory() throws ParseException {
     if (editModuleFactory == null) {
       parse(commandLineArguments);
@@ -57,10 +64,20 @@ public class CLIEdit extends CLIHandler {
     return editModuleFactory;
   }
 
+  /**
+   * Gets the path to the SIARD archive
+   *
+   * @return The path to the SIARD archive
+   */
   public String getSIARDPackage() {
     return siardPackage;
   }
 
+  /**
+   * Checks if the command line arguments are empty
+   *
+   * @return true if empty otherwise false.
+   */
   public boolean emptyArguments() {
     return commandLineArguments.isEmpty();
   }
@@ -68,9 +85,9 @@ public class CLIEdit extends CLIHandler {
   /**
    * Gets the option name. Note that this method does not trigger
    * the lazy loading mechanism for parsing the parameters, so the value may be
-   * null if no calls to {@code getEditModuleParameters()} were made.
+   * NO_OPTION if no calls to {@code getEditModuleParameters()} were made.
    *
-   * @return The option name. null if the command line parameters have not
+   * @return The option name. NO_OPTION if the command line parameters have not
    *         been parsed yet
    */
   public String option() {
@@ -90,6 +107,8 @@ public class CLIEdit extends CLIHandler {
 
     return NO_OPTION;
   }
+
+  // Auxiliary Internal Methods
 
   private void parse(List<String> args) throws ParseException {
     EditModuleFactory factory = getEditFactory(args);

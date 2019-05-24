@@ -124,6 +124,14 @@ public class ViewStructure {
     this.columns = columns;
   }
 
+  public ColumnStructure getColumnByName(String columnName) {
+    for (ColumnStructure column : columns) {
+      if (column.getName().equalsIgnoreCase(columnName)) return column;
+    }
+
+    return null;
+  }
+
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();

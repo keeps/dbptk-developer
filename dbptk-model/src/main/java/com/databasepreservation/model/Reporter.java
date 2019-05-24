@@ -15,8 +15,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
+import com.databasepreservation.model.metadata.SIARDDatabaseMetadata;
+import com.sun.org.apache.bcel.internal.generic.NEW;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +55,7 @@ public class Reporter implements AutoCloseable {
 
   private static final String MESSAGE_LINE_PREFIX_ALL = "- ";
   private static final String MESSAGE_LINE_DEFAULT_PREFIX = "Information: ";
+  private static final String MESSAGE_LINE_UPDATE_DEFAULT_PREFIX = "Updating: ";
   private static final String EMPTY_MESSAGE_LINE = "";
   private static final String NEWLINE = System.getProperty("line.separator", "\n");
 
@@ -362,6 +366,42 @@ public class Reporter implements AutoCloseable {
 
     report(message);
     LOGGER.debug("something failed, message: " + message);
+  }
+
+  public void metadataUpdated(String message) {
+    metadataUpdated(message, null);
+  }
+
+  public void metadataUpdated(String message, String prefix) {
+    StringBuilder sb;
+    if (prefix != null) {
+      sb = new StringBuilder(prefix);
+    } else {
+      sb = new StringBuilder(MESSAGE_LINE_UPDATE_DEFAULT_PREFIX);
+    }
+
+    sb.append(message);
+
+    report(sb);
+
+    LOGGER.info(message);
+  }
+
+  public void metadataParameters(String moduleName, List<SIARDDatabaseMetadata> parameters) {
+    StringBuilder message;
+
+    message = new StringBuilder("## Set").append(NEWLINE);
+
+    for (SIARDDatabaseMetadata metadata : parameters) {
+      message.append(NEWLINE).append("- ").append(metadata.toString()).append(", with value: '")
+        .append(metadata.getValue()).append("'");
+    }
+
+    message.append(NEWLINE).append(NEWLINE);
+
+    LOGGER.debug("moduleParameters, module: " + moduleName + " with parameters " + message);
+
+    report(message, null);
   }
 
   /**

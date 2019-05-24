@@ -23,20 +23,57 @@ import java.util.Map;
 public interface EditModuleFactory {
 
   /**
+   * Returns the module name.
    *
-   * @return
+   * @return The module name.
    */
   String getModuleName();
 
+  /**
+   * Returns the state of this factory.
+   *
+   * @return true if enabled otherwise false.
+   */
   boolean isEnabled();
 
+  /**
+   * Returns the import <code>Parameters</code>
+   *
+   * @return The {@link Parameters} for the specific factory
+   */
   Parameters getImportParameters();
 
+  /**
+   * Returns <code>Parameters</code>
+   *
+   * @return The {@link Parameters} for the specific factory
+   */
   Parameters getParameters();
 
+  /**
+   * Returns a combination of <code>Parameter</code> and its values for the 'set' option
+   *
+   * @return a map with the pair {@link Parameter}, {@link String}.
+   */
   Map<Parameter, String> getSetParameters();
 
+  /**
+   * Returns a combination of all <code>Parameter</code> and its values.
+   *
+   * @return a map with the pair {@link Parameter}, {@link String}.
+   */
   Map<Parameter, String> getAllParameters();
 
+  /**
+   * Builds the specific <code>EditModule</code> according the input parameters
+   *
+   * @param parameters
+   *          A Map with the input parameters
+   * @param reporter
+   *          The reporter that should be used by the <code>EditModule</code>
+   * @return Returns a specific {@link EditModule}
+   * @throws ModuleException
+   *          Generic module exception
+   */
   EditModule buildModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException;
 }

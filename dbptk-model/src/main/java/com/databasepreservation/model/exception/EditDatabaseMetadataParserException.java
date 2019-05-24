@@ -8,6 +8,9 @@
 package com.databasepreservation.model.exception;
 
 /**
+ *  Exception about problems parsing the metadata SIARD paths.
+ *
+ *
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 public class EditDatabaseMetadataParserException extends ModuleException {
@@ -18,8 +21,6 @@ public class EditDatabaseMetadataParserException extends ModuleException {
     super();
   }
 
-  public String getFaultyArgument() { return faultyArgument; }
-
   public EditDatabaseMetadataParserException(String message) {
     this();
     withMessage(message);
@@ -29,4 +30,6 @@ public class EditDatabaseMetadataParserException extends ModuleException {
     this.faultyArgument = faultyArgument;
     return this;
   }
+
+  public String getFaultyArgument() { return faultyArgument; }
 }

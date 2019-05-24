@@ -55,6 +55,13 @@ public class MetadataUpdateStrategy implements UpdateStrategy {
     }
   }
 
+  /**
+   * Closes the <code>OutputStream</code> returned by the
+   * <code>createOutputStream</code>.
+   *
+   * @throws ModuleException
+   *           Generic module exception
+   */
   @Override
   public void close() throws ModuleException {
     try {
@@ -66,22 +73,17 @@ public class MetadataUpdateStrategy implements UpdateStrategy {
   }
 
   /**
-   * Updates the {@link SIARDArchiveContainer} with the updated file
+   * Updates the <code>SIARDArchiveContainer</code> with the updated file
    *
    * @param container
    *          The container where the data will be update
    * @param pathInsideSiard
-   *          The path (relative to the container) to the file that should be
-   *          updated
+   *          The path (relative to the container) that should be updated
    */
   @Override
   public void updateSIARDArchive(SIARDArchiveContainer container, String pathInsideSiard) throws ModuleException {
 
     Path xmlFilePath = Paths.get(metadataFile.getAbsolutePath()).toAbsolutePath().normalize();
-
-    // Path zipFilePath =
-    // FileSystems.getDefault().getPath(container.getPath().toAbsolutePath().toString())
-    // .toAbsolutePath().normalize();
 
     Path zipFilePath = Paths.get(container.getPath().toUri()).toAbsolutePath().normalize();
 
@@ -94,7 +96,6 @@ public class MetadataUpdateStrategy implements UpdateStrategy {
     }
 
     Map<String, Object> env = new HashMap<String, Object>();
-    // check if file exists
     env.put("create", Boolean.TRUE);
     env.put("useTempFile", Boolean.TRUE);
 

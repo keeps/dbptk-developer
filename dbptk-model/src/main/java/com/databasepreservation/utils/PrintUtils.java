@@ -27,10 +27,20 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
+ * Set of methods used for print the SIARD metadata parameters
+ *
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 public class PrintUtils {
 
+  /**
+   * Prints the metadata description fields of a <code>DatabaseStructure</code>
+   *
+   * @param dbStructure
+   *          The {@link DatabaseStructure} to print
+   * @param printStream
+   *          The location where to print
+   */
   public static void printDatabaseStructureTree(DatabaseStructure dbStructure, PrintStream printStream) {
     StringBuilder sb = new StringBuilder();
     printDatabaseStructureTree(dbStructure, sb, printStream);
@@ -53,7 +63,7 @@ public class PrintUtils {
     sb.append("\n");
     printLine("producerApplication", dbStructure.getProducerApplication(), sb);
     sb.append("\n");
-    printLine("archivalDate", dbStructure.getArchivalDate().toString(), sb);
+    printLine("archivalDate", JodaUtils.xsDateFormat(dbStructure.getArchivalDate()), sb);
     sb.append("\n");
     printLine("clientMachine", dbStructure.getClientMachine(), sb);
     sb.append("\n");
@@ -63,7 +73,6 @@ public class PrintUtils {
     sb.append("\n");
     printLine("databaseUser", dbStructure.getDatabaseUser(), sb);
     sb.append("\n");
-
 
     sb.append("\n");
 
@@ -157,14 +166,14 @@ public class PrintUtils {
 
     List<UserStructure> users = dbStructure.getUsers();
     for (UserStructure user : users) {
-      printLine(user.getName(),maxLengths.get("user"), "user", user.getDescription(), sb);
+      printLine(user.getName(), maxLengths.get("user"), "user", user.getDescription(), sb);
     }
 
     sb.append("\n");
 
     List<RoleStructure> roles = dbStructure.getRoles();
     for (RoleStructure role : roles) {
-      printLine(role.getName(),maxLengths.get("role"), "role", role.getDescription(), sb);
+      printLine(role.getName(), maxLengths.get("role"), "role", role.getDescription(), sb);
     }
 
     sb.append("\n");
@@ -181,46 +190,46 @@ public class PrintUtils {
     }
   }
 
-  private static void printLine(String firstColumn, Integer firstColumnLength, String firstColumnType,
+  private static void printLine(String firstArg, Integer firstArgLength, String firstArgType, String description,
+    StringBuilder sb) {
+    String format = "%-5s %-" + firstArgLength + "s description '%s'";
+    if (StringUtils.isNotBlank(description)) {
+      sb.append(String.format(format, "--set", "'" + firstArgType + ":" + firstArg + "'", description));
+    } else {
+      sb.append(String.format(format, "--set", "'" + firstArgType + ":" + firstArg + "'", ""));
+    }
+    sb.append("\n");
+  }
+
+  private static void printLine(String firstArg, Integer firstArgLength, String firstArgType, String secondArg,
+    Integer secondArgLength, String secondArgType, String description, StringBuilder sb) {
+
+    String format = "%-5s %-" + firstArgLength + "s %-" + secondArgLength + "s description '%s'";
+    if (StringUtils.isNotBlank(description)) {
+      sb.append(String.format(format, "--set", "'" + firstArgType + ":" + firstArg + "'",
+        "'" + secondArgType + ":" + secondArg + "'", description));
+    } else {
+      sb.append(String.format(format, "--set", "'" + firstArgType + ":" + firstArg + "'",
+        "'" + secondArgType + ":" + secondArg + "'", ""));
+    }
+
+    sb.append("\n");
+  }
+
+  private static void printLine(String firstArg, Integer firstArgLength, String firstArgType, String secondArg,
+    Integer secondArgLength, String secondArgType, String thirdArg, Integer thirdArgLength, String thirdArgType,
     String description, StringBuilder sb) {
-    String format = "%-5s %-" + firstColumnLength + "s description '%s'";
-    if (StringUtils.isNotBlank(description)) {
-      sb.append(String.format(format, "--set", "'" + firstColumnType + ":" + firstColumn + "'", description));
-    } else {
-      sb.append(String.format(format, "--set", "'" + firstColumnType + ":" + firstColumn + "'", ""));
-    }
-    sb.append("\n");
-  }
 
-  private static void printLine(String firstColumn, Integer firstColumnLength, String firstColumnType,
-    String secondColumn, Integer secondColumnLength, String secondColumnType, String description, StringBuilder sb) {
-
-    String format = "%-5s %-" + firstColumnLength + "s %-" + secondColumnLength + "s description '%s'";
-    if (StringUtils.isNotBlank(description)) {
-      sb.append(String.format(format, "--set", "'" + firstColumnType + ":" + firstColumn + "'",
-        "'" + secondColumnType + ":" + secondColumn + "'", description));
-    } else {
-      sb.append(String.format(format, "--set", "'" + firstColumnType + ":" + firstColumn + "'",
-        "'" + secondColumnType + ":" + secondColumn + "'", ""));
-    }
-
-    sb.append("\n");
-  }
-
-  private static void printLine(String firstColumn, Integer firstColumnLength, String firstColumnType,
-    String secondColumn, Integer secondColumnLength, String secondColumnType, String thirdColumn,
-    Integer thirdColumnLength, String thirdColumnType, String description, StringBuilder sb) {
-
-    String format = "%-5s %-" + firstColumnLength + "s %-" + secondColumnLength + "s %-" + thirdColumnLength
+    String format = "%-5s %-" + firstArgLength + "s %-" + secondArgLength + "s %-" + thirdArgLength
       + "s description '%s'";
 
     if (StringUtils.isNotBlank(description))
-      sb.append(String.format(format, "--set", "'" + firstColumnType + ":" + firstColumn + "'",
-        "'" + secondColumnType + ":" + secondColumn + "'", "'" + thirdColumnType + ":" + thirdColumn + "'",
+      sb.append(String.format(format, "--set", "'" + firstArgType + ":" + firstArg + "'",
+        "'" + secondArgType + ":" + secondArg + "'", "'" + thirdArgType + ":" + thirdArg + "'",
         description));
     else
-      sb.append(String.format(format, "--set", "'" + firstColumnType + ":" + firstColumn + "'",
-        "'" + secondColumnType + ":" + secondColumn + "'", "'" + thirdColumnType + ":" + thirdColumn + "'", ""));
+      sb.append(String.format(format, "--set", "'" + firstArgType + ":" + firstArg + "'",
+        "'" + secondArgType + ":" + secondArg + "'", "'" + thirdArgType + ":" + thirdArg + "'", ""));
 
     sb.append("\n");
   }
@@ -308,28 +317,23 @@ public class PrintUtils {
         maxLengths.put("routine", maxRoutine);
       }
     }
+
     int maxUser = 0;
     for (UserStructure user : dbStructure.getUsers()) {
       int len = user.getName().length() + 7;
-      if (maxUser < len) maxUser = len;
+      if (maxUser < len)
+        maxUser = len;
     }
     maxLengths.put("user", maxUser);
 
     int maxRole = 0;
     for (RoleStructure role : dbStructure.getRoles()) {
       int len = role.getName().length() + 7;
-      if (maxUser < len) maxUser = len;
+      if (maxUser < len)
+        maxUser = len;
     }
     maxLengths.put("role", maxRole);
 
     return maxLengths;
-  }
-
-  private static String getIndentString(int indent) {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < indent; i++) {
-      sb.append("|  ");
-    }
-    return sb.toString();
   }
 }

@@ -14,13 +14,13 @@ import com.databasepreservation.model.modules.edits.EditModule;
 import com.databasepreservation.model.modules.edits.EditModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
-import com.databasepreservation.modules.siard.in.input.SIARD2ImportModule;
 import com.databasepreservation.modules.siard.update.SIARDEditModule;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,9 +29,9 @@ import java.util.Map;
  */
 public class SIARDEditFactory implements EditModuleFactory {
 
-  public static final String PARAMETER_FILE = "file";
-  public static final String PARAMETER_SET = "set";
-  public static final String PARAMETER_LIST = "list";
+  private static final String PARAMETER_FILE = "file";
+  private static final String PARAMETER_SET = "set";
+  private static final String PARAMETER_LIST = "list";
   // public static final String PARAMETER_SET_REGEX = "regex"; -- IDEA
 
   private static final Parameter file = new Parameter().shortName("f").longName(PARAMETER_FILE)
@@ -63,7 +63,7 @@ public class SIARDEditFactory implements EditModuleFactory {
 
   @Override
   public Parameters getImportParameters() {
-    return new Parameters(Arrays.asList(file), null);
+    return new Parameters(Collections.singletonList(file), null);
   }
 
   @Override

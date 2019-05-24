@@ -17,7 +17,7 @@ import java.io.OutputStream;
  */
 public interface UpdateStrategy {
   /**
-   * Creates a stream through which data can be written to the output format
+   * Creates a stream through which data can be written to the output format.
    *
    * @return an OutputStream that is able to write to the specified location in a
    *         way specific to the UpdateStrategy, this stream should be closed after
@@ -26,15 +26,21 @@ public interface UpdateStrategy {
   OutputStream createOutputStream() throws ModuleException;
 
   /**
-   * Updates the {@link SIARDArchiveContainer} with the updated file
+   * Updates the <code>SIARDArchiveContainer</code> with the updated file.
    *
    * @param container
    *          The container where the data will be update
    * @param path
-   *          The path (relative to the container) to the file where the data from
+   *          The path (relative to the container) where the data from
    *          the stream should be written to
    */
   void updateSIARDArchive(SIARDArchiveContainer container, String path) throws ModuleException;
 
+  /**
+   * Closes the <code>OutputStream</code> returned by the <code>createOutputStream</code>.
+   *
+   * @throws ModuleException
+   *          Generic module exception
+   */
   void close() throws ModuleException;
 }

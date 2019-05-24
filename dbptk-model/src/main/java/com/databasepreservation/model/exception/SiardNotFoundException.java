@@ -8,6 +8,8 @@
 package com.databasepreservation.model.exception;
 
 /**
+ * Exception thrown when a SIARD archive does not exists
+ *
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 public class SiardNotFoundException extends ModuleException {

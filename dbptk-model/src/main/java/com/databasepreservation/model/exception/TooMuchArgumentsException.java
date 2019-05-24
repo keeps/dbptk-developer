@@ -11,6 +11,9 @@ package com.databasepreservation.model.exception;
 import org.apache.commons.cli.ParseException;
 
 /**
+ * Exception thrown when a number of arguments for an option exceed the max limit.
+ * This exception extends the behaviour of {@link ParseException}.
+ *
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 public class TooMuchArgumentsException extends ParseException {
