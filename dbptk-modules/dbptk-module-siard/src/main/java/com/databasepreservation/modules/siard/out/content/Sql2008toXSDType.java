@@ -71,10 +71,10 @@ public class Sql2008toXSDType {
     sql2008toXSDconstant.put("NUMERIC", "xs:decimal");
     sql2008toXSDconstant.put("REAL", "xs:float");
     sql2008toXSDconstant.put("SMALLINT", "xs:integer");
-    sql2008toXSDconstant.put("TIME WITH TIME ZONE", "xs:time");
-    sql2008toXSDconstant.put("TIME", "xs:time");
-    sql2008toXSDconstant.put("TIMESTAMP WITH TIME ZONE", "xs:dateTime");
-    sql2008toXSDconstant.put("TIMESTAMP", "xs:dateTime");
+    sql2008toXSDconstant.put("TIME WITH TIME ZONE", "timeType");
+    sql2008toXSDconstant.put("TIME", "timeType");
+    sql2008toXSDconstant.put("TIMESTAMP WITH TIME ZONE", "dateTimeType");
+    sql2008toXSDconstant.put("TIMESTAMP", "dateTimeType");
 
     // mapping using regex
     sql2008toXSDregex.put("^BIT VARYING\\(\\d+\\)$", "blobType");

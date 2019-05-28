@@ -11,12 +11,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
@@ -26,13 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.common.TemporaryPathInputStreamProvider;
 import com.databasepreservation.model.Reporter;
-import com.databasepreservation.model.data.ArrayCell;
-import com.databasepreservation.model.data.BinaryCell;
-import com.databasepreservation.model.data.Cell;
-import com.databasepreservation.model.data.ComposedCell;
-import com.databasepreservation.model.data.NullCell;
-import com.databasepreservation.model.data.Row;
-import com.databasepreservation.model.data.SimpleCell;
+import com.databasepreservation.model.data.*;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
@@ -364,7 +353,9 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
         currentTable.getIndex(), columnIndex, currentRowIndex + 1));
 
       currentWriter.beginOpenTag(cellPrefix + columnIndex, 2).space().append("file=\"")
-        .append(contentPathStrategy.getBlobFileName(currentRowIndex + 1)).append('"').space().append("length=\"")
+        .append(contentPathStrategy.getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
+          currentRowIndex + 1))
+        .append('"').space().append("length=\"")
         .append(String.valueOf(binCell.getSize())).append("\"");
 
     } else if (cell instanceof SimpleCell) {
@@ -384,7 +375,9 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
         .getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
 
       currentWriter.beginOpenTag(cellPrefix + columnIndex, 2).space().append("file=\"")
-        .append(contentPathStrategy.getClobFileName(currentRowIndex + 1)).append('"').space().append("length=\"")
+        .append(contentPathStrategy.getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
+          currentRowIndex + 1))
+        .append('"').space().append("length=\"")
         .append(String.valueOf(txtCell.getBytesSize())).append("\"");
     }
 
@@ -473,7 +466,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       .openTag("xs:sequence", 3)
 
       .beginOpenTag("xs:element", 4).appendAttribute("maxOccurs", "unbounded").appendAttribute("minOccurs", "0")
-      .appendAttribute("name", "row").appendAttribute("type", "rowType").endShorthandTag()
+      .appendAttribute("name", "row").appendAttribute("type", "recordType").endShorthandTag()
 
       .closeTag("xs:sequence", 3)
 
@@ -482,7 +475,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       .closeTag("xs:element", 1)
 
       // xs:complexType name="rowType"
-      .beginOpenTag("xs:complexType", 1).appendAttribute("name", "rowType").endOpenTag()
+      .beginOpenTag("xs:complexType", 1).appendAttribute("name", "recordType").endOpenTag()
 
       .openTag("xs:sequence", 2);
 
