@@ -34,6 +34,8 @@ import com.databasepreservation.modules.SQLHelper;
 import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.MiscUtils;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
 
 /**
  * @author Luis Faria <lfaria@keep.pt>
@@ -53,9 +55,10 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   protected static final boolean IGNORE_UNSUPPORTED_DATA_TYPES = true;
   protected final String driverClassName;
-  protected final String connectionURL;
+  protected String connectionURL;
   private static final Logger LOGGER = LoggerFactory.getLogger(JDBCImportModule.class);
   protected Connection connection;
+  protected Session session = null;
 
   protected Statement statement;
 
@@ -115,10 +118,55 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
       LOGGER.debug("Getting connection");
 
+
       connection = createConnection();
       datatypeImporter.setConnection(connection);
     }
     return connection;
+  }
+
+  /**
+   *
+   * Make SSH conection to remote machine
+   *
+   * @return the new connection url
+   */
+  private String connectSession(String sshUser, String sshPassword, String sshHost) throws ModuleException {
+    // String user = "mySSHusername"; //ssh username
+    // String password = "mySSHpassword"; //ssh password
+    // String host = "myHOSTorIP"; //ssh host/
+    String connectionURL = this.connectionURL;
+
+    String[] hostAndPort = connectionURL.split("/")[2].split(":");
+
+    String remoteHost = hostAndPort[0];
+    int remotePort;
+    int localPort = 4321;
+
+    if (hostAndPort.length > 1) {
+      remotePort = Integer.parseInt(hostAndPort[1]);
+      connectionURL = connectionURL.replaceFirst("" + remotePort, "" + localPort);
+    } else {
+      remotePort = 3306;
+      connectionURL = connectionURL.replaceFirst(remoteHost, remoteHost + ":" + localPort);
+    }
+
+    int sshPort = 22;
+    try {
+      JSch jsch = new JSch();
+      session = jsch.getSession(sshUser, sshHost, sshPort);
+
+      session.setPassword(sshPassword);
+      session.setConfig("StrictHostKeyChecking", "no");
+      LOGGER.debug("Establishing SSH Connection");
+      session.connect();
+
+      int assigned_port = session.setPortForwardingL(localPort, remoteHost, remotePort);
+      LOGGER.debug("localhost:" + assigned_port + " -> " + remoteHost + ":" + remotePort);
+    } catch (Exception e) {
+      throw new ModuleException().withMessage("Could not establish SSH connection").withCause(e);
+    }
+    return connectionURL;
   }
 
   /**
@@ -130,6 +178,7 @@ public class JDBCImportModule implements DatabaseImportModule {
   protected Connection createConnection() throws ModuleException {
     Connection connection;
     try {
+      //connectionURL = connectSession("un", "pw", "ip");
       connection = DriverManager.getConnection(connectionURL);
     } catch (SQLException e) {
       throw normalizeException(e, null);
@@ -177,6 +226,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     connection = getConnection();
     if (connection != null) {
       try {
+        session.disconnect();
         connection.close();
       } catch (SQLException e) {
         LOGGER.debug("problem closing connection", e);
