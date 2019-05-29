@@ -54,6 +54,8 @@ public class TableStructure {
 
   private boolean fromView = false;
 
+  private boolean fromCustomView = false;
+
   /**
    * Empty table constructor. All fields are null except columns and foreign keys,
    * which are empty lists
@@ -497,5 +499,13 @@ public class TableStructure {
     } else {
       return columnName;
     }
+  }
+
+  public void setFromCustomView(boolean fromCustomView) {
+    this.fromCustomView = fromCustomView;
+  }
+
+  public boolean isFromCustomView() {
+    return fromCustomView;
   }
 }

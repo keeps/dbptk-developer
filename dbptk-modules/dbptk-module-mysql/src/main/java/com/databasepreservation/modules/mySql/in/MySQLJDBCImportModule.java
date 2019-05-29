@@ -213,16 +213,18 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
     for (ViewStructure v : views) {
       Statement statement = null;
       ResultSet rset = null;
-      try {
-        statement = getConnection().createStatement();
-        String query = "SHOW CREATE VIEW " + sqlHelper.escapeViewName(v.getName());
-        rset = statement.executeQuery(query);
-        rset.next(); // Returns only one tuple
+      if(v.getQueryOriginal()==null || v.getQueryOriginal().isEmpty()) {
+        try {
+          statement = getConnection().createStatement();
+          String query = "SHOW CREATE VIEW " + sqlHelper.escapeViewName(v.getName());
+          rset = statement.executeQuery(query);
+          rset.next(); // Returns only one tuple
 
-        v.setQueryOriginal(rset.getString(2));
-      } finally {
-        CloseableUtils.closeQuietly(rset);
-        CloseableUtils.closeQuietly(statement);
+          v.setQueryOriginal(rset.getString(2));
+        } finally {
+          CloseableUtils.closeQuietly(rset);
+          CloseableUtils.closeQuietly(statement);
+        }
       }
     }
     return views;
