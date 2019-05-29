@@ -18,15 +18,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.databasepreservation.model.exception.ModuleException;
 import org.apache.commons.cli.ParseException;
 
 import com.databasepreservation.cli.CLI;
+import com.databasepreservation.cli.CLIMigrate;
 import com.databasepreservation.model.NoOpReporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.edits.EditModuleFactory;
+import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.utils.ReflectionUtils;
 
@@ -42,10 +46,15 @@ public class ModuleFactoryTestHelper {
   private final Class<? extends DatabaseImportModule> importModuleClass;
   private final Class<? extends DatabaseExportModule> exportModuleClass;
 
+  private final List<DatabaseFilterFactory> databaseFilterFactories;
+  private final List<EditModuleFactory> editModuleFactories;
+
   protected ModuleFactoryTestHelper(Class<? extends DatabaseModuleFactory> moduleFactory,
     Class<? extends DatabaseImportModule> importModuleClass, Class<? extends DatabaseExportModule> exportModuleClass) {
     this.moduleFactory = moduleFactory;
     this.moduleFactories = new ArrayList<>(ReflectionUtils.collectDatabaseModuleFactories());
+    this.databaseFilterFactories = new ArrayList<>(ReflectionUtils.collectDatabaseFilterFactory());
+    this.editModuleFactories = new ArrayList<>(ReflectionUtils.collectEditModuleFactories());
 
     try {
       this.moduleFactories.add(this.moduleFactory.getConstructor().newInstance());
@@ -57,7 +66,7 @@ public class ModuleFactoryTestHelper {
   }
 
   private CLI buildCli(List<String> args) {
-    return new CLI(args, moduleFactories);
+    return new CLI(args, moduleFactories, databaseFilterFactories, editModuleFactories);
   }
 
   private Map<Parameter, String> getImportModuleArguments(List<String> args) {
@@ -70,48 +79,44 @@ public class ModuleFactoryTestHelper {
 
   private Map<Parameter, String> getModuleArguments(boolean forImportModule, List<String> args) {
     try {
-      CLI cli = new CLI(args, moduleFactories);
+      CLI cli = new CLI(args, moduleFactories, databaseFilterFactories, editModuleFactories);
 
-      Method getModuleFactories = CLI.class.getDeclaredMethod("getModuleFactories", List.class);
+      CLIMigrate cliMigrate = cli.getCLIMigrate();
+
+      Method getModuleFactories = CLIMigrate.class.getDeclaredMethod("getModuleFactories", List.class);
       getModuleFactories.setAccessible(true);
-      CLI.DatabaseModuleFactories databaseModuleFactories = (CLI.DatabaseModuleFactories) getModuleFactories
-        .invoke(cli, args);
+      CLIMigrate.DatabaseModuleFactories databaseModuleFactories = (CLIMigrate.DatabaseModuleFactories) getModuleFactories
+        .invoke(cliMigrate, args);
 
-      Method getModuleArguments = CLI.class.getDeclaredMethod("getModuleArguments",
-        CLI.DatabaseModuleFactories.class, List.class);
+      Method getModuleArguments = CLIMigrate.class.getDeclaredMethod("getModuleArguments",
+        CLIMigrate.DatabaseModuleFactories.class, List.class);
       getModuleArguments.setAccessible(true);
-      CLI.DatabaseModuleFactoriesArguments databaseModuleFactoriesArguments = (CLI.DatabaseModuleFactoriesArguments) getModuleArguments
-        .invoke(cli, databaseModuleFactories, args);
+      CLIMigrate.DatabaseModuleFactoriesArguments databaseModuleFactoriesArguments = (CLIMigrate.DatabaseModuleFactoriesArguments) getModuleArguments
+        .invoke(cliMigrate, databaseModuleFactories, args);
 
       if (forImportModule) {
         return databaseModuleFactoriesArguments.getImportModuleArguments();
       } else {
         return databaseModuleFactoriesArguments.getExportModuleArguments();
       }
-    } catch (NoSuchMethodException e) {
-      throw new RuntimeException(e);
-    } catch (InvocationTargetException e) {
-      throw new RuntimeException(e);
-    } catch (IllegalAccessException e) {
+    } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
       throw new RuntimeException(e);
     }
   }
 
   private Map<String, Parameter> getModuleParameters(List<String> args) {
     try {
-      CLI cli = new CLI(args, moduleFactories);
+      CLI cli = new CLI(args, moduleFactories, databaseFilterFactories, editModuleFactories);
 
-      Method getModuleFactories = CLI.class.getDeclaredMethod("getModuleFactories", List.class);
+      CLIMigrate cliMigrate = cli.getCLIMigrate();
+
+      Method getModuleFactories = CLIMigrate.class.getDeclaredMethod("getModuleFactories", List.class);
       getModuleFactories.setAccessible(true);
-      CLI.DatabaseModuleFactories databaseModuleFactories = (CLI.DatabaseModuleFactories) getModuleFactories
-        .invoke(cli, args);
+      CLIMigrate.DatabaseModuleFactories databaseModuleFactories = (CLIMigrate.DatabaseModuleFactories) getModuleFactories
+        .invoke(cliMigrate, args);
 
       return databaseModuleFactories.getImportModuleFactory().getAllParameters();
-    } catch (NoSuchMethodException e) {
-      throw new RuntimeException(e);
-    } catch (InvocationTargetException e) {
-      throw new RuntimeException(e);
-    } catch (IllegalAccessException e) {
+    } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
       throw new RuntimeException(e);
     }
   }
@@ -126,10 +131,10 @@ public class ModuleFactoryTestHelper {
     Map<Parameter, String> importModuleParameters;
     Map<Parameter, String> exportModuleParameters;
     try {
-      databaseImportModuleFactory = cli.getImportModuleFactory();
-      databaseExportModuleFactory = cli.getExportModuleFactory();
-      importModuleParameters = cli.getImportModuleParameters();
-      exportModuleParameters = cli.getExportModuleParameters();
+      databaseImportModuleFactory = cli.getCLIMigrate().getImportModuleFactory();
+      databaseExportModuleFactory = cli.getCLIMigrate().getExportModuleFactory();
+      importModuleParameters = cli.getCLIMigrate().getImportModuleParameters();
+      exportModuleParameters = cli.getCLIMigrate().getExportModuleParameters();
     } catch (ParseException e) {
       throw new RuntimeException(e);
     }
@@ -143,7 +148,7 @@ public class ModuleFactoryTestHelper {
     try {
       databaseImportModule = databaseImportModuleFactory.buildImportModule(importModuleParameters, new NoOpReporter());
       databaseExportModule = databaseExportModuleFactory.buildExportModule(exportModuleParameters, new NoOpReporter());
-    } catch (UnsupportedModuleException | LicenseNotAcceptedException e) {
+    } catch (ModuleException e) {
       throw new RuntimeException(e);
     }
 

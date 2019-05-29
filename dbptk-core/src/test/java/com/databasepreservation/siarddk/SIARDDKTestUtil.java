@@ -37,7 +37,7 @@ public class SIARDDKTestUtil {
       FileUtils.deleteDirectory(archFile);
     }
 
-    String[] argumentsToMain = new String[] {"--import=siard-dk", "--import-as-schema=public", "--import-folder",
+    String[] argumentsToMain = new String[] {"migrate", "--import=siard-dk", "--import-as-schema=public", "--import-folder",
       archiveFldToProcessPath.toString(), "--export", "siard-dk", "--export-folder",
       archFile.getAbsolutePath().toString()};
 

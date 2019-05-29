@@ -74,11 +74,11 @@ public class PostgreSqlSIARDDKTest {
       "pg_dump -h 127.0.0.1 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces --exclude-table=tbl_datatypes_prikey_seq",
       "pg_dump -h 127.0.0.1 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces --exclude-table=tbl_datatypes_prikey_seq",
 
-      new String[] {"--import=postgresql", "--import-hostname=127.0.0.1", "--import-database", db_source,
+      new String[] {"migrate", "--import=postgresql", "--import-hostname=127.0.0.1", "--import-database", db_source,
         "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--import-disable-encryption",
         "--export=siard-dk", "--export-folder", archiveFullPath},
 
-      new String[] {"--import=siard-dk", "--import-as-schema=public", "--import-folder", archiveFullPath,
+      new String[] {"migrate", "--import=siard-dk", "--import-as-schema=public", "--import-folder", archiveFullPath,
         "--export=postgresql", "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username",
         db_tmp_username, "--export-password", db_tmp_password, "--export-disable-encryption"},
       sqlDumpDiffExpectationsPrepQueue, env_var_source, env_var_target);
