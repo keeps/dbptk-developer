@@ -243,6 +243,9 @@ public class Main {
       long duration = System.currentTimeMillis() - startTime;
       LOGGER.info("Database migration took {}m {}s to complete.", duration / 60000, duration % 60000 / 1000);
       exitStatus = EXIT_CODE_OK;
+    } catch (SiardNotFoundException e) {
+      LOGGER.error(e.getMessage() + ": " + e.getPath());
+      return EXIT_CODE_FILE_NOT_FOUND;
     } catch (LicenseNotAcceptedException e) {
       LOGGER.trace("LicenseNotAcceptedException", e);
       LOGGER.info("The license must be accepted to use this module.");

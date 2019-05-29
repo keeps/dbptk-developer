@@ -9,6 +9,7 @@ package com.databasepreservation.modules.siard;
 
 import static com.databasepreservation.Constants.UNSPECIFIED_METADATA_VALUE;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -16,6 +17,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.databasepreservation.model.exception.SiardNotFoundException;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
@@ -191,8 +193,13 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws UnsupportedModuleException, LicenseNotAcceptedException {
+    throws ModuleException {
     Path pFile = Paths.get(parameters.get(file));
+
+    if (Files.notExists(pFile)) {
+      throw new SiardNotFoundException().withPath(pFile.toAbsolutePath().toString())
+          .withMessage("The path to the siard file appears to be incorrect");
+    }
 
     reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString());
     return new SIARD2ImportModule(pFile).getDatabaseImportModule();

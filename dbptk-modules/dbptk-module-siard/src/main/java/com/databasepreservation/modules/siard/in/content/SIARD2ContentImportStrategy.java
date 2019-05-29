@@ -268,7 +268,13 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
         String lobDir = attr.getValue(FILE_KEYWORD);
 
         String lobPath = contentPathStrategy.getLobPath(null, currentSchema.getName(), currentTable.getId(),
-          currentTable.getColumns().get(currentColumnIndex - 1).getId(), lobDir);
+          currentTable.getColumns().get(currentColumnIndex - 1).getId(), "");
+
+        if (lobDir.contains(lobPath)) lobPath = lobDir;
+        else {
+          lobPath = contentPathStrategy.getLobPath(null, currentSchema.getName(), currentTable.getId(),
+              currentTable.getColumns().get(currentColumnIndex - 1).getId(), lobDir);
+        }
 
         SIARDArchiveContainer container;
         if (lobDir.startsWith("..")) {
