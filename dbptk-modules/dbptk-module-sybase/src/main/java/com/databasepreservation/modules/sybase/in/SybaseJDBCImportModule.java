@@ -7,11 +7,30 @@
  */
 package com.databasepreservation.modules.sybase.in;
 
+import java.io.InputStream;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.structure.*;
+import com.databasepreservation.model.structure.CheckConstraint;
+import com.databasepreservation.model.structure.RoleStructure;
+import com.databasepreservation.model.structure.RoutineStructure;
+import com.databasepreservation.model.structure.Trigger;
+import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.CloseableUtils;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;

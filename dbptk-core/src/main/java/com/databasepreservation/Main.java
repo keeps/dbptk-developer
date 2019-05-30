@@ -12,20 +12,20 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
-import com.databasepreservation.cli.CLIEdit;
-import com.databasepreservation.cli.CLIHelp;
-import com.databasepreservation.cli.CLIMigrate;
-import com.databasepreservation.model.exception.EditDatabaseMetadataParserException;
-import com.databasepreservation.model.exception.SiardNotFoundException;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.cli.CLI;
+import com.databasepreservation.cli.CLIEdit;
+import com.databasepreservation.cli.CLIHelp;
+import com.databasepreservation.cli.CLIMigrate;
 import com.databasepreservation.model.NoOpReporter;
 import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.exception.EditDatabaseMetadataParserException;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.SiardNotFoundException;
 import com.databasepreservation.model.modules.filters.ObservableFilter;
 import com.databasepreservation.model.modules.filters.ProgressLoggerObserver;
 import com.databasepreservation.utils.ConfigUtils;

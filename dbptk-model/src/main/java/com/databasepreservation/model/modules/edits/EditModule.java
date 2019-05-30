@@ -7,13 +7,13 @@
  */
 package com.databasepreservation.model.modules.edits;
 
+import java.util.List;
+
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.metadata.SIARDDatabaseMetadata;
 import com.databasepreservation.model.modules.ExceptionNormalizer;
 import com.databasepreservation.model.structure.DatabaseStructure;
-
-import java.util.List;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>

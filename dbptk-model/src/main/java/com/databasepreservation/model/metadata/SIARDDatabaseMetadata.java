@@ -7,9 +7,9 @@
  */
 package com.databasepreservation.model.metadata;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Objects;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * SIARD metadata specification.

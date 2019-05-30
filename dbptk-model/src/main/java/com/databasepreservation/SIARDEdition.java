@@ -7,6 +7,18 @@
  */
 package com.databasepreservation;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.EditDatabaseMetadataParserException;
 import com.databasepreservation.model.exception.ModuleException;
@@ -17,14 +29,6 @@ import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.PrintUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Class responsible for handling all the logic for update database level

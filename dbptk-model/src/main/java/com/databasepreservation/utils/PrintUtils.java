@@ -7,6 +7,12 @@
  */
 package com.databasepreservation.utils;
 
+import java.io.PrintStream;
+import java.util.HashMap;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -20,11 +26,6 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.Trigger;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
-import org.apache.commons.lang3.StringUtils;
-
-import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.List;
 
 /**
  * Set of methods used for print the SIARD metadata parameters

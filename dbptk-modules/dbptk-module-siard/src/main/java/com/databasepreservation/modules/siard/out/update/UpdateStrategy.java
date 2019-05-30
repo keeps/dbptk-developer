@@ -7,10 +7,10 @@
  */
 package com.databasepreservation.modules.siard.out.update;
 
+import java.io.OutputStream;
+
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-
-import java.io.OutputStream;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>

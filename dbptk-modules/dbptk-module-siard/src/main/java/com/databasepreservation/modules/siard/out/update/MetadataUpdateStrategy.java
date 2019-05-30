@@ -7,9 +7,6 @@
  */
 package com.databasepreservation.modules.siard.out.update;
 
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -23,6 +20,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>

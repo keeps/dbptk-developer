@@ -7,6 +7,14 @@
  */
 package com.databasepreservation.modules.siard;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.SiardNotFoundException;
@@ -15,14 +23,6 @@ import com.databasepreservation.model.modules.edits.EditModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.siard.update.SIARDEditModule;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>

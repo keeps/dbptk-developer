@@ -7,12 +7,12 @@
  */
 package com.databasepreservation.model.modules.edits;
 
+import java.util.Map;
+
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
-
-import java.util.Map;
 
 /**
  *  Defines a factory used to create Edit Modules. This factory

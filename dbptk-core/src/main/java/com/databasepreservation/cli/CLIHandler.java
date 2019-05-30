@@ -7,14 +7,15 @@
  */
 package com.databasepreservation.cli;
 
-import com.databasepreservation.Constants;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
 import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
+import com.databasepreservation.Constants;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>

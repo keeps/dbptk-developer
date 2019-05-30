@@ -7,9 +7,10 @@
  */
 package com.databasepreservation.modules.sybase;
 
-import com.databasepreservation.modules.SQLHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.databasepreservation.modules.SQLHelper;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>

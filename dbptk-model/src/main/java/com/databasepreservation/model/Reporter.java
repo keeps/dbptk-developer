@@ -18,12 +18,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import com.databasepreservation.model.metadata.SIARDDatabaseMetadata;
-import com.sun.org.apache.bcel.internal.generic.NEW;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.model.metadata.SIARDDatabaseMetadata;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.Type;
