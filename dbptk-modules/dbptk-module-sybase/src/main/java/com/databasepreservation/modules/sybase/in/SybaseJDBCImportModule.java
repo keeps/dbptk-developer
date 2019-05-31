@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -47,10 +48,10 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
    * @param password
    *          the password of the user to use in the connection
    */
-  public SybaseJDBCImportModule(String hostname, String database, String username, String password) {
+  public SybaseJDBCImportModule(String hostname, String database, String username, String password, Path customViews) throws ModuleException {
     super("net.sourceforge.jtds.jdbc.Driver",
         "jdbc:jtds:sybase://" + hostname + "/" + database + ";user=" + username + ";password=" + password,
-        new SybaseHelper(), new SybaseDataTypeImporter());
+        new SybaseHelper(), new SybaseDataTypeImporter(), customViews);
   }
 
   /**
@@ -67,10 +68,10 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
    *          the password of the user to use in the connection
    *
    */
-  public SybaseJDBCImportModule(String hostname, int port, String database, String username, String password) {
+  public SybaseJDBCImportModule(String hostname, int port, String database, String username, String password, Path customViews) throws ModuleException {
     super("net.sourceforge.jtds.jdbc.Driver",
         "jdbc:jtds:sybase://" + hostname + ":" + port + "/" + database + ";user=" + username + ";password=" + password,
-        new SybaseHelper(), new SybaseDataTypeImporter());
+        new SybaseHelper(), new SybaseDataTypeImporter(), customViews);
   }
 
   /**

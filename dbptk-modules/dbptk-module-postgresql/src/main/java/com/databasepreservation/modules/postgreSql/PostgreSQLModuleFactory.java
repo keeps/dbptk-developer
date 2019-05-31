@@ -7,10 +7,13 @@
  */
 package com.databasepreservation.modules.postgreSql;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.databasepreservation.model.exception.ModuleException;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
@@ -34,6 +37,7 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_PASSWORD = "password";
   public static final String PARAMETER_DISABLE_ENCRYPTION = "disable-encryption";
   public static final String PARAMETER_PORT_NUMBER = "port-number";
+  public static final String PARAMETER_CUSTOM_VIEWS = "custom-views";
 
   private static final Parameter hostname = new Parameter().shortName("h").longName(PARAMETER_HOSTNAME)
     .description("the name of the PostgreSQL server host (e.g. localhost)").hasArgument(true).setOptionalArgument(false)
@@ -57,6 +61,10 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
   private static final Parameter portNumber = new Parameter().shortName("pn").longName(PARAMETER_PORT_NUMBER)
     .description("the PostgreSQL server port number, default is 5432").hasArgument(true).setOptionalArgument(false)
     .required(false).valueIfNotSet("5432");
+
+  private static final Parameter customViews = new Parameter().shortName("cv").longName(PARAMETER_CUSTOM_VIEWS)
+          .description("the path to a custom view query list file").hasArgument(true).setOptionalArgument(false)
+          .required(false);
 
   @Override
   public boolean producesImportModules() {
@@ -87,12 +95,13 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(password.longName(), password);
     parameterHashMap.put(disableEncryption.longName(), disableEncryption);
     parameterHashMap.put(portNumber.longName(), portNumber);
+    parameterHashMap.put(customViews.longName(), customViews);
     return parameterHashMap;
   }
 
   @Override
   public Parameters getImportModuleParameters() throws UnsupportedModuleException {
-    return new Parameters(Arrays.asList(hostname, database, username, password, disableEncryption, portNumber), null);
+    return new Parameters(Arrays.asList(hostname, database, username, password, disableEncryption, portNumber, customViews), null);
   }
 
   @Override
@@ -102,7 +111,7 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws UnsupportedModuleException, LicenseNotAcceptedException {
+          throws ModuleException {
     String pHostname = parameters.get(hostname);
     String pDatabase = parameters.get(database);
     String pUsername = parameters.get(username);
@@ -119,10 +128,15 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
       pPortNumber = Integer.parseInt(portNumber.valueIfNotSet());
     }
 
+    Path pCustomViews = null;
+    if (StringUtils.isNotBlank(parameters.get(customViews))) {
+      pCustomViews = Paths.get(parameters.get(customViews));
+    }
+
     reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
       PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
       pPortNumber.toString());
-    return new PostgreSQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt);
+    return new PostgreSQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt, pCustomViews);
   }
 
   @Override

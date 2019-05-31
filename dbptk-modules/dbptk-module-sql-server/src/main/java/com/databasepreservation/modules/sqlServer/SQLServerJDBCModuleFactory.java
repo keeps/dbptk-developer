@@ -7,10 +7,13 @@
  */
 package com.databasepreservation.modules.sqlServer;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.databasepreservation.model.exception.ModuleException;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
@@ -37,6 +40,7 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_DISABLE_ENCRYPTION = "disable-encryption";
   public static final String PARAMETER_INSTANCE_NAME = "instance-name";
   public static final String PARAMETER_PORT_NUMBER = "port-number";
+  public static final String PARAMETER_CUSTOM_VIEWS = "custom-views";
 
   private static final Parameter serverName = new Parameter().shortName("s").longName(PARAMETER_SERVER_NAME)
     .description("the name (host name) of the server").hasArgument(true).setOptionalArgument(false).required(true);
@@ -66,6 +70,10 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
 
   private static final Parameter portNumber = new Parameter().shortName("pn").longName(PARAMETER_PORT_NUMBER)
     .description("the server port number").hasArgument(true).setOptionalArgument(false).required(false);
+
+  private static final Parameter customViews = new Parameter().shortName("cv").longName(PARAMETER_CUSTOM_VIEWS)
+          .description("the path to a custom view query list file").hasArgument(true).setOptionalArgument(false)
+          .required(false);
 
   private static final ParameterGroup instanceName_portNumber = new ParameterGroup(false, instanceName, portNumber);
 
@@ -100,13 +108,14 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(disableEncryption.longName(), disableEncryption);
     parameterHashMap.put(instanceName.longName(), instanceName);
     parameterHashMap.put(portNumber.longName(), portNumber);
+    parameterHashMap.put(customViews.longName(), customViews);
     return parameterHashMap;
   }
 
   @Override
   public Parameters getImportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(
-      Arrays.asList(serverName, database, username, password, useIntegratedLogin, disableEncryption),
+      Arrays.asList(serverName, database, username, password, useIntegratedLogin, disableEncryption, customViews),
       Arrays.asList(instanceName_portNumber));
   }
 
@@ -119,7 +128,7 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws UnsupportedModuleException, LicenseNotAcceptedException {
+          throws ModuleException {
     // String values
     String pServerName = parameters.get(serverName);
     String pDatabase = parameters.get(database);
@@ -140,24 +149,29 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
       pInstanceName = parameters.get(instanceName);
     }
 
+    Path pCustomViews = null;
+    if (StringUtils.isNotBlank(parameters.get(customViews))) {
+      pCustomViews = Paths.get(parameters.get(customViews));
+    }
+
     if (pPortNumber != null) {
       reporter.importModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_DATABASE,
         pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED,
         PARAMETER_USE_INTEGRATED_LOGIN, String.valueOf(pUseIntegratedLogin), PARAMETER_PORT_NUMBER,
         pPortNumber.toString());
       return new SQLServerJDBCImportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword,
-        pUseIntegratedLogin, pEncrypt);
+        pUseIntegratedLogin, pEncrypt, pCustomViews);
     } else if (pInstanceName != null) {
       reporter.importModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_DATABASE,
         pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED,
         PARAMETER_USE_INTEGRATED_LOGIN, String.valueOf(pUseIntegratedLogin), PARAMETER_INSTANCE_NAME, pInstanceName);
       return new SQLServerJDBCImportModule(pServerName, pInstanceName, pDatabase, pUsername, pPassword,
-        pUseIntegratedLogin, pEncrypt);
+        pUseIntegratedLogin, pEncrypt, pCustomViews);
     } else {
       reporter.importModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_DATABASE,
         pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED,
         PARAMETER_USE_INTEGRATED_LOGIN, String.valueOf(pUseIntegratedLogin));
-      return new SQLServerJDBCImportModule(pServerName, pDatabase, pUsername, pPassword, pUseIntegratedLogin, pEncrypt);
+      return new SQLServerJDBCImportModule(pServerName, pDatabase, pUsername, pPassword, pUseIntegratedLogin, pEncrypt, pCustomViews);
     }
   }
 

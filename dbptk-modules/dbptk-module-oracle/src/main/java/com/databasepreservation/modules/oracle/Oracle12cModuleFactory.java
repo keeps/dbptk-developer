@@ -7,12 +7,15 @@
  */
 package com.databasepreservation.modules.oracle;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
@@ -21,6 +24,7 @@ import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.oracle.in.Oracle12cJDBCImportModule;
 import com.databasepreservation.modules.oracle.out.Oracle12cJDBCExportModule;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -33,6 +37,7 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_PASSWORD = "password";
   public static final String PARAMETER_SOURCE_SCHEMA = "source-schema";
   public static final String PARAMETER_ACCEPT_LICENSE = "accept-license";
+  public static final String PARAMETER_CUSTOM_VIEWS = "custom-views";
 
   private static final String licenseURL = "http://www.oracle.com/technetwork/licenses/distribution-license-152002.html";
 
@@ -62,6 +67,11 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
   private static final Parameter acceptLicense = new Parameter().shortName("al").longName(PARAMETER_ACCEPT_LICENSE)
     .description("declare that you accept OTN License Agreement, which is necessary to use this module")
     .hasArgument(false).valueIfSet("true").valueIfNotSet("false").required(false);
+
+  private static final Parameter customViews = new Parameter().shortName("cv").longName(PARAMETER_CUSTOM_VIEWS)
+          .description("the path to a custom view query list file").hasArgument(true).setOptionalArgument(false)
+          .required(false);
+
 
   @Override
   public boolean producesImportModules() {
@@ -93,12 +103,13 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(portNumber.longName(), portNumber);
     parameterHashMap.put(acceptLicense.longName(), acceptLicense);
     parameterHashMap.put(sourceSchema.longName(), sourceSchema);
+    parameterHashMap.put(customViews.longName(), customViews);
     return parameterHashMap;
   }
 
   @Override
   public Parameters getImportModuleParameters() throws UnsupportedModuleException {
-    return new Parameters(Arrays.asList(serverName, instance, username, password, portNumber, acceptLicense), null);
+    return new Parameters(Arrays.asList(serverName, instance, username, password, portNumber, acceptLicense, customViews), null);
   }
 
   @Override
@@ -109,7 +120,7 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws UnsupportedModuleException, LicenseNotAcceptedException {
+          throws ModuleException {
     String pServerName = parameters.get(serverName);
     String pDatabase = parameters.get(instance);
     String pUsername = parameters.get(username);
@@ -121,12 +132,17 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
       throw new LicenseNotAcceptedException().withLicenseInfo(getLicenseText("--import-" + acceptLicense.longName()));
     }
 
+    Path pCustomViews = null;
+    if (StringUtils.isNotBlank(parameters.get(customViews))) {
+      pCustomViews = Paths.get(parameters.get(customViews));
+    }
+
     Integer pPortNumber = Integer.parseInt(parameters.get(portNumber));
 
     reporter.importModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_INSTANCE, pDatabase,
       PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
       pPortNumber.toString());
-    return new Oracle12cJDBCImportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword);
+    return new Oracle12cJDBCImportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword, pCustomViews);
   }
 
   @Override

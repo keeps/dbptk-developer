@@ -10,6 +10,7 @@
  */
 package com.databasepreservation.modules.mySql.in;
 
+import java.nio.file.Path;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -56,10 +57,10 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    * @param password
    *          the password of the user to use in connection
    */
-  public MySQLJDBCImportModule(String hostname, String database, String username, String password) {
+  public MySQLJDBCImportModule(String hostname, String database, String username, String password, Path customViewsFile) throws ModuleException {
     super("com.mysql.jdbc.Driver",
       "jdbc:mysql://" + hostname + "/" + database + "?" + "user=" + username + "&password=" + password,
-      new MySQLHelper(), new MySQLDatatypeImporter());
+      new MySQLHelper(), new MySQLDatatypeImporter(), customViewsFile);
     this.username = username;
   }
 
@@ -77,10 +78,10 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    * @param password
    *          the password of the user to use in connection
    */
-  public MySQLJDBCImportModule(String hostname, int port, String database, String username, String password) {
+  public MySQLJDBCImportModule(String hostname, int port, String database, String username, String password, Path customViewsFile) throws ModuleException {
     super("com.mysql.jdbc.Driver",
       "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?" + "user=" + username + "&password=" + password,
-      new MySQLHelper(), new MySQLDatatypeImporter());
+      new MySQLHelper(), new MySQLDatatypeImporter(), customViewsFile);
     this.username = username;
   }
 

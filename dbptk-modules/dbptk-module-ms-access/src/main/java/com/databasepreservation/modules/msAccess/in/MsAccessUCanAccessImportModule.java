@@ -9,6 +9,7 @@ package com.databasepreservation.modules.msAccess.in;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -49,23 +50,23 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
   private static String INVALID_CHARACTERS_IN_TABLE_NAME = "\'";
   private String password = null;
 
-  public MsAccessUCanAccessImportModule(File msAccessFile) {
+  public MsAccessUCanAccessImportModule(File msAccessFile, Path customViews) throws ModuleException {
     super("net.ucanaccess.jdbc.UcanaccessDriver",
       "jdbc:ucanaccess://" + msAccessFile.getAbsolutePath() + ";showSchema=true;", new MsAccessHelper(),
-      new MsAccessUCanAccessDatatypeImporter());
+      new MsAccessUCanAccessDatatypeImporter(), customViews);
   }
 
-  public MsAccessUCanAccessImportModule(File msAccessFile, String password) {
-    this(msAccessFile);
+  public MsAccessUCanAccessImportModule(File msAccessFile, String password, Path customViews) throws ModuleException {
+    this(msAccessFile, customViews);
     this.password = password;
   }
 
-  public MsAccessUCanAccessImportModule(String accessFilePath) {
-    this(new File(accessFilePath));
+  public MsAccessUCanAccessImportModule(String accessFilePath, Path customViews) throws ModuleException {
+    this(new File(accessFilePath), customViews);
   }
 
-  public MsAccessUCanAccessImportModule(String accessFilePath, String password) {
-    this(new File(accessFilePath), password);
+  public MsAccessUCanAccessImportModule(String accessFilePath, String password, Path customViews) throws ModuleException {
+    this(new File(accessFilePath), password, customViews);
   }
 
   @Override

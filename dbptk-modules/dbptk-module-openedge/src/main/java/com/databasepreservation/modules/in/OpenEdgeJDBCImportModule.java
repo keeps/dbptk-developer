@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -45,10 +46,10 @@ public class OpenEdgeJDBCImportModule extends JDBCImportModule {
    * @param password
    *          the password of the user to use in the connection
    */
-  public OpenEdgeJDBCImportModule(String hostname, String database, String username, String password) {
+  public OpenEdgeJDBCImportModule(String hostname, String database, String username, String password, Path customViews) throws ModuleException {
     super("com.ddtek.jdbc.openedge.OpenEdgeDriver",
         "jdbc:datadirect:openedge://" + hostname + ";user=" + username + ";password=" + password + ";DatabaseName=" + database,
-        new OpenEdgeHelper(), new OpenEdgeDataTypeImporter());
+        new OpenEdgeHelper(), new OpenEdgeDataTypeImporter(), customViews);
   }
 
   /**
@@ -65,10 +66,10 @@ public class OpenEdgeJDBCImportModule extends JDBCImportModule {
    * @param password
    *          the password of the user to use in the connection
    */
-  public OpenEdgeJDBCImportModule(String hostname, int port, String database, String username, String password) {
+  public OpenEdgeJDBCImportModule(String hostname, int port, String database, String username, String password, Path customViews) throws ModuleException {
     super("com.ddtek.jdbc.openedge.OpenEdgeDriver",
         "jdbc:datadirect:openedge://" + hostname + ":" + port + ";user=" + username + ";password=" + password + ";DatabaseName=" + database,
-        new OpenEdgeHelper(), new OpenEdgeDataTypeImporter());
+        new OpenEdgeHelper(), new OpenEdgeDataTypeImporter(), customViews);
   }
 
   /**

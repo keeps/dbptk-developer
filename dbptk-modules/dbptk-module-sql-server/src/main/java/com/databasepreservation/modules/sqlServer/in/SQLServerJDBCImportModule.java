@@ -7,6 +7,7 @@
  */
 package com.databasepreservation.modules.sqlServer.in;
 
+import java.nio.file.Path;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -59,12 +60,12 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
    *          true to use encryption in the connection
    */
   public SQLServerJDBCImportModule(String serverName, String database, String username, String password,
-    boolean integratedSecurity, boolean encrypt) {
+    boolean integratedSecurity, boolean encrypt, Path customViews) throws ModuleException {
     super("com.microsoft.sqlserver.jdbc.SQLServerDriver",
       new StringBuilder("jdbc:sqlserver://").append(serverName).append(";database=").append(database).append(";user=")
         .append(username).append(";password=").append(password).append(";integratedSecurity=")
         .append(integratedSecurity).append(";encrypt=").append(encrypt).toString(),
-      new SQLServerHelper(), new SQLServerDatatypeImporter());
+      new SQLServerHelper(), new SQLServerDatatypeImporter(), customViews);
   }
 
   /**
@@ -88,12 +89,12 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
    *          true to use encryption in the connection
    */
   public SQLServerJDBCImportModule(String serverName, String instanceName, String database, String username,
-    String password, boolean integratedSecurity, boolean encrypt) {
+    String password, boolean integratedSecurity, boolean encrypt, Path customViews) throws ModuleException {
     super("com.microsoft.sqlserver.jdbc.SQLServerDriver",
       new StringBuilder("jdbc:sqlserver://").append(serverName).append("\\").append(instanceName).append(";database=")
         .append(database).append(";user=").append(username).append(";password=").append(password)
         .append(";integratedSecurity=").append(integratedSecurity).append(";encrypt=").append(encrypt).toString(),
-      new SQLServerHelper(), new SQLServerDatatypeImporter());
+      new SQLServerHelper(), new SQLServerDatatypeImporter(), customViews);
   }
 
   /**
@@ -115,12 +116,12 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
    *          true to use encryption in the connection
    */
   public SQLServerJDBCImportModule(String serverName, int portNumber, String database, String username, String password,
-    boolean integratedSecurity, boolean encrypt) {
+    boolean integratedSecurity, boolean encrypt, Path customViews) throws ModuleException {
     super("com.microsoft.sqlserver.jdbc.SQLServerDriver",
       new StringBuilder("jdbc:sqlserver://").append(serverName).append(":").append(portNumber).append(";database=")
         .append(database).append(";user=").append(username).append(";password=").append(password)
         .append(";integratedSecurity=").append(integratedSecurity).append(";encrypt=").append(encrypt).toString(),
-      new SQLServerHelper(), new SQLServerDatatypeImporter());
+      new SQLServerHelper(), new SQLServerDatatypeImporter(), customViews);
   }
 
   @Override

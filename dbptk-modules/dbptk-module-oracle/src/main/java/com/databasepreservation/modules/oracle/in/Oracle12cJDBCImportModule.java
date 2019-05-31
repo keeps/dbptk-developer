@@ -7,6 +7,7 @@
  */
 package com.databasepreservation.modules.oracle.in;
 
+import java.nio.file.Path;
 import java.sql.Array;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -60,11 +61,11 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
    * @param password
    *          the password of the user to use in the connection
    */
-  public Oracle12cJDBCImportModule(String serverName, int port, String instance, String username, String password) {
+  public Oracle12cJDBCImportModule(String serverName, int port, String instance, String username, String password, Path customViews) throws ModuleException {
 
     super("oracle.jdbc.driver.OracleDriver",
       "jdbc:oracle:thin:" + username + "/" + password + "@//" + serverName + ":" + port + "/" + instance,
-      new OracleHelper(), new Oracle12cJDBCDatatypeImporter());
+      new OracleHelper(), new Oracle12cJDBCDatatypeImporter(), customViews);
 
     LOGGER.debug("jdbc:oracle:thin:<username>/<password>@//" + serverName + ":" + port + "/" + instance);
   }

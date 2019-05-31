@@ -7,10 +7,13 @@
  */
 package com.databasepreservation.modules.mySql;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.databasepreservation.model.exception.ModuleException;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
@@ -33,6 +36,7 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_DATABASE = "database";
   public static final String PARAMETER_USERNAME = "username";
   public static final String PARAMETER_PASSWORD = "password";
+  public static final String PARAMETER_CUSTOM_VIEWS = "custom-views";
 
   private static final Parameter hostname = new Parameter().shortName("h").longName(PARAMETER_HOSTNAME)
     .description("the hostname of the MySQL server").hasArgument(true).setOptionalArgument(false).required(true);
@@ -51,6 +55,10 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
   private static final Parameter password = new Parameter().shortName("p").longName(PARAMETER_PASSWORD)
     .description("the password of the user to use in connection").hasArgument(true).setOptionalArgument(false)
     .required(true);
+
+  private static final Parameter customViews = new Parameter().shortName("cv").longName(PARAMETER_CUSTOM_VIEWS)
+    .description("the path to a custom view query list file").hasArgument(true).setOptionalArgument(false)
+    .required(false);
 
   @Override
   public boolean producesImportModules() {
@@ -80,12 +88,13 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(username.longName(), username);
     parameterHashMap.put(password.longName(), password);
     parameterHashMap.put(portNumber.longName(), portNumber);
+    parameterHashMap.put(customViews.longName(), customViews);
     return parameterHashMap;
   }
 
   @Override
   public Parameters getImportModuleParameters() throws UnsupportedModuleException {
-    return new Parameters(Arrays.asList(hostname, database, username, password, portNumber), null);
+    return new Parameters(Arrays.asList(hostname, database, username, password, portNumber, customViews), null);
   }
 
   @Override
@@ -95,7 +104,7 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws UnsupportedModuleException, LicenseNotAcceptedException {
+          throws ModuleException {
     String pHostname = parameters.get(hostname);
     String pDatabase = parameters.get(database);
     String pUsername = parameters.get(username);
@@ -107,15 +116,20 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
       pPortNumber = Integer.parseInt(parameters.get(portNumber));
     }
 
+    Path pCustomViews = null;
+    if (StringUtils.isNotBlank(parameters.get(customViews))) {
+      pCustomViews = Paths.get(parameters.get(customViews));
+    }
+
     if (pPortNumber == null) {
       reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
         PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED);
-      return new MySQLJDBCImportModule(pHostname, pDatabase, pUsername, pPassword);
+      return new MySQLJDBCImportModule(pHostname, pDatabase, pUsername, pPassword, pCustomViews);
     } else {
       reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
         PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
         pPortNumber.toString());
-      return new MySQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword);
+      return new MySQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pCustomViews);
     }
   }
 

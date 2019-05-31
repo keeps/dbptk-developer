@@ -14,6 +14,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -102,9 +103,9 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
    *          encrypt connection
    */
   public PostgreSQLJDBCImportModule(String hostname, String database, String username, String password,
-    boolean encrypt) {
+    boolean encrypt, Path customViews) throws ModuleException {
     super("org.postgresql.Driver", "jdbc:postgresql://" + hostname + "/" + database + "?user=" + username + "&password="
-      + password + (encrypt ? "&ssl=true" : ""), new PostgreSQLHelper(), new PostgreSQLJDBCDatatypeImporter());
+      + password + (encrypt ? "&ssl=true" : ""), new PostgreSQLHelper(), new PostgreSQLJDBCDatatypeImporter(), customViews);
   }
 
   /**
@@ -125,11 +126,11 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
    *          encrypt connection
    */
   public PostgreSQLJDBCImportModule(String hostname, int port, String database, String username, String password,
-    boolean encrypt) {
+    boolean encrypt, Path customViews) throws ModuleException {
     super(
       "org.postgresql.Driver", "jdbc:postgresql://" + hostname + ":" + port + "/" + database + "?user=" + username
         + "&password=" + password + (encrypt ? "&ssl=true" : ""),
-      new PostgreSQLHelper(), new PostgreSQLJDBCDatatypeImporter());
+      new PostgreSQLHelper(), new PostgreSQLJDBCDatatypeImporter(), customViews);
   }
 
   @Override
