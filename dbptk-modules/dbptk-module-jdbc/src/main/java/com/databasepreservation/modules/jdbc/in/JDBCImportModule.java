@@ -1801,16 +1801,28 @@ public class JDBCImportModule implements DatabaseImportModule {
     try {
       return st.executeQuery(query);
     } catch (SQLException sqlException) {
-      LOGGER.debug("Error executing query with default fetch size of {}", st.getFetchSize(), sqlException);
+      LOGGER.debug("Error executing query with default fetch size of {}", st.getFetchSize());
     }
 
+    if (connection.isClosed()) {
+      connection = null;
+      connection = getConnection();
+      statement = null;
+    }
+    st = getStatement();
     st.setFetchSize(SMALL_ROW_FETCH_BLOCK_SIZE);
     try {
       return st.executeQuery(query);
     } catch (SQLException sqlException) {
-      LOGGER.debug("Error executing query with fetch size of {}", st.getFetchSize(), sqlException);
+      LOGGER.debug("Error executing query with fetch size of {}", st.getFetchSize());
     }
 
+    if (connection.isClosed()) {
+      connection = null;
+      connection = getConnection();
+      statement = null;
+    }
+    st = getStatement();
     st.setFetchSize(MINIMUM_ROW_FETCH_BLOCK_SIZE);
     try {
       return st.executeQuery(query);
