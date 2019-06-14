@@ -87,13 +87,7 @@ public class MetadataUpdateStrategy implements UpdateStrategy {
 
     Path zipFilePath = Paths.get(container.getPath().toUri()).toAbsolutePath().normalize();
 
-    URI uri;
-
-    if (System.getProperty("os.name").contains("Win")) {
-      uri = URI.create("jar:file:" + zipFilePath.toUri().getPath());
-    } else {
-      uri = URI.create("jar:file:" + Paths.get(zipFilePath.toUri()));
-    }
+    URI uri = URI.create("jar:file:" + zipFilePath.toUri().getRawPath());
 
     Map<String, Object> env = new HashMap<String, Object>();
     env.put("create", Boolean.TRUE);
