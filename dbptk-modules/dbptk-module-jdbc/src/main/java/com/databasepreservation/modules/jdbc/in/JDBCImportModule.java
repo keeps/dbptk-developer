@@ -51,6 +51,8 @@ import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.SQLParseException;
+import com.databasepreservation.model.exception.TableNotFoundException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatatypeImporter;
@@ -130,6 +132,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   private Map<String, Map<String, String>> customViews = new HashMap<>();
 
+  private String customViewsPath;
+
   /**
    * Create a new JDBC import module
    *
@@ -164,6 +168,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     dbStructure = null;
     if (queryList != null) {
       customViews = parseCustomViewsList(queryList);
+      customViewsPath = queryList.toAbsolutePath().toString();
     }
   }
 
@@ -553,22 +558,37 @@ public class JDBCImportModule implements DatabaseImportModule {
 
     // Get custom views first so if there is any error in the queries there is no
     // wasted time
-    Map<String, String> schemaCustomViews = customViews.get(schema.getName());
-    if (schemaCustomViews != null) {
-      for (String viewName : schemaCustomViews.keySet()) {
-        String viewDescription = "Custom view";
-        String query = schemaCustomViews.get(viewName);
-        LOGGER.info("Obtaining table structure for custom view " + viewName);
-        try {
-          TableStructure customViewStructureAsTable = getCustomViewStructureAsTable(schema, viewName, tableIndex,
-            viewDescription, query);
-          tables.add(customViewStructureAsTable);
-          tableIndex++;
-        } catch (SQLException e) {
-          throw new ModuleException()
-            .withMessage("Error getting custom view structure for " + schema.getName() + "." + viewName).withCause(e);
-        }
 
+    if (!customViews.isEmpty()) {
+      Map<String, String> schemaCustomViews = customViews.get(schema.getName());
+      if (schemaCustomViews != null) {
+        for (String viewName : schemaCustomViews.keySet()) {
+          String viewDescription = "Custom view";
+          String query = schemaCustomViews.get(viewName);
+          LOGGER.info("Obtaining table structure for custom view " + viewName);
+          try {
+            TableStructure customViewStructureAsTable = getCustomViewStructureAsTable(schema, viewName, tableIndex,
+              viewDescription, query);
+            tables.add(customViewStructureAsTable);
+            tableIndex++;
+          } catch (SQLException e) {
+            if (e.getSQLState().equals("42S02")) {
+              throw new TableNotFoundException().withMessage("The table '" + schema.getName() + "." + viewName
+                + "' does not exists.\nPlease check if the query in the YAML file is correct");
+            } else if (e.getSQLState().equals("42000")) {
+              throw new SQLParseException().withMessage(
+                "The query has parsing errors\nPlease test the query for custom view '" + viewName + "' in a DBMS");
+            } else {
+              throw new ModuleException()
+                .withMessage("Error getting custom view structure for " + schema.getName() + "." + viewName)
+                .withCause(e);
+            }
+          }
+
+        }
+      } else {
+        throw new ModuleException().withMessage("The schema '" + schema.getName() + "' was not found in "
+          + customViewsPath + "\nPlease check if the schema name in the YAML file is correct");
       }
     }
     try (
