@@ -73,7 +73,7 @@ public class ZipWriteStrategy implements WriteStrategy {
     try {
       zipOut = new ProtectedZipArchiveOutputStream(container.getPath().toFile());
 
-      zipOut.setUseZip64(Zip64Mode.Always);
+      zipOut.setUseZip64(Zip64Mode.AsNeeded);
 
       switch (compressionMethod) {
         case DEFLATE:
