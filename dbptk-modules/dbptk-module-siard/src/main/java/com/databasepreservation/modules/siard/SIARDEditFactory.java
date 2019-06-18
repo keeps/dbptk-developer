@@ -29,9 +29,9 @@ import com.databasepreservation.modules.siard.update.SIARDEditModule;
  */
 public class SIARDEditFactory implements EditModuleFactory {
 
-  private static final String PARAMETER_FILE = "file";
-  private static final String PARAMETER_SET = "set";
-  private static final String PARAMETER_LIST = "list";
+  public static final String PARAMETER_FILE = "file";
+  public static final String PARAMETER_SET = "set";
+  public static final String PARAMETER_LIST = "list";
   // public static final String PARAMETER_SET_REGEX = "regex"; -- IDEA
 
   private static final Parameter file = new Parameter().shortName("f").longName(PARAMETER_FILE)
