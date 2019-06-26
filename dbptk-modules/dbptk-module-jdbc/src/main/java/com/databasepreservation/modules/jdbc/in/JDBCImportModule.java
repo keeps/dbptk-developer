@@ -130,7 +130,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   protected Reporter reporter;
 
-  private Map<String, Map<String, String>> customViews = new HashMap<>();
+  private Map<String, Map<String, Map<String, String>>> customViews = new HashMap<>();
 
   private String customViewsPath;
 
@@ -560,11 +560,11 @@ public class JDBCImportModule implements DatabaseImportModule {
     // wasted time
 
     if (!customViews.isEmpty()) {
-      Map<String, String> schemaCustomViews = customViews.get(schema.getName());
+      Map<String, Map<String, String>> schemaCustomViews = customViews.get(schema.getName());
       if (schemaCustomViews != null) {
         for (String viewName : schemaCustomViews.keySet()) {
-          String viewDescription = "Custom view";
-          String query = schemaCustomViews.get(viewName);
+          String viewDescription = schemaCustomViews.get(viewName).get("description");
+          String query = schemaCustomViews.get(viewName).get("query");
           LOGGER.info("Obtaining table structure for custom view " + viewName);
           try {
             TableStructure customViewStructureAsTable = getCustomViewStructureAsTable(schema, viewName, tableIndex,
@@ -573,8 +573,7 @@ public class JDBCImportModule implements DatabaseImportModule {
             tableIndex++;
           } catch (SQLException e) {
             if (e.getSQLState().equals("42S02")) {
-              throw new TableNotFoundException().withMessage("The table '" + schema.getName() + "." + viewName
-                + "' does not exists.\nPlease check if the query in the YAML file is correct");
+              throw new TableNotFoundException().withMessage(e.getMessage() + "\nPlease check if the query in the YAML file is correct");
             } else if (e.getSQLState().equals("42000")) {
               throw new SQLParseException().withMessage(
                 "The query has parsing errors\nPlease test the query for custom view '" + viewName + "' in a DBMS");
@@ -658,16 +657,16 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   protected List<ViewStructure> getCustomViews(String schemaName) throws ModuleException {
     List<ViewStructure> views = new ArrayList<>();
-    Map<String, String> schemaCustomViews = customViews.get(schemaName);
+    Map<String, Map<String, String>> schemaCustomViews = customViews.get(schemaName);
 
     if (schemaCustomViews != null) {
       for (String viewName : schemaCustomViews.keySet()) {
         ViewStructure view = new ViewStructure();
         view.setName("CUSTOM_" + viewName);
-        view.setDescription("View created from given query list.");
-        view.setQueryOriginal(schemaCustomViews.get(viewName));
+        view.setDescription(schemaCustomViews.get(viewName).get("description"));
+        view.setQueryOriginal(schemaCustomViews.get(viewName).get("query"));
         try {
-          view.setColumns(getColumnsFromCustomView(viewName, schemaCustomViews.get(viewName)));
+          view.setColumns(getColumnsFromCustomView(viewName, schemaCustomViews.get(viewName).get("query")));
         } catch (SQLException e) {
           reporter.ignored("Columns from custom view " + viewName + " in schema " + schemaName,
             "there was a problem retrieving them form the database");
@@ -683,8 +682,8 @@ public class JDBCImportModule implements DatabaseImportModule {
     return views;
   }
 
-  protected Map<String, Map<String, String>> parseCustomViewsList(Path queryListPath) throws ModuleException {
-    Map<String, Map<String, String>> queryList = new HashMap<>();
+  protected Map<String, Map<String, Map<String, String>>> parseCustomViewsList(Path queryListPath) throws ModuleException {
+    Map<String, Map<String, Map<String, String>>> queryList = new HashMap<>();
     Yaml yaml = new Yaml();
     if (queryListPath != null) {
       try (InputStream inputStream = Files.newInputStream(queryListPath)) {
@@ -1931,7 +1930,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
       for (SchemaStructure schema : getDatabaseStructure().getSchemas()) {
         exportModule.handleDataOpenSchema(schema.getName());
-        Map<String, String> schemaCustomViews = customViews.get(schema.getName());
+        Map<String, Map<String, String>> schemaCustomViews = customViews.get(schema.getName());
         for (TableStructure table : schema.getTables()) {
           exportModule.handleDataOpenTable(table.getId());
 
@@ -1942,7 +1941,7 @@ public class JDBCImportModule implements DatabaseImportModule {
             if(table.isFromCustomView()) {
               if (schemaCustomViews != null) {
                 try (ResultSet tableRawData = getTableRawData(
-                  schemaCustomViews.get(table.getName().replace(CUSTOM_VIEW_NAME_PREFIX, "")), table.getId())) {
+                  schemaCustomViews.get(table.getName().replace(CUSTOM_VIEW_NAME_PREFIX, "")).get("query"), table.getId())) {
                   while (resultSetNext(tableRawData)) {
                     exportModule.handleDataRow(convertRawToRow(tableRawData, table));
                     nRows++;

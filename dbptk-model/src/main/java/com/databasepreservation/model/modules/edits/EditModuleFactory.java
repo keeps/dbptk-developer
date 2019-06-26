@@ -55,14 +55,14 @@ public interface EditModuleFactory {
    *
    * @return a map with the pair {@link Parameter}, {@link String}.
    */
-  Map<Parameter, String> getSetParameters();
+  Map<String, Parameter> getSetParameters();
 
   /**
    * Returns a combination of all <code>Parameter</code> and its values.
    *
    * @return a map with the pair {@link Parameter}, {@link String}.
    */
-  Map<Parameter, String> getAllParameters();
+  Map<String, Parameter> getAllParameters();
 
   /**
    * Builds the specific <code>EditModule</code> according the input parameters

@@ -7,18 +7,6 @@
  */
 package com.databasepreservation;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.EditDatabaseMetadataParserException;
 import com.databasepreservation.model.exception.ModuleException;
@@ -29,6 +17,17 @@ import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.PrintUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Class responsible for handling all the logic for update database level
@@ -37,10 +36,14 @@ import com.databasepreservation.utils.PrintUtils;
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 public class SIARDEdition {
-  private EditModuleFactory editModuleFactory;
-  private HashMap<Parameter, List<String>> editModuleParameters;
-  private static HashMap<SIARDDatabaseMetadata, String> cliInputParameters = new HashMap<>();
+  // the same reporter is used for all modules
   private Reporter reporter;
+
+  private EditModuleFactory editModuleFactory;
+  private HashMap<String, List<String>> editModuleStringParameters = new HashMap<>();
+
+  private static HashMap<SIARDDatabaseMetadata, String> cliInputParameters = new HashMap<>();
+
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARDEdition.class);
 
@@ -60,7 +63,18 @@ public class SIARDEdition {
    * Adds the specified parameter to be used in the edit module during the edition
    */
   public SIARDEdition editModuleParameters(Map<Parameter, List<String>> parameters) {
-    this.editModuleParameters = new HashMap<>(parameters);
+    for (Map.Entry<Parameter, List<String>> entry : parameters.entrySet()) {
+      editModuleParameter(entry.getKey().longName(), entry.getValue());
+    }
+    return this;
+  }
+
+  /**
+   * Adds the specified parameter to be used in the import module during the
+   * migration
+   */
+  public SIARDEdition editModuleParameter(String parameterLongName, List<String> parameterValue) {
+    editModuleStringParameters.put(parameterLongName, parameterValue);
     return this;
   }
 
@@ -72,6 +86,15 @@ public class SIARDEdition {
     return this;
   }
 
+  public DatabaseStructure getMetadata() throws ModuleException {
+    HashMap<Parameter, String> importParameters = buildImportParameters(editModuleStringParameters, editModuleFactory);
+
+    EditModule editModule = editModuleFactory.buildModule(importParameters, reporter);
+    editModule.setOnceReporter(reporter);
+
+    return editModule.getMetadata();
+  }
+
   /**
    * lists all the possible changes in a SIARD archive.
    *
@@ -79,7 +102,7 @@ public class SIARDEdition {
    *           Generic module exception
    */
   public void list() throws ModuleException {
-    HashMap<Parameter, String> importParameters = buildImportParameters(editModuleParameters, editModuleFactory);
+    HashMap<Parameter, String> importParameters = buildImportParameters(editModuleStringParameters, editModuleFactory);
 
     EditModule editModule = editModuleFactory.buildModule(importParameters, reporter);
     editModule.setOnceReporter(reporter);
@@ -100,8 +123,8 @@ public class SIARDEdition {
    */
   public void edit() throws ModuleException {
 
-    HashMap<Parameter, String> importParameters = buildImportParameters(editModuleParameters, editModuleFactory);
-    List<SIARDDatabaseMetadata> metadataPairs = buildMetadataPairs(editModuleParameters, editModuleFactory);
+    HashMap<Parameter, String> importParameters = buildImportParameters(editModuleStringParameters, editModuleFactory);
+    List<SIARDDatabaseMetadata> metadataPairs = buildMetadataPairs(editModuleStringParameters, editModuleFactory);
 
     EditModule editModule = editModuleFactory.buildModule(importParameters, reporter);
     reporter.metadataParameters(editModuleFactory.getModuleName(), metadataPairs);
@@ -133,38 +156,35 @@ public class SIARDEdition {
 
   // Auxiliary Internal Methods
 
-  private static HashMap<Parameter, String> buildImportParameters(HashMap<Parameter, List<String>> editModuleParameters,
-    EditModuleFactory editModuleFactory) {
+  private static HashMap<Parameter, String> buildImportParameters(HashMap<String, List<String>> editModuleParameters,
+                                                                  EditModuleFactory editModuleFactory) {
 
     HashMap<Parameter, String> importParameters = new HashMap<>();
 
-    for (Map.Entry<Parameter, List<String>> entry : editModuleParameters.entrySet()) {
-      for (Parameter p : editModuleFactory.getAllParameters().keySet()) {
-        if (entry.getKey().equals(p)) {
-          if (p.longName().contentEquals("file")) {
-            importParameters.put(p, entry.getValue().get(0));
-          }
-        }
+    for (Map.Entry<String, List<String>> entry : editModuleParameters.entrySet()) {
+      Parameter key = editModuleFactory.getAllParameters().get(entry.getKey());
+
+      if (key != null && key.longName().contentEquals("file")) {
+        importParameters.put(key, entry.getValue().get(0));
       }
     }
 
     return importParameters;
   }
 
-  private static List<SIARDDatabaseMetadata> buildMetadataPairs(HashMap<Parameter, List<String>> editModuleParameters,
-    EditModuleFactory editModuleFactory) throws ModuleException {
+  private static List<SIARDDatabaseMetadata> buildMetadataPairs(HashMap<String, List<String>> editModuleParameters,
+                                                                EditModuleFactory editModuleFactory) throws ModuleException {
 
     List<SIARDDatabaseMetadata> metadata = new ArrayList<>();
 
-    for (Map.Entry<Parameter, List<String>> entry : editModuleParameters.entrySet()) {
+    for (Map.Entry<String, List<String>> entry : editModuleParameters.entrySet()) {
       for (String s : entry.getValue()) {
-        for (Parameter p : editModuleFactory.getSetParameters().keySet()) {
-          if (entry.getKey().equals(p)) {
+        Parameter key = editModuleFactory.getSetParameters().get(entry.getKey());
+        if (key != null && entry.getKey().equals(key.longName())) {
             SIARDDatabaseMetadata parsedKey = parse(s);
             metadata.add(parsedKey);
             String normalized = StringUtils.replace(s, Constants.SEPARATOR, " ");
             cliInputParameters.put(parsedKey, normalized);
-          }
         }
       }
     }

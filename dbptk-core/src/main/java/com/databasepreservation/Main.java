@@ -178,13 +178,14 @@ public class Main {
         long startTime = System.currentTimeMillis();
         long duration;
         switch (cli.option()) {
-          case "list":
+          case CLIEdit.NO_OPTION:
+          case CLIEdit.LIST_OPTION:
             LOGGER.info("Listing SIARD metadata of {}", cli.getSIARDPackage());
             siardEdition.list();
             duration = System.currentTimeMillis() - startTime;
             LOGGER.info("Listing SIARD metadata took {}m {}s to complete.", duration / 60000, duration % 60000 / 1000);
             break;
-          case "set":
+          case CLIEdit.SET_OPTION:
             LOGGER.info("Edit SIARD metadata of {}", cli.getSIARDPackage());
             siardEdition.edit();
             duration = System.currentTimeMillis() - startTime;

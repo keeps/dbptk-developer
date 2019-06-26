@@ -35,9 +35,9 @@ import com.databasepreservation.model.parameters.ParameterGroup;
  */
 public class CLIEdit extends CLIHandler {
 
-  private static final String LIST_OPTION = "list";
-  private static final String SET_OPTION = "set";
-  private static final String NO_OPTION = "none";
+  public static final String LIST_OPTION = "list";
+  public static final String SET_OPTION = "set";
+  public static final String NO_OPTION = "none";
 
   private final ArrayList<EditModuleFactory> allEditFactories;
   private EditModuleFactory editModuleFactory;
@@ -107,7 +107,7 @@ public class CLIEdit extends CLIHandler {
 
     if (editModuleParameters.isEmpty()) return NO_OPTION;
 
-    if (editModuleParameters.size() == 1) return LIST_OPTION;
+    if (editModuleParameters.size() == 1) return NO_OPTION;
 
     for (Parameter p : editModuleParameters.keySet()) {
       if (p.longName().equalsIgnoreCase("list") || p.shortName().equalsIgnoreCase("l")) {

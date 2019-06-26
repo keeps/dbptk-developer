@@ -72,19 +72,19 @@ public class SIARDEditFactory implements EditModuleFactory {
   }
 
   @Override
-  public Map<Parameter, String> getAllParameters() {
-    HashMap<Parameter, String> parameterHashMap = new HashMap<>();
-    parameterHashMap.put(file, file.longName());
-    parameterHashMap.put(set, set.longName());
-    parameterHashMap.put(list, list.longName());
+  public Map<String, Parameter> getAllParameters() {
+    HashMap<String , Parameter> parameterHashMap = new HashMap<>();
+    parameterHashMap.put(file.longName(), file);
+    parameterHashMap.put(set.longName(), set);
+    parameterHashMap.put(list.longName(), list);
 
     return parameterHashMap;
   }
 
   @Override
-  public Map<Parameter, String> getSetParameters() {
-    HashMap<Parameter, String> parameterHashMap = new HashMap<>();
-    parameterHashMap.put(set, set.longName());
+  public Map<String, Parameter> getSetParameters() {
+    HashMap<String, Parameter> parameterHashMap = new HashMap<>();
+    parameterHashMap.put(set.longName(), set);
 
     return parameterHashMap;
   }
