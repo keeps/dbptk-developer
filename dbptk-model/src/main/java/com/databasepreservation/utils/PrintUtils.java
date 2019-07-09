@@ -345,7 +345,7 @@ public class PrintUtils {
 
     int maxPrivilege = 0;
     for (PrivilegeStructure privilege : dbStructure.getPrivileges()) {
-      int len = privilege.toString().length() + 11;
+      int len = privilege.toString().length() + 15;
       if (maxPrivilege < len)
         maxPrivilege = len;
     }
