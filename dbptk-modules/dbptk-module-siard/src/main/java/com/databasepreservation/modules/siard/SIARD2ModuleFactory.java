@@ -28,6 +28,7 @@ import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.ParameterGroup;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
@@ -177,6 +178,11 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(validate.longName(), validate);
 
     return parameterHashMap;
+  }
+
+  @Override
+  public Parameters getConnectionParameters() {
+    return new Parameters(Collections.singletonList(file.inputType(INPUT_TYPE.FILE)), null);
   }
 
   @Override

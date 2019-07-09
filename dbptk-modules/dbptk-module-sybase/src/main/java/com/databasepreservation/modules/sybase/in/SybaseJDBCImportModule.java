@@ -205,6 +205,7 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
 
     for (RoleStructure role : roles) {
       role.setAdmin("sa");
+      role.setDescription("");
     }
 
     return roles;

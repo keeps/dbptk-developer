@@ -7,6 +7,8 @@
  */
 package com.databasepreservation.modules;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,15 +23,9 @@ import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.in.OpenEdgeJDBCImportModule;
-import org.apache.commons.lang3.StringUtils;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -42,6 +38,7 @@ public class OpenEdgeModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_DATABASE = "database";
   public static final String PARAMETER_PORT_NUMBER = "port-number";
   public static final String PARAMETER_CUSTOM_VIEWS = "custom-views";
+  public static final String PARAMETER_DRIVER = "driver";
 
   private static final Parameter username = new Parameter().shortName("u").longName(PARAMETER_USERNAME)
       .description("the name of the user to use in the connection").hasArgument(true).setOptionalArgument(false)
@@ -96,6 +93,17 @@ public class OpenEdgeModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(customViews.longName(), customViews);
 
     return parameterHashMap;
+  }
+
+  @Override
+  public Parameters getConnectionParameters() {
+
+    final Parameter driver = new Parameter().shortName("d").longName(PARAMETER_DRIVER)
+      .description("the location of the JDBC driver").hasArgument(true).setOptionalArgument(false).required(true)
+      .inputType(INPUT_TYPE.FILE);
+    return new Parameters(Arrays.asList(driver, hostname.inputType(INPUT_TYPE.TEXT),
+      portNumber.inputType(INPUT_TYPE.NUMBER), username.inputType(INPUT_TYPE.TEXT),
+      password.inputType(INPUT_TYPE.PASSWORD), database.inputType(INPUT_TYPE.TEXT)), null);
   }
 
   @Override

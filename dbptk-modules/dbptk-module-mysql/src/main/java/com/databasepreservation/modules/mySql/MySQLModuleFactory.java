@@ -13,16 +13,17 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.databasepreservation.model.exception.ModuleException;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.mySql.in.MySQLJDBCImportModule;
 import com.databasepreservation.modules.mySql.out.MySQLJDBCExportModule;
@@ -93,13 +94,20 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
+  public Parameters getConnectionParameters() {
+    return new Parameters(Arrays.asList(hostname.inputType(INPUT_TYPE.TEXT), portNumber.inputType(INPUT_TYPE.NUMBER),
+      username.inputType(INPUT_TYPE.TEXT), password.inputType(INPUT_TYPE.PASSWORD),
+      database.inputType(INPUT_TYPE.TEXT)), null);
+  }
+
+  @Override
   public Parameters getImportModuleParameters() throws UnsupportedModuleException {
-    return new Parameters(Arrays.asList(hostname, database, username, password, portNumber, customViews), null);
+    return new Parameters(Arrays.asList(hostname, portNumber, database, username, password, customViews), null);
   }
 
   @Override
   public Parameters getExportModuleParameters() throws UnsupportedModuleException {
-    return new Parameters(Arrays.asList(hostname, database, username, password, portNumber), null);
+    return new Parameters(Arrays.asList(hostname, portNumber, database, username, password), null);
   }
 
   @Override

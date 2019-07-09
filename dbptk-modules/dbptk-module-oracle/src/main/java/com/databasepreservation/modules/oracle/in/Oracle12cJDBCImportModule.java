@@ -117,8 +117,8 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
 
   @Override
   protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex,
-    String description) throws SQLException, ModuleException {
-    TableStructure tableStructure = super.getTableStructure(schema, tableName, tableIndex, description);
+    String description, boolean view) throws SQLException, ModuleException {
+    TableStructure tableStructure = super.getTableStructure(schema, tableName, tableIndex, description, view);
 
     try (PreparedStatement statement = getConnection()
       .prepareStatement("SELECT COMMENTS FROM ALL_TAB_COMMENTS WHERE OWNER = ? AND TABLE_NAME = ?")) {

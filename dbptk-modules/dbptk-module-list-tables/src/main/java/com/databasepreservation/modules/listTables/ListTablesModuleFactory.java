@@ -64,6 +64,11 @@ public class ListTablesModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
+  public Parameters getConnectionParameters() throws UnsupportedModuleException {
+    throw DatabaseModuleFactory.ExceptionBuilder.UnsupportedModuleExceptionForImportModule();
+  }
+
+  @Override
   public Parameters getImportModuleParameters() throws UnsupportedModuleException {
     throw DatabaseModuleFactory.ExceptionBuilder.UnsupportedModuleExceptionForImportModule();
   }

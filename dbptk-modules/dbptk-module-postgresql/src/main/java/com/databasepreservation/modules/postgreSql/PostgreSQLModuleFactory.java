@@ -13,16 +13,17 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.databasepreservation.model.exception.ModuleException;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.postgreSql.in.PostgreSQLJDBCImportModule;
 import com.databasepreservation.modules.postgreSql.out.PostgreSQLJDBCExportModule;
@@ -97,6 +98,13 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(portNumber.longName(), portNumber);
     parameterHashMap.put(customViews.longName(), customViews);
     return parameterHashMap;
+  }
+
+  @Override
+  public Parameters getConnectionParameters() {
+    return new Parameters(Arrays.asList(hostname.inputType(INPUT_TYPE.TEXT), portNumber.inputType(INPUT_TYPE.NUMBER),
+      username.inputType(INPUT_TYPE.TEXT), password.inputType(INPUT_TYPE.PASSWORD), database.inputType(INPUT_TYPE.TEXT),
+      disableEncryption.inputType(INPUT_TYPE.CHECKBOX)), null);
   }
 
   @Override

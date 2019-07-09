@@ -13,16 +13,17 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.databasepreservation.model.exception.ModuleException;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.msAccess.in.MsAccessUCanAccessImportModule;
 
@@ -71,6 +72,12 @@ public class MsAccessUCanAccessModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(accessPassword.longName(), accessPassword);
     parameterHashMap.put(customViews.longName(), customViews);
     return parameterHashMap;
+  }
+
+  @Override
+  public Parameters getConnectionParameters() {
+    return new Parameters(
+      Arrays.asList(accessFilePath.inputType(INPUT_TYPE.FILE), accessPassword.inputType(INPUT_TYPE.PASSWORD)), null);
   }
 
   @Override

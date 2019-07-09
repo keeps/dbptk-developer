@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.databasepreservation.model.Reporter;
@@ -21,6 +20,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
 import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import com.databasepreservation.model.parameters.Parameter;
 
@@ -48,6 +48,12 @@ public class DatabaseMigration {
 
   public static DatabaseMigration newInstance() {
     return new DatabaseMigration();
+  }
+
+  public DatabaseImportModule getImportModule() throws ModuleException {
+    Map<Parameter, String> importParameters = buildParametersFromStringParameters(importModuleFactory,
+      importModuleFactoryStringParameters);
+    return importModuleFactory.buildImportModule(importParameters, reporter);
   }
 
   public void migrate() throws ModuleException {

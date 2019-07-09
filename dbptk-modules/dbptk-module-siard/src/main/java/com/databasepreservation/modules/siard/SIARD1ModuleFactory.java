@@ -12,6 +12,7 @@ import static com.databasepreservation.Constants.UNSPECIFIED_METADATA_VALUE;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,6 +25,7 @@ import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.in.input.SIARD1ImportModule;
@@ -132,6 +134,11 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(metaClientMachine.longName(), metaClientMachine);
     parameterHashMap.put(validate.longName(), validate);
     return parameterHashMap;
+  }
+
+  @Override
+  public Parameters getConnectionParameters() {
+    return new Parameters(Collections.singletonList(file.inputType(INPUT_TYPE.FILE)), null);
   }
 
   @Override

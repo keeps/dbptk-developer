@@ -17,6 +17,12 @@ import org.apache.commons.cli.Option;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class Parameter {
+
+  /* GUI Helper */
+  public enum INPUT_TYPE {
+    FILE, FOLDER, TEXT, PASSWORD, CHECKBOX, NUMBER
+  }
+
   private String shortName = null;
   private String longName = null;
   private String description = null;
@@ -26,6 +32,7 @@ public class Parameter {
   private String valueIfSet = null; // for parameters without argument
   private String valueIfNotSet = null; // for optional parameters that were not set
   private Integer numberOfArgs = null; // for parameters that receive more than one argument
+  private INPUT_TYPE inputType = null;
 
   private HashMap<String, Option> options = new HashMap<String, Option>();
 
@@ -228,6 +235,26 @@ public class Parameter {
    */
   public Parameter numberOfArgs(Integer numberOfArgs) {
     this.numberOfArgs = numberOfArgs;
+    return this;
+  }
+
+  /**
+   * Gets the input type for this parameter; Helper to automatize the DVBTK
+   *
+   * @return The type of input {@link INPUT_TYPE} enum.
+   */
+  public INPUT_TYPE getInputType() {
+    return inputType;
+  }
+
+  /**
+   *
+   * @param type
+   *          Set the type name for this parameter
+   * @return This parameter, for method chaining.
+   */
+  public Parameter inputType(INPUT_TYPE type) {
+    this.inputType = type;
     return this;
   }
 

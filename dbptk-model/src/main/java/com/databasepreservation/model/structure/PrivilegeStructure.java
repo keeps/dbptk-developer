@@ -145,4 +145,9 @@ public class PrivilegeStructure {
     }
     return true;
   }
+
+  @Override
+  public String toString() {
+    return "[type:" + type + " object:" + object + " grantor:" + grantor + " grantee:" + grantee + "]";
+  }
 }

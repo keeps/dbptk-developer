@@ -152,8 +152,8 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    */
   @Override
   protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex,
-    String description) throws SQLException, ModuleException {
-    TableStructure tableStructure = super.getTableStructure(schema, tableName, tableIndex, description);
+    String description, boolean view) throws SQLException, ModuleException {
+    TableStructure tableStructure = super.getTableStructure(schema, tableName, tableIndex, description, view);
 
     // obtain mysql remarks/comments (unsupported by the mysql driver up to
     // 5.1.38)

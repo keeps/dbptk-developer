@@ -24,6 +24,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import com.databasepreservation.model.structure.PrivilegeStructure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -231,17 +232,17 @@ public class SIARDEditModule implements EditModule {
       String xpathExpressionSchemas = "/ns:siardArchive/ns:schemas/ns:schema";
       String xpathExpressionUsers = "/ns:siardArchive/ns:users/ns:user/ns:name/text()";
       String xpathExpressionRoles = "/ns:siardArchive/ns:roles/ns:role/ns:name/text()";
-      // String xpathExpressionPrivileges =
-      // "/ns:siardArchive/ns:privileges/ns:privilege/ns:name/text()"; -- confirmar os
-      // campos a usar para identificar unicamente um privilégio
+      String xpathExpressionPrivileges = "/ns:siardArchive/ns:privileges/ns:privilege";
 
       List<SIARDDatabaseMetadata> schemaMetadata = getSchemaMetadata(doc, xpathExpressionSchemas);
       List<SIARDDatabaseMetadata> usersMetadata = getUsersMetadata(doc, xpathExpressionUsers);
       List<SIARDDatabaseMetadata> rolesMetadata = getRolesMetadata(doc, xpathExpressionRoles);
+      List<SIARDDatabaseMetadata> privilegesMetadata = getPrivilegesMetadata(doc, xpathExpressionPrivileges);
 
       SIARDDatabaseMetadataKeys.addAll(schemaMetadata);
       SIARDDatabaseMetadataKeys.addAll(usersMetadata);
       SIARDDatabaseMetadataKeys.addAll(rolesMetadata);
+      SIARDDatabaseMetadataKeys.addAll(privilegesMetadata);
 
     } catch (ParserConfigurationException e) {
       throw new ModuleException()
@@ -330,6 +331,43 @@ public class SIARDEditModule implements EditModule {
 
     return metadata;
   }
+
+  private static List<SIARDDatabaseMetadata> getPrivilegesMetadata(Document document, String xpathExpression)
+      throws ModuleException {
+    XPathFactory xPathFactory = XPathFactory.newInstance();
+    XPath xpath = xPathFactory.newXPath();
+
+    xpath = setXPathForXML(xpath);
+
+    List<SIARDDatabaseMetadata> metadata = new ArrayList<>();
+
+    try {
+
+      XPathExpression expr = xpath.compile(xpathExpression);
+
+      NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
+
+      for (int i = 0; i < nodes.getLength(); i++) {
+          Element priv = (Element) nodes.item(i);
+
+        PrivilegeStructure privilege = new PrivilegeStructure();
+        privilege.setType(priv.getElementsByTagName("type").item(0).getTextContent());
+        privilege.setObject(priv.getElementsByTagName("object").item(0).getTextContent());
+        privilege.setGrantor(priv.getElementsByTagName("grantor").item(0).getTextContent());
+        privilege.setGrantee(priv.getElementsByTagName("grantee").item(0).getTextContent());
+
+        SIARDDatabaseMetadata dbMetadata = new SIARDDatabaseMetadata();
+        dbMetadata.setPrivilege(privilege);
+        metadata.add(dbMetadata);
+      }
+
+    } catch (XPathExpressionException e) {
+      throw new ModuleException().withMessage("Error on xpath expression: " + xpathExpression).withCause(e);
+    }
+
+    return metadata;
+  }
+
 
   private static List<SIARDDatabaseMetadata> getSchemaMetadata(Document document, String xpathExpression)
     throws ModuleException {

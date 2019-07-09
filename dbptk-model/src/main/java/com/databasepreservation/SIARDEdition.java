@@ -7,6 +7,18 @@
  */
 package com.databasepreservation;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.EditDatabaseMetadataParserException;
 import com.databasepreservation.model.exception.ModuleException;
@@ -15,19 +27,9 @@ import com.databasepreservation.model.modules.edits.EditModule;
 import com.databasepreservation.model.modules.edits.EditModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.model.structure.PrivilegeStructure;
 import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.PrintUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Class responsible for handling all the logic for update database level
@@ -333,11 +335,65 @@ public class SIARDEdition {
           }
           return metadata;
         }
+        if (counters.get("role") == 1) {
+          metadata = new SIARDDatabaseMetadata();
+          Matcher m = rolePattern.matcher(metadataPath);
+          while (m.find()) {
+            metadata.setDatabaseMetadata(SIARDDatabaseMetadata.ROLE, m.group(1));
+            metadata.setValue(value);
+          }
+          return metadata;
+        }
         if (counters.get("privilege") == 1) {
           metadata = new SIARDDatabaseMetadata();
           Matcher m = privilegePattern.matcher(metadataPath);
           while (m.find()) {
-            metadata.setDatabaseMetadata(SIARDDatabaseMetadata.PRIVILEGE, m.group(1));
+
+            PrivilegeStructure privilege = new PrivilegeStructure();
+
+            Pattern type = Pattern.compile("type:(.*?)[\\s\\]]");
+            Pattern object = Pattern.compile("object:(.*?\")[\\s\\]]");
+            Pattern grantor = Pattern.compile("grantor:(.*?)[\\s\\]]");
+            Pattern grantee = Pattern.compile("grantee:(.*?)[\\s\\]]");
+            Matcher typeMatcher = type.matcher(metadataPath);
+            Matcher objectMatcher = object.matcher(metadataPath);
+            Matcher grantorMatcher = grantor.matcher(metadataPath);
+            Matcher granteeMatcher = grantee.matcher(metadataPath);
+            while (typeMatcher.find()) {
+              String parsed = typeMatcher.group(1);
+              if (StringUtils.isBlank(parsed)) {
+                throw new EditDatabaseMetadataParserException("Missing type name")
+                  .withFaultyArgument(normalizedMetadataPath);
+              }
+              privilege.setType(parsed);
+            }
+            while (objectMatcher.find()) {
+              String parsed = objectMatcher.group(1);
+              if (StringUtils.isBlank(parsed)) {
+                throw new EditDatabaseMetadataParserException("Missing object name")
+                  .withFaultyArgument(normalizedMetadataPath);
+              }
+              privilege.setObject(parsed);
+            }
+            while (grantorMatcher.find()) {
+              String parsed = grantorMatcher.group(1);
+              if (StringUtils.isBlank(parsed)) {
+                throw new EditDatabaseMetadataParserException("Missing grantor name")
+                  .withFaultyArgument(normalizedMetadataPath);
+              }
+              privilege.setGrantor(parsed);
+            }
+            while (granteeMatcher.find()) {
+              String parsed = granteeMatcher.group(1);
+              if (StringUtils.isBlank(parsed)) {
+                throw new EditDatabaseMetadataParserException("Missing grantee name")
+                  .withFaultyArgument(normalizedMetadataPath);
+              }
+              privilege.setGrantee(parsed);
+            }
+
+            metadata.setPrivilege(privilege);
+            metadata.setToUpdate(SIARDDatabaseMetadata.PRIVILEGE);
             metadata.setValue(value);
           }
           return metadata;
@@ -628,7 +684,17 @@ public class SIARDEdition {
           }
           break;
         case SIARDDatabaseMetadata.PRIVILEGE:
-          // TODO: Implement
+          try {
+            reporter.metadataUpdated("Changing privilege:" + metadata.getPrivilege() + " description from '"
+                + emptyString(dbStructure.getPrivilege(metadata.getPrivilege()).getDescription()) + "' to '"
+                + metadata.getValue() + "'");
+            dbStructure.updatePrivilegeDescription(metadata.getPrivilege(), metadata.getValue());
+          } catch (NullPointerException e) {
+            reporter.failed("updating privilege description", "privilege '" + metadata.getPrivilege() + "' not found");
+            throw new ModuleException()
+                .withMessage("Error updating the SIARD metadata, please check the log file for more information")
+                .withCause(e);
+          }
           break;
         case SIARDDatabaseMetadata.TABLE:
           try {

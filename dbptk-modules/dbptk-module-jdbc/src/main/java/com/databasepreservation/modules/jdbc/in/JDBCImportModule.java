@@ -280,6 +280,20 @@ public class JDBCImportModule implements DatabaseImportModule {
     return dbMetadata;
   }
 
+  public boolean testConnection() throws ModuleException {
+    try {
+      return (!getConnection().isClosed() && connection != null);
+    } catch (SQLException e) {
+      throw normalizeException(e, null);
+    }
+  }
+
+  public DatabaseStructure getSchemaInformation() throws ModuleException {
+    moduleSettings = new ModuleSettings();
+    getDatabaseStructure();
+    return dbStructure;
+  }
+
   /**
    * Close current connection
    *
@@ -598,7 +612,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
         if (getModuleSettings().isSelectedTable(schema.getName(), tableName)) {
           LOGGER.info("Obtaining table structure for " + schema.getName() + "." + tableName);
-          tables.add(getTableStructure(schema, tableName, tableIndex, tableDescription));
+          tables.add(getTableStructure(schema, tableName, tableIndex, tableDescription, false));
           tableIndex++;
         } else {
           LOGGER.info("Ignoring table " + schema.getName() + "." + tableName);
@@ -735,7 +749,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @throws ModuleException
    */
   protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex,
-    String description) throws SQLException, ModuleException {
+    String description, boolean view) throws SQLException, ModuleException {
     TableStructure table = new TableStructure();
     table.setId(schema.getName() + "." + tableName);
     table.setName(tableName);
@@ -753,11 +767,14 @@ public class JDBCImportModule implements DatabaseImportModule {
     }
 
     table.setColumns(columns);
-    table.setPrimaryKey(getPrimaryKey(schema.getName(), tableName));
-    table.setForeignKeys(getForeignKeys(schema.getName(), tableName));
-    table.setCandidateKeys(getCandidateKeys(schema.getName(), tableName));
-    table.setCheckConstraints(getCheckConstraints(schema.getName(), tableName));
-    table.setTriggers(getTriggers(schema.getName(), tableName));
+
+    if (!view) {
+      table.setPrimaryKey(getPrimaryKey(schema.getName(), tableName));
+      table.setForeignKeys(getForeignKeys(schema.getName(), tableName));
+      table.setCandidateKeys(getCandidateKeys(schema.getName(), tableName));
+      table.setCheckConstraints(getCheckConstraints(schema.getName(), tableName));
+      table.setTriggers(getTriggers(schema.getName(), tableName));
+    }
 
     table.setRows(getRows(schema.getName(), tableName));
 
@@ -766,7 +783,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   protected TableStructure getViewStructure(SchemaStructure schema, String tableName, int tableIndex,
     String description) throws SQLException, ModuleException {
-    TableStructure view = getTableStructure(schema, tableName, tableIndex, description);
+    TableStructure view = getTableStructure(schema, tableName, tableIndex, description, true);
     view.setFromView(true);
     view.setName(VIEW_NAME_PREFIX+view.getName());
     view.setDescription("Table materialized from view.\n"+view.getDescription());

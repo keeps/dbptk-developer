@@ -13,6 +13,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.ModuleException;
@@ -21,10 +23,10 @@ import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.oracle.in.Oracle12cJDBCImportModule;
 import com.databasepreservation.modules.oracle.out.Oracle12cJDBCExportModule;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -105,6 +107,13 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(sourceSchema.longName(), sourceSchema);
     parameterHashMap.put(customViews.longName(), customViews);
     return parameterHashMap;
+  }
+
+  @Override
+  public Parameters getConnectionParameters() {
+    return new Parameters(Arrays.asList(serverName.inputType(INPUT_TYPE.TEXT), portNumber.inputType(INPUT_TYPE.NUMBER),
+      username.inputType(INPUT_TYPE.TEXT), password.inputType(INPUT_TYPE.PASSWORD), instance.inputType(INPUT_TYPE.TEXT),
+      acceptLicense.inputType(INPUT_TYPE.CHECKBOX)), null);
   }
 
   @Override

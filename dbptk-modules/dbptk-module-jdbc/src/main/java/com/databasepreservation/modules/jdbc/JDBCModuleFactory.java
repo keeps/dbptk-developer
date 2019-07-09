@@ -18,6 +18,7 @@ import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.jdbc.out.JDBCExportModule;
@@ -70,6 +71,12 @@ public class JDBCModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(connection.longName(), connection);
     // parameterHashMap.put(params.longName(), params);
     return parameterHashMap;
+  }
+
+  @Override
+  public Parameters getConnectionParameters() {
+    return new Parameters(Arrays.asList(driver.inputType(INPUT_TYPE.TEXT), connection.inputType(INPUT_TYPE.TEXT)),
+      null);
   }
 
   @Override

@@ -540,6 +540,20 @@ public class DatabaseStructure {
     return privileges;
   }
 
+  public PrivilegeStructure getPrivilege(PrivilegeStructure privilege) {
+    for (PrivilegeStructure privilegeStructure : getPrivileges()) {
+      if (privilegeStructure.getType().equals(privilege.getType())
+      && privilegeStructure.getObject().equals(privilege.getObject())
+      && privilegeStructure.getGrantor().equals(privilege.getGrantor())
+      && privilegeStructure.getGrantee().equals(privilege.getGrantee())) {
+        return privilegeStructure;
+      }
+    }
+
+    return null;
+  }
+
+
   public void setPrivileges(List<PrivilegeStructure> privileges) {
     this.privileges = privileges;
   }
@@ -702,6 +716,17 @@ public class DatabaseStructure {
   public void updateRoleDescription(String roleName, String description) {
     RoleStructure role = getRoleByName(roleName);
     role.setDescription(description);
+  }
+
+  public void updatePrivilegeDescription(PrivilegeStructure privilege, String description) {
+    for (PrivilegeStructure p : getPrivileges()) {
+      if (p.getType().equals(privilege.getType())
+          && p.getObject().equals(privilege.getObject())
+          && p.getGrantor().equals(privilege.getGrantor())
+          && p.getGrantee().equals(privilege.getGrantee())) {
+        p.setDescription(description);
+      }
+    }
   }
 
   /*

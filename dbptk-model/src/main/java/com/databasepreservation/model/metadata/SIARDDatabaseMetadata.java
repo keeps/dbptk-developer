@@ -11,6 +11,8 @@ import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.databasepreservation.model.structure.PrivilegeStructure;
+
 /**
  * SIARD metadata specification.
  *
@@ -62,7 +64,7 @@ public class SIARDDatabaseMetadata {
   private String routineParameter;
   private String user;
   private String role;
-  private String privilege;
+  private PrivilegeStructure privilege;
   private String descriptiveMetadata;
   private int toUpdate;
   private String value;
@@ -72,7 +74,8 @@ public class SIARDDatabaseMetadata {
 
   public SIARDDatabaseMetadata(String schema, String table, String tableColumn, String trigger, String primaryKey,
     String candidateKey, String foreignKey, String checkConstraint, String view, String viewColumn, String routine,
-    String routineParameter, String user, String role, String privilege, String descriptiveMetadata, Integer toUpdate, String value) {
+    String routineParameter, String user, String role, PrivilegeStructure privilege, String descriptiveMetadata,
+    Integer toUpdate, String value) {
     this.schema = schema;
     this.table = table;
     this.tableColumn = tableColumn;
@@ -158,9 +161,6 @@ public class SIARDDatabaseMetadata {
         break;
       case SIARDDatabaseMetadata.USER:
         this.setUser(value);
-        break;
-      case SIARDDatabaseMetadata.PRIVILEGE:
-        this.setPrivilege(value);
         break;
       case SIARDDatabaseMetadata.TABLE:
         this.setTable(value);
@@ -352,11 +352,11 @@ public class SIARDDatabaseMetadata {
     this.role = role;
   }
 
-  public String getPrivilege() {
+  public PrivilegeStructure getPrivilege() {
     return privilege;
   }
 
-  public void setPrivilege(String privilege) {
+  public void setPrivilege(PrivilegeStructure privilege) {
     this.privilege = privilege;
   }
 
@@ -390,24 +390,26 @@ public class SIARDDatabaseMetadata {
       return true;
     if (o == null || getClass() != o.getClass())
       return false;
-    SIARDDatabaseMetadata that = (SIARDDatabaseMetadata) o;
-    return Objects.equals(getSchema(), that.getSchema()) && Objects.equals(getTable(), that.getTable())
-      && Objects.equals(getTableColumn(), that.getTableColumn()) && Objects.equals(getTrigger(), that.getTrigger())
-      && Objects.equals(getPrimaryKey(), that.getPrimaryKey())
-      && Objects.equals(getCandidateKey(), that.getCandidateKey())
-      && Objects.equals(getForeignKey(), that.getForeignKey())
-      && Objects.equals(getCheckConstraint(), that.getCheckConstraint()) && Objects.equals(getView(), that.getView())
-      && Objects.equals(getViewColumn(), that.getViewColumn()) && Objects.equals(getRoutine(), that.getRoutine())
-      && Objects.equals(getRoutineParameter(), that.getRoutineParameter()) && Objects.equals(getUser(), that.getUser())
-      && Objects.equals(getRole(), that.getRole()) && Objects.equals(getPrivilege(), that.getPrivilege())
-      && Objects.equals(getToUpdate(), that.getToUpdate());
+    SIARDDatabaseMetadata metadata = (SIARDDatabaseMetadata) o;
+    return Objects.equals(getSchema(), metadata.getSchema())
+      && Objects.equals(getTable(), metadata.getTable()) && Objects.equals(getTableColumn(), metadata.getTableColumn())
+      && Objects.equals(getTrigger(), metadata.getTrigger())
+      && Objects.equals(getPrimaryKey(), metadata.getPrimaryKey())
+      && Objects.equals(getCandidateKey(), metadata.getCandidateKey())
+      && Objects.equals(getForeignKey(), metadata.getForeignKey())
+      && Objects.equals(getCheckConstraint(), metadata.getCheckConstraint())
+      && Objects.equals(getView(), metadata.getView()) && Objects.equals(getViewColumn(), metadata.getViewColumn())
+      && Objects.equals(getRoutine(), metadata.getRoutine())
+      && Objects.equals(getRoutineParameter(), metadata.getRoutineParameter())
+      && Objects.equals(getUser(), metadata.getUser()) && Objects.equals(getRole(), metadata.getRole())
+      && Objects.equals(getPrivilege(), metadata.getPrivilege());
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(getSchema(), getTable(), getTableColumn(), getTrigger(), getPrimaryKey(), getCandidateKey(),
       getForeignKey(), getCheckConstraint(), getView(), getViewColumn(), getRoutine(), getRoutineParameter(), getUser(),
-      getRole(), getPrivilege(), getToUpdate());
+      getRole(), getPrivilege());
   }
 
   @Override
@@ -442,8 +444,11 @@ public class SIARDDatabaseMetadata {
       sb.append("user:").append(getUser());
     if (StringUtils.isNotBlank(getRole()))
       sb.append("role:").append(getRole());
-    if (StringUtils.isNotBlank(getPrivilege()))
-      sb.append("privilege:").append(getPrivilege());
+    if (getPrivilege() != null) {
+      sb.append("privilege:[").append("type:").append(getPrivilege().getType()).append(" object:")
+        .append(getPrivilege().getObject()).append(" grantor:").append(getPrivilege().getGrantor()).append(" grantee:")
+        .append(getPrivilege().getGrantee()).append("]");
+    }
     if (StringUtils.isNotBlank(getDescriptiveMetadata()))
       sb.append(getDescriptiveMetadata()).append(" ");
     String output = sb.toString();

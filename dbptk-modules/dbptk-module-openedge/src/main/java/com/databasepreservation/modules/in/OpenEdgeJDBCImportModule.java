@@ -8,6 +8,7 @@
 package com.databasepreservation.modules.in;
 
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -35,17 +36,6 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.CloseableUtils;
 import com.databasepreservation.modules.OpenEdgeHelper;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -56,8 +46,9 @@ public class OpenEdgeJDBCImportModule extends JDBCImportModule {
 
   /**
    * Creates a new Progress OpenEdge import module using the default instance.
+   * 
    * @param hostname
-   *          the name of the Sybase server host (e.g. localhost)
+   *          the name of the Progress OpenEdge server host (e.g. localhost)
    * @param database
    *          the name of the database we'll be accessing
    * @param username
@@ -75,7 +66,7 @@ public class OpenEdgeJDBCImportModule extends JDBCImportModule {
    * Creates a new Progress OpenEdge import module using the default instance.
    *
    * @param hostname
-   *          the name of the Sybase server host (e.g. localhost)
+   *          the name of the Progress OpenEdge server host (e.g. localhost)
    * @param port
    *          the port that sybase is listening
    * @param database
@@ -426,8 +417,9 @@ public class OpenEdgeJDBCImportModule extends JDBCImportModule {
    * @throws ModuleException
    */
   @Override
-  protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex, String description) throws SQLException, ModuleException {
-    TableStructure tableStructure = super.getTableStructure(schema, tableName, tableIndex, description);
+  protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex,
+    String description, boolean view) throws SQLException, ModuleException {
+    TableStructure tableStructure = super.getTableStructure(schema, tableName, tableIndex, description, view);
     tableStructure.setDescription(getDescriptionForTable(schema.getName(), tableName));
     return tableStructure;
   }

@@ -19,6 +19,7 @@ import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.ForeignKey;
 import com.databasepreservation.model.structure.Parameter;
+import com.databasepreservation.model.structure.PrivilegeStructure;
 import com.databasepreservation.model.structure.RoleStructure;
 import com.databasepreservation.model.structure.RoutineStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
@@ -179,6 +180,13 @@ public class PrintUtils {
 
     sb.append("\n");
 
+    List<PrivilegeStructure> privileges = dbStructure.getPrivileges();
+    for (PrivilegeStructure privilege : privileges) {
+      printLine(privilege.toString(), maxLengths.get("privilege"), "privileges", privilege.getDescription(), sb);
+    }
+
+    sb.append("\n");
+
     printStream.append(sb.toString()).flush();
   }
 
@@ -330,10 +338,18 @@ public class PrintUtils {
     int maxRole = 0;
     for (RoleStructure role : dbStructure.getRoles()) {
       int len = role.getName().length() + 7;
-      if (maxUser < len)
-        maxUser = len;
+      if (maxRole < len)
+        maxRole = len;
     }
     maxLengths.put("role", maxRole);
+
+    int maxPrivilege = 0;
+    for (PrivilegeStructure privilege : dbStructure.getPrivileges()) {
+      int len = privilege.toString().length() + 11;
+      if (maxPrivilege < len)
+        maxPrivilege = len;
+    }
+    maxLengths.put("privilege", maxPrivilege);
 
     return maxLengths;
   }

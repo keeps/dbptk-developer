@@ -9,7 +9,7 @@ package com.databasepreservation.modules.dbml;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,8 +59,13 @@ public class DBMLModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
+  public Parameters getConnectionParameters() {
+    return new Parameters(Collections.singletonList(file.inputType(Parameter.INPUT_TYPE.FILE)), null);
+  }
+
+  @Override
   public Parameters getImportModuleParameters() throws UnsupportedModuleException {
-    return new Parameters(Arrays.asList(file), null);
+    return new Parameters(Collections.singletonList(file), null);
   }
 
   @Override

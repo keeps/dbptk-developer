@@ -34,6 +34,8 @@ public interface DatabaseModuleFactory {
 
   Map<String, Parameter> getAllParameters();
 
+  Parameters getConnectionParameters() throws UnsupportedModuleException;
+
   Parameters getImportModuleParameters() throws UnsupportedModuleException;
 
   Parameters getExportModuleParameters() throws UnsupportedModuleException;

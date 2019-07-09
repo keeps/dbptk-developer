@@ -24,6 +24,7 @@ import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.in.input.SIARDDKImportModule;
@@ -132,6 +133,11 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     // parameterMap.put(clobLength.longName(), clobLength);
 
     return parameterMap;
+  }
+
+  @Override
+  public Parameters getConnectionParameters() {
+    return new Parameters(Arrays.asList(folder.inputType(INPUT_TYPE.FOLDER), PARAM_IMPORT_AS_SCHEMA.inputType(INPUT_TYPE.TEXT)), null);
   }
 
   @Override

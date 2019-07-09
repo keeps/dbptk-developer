@@ -10,19 +10,21 @@ package com.databasepreservation.modules.sqlServer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.databasepreservation.model.exception.ModuleException;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.ParameterGroup;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.sqlServer.in.SQLServerJDBCImportModule;
@@ -113,17 +115,25 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
+  public Parameters getConnectionParameters() {
+    return new Parameters(Arrays.asList(serverName.inputType(INPUT_TYPE.TEXT), database.inputType(INPUT_TYPE.TEXT),
+      username.inputType(INPUT_TYPE.TEXT), password.inputType(INPUT_TYPE.PASSWORD),
+      useIntegratedLogin.inputType(INPUT_TYPE.CHECKBOX), disableEncryption.inputType(INPUT_TYPE.CHECKBOX),
+      instanceName.inputType(INPUT_TYPE.TEXT), portNumber.inputType(INPUT_TYPE.NUMBER)), null);
+  }
+
+  @Override
   public Parameters getImportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(
       Arrays.asList(serverName, database, username, password, useIntegratedLogin, disableEncryption, customViews),
-      Arrays.asList(instanceName_portNumber));
+      Collections.singletonList(instanceName_portNumber));
   }
 
   @Override
   public Parameters getExportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(
       Arrays.asList(serverName, database, username, password, useIntegratedLogin, disableEncryption),
-      Arrays.asList(instanceName_portNumber));
+      Collections.singletonList(instanceName_portNumber));
   }
 
   @Override
