@@ -182,7 +182,7 @@ public class PrintUtils {
 
     List<PrivilegeStructure> privileges = dbStructure.getPrivileges();
     for (PrivilegeStructure privilege : privileges) {
-      printLine(privilege.toString(), maxLengths.get("privilege"), "privileges", privilege.getDescription(), sb);
+      printLine(privilege.toString(), maxLengths.get("privilege"), "privilege", privilege.getDescription(), sb);
     }
 
     sb.append("\n");
