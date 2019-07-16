@@ -20,7 +20,12 @@ public class Parameter {
 
   /* GUI Helper */
   public enum INPUT_TYPE {
-    FILE, FOLDER, TEXT, PASSWORD, CHECKBOX, NUMBER
+    FILE, FOLDER, TEXT, PASSWORD, CHECKBOX, NUMBER, DEFAULT, NONE
+  }
+
+  /* GUI Helper for SIARD Export Module */
+  public enum CATEGORY_TYPE {
+    SIARD_EXPORT_OPTIONS, METADATA_EXPORT_OPTIONS, EXTERNAL_LOBS, NONE
   }
 
   private String shortName = null;
@@ -33,6 +38,7 @@ public class Parameter {
   private String valueIfNotSet = null; // for optional parameters that were not set
   private Integer numberOfArgs = null; // for parameters that receive more than one argument
   private INPUT_TYPE inputType = null;
+  private CATEGORY_TYPE exportOptions = null;
 
   private HashMap<String, Option> options = new HashMap<String, Option>();
 
@@ -255,6 +261,26 @@ public class Parameter {
    */
   public Parameter inputType(INPUT_TYPE type) {
     this.inputType = type;
+    return this;
+  }
+
+  /**
+   * Gets the export option type for this parameter; Helper to automatize the DVBTK
+   *
+   * @return The category type {@link CATEGORY_TYPE} enum.
+   */
+  public CATEGORY_TYPE getExportOptions() {
+    return exportOptions;
+  }
+
+  /**
+   *
+   * @param exportOptions
+   *          Set the export option name for this parameter
+   * @return This parameter, for method chaining.
+   */
+  public Parameter exportOptions(CATEGORY_TYPE exportOptions) {
+    this.exportOptions = exportOptions;
     return this;
   }
 

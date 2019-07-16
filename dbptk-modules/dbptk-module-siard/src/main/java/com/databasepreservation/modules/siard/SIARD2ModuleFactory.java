@@ -17,17 +17,18 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.databasepreservation.model.exception.SiardNotFoundException;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.SiardNotFoundException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.parameters.Parameter.CATEGORY_TYPE;
 import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.ParameterGroup;
 import com.databasepreservation.model.parameters.Parameters;
@@ -192,9 +193,24 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Parameters getExportModuleParameters() throws UnsupportedModuleException {
-    return new Parameters(Arrays.asList(version, file, compress, prettyPrintXML, tableFilter, externalLobs,
-      externalLobsPerFolder, externalLobsFolderSize, metaDescription, metaArchiver, metaArchiverContact, metaDataOwner,
-      metaDataOriginTimespan, metaClientMachine, gmlDirectory, validate), Collections.<ParameterGroup> emptyList());
+    return new Parameters(
+      Arrays.asList(version.inputType(INPUT_TYPE.NONE).exportOptions(CATEGORY_TYPE.NONE),
+        file.inputType(INPUT_TYPE.FILE).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+        compress.inputType(INPUT_TYPE.CHECKBOX).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+        prettyPrintXML.inputType(INPUT_TYPE.DEFAULT).exportOptions(CATEGORY_TYPE.NONE),
+        tableFilter.inputType(INPUT_TYPE.NONE).exportOptions(CATEGORY_TYPE.NONE),
+        externalLobs.inputType(INPUT_TYPE.CHECKBOX).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS),
+        externalLobsPerFolder.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS),
+        externalLobsFolderSize.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS),
+        metaDescription.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
+        metaArchiver.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
+        metaArchiverContact.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
+        metaDataOwner.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
+        metaDataOriginTimespan.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
+        metaClientMachine.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
+        gmlDirectory.inputType(INPUT_TYPE.DEFAULT),
+        validate.inputType(INPUT_TYPE.CHECKBOX).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS)),
+      Collections.<ParameterGroup> emptyList());
   }
 
   @Override

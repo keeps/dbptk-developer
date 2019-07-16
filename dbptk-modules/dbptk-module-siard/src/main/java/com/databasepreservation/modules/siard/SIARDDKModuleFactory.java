@@ -24,6 +24,7 @@ import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.parameters.Parameter.CATEGORY_TYPE;
 import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
@@ -64,7 +65,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     .longName(PARAMETER_CONTEXT_DOCUMENTATION_INDEX).description("Path to contextDocumentationIndex.xml input file")
     .hasArgument(true).setOptionalArgument(false).required(false);
 
-  private static final Parameter contextDocmentationFolder = new Parameter().shortName("cf")
+  private static final Parameter contextDocumentationFolder = new Parameter().shortName("cf")
     .longName(PARAMETER_CONTEXT_DOCUMENTATION_FOLDER)
     .description("Path to contextDocumentation folder which should contain the context documentation for the archive")
     .hasArgument(true).setOptionalArgument(false).required(false);
@@ -124,7 +125,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     parameterMap.put(tableFilter.longName(), tableFilter);
     parameterMap.put(archiveIndex.longName(), archiveIndex);
     parameterMap.put(contextDocumentationIndex.longName(), contextDocumentationIndex);
-    parameterMap.put(contextDocmentationFolder.longName(), contextDocmentationFolder);
+    parameterMap.put(contextDocumentationFolder.longName(), contextDocumentationFolder);
     parameterMap.put(PARAM_IMPORT_AS_SCHEMA.longName(), PARAM_IMPORT_AS_SCHEMA);
     parameterMap.put(lobsPerFolder.longName(), lobsPerFolder);
     parameterMap.put(lobsFolderSize.longName(), lobsFolderSize);
@@ -151,8 +152,15 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     // contextDocumentationIndex, contextDocmentationFolder,
     // clobType, clobLength), null);
 
-    return new Parameters(Arrays.asList(folder, tableFilter, archiveIndex, contextDocumentationIndex,
-      contextDocmentationFolder, lobsPerFolder, lobsFolderSize), null);
+    return new Parameters(
+      Arrays.asList(folder.inputType(INPUT_TYPE.FOLDER).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+        tableFilter.inputType(INPUT_TYPE.NONE),
+        archiveIndex.inputType(INPUT_TYPE.FILE).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+        contextDocumentationIndex.inputType(INPUT_TYPE.FILE).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+        contextDocumentationFolder.inputType(INPUT_TYPE.FOLDER).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+        lobsPerFolder.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS),
+        lobsFolderSize.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS)),
+      null);
 
   }
 
@@ -175,7 +183,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     String pFolder = parameters.get(folder);
     String pArchiveIndex = parameters.get(archiveIndex);
     String pContextDocumentationIndex = parameters.get(contextDocumentationIndex);
-    String pContextDocumentationFolder = parameters.get(contextDocmentationFolder);
+    String pContextDocumentationFolder = parameters.get(contextDocumentationFolder);
 
     // optional
     Path pTableFilter = null;
@@ -204,7 +212,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     // exportModuleArgs.put(tableFilter.longName(), pTableFilter.toString());
     exportModuleArgs.put(archiveIndex.longName(), pArchiveIndex);
     exportModuleArgs.put(contextDocumentationIndex.longName(), pContextDocumentationIndex);
-    exportModuleArgs.put(contextDocmentationFolder.longName(), pContextDocumentationFolder);
+    exportModuleArgs.put(contextDocumentationFolder.longName(), pContextDocumentationFolder);
     exportModuleArgs.put(lobsPerFolder.longName(), pLobsPerFolder);
     exportModuleArgs.put(lobsFolderSize.longName(), pLobsFolderSize);
 
@@ -219,7 +227,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     exportModuleParameters.add(pArchiveIndex);
     exportModuleParameters.add(contextDocumentationIndex.longName());
     exportModuleParameters.add(pContextDocumentationIndex);
-    exportModuleParameters.add(contextDocmentationFolder.longName());
+    exportModuleParameters.add(contextDocumentationFolder.longName());
     exportModuleParameters.add(pContextDocumentationFolder);
     if (pTableFilter != null) {
       exportModuleParameters.add(tableFilter.longName());
