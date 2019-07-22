@@ -88,8 +88,20 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    */
   public MySQLJDBCImportModule(String hostname, int port, String database, String username, String password, boolean encrypt, Path customViewsFile) throws ModuleException {
     super("com.mysql.jdbc.Driver",
-        "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?" + "user=" + username + "&password=" + password + "&useSSL="+ encrypt,
+      "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?" + "user=" + username + "&password=" + password
+        + "&useSSL=" + encrypt,
         new MySQLHelper(), new MySQLDatatypeImporter(), customViewsFile);
+    this.username = username;
+  }
+
+  public MySQLJDBCImportModule(String hostname, int port, String database, String username, String password,
+    boolean encrypt, boolean ssh, String sshHost, String sshUser, String sshPassword, String sshPortNumber,
+    Path customViewsFile) throws ModuleException {
+    super("com.mysql.jdbc.Driver",
+      "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?" + "user=" + username + "&password=" + password
+        + "&useSSL=" + encrypt,
+      new MySQLHelper(), new MySQLDatatypeImporter(), ssh, sshHost, sshUser, sshPassword, sshPortNumber,
+      customViewsFile);
     this.username = username;
   }
 

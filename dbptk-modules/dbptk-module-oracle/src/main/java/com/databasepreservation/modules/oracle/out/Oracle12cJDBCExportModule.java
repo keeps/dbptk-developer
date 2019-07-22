@@ -34,6 +34,7 @@ public class Oracle12cJDBCExportModule extends JDBCExportModule {
 
   private String sourceSchema = null;
   private String targetSchema = null;
+  private final boolean ssh;
 
   public Oracle12cJDBCExportModule(String serverName, int port, String instance, String username, String password,
     String sourceSchema) {
@@ -43,6 +44,18 @@ public class Oracle12cJDBCExportModule extends JDBCExportModule {
 
     this.username = username;
     this.sourceSchema = sourceSchema;
+    this.ssh = false;
+  }
+
+  public Oracle12cJDBCExportModule(String serverName, int port, String instance, String username, String password,
+                                   String sourceSchema, String sshHost, String sshUser, String sshPassword, String sshPort) throws ModuleException {
+    super("oracle.jdbc.driver.OracleDriver",
+        "jdbc:oracle:thin:" + username + "/" + password + "@//" + serverName + ":" + port + "/" + instance,
+        new OracleHelper(), true, sshHost, sshUser, sshPassword, sshPort);
+
+    this.username = username;
+    this.sourceSchema = sourceSchema;
+    this.ssh = true;
   }
 
   @Override

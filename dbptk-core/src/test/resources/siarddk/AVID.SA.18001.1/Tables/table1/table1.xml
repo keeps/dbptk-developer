@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<table xmlns="http://www.sa.dk/xmlns/siard/1.0/schema0/table1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sa.dk/xmlns/siard/1.0/schema1/table1.xsd table1.xsd">
+<table xmlns="http://www.sa.dk/xmlns/siard/1.0/schema0/table1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="d">
 		<row>
 			<c1>1941</c1>
 			<c2>AH</c2>

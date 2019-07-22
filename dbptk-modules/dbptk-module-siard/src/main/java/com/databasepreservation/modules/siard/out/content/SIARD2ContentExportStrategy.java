@@ -11,7 +11,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
@@ -21,7 +26,13 @@ import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.common.TemporaryPathInputStreamProvider;
 import com.databasepreservation.model.Reporter;
-import com.databasepreservation.model.data.*;
+import com.databasepreservation.model.data.ArrayCell;
+import com.databasepreservation.model.data.BinaryCell;
+import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.ComposedCell;
+import com.databasepreservation.model.data.NullCell;
+import com.databasepreservation.model.data.Row;
+import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;

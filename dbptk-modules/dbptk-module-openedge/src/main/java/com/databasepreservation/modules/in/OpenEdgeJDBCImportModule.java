@@ -82,6 +82,25 @@ public class OpenEdgeJDBCImportModule extends JDBCImportModule {
         new OpenEdgeHelper(), new OpenEdgeDataTypeImporter(), customViews);
   }
 
+  public OpenEdgeJDBCImportModule(String hostname, String database, String username, String password, boolean ssh,
+    String sshHost, String sshUser, String sshPassword, String sshPortNumber, Path customViews) throws ModuleException {
+    super("com.ddtek.jdbc.openedge.OpenEdgeDriver",
+      "jdbc:datadirect:openedge://" + hostname + ";user=" + username + ";password=" + password + ";DatabaseName="
+        + database,
+      new OpenEdgeHelper(), new OpenEdgeDataTypeImporter(), ssh, sshHost, sshUser, sshPassword, sshPortNumber,
+      customViews);
+  }
+
+  public OpenEdgeJDBCImportModule(String hostname, int port, String database, String username, String password,
+    boolean ssh, String sshHost, String sshUser, String sshPassword, String sshPortNumber, Path customViews)
+    throws ModuleException {
+    super("com.ddtek.jdbc.openedge.OpenEdgeDriver",
+      "jdbc:datadirect:openedge://" + hostname + ":" + port + ";user=" + username + ";password=" + password
+        + ";DatabaseName=" + database,
+      new OpenEdgeHelper(), new OpenEdgeDataTypeImporter(), ssh, sshHost, sshUser, sshPassword, sshPortNumber,
+      customViews);
+  }
+
   /**
    * Gets schemas that won't be imported.
    * <p>

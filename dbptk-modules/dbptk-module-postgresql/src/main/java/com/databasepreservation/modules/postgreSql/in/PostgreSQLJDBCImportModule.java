@@ -133,6 +133,15 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       new PostgreSQLHelper(), new PostgreSQLJDBCDatatypeImporter(), customViews);
   }
 
+  public PostgreSQLJDBCImportModule(String hostname, int port, String database, String username, String password,
+    boolean encrypt, boolean ssh, String sshHost, String sshUser, String sshPassword, String sshPortNumber,
+    Path customViews) throws ModuleException {
+    super(
+      "org.postgresql.Driver", "jdbc:postgresql://" + hostname + ":" + port + "/" + database + "?user=" + username
+        + "&password=" + password + (encrypt ? "&ssl=true" : ""),
+      new PostgreSQLHelper(), new PostgreSQLJDBCDatatypeImporter(), ssh, sshHost, sshUser, sshPassword, sshPortNumber, customViews);
+  }
+
   @Override
   protected Connection createConnection() throws ModuleException {
     Connection connection;

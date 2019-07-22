@@ -14,8 +14,6 @@ import com.databasepreservation.model.structure.type.ComposedTypeDistinct;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.utils.ListUtils;
 
-import javax.swing.text.View;
-
 /**
  * @author Miguel Coutada
  * @author Bruno Ferreira <bferreira@keep.pt>

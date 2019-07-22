@@ -7,13 +7,6 @@
  */
 package com.databasepreservation.cli;
 
-import com.databasepreservation.Constants;
-import com.databasepreservation.model.modules.DatabaseModuleFactory;
-import com.databasepreservation.model.modules.edits.EditModuleFactory;
-import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
@@ -22,6 +15,14 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.databasepreservation.Constants;
+import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.edits.EditModuleFactory;
+import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
 
 /**
  * Handles command line interface.

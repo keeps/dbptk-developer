@@ -44,7 +44,7 @@ public interface DatabaseModuleFactory {
     throws ModuleException;
 
   DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws UnsupportedModuleException, LicenseNotAcceptedException;
+    throws UnsupportedModuleException, LicenseNotAcceptedException, ModuleException;
 
   class ExceptionBuilder {
     public static UnsupportedModuleException UnsupportedModuleExceptionForImportModule() {

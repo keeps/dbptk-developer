@@ -28,6 +28,7 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.modules.jdbc.out.JDBCExportModule;
 import com.databasepreservation.modules.mySql.MySQLExceptionNormalizer;
 import com.databasepreservation.modules.mySql.MySQLHelper;
+import com.databasepreservation.utils.RemoteConnectionUtils;
 
 /**
  * @author Luis Faria
@@ -50,6 +51,8 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 
   protected final boolean encrypt;
 
+  private final boolean ssh;
+
   /**
    * MySQL JDBC export module constructor
    *
@@ -61,7 +64,7 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
    *          the name of the user to use in connection
    * @param password
    *          the password of the user to use in connection
-   */
+
   public MySQLJDBCExportModule(String hostname, String database, String username, String password, boolean encrypt) {
     super("com.mysql.jdbc.Driver", createConnectionURL(hostname, -1, database, username, password, encrypt), new MySQLHelper());
     this.hostname = hostname;
@@ -72,6 +75,7 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
     this.encrypt = encrypt;
     this.ignoredSchemas = new TreeSet<String>(Arrays.asList(IGNORED_SCHEMAS));
   }
+  */
 
   /**
    * MySQL JDBC export module constructor
@@ -97,6 +101,20 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
     this.password = password;
     this.encrypt = encrypt;
     this.ignoredSchemas = new TreeSet<>(Arrays.asList(IGNORED_SCHEMAS));
+    this.ssh = false;
+  }
+
+  public MySQLJDBCExportModule(String hostname, int port, String database, String username, String password, boolean encrypt, boolean ssh, String sshHost, String sshUser, String sshPassword, String sshPortNumber) throws ModuleException {
+    super("com.mysql.jdbc.Driver", createConnectionURL(hostname, port, database, username, password, encrypt),
+        new MySQLHelper(), ssh, sshHost, sshUser, sshPassword, sshPortNumber);
+    this.hostname = hostname;
+    this.port = port;
+    this.database = database;
+    this.username = username;
+    this.password = password;
+    this.encrypt = encrypt;
+    this.ignoredSchemas = new TreeSet<>(Arrays.asList(IGNORED_SCHEMAS));
+    this.ssh = ssh;
   }
 
   public static String createConnectionURL(String hostname, int port, String database, String username,
@@ -106,7 +124,11 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
   }
 
   public String createConnectionURL(String databaseName) {
-    return createConnectionURL(hostname, port, databaseName, username, password, encrypt);
+    if (ssh) {
+      return createConnectionURL(hostname, RemoteConnectionUtils.localPort, databaseName, username, password, encrypt);
+    } else {
+      return createConnectionURL(hostname, port, databaseName, username, password, encrypt);
+    }
   }
 
   @Override

@@ -7,9 +7,10 @@
  */
 package com.databasepreservation.modules.siard.out.metadata;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.math.BigInteger;
-import java.nio.file.*;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +22,6 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
-import com.databasepreservation.modules.siard.out.update.UpdateStrategy;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -91,6 +91,7 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.content.Sql2008toXSDType;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.update.UpdateStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.XMLUtils;

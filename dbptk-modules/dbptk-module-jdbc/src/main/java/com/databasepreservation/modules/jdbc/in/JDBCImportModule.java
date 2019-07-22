@@ -86,7 +86,7 @@ import com.databasepreservation.modules.SQLHelper;
 import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.MiscUtils;
-import com.jcraft.jsch.JSch;
+import com.databasepreservation.utils.RemoteConnectionUtils;
 import com.jcraft.jsch.Session;
 
 /**
@@ -134,6 +134,9 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   private String customViewsPath;
 
+  // SSH Connection Parameters
+  private final boolean ssh;
+
   /**
    * Create a new JDBC import module
    *
@@ -155,6 +158,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     connection = null;
     dbMetadata = null;
     dbStructure = null;
+    ssh = false;
   }
 
   protected JDBCImportModule(String driverClassName, String connectionURL, SQLHelper sqlHelper,
@@ -166,9 +170,30 @@ public class JDBCImportModule implements DatabaseImportModule {
     connection = null;
     dbMetadata = null;
     dbStructure = null;
+    ssh = false;
     if (queryList != null) {
       customViews = parseCustomViewsList(queryList);
       customViewsPath = queryList.toAbsolutePath().toString();
+    }
+  }
+
+  protected JDBCImportModule(String driverClassName, String connectionURL, SQLHelper sqlHelper,
+    DatatypeImporter datatypeImporter, boolean ssh, String sshHost, String sshUser, String sshPassword,
+    String sshPortNumber, Path queryList) throws ModuleException {
+    this.driverClassName = driverClassName;
+    this.connectionURL = connectionURL;
+    this.sqlHelper = sqlHelper;
+    this.datatypeImporter = datatypeImporter;
+    connection = null;
+    dbMetadata = null;
+    dbStructure = null;
+    this.ssh = ssh;
+    if (queryList != null) {
+      customViews = parseCustomViewsList(queryList);
+      customViewsPath = queryList.toAbsolutePath().toString();
+    }
+    if (ssh) {
+      final Session remoteSession = RemoteConnectionUtils.createRemoteSession(sshHost, sshUser, sshPassword, sshPortNumber, connectionURL);
     }
   }
 
@@ -198,50 +223,6 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   /**
-   *
-   * Make SSH conection to remote machine
-   *
-   * @return the new connection url
-   */
-  private String connectSession(String sshUser, String sshPassword, String sshHost) throws ModuleException {
-    // String user = "mySSHusername"; //ssh username
-    // String password = "mySSHpassword"; //ssh password
-    // String host = "myHOSTorIP"; //ssh host/
-    String connectionURL = this.connectionURL;
-
-    String[] hostAndPort = connectionURL.split("/")[2].split(":");
-
-    String remoteHost = hostAndPort[0];
-    int remotePort;
-    int localPort = 4321;
-
-    if (hostAndPort.length > 1) {
-      remotePort = Integer.parseInt(hostAndPort[1]);
-      connectionURL = connectionURL.replaceFirst("" + remotePort, "" + localPort);
-    } else {
-      remotePort = 3306;
-      connectionURL = connectionURL.replaceFirst(remoteHost, remoteHost + ":" + localPort);
-    }
-
-    int sshPort = 22;
-    try {
-      JSch jsch = new JSch();
-      session = jsch.getSession(sshUser, sshHost, sshPort);
-
-      session.setPassword(sshPassword);
-      session.setConfig("StrictHostKeyChecking", "no");
-      LOGGER.debug("Establishing SSH Connection");
-      session.connect();
-
-      int assigned_port = session.setPortForwardingL(localPort, remoteHost, remotePort);
-      LOGGER.debug("localhost:" + assigned_port + " -> " + remoteHost + ":" + remotePort);
-    } catch (Exception e) {
-      throw new ModuleException().withMessage("Could not establish SSH connection").withCause(e);
-    }
-    return connectionURL;
-  }
-
-  /**
    * Connect to the server using the properties defined in the constructor
    * 
    * @return the new connection
@@ -250,7 +231,9 @@ public class JDBCImportModule implements DatabaseImportModule {
   protected Connection createConnection() throws ModuleException {
     Connection connection;
     try {
-      //connectionURL = connectSession("un", "pw", "ip");
+      if (ssh) {
+        connectionURL = RemoteConnectionUtils.replaceHostAndPort(connectionURL);
+      }
       connection = DriverManager.getConnection(connectionURL);
     } catch (SQLException e) {
       throw normalizeException(e, null);

@@ -16,7 +16,6 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
-import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
@@ -39,6 +38,11 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_PASSWORD = "password";
   public static final String PARAMETER_DISABLE_ENCRYPTION = "disable-encryption";
   public static final String PARAMETER_CUSTOM_VIEWS = "custom-views";
+  public static final String PARAMETER_SSH = "ssh";
+  public static final String PARAMETER_SSH_HOST = "ssh-host";
+  public static final String PARAMETER_SSH_USER = "ssh-user";
+  public static final String PARAMETER_SSH_PASSWORD = "ssh-password";
+  public static final String PARAMETER_SSH_PORT = "ssh-port";
 
   private static final Parameter hostname = new Parameter().shortName("h").longName(PARAMETER_HOSTNAME)
     .description("the hostname of the MySQL server").hasArgument(true).setOptionalArgument(false).required(true);
@@ -64,6 +68,25 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
 
   private static final Parameter customViews = new Parameter().shortName("cv").longName(PARAMETER_CUSTOM_VIEWS)
     .description("the path to a custom view query list file").hasArgument(true).setOptionalArgument(false)
+    .required(false);
+
+  private static final Parameter ssh = new Parameter().shortName("ssh").longName(PARAMETER_SSH)
+    .description("use to perform a SSH remote connection").hasArgument(false).required(false).valueIfNotSet("false")
+    .valueIfSet("true");
+
+  private static final Parameter sshHost = new Parameter().shortName("sh").longName(PARAMETER_SSH_HOST)
+    .description("the hostname of the remote server").hasArgument(true).setOptionalArgument(false).required(false);
+
+  private static final Parameter sshUser = new Parameter().shortName("su").longName(PARAMETER_SSH_USER)
+    .description("the name of the remote user to use in the SSH connection").hasArgument(true)
+    .setOptionalArgument(false).required(false);
+
+  private static final Parameter sshPassword = new Parameter().shortName("spw").longName(PARAMETER_SSH_PASSWORD)
+    .description("the password of the remote user to use in the SSH connection").hasArgument(true)
+    .setOptionalArgument(false).required(false);
+
+  private static final Parameter sshPort = new Parameter().shortName("spn").longName(PARAMETER_SSH_PORT)
+    .description("the port number remote server is listening").hasArgument(true).setOptionalArgument(false)
     .required(false);
 
   @Override
@@ -95,6 +118,11 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(password.longName(), password);
     parameterHashMap.put(portNumber.longName(), portNumber);
     parameterHashMap.put(disableEncryption.longName(), disableEncryption);
+    parameterHashMap.put(ssh.longName(), ssh);
+    parameterHashMap.put(sshHost.longName(), sshHost);
+    parameterHashMap.put(sshUser.longName(), sshUser);
+    parameterHashMap.put(sshPassword.longName(), sshPassword);
+    parameterHashMap.put(sshPort.longName(), sshPort);
     parameterHashMap.put(customViews.longName(), customViews);
     return parameterHashMap;
   }
@@ -108,13 +136,15 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Parameters getImportModuleParameters() throws UnsupportedModuleException {
-    return new Parameters(
-      Arrays.asList(hostname, portNumber, database, username, password, disableEncryption, customViews), null);
+    return new Parameters(Arrays.asList(hostname, portNumber, database, username, password, disableEncryption, ssh, sshHost, sshUser,
+      sshPassword, sshPort, customViews), null);
   }
 
   @Override
   public Parameters getExportModuleParameters() throws UnsupportedModuleException {
-    return new Parameters(Arrays.asList(hostname, portNumber, database, username, password, disableEncryption), null);
+    return new Parameters(
+      Arrays.asList(hostname, portNumber, database, username, password, disableEncryption, ssh, sshHost, sshUser, sshPassword, sshPort),
+      null);
   }
 
   @Override
@@ -141,23 +171,35 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
       pCustomViews = Paths.get(parameters.get(customViews));
     }
 
-    if (pCustomViews == null) {
+    // boolean
+    boolean pSSH = Boolean.parseBoolean(parameters.get(ssh));
+    final String pSSHHost = parameters.get(sshHost);
+    final String pSSHUser = parameters.get(sshUser);
+    final String pSSHPassword = parameters.get(sshPassword);
+
+    String pSSHPortNumber = "22";
+    if (StringUtils.isNotBlank(parameters.get(sshPort))) {
+      pSSHPortNumber = parameters.get(sshPort);
+    }
+
+    if (pSSH) {
       reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
         PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
-        Integer.toString(pPortNumber), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(pEncrypt));
+          String.valueOf(pPortNumber), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(pEncrypt), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD,
+        reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
+      return new MySQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt, true, pSSHHost,
+        pSSHUser, pSSHPassword, pSSHPortNumber, pCustomViews);
     } else {
       reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
         PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
-        Integer.toString(pPortNumber), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(pEncrypt), PARAMETER_CUSTOM_VIEWS,
-        pCustomViews.toString());
+        String.valueOf(pPortNumber), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(pEncrypt));
+      return new MySQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt, pCustomViews);
     }
-
-    return new MySQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt, pCustomViews);
   }
 
   @Override
   public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws UnsupportedModuleException, LicenseNotAcceptedException {
+      throws ModuleException {
     String pHostname = parameters.get(hostname);
     String pDatabase = parameters.get(database);
     String pUsername = parameters.get(username);
@@ -174,10 +216,30 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
       pPortNumber = Integer.parseInt(portNumber.valueIfNotSet());
     }
 
-    reporter.exportModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
-      PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
-      Integer.toString(pPortNumber), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(pEncrypt));
+    // boolean
+    boolean pSSH = Boolean.parseBoolean(parameters.get(ssh));
+    final String pSSHHost = parameters.get(sshHost);
+    final String pSSHUser = parameters.get(sshUser);
+    final String pSSHPassword = parameters.get(sshPassword);
 
-    return new MySQLJDBCExportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt);
+    String pSSHPortNumber = "22";
+    if (StringUtils.isNotBlank(parameters.get(sshPort))) {
+      pSSHPortNumber = parameters.get(sshPort);
+    }
+
+    if (pSSH) {
+      reporter.exportModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
+          PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
+          Integer.toString(pPortNumber), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(pEncrypt), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD,
+          reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
+      return new MySQLJDBCExportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt,true, pSSHHost,
+          pSSHUser, pSSHPassword, pSSHPortNumber);
+    } else {
+      reporter.exportModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
+          PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
+          Integer.toString(pPortNumber), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(pEncrypt));
+
+      return new MySQLJDBCExportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt);
+    }
   }
 }

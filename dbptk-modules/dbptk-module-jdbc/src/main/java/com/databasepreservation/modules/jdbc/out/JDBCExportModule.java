@@ -65,6 +65,8 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
 import com.databasepreservation.modules.DefaultExceptionNormalizer;
 import com.databasepreservation.modules.SQLHelper;
+import com.databasepreservation.utils.RemoteConnectionUtils;
+import com.jcraft.jsch.Session;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -74,11 +76,12 @@ public class JDBCExportModule implements DatabaseExportModule {
   protected static final boolean DEFAULT_CAN_DROP_DATABASE = false;
   protected static int BATCH_SIZE = 100;
   protected final String driverClassName;
-  protected final String connectionURL;
+  protected String connectionURL;
   protected final Map<String, Connection> connections;
   protected final boolean canDropDatabase;
   private static final Logger LOGGER = LoggerFactory.getLogger(JDBCExportModule.class);
   protected Connection connection;
+  protected Session session = null;
 
   protected Statement statement;
 
@@ -107,6 +110,8 @@ public class JDBCExportModule implements DatabaseExportModule {
 
   protected Reporter reporter;
 
+  // SSH Connection Parameters
+  private boolean ssh;
   /**
    * Shorthand instance to obtain a no-op (no operation, do nothing)
    * CleanResourcesInterface
@@ -158,6 +163,29 @@ public class JDBCExportModule implements DatabaseExportModule {
     currentIsIgnoredSchema = false;
   }
 
+  public JDBCExportModule(String driverClassName, String connectionURL, SQLHelper sqlHelper, boolean ssh,
+    String sshHost, String sshUser, String sshPassword, String sshPort) throws ModuleException {
+    // LOGGER.debug(driverClassName + ", " + connectionURL);
+    this.driverClassName = driverClassName;
+    this.connectionURL = connectionURL;
+    this.sqlHelper = sqlHelper;
+    this.connections = new HashMap<String, Connection>();
+    this.canDropDatabase = DEFAULT_CAN_DROP_DATABASE;
+    connection = null;
+    statement = null;
+    databaseStructure = null;
+    currentTableStructure = null;
+    batch_index = 0;
+    currentRowBatchInsertStatement = null;
+    ignoredSchemas = new HashSet<String>();
+    existingSchemas = null;
+    currentIsIgnoredSchema = false;
+    this.ssh = ssh;
+    if (ssh) {
+      RemoteConnectionUtils.createRemoteSession(sshHost, sshUser, sshPassword, sshPort, connectionURL);
+    }
+  }
+
   /**
    * Connect to the server using the properties defined in the constructor, or
    * return the existing connection
@@ -170,10 +198,13 @@ public class JDBCExportModule implements DatabaseExportModule {
   public Connection getConnection() throws ModuleException {
     if (connection == null) {
       try {
-        LOGGER.debug("Loading JDBC Driver " + driverClassName);
+        LOGGER.debug("Loading JDBC Driver {}", driverClassName);
         Class.forName(driverClassName);
         LOGGER.debug("Getting connection");
         // LOGGER.debug("Connection URL: " + connectionURL);
+        if (ssh) {
+          connectionURL = RemoteConnectionUtils.replaceHostAndPort(connectionURL);
+        }
         connection = DriverManager.getConnection(connectionURL);
         connection.setAutoCommit(true);
         LOGGER.debug("Connected");

@@ -70,6 +70,17 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
     LOGGER.debug("jdbc:oracle:thin:<username>/<password>@//" + serverName + ":" + port + "/" + instance);
   }
 
+  public Oracle12cJDBCImportModule(String serverName, int port, String instance, String username, String password,
+    boolean ssh, String sshHost, String sshUser, String sshPassword, String sshPortNumber, Path customViews)
+    throws ModuleException {
+
+    super("oracle.jdbc.driver.OracleDriver",
+      "jdbc:oracle:thin:" + username + "/" + password + "@//" + serverName + ":" + port + "/" + instance,
+      new OracleHelper(), new Oracle12cJDBCDatatypeImporter(), ssh, sshHost, sshUser, sshPassword, sshPortNumber, customViews);
+
+    LOGGER.debug("jdbc:oracle:thin:<username>/<password>@//" + serverName + ":" + port + "/" + instance);
+  }
+
   @Override
   protected Statement getStatement() throws SQLException, ModuleException {
     if (statement == null) {

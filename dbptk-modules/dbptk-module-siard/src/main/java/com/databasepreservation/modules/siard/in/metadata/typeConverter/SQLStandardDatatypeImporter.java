@@ -218,8 +218,8 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
   @Override
   protected Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeBinary(columnSize);
-    type.setSql99TypeName("BIT VARYING", columnSize);
-    type.setSql2008TypeName("BIT VARYING", columnSize);
+    type.setSql99TypeName("BINARY VARYING", columnSize);
+    type.setSql2008TypeName("BINARY VARYING", columnSize);
     return type;
   }
 

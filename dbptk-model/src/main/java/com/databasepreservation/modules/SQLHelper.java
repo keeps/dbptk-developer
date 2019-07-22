@@ -438,7 +438,7 @@ public class SQLHelper {
   }
 
   protected String[] splitTableId(String tableId) throws ModuleException {
-    String[] parts = tableId.split("\\.");
+    String[] parts = tableId.split("\\.",2);
     if (parts.length != 2) {
       throw new ModuleException().withMessage("An error occurred while splitting table id: tableId is malformed");
     }

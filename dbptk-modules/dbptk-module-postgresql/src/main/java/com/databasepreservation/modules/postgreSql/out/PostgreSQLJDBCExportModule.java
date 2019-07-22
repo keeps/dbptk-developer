@@ -31,6 +31,7 @@ import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.modules.jdbc.out.JDBCExportModule;
 import com.databasepreservation.modules.postgreSql.PostgreSQLExceptionNormalizer;
 import com.databasepreservation.modules.postgreSql.PostgreSQLHelper;
+import com.databasepreservation.utils.RemoteConnectionUtils;
 import com.google.common.base.Function;
 
 /**
@@ -70,6 +71,11 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
   private final String username;
   private final String password;
   private final boolean encrypt;
+  private final boolean ssh;
+  private final String sshHost;
+  private final String sshUser;
+  private final String sshPassword;
+  private final String sshPort;
 
   /**
    * Create a new PostgreSQL JDBC export module
@@ -84,19 +90,16 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
    *          the password of the user to use in connection
    * @param encrypt
    *          encrypt connection
+   * 
+   *          public PostgreSQLJDBCExportModule(String hostname, String database,
+   *          String username, String password, boolean encrypt) {
+   *          super("org.postgresql.Driver", createConnectionURL(hostname, -1,
+   *          database, username, password, encrypt), new PostgreSQLHelper());
+   *          this.hostname = hostname; this.port = -1; this.database = database;
+   *          this.username = username; this.password = password; this.encrypt =
+   *          encrypt; this.ignoredSchemas = new
+   *          TreeSet<String>(Arrays.asList(IGNORED_SCHEMAS)); }
    */
-  public PostgreSQLJDBCExportModule(String hostname, String database, String username, String password,
-    boolean encrypt) {
-    super("org.postgresql.Driver", createConnectionURL(hostname, -1, database, username, password, encrypt),
-      new PostgreSQLHelper());
-    this.hostname = hostname;
-    this.port = -1;
-    this.database = database;
-    this.username = username;
-    this.password = password;
-    this.encrypt = encrypt;
-    this.ignoredSchemas = new TreeSet<String>(Arrays.asList(IGNORED_SCHEMAS));
-  }
 
   /**
    * Create a new PostgreSQL JDBC export module
@@ -116,15 +119,20 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
    *          encrypt connection
    */
   public PostgreSQLJDBCExportModule(String hostname, int port, String database, String username, String password,
-    boolean encrypt) {
+    boolean encrypt, boolean ssh, String sshHost, String sshUser, String sshPassword, String sshPort) throws ModuleException {
     super("org.postgresql.Driver", createConnectionURL(hostname, port, database, username, password, encrypt),
-      new PostgreSQLHelper());
+      new PostgreSQLHelper(), ssh, sshHost, sshUser, sshPassword, sshPort);
     this.hostname = hostname;
     this.port = port;
     this.database = database;
     this.username = username;
     this.password = password;
     this.encrypt = encrypt;
+    this.ssh = ssh;
+    this.sshHost = sshHost;
+    this.sshUser = sshUser;
+    this.sshPassword = sshPassword;
+    this.sshPort = sshPort;
     this.ignoredSchemas = new TreeSet<String>(Arrays.asList(IGNORED_SCHEMAS));
   }
 
@@ -135,6 +143,9 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
   }
 
   public String createConnectionURL(String databaseName) {
+    if (ssh) {
+      return createConnectionURL(hostname, RemoteConnectionUtils.localPort, databaseName, username, password, encrypt);
+    }
     return createConnectionURL(hostname, port, databaseName, username, password, encrypt);
   }
 
@@ -147,7 +158,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
         getConnection(POSTGRES_CONNECTION_DATABASE, connectionURL).createStatement()
           .executeUpdate(sqlHelper.dropDatabase(database));
       } catch (SQLException e) {
-        throw new ModuleException().withMessage("Error droping database " + database).withCause(e);
+        throw new ModuleException().withMessage("Error dropping database " + database).withCause(e);
       }
 
     }

@@ -196,6 +196,11 @@ public class DatabaseMigration {
    * migration
    */
   public DatabaseMigration filterParameter(String parameterLongName, String parameterValue, int filterIndex) {
+    if (filterFactoriesStringParameters.isEmpty()) {
+      filterFactoriesStringParameters.add(new HashMap<String, String>());
+    } else if (filterFactoriesStringParameters.size() - 1 < filterIndex) {
+      filterFactoriesStringParameters.add(filterIndex, new HashMap<String, String>());
+    }
     filterFactoriesStringParameters.get(filterIndex).put(parameterLongName, parameterValue);
     return this;
   }
@@ -206,8 +211,6 @@ public class DatabaseMigration {
    */
   public DatabaseMigration filterParameters(List<Map<Parameter, String>> parameters) {
     for(int i=0;i<parameters.size();i++) {
-      filterFactoriesStringParameters.add(new HashMap<String, String>());
-
       for (Map.Entry<Parameter, String> entry : parameters.get(i).entrySet()) {
         filterParameter(entry.getKey().longName(), entry.getValue(), i);
       }

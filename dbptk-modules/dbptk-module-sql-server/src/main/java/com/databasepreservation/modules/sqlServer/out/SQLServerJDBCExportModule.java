@@ -81,12 +81,13 @@ public class SQLServerJDBCExportModule extends JDBCExportModule {
    *          true to use encryption in the connection
    */
   public SQLServerJDBCExportModule(String serverName, String instanceName, String database, String username,
-    String password, boolean integratedSecurity, boolean encrypt) {
+    String password, boolean integratedSecurity, boolean encrypt, boolean ssh, String sshHost, String sshUser,
+    String sshPassword, String sshPort) throws ModuleException {
     super("com.microsoft.sqlserver.jdbc.SQLServerDriver",
       new StringBuilder("jdbc:sqlserver://").append(serverName).append("\\").append(instanceName).append(";database=")
         .append(database).append(";user=").append(username).append(";password=").append(password)
         .append(";integratedSecurity=").append(integratedSecurity).append(";encrypt=").append(encrypt).toString(),
-      new SQLServerHelper());
+      new SQLServerHelper(), ssh, sshHost, sshUser, sshPassword, sshPort);
   }
 
   /**
@@ -108,12 +109,13 @@ public class SQLServerJDBCExportModule extends JDBCExportModule {
    *          true to use encryption in the connection
    */
   public SQLServerJDBCExportModule(String serverName, int portNumber, String database, String username, String password,
-    boolean integratedSecurity, boolean encrypt) {
+    boolean integratedSecurity, boolean encrypt, boolean ssh, String sshHost, String sshUser, String sshPassword,
+    String sshPort) throws ModuleException {
     super("com.microsoft.sqlserver.jdbc.SQLServerDriver",
       new StringBuilder("jdbc:sqlserver://").append(serverName).append(":").append(portNumber).append(";database=")
         .append(database).append(";user=").append(username).append(";password=").append(password)
         .append(";integratedSecurity=").append(integratedSecurity).append(";encrypt=").append(encrypt).toString(),
-      new SQLServerHelper());
+      new SQLServerHelper(), ssh, sshHost, sshUser, sshPassword, sshPort);
   }
 
   @Override

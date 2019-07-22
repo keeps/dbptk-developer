@@ -8,6 +8,7 @@
 package com.databasepreservation.modules.sybase.in;
 
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -35,19 +36,6 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.CloseableUtils;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.sybase.SybaseHelper;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -91,6 +79,14 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
     super("net.sourceforge.jtds.jdbc.Driver",
         "jdbc:jtds:sybase://" + hostname + ":" + port + "/" + database + ";user=" + username + ";password=" + password,
         new SybaseHelper(), new SybaseDataTypeImporter(), customViews);
+  }
+
+  public SybaseJDBCImportModule(String hostname, int port, String database, String username, String password,
+    boolean ssh, String sshHost, String sshUser, String sshPassword, String sshPortNumber, Path customViews)
+    throws ModuleException {
+    super("net.sourceforge.jtds.jdbc.Driver",
+      "jdbc:jtds:sybase://" + hostname + ":" + port + "/" + database + ";user=" + username + ";password=" + password,
+      new SybaseHelper(), new SybaseDataTypeImporter(), ssh, sshHost, sshUser, sshPassword, sshPortNumber, customViews);
   }
 
   /**
