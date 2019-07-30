@@ -56,11 +56,15 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    *          the name of the user to use in connection
    * @param password
    *          the password of the user to use in connection
+   * @param encrypt
+   *          encrypt connection
+   * @param customViewsFile
+   *          path to the custom views file
    */
-  public MySQLJDBCImportModule(String hostname, String database, String username, String password, Path customViewsFile) throws ModuleException {
+  public MySQLJDBCImportModule(String hostname, String database, String username, String password, boolean encrypt, Path customViewsFile) throws ModuleException {
     super("com.mysql.jdbc.Driver",
-      "jdbc:mysql://" + hostname + "/" + database + "?" + "user=" + username + "&password=" + password,
-      new MySQLHelper(), new MySQLDatatypeImporter(), customViewsFile);
+        "jdbc:mysql://" + hostname + "/" + database + "?" + "user=" + username + "&password=" + password + "&useSSL="+ encrypt,
+        new MySQLHelper(), new MySQLDatatypeImporter(), customViewsFile);
     this.username = username;
   }
 
@@ -77,11 +81,15 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    *          the name of the user to use in connection
    * @param password
    *          the password of the user to use in connection
+   * @param encrypt
+   *          encrypt connection
+   * @param customViewsFile
+   *          path to the custom views file
    */
-  public MySQLJDBCImportModule(String hostname, int port, String database, String username, String password, Path customViewsFile) throws ModuleException {
+  public MySQLJDBCImportModule(String hostname, int port, String database, String username, String password, boolean encrypt, Path customViewsFile) throws ModuleException {
     super("com.mysql.jdbc.Driver",
-      "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?" + "user=" + username + "&password=" + password,
-      new MySQLHelper(), new MySQLDatatypeImporter(), customViewsFile);
+        "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?" + "user=" + username + "&password=" + password + "&useSSL="+ encrypt,
+        new MySQLHelper(), new MySQLDatatypeImporter(), customViewsFile);
     this.username = username;
   }
 

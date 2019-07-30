@@ -152,7 +152,11 @@ public class CLIHelp extends CLIHandler {
       out.append(printParameterHelp(Constants.SMALL_SPACE, parameter));
     }
 
-    out.append("\n");
+    out.append("\n\n");
+
+    out.append("Note: In case you want to export all metadata pairs for the SIARD2 archive, redirect the output to a file using the '>' symbol\n");
+
+    out.append("\n\n");
     printStream.append(out).flush();
   }
 

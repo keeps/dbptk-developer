@@ -48,6 +48,8 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
 
   protected final String password;
 
+  protected final boolean encrypt;
+
   /**
    * MySQL JDBC export module constructor
    *
@@ -60,13 +62,14 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
    * @param password
    *          the password of the user to use in connection
    */
-  public MySQLJDBCExportModule(String hostname, String database, String username, String password) {
-    super("com.mysql.jdbc.Driver", createConnectionURL(hostname, -1, database, username, password), new MySQLHelper());
+  public MySQLJDBCExportModule(String hostname, String database, String username, String password, boolean encrypt) {
+    super("com.mysql.jdbc.Driver", createConnectionURL(hostname, -1, database, username, password, encrypt), new MySQLHelper());
     this.hostname = hostname;
     this.port = -1;
     this.database = database;
     this.username = username;
     this.password = password;
+    this.encrypt = encrypt;
     this.ignoredSchemas = new TreeSet<String>(Arrays.asList(IGNORED_SCHEMAS));
   }
 
@@ -84,25 +87,26 @@ public class MySQLJDBCExportModule extends JDBCExportModule {
    * @param password
    *          the password of the user to use in connection
    */
-  public MySQLJDBCExportModule(String hostname, int port, String database, String username, String password) {
-    super("com.mysql.jdbc.Driver", createConnectionURL(hostname, port, database, username, password),
+  public MySQLJDBCExportModule(String hostname, int port, String database, String username, String password, boolean encrypt) {
+    super("com.mysql.jdbc.Driver", createConnectionURL(hostname, port, database, username, password, encrypt),
       new MySQLHelper());
     this.hostname = hostname;
     this.port = port;
     this.database = database;
     this.username = username;
     this.password = password;
+    this.encrypt = encrypt;
     this.ignoredSchemas = new TreeSet<>(Arrays.asList(IGNORED_SCHEMAS));
   }
 
   public static String createConnectionURL(String hostname, int port, String database, String username,
-    String password) {
+    String password, boolean encrypt) {
     return "jdbc:mysql://" + hostname + (port >= 0 ? ":" + port : "") + "/" + database + "?" + "user=" + username
-      + "&password=" + password + "&rewriteBatchedStatements=true";
+      + "&password=" + password + "&useSSL=" + encrypt + "&rewriteBatchedStatements=true";
   }
 
   public String createConnectionURL(String databaseName) {
-    return createConnectionURL(hostname, port, databaseName, username, password);
+    return createConnectionURL(hostname, port, databaseName, username, password, encrypt);
   }
 
   @Override
