@@ -7,41 +7,6 @@
  */
 package com.databasepreservation.modules.jdbc.in;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.sql.Array;
-import java.sql.Blob;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.Date;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
-import java.sql.Statement;
-import java.sql.Struct;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
-
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;
@@ -88,6 +53,40 @@ import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.MiscUtils;
 import com.databasepreservation.utils.RemoteConnectionUtils;
 import com.jcraft.jsch.Session;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.Yaml;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.sql.Array;
+import java.sql.Blob;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.Date;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.sql.Statement;
+import java.sql.Struct;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Luis Faria <lfaria@keep.pt>
@@ -193,7 +192,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       customViewsPath = queryList.toAbsolutePath().toString();
     }
     if (ssh) {
-      final Session remoteSession = RemoteConnectionUtils.createRemoteSession(sshHost, sshUser, sshPassword, sshPortNumber, connectionURL);
+      session = RemoteConnectionUtils.createRemoteSession(sshHost, sshUser, sshPassword, sshPortNumber, connectionURL);
     }
   }
 
@@ -236,6 +235,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
       connection = DriverManager.getConnection(connectionURL);
     } catch (SQLException e) {
+        closeConnection();
       throw normalizeException(e, null);
     }
     LOGGER.debug("Connected");
@@ -265,16 +265,21 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   public boolean testConnection() throws ModuleException {
     try {
-      return (!getConnection().isClosed() && connection != null);
+      final boolean value = (!getConnection().isClosed() && connection != null);
+      closeConnection();
+      return value;
     } catch (SQLException e) {
+      closeConnection();
       throw normalizeException(e, null);
     }
   }
 
   public DatabaseStructure getSchemaInformation() throws ModuleException {
     moduleSettings = new ModuleSettings();
-    getDatabaseStructure();
-    return dbStructure;
+    DatabaseStructure databaseStructure = getDatabaseStructure();
+    closeConnection();
+
+    return databaseStructure;
   }
 
   /**
@@ -291,17 +296,20 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
     }
 
-    Connection connection = null;
-    connection = getConnection();
+    //Connection connection = null;
+    //connection = getConnection();
     if (connection != null) {
       try {
-        if (session != null)
-          session.disconnect();
         connection.close();
       } catch (SQLException e) {
         LOGGER.debug("problem closing connection", e);
       }
     }
+
+    if (session != null) {
+      session.disconnect();
+    }
+
     this.connection = null;
     dbMetadata = null;
     dbStructure = null;
