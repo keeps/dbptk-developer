@@ -27,6 +27,8 @@ public class Constants {
 
   public static final String DBPTK_OPTION_HELP = "help";
 
+  public static final String DBPTK_OPTION_VALIDATE = "validate";
+
   public static final String DBPTK_OPTION_HELP_SMALL = "-h";
 
   public static final String SMALL_SPACE = "      ";

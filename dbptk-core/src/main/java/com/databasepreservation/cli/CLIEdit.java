@@ -7,12 +7,11 @@
  */
 package com.databasepreservation.cli;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.databasepreservation.Constants;
+import com.databasepreservation.model.exception.TooMuchArgumentsException;
+import com.databasepreservation.model.modules.edits.EditModuleFactory;
+import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.parameters.ParameterGroup;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -24,11 +23,11 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 
-import com.databasepreservation.Constants;
-import com.databasepreservation.model.exception.TooMuchArgumentsException;
-import com.databasepreservation.model.modules.edits.EditModuleFactory;
-import com.databasepreservation.model.parameters.Parameter;
-import com.databasepreservation.model.parameters.ParameterGroup;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -84,15 +83,6 @@ public class CLIEdit extends CLIHandler {
    */
   public String getSIARDPackage() {
     return siardPackage;
-  }
-
-  /**
-   * Checks if the command line arguments are empty
-   *
-   * @return true if empty otherwise false.
-   */
-  public boolean emptyArguments() {
-    return commandLineArguments.isEmpty();
   }
 
   /**
@@ -159,27 +149,7 @@ public class CLIEdit extends CLIHandler {
       mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
     }
 
-    // parse the command line arguments with those options
-    try {
-      commandLine = commandLineParser.parse(options, args.toArray(new String[] {}), false);
-      if (!commandLine.getArgList().isEmpty()) {
-        throw new ParseException("Unrecognized option: " + commandLine.getArgList().get(0));
-      }
-    } catch (MissingOptionException e) {
-      // use long names instead of short names in the error message
-      List<String> missingShort = e.getMissingOptions();
-      List<String> missingLong = new ArrayList<String>();
-      for (String shortOption : missingShort) {
-        missingLong.add(options.getOption(shortOption).getLongOpt());
-      }
-      LOGGER.debug("MissingOptionException (the original, unmodified exception)", e);
-      throw new MissingOptionException(missingLong);
-    } catch (MissingArgumentException e) {
-      // use long names instead of short names in the error message
-      Option faulty = e.getOption();
-      LOGGER.debug("MissingArgumentException (the original, unmodified exception)", e);
-      throw new MissingArgumentException("Missing the argument for the "  + e.getOption().getLongOpt() + " option");
-    }
+    commandLine = commandLineParse(commandLineParser, options, args);
 
     // create arguments to pass to factory
     HashMap<Parameter, List<String>> editModuleArguments = new HashMap<>();

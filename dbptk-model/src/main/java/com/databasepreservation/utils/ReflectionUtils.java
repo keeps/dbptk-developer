@@ -9,10 +9,13 @@ package com.databasepreservation.utils;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.databasepreservation.model.modules.validate.ValidateModule;
+import com.databasepreservation.model.modules.validate.ValidateModuleFactory;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.slf4j.Logger;
@@ -31,6 +34,7 @@ public class ReflectionUtils {
   private static List<Constructor<? extends DatabaseModuleFactory>> databaseModuleFactoryConstructors = new ArrayList<>();
   private static List<Constructor<? extends DatabaseFilterFactory>> databaseFilterFactoryConstructors = new ArrayList<>();
   private static List<Constructor<? extends EditModuleFactory>> editModuleFactoryConstructors         = new ArrayList<>();
+  private static List<Constructor<? extends ValidateModuleFactory>> validateModuleFactoryConstructors = new ArrayList<>();
 
   public static Set<DatabaseModuleFactory> collectDatabaseModuleFactories() {
     return collectDatabaseModuleFactories(false);
@@ -140,4 +144,41 @@ public class ReflectionUtils {
 
     return editModuleFactories;
   }
+
+  public static Collection<ValidateModuleFactory> collectValidateModuleFactories() {
+    return collectValidateModuleFactories(false);
+  }
+
+  public static Collection<ValidateModuleFactory> collectValidateModuleFactories(boolean includeDisabled) {
+    Set<ValidateModuleFactory> validateModuleFactories = new HashSet<>();
+
+    if (validateModuleFactoryConstructors.isEmpty()) {
+      Reflections reflections = new Reflections("com.databasepreservation.modules", new SubTypesScanner());
+
+      Set<Class<? extends ValidateModuleFactory>> validateFactoryClasses = reflections.getSubTypesOf(ValidateModuleFactory.class);
+
+      for (Class<? extends ValidateModuleFactory> validateModuleClass : validateFactoryClasses) {
+        try {
+          Constructor<? extends ValidateModuleFactory> constructor = validateModuleClass.getConstructor();
+          validateModuleFactoryConstructors.add(constructor);
+        } catch (NoSuchMethodException e) {
+          LOGGER.info("Filter factory {} could not be loaded", validateModuleClass.getName(), e);
+        }
+      }
+    }
+
+    for (Constructor<? extends ValidateModuleFactory> constructor : validateModuleFactoryConstructors) {
+      try {
+        ValidateModuleFactory instance = constructor.newInstance();
+        if (includeDisabled || instance.isEnabled()) {
+          validateModuleFactories.add(instance);
+        }
+      } catch (Exception e) {
+        LOGGER.info("Filter factory {} could not be loaded", constructor.getDeclaringClass().getName(), e);
+      }
+    }
+
+    return validateModuleFactories;
+  }
+
 }

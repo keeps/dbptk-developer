@@ -7,19 +7,11 @@
  */
 package com.databasepreservation;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.UUID;
-
-import org.apache.commons.cli.ParseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.databasepreservation.cli.CLI;
 import com.databasepreservation.cli.CLIEdit;
 import com.databasepreservation.cli.CLIHelp;
 import com.databasepreservation.cli.CLIMigrate;
+import com.databasepreservation.cli.CLIValidate;
 import com.databasepreservation.model.NoOpReporter;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.EditDatabaseMetadataParserException;
@@ -31,6 +23,14 @@ import com.databasepreservation.model.modules.filters.ProgressLoggerObserver;
 import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.MiscUtils;
 import com.databasepreservation.utils.ReflectionUtils;
+import org.apache.commons.cli.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * @author Luis Faria <lfaria@keep.pt>
@@ -69,7 +69,7 @@ public class Main {
    */
   public static void main(String[] args) {
     CLI cli = new CLI(Arrays.asList(args), ReflectionUtils.collectDatabaseModuleFactories(),
-      ReflectionUtils.collectDatabaseFilterFactory(), ReflectionUtils.collectEditModuleFactories());
+        ReflectionUtils.collectDatabaseFilterFactory(), ReflectionUtils.collectEditModuleFactories(), ReflectionUtils.collectValidateModuleFactories());
     System.exit(internalMain(cli));
   }
 
@@ -80,7 +80,7 @@ public class Main {
       reporter = new NoOpReporter();
     }
     CLI cli = new CLI(Arrays.asList(args), ReflectionUtils.collectDatabaseModuleFactories(),
-      ReflectionUtils.collectDatabaseFilterFactory(), ReflectionUtils.collectEditModuleFactories());
+        ReflectionUtils.collectDatabaseFilterFactory(), ReflectionUtils.collectEditModuleFactories(), ReflectionUtils.collectValidateModuleFactories());
     return internalMain(cli);
   }
 
@@ -98,6 +98,7 @@ public class Main {
     boolean isHelp = cli.isHelp();
     boolean isMigrate = cli.isMigration();
     boolean isEdit = cli.isEdition();
+    boolean isValidation = cli.isValidation();
 
     if (!cli.getRecognizedCommand()) {
       LOGGER.error("Command '" + cli.getArgCommand() + "' not a valid command.");
@@ -120,6 +121,9 @@ public class Main {
             if (isEdit) {
               // LOGGER.info("Edit option selected.");
               exitStatus = runEdition(cli.getCLIEdit(), cli.getCLIHelp());
+            }
+            if (isValidation) {
+              exitStatus = runValidation(cli.getCLIValidate(), cli.getCLIHelp());
             }
             if (exitStatus == EXIT_CODE_CONNECTION_ERROR) {
               LOGGER.info("Disabling connection encryption (for modules that support it) and trying again.");
@@ -153,6 +157,47 @@ public class Main {
   private static int runHelp(CLIHelp cli) {
     cli.printHelp(System.out);
     return EXIT_CODE_OK;
+  }
+
+  private static int runValidation(CLIValidate cli, CLIHelp help) {
+    cli.removeCommand(); // removes the validate argument
+
+    SIARDValidation siardValidation;
+    int exitStatus = EXIT_CODE_GENERIC_ERROR;
+
+    if (cli.emptyArguments()) {
+      help.printValidationUsage(System.out);
+      exitStatus = EXIT_CODE_OK;
+    } else {
+      try {
+        siardValidation = SIARDValidation.newInstance()
+            .validateModule(cli.getValidateModuleFactory())
+            .validateModuleParameters(cli.getValidateModuleParameters())
+            .reporter(getReporter());
+      } catch (ParseException e) {
+        LOGGER.error(e.getMessage(), e);
+        logProgramFinish(EXIT_CODE_COMMAND_PARSE_ERROR);
+        return EXIT_CODE_COMMAND_PARSE_ERROR;
+      }
+
+      try {
+        long startTime = System.currentTimeMillis();
+        long duration;
+        LOGGER.info("Validate SIARD at '{}'", cli.getSIARDPackage());
+        siardValidation.validate();
+        duration = System.currentTimeMillis() - startTime;
+        LOGGER.info("Validate SIARD took {}m {}s to complete.", duration / 60000, duration % 60000 / 1000);
+      } catch (SiardNotFoundException e) {
+        LOGGER.error(e.getMessage() + ": " + e.getPath());
+        return EXIT_CODE_FILE_NOT_FOUND;
+      } catch (ModuleException e) {
+        if (!e.getClass().equals(ModuleException.class)) {
+          LOGGER.error(e.getMessage(), e);
+        }
+      }
+    }
+
+    return exitStatus;
   }
 
   private static int runEdition(CLIEdit cli, CLIHelp help) {

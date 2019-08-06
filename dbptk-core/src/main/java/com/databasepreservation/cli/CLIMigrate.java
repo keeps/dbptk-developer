@@ -7,17 +7,12 @@
  */
 package com.databasepreservation.cli;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
-
+import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.UnsupportedModuleException;
+import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
+import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.parameters.ParameterGroup;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -29,12 +24,16 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
-import com.databasepreservation.model.exception.LicenseNotAcceptedException;
-import com.databasepreservation.model.exception.UnsupportedModuleException;
-import com.databasepreservation.model.modules.DatabaseModuleFactory;
-import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
-import com.databasepreservation.model.parameters.Parameter;
-import com.databasepreservation.model.parameters.ParameterGroup;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Scanner;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -430,22 +429,7 @@ public class CLIMigrate extends CLIHandler {
     // new HelpFormatter().printHelp(80, "dbptk", "\nModule Options:", options,
     // null, true);
 
-    // parse the command line arguments with those options
-    try {
-      commandLine = commandLineParser.parse(options, args.toArray(new String[] {}), false);
-      if (!commandLine.getArgList().isEmpty()) {
-        throw new ParseException("Unrecognized option: " + commandLine.getArgList().get(0));
-      }
-    } catch (MissingOptionException e) {
-      // use long names instead of short names in the error message
-      List<String> missingShort = e.getMissingOptions();
-      List<String> missingLong = new ArrayList<String>();
-      for (String shortOption : missingShort) {
-        missingLong.add(options.getOption(shortOption).getLongOpt());
-      }
-      LOGGER.debug("MissingOptionException (the original, unmodified exception)", e);
-      throw new MissingOptionException(missingLong);
-    }
+    commandLine = commandLineParse(commandLineParser, options, args);
 
     // create arguments to pass to factory
     HashMap<Parameter, String> importModuleArguments = new HashMap<>();

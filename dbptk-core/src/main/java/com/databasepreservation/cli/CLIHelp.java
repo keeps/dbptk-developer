@@ -7,6 +7,20 @@
  */
 package com.databasepreservation.cli;
 
+import com.databasepreservation.Constants;
+import com.databasepreservation.model.exception.UnreachableException;
+import com.databasepreservation.model.exception.UnsupportedModuleException;
+import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.edits.EditModuleFactory;
+import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
+import com.databasepreservation.model.modules.validate.ValidateModuleFactory;
+import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.parameters.ParameterGroup;
+import com.databasepreservation.model.parameters.Parameters;
+import com.databasepreservation.utils.MiscUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.WordUtils;
+
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,20 +28,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.WordUtils;
-
-import com.databasepreservation.Constants;
-import com.databasepreservation.model.exception.UnreachableException;
-import com.databasepreservation.model.exception.UnsupportedModuleException;
-import com.databasepreservation.model.modules.DatabaseModuleFactory;
-import com.databasepreservation.model.modules.edits.EditModuleFactory;
-import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
-import com.databasepreservation.model.parameters.Parameter;
-import com.databasepreservation.model.parameters.ParameterGroup;
-import com.databasepreservation.model.parameters.Parameters;
-import com.databasepreservation.utils.MiscUtils;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -37,6 +37,7 @@ public class CLIHelp extends CLIHandler {
   private ArrayList<DatabaseModuleFactory> allModuleFactories;
   private ArrayList<DatabaseFilterFactory> allFilterFactories;
   private ArrayList<EditModuleFactory> allEditModuleFactories;
+  private ArrayList<ValidateModuleFactory> allValidateModuleFactories;
 
   public CLIHelp(List<String> commandLineArguments) {
     super(commandLineArguments);
@@ -54,6 +55,10 @@ public class CLIHelp extends CLIHandler {
     this.allEditModuleFactories = new ArrayList<>(editModuleFactories);
   }
 
+  public void setValidateModuleFactories(Collection<ValidateModuleFactory> validateModuleFactories) {
+    this.allValidateModuleFactories = new ArrayList<>(validateModuleFactories);
+  }
+
   public void printHelp(PrintStream printStream) {
     printInternalHelp(printStream);
   }
@@ -63,6 +68,10 @@ public class CLIHelp extends CLIHandler {
   }
 
   public void printEditUsage(PrintStream printStream) { printInternalEditUsage(printStream); }
+
+  public void printValidationUsage(PrintStream printStream) {
+    printInternalValidateUsage(printStream);
+  }
 
   /**
    * Prints the help text
@@ -78,7 +87,11 @@ public class CLIHelp extends CLIHandler {
       switch (arg) {
         case Constants.DBPTK_OPTION_EDIT: printInternalEditUsage(printStream);
           break;
-        case Constants.DBPTK_OPTION_MIGRATE: printMigrateUsage(printStream);
+        case Constants.DBPTK_OPTION_MIGRATE:
+          printInternalMigrateUsage(printStream);
+          break;
+        case Constants.DBPTK_OPTION_VALIDATE:
+          printInternalValidateUsage(printStream);
           break;
         default: printUsage(printStream);
       }
@@ -118,7 +131,8 @@ public class CLIHelp extends CLIHandler {
     out.append("Commands:");
     out.append("\n\n");
     out.append("\t").append(Constants.DBPTK_OPTION_MIGRATE).append("\t\t").append("Migrates data and metadata from an import module to an export module.").append("\n");
-    out.append("\t").append(Constants.DBPTK_OPTION_EDIT).append("\t\t").append("Edit the metadata information from a SIARD archive.").append("\n");
+    out.append("\t").append(Constants.DBPTK_OPTION_EDIT).append("\t\t").append("Edit the metadata information from a SIARD 2 archive.").append("\n");
+    out.append("\t").append(Constants.DBPTK_OPTION_VALIDATE).append("\t").append("Validate a SIARD 2 archive.").append("\n");
 
     out.append("\n");
     out.append("Run 'dbptk -h|help COMMAND' for more information on a command.").append("\n");
@@ -132,7 +146,7 @@ public class CLIHelp extends CLIHandler {
    *
    * @param printStream
    */
-  protected void printInternalEditUsage(PrintStream printStream) {
+  private void printInternalEditUsage(PrintStream printStream) {
     StringBuilder out = new StringBuilder();
 
     printHeader(printStream);
@@ -161,11 +175,34 @@ public class CLIHelp extends CLIHandler {
   }
 
   /**
+   * Prints the validate command usage text
+   */
+  private void printInternalValidateUsage(PrintStream printStream) {
+    StringBuilder out = new StringBuilder();
+
+    printHeader(printStream);
+
+    out.append("Usage: dbptk validate [OPTIONS]");
+    out.append("\n\n");
+
+    out.append("Options: ");
+
+    ValidateModuleFactory factory = allValidateModuleFactories.get(0);
+
+    for (Parameter parameter : factory.getParameters().getParameters()) {
+      out.append(printParameterHelp(Constants.SMALL_SPACE, "i", "import", parameter));
+    }
+    out.append("\n\n");
+
+    printStream.append(out).flush();
+  }
+
+  /**
    * Prints the migrate usage text
    *
    * @param printStream
    */
-  private void printMigrateUsage(PrintStream printStream) {
+  private void printInternalMigrateUsage(PrintStream printStream) {
     StringBuilder out = new StringBuilder();
 
     printHeader(printStream);

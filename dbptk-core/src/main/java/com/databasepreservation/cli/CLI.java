@@ -7,6 +7,14 @@
  */
 package com.databasepreservation.cli;
 
+import com.databasepreservation.Constants;
+import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.edits.EditModuleFactory;
+import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
+import com.databasepreservation.model.modules.validate.ValidateModuleFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
@@ -15,14 +23,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.databasepreservation.Constants;
-import com.databasepreservation.model.modules.DatabaseModuleFactory;
-import com.databasepreservation.model.modules.edits.EditModuleFactory;
-import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
 
 /**
  * Handles command line interface.
@@ -38,6 +38,7 @@ public class CLI {
 
   private final CLIMigrate migrate;
   private final CLIEdit edit;
+  private final CLIValidate validate;
   private final CLIHelp help;
 
   private final List<String> commandLineArguments;
@@ -53,12 +54,13 @@ public class CLI {
    *          List of available module factories
    */
   public CLI(List<String> commandLineArguments, Collection<DatabaseModuleFactory> databaseModuleFactories,
-    Collection<DatabaseFilterFactory> databaseFilterFactories, Collection<EditModuleFactory> editModuleFactories) {
+             Collection<DatabaseFilterFactory> databaseFilterFactories, Collection<EditModuleFactory> editModuleFactories, Collection<ValidateModuleFactory> validateModuleFactories) {
     this.commandLineArguments = commandLineArguments;
     this.migrate = new CLIMigrate(commandLineArguments, databaseModuleFactories, databaseFilterFactories);
     this.edit = new CLIEdit(commandLineArguments, editModuleFactories);
+    this.validate = new CLIValidate(commandLineArguments, validateModuleFactories);
     this.help = new CLIHelp(commandLineArguments);
-    prepareCLIHelp(databaseModuleFactories, databaseFilterFactories, editModuleFactories);
+    prepareCLIHelp(databaseModuleFactories, databaseFilterFactories, editModuleFactories, validateModuleFactories);
   }
 
   public CLIMigrate getCLIMigrate() {
@@ -67,6 +69,10 @@ public class CLI {
 
   public CLIEdit getCLIEdit() {
     return this.edit;
+  }
+
+  public CLIValidate getCLIValidate() {
+    return this.validate;
   }
 
   public CLIHelp getCLIHelp() {
@@ -85,10 +91,11 @@ public class CLI {
   }
 
   private void prepareCLIHelp(Collection<DatabaseModuleFactory> databaseModuleFactories,
-    Collection<DatabaseFilterFactory> databaseFilterFactories, Collection<EditModuleFactory> editModuleFactories) {
+                              Collection<DatabaseFilterFactory> databaseFilterFactories, Collection<EditModuleFactory> editModuleFactories, Collection<ValidateModuleFactory> validateModuleFactories) {
     getCLIHelp().setDatabaseModuleFactory(databaseModuleFactories);
     getCLIHelp().setDatabaseFilterFactory(databaseFilterFactories);
     getCLIHelp().setEditModuleFactories(editModuleFactories);
+    getCLIHelp().setValidateModuleFactories(validateModuleFactories);
   }
 
   /**
@@ -156,6 +163,26 @@ public class CLI {
     }
     String arg = commandLineArguments.get(0);
     boolean value = Constants.DBPTK_OPTION_EDIT.equalsIgnoreCase(arg);
+
+    if (value) {
+      recognizedCommand = true;
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Checks if the CLI command is validate
+   *
+   * @return true if validation is needed otherwise false
+   */
+  public boolean isValidation() {
+    if (commandLineArguments.isEmpty()) {
+      return false;
+    }
+    String arg = commandLineArguments.get(0);
+    boolean value = Constants.DBPTK_OPTION_VALIDATE.equalsIgnoreCase(arg);
 
     if (value) {
       recognizedCommand = true;
