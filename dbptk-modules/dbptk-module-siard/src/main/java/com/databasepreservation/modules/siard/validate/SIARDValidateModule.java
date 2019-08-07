@@ -7,8 +7,6 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
-import com.databasepreservation.modules.siard.validate.common.path.ValidatorPathStrategy;
-import com.databasepreservation.modules.siard.validate.common.path.ValidatorPathStrategyImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +23,8 @@ import com.databasepreservation.modules.siard.validate.TableData.DateAndTimestam
 import com.databasepreservation.modules.siard.validate.TableData.RequirementsForTableDataValidator;
 import com.databasepreservation.modules.siard.validate.TableData.TableDataValidator;
 import com.databasepreservation.modules.siard.validate.TableData.TableSchemaDefinitionValidator;
+import com.databasepreservation.modules.siard.validate.common.path.ValidatorPathStrategy;
+import com.databasepreservation.modules.siard.validate.common.path.ValidatorPathStrategyImpl;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -80,6 +80,7 @@ public class SIARDValidateModule implements ValidateModule {
   @Override
   public void validate() throws ModuleException {
     final ZipConstructionValidator zipConstructionValidation = ZipConstructionValidator.newInstance();
+
     zipConstructionValidation.setSIARDPackagePath(SIARDPackageNormalizedPath);
     zipConstructionValidation.setReporter(reporter);
     zipConstructionValidation.setValidationReporter(validationReporter);

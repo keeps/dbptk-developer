@@ -1,5 +1,6 @@
 package com.databasepreservation.model.reporters;
 
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -33,7 +34,6 @@ public class ValidationReporter implements AutoCloseable {
   private static final String OPEN_PARENTHESES = "(";
   private static final String CLOSED_BRACKET = "]";
   private static final String CLOSED_PARENTHESES = ")";
-
   private static final String HYPHEN = "-";
 
   public ValidationReporter(Path path, Path SIARDPackagePath) {
@@ -48,6 +48,7 @@ public class ValidationReporter implements AutoCloseable {
       } catch (IOException e) {
         LOGGER.warn("Could not create report file in current working directory. Attempting to use a temporary file", e);
         try {
+
           outputFile = Files.createTempFile(Constants.DBPTK_VALIDATION_REPORTER_PREFIX, ".txt");
         } catch (IOException e1) {
           LOGGER.error("Could not create report temporary file. Reporting will not function.", e1);
@@ -104,6 +105,10 @@ public class ValidationReporter implements AutoCloseable {
 
   private String buildStatus(Status status) {
     return OPEN_BRACKET + status.name() + CLOSED_BRACKET;
+  }
+
+  public void appendText(String text) {
+    writeLine(text);
   }
 
   private void writeLine(String line) {
