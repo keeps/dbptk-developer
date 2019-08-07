@@ -3,30 +3,33 @@ package com.databasepreservation.modules.siard.validate;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.validate.ValidateModule;
+import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.modules.DefaultExceptionNormalizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.file.Path;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 public class SIARDValidateModule implements ValidateModule {
-  private Reporter reporter;
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARDValidateModule.class);
+  private Reporter reporter;
+
+  private final Path SIARDPackageNormalizedPath;
+  private ValidationReporter validationReporter;
 
   /**
    * Constructor used to initialize required objects to get an validate module
    * for SIARD 2 (all minor versions)
    *
-   * @param siardPackagePath Path to the main SIARD file (file with extension .siard)
+   * @param SIARDPackagePath Path to the main SIARD file (file with extension .siard)
    */
-  public SIARDValidateModule(Path siardPackagePath) {
-    Path siardPackageNormalizedPath = siardPackagePath.toAbsolutePath().normalize();
-
-    // TODO: initializations
-
+  public SIARDValidateModule(Path SIARDPackagePath, Path validationReporterPath) {
+    SIARDPackageNormalizedPath = SIARDPackagePath.toAbsolutePath().normalize();
+    validationReporter = new ValidationReporter(validationReporterPath.toAbsolutePath().normalize(), SIARDPackageNormalizedPath);
   }
 
   /**
@@ -44,7 +47,16 @@ public class SIARDValidateModule implements ValidateModule {
    */
   @Override
   public void validate() throws ModuleException {
-    // TODO: validation
+    final ZipConstructionValidator zipConstructionValidation = ZipConstructionValidator.newInstance();
+
+    zipConstructionValidation.setSIARDPackagePath(SIARDPackageNormalizedPath);
+    zipConstructionValidation.setOnceReporter(reporter);
+    zipConstructionValidation.setValidationReporter(validationReporter);
+    final boolean validate = zipConstructionValidation.validate();
+
+    validationReporter.close();
+
+    System.out.println(validate);
   }
 
   /**

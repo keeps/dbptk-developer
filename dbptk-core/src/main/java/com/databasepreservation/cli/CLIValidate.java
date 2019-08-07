@@ -5,8 +5,6 @@ import com.databasepreservation.model.parameters.Parameter;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.MissingArgumentException;
-import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
@@ -94,6 +92,15 @@ public class CLIValidate extends CLIHandler {
     Option importOption = Option.builder("i").longOpt("import").hasArg().optionalArg(false).build();
     options.addOption(importOption);
 
+    for (Parameter parameter : factory.getSingleParameters().getParameters()) {
+      Option option = parameter.toOption("e", "export");
+      options.addOption(option);
+      mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
+    }
+
+    Option exportOption = Option.builder("e").longOpt("export").hasArg().optionalArg(false).build();
+    options.addOption(exportOption);
+
     commandLine = commandLineParse(commandLineParser, options, args);
 
     // create arguments to pass to factory
@@ -103,11 +110,9 @@ public class CLIValidate extends CLIHandler {
       Parameter p = mapOptionToParameter.get(getUniqueOptionIdentifier(option));
       if (p != null) {
           if (p.hasArgument()) {
-            if (p.longName().contentEquals("file")) {
-              siardPackage = option.getValue(p.valueIfNotSet());
-              validateModuleArguments.put(p, option.getValue(p.valueIfNotSet()));
+            if (p.longName().equals("file")) siardPackage = option.getValue(p.valueIfSet());
+              validateModuleArguments.put(p, option.getValue(p.valueIfSet()));
             }
-          }
         } else {
           throw new ParseException("Unexpected parse exception occurred.");
         }

@@ -192,6 +192,10 @@ public class CLIHelp extends CLIHandler {
     for (Parameter parameter : factory.getParameters().getParameters()) {
       out.append(printParameterHelp(Constants.SMALL_SPACE, "i", "import", parameter));
     }
+
+    for (Parameter parameter : factory.getSingleParameters().getParameters()) {
+      out.append(printParameterHelp(Constants.SMALL_SPACE, "e", "export", parameter));
+    }
     out.append("\n\n");
 
     printStream.append(out).flush();

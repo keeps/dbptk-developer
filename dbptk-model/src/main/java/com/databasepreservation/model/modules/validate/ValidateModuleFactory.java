@@ -44,6 +44,8 @@ public interface ValidateModuleFactory {
    */
   Parameters getParameters();
 
+  Parameters getSingleParameters();
+
   /**
    * Returns a combination of all <code>Parameter</code> and its values.
    *

@@ -66,5 +66,10 @@
             <artifactId>commons-compress</artifactId>
             <version>1.18</version>
         </dependency>
+        <dependency>
+            <groupId>net.lingala.zip4j</groupId>
+            <artifactId>zip4j</artifactId>
+            <version>RELEASE</version>
+        </dependency>
     </dependencies>
 </project>

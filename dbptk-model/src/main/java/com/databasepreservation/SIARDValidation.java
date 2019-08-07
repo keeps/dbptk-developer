@@ -97,20 +97,19 @@ public class SIARDValidation {
     ValidateModule validateModule = validateModuleFactory.buildModule(importParameters, reporter);
     validateModule.setOnceReporter(reporter);
 
-
+    validateModule.validate();
   }
 
   // Auxiliary Internal Methods
 
   private static HashMap<Parameter, String> buildImportParameters(HashMap<String, String> validateModuleParameters,
                                                                   ValidateModuleFactory validateModuleFactory) {
-
     HashMap<Parameter, String> importParameters = new HashMap<>();
 
     for (Map.Entry<String,String> entry : validateModuleParameters.entrySet()) {
       Parameter key = validateModuleFactory.getAllParameters().get(entry.getKey());
 
-      if (key != null && key.longName().contentEquals("file")) {
+      if (key != null) {
         importParameters.put(key, entry.getValue());
       }
     }

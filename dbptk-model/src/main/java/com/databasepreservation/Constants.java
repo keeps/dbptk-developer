@@ -36,4 +36,6 @@ public class Constants {
   public static final String MEDIUM_SPACE = "        ";
 
   public static final String SEPARATOR = "---";
+
+  public static final String DBPTK_VALIDATION_HEADER_REPORTER = "dbptk-validation-reporter";
 }
