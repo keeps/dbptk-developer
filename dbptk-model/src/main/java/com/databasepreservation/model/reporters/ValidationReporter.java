@@ -84,6 +84,10 @@ public class ValidationReporter implements AutoCloseable {
     writeLine(TAB + text + COLON + SINGLE_SPACE + buildStatus(status));
   }
 
+  public void validationStatus(String text, Status status, String details) {
+    writeLine(TAB + text + COLON + SINGLE_SPACE + buildStatus(status) + SINGLE_SPACE + details);
+  }
+
   public void moduleValidatorFinished(String text, Status status) {
     writeLine(text + SINGLE_SPACE + buildStatus(status));
     writeLine(EMPTY_MESSAGE_LINE);
@@ -105,10 +109,6 @@ public class ValidationReporter implements AutoCloseable {
 
   private String buildStatus(Status status) {
     return OPEN_BRACKET + status.name() + CLOSED_BRACKET;
-  }
-
-  public void appendText(String text) {
-    writeLine(text);
   }
 
   private void writeLine(String line) {
@@ -142,7 +142,7 @@ public class ValidationReporter implements AutoCloseable {
         LOGGER.info("The report file is located at {}", outputFile.normalize().toAbsolutePath().toString());
       } else {
         LOGGER.info(
-            "A report with a listing of information that was modified during the conversion could not be generated, please submit a bug report to help us fix this.");
+          "A report with a listing of information that was modified during the conversion could not be generated, please submit a bug report to help us fix this.");
       }
     }
   }

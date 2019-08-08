@@ -54,7 +54,7 @@ public class ZipConstructionValidator {
     boolean result = isZipFile();
 
     if (result) {
-      validationReporter.appendText(G_411 + "[OK]");
+      validationReporter.validationStatus(G_411, ValidationReporter.Status.OK);
       result = deflateOrStore();
     }
 

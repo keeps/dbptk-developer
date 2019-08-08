@@ -25,6 +25,8 @@ import com.databasepreservation.modules.siard.validate.TableData.TableDataValida
 import com.databasepreservation.modules.siard.validate.TableData.TableSchemaDefinitionValidator;
 import com.databasepreservation.modules.siard.validate.common.path.ValidatorPathStrategy;
 import com.databasepreservation.modules.siard.validate.common.path.ValidatorPathStrategyImpl;
+import com.databasepreservation.modules.siard.validate.metadata.MetadataDatabaseValidator;
+import com.databasepreservation.modules.siard.validate.metadata.MetadataXMLAgainstXSDValidator;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -138,7 +140,24 @@ public class SIARDValidateModule implements ValidateModule {
     additionalChecksValidator.setValidatorPathStrategy(validatorPathStrategy);
     additionalChecksValidator.validate();
 
-    validationReporter.close();
+    final MetadataXMLAgainstXSDValidator metadataXMLAgainstXSDValidator = MetadataXMLAgainstXSDValidator.newInstance();
+
+    metadataXMLAgainstXSDValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
+    metadataXMLAgainstXSDValidator.setReporter(reporter);
+    metadataXMLAgainstXSDValidator.setValidationReporter(validationReporter);
+    metadataXMLAgainstXSDValidator.validate();
+
+    final MetadataDatabaseValidator metadataDatabaseValidator = MetadataDatabaseValidator.newInstance();
+    metadataDatabaseValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
+    metadataDatabaseValidator.setReporter(reporter);
+    metadataDatabaseValidator.setValidationReporter(validationReporter);
+    metadataDatabaseValidator.validate();
+
+    try {
+      validationReporter.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   /**
