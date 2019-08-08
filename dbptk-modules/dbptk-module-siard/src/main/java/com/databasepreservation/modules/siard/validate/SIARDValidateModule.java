@@ -5,10 +5,11 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.validate.ValidateModule;
 import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.modules.DefaultExceptionNormalizer;
+import com.databasepreservation.modules.siard.validate.FormatStructure.SIARDStructureValidator;
+import com.databasepreservation.modules.siard.validate.FormatStructure.ZipConstructionValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.nio.file.Path;
 
 /**
@@ -50,13 +51,17 @@ public class SIARDValidateModule implements ValidateModule {
     final ZipConstructionValidator zipConstructionValidation = ZipConstructionValidator.newInstance();
 
     zipConstructionValidation.setSIARDPackagePath(SIARDPackageNormalizedPath);
-    zipConstructionValidation.setOnceReporter(reporter);
+    zipConstructionValidation.setReporter(reporter);
     zipConstructionValidation.setValidationReporter(validationReporter);
     final boolean validate = zipConstructionValidation.validate();
 
-    validationReporter.close();
+    final SIARDStructureValidator siardStructureValidator = SIARDStructureValidator.newInstance();
+    siardStructureValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
+    siardStructureValidator.setReporter(reporter);
+    siardStructureValidator.setValidationReporter(validationReporter);
+    siardStructureValidator.validate();
 
-    System.out.println(validate);
+    validationReporter.close();
   }
 
   /**

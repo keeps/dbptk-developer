@@ -1,19 +1,16 @@
-package com.databasepreservation.modules.siard.validate;
+package com.databasepreservation.modules.siard.validate.FormatStructure;
 
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.modules.validate.ValidatorModule;
 import com.databasepreservation.model.reporters.ValidationReporter;
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.file.Path;
+import java.util.Enumeration;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 /**
  * This validator checks the Construction of the SIARD archive file (4.1 in eCH-0165 SIARD Format Specification)
@@ -21,7 +18,7 @@ import java.util.zip.ZipInputStream;
  *
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
-public class ZipConstructionValidator {
+public class ZipConstructionValidator extends ValidatorModule {
   private static final Logger LOGGER = LoggerFactory.getLogger(ZipConstructionValidator.class);
 
   private static final String MODULE_NAME = "Construction of the SIARD archive file";
@@ -34,11 +31,7 @@ public class ZipConstructionValidator {
   private static final byte[] ZIP_MAGIC_NUMBER = {'P', 'K', 0x3, 0x4};
   private static final byte[] STORE = {0x0, 0x0};
   private static final byte[] DEFLATE = {0x8, 0x0};
-  private static final byte NOT_ENCRYPTED = 0x0;
   private static final String SIARD_EXTENSION = ".siard";
-  private Path SIARDPackagePath = null;
-  private Reporter reporter;
-  private ValidationReporter validationReporter;
 
   public static ZipConstructionValidator newInstance() {
     return new ZipConstructionValidator();
@@ -47,61 +40,51 @@ public class ZipConstructionValidator {
   private ZipConstructionValidator() {
   }
 
-  public void setSIARDPackagePath(Path SIARDPackagePath) {
-    this.SIARDPackagePath = SIARDPackagePath;
-  }
-
-  public void setOnceReporter(Reporter reporter) {
-    this.reporter = reporter;
-  }
-
-  public void setValidationReporter(ValidationReporter validationReporter) {
-    this.validationReporter = validationReporter;
-  }
-
+  @Override
   public boolean validate() {
-    validationReporter.moduleValidatorHeader(G_41, MODULE_NAME);
+    getValidationReporter().moduleValidatorHeader(G_41, MODULE_NAME);
     if (isZipFile()) {
-      validationReporter.validationStatus(G_411, ValidationReporter.Status.OK);
+      getValidationReporter().validationStatus(G_411, ValidationReporter.Status.OK);
     } else {
-      validationFailed(G_411);
+      validationFailed(G_411, MODULE_NAME);
       return false;
     }
 
     if (deflateOrStore()) {
       if (checkZipEntries()) {
-        validationReporter.validationStatus(G_412, ValidationReporter.Status.OK);
+        getValidationReporter().validationStatus(G_412, ValidationReporter.Status.OK);
       } else {
-        validationFailed(G_412);
+        validationFailed(G_412, MODULE_NAME);
         return false;
       }
     } else {
-      validationFailed(G_412);
+      validationFailed(G_412, MODULE_NAME);
       return false;
     }
 
     if (!passwordProtected()) {
-      validationReporter.validationStatus(G_413, ValidationReporter.Status.OK);
+      getValidationReporter().validationStatus(G_413, ValidationReporter.Status.OK);
     } else {
-      validationFailed(G_413);
+      validationFailed(G_413, MODULE_NAME);
       return false;
     }
 
     // G_414 SELF VALIDATE
+    getValidationReporter().validationStatus(G_414, ValidationReporter.Status.OK);
 
     if (fileExtension()) {
-      validationReporter.validationStatus(G_415, ValidationReporter.Status.OK);
+      getValidationReporter().validationStatus(G_415, ValidationReporter.Status.OK);
     } else {
-      validationFailed(G_415);
+      validationFailed(G_415, MODULE_NAME);
       return false;
     }
 
-    validationReporter.moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.OK);
+    getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.OK);
     return true;
   }
 
   private boolean isZipFile() {
-    if (SIARDPackagePath == null) {
+    if (getSIARDPackagePath() == null) {
       return false;
     }
 
@@ -109,7 +92,7 @@ public class ZipConstructionValidator {
 
     byte[] buffer = new byte[ZIP_MAGIC_NUMBER.length];
     try {
-      RandomAccessFile raf = new RandomAccessFile(SIARDPackagePath.toFile(), "r");
+      RandomAccessFile raf = new RandomAccessFile(getSIARDPackagePath().toFile(), "r");
       raf.readFully(buffer);
       for (int i = 0; i < ZIP_MAGIC_NUMBER.length; i++) {
         if (buffer[i] != ZIP_MAGIC_NUMBER[i]) {
@@ -125,7 +108,7 @@ public class ZipConstructionValidator {
   }
 
   private boolean deflateOrStore() {
-    if (SIARDPackagePath == null) {
+    if (getSIARDPackagePath() == null) {
       return false;
     }
 
@@ -133,7 +116,7 @@ public class ZipConstructionValidator {
 
     byte[] buffer = new byte[10];
     try {
-      RandomAccessFile raf = new RandomAccessFile(SIARDPackagePath.toFile(), "r");
+      RandomAccessFile raf = new RandomAccessFile(getSIARDPackagePath().toFile(), "r");
       raf.read(buffer);
       deflateOrStore = store(buffer) ^ deflate(buffer);
     } catch (IOException e) {
@@ -144,25 +127,18 @@ public class ZipConstructionValidator {
   }
 
   private boolean checkZipEntries() {
-    if (SIARDPackagePath == null) {
+    if (getSIARDPackagePath() == null) {
       return false;
     }
 
-    ZipInputStream zipInputStream;
-    ZipEntry zipEntry;
-    int compressed;
-    try {
-      zipInputStream = new ZipInputStream(new BufferedInputStream(new FileInputStream(SIARDPackagePath.toFile())));
-      while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-        reporter.customMessage(getClass().getName(), "Validating compress method for entry: " + zipEntry.getName());
-        compressed = zipEntry.getMethod();
-        if (compressed != ZipEntry.DEFLATED && compressed != ZipEntry.STORED) {
+    try (java.util.zip.ZipFile zipFile = new java.util.zip.ZipFile(getSIARDPackagePath().toFile())) {
+      Enumeration zipEntries = zipFile.entries();
+      while (zipEntries.hasMoreElements()) {
+        int method = ((ZipEntry) zipEntries.nextElement()).getMethod();
+        if (method != ZipEntry.DEFLATED && method != ZipEntry.STORED) {
           return false;
         }
       }
-
-      zipInputStream.closeEntry();
-      zipInputStream.close();
     } catch (IOException e) {
       return false;
     }
@@ -171,23 +147,23 @@ public class ZipConstructionValidator {
   }
 
   private boolean passwordProtected() {
-    if (SIARDPackagePath == null) {
+    if (getSIARDPackagePath() == null) {
       return false;
     }
 
     try {
-      return new ZipFile(SIARDPackagePath.toFile()).isEncrypted();
+      return new ZipFile(getSIARDPackagePath().toFile()).isEncrypted();
     } catch (ZipException e) {
       return false;
     }
   }
 
   private boolean fileExtension() {
-    if (SIARDPackagePath == null) {
+    if (getSIARDPackagePath() == null) {
       return false;
     }
 
-    return SIARDPackagePath.getFileName().toString().endsWith(SIARD_EXTENSION);
+    return getSIARDPackagePath().getFileName().toString().endsWith(SIARD_EXTENSION);
   }
 
   private boolean store(final byte[] buffer) {
@@ -208,10 +184,5 @@ public class ZipConstructionValidator {
     }
 
     return true;
-  }
-
-  private void validationFailed(String ID) {
-    validationReporter.validationStatus(ID, ValidationReporter.Status.ERROR);
-    validationReporter.moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.ERROR);
   }
 }

@@ -1,9 +1,7 @@
 package com.databasepreservation.model.reporters;
 
 import com.databasepreservation.Constants;
-import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.MiscUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +29,10 @@ public class ValidationReporter implements AutoCloseable {
   private static final String COLON = ":";
   private static final String SINGLE_SPACE = " ";
   private static final String OPEN_BRACKET = "[";
+  private static final String OPEN_PARENTHESES = "(";
   private static final String CLOSED_BRACKET = "]";
+  private static final String CLOSED_PARENTHESES = ")";
+
   private static final String HYPHEN = "-";
 
   public ValidationReporter(Path path, Path SIARDPackagePath) {
@@ -79,6 +80,11 @@ public class ValidationReporter implements AutoCloseable {
 
   public void moduleValidatorFinished(String text, Status status) {
     writeLine(text + SINGLE_SPACE + buildStatus(status));
+    writeLine(EMPTY_MESSAGE_LINE);
+  }
+
+  public void warning(String ID, String text, String object) {
+    writeLine(TAB + ID + COLON + SINGLE_SPACE + buildStatus(Status.WARNING) + HYPHEN + text + OPEN_PARENTHESES + object + CLOSED_PARENTHESES);
   }
 
   private String buildStatus(Status status) {
