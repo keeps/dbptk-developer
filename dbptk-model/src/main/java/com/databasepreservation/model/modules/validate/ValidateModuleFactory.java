@@ -42,7 +42,7 @@ public interface ValidateModuleFactory {
    *
    * @return The {@link Parameters} for the specific factory
    */
-  Parameters getParameters();
+  Parameters getImportParameters();
 
   Parameters getSingleParameters();
 

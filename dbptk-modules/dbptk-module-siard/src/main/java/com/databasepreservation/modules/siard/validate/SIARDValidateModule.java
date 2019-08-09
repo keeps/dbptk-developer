@@ -1,16 +1,25 @@
 package com.databasepreservation.modules.siard.validate;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.validate.ValidateModule;
 import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.modules.DefaultExceptionNormalizer;
+import com.databasepreservation.modules.siard.validate.FormatStructure.MetadataAndTableDataValidator;
 import com.databasepreservation.modules.siard.validate.FormatStructure.SIARDStructureValidator;
 import com.databasepreservation.modules.siard.validate.FormatStructure.ZipConstructionValidator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.nio.file.Path;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -21,6 +30,7 @@ public class SIARDValidateModule implements ValidateModule {
 
   private final Path SIARDPackageNormalizedPath;
   private ValidationReporter validationReporter;
+  private final List<String> allowedUDTs;
 
   /**
    * Constructor used to initialize required objects to get an validate module
@@ -31,6 +41,19 @@ public class SIARDValidateModule implements ValidateModule {
   public SIARDValidateModule(Path SIARDPackagePath, Path validationReporterPath) {
     SIARDPackageNormalizedPath = SIARDPackagePath.toAbsolutePath().normalize();
     validationReporter = new ValidationReporter(validationReporterPath.toAbsolutePath().normalize(), SIARDPackageNormalizedPath);
+    allowedUDTs = Collections.emptyList();
+  }
+
+  /**
+   * Constructor used to initialize required objects to get an validate module
+   * for SIARD 2 (all minor versions)
+   *
+   * @param SIARDPackagePath Path to the main SIARD file (file with extension .siard)
+   */
+  public SIARDValidateModule(Path SIARDPackagePath, Path validationReporterPath, Path allowedUDTs) {
+    SIARDPackageNormalizedPath = SIARDPackagePath.toAbsolutePath().normalize();
+    validationReporter = new ValidationReporter(validationReporterPath.toAbsolutePath().normalize(), SIARDPackageNormalizedPath);
+    this.allowedUDTs = parseAllowUDTs(allowedUDTs);
   }
 
   /**
@@ -49,17 +72,23 @@ public class SIARDValidateModule implements ValidateModule {
   @Override
   public void validate() throws ModuleException {
     final ZipConstructionValidator zipConstructionValidation = ZipConstructionValidator.newInstance();
-
     zipConstructionValidation.setSIARDPackagePath(SIARDPackageNormalizedPath);
     zipConstructionValidation.setReporter(reporter);
     zipConstructionValidation.setValidationReporter(validationReporter);
-    final boolean validate = zipConstructionValidation.validate();
+    zipConstructionValidation.validate();
 
     final SIARDStructureValidator siardStructureValidator = SIARDStructureValidator.newInstance();
     siardStructureValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
     siardStructureValidator.setReporter(reporter);
     siardStructureValidator.setValidationReporter(validationReporter);
     siardStructureValidator.validate();
+
+    final MetadataAndTableDataValidator metadataAndTableDataValidator = MetadataAndTableDataValidator.newInstance();
+    metadataAndTableDataValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
+    metadataAndTableDataValidator.setReporter(reporter);
+    metadataAndTableDataValidator.setValidationReporter(validationReporter);
+    metadataAndTableDataValidator.setAllowUDTs(allowedUDTs);
+    metadataAndTableDataValidator.validate();
 
     validationReporter.close();
   }
@@ -75,5 +104,20 @@ public class SIARDValidateModule implements ValidateModule {
   @Override
   public ModuleException normalizeException(Exception exception, String contextMessage) {
     return DefaultExceptionNormalizer.getInstance().normalizeException(exception, contextMessage);
+  }
+
+  private List<String> parseAllowUDTs(Path path) {
+    if (path.toFile().exists() && path.toFile().isFile()) {
+      List<String> lines = Collections.emptyList();
+      try {
+        lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      return lines;
+    }
+
+    return Collections.emptyList();
   }
 }

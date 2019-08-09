@@ -189,12 +189,12 @@ public class CLIHelp extends CLIHandler {
 
     ValidateModuleFactory factory = allValidateModuleFactories.get(0);
 
-    for (Parameter parameter : factory.getParameters().getParameters()) {
+    for (Parameter parameter : factory.getImportParameters().getParameters()) {
       out.append(printParameterHelp(Constants.SMALL_SPACE, "i", "import", parameter));
     }
 
     for (Parameter parameter : factory.getSingleParameters().getParameters()) {
-      out.append(printParameterHelp(Constants.SMALL_SPACE, "e", "export", parameter));
+      out.append(printParameterHelp(Constants.SMALL_SPACE, parameter));
     }
     out.append("\n\n");
 

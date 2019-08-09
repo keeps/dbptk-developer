@@ -1,15 +1,16 @@
 package com.databasepreservation.model.reporters;
 
-import com.databasepreservation.Constants;
-import com.databasepreservation.utils.MiscUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.databasepreservation.Constants;
+import com.databasepreservation.utils.MiscUtils;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -20,7 +21,7 @@ public class ValidationReporter implements AutoCloseable {
   private BufferedWriter writer;
 
   public enum Status {
-    OK, ERROR, WARNING;
+    OK, ERROR, WARNING, SKIPPED;
   }
 
   private static final String EMPTY_MESSAGE_LINE = "";
@@ -84,7 +85,13 @@ public class ValidationReporter implements AutoCloseable {
   }
 
   public void warning(String ID, String text, String object) {
-    writeLine(TAB + ID + COLON + SINGLE_SPACE + buildStatus(Status.WARNING) + HYPHEN + text + OPEN_PARENTHESES + object + CLOSED_PARENTHESES);
+    writeLine(TAB + ID + COLON + SINGLE_SPACE + buildStatus(Status.WARNING) + SINGLE_SPACE + HYPHEN + SINGLE_SPACE
+      + text + SINGLE_SPACE + OPEN_PARENTHESES + object + CLOSED_PARENTHESES);
+  }
+
+  public void skipValidation(String ID, String reasonToSkip) {
+    writeLine(TAB + ID + COLON + SINGLE_SPACE + buildStatus(Status.SKIPPED) + SINGLE_SPACE + HYPHEN + SINGLE_SPACE
+      + reasonToSkip);
   }
 
   private String buildStatus(Status status) {

@@ -1,6 +1,7 @@
 package com.databasepreservation.model.modules.validate;
 
 import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.reporters.ValidationReporter;
 
 import java.nio.file.Path;
@@ -42,5 +43,5 @@ public abstract class ValidatorModule {
     validationReporter.moduleValidatorFinished(moduleName, ValidationReporter.Status.ERROR);
   }
 
-  public abstract boolean validate();
+  public abstract boolean validate() throws ModuleException;
 }

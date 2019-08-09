@@ -1,7 +1,11 @@
 package com.databasepreservation.cli;
 
-import com.databasepreservation.model.modules.validate.ValidateModuleFactory;
-import com.databasepreservation.model.parameters.Parameter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -9,11 +13,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.databasepreservation.model.modules.validate.ValidateModuleFactory;
+import com.databasepreservation.model.parameters.Parameter;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -83,7 +84,7 @@ public class CLIValidate extends CLIHandler {
 
     HashMap<String, Parameter> mapOptionToParameter = new HashMap<>();
 
-    for (Parameter parameter : factory.getParameters().getParameters()) {
+    for (Parameter parameter : factory.getImportParameters().getParameters()) {
       Option option = parameter.toOption("i", "import");
       options.addOption(option);
       mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
@@ -93,13 +94,10 @@ public class CLIValidate extends CLIHandler {
     options.addOption(importOption);
 
     for (Parameter parameter : factory.getSingleParameters().getParameters()) {
-      Option option = parameter.toOption("e", "export");
+      Option option = parameter.toOption();
       options.addOption(option);
       mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
     }
-
-    Option exportOption = Option.builder("e").longOpt("export").hasArg().optionalArg(false).build();
-    options.addOption(exportOption);
 
     commandLine = commandLineParse(commandLineParser, options, args);
 
@@ -111,12 +109,12 @@ public class CLIValidate extends CLIHandler {
       if (p != null) {
           if (p.hasArgument()) {
             if (p.longName().equals("file")) siardPackage = option.getValue(p.valueIfSet());
-              validateModuleArguments.put(p, option.getValue(p.valueIfSet()));
-            }
-        } else {
-          throw new ParseException("Unexpected parse exception occurred.");
+          validateModuleArguments.put(p, option.getValue(p.valueIfSet()));
         }
+      } else {
+        throw new ParseException("Unexpected parse exception occurred.");
       }
+    }
 
     return validateModuleArguments;
   }
