@@ -1,5 +1,6 @@
 package com.databasepreservation.modules.siard.validate;
 
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -25,7 +26,9 @@ import com.databasepreservation.modules.siard.validate.TableData.TableDataValida
 import com.databasepreservation.modules.siard.validate.TableData.TableSchemaDefinitionValidator;
 import com.databasepreservation.modules.siard.validate.common.path.ValidatorPathStrategy;
 import com.databasepreservation.modules.siard.validate.common.path.ValidatorPathStrategyImpl;
-import com.databasepreservation.modules.siard.validate.metadata.MetadataDatabaseValidator;
+import com.databasepreservation.modules.siard.validate.metadata.MetadataDatabaseInfoValidator;
+import com.databasepreservation.modules.siard.validate.metadata.MetadataSchemaValidator;
+import com.databasepreservation.modules.siard.validate.metadata.MetadataTypeValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataXMLAgainstXSDValidator;
 
 /**
@@ -147,11 +150,24 @@ public class SIARDValidateModule implements ValidateModule {
     metadataXMLAgainstXSDValidator.setValidationReporter(validationReporter);
     metadataXMLAgainstXSDValidator.validate();
 
-    final MetadataDatabaseValidator metadataDatabaseValidator = MetadataDatabaseValidator.newInstance();
-    metadataDatabaseValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
-    metadataDatabaseValidator.setReporter(reporter);
-    metadataDatabaseValidator.setValidationReporter(validationReporter);
-    metadataDatabaseValidator.validate();
+    final MetadataDatabaseInfoValidator metadataDatabaseInfoValidator = MetadataDatabaseInfoValidator.newInstance();
+
+    metadataDatabaseInfoValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
+    metadataDatabaseInfoValidator.setReporter(reporter);
+    metadataDatabaseInfoValidator.setValidationReporter(validationReporter);
+    metadataDatabaseInfoValidator.validate();
+
+    final MetadataSchemaValidator metadataSchemaValidator = MetadataSchemaValidator.newInstance();
+    metadataSchemaValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
+    metadataSchemaValidator.setReporter(reporter);
+    metadataSchemaValidator.setValidationReporter(validationReporter);
+    metadataSchemaValidator.validate();
+
+    final MetadataTypeValidator metadataTypeValidator = MetadataTypeValidator.newInstance();
+    metadataTypeValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
+    metadataTypeValidator.setReporter(reporter);
+    metadataTypeValidator.setValidationReporter(validationReporter);
+    metadataTypeValidator.validate();
 
     try {
       validationReporter.close();
