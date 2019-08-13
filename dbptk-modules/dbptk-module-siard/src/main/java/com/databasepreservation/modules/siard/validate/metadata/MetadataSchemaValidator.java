@@ -19,13 +19,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.databasepreservation.model.modules.validate.ValidatorModule;
 import com.databasepreservation.model.reporters.ValidationReporter;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
  */
-public class MetadataSchemaValidator extends ValidatorModule {
+public class MetadataSchemaValidator extends MetadataValidator {
   private static final String MODULE_NAME = "Schema level metadata";
   private static final String M_52 = "5.2";
   private static final String M_521 = "M_5.2-1";
@@ -38,8 +37,6 @@ public class MetadataSchemaValidator extends ValidatorModule {
   private List<String> folders = new ArrayList<>();
   private List<String> descriptions = new ArrayList<>();
   private List<String> tablesList = new ArrayList<>();
-
-  private List<String> hasWarnings = new ArrayList<>();
 
   public static MetadataSchemaValidator newInstance() {
     return new MetadataSchemaValidator();
@@ -165,7 +162,7 @@ public class MetadataSchemaValidator extends ValidatorModule {
   private boolean validateSchemaName() {
     hasWarnings.clear();
     for (String name : names) {
-      if (!MetadataXMLUtils.validateMandatoryXMLField(name, "name", hasWarnings)) {
+      if (!validateMandatoryXMLField(name, "name", true)) {
         return false;
       }
     }
@@ -181,7 +178,7 @@ public class MetadataSchemaValidator extends ValidatorModule {
   private boolean validateSchemaFolder() {
     hasWarnings.clear();
     for (String folder : folders) {
-      if (!MetadataXMLUtils.validateMandatoryXMLField(folder, "folder", hasWarnings)) {
+      if (!validateMandatoryXMLField(folder, "folder", true)) {
         return false;
       }
     }
@@ -197,7 +194,7 @@ public class MetadataSchemaValidator extends ValidatorModule {
   private void validateSchemaDescription() {
     hasWarnings.clear();
     for (String description : descriptions) {
-      MetadataXMLUtils.validateXMLFieldSize(description, "description", hasWarnings);
+      validateXMLFieldSize(description, "description");
     }
   }
 

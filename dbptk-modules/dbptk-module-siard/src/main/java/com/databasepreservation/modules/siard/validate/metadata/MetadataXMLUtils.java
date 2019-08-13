@@ -20,7 +20,6 @@ import java.util.List;
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataXMLUtils {
-  private static final int MIN_FIELD_LENGTH = 3;
 
   public static Document getDocument(InputStream inputStream)
     throws IOException, SAXException, ParserConfigurationException {
@@ -65,20 +64,5 @@ public class MetadataXMLUtils {
       }
     }
     return null;
-  }
-
-  public static boolean validateMandatoryXMLField(String field, String fieldName, List<String> warningList) {
-    if (field == null || field.isEmpty()) {
-      return false;
-    }
-    validateXMLFieldSize(field, fieldName, warningList);
-    return true;
-  }
-
-  public static void validateXMLFieldSize(String field, String fieldName, List<String> warningList) {
-    warningList.clear();
-    if (field == null || field.length() < MIN_FIELD_LENGTH) {
-      warningList.add(fieldName + Constants.SEPARATOR + field);
-    }
   }
 }

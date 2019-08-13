@@ -1,13 +1,9 @@
 package com.databasepreservation.modules.siard.validate.metadata;
 
-import com.databasepreservation.model.modules.validate.ValidatorModule;
-import com.databasepreservation.model.reporters.ValidationReporter;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
@@ -15,15 +11,18 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
  */
-public class MetadataTypeValidator extends ValidatorModule {
+public class MetadataTypeValidator extends MetadataValidator {
   private static final String MODULE_NAME = "Type level metadata";
   private static final String M_53 = "5.3";
   private static final String M_531 = "M_5.3-1";
@@ -39,8 +38,6 @@ public class MetadataTypeValidator extends ValidatorModule {
   private List<String> instantiableList = new ArrayList<>();
   private List<String> finalList = new ArrayList<>();
   private List<String> descriptionList = new ArrayList<>();
-
-  private List<String> hasWarnings = new ArrayList<>();
 
   public static MetadataTypeValidator newInstance() {
     return new MetadataTypeValidator();
@@ -142,13 +139,7 @@ public class MetadataTypeValidator extends ValidatorModule {
    * @return true if valid otherwise false
    */
   private boolean validateTypeName() {
-    hasWarnings.clear();
-    for (String name : nameList) {
-      if (name == null || name.isEmpty()) {
-        return false;
-      }
-    }
-    return true;
+    return validateMandatoryXMLFieldList(nameList, "name", false);
   }
 
   /**
@@ -158,13 +149,7 @@ public class MetadataTypeValidator extends ValidatorModule {
    * @return true if valid otherwise false
    */
   private boolean validateTypeCategory() {
-    hasWarnings.clear();
-    for (String category : categoryList) {
-      if (category == null || category.isEmpty()) {
-        return false;
-      }
-    }
-    return true;
+    return validateMandatoryXMLFieldList(categoryList, "category", false);
   }
 
   /**
@@ -174,13 +159,7 @@ public class MetadataTypeValidator extends ValidatorModule {
    * @return true if valid otherwise false
    */
   private boolean validateTypeInstantiable() {
-    hasWarnings.clear();
-    for (String instantiable : instantiableList) {
-      if (instantiable == null || instantiable.isEmpty()) {
-        return false;
-      }
-    }
-    return true;
+    return validateMandatoryXMLFieldList(instantiableList, "instantiable", false);
   }
 
   /**
@@ -190,43 +169,16 @@ public class MetadataTypeValidator extends ValidatorModule {
    * @return true if valid otherwise false
    */
   private boolean validateTypefinal() {
-    hasWarnings.clear();
-    for (String finalField : finalList) {
-      if (finalField == null || finalField.isEmpty()) {
-        return false;
-      }
-    }
-    return true;
+    return validateMandatoryXMLFieldList(finalList, "final", false);
   }
 
   /**
    * M_5.3-1-10 The type description field in the schema must not be must not be
    * less than 3 characters. WARNING if it is less than 3 characters
    *
-   * @return true if valid otherwise false
    */
   private boolean validateTypeDescription() {
-    if (descriptionList.isEmpty()) {
-      getValidationReporter().validationStatus(M_53110, ValidationReporter.Status.WARNING);
-      return false;
-    }
-    for (String description : descriptionList) {
-      if (description == null || description.isEmpty()) {
-        MetadataXMLUtils.validateXMLFieldSize(description, "description", hasWarnings);
-      }
-    }
-    return true;
-  }
-
-  private boolean reportValidations(boolean result, String codeID, boolean mandatory) {
-    if (!result && mandatory) {
-      getValidationReporter().validationStatus(codeID, ValidationReporter.Status.ERROR);
-      return false;
-    } else if (!hasWarnings.isEmpty()) {
-      getValidationReporter().validationStatus(codeID, ValidationReporter.Status.WARNING, hasWarnings.toString());
-    } else {
-      getValidationReporter().validationStatus(codeID, ValidationReporter.Status.OK);
-    }
+    validateXMLFieldSizeList(descriptionList, "description");
     return true;
   }
 

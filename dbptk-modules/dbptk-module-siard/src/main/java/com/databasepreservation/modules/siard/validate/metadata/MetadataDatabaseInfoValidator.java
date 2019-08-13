@@ -23,13 +23,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.databasepreservation.model.modules.validate.ValidatorModule;
-import com.databasepreservation.model.reporters.ValidationReporter;
-
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
  */
-public class MetadataDatabaseInfoValidator extends ValidatorModule {
+public class MetadataDatabaseInfoValidator extends MetadataValidator {
   private static final String MODULE_NAME = "Database level metadata";
   private static final String M_51 = "5.1";
   private static final String M_511 = "M_5.1-1";
@@ -44,8 +41,6 @@ public class MetadataDatabaseInfoValidator extends ValidatorModule {
   private static final String M_511_11 = "M_5.1-1-11"; // TODO
   private static final String M_511_16 = "M_5.1-1-16";
   private static final String M_511_17 = "M_5.1-1-17";
-
-  private List<String> hasWarnings = new ArrayList<>();
 
   private String version;
   private String dbName;
@@ -178,18 +173,6 @@ public class MetadataDatabaseInfoValidator extends ValidatorModule {
     return true;
   }
 
-  private boolean reportValidations(boolean result, String codeID, boolean mandatory) {
-    if (!result && mandatory) {
-      getValidationReporter().validationStatus(codeID, ValidationReporter.Status.ERROR);
-      return false;
-    } else if (!hasWarnings.isEmpty()) {
-      getValidationReporter().validationStatus(codeID, ValidationReporter.Status.WARNING, hasWarnings.toString());
-    } else {
-      getValidationReporter().validationStatus(codeID, ValidationReporter.Status.OK);
-    }
-    return true;
-  }
-
   /**
    * M_5.1-1-3 The database name in SIARD file must not be empty. ERROR when it is
    * empty, WARNING if it is less than 3 characters
@@ -220,17 +203,16 @@ public class MetadataDatabaseInfoValidator extends ValidatorModule {
    * @return true if valid otherwise false
    */
   private boolean validateDatabaseName() {
-    return MetadataXMLUtils.validateMandatoryXMLField(dbName, "dbName", hasWarnings);
+    return validateMandatoryXMLField(dbName, "dbName", true);
   }
 
   /**
-   * M_5.1-1-3 The description field in SIARD file must not be less than 3
-   * characters. WARNING if it is less than 3 characters
+   * M_5.1-1-3 The description field in SIARD file must not be empty. ERROR when it is
+   * empty, WARNING if it is less than 3 characters
    *
    */
   private boolean validateDescription() {
-    MetadataXMLUtils.validateXMLFieldSize(description, "description", hasWarnings);
-    return true;
+    return validateMandatoryXMLField(description, "description", true);
   }
 
   /**
@@ -240,7 +222,7 @@ public class MetadataDatabaseInfoValidator extends ValidatorModule {
    * @return true if valid otherwise false
    */
   private boolean validateArchiver() {
-    return MetadataXMLUtils.validateMandatoryXMLField(archiver, "archiver", hasWarnings);
+    return validateMandatoryXMLField(archiver, "archiver", true);
   }
 
   /**
@@ -250,7 +232,7 @@ public class MetadataDatabaseInfoValidator extends ValidatorModule {
    * @return true if valid otherwise false
    */
   private boolean validateArchiverContact() {
-    return MetadataXMLUtils.validateMandatoryXMLField(archiverContact, "archiverContact", hasWarnings);
+    return validateMandatoryXMLField(archiverContact, "archiverContact", true);
   }
 
   /**
@@ -260,7 +242,7 @@ public class MetadataDatabaseInfoValidator extends ValidatorModule {
    * @return true if valid otherwise false
    */
   private boolean validateDataOwner() {
-    return MetadataXMLUtils.validateMandatoryXMLField(dataOwner, "dataOwner", hasWarnings);
+    return validateMandatoryXMLField(dataOwner, "dataOwner", true);
   }
 
   /**
@@ -270,7 +252,7 @@ public class MetadataDatabaseInfoValidator extends ValidatorModule {
    * @return true if valid otherwise false
    */
   private boolean validateDataOriginTimespan() {
-    return MetadataXMLUtils.validateMandatoryXMLField(dataOriginTimespan, "dataOriginTimespan", hasWarnings);
+    return validateMandatoryXMLField(dataOriginTimespan, "dataOriginTimespan", true);
   }
 
   /**
