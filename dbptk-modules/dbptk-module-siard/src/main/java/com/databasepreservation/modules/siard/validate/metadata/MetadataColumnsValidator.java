@@ -19,13 +19,15 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import com.databasepreservation.model.modules.validate.ValidatorModule;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import com.databasepreservation.model.modules.validate.ValidatorModule;
+import com.databasepreservation.model.reporters.ValidationReporter;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -36,6 +38,8 @@ public class MetadataColumnsValidator extends MetadataValidator {
   private static final String M_561 = "M_5.6-1";
   private static final String M_561_1 = "M_5.6-1-1";
   private static final String M_561_3 = "M_5.6-1-3";
+  private static final String M_561_5 = "M_5.6-1-5";
+  private static final String M_561_12 = "M_5.6-1-12";
   private static final String BLOB = "BLOB";
   private static final String CLOB = "CLOB";
   private static final String XML = "XML";
@@ -70,61 +74,79 @@ public class MetadataColumnsValidator extends MetadataValidator {
       return false;
     }
 
+    getValidationReporter().validationStatus(M_561_5, ValidationReporter.Status.OK, typeOriginalSet.toString());
+
+    if (!reportValidations(validateColumnDescription(), M_561_12, true)) {
+      return false;
+    }
+
     return false;
   }
 
   private boolean readXMLMetadataColumnLevel() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      final ZipArchiveEntry metadataEntry = zipFile.getEntry("header/metadata.xml");
-      final InputStream inputStream = zipFile.getInputStream(metadataEntry);
-      Document document = MetadataXMLUtils.getDocument(inputStream);
-      String xpathExpressionDatabase = "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column";
+      String pathToEntry = "header/metadata.xml";
+      String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table";
 
-      XPathFactory xPathFactory = XPathFactory.newInstance();
-      XPath xpath = xPathFactory.newXPath();
+      NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
+      for (int i = 0; i < nodes.getLength(); i++) {
+        Element table = (Element) nodes.item(i);
+        String tableFolderName = MetadataXMLUtils.getChildTextContext(table, "folder");
 
-      xpath = MetadataXMLUtils.setXPath(xpath);
+        Element schemaElement = (Element) table.getParentNode().getParentNode();
+        String schemaFolderName = MetadataXMLUtils.getChildTextContext(schemaElement, "folder");
 
-      try {
-        XPathExpression expr = xpath.compile(xpathExpressionDatabase);
-        NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
-        for (int i = 0; i < nodes.getLength(); i++) {
-          Element column = (Element) nodes.item(i);
+        Element columns = ((Element) table.getElementsByTagName("columns").item(0));
+        NodeList columnNodes = columns.getElementsByTagName("column");
+
+        for (int j = 0; j < columnNodes.getLength(); j++) {
+          Element column = (Element) columnNodes.item(j);
+
           columnsList.add(column);
 
-          Element nameElement = MetadataXMLUtils.getChild(column, "name");
-          String name = nameElement != null ? nameElement.getTextContent() : null;
+          // * M_5.6-1 The column name in SIARD is mandatory.
+          String name = MetadataXMLUtils.getChildTextContext(column, "name");
+          if (name == null || name.isEmpty()) {
+            hasErrors = "Column name cannot be null schema: " + schemaFolderName + " table: " + tableFolderName;
+            return false;
+          }
           nameList.add(name);
 
-          Element lobFolderElement = MetadataXMLUtils.getChild(column, "lobFolder");
-          String lobFolder = lobFolderElement != null ? lobFolderElement.getTextContent() : null;
+          // * M_5.6-1 The column type in SIARD is mandatory.
+          String type = MetadataXMLUtils.getChildTextContext(column, "type");
+          if (type == null || type.isEmpty()) {
+            String typeName = MetadataXMLUtils.getChildTextContext(column, "typeName");
+            if (typeName == null || typeName.isEmpty()) {
+              hasErrors = "Column type cannot be null schema: " + schemaFolderName + " table: " + tableFolderName
+                + " column: " + name;
+              return false;
+            }
+            // TODO check typeName in SIARD types node
+            type = typeName;
+          }
 
-          Element typeElement = MetadataXMLUtils.getChild(column, "type");
-          String type = typeElement != null ? typeElement.getTextContent() : null;
+          if (type.equals(CHARACTER_LARGE_OBJECT) || type.equals(BINARY_LARGE_OBJECT) || type.equals(BLOB)
+            || type.equals(CLOB) || type.equals(XML)) {
 
-          Map<String, String> lobFolderMap = new HashMap<>();
-          lobFolderMap.put("folder", lobFolder);
-          lobFolderMap.put("type", type);
-          Element schema = (Element) column.getParentNode().getParentNode().getParentNode();
-          lobFolderList.add(lobFolderMap);
+            Map<String, String> lobFolderMap = new HashMap<>();
+            lobFolderMap.put("folder", MetadataXMLUtils.getChildTextContext(column, "lobFolder"));
+            lobFolderMap.put("type", type);
+            lobFolderMap.put("schema", schemaFolderName);
+            lobFolderMap.put("table", tableFolderName);
+            lobFolderMap.put("column", "c" + (j + 1));
+            lobFolderMap.put("name", name);
 
-          Element typeOriginalElement = MetadataXMLUtils.getChild(column, "typeOriginal");
-          String typeOriginal = typeOriginalElement != null ? typeOriginalElement.getTextContent() : null;
-          typeOriginalSet.add(typeOriginal);
+            lobFolderList.add(lobFolderMap);
+          }
 
-          Element descriptionElement = MetadataXMLUtils.getChild(column, "description");
-          String description = descriptionElement != null ? descriptionElement.getTextContent() : null;
-          descriptionList.add(description);
+          typeOriginalSet.add(MetadataXMLUtils.getChildTextContext(column, "typeOriginal"));
+          descriptionList.add(MetadataXMLUtils.getChildTextContext(column, "description"));
 
         }
-      } catch (XPathExpressionException e) {
-        return false;
       }
-
-    } catch (IOException | ParserConfigurationException | SAXException e) {
+    } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       return false;
     }
-
     return true;
   }
 
@@ -148,19 +170,68 @@ public class MetadataColumnsValidator extends MetadataValidator {
     for (Map<String, String> lobFolder : lobFolderList) {
       String type = lobFolder.get("type");
       String folder = lobFolder.get("folder");
+      String schema = lobFolder.get("schema");
+      String table = lobFolder.get("table");
+      String column = lobFolder.get("column");
+      String name = lobFolder.get("name");
 
-      if (type == null) {
-        continue;
-      }
-      if (type.equals(CHARACTER_LARGE_OBJECT) || type.equals(BINARY_LARGE_OBJECT) || type.equals(BLOB)
-        || type.equals(CLOB) || type.equals(XML)) {
+      String path = MetadataXMLUtils.createPath(MetadataXMLUtils.SIARD_CONTENT, schema, table);
+      if (!HasReferenceToLobFolder(path, table + MetadataXMLUtils.XML_EXTENSION, column, folder)) {
         if (folder == null || folder.isEmpty()) {
-          hasErrors = "lobFolder must be set for column type " + type;
-          return false;
+          hasErrors = "lobFolder must be set for column type " + type + " on "
+            + MetadataXMLUtils.createPath(path, name, column);
         } else {
-
+          hasErrors = "not found lobFolder(" + folder + ") required by "
+            + MetadataXMLUtils.createPath(path, name, column);
         }
+        return false;
       }
+    }
+    return true;
+  }
+
+  /**
+   * M_5.6-1-12 The column name in SIARD file must not be empty.
+   *
+   * @return true if valid otherwise false
+   */
+  private boolean validateColumnDescription() {
+    validateXMLFieldSizeList(descriptionList, "description");
+    return true;
+  }
+
+  private boolean HasReferenceToLobFolder(String path, String table, String column, String folder) {
+    try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
+
+      final ZipArchiveEntry tableEntry = zipFile.getEntry(MetadataXMLUtils.createPath(path, table));
+      final InputStream inputStream = zipFile.getInputStream(tableEntry);
+
+      Document document = MetadataXMLUtils.getDocument(inputStream);
+      String xpathExpressionDatabase = "/ns:table/ns:row/ns:" + column;
+
+      XPathFactory xPathFactory = XPathFactory.newInstance();
+      XPath xpath = xPathFactory.newXPath();
+
+      xpath = MetadataXMLUtils.setXPath(xpath, MetadataXMLUtils.TABLE);
+
+      try {
+        XPathExpression expr = xpath.compile(xpathExpressionDatabase);
+        NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
+        for (int i = 0; i < nodes.getLength(); i++) {
+          Element columnNumber = (Element) nodes.item(i);
+          String fileName = columnNumber.getAttribute("file");
+
+          if (!fileName.isEmpty() && zipFile.getEntry(MetadataXMLUtils.createPath(path, folder, fileName)) == null) {
+            return false;
+          }
+        }
+
+      } catch (XPathExpressionException e) {
+        return false;
+      }
+
+    } catch (IOException | ParserConfigurationException | SAXException e) {
+      return false;
     }
     return true;
   }

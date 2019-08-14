@@ -121,7 +121,7 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
       XPathFactory xPathFactory = XPathFactory.newInstance();
       XPath xpath = xPathFactory.newXPath();
 
-      xpath = MetadataXMLUtils.setXPath(xpath);
+      xpath = MetadataXMLUtils.setXPath(xpath, null);
 
       try {
         XPathExpression expr = xpath.compile(xpathExpressionDatabase);

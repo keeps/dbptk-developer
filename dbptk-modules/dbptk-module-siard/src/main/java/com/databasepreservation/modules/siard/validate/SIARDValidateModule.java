@@ -30,6 +30,10 @@ import com.databasepreservation.modules.siard.validate.common.path.ValidatorPath
 import com.databasepreservation.modules.siard.validate.metadata.MetadataAttributeValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataColumnsValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataDatabaseInfoValidator;
+import com.databasepreservation.modules.siard.validate.metadata.MetadataFieldValidator;
+import com.databasepreservation.modules.siard.validate.metadata.MetadataForeignKeyValidator;
+import com.databasepreservation.modules.siard.validate.metadata.MetadataPrimaryKeyValidator;
+import com.databasepreservation.modules.siard.validate.metadata.MetadataReferenceValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataSchemaValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataTableValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataTypeValidator;
@@ -180,6 +184,10 @@ public class SIARDValidateModule implements ValidateModule {
     startValidation(MetadataAttributeValidator.newInstance());
     startValidation(MetadataTableValidator.newInstance());
     startValidation(MetadataColumnsValidator.newInstance());
+    startValidation(MetadataFieldValidator.newInstance());
+    startValidation(MetadataPrimaryKeyValidator.newInstance());
+    startValidation(MetadataForeignKeyValidator.newInstance());
+    startValidation(MetadataReferenceValidator.newInstance());
 
     try {
       validationReporter.close();

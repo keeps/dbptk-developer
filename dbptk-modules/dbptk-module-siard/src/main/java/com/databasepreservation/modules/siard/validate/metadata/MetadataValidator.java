@@ -2,9 +2,22 @@ package com.databasepreservation.modules.siard.validate.metadata;
 
 import com.databasepreservation.model.modules.validate.ValidatorModule;
 import com.databasepreservation.model.reporters.ValidationReporter;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
+import javax.xml.namespace.QName;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,5 +76,24 @@ abstract class MetadataValidator extends ValidatorModule {
     for (String field : fieldList) {
       validateXMLFieldSize(field, fieldName);
     }
+  }
+
+  NodeList getXPathResult(ZipFile zipFile, String pathToEntry, String xpathExpression, QName constants,
+    final String type) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+    NodeList nodes = null;
+    final ZipArchiveEntry entry = zipFile.getEntry(pathToEntry);
+    final InputStream inputStream = zipFile.getInputStream(entry);
+
+    Document document = MetadataXMLUtils.getDocument(inputStream);
+
+    XPathFactory xPathFactory = XPathFactory.newInstance();
+    XPath xpath = xPathFactory.newXPath();
+
+    xpath = MetadataXMLUtils.setXPath(xpath, type);
+    XPathExpression expression = xpath.compile(xpathExpression);
+
+    nodes = (NodeList) expression.evaluate(document, constants);
+
+    return nodes;
   }
 }

@@ -112,7 +112,7 @@ public class MetadataSchemaValidator extends MetadataValidator {
       XPathFactory xPathFactory = XPathFactory.newInstance();
       XPath xpath = xPathFactory.newXPath();
 
-      xpath = MetadataXMLUtils.setXPath(xpath);
+      xpath = MetadataXMLUtils.setXPath(xpath, null);
 
       try {
         XPathExpression expr = xpath.compile(xpathExpressionSchemas);
@@ -199,7 +199,7 @@ public class MetadataSchemaValidator extends MetadataValidator {
   }
 
   /**
-   * M_5.2-1-5 The schema folder in the database must not be empty. ERROR when it
+   * M_5.2-1-5 The schema tables in the database must not be empty. ERROR when it
    * is empty, WARNING if it is less than 3 characters
    *
    * @return true if valid otherwise false
