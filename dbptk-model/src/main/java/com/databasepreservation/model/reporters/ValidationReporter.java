@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,6 +88,22 @@ public class ValidationReporter implements AutoCloseable {
 
   public void validationStatus(String text, Status status, String details) {
     writeLine(TAB + text + COLON + SINGLE_SPACE + buildStatus(status) + SINGLE_SPACE + details);
+  }
+
+  public void validationStatus(String text, Status status, String pathToEntry, List<String> details) {
+    writeLine(TAB + text + COLON + SINGLE_SPACE + buildStatus(status));
+    for (String detail: details ) {
+      writeLine(TAB  + TAB +  pathToEntry + COLON +SINGLE_SPACE + detail);
+    }
+  }
+
+  public void validationStatus(String text, Status status, String pathToEntry, Map<String, List<String>> details) {
+    writeLine(TAB + text + COLON + SINGLE_SPACE + buildStatus(status));
+    for (Map.Entry<String, List<String>> entry: details.entrySet() ) {
+      for(String detail: entry.getValue()){
+        writeLine(TAB  + TAB +  pathToEntry + COLON +SINGLE_SPACE + detail);
+      }
+    }
   }
 
   public void moduleValidatorFinished(String text, Status status) {

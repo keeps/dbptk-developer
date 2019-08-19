@@ -1,25 +1,16 @@
 package com.databasepreservation.modules.siard.validate.metadata;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
-import com.databasepreservation.model.reporters.ValidationReporter;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -33,66 +24,32 @@ public class MetadataSchemaValidator extends MetadataValidator {
   private static final String M_521_4 = "M_5.2-1-4";
   private static final String M_521_5 = "M_5.2-1-5";
 
-  private List<String> names = new ArrayList<>();
-  private List<String> folders = new ArrayList<>();
-  private List<String> descriptions = new ArrayList<>();
-  private List<String> tablesList = new ArrayList<>();
+  private static final String SCHEMA = "schema";
+  private static final String SCHEMA_NAME = "name";
+  private static final String SCHEMA_FOLDER = "folder";
+  private static final String SCHEMA_TABLES = "tables";
+  private static final String SCHEMA_DESCRIPTION = "description";
 
   public static MetadataSchemaValidator newInstance() {
     return new MetadataSchemaValidator();
   }
 
   private MetadataSchemaValidator() {
+    error.clear();
+    warnings.clear();
+    warnings.put(SCHEMA_NAME, new ArrayList<String>());
+    warnings.put(SCHEMA_FOLDER, new ArrayList<String>());
+    warnings.put(SCHEMA_TABLES, new ArrayList<String>());
+    warnings.put(SCHEMA_DESCRIPTION, new ArrayList<String>());
   }
 
   @Override
   public boolean validate() {
     getValidationReporter().moduleValidatorHeader(M_52, MODULE_NAME);
 
-    if (!validateMandatorySchemaMetadata()) {
-      getValidationReporter().validationStatus(M_521, ValidationReporter.Status.ERROR);
-      return false;
-    }
-
-    getValidationReporter().validationStatus(M_521, ValidationReporter.Status.OK);
-
-    // Validade Schemas Name
-    if (!validateSchemaName()) {
-      getValidationReporter().validationStatus(M_521_1, ValidationReporter.Status.ERROR);
-      return false;
-    } else if (!hasWarnings.isEmpty()) {
-      getValidationReporter().validationStatus(M_521_1, ValidationReporter.Status.WARNING, hasWarnings.toString());
-    } else {
-      getValidationReporter().validationStatus(M_521_1, ValidationReporter.Status.OK);
-    }
-
-    // Validade Schemas Folder
-    if (!validateSchemaFolder()) {
-      getValidationReporter().validationStatus(M_521_2, ValidationReporter.Status.ERROR);
-      return false;
-    } else if (!hasWarnings.isEmpty()) {
-      getValidationReporter().validationStatus(M_521_2, ValidationReporter.Status.WARNING, hasWarnings.toString());
-    } else {
-      getValidationReporter().validationStatus(M_521_2, ValidationReporter.Status.OK);
-    }
-
-    // Validade Schemas Descriptions
-    validateSchemaDescription();
-    if (!hasWarnings.isEmpty()) {
-      getValidationReporter().validationStatus(M_521_4, ValidationReporter.Status.WARNING, hasWarnings.toString());
-    } else {
-      getValidationReporter().validationStatus(M_521_4, ValidationReporter.Status.OK);
-    }
-
-    // Validade Schemas Tables
-    if (!validateSchemaTable()) {
-      getValidationReporter().validationStatus(M_521_5, ValidationReporter.Status.ERROR);
-      return false;
-    } else {
-      getValidationReporter().validationStatus(M_521_5, ValidationReporter.Status.OK);
-    }
-
-    return true;
+    return reportValidations(readXMLMetadataSchemaLevel(), M_521, true) && reportValidations(M_521_1, SCHEMA_NAME)
+      && reportValidations(M_521_2, SCHEMA_FOLDER) && reportValidations(M_521_4, SCHEMA_DESCRIPTION)
+      && reportValidations(M_521_5, SCHEMA_TABLES);
   }
 
   /**
@@ -101,52 +58,35 @@ public class MetadataSchemaValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateMandatorySchemaMetadata() {
+  private boolean readXMLMetadataSchemaLevel() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      final ZipArchiveEntry metadataEntry = zipFile.getEntry("header/metadata.xml");
-      final InputStream inputStream = zipFile.getInputStream(metadataEntry);
-      Document document = MetadataXMLUtils.getDocument(inputStream);
+      String pathToEntry = "header/metadata.xml";
+      String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema";
 
-      String xpathExpressionSchemas = "/ns:siardArchive/ns:schemas/ns:schema";
+      NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
 
-      XPathFactory xPathFactory = XPathFactory.newInstance();
-      XPath xpath = xPathFactory.newXPath();
+      for (int i = 0; i < nodes.getLength(); i++) {
+        Element schema = (Element) nodes.item(i);
 
-      xpath = MetadataXMLUtils.setXPath(xpath, null);
+        String name = MetadataXMLUtils.getChildTextContext(schema, "name");
+        String folder = MetadataXMLUtils.getChildTextContext(schema, "folder");
+        String tables = MetadataXMLUtils.getChildTextContext(schema, "tables");
+        String description = MetadataXMLUtils.getChildTextContext(schema, "description");
 
-      try {
-        XPathExpression expr = xpath.compile(xpathExpressionSchemas);
-        NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
-        for (int i = 0; i < nodes.getLength(); i++) {
-          Element schema = (Element) nodes.item(i);
+        // M_5.2-1
+//        if ((name == null || name.isEmpty()) || (folder == null || folder.isEmpty())) {
+//          return false;
+//        }
 
-          Element nameElement = MetadataXMLUtils.getChild(schema, "name");
-          String name = nameElement != null ? nameElement.getTextContent() : null;
-
-          Element folderElement = MetadataXMLUtils.getChild(schema, "folder");
-          String folder = folderElement != null ? folderElement.getTextContent() : null;
-
-          Element tablesElement = MetadataXMLUtils.getChild(schema, "tables");
-          String tables = tablesElement != null ? tablesElement.getTextContent() : null;
-
-          Element descriptionElement = MetadataXMLUtils.getChild(schema, "description");
-          String description = descriptionElement != null ? descriptionElement.getTextContent() : null;
-
-          // M_5.2-1
-          if ((name == null || name.isEmpty()) || (folder == null || folder.isEmpty())) {
-            return false;
-          }
-
-          names.add(name);
-          folders.add(folder);
-          descriptions.add(description);
-          tablesList.add(tables);
+        if (!validateSchemaName(name) || !validateSchemaFolder(name, folder)
+          || !validateSchemaDescription(name, description) || !validateSchemaTable(name, tables)) {
+          break;
         }
-      } catch (XPathExpressionException e) {
-        return false;
       }
 
-    } catch (IOException | ParserConfigurationException | SAXException e) {
+    } catch (IOException | ParserConfigurationException | XPathExpressionException |
+
+      SAXException e) {
       return false;
     }
 
@@ -159,14 +99,8 @@ public class MetadataSchemaValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateSchemaName() {
-    hasWarnings.clear();
-    for (String name : names) {
-      if (!validateMandatoryXMLField(name, "name", true)) {
-        return false;
-      }
-    }
-    return true;
+  private boolean validateSchemaName(String name) {
+    return validateXMLField(name, SCHEMA_NAME, true, true, SCHEMA, name);
   }
 
   /**
@@ -175,14 +109,8 @@ public class MetadataSchemaValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateSchemaFolder() {
-    hasWarnings.clear();
-    for (String folder : folders) {
-      if (!validateMandatoryXMLField(folder, "folder", true)) {
-        return false;
-      }
-    }
-    return true;
+  private boolean validateSchemaFolder(String schema, String folder) {
+    return validateXMLField(folder, SCHEMA_FOLDER, true, true, SCHEMA, schema);
   }
 
   /**
@@ -191,25 +119,17 @@ public class MetadataSchemaValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private void validateSchemaDescription() {
-    hasWarnings.clear();
-    for (String description : descriptions) {
-      validateXMLFieldSize(description, "description");
-    }
+  private boolean validateSchemaDescription(String schema, String description) {
+    return validateXMLField(description, SCHEMA_DESCRIPTION, false, true, SCHEMA, schema);
   }
 
   /**
    * M_5.2-1-5 The schema tables in the database must not be empty. ERROR when it
-   * is empty, WARNING if it is less than 3 characters
+   * is empty
    *
    * @return true if valid otherwise false
    */
-  private boolean validateSchemaTable() {
-    for (String table : tablesList) {
-      if (table == null || table.isEmpty()) {
-        return false;
-      }
-    }
-    return true;
+  private boolean validateSchemaTable(String schema, String tablesList) {
+    return validateXMLField(tablesList, SCHEMA_TABLES, true, false, SCHEMA, schema);
   }
 }

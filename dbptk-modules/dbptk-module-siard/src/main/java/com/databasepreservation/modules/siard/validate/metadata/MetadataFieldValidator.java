@@ -23,30 +23,30 @@ public class MetadataFieldValidator extends MetadataValidator {
   private static final String M_571 = "M_5.7-1";
   private static final String M_571_5 = "M_5.7-1-5";
 
-  private List<Element> fieldList = new ArrayList<>();
-  private List<String> descriptionList = new ArrayList<>();
+  private static final String SCHEMA = "schema";
+  private static final String TABLE = "table";
+  private static final String COLUMN = "column";
+  private static final String FIELD = "FIELD";
+  private static final String FIELD_NAME = "name";
+  private static final String FIELD_DESCRIPTION = "description";
 
   public static MetadataValidator newInstance() {
     return new MetadataFieldValidator();
   }
 
   private MetadataFieldValidator() {
-
+    error.clear();
+    warnings.clear();
+    warnings.put(FIELD_NAME, new ArrayList<String>());
+    warnings.put(FIELD_DESCRIPTION, new ArrayList<String>());
   }
 
   @Override
   public boolean validate() {
     getValidationReporter().moduleValidatorHeader(M_57, MODULE_NAME);
+    readXMLMetadataFieldLevel();
 
-    if (!reportValidations(readXMLMetadataFieldLevel(), M_571, true)) {
-      return false;
-    }
-
-    if (!reportValidations(validateFieldDescription(), M_571_5, true)) {
-      return false;
-    }
-
-    return true;
+    return reportValidations(M_571, FIELD_NAME) && reportValidations(M_571_5, FIELD_DESCRIPTION);
   }
 
   private boolean readXMLMetadataFieldLevel() {
@@ -69,16 +69,18 @@ public class MetadataFieldValidator extends MetadataValidator {
         Element schemaElement = (Element) tableElement.getParentNode().getParentNode();
         String schemaName = MetadataXMLUtils.getChildTextContext(schemaElement, "name");
 
-        fieldList.add(field);
-        String name = MetadataXMLUtils.getChildTextContext(field, "name");
+        String name = MetadataXMLUtils.getChildTextContext(field, FIELD_NAME);
 
         // * M_5.7-1 The field name in SIARD is mandatory.
         if (name == null || name.isEmpty()) {
-          hasErrors = "Field name cannot be null on " + MetadataXMLUtils.createPath(schemaName, tableName, columnName);
+          error.put(FIELD_NAME,
+            "Field name cannot be null on " + MetadataXMLUtils.createPath(schemaName, tableName, columnName));
           return false;
         }
 
-        descriptionList.add(MetadataXMLUtils.getChildTextContext(field, "description"));
+        String description = MetadataXMLUtils.getChildTextContext(field, FIELD_DESCRIPTION);
+        if (!validateFieldDescription(schemaName, tableName, columnName, name, description))
+          break;
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
@@ -92,9 +94,10 @@ public class MetadataFieldValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateFieldDescription() {
-    validateXMLFieldSizeList(descriptionList, "description");
-    return true;
+  private boolean validateFieldDescription(String schema, String table, String column, String field,
+    String description) {
+    return validateXMLField(description, FIELD_DESCRIPTION, false, true, SCHEMA, schema, TABLE, table, COLUMN, column,
+      FIELD, field);
   }
 
 }

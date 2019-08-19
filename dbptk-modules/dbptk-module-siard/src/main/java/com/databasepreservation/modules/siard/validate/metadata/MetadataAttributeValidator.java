@@ -1,26 +1,17 @@
 package com.databasepreservation.modules.siard.validate.metadata;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
-import com.databasepreservation.model.modules.validate.ValidatorModule;
-import com.databasepreservation.model.reporters.ValidationReporter;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -32,15 +23,23 @@ public class MetadataAttributeValidator extends MetadataValidator {
   private static final String M_541_1 = "M_5.4-1-1";
   private static final String M_541_8 = "M_5.4-1-8";
 
+  private static final String SCHEMA = "schema";
+  private static final String TYPE = "type";
+  private static final String ATTRIBUTE = "attribute";
+  private static final String ATTRIBUTE_NAME = "name";
+  private static final String ATTRIBUTE_DESCRIPTION = "description";
+
   private List<Element> attributeList = new ArrayList<>();
-  private List<String> attributeName = new ArrayList<>();
-  private List<String> attributeDescription = new ArrayList<>();
 
   public static MetadataAttributeValidator newInstance() {
     return new MetadataAttributeValidator();
   }
 
   private MetadataAttributeValidator() {
+    error.clear();
+    warnings.clear();
+    warnings.put(ATTRIBUTE_NAME, new ArrayList<String>());
+    warnings.put(ATTRIBUTE_DESCRIPTION, new ArrayList<String>());
   }
 
   @Override
@@ -56,50 +55,38 @@ public class MetadataAttributeValidator extends MetadataValidator {
     if (attributeList.isEmpty()) {
       return true;
     }
-    if (!reportValidations(validateAttributeName(), M_541_1, true)) {
-      return false;
-    }
-    if (!reportValidations(validateAttributeDescription(), M_541_8, false)) {
-      return false;
-    }
 
-    return false;
+    return reportValidations(M_541_1, ATTRIBUTE_NAME) && reportValidations(M_541_8, ATTRIBUTE_DESCRIPTION);
   }
 
   private boolean readXMLMetadataAttributeLevel() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      final ZipArchiveEntry metadataEntry = zipFile.getEntry("header/metadata.xml");
-      final InputStream inputStream = zipFile.getInputStream(metadataEntry);
-      Document document = MetadataXMLUtils.getDocument(inputStream);
-      String xpathExpressionDatabase = "/ns:siardArchive/ns:schemas/ns:schema/ns:types/ns:type/ns:attributes/ns:attribute";
+      String pathToEntry = "header/metadata.xml";
+      String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:types/ns:type";
 
-      XPathFactory xPathFactory = XPathFactory.newInstance();
-      XPath xpath = xPathFactory.newXPath();
+      NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
 
-      xpath = MetadataXMLUtils.setXPath(xpath, null);
+      for (int i = 0; i < nodes.getLength(); i++) {
+        Element type = (Element) nodes.item(i);
+        String typeName = MetadataXMLUtils.getChildTextContext(type, "name");
+        String schema = MetadataXMLUtils.getChildTextContext((Element) type.getParentNode().getParentNode(), "name");
 
-      try {
-        XPathExpression expr = xpath.compile(xpathExpressionDatabase);
-        NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
-        for (int i = 0; i < nodes.getLength(); i++) {
-          Element attribute = (Element) nodes.item(i);
+        NodeList attributesNode = type.getElementsByTagName(ATTRIBUTE);
+        for (int j = 0; j < attributesNode.getLength(); j++) {
+          Element attribute = (Element) attributesNode.item(j);
           attributeList.add(attribute);
 
-          Element attributeNameElement = MetadataXMLUtils.getChild(attribute, "name");
-          String name = attributeNameElement != null ? attributeNameElement.getTextContent() : null;
-          attributeName.add(name);
+          String attributeName = MetadataXMLUtils.getChildTextContext(attribute, ATTRIBUTE_NAME);
+          String description = MetadataXMLUtils.getChildTextContext(attribute, ATTRIBUTE_DESCRIPTION);
 
-          Element attributeDescriptionElement = MetadataXMLUtils.getChild(attribute, "description");
-          String description = attributeDescriptionElement != null ? attributeDescriptionElement.getTextContent()
-            : null;
-          attributeDescription.add(description);
-
+          if (!validateAttributeName(schema, typeName, attributeName)
+            || !validateAttributeDescription(schema, typeName, attributeName, description)) {
+            break;
+          }
         }
-      } catch (XPathExpressionException e) {
-        return false;
       }
 
-    } catch (IOException | ParserConfigurationException | SAXException e) {
+    } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       return false;
     }
 
@@ -111,16 +98,16 @@ public class MetadataAttributeValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateAttributeName() {
-    return validateMandatoryXMLFieldList(attributeName, "name", false);
+  private boolean validateAttributeName(String schema, String type, String name) {
+    return validateXMLField(name, ATTRIBUTE_NAME, true, false, SCHEMA, schema, TYPE, type);
   }
 
   /**
    * M_5.4-1-8 The attribute description in SIARD file must not be less than 3
    * characters. WARNING if it is less than 3 characters
    */
-  private boolean validateAttributeDescription() {
-    validateXMLFieldSizeList(attributeDescription, "description");
-    return true;
+  private boolean validateAttributeDescription(String schema, String type, String attributeName, String description) {
+    return validateXMLField(description, ATTRIBUTE_DESCRIPTION, false, true, SCHEMA, schema, TYPE, type, ATTRIBUTE,
+      attributeName);
   }
 }

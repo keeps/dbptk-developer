@@ -1,20 +1,16 @@
 package com.databasepreservation.modules.siard.validate.metadata;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -26,24 +22,34 @@ public class MetadataTypeValidator extends MetadataValidator {
   private static final String MODULE_NAME = "Type level metadata";
   private static final String M_53 = "5.3";
   private static final String M_531 = "M_5.3-1";
-  private static final String M_5311 = "M_5.3-1-1";
-  private static final String M_5312 = "M_5.3-1-2";
-  private static final String M_5315 = "M_5.3-1-5";
-  private static final String M_5316 = "M_5.3-1-6";
-  private static final String M_53110 = "M_5.3-1-10";
+  private static final String M_531_1 = "M_5.3-1-1";
+  private static final String M_531_2 = "M_5.3-1-2";
+  private static final String M_531_5 = "M_5.3-1-5";
+  private static final String M_531_6 = "M_5.3-1-6";
+  private static final String M_531_10 = "M_5.3-1-10";
+
+  private static final String SCHEMA = "schema";
+  private static final String TYPE = "type";
+  private static final String TYPE_NAME = "name";
+  private static final String TYPE_CATEGORY = "category";
+  private static final String TYPE_INSTANTIABLE = "instantiable";
+  private static final String TYPE_FINAL = "final";
+  private static final String TYPE_DESCRIPTION = "description";
 
   private List<Element> typesList = new ArrayList<>();
-  private List<String> nameList = new ArrayList<>();
-  private List<String> categoryList = new ArrayList<>();
-  private List<String> instantiableList = new ArrayList<>();
-  private List<String> finalList = new ArrayList<>();
-  private List<String> descriptionList = new ArrayList<>();
 
   public static MetadataTypeValidator newInstance() {
     return new MetadataTypeValidator();
   }
 
   private MetadataTypeValidator() {
+    error.clear();
+    warnings.clear();
+    warnings.put(TYPE_NAME, new ArrayList<String>());
+    warnings.put(TYPE_CATEGORY, new ArrayList<String>());
+    warnings.put(TYPE_INSTANTIABLE, new ArrayList<String>());
+    warnings.put(TYPE_FINAL, new ArrayList<String>());
+    warnings.put(TYPE_DESCRIPTION, new ArrayList<String>());
   }
 
   @Override
@@ -59,73 +65,38 @@ public class MetadataTypeValidator extends MetadataValidator {
       return true;
     }
 
-    if (!reportValidations(validateTypeName(), M_5311, true)) {
-      return false;
-    }
-
-    if (!reportValidations(validateTypeCategory(), M_5312, true)) {
-      return false;
-    }
-
-    if (!reportValidations(validateTypeInstantiable(), M_5315, true)) {
-      return false;
-    }
-
-    if (!reportValidations(validateTypefinal(), M_5316, true)) {
-      return false;
-    }
-
-    reportValidations(validateTypeDescription(), M_53110, false);
-
-    return true;
+    return reportValidations(M_531_1, TYPE_NAME) && reportValidations(M_531_2, TYPE_CATEGORY)
+      && reportValidations(M_531_5, TYPE_INSTANTIABLE) && reportValidations(M_531_6, TYPE_FINAL)
+      && reportValidations(M_531_10, TYPE_DESCRIPTION);
   }
 
   private boolean readXMLMetadataTypeLevel() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      final ZipArchiveEntry metadataEntry = zipFile.getEntry("header/metadata.xml");
-      final InputStream inputStream = zipFile.getInputStream(metadataEntry);
-      Document document = MetadataXMLUtils.getDocument(inputStream);
-      String xpathExpressionDatabase = "/ns:siardArchive/ns:schemas/ns:schema/ns:types/ns:type";
+      String pathToEntry = "header/metadata.xml";
+      String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:types/ns:type";
 
-      XPathFactory xPathFactory = XPathFactory.newInstance();
-      XPath xpath = xPathFactory.newXPath();
+      NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
 
-      xpath = MetadataXMLUtils.setXPath(xpath, null);
+      for (int i = 0; i < nodes.getLength(); i++) {
+        Element type = (Element) nodes.item(i);
+        typesList.add(type);
 
-      try {
-        XPathExpression expr = xpath.compile(xpathExpressionDatabase);
-        NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
-        for (int i = 0; i < nodes.getLength(); i++) {
-          Element type = (Element) nodes.item(i);
-          typesList.add(type);
+        String schema = MetadataXMLUtils.getChildTextContext((Element) type.getParentNode().getParentNode(), "name");
 
-          Element nameElement = MetadataXMLUtils.getChild(type, "name");
-          String name = nameElement != null ? nameElement.getTextContent() : null;
-          nameList.add(name);
+        String name = MetadataXMLUtils.getChildTextContext(type, TYPE_NAME);
+        String category = MetadataXMLUtils.getChildTextContext(type, TYPE_CATEGORY);
+        String instantiable = MetadataXMLUtils.getChildTextContext(type, TYPE_INSTANTIABLE);
+        String finalField = MetadataXMLUtils.getChildTextContext(type, TYPE_FINAL);
 
-          Element categoryElement = MetadataXMLUtils.getChild(type, "category");
-          String category = categoryElement != null ? categoryElement.getTextContent() : null;
-          categoryList.add(category);
-
-          Element instantiableElement = MetadataXMLUtils.getChild(type, "instantiable");
-          String instantiable = instantiableElement != null ? instantiableElement.getTextContent() : null;
-          instantiableList.add(instantiable);
-
-          Element finalElement = MetadataXMLUtils.getChild(type, "final");
-          String finalField = finalElement != null ? finalElement.getTextContent() : null;
-          finalList.add(finalField);
-
-          Element descriptionElement = MetadataXMLUtils.getChild(type, "description");
-          String description = descriptionElement != null ? descriptionElement.getTextContent() : null;
-          descriptionList.add(description);
-
+        String description = MetadataXMLUtils.getChildTextContext(type, TYPE_DESCRIPTION);
+        if (!validateTypeName(schema, name) || !validateTypeCategory(schema, name, category)
+          || !validateTypeInstantiable(schema, name, instantiable) || !validateTypefinal(schema, name, finalField)
+          || !validateTypeDescription(schema, name, description)) {
+          break;
         }
-
-      } catch (XPathExpressionException e) {
-        return false;
       }
 
-    } catch (IOException | ParserConfigurationException | SAXException e) {
+    } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       return false;
     }
 
@@ -138,8 +109,8 @@ public class MetadataTypeValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateTypeName() {
-    return validateMandatoryXMLFieldList(nameList, "name", false);
+  private boolean validateTypeName(String schema, String typeName) {
+    return validateXMLField(typeName, TYPE_NAME, true, false, SCHEMA, schema);
   }
 
   /**
@@ -148,8 +119,8 @@ public class MetadataTypeValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateTypeCategory() {
-    return validateMandatoryXMLFieldList(categoryList, "category", false);
+  private boolean validateTypeCategory(String schema, String typeName, String category) {
+    return validateXMLField(category, TYPE_CATEGORY, true, false, SCHEMA, schema, TYPE, typeName);
   }
 
   /**
@@ -158,8 +129,9 @@ public class MetadataTypeValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateTypeInstantiable() {
-    return validateMandatoryXMLFieldList(instantiableList, "instantiable", false);
+
+  private boolean validateTypeInstantiable(String schema, String typeName, String instantiable) {
+    return validateXMLField(instantiable, TYPE_INSTANTIABLE, true, false, SCHEMA, schema, TYPE, typeName);
   }
 
   /**
@@ -168,8 +140,8 @@ public class MetadataTypeValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateTypefinal() {
-    return validateMandatoryXMLFieldList(finalList, "final", false);
+  private boolean validateTypefinal(String schema, String typeName, String typeFinal) {
+    return validateXMLField(typeFinal, TYPE_FINAL, true, false, SCHEMA, schema, TYPE, typeName);
   }
 
   /**
@@ -177,9 +149,9 @@ public class MetadataTypeValidator extends MetadataValidator {
    * less than 3 characters. WARNING if it is less than 3 characters
    *
    */
-  private boolean validateTypeDescription() {
-    validateXMLFieldSizeList(descriptionList, "description");
-    return true;
+
+  private boolean validateTypeDescription(String schema, String typeName, String description) {
+    return validateXMLField(description, TYPE_DESCRIPTION, false, true, SCHEMA, schema, TYPE, typeName);
   }
 
 }

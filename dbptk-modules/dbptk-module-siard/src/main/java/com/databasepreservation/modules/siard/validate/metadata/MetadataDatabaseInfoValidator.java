@@ -1,24 +1,18 @@
 package com.databasepreservation.modules.siard.validate.metadata;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.joda.time.chrono.GJChronology;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -42,131 +36,93 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
   private static final String M_511_16 = "M_5.1-1-16";
   private static final String M_511_17 = "M_5.1-1-17";
 
-  private String version;
-  private String dbName;
-  private String description;
-  private String archiver;
-  private String archiverContact;
-  private String dataOwner;
-  private String dataOriginTimespan;
-  private String archivalDate;
-  private List<Element> schemasList = new ArrayList<>();
-  private List<Element> usersList = new ArrayList<>();
+  private static final String SIARDFILE = "SIARD file";
+  private static final String VERSION = "version";
+  private static final String DB_NAME = "dbname";
+  private static final String DB_DESCRIPTION = "description";
+  private static final String DB_ARCHIVER = "archiver";
+  private static final String DB_ARCHIVER_CONTACT = "archiverContact";
+  private static final String DB_DATA_OWNER = "dataOwner";
+  private static final String DB_DATA_ORIGIN_TIMESPAN = "dataOriginTimespan";
+  private static final String DB_ARCHIVAL_DATE = "archivalDate";
+  private static final String DB_SCHEMAS = "schema";
+  private static final String DB_USERS = "user";
 
   public static MetadataDatabaseInfoValidator newInstance() {
     return new MetadataDatabaseInfoValidator();
   }
 
   private MetadataDatabaseInfoValidator() {
+    error.clear();
+    warnings.clear();
+    warnings.put(VERSION, new ArrayList<String>());
+    warnings.put(DB_NAME, new ArrayList<String>());
+    warnings.put(DB_DESCRIPTION, new ArrayList<String>());
+    warnings.put(DB_ARCHIVER, new ArrayList<String>());
+    warnings.put(DB_ARCHIVER_CONTACT, new ArrayList<String>());
+    warnings.put(DB_DATA_OWNER, new ArrayList<String>());
+    warnings.put(DB_DATA_ORIGIN_TIMESPAN, new ArrayList<String>());
+    warnings.put(DB_ARCHIVAL_DATE, new ArrayList<String>());
+    warnings.put(DB_SCHEMAS, new ArrayList<String>());
+    warnings.put(DB_USERS, new ArrayList<String>());
   }
 
   @Override
   public boolean validate() {
     getValidationReporter().moduleValidatorHeader(M_51, MODULE_NAME);
 
-    if (!reportValidations(readXMLMetadataDatabaseLevel(), M_511, true)) {
-      return false;
-    }
-
-    if (!reportValidations(validateSIARDVersion(), M_511_1, true)) {
-      return false;
-    }
-
-    if (!reportValidations(validateDatabaseName(), M_511_2, true)) {
-      return false;
-    }
-
-    if (!reportValidations(validateDescription(), M_511_3, false)) {
-      return false;
-    }
-
-    if (!reportValidations(validateArchiver(), M_511_4, true)) {
-      return false;
-    }
-
-    if (!reportValidations(validateArchiverContact(), M_511_5, true)) {
-      return false;
-    }
-
-    if (!reportValidations(validateDataOwner(), M_511_6, true)) {
-      return false;
-    }
-
-    if (!reportValidations(validateDataOriginTimespan(), M_511_7, true)) {
-      return false;
-    }
-
-    if (!reportValidations(validateArchivalDate(), M_511_10, true)) {
-      return false;
-    }
-
-    if (!reportValidations(validateSchemas(), M_511_16, true)) {
-      return false;
-    }
-
-    if (!reportValidations(validateUsers(), M_511_17, true)) {
-      return false;
-    }
-
-    return true;
+    return reportValidations(readXMLMetadataDatabaseLevel(), M_511, true) && reportValidations(M_511_1, VERSION)
+      && reportValidations(M_511_2, DB_NAME) && reportValidations(M_511_3, DB_DESCRIPTION)
+      && reportValidations(M_511_4, DB_ARCHIVER) && reportValidations(M_511_5, DB_ARCHIVER_CONTACT)
+      && reportValidations(M_511_6, DB_DATA_OWNER) && reportValidations(M_511_7, DB_DATA_ORIGIN_TIMESPAN)
+      && reportValidations(M_511_10, DB_ARCHIVAL_DATE) && reportValidations(M_511_16, DB_SCHEMAS)
+      && reportValidations(M_511_17, DB_USERS);
   }
 
   private boolean readXMLMetadataDatabaseLevel() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      final ZipArchiveEntry metadataEntry = zipFile.getEntry("header/metadata.xml");
-      final InputStream inputStream = zipFile.getInputStream(metadataEntry);
-      Document document = MetadataXMLUtils.getDocument(inputStream);
-      String xpathExpressionDatabase = "/ns:siardArchive";
+      String pathToEntry = "header/metadata.xml";
+      String xpathExpression = "/ns:siardArchive";
 
-      XPathFactory xPathFactory = XPathFactory.newInstance();
-      XPath xpath = xPathFactory.newXPath();
+      NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
 
-      xpath = MetadataXMLUtils.setXPath(xpath, null);
+      String version = nodes.item(0).getAttributes().item(2).getTextContent();
+      validateSIARDVersion(version);
 
-      try {
-        XPathExpression expr = xpath.compile(xpathExpressionDatabase);
-        NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
-        version = nodes.item(0).getAttributes().item(2).getTextContent();
-        for (int i = 0; i < nodes.getLength(); i++) {
-          Element database = (Element) nodes.item(i);
+      for (int i = 0; i < nodes.getLength(); i++) {
+        Element database = (Element) nodes.item(i);
 
-          Element dbNameElement = MetadataXMLUtils.getChild(database, "dbname");
-          dbName = dbNameElement != null ? dbNameElement.getTextContent() : null;
+        String dbName = MetadataXMLUtils.getChildTextContext(database, DB_NAME);
+        String description = MetadataXMLUtils.getChildTextContext(database, DB_DESCRIPTION);
+        String archiver = MetadataXMLUtils.getChildTextContext(database, DB_ARCHIVER);
+        String archiverContact = MetadataXMLUtils.getChildTextContext(database, DB_ARCHIVER_CONTACT);
+        String dataOwner = MetadataXMLUtils.getChildTextContext(database, DB_DATA_OWNER);
+        String dataOriginTimespan = MetadataXMLUtils.getChildTextContext(database, DB_DATA_ORIGIN_TIMESPAN);
+        String archivalDate = MetadataXMLUtils.getChildTextContext(database, DB_ARCHIVAL_DATE);
 
-          Element descriptionElement = MetadataXMLUtils.getChild(database, "description");
-          description = descriptionElement != null ? descriptionElement.getTextContent() : null;
-
-          Element archiverElement = MetadataXMLUtils.getChild(database, "archiver");
-          archiver = archiverElement != null ? archiverElement.getTextContent() : null;
-
-          Element archiverContactElement = MetadataXMLUtils.getChild(database, "archiverContact");
-          archiverContact = archiverContactElement != null ? archiverContactElement.getTextContent() : null;
-
-          Element dataOwnerElement = MetadataXMLUtils.getChild(database, "dataOwner");
-          dataOwner = dataOwnerElement != null ? dataOwnerElement.getTextContent() : null;
-
-          Element dataOriginTimespanElement = MetadataXMLUtils.getChild(database, "dataOriginTimespan");
-          dataOriginTimespan = dataOriginTimespanElement != null ? dataOriginTimespanElement.getTextContent() : null;
-
-          Element archivalDateElement = MetadataXMLUtils.getChild(database, "archivalDate");
-          archivalDate = archivalDateElement != null ? archivalDateElement.getTextContent() : null;
-
-          NodeList schemasNodes = database.getElementsByTagName("schema");
-          for (int j = 0; j < schemasNodes.getLength(); j++) {
-            schemasList.add((Element) schemasNodes.item(j));
-          }
-
-          NodeList usersNodes = database.getElementsByTagName("user");
-          for (int j = 0; j < usersNodes.getLength(); j++) {
-            usersList.add((Element) usersNodes.item(j));
-          }
-
+        NodeList schemasNodes = database.getElementsByTagName(DB_SCHEMAS);
+        List<Element> schemasList = new ArrayList<>();
+        for (int j = 0; j < schemasNodes.getLength(); j++) {
+          schemasList.add((Element) schemasNodes.item(j));
         }
-      } catch (XPathExpressionException e) {
-        return false;
+
+        NodeList usersNodes = database.getElementsByTagName(DB_USERS);
+        List<Element> usersList = new ArrayList<>();
+        for (int j = 0; j < usersNodes.getLength(); j++) {
+          usersList.add((Element) usersNodes.item(j));
+        }
+
+        if (!validateDatabaseName(dbName) || !validateDescription(dbName, description)
+          || !validateArchiver(dbName, archiver) || !validateArchiverContact(dbName, archiverContact)
+          || !validateDataOwner(dbName, dataOwner) || !validateDataOriginTimespan(dbName, dataOriginTimespan)
+          || !validateArchivalDate(dbName, archivalDate) || !validateSchemas(dbName, schemasList)
+          || !validateUsers(dbName, usersList)) {
+          break;
+        }
+
       }
 
-    } catch (IOException | ParserConfigurationException | SAXException e) {
+    } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       return false;
     }
 
@@ -179,7 +135,7 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateSIARDVersion() {
+  private boolean validateSIARDVersion(String version) {
     if (version == null || version.isEmpty()) {
       return false;
     } else {
@@ -190,7 +146,7 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
         case "1.0":
           break;
         default:
-          hasWarnings.add("Version:" + version);
+          warnings.get(VERSION).add("The version of SIARD file is" + version);
       }
     }
     return true;
@@ -202,17 +158,17 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateDatabaseName() {
-    return validateMandatoryXMLField(dbName, "dbName", true);
+  private boolean validateDatabaseName(String dbName) {
+    return validateXMLField(dbName, DB_NAME, true, true, SIARDFILE);
   }
 
   /**
-   * M_5.1-1-3 The description field in SIARD file must not be empty. ERROR when it is
-   * empty, WARNING if it is less than 3 characters
+   * M_5.1-1-3 The description field in SIARD file must not be empty. ERROR when
+   * it is empty, WARNING if it is less than 3 characters
    *
    */
-  private boolean validateDescription() {
-    return validateMandatoryXMLField(description, "description", true);
+  private boolean validateDescription(String dbName, String description) {
+    return validateXMLField(description, DB_DESCRIPTION, true, true, DB_NAME, dbName);
   }
 
   /**
@@ -221,8 +177,8 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateArchiver() {
-    return validateMandatoryXMLField(archiver, "archiver", true);
+  private boolean validateArchiver(String dbName, String archiver) {
+    return validateXMLField(archiver, DB_ARCHIVER, true, true, DB_NAME, dbName);
   }
 
   /**
@@ -231,8 +187,8 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateArchiverContact() {
-    return validateMandatoryXMLField(archiverContact, "archiverContact", true);
+  private boolean validateArchiverContact(String dbName, String archiverContact) {
+    return validateXMLField(archiverContact, DB_ARCHIVER_CONTACT, true, true, DB_NAME, dbName);
   }
 
   /**
@@ -241,8 +197,8 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateDataOwner() {
-    return validateMandatoryXMLField(dataOwner, "dataOwner", true);
+  private boolean validateDataOwner(String dbName, String dataOwner) {
+    return validateXMLField(dataOwner, DB_DATA_OWNER, true, true, DB_NAME, dbName);
   }
 
   /**
@@ -251,8 +207,8 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateDataOriginTimespan() {
-    return validateMandatoryXMLField(dataOriginTimespan, "dataOriginTimespan", true);
+  private boolean validateDataOriginTimespan(String dbName, String dataOriginTimespan) {
+    return validateXMLField(dataOriginTimespan, DB_DATA_ORIGIN_TIMESPAN, true, true, DB_NAME, dbName);
   }
 
   /**
@@ -261,8 +217,11 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateArchivalDate() {
+  private boolean validateArchivalDate(String dbName, String archivalDate) {
     if (archivalDate == null || archivalDate.isEmpty()) {
+      String errorMessage = String.format("The archival date inside SIARD file of database '%s' file is mandatory",
+        dbName);
+      error.put(DB_ARCHIVAL_DATE, errorMessage);
       return false;
     }
     final DateTimeFormatter formatter = new DateTimeFormatterBuilder().append(DateTimeFormat.forPattern("yyyy-MM-dd"))
@@ -272,6 +231,9 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
     try {
       formatter.parseDateTime(archivalDate);
     } catch (UnsupportedOperationException | IllegalArgumentException e) {
+      String warningMessage = String
+        .format("The archival date '%s' inside SIARD file of database '%s' is not a valid date", archivalDate, dbName);
+      warnings.get(DB_ARCHIVAL_DATE).add(warningMessage);
       return false;
     }
     return true;
@@ -283,8 +245,13 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateSchemas() {
-    return schemasList != null && !schemasList.isEmpty();
+  private boolean validateSchemas(String dbName, List<Element> schemasList) {
+    if (schemasList == null || schemasList.isEmpty()) {
+      String errorMessage = String.format("The schema inside SIARD of database '%s' file is mandatory", dbName);
+      error.put(DB_SCHEMAS, errorMessage);
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -293,7 +260,12 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateUsers() {
-    return usersList != null && !usersList.isEmpty();
+  private boolean validateUsers(String dbName, List<Element> usersList) {
+    if (usersList == null || usersList.isEmpty()) {
+      String errorMessage = String.format("The users inside SIARD of database '%s' file is mandatory", dbName);
+      error.put(DB_SCHEMAS, errorMessage);
+      return false;
+    }
+    return true;
   }
 }
