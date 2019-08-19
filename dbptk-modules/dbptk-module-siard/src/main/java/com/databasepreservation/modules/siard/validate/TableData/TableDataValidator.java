@@ -1,31 +1,24 @@
 package com.databasepreservation.modules.siard.validate.TableData;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import javax.xml.XMLConstants;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
 
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.validate.ValidatorModule;
-import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.model.reporters.ValidationReporter.Status;
+import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -33,15 +26,19 @@ import com.databasepreservation.model.reporters.ValidationReporter;
 public class TableDataValidator extends ValidatorModule {
   private static final Logger LOGGER = LoggerFactory.getLogger(TableDataValidator.class);
 
-  private static final String MODULE_NAME = "Requirements for table data";
-  private static final String P_60 = "T_6.0";
-  private static final String P_601 = "T_6.0-1";
-  private static final String P_602 = "T_6.0-2";
-  private static final String XSD_EXTENSION = ".xsd";
-  private static final String XML_EXTENSION = ".xml";
-
-  private static ZipFile zipFile = null;
-  private static List<String> zipFileNames = null;
+  private static final String MODULE_NAME = "Table data";
+  private static final String P_64 = "T_6.4";
+  private static final String P_641 = "T_6.4-1";
+  private static final String P_642 = "T_6.4-2";
+  private static final String P_643 = "T_6.4-3";
+  private static final String P_644 = "T_6.4-4";
+  private static final String P_645 = "T_6.4-5";
+  private static final String P_646 = "T_6.4-6";
+  private static final String TABLE_REGEX = "^table$";
+  private static final String ROW_REGEX = "^row$";
+  private static final String COLUMN_REGEX = "^c[0-9]+$";
+  private static final String ARRAY_REGEX = "^a[0-9]+$";
+  private static final String STRUCTURED_REGEX = "^u[0-9]+$";
 
   public static TableDataValidator newInstance() {
     return new TableDataValidator();
@@ -55,88 +52,77 @@ public class TableDataValidator extends ValidatorModule {
     if (preValidationRequirements())
       return false;
 
-    getValidationReporter().moduleValidatorHeader(P_60, MODULE_NAME);
+    getValidationReporter().moduleValidatorHeader(P_64, MODULE_NAME);
 
-    if (validateTableXSDAgainstXML()) {
-      getValidationReporter().validationStatus(P_602, ValidationReporter.Status.OK);
+    if (validateStoredExtensionFile()) {
+      getValidationReporter().validationStatus(P_641, Status.OK);
     } else {
-      validationFailed(P_602, MODULE_NAME);
+      validationFailed(P_641, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
-    getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.OK);
+    if (validateRowElements()) {
+      getValidationReporter().validationStatus(P_642, Status.OK);
+    } else {
+      validationFailed(P_642, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
+
+    getValidationReporter().validationStatus(P_643, Status.OK);
+
+    if (validateLOBAttributes()) {
+      getValidationReporter().validationStatus(P_645, Status.OK);
+    } else {
+      validationFailed(P_645, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
+
+    getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.OK);
     closeZipFile();
 
     return true;
   }
 
   /**
-   * T_6.0-1
+   * T_6.4-1
    *
-   * The schema definition table[number].xsd must be complied with for the
-   * table[number].xml file. This means that table[number].xml must be capable of
-   * being positively validated against table[number].xsd.
-   * 
+   * The table data for each table must be stored in an XML file.
+   *
    * @return true if valid otherwise false
    */
-  private boolean validateTableXSDAgainstXML() {
+  private boolean validateStoredExtensionFile() {
     if (preValidationRequirements())
       return false;
 
-    if (zipFileNames == null) {
-      try {
-        retrieveFilesInsideZip();
-      } catch (IOException e) {
-        e.printStackTrace();
+    List<String> SIARDXMLPaths = new ArrayList<>();
+
+    try {
+      NodeList schemaFolders = (NodeList) XMLUtils.getXPathResult(getZipInputStream(Constants.METADATA_XML),
+        "/ns:siardArchive/ns:schemas/ns:schema/ns:folder/text()", XPathConstants.NODESET,
+        Constants.NAME_SPACE_FOR_METADATA);
+
+      for (int i = 0; i < schemaFolders.getLength(); i++) {
+        String schemaFolderName = schemaFolders.item(i).getNodeValue();
+        String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table/ns:folder/text()";
+        xpathExpression = xpathExpression.replace("$1", schemaFolderName);
+        NodeList tableFolders = (NodeList) XMLUtils.getXPathResult(getZipInputStream(Constants.METADATA_XML),
+          xpathExpression, XPathConstants.NODESET, Constants.NAME_SPACE_FOR_METADATA);
+
+        for (int j = 0; j < tableFolders.getLength(); j++) {
+          String path = "content/" + schemaFolderName + "/" + tableFolders.item(j).getNodeValue() + "/"
+            + tableFolders.item(j).getNodeValue() + ".xml";
+          SIARDXMLPaths.add(path);
+        }
       }
+    } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+      return false;
     }
 
-    Set<String> tableDataSchemaDefinition = new HashSet<>();
-
-    for (String path : zipFileNames) {
-      String regexPattern = "^(content/schema[0-9]+/table[0-9]+/table[0-9]+)\\.(xsd|xml)$";
-
-      Pattern pattern = Pattern.compile(regexPattern);
-      Matcher matcher = pattern.matcher(path);
-
-      while (matcher.find()) {
-        tableDataSchemaDefinition.add(matcher.group(1));
-      }
-    }
-
-    for (String path : tableDataSchemaDefinition) {
-      String XSDPath = path.concat(XSD_EXTENSION);
-      String XMLPath = path.concat(XML_EXTENSION);
-
-      final ZipArchiveEntry XSDEntry = zipFile.getEntry(XSDPath);
-      final ZipArchiveEntry XMLEntry = zipFile.getEntry(XMLPath);
-      InputStream XSDInputStream;
-      InputStream XMLInputStream;
-      try {
-        XSDInputStream = zipFile.getInputStream(XSDEntry);
-        XMLInputStream = zipFile.getInputStream(XMLEntry);
-      } catch (IOException e) {
-        return false;
-      }
-
-      Source schemaFile = new StreamSource(XSDInputStream);
-      Source xmlFile = new StreamSource(XMLInputStream);
-
-      SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-      Schema schema;
-      try {
-        schema = schemaFactory.newSchema(schemaFile);
-      } catch (SAXException e) {
-        return false;
-        // System.out.println("Reason: " + e.getLocalizedMessage());
-      }
-
-      Validator validator = schema.newValidator();
-      try {
-        validator.validate(xmlFile);
-      } catch (SAXException | IOException e) {
-        // System.out.println("Reason: " + e.getLocalizedMessage());
+    for (String path : SIARDXMLPaths) {
+      if (!getZipFileNames().contains(path)) {
         return false;
       }
     }
@@ -144,50 +130,81 @@ public class TableDataValidator extends ValidatorModule {
     return true;
   }
 
-  /*
-   * Auxiliary Methods
+  /**
+   * T_6.4-2
+   *
+   * The table file consists of row elements containing the data of a line
+   * subdivided into the various columns (c1, c2 ...).
+   * 
+   * @return true if valid otherwise false
    */
+  private boolean validateRowElements() {
+    if (preValidationRequirements())
+      return false;
 
-  private boolean preValidationRequirements() {
-    if (getSIARDPackagePath() == null) {
-      return true;
-    }
+    for (String zipFileName : getZipFileNames()) {
+      String regexPattern = "^(content/schema[0-9]+/table[0-9]+/table[0-9]+)\\.xml$";
+      if (zipFileName.matches(regexPattern)) {
+        try {
+          NodeList nodeNames = (NodeList) XMLUtils.getXPathResult(getZipInputStream(zipFileName), "//*",
+            XPathConstants.NODESET, Constants.NAME_SPACE_FOR_TABLE);
 
-    if (zipFile == null) {
-      try {
-        getZipFile();
-      } catch (IOException e) {
-        return true;
+          for (int i = 0; i < nodeNames.getLength(); i++) {
+            Element element = (Element) nodeNames.item(i);
+            String tagName = element.getTagName();
+
+            if (!(tagName.matches(TABLE_REGEX) || tagName.matches(ROW_REGEX) || tagName.matches(COLUMN_REGEX)
+              || tagName.matches(ARRAY_REGEX) || tagName.matches(STRUCTURED_REGEX))) {
+              return false;
+            }
+          }
+        } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+          return false;
+        }
       }
     }
 
-    return false;
+    return true;
   }
 
-  private void getZipFile() throws IOException {
-    if (zipFile == null)
-      zipFile = new ZipFile(getSIARDPackagePath().toFile());
-  }
+  /**
+   * T_6.4-5
+   *
+   * The decision, when to store large object data in separate files rather than
+   * inlining them is at the discretion of the software producing the SIARD
+   * archive. To avoid creating empty folders, folders are only created when they
+   * are necessary, i.e. contain data. If a large object is stored in a separate
+   * file, its cell element must have attributes file, length and digest. Here
+   * file is a “file:” URI relative to the lobFolder element of the column or
+   * attribute metadata. The length contains the length in bytes (for BLOBs) or
+   * characters (for CLOBs or XMLs). The digest records a message digest over the
+   * LOB file, making it possible to check integrity of the SIARD archive, even
+   * when some LOBs are stored externally.
+   * 
+   * @return true is valid otherwise false
+   */
+  private boolean validateLOBAttributes() {
+    if (preValidationRequirements())
+      return false;
 
-  private void retrieveFilesInsideZip() throws IOException {
-    zipFileNames = new ArrayList<>();
-    if (zipFile == null) {
-      getZipFile();
-    }
-    final Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
-    while (entries.hasMoreElements()) {
-      zipFileNames.add(entries.nextElement().getName());
-    }
-  }
+    for (String zipFileName : getZipFileNames()) {
+      String regexPattern = "^(content/schema[0-9]+/table[0-9]+/table[0-9]+)\\.xsd$";
+      if (zipFileName.matches(regexPattern)) {
+        try {
+          NodeList nodeNames = (NodeList) XMLUtils.getXPathResult(getZipInputStream(zipFileName),
+            "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element[@type='clobType' or @type='blobType']/@name",
+            XPathConstants.NODESET, Constants.NAME_SPACE_FOR_TABLE);
+          for (int i = 0; i < nodeNames.getLength(); i++) {
+            final String nodeValue = nodeNames.item(i).getNodeValue();
+            // TODO - ASK LOGIC
+          }
 
-  private void closeZipFile() throws ModuleException {
-    if (zipFile != null) {
-      try {
-        zipFile.close();
-      } catch (IOException e) {
-        throw new ModuleException().withCause(e.getCause()).withMessage("Error trying to close the SIARD file");
+        } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+          return false;
+        }
       }
-      zipFile = null;
     }
+
+    return true;
   }
 }

@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.databasepreservation.model.modules.validate.ValidateModule;
+import com.databasepreservation.model.modules.validate.ValidateModuleFactory;
 import org.apache.commons.cli.ParseException;
 
 import com.databasepreservation.cli.CLI;
@@ -46,6 +48,7 @@ public class ModuleFactoryTestHelper {
 
   private final List<DatabaseFilterFactory> databaseFilterFactories;
   private final List<EditModuleFactory> editModuleFactories;
+  private final List<ValidateModuleFactory> validateModuleFactories;
 
   protected ModuleFactoryTestHelper(Class<? extends DatabaseModuleFactory> moduleFactory,
     Class<? extends DatabaseImportModule> importModuleClass, Class<? extends DatabaseExportModule> exportModuleClass) {
@@ -53,6 +56,7 @@ public class ModuleFactoryTestHelper {
     this.moduleFactories = new ArrayList<>(ReflectionUtils.collectDatabaseModuleFactories());
     this.databaseFilterFactories = new ArrayList<>(ReflectionUtils.collectDatabaseFilterFactory());
     this.editModuleFactories = new ArrayList<>(ReflectionUtils.collectEditModuleFactories());
+    this.validateModuleFactories = new ArrayList<>(ReflectionUtils.collectValidateModuleFactories());
 
     try {
       this.moduleFactories.add(this.moduleFactory.getConstructor().newInstance());
@@ -64,7 +68,7 @@ public class ModuleFactoryTestHelper {
   }
 
   private CLI buildCli(List<String> args) {
-    return new CLI(args, moduleFactories, databaseFilterFactories, editModuleFactories);
+    return new CLI(args, moduleFactories, databaseFilterFactories, editModuleFactories, validateModuleFactories);
   }
 
   private Map<Parameter, String> getImportModuleArguments(List<String> args) {
@@ -77,7 +81,7 @@ public class ModuleFactoryTestHelper {
 
   private Map<Parameter, String> getModuleArguments(boolean forImportModule, List<String> args) {
     try {
-      CLI cli = new CLI(args, moduleFactories, databaseFilterFactories, editModuleFactories);
+      CLI cli = new CLI(args, moduleFactories, databaseFilterFactories, editModuleFactories, validateModuleFactories);
 
       CLIMigrate cliMigrate = cli.getCLIMigrate();
 
@@ -104,7 +108,7 @@ public class ModuleFactoryTestHelper {
 
   private Map<String, Parameter> getModuleParameters(List<String> args) {
     try {
-      CLI cli = new CLI(args, moduleFactories, databaseFilterFactories, editModuleFactories);
+      CLI cli = new CLI(args, moduleFactories, databaseFilterFactories, editModuleFactories, validateModuleFactories);
 
       CLIMigrate cliMigrate = cli.getCLIMigrate();
 

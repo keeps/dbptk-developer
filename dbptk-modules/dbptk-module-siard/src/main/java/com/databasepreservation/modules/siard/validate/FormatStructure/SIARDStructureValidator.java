@@ -1,14 +1,10 @@
 package com.databasepreservation.modules.siard.validate.FormatStructure;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,9 +27,6 @@ public class SIARDStructureValidator extends ValidatorModule {
   private static final String P_424 = "P_4.2-4";
   private static final String P_425 = "P_4.2-5";
   private static final String P_426 = "P_4.2-6";
-
-  private static ZipFile zipFile = null;
-  private static List<String> zipFileNames = null;
 
   public static SIARDStructureValidator newInstance() {
     return new SIARDStructureValidator();
@@ -103,7 +96,7 @@ public class SIARDStructureValidator extends ValidatorModule {
    * @return true if valid otherwise false
    */
   private boolean validateSIARDStructure() {
-    for (String file : zipFileNames) {
+    for (String file : getZipFileNames()) {
       if (!file.startsWith("header/") && !file.startsWith("content/")) {
         return false;
       }
@@ -120,7 +113,7 @@ public class SIARDStructureValidator extends ValidatorModule {
    * @return true if valid otherwise false
    */
   private boolean validateContentFolderStructure() {
-    for (String fileName : zipFileNames) {
+    for (String fileName : getZipFileNames()) {
       if (fileName.startsWith("content")) {
         Path path = Paths.get(fileName);
         if (path.getNameCount() >= 3) {
@@ -148,7 +141,7 @@ public class SIARDStructureValidator extends ValidatorModule {
    * @return true if valid otherwise false
    */
   private boolean validateTableFolderStructure() {
-    for (String fileName : zipFileNames) {
+    for (String fileName : getZipFileNames()) {
       if (fileName.startsWith("content")) {
         Path path = Paths.get(fileName);
         if (path.getNameCount() >= 4) {
@@ -199,7 +192,7 @@ public class SIARDStructureValidator extends ValidatorModule {
   private boolean validateRecognitionOfSIARDFormat() {
     List<Path> versions = new ArrayList<>();
 
-    for (String fileName : zipFileNames) {
+    for (String fileName : getZipFileNames()) {
       Path path = Paths.get(fileName);
       if (path.startsWith("header/siardversion")) {
         if (path.getNameCount() > 2) {
@@ -228,7 +221,7 @@ public class SIARDStructureValidator extends ValidatorModule {
   private boolean validateHeaderFolderStructure() {
     List<String> headers = new ArrayList<>();
 
-    for (String fileName : zipFileNames) {
+    for (String fileName : getZipFileNames()) {
       if (fileName.startsWith("header")) headers.add(fileName);
     }
 
@@ -261,7 +254,7 @@ public class SIARDStructureValidator extends ValidatorModule {
    * @return true if valid otherwise false
    */
   private boolean validateFilesAndFoldersNames() {
-    for (String fileName : zipFileNames) {
+    for (String fileName : getZipFileNames()) {
       String[] foldersAndFiles = fileName.split("/");
       for (String s : foldersAndFiles) {
         if (s.length() > 20) {
@@ -288,43 +281,4 @@ public class SIARDStructureValidator extends ValidatorModule {
   /*
    * Auxiliary Methods
    */
-  private boolean preValidationRequirements() {
-    if (getSIARDPackagePath() == null) {
-      return true;
-    }
-
-    if (zipFile == null) {
-      try {
-        getZipFile();
-      } catch (IOException e) {
-        return true;
-      }
-    }
-
-    if (zipFileNames == null) {
-      try {
-        retrieveFilesInsideZip();
-      } catch (IOException e) {
-        return false;
-      }
-    }
-
-    return false;
-  }
-
-  private void getZipFile() throws IOException {
-    if (zipFile == null)
-      zipFile = new ZipFile(getSIARDPackagePath().toFile());
-  }
-
-  private void retrieveFilesInsideZip() throws IOException {
-    zipFileNames = new ArrayList<>();
-    if (zipFile == null) {
-      getZipFile();
-    }
-    final Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
-    while (entries.hasMoreElements()) {
-      zipFileNames.add(entries.nextElement().getName());
-    }
-  }
 }

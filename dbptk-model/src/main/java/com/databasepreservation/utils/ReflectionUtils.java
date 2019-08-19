@@ -14,7 +14,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.databasepreservation.model.modules.validate.ValidateModule;
 import com.databasepreservation.model.modules.validate.ValidateModuleFactory;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;

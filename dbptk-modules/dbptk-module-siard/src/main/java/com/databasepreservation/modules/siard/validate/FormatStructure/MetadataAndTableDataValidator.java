@@ -5,38 +5,28 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.namespace.NamespaceContext;
-import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.validate.ValidatorModule;
 import com.databasepreservation.model.reporters.ValidationReporter.Status;
+import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -62,11 +52,7 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
   private static final String XSD_EXTENSION = ".xsd";
   private static final String XML_EXTENSION = ".xml";
   private static final String SIARD_CONTENT = "content";
-  private static final String METADATA = "metadata";
-  private static final String TABLE = "table";
 
-  private static ZipFile zipFile = null;
-  private static List<String> zipFileNames = null;
   private static HashMap<String, List<String>> SQL2008TypeMatchXMLType;
   private HashMap<String, HashMap<String, String>> sql2008Type = new HashMap<>();
   private HashMap<String, HashMap<String, String>> arrayType = new HashMap<>();
@@ -268,17 +254,11 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
     if (preValidationRequirements())
       return false;
 
-    if (zipFileNames == null) {
-      try {
-        retrieveFilesInsideZip();
-      } catch (IOException e) {
-        return false;
-      }
-    }
+    final InputStream zipInputStream = getZipInputStream(METADATA_XML);
 
     try {
-      final NodeList nodeList = (NodeList) getXPathResult(METADATA_XML, "/ns:siardArchive/ns:schemas/ns:schema",
-        XPathConstants.NODESET, METADATA);
+      final NodeList nodeList = (NodeList) XMLUtils.getXPathResult(zipInputStream,
+        "/ns:siardArchive/ns:schemas/ns:schema", XPathConstants.NODESET, Constants.NAME_SPACE_FOR_METADATA);
       for (int i = 0; i < nodeList.getLength(); i++) {
         Element schema = (Element) nodeList.item(i);
         String schemaFolderName = schema.getElementsByTagName("folder").item(0).getTextContent();
@@ -313,9 +293,12 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
 
     HashMap<String, Integer> columnCount = new HashMap<>();
     List<String> entries = new ArrayList<>();
+
+    final InputStream zipInputStream = getZipInputStream(METADATA_XML);
+
     try {
-      NodeList nodes = (NodeList) getXPathResult(METADATA_XML, "/ns:siardArchive/ns:schemas/ns:schema",
-        XPathConstants.NODESET, METADATA);
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(zipInputStream, "/ns:siardArchive/ns:schemas/ns:schema",
+        XPathConstants.NODESET, Constants.NAME_SPACE_FOR_METADATA);
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element schema = (Element) nodes.item(i);
@@ -335,7 +318,8 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
 
       for (String path : entries) {
         String XSDPath = path.concat(XSD_EXTENSION);
-        final String evaluate = (String) getXPathResult(XSDPath,
+        final InputStream inputStream = getZipInputStream(XSDPath);
+        final String evaluate = (String) XMLUtils.getXPathResult(inputStream,
           "count(/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element)", XPathConstants.STRING, null);
         int value = Integer.parseInt(evaluate);
 
@@ -448,12 +432,14 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
         String tablePath = entry.getKey();
         String XMLPath = tablePath.concat(XML_EXTENSION);
 
-        String count = (String) getXPathResult(XMLPath, "count(/ns:table/ns:row)", XPathConstants.STRING, TABLE);
+        final InputStream zipInputStream = getZipInputStream(XMLPath);
+
+        String count = (String) XMLUtils.getXPathResult(zipInputStream, "count(/ns:table/ns:row)",
+          XPathConstants.STRING, Constants.NAME_SPACE_FOR_TABLE);
         if (entry.getValue() != Integer.parseInt(count)) {
           return false;
         }
       }
-
     } catch (ParserConfigurationException | IOException | XPathExpressionException | SAXException e) {
       return false;
     }
@@ -485,7 +471,8 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
       final String XSDPath = entry.getKey().concat(XSD_EXTENSION);
       for (Map.Entry<String, String> column : entry.getValue().entrySet()) {
         try {
-          final NodeList nodeList = (NodeList) getXPathResult(XSDPath,
+          final InputStream zipInputStream = getZipInputStream(XSDPath);
+          final NodeList nodeList = (NodeList) XMLUtils.getXPathResult(zipInputStream,
             "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element[@name='" + column.getKey()
               + "']/xs:complexType/xs:sequence/xs:element",
             XPathConstants.NODESET, null);
@@ -585,7 +572,10 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
             String XMLPath = tablePath.concat(XML_EXTENSION);
             String xpathExpression = "/ns:table/ns:row/ns:" + values.getKey() + "/text()";
 
-            final NodeList nodes = (NodeList) getXPathResult(XMLPath, xpathExpression, XPathConstants.NODESET, TABLE);
+            final InputStream zipInputStream = getZipInputStream(XMLPath);
+
+            final NodeList nodes = (NodeList) XMLUtils.getXPathResult(zipInputStream, xpathExpression,
+              XPathConstants.NODESET, Constants.NAME_SPACE_FOR_TABLE);
             final Integer number = numberOfRows.get(entry.getKey());
             if (number != nodes.getLength()) {
               counter++;
@@ -671,8 +661,11 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
         String xpathExpression = "count(/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element[@name='$1']/xs:complexType/xs:sequence/xs:element)";
         xpathExpression = xpathExpression.replace("$1", advancedOrStructuredColumnEntry.getKey());
 
+        final InputStream zipInputStream = getZipInputStream(XSDPath);
+
         try {
-          String result = (String) getXPathResult(XSDPath, xpathExpression, XPathConstants.STRING, TABLE);
+          String result = (String) XMLUtils.getXPathResult(zipInputStream, xpathExpression, XPathConstants.STRING,
+            Constants.NAME_SPACE_FOR_TABLE);
           int count = Integer.parseInt(result);
           if (advancedOrStructuredColumnEntry.getValue().getFields().size() != count)
             return false;
@@ -704,15 +697,17 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
       String XSDPath = path.concat(XSD_EXTENSION);
 
       String XMLPath = path.concat(XML_EXTENSION);
-
+      final InputStream zipInputStreamXML = getZipInputStream(XMLPath);
+      final InputStream zipInputStreamXSD = getZipInputStream(XSDPath);
       int rows = entry.getValue();
       try {
         int numberOfRowsInXMLFile = Integer
-          .parseInt((String) getXPathResult(XMLPath, "count(/ns:table/ns:row)", XPathConstants.STRING, TABLE));
+          .parseInt((String) XMLUtils.getXPathResult(zipInputStreamXML, "count(/ns:table/ns:row)",
+            XPathConstants.STRING, Constants.NAME_SPACE_FOR_TABLE));
 
-        Node result = (Node) getXPathResult(XSDPath,
+        Node result = (Node) XMLUtils.getXPathResult(zipInputStreamXSD,
           "/xs:schema/xs:element[@name='table']/xs:complexType/xs:sequence/xs:element[@type='recordType']",
-          XPathConstants.NODE, TABLE);
+          XPathConstants.NODE, Constants.NAME_SPACE_FOR_TABLE);
         String minOccursString = result.getAttributes().getNamedItem("minOccurs").getNodeValue();
         String maxOccursString = result.getAttributes().getNamedItem("maxOccurs").getNodeValue();
 
@@ -752,22 +747,6 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
   /*
    * Auxiliary Methods
    */
-  private boolean preValidationRequirements() {
-    if (getSIARDPackagePath() == null) {
-      return true;
-    }
-
-    if (zipFile == null) {
-      try {
-        getZipFile();
-      } catch (IOException e) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
   private boolean validateFieldSequence(List<Field> fields, List<Attribute> attributes) {
     if (attributes.size() != fields.size())
       return false;
@@ -789,16 +768,18 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
 
   private void getTypesFromMetadataXML()
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
-    NodeList nodes = (NodeList) getXPathResult(METADATA_XML, "/ns:siardArchive/ns:schemas/ns:schema",
-      XPathConstants.NODESET, METADATA);
+    final InputStream zipInputStream = getZipInputStream(METADATA_XML);
+    NodeList nodes = (NodeList) XMLUtils.getXPathResult(zipInputStream, "/ns:siardArchive/ns:schemas/ns:schema",
+      XPathConstants.NODESET, Constants.NAME_SPACE_FOR_METADATA);
 
     // Obtain Types
     for (int i = 0; i < nodes.getLength(); i++) {
       Element schema = (Element) nodes.item(i);
       String schemaName = schema.getElementsByTagName("name").item(0).getTextContent();
-      NodeList types = (NodeList) getXPathResult(METADATA_XML,
+      final InputStream inputStream = getZipInputStream(METADATA_XML);
+      NodeList types = (NodeList) XMLUtils.getXPathResult(inputStream,
         "/ns:siardArchive/ns:schemas/ns:schema[ns:name/text() = '" + schemaName + "']/ns:types/ns:type",
-        XPathConstants.NODESET, METADATA);
+        XPathConstants.NODESET, Constants.NAME_SPACE_FOR_METADATA);
 
       for (int j = 0; j < types.getLength(); j++) {
         Element type = (Element) types.item(j);
@@ -892,54 +873,12 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
     return pairs;
   }
 
-  private void getZipFile() throws IOException {
-    if (zipFile == null)
-      zipFile = new ZipFile(getSIARDPackagePath().toFile());
-  }
-
-  private void closeZipFile() throws ModuleException {
-    if (zipFile != null) {
-      try {
-        zipFile.close();
-      } catch (IOException e) {
-        throw new ModuleException().withCause(e.getCause()).withMessage("Error trying to close the SIARD file");
-      }
-      zipFile = null;
-    }
-  }
-
-  private void retrieveFilesInsideZip() throws IOException {
-    zipFileNames = new ArrayList<>();
-    if (zipFile == null) {
-      getZipFile();
-    }
-    final Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
-    while (entries.hasMoreElements()) {
-      zipFileNames.add(entries.nextElement().getName());
-    }
-  }
-
-  private Object getXPathResult(final String pathToEntry, final String xpathExpression, QName constants,
-    final String type) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
-    final ZipArchiveEntry entry = zipFile.getEntry(pathToEntry);
-    final InputStream inputStream = zipFile.getInputStream(entry);
-    Document document = getDocument(inputStream);
-
-    XPathFactory xPathFactory = XPathFactory.newInstance();
-    XPath xpath = xPathFactory.newXPath();
-
-    xpath = setXPath(xpath, type);
-
-    XPathExpression expression = xpath.compile(xpathExpression);
-
-    return expression.evaluate(document, constants);
-  }
-
   private void obtainSQL2008TypeForEachColumn()
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+    final InputStream zipInputStream = getZipInputStream(METADATA_XML);
 
-    NodeList resultNodes = (NodeList) getXPathResult(METADATA_XML, "/ns:siardArchive/ns:schemas/ns:schema",
-      XPathConstants.NODESET, METADATA);
+    NodeList resultNodes = (NodeList) XMLUtils.getXPathResult(zipInputStream, "/ns:siardArchive/ns:schemas/ns:schema",
+      XPathConstants.NODESET, Constants.NAME_SPACE_FOR_METADATA);
     for (int i = 0; i < resultNodes.getLength(); i++) {
       Element schema = (Element) resultNodes.item(i);
       String schemaName = schema.getElementsByTagName("name").item(0).getTextContent();
@@ -1020,8 +959,8 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
     xpathExpression = xpathExpression.replace("$2", tableName);
     xpathExpression = xpathExpression.replace("$3", columnName);
 
-    final NodeList resultNodes = (NodeList) getXPathResult(METADATA_XML, xpathExpression, XPathConstants.NODESET,
-      METADATA);
+    final NodeList resultNodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(METADATA_XML), xpathExpression,
+      XPathConstants.NODESET, Constants.NAME_SPACE_FOR_METADATA);
 
     for (int l = 0; l < resultNodes.getLength(); l++) {
       Element element = (Element) resultNodes.item(l);
@@ -1041,7 +980,8 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
 
     String concat = xpathExpression.concat("[ns:name/text()='$1']/ns:fields/ns:field");
     concat = concat.replace("$1", name);
-    final NodeList fields = (NodeList) getXPathResult(METADATA_XML, concat, XPathConstants.NODESET, METADATA);
+    final NodeList fields = (NodeList) XMLUtils.getXPathResult(getZipInputStream(METADATA_XML), concat,
+      XPathConstants.NODESET, Constants.NAME_SPACE_FOR_METADATA);
     for (int l = 0; l < fields.getLength(); l++) {
       Element element = (Element) fields.item(l);
       field.addFieldToList(getField(element, concat));
@@ -1072,7 +1012,8 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
       }
       xpathExpression = xpathExpression.concat("/@type");
 
-      String XMLType = (String) getXPathResult(XSDPath, xpathExpression, XPathConstants.STRING, TABLE);
+      String XMLType = (String) XMLUtils.getXPathResult(getZipInputStream(XSDPath), xpathExpression,
+        XPathConstants.STRING, Constants.NAME_SPACE_FOR_TABLE);
 
       if (!validateSQL2008TypeWithXMLType(entry.getValue(), XMLType)) {
         return false;
@@ -1085,7 +1026,7 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
   private boolean compareSQL2008DataTypeWithXMLType(String path, HashMap<String, String> map)
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
     String XSDPath = path.concat(XSD_EXTENSION);
-    final NodeList nodeList = (NodeList) getXPathResult(XSDPath,
+    final NodeList nodeList = (NodeList) XMLUtils.getXPathResult(getZipInputStream(XSDPath),
       "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element", XPathConstants.NODESET, null);
     for (int i = 0; i < nodeList.getLength(); i++) {
       String XMLType = null;
@@ -1116,7 +1057,7 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
   }
 
   private boolean checkRelativePathExists(final String pathToValidate) {
-    for (String pathInZip : zipFileNames) {
+    for (String pathInZip : getZipFileNames()) {
       if (pathInZip.contains(pathToValidate)) {
         return true;
       }
@@ -1149,45 +1090,6 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
     }
 
     return false;
-  }
-
-  private static Document getDocument(InputStream inputStream)
-    throws IOException, SAXException, ParserConfigurationException {
-    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-    factory.setNamespaceAware(true);
-    DocumentBuilder builder = factory.newDocumentBuilder();
-
-    return builder.parse(inputStream);
-  }
-
-  private static XPath setXPath(XPath xPath, final String type) {
-    xPath.setNamespaceContext(new NamespaceContext() {
-      @Override
-      public Iterator getPrefixes(String arg0) {
-        return null;
-      }
-
-      @Override
-      public String getPrefix(String arg0) {
-        return null;
-      }
-
-      @Override
-      public String getNamespaceURI(String arg0) {
-        if ("xs".equals(arg0)) {
-          return "http://www.w3.org/2001/XMLSchema";
-        }
-        if ("ns".equals(arg0)) {
-          if (TABLE.equals(type)) {
-            return "http://www.bar.admin.ch/xmlns/siard/2/table.xsd";
-          }
-          return "http://www.bar.admin.ch/xmlns/siard/2/metadata.xsd";
-        }
-        return null;
-      }
-    });
-
-    return xPath;
   }
 
   private static class Type {

@@ -8,9 +8,12 @@
 package com.databasepreservation.utils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Iterator;
 
+import com.databasepreservation.Constants;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.translate.AggregateTranslator;
 import org.apache.commons.lang3.text.translate.CharSequenceTranslator;
@@ -18,6 +21,18 @@ import org.apache.commons.lang3.text.translate.EntityArrays;
 import org.apache.commons.lang3.text.translate.LookupTranslator;
 import org.apache.commons.lang3.text.translate.UnicodeEscaper;
 import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
+
+import javax.xml.namespace.NamespaceContext;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -164,5 +179,58 @@ public class XMLUtils {
         return false;
       }
     }
+  }
+
+  public static Object getXPathResult(final InputStream inputStream, final String xpathExpression, QName constants,
+                               final String type) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+    Document document = getDocument(inputStream);
+
+    XPathFactory xPathFactory = XPathFactory.newInstance();
+    XPath xpath = xPathFactory.newXPath();
+
+    xpath = setXPath(xpath, type);
+
+    XPathExpression expression = xpath.compile(xpathExpression);
+
+    return expression.evaluate(document, constants);
+  }
+
+  private static Document getDocument(InputStream inputStream)
+      throws IOException, SAXException, ParserConfigurationException {
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    factory.setNamespaceAware(true);
+    DocumentBuilder builder = factory.newDocumentBuilder();
+
+    return builder.parse(inputStream);
+  }
+
+  private static XPath setXPath(XPath xPath, final String type) {
+    xPath.setNamespaceContext(new NamespaceContext() {
+      @Override
+      public Iterator getPrefixes(String arg0) {
+        return null;
+      }
+
+      @Override
+      public String getPrefix(String arg0) {
+        return null;
+      }
+
+      @Override
+      public String getNamespaceURI(String arg0) {
+        if ("xs".equals(arg0)) {
+          return "http://www.w3.org/2001/XMLSchema";
+        }
+        if ("ns".equals(arg0)) {
+          if (Constants.NAME_SPACE_FOR_TABLE.equals(type)) {
+            return "http://www.bar.admin.ch/xmlns/siard/2/table.xsd";
+          }
+          return "http://www.bar.admin.ch/xmlns/siard/2/metadata.xsd";
+        }
+        return null;
+      }
+    });
+
+    return xPath;
   }
 }

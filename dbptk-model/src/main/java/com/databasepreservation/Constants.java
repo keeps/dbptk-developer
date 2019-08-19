@@ -12,30 +12,20 @@ package com.databasepreservation;
  */
 public class Constants {
   public static final String VERSION_INFO_FILE = "dbptk-version.json";
-
   public static final String PROPERTY_KEY_HOME = "dbptk.home";
-
   public static final String LOGBACK_FILE_NAME = "logback_manual.xml";
-
   public static final String UNSPECIFIED_METADATA_VALUE = "unspecified";
-
   public static final int CLI_LINE_WIDTH = 80;
-
   public static final String DBPTK_OPTION_MIGRATE = "migrate";
-
   public static final String DBPTK_OPTION_EDIT = "edit";
-
   public static final String DBPTK_OPTION_HELP = "help";
-
   public static final String DBPTK_OPTION_VALIDATE = "validate";
-
   public static final String DBPTK_OPTION_HELP_SMALL = "-h";
-
   public static final String SMALL_SPACE = "      ";
-
   public static final String MEDIUM_SPACE = "        ";
-
   public static final String SEPARATOR = "---";
-
   public static final String DBPTK_VALIDATION_HEADER_REPORTER = "dbptk-validation-reporter";
+  public static final String NAME_SPACE_FOR_METADATA = "metadata";
+  public static final String NAME_SPACE_FOR_TABLE = "table";
+  public static final String METADATA_XML = "header/metadata.xml";
 }
