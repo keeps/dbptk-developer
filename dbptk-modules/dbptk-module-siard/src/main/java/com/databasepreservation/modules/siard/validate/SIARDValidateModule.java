@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.databasepreservation.model.modules.validate.ValidatorModule;
+import com.databasepreservation.modules.siard.validate.TableData.DateAndTimestampDataValidator;
 import com.databasepreservation.modules.siard.validate.TableData.TableDataValidator;
 import com.databasepreservation.modules.siard.validate.TableData.TableSchemaDefinitionValidator;
 import org.slf4j.Logger;
@@ -102,6 +103,12 @@ public class SIARDValidateModule implements ValidateModule {
     tableSchemaDefinitionValidator.setReporter(reporter);
     tableSchemaDefinitionValidator.setValidationReporter(validationReporter);
     tableSchemaDefinitionValidator.validate();
+
+    final DateAndTimestampDataValidator dateAndTimestampDataValidator = DateAndTimestampDataValidator.newInstance();
+    dateAndTimestampDataValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
+    dateAndTimestampDataValidator.setReporter(reporter);
+    dateAndTimestampDataValidator.setValidationReporter(validationReporter);
+    dateAndTimestampDataValidator.validate();
 
     validationReporter.close();
   }
