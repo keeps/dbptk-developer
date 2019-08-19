@@ -64,7 +64,6 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
   private static final String SIARD_CONTENT = "content";
   private static final String METADATA = "metadata";
   private static final String TABLE = "table";
-  private static final String XSD = "XSD";
 
   private static ZipFile zipFile = null;
   private static List<String> zipFileNames = null;

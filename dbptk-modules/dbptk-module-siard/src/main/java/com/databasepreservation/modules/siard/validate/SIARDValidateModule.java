@@ -1,14 +1,15 @@
 package com.databasepreservation.modules.siard.validate;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
+import com.databasepreservation.model.modules.validate.ValidatorModule;
+import com.databasepreservation.modules.siard.validate.TableData.TableDataValidator;
+import com.databasepreservation.modules.siard.validate.TableData.TableSchemaDefinitionValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,6 +90,18 @@ public class SIARDValidateModule implements ValidateModule {
     metadataAndTableDataValidator.setValidationReporter(validationReporter);
     metadataAndTableDataValidator.setAllowUDTs(allowedUDTs);
     metadataAndTableDataValidator.validate();
+
+    final TableDataValidator tableDataValidator = TableDataValidator.newInstance();
+    tableDataValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
+    tableDataValidator.setReporter(reporter);
+    tableDataValidator.setValidationReporter(validationReporter);
+    tableDataValidator.validate();
+
+    final TableSchemaDefinitionValidator tableSchemaDefinitionValidator = TableSchemaDefinitionValidator.newInstance();
+    tableSchemaDefinitionValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
+    tableSchemaDefinitionValidator.setReporter(reporter);
+    tableSchemaDefinitionValidator.setValidationReporter(validationReporter);
+    tableSchemaDefinitionValidator.validate();
 
     validationReporter.close();
   }
