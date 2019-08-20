@@ -13,7 +13,16 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Iterator;
 
-import com.databasepreservation.Constants;
+import javax.xml.namespace.NamespaceContext;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.translate.AggregateTranslator;
 import org.apache.commons.lang3.text.translate.CharSequenceTranslator;
@@ -24,15 +33,7 @@ import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
-import javax.xml.namespace.NamespaceContext;
-import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
+import com.databasepreservation.Constants;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -191,6 +192,8 @@ public class XMLUtils {
     xpath = setXPath(xpath, type);
 
     XPathExpression expression = xpath.compile(xpathExpression);
+
+    inputStream.close();
 
     return expression.evaluate(document, constants);
   }

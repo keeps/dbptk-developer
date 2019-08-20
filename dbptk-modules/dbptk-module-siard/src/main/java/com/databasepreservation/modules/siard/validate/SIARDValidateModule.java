@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
+import com.databasepreservation.modules.siard.validate.TableData.AdditionalChecksValidator;
 import com.databasepreservation.modules.siard.validate.TableData.DateAndTimestampDataValidator;
 import com.databasepreservation.modules.siard.validate.TableData.RequirementsForTableDataValidator;
 import com.databasepreservation.modules.siard.validate.TableData.TableDataValidator;
@@ -115,6 +116,12 @@ public class SIARDValidateModule implements ValidateModule {
     tableDataValidator.setReporter(reporter);
     tableDataValidator.setValidationReporter(validationReporter);
     tableDataValidator.validate();
+
+    final AdditionalChecksValidator additionalChecksValidator = AdditionalChecksValidator.newInstance();
+    additionalChecksValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
+    additionalChecksValidator.setReporter(reporter);
+    additionalChecksValidator.setValidationReporter(validationReporter);
+    additionalChecksValidator.validate();
 
     validationReporter.close();
   }

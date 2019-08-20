@@ -49,8 +49,6 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
   private static final String P_4310 = "P_4.3-10";
   private static final String P_4311 = "P_4.3-11";
   private static final String P_4312 = "P_4.3-12";
-  private static final String XSD_EXTENSION = ".xsd";
-  private static final String XML_EXTENSION = ".xml";
   private static final String SIARD_CONTENT = "content";
 
   private static HashMap<String, List<String>> SQL2008TypeMatchXMLType;
@@ -317,7 +315,7 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
       }
 
       for (String path : entries) {
-        String XSDPath = path.concat(XSD_EXTENSION);
+        String XSDPath = path.concat(Constants.XSD_EXTENSION);
         final InputStream inputStream = getZipInputStream(XSDPath);
         final String evaluate = (String) XMLUtils.getXPathResult(inputStream,
           "count(/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element)", XPathConstants.STRING, null);
@@ -430,7 +428,7 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
       // Count number of row element in table[number].xml
       for (Map.Entry<String, Integer> entry : numberOfRows.entrySet()) {
         String tablePath = entry.getKey();
-        String XMLPath = tablePath.concat(XML_EXTENSION);
+        String XMLPath = tablePath.concat(Constants.XML_EXTENSION);
 
         final InputStream zipInputStream = getZipInputStream(XMLPath);
 
@@ -468,7 +466,7 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
     }
 
     for (Map.Entry<String, HashMap<String, String>> entry : arrayType.entrySet()) {
-      final String XSDPath = entry.getKey().concat(XSD_EXTENSION);
+      final String XSDPath = entry.getKey().concat(Constants.XSD_EXTENSION);
       for (Map.Entry<String, String> column : entry.getValue().entrySet()) {
         try {
           final InputStream zipInputStream = getZipInputStream(XSDPath);
@@ -569,7 +567,7 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
         for (Map.Entry<String, String> values : entry.getValue().entrySet()) {
           if (values.getValue().equals("false")) {
             String tablePath = entry.getKey();
-            String XMLPath = tablePath.concat(XML_EXTENSION);
+            String XMLPath = tablePath.concat(Constants.XML_EXTENSION);
             String xpathExpression = "/ns:table/ns:row/ns:" + values.getKey() + "/text()";
 
             final InputStream zipInputStream = getZipInputStream(XMLPath);
@@ -657,7 +655,7 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
       .entrySet()) {
       for (Map.Entry<String, AdvancedOrStructuredColumn> advancedOrStructuredColumnEntry : entry.getValue()
         .entrySet()) {
-        String XSDPath = entry.getKey().concat(XSD_EXTENSION);
+        String XSDPath = entry.getKey().concat(Constants.XSD_EXTENSION);
         String xpathExpression = "count(/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element[@name='$1']/xs:complexType/xs:sequence/xs:element)";
         xpathExpression = xpathExpression.replace("$1", advancedOrStructuredColumnEntry.getKey());
 
@@ -694,9 +692,9 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
 
     for (Map.Entry<String, Integer> entry : numberOfRows.entrySet()) {
       String path = entry.getKey();
-      String XSDPath = path.concat(XSD_EXTENSION);
+      String XSDPath = path.concat(Constants.XSD_EXTENSION);
 
-      String XMLPath = path.concat(XML_EXTENSION);
+      String XMLPath = path.concat(Constants.XML_EXTENSION);
       final InputStream zipInputStreamXML = getZipInputStream(XMLPath);
       final InputStream zipInputStreamXSD = getZipInputStream(XSDPath);
       int rows = entry.getValue();
@@ -992,7 +990,7 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
 
   private boolean compareSQL2008DataTypeWithXMLType(String path, String column, HashMap<String, String> map)
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
-    String XSDPath = path.concat(XSD_EXTENSION);
+    String XSDPath = path.concat(Constants.XSD_EXTENSION);
     String xpathExpression;
     for (Map.Entry<String, String> entry : map.entrySet()) {
       final String key = entry.getKey();
@@ -1025,7 +1023,7 @@ public class MetadataAndTableDataValidator extends ValidatorModule {
 
   private boolean compareSQL2008DataTypeWithXMLType(String path, HashMap<String, String> map)
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
-    String XSDPath = path.concat(XSD_EXTENSION);
+    String XSDPath = path.concat(Constants.XSD_EXTENSION);
     final NodeList nodeList = (NodeList) XMLUtils.getXPathResult(getZipInputStream(XSDPath),
       "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element", XPathConstants.NODESET, null);
     for (int i = 0; i < nodeList.getLength(); i++) {

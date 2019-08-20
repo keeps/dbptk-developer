@@ -28,4 +28,6 @@ public class Constants {
   public static final String NAME_SPACE_FOR_METADATA = "metadata";
   public static final String NAME_SPACE_FOR_TABLE = "table";
   public static final String METADATA_XML = "header/metadata.xml";
+  public static final String XSD_EXTENSION = ".xsd";
+  public static final String XML_EXTENSION = ".xml";
 }

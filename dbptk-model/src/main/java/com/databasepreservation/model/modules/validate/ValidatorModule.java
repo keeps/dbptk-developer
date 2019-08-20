@@ -67,8 +67,11 @@ public abstract class ValidatorModule {
   }
 
   protected InputStream getZipInputStream(final String fileName) {
-    final ZipArchiveEntry entry = this.zipFile.getEntry(fileName);
     try {
+      if (this.zipFile == null) {
+        importZipFile();
+      }
+      final ZipArchiveEntry entry = this.zipFile.getEntry(fileName);
       return this.zipFile.getInputStream(entry);
     } catch (IOException e) {
       return null;

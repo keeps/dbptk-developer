@@ -21,7 +21,7 @@ public class ValidationReporter implements AutoCloseable {
   private BufferedWriter writer;
 
   public enum Status {
-    OK, ERROR, WARNING, SKIPPED;
+    OK, ERROR, WARNING, SKIPPED, NOTICE, PASSED;
   }
 
   private static final String EMPTY_MESSAGE_LINE = "";
@@ -71,6 +71,10 @@ public class ValidationReporter implements AutoCloseable {
     }
   }
 
+  public void moduleValidatorHeader(String text) {
+    writeLine(text);
+  }
+
   public void moduleValidatorHeader(String ID, String text) {
     writeLine(ID + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + text);
   }
@@ -92,6 +96,10 @@ public class ValidationReporter implements AutoCloseable {
   public void skipValidation(String ID, String reasonToSkip) {
     writeLine(TAB + ID + COLON + SINGLE_SPACE + buildStatus(Status.SKIPPED) + SINGLE_SPACE + HYPHEN + SINGLE_SPACE
       + reasonToSkip);
+  }
+
+  public void notice(Object nodeValue, String noticeMessage) {
+    writeLine(TAB + buildStatus(Status.NOTICE) + COLON + SINGLE_SPACE + noticeMessage + COLON + SINGLE_SPACE + nodeValue);
   }
 
   private String buildStatus(Status status) {
