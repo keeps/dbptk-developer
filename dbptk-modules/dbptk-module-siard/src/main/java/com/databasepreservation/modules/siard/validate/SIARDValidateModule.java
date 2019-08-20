@@ -28,6 +28,7 @@ import com.databasepreservation.modules.siard.validate.TableData.TableSchemaDefi
 import com.databasepreservation.modules.siard.validate.common.path.ValidatorPathStrategy;
 import com.databasepreservation.modules.siard.validate.common.path.ValidatorPathStrategyImpl;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataAttributeValidator;
+import com.databasepreservation.modules.siard.validate.metadata.MetadataCandidateKeyValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataColumnsValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataDatabaseInfoValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataFieldValidator;
@@ -52,10 +53,11 @@ public class SIARDValidateModule implements ValidateModule {
   private final ValidatorPathStrategy validatorPathStrategy;
 
   /**
-   * Constructor used to initialize required objects to get an validate module
-   * for SIARD 2 (all minor versions)
+   * Constructor used to initialize required objects to get an validate module for
+   * SIARD 2 (all minor versions)
    *
-   * @param SIARDPackagePath Path to the main SIARD file (file with extension .siard)
+   * @param SIARDPackagePath
+   *          Path to the main SIARD file (file with extension .siard)
    */
   public SIARDValidateModule(Path SIARDPackagePath, Path validationReporterPath) {
     SIARDPackageNormalizedPath = SIARDPackagePath.toAbsolutePath().normalize();
@@ -80,7 +82,8 @@ public class SIARDValidateModule implements ValidateModule {
   /**
    * The reporter is set specifically for each module
    *
-   * @param reporter The reporter that should be used by this ValidateModule
+   * @param reporter
+   *          The reporter that should be used by this ValidateModule
    */
   @Override
   public void setOnceReporter(Reporter reporter) {
@@ -88,7 +91,8 @@ public class SIARDValidateModule implements ValidateModule {
   }
 
   /**
-   * @throws ModuleException Generic module exception
+   * @throws ModuleException
+   *           Generic module exception
    */
   @Override
   public void validate() throws ModuleException {
@@ -188,6 +192,7 @@ public class SIARDValidateModule implements ValidateModule {
     startValidation(MetadataPrimaryKeyValidator.newInstance());
     startValidation(MetadataForeignKeyValidator.newInstance());
     startValidation(MetadataReferenceValidator.newInstance());
+    startValidation(MetadataCandidateKeyValidator.newInstance());
 
     try {
       validationReporter.close();
@@ -202,11 +207,13 @@ public class SIARDValidateModule implements ValidateModule {
     module.setValidationReporter(validationReporter);
     module.validate();
   }
+
   /**
    * Normalize the exception into a ModuleException that is easier to understand
    * and handle.
    *
-   * @param exception      The Exception that would otherwise be thrown
+   * @param exception
+   *          The Exception that would otherwise be thrown
    * @param contextMessage
    * @return A normalized exception using ModuleException or one of its subclasses
    */
