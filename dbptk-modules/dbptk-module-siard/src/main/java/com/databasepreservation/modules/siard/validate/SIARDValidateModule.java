@@ -29,15 +29,20 @@ import com.databasepreservation.modules.siard.validate.common.path.ValidatorPath
 import com.databasepreservation.modules.siard.validate.common.path.ValidatorPathStrategyImpl;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataAttributeValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataCandidateKeyValidator;
+import com.databasepreservation.modules.siard.validate.metadata.MetadataCheckConstraintValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataColumnsValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataDatabaseInfoValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataFieldValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataForeignKeyValidator;
+import com.databasepreservation.modules.siard.validate.metadata.MetadataParameterValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataPrimaryKeyValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataReferenceValidator;
+import com.databasepreservation.modules.siard.validate.metadata.MetadataRoutineValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataSchemaValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataTableValidator;
+import com.databasepreservation.modules.siard.validate.metadata.MetadataTriggerValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataTypeValidator;
+import com.databasepreservation.modules.siard.validate.metadata.MetadataViewValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataXMLAgainstXSDValidator;
 
 /**
@@ -193,6 +198,11 @@ public class SIARDValidateModule implements ValidateModule {
     startValidation(MetadataForeignKeyValidator.newInstance());
     startValidation(MetadataReferenceValidator.newInstance());
     startValidation(MetadataCandidateKeyValidator.newInstance());
+    startValidation(MetadataCheckConstraintValidator.newInstance());
+    startValidation(MetadataTriggerValidator.newInstance());
+    startValidation(MetadataViewValidator.newInstance());
+    startValidation(MetadataRoutineValidator.newInstance());
+    startValidation(MetadataParameterValidator.newInstance());
 
     try {
       validationReporter.close();

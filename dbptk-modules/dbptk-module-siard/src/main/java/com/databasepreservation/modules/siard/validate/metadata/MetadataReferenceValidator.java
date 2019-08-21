@@ -32,6 +32,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
   private List<String> tableList = new ArrayList<>();
   private Map<String, HashMap<String, String>> tableColumnsList = new HashMap<>();
   private Map<String, List<String>> primaryKeyList = new HashMap<>();
+  private Map<String, List<String>> candidateKeyList = new HashMap<>();
 
   public static MetadataReferenceValidator newInstance() {
     return new MetadataReferenceValidator();
@@ -63,7 +64,8 @@ public class MetadataReferenceValidator extends MetadataValidator {
       NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
 
       tableColumnsList = getListColumnsByTables(nodes);
-      primaryKeyList = getListPrimaryKeysByTables(nodes);
+      primaryKeyList = getListKeysByTables(nodes, "primaryKey");
+      candidateKeyList = getListKeysByTables(nodes, "candidateKey");
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element tableElement = (Element) nodes.item(i);
@@ -96,7 +98,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
               return false;
             }
 
-            if (!validateReferencedColumn(table, referencedTable, column, referenced))
+            if (!validateReferencedColumn(table, referencedTable, column, referenced, foreignKey))
               break;
           }
         }
@@ -134,28 +136,31 @@ public class MetadataReferenceValidator extends MetadataValidator {
     return columnsTables;
   }
 
-  private Map<String, List<String>> getListPrimaryKeysByTables(NodeList tableNodes) {
-    Map<String, List<String>> primaryKeysTables = new HashMap<>();
+  private Map<String, List<String>> getListKeysByTables(NodeList tableNodes, String key) {
+    Map<String, List<String>> keys = new HashMap<>();
 
     for (int i = 0; i < tableNodes.getLength(); i++) {
       Element tableElement = (Element) tableNodes.item(i);
       String table = MetadataXMLUtils.getChildTextContext(tableElement, "name");
 
-      Element primaryKeyElement = MetadataXMLUtils.getChild(tableElement, "primaryKey");
-      if (primaryKeyElement == null) {
+      NodeList keyNodes = tableElement.getElementsByTagName(key);
+      if (keyNodes == null) {
         continue;
       }
 
-      NodeList columnNode = primaryKeyElement.getElementsByTagName("column");
       List<String> columnsNameList = new ArrayList<>();
-      for (int j = 0; j < columnNode.getLength(); j++) {
-        String name = columnNode.item(j).getTextContent();
-        columnsNameList.add(name);
+      for (int j = 0; j < keyNodes.getLength(); j++) {
+        Element keyElement = (Element) keyNodes.item(j);
+        NodeList columnNode = keyElement.getElementsByTagName("column");
+        for (int k = 0; k < columnNode.getLength(); k++) {
+          String name = columnNode.item(k).getTextContent();
+          columnsNameList.add(name);
+        }
       }
-      primaryKeysTables.put(table, columnsNameList);
+      keys.put(table, columnsNameList);
     }
 
-    return primaryKeysTables;
+    return keys;
   }
 
   /**
@@ -184,37 +189,51 @@ public class MetadataReferenceValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateReferencedColumn(String foreignKeytable, String referencedTable, String foreignKey,
-    String referencedColumn) {
+  private boolean validateReferencedColumn(String foreignKeyTable, String referencedTable, String column,
+    String referencedColumn, String foreignKey) {
     HashMap<String, String> referencedColumnTable = tableColumnsList.get(referencedTable);
-    HashMap<String, String> foreignKeyColumnTable = tableColumnsList.get(foreignKeytable);
+    HashMap<String, String> foreignKeyColumnTable = tableColumnsList.get(foreignKeyTable);
     List<String> primaryKeyColumns = primaryKeyList.get(referencedTable);
+    List<String> candidateKeyColumns = candidateKeyList.get(referencedTable);
 
     // M_5.10-1-2
     if (referencedColumnTable.get(referencedColumn) == null) {
       error.put(REFERENCE_COLUMN_REFERENCED,
         String.format("referenced column name %s of table %s does not exist on referenced table %s", referencedColumn,
-          foreignKeytable, referencedTable));
+          foreignKeyTable, referencedTable));
       return false;
     }
 
-    // Additional check 1
-    for (String primaryKey : primaryKeyColumns) {
-      String primaryKeyType = referencedColumnTable.get(primaryKey);
-      String foreignKeyType = foreignKeyColumnTable.get(foreignKey);
+    String foreignKeyType = foreignKeyColumnTable.get(column);
+    if (primaryKeyColumns != null && primaryKeyColumns.contains(referencedColumn)) {
+      // Additional check 1
+      for (String primaryKey : primaryKeyColumns) {
+        String primaryKeyType = referencedColumnTable.get(primaryKey);
 
-      if (!primaryKeyType.equals(foreignKeyType)) {
-        error.put(REFERENCE_COLUMN_REFERENCED,
-          String.format("Foreign Key %s.%s type %s does not match with type %s of Primary Key %s.%s", foreignKeytable,
-            foreignKey, foreignKeyType, primaryKeyType, referencedTable, primaryKey));
-        return false;
+        if (!primaryKeyType.equals(foreignKeyType)) {
+          error.put(REFERENCE_COLUMN_REFERENCED,
+            String.format("Foreign Key %s.%s type %s does not match with type %s of Primary Key %s.%s", foreignKeyTable,
+              foreignKey, foreignKeyType, primaryKeyType, referencedTable, primaryKey));
+          return false;
+        }
       }
-    }
+    } else if (candidateKeyColumns != null && candidateKeyColumns.contains(referencedColumn)) {
+      // Additional check 1
+      for (String candidateKey : candidateKeyColumns) {
+        String candidateKeyType = referencedColumnTable.get(candidateKey);
 
-    // Additional check 2
-    if (!primaryKeyColumns.contains(referencedColumn)) {
+        if (!candidateKeyType.equals(foreignKeyType)) {
+          error.put(REFERENCE_COLUMN_REFERENCED,
+            String.format("Foreign Key %s.%s type %s does not match with type %s of Candidate Key %s.%s",
+              foreignKeyTable, foreignKey, foreignKeyType, candidateKeyType, referencedTable, candidateKey));
+          return false;
+        }
+      }
+    } else {
+      // Additional check 2
       error.put(REFERENCE_COLUMN_REFERENCED,
-        String.format("Foreign Key %s has no reference to any primary key", foreignKey));
+        String.format("Foreign Key %s.%s has no reference to any key on referenced table %s", foreignKeyTable,
+          foreignKey, referencedTable));
       return false;
     }
 

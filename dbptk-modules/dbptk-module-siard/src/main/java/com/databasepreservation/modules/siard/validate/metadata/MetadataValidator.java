@@ -53,7 +53,7 @@ abstract class MetadataValidator extends ValidatorModule {
     if (error.get(validationKey) != null && !error.get(validationKey).isEmpty()) {
       getValidationReporter().validationStatus(codeID, ValidationReporter.Status.ERROR, error.get(validationKey));
       return false;
-    } else if (!warnings.get(validationKey).isEmpty()) {
+    } else if ((warnings.get(validationKey) != null) && !warnings.get(validationKey).isEmpty()) {
       getValidationReporter().validationStatus(codeID, ValidationReporter.Status.WARNING, ENTRY,
         warnings.get(validationKey));
     } else {
@@ -62,12 +62,12 @@ abstract class MetadataValidator extends ValidatorModule {
     return true;
   }
 
-  boolean validateXMLField(String value, String field, Boolean mandatory, Boolean checkSize, String... path){
-    if( !validateMandatoryXMLField(value) && mandatory){
-      error.put(field, buildMessage(field, value, true, path));
+  boolean validateXMLField(String value, String field, Boolean mandatory, Boolean checkSize, String... path) {
+    if (!validateMandatoryXMLField(value) && mandatory) {
+      setError(field, buildMessage(field, value, true, path));
       return false;
-    } else if(!validateXMLFieldSize(value) && checkSize){
-      warnings.get(field).add(buildMessage(field, value, false, path));
+    } else if (!validateXMLFieldSize(value) && checkSize) {
+      addWarning(field, buildMessage(field, value, false, path));
     }
     return true;
   }
@@ -80,34 +80,45 @@ abstract class MetadataValidator extends ValidatorModule {
     return value != null && value.length() >= MIN_FIELD_LENGTH;
   }
 
-  private String buildMessage(String field, String value, Boolean mandatory, String path){
-    if(!validateMandatoryXMLField(value) && mandatory){
+  private String buildMessage(String field, String value, Boolean mandatory, String path) {
+    if (!validateMandatoryXMLField(value) && mandatory) {
       return String.format("The %s inside '%s' is mandatory", field, path);
-    } else if(!validateMandatoryXMLField(value)){
+    } else if (!validateMandatoryXMLField(value)) {
       return String.format("The %s inside '%s' is null", field, path);
-    } else if(!validateXMLFieldSize(value)){
+    } else if (!validateXMLFieldSize(value)) {
       return String.format("The %s '%s' inside '%s' has less than %d characters", field, value, path, MIN_FIELD_LENGTH);
     }
     return null;
   }
 
-  private String buildMessage(String field, String value, Boolean mandatory, String... path){
+  private String buildMessage(String field, String value, Boolean mandatory, String... path) {
     return buildMessage(field, value, mandatory, buildPath(path));
   }
 
-  private String buildPath(String... parameters){
+  private String buildPath(String... parameters) {
     StringBuilder path = new StringBuilder();
-    for (int i = 0; i < parameters.length; i++){
+    for (int i = 0; i < parameters.length; i++) {
       path.append(parameters[i]);
-      if(i%2!=0 && i < parameters.length -1){
+      if (i % 2 != 0 && i < parameters.length - 1) {
         path.append(SEPARATOR).append("and").append(SEPARATOR);
-      } else{
+      } else {
         path.append(":");
       }
     }
     path.deleteCharAt(path.length() - 1);
 
     return path.toString();
+  }
+
+  void addWarning(String key, String message) {
+    if (warnings.get(key) == null) {
+      this.warnings.put(key, new ArrayList<String>());
+    }
+    this.warnings.get(key).add(message);
+  }
+
+  void setError(String key, String error) {
+    this.error.put(key, error);
   }
 
   NodeList getXPathResult(ZipFile zipFile, String pathToEntry, String xpathExpression, QName constants,
