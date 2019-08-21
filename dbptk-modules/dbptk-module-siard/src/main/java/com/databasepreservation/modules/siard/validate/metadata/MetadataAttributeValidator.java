@@ -8,6 +8,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import com.databasepreservation.Constants;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -23,12 +24,6 @@ public class MetadataAttributeValidator extends MetadataValidator {
   private static final String M_541_1 = "M_5.4-1-1";
   private static final String M_541_8 = "M_5.4-1-8";
 
-  private static final String SCHEMA = "schema";
-  private static final String TYPE = "type";
-  private static final String ATTRIBUTE = "attribute";
-  private static final String ATTRIBUTE_NAME = "name";
-  private static final String ATTRIBUTE_DESCRIPTION = "description";
-
   private List<Element> attributeList = new ArrayList<>();
 
   public static MetadataAttributeValidator newInstance() {
@@ -38,16 +33,14 @@ public class MetadataAttributeValidator extends MetadataValidator {
   private MetadataAttributeValidator() {
     error.clear();
     warnings.clear();
-    warnings.put(ATTRIBUTE_NAME, new ArrayList<String>());
-    warnings.put(ATTRIBUTE_DESCRIPTION, new ArrayList<String>());
   }
 
   @Override
   public boolean validate() {
     getValidationReporter().moduleValidatorHeader(M_54, MODULE_NAME);
 
-    if (!reportValidations(readXMLMetadataAttributeLevel(), M_541, true)) {
-      return false;
+    if (!readXMLMetadataAttributeLevel()) {
+      return reportValidations(M_541);
     }
 
     // there is no need to continue the validation if no have attributes in any type
@@ -56,28 +49,28 @@ public class MetadataAttributeValidator extends MetadataValidator {
       return true;
     }
 
-    return reportValidations(M_541_1, ATTRIBUTE_NAME) && reportValidations(M_541_8, ATTRIBUTE_DESCRIPTION);
+    return reportValidations(M_541_1) && reportValidations(M_541_8);
   }
 
   private boolean readXMLMetadataAttributeLevel() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = "header/metadata.xml";
+      String pathToEntry = Constants.METADATA_XML;
       String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:types/ns:type";
 
       NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element type = (Element) nodes.item(i);
-        String typeName = MetadataXMLUtils.getChildTextContext(type, "name");
+        String typeName = MetadataXMLUtils.getChildTextContext(type, Constants.NAME);
         String schema = MetadataXMLUtils.getChildTextContext((Element) type.getParentNode().getParentNode(), "name");
 
-        NodeList attributesNode = type.getElementsByTagName(ATTRIBUTE);
+        NodeList attributesNode = type.getElementsByTagName(Constants.ATTRIBUTE);
         for (int j = 0; j < attributesNode.getLength(); j++) {
           Element attribute = (Element) attributesNode.item(j);
           attributeList.add(attribute);
 
-          String attributeName = MetadataXMLUtils.getChildTextContext(attribute, ATTRIBUTE_NAME);
-          String description = MetadataXMLUtils.getChildTextContext(attribute, ATTRIBUTE_DESCRIPTION);
+          String attributeName = MetadataXMLUtils.getChildTextContext(attribute, Constants.NAME);
+          String description = MetadataXMLUtils.getChildTextContext(attribute, Constants.DESCRIPTION);
 
           if (!validateAttributeName(schema, typeName, attributeName)
             || !validateAttributeDescription(schema, typeName, attributeName, description)) {
@@ -99,7 +92,7 @@ public class MetadataAttributeValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateAttributeName(String schema, String type, String name) {
-    return validateXMLField(name, ATTRIBUTE_NAME, true, false, SCHEMA, schema, TYPE, type);
+    return validateXMLField(M_541_1, name, Constants.NAME, true, false, Constants.SCHEMA, schema, Constants.TYPE, type);
   }
 
   /**
@@ -107,7 +100,7 @@ public class MetadataAttributeValidator extends MetadataValidator {
    * characters. WARNING if it is less than 3 characters
    */
   private boolean validateAttributeDescription(String schema, String type, String attributeName, String description) {
-    return validateXMLField(description, ATTRIBUTE_DESCRIPTION, false, true, SCHEMA, schema, TYPE, type, ATTRIBUTE,
-      attributeName);
+    return validateXMLField(M_541_8, description, Constants.DESCRIPTION, false, true, Constants.SCHEMA, schema,
+      Constants.TYPE, type, Constants.ATTRIBUTE, attributeName);
   }
 }

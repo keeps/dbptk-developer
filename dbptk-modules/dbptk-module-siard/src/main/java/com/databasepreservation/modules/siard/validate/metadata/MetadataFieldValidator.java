@@ -8,6 +8,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import com.databasepreservation.Constants;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -23,12 +24,7 @@ public class MetadataFieldValidator extends MetadataValidator {
   private static final String M_571 = "M_5.7-1";
   private static final String M_571_5 = "M_5.7-1-5";
 
-  private static final String SCHEMA = "schema";
-  private static final String TABLE = "table";
-  private static final String COLUMN = "column";
-  private static final String FIELD = "FIELD";
-  private static final String FIELD_NAME = "name";
-  private static final String FIELD_DESCRIPTION = "description";
+  private static final String FIELD = "Field";
 
   public static MetadataValidator newInstance() {
     return new MetadataFieldValidator();
@@ -37,8 +33,6 @@ public class MetadataFieldValidator extends MetadataValidator {
   private MetadataFieldValidator() {
     error.clear();
     warnings.clear();
-    warnings.put(FIELD_NAME, new ArrayList<String>());
-    warnings.put(FIELD_DESCRIPTION, new ArrayList<String>());
   }
 
   @Override
@@ -46,12 +40,12 @@ public class MetadataFieldValidator extends MetadataValidator {
     getValidationReporter().moduleValidatorHeader(M_57, MODULE_NAME);
     readXMLMetadataFieldLevel();
 
-    return reportValidations(M_571, FIELD_NAME) && reportValidations(M_571_5, FIELD_DESCRIPTION);
+    return reportValidations(M_571) && reportValidations(M_571_5);
   }
 
   private boolean readXMLMetadataFieldLevel() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = "header/metadata.xml";
+      String pathToEntry = Constants.METADATA_XML;
       String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column/ns:fields/ns:field";
       NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
 
@@ -63,22 +57,22 @@ public class MetadataFieldValidator extends MetadataValidator {
         Element field = (Element) nodes.item(i);
 
         Element columnElement = (Element) field.getParentNode().getParentNode();
-        String columnName = MetadataXMLUtils.getChildTextContext(columnElement, "name");
+        String columnName = MetadataXMLUtils.getChildTextContext(columnElement, Constants.NAME);
         Element tableElement = (Element) columnElement.getParentNode().getParentNode();
-        String tableName = MetadataXMLUtils.getChildTextContext(tableElement, "name");
+        String tableName = MetadataXMLUtils.getChildTextContext(tableElement, Constants.NAME);
         Element schemaElement = (Element) tableElement.getParentNode().getParentNode();
-        String schemaName = MetadataXMLUtils.getChildTextContext(schemaElement, "name");
+        String schemaName = MetadataXMLUtils.getChildTextContext(schemaElement, Constants.NAME);
 
-        String name = MetadataXMLUtils.getChildTextContext(field, FIELD_NAME);
+        String name = MetadataXMLUtils.getChildTextContext(field, Constants.NAME);
 
         // * M_5.7-1 The field name in SIARD is mandatory.
         if (name == null || name.isEmpty()) {
-          error.put(FIELD_NAME,
+          setError(M_571,
             "Field name cannot be null on " + MetadataXMLUtils.createPath(schemaName, tableName, columnName));
           return false;
         }
 
-        String description = MetadataXMLUtils.getChildTextContext(field, FIELD_DESCRIPTION);
+        String description = MetadataXMLUtils.getChildTextContext(field, Constants.DESCRIPTION);
         if (!validateFieldDescription(schemaName, tableName, columnName, name, description))
           break;
       }
@@ -96,8 +90,8 @@ public class MetadataFieldValidator extends MetadataValidator {
    */
   private boolean validateFieldDescription(String schema, String table, String column, String field,
     String description) {
-    return validateXMLField(description, FIELD_DESCRIPTION, false, true, SCHEMA, schema, TABLE, table, COLUMN, column,
-      FIELD, field);
+    return validateXMLField(M_571_5, description, Constants.DESCRIPTION, false, true, Constants.SCHEMA, schema,
+      Constants.TABLE, table, Constants.COLUMN, column, FIELD, field);
   }
 
 }

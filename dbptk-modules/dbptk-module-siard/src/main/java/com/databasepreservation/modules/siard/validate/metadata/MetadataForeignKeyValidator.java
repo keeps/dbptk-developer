@@ -10,6 +10,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import com.databasepreservation.Constants;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -27,13 +28,9 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
   private static final String M_591_3 = "M_5.9-1-3";
   private static final String M_591_8 = "M_5.9-1-8";
 
-  private static final String TABLE = "table";
-  private static final String FOREIGN_KEY = "foreignKey";
-  private static final String FOREIGN_KEY_NAME = "name";
   private static final String FOREIGN_KEY_REFERENCED_SCHEMA = "referencedSchema";
   private static final String FOREIGN_KEY_REFERENCED_TABLE = "referencedTable";
   private static final String FOREIGN_KEY_REFERENCE = "reference";
-  private static final String FOREIGN_KEY_DESCRIPTION = "description";
 
   private List<String> tableList = new ArrayList<>();
   private List<String> schemaList = new ArrayList<>();
@@ -46,11 +43,6 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
   private MetadataForeignKeyValidator() {
     error.clear();
     warnings.clear();
-    warnings.put(FOREIGN_KEY, new ArrayList<String>());
-    warnings.put(FOREIGN_KEY_NAME, new ArrayList<String>());
-    warnings.put(FOREIGN_KEY_REFERENCED_SCHEMA, new ArrayList<String>());
-    warnings.put(FOREIGN_KEY_REFERENCED_TABLE, new ArrayList<String>());
-    warnings.put(FOREIGN_KEY_DESCRIPTION, new ArrayList<String>());
   }
 
   @Override
@@ -61,31 +53,29 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
     tableList = getListOfTables();
     readXMLMetadataForeignKeyLevel();
 
-    return reportValidations(M_591, FOREIGN_KEY) && reportValidations(M_591_1, FOREIGN_KEY_NAME)
-      && reportValidations(M_591_2, FOREIGN_KEY_REFERENCED_SCHEMA)
-      && reportValidations(M_591_3, FOREIGN_KEY_REFERENCED_TABLE)
-      && reportValidations(M_591_8, FOREIGN_KEY_DESCRIPTION);
+    return reportValidations(M_591) && reportValidations(M_591_1) && reportValidations(M_591_2)
+      && reportValidations(M_591_3) && reportValidations(M_591_8);
   }
 
   private boolean readXMLMetadataForeignKeyLevel() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = "header/metadata.xml";
+      String pathToEntry = Constants.METADATA_XML;
       String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table";
 
       NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element tableElement = (Element) nodes.item(i);
-        String table = MetadataXMLUtils.getChildTextContext(tableElement, "name");
+        String table = MetadataXMLUtils.getChildTextContext(tableElement, Constants.NAME);
 
-        NodeList foreignKeyNodes = tableElement.getElementsByTagName(FOREIGN_KEY);
+        NodeList foreignKeyNodes = tableElement.getElementsByTagName(Constants.FOREIGN_KEY);
         for (int j = 0; j < foreignKeyNodes.getLength(); j++) {
           Element foreignKey = (Element) foreignKeyNodes.item(j);
 
-          String name = MetadataXMLUtils.getChildTextContext(foreignKey, FOREIGN_KEY_NAME);
+          String name = MetadataXMLUtils.getChildTextContext(foreignKey, Constants.NAME);
           // * M_5.9-1 Foreign key name is mandatory.
           if (name == null || name.isEmpty()) {
-            error.put(FOREIGN_KEY, "Foreign key name is required on table " + table);
+            setError(M_591, "Foreign key name is required on table " + table);
             return false;
           }
           if (!validateForeignKeyName(table, name))
@@ -94,7 +84,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
           String referencedSchema = MetadataXMLUtils.getChildTextContext(foreignKey, FOREIGN_KEY_REFERENCED_SCHEMA);
           // * M_5.9-1 Foreign key referencedSchema is mandatory.
           if (referencedSchema == null || referencedSchema.isEmpty()) {
-            error.put(FOREIGN_KEY, "Foreign key referencedSchema is required on table " + table);
+            setError(M_591, "Foreign key referencedSchema is required on table " + table);
             return false;
           }
           if (!validateForeignKeyReferencedSchema(referencedSchema, name))
@@ -103,7 +93,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
           String referencedTable = MetadataXMLUtils.getChildTextContext(foreignKey, FOREIGN_KEY_REFERENCED_TABLE);
           // * M_5.9-1 Foreign key referencedTable is mandatory.
           if (referencedTable == null || referencedTable.isEmpty()) {
-            error.put(FOREIGN_KEY, "Foreign key referencedTable is required on table " + table);
+            setError(M_591, "Foreign key referencedTable is required on table " + table);
             return false;
           }
           if (!validateForeignKeyReferencedTable(referencedTable, name))
@@ -112,11 +102,11 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
           String reference = MetadataXMLUtils.getChildTextContext(foreignKey, FOREIGN_KEY_REFERENCE);
           // * M_5.9-1 Foreign key referencedTable is mandatory.
           if (reference == null || reference.isEmpty()) {
-            error.put(FOREIGN_KEY, "Foreign key reference is required on table " + table);
+            setError(M_591, "Foreign key reference is required on table " + table);
             return false;
           }
 
-          String description = MetadataXMLUtils.getChildTextContext(foreignKey, FOREIGN_KEY_DESCRIPTION);
+          String description = MetadataXMLUtils.getChildTextContext(foreignKey, Constants.DESCRIPTION);
           if (!validateForeignKeyDescription(description, table, name))
             break;
         }
@@ -132,7 +122,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
   private List<String> getListOfSchemas() {
     List<String> schemaList = new ArrayList<>();
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = "header/metadata.xml";
+      String pathToEntry = Constants.METADATA_XML;
       String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema";
 
       NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
@@ -150,14 +140,14 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
   private List<String> getListOfTables() {
     List<String> tableList = new ArrayList<>();
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = "header/metadata.xml";
+      String pathToEntry = Constants.METADATA_XML;
       String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table";
 
       NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element tables = (Element) nodes.item(i);
-        tableList.add(MetadataXMLUtils.getChildTextContext(tables, "name"));
+        tableList.add(MetadataXMLUtils.getChildTextContext(tables, Constants.NAME));
       }
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       e.printStackTrace();
@@ -173,7 +163,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
    */
   private boolean validateForeignKeyName(String table, String name) {
     if (!checkDuplicates.add(name)) {
-      error.put(FOREIGN_KEY_NAME, String.format("Foreign key name %s of table %s must be unique", name, table));
+      setError(M_591_1, String.format("Foreign key name %s of table %s must be unique", name, table));
       return false;
     }
 
@@ -187,7 +177,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
    */
   private boolean validateForeignKeyReferencedSchema(String referencedSchema, String name) {
     if (!schemaList.contains(referencedSchema)) {
-      error.put(FOREIGN_KEY_REFERENCED_SCHEMA,
+      setError(M_591_2,
         String.format("Foreign key %s referencedSchema %s of does not exist on database", name, referencedSchema));
       return false;
     }
@@ -201,7 +191,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
    */
   private boolean validateForeignKeyReferencedTable(String referencedTable, String name) {
     if (!tableList.contains(referencedTable)) {
-      error.put(FOREIGN_KEY_REFERENCED_TABLE,
+      setError(M_591_3,
         String.format("Foreign key %s referencedTable %s of does not exist on database", name, referencedTable));
       return false;
     }
@@ -214,6 +204,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
    * characters. WARNING if it is less than 3 characters
    */
   private boolean validateForeignKeyDescription(String description, String table, String name) {
-    return validateXMLField(description, FOREIGN_KEY_DESCRIPTION, false, true, TABLE, table, FOREIGN_KEY, name);
+    return validateXMLField(M_591_8, description, Constants.DESCRIPTION, false, true, Constants.TABLE, table,
+      Constants.FOREIGN_KEY, name);
   }
 }

@@ -13,6 +13,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import com.databasepreservation.Constants;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -30,13 +31,6 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
   private static final String M_581_3 = "M_5.8-1-3";
   private static final String BLANK = " ";
 
-  private static final String SCHEMA = "schema";
-  private static final String TABLE = "table";
-  private static final String PRIMARY_KEY = "primaryKey";
-  private static final String PRIMARY_KEY_NAME = "name";
-  private static final String PRIMARY_KEY_COLUMN = "column";
-  private static final String PRIMARY_KEY_DESCRIPTION = "description";
-
   private Map<String, LinkedList<String>> tableColumnsList = new HashMap<>();
 
   public static MetadataPrimaryKeyValidator newInstance() {
@@ -46,10 +40,6 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
   private MetadataPrimaryKeyValidator() {
     error.clear();
     warnings.clear();
-    warnings.put(PRIMARY_KEY, new ArrayList<String>());
-    warnings.put(PRIMARY_KEY_NAME, new ArrayList<String>());
-    warnings.put(PRIMARY_KEY_COLUMN, new ArrayList<String>());
-    warnings.put(PRIMARY_KEY_DESCRIPTION, new ArrayList<String>());
   }
 
   @Override
@@ -58,62 +48,61 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
 
     readXMLMetadataPrimaryKeyLevel();
 
-    return reportValidations(M_581, PRIMARY_KEY) && reportValidations(M_581_1, PRIMARY_KEY_NAME)
-      && reportValidations(M_581_2, PRIMARY_KEY_COLUMN) && reportValidations(M_581_3, PRIMARY_KEY_DESCRIPTION);
+    return reportValidations(M_581) && reportValidations(M_581_1) && reportValidations(M_581_2)
+      && reportValidations(M_581_3);
   }
 
   private boolean readXMLMetadataPrimaryKeyLevel() {
-
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = "header/metadata.xml";
+      String pathToEntry = Constants.METADATA_XML;
       String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table";
 
       NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element tableElement = (Element) nodes.item(i);
-        String table = MetadataXMLUtils.getChildTextContext(tableElement, "name");
-        String tableFolder = MetadataXMLUtils.getChildTextContext(tableElement, "folder");
+        String table = MetadataXMLUtils.getChildTextContext(tableElement, Constants.NAME);
+        String tableFolder = MetadataXMLUtils.getChildTextContext(tableElement, Constants.FOLDER);
         String schema = MetadataXMLUtils.getChildTextContext((Element) tableElement.getParentNode().getParentNode(),
-          "name");
+          Constants.NAME);
         String schemaFolder = MetadataXMLUtils
-          .getChildTextContext((Element) tableElement.getParentNode().getParentNode(), "folder");
+          .getChildTextContext((Element) tableElement.getParentNode().getParentNode(), Constants.FOLDER);
 
-        Element tableColumnsElement = MetadataXMLUtils.getChild(tableElement, "columns");
+        Element tableColumnsElement = MetadataXMLUtils.getChild(tableElement, Constants.COLUMNS);
         if (tableColumnsElement == null) {
           return false;
         }
-        NodeList tableColumns = tableColumnsElement.getElementsByTagName("column");
+        NodeList tableColumns = tableColumnsElement.getElementsByTagName(Constants.COLUMN);
 
         LinkedList<String> tableColumnName = new LinkedList<>();
         for (int ci = 0; ci < tableColumns.getLength(); ci++) {
-          tableColumnName.add(MetadataXMLUtils.getChildTextContext((Element) tableColumns.item(ci), "name"));
+          tableColumnName.add(MetadataXMLUtils.getChildTextContext((Element) tableColumns.item(ci), Constants.NAME));
         }
         tableColumnsList.put(table, tableColumnName);
 
-        NodeList primaryKeyNodes = tableElement.getElementsByTagName("primaryKey");
+        NodeList primaryKeyNodes = tableElement.getElementsByTagName(Constants.PRIMARY_KEY);
         // primaryKeysCount.put(table, primaryKeyNodes.getLength());
 
         for (int j = 0; j < primaryKeyNodes.getLength(); j++) {
           Element primaryKey = (Element) primaryKeyNodes.item(j);
 
-          String name = MetadataXMLUtils.getChildTextContext(primaryKey, PRIMARY_KEY_NAME);
+          String name = MetadataXMLUtils.getChildTextContext(primaryKey, Constants.NAME);
 
           // * M_5.8-1 Primary key name is mandatory.
           if (name == null || name.isEmpty()) {
-            error.put(PRIMARY_KEY, "Primary key name is required on table " + table);
+            setError(M_581, "Primary key name is required on table " + table);
             return false;
           }
 
           // nameList.add(name);
-          NodeList columns = primaryKey.getElementsByTagName(PRIMARY_KEY_COLUMN);
+          NodeList columns = primaryKey.getElementsByTagName(Constants.COLUMN);
 
           ArrayList<String> columnList = new ArrayList<>();
           for (int k = 0; k < columns.getLength(); k++) {
             String column = columns.item(k).getTextContent();
             // * M_5.8-1 Primary key column is mandatory.
             if (column == null || column.isEmpty()) {
-              error.put(PRIMARY_KEY, "Primary key column is required on table " + table);
+              setError(M_581, "Primary key column is required on table " + table);
               return false;
             }
             columnList.add(column);
@@ -125,7 +114,7 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
           if (!validatePrimaryKeyColumn(schema, table, name, columnList))
             break;
 
-          String description = MetadataXMLUtils.getChildTextContext(primaryKey, PRIMARY_KEY_DESCRIPTION);
+          String description = MetadataXMLUtils.getChildTextContext(primaryKey, Constants.DESCRIPTION);
           if (!validatePrimaryKeyDescription(schema, table, name, description))
             break;
 
@@ -154,7 +143,7 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
         int columnIndex = tableColumnsList.get(table).indexOf(column) + 1;
         columns.add("c" + columnIndex);
       } else {
-        error.put(PRIMARY_KEY_NAME, String.format("Column %s does not exist on table %s", column, table));
+        setError(M_581_1, String.format("Column %s does not exist on table %s", column, table));
         return false;
       }
     }
@@ -181,9 +170,8 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
         }
 
         if (!unique.add(primaryColumn.toString())) {
-          error.put(PRIMARY_KEY_NAME,
-            String.format("Found duplicates primary keys '%s' with value %s on %s.%s column %s", name,
-              primaryColumn.toString(), schemaFolder, tableFolder, columns.toString()));
+          setError(M_581_1, String.format("Found duplicates primary keys '%s' with value %s on %s.%s column %s", name,
+            primaryColumn.toString(), schemaFolder, tableFolder, columns.toString()));
           return false;
         }
         ;
@@ -194,7 +182,7 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
     }
 
     if (name.contains(BLANK)) {
-      warnings.get(PRIMARY_KEY_NAME).add("Primary key " + name + " contain blanks in name");
+      addWarning(M_581_1, "Primary key " + name + " contain blanks in name");
     }
     return true;
   }
@@ -209,8 +197,7 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
 
     for (String column : columnList) {
       if (!tableColumnsList.get(table).contains(column)) {
-        error.put(PRIMARY_KEY_COLUMN,
-          String.format("Primary key column reference %s not found on %s.%s" + column, schema, table));
+        setError(M_581_2, String.format("Primary key column reference %s not found on %s.%s" + column, schema, table));
         return false;
       }
     }
@@ -222,7 +209,7 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
    * characters. WARNING if it is less than 3 characters
    */
   private boolean validatePrimaryKeyDescription(String schema, String table, String name, String description) {
-    return validateXMLField(description, PRIMARY_KEY_DESCRIPTION, false, true, SCHEMA, schema, TABLE, table,
-      PRIMARY_KEY, name);
+    return validateXMLField(M_581_3, description, Constants.DESCRIPTION, false, true, Constants.SCHEMA, schema,
+      Constants.TABLE, table, Constants.PRIMARY_KEY, name);
   }
 }

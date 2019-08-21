@@ -49,25 +49,25 @@ abstract class MetadataValidator extends ValidatorModule {
     return true;
   }
 
-  boolean reportValidations(String codeID, String validationKey) {
-    if (error.get(validationKey) != null && !error.get(validationKey).isEmpty()) {
-      getValidationReporter().validationStatus(codeID, ValidationReporter.Status.ERROR, error.get(validationKey));
+  boolean reportValidations(String codeID) {
+    if (error.get(codeID) != null && !error.get(codeID).isEmpty()) {
+      getValidationReporter().validationStatus(codeID, ValidationReporter.Status.ERROR, error.get(codeID));
       return false;
-    } else if ((warnings.get(validationKey) != null) && !warnings.get(validationKey).isEmpty()) {
+    } else if ((warnings.get(codeID) != null) && !warnings.get(codeID).isEmpty()) {
       getValidationReporter().validationStatus(codeID, ValidationReporter.Status.WARNING, ENTRY,
-        warnings.get(validationKey));
+        warnings.get(codeID));
     } else {
       getValidationReporter().validationStatus(codeID, ValidationReporter.Status.OK);
     }
     return true;
   }
 
-  boolean validateXMLField(String value, String field, Boolean mandatory, Boolean checkSize, String... path) {
+  boolean validateXMLField(String codeId, String value, String field, Boolean mandatory, Boolean checkSize, String... path) {
     if (!validateMandatoryXMLField(value) && mandatory) {
-      setError(field, buildMessage(field, value, true, path));
+      setError(codeId, buildMessage(field, value, true, path));
       return false;
     } else if (!validateXMLFieldSize(value) && checkSize) {
-      addWarning(field, buildMessage(field, value, false, path));
+      addWarning(codeId, buildMessage(field, value, false, path));
     }
     return true;
   }
@@ -110,15 +110,15 @@ abstract class MetadataValidator extends ValidatorModule {
     return path.toString();
   }
 
-  void addWarning(String key, String message) {
-    if (warnings.get(key) == null) {
-      this.warnings.put(key, new ArrayList<String>());
+  void addWarning(String codeID, String message) {
+    if (warnings.get(codeID) == null) {
+      this.warnings.put(codeID, new ArrayList<String>());
     }
-    this.warnings.get(key).add(message);
+    this.warnings.get(codeID).add(message);
   }
 
-  void setError(String key, String error) {
-    this.error.put(key, error);
+  void setError(String codeID, String error) {
+    this.error.put(codeID, error);
   }
 
   NodeList getXPathResult(ZipFile zipFile, String pathToEntry, String xpathExpression, QName constants,

@@ -1,7 +1,6 @@
 package com.databasepreservation.modules.siard.validate.metadata;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
@@ -11,6 +10,8 @@ import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import com.databasepreservation.Constants;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -24,12 +25,6 @@ public class MetadataSchemaValidator extends MetadataValidator {
   private static final String M_521_4 = "M_5.2-1-4";
   private static final String M_521_5 = "M_5.2-1-5";
 
-  private static final String SCHEMA = "schema";
-  private static final String SCHEMA_NAME = "name";
-  private static final String SCHEMA_FOLDER = "folder";
-  private static final String SCHEMA_TABLES = "tables";
-  private static final String SCHEMA_DESCRIPTION = "description";
-
   public static MetadataSchemaValidator newInstance() {
     return new MetadataSchemaValidator();
   }
@@ -37,19 +32,16 @@ public class MetadataSchemaValidator extends MetadataValidator {
   private MetadataSchemaValidator() {
     error.clear();
     warnings.clear();
-    warnings.put(SCHEMA_NAME, new ArrayList<String>());
-    warnings.put(SCHEMA_FOLDER, new ArrayList<String>());
-    warnings.put(SCHEMA_TABLES, new ArrayList<String>());
-    warnings.put(SCHEMA_DESCRIPTION, new ArrayList<String>());
   }
 
   @Override
   public boolean validate() {
     getValidationReporter().moduleValidatorHeader(M_52, MODULE_NAME);
 
-    return reportValidations(readXMLMetadataSchemaLevel(), M_521, true) && reportValidations(M_521_1, SCHEMA_NAME)
-      && reportValidations(M_521_2, SCHEMA_FOLDER) && reportValidations(M_521_4, SCHEMA_DESCRIPTION)
-      && reportValidations(M_521_5, SCHEMA_TABLES);
+    readXMLMetadataSchemaLevel();
+
+    return reportValidations(M_521) && reportValidations(M_521_1) && reportValidations(M_521_2)
+      && reportValidations(M_521_4) && reportValidations(M_521_5);
   }
 
   /**
@@ -60,7 +52,7 @@ public class MetadataSchemaValidator extends MetadataValidator {
    */
   private boolean readXMLMetadataSchemaLevel() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = "header/metadata.xml";
+      String pathToEntry = Constants.METADATA_XML;
       String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema";
 
       NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
@@ -68,15 +60,16 @@ public class MetadataSchemaValidator extends MetadataValidator {
       for (int i = 0; i < nodes.getLength(); i++) {
         Element schema = (Element) nodes.item(i);
 
-        String name = MetadataXMLUtils.getChildTextContext(schema, "name");
-        String folder = MetadataXMLUtils.getChildTextContext(schema, "folder");
-        String tables = MetadataXMLUtils.getChildTextContext(schema, "tables");
-        String description = MetadataXMLUtils.getChildTextContext(schema, "description");
+        String name = MetadataXMLUtils.getChildTextContext(schema, Constants.NAME);
+        String folder = MetadataXMLUtils.getChildTextContext(schema, Constants.FOLDER);
+        String tables = MetadataXMLUtils.getChildTextContext(schema, Constants.TABLES);
+        String description = MetadataXMLUtils.getChildTextContext(schema, Constants.DESCRIPTION);
 
         // M_5.2-1
-//        if ((name == null || name.isEmpty()) || (folder == null || folder.isEmpty())) {
-//          return false;
-//        }
+        // if ((name == null || name.isEmpty()) || (folder == null || folder.isEmpty()))
+        // {
+        // return false;
+        // }
 
         if (!validateSchemaName(name) || !validateSchemaFolder(name, folder)
           || !validateSchemaDescription(name, description) || !validateSchemaTable(name, tables)) {
@@ -100,7 +93,7 @@ public class MetadataSchemaValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateSchemaName(String name) {
-    return validateXMLField(name, SCHEMA_NAME, true, true, SCHEMA, name);
+    return validateXMLField(M_521_1, name, Constants.NAME, true, true, Constants.SCHEMA, name);
   }
 
   /**
@@ -110,7 +103,7 @@ public class MetadataSchemaValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateSchemaFolder(String schema, String folder) {
-    return validateXMLField(folder, SCHEMA_FOLDER, true, true, SCHEMA, schema);
+    return validateXMLField(M_521_2, folder, Constants.FOLDER, true, true, Constants.SCHEMA, schema);
   }
 
   /**
@@ -120,7 +113,7 @@ public class MetadataSchemaValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateSchemaDescription(String schema, String description) {
-    return validateXMLField(description, SCHEMA_DESCRIPTION, false, true, SCHEMA, schema);
+    return validateXMLField(M_521_4, description, Constants.DESCRIPTION, false, true, Constants.SCHEMA, schema);
   }
 
   /**
@@ -130,6 +123,6 @@ public class MetadataSchemaValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateSchemaTable(String schema, String tablesList) {
-    return validateXMLField(tablesList, SCHEMA_TABLES, true, false, SCHEMA, schema);
+    return validateXMLField(M_521_5, tablesList, Constants.TABLES, true, false, Constants.SCHEMA, schema);
   }
 }

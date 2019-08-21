@@ -16,6 +16,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import com.databasepreservation.Constants;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Document;
@@ -41,14 +42,6 @@ public class MetadataColumnsValidator extends MetadataValidator {
   private static final String CLOB = "CLOB";
   private static final String XML = "XML";
 
-  private static final String SCHEMA = "schema";
-  private static final String TABLE = "table";
-  private static final String COLUMN = "column";
-  private static final String COLUMN_NAME = "name";
-  private static final String COLUMN_TYPE = "type";
-  private static final String COLUMN_LOB_FOLDER = "lobFolder";
-  private static final String COLUMN_TYPE_ORIGINAL = "typeOriginal";
-  private static final String COLUMN_DESCRIPTION = "description";
 
   private Set<String> typeOriginalSet = new HashSet<>();
 
@@ -59,53 +52,50 @@ public class MetadataColumnsValidator extends MetadataValidator {
   private MetadataColumnsValidator() {
     error.clear();
     warnings.clear();
-    warnings.put(COLUMN_NAME, new ArrayList<String>());
-    warnings.put(COLUMN_TYPE, new ArrayList<String>());
-    warnings.put(COLUMN_LOB_FOLDER, new ArrayList<String>());
-    warnings.put(COLUMN_DESCRIPTION, new ArrayList<String>());
   }
 
   @Override
   public boolean validate() {
     getValidationReporter().moduleValidatorHeader(M_56, MODULE_NAME);
+    readXMLMetadataColumnLevel();
 
-    return reportValidations(readXMLMetadataColumnLevel(), M_561, true) && reportValidations(M_561_1, COLUMN_NAME)
-      && reportValidations(M_561_3, COLUMN_LOB_FOLDER) && noticeTypeOriginalUsed()
-      && reportValidations(M_561_12, COLUMN_DESCRIPTION);
+    return reportValidations(M_561) && reportValidations(M_561_1)
+      && reportValidations(M_561_3) && noticeTypeOriginalUsed()
+      && reportValidations(M_561_12);
   }
 
   private boolean readXMLMetadataColumnLevel() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = "header/metadata.xml";
+      String pathToEntry = Constants.METADATA_XML;
       String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table";
 
       NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
       for (int i = 0; i < nodes.getLength(); i++) {
         Element table = (Element) nodes.item(i);
-        String tableFolderName = MetadataXMLUtils.getChildTextContext(table, "folder");
-        String tableName = MetadataXMLUtils.getChildTextContext(table, "name");
+        String tableFolderName = MetadataXMLUtils.getChildTextContext(table, Constants.FOLDER);
+        String tableName = MetadataXMLUtils.getChildTextContext(table, Constants.NAME);
 
         Element schemaElement = (Element) table.getParentNode().getParentNode();
-        String schemaFolderName = MetadataXMLUtils.getChildTextContext(schemaElement, "folder");
-        String schemaName = MetadataXMLUtils.getChildTextContext(schemaElement, "name");
+        String schemaFolderName = MetadataXMLUtils.getChildTextContext(schemaElement, Constants.FOLDER);
+        String schemaName = MetadataXMLUtils.getChildTextContext(schemaElement, Constants.NAME);
 
-        Element columns = ((Element) table.getElementsByTagName("columns").item(0));
-        NodeList columnNodes = columns.getElementsByTagName(COLUMN);
+        Element columns = ((Element) table.getElementsByTagName(Constants.COLUMNS).item(0));
+        NodeList columnNodes = columns.getElementsByTagName(Constants.COLUMN);
 
         for (int j = 0; j < columnNodes.getLength(); j++) {
           Element column = (Element) columnNodes.item(j);
 
           // * M_5.6-1 The column name in SIARD is mandatory.
-          String name = MetadataXMLUtils.getChildTextContext(column, COLUMN_NAME);
+          String name = MetadataXMLUtils.getChildTextContext(column, Constants.NAME);
           if (!validateColumnName(schemaName, tableName, name))
             break;
 
           // * M_5.6-1 The column type in SIARD is mandatory.
-          String type = MetadataXMLUtils.getChildTextContext(column, COLUMN_TYPE);
+          String type = MetadataXMLUtils.getChildTextContext(column, Constants.TYPE);
           if (type == null || type.isEmpty()) {
-            String typeName = MetadataXMLUtils.getChildTextContext(column, "typeName");
+            String typeName = MetadataXMLUtils.getChildTextContext(column, Constants.TYPE_NAME);
             if (typeName == null || typeName.isEmpty()) {
-              error.put(COLUMN_TYPE, "Column type cannot be null schema: " + schemaFolderName + " table: "
+              setError(M_561, "Column type cannot be null schema: " + schemaFolderName + " table: "
                 + tableFolderName + " column: " + name);
               return false;
             }
@@ -116,14 +106,14 @@ public class MetadataColumnsValidator extends MetadataValidator {
           if (type.equals(CHARACTER_LARGE_OBJECT) || type.equals(BINARY_LARGE_OBJECT) || type.equals(BLOB)
             || type.equals(CLOB) || type.equals(XML)) {
 
-            String folder = MetadataXMLUtils.getChildTextContext(column, COLUMN_LOB_FOLDER);
+            String folder = MetadataXMLUtils.getChildTextContext(column, Constants.LOB_FOLDER);
             String columnNumber = "c" + (j + 1);
             if (!validateColumnLobFolder(schemaFolderName, tableFolderName, type, folder, columnNumber, name))
               break;
           }
 
-          typeOriginalSet.add(MetadataXMLUtils.getChildTextContext(column, COLUMN_TYPE_ORIGINAL));
-          String description = MetadataXMLUtils.getChildTextContext(column, COLUMN_DESCRIPTION);
+          typeOriginalSet.add(MetadataXMLUtils.getChildTextContext(column, Constants.TYPE_ORIGINAL));
+          String description = MetadataXMLUtils.getChildTextContext(column, Constants.DESCRIPTION);
           if (!validateColumnDescription(schemaName, tableName, description))
             break;
 
@@ -141,7 +131,7 @@ public class MetadataColumnsValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateColumnName(String schema, String table, String name) {
-    return validateXMLField(name, COLUMN_NAME, true, false, SCHEMA, schema, TABLE, table);
+    return validateXMLField(M_561_1, name, Constants.NAME, true, false, Constants.SCHEMA, schema, Constants.TABLE, table);
   }
 
   /**
@@ -156,10 +146,10 @@ public class MetadataColumnsValidator extends MetadataValidator {
     String path = MetadataXMLUtils.createPath(MetadataXMLUtils.SIARD_CONTENT, schemaFolder, tableFolder);
     if (!HasReferenceToLobFolder(path, tableFolder + MetadataXMLUtils.XML_EXTENSION, column, folder)) {
       if (folder == null || folder.isEmpty()) {
-        error.put(COLUMN_LOB_FOLDER, "lobFolder must be set for column type " + type + " on "
+        setError(M_561_3, "lobFolder must be set for column type " + type + " on "
           + MetadataXMLUtils.createPath(schemaFolder, tableFolder, name, column));
       } else {
-        error.put(COLUMN_LOB_FOLDER,
+        setError(M_561_3,
           "not found lobFolder(" + folder + ") required by " + MetadataXMLUtils.createPath(path, name, column));
       }
       return false;
@@ -219,6 +209,6 @@ public class MetadataColumnsValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateColumnDescription(String schema, String table, String description) {
-    return validateXMLField(description, COLUMN_DESCRIPTION, false, true, SCHEMA, schema, TABLE, table);
+    return validateXMLField(M_561_12, description, Constants.DESCRIPTION, false, true, Constants.SCHEMA, schema, Constants.TABLE, table);
   }
 }

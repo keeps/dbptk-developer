@@ -10,6 +10,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import com.databasepreservation.Constants;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -21,13 +22,13 @@ import org.xml.sax.SAXException;
 public class MetadataReferenceValidator extends MetadataValidator {
   private static final String MODULE_NAME = "Reference level metadata";
   private static final String M_510 = "5.10";
-  private static final String M_5101 = "M_5.10-1";
-  private static final String M_5101_1 = "M_5.10-1-1";
-  private static final String M_5101_2 = "M_5.10-1-2";
+  private static final String M_510_1 = "M_5.10-1";
+  private static final String M_510_1_1 = "M_5.10-1-1";
+  private static final String M_510_1_2 = "M_5.10-1-2";
 
   private static final String REFERENCE = "reference";
-  private static final String REFERENCE_COLUMN = "column";
-  private static final String REFERENCE_COLUMN_REFERENCED = "referenced";
+  private static final String REFERENCED_TABLE = "referencedTable";
+  private static final String REFERENCED_COLUMN = "referenced";
 
   private List<String> tableList = new ArrayList<>();
   private Map<String, HashMap<String, String>> tableColumnsList = new HashMap<>();
@@ -41,9 +42,6 @@ public class MetadataReferenceValidator extends MetadataValidator {
   private MetadataReferenceValidator() {
     error.clear();
     warnings.clear();
-    warnings.put(REFERENCE, new ArrayList<String>());
-    warnings.put(REFERENCE_COLUMN, new ArrayList<String>());
-    warnings.put(REFERENCE_COLUMN_REFERENCED, new ArrayList<String>());
   }
 
   @Override
@@ -52,49 +50,49 @@ public class MetadataReferenceValidator extends MetadataValidator {
 
     readXMLMetadataReferenceLevel();
 
-    return reportValidations(M_5101, REFERENCE) && reportValidations(M_5101_1, REFERENCE_COLUMN)
-      && reportValidations(M_5101_2, REFERENCE_COLUMN_REFERENCED);
+    return reportValidations(M_510_1) && reportValidations(M_510_1_1)
+      && reportValidations(M_510_1_2);
   }
 
   private boolean readXMLMetadataReferenceLevel() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = "header/metadata.xml";
+      String pathToEntry = Constants.METADATA_XML;
       String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table";
 
       NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
 
       tableColumnsList = getListColumnsByTables(nodes);
-      primaryKeyList = getListKeysByTables(nodes, "primaryKey");
-      candidateKeyList = getListKeysByTables(nodes, "candidateKey");
+      primaryKeyList = getListKeysByTables(nodes, Constants.PRIMARY_KEY);
+      candidateKeyList = getListKeysByTables(nodes, Constants.CANDIDATE_KEY);
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element tableElement = (Element) nodes.item(i);
-        String table = MetadataXMLUtils.getChildTextContext(tableElement, "name");
+        String table = MetadataXMLUtils.getChildTextContext(tableElement, Constants.NAME);
         tableList.add(table);
 
-        NodeList foreignKeyNodes = tableElement.getElementsByTagName("foreignKey");
+        NodeList foreignKeyNodes = tableElement.getElementsByTagName(Constants.FOREIGN_KEY);
         for (int j = 0; j < foreignKeyNodes.getLength(); j++) {
           Element foreignKeyElement = (Element) foreignKeyNodes.item(j);
-          String foreignKey = MetadataXMLUtils.getChildTextContext(foreignKeyElement, "name");
-          String referencedTable = MetadataXMLUtils.getChildTextContext(foreignKeyElement, "referencedTable");
+          String foreignKey = MetadataXMLUtils.getChildTextContext(foreignKeyElement, Constants.NAME);
+          String referencedTable = MetadataXMLUtils.getChildTextContext(foreignKeyElement, REFERENCED_TABLE);
 
-          NodeList referenceNodes = foreignKeyElement.getElementsByTagName("reference");
+          NodeList referenceNodes = foreignKeyElement.getElementsByTagName(REFERENCE);
           for (int k = 0; k < referenceNodes.getLength(); k++) {
             Element reference = (Element) referenceNodes.item(k);
 
-            String column = MetadataXMLUtils.getChildTextContext(reference, REFERENCE_COLUMN);
+            String column = MetadataXMLUtils.getChildTextContext(reference, Constants.COLUMN);
             // * M_5.10-1 reference column is mandatory.
             if (column == null || column.isEmpty()) {
-              error.put(REFERENCE, "column is required on foreign key " + foreignKey);
+              setError(M_510_1, "column is required on foreign key " + foreignKey);
               return false;
             }
             if (!validateColumn(table, column))
               break;
 
-            String referenced = MetadataXMLUtils.getChildTextContext(reference, REFERENCE_COLUMN_REFERENCED);
+            String referenced = MetadataXMLUtils.getChildTextContext(reference, REFERENCED_COLUMN);
             // * M_5.10-1 reference column is mandatory.
             if (referenced == null || referenced.isEmpty()) {
-              error.put(REFERENCE, "referenced column is required on foreign key " + foreignKey);
+              setError(M_510_1, "referenced column is required on foreign key " + foreignKey);
               return false;
             }
 
@@ -116,19 +114,19 @@ public class MetadataReferenceValidator extends MetadataValidator {
 
     for (int i = 0; i < tableNodes.getLength(); i++) {
       Element tableElement = (Element) tableNodes.item(i);
-      String table = MetadataXMLUtils.getChildTextContext(tableElement, "name");
+      String table = MetadataXMLUtils.getChildTextContext(tableElement, Constants.NAME);
 
-      Element tableColumnsElement = MetadataXMLUtils.getChild(tableElement, "columns");
+      Element tableColumnsElement = MetadataXMLUtils.getChild(tableElement, Constants.COLUMNS);
       if (tableColumnsElement == null) {
         break;
       }
 
-      NodeList columnNode = tableColumnsElement.getElementsByTagName("column");
+      NodeList columnNode = tableColumnsElement.getElementsByTagName(Constants.COLUMN);
       HashMap<String, String> columnsNameList = new HashMap<>();
       for (int j = 0; j < columnNode.getLength(); j++) {
         Element columnElement = (Element) columnNode.item(j);
-        String name = MetadataXMLUtils.getChildTextContext(columnElement, "name");
-        String type = MetadataXMLUtils.getChildTextContext(columnElement, "type");
+        String name = MetadataXMLUtils.getChildTextContext(columnElement, Constants.NAME);
+        String type = MetadataXMLUtils.getChildTextContext(columnElement, Constants.TYPE);
         columnsNameList.put(name, type);
       }
       columnsTables.put(table, columnsNameList);
@@ -141,7 +139,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
 
     for (int i = 0; i < tableNodes.getLength(); i++) {
       Element tableElement = (Element) tableNodes.item(i);
-      String table = MetadataXMLUtils.getChildTextContext(tableElement, "name");
+      String table = MetadataXMLUtils.getChildTextContext(tableElement, Constants.NAME);
 
       NodeList keyNodes = tableElement.getElementsByTagName(key);
       if (keyNodes == null) {
@@ -151,7 +149,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
       List<String> columnsNameList = new ArrayList<>();
       for (int j = 0; j < keyNodes.getLength(); j++) {
         Element keyElement = (Element) keyNodes.item(j);
-        NodeList columnNode = keyElement.getElementsByTagName("column");
+        NodeList columnNode = keyElement.getElementsByTagName(Constants.COLUMN);
         for (int k = 0; k < columnNode.getLength(); k++) {
           String name = columnNode.item(k).getTextContent();
           columnsNameList.add(name);
@@ -170,7 +168,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
    */
   private boolean validateColumn(String table, String column) {
     if (tableColumnsList.get(table).get(column) == null) {
-      error.put(REFERENCE_COLUMN,
+      setError(M_510_1_1,
         String.format("referenced column name %s does not exist on referenced table %s", column, table));
       return false;
     }
@@ -198,7 +196,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
 
     // M_5.10-1-2
     if (referencedColumnTable.get(referencedColumn) == null) {
-      error.put(REFERENCE_COLUMN_REFERENCED,
+      setError(M_510_1_2,
         String.format("referenced column name %s of table %s does not exist on referenced table %s", referencedColumn,
           foreignKeyTable, referencedTable));
       return false;
@@ -211,7 +209,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
         String primaryKeyType = referencedColumnTable.get(primaryKey);
 
         if (!primaryKeyType.equals(foreignKeyType)) {
-          error.put(REFERENCE_COLUMN_REFERENCED,
+          setError(M_510_1_2,
             String.format("Foreign Key %s.%s type %s does not match with type %s of Primary Key %s.%s", foreignKeyTable,
               foreignKey, foreignKeyType, primaryKeyType, referencedTable, primaryKey));
           return false;
@@ -223,7 +221,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
         String candidateKeyType = referencedColumnTable.get(candidateKey);
 
         if (!candidateKeyType.equals(foreignKeyType)) {
-          error.put(REFERENCE_COLUMN_REFERENCED,
+          setError(M_510_1_2,
             String.format("Foreign Key %s.%s type %s does not match with type %s of Candidate Key %s.%s",
               foreignKeyTable, foreignKey, foreignKeyType, candidateKeyType, referencedTable, candidateKey));
           return false;
@@ -231,7 +229,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
       }
     } else {
       // Additional check 2
-      error.put(REFERENCE_COLUMN_REFERENCED,
+      setError(M_510_1_2,
         String.format("Foreign Key %s.%s has no reference to any key on referenced table %s", foreignKeyTable,
           foreignKey, referencedTable));
       return false;

@@ -8,6 +8,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import com.databasepreservation.Constants;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -26,14 +27,6 @@ public class MetadataTableValidator extends MetadataValidator {
   private static final String M_551_4 = "M_5.5-1-4";
   private static final String M_551_10 = "M_5.5-1-10";
 
-  private static final String SCHEMA = "schema";
-  private static final String TABLE = "table";
-  private static final String TABLE_NAME = "name";
-  private static final String TABLE_FOLDER = "folder";
-  private static final String TABLE_ROWS = "rows";
-  private static final String TABLE_COLUMNS = "columns";
-  private static final String TABLE_DESCRIPTION = "description";
-
   public static MetadataTableValidator newInstance() {
     return new MetadataTableValidator();
   }
@@ -41,29 +34,21 @@ public class MetadataTableValidator extends MetadataValidator {
   private MetadataTableValidator() {
     error.clear();
     warnings.clear();
-    warnings.put(TABLE_NAME, new ArrayList<String>());
-    warnings.put(TABLE_FOLDER, new ArrayList<String>());
-    warnings.put(TABLE_ROWS, new ArrayList<String>());
-    warnings.put(TABLE_COLUMNS, new ArrayList<String>());
-    warnings.put(TABLE_DESCRIPTION, new ArrayList<String>());
-
   }
 
   @Override
   public boolean validate() {
     getValidationReporter().moduleValidatorHeader(M_55, MODULE_NAME);
 
-    return reportValidations(readXMLMetadataTable(), M_551, true)
-      && reportValidations(M_551_1, TABLE_NAME)
-      && reportValidations(M_551_2, TABLE_FOLDER)
-      && reportValidations(M_551_3, TABLE_DESCRIPTION)
-      && reportValidations(M_551_4, TABLE_COLUMNS)
-      && reportValidations(M_551_10, TABLE_ROWS);
+    readXMLMetadataTable();
+
+    return reportValidations(M_551) && reportValidations(M_551_1) && reportValidations(M_551_2)
+      && reportValidations(M_551_3) && reportValidations(M_551_4) && reportValidations(M_551_10);
   }
 
   private boolean readXMLMetadataTable() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = "header/metadata.xml";
+      String pathToEntry = Constants.METADATA_XML;
       String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table";
 
       NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
@@ -71,20 +56,25 @@ public class MetadataTableValidator extends MetadataValidator {
         Element table = (Element) nodes.item(i);
         String schema = MetadataXMLUtils.getChildTextContext((Element) table.getParentNode().getParentNode(), "name");
 
-        String name = MetadataXMLUtils.getChildTextContext(table, TABLE_NAME);
-        if(!validateTableName(schema, name)) break;
+        String name = MetadataXMLUtils.getChildTextContext(table, Constants.NAME);
+        if (!validateTableName(schema, name))
+          break;
 
-        String folder = MetadataXMLUtils.getChildTextContext(table, TABLE_FOLDER);
-        if(!validateTableFolder(schema, name, folder)) break;
+        String folder = MetadataXMLUtils.getChildTextContext(table, Constants.FOLDER);
+        if (!validateTableFolder(schema, name, folder))
+          break;
 
-        String description = MetadataXMLUtils.getChildTextContext(table, TABLE_DESCRIPTION);
-        if(!validateTableDescription(schema, name, description)) break;
+        String description = MetadataXMLUtils.getChildTextContext(table, Constants.DESCRIPTION);
+        if (!validateTableDescription(schema, name, description))
+          break;
 
-        String columns = MetadataXMLUtils.getChildTextContext(table, TABLE_COLUMNS);
-        if(!validateTableColumns(schema, name, columns)) break;
+        String columns = MetadataXMLUtils.getChildTextContext(table, Constants.COLUMNS);
+        if (!validateTableColumns(schema, name, columns))
+          break;
 
-        String rows = MetadataXMLUtils.getChildTextContext(table, TABLE_ROWS);
-        if(!validateTableRows(schema, name, rows)) break;
+        String rows = MetadataXMLUtils.getChildTextContext(table, Constants.ROWS);
+        if (!validateTableRows(schema, name, rows))
+          break;
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
@@ -100,7 +90,7 @@ public class MetadataTableValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateTableName(String schema, String name) {
-    return validateXMLField(name, TABLE_NAME, true, true, SCHEMA, schema, TABLE, name);
+    return validateXMLField(M_551_1, name, Constants.NAME, true, true, Constants.SCHEMA, schema, Constants.TABLE, name);
   }
 
   /**
@@ -109,7 +99,8 @@ public class MetadataTableValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateTableFolder(String schema, String name, String folder) {
-    return validateXMLField(folder, TABLE_FOLDER, true, false, SCHEMA, schema, TABLE, name);
+    return validateXMLField(M_551_2, folder, Constants.FOLDER, true, false, Constants.SCHEMA, schema, Constants.TABLE,
+      name);
   }
 
   /**
@@ -118,7 +109,8 @@ public class MetadataTableValidator extends MetadataValidator {
    *
    */
   private boolean validateTableDescription(String schema, String name, String description) {
-    return validateXMLField(description, TABLE_DESCRIPTION, false, true, SCHEMA, schema, TABLE, name);
+    return validateXMLField(M_551_3, description, Constants.DESCRIPTION, false, true, Constants.SCHEMA, schema,
+      Constants.TABLE, name);
   }
 
   /**
@@ -127,7 +119,8 @@ public class MetadataTableValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateTableColumns(String schema, String name, String columns) {
-    return validateXMLField(columns, TABLE_COLUMNS, true, false, SCHEMA, schema, TABLE, name);
+    return validateXMLField(M_551_4, columns, Constants.COLUMNS, true, false, Constants.SCHEMA, schema, Constants.TABLE,
+      name);
   }
 
   /**
@@ -136,6 +129,7 @@ public class MetadataTableValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateTableRows(String schema, String name, String rows) {
-    return validateXMLField(rows, TABLE_ROWS, true, false, SCHEMA, schema, TABLE, name);
+    return validateXMLField(M_551_10, rows, Constants.ROWS, true, false, Constants.SCHEMA, schema, Constants.TABLE,
+      name);
   }
 }
