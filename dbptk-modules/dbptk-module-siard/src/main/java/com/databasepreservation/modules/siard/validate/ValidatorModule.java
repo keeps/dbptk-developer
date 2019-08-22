@@ -64,7 +64,7 @@ public abstract class ValidatorModule {
   }
 
   public void setValidatorPathStrategy(ValidatorPathStrategy validatorPathStrategy) {
-    this.validatorPathStrategy = validatorPathStrategy;
+    ValidatorModule.validatorPathStrategy = validatorPathStrategy;
   }
 
   protected void validationFailed(String ID, String moduleName) {

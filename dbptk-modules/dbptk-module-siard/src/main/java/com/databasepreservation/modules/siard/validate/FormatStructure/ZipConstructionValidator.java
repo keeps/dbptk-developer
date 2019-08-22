@@ -1,5 +1,7 @@
 package com.databasepreservation.modules.siard.validate.FormatStructure;
 
+import static com.databasepreservation.model.reporters.ValidationReporter.Status;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Enumeration;
@@ -9,10 +11,8 @@ import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.Constants;
 import com.databasepreservation.modules.siard.validate.ValidatorModule;
-
-import static com.databasepreservation.model.reporters.ValidationReporter.*;
 
 /**
  * This validator checks the Construction of the SIARD archive file (4.1 in eCH-0165 SIARD Format Specification)
@@ -31,7 +31,6 @@ public class ZipConstructionValidator extends ValidatorModule {
   private static final String G_414 = "G_4.1-4";
   private static final String G_415 = "G_4.1-5";
   private static final byte[] ZIP_MAGIC_NUMBER = {'P', 'K', 0x3, 0x4};
-  private static final String SIARD_EXTENSION = ".siard";
 
   public static ZipConstructionValidator newInstance() {
     return new ZipConstructionValidator();
@@ -177,6 +176,6 @@ public class ZipConstructionValidator extends ValidatorModule {
       return false;
     }
 
-    return getSIARDPackagePath().getFileName().toString().endsWith(SIARD_EXTENSION);
+    return getSIARDPackagePath().getFileName().toString().endsWith(Constants.SIARD_EXTENSION);
   }
 }

@@ -40,6 +40,7 @@ public class Constants {
   public static final String SIARD_CONTENT_FOLDER = "content";
   public static final String SIARD_VERSION_FOLDER = "siardversion";
   public static final String SIARD_METADATA_FILE = "metadata";
+  public static final String SIARD_EXTENSION = ".siard";
 
   /* FILE EXTENSIONS */
   public static final String XSD_EXTENSION = ".xsd";
