@@ -52,7 +52,7 @@ public class MetadataRoleValidator extends MetadataValidator {
 
   private boolean readXMLMetadataUserLevel() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = Constants.METADATA_XML;
+      String pathToEntry = METADATA_XML;
       String xpathExpression = "/ns:siardArchive/ns:roles/ns:role";
 
       String xpathExpressionUser = "/ns:siardArchive/ns:users/ns:user/ns:name";

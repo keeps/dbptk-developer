@@ -52,7 +52,7 @@ public class MetadataParameterValidator extends MetadataValidator {
 
   private boolean readXMLMetadataParameterLevel() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = Constants.METADATA_XML;
+      String pathToEntry = METADATA_XML;
       String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:routines/ns:routine/ns:parameters/ns:parameter";
 
       NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);

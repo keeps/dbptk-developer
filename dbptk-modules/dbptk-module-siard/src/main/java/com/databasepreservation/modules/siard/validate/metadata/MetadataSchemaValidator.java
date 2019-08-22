@@ -52,7 +52,7 @@ public class MetadataSchemaValidator extends MetadataValidator {
    */
   private boolean readXMLMetadataSchemaLevel() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = Constants.METADATA_XML;
+      String pathToEntry = METADATA_XML;
       String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema";
 
       NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);

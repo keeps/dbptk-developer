@@ -68,7 +68,7 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
 
   private boolean readXMLMetadataDatabaseLevel() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = Constants.METADATA_XML;
+      String pathToEntry = METADATA_XML;
       String xpathExpression = "/ns:siardArchive";
 
       NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);

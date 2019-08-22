@@ -30,6 +30,7 @@ abstract class MetadataValidator extends ValidatorModule {
   private static final int MIN_FIELD_LENGTH = 3;
   private static final String SEPARATOR = " ";
   private static final String ENTRY = "metadata.xml";
+  public static final String METADATA_XML = "header/metadata.xml";
 
   Map<String, List<String>> warnings = new HashMap<>();
   Map<String, List<String>> notice = new HashMap<>();

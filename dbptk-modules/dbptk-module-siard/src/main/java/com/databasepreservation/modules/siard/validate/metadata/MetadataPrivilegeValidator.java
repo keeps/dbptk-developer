@@ -75,7 +75,7 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
 
   private boolean readXMLMetadataPrivilegeLevel() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = Constants.METADATA_XML;
+      String pathToEntry = METADATA_XML;
       String xpathExpression = "/ns:siardArchive/ns:privileges/ns:privilege";
 
       String xpathExpressionUser = "/ns:siardArchive/ns:users/ns:user/ns:name";
