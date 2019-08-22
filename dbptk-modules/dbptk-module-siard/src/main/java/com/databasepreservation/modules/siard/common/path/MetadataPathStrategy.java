@@ -28,7 +28,7 @@ import com.databasepreservation.modules.siard.in.read.ReadStrategy;
  */
 public interface MetadataPathStrategy {
   /**
-   * Returns the path to the metedata XML-file with name filename
+   * Returns the path to the metadata XML-file with name filename
    */
   public String getXmlFilePath(String filename) throws InvalidParameterException;
 

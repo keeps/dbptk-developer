@@ -8,8 +8,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.model.modules.validate.ValidatorModule;
 import com.databasepreservation.model.reporters.ValidationReporter.Status;
+import com.databasepreservation.modules.siard.validate.ValidatorModule;
 
 /**
  * This validator checks the Structure of the SIARD archive file (4.1 in eCH-0165 SIARD Format Specification)
@@ -83,7 +83,7 @@ public class SIARDStructureValidator extends ValidatorModule {
       return false;
     }
 
-    getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.OK);
+    getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
 
     return true;
   }

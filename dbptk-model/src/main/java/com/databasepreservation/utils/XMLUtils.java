@@ -183,16 +183,12 @@ public class XMLUtils {
   }
 
   public static Object getXPathResult(final InputStream inputStream, final String xpathExpression, QName constants,
-                               final String type) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+    final String type) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
     Document document = getDocument(inputStream);
-
     XPathFactory xPathFactory = XPathFactory.newInstance();
     XPath xpath = xPathFactory.newXPath();
-
     xpath = setXPath(xpath, type);
-
     XPathExpression expression = xpath.compile(xpathExpression);
-
     inputStream.close();
 
     return expression.evaluate(document, constants);
@@ -225,7 +221,7 @@ public class XMLUtils {
           return "http://www.w3.org/2001/XMLSchema";
         }
         if ("ns".equals(arg0)) {
-          if (Constants.NAME_SPACE_FOR_TABLE.equals(type)) {
+          if (Constants.NAMESPACE_FOR_TABLE.equals(type)) {
             return "http://www.bar.admin.ch/xmlns/siard/2/table.xsd";
           }
           return "http://www.bar.admin.ch/xmlns/siard/2/metadata.xsd";

@@ -16,8 +16,8 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.modules.validate.ValidatorModule;
 import com.databasepreservation.model.reporters.ValidationReporter.Status;
+import com.databasepreservation.modules.siard.validate.ValidatorModule;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -80,7 +80,7 @@ public class TableDataValidator extends ValidatorModule {
       return false;
     }
 
-    getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.OK);
+    getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
     closeZipFile();
 
     return true;
@@ -100,16 +100,18 @@ public class TableDataValidator extends ValidatorModule {
     List<String> SIARDXMLPaths = new ArrayList<>();
 
     try {
-      NodeList schemaFolders = (NodeList) XMLUtils.getXPathResult(getZipInputStream(Constants.METADATA_XML),
+      NodeList schemaFolders = (NodeList) XMLUtils.getXPathResult(
+        getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
         "/ns:siardArchive/ns:schemas/ns:schema/ns:folder/text()", XPathConstants.NODESET,
-        Constants.NAME_SPACE_FOR_METADATA);
+        Constants.NAMESPACE_FOR_METADATA);
 
       for (int i = 0; i < schemaFolders.getLength(); i++) {
         String schemaFolderName = schemaFolders.item(i).getNodeValue();
         String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table/ns:folder/text()";
         xpathExpression = xpathExpression.replace("$1", schemaFolderName);
-        NodeList tableFolders = (NodeList) XMLUtils.getXPathResult(getZipInputStream(Constants.METADATA_XML),
-          xpathExpression, XPathConstants.NODESET, Constants.NAME_SPACE_FOR_METADATA);
+        NodeList tableFolders = (NodeList) XMLUtils.getXPathResult(
+          getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), xpathExpression, XPathConstants.NODESET,
+          Constants.NAMESPACE_FOR_METADATA);
 
         for (int j = 0; j < tableFolders.getLength(); j++) {
           String path = "content/" + schemaFolderName + "/" + tableFolders.item(j).getNodeValue() + "/"
@@ -147,7 +149,7 @@ public class TableDataValidator extends ValidatorModule {
       if (zipFileName.matches(regexPattern)) {
         try {
           NodeList nodeNames = (NodeList) XMLUtils.getXPathResult(getZipInputStream(zipFileName), "//*",
-            XPathConstants.NODESET, Constants.NAME_SPACE_FOR_TABLE);
+            XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
 
           for (int i = 0; i < nodeNames.getLength(); i++) {
             Element element = (Element) nodeNames.item(i);
@@ -193,7 +195,7 @@ public class TableDataValidator extends ValidatorModule {
         try {
           NodeList nodeNames = (NodeList) XMLUtils.getXPathResult(getZipInputStream(zipFileName),
             "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element[@type='clobType' or @type='blobType']/@name",
-            XPathConstants.NODESET, Constants.NAME_SPACE_FOR_TABLE);
+            XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
           for (int i = 0; i < nodeNames.getLength(); i++) {
             final String nodeValue = nodeNames.item(i).getNodeValue();
             // TODO - ASK LOGIC

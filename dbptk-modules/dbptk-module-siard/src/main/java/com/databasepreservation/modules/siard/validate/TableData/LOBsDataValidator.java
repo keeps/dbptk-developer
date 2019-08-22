@@ -1,18 +1,11 @@
 package com.databasepreservation.modules.siard.validate.TableData;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.modules.validate.ValidatorModule;
-import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.model.reporters.ValidationReporter.Status;
+import com.databasepreservation.modules.siard.validate.ValidatorModule;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -26,8 +19,6 @@ public class LOBsDataValidator extends ValidatorModule {
   private static final String P_6211 = "T_6.2-1-1";
   private static final String P_6212 = "T_6.2-1-2";
   private static final String P_6213 = "T_6.2-1-3";
-  private static final String XSD_EXTENSION = ".xsd";
-  private static final String XML_EXTENSION = ".xml";
 
   public static LOBsDataValidator newInstance() {
     return new LOBsDataValidator();
@@ -43,7 +34,7 @@ public class LOBsDataValidator extends ValidatorModule {
 
     getValidationReporter().moduleValidatorHeader(P_62, MODULE_NAME);
 
-    getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.OK);
+    getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
     closeZipFile();
 
     return true;

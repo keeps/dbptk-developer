@@ -13,8 +13,8 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.modules.validate.ValidatorModule;
-import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.model.reporters.ValidationReporter.Status;
+import com.databasepreservation.modules.siard.validate.ValidatorModule;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -46,14 +46,14 @@ public class DateAndTimestampDataValidator extends ValidatorModule {
     getValidationReporter().moduleValidatorHeader(P_63, MODULE_NAME);
 
     if (validateDatesAndTimestamps()) {
-      getValidationReporter().validationStatus(P_631, ValidationReporter.Status.OK);
+      getValidationReporter().validationStatus(P_631, Status.OK);
     } else {
       validationFailed(P_631, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
-    getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.OK);
+    getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
     closeZipFile();
 
     return true;
@@ -79,7 +79,7 @@ public class DateAndTimestampDataValidator extends ValidatorModule {
         try {
 
           NodeList dateTypeNodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(zipFileName),
-            "//xs:element[@type='dateType']", XPathConstants.NODESET, Constants.NAME_SPACE_FOR_TABLE);
+            "//xs:element[@type='dateType']", XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
           if (dateTypeNodes.getLength() > 1) {
             final String dateTypeMinXPathExpression = "/xs:schema/xs:simpleType[@name='dateType']/xs:restriction/xs:minInclusive/@value";
             final String dateTypeMaxXPathExpression = "/xs:schema/xs:simpleType[@name='dateType']/xs:restriction/xs:maxExclusive/@value";
@@ -88,7 +88,7 @@ public class DateAndTimestampDataValidator extends ValidatorModule {
           }
 
           NodeList dateTimeTypeNodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(zipFileName),
-            "//xs:element[@type='dateTimeType']", XPathConstants.NODESET, Constants.NAME_SPACE_FOR_TABLE);
+            "//xs:element[@type='dateTimeType']", XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
           if (dateTimeTypeNodes.getLength() > 1) {
             final String dateTimeTypeMinXPathExpression = "/xs:schema/xs:simpleType[@name='dateTimeType']/xs:restriction/xs:minInclusive/@value";
             final String dateTimeTypeMaxXPathExpression = "/xs:schema/xs:simpleType[@name='dateTimeType']/xs:restriction/xs:maxExclusive/@value";
@@ -109,9 +109,9 @@ public class DateAndTimestampDataValidator extends ValidatorModule {
     String minRegex, String maxRegex)
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
     String min = (String) XMLUtils.getXPathResult(getZipInputStream(zipFileName), minXPathExpression,
-      XPathConstants.STRING, Constants.NAME_SPACE_FOR_TABLE);
+      XPathConstants.STRING, Constants.NAMESPACE_FOR_TABLE);
     String max = (String) XMLUtils.getXPathResult(getZipInputStream(zipFileName), maxXPathExpression,
-      XPathConstants.STRING, Constants.NAME_SPACE_FOR_TABLE);
+      XPathConstants.STRING, Constants.NAMESPACE_FOR_TABLE);
 
     if (!min.matches(minRegex))
       return false;

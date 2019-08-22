@@ -9,8 +9,10 @@ import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.model.modules.validate.ValidatorModule;
 import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.modules.siard.validate.ValidatorModule;
+
+import static com.databasepreservation.model.reporters.ValidationReporter.*;
 
 /**
  * This validator checks the Construction of the SIARD archive file (4.1 in eCH-0165 SIARD Format Specification)
@@ -42,37 +44,37 @@ public class ZipConstructionValidator extends ValidatorModule {
   public boolean validate() {
     getValidationReporter().moduleValidatorHeader(G_41, MODULE_NAME);
     if (isZipFile()) {
-      getValidationReporter().validationStatus(G_411, ValidationReporter.Status.OK);
+      getValidationReporter().validationStatus(G_411, Status.OK);
     } else {
       validationFailed(G_411, MODULE_NAME);
       return false;
     }
 
     if (deflateOrStore()) {
-        getValidationReporter().validationStatus(G_412, ValidationReporter.Status.OK);
+        getValidationReporter().validationStatus(G_412, Status.OK);
     } else {
       validationFailed(G_412, MODULE_NAME);
       return false;
     }
 
     if (passwordProtected()) {
-      getValidationReporter().validationStatus(G_413, ValidationReporter.Status.OK);
+      getValidationReporter().validationStatus(G_413, Status.OK);
     } else {
       validationFailed(G_413, MODULE_NAME);
       return false;
     }
 
     // G_414 SELF VALIDATE
-    getValidationReporter().validationStatus(G_414, ValidationReporter.Status.OK);
+    getValidationReporter().validationStatus(G_414, Status.OK);
 
     if (fileExtension()) {
-      getValidationReporter().validationStatus(G_415, ValidationReporter.Status.OK);
+      getValidationReporter().validationStatus(G_415, Status.OK);
     } else {
       validationFailed(G_415, MODULE_NAME);
       return false;
     }
 
-    getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.OK);
+    getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
     return true;
   }
 

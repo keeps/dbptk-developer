@@ -7,11 +7,8 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
-import com.databasepreservation.modules.siard.validate.TableData.AdditionalChecksValidator;
-import com.databasepreservation.modules.siard.validate.TableData.DateAndTimestampDataValidator;
-import com.databasepreservation.modules.siard.validate.TableData.RequirementsForTableDataValidator;
-import com.databasepreservation.modules.siard.validate.TableData.TableDataValidator;
-import com.databasepreservation.modules.siard.validate.TableData.TableSchemaDefinitionValidator;
+import com.databasepreservation.modules.siard.validate.common.path.ValidatorPathStrategy;
+import com.databasepreservation.modules.siard.validate.common.path.ValidatorPathStrategyImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +20,11 @@ import com.databasepreservation.modules.DefaultExceptionNormalizer;
 import com.databasepreservation.modules.siard.validate.FormatStructure.MetadataAndTableDataValidator;
 import com.databasepreservation.modules.siard.validate.FormatStructure.SIARDStructureValidator;
 import com.databasepreservation.modules.siard.validate.FormatStructure.ZipConstructionValidator;
+import com.databasepreservation.modules.siard.validate.TableData.AdditionalChecksValidator;
+import com.databasepreservation.modules.siard.validate.TableData.DateAndTimestampDataValidator;
+import com.databasepreservation.modules.siard.validate.TableData.RequirementsForTableDataValidator;
+import com.databasepreservation.modules.siard.validate.TableData.TableDataValidator;
+import com.databasepreservation.modules.siard.validate.TableData.TableSchemaDefinitionValidator;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -34,6 +36,7 @@ public class SIARDValidateModule implements ValidateModule {
   private final Path SIARDPackageNormalizedPath;
   private ValidationReporter validationReporter;
   private final List<String> allowedUDTs;
+  private final ValidatorPathStrategy validatorPathStrategy;
 
   /**
    * Constructor used to initialize required objects to get an validate module
@@ -45,6 +48,7 @@ public class SIARDValidateModule implements ValidateModule {
     SIARDPackageNormalizedPath = SIARDPackagePath.toAbsolutePath().normalize();
     validationReporter = new ValidationReporter(validationReporterPath.toAbsolutePath().normalize(), SIARDPackageNormalizedPath);
     allowedUDTs = Collections.emptyList();
+    validatorPathStrategy = new ValidatorPathStrategyImpl();
   }
 
   /**
@@ -57,6 +61,7 @@ public class SIARDValidateModule implements ValidateModule {
     SIARDPackageNormalizedPath = SIARDPackagePath.toAbsolutePath().normalize();
     validationReporter = new ValidationReporter(validationReporterPath.toAbsolutePath().normalize(), SIARDPackageNormalizedPath);
     this.allowedUDTs = parseAllowUDTs(allowedUDTs);
+    validatorPathStrategy = new ValidatorPathStrategyImpl();
   }
 
   /**
@@ -78,12 +83,16 @@ public class SIARDValidateModule implements ValidateModule {
     zipConstructionValidation.setSIARDPackagePath(SIARDPackageNormalizedPath);
     zipConstructionValidation.setReporter(reporter);
     zipConstructionValidation.setValidationReporter(validationReporter);
+    zipConstructionValidation.setValidatorPathStrategy(validatorPathStrategy);
+    zipConstructionValidation.setup();
     zipConstructionValidation.validate();
 
     final SIARDStructureValidator siardStructureValidator = SIARDStructureValidator.newInstance();
     siardStructureValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
     siardStructureValidator.setReporter(reporter);
     siardStructureValidator.setValidationReporter(validationReporter);
+    siardStructureValidator.setValidatorPathStrategy(validatorPathStrategy);
+    siardStructureValidator.setup();
     siardStructureValidator.validate();
 
     final MetadataAndTableDataValidator metadataAndTableDataValidator = MetadataAndTableDataValidator.newInstance();
@@ -97,30 +106,35 @@ public class SIARDValidateModule implements ValidateModule {
     requirementsForTableDataValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
     requirementsForTableDataValidator.setReporter(reporter);
     requirementsForTableDataValidator.setValidationReporter(validationReporter);
+    requirementsForTableDataValidator.setValidatorPathStrategy(validatorPathStrategy);
     requirementsForTableDataValidator.validate();
 
     final TableSchemaDefinitionValidator tableSchemaDefinitionValidator = TableSchemaDefinitionValidator.newInstance();
     tableSchemaDefinitionValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
     tableSchemaDefinitionValidator.setReporter(reporter);
     tableSchemaDefinitionValidator.setValidationReporter(validationReporter);
+    tableSchemaDefinitionValidator.setValidatorPathStrategy(validatorPathStrategy);
     tableSchemaDefinitionValidator.validate();
 
     final DateAndTimestampDataValidator dateAndTimestampDataValidator = DateAndTimestampDataValidator.newInstance();
     dateAndTimestampDataValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
     dateAndTimestampDataValidator.setReporter(reporter);
     dateAndTimestampDataValidator.setValidationReporter(validationReporter);
+    dateAndTimestampDataValidator.setValidatorPathStrategy(validatorPathStrategy);
     dateAndTimestampDataValidator.validate();
 
     final TableDataValidator tableDataValidator = TableDataValidator.newInstance();
     tableDataValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
     tableDataValidator.setReporter(reporter);
     tableDataValidator.setValidationReporter(validationReporter);
+    tableDataValidator.setValidatorPathStrategy(validatorPathStrategy);
     tableDataValidator.validate();
 
     final AdditionalChecksValidator additionalChecksValidator = AdditionalChecksValidator.newInstance();
     additionalChecksValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
     additionalChecksValidator.setReporter(reporter);
     additionalChecksValidator.setValidationReporter(validationReporter);
+    additionalChecksValidator.setValidatorPathStrategy(validatorPathStrategy);
     additionalChecksValidator.validate();
 
     validationReporter.close();

@@ -48,7 +48,7 @@ public class ValidationReporter implements AutoCloseable {
       } catch (IOException e) {
         LOGGER.warn("Could not create report file in current working directory. Attempting to use a temporary file", e);
         try {
-          outputFile = Files.createTempFile(Constants.DBPTK_VALIDATION_HEADER_REPORTER, ".txt");
+          outputFile = Files.createTempFile(Constants.DBPTK_VALIDATION_REPORTER_PREFIX, ".txt");
         } catch (IOException e1) {
           LOGGER.error("Could not create report temporary file. Reporting will not function.", e1);
         }

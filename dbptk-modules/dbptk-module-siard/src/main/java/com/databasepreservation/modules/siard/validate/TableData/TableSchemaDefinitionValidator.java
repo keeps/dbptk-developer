@@ -19,8 +19,8 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.modules.validate.ValidatorModule;
-import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.model.reporters.ValidationReporter.Status;
+import com.databasepreservation.modules.siard.validate.ValidatorModule;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -35,7 +35,6 @@ public class TableSchemaDefinitionValidator extends ValidatorModule {
   private static final String P_612 = "T_6.1-2";
   private static final String P_613 = "T_6.1-3";
   private static final String P_614 = "T_6.1-4";
-  private static final String XSD_EXTENSION = ".xsd";
 
   public static TableSchemaDefinitionValidator newInstance() {
     return new TableSchemaDefinitionValidator();
@@ -52,7 +51,7 @@ public class TableSchemaDefinitionValidator extends ValidatorModule {
     getValidationReporter().moduleValidatorHeader(P_61, MODULE_NAME);
 
     if (validateXMLSchemaDefinition()) {
-      getValidationReporter().validationStatus(P_611, ValidationReporter.Status.OK);
+      getValidationReporter().validationStatus(P_611, Status.OK);
     } else {
       validationFailed(P_611, MODULE_NAME);
       closeZipFile();
@@ -60,7 +59,7 @@ public class TableSchemaDefinitionValidator extends ValidatorModule {
     }
 
     if (validateColumnsTag()) {
-      getValidationReporter().validationStatus(P_612, ValidationReporter.Status.OK);
+      getValidationReporter().validationStatus(P_612, Status.OK);
     } else {
       validationFailed(P_612, MODULE_NAME);
       closeZipFile();
@@ -68,7 +67,7 @@ public class TableSchemaDefinitionValidator extends ValidatorModule {
     }
 
     if (validateXMLSchemaStandardTypes()) {
-      getValidationReporter().validationStatus(P_613, ValidationReporter.Status.OK);
+      getValidationReporter().validationStatus(P_613, Status.OK);
     } else {
       validationFailed(P_613, MODULE_NAME);
       closeZipFile();
@@ -76,14 +75,14 @@ public class TableSchemaDefinitionValidator extends ValidatorModule {
     }
 
     if (validateAdvancedOrStructuredType()) {
-      getValidationReporter().validationStatus(P_614, ValidationReporter.Status.OK);
+      getValidationReporter().validationStatus(P_614, Status.OK);
     } else {
       validationFailed(P_614, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
-    getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.OK);
+    getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
     closeZipFile();
 
     return true;
@@ -115,7 +114,7 @@ public class TableSchemaDefinitionValidator extends ValidatorModule {
     }
 
     for (String path : tableData) {
-      final String XSDPath = path.concat(XSD_EXTENSION);
+      final String XSDPath = path.concat(Constants.XSD_EXTENSION);
       if (!getZipFileNames().contains(XSDPath)) {
         return false;
       }
@@ -150,13 +149,13 @@ public class TableSchemaDefinitionValidator extends ValidatorModule {
         try {
           String rowName = (String) XMLUtils.getXPathResult(getZipInputStream(zipFileName),
             "/xs:schema/xs:element[@name='table']/xs:complexType/xs:sequence/xs:element/@name", XPathConstants.STRING,
-            Constants.NAME_SPACE_FOR_TABLE);
+            Constants.NAMESPACE_FOR_TABLE);
           if (StringUtils.isNotBlank(rowName) && !rowName.equals("row"))
             return false;
 
           NodeList resultNodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(zipFileName),
             "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element", XPathConstants.NODESET,
-            Constants.NAME_SPACE_FOR_TABLE);
+            Constants.NAMESPACE_FOR_TABLE);
 
           for (int i = 0; i < resultNodes.getLength(); i++) {
             final String name = resultNodes.item(i).getAttributes().getNamedItem("name").getNodeValue();
@@ -192,7 +191,7 @@ public class TableSchemaDefinitionValidator extends ValidatorModule {
         try {
           NodeList resultNodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(zipFileName),
             "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element/@type", XPathConstants.NODESET,
-            Constants.NAME_SPACE_FOR_TABLE);
+            Constants.NAMESPACE_FOR_TABLE);
 
           for (int i = 0; i < resultNodes.getLength(); i++) {
             String type = resultNodes.item(i).getNodeValue();
@@ -235,7 +234,7 @@ public class TableSchemaDefinitionValidator extends ValidatorModule {
         try {
           NodeList resultNodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(zipFileName),
             "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element[not(@type)]/@name",
-            XPathConstants.NODESET, Constants.NAME_SPACE_FOR_TABLE);
+            XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
 
           for (int i = 0; i < resultNodes.getLength(); i++) {
             final String nodeValue = resultNodes.item(i).getNodeValue();
@@ -262,7 +261,7 @@ public class TableSchemaDefinitionValidator extends ValidatorModule {
     }
 
     NodeList result = (NodeList) XMLUtils.getXPathResult(getZipInputStream(zipFileName), xpathExpression,
-      XPathConstants.NODESET, Constants.NAME_SPACE_FOR_TABLE);
+      XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
     for (int i = 0; i < result.getLength(); i++) {
       final Node type = result.item(i).getAttributes().getNamedItem("type");
       final String name;
