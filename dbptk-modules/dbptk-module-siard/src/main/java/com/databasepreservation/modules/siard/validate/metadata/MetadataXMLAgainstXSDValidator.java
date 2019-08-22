@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.modules.validate.ValidatorModule;
+import com.databasepreservation.modules.siard.validate.ValidatorModule;
 import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.modules.siard.bindings.siard_2_1.SiardArchive;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;

@@ -20,7 +20,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.databasepreservation.model.modules.validate.ValidatorModule;
+import com.databasepreservation.modules.siard.validate.ValidatorModule;
 import com.databasepreservation.model.reporters.ValidationReporter;
 
 /**
@@ -31,38 +31,26 @@ abstract class MetadataValidator extends ValidatorModule {
   private static final String SEPARATOR = " ";
   private static final String ENTRY = "metadata.xml";
 
-  List<String> hasWarnings = new ArrayList<>();
-  String hasErrors = null;
-
   Map<String, List<String>> warnings = new HashMap<>();
+  Map<String, List<String>> notice = new HashMap<>();
   Map<String, String> error = new HashMap<>();
-
-  boolean reportValidations(boolean result, String codeID, boolean mandatory) {
-    if (!result && mandatory) {
-      getValidationReporter().validationStatus(codeID, ValidationReporter.Status.ERROR, hasErrors);
-      return false;
-    } else if (!hasWarnings.isEmpty()) {
-      getValidationReporter().validationStatus(codeID, ValidationReporter.Status.WARNING, ENTRY, hasWarnings);
-    } else {
-      getValidationReporter().validationStatus(codeID, ValidationReporter.Status.OK);
-    }
-    return true;
-  }
 
   boolean reportValidations(String codeID) {
     if (error.get(codeID) != null && !error.get(codeID).isEmpty()) {
       getValidationReporter().validationStatus(codeID, ValidationReporter.Status.ERROR, error.get(codeID));
       return false;
     } else if ((warnings.get(codeID) != null) && !warnings.get(codeID).isEmpty()) {
-      getValidationReporter().validationStatus(codeID, ValidationReporter.Status.WARNING, ENTRY,
-        warnings.get(codeID));
+      getValidationReporter().validationStatus(codeID, ValidationReporter.Status.WARNING, ENTRY, warnings.get(codeID));
+    } else if(notice.get(codeID) != null){
+      getValidationReporter().validationStatus(codeID, ValidationReporter.Status.OK, ENTRY, notice.get(codeID));
     } else {
       getValidationReporter().validationStatus(codeID, ValidationReporter.Status.OK);
     }
     return true;
   }
 
-  boolean validateXMLField(String codeId, String value, String field, Boolean mandatory, Boolean checkSize, String... path) {
+  boolean validateXMLField(String codeId, String value, String field, Boolean mandatory, Boolean checkSize,
+    String... path) {
     if (!validateMandatoryXMLField(value) && mandatory) {
       setError(codeId, buildMessage(field, value, true, path));
       return false;
@@ -96,6 +84,9 @@ abstract class MetadataValidator extends ValidatorModule {
   }
 
   private String buildPath(String... parameters) {
+    if(parameters.length < 1){
+      return ENTRY;
+    }
     StringBuilder path = new StringBuilder();
     for (int i = 0; i < parameters.length; i++) {
       path.append(parameters[i]);
@@ -112,9 +103,16 @@ abstract class MetadataValidator extends ValidatorModule {
 
   void addWarning(String codeID, String message) {
     if (warnings.get(codeID) == null) {
-      this.warnings.put(codeID, new ArrayList<String>());
+      warnings.put(codeID, new ArrayList<String>());
     }
-    this.warnings.get(codeID).add(message);
+    warnings.get(codeID).add(message);
+  }
+
+  void addNotice(String codeID, String message){
+    if(notice.get(codeID) == null){
+      notice.put(codeID, new ArrayList<String>());
+    }
+    notice.get(codeID).add(message);
   }
 
   void setError(String codeID, String error) {

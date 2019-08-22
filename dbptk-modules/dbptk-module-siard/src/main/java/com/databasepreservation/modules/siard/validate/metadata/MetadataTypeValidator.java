@@ -142,7 +142,6 @@ public class MetadataTypeValidator extends MetadataValidator {
    * less than 3 characters. WARNING if it is less than 3 characters
    *
    */
-
   private boolean validateTypeDescription(String schema, String typeName, String description) {
     return validateXMLField(M_531_10, description, Constants.DESCRIPTION, false, true, Constants.SCHEMA, schema,
       Constants.TYPE, typeName);

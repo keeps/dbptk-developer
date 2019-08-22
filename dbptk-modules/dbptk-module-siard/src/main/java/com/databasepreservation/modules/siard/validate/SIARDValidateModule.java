@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.validate.ValidateModule;
-import com.databasepreservation.model.modules.validate.ValidatorModule;
 import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.modules.DefaultExceptionNormalizer;
 import com.databasepreservation.modules.siard.validate.FormatStructure.MetadataAndTableDataValidator;
@@ -36,12 +35,15 @@ import com.databasepreservation.modules.siard.validate.metadata.MetadataFieldVal
 import com.databasepreservation.modules.siard.validate.metadata.MetadataForeignKeyValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataParameterValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataPrimaryKeyValidator;
+import com.databasepreservation.modules.siard.validate.metadata.MetadataPrivilegeValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataReferenceValidator;
+import com.databasepreservation.modules.siard.validate.metadata.MetadataRoleValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataRoutineValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataSchemaValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataTableValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataTriggerValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataTypeValidator;
+import com.databasepreservation.modules.siard.validate.metadata.MetadataUserValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataViewValidator;
 import com.databasepreservation.modules.siard.validate.metadata.MetadataXMLAgainstXSDValidator;
 
@@ -203,6 +205,9 @@ public class SIARDValidateModule implements ValidateModule {
     startValidation(MetadataViewValidator.newInstance());
     startValidation(MetadataRoutineValidator.newInstance());
     startValidation(MetadataParameterValidator.newInstance());
+    startValidation(MetadataUserValidator.newInstance());
+    startValidation(MetadataRoleValidator.newInstance());
+    startValidation(MetadataPrivilegeValidator.newInstance());
 
     try {
       validationReporter.close();
@@ -211,7 +216,7 @@ public class SIARDValidateModule implements ValidateModule {
     }
   }
 
-  private void startValidation(ValidatorModule module) {
+  private void startValidation(ValidatorModule module) throws ModuleException {
     module.setSIARDPackagePath(SIARDPackageNormalizedPath);
     module.setReporter(reporter);
     module.setValidationReporter(validationReporter);

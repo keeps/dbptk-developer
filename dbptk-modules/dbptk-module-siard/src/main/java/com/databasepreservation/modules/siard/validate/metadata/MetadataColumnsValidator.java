@@ -5,7 +5,6 @@ import static com.databasepreservation.modules.siard.constants.SIARDDKConstants.
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -24,7 +23,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.databasepreservation.model.modules.validate.ValidatorModule;
+import com.databasepreservation.modules.siard.validate.ValidatorModule;
 import com.databasepreservation.model.reporters.ValidationReporter;
 
 /**

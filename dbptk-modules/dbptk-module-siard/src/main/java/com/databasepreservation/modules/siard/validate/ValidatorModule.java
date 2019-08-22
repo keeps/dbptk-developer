@@ -146,7 +146,7 @@ public abstract class ValidatorModule {
   /**
    * Lazy loading, needs the validatorPathStrategy otherwise it will throw a
    * nullPointerException
-   * 
+   *
    * @throws ModuleException
    */
   public void setup() throws ModuleException {

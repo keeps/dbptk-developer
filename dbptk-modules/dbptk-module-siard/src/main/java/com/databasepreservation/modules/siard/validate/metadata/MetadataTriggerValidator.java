@@ -14,7 +14,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
-import com.databasepreservation.model.modules.validate.ValidatorModule;
+import com.databasepreservation.modules.siard.validate.ValidatorModule;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -29,11 +29,9 @@ public class MetadataTriggerValidator extends MetadataValidator {
   private static final String M_513_1_5 = "M_5.13-1-5";
   private static final String M_513_1_6 = "M_5.13-1-6";
 
-  private static final String TRIGGER = "trigger";
   private static final String TRIGGER_ACTION_TIME = "actionTime";
   private static final String TRIGGER_EVENT = "triggerEvent";
   private static final String TRIGGER_TRIGGERED_ACTION = "triggeredAction";
-  private static final String TRIGGER_DESCRIPTION = "description";
 
   private Set<String> checkDuplicates = new HashSet<>();
 
@@ -64,10 +62,8 @@ public class MetadataTriggerValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element trigger = (Element) nodes.item(i);
-        Element tableElement = (Element) trigger.getParentNode().getParentNode();
-        Element schemaElement = (Element) tableElement.getParentNode().getParentNode();
-        String table = MetadataXMLUtils.getChildTextContext(tableElement, Constants.NAME);
-        String schema = MetadataXMLUtils.getChildTextContext(schemaElement, Constants.NAME);
+        String table = MetadataXMLUtils.getParentNameByTagName(trigger, Constants.NAME);
+        String schema = MetadataXMLUtils.getParentNameByTagName(trigger, Constants.NAME);
         String name = MetadataXMLUtils.getChildTextContext(trigger, Constants.NAME);
 
         if (!validateTriggerName(name, schema, table))
@@ -83,7 +79,7 @@ public class MetadataTriggerValidator extends MetadataValidator {
         if (!validateTriggerTriggeredAction(triggeredAction, schema, table, name))
           break;
 
-        String description = MetadataXMLUtils.getChildTextContext(trigger, TRIGGER_DESCRIPTION);
+        String description = MetadataXMLUtils.getChildTextContext(trigger, Constants.DESCRIPTION);
         if (!validateTriggerDescription(description, schema, table, name))
           break;
       }
@@ -153,7 +149,7 @@ public class MetadataTriggerValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateTriggerDescription(String description, String schema, String table, String name) {
-    return validateXMLField(M_513_1_6, description, TRIGGER_DESCRIPTION, false, true, Constants.SCHEMA, schema,
+    return validateXMLField(M_513_1_6, description, Constants.DESCRIPTION, false, true, Constants.SCHEMA, schema,
       Constants.TABLE, table, Constants.NAME, name);
   }
 

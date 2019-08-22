@@ -14,7 +14,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.databasepreservation.model.modules.validate.ValidatorModule;
+import com.databasepreservation.modules.siard.validate.ValidatorModule;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -51,7 +51,7 @@ public class MetadataViewValidator extends MetadataValidator {
 
   private boolean readXMLMetadataViewLevel() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = "header/metadata.xml";
+      String pathToEntry = Constants.METADATA_XML;
       String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:views/ns:view";
 
       NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
