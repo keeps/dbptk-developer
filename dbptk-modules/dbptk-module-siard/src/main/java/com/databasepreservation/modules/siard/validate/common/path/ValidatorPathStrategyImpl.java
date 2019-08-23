@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.databasepreservation.Constants;
+import com.databasepreservation.common.ValidatorPathStrategy;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -25,11 +26,6 @@ public class ValidatorPathStrategyImpl implements ValidatorPathStrategy {
     final String schemaFolder = schemas.get(schemaName);
     final String tableFolder = getTableFolder(schemaName, tableName);
     return getXMLTablePathFromFolder(schemaFolder, tableFolder);
-  }
-
-  @Override
-  public String addXMLExtension(String pathWithoutExtension) {
-    return pathWithoutExtension + Constants.XML_EXTENSION;
   }
 
   @Override
@@ -115,5 +111,10 @@ public class ValidatorPathStrategyImpl implements ValidatorPathStrategy {
   @Override
   public boolean isInitialized() {
     return (schemas != null && tables != null);
+  }
+
+  @Override
+  public String getSIARDVersionPath() {
+    return Constants.SIARD_HEADER_FOLDER + Constants.RESOURCE_FILE_SEPARATOR + Constants.SIARD_VERSION_FOLDER;
   }
 }

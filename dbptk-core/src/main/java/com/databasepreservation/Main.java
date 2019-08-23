@@ -20,6 +20,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.SiardNotFoundException;
 import com.databasepreservation.model.modules.filters.ObservableFilter;
 import com.databasepreservation.model.modules.filters.ProgressLoggerObserver;
+import com.databasepreservation.model.modules.validate.ProgressValidationLoggerObserver;
 import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.MiscUtils;
 import com.databasepreservation.utils.ReflectionUtils;
@@ -179,6 +180,8 @@ public class Main {
         logProgramFinish(EXIT_CODE_COMMAND_PARSE_ERROR);
         return EXIT_CODE_COMMAND_PARSE_ERROR;
       }
+
+      siardValidation = siardValidation.observer(new ProgressValidationLoggerObserver());
 
       try {
         long startTime = System.currentTimeMillis();

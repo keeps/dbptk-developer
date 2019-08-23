@@ -7,22 +7,22 @@
  */
 package com.databasepreservation.utils;
 
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.databasepreservation.model.components.ValidatorComponentFactory;
+import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.edits.EditModuleFactory;
+import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
 import com.databasepreservation.model.modules.validate.ValidateModuleFactory;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.model.modules.DatabaseModuleFactory;
-import com.databasepreservation.model.modules.edits.EditModuleFactory;
-import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -34,6 +34,7 @@ public class ReflectionUtils {
   private static List<Constructor<? extends DatabaseFilterFactory>> databaseFilterFactoryConstructors = new ArrayList<>();
   private static List<Constructor<? extends EditModuleFactory>> editModuleFactoryConstructors         = new ArrayList<>();
   private static List<Constructor<? extends ValidateModuleFactory>> validateModuleFactoryConstructors = new ArrayList<>();
+  private static List<Constructor<? extends ValidatorComponentFactory>> validatorComponentFactoryConstructors = new ArrayList<>();
 
   public static Set<DatabaseModuleFactory> collectDatabaseModuleFactories() {
     return collectDatabaseModuleFactories(false);
@@ -180,4 +181,41 @@ public class ReflectionUtils {
     return validateModuleFactories;
   }
 
+  public static Collection<ValidatorComponentFactory> collectValidatorComponentFactories() {
+    return collectValidatorComponentFactories(false);
+  }
+
+  public static Collection<ValidatorComponentFactory> collectValidatorComponentFactories(boolean includeDisabled) {
+    Set<ValidatorComponentFactory> validatorComponentFactories = new HashSet<>();
+
+    if (validatorComponentFactoryConstructors.isEmpty()) {
+      Reflections reflections = new Reflections("com.databasepreservation.modules.siard.validate",
+          new SubTypesScanner());
+
+      Set<Class<? extends ValidatorComponentFactory>> validatorComponentFactoryClasses = reflections
+          .getSubTypesOf(ValidatorComponentFactory.class);
+
+      for (Class<? extends ValidatorComponentFactory> aClass : validatorComponentFactoryClasses) {
+        try {
+          Constructor<? extends ValidatorComponentFactory> constructor = aClass.getConstructor();
+          validatorComponentFactoryConstructors.add(constructor);
+        } catch (NoSuchMethodException e) {
+          LOGGER.info("Filter factory {} could not be loaded", aClass.getName(), e);
+        }
+      }
+    }
+
+    for (Constructor<? extends ValidatorComponentFactory> constructor : validatorComponentFactoryConstructors) {
+      try {
+        ValidatorComponentFactory instance = constructor.newInstance();
+        if (includeDisabled || instance.isEnabled()) {
+          validatorComponentFactories.add(instance);
+        }
+      } catch (Exception e) {
+        LOGGER.info("Filter factory {} could not be loaded", constructor.getDeclaringClass().getName(), e);
+      }
+    }
+
+    return validatorComponentFactories;
+  }
 }

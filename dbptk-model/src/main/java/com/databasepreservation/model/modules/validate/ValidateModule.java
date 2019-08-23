@@ -7,6 +7,7 @@
  */
 package com.databasepreservation.model.modules.validate;
 
+import com.databasepreservation.common.ValidationObserver;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.metadata.SIARDDatabaseMetadata;
@@ -27,6 +28,8 @@ public interface ValidateModule extends ExceptionNormalizer {
    *          The reporter that should be used by this ValidateModule
    */
   void setOnceReporter(Reporter reporter);
+
+  void setObserver(ValidationObserver observer);
 
   /**
    *

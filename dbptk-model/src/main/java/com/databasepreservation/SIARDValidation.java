@@ -7,6 +7,7 @@
  */
 package com.databasepreservation;
 
+import com.databasepreservation.common.ValidationObserver;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.EditDatabaseMetadataParserException;
 import com.databasepreservation.model.exception.ModuleException;
@@ -38,9 +39,8 @@ import java.util.regex.Pattern;
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 public class SIARDValidation {
-  // the same reporter is used for all modules
   private Reporter reporter;
-
+  private ValidationObserver validationObserver;
   private ValidateModuleFactory validateModuleFactory;
   private HashMap<String, String> validateModuleStringParameters = new HashMap<>();
 
@@ -85,6 +85,11 @@ public class SIARDValidation {
     return this;
   }
 
+  public SIARDValidation observer(ValidationObserver validationObserver) {
+    this.validationObserver = validationObserver;
+    return this;
+  }
+
   /**
    *
    * @throws ModuleException
@@ -96,12 +101,12 @@ public class SIARDValidation {
 
     ValidateModule validateModule = validateModuleFactory.buildModule(importParameters, reporter);
     validateModule.setOnceReporter(reporter);
+    validateModule.setObserver(validationObserver);
 
     validateModule.validate();
   }
 
   // Auxiliary Internal Methods
-
   private static HashMap<Parameter, String> buildImportParameters(HashMap<String, String> validateModuleParameters,
                                                                   ValidateModuleFactory validateModuleFactory) {
     HashMap<Parameter, String> importParameters = new HashMap<>();

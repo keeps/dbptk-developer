@@ -26,7 +26,7 @@ import com.databasepreservation.utils.ConfigUtils;
  */
 public class SIARDValidateFactory implements ValidateModuleFactory {
   public static final String PARAMETER_FILE = "file";
-  public static final String PARAMTETER_UDT = "udt";
+  public static final String PARAMETER_UDT = "udt";
   public static final String PARAMETER_REPORT = "report";
 
   private static final Parameter file = new Parameter().shortName("f").longName(PARAMETER_FILE)
@@ -37,7 +37,7 @@ public class SIARDValidateFactory implements ValidateModuleFactory {
       "Path to save the validation report. If not set a report will be generated in the installation folder.")
     .hasArgument(true).setOptionalArgument(false).required(false);
 
-  private static final Parameter udt = new Parameter().shortName("udt").longName(PARAMTETER_UDT)
+  private static final Parameter udt = new Parameter().shortName("udt").longName(PARAMETER_UDT)
     .description("Path to the configuration file with all the user-defined types allowed. "
       + "The file should have a line for each allowed user-defined type.")
     .hasArgument(true).setOptionalArgument(false).required(false);
@@ -92,12 +92,12 @@ public class SIARDValidateFactory implements ValidateModuleFactory {
 
     if (Files.notExists(pFile)) {
       throw new SiardNotFoundException().withPath(pFile.toAbsolutePath().toString())
-          .withMessage("The path to the siard file appears to be incorrect");
+          .withMessage("The path to the SIARD file appears to be incorrect");
     }
 
     if (pAllowUDTs != null) {
       reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString(),
-        PARAMTETER_UDT, pAllowUDTs.normalize().toAbsolutePath().toString(), PARAMETER_REPORT,
+        PARAMETER_UDT, pAllowUDTs.normalize().toAbsolutePath().toString(), PARAMETER_REPORT,
         pReport.normalize().toAbsolutePath().toString());
       return new SIARDValidateModule(pFile, pReport, pAllowUDTs);
     } else {
