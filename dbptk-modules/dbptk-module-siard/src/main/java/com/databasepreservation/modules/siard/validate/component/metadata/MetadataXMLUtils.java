@@ -91,11 +91,12 @@ public class MetadataXMLUtils {
     return null;
   }
 
-  static String getParentNameByTagName(Element child, String tagName){
+  static String getParentNameByTagName(Element child, String tagName) {
     Element parent = (Element) child.getParentNode();
-    if(parent == null) return null;
+    if (parent == null)
+      return null;
 
-    if(parent.getNodeName().equals(tagName)){
+    if (parent.getNodeName().equals(tagName)) {
       return getChildTextContext(parent, "name");
     }
 

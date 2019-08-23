@@ -18,34 +18,53 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
-import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
+
+import jdk.internal.org.xml.sax.SAXException;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 abstract class MetadataValidator extends ValidatorComponentImpl {
   private static final int MIN_FIELD_LENGTH = 3;
-  private static final String SEPARATOR = " ";
   private static final String ENTRY = "metadata.xml";
-  public static final String METADATA_XML = "header/metadata.xml";
 
-  Map<String, List<String>> warnings = new HashMap<>();
+  Map<String, List<Map<String, String>>> warnings = new HashMap<>();
   Map<String, List<String>> notice = new HashMap<>();
   Map<String, String> error = new HashMap<>();
 
-  boolean reportValidations(String codeID) {
+  boolean reportValidations(String codeID, String moduleName) {
     if (error.get(codeID) != null && !error.get(codeID).isEmpty()) {
       getValidationReporter().validationStatus(codeID, ValidationReporter.Status.ERROR, error.get(codeID));
+      getValidationReporter().moduleValidatorFinished(moduleName, ValidationReporter.Status.ERROR);
       return false;
     } else if ((warnings.get(codeID) != null) && !warnings.get(codeID).isEmpty()) {
-      getValidationReporter().validationStatus(codeID, ValidationReporter.Status.WARNING, ENTRY, warnings.get(codeID));
-    } else if(notice.get(codeID) != null){
-      getValidationReporter().validationStatus(codeID, ValidationReporter.Status.OK, ENTRY, notice.get(codeID));
+      for (Map<String, String> entry : warnings.get(codeID)) {
+        for (Map.Entry<String, String> warning : entry.entrySet()) {
+          getValidationReporter().warning(codeID, warning.getKey(), warning.getValue());
+        }
+      }
+    } else if (notice.get(codeID) != null) {
+      getValidationReporter().notice(notice.get(codeID), codeID);
     } else {
       getValidationReporter().validationStatus(codeID, ValidationReporter.Status.OK);
+    }
+    return true;
+  }
+
+  boolean validateXMLField(String codeId, String value, String field, Boolean mandatory, Boolean checkSize) {
+    return validateXMLField(codeId, value, field, mandatory, checkSize, ENTRY);
+  }
+
+  boolean validateXMLField(String codeId, String value, String field, Boolean mandatory, Boolean checkSize,
+    String path) {
+    if (!validateMandatoryXMLField(value) && mandatory) {
+      setError(codeId, buildErrorMessage(field, path));
+      return false;
+    } else if (!validateXMLFieldSize(value) && checkSize) {
+      addWarning(codeId, buildWarningMessage(field, value), path);
     }
     return true;
   }
@@ -53,10 +72,10 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
   boolean validateXMLField(String codeId, String value, String field, Boolean mandatory, Boolean checkSize,
     String... path) {
     if (!validateMandatoryXMLField(value) && mandatory) {
-      setError(codeId, buildMessage(field, value, true, path));
+      setError(codeId, buildErrorMessage(field, buildPath(path)));
       return false;
     } else if (!validateXMLFieldSize(value) && checkSize) {
-      addWarning(codeId, buildMessage(field, value, false, path));
+      addWarning(codeId, buildWarningMessage(field, value), buildPath(path));
     }
     return true;
   }
@@ -69,30 +88,26 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
     return value != null && value.length() >= MIN_FIELD_LENGTH;
   }
 
-  private String buildMessage(String field, String value, Boolean mandatory, String path) {
-    if (!validateMandatoryXMLField(value) && mandatory) {
-      return String.format("The %s inside '%s' is mandatory", field, path);
-    } else if (!validateMandatoryXMLField(value)) {
-      return String.format("The %s inside '%s' is null", field, path);
+  private String buildWarningMessage(String field, String value) {
+    if (value == null || value.isEmpty()) {
+      return String.format("The %s is null", field);
     } else if (!validateXMLFieldSize(value)) {
-      return String.format("The %s '%s' inside '%s' has less than %d characters", field, value, path, MIN_FIELD_LENGTH);
+      return String.format("The %s '%s' has less than %d characters", field, value, MIN_FIELD_LENGTH);
     }
     return null;
   }
 
-  private String buildMessage(String field, String value, Boolean mandatory, String... path) {
-    return buildMessage(field, value, mandatory, buildPath(path));
+  private String buildErrorMessage(String field, String path) {
+    return String.format("The %s is mandatory inside %s", field, path);
   }
 
-  private String buildPath(String... parameters) {
-    if(parameters.length < 1){
-      return ENTRY;
-    }
+  protected String buildPath(String... parameters) {
     StringBuilder path = new StringBuilder();
+    path.append(ENTRY).append(" ");
     for (int i = 0; i < parameters.length; i++) {
       path.append(parameters[i]);
       if (i % 2 != 0 && i < parameters.length - 1) {
-        path.append(SEPARATOR).append("and").append(SEPARATOR);
+        path.append("/");
       } else {
         path.append(":");
       }
@@ -102,15 +117,17 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
     return path.toString();
   }
 
-  void addWarning(String codeID, String message) {
+  void addWarning(String codeID, String message, String object) {
     if (warnings.get(codeID) == null) {
-      warnings.put(codeID, new ArrayList<String>());
+      warnings.put(codeID, new ArrayList<Map<String, String>>());
     }
-    warnings.get(codeID).add(message);
+    Map<String, String> messageObject = new HashMap<>();
+    messageObject.put(message, object);
+    warnings.get(codeID).add(messageObject);
   }
 
-  void addNotice(String codeID, String message){
-    if(notice.get(codeID) == null){
+  void addNotice(String codeID, String message) {
+    if (notice.get(codeID) == null) {
       notice.put(codeID, new ArrayList<String>());
     }
     notice.get(codeID).add(message);

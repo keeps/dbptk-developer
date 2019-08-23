@@ -8,11 +8,14 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import com.databasepreservation.Constants;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import com.databasepreservation.Constants;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporter;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -36,16 +39,30 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
   }
 
   @Override
-  public boolean validate() {
-    getValidationReporter().moduleValidatorHeader(M_512, MODULE_NAME);
-    readXMLMetadataCheckConstraint();
+  public boolean validate() throws ModuleException {
+    if (preValidationRequirements())
+      return false;
 
-    return reportValidations(M_512_1) && reportValidations(M_512_1_1) && reportValidations(M_512_1_3);
+    getValidationReporter().moduleValidatorHeader(M_512, MODULE_NAME);
+
+    if (!readXMLMetadataCheckConstraint()) {
+      reportValidations(M_512_1, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
+    closeZipFile();
+
+    if (reportValidations(M_512_1, MODULE_NAME) && reportValidations(M_512_1_1, MODULE_NAME)
+      && reportValidations(M_512_1_3, MODULE_NAME)) {
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+      return true;
+    }
+    return false;
   }
 
   private boolean readXMLMetadataCheckConstraint() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = METADATA_XML;
+      String pathToEntry = validatorPathStrategy.getMetadataXMLPath();
       String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:checkConstraints/ns:checkConstraint";
 
       NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
@@ -59,18 +76,18 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
         String table = MetadataXMLUtils.getChildTextContext(tableElement, Constants.NAME);
 
         String name = MetadataXMLUtils.getChildTextContext(checkConstraint, Constants.NAME);
-        if (!validateCheckConstraintName(name, schema, table))
+        String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.NAME, name);
+        if (!validateCheckConstraintName(name, path))
           break;
 
         String condition = MetadataXMLUtils.getChildTextContext(checkConstraint, Constants.CONDITIONAL);
         // M_512_1
-        if (!validateXMLField(M_512_1, condition, Constants.CHECK_CONSTRAINT, true, false, Constants.SCHEMA, schema,
-          Constants.TABLE, table)) {
+        if (!validateXMLField(M_512_1, condition, Constants.CHECK_CONSTRAINT, true, false, path)) {
           return false;
         }
 
         String description = MetadataXMLUtils.getChildTextContext(checkConstraint, Constants.DESCRIPTION);
-        if (!validateCheckConstraintDescription(description, schema, table, name))
+        if (!validateCheckConstraintDescription(description, path))
           break;
       }
 
@@ -87,15 +104,14 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
 
-  private boolean validateCheckConstraintName(String name, String schema, String table) {
+  private boolean validateCheckConstraintName(String name, String path) {
     // M_512_1
-    if (!validateXMLField(M_512_1, name, Constants.CHECK_CONSTRAINT, true, false, Constants.SCHEMA, schema, Constants.TABLE,
-      table)) {
+    if (!validateXMLField(M_512_1, name, Constants.CHECK_CONSTRAINT, true, false, path)) {
       return false;
     }
     // M_5.12-1-1
     if (!checkDuplicates.add(name)) {
-      setError(M_512_1_1, String.format("Check Constraint name %s inside %s.%s must be unique", name, schema, table));
+      setError(M_512_1_1, String.format("Check Constraint name %s must be unique (%s)", name, path));
       return false;
     }
 
@@ -108,8 +124,7 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateCheckConstraintDescription(String description, String schema, String table, String name) {
-    return validateXMLField(M_512_1_3, description, Constants.DESCRIPTION, true, true, Constants.SCHEMA, schema,
-      Constants.TABLE, table, Constants.NAME, name);
+  private boolean validateCheckConstraintDescription(String description, String path) {
+    return validateXMLField(M_512_1_3, description, Constants.DESCRIPTION, true, true, path);
   }
 }

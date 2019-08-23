@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.modules.siard.bindings.siard_2_1.SiardArchive;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
@@ -29,6 +28,7 @@ import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.modules.siard.in.read.ZipAndFolderReadStrategy;
+import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>

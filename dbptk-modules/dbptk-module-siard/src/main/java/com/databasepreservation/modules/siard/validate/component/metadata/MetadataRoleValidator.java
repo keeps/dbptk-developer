@@ -8,12 +8,14 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -26,6 +28,7 @@ public class MetadataRoleValidator extends MetadataValidator {
   private static final String M_519_1_2 = "M_5.19-1-2";
   private static final String M_519_1_3 = "M_5.19-1-3";
   private static final String ADMIN = "admin";
+  private static final String ROLE = "role";
 
   private Set<String> checkDuplicates = new HashSet<>();
   private NodeList users;
@@ -40,42 +43,55 @@ public class MetadataRoleValidator extends MetadataValidator {
   }
 
   @Override
-  public boolean validate() {
+  public boolean validate() throws ModuleException {
+    if (preValidationRequirements())
+      return false;
     getValidationReporter().moduleValidatorHeader(M_519, MODULE_NAME);
-    if (!readXMLMetadataUserLevel()) {
-      setError(M_519_1, "Cannot read roles");
-    }
 
-    return reportValidations(M_519_1) && reportValidations(M_519_1_1) && reportValidations(M_519_1_2)
-      && reportValidations(M_519_1_3);
+    if (!readXMLMetadataRoleLevel()) {
+      reportValidations(M_519_1, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
+    closeZipFile();
+
+    if (reportValidations(M_519_1, MODULE_NAME) && reportValidations(M_519_1_1, MODULE_NAME)
+      && reportValidations(M_519_1_2, MODULE_NAME) && reportValidations(M_519_1_3, MODULE_NAME)) {
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+      return true;
+    }
+    return false;
   }
 
-  private boolean readXMLMetadataUserLevel() {
-    try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = METADATA_XML;
-      String xpathExpression = "/ns:siardArchive/ns:roles/ns:role";
-
+  private boolean readXMLMetadataRoleLevel() {
+    try {
+      String pathToEntry = validatorPathStrategy.getMetadataXMLPath();
       String xpathExpressionUser = "/ns:siardArchive/ns:users/ns:user/ns:name";
-      users = getXPathResult(zipFile, pathToEntry, xpathExpressionUser, XPathConstants.NODESET, null);
+      users = (NodeList) XMLUtils.getXPathResult(getZipInputStream(pathToEntry), xpathExpressionUser,
+        XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
       String xpathExpressionRoles = "/ns:siardArchive/ns:roles/ns:role/ns:name";
-      roles = getXPathResult(zipFile, pathToEntry, xpathExpressionRoles, XPathConstants.NODESET, null);
+      roles = (NodeList) XMLUtils.getXPathResult(getZipInputStream(pathToEntry), xpathExpressionRoles,
+        XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
-      NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
+      String xpathExpression = "/ns:siardArchive/ns:roles/ns:role";
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(pathToEntry), xpathExpression,
+        XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element role = (Element) nodes.item(i);
 
         String name = MetadataXMLUtils.getChildTextContext(role, Constants.NAME);
-        if (!validateRoleName(name))
+        String path = buildPath(ROLE, name);
+        if (!validateRoleName(name, path))
           break;
 
         String admin = MetadataXMLUtils.getChildTextContext(role, ADMIN);
-        if (!validateRoleAdmin(admin, name))
+        if (!validateRoleAdmin(admin, path))
           break;
 
         String description = MetadataXMLUtils.getChildTextContext(role, Constants.DESCRIPTION);
-        if (!validateRoleDescription(description, name))
+        if (!validateRoleDescription(description, path))
           break;
       }
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
@@ -91,12 +107,12 @@ public class MetadataRoleValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateRoleName(String name) {
-    if (!validateXMLField(M_519_1, name, Constants.NAME, true, false)) {
+  private boolean validateRoleName(String name, String path) {
+    if (!validateXMLField(M_519_1, name, Constants.NAME, true, false, path)) {
       return false;
     }
     if (!checkDuplicates.add(name)) {
-      addWarning(M_519_1_1, String.format("Role name %s should be unique", name));
+      addWarning(M_519_1_1, String.format("Role name %s should be unique", name), path);
     }
     return true;
   }
@@ -107,9 +123,9 @@ public class MetadataRoleValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateRoleAdmin(String admin, String name) {
+  private boolean validateRoleAdmin(String admin, String path) {
     if (admin == null || admin.isEmpty()) {
-      setError(M_519_1_2, String.format("Role admin inside %s is mandatory", name));
+      setError(M_519_1_2, String.format("Role admin inside %s is mandatory", path));
       return false;
     }
 
@@ -125,7 +141,7 @@ public class MetadataRoleValidator extends MetadataValidator {
       }
     }
 
-    addWarning(M_519_1_2, String.format("Admin %s inside role %s should be an existing user or role", admin, name));
+    addWarning(M_519_1_2, String.format("Admin %s should be an existing user or role", admin), path);
     return true;
   }
 
@@ -135,7 +151,7 @@ public class MetadataRoleValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateRoleDescription(String description, String name) {
-    return validateXMLField(M_519_1_3, description, Constants.DESCRIPTION, false, true, Constants.USER, name);
+  private boolean validateRoleDescription(String description, String path) {
+    return validateXMLField(M_519_1_3, description, Constants.DESCRIPTION, false, true, path);
   }
 }

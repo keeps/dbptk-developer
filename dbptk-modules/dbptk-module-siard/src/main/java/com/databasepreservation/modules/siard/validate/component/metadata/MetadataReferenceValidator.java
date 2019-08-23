@@ -10,11 +10,14 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import com.databasepreservation.Constants;
-import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import com.databasepreservation.Constants;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -45,21 +48,34 @@ public class MetadataReferenceValidator extends MetadataValidator {
   }
 
   @Override
-  public boolean validate() {
+  public boolean validate() throws ModuleException {
+    if (preValidationRequirements())
+      return false;
+
     getValidationReporter().moduleValidatorHeader(M_510, MODULE_NAME);
 
     readXMLMetadataReferenceLevel();
 
-    return reportValidations(M_510_1) && reportValidations(M_510_1_1)
-      && reportValidations(M_510_1_2);
+    if (!readXMLMetadataReferenceLevel()) {
+      reportValidations(M_510_1, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
+    closeZipFile();
+
+    if (reportValidations(M_510_1, MODULE_NAME) && reportValidations(M_510_1_1, MODULE_NAME)
+      && reportValidations(M_510_1_2, MODULE_NAME)) {
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+      return true;
+    }
+    return false;
   }
 
   private boolean readXMLMetadataReferenceLevel() {
-    try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = METADATA_XML;
-      String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table";
-
-      NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
+    try {
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table", XPathConstants.NODESET,
+        Constants.NAMESPACE_FOR_METADATA);
 
       tableColumnsList = getListColumnsByTables(nodes);
       primaryKeyList = getListKeysByTables(nodes, Constants.PRIMARY_KEY);
@@ -68,6 +84,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
       for (int i = 0; i < nodes.getLength(); i++) {
         Element tableElement = (Element) nodes.item(i);
         String table = MetadataXMLUtils.getChildTextContext(tableElement, Constants.NAME);
+        String schema = MetadataXMLUtils.getParentNameByTagName(tableElement, Constants.SCHEMA);
         tableList.add(table);
 
         NodeList foreignKeyNodes = tableElement.getElementsByTagName(Constants.FOREIGN_KEY);
@@ -79,11 +96,13 @@ public class MetadataReferenceValidator extends MetadataValidator {
           NodeList referenceNodes = foreignKeyElement.getElementsByTagName(REFERENCE);
           for (int k = 0; k < referenceNodes.getLength(); k++) {
             Element reference = (Element) referenceNodes.item(k);
+            String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.FOREIGN_KEY,
+              foreignKey);
 
             String column = MetadataXMLUtils.getChildTextContext(reference, Constants.COLUMN);
             // * M_5.10-1 reference column is mandatory.
             if (column == null || column.isEmpty()) {
-              setError(M_510_1, "column is required on foreign key " + foreignKey);
+              setError(M_510_1, String.format("Column is required (%s)", path));
               return false;
             }
             if (!validateColumn(table, column))
@@ -92,7 +111,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
             String referenced = MetadataXMLUtils.getChildTextContext(reference, REFERENCED_COLUMN);
             // * M_5.10-1 reference column is mandatory.
             if (referenced == null || referenced.isEmpty()) {
-              setError(M_510_1, "referenced column is required on foreign key " + foreignKey);
+              setError(M_510_1, String.format("Referenced column is required (%s)", path));
               return false;
             }
 
@@ -196,9 +215,8 @@ public class MetadataReferenceValidator extends MetadataValidator {
 
     // M_5.10-1-2
     if (referencedColumnTable.get(referencedColumn) == null) {
-      setError(M_510_1_2,
-        String.format("referenced column name %s of table %s does not exist on referenced table %s", referencedColumn,
-          foreignKeyTable, referencedTable));
+      setError(M_510_1_2, String.format("referenced column name %s of table %s does not exist on referenced table %s",
+        referencedColumn, foreignKeyTable, referencedTable));
       return false;
     }
 
@@ -229,9 +247,8 @@ public class MetadataReferenceValidator extends MetadataValidator {
       }
     } else {
       // Additional check 2
-      setError(M_510_1_2,
-        String.format("Foreign Key %s.%s has no reference to any key on referenced table %s", foreignKeyTable,
-          foreignKey, referencedTable));
+      setError(M_510_1_2, String.format("Foreign Key %s.%s has no reference to any key on referenced table %s",
+        foreignKeyTable, foreignKey, referencedTable));
       return false;
     }
 

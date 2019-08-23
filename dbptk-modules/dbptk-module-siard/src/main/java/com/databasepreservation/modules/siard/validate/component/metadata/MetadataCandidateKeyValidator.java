@@ -1,5 +1,19 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
+
+import com.databasepreservation.Constants;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
+import com.databasepreservation.utils.XMLUtils;
+import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,18 +22,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-
-import com.databasepreservation.Constants;
-import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
-import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -44,21 +46,33 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
   }
 
   @Override
-  public boolean validate() {
+  public boolean validate() throws ModuleException {
+    if (preValidationRequirements())
+      return false;
+
     getValidationReporter().moduleValidatorHeader(M_511, MODULE_NAME);
 
     readXMLMetadataCandidateKeyLevel();
+    if (!readXMLMetadataCandidateKeyLevel()) {
+      reportValidations(M_511_1, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
+    closeZipFile();
 
-    return reportValidations(M_511_1) && reportValidations(M_511_1_1) && reportValidations(M_511_1_2)
-      && reportValidations(M_511_1_3);
+    if (reportValidations(M_511_1, MODULE_NAME) && reportValidations(M_511_1_1, MODULE_NAME)
+      && reportValidations(M_511_1_2, MODULE_NAME) && reportValidations(M_511_1_3, MODULE_NAME)) {
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+      return true;
+    }
+    return false;
   }
 
   private boolean readXMLMetadataCandidateKeyLevel() {
-    try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-
-      String pathToEntry = METADATA_XML;
-      String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table";
-      NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
+    try {
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table", XPathConstants.NODESET,
+        Constants.NAMESPACE_FOR_METADATA);
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element tableElement = (Element) nodes.item(i);
@@ -69,7 +83,7 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
         String schemaFolder = MetadataXMLUtils
           .getChildTextContext((Element) tableElement.getParentNode().getParentNode(), Constants.FOLDER);
 
-        Element tableColumnsElement = MetadataXMLUtils.getChild(tableElement, Constants.COLUMN);
+        Element tableColumnsElement = MetadataXMLUtils.getChild(tableElement, Constants.COLUMNS);
         if (tableColumnsElement == null) {
           return false;
         }
@@ -116,7 +130,8 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
             break;
 
           String description = MetadataXMLUtils.getChildTextContext(candidateKey, Constants.DESCRIPTION);
-          if (!validateCandidateKeyDescription(schema, table, name, description))
+          String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.CANDIDATE_KEY, name);
+          if (!validateCandidateKeyDescription(description, path))
             break;
 
         }
@@ -126,7 +141,7 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
       return false;
     }
 
-    return true;
+      return true;
   }
 
   /**
@@ -205,8 +220,7 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
    * M_5.11-1-3 The Candidate key description in SIARD file must not be less than
    * 3 characters. WARNING if it is less than 3 characters
    */
-  private boolean validateCandidateKeyDescription(String schema, String table, String name, String description) {
-    return validateXMLField(M_511_1_3, description, Constants.DESCRIPTION, false, true, Constants.SCHEMA, schema,
-      Constants.TABLE, table, Constants.CANDIDATE_KEY, name);
+  private boolean validateCandidateKeyDescription(String description, String path) {
+    return validateXMLField(M_511_1_3, description, Constants.DESCRIPTION, false, true, path);
   }
 }

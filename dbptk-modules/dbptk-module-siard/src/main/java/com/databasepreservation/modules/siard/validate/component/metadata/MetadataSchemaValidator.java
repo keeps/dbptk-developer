@@ -6,12 +6,14 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -35,13 +37,25 @@ public class MetadataSchemaValidator extends MetadataValidator {
   }
 
   @Override
-  public boolean validate() {
+  public boolean validate() throws ModuleException {
+    if (preValidationRequirements())
+      return false;
+
     getValidationReporter().moduleValidatorHeader(M_52, MODULE_NAME);
 
-    readXMLMetadataSchemaLevel();
+    if (!readXMLMetadataSchemaLevel()) {
+      reportValidations(M_521, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
+    closeZipFile();
 
-    return reportValidations(M_521) && reportValidations(M_521_1) && reportValidations(M_521_2)
-      && reportValidations(M_521_4) && reportValidations(M_521_5);
+    if (reportValidations(M_521_1, MODULE_NAME) && reportValidations(M_521_2, MODULE_NAME)
+      && reportValidations(M_521_4, MODULE_NAME) && reportValidations(M_521_5, MODULE_NAME)) {
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -51,15 +65,12 @@ public class MetadataSchemaValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean readXMLMetadataSchemaLevel() {
-    try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = METADATA_XML;
-      String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema";
-
-      NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
+    try {
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/ns:schemas/ns:schema", XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element schema = (Element) nodes.item(i);
-
         String name = MetadataXMLUtils.getChildTextContext(schema, Constants.NAME);
         String folder = MetadataXMLUtils.getChildTextContext(schema, Constants.FOLDER);
         String tables = MetadataXMLUtils.getChildTextContext(schema, Constants.TABLES);
@@ -71,8 +82,10 @@ public class MetadataSchemaValidator extends MetadataValidator {
         // return false;
         // }
 
-        if (!validateSchemaName(name) || !validateSchemaFolder(name, folder)
-          || !validateSchemaDescription(name, description) || !validateSchemaTable(name, tables)) {
+        String path = buildPath(Constants.SCHEMA, name);
+
+        if (!validateSchemaName(name, path) || !validateSchemaFolder(folder, path)
+          || !validateSchemaDescription(description, path) || !validateSchemaTable(tables, path)) {
           break;
         }
       }
@@ -92,8 +105,8 @@ public class MetadataSchemaValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateSchemaName(String name) {
-    return validateXMLField(M_521_1, name, Constants.NAME, true, true, Constants.SCHEMA, name);
+  private boolean validateSchemaName(String name, String path) {
+    return validateXMLField(M_521_1, name, Constants.NAME, true, true, path);
   }
 
   /**
@@ -102,8 +115,8 @@ public class MetadataSchemaValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateSchemaFolder(String schema, String folder) {
-    return validateXMLField(M_521_2, folder, Constants.FOLDER, true, true, Constants.SCHEMA, schema);
+  private boolean validateSchemaFolder(String folder, String path) {
+    return validateXMLField(M_521_2, folder, Constants.FOLDER, true, true, path);
   }
 
   /**
@@ -112,8 +125,8 @@ public class MetadataSchemaValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateSchemaDescription(String schema, String description) {
-    return validateXMLField(M_521_4, description, Constants.DESCRIPTION, false, true, Constants.SCHEMA, schema);
+  private boolean validateSchemaDescription(String description, String path) {
+    return validateXMLField(M_521_4, description, Constants.DESCRIPTION, false, true, path);
   }
 
   /**
@@ -122,7 +135,7 @@ public class MetadataSchemaValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateSchemaTable(String schema, String tablesList) {
-    return validateXMLField(M_521_5, tablesList, Constants.TABLES, true, false, Constants.SCHEMA, schema);
+  private boolean validateSchemaTable(String tablesList, String path) {
+    return validateXMLField(M_521_5, tablesList, Constants.TABLES, true, false, path);
   }
 }

@@ -14,6 +14,8 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 
 /**
@@ -29,6 +31,7 @@ public class MetadataTriggerValidator extends MetadataValidator {
   private static final String M_513_1_5 = "M_5.13-1-5";
   private static final String M_513_1_6 = "M_5.13-1-6";
 
+  private static final String TRIGGER = "trigger";
   private static final String TRIGGER_ACTION_TIME = "actionTime";
   private static final String TRIGGER_EVENT = "triggerEvent";
   private static final String TRIGGER_TRIGGERED_ACTION = "triggeredAction";
@@ -45,17 +48,31 @@ public class MetadataTriggerValidator extends MetadataValidator {
   }
 
   @Override
-  public boolean validate() {
+  public boolean validate() throws ModuleException {
+    if (preValidationRequirements())
+      return false;
     getValidationReporter().moduleValidatorHeader(M_513, MODULE_NAME);
-    readXMLMetadataTriggerLevel();
 
-    return reportValidations(M_513_1) && reportValidations(M_513_1_1) && reportValidations(M_513_1_2)
-      && reportValidations(M_513_1_3) && reportValidations(M_513_1_5) && reportValidations(M_513_1_6);
+    readXMLMetadataTriggerLevel();
+    if (!readXMLMetadataTriggerLevel()) {
+      reportValidations(M_513, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
+    closeZipFile();
+
+    if (reportValidations(M_513_1, MODULE_NAME) && reportValidations(M_513_1_1, MODULE_NAME)
+      && reportValidations(M_513_1_2, MODULE_NAME) && reportValidations(M_513_1_3, MODULE_NAME)
+      && reportValidations(M_513_1_5, MODULE_NAME) && reportValidations(M_513_1_6, MODULE_NAME)) {
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+      return true;
+    }
+    return false;
   }
 
   private boolean readXMLMetadataTriggerLevel() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = METADATA_XML;
+      String pathToEntry = validatorPathStrategy.getMetadataXMLPath();
       String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:triggers/ns:trigger";
 
       NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
@@ -65,22 +82,23 @@ public class MetadataTriggerValidator extends MetadataValidator {
         String table = MetadataXMLUtils.getParentNameByTagName(trigger, Constants.NAME);
         String schema = MetadataXMLUtils.getParentNameByTagName(trigger, Constants.NAME);
         String name = MetadataXMLUtils.getChildTextContext(trigger, Constants.NAME);
+        String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, TRIGGER, name);
 
-        if (!validateTriggerName(name, schema, table))
+        if (!validateTriggerName(name, path))
           break;
 
         String triggerActionTime = MetadataXMLUtils.getChildTextContext(trigger, TRIGGER_ACTION_TIME);
-        if (!validateTriggerActionTime(triggerActionTime, schema, table, name))
+        if (!validateTriggerActionTime(triggerActionTime, path))
           break;
         String triggerEvent = MetadataXMLUtils.getChildTextContext(trigger, TRIGGER_EVENT);
-        if (!validateTriggerEvent(triggerEvent, schema, table, name))
+        if (!validateTriggerEvent(triggerEvent, path))
           break;
         String triggeredAction = MetadataXMLUtils.getChildTextContext(trigger, TRIGGER_TRIGGERED_ACTION);
-        if (!validateTriggerTriggeredAction(triggeredAction, schema, table, name))
+        if (!validateTriggerTriggeredAction(triggeredAction, path))
           break;
 
         String description = MetadataXMLUtils.getChildTextContext(trigger, Constants.DESCRIPTION);
-        if (!validateTriggerDescription(description, schema, table, name))
+        if (!validateTriggerDescription(description, path))
           break;
       }
 
@@ -97,13 +115,12 @@ public class MetadataTriggerValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateTriggerName(String name, String schema, String table) {
-    if (!validateXMLField(M_513_1, name, Constants.NAME, true, false, Constants.SCHEMA, schema, Constants.TABLE,
-      table)) {
+  private boolean validateTriggerName(String name, String path) {
+    if (!validateXMLField(M_513_1, name, Constants.NAME, true, false, path)) {
       return false;
     }
     if (!checkDuplicates.add(name)) {
-      setError(M_513_1_1, String.format("Trigger name %s inside %s.%s must be unique", name, schema, table));
+      setError(M_513_1_1, String.format("Trigger name %s must be unique (%s)", name, path));
       return false;
     }
     return true;
@@ -115,9 +132,8 @@ public class MetadataTriggerValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateTriggerActionTime(String actionTime, String schema, String table, String name) {
-    return validateXMLField(M_513_1_2, actionTime, TRIGGER_ACTION_TIME, true, false, Constants.SCHEMA, schema,
-      Constants.TABLE, table, Constants.NAME, name);
+  private boolean validateTriggerActionTime(String actionTime, String path) {
+    return validateXMLField(M_513_1_2, actionTime, TRIGGER_ACTION_TIME, true, false, path);
   }
 
   /**
@@ -126,9 +142,8 @@ public class MetadataTriggerValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateTriggerEvent(String event, String schema, String table, String name) {
-    return validateXMLField(M_513_1_3, event, TRIGGER_EVENT, true, false, Constants.SCHEMA, schema, Constants.TABLE,
-      table, Constants.NAME, name);
+  private boolean validateTriggerEvent(String event, String path) {
+    return validateXMLField(M_513_1_3, event, TRIGGER_EVENT, true, false, path);
   }
 
   /**
@@ -137,9 +152,8 @@ public class MetadataTriggerValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateTriggerTriggeredAction(String triggeredAction, String schema, String table, String name) {
-    return validateXMLField(M_513_1_5, triggeredAction, TRIGGER_TRIGGERED_ACTION, true, false, Constants.SCHEMA, schema,
-      Constants.TABLE, table, Constants.NAME, name);
+  private boolean validateTriggerTriggeredAction(String triggeredAction, String path) {
+    return validateXMLField(M_513_1_5, triggeredAction, TRIGGER_TRIGGERED_ACTION, true, false, path);
   }
 
   /**
@@ -148,9 +162,8 @@ public class MetadataTriggerValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateTriggerDescription(String description, String schema, String table, String name) {
-    return validateXMLField(M_513_1_6, description, Constants.DESCRIPTION, false, true, Constants.SCHEMA, schema,
-      Constants.TABLE, table, Constants.NAME, name);
+  private boolean validateTriggerDescription(String description, String path) {
+    return validateXMLField(M_513_1_6, description, Constants.DESCRIPTION, false, true, path);
   }
 
 }

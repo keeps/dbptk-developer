@@ -8,12 +8,14 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -61,32 +63,46 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
   }
 
   @Override
-  public boolean validate() {
+  public boolean validate() throws ModuleException {
+    if (preValidationRequirements())
+      return false;
+
     getValidationReporter().moduleValidatorHeader(M_520, MODULE_NAME);
 
     if (!readXMLMetadataPrivilegeLevel()) {
-      setError(M_520_1, "Cannot read privileges");
+      reportValidations(M_520_1, MODULE_NAME);
+      closeZipFile();
+      return false;
     }
+    closeZipFile();
 
-    return reportValidations(M_520_1) && reportValidations(M_520_1_1) && reportValidations(M_520_1_2)
-      && reportValidations(M_520_1_3) && reportValidations(M_520_1_4) && reportValidations(M_520_1_5)
-      && reportValidations(M_520_1_6);
+    if (reportValidations(M_520_1, MODULE_NAME) && reportValidations(M_520_1_1, MODULE_NAME)
+      && reportValidations(M_520_1_2, MODULE_NAME) && reportValidations(M_520_1_3, MODULE_NAME)
+      && reportValidations(M_520_1_4, MODULE_NAME) && reportValidations(M_520_1_5, MODULE_NAME)
+      && reportValidations(M_520_1_6, MODULE_NAME)) {
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+      return true;
+    }
+    return false;
   }
 
   private boolean readXMLMetadataPrivilegeLevel() {
-    try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = METADATA_XML;
-      String xpathExpression = "/ns:siardArchive/ns:privileges/ns:privilege";
+    try {
+      String pathToEntry = validatorPathStrategy.getMetadataXMLPath();
 
       String xpathExpressionUser = "/ns:siardArchive/ns:users/ns:user/ns:name";
-      users = getXPathResult(zipFile, pathToEntry, xpathExpressionUser, XPathConstants.NODESET, null);
+      users = (NodeList) XMLUtils.getXPathResult(getZipInputStream(pathToEntry), xpathExpressionUser,
+        XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
       String xpathExpressionRoles = "/ns:siardArchive/ns:roles/ns:role/ns:name";
-      roles = getXPathResult(zipFile, pathToEntry, xpathExpressionRoles, XPathConstants.NODESET, null);
+      roles = (NodeList) XMLUtils.getXPathResult(getZipInputStream(pathToEntry), xpathExpressionRoles,
+        XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
       // build list of objects ( SCHEMA.TABLE ) for use on validatePrivilegeObject
       String xpathExpressionObject = "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table";
-      NodeList objectNodes = getXPathResult(zipFile, pathToEntry, xpathExpressionObject, XPathConstants.NODESET, null);
+      NodeList objectNodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(pathToEntry), xpathExpressionObject,
+        XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+
       for (int i = 0; i < objectNodes.getLength(); i++) {
         Element tableElement = (Element) objectNodes.item(i);
         String table = MetadataXMLUtils.getChildTextContext(tableElement, Constants.NAME);
@@ -95,34 +111,37 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
         objectPath.add(schema + OBJECT_SEPARATOR + table);
       }
 
-      NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
+      String xpathExpression = "/ns:siardArchive/ns:privileges/ns:privilege";
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(pathToEntry), xpathExpression,
+        XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element role = (Element) nodes.item(i);
-        String privilegeNode = String.format("Node[%d]", i);
+        String privilegeNode = String.format("Privilege Node[%d]", i);
+        String path = buildPath(PRIVILEGE, privilegeNode);
 
         String type = MetadataXMLUtils.getChildTextContext(role, Constants.TYPE);
-        if (!validatePrivilegeType(type, privilegeNode))
+        if (!validatePrivilegeType(type, path))
           break;
 
         String object = MetadataXMLUtils.getChildTextContext(role, OBJECT);
-        if (!validatePrivilegeObject(object, privilegeNode))
+        if (!validatePrivilegeObject(object, path))
           break;
 
         String grantor = MetadataXMLUtils.getChildTextContext(role, GRANTOR);
-        if (!validatePrivilegeGrantor(grantor, privilegeNode))
+        if (!validatePrivilegeGrantor(grantor, path))
           break;
 
         String grantee = MetadataXMLUtils.getChildTextContext(role, GRANTEE);
-        if (!validatePrivilegeGrantee(grantee, privilegeNode))
+        if (!validatePrivilegeGrantee(grantee, path))
           break;
 
         String option = MetadataXMLUtils.getChildTextContext(role, OPTION);
-        if (!validatePrivilegeOption(option, privilegeNode))
+        if (!validatePrivilegeOption(option, path))
           break;
 
         String description = MetadataXMLUtils.getChildTextContext(role, Constants.DESCRIPTION);
-        if (!validatePrivilegeDescription(description, privilegeNode))
+        if (!validatePrivilegeDescription(description, path))
           break;
       }
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
@@ -139,7 +158,7 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validatePrivilegeType(String type, String privilegeNode) {
-    if (!validateXMLField(M_520_1_1, type, Constants.TYPE, true, false, PRIVILEGE, privilegeNode)) {
+    if (!validateXMLField(M_520_1_1, type, Constants.TYPE, true, false, privilegeNode)) {
       return false;
     }
     switch (type) {
@@ -171,8 +190,7 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
     }
 
     if (!objectPath.contains(path)) {
-      addWarning(M_520_1_2,
-        String.format("Privilege object '%s' inside '%s' not exist on database", path, privilegeNode));
+      addWarning(M_520_1_2, String.format("Privilege object '%s' not exist on database", path), privilegeNode);
     }
 
     return true;
@@ -185,12 +203,11 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validatePrivilegeGrantor(String grantor, String privilegeNode) {
-    if (!validateXMLField(M_520_1_3, grantor, GRANTOR, true, false, PRIVILEGE, privilegeNode)) {
+    if (!validateXMLField(M_520_1_3, grantor, GRANTOR, true, false, privilegeNode)) {
       return false;
     }
     if (!checkIfUserOrRoleExist(grantor)) {
-      addWarning(M_520_1_3,
-        String.format("Grantor %s inside privilege %s should be an existing user or role", grantor, privilegeNode));
+      addWarning(M_520_1_3, String.format("Grantor %s should be an existing user or role", grantor), privilegeNode);
     }
     return true;
   }
@@ -202,12 +219,11 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validatePrivilegeGrantee(String grantee, String privilegeNode) {
-    if (!validateXMLField(M_520_1_4, grantee, GRANTOR, true, false, PRIVILEGE, privilegeNode)) {
+    if (!validateXMLField(M_520_1_4, grantee, GRANTOR, true, false, privilegeNode)) {
       return false;
     }
     if (!checkIfUserOrRoleExist(grantee)) {
-      addWarning(M_520_1_4,
-        String.format("Grantee %s inside privilege %s should be an existing user or role", grantee, privilegeNode));
+      addWarning(M_520_1_4, String.format("Grantee %s should be an existing user or role", grantee), privilegeNode);
     }
     return true;
   }
@@ -223,8 +239,9 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
         case OPTION_GRANT:
           break;
         default:
-          addWarning(M_520_1_5, String.format("option in privilege %s should be %s, %s or empty. Found '%s'",
-            privilegeNode, OPTION_ADMIN, OPTION_GRANT, option));
+          addWarning(M_520_1_5,
+            String.format("option should be %s, %s or empty. Found '%s'", OPTION_ADMIN, OPTION_GRANT, option),
+            privilegeNode);
       }
     }
     return true;
@@ -235,7 +252,7 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
    * than 3 characters. WARNING if it is less than 3 characters
    */
   private boolean validatePrivilegeDescription(String description, String privilegeNode) {
-    return validateXMLField(M_520_1_6, description, Constants.DESCRIPTION, false, true, PRIVILEGE, privilegeNode);
+    return validateXMLField(M_520_1_6, description, Constants.DESCRIPTION, false, true, privilegeNode);
   }
 
   private boolean checkIfUserOrRoleExist(String name) {

@@ -14,6 +14,8 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporter;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -44,25 +46,38 @@ public class MetadataTypeValidator extends MetadataValidator {
   }
 
   @Override
-  public boolean validate() {
+  public boolean validate() throws ModuleException {
+    if (preValidationRequirements())
+      return false;
+
     getValidationReporter().moduleValidatorHeader(M_53, MODULE_NAME);
 
     if (!readXMLMetadataTypeLevel()) {
-      return reportValidations(M_531);
+      reportValidations(M_531, MODULE_NAME);
+      closeZipFile();
+      return false;
     }
+    closeZipFile();
 
     // there is no need to continue the validation if no have types in any schema
     if (typesList.isEmpty()) {
+      getValidationReporter().skipValidation(M_531, "Database has no types");
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
       return true;
     }
 
-    return reportValidations(M_531_1) && reportValidations(M_531_2) && reportValidations(M_531_5)
-      && reportValidations(M_531_6) && reportValidations(M_531_10);
+    if (reportValidations(M_531_1, MODULE_NAME) && reportValidations(M_531_2, MODULE_NAME)
+      && reportValidations(M_531_5, MODULE_NAME) && reportValidations(M_531_6, MODULE_NAME)
+      && reportValidations(M_531_10, MODULE_NAME)) {
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+      return true;
+    }
+    return false;
   }
 
   private boolean readXMLMetadataTypeLevel() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = METADATA_XML;
+      String pathToEntry = validatorPathStrategy.getMetadataXMLPath();
       String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:types/ns:type";
 
       NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
@@ -77,11 +92,12 @@ public class MetadataTypeValidator extends MetadataValidator {
         String category = MetadataXMLUtils.getChildTextContext(type, TYPE_CATEGORY);
         String instantiable = MetadataXMLUtils.getChildTextContext(type, TYPE_INSTANTIABLE);
         String finalField = MetadataXMLUtils.getChildTextContext(type, TYPE_FINAL);
-
         String description = MetadataXMLUtils.getChildTextContext(type, Constants.DESCRIPTION);
-        if (!validateTypeName(schema, name) || !validateTypeCategory(schema, name, category)
-          || !validateTypeInstantiable(schema, name, instantiable) || !validateTypefinal(schema, name, finalField)
-          || !validateTypeDescription(schema, name, description)) {
+
+        String path = buildPath(Constants.SCHEMA, schema, Constants.TYPE, name);
+        if (!validateTypeName(name, path) || !validateTypeCategory(category, path)
+          || !validateTypeInstantiable(instantiable, path) || !validateTypefinal(finalField, path)
+          || !validateTypeDescription(description, path)) {
           break;
         }
       }
@@ -99,8 +115,8 @@ public class MetadataTypeValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateTypeName(String schema, String typeName) {
-    return validateXMLField(M_531_1, typeName, Constants.NAME, true, false, Constants.SCHEMA, schema);
+  private boolean validateTypeName(String typeName, String path) {
+    return validateXMLField(M_531_1, typeName, Constants.NAME, true, false, path);
   }
 
   /**
@@ -109,9 +125,8 @@ public class MetadataTypeValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateTypeCategory(String schema, String typeName, String category) {
-    return validateXMLField(M_531_2, category, TYPE_CATEGORY, true, false, Constants.SCHEMA, schema, Constants.TYPE,
-      typeName);
+  private boolean validateTypeCategory(String category, String path) {
+    return validateXMLField(M_531_2, category, TYPE_CATEGORY, true, false, path);
   }
 
   /**
@@ -121,9 +136,8 @@ public class MetadataTypeValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
 
-  private boolean validateTypeInstantiable(String schema, String typeName, String instantiable) {
-    return validateXMLField(M_531_5, instantiable, TYPE_INSTANTIABLE, true, false, Constants.SCHEMA, schema,
-      Constants.TYPE, typeName);
+  private boolean validateTypeInstantiable(String instantiable, String path) {
+    return validateXMLField(M_531_5, instantiable, TYPE_INSTANTIABLE, true, false, path);
   }
 
   /**
@@ -132,9 +146,8 @@ public class MetadataTypeValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateTypefinal(String schema, String typeName, String typeFinal) {
-    return validateXMLField(M_531_6, typeFinal, TYPE_FINAL, true, false, Constants.SCHEMA, schema, Constants.TYPE,
-      typeName);
+  private boolean validateTypefinal(String typeFinal, String path) {
+    return validateXMLField(M_531_6, typeFinal, TYPE_FINAL, true, false, path);
   }
 
   /**
@@ -142,9 +155,8 @@ public class MetadataTypeValidator extends MetadataValidator {
    * less than 3 characters. WARNING if it is less than 3 characters
    *
    */
-  private boolean validateTypeDescription(String schema, String typeName, String description) {
-    return validateXMLField(M_531_10, description, Constants.DESCRIPTION, false, true, Constants.SCHEMA, schema,
-      Constants.TYPE, typeName);
+  private boolean validateTypeDescription(String description, String path) {
+    return validateXMLField(M_531_10, description, Constants.DESCRIPTION, false, true, path);
   }
 
 }

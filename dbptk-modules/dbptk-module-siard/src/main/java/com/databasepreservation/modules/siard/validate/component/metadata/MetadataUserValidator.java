@@ -1,17 +1,21 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
-import com.databasepreservation.Constants;
-import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import com.databasepreservation.Constants;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -35,31 +39,42 @@ public class MetadataUserValidator extends MetadataValidator {
   }
 
   @Override
-  public boolean validate() {
-    getValidationReporter().moduleValidatorHeader(M_518, MODULE_NAME);
-    if (!readXMLMetadataUserLevel()) {
-      setError(M_518_1, "Cannot read users");
-    }
+  public boolean validate() throws ModuleException {
+    if (preValidationRequirements())
+      return false;
 
-    return reportValidations(M_518_1) && reportValidations(M_518_1_1) && reportValidations(M_518_1_2);
+    getValidationReporter().moduleValidatorHeader(M_518, MODULE_NAME);
+
+    if (!readXMLMetadataUserLevel()) {
+      reportValidations(M_518_1, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
+    closeZipFile();
+
+    if (reportValidations(M_518_1, MODULE_NAME) && reportValidations(M_518_1_1, MODULE_NAME)
+      && reportValidations(M_518_1_2, MODULE_NAME)) {
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+      return true;
+    }
+    return false;
   }
 
   private boolean readXMLMetadataUserLevel() {
-    try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = METADATA_XML;
-      String xpathExpression = "/ns:siardArchive/ns:users/ns:user";
-
-      NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
+    try {
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/ns:users/ns:user", XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element user = (Element) nodes.item(i);
 
         String name = MetadataXMLUtils.getChildTextContext(user, Constants.NAME);
-        if (!validateUserName(name))
+        String path = buildPath(Constants.USER, name);
+        if (!validateUserName(name, path))
           break;
 
         String description = MetadataXMLUtils.getChildTextContext(user, Constants.DESCRIPTION);
-        if (!validateUserDescription(description, name))
+        if (!validateUserDescription(description, path))
           break;
       }
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
@@ -75,12 +90,12 @@ public class MetadataUserValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateUserName(String name) {
-    if (!validateXMLField(M_518_1, name, Constants.NAME, true, false)) {
+  private boolean validateUserName(String name, String path) {
+    if (!validateXMLField(M_518_1, name, Constants.NAME, true, false, path)) {
       return false;
     }
     if (!checkDuplicates.add(name)) {
-      addWarning(M_518_1_1, String.format("User name %s should be unique", name));
+      addWarning(M_518_1_1, String.format("User name %s should be unique", name), path);
     }
     return true;
   }
@@ -91,7 +106,7 @@ public class MetadataUserValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateUserDescription(String description, String name) {
-    return validateXMLField(M_518_1_2, description, Constants.DESCRIPTION, false, true, Constants.USER, name);
+  private boolean validateUserDescription(String description, String path) {
+    return validateXMLField(M_518_1_2, description, Constants.DESCRIPTION, false, true, Constants.USER, path);
   }
 }

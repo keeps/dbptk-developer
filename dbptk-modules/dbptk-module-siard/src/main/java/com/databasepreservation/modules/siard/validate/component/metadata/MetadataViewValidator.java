@@ -8,13 +8,15 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import com.databasepreservation.Constants;
-import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.databasepreservation.Constants;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
+import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -41,20 +43,32 @@ public class MetadataViewValidator extends MetadataValidator {
   }
 
   @Override
-  public boolean validate() {
-    getValidationReporter().moduleValidatorHeader(M_514, MODULE_NAME);
-    readXMLMetadataViewLevel();
+  public boolean validate() throws ModuleException {
+    if (preValidationRequirements())
+      return false;
 
-    return reportValidations(M_514_1) && reportValidations(M_514_1_1) && reportValidations(M_514_1_2)
-      && reportValidations(M_514_1_5);
+    getValidationReporter().moduleValidatorHeader(M_514, MODULE_NAME);
+
+    if (!readXMLMetadataViewLevel()) {
+      reportValidations(M_514_1, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
+    closeZipFile();
+
+    if (reportValidations(M_514_1, MODULE_NAME) && reportValidations(M_514_1_1, MODULE_NAME)
+      && reportValidations(M_514_1_2, MODULE_NAME) && reportValidations(M_514_1_5, MODULE_NAME)) {
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+      return true;
+    }
+    return false;
   }
 
   private boolean readXMLMetadataViewLevel() {
-    try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = METADATA_XML;
-      String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:views/ns:view";
-
-      NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
+    try {
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/ns:schemas/ns:schema/ns:views/ns:view", XPathConstants.NODESET,
+        Constants.NAMESPACE_FOR_METADATA);
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element view = (Element) nodes.item(i);
@@ -62,15 +76,16 @@ public class MetadataViewValidator extends MetadataValidator {
           Constants.NAME);
 
         String name = MetadataXMLUtils.getChildTextContext(view, Constants.NAME);
-        if (!validateViewName(name, schema))
+        String path = buildPath(Constants.SCHEMA, schema, Constants.VIEW, name);
+        if (!validateViewName(name, path))
           break;
 
         NodeList columnsList = view.getElementsByTagName(Constants.COLUMN);
-        if (!validateViewColumn(columnsList, schema, name))
+        if (!validateViewColumn(columnsList, path))
           break;
 
         String description = MetadataXMLUtils.getChildTextContext(view, Constants.DESCRIPTION);
-        if (!validateViewDescription(description, schema, name))
+        if (!validateViewDescription(description, path))
           break;
       }
 
@@ -86,14 +101,14 @@ public class MetadataViewValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateViewName(String name, String schema) {
+  private boolean validateViewName(String name, String path) {
     // M_514_1
-    if (!validateXMLField(M_514_1, name, Constants.NAME, true, false, Constants.SCHEMA, schema)) {
+    if (!validateXMLField(M_514_1, name, Constants.NAME, true, false, path)) {
       return false;
     }
     // M_5.14-1-1
     if (!checkDuplicates.add(name)) {
-      setError(M_514_1_1, String.format("View name %s inside schema %s must be unique", name, schema));
+      setError(M_514_1_1, String.format("View name %s must be unique (%s)", name, path));
       return false;
     }
 
@@ -106,10 +121,9 @@ public class MetadataViewValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateViewColumn(NodeList columns, String schema, String name) {
+  private boolean validateViewColumn(NodeList columns, String path) {
     if (columns.getLength() < MIN_COLUMN_COUNT) {
-      setError(M_514_1_2,
-        String.format("View '%s' must have at least '%d' column inside schema:'%s'", name, MIN_COLUMN_COUNT, schema));
+      setError(M_514_1_2, String.format("View must have at least '%d' column (%s)", MIN_COLUMN_COUNT, path));
     }
     return true;
   }
@@ -120,8 +134,8 @@ public class MetadataViewValidator extends MetadataValidator {
    * 
    * @return true if valid otherwise false
    */
-  private boolean validateViewDescription(String description, String schema, String name) {
-    return validateXMLField(M_514_1_5, description, Constants.DESCRIPTION, false, true, Constants.SCHEMA, schema, Constants.NAME, name);
+  private boolean validateViewDescription(String description, String path) {
+    return validateXMLField(M_514_1_5, description, Constants.DESCRIPTION, false, true, path);
   }
 
 }

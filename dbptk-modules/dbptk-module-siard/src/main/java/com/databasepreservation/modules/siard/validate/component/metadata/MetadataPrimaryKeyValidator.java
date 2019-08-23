@@ -13,11 +13,14 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import com.databasepreservation.Constants;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import com.databasepreservation.Constants;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporter;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -43,18 +46,31 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
   }
 
   @Override
-  public boolean validate() {
+  public boolean validate() throws ModuleException {
+    if (preValidationRequirements())
+      return false;
+
     getValidationReporter().moduleValidatorHeader(M_58, MODULE_NAME);
 
-    readXMLMetadataPrimaryKeyLevel();
+    if (!readXMLMetadataPrimaryKeyLevel()) {
+      reportValidations(M_581, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
+    closeZipFile();
 
-    return reportValidations(M_581) && reportValidations(M_581_1) && reportValidations(M_581_2)
-      && reportValidations(M_581_3);
+    if (reportValidations(M_581, MODULE_NAME) && reportValidations(M_581_1, MODULE_NAME)
+      && reportValidations(M_581_2, MODULE_NAME) && reportValidations(M_581_3, MODULE_NAME)) {
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+      return true;
+    }
+
+    return false;
   }
 
   private boolean readXMLMetadataPrimaryKeyLevel() {
     try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = METADATA_XML;
+      String pathToEntry = validatorPathStrategy.getMetadataXMLPath();
       String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table";
 
       NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
@@ -115,7 +131,8 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
             break;
 
           String description = MetadataXMLUtils.getChildTextContext(primaryKey, Constants.DESCRIPTION);
-          if (!validatePrimaryKeyDescription(schema, table, name, description))
+          String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.PRIMARY_KEY, name);
+          if (!validatePrimaryKeyDescription(description, path))
             break;
 
         }
@@ -182,7 +199,7 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
     }
 
     if (name.contains(BLANK)) {
-      addWarning(M_581_1, "Primary key " + name + " contain blanks in name");
+      addWarning(M_581_1, "Primary key " + name + " contain blanks in name", name);
     }
     return true;
   }
@@ -208,8 +225,7 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
    * M_5.8-1-3 The primary key description in SIARD file must not be less than 3
    * characters. WARNING if it is less than 3 characters
    */
-  private boolean validatePrimaryKeyDescription(String schema, String table, String name, String description) {
-    return validateXMLField(M_581_3, description, Constants.DESCRIPTION, false, true, Constants.SCHEMA, schema,
-      Constants.TABLE, table, Constants.PRIMARY_KEY, name);
+  private boolean validatePrimaryKeyDescription(String description, String path) {
+    return validateXMLField(M_581_3, description, Constants.DESCRIPTION, false, true, path);
   }
 }

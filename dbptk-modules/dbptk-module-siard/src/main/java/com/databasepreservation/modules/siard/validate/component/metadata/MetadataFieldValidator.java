@@ -6,11 +6,14 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import com.databasepreservation.Constants;
-import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import com.databasepreservation.Constants;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -34,18 +37,32 @@ public class MetadataFieldValidator extends MetadataValidator {
   }
 
   @Override
-  public boolean validate() {
-    getValidationReporter().moduleValidatorHeader(M_57, MODULE_NAME);
-    readXMLMetadataFieldLevel();
+  public boolean validate() throws ModuleException {
+    if (preValidationRequirements())
+      return false;
 
-    return reportValidations(M_571) && reportValidations(M_571_5);
+    getValidationReporter().moduleValidatorHeader(M_57, MODULE_NAME);
+
+    if (!readXMLMetadataFieldLevel()) {
+      reportValidations(M_571, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
+    closeZipFile();
+
+    if (reportValidations(M_571, MODULE_NAME) && reportValidations(M_571_5, MODULE_NAME)) {
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+      return true;
+    }
+
+    return false;
   }
 
   private boolean readXMLMetadataFieldLevel() {
-    try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = METADATA_XML;
-      String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column/ns:fields/ns:field";
-      NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
+    try {
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column/ns:fields/ns:field",
+        XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
       if (nodes == null) {
         return true;
@@ -65,13 +82,16 @@ public class MetadataFieldValidator extends MetadataValidator {
 
         // * M_5.7-1 The field name in SIARD is mandatory.
         if (name == null || name.isEmpty()) {
-          setError(M_571,
-            "Field name cannot be null on " + MetadataXMLUtils.createPath(schemaName, tableName, columnName));
+          setError(M_571, String.format("Field name cannot be null (%s)",
+            buildPath(Constants.SCHEMA, schemaName, Constants.TABLE, tableName, Constants.COLUMN, columnName)));
           return false;
         }
 
+        String path = buildPath(Constants.SCHEMA, schemaName, Constants.TABLE, tableName, Constants.COLUMN, columnName,
+          FIELD, name);
+
         String description = MetadataXMLUtils.getChildTextContext(field, Constants.DESCRIPTION);
-        if (!validateFieldDescription(schemaName, tableName, columnName, name, description))
+        if (!validateFieldDescription(description, path))
           break;
       }
 
@@ -86,10 +106,8 @@ public class MetadataFieldValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateFieldDescription(String schema, String table, String column, String field,
-    String description) {
-    return validateXMLField(M_571_5, description, Constants.DESCRIPTION, false, true, Constants.SCHEMA, schema,
-      Constants.TABLE, table, Constants.COLUMN, column, FIELD, field);
+  private boolean validateFieldDescription(String description, String path) {
+    return validateXMLField(M_571_5, description, Constants.DESCRIPTION, false, true, path);
   }
 
 }

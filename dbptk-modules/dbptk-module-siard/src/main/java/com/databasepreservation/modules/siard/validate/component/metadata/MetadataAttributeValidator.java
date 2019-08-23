@@ -8,11 +8,14 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import com.databasepreservation.Constants;
-import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import com.databasepreservation.Constants;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -36,34 +39,49 @@ public class MetadataAttributeValidator extends MetadataValidator {
   }
 
   @Override
-  public boolean validate() {
+  public boolean validate() throws ModuleException {
+    if (preValidationRequirements())
+      return false;
+
     getValidationReporter().moduleValidatorHeader(M_54, MODULE_NAME);
 
     if (!readXMLMetadataAttributeLevel()) {
-      return reportValidations(M_541);
+      reportValidations(M_541, MODULE_NAME);
+      closeZipFile();
+      return false;
     }
+    closeZipFile();
 
     // there is no need to continue the validation if no have attributes in any type
     // field of schema
     if (attributeList.isEmpty()) {
+      getValidationReporter().skipValidation(M_541, "Database has no attributes");
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
       return true;
     }
 
-    return reportValidations(M_541_1) && reportValidations(M_541_8);
+    if (reportValidations(M_541_1, MODULE_NAME) && reportValidations(M_541_8, MODULE_NAME)) {
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+      return true;
+    }
+
+    return false;
   }
 
   private boolean readXMLMetadataAttributeLevel() {
-    try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = METADATA_XML;
-      String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:types/ns:type";
+    if (preValidationRequirements())
+      return false;
 
-      NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
+    try {
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/ns:schemas/ns:schema/ns:types/ns:type", XPathConstants.NODESET,
+        Constants.NAMESPACE_FOR_METADATA);
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element type = (Element) nodes.item(i);
         String typeName = MetadataXMLUtils.getChildTextContext(type, Constants.NAME);
         String schema = MetadataXMLUtils.getChildTextContext((Element) type.getParentNode().getParentNode(), "name");
-
+        String path = buildPath(Constants.SCHEMA, schema, Constants.TYPE, typeName);
         NodeList attributesNode = type.getElementsByTagName(Constants.ATTRIBUTE);
         for (int j = 0; j < attributesNode.getLength(); j++) {
           Element attribute = (Element) attributesNode.item(j);
@@ -72,14 +90,14 @@ public class MetadataAttributeValidator extends MetadataValidator {
           String attributeName = MetadataXMLUtils.getChildTextContext(attribute, Constants.NAME);
           String description = MetadataXMLUtils.getChildTextContext(attribute, Constants.DESCRIPTION);
 
-          if (!validateAttributeName(schema, typeName, attributeName)
-            || !validateAttributeDescription(schema, typeName, attributeName, description)) {
+          if (!validateAttributeName(attributeName, path)
+            || !validateAttributeDescription(description, path + buildPath(Constants.ATTRIBUTE, attributeName))) {
             break;
           }
         }
       }
 
-    } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
+    } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
       return false;
     }
 
@@ -91,16 +109,15 @@ public class MetadataAttributeValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateAttributeName(String schema, String type, String name) {
-    return validateXMLField(M_541_1, name, Constants.NAME, true, false, Constants.SCHEMA, schema, Constants.TYPE, type);
+  private boolean validateAttributeName(String name, String path) {
+    return validateXMLField(M_541_1, name, Constants.NAME, true, false, path);
   }
 
   /**
    * M_5.4-1-8 The attribute description in SIARD file must not be less than 3
    * characters. WARNING if it is less than 3 characters
    */
-  private boolean validateAttributeDescription(String schema, String type, String attributeName, String description) {
-    return validateXMLField(M_541_8, description, Constants.DESCRIPTION, false, true, Constants.SCHEMA, schema,
-      Constants.TYPE, type, Constants.ATTRIBUTE, attributeName);
+  private boolean validateAttributeDescription(String description, String path) {
+    return validateXMLField(M_541_8, description, Constants.DESCRIPTION, false, true, path);
   }
 }

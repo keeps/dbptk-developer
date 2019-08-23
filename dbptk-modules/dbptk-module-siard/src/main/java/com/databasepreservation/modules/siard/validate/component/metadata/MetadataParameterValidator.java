@@ -8,11 +8,14 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import com.databasepreservation.Constants;
-import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import com.databasepreservation.Constants;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -25,6 +28,7 @@ public class MetadataParameterValidator extends MetadataValidator {
   private static final String M_516_1_2 = "M_5.16-1-2";
   private static final String M_516_1_8 = "M_5.16-1-8";
 
+  private static final String PARAMETER = "parameter";
   private static final String PARAMETER_MODE = "mode";
   private static final String IN = "IN";
   private static final String OUT = "OUT";
@@ -42,35 +46,48 @@ public class MetadataParameterValidator extends MetadataValidator {
   }
 
   @Override
-  public boolean validate() {
-    getValidationReporter().moduleValidatorHeader(M_516, MODULE_NAME);
-    readXMLMetadataParameterLevel();
+  public boolean validate() throws ModuleException {
+    if (preValidationRequirements())
+      return false;
 
-    return reportValidations(M_516_1) && reportValidations(M_516_1_1) && reportValidations(M_516_1_2)
-      && reportValidations(M_516_1_8);
+    getValidationReporter().moduleValidatorHeader(M_516, MODULE_NAME);
+
+    if (!readXMLMetadataParameterLevel()) {
+      reportValidations(M_516_1, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
+    closeZipFile();
+
+    if (reportValidations(M_516_1, MODULE_NAME) && reportValidations(M_516_1_1, MODULE_NAME)
+      && reportValidations(M_516_1_2, MODULE_NAME) && reportValidations(M_516_1_8, MODULE_NAME)) {
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+      return true;
+    }
+    return false;
   }
 
   private boolean readXMLMetadataParameterLevel() {
-    try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = METADATA_XML;
-      String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:routines/ns:routine/ns:parameters/ns:parameter";
-
-      NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
+    try {
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/ns:schemas/ns:schema/ns:routines/ns:routine/ns:parameters/ns:parameter",
+        XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
       for (int i = 0; i < nodes.getLength(); i++) {
-        Element view = (Element) nodes.item(i);
-        String schema = MetadataXMLUtils.getParentNameByTagName(view, Constants.SCHEMA);
+        Element parameter = (Element) nodes.item(i);
+        String schema = MetadataXMLUtils.getParentNameByTagName(parameter, Constants.SCHEMA);
 
-        String name = MetadataXMLUtils.getChildTextContext(view, Constants.NAME);
-        if (!validateParameterName(name, schema))
+        String name = MetadataXMLUtils.getChildTextContext(parameter, Constants.NAME);
+        String path = buildPath(Constants.SCHEMA, schema, PARAMETER, name);
+        if (!validateParameterName(name, path))
           break;
 
-        String mode = MetadataXMLUtils.getChildTextContext(view, PARAMETER_MODE);
-        if (!validateParameterMode(mode, schema, name))
+        String mode = MetadataXMLUtils.getChildTextContext(parameter, PARAMETER_MODE);
+        if (!validateParameterMode(mode, path))
           break;
 
-        String description = MetadataXMLUtils.getChildTextContext(view, Constants.DESCRIPTION);
-        if (!validateParameterDescription(description, schema, name))
+        String description = MetadataXMLUtils.getChildTextContext(parameter, Constants.DESCRIPTION);
+        if (!validateParameterDescription(description, path))
           break;
       }
 
@@ -85,14 +102,14 @@ public class MetadataParameterValidator extends MetadataValidator {
    * is empty or not unique
    *
    */
-  private boolean validateParameterName(String name, String schema) {
+  private boolean validateParameterName(String name, String path) {
     // M_516_1
     if (name == null || name.isEmpty()) {
-      addWarning(M_516_1, String.format("Parameter name should exist inside schema %s", schema));
+      addWarning(M_516_1, "Parameter name should exist", path);
     }
     // M_5.16-1-1
     if (!checkDuplicates.add(name)) {
-      addWarning(M_516_1_1, String.format("Parameter name %s inside schema %s should be unique", name, schema));
+      addWarning(M_516_1_1, String.format("Parameter name %s should be unique", name), path);
     }
 
     return true;
@@ -103,15 +120,14 @@ public class MetadataParameterValidator extends MetadataValidator {
    * mandatory. WARNING when it is empty
    *
    */
-  private boolean validateParameterMode(String mode, String schema, String name) {
+  private boolean validateParameterMode(String mode, String path) {
     switch (mode) {
       case IN:
       case OUT:
       case INOUT:
         break;
       default:
-        addWarning(M_516_1_2,
-          String.format("Parameter '%s' mode '%s' inside schema '%s' is not allowed", name, mode, schema));
+        addWarning(M_516_1_2, String.format("Mode '%s' is not allowed", mode), path);
         return false;
     }
     return true;
@@ -121,8 +137,7 @@ public class MetadataParameterValidator extends MetadataValidator {
    * M_5.16-1-8 The parameter description in SIARD file must not be less than 3
    * characters. WARNING if it is less than 3 characters
    */
-  private boolean validateParameterDescription(String description, String schema, String name) {
-    return validateXMLField(M_516_1_8, description, Constants.DESCRIPTION, false, true, Constants.SCHEMA, schema,
-      Constants.NAME, name);
+  private boolean validateParameterDescription(String description, String path) {
+    return validateXMLField(M_516_1_8, description, Constants.DESCRIPTION, false, true, path);
   }
 }
