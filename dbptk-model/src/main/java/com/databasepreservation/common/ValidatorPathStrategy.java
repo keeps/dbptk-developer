@@ -31,7 +31,7 @@ public interface ValidatorPathStrategy {
 
   String getTableFolder(String schemaName, String tableName);
 
-  boolean isInitialized();
+  boolean isReady();
 
   String getSIARDVersionPath();
 }

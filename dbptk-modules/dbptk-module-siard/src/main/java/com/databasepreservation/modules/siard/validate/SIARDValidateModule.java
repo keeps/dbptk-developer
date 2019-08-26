@@ -85,7 +85,7 @@ public class SIARDValidateModule implements ValidateModule {
    *           Generic module exception
    */
   @Override
-  public void validate() throws ModuleException {
+  public boolean validate() throws ModuleException {
 
     List<ValidatorComponent> components = getValidationComponents();
 
@@ -96,8 +96,15 @@ public class SIARDValidateModule implements ValidateModule {
       component.setValidatorPathStrategy(validatorPathStrategy);
       component.setAllowedUTD(allowedUDTs);
       component.setup();
-      final boolean validate = component.validate();
+      if (!component.validate())  {
+        validationReporter.close();
+        return false;
+      }
     }
+
+    validationReporter.close();
+
+    return true;
 
     /*
      * final ZipConstructionValidator zipConstructionValidation =
@@ -217,12 +224,6 @@ public class SIARDValidateModule implements ValidateModule {
      * startValidation(MetadataRoleValidator.newInstance());
      * startValidation(MetadataPrivilegeValidator.newInstance());
      */
-
-    try {
-      validationReporter.close();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
   }
   /*
    * private void startValidation(ValidatorComponentImpl module) throws

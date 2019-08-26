@@ -53,6 +53,12 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
   private static final String P_4311 = "P_4.3-11";
   private static final String P_4312 = "P_4.3-12";
 
+  private List<String> P_431_ERRORS = new ArrayList<>();
+  private List<String> P_432_ERRORS = new ArrayList<>();
+  private List<String> P_433_ERRORS = new ArrayList<>();
+  private List<String> P_434_ERRORS = new ArrayList<>();
+  private List<String> P_435_ERRORS = new ArrayList<>();
+
   private static HashMap<String, List<String>> SQL2008TypeMatchXMLType;
   private HashMap<String, HashMap<String, String>> sql2008Type = new HashMap<>();
   private HashMap<String, HashMap<String, String>> arrayType = new HashMap<>();
@@ -121,7 +127,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     if (validateMetadataStructure()) {
       getValidationReporter().validationStatus(P_431, Status.OK);
     } else {
-      validationFailed(P_431, MODULE_NAME);
+      validationFailed(P_431, MODULE_NAME, "the metadata.xml must be identical to that in the content/", "Invalid path",
+        P_431_ERRORS);
       closeZipFile();
       return false;
     }
@@ -129,7 +136,9 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     if (validateColumnCount()) {
       getValidationReporter().validationStatus(P_432, Status.OK);
     } else {
-      validationFailed(P_432, MODULE_NAME);
+      validationFailed(P_432, MODULE_NAME,
+        "number of columns in a table specified in metadata.xml must be identical to that in the corresponding table[number].xsd file",
+        "Invalid table", P_432_ERRORS);
       closeZipFile();
       return false;
     }
@@ -137,7 +146,9 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     if (validateDataTypeInformation()) {
       getValidationReporter().validationStatus(P_433, Status.OK);
     } else {
-      validationFailed(P_433, MODULE_NAME);
+      validationFailed(P_433, MODULE_NAME,
+        "The data type information on the column definitions in metadata.xml must be identical to that in the corresponding table[number].xsd file",
+        "Invalid data type", P_433_ERRORS);
       closeZipFile();
       return false;
     }
@@ -155,7 +166,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         getValidationReporter().validationStatus(P_434, Status.OK);
       }
     } else {
-      validationFailed(P_434, MODULE_NAME);
+      validationFailed(P_434, MODULE_NAME, "", "Invalid data type", P_434_ERRORS);
       closeZipFile();
       return false;
     }
@@ -163,7 +174,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     if (validateNumberOfRows()) {
       getValidationReporter().validationStatus(P_435, Status.OK);
     } else {
-      validationFailed(P_435, MODULE_NAME);
+      validationFailed(P_435, MODULE_NAME, "", "Invalid path", P_435_ERRORS);
       closeZipFile();
       return false;
     }
@@ -259,7 +270,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
           String tableFolderName = table.getElementsByTagName("folder").item(0).getTextContent();
           final String pathToValidate = createPath("content", schemaFolderName, tableFolderName);
           if (!checkRelativePathExists(pathToValidate)) {
-            return false;
+            P_431_ERRORS.add(pathToValidate);
           }
         }
       }
@@ -267,7 +278,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       return false;
     }
 
-    return true;
+    return P_431_ERRORS.isEmpty();
   }
 
   /**
@@ -315,14 +326,14 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         int value = Integer.parseInt(evaluate);
 
         if (!columnCount.get(path).equals(value)) {
-          return false;
+          P_432_ERRORS.add(XSDPath);
         }
       }
     } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
       return false;
     }
 
-    return true;
+    return P_432_ERRORS.isEmpty();
   }
 
   /**
@@ -339,15 +350,14 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
 
     for (Map.Entry<String, HashMap<String, String>> entry : sql2008Type.entrySet()) {
       try {
-        if (!compareSQL2008DataTypeWithXMLType(entry.getKey(), entry.getValue())) {
-          return false;
-        }
+        final List<String> errors = compareSQL2008DataTypeWithXMLType(entry.getKey(), entry.getValue());
+        P_433_ERRORS.addAll(errors);
       } catch (SAXException | ParserConfigurationException | IOException | XPathExpressionException e) {
         return false;
       }
     }
 
-    return true;
+    return P_433_ERRORS.isEmpty();
   }
 
   /**
@@ -387,17 +397,23 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
             }
           }
         }
-      } // Compare to the base type with the XML type from table[number].xsd
-      for (Map.Entry<String, HashMap<String, String>> entry : distinctTypes.entrySet()) {
-        if (!compareSQL2008DataTypeWithXMLType(entry.getKey(), entry.getValue()))
-          return false;
+      }
+
+      if (distinctTypes.isEmpty()) {
+        skipped.add("No distinct type found");
+      } else {
+        // Compare to the base type with the XML type from table[number].xsd
+        for (Map.Entry<String, HashMap<String, String>> entry : distinctTypes.entrySet()) {
+          final List<String> errors = compareSQL2008DataTypeWithXMLType(entry.getKey(), entry.getValue());
+          P_434_ERRORS.addAll(errors);
+        }
       }
 
     } catch (SAXException | ParserConfigurationException | IOException | XPathExpressionException e) {
       return false;
     }
 
-    return true;
+    return P_434_ERRORS.isEmpty();
   }
 
   /**
@@ -428,14 +444,18 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         String count = (String) XMLUtils.getXPathResult(zipInputStream, "count(/ns:table/ns:row)",
           XPathConstants.STRING, Constants.NAMESPACE_FOR_TABLE);
         if (entry.getValue() != Integer.parseInt(count)) {
-          return false;
+          String message = "Found $1 rows in $2 but expected were $3 rows";
+          message = message.replace("$1", count);
+          message = message.replace("$2", XMLPath);
+          message = message.replace("$3", String.valueOf(entry.getValue()));
+          P_435_ERRORS.add(message);
         }
       }
     } catch (ParserConfigurationException | IOException | XPathExpressionException | SAXException e) {
       return false;
     }
 
-    return true;
+    return P_435_ERRORS.isEmpty();
   }
 
   /**
@@ -1015,8 +1035,9 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     return true;
   }
 
-  private boolean compareSQL2008DataTypeWithXMLType(String path, HashMap<String, String> map)
+  private List<String> compareSQL2008DataTypeWithXMLType(String path, HashMap<String, String> map)
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+    List<String> errors = new ArrayList<>();
     String XSDPath = path.concat(Constants.XSD_EXTENSION);
     final NodeList nodeList = (NodeList) XMLUtils.getXPathResult(getZipInputStream(XSDPath),
       "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element", XPathConstants.NODESET, null);
@@ -1040,12 +1061,25 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       String columnName = item.getAttributes().getNamedItem("name").getNodeValue();
       if (map.get(columnName) != null) {
         if (!validateSQL2008TypeWithXMLType(map.get(columnName), XMLType)) {
-          return false;
+          String message;
+          if (SQL2008TypeMatchXMLType.get(map.get(columnName)) == null) {
+            message = "'$1' type is not a valid SQL:2008 type";
+            message = message.replace("$1", map.get(columnName));
+          } else {
+            final List<String> strings = SQL2008TypeMatchXMLType.get(map.get(columnName));
+            message = "For '$1' type expected '$2' but found '$3' in $4 at $5";
+            message = message.replace("$1", map.get(columnName));
+            message = message.replace("$2", strings.toString());
+            message = message.replace("$3", XMLType);
+            message = message.replace("$4", columnName);
+            message = message.replace("$5", XSDPath);
+          }
+          errors.add(message);
         }
       }
     }
 
-    return true;
+    return errors;
   }
 
   private boolean checkRelativePathExists(final String pathToValidate) {

@@ -25,6 +25,8 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.utils.XMLUtils;
 
+import static com.databasepreservation.model.reporters.ValidationReporter.*;
+
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
@@ -82,9 +84,30 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
     }
   }
 
+  protected void validationFailed(String ID, String moduleName, String details) {
+    validationReporter.validationStatus(ID, Status.ERROR, details);
+    validationReporter.moduleValidatorFinished(moduleName, Status.FAILED);
+  }
+
+  protected void validationFailed(String ID, String moduleName, String details, List<String> errors) {
+    validationReporter.validationStatus(ID, Status.ERROR, details);
+    for (String error : errors) {
+      validationReporter.validationStatus(Status.ERROR, error, Indent.TAB_2);
+    }
+    validationReporter.moduleValidatorFinished(moduleName, Status.FAILED);
+  }
+
+  protected void validationFailed(String ID, String moduleName, String details, String errorMessage, List<String> errors) {
+    validationReporter.validationStatus(ID, Status.ERROR, details);
+    for (String error : errors) {
+      validationReporter.validationStatus(errorMessage, Status.ERROR, error, Indent.TAB_2);
+    }
+    validationReporter.moduleValidatorFinished(moduleName, Status.FAILED);
+  }
+
   protected void validationFailed(String ID, String moduleName) {
-    validationReporter.validationStatus(ID, ValidationReporter.Status.ERROR);
-    validationReporter.moduleValidatorFinished(moduleName, ValidationReporter.Status.ERROR);
+    validationReporter.validationStatus(ID, Status.ERROR);
+    validationReporter.moduleValidatorFinished(moduleName, Status.FAILED);
   }
 
   protected ZipFile getZipFile() {
@@ -164,15 +187,18 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
    *
    */
   public void setup() throws ModuleException {
-    if (!validatorPathStrategy.isInitialized()) {
+    if (!validatorPathStrategy.isReady()) {
       registerSchemaAndTables();
     }
   }
 
-  private void registerSchemaAndTables() throws ModuleException {
+  private boolean registerSchemaAndTables() throws ModuleException {
+    final InputStream zipInputStream = getZipInputStream(validatorPathStrategy.getMetadataXMLPath());
+    if (zipInputStream == null) {
+      return false;
+    }
     try {
-      NodeList result = (NodeList) XMLUtils.getXPathResult(
-        getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), "/ns:siardArchive/ns:schemas/ns:schema",
+      NodeList result = (NodeList) XMLUtils.getXPathResult(zipInputStream, "/ns:siardArchive/ns:schemas/ns:schema",
         XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
       for (int i = 0; i < result.getLength(); i++) {
@@ -195,5 +221,7 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
     } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
       throw new ModuleException().withMessage("Error registering the schemas and tables").withCause(e);
     }
+
+    return true;
   }
 }

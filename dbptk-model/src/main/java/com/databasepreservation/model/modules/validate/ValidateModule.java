@@ -37,5 +37,5 @@ public interface ValidateModule extends ExceptionNormalizer {
    * @throws ModuleException
    *          Generic module exception
    */
-  void validate() throws ModuleException;
+  boolean validate() throws ModuleException;
 }

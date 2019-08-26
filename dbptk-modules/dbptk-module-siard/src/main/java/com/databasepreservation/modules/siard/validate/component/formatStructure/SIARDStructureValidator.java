@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.databasepreservation.model.exception.ModuleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,11 +30,16 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
   private static final String P_425 = "P_4.2-5";
   private static final String P_426 = "P_4.2-6";
 
+  private List<String> P_421_ERRORS = new ArrayList<>();
+  private List<String> P_422_ERRORS = new ArrayList<>();
+  private List<String> P_423_ERRORS = new ArrayList<>();
+  private List<String> P_426_ERRORS = new ArrayList<>();
+
   public SIARDStructureValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
   }
 
-  public boolean validate() {
+  public boolean validate() throws ModuleException {
     if (preValidationRequirements())
       return false;
 
@@ -42,46 +48,55 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
     if (validateSIARDStructure()) {
       getValidationReporter().validationStatus(P_421, Status.OK);
     } else {
-      validationFailed(P_421, MODULE_NAME);
+      validationFailed(P_421, MODULE_NAME,
+        "No further folders or files are permitted besides the header/ and content/ folders", P_421_ERRORS);
+      closeZipFile();
       return false;
     }
 
     if (validateContentFolderStructure()) {
       getValidationReporter().validationStatus(P_422, Status.OK);
     } else {
-      validationFailed(P_422, MODULE_NAME);
+      validationFailed(P_422, MODULE_NAME, "No other folders or files are permitted inside the content/ folder.",
+        P_422_ERRORS);
+      closeZipFile();
       return false;
     }
 
     if (validateTableFolderStructure()) {
       getValidationReporter().validationStatus(P_423, Status.OK);
     } else {
-      validationFailed(P_423, MODULE_NAME);
+      validationFailed(P_423, MODULE_NAME, "", P_423_ERRORS);
+      closeZipFile();
       return false;
     }
 
     if (validateRecognitionOfSIARDFormat()) {
       getValidationReporter().validationStatus(P_424, Status.OK);
     } else {
-      validationFailed(P_424, MODULE_NAME);
+      validationFailed(P_424, MODULE_NAME, "Missing the folder to facilitate the recognition of the SIARD format");
+      closeZipFile();
       return false;
     }
 
     if (validateHeaderFolderStructure()) {
       getValidationReporter().validationStatus(P_425, Status.OK);
     } else {
-      validationFailed(P_425, MODULE_NAME);
+      validationFailed(P_425, MODULE_NAME, "The metadata.xml and metadata.xsd files must be present in the header/ folder");
+      closeZipFile();
       return false;
     }
 
     if (validateFilesAndFoldersNames()) {
       getValidationReporter().validationStatus(P_426, Status.OK);
     } else {
-      validationFailed(P_426, MODULE_NAME);
+      validationFailed(P_426, MODULE_NAME, "", P_426_ERRORS);
+      closeZipFile();
       return false;
     }
 
     getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
+    closeZipFile();
 
     return true;
   }
@@ -99,11 +114,11 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
 
     for (String file : getZipFileNames()) {
       if (!file.startsWith("header/") && !file.startsWith("content/")) {
-        return false;
+        P_421_ERRORS.add(file);
       }
     }
 
-    return true;
+    return P_421_ERRORS.isEmpty();
   }
 
   /**
@@ -120,18 +135,23 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
     for (String fileName : getZipFileNames()) {
       if (fileName.startsWith(Constants.SIARD_CONTENT_FOLDER)) {
         Path path = Paths.get(fileName);
+        if (path.getNameCount() == 2) {
+          if (!path.getName(1).toString().matches("schema[0-9]+")) {
+            P_422_ERRORS.add(path.toString());
+          }
+        }
         if (path.getNameCount() >= 3) {
           final Path schema = path.getName(1);
           final Path table = path.getName(2);
           if (!schema.toString().matches("schema[0-9]+"))
-            return false;
+            P_422_ERRORS.add(path.toString());
           if (!table.toString().matches("table[0-9]+"))
-            return false;
+            P_422_ERRORS.add(path.toString());
         }
       }
     }
 
-    return true;
+    return P_422_ERRORS.isEmpty();
   }
 
   /**
@@ -157,36 +177,35 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
           if (tableContent.getNameCount() == 1) { // ex: table1.xml, ignore lob folder
             if (!tableContent.toString().contains("lob")) {
               if (!tableContent.toString().startsWith(tableName)) {
-                return false;
+                P_423_ERRORS.add(path.toString());
               }
               if (path.getFileName().toString().endsWith(Constants.XML_EXTENSION) == path.getFileName().toString()
                 .endsWith(Constants.XSD_EXTENSION)) {
-                return false;
+                P_423_ERRORS.add(path.toString());
               }
             }
           } else if (tableContent.getNameCount() == 2) { // lob5/record1.bin
             if (!tableContent.getParent().toString().matches("lob[0-9]+")) {
-              return false; // parent folder must be lob
+              P_423_ERRORS.add(path.toString()); // parent folder must be lob
             }
 
             if (!tableContent.getFileName().toString().matches("record[0-9]+.*")) {
-              return false; // lob file must be named record
+              P_423_ERRORS.add(path.toString()); // lob file must be named record
             }
 
             final boolean bin = path.getFileName().toString().endsWith(Constants.BIN_EXTENSION);
             final boolean text = path.getFileName().toString().endsWith(Constants.TXT_EXTENSION);
             final boolean xml = path.getFileName().toString().endsWith(Constants.XML_EXTENSION);
 
-            if (!(bin ^ text ^ xml))
-              return false;
+            if (!(bin ^ text ^ xml)) P_423_ERRORS.add(path.toString());
           } else {
-            return false;
+            P_423_ERRORS.add(path.toString());
           }
         }
       }
     }
 
-    return true;
+    return P_423_ERRORS.isEmpty();
   }
 
   /**
@@ -242,13 +261,13 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
 
     if (headers.isEmpty()) return false;
 
-    if (!headers.contains(validatorPathStrategy.getMetadataXMLPath())
-      && !headers.contains(validatorPathStrategy.getMetadataXSDPath())) {
-      return false;
-    }
+    if (!headers.contains(validatorPathStrategy.getMetadataXMLPath())) return false;
+    if (!headers.contains(validatorPathStrategy.getMetadataXSDPath())) return false;
 
     headers.remove(validatorPathStrategy.getMetadataXMLPath());
     headers.remove(validatorPathStrategy.getMetadataXSDPath());
+    headers.remove(Constants.SIARD_HEADER_FOLDER + Constants.RESOURCE_FILE_SEPARATOR);
+    headers.remove(validatorPathStrategy.getSIARDVersionPath());
 
     for (String header : headers) {
       if (!header.endsWith("2.1/") && !header.endsWith("2.0/")) {
@@ -285,19 +304,19 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
         }
       }
 
-      fileName = fileName.replace("/", "");
-      final int lastIndexOf = fileName.lastIndexOf(".");
+      final String replaced = fileName.replace("/", "");
+      final int lastIndexOf = replaced.lastIndexOf(".");
       final String substring;
       if (lastIndexOf != -1) {
-        substring = fileName.substring(0, lastIndexOf);
+        substring = replaced.substring(0, lastIndexOf);
       } else {
-        substring = fileName;
+        substring = replaced;
       }
 
-      if (substring.contains(".")) return false;
-      if (!substring.matches("[A-Za-z0-9_]+")) return false;
+      if (substring.contains(".")) P_426_ERRORS.add(fileName);
+      if (!substring.matches("[A-Za-z0-9_]+")) P_426_ERRORS.add(fileName);
     }
 
-    return true;
+    return P_426_ERRORS.isEmpty();
   }
 }

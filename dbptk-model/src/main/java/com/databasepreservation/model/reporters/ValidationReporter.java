@@ -24,12 +24,18 @@ public class ValidationReporter implements AutoCloseable {
   private BufferedWriter writer;
 
   public enum Status {
-    OK, ERROR, WARNING, SKIPPED, NOTICE, PASSED;
+    OK, ERROR, WARNING, SKIPPED, NOTICE, PASSED, FAILED;
+  }
+
+  public enum Indent {
+    TAB, TAB_2, TAB_4
   }
 
   private static final String EMPTY_MESSAGE_LINE = "";
   private static final String NEWLINE = System.getProperty("line.separator", "\n");
   private static final String TAB = "\t";
+  private static final String TAB_2 = "\t\t";
+  private static final String TAB_4 = "\t\t\t";
   private static final String COLON = ":";
   private static final String SINGLE_SPACE = " ";
   private static final String OPEN_BRACKET = "[";
@@ -83,6 +89,14 @@ public class ValidationReporter implements AutoCloseable {
 
   public void validationStatus(String text, Status status) {
     writeLine(TAB + text + COLON + SINGLE_SPACE + buildStatus(status));
+  }
+
+  public void validationStatus(String text, Status status, String details, Indent indent) {
+    writeLine(resolveIndent(indent) + text + COLON + SINGLE_SPACE + buildStatus(status) + SINGLE_SPACE + details);
+  }
+
+  public void validationStatus(Status status, String details, Indent indent) {
+    writeLine(resolveIndent(indent) + buildStatus(status) + SINGLE_SPACE + details);
   }
 
   public void validationStatus(String text, Status status, String details) {
@@ -145,6 +159,17 @@ public class ValidationReporter implements AutoCloseable {
     }
   }
 
+  private String resolveIndent(Indent indent) {
+    switch (indent) {
+      case TAB_2:
+        return TAB_2;
+      case TAB_4:
+        return TAB_4;
+      default:
+        return TAB;
+    }
+  }
+
   @Override
   public void close() {
     try {
@@ -155,11 +180,11 @@ public class ValidationReporter implements AutoCloseable {
       LOGGER.debug("Unable to close validation reporter file", e);
     } finally {
       if (writer != null) {
-        LOGGER.info("A report was generated with a listing of information that was modified during the conversion.");
+        LOGGER.info("A report was generated with a listing of information about the individual validations.");
         LOGGER.info("The report file is located at {}", outputFile.normalize().toAbsolutePath().toString());
       } else {
         LOGGER.info(
-          "A report with a listing of information that was modified during the conversion could not be generated, please submit a bug report to help us fix this.");
+          "A report with a listing of information  about the individual validations could not be generated, please submit a bug report to help us fix this.");
       }
     }
   }

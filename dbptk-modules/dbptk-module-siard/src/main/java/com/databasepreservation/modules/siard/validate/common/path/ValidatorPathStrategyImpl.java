@@ -109,12 +109,12 @@ public class ValidatorPathStrategyImpl implements ValidatorPathStrategy {
   }
 
   @Override
-  public boolean isInitialized() {
+  public boolean isReady() {
     return (schemas != null && tables != null);
   }
 
   @Override
   public String getSIARDVersionPath() {
-    return Constants.SIARD_HEADER_FOLDER + Constants.RESOURCE_FILE_SEPARATOR + Constants.SIARD_VERSION_FOLDER;
+    return Constants.SIARD_HEADER_FOLDER + Constants.RESOURCE_FILE_SEPARATOR + Constants.SIARD_VERSION_FOLDER + Constants.RESOURCE_FILE_SEPARATOR;
   }
 }

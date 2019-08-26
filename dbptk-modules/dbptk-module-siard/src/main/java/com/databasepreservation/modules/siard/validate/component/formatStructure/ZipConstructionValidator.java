@@ -5,13 +5,15 @@ import static com.databasepreservation.model.reporters.ValidationReporter.Status
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Enumeration;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.Constants;
+import com.databasepreservation.model.reporters.ValidationReporter.Indent;
 import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 
 /**
@@ -32,6 +34,8 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
   private static final String G_415 = "G_4.1-5";
   private static final byte[] ZIP_MAGIC_NUMBER = {'P', 'K', 0x3, 0x4};
 
+  private Set<String> compressionZipEntriesWithErrors = new TreeSet<>();
+
   public ZipConstructionValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
   }
@@ -42,21 +46,26 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
     if (isZipFile()) {
       getValidationReporter().validationStatus(G_411, Status.OK);
     } else {
-      validationFailed(G_411, MODULE_NAME);
+      validationFailed(G_411, MODULE_NAME,
+        "Zip archive is not in accordance with the specification published by the company PkWare");
       return false;
     }
 
     if (deflateOrStore()) {
         getValidationReporter().validationStatus(G_412, Status.OK);
     } else {
-      validationFailed(G_412, MODULE_NAME);
+      for (String path : compressionZipEntriesWithErrors) {
+        getValidationReporter().validationStatus("Invalid compression method", Status.ERROR, path, Indent.TAB_2);
+      }
+      validationFailed(G_412, MODULE_NAME,
+        "SIARD files must either be uncompressed or else compressed using the deflate algorithm");
       return false;
     }
 
     if (passwordProtected()) {
       getValidationReporter().validationStatus(G_413, Status.OK);
     } else {
-      validationFailed(G_413, MODULE_NAME);
+      validationFailed(G_413, MODULE_NAME, "The SIARD file is password-protected or encrypted.");
       return false;
     }
 
@@ -66,7 +75,7 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
     if (fileExtension()) {
       getValidationReporter().validationStatus(G_415, Status.OK);
     } else {
-      validationFailed(G_415, MODULE_NAME);
+      validationFailed(G_415, MODULE_NAME,  "The ZIP archive must have the file extension .siard");
       return false;
     }
 
@@ -117,19 +126,16 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
     if (preValidationRequirements())
       return false;
 
-    try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      final Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
-      while (entries.hasMoreElements()) {
-        final int method = entries.nextElement().getMethod();
-        if (method != ZipArchiveEntry.DEFLATED && method != ZipArchiveEntry.STORED) {
-          return false;
-        }
+    final Enumeration<ZipArchiveEntry> entries = getZipFile().getEntries();
+    while (entries.hasMoreElements()) {
+      final ZipArchiveEntry zipArchiveEntry = entries.nextElement();
+      final int method = zipArchiveEntry.getMethod();
+      if (method != ZipArchiveEntry.DEFLATED && method != ZipArchiveEntry.STORED) {
+        compressionZipEntriesWithErrors.add(zipArchiveEntry.getName());
       }
-    } catch (IOException e) {
-      return false;
     }
 
-    return true;
+    return compressionZipEntriesWithErrors.isEmpty();
   }
 
   /**
@@ -143,16 +149,12 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
     if (preValidationRequirements())
       return false;
 
-    try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      final Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
-      while (entries.hasMoreElements()) {
-        ZipArchiveEntry entry = entries.nextElement();
-        if (entry.getGeneralPurposeBit().usesEncryption()) {
-          return false;
-        }
-      }
-    } catch (IOException e) {
-      return false;
+    final Enumeration<ZipArchiveEntry> entries = getZipFile().getEntries();
+    while (entries.hasMoreElements()) {
+      final ZipArchiveEntry entry = entries.nextElement();
+      final boolean usesEncryption = entry.getGeneralPurposeBit().usesEncryption();
+      if (usesEncryption)
+        return false;
     }
 
     return true;
