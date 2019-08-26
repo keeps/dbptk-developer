@@ -1201,7 +1201,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
         String fkeyName = rs.getString("FK_NAME");
         if (fkeyName == null) {
-          fkeyName = "FK_" + rs.getString("FKCOLUMN_NAME");
+          fkeyName = "FK_" + rs.getString("PKTABLE_NAME") + "_" + rs.getString("FKTABLE_NAME") +  "_" + rs.getString("FKCOLUMN_NAME");
         }
 
         for (ForeignKey key : foreignKeys) {
