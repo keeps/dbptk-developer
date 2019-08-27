@@ -1,6 +1,5 @@
 package com.databasepreservation.modules.siard.validate;
 
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -46,20 +45,23 @@ public class SIARDValidateModule implements ValidateModule {
    */
   public SIARDValidateModule(Path SIARDPackagePath, Path validationReporterPath) {
     SIARDPackageNormalizedPath = SIARDPackagePath.toAbsolutePath().normalize();
-    validationReporter = new ValidationReporter(validationReporterPath.toAbsolutePath().normalize(), SIARDPackageNormalizedPath);
+    validationReporter = new ValidationReporter(validationReporterPath.toAbsolutePath().normalize(),
+      SIARDPackageNormalizedPath);
     allowedUDTs = Collections.emptyList();
     validatorPathStrategy = new ValidatorPathStrategyImpl();
   }
 
   /**
-   * Constructor used to initialize required objects to get an validate module
-   * for SIARD 2 (all minor versions)
+   * Constructor used to initialize required objects to get an validate module for
+   * SIARD 2 (all minor versions)
    *
-   * @param SIARDPackagePath Path to the main SIARD file (file with extension .siard)
+   * @param SIARDPackagePath
+   *          Path to the main SIARD file (file with extension .siard)
    */
   public SIARDValidateModule(Path SIARDPackagePath, Path validationReporterPath, Path allowedUDTs) {
     SIARDPackageNormalizedPath = SIARDPackagePath.toAbsolutePath().normalize();
-    validationReporter = new ValidationReporter(validationReporterPath.toAbsolutePath().normalize(), SIARDPackageNormalizedPath);
+    validationReporter = new ValidationReporter(validationReporterPath.toAbsolutePath().normalize(),
+      SIARDPackageNormalizedPath);
     this.allowedUDTs = parseAllowUDTs(allowedUDTs);
     validatorPathStrategy = new ValidatorPathStrategyImpl();
   }
@@ -96,7 +98,7 @@ public class SIARDValidateModule implements ValidateModule {
       component.setValidatorPathStrategy(validatorPathStrategy);
       component.setAllowedUTD(allowedUDTs);
       component.setup();
-      if (!component.validate())  {
+      if (!component.validate()) {
         validationReporter.close();
         return false;
       }

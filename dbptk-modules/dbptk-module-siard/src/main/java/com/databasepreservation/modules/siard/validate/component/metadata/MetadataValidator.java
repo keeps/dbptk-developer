@@ -69,16 +69,16 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
     return true;
   }
 
-  boolean validateXMLField(String codeId, String value, String field, Boolean mandatory, Boolean checkSize,
-    String... path) {
-    if (!validateMandatoryXMLField(value) && mandatory) {
-      setError(codeId, buildErrorMessage(field, buildPath(path)));
-      return false;
-    } else if (!validateXMLFieldSize(value) && checkSize) {
-      addWarning(codeId, buildWarningMessage(field, value), buildPath(path));
-    }
-    return true;
-  }
+//  boolean validateXMLField(String codeId, String value, String field, Boolean mandatory, Boolean checkSize,
+//    String... path) {
+//    if (!validateMandatoryXMLField(value) && mandatory) {
+//      setError(codeId, buildErrorMessage(field, buildPath(path)));
+//      return false;
+//    } else if (!validateXMLFieldSize(value) && checkSize) {
+//      addWarning(codeId, buildWarningMessage(field, value), buildPath(path));
+//    }
+//    return true;
+//  }
 
   private boolean validateMandatoryXMLField(String value) {
     return value != null && !value.isEmpty();
@@ -137,22 +137,22 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
     this.error.put(codeID, error);
   }
 
-  NodeList getXPathResult(ZipFile zipFile, String pathToEntry, String xpathExpression, QName constants,
-    final String type) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
-    NodeList nodes = null;
-    final ZipArchiveEntry entry = zipFile.getEntry(pathToEntry);
-    final InputStream inputStream = zipFile.getInputStream(entry);
-
-    Document document = MetadataXMLUtils.getDocument(inputStream);
-
-    XPathFactory xPathFactory = XPathFactory.newInstance();
-    XPath xpath = xPathFactory.newXPath();
-
-    xpath = MetadataXMLUtils.setXPath(xpath, type);
-    XPathExpression expression = xpath.compile(xpathExpression);
-
-    nodes = (NodeList) expression.evaluate(document, constants);
-
-    return nodes;
-  }
+//  NodeList getXPathResult(ZipFile zipFile, String pathToEntry, String xpathExpression, QName constants,
+//    final String type) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+//    NodeList nodes = null;
+//    final ZipArchiveEntry entry = zipFile.getEntry(pathToEntry);
+//    final InputStream inputStream = zipFile.getInputStream(entry);
+//
+//    Document document = MetadataXMLUtils.getDocument(inputStream);
+//
+//    XPathFactory xPathFactory = XPathFactory.newInstance();
+//    XPath xpath = xPathFactory.newXPath();
+//
+//    xpath = MetadataXMLUtils.setXPath(xpath, type);
+//    XPathExpression expression = xpath.compile(xpathExpression);
+//
+//    nodes = (NodeList) expression.evaluate(document, constants);
+//
+//    return nodes;
+//  }
 }

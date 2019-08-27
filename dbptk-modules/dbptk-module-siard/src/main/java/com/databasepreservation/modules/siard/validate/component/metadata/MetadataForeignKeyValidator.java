@@ -10,7 +10,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -18,6 +17,7 @@ import org.xml.sax.SAXException;
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -30,10 +30,6 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
   private static final String M_591_2 = "M_5.9-1-2";
   private static final String M_591_3 = "M_5.9-1-3";
   private static final String M_591_8 = "M_5.9-1-8";
-
-  private static final String FOREIGN_KEY_REFERENCED_SCHEMA = "referencedSchema";
-  private static final String FOREIGN_KEY_REFERENCED_TABLE = "referencedTable";
-  private static final String FOREIGN_KEY_REFERENCE = "reference";
 
   private List<String> tableList = new ArrayList<>();
   private List<String> schemaList = new ArrayList<>();
@@ -75,11 +71,10 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
   }
 
   private boolean readXMLMetadataForeignKeyLevel() {
-    try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = validatorPathStrategy.getMetadataXMLPath();
-      String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table";
-
-      NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
+    try {
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table", XPathConstants.NODESET,
+        Constants.NAMESPACE_FOR_METADATA);
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element tableElement = (Element) nodes.item(i);
@@ -100,7 +95,8 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
           if (!validateForeignKeyName(table, name))
             break;
 
-          String referencedSchema = MetadataXMLUtils.getChildTextContext(foreignKey, FOREIGN_KEY_REFERENCED_SCHEMA);
+          String referencedSchema = MetadataXMLUtils.getChildTextContext(foreignKey,
+            Constants.FOREIGN_KEY_REFERENCED_SCHEMA);
           // * M_5.9-1 Foreign key referencedSchema is mandatory.
           if (referencedSchema == null || referencedSchema.isEmpty()) {
             setError(M_591, String.format("ReferencedSchema is mandatory (%s)", path));
@@ -109,7 +105,8 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
           if (!validateForeignKeyReferencedSchema(referencedSchema, path))
             break;
 
-          String referencedTable = MetadataXMLUtils.getChildTextContext(foreignKey, FOREIGN_KEY_REFERENCED_TABLE);
+          String referencedTable = MetadataXMLUtils.getChildTextContext(foreignKey,
+            Constants.FOREIGN_KEY_REFERENCED_TABLE);
           // * M_5.9-1 Foreign key referencedTable is mandatory.
           if (referencedTable == null || referencedTable.isEmpty()) {
             setError(M_591, String.format("ReferencedTable is mandatory (%s)", path));
@@ -118,7 +115,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
           if (!validateForeignKeyReferencedTable(referencedTable, name))
             break;
 
-          String reference = MetadataXMLUtils.getChildTextContext(foreignKey, FOREIGN_KEY_REFERENCE);
+          String reference = MetadataXMLUtils.getChildTextContext(foreignKey, Constants.FOREIGN_KEY_REFERENCE);
           // * M_5.9-1 Foreign key referencedTable is mandatory.
           if (reference == null || reference.isEmpty()) {
             setError(M_591, String.format("Reference is mandatory (%s)", path));
@@ -140,11 +137,9 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
 
   private List<String> getListOfSchemas() {
     List<String> schemaList = new ArrayList<>();
-    try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = validatorPathStrategy.getMetadataXMLPath();
-      String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema";
-
-      NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
+    try {
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/ns:schemas/ns:schema", XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element schema = (Element) nodes.item(i);
@@ -158,11 +153,10 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
 
   private List<String> getListOfTables() {
     List<String> tableList = new ArrayList<>();
-    try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = validatorPathStrategy.getMetadataXMLPath();
-      String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table";
-
-      NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
+    try {
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table", XPathConstants.NODESET,
+        Constants.NAMESPACE_FOR_METADATA);
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element tables = (Element) nodes.item(i);

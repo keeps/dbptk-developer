@@ -28,8 +28,6 @@ public class MetadataParameterValidator extends MetadataValidator {
   private static final String M_516_1_2 = "M_5.16-1-2";
   private static final String M_516_1_8 = "M_5.16-1-8";
 
-  private static final String PARAMETER = "parameter";
-  private static final String PARAMETER_MODE = "mode";
   private static final String IN = "IN";
   private static final String OUT = "OUT";
   private static final String INOUT = "INOUT";
@@ -78,11 +76,11 @@ public class MetadataParameterValidator extends MetadataValidator {
         String schema = MetadataXMLUtils.getParentNameByTagName(parameter, Constants.SCHEMA);
 
         String name = MetadataXMLUtils.getChildTextContext(parameter, Constants.NAME);
-        String path = buildPath(Constants.SCHEMA, schema, PARAMETER, name);
+        String path = buildPath(Constants.SCHEMA, schema, Constants.PARAMETER, name);
         if (!validateParameterName(name, path))
           break;
 
-        String mode = MetadataXMLUtils.getChildTextContext(parameter, PARAMETER_MODE);
+        String mode = MetadataXMLUtils.getChildTextContext(parameter, Constants.PARAMETER_MODE);
         if (!validateParameterMode(mode, path))
           break;
 

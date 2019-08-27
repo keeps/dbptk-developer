@@ -40,13 +40,6 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
   private static final String M_511_16 = "M_5.1-1-16";
   private static final String M_511_17 = "M_5.1-1-17";
 
-  private static final String DB_NAME = "dbname";
-  private static final String DB_ARCHIVER = "archiver";
-  private static final String DB_ARCHIVER_CONTACT = "archiverContact";
-  private static final String DB_DATA_OWNER = "dataOwner";
-  private static final String DB_DATA_ORIGIN_TIMESPAN = "dataOriginTimespan";
-  private static final String DB_ARCHIVAL_DATE = "archivalDate";
-
   public static MetadataDatabaseInfoValidator newInstance() {
     return new MetadataDatabaseInfoValidator();
   }
@@ -96,13 +89,13 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
       for (int i = 0; i < nodes.getLength(); i++) {
         Element database = (Element) nodes.item(i);
 
-        String dbName = MetadataXMLUtils.getChildTextContext(database, DB_NAME);
+        String dbName = MetadataXMLUtils.getChildTextContext(database, Constants.DB_NAME);
         String description = MetadataXMLUtils.getChildTextContext(database, Constants.DESCRIPTION);
-        String archiver = MetadataXMLUtils.getChildTextContext(database, DB_ARCHIVER);
-        String archiverContact = MetadataXMLUtils.getChildTextContext(database, DB_ARCHIVER_CONTACT);
-        String dataOwner = MetadataXMLUtils.getChildTextContext(database, DB_DATA_OWNER);
-        String dataOriginTimespan = MetadataXMLUtils.getChildTextContext(database, DB_DATA_ORIGIN_TIMESPAN);
-        String archivalDate = MetadataXMLUtils.getChildTextContext(database, DB_ARCHIVAL_DATE);
+        String archiver = MetadataXMLUtils.getChildTextContext(database, Constants.ARCHIVER);
+        String archiverContact = MetadataXMLUtils.getChildTextContext(database, Constants.ARCHIVER_CONTACT);
+        String dataOwner = MetadataXMLUtils.getChildTextContext(database, Constants.DATA_OWNER);
+        String dataOriginTimespan = MetadataXMLUtils.getChildTextContext(database, Constants.DATA_ORIGIN_TIMESPAN);
+        String archivalDate = MetadataXMLUtils.getChildTextContext(database, Constants.ARCHIVAL_DATE);
 
         NodeList schemasNodes = database.getElementsByTagName(Constants.SCHEMA);
         List<Element> schemasList = new ArrayList<>();
@@ -116,7 +109,7 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
           usersList.add((Element) usersNodes.item(j));
         }
 
-        String path = buildPath(DB_NAME, dbName);
+        String path = buildPath(Constants.DB_NAME, dbName);
 
         if (!validateDatabaseName(dbName) || !validateDescription(description, path)
           || !validateArchiver(archiver, path) || !validateArchiverContact(archiverContact, path)
@@ -165,7 +158,7 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateDatabaseName(String dbName) {
-    return validateXMLField(M_511_2, dbName, DB_NAME, true, true);
+    return validateXMLField(M_511_2, dbName, Constants.DB_NAME, true, true);
   }
 
   /**
@@ -184,7 +177,7 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateArchiver(String archiver, String path) {
-    return validateXMLField(M_511_4, archiver, DB_ARCHIVER, true, true, path);
+    return validateXMLField(M_511_4, archiver, Constants.ARCHIVER, true, true, path);
   }
 
   /**
@@ -194,7 +187,7 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateArchiverContact(String archiverContact, String path) {
-    return validateXMLField(M_511_5, archiverContact, DB_ARCHIVER_CONTACT, true, true, path);
+    return validateXMLField(M_511_5, archiverContact, Constants.ARCHIVER_CONTACT, true, true, path);
   }
 
   /**
@@ -204,7 +197,7 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateDataOwner(String dataOwner, String path) {
-    return validateXMLField(M_511_6, dataOwner, DB_DATA_OWNER, true, true, path);
+    return validateXMLField(M_511_6, dataOwner, Constants.DATA_OWNER, true, true, path);
   }
 
   /**
@@ -214,7 +207,7 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateDataOriginTimespan(String dataOriginTimespan, String path) {
-    return validateXMLField(M_511_7, dataOriginTimespan, DB_DATA_ORIGIN_TIMESPAN, true, true, path);
+    return validateXMLField(M_511_7, dataOriginTimespan, Constants.DATA_ORIGIN_TIMESPAN, true, true, path);
   }
 
   /**

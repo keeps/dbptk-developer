@@ -107,6 +107,6 @@ public class MetadataUserValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateUserDescription(String description, String path) {
-    return validateXMLField(M_518_1_2, description, Constants.DESCRIPTION, false, true, Constants.USER, path);
+    return validateXMLField(M_518_1_2, description, Constants.DESCRIPTION, false, true, path);
   }
 }

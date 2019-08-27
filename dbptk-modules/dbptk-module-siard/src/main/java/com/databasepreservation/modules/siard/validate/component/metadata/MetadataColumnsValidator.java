@@ -1,23 +1,13 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
-import static com.databasepreservation.modules.siard.constants.SIARDDKConstants.BINARY_LARGE_OBJECT;
-import static com.databasepreservation.modules.siard.constants.SIARDDKConstants.CHARACTER_LARGE_OBJECT;
-
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -39,9 +29,6 @@ public class MetadataColumnsValidator extends MetadataValidator {
   private static final String M_561_3 = "M_5.6-1-3";
   private static final String M_561_5 = "M_5.6-1-5";
   private static final String M_561_12 = "M_5.6-1-12";
-  private static final String BLOB = "BLOB";
-  private static final String CLOB = "CLOB";
-  private static final String XML = "XML";
 
   private Set<String> typeOriginalSet = new HashSet<>();
 
@@ -115,8 +102,8 @@ public class MetadataColumnsValidator extends MetadataValidator {
             type = typeName;
           }
 
-          if (type.equals(CHARACTER_LARGE_OBJECT) || type.equals(BINARY_LARGE_OBJECT) || type.equals(BLOB)
-            || type.equals(CLOB) || type.equals(XML)) {
+          if (type.equals(Constants.CHARACTER_LARGE_OBJECT) || type.equals(Constants.BINARY_LARGE_OBJECT)
+            || type.equals(Constants.BLOB) || type.equals(Constants.CLOB) || type.equals(Constants.XML_LARGE_OBJECT)) {
             String folder = MetadataXMLUtils.getChildTextContext(column, Constants.LOB_FOLDER);
             String columnNumber = "c" + (j + 1);
             if (!validateColumnLobFolder(schemaFolderName, tableFolderName, type, folder, columnNumber, name, path))
@@ -159,7 +146,8 @@ public class MetadataColumnsValidator extends MetadataValidator {
   private boolean validateColumnLobFolder(String schemaFolder, String tableFolder, String type, String folder,
     String column, String name, String path) {
     String pathToTableColumn = MetadataXMLUtils.createPath(MetadataXMLUtils.SIARD_CONTENT, schemaFolder, tableFolder);
-    if (!HasReferenceToLobFolder(pathToTableColumn, tableFolder + MetadataXMLUtils.XML_EXTENSION, column, folder)) {
+    if (!HasReferenceToLobFolder(pathToTableColumn, schemaFolder, tableFolder, column,
+      folder)) {
       if (folder == null || folder.isEmpty()) {
         addWarning(M_561_3, String.format("lobFolder must be set for column type  %s", type), path);
       } else {
@@ -171,37 +159,23 @@ public class MetadataColumnsValidator extends MetadataValidator {
     return true;
   }
 
-  private boolean HasReferenceToLobFolder(String path, String table, String column, String folder) {
-    try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
+  private boolean HasReferenceToLobFolder(String path, String schemaFolder, String tableFolder, String column,
+    String folder) {
+    try {
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(
+        getZipInputStream(validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder)),
+        "/ns:table/ns:row/ns:" + column, XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
 
-      final ZipArchiveEntry tableEntry = zipFile.getEntry(MetadataXMLUtils.createPath(path, table));
-      final InputStream inputStream = zipFile.getInputStream(tableEntry);
+      for (int i = 0; i < nodes.getLength(); i++) {
+        Element columnNumber = (Element) nodes.item(i);
+        String fileName = columnNumber.getAttribute("file");
 
-      Document document = MetadataXMLUtils.getDocument(inputStream);
-      String xpathExpressionDatabase = "/ns:table/ns:row/ns:" + column;
-
-      XPathFactory xPathFactory = XPathFactory.newInstance();
-      XPath xpath = xPathFactory.newXPath();
-
-      xpath = MetadataXMLUtils.setXPath(xpath, MetadataXMLUtils.TABLE);
-
-      try {
-        XPathExpression expr = xpath.compile(xpathExpressionDatabase);
-        NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
-        for (int i = 0; i < nodes.getLength(); i++) {
-          Element columnNumber = (Element) nodes.item(i);
-          String fileName = columnNumber.getAttribute("file");
-
-          if (!fileName.isEmpty() && zipFile.getEntry(MetadataXMLUtils.createPath(path, folder, fileName)) == null) {
-            return false;
-          }
+        if (!fileName.isEmpty() && getZipFile().getEntry(MetadataXMLUtils.createPath(path, folder, fileName)) == null) {
+          return false;
         }
-
-      } catch (XPathExpressionException e) {
-        return false;
       }
 
-    } catch (IOException | ParserConfigurationException | SAXException e) {
+    } catch (IOException | XPathExpressionException | ParserConfigurationException | SAXException e) {
       return false;
     }
     return true;

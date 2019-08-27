@@ -8,7 +8,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -16,6 +15,7 @@ import org.xml.sax.SAXException;
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -29,10 +29,6 @@ public class MetadataTypeValidator extends MetadataValidator {
   private static final String M_531_5 = "M_5.3-1-5";
   private static final String M_531_6 = "M_5.3-1-6";
   private static final String M_531_10 = "M_5.3-1-10";
-
-  private static final String TYPE_CATEGORY = "category";
-  private static final String TYPE_INSTANTIABLE = "instantiable";
-  private static final String TYPE_FINAL = "final";
 
   private List<Element> typesList = new ArrayList<>();
 
@@ -76,11 +72,10 @@ public class MetadataTypeValidator extends MetadataValidator {
   }
 
   private boolean readXMLMetadataTypeLevel() {
-    try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = validatorPathStrategy.getMetadataXMLPath();
-      String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:types/ns:type";
-
-      NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET, null);
+    try {
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/ns:schemas/ns:schema/ns:types/ns:type", XPathConstants.NODESET,
+        Constants.NAMESPACE_FOR_METADATA);
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element type = (Element) nodes.item(i);
@@ -89,9 +84,9 @@ public class MetadataTypeValidator extends MetadataValidator {
         String schema = MetadataXMLUtils.getChildTextContext((Element) type.getParentNode().getParentNode(), "name");
 
         String name = MetadataXMLUtils.getChildTextContext(type, Constants.NAME);
-        String category = MetadataXMLUtils.getChildTextContext(type, TYPE_CATEGORY);
-        String instantiable = MetadataXMLUtils.getChildTextContext(type, TYPE_INSTANTIABLE);
-        String finalField = MetadataXMLUtils.getChildTextContext(type, TYPE_FINAL);
+        String category = MetadataXMLUtils.getChildTextContext(type, Constants.CATEGORY);
+        String instantiable = MetadataXMLUtils.getChildTextContext(type, Constants.TYPE_INSTANTIABLE);
+        String finalField = MetadataXMLUtils.getChildTextContext(type, Constants.TYPE_FINAL);
         String description = MetadataXMLUtils.getChildTextContext(type, Constants.DESCRIPTION);
 
         String path = buildPath(Constants.SCHEMA, schema, Constants.TYPE, name);
@@ -126,7 +121,7 @@ public class MetadataTypeValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateTypeCategory(String category, String path) {
-    return validateXMLField(M_531_2, category, TYPE_CATEGORY, true, false, path);
+    return validateXMLField(M_531_2, category, Constants.CATEGORY, true, false, path);
   }
 
   /**
@@ -137,7 +132,7 @@ public class MetadataTypeValidator extends MetadataValidator {
    */
 
   private boolean validateTypeInstantiable(String instantiable, String path) {
-    return validateXMLField(M_531_5, instantiable, TYPE_INSTANTIABLE, true, false, path);
+    return validateXMLField(M_531_5, instantiable, Constants.TYPE_INSTANTIABLE, true, false, path);
   }
 
   /**
@@ -147,7 +142,7 @@ public class MetadataTypeValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateTypefinal(String typeFinal, String path) {
-    return validateXMLField(M_531_6, typeFinal, TYPE_FINAL, true, false, path);
+    return validateXMLField(M_531_6, typeFinal, Constants.TYPE_FINAL, true, false, path);
   }
 
   /**

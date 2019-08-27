@@ -58,28 +58,6 @@ public class Constants {
 
   /* VALIDATOR */
   public static final String DBPTK_VALIDATION_REPORTER_PREFIX = "dbptk-validation-reporter";
-  public static final String SCHEMA = "schema";
-  public static final String ROUTINE = "routine";
-  public static final String VIEW = "view";
-  public static final String USER = "user";
-  public static final String TABLES = "tables";
-  public static final String TABLE = "table";
-  public static final String ROWS = "rows";
-  public static final String COLUMN = "column";
-  public static final String COLUMNS = "columns";
-  public static final String PRIMARY_KEY = "primaryKey";
-  public static final String FOREIGN_KEY = "foreignKey";
-  public static final String CANDIDATE_KEY = "candidateKey";
-  public static final String CHECK_CONSTRAINT = "checkConstraint";
-  public static final String NAME = "name";
-  public static final String FOLDER = "folder";
-  public static final String LOB_FOLDER = "lobFolder";
-  public static final String CONDITIONAL = "conditional";
-  public static final String DESCRIPTION = "description";
-  public static final String TYPE = "type";
-  public static final String TYPE_NAME = "typeName";
-  public static final String TYPE_ORIGINAL = "typeOriginal";
-  public static final String ATTRIBUTE = "attribute";
 
   /* VALIDATOR COMPONENTS */
   public static final String COMPONENT_ZIP_CONSTRUCTION = "Construction of the SIARD archive file";
@@ -91,4 +69,53 @@ public class Constants {
   public static final String COMPONENT_TABLE_DATA = "Table data";
   public static final String COMPONENT_TABLE_SCHEMA_DEFINITION = "Table schema definition";
   public static final String COMPONENT_END_TAG = "end";
+
+  /* SIARD STRUCTURE */
+  public static final String DB_NAME = "dbname";
+  public static final String ARCHIVER = "archiver";
+  public static final String ARCHIVER_CONTACT = "archiverContact";
+  public static final String DATA_OWNER = "dataOwner";
+  public static final String DATA_ORIGIN_TIMESPAN = "dataOriginTimespan";
+  public static final String ARCHIVAL_DATE = "archivalDate";
+  public static final String SCHEMA = "schema";
+  public static final String ROUTINE = "routine";
+  public static final String VIEW = "view";
+  public static final String USER = "user";
+  public static final String TABLES = "tables";
+  public static final String TABLE = "table";
+  public static final String ROWS = "rows";
+  public static final String COLUMN = "column";
+  public static final String COLUMNS = "columns";
+  public static final String FIELD = "field";
+  public static final String FIELDS = "fields";
+  public static final String PRIMARY_KEY = "primaryKey";
+  public static final String FOREIGN_KEY = "foreignKey";
+  public static final String FOREIGN_KEY_REFERENCED_SCHEMA = "referencedSchema";
+  public static final String FOREIGN_KEY_REFERENCED_TABLE = "referencedTable";
+  public static final String FOREIGN_KEY_REFERENCE = "reference";
+  public static final String CANDIDATE_KEY = "candidateKey";
+  public static final String CHECK_CONSTRAINT = "checkConstraint";
+  public static final String NAME = "name";
+  public static final String FOLDER = "folder";
+  public static final String LOB_FOLDER = "lobFolder";
+  public static final String CONDITIONAL = "conditional";
+  public static final String DESCRIPTION = "description";
+  public static final String TYPE = "type";
+  public static final String TYPE_NAME = "typeName";
+  public static final String TYPE_SCHEMA = "typeSchema";
+  public static final String TYPE_INSTANTIABLE = "instantiable";
+  public static final String TYPE_FINAL = "final";
+  public static final String TYPE_ORIGINAL = "typeOriginal";
+  public static final String ATTRIBUTE = "attribute";
+  public static final String CATEGORY = "category";
+  public static final String PARAMETER = "parameter";
+  public static final String PARAMETER_MODE = "mode";
+
+  /* LARGE OBJECTS */
+  public static final String BLOB = "BLOB";
+  public static final String CLOB = "CLOB";
+  public static final String XML_LARGE_OBJECT = "XML";
+  public static final String CHARACTER_LARGE_OBJECT = "CHARACTER LARGE OBJECT";
+  public static final String BINARY_LARGE_OBJECT = "BINARY LARGE OBJECT";
+
 }

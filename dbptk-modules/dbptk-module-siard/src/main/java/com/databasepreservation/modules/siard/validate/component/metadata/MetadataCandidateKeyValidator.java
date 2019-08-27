@@ -163,12 +163,10 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
       }
     }
 
-    try (ZipFile zipFile = new ZipFile(getSIARDPackagePath().toFile())) {
-      String pathToEntry = MetadataXMLUtils.createPath(MetadataXMLUtils.SIARD_CONTENT, schemaFolder, tableFolder,
-        tableFolder + MetadataXMLUtils.XML_EXTENSION);
-      String xpathExpression = "/ns:table/ns:row";
-      NodeList nodes = getXPathResult(zipFile, pathToEntry, xpathExpression, XPathConstants.NODESET,
-        MetadataXMLUtils.TABLE);
+    try {
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(
+              getZipInputStream(validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder)),
+              "/ns:table/ns:row", XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
 
       Set<String> unique = new HashSet<>();
 
@@ -189,7 +187,6 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
             name, candidateColumn.toString(), schemaFolder, tableFolder, columns.toString()));
           return false;
         }
-        ;
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
