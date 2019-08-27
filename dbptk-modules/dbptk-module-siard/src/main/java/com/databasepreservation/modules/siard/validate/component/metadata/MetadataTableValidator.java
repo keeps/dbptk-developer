@@ -19,7 +19,7 @@ import com.databasepreservation.utils.XMLUtils;
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataTableValidator extends MetadataValidator {
-  private static final String MODULE_NAME = "Table level metadata";
+  private final String MODULE_NAME;
   private static final String M_55 = "5.5";
   private static final String M_551 = "M_5.5-1";
   private static final String M_551_1 = "M_5.5-1-1";
@@ -28,11 +28,8 @@ public class MetadataTableValidator extends MetadataValidator {
   private static final String M_551_4 = "M_5.5-1-4";
   private static final String M_551_10 = "M_5.5-1-10";
 
-  public static MetadataTableValidator newInstance() {
-    return new MetadataTableValidator();
-  }
-
-  private MetadataTableValidator() {
+  public MetadataTableValidator(String moduleName) {
+    this.MODULE_NAME = moduleName;
     error.clear();
     warnings.clear();
   }

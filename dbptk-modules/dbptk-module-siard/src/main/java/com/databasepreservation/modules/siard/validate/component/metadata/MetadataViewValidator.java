@@ -15,14 +15,13 @@ import org.xml.sax.SAXException;
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.reporters.ValidationReporter;
-import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataViewValidator extends MetadataValidator {
-  private static final String MODULE_NAME = "View level metadata";
+  private final String MODULE_NAME;
   private static final String M_514 = "5.14";
   private static final String M_514_1 = "M_5.14-1";
   private static final String M_514_1_1 = "M_5.14-1-1";
@@ -33,11 +32,8 @@ public class MetadataViewValidator extends MetadataValidator {
 
   private Set<String> checkDuplicates = new HashSet<>();
 
-  public static ValidatorComponentImpl newInstance() {
-    return new MetadataViewValidator();
-  }
-
-  private MetadataViewValidator() {
+  public MetadataViewValidator(String moduleName) {
+    this.MODULE_NAME = moduleName;
     error.clear();
     warnings.clear();
   }
@@ -72,8 +68,7 @@ public class MetadataViewValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element view = (Element) nodes.item(i);
-        String schema = XMLUtils.getChildTextContext((Element) view.getParentNode().getParentNode(),
-          Constants.NAME);
+        String schema = XMLUtils.getChildTextContext((Element) view.getParentNode().getParentNode(), Constants.NAME);
 
         String name = XMLUtils.getChildTextContext(view, Constants.NAME);
         String path = buildPath(Constants.SCHEMA, schema, Constants.VIEW, name);

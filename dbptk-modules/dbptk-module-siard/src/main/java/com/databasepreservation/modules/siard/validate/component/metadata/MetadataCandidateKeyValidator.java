@@ -1,19 +1,5 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
-
-import com.databasepreservation.Constants;
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.reporters.ValidationReporter;
-import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
-import com.databasepreservation.utils.XMLUtils;
-import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,11 +9,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import com.databasepreservation.Constants;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.utils.XMLUtils;
+
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataCandidateKeyValidator extends MetadataValidator {
-  private static final String MODULE_NAME = "Candidate Key level metadata";
+  private final String MODULE_NAME;
   private static final String M_511 = "5.11";
   private static final String M_511_1 = "M_5.11-1";
   private static final String M_511_1_1 = "M_5.11-1-1";
@@ -36,11 +35,8 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
 
   private Map<String, LinkedList<String>> tableColumnsList = new HashMap<>();
 
-  public static ValidatorComponentImpl newInstance() {
-    return new MetadataCandidateKeyValidator();
-  }
-
-  private MetadataCandidateKeyValidator() {
+  public MetadataCandidateKeyValidator(String moduleName) {
+    this.MODULE_NAME = moduleName;
     error.clear();
     warnings.clear();
   }
@@ -80,8 +76,8 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
         String schema = XMLUtils.getChildTextContext((Element) tableElement.getParentNode().getParentNode(),
           Constants.NAME);
         String tableFolder = XMLUtils.getChildTextContext(tableElement, Constants.FOLDER);
-        String schemaFolder = XMLUtils
-          .getChildTextContext((Element) tableElement.getParentNode().getParentNode(), Constants.FOLDER);
+        String schemaFolder = XMLUtils.getChildTextContext((Element) tableElement.getParentNode().getParentNode(),
+          Constants.FOLDER);
 
         Element tableColumnsElement = XMLUtils.getChild(tableElement, Constants.COLUMNS);
         if (tableColumnsElement == null) {
@@ -141,7 +137,7 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
       return false;
     }
 
-      return true;
+    return true;
   }
 
   /**
@@ -165,8 +161,8 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
 
     try {
       NodeList nodes = (NodeList) XMLUtils.getXPathResult(
-              getZipInputStream(validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder)),
-              "/ns:table/ns:row", XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
+        getZipInputStream(validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder)),
+        "/ns:table/ns:row", XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
 
       Set<String> unique = new HashSet<>();
 

@@ -68,6 +68,26 @@ public class Constants {
   public static final String COMPONENT_REQUIREMENTS_FOR_TABLE_DATA = "Requirements for table data";
   public static final String COMPONENT_TABLE_DATA = "Table data";
   public static final String COMPONENT_TABLE_SCHEMA_DEFINITION = "Table schema definition";
+  public static final String COMPONENT_METADATA_XML_AGAINST_XSD = "Requirements for metadata";
+  public static final String COMPONENT_METADATA_DATABASE_INFO = "Database level metadata";
+  public static final String COMPONENT_METADATA_SCHEMA = "Schema level metadata";
+  public static final String COMPONENT_METADATA_TYPE = "Type level metadata";
+  public static final String COMPONENT_METADATA_ATTRIBUTE = "Attribute level metadata";
+  public static final String COMPONENT_METADATA_TABLE = "Table level metadata";
+  public static final String COMPONENT_METADATA_COLUMN = "Column level metadata";
+  public static final String COMPONENT_METADATA_FIELD = "Field level metadata";
+  public static final String COMPONENT_METADATA_PRIMARY_KEY = "Primary Key level metadata";
+  public static final String COMPONENT_METADATA_FOREIGN_KEY = "Foreign Key level metadata";
+  public static final String COMPONENT_METADATA_REFERENCE = "Reference level metadata";
+  public static final String COMPONENT_METADATA_CANDIDATE_KEY = "Candidate Kry level metadata";
+  public static final String COMPONENT_METADATA_CHECK_CONSTRAINT = "Check constraint level metadata";
+  public static final String COMPONENT_METADATA_TRIGGER = "Trigger level metadata";
+  public static final String COMPONENT_METADATA_VIEW = "View level metadata";
+  public static final String COMPONENT_METADATA_ROUTINE = "Routine level metadata";
+  public static final String COMPONENT_METADATA_PARAMETER = "Parameter level metadata";
+  public static final String COMPONENT_METADATA_USER = "User level metadata";
+  public static final String COMPONENT_METADATA_ROLE = "Role level metadata";
+  public static final String COMPONENT_METADATA_PRIVILEGE = "Privilege level metadata";
   public static final String COMPONENT_END_TAG = "end";
 
   /* SIARD STRUCTURE */

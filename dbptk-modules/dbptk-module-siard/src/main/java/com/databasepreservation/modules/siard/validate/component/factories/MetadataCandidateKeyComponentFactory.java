@@ -5,29 +5,20 @@ import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.components.ValidatorComponent;
 import com.databasepreservation.model.components.ValidatorComponentFactory;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.modules.siard.validate.component.formatStructure.MetadataAndTableDataValidator;
+import com.databasepreservation.modules.siard.validate.component.metadata.MetadataCandidateKeyValidator;
+import com.databasepreservation.modules.siard.validate.component.metadata.MetadataReferenceValidator;
 
 /**
- * @author Miguel Guimarães <mguimaraes@keep.pt>
+ * @author Gabriel Barros <gbarros@keep.pt>
  */
-public class MetadataAndTableDataComponentFactory implements ValidatorComponentFactory {
-  private final String MODULE_NAME = Constants.COMPONENT_METADATA_AND_TABLE_DATA;
+public class MetadataCandidateKeyComponentFactory implements ValidatorComponentFactory {
+  private final String MODULE_NAME = Constants.COMPONENT_METADATA_CANDIDATE_KEY;
 
-  /**
-   * Gets the component name.
-   *
-   * @return The component name.
-   */
   @Override
   public String getComponentName() {
     return MODULE_NAME;
   }
 
-  /**
-   * Returns the state of this factory.
-   *
-   * @return true if enabled otherwise false.
-   */
   @Override
   public boolean isEnabled() {
     return true;
@@ -40,11 +31,11 @@ public class MetadataAndTableDataComponentFactory implements ValidatorComponentF
 
   @Override
   public String next() {
-    return Constants.COMPONENT_METADATA_XML_AGAINST_XSD;
+    return Constants.COMPONENT_METADATA_CHECK_CONSTRAINT;
   }
 
   @Override
   public ValidatorComponent buildComponent(Reporter reporter) throws ModuleException {
-    return new MetadataAndTableDataValidator(MODULE_NAME);
+    return new MetadataCandidateKeyValidator(MODULE_NAME);
   }
 }

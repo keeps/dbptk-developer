@@ -21,7 +21,7 @@ import com.databasepreservation.utils.XMLUtils;
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataRoutineValidator extends MetadataValidator {
-  private static final String MODULE_NAME = "Routine level metadata";
+  private final String MODULE_NAME;
   private static final String M_515 = "5.15";
   private static final String M_515_1 = "M_5.15-1";
   private static final String M_515_1_1 = "M_5.15-1-1";
@@ -31,11 +31,8 @@ public class MetadataRoutineValidator extends MetadataValidator {
 
   private Set<String> checkDuplicates = new HashSet<>();
 
-  public static MetadataRoutineValidator newInstance() {
-    return new MetadataRoutineValidator();
-  }
-
-  private MetadataRoutineValidator() {
+  public MetadataRoutineValidator(String moduleName) {
+    this.MODULE_NAME = moduleName;
     error.clear();
     warnings.clear();
   }

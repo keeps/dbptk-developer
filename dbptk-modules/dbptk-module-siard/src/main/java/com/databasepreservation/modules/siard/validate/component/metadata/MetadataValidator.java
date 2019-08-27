@@ -1,28 +1,12 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.namespace.QName;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-
 import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
-
-import jdk.internal.org.xml.sax.SAXException;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>

@@ -25,7 +25,7 @@ import com.databasepreservation.utils.XMLUtils;
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataDatabaseInfoValidator extends MetadataValidator {
-  private static final String MODULE_NAME = "Database level metadata";
+  private final String MODULE_NAME;
   private static final String M_51 = "5.1";
   private static final String M_511 = "M_5.1-1";
   private static final String M_511_1 = "M_5.1-1-1";
@@ -40,11 +40,8 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
   private static final String M_511_16 = "M_5.1-1-16";
   private static final String M_511_17 = "M_5.1-1-17";
 
-  public static MetadataDatabaseInfoValidator newInstance() {
-    return new MetadataDatabaseInfoValidator();
-  }
-
-  private MetadataDatabaseInfoValidator() {
+  public MetadataDatabaseInfoValidator(String moduleName) {
+    this.MODULE_NAME = moduleName;
     error.clear();
     warnings.clear();
   }

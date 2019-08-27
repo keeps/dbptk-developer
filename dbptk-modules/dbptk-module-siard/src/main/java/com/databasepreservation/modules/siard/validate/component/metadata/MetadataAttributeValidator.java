@@ -21,7 +21,7 @@ import com.databasepreservation.utils.XMLUtils;
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataAttributeValidator extends MetadataValidator {
-  private static final String MODULE_NAME = "Attribute level metadata";
+  private final String MODULE_NAME;
   private static final String M_54 = "5.4";
   private static final String M_541 = "M_5.4-1";
   private static final String M_541_1 = "M_5.4-1-1";
@@ -29,11 +29,8 @@ public class MetadataAttributeValidator extends MetadataValidator {
 
   private List<Element> attributeList = new ArrayList<>();
 
-  public static MetadataAttributeValidator newInstance() {
-    return new MetadataAttributeValidator();
-  }
-
-  private MetadataAttributeValidator() {
+  public MetadataAttributeValidator(String moduleName) {
+    this.MODULE_NAME = moduleName;
     error.clear();
     warnings.clear();
   }

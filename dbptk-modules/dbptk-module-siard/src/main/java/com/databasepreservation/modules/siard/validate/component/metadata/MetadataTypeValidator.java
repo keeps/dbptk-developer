@@ -21,7 +21,7 @@ import com.databasepreservation.utils.XMLUtils;
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataTypeValidator extends MetadataValidator {
-  private static final String MODULE_NAME = "Type level metadata";
+  private final String MODULE_NAME;
   private static final String M_53 = "5.3";
   private static final String M_531 = "M_5.3-1";
   private static final String M_531_1 = "M_5.3-1-1";
@@ -32,11 +32,8 @@ public class MetadataTypeValidator extends MetadataValidator {
 
   private List<Element> typesList = new ArrayList<>();
 
-  public static MetadataTypeValidator newInstance() {
-    return new MetadataTypeValidator();
-  }
-
-  private MetadataTypeValidator() {
+  public MetadataTypeValidator(String moduleName) {
+    this.MODULE_NAME = moduleName;
     error.clear();
     warnings.clear();
   }

@@ -26,7 +26,7 @@ import com.databasepreservation.utils.XMLUtils;
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataPrimaryKeyValidator extends MetadataValidator {
-  private static final String MODULE_NAME = "Primary Key level metadata";
+  private final String MODULE_NAME;
   private static final String M_58 = "5.8";
   private static final String M_581 = "M_5.8-1";
   private static final String M_581_1 = "M_5.8-1-1";
@@ -36,11 +36,8 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
 
   private Map<String, LinkedList<String>> tableColumnsList = new HashMap<>();
 
-  public static MetadataPrimaryKeyValidator newInstance() {
-    return new MetadataPrimaryKeyValidator();
-  }
-
-  private MetadataPrimaryKeyValidator() {
+  public MetadataPrimaryKeyValidator(String moduleName) {
+    this.MODULE_NAME = moduleName;
     error.clear();
     warnings.clear();
   }
@@ -80,8 +77,8 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
         String tableFolder = XMLUtils.getChildTextContext(tableElement, Constants.FOLDER);
         String schema = XMLUtils.getChildTextContext((Element) tableElement.getParentNode().getParentNode(),
           Constants.NAME);
-        String schemaFolder = XMLUtils
-          .getChildTextContext((Element) tableElement.getParentNode().getParentNode(), Constants.FOLDER);
+        String schemaFolder = XMLUtils.getChildTextContext((Element) tableElement.getParentNode().getParentNode(),
+          Constants.FOLDER);
 
         Element tableColumnsElement = XMLUtils.getChild(tableElement, Constants.COLUMNS);
         if (tableColumnsElement == null) {

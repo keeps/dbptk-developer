@@ -14,21 +14,17 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.reporters.ValidationReporter;
-import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
  */
-public class MetadataXMLAgainstXSDValidator extends ValidatorComponentImpl {
-  private static final String MODULE_NAME = "Requirements for metadata";
+public class MetadataXMLAgainstXSDValidator extends MetadataValidator {
+  private final String MODULE_NAME;
   private static final String M_50 = "5.0";
   private static final String M_501 = "M_5.0-1";
 
-  public static MetadataXMLAgainstXSDValidator newInstance() {
-    return new MetadataXMLAgainstXSDValidator();
-  }
-
-  private MetadataXMLAgainstXSDValidator() {
+  public MetadataXMLAgainstXSDValidator(String moduleName) {
+    this.MODULE_NAME = moduleName;
   }
 
   @Override

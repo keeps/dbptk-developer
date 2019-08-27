@@ -21,7 +21,7 @@ import com.databasepreservation.utils.XMLUtils;
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataUserValidator extends MetadataValidator {
-  private static final String MODULE_NAME = "User level metadata";
+  private final String MODULE_NAME;
   private static final String M_518 = "5.18";
   private static final String M_518_1 = "M_5.18-1";
   private static final String M_518_1_1 = "M_5.18-1-1";
@@ -29,11 +29,8 @@ public class MetadataUserValidator extends MetadataValidator {
 
   private Set<String> checkDuplicates = new HashSet<>();
 
-  public static MetadataUserValidator newInstance() {
-    return new MetadataUserValidator();
-  }
-
-  private MetadataUserValidator() {
+  public MetadataUserValidator(String moduleName) {
+    this.MODULE_NAME = moduleName;
     warnings.clear();
     error.clear();
   }

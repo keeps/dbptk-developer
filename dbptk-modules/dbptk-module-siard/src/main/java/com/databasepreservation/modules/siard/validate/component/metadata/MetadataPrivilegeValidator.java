@@ -21,7 +21,7 @@ import com.databasepreservation.utils.XMLUtils;
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataPrivilegeValidator extends MetadataValidator {
-  private static final String MODULE_NAME = "Privilege level metadata";
+  private final String MODULE_NAME;
   private static final String M_520 = "5.20";
   private static final String M_520_1 = "M_5.20-1";
   private static final String M_520_1_1 = "M_5.20-1-1";
@@ -54,12 +54,8 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
   private NodeList roles;
   private List<String> objectPath = new ArrayList<>();
 
-  public static MetadataPrivilegeValidator newInstance() {
-    return new MetadataPrivilegeValidator();
-  }
-
-  private MetadataPrivilegeValidator() {
-
+  public MetadataPrivilegeValidator(String moduleName) {
+    this.MODULE_NAME = moduleName;
   }
 
   @Override

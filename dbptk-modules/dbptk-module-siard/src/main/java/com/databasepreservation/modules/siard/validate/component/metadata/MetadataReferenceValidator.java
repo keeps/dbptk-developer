@@ -23,7 +23,7 @@ import com.databasepreservation.utils.XMLUtils;
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataReferenceValidator extends MetadataValidator {
-  private static final String MODULE_NAME = "Reference level metadata";
+  private final String MODULE_NAME;
   private static final String M_510 = "5.10";
   private static final String M_510_1 = "M_5.10-1";
   private static final String M_510_1_1 = "M_5.10-1-1";
@@ -38,11 +38,8 @@ public class MetadataReferenceValidator extends MetadataValidator {
   private Map<String, List<String>> primaryKeyList = new HashMap<>();
   private Map<String, List<String>> candidateKeyList = new HashMap<>();
 
-  public static MetadataReferenceValidator newInstance() {
-    return new MetadataReferenceValidator();
-  }
-
-  private MetadataReferenceValidator() {
+  public MetadataReferenceValidator(String moduleName) {
+    this.MODULE_NAME = moduleName;
     error.clear();
     warnings.clear();
   }

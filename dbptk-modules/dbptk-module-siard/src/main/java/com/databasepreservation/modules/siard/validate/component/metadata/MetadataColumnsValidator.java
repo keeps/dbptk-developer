@@ -22,7 +22,7 @@ import com.databasepreservation.utils.XMLUtils;
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataColumnsValidator extends MetadataValidator {
-  private static final String MODULE_NAME = "Column level metadata";
+  private final String MODULE_NAME;
   private static final String M_56 = "5.6";
   private static final String M_561 = "M_5.6-1";
   private static final String M_561_1 = "M_5.6-1-1";
@@ -32,11 +32,8 @@ public class MetadataColumnsValidator extends MetadataValidator {
 
   private Set<String> typeOriginalSet = new HashSet<>();
 
-  public static ValidatorComponentImpl newInstance() {
-    return new MetadataColumnsValidator();
-  }
-
-  private MetadataColumnsValidator() {
+  public MetadataColumnsValidator(String moduleName) {
+    this.MODULE_NAME = moduleName;
     error.clear();
     warnings.clear();
   }

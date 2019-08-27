@@ -15,7 +15,6 @@ import org.xml.sax.SAXException;
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.reporters.ValidationReporter;
-import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -23,22 +22,18 @@ import com.databasepreservation.utils.XMLUtils;
  */
 public class MetadataFieldValidator extends MetadataValidator {
 
-  private static final String MODULE_NAME = "Field level metadata";
+  private final String MODULE_NAME;
   private static final String M_57 = "5.7";
   private static final String M_571 = "M_5.7-1";
   private static final String M_571_1 = "M_5.7-1-1";
   private static final String M_571_2 = "M_5.7-1-2";
   private static final String M_571_5 = "M_5.7-1-5";
-
   private static final String ARRAY = "ARRAY";
 
   private List<Element> fieldList = new ArrayList<>();
 
-  public static MetadataValidator newInstance() {
-    return new MetadataFieldValidator();
-  }
-
-  private MetadataFieldValidator() {
+  public MetadataFieldValidator(String moduleName) {
+    this.MODULE_NAME = moduleName;
     error.clear();
     warnings.clear();
   }
@@ -186,8 +181,8 @@ public class MetadataFieldValidator extends MetadataValidator {
 
   /**
    * M_5.7-1 The following field metadata are stored in the metadata.xml file if a
-   * column or a field is an advanced or structured data type of category “distinct” or
-   * “udt”:
+   * column or a field is an advanced or structured data type of category
+   * “distinct” or “udt”:
    *
    * @return true if valid otherwise false
    */

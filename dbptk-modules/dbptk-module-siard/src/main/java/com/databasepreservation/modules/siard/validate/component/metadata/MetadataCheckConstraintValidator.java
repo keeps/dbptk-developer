@@ -21,7 +21,7 @@ import com.databasepreservation.utils.XMLUtils;
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataCheckConstraintValidator extends MetadataValidator {
-  private static final String MODULE_NAME = "Check Constraint level metadata";
+  private final String MODULE_NAME;
   private static final String M_512 = "5.12";
   private static final String M_512_1 = "M_5.12-1";
   private static final String M_512_1_1 = "M_5.12-1-1";
@@ -29,11 +29,8 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
 
   private Set<String> checkDuplicates = new HashSet<>();
 
-  public static MetadataCheckConstraintValidator newInstance() {
-    return new MetadataCheckConstraintValidator();
-  }
-
-  private MetadataCheckConstraintValidator() {
+  public MetadataCheckConstraintValidator(String moduleName) {
+    this.MODULE_NAME = moduleName;
     error.clear();
     warnings.clear();
   }

@@ -21,7 +21,7 @@ import com.databasepreservation.utils.XMLUtils;
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataRoleValidator extends MetadataValidator {
-  private static final String MODULE_NAME = "Role level metadata";
+  private final String MODULE_NAME;
   private static final String M_519 = "5.19";
   private static final String M_519_1 = "M_5.19-1";
   private static final String M_519_1_1 = "M_5.19-1-1";
@@ -34,12 +34,8 @@ public class MetadataRoleValidator extends MetadataValidator {
   private NodeList users;
   private NodeList roles;
 
-  public static MetadataRoleValidator newInstance() {
-    return new MetadataRoleValidator();
-  }
-
-  private MetadataRoleValidator() {
-
+  public MetadataRoleValidator(String moduleName) {
+    this.MODULE_NAME = moduleName;
   }
 
   @Override

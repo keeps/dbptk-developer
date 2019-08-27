@@ -99,8 +99,8 @@ public class SIARDValidateModule implements ValidateModule {
       component.setAllowedUTD(allowedUDTs);
       component.setup();
       if (!component.validate()) {
-        validationReporter.close();
-        return false;
+        //validationReporter.close();
+        //return false;
       }
     }
 

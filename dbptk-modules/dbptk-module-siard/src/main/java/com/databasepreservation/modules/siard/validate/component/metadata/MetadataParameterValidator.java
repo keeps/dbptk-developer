@@ -21,7 +21,7 @@ import com.databasepreservation.utils.XMLUtils;
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataParameterValidator extends MetadataValidator {
-  private static final String MODULE_NAME = "Parameter level metadata";
+  private final String MODULE_NAME;
   private static final String M_516 = "5.16";
   private static final String M_516_1 = "M_5.16-1";
   private static final String M_516_1_1 = "M_5.16-1-1";
@@ -34,11 +34,8 @@ public class MetadataParameterValidator extends MetadataValidator {
 
   private Set<String> checkDuplicates = new HashSet<>();
 
-  public static MetadataParameterValidator newInstance() {
-    return new MetadataParameterValidator();
-  }
-
-  private MetadataParameterValidator() {
+  public MetadataParameterValidator(String moduleName) {
+    this.MODULE_NAME = moduleName;
     error.clear();
     warnings.clear();
   }

@@ -15,14 +15,13 @@ import org.xml.sax.SAXException;
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.reporters.ValidationReporter;
-import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataTriggerValidator extends MetadataValidator {
-  private static final String MODULE_NAME = "Trigger level metadata";
+  private final String MODULE_NAME;
   private static final String M_513 = "5.13";
   private static final String M_513_1 = "M_5.13-1";
   private static final String M_513_1_1 = "M_5.13-1-1";
@@ -38,11 +37,8 @@ public class MetadataTriggerValidator extends MetadataValidator {
 
   private Set<String> checkDuplicates = new HashSet<>();
 
-  public static ValidatorComponentImpl newInstance() {
-    return new MetadataTriggerValidator();
-  }
-
-  private MetadataTriggerValidator() {
+  public MetadataTriggerValidator(String moduleName) {
+    this.MODULE_NAME = moduleName;
     warnings.clear();
     error.clear();
   }

@@ -23,7 +23,7 @@ import com.databasepreservation.utils.XMLUtils;
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataForeignKeyValidator extends MetadataValidator {
-  private static final String MODULE_NAME = "Foreign Key level metadata";
+  private final String MODULE_NAME;
   private static final String M_59 = "5.9";
   private static final String M_591 = "M_5.9-1";
   private static final String M_591_1 = "M_5.9-1-1";
@@ -35,11 +35,8 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
   private List<String> schemaList = new ArrayList<>();
   private Set<String> checkDuplicates = new HashSet<>();
 
-  public static MetadataForeignKeyValidator newInstance() {
-    return new MetadataForeignKeyValidator();
-  }
-
-  private MetadataForeignKeyValidator() {
+  public MetadataForeignKeyValidator(String moduleName) {
+    this.MODULE_NAME = moduleName;
     error.clear();
     warnings.clear();
   }
@@ -95,8 +92,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
           if (!validateForeignKeyName(table, name))
             break;
 
-          String referencedSchema = XMLUtils.getChildTextContext(foreignKey,
-            Constants.FOREIGN_KEY_REFERENCED_SCHEMA);
+          String referencedSchema = XMLUtils.getChildTextContext(foreignKey, Constants.FOREIGN_KEY_REFERENCED_SCHEMA);
           // * M_5.9-1 Foreign key referencedSchema is mandatory.
           if (referencedSchema == null || referencedSchema.isEmpty()) {
             setError(M_591, String.format("ReferencedSchema is mandatory (%s)", path));
@@ -105,8 +101,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
           if (!validateForeignKeyReferencedSchema(referencedSchema, path))
             break;
 
-          String referencedTable = XMLUtils.getChildTextContext(foreignKey,
-            Constants.FOREIGN_KEY_REFERENCED_TABLE);
+          String referencedTable = XMLUtils.getChildTextContext(foreignKey, Constants.FOREIGN_KEY_REFERENCED_TABLE);
           // * M_5.9-1 Foreign key referencedTable is mandatory.
           if (referencedTable == null || referencedTable.isEmpty()) {
             setError(M_591, String.format("ReferencedTable is mandatory (%s)", path));
