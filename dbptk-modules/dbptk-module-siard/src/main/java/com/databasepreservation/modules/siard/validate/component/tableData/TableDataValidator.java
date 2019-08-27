@@ -33,7 +33,13 @@ public class TableDataValidator extends ValidatorComponentImpl {
   private static final String P_643 = "T_6.4-3";
   private static final String P_644 = "T_6.4-4";
   private static final String P_645 = "T_6.4-5";
-  private static final String P_646 = "T_6.4-6";
+
+  private List<String> P_641_ERRORS = new ArrayList<>();
+  private List<String> P_642_ERRORS = new ArrayList<>();
+  private List<String> P_643_ERRORS = new ArrayList<>();
+  private List<String> P_644_ERRORS = new ArrayList<>();
+  private List<String> P_645_ERRORS = new ArrayList<>();
+
   private static final String TABLE_REGEX = "^table$";
   private static final String ROW_REGEX = "^row$";
   private static final String COLUMN_REGEX = "^c[0-9]+$";
@@ -46,37 +52,45 @@ public class TableDataValidator extends ValidatorComponentImpl {
 
   @Override
   public boolean validate() throws ModuleException {
-    if (preValidationRequirements())
+    observer.notifyStartValidationModule(MODULE_NAME, P_64);
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     getValidationReporter().moduleValidatorHeader(P_64, MODULE_NAME);
 
     if (validateStoredExtensionFile()) {
+      observer.notifyValidationStep(MODULE_NAME, P_641, Status.OK);
       getValidationReporter().validationStatus(P_641, Status.OK);
     } else {
-      validationFailed(P_641, MODULE_NAME);
+      observer.notifyValidationStep(MODULE_NAME, P_641, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
+      validationFailed(P_641, MODULE_NAME, "", "", P_641_ERRORS);
       closeZipFile();
       return false;
     }
 
     if (validateRowElements()) {
+      observer.notifyValidationStep(MODULE_NAME, P_642, Status.OK);
       getValidationReporter().validationStatus(P_642, Status.OK);
     } else {
-      validationFailed(P_642, MODULE_NAME);
+      observer.notifyValidationStep(MODULE_NAME, P_642, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
+      validationFailed(P_642, MODULE_NAME, "", "Path", P_642_ERRORS);
       closeZipFile();
       return false;
     }
 
-    getValidationReporter().validationStatus(P_643, Status.OK);
+    /* getValidationReporter().validationStatus(P_643, Status.OK); */
 
-    if (validateLOBAttributes()) {
-      getValidationReporter().validationStatus(P_645, Status.OK);
-    } else {
-      validationFailed(P_645, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
+    /*
+     * if (validateLOBAttributes()) {
+     * getValidationReporter().validationStatus(P_645, Status.OK); } else {
+     * validationFailed(P_645, MODULE_NAME); closeZipFile(); return false; }
+     */
 
+    observer.notifyFinishValidationModule(MODULE_NAME, Status.PASSED);
     getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
     closeZipFile();
 
@@ -111,8 +125,8 @@ public class TableDataValidator extends ValidatorComponentImpl {
           Constants.NAMESPACE_FOR_METADATA);
 
         for (int j = 0; j < tableFolders.getLength(); j++) {
-          String path = "content/" + schemaFolderName + "/" + tableFolders.item(j).getNodeValue() + "/"
-            + tableFolders.item(j).getNodeValue() + ".xml";
+          final String path = validatorPathStrategy.getXMLTablePathFromFolder(schemaFolderName,
+            tableFolders.item(j).getTextContent());
           SIARDXMLPaths.add(path);
         }
       }
@@ -122,11 +136,11 @@ public class TableDataValidator extends ValidatorComponentImpl {
 
     for (String path : SIARDXMLPaths) {
       if (!getZipFileNames().contains(path)) {
-        return false;
+        P_641_ERRORS.add("Missing XML file " + path);
       }
     }
 
-    return true;
+    return P_641_ERRORS.isEmpty();
   }
 
   /**
@@ -154,7 +168,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
 
             if (!(tagName.matches(TABLE_REGEX) || tagName.matches(ROW_REGEX) || tagName.matches(COLUMN_REGEX)
               || tagName.matches(ARRAY_REGEX) || tagName.matches(STRUCTURED_REGEX))) {
-              return false;
+              P_642_ERRORS.add(zipFileName);
             }
           }
         } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
@@ -163,7 +177,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
       }
     }
 
-    return true;
+    return P_642_ERRORS.isEmpty();
   }
 
   /**

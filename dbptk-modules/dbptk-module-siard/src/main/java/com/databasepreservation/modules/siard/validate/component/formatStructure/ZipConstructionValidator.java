@@ -4,16 +4,15 @@ import static com.databasepreservation.model.reporters.ValidationReporter.Status
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.List;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.Constants;
-import com.databasepreservation.model.reporters.ValidationReporter.Indent;
 import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 
 /**
@@ -34,7 +33,7 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
   private static final String G_415 = "G_4.1-5";
   private static final byte[] ZIP_MAGIC_NUMBER = {'P', 'K', 0x3, 0x4};
 
-  private Set<String> compressionZipEntriesWithErrors = new TreeSet<>();
+  private List<String> compressionZipEntriesWithErrors = new ArrayList<>();
 
   public ZipConstructionValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
@@ -42,43 +41,55 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
 
   @Override
   public boolean validate() {
+    observer.notifyStartValidationModule(MODULE_NAME, G_41);
     getValidationReporter().moduleValidatorHeader(G_41, MODULE_NAME);
+
     if (isZipFile()) {
+      observer.notifyValidationStep(MODULE_NAME, G_411, Status.OK);
       getValidationReporter().validationStatus(G_411, Status.OK);
     } else {
+      observer.notifyValidationStep(MODULE_NAME, G_411, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
       validationFailed(G_411, MODULE_NAME,
         "Zip archive is not in accordance with the specification published by the company PkWare");
       return false;
     }
 
     if (deflateOrStore()) {
-        getValidationReporter().validationStatus(G_412, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, G_412, Status.OK);
+      getValidationReporter().validationStatus(G_412, Status.OK);
     } else {
-      for (String path : compressionZipEntriesWithErrors) {
-        getValidationReporter().validationStatus("Invalid compression method", Status.ERROR, path, Indent.TAB_2);
-      }
-      validationFailed(G_412, MODULE_NAME,
-        "SIARD files must either be uncompressed or else compressed using the deflate algorithm");
+      observer.notifyValidationStep(MODULE_NAME, G_412, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
+      validationFailed(G_412, MODULE_NAME, "", "Invalid entries", compressionZipEntriesWithErrors);
       return false;
     }
 
     if (passwordProtected()) {
+      observer.notifyValidationStep(MODULE_NAME, G_413, Status.OK);
       getValidationReporter().validationStatus(G_413, Status.OK);
     } else {
+      observer.notifyValidationStep(MODULE_NAME, G_413, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
       validationFailed(G_413, MODULE_NAME, "The SIARD file is password-protected or encrypted.");
       return false;
     }
 
     // G_414 SELF VALIDATE
+    observer.notifyValidationStep(MODULE_NAME, G_414, Status.OK);
     getValidationReporter().validationStatus(G_414, Status.OK);
 
     if (fileExtension()) {
+      observer.notifyValidationStep(MODULE_NAME, G_415, Status.OK);
       getValidationReporter().validationStatus(G_415, Status.OK);
     } else {
+      observer.notifyValidationStep(MODULE_NAME, G_415, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
       validationFailed(G_415, MODULE_NAME,  "The ZIP archive must have the file extension .siard");
       return false;
     }
 
+    observer.notifyFinishValidationModule(MODULE_NAME, Status.PASSED);
     getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
     return true;
   }

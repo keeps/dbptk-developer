@@ -40,14 +40,21 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
   }
 
   public boolean validate() throws ModuleException {
-    if (preValidationRequirements())
+    observer.notifyStartValidationModule(MODULE_NAME, P_42);
+
+    if (preValidationRequirements()){
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     getValidationReporter().moduleValidatorHeader(P_42, MODULE_NAME);
 
     if (validateSIARDStructure()) {
+      observer.notifyValidationStep(MODULE_NAME, P_421, Status.OK);
       getValidationReporter().validationStatus(P_421, Status.OK);
     } else {
+      observer.notifyValidationStep(MODULE_NAME, P_421, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
       validationFailed(P_421, MODULE_NAME,
         "No further folders or files are permitted besides the header/ and content/ folders", P_421_ERRORS);
       closeZipFile();
@@ -55,8 +62,11 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
     }
 
     if (validateContentFolderStructure()) {
+      observer.notifyValidationStep(MODULE_NAME, P_422, Status.OK);
       getValidationReporter().validationStatus(P_422, Status.OK);
     } else {
+      observer.notifyValidationStep(MODULE_NAME, P_422, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
       validationFailed(P_422, MODULE_NAME, "No other folders or files are permitted inside the content/ folder.",
         P_422_ERRORS);
       closeZipFile();
@@ -64,37 +74,50 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
     }
 
     if (validateTableFolderStructure()) {
+      observer.notifyValidationStep(MODULE_NAME, P_423, Status.OK);
       getValidationReporter().validationStatus(P_423, Status.OK);
     } else {
+      observer.notifyValidationStep(MODULE_NAME, P_423, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
       validationFailed(P_423, MODULE_NAME, "", P_423_ERRORS);
       closeZipFile();
       return false;
     }
 
     if (validateRecognitionOfSIARDFormat()) {
+      observer.notifyValidationStep(MODULE_NAME, P_424, Status.OK);
       getValidationReporter().validationStatus(P_424, Status.OK);
     } else {
+      observer.notifyValidationStep(MODULE_NAME, P_424, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
       validationFailed(P_424, MODULE_NAME, "Missing the folder to facilitate the recognition of the SIARD format");
       closeZipFile();
       return false;
     }
 
     if (validateHeaderFolderStructure()) {
+      observer.notifyValidationStep(MODULE_NAME, P_425, Status.OK);
       getValidationReporter().validationStatus(P_425, Status.OK);
     } else {
+      observer.notifyValidationStep(MODULE_NAME, P_425, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
       validationFailed(P_425, MODULE_NAME, "The metadata.xml and metadata.xsd files must be present in the header/ folder");
       closeZipFile();
       return false;
     }
 
     if (validateFilesAndFoldersNames()) {
+      observer.notifyValidationStep(MODULE_NAME, P_426, Status.OK);
       getValidationReporter().validationStatus(P_426, Status.OK);
     } else {
+      observer.notifyValidationStep(MODULE_NAME, P_426, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
       validationFailed(P_426, MODULE_NAME, "", P_426_ERRORS);
       closeZipFile();
       return false;
     }
 
+    observer.notifyFinishValidationModule(MODULE_NAME, Status.PASSED);
     getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
     closeZipFile();
 

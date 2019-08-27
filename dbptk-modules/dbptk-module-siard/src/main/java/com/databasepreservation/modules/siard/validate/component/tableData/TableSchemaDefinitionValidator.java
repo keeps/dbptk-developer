@@ -36,49 +36,70 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
   private static final String P_613 = "T_6.1-3";
   private static final String P_614 = "T_6.1-4";
 
+  private List<String> P_611_ERRORS = new ArrayList<>();
+  private List<String> P_612_ERRORS = new ArrayList<>();
+  private List<String> P_613_ERRORS = new ArrayList<>();
+  private List<String> P_614_ERRORS = new ArrayList<>();
+
   public TableSchemaDefinitionValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
   }
 
   @Override
   public boolean validate() throws ModuleException {
-    if (preValidationRequirements())
+    observer.notifyStartValidationModule(MODULE_NAME, P_61);
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     getValidationReporter().moduleValidatorHeader(P_61, MODULE_NAME);
 
     if (validateXMLSchemaDefinition()) {
+      observer.notifyValidationStep(MODULE_NAME, P_611, Status.OK);
       getValidationReporter().validationStatus(P_611, Status.OK);
     } else {
-      validationFailed(P_611, MODULE_NAME);
+      observer.notifyValidationStep(MODULE_NAME, P_611, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
+      validationFailed(P_611, MODULE_NAME, "", "Missing XML schema definition", P_611_ERRORS);
       closeZipFile();
       return false;
     }
 
     if (validateColumnsTag()) {
+      observer.notifyValidationStep(MODULE_NAME, P_612, Status.OK);
       getValidationReporter().validationStatus(P_612, Status.OK);
     } else {
-      validationFailed(P_612, MODULE_NAME);
+      observer.notifyValidationStep(MODULE_NAME, P_612, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
+      validationFailed(P_612, MODULE_NAME, "", "Invalid path", P_612_ERRORS);
       closeZipFile();
       return false;
     }
 
     if (validateXMLSchemaStandardTypes()) {
+      observer.notifyValidationStep(MODULE_NAME, P_613, Status.OK);
       getValidationReporter().validationStatus(P_613, Status.OK);
     } else {
-      validationFailed(P_613, MODULE_NAME);
+      observer.notifyValidationStep(MODULE_NAME, P_613, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
+      validationFailed(P_613, MODULE_NAME, "", "Incompatible XML Schema standard types", P_613_ERRORS);
       closeZipFile();
       return false;
     }
 
     if (validateAdvancedOrStructuredType()) {
+      observer.notifyValidationStep(MODULE_NAME, P_614, Status.OK);
       getValidationReporter().validationStatus(P_614, Status.OK);
     } else {
+      observer.notifyValidationStep(MODULE_NAME, P_614, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
       validationFailed(P_614, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
+    observer.notifyFinishValidationModule(MODULE_NAME, Status.PASSED);
     getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
     closeZipFile();
 
@@ -113,11 +134,11 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
     for (String path : tableData) {
       final String XSDPath = path.concat(Constants.XSD_EXTENSION);
       if (!getZipFileNames().contains(XSDPath)) {
-        return false;
+        P_611_ERRORS.add(path.concat(Constants.XML_EXTENSION));
       }
     }
 
-    return true;
+    return P_611_ERRORS.isEmpty();
   }
 
   /**
@@ -156,14 +177,16 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
 
           for (int i = 0; i < resultNodes.getLength(); i++) {
             final String name = resultNodes.item(i).getAttributes().getNamedItem("name").getNodeValue();
-            if (!validateSequence(name, "^c[0-9]+$", i+1)) return false;
+            if (!validateSequence(name, "^c[0-9]+$", i + 1)) {
+              P_612_ERRORS.add("Column tags invalid in " + zipFileName);
+            }
           }
         } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
           return false;
         }
       }
     }
-    return true;
+    return P_612_ERRORS.isEmpty();
   }
 
   /**
@@ -195,7 +218,7 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
             if (!type.startsWith("xs")) {
               if (!(type.equals("clobType") || type.equals("blobType") || type.equals("dateType")
                 || type.equals("timeType") || type.equals("dateTimeType"))) {
-                return false;
+                P_613_ERRORS.add(type + " at " + zipFileName);
               }
             }
           }
@@ -205,7 +228,7 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
       }
     }
 
-    return true;
+    return P_613_ERRORS.isEmpty();
   }
 
   /**
@@ -237,7 +260,7 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
             final String nodeValue = resultNodes.item(i).getNodeValue();
             String xpathExpression = "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element[@name='$1']/xs:complexType/xs:sequence/xs:element";
             xpathExpression = xpathExpression.replace("$1", nodeValue);
-            if (!checkAdvancedOrStruturedSequence(zipFileName, xpathExpression, null)) return false;
+            P_614_ERRORS.addAll(checkAdvancedOrStructuredSequence(zipFileName, xpathExpression, null));
           }
         } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
           return false;
@@ -245,13 +268,15 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
       }
     }
 
-    return true;
+    return P_614_ERRORS.isEmpty();
   }
 
   /*
    * Auxiliary Methods
    */
-  private boolean checkAdvancedOrStruturedSequence(String zipFileName, String xpathExpression, String userDefinedColumnName) throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+  private List<String> checkAdvancedOrStructuredSequence(String zipFileName, String xpathExpression, String userDefinedColumnName) throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+    List<String> errors = new ArrayList<>();
+
     if (userDefinedColumnName != null) {
       xpathExpression = xpathExpression.concat("[@name='$1']/xs:complexType/xs:sequence/xs:element");
       xpathExpression = xpathExpression.replace("$1", userDefinedColumnName);
@@ -261,20 +286,18 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
       XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
     for (int i = 0; i < result.getLength(); i++) {
       final Node type = result.item(i).getAttributes().getNamedItem("type");
-      final String name;
+      final String name = result.item(i).getAttributes().getNamedItem("name").getNodeValue();;
       if (type == null) {
-        name = result.item(i).getAttributes().getNamedItem("name").getNodeValue();
-        if (!checkAdvancedOrStruturedSequence(zipFileName, xpathExpression, name)) return false;
-      } else {
-        name = result.item(i).getAttributes().getNamedItem("name").getNodeValue();
+        errors.addAll(checkAdvancedOrStructuredSequence(zipFileName, xpathExpression, name));
       }
+
       if (!validateSequence(name, "^a[0-9]+$", i+1)) {
         if (!validateSequence(name, "u[0-9]+$", i+1)) {
-          return false;
+          errors.add("Invalid cell tag at " + zipFileName);
         }
       }
     }
-    return true;
+    return errors;
   }
 
   private boolean validateSequence(String name, String regex, int sequenceValue) {

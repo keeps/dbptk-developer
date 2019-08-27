@@ -93,6 +93,7 @@ public class SIARDValidateModule implements ValidateModule {
 
     for (ValidatorComponent component : components) {
       component.setReporter(reporter);
+      component.setObserver(observer);
       component.setSIARDPath(SIARDPackageNormalizedPath);
       component.setValidationReporter(validationReporter);
       component.setValidatorPathStrategy(validatorPathStrategy);

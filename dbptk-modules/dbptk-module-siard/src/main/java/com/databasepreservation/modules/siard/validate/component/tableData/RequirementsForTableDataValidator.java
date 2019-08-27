@@ -5,6 +5,7 @@ import static com.databasepreservation.model.reporters.ValidationReporter.Status
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -45,6 +46,10 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   private static final String P_60 = "T_6.0";
   private static final String P_601 = "T_6.0-1";
   private static final String P_602 = "T_6.0-2";
+
+  private List<String> P_601_ERRORS = new ArrayList<>();
+  private List<String> P_602_ERRORS = new ArrayList<>();
+
   private static List<String> SQL2008Types = null;
   private HashMap<String, Set<String>> primaryKeyData = new HashMap<>();
 
@@ -71,7 +76,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     SQL2008Types.add("^FLOAT\\(\\d+\\)$");
     SQL2008Types.add("^INTEGER$");
     SQL2008Types.add("^INT$");
-    SQL2008Types.add("^^INTERVAL\\s+\\w+\\s+TO\\s+\\w+$");
+    SQL2008Types.add("^INTERVAL\\s+\\w+(\\(\\d+\\))?\\s+TO\\s+\\w+$");
     SQL2008Types.add("^NATIONAL CHARACTER LARGE OBJECT\\(\\d+\\)$");
     SQL2008Types.add("^NCHAR VARYING\\(\\d+\\)$");
     SQL2008Types.add("^NATIONAL CHARACTER\\(\\d+\\)$");
@@ -89,27 +94,37 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
 
   @Override
   public boolean validate() throws ModuleException {
-    if (preValidationRequirements())
+    observer.notifyStartValidationModule(MODULE_NAME, P_60);
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     getValidationReporter().moduleValidatorHeader(P_60, MODULE_NAME);
 
     if (validateSQL2008Requirements()) {
+      observer.notifyValidationStep(MODULE_NAME, P_601, Status.OK);
       getValidationReporter().validationStatus(P_601, Status.OK);
     } else {
-      validationFailed(P_601, MODULE_NAME);
+      observer.notifyValidationStep(MODULE_NAME, P_601, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
+      validationFailed(P_601, MODULE_NAME, "", "", P_601_ERRORS);
       closeZipFile();
       return false;
     }
 
     if (validateTableXSDAgainstXML()) {
+      observer.notifyValidationStep(MODULE_NAME, P_602, Status.OK);
       getValidationReporter().validationStatus(P_602, Status.OK);
     } else {
-      validationFailed(P_602, MODULE_NAME);
+      observer.notifyValidationStep(MODULE_NAME, P_602, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
+      validationFailed(P_602, MODULE_NAME, "", "Validation against XSD failed", P_602_ERRORS);
       closeZipFile();
       return false;
     }
 
+    observer.notifyFinishValidationModule(MODULE_NAME, Status.PASSED);
     getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
     closeZipFile();
 
@@ -159,6 +174,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     for (String type : SQL2008FoundTypes) {
       // Checks if the type is in conformity with SQL:2008
       if (!validateSQL2008Type(type)) {
+        System.out.println(type);
         return false;
       }
     }
@@ -180,8 +196,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
 
         for (int j = 0; j < tables.getLength(); j++) {
           String tableFolder = tables.item(j).getTextContent();
-          if (!validatePrimaryKeyConstraint(schemaFolder, tableFolder))
-            return false;
+          P_601_ERRORS.addAll(validatePrimaryKeyConstraint(schemaFolder, tableFolder));
         }
       }
     } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
@@ -205,15 +220,14 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
 
         for (int j = 0; j < tables.getLength(); j++) {
           String tableFolder = tables.item(j).getTextContent();
-          if (!validateForeignKeyConstraint(schemaFolder, tableFolder))
-            return false;
+          P_601_ERRORS.addAll(validateForeignKeyConstraint(schemaFolder, tableFolder));
         }
       }
     } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
       return false;
     }
 
-    return true;
+    return P_601_ERRORS.isEmpty();
   }
 
   /**
@@ -264,21 +278,18 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       Schema schema;
       try {
         schema = schemaFactory.newSchema(schemaFile);
+        Validator validator = schema.newValidator();
+        try {
+          validator.validate(xmlFile);
+        } catch (SAXException | IOException e) {
+          P_602_ERRORS.add(e.getLocalizedMessage());
+        }
       } catch (SAXException e) {
-        return false;
-        // System.out.println("Reason: " + e.getLocalizedMessage());
-      }
-
-      Validator validator = schema.newValidator();
-      try {
-        validator.validate(xmlFile);
-      } catch (SAXException | IOException e) {
-        // System.out.println("Reason: " + e.getLocalizedMessage());
-        return false;
+        P_602_ERRORS.add(e.getLocalizedMessage());
       }
     }
 
-    return true;
+    return P_602_ERRORS.isEmpty();
   }
 
   /*
@@ -350,8 +361,9 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     return false;
   }
 
-  private boolean validatePrimaryKeyConstraint(String schemaFolder, String tableFolder)
+  private List<String> validatePrimaryKeyConstraint(String schemaFolder, String tableFolder)
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+    List<String> errors = new ArrayList<>();
     final List<Integer> indexes = getPrimaryKeyColumnIndexes(schemaFolder, tableFolder);
     Set<String> uniquePrimaryKeys = new HashSet<>();
 
@@ -360,39 +372,50 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     if (indexes.size() == 1) {
       final int index = indexes.get(0);
       String columnIndex = "c" + index;
-      String expression = "/ns:table/ns:row/ns:$1/text()";
+      String expression = "/ns:table/ns:row/ns:$1";
       expression = expression.replace("$1", columnIndex);
-      try {
+
         NodeList result = (NodeList) XMLUtils.getXPathResult(getZipInputStream(path), expression,
           XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
         for (int i = 0; i < result.getLength(); i++) {
-          if (!uniquePrimaryKeys.add(result.item(i).getTextContent()))
-            return false;
+        if (!uniquePrimaryKeys.add(result.item(i).getTextContent())) {
+          String tagName = result.item(i).getNodeName();
+          String xml = "<" + tagName + ">" + result.item(i).getTextContent() + "</" + tagName + ">";
+
+          P_601_ERRORS.add("Primary key constraint not met " + xml + " at " + path);
         }
-      } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
-        return false;
       }
     } else if (indexes.size() > 1) {
       Set<List<String>> uniqueCompositePrimaryKeys = new HashSet<>();
       String expression = "/ns:table/ns:row";
-      try {
+
         NodeList result = (NodeList) XMLUtils.getXPathResult(getZipInputStream(path), expression,
           XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
         for (int i = 0; i < result.getLength(); i++) {
           List<String> compositePrimaryKey = new ArrayList<>();
+        List<String> XMLNode = new ArrayList<>();
           for (int index : indexes) {
             String columnIndex = "c" + index;
             Element element = (Element) result.item(i);
+          String tagName = element.getElementsByTagName(columnIndex).item(0).getNodeName();
+          XMLNode.add("<" + tagName + ">" + element.getElementsByTagName(columnIndex).item(0).getTextContent() + "</"
+            + tagName + ">");
             compositePrimaryKey.add(element.getElementsByTagName(columnIndex).item(0).getTextContent());
           }
-          if (!uniqueCompositePrimaryKeys.add(compositePrimaryKey))
-            return false;
+        if (!uniqueCompositePrimaryKeys.add(compositePrimaryKey)) {
+          StringBuilder sb = new StringBuilder();
+          for (String s : XMLNode) {
+            if (XMLNode.indexOf(s) == XMLNode.size() - 1) {
+              sb.append(s);
+            } else {
+              sb.append(s).append(" ");
+            }
+          }
+          errors.add("Primary key duplicated: " + sb.toString() + " at " + path);
         }
-      } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
-        return false;
       }
     }
-    return true;
+    return errors;
   }
 
   private List<Integer> getPrimaryKeyColumnIndexes(String schemaFolder, String tableFolder)
@@ -425,8 +448,9 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     }
   }
 
-  private boolean validateForeignKeyConstraint(String schemaFolder, String tableFolder)
+  private List<String> validateForeignKeyConstraint(String schemaFolder, String tableFolder)
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+    List<String> errors = new ArrayList<>();
     String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table[ns:folder/text()='$2']/ns:foreignKeys/ns:foreignKey";
     xpathExpression = xpathExpression.replace("$1", schemaFolder);
     xpathExpression = xpathExpression.replace("$2", tableFolder);
@@ -437,6 +461,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
 
     for (int i = 0; i < nodeList.getLength(); i++) {
       Element element = (Element) nodeList.item(i);
+      final String foreignKeyName = element.getElementsByTagName("name").item(0).getTextContent();
       final String referencedSchema = element.getElementsByTagName("referencedSchema").item(0).getTextContent();
       final String referencedTable = element.getElementsByTagName("referencedTable").item(0).getTextContent();
       Element reference = (Element) element.getElementsByTagName("reference").item(0);
@@ -451,12 +476,12 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       String key = referencedSchema + "." + referencedTable + "." + referenced;
       for (String value : data) {
         if (!primaryKeyData.get(key).contains(value)) {
-          return false;
+          errors.add("The value ("+ value + ") for foreign key '" + foreignKeyName + "' is not present in '" + referencedTable + "'");
         }
       }
     }
 
-    return true;
+    return errors;
   }
 
   private Set<String> getColumnDataByIndex(String path, int index)

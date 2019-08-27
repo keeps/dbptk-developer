@@ -1,6 +1,8 @@
 package com.databasepreservation.modules.siard.validate.component.tableData;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
@@ -31,25 +33,34 @@ public class DateAndTimestampDataValidator extends ValidatorComponentImpl {
   private static final String DATE_TIME_TYPE_MIN = "0001-01-01T00:00:00.000000000Z";
   private static final String DATE_TIME_TYPE_MAX = "10000-01-01T00:00:00.000000000Z";
 
+  private List<String> P_631_ERRORS = new ArrayList<>();
+
   public DateAndTimestampDataValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
   }
 
   @Override
   public boolean validate() throws ModuleException {
-    if (preValidationRequirements())
+    observer.notifyStartValidationModule(MODULE_NAME, P_63);
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     getValidationReporter().moduleValidatorHeader(P_63, MODULE_NAME);
 
     if (validateDatesAndTimestamps()) {
+      observer.notifyValidationStep(MODULE_NAME, P_631, Status.OK);
       getValidationReporter().validationStatus(P_631, Status.OK);
     } else {
-      validationFailed(P_631, MODULE_NAME);
+      observer.notifyValidationStep(MODULE_NAME, P_631, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
+      validationFailed(P_631, MODULE_NAME, "", "", P_631_ERRORS);
       closeZipFile();
       return false;
     }
 
+    observer.notifyFinishValidationModule(MODULE_NAME, Status.PASSED);
     getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
     closeZipFile();
 
@@ -80,8 +91,10 @@ public class DateAndTimestampDataValidator extends ValidatorComponentImpl {
           if (dateTypeNodes.getLength() > 1) {
             final String dateTypeMinXPathExpression = "/xs:schema/xs:simpleType[@name='dateType']/xs:restriction/xs:minInclusive/@value";
             final String dateTypeMaxXPathExpression = "/xs:schema/xs:simpleType[@name='dateType']/xs:restriction/xs:maxExclusive/@value";
-            if (!validateDateType(zipFileName, dateTypeMinXPathExpression, dateTypeMaxXPathExpression, DATE_TYPE_MIN, DATE_TYPE_MAX))
-              return false;
+            if (!validateDateType(zipFileName, dateTypeMinXPathExpression, dateTypeMaxXPathExpression, DATE_TYPE_MIN,
+              DATE_TYPE_MAX)) {
+              P_631_ERRORS.add("Error on " + zipFileName + " restriction not enforced");
+            }
           }
 
           NodeList dateTimeTypeNodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(zipFileName),
@@ -89,8 +102,10 @@ public class DateAndTimestampDataValidator extends ValidatorComponentImpl {
           if (dateTimeTypeNodes.getLength() > 1) {
             final String dateTimeTypeMinXPathExpression = "/xs:schema/xs:simpleType[@name='dateTimeType']/xs:restriction/xs:minInclusive/@value";
             final String dateTimeTypeMaxXPathExpression = "/xs:schema/xs:simpleType[@name='dateTimeType']/xs:restriction/xs:maxExclusive/@value";
-            if (!validateDateType(zipFileName, dateTimeTypeMinXPathExpression, dateTimeTypeMaxXPathExpression, DATE_TIME_TYPE_MIN, DATE_TIME_TYPE_MAX))
-              return false;
+            if (!validateDateType(zipFileName, dateTimeTypeMinXPathExpression, dateTimeTypeMaxXPathExpression,
+              DATE_TIME_TYPE_MIN, DATE_TIME_TYPE_MAX)) {
+              P_631_ERRORS.add("Error on " + zipFileName + " restriction not enforced");
+            }
           }
 
         } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
@@ -99,7 +114,7 @@ public class DateAndTimestampDataValidator extends ValidatorComponentImpl {
       }
     }
 
-    return true;
+    return P_631_ERRORS.isEmpty();
   }
 
   private boolean validateDateType(String zipFileName, String minXPathExpression, String maxXPathExpression,
@@ -112,9 +127,6 @@ public class DateAndTimestampDataValidator extends ValidatorComponentImpl {
 
     if (!min.matches(minRegex))
       return false;
-    if (!max.matches(maxRegex))
-      return false;
-
-    return true;
+    return max.matches(maxRegex);
   }
 }

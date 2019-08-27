@@ -1,5 +1,6 @@
 package com.databasepreservation.model.components;
 
+import com.databasepreservation.common.ValidationObserver;
 import com.databasepreservation.common.ValidatorPathStrategy;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
@@ -26,4 +27,6 @@ public interface ValidatorComponent {
   void setAllowedUTD( List<String> allowedUDTs);
 
   void setup() throws ModuleException;
+
+  void setObserver(ValidationObserver observer);
 }

@@ -1,5 +1,8 @@
 package com.databasepreservation.modules.siard.validate.component;
 
+import static com.databasepreservation.model.reporters.ValidationReporter.Indent;
+import static com.databasepreservation.model.reporters.ValidationReporter.Status;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -18,6 +21,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
+import com.databasepreservation.common.ValidationObserver;
 import com.databasepreservation.common.ValidatorPathStrategy;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.components.ValidatorComponent;
@@ -25,14 +29,13 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.utils.XMLUtils;
 
-import static com.databasepreservation.model.reporters.ValidationReporter.*;
-
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 public abstract class ValidatorComponentImpl implements ValidatorComponent {
   protected Path path = null;
   private Reporter reporter = null;
+  protected ValidationObserver observer = null;
   private ValidationReporter validationReporter = null;
   private ZipFile zipFile = null;
   private List<String> zipFileNames = null;
@@ -74,7 +77,9 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
 
   @Override
   public void setValidatorPathStrategy(ValidatorPathStrategy validatorPathStrategy) {
-    this.validatorPathStrategy = validatorPathStrategy;
+    if (this.validatorPathStrategy == null) {
+      this.validatorPathStrategy = validatorPathStrategy;
+    }
   }
 
   @Override
@@ -189,6 +194,13 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
   public void setup() throws ModuleException {
     if (!validatorPathStrategy.isReady()) {
       registerSchemaAndTables();
+    }
+  }
+
+  @Override
+  public void setObserver(ValidationObserver observer) {
+    if (this.observer == null) {
+      this.observer = observer;
     }
   }
 

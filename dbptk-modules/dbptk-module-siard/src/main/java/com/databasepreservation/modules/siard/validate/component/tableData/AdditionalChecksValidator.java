@@ -40,31 +40,42 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
   private HashMap<String, List<ImmutablePair<String, String>>> columnTypes = new HashMap<>();
   private HashMap<String, Integer> rows = new HashMap<>();
 
+  private List<String> dataTypeErrors = new ArrayList<>();
+
   public AdditionalChecksValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
   }
 
   @Override
   public boolean validate() throws ModuleException {
-    if (preValidationRequirements())
+    observer.notifyStartValidationModule(MODULE_NAME, "");
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
-    if (!obtainValidationData())
+    if (!obtainValidationData()) {
+      LOGGER.debug("Failed to obtain data for {}", MODULE_NAME);
+      closeZipFile();
       return false;
+    }
 
     getValidationReporter().moduleValidatorHeader(MODULE_NAME);
 
+    outputDifferentBlobsTypes();
+    numberOfNullValuesForForeignKey();
+
     if (validateTableDataType()) {
+      observer.notifyValidationStep(MODULE_NAME, "Validate Data Type", Status.OK);
       getValidationReporter().validationStatus("Validate Data Type", Status.OK);
     } else {
-      validationFailed("Validate Data Type", MODULE_NAME);
+      observer.notifyValidationStep(MODULE_NAME, "Validate Data Type", Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
+      validationFailed("Validate Data Type", MODULE_NAME, "", "Data type invalid", dataTypeErrors);
       closeZipFile();
     }
 
-    outputDifferentBlobsTypes();
-
-    numberOfNullValuesForForeignKey();
-
+    observer.notifyFinishValidationModule(MODULE_NAME, Status.PASSED);
     getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
     closeZipFile();
 
@@ -115,14 +126,14 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
                 if (nodeName.matches("a[0-9]+")) {
                   final String content = result.item(i).getChildNodes().item(j).getTextContent();
                   if (!validateType(content, type)) {
-                    return false;
+                    dataTypeErrors.add(content + " is not in conformity with '" + type + "' type");
                   }
                 }
               }
             } else {
               final String content = result.item(i).getTextContent();
               if (!validateType(content, type)) {
-                return false;
+                dataTypeErrors.add(content + " is not in conformity with '" + type + "' type");
               }
             }
           }
@@ -132,7 +143,7 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
       }
     }
 
-    return true;
+    return dataTypeErrors.isEmpty();
   }
 
   /**
