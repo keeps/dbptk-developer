@@ -78,25 +78,25 @@ public class MetadataTriggerValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element trigger = (Element) nodes.item(i);
-        String table = MetadataXMLUtils.getParentNameByTagName(trigger, Constants.NAME);
-        String schema = MetadataXMLUtils.getParentNameByTagName(trigger, Constants.NAME);
-        String name = MetadataXMLUtils.getChildTextContext(trigger, Constants.NAME);
+        String table = XMLUtils.getParentNameByTagName(trigger, Constants.NAME);
+        String schema = XMLUtils.getParentNameByTagName(trigger, Constants.NAME);
+        String name = XMLUtils.getChildTextContext(trigger, Constants.NAME);
         String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, TRIGGER, name);
 
         if (!validateTriggerName(name, path))
           break;
 
-        String triggerActionTime = MetadataXMLUtils.getChildTextContext(trigger, TRIGGER_ACTION_TIME);
+        String triggerActionTime = XMLUtils.getChildTextContext(trigger, TRIGGER_ACTION_TIME);
         if (!validateTriggerActionTime(triggerActionTime, path))
           break;
-        String triggerEvent = MetadataXMLUtils.getChildTextContext(trigger, TRIGGER_EVENT);
+        String triggerEvent = XMLUtils.getChildTextContext(trigger, TRIGGER_EVENT);
         if (!validateTriggerEvent(triggerEvent, path))
           break;
-        String triggeredAction = MetadataXMLUtils.getChildTextContext(trigger, TRIGGER_TRIGGERED_ACTION);
+        String triggeredAction = XMLUtils.getChildTextContext(trigger, TRIGGER_TRIGGERED_ACTION);
         if (!validateTriggerTriggeredAction(triggeredAction, path))
           break;
 
-        String description = MetadataXMLUtils.getChildTextContext(trigger, Constants.DESCRIPTION);
+        String description = XMLUtils.getChildTextContext(trigger, Constants.DESCRIPTION);
         if (!validateTriggerDescription(description, path))
           break;
       }

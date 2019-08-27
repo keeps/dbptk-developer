@@ -81,13 +81,13 @@ public class MetadataTypeValidator extends MetadataValidator {
         Element type = (Element) nodes.item(i);
         typesList.add(type);
 
-        String schema = MetadataXMLUtils.getChildTextContext((Element) type.getParentNode().getParentNode(), "name");
+        String schema = XMLUtils.getChildTextContext((Element) type.getParentNode().getParentNode(), "name");
 
-        String name = MetadataXMLUtils.getChildTextContext(type, Constants.NAME);
-        String category = MetadataXMLUtils.getChildTextContext(type, Constants.CATEGORY);
-        String instantiable = MetadataXMLUtils.getChildTextContext(type, Constants.TYPE_INSTANTIABLE);
-        String finalField = MetadataXMLUtils.getChildTextContext(type, Constants.TYPE_FINAL);
-        String description = MetadataXMLUtils.getChildTextContext(type, Constants.DESCRIPTION);
+        String name = XMLUtils.getChildTextContext(type, Constants.NAME);
+        String category = XMLUtils.getChildTextContext(type, Constants.CATEGORY);
+        String instantiable = XMLUtils.getChildTextContext(type, Constants.TYPE_INSTANTIABLE);
+        String finalField = XMLUtils.getChildTextContext(type, Constants.TYPE_FINAL);
+        String description = XMLUtils.getChildTextContext(type, Constants.DESCRIPTION);
 
         String path = buildPath(Constants.SCHEMA, schema, Constants.TYPE, name);
         if (!validateTypeName(name, path) || !validateTypeCategory(category, path)

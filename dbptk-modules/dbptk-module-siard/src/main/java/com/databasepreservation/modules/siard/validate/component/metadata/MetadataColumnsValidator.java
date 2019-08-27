@@ -72,12 +72,12 @@ public class MetadataColumnsValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element table = (Element) nodes.item(i);
-        String tableFolderName = MetadataXMLUtils.getChildTextContext(table, Constants.FOLDER);
-        String tableName = MetadataXMLUtils.getChildTextContext(table, Constants.NAME);
+        String tableFolderName = XMLUtils.getChildTextContext(table, Constants.FOLDER);
+        String tableName = XMLUtils.getChildTextContext(table, Constants.NAME);
 
         Element schemaElement = (Element) table.getParentNode().getParentNode();
-        String schemaFolderName = MetadataXMLUtils.getChildTextContext(schemaElement, Constants.FOLDER);
-        String schemaName = MetadataXMLUtils.getChildTextContext(schemaElement, Constants.NAME);
+        String schemaFolderName = XMLUtils.getChildTextContext(schemaElement, Constants.FOLDER);
+        String schemaName = XMLUtils.getChildTextContext(schemaElement, Constants.NAME);
 
         Element columns = ((Element) table.getElementsByTagName(Constants.COLUMNS).item(0));
         NodeList columnNodes = columns.getElementsByTagName(Constants.COLUMN);
@@ -86,15 +86,15 @@ public class MetadataColumnsValidator extends MetadataValidator {
           Element column = (Element) columnNodes.item(j);
 
           // * M_5.6-1 The column name in SIARD is mandatory.
-          String name = MetadataXMLUtils.getChildTextContext(column, Constants.NAME);
+          String name = XMLUtils.getChildTextContext(column, Constants.NAME);
           String path = buildPath(Constants.SCHEMA, schemaName, Constants.TABLE, tableName, Constants.COLUMN, name);
           if (!validateColumnName(name, path))
             break;
 
           // * M_5.6-1 The column type in SIARD is mandatory.
-          String type = MetadataXMLUtils.getChildTextContext(column, Constants.TYPE);
+          String type = XMLUtils.getChildTextContext(column, Constants.TYPE);
           if (type == null || type.isEmpty()) {
-            String typeName = MetadataXMLUtils.getChildTextContext(column, Constants.TYPE_NAME);
+            String typeName = XMLUtils.getChildTextContext(column, Constants.TYPE_NAME);
             if (typeName == null || typeName.isEmpty()) {
               setError(M_561, String.format("Column type cannot be null (%s)", path));
               return false;
@@ -104,18 +104,18 @@ public class MetadataColumnsValidator extends MetadataValidator {
 
           if (type.equals(Constants.CHARACTER_LARGE_OBJECT) || type.equals(Constants.BINARY_LARGE_OBJECT)
             || type.equals(Constants.BLOB) || type.equals(Constants.CLOB) || type.equals(Constants.XML_LARGE_OBJECT)) {
-            String folder = MetadataXMLUtils.getChildTextContext(column, Constants.LOB_FOLDER);
+            String folder = XMLUtils.getChildTextContext(column, Constants.LOB_FOLDER);
             String columnNumber = "c" + (j + 1);
             if (!validateColumnLobFolder(schemaFolderName, tableFolderName, type, folder, columnNumber, name, path))
               break;
           }
 
-          String typeOriginal = MetadataXMLUtils.getChildTextContext(column, Constants.TYPE_ORIGINAL);
+          String typeOriginal = XMLUtils.getChildTextContext(column, Constants.TYPE_ORIGINAL);
           if (typeOriginal != null) {
             typeOriginalSet.add(typeOriginal);
           }
 
-          String description = MetadataXMLUtils.getChildTextContext(column, Constants.DESCRIPTION);
+          String description = XMLUtils.getChildTextContext(column, Constants.DESCRIPTION);
           if (!validateColumnDescription(description, path))
             break;
 
@@ -145,14 +145,14 @@ public class MetadataColumnsValidator extends MetadataValidator {
    */
   private boolean validateColumnLobFolder(String schemaFolder, String tableFolder, String type, String folder,
     String column, String name, String path) {
-    String pathToTableColumn = MetadataXMLUtils.createPath(MetadataXMLUtils.SIARD_CONTENT, schemaFolder, tableFolder);
+    String pathToTableColumn = createPath(Constants.SIARD_CONTENT_FOLDER, schemaFolder, tableFolder);
     if (!HasReferenceToLobFolder(pathToTableColumn, schemaFolder, tableFolder, column,
       folder)) {
       if (folder == null || folder.isEmpty()) {
         addWarning(M_561_3, String.format("lobFolder must be set for column type  %s", type), path);
       } else {
         setError(M_561_3, "not found lobFolder(" + folder + ") required by "
-          + MetadataXMLUtils.createPath(pathToTableColumn, name, column));
+          + createPath(pathToTableColumn, name, column));
       }
       return false;
     }
@@ -170,7 +170,7 @@ public class MetadataColumnsValidator extends MetadataValidator {
         Element columnNumber = (Element) nodes.item(i);
         String fileName = columnNumber.getAttribute("file");
 
-        if (!fileName.isEmpty() && getZipFile().getEntry(MetadataXMLUtils.createPath(path, folder, fileName)) == null) {
+        if (!fileName.isEmpty() && getZipFile().getEntry(createPath(path, folder, fileName)) == null) {
           return false;
         }
       }

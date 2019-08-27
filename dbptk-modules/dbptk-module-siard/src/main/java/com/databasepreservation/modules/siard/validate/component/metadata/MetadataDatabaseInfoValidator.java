@@ -89,13 +89,13 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
       for (int i = 0; i < nodes.getLength(); i++) {
         Element database = (Element) nodes.item(i);
 
-        String dbName = MetadataXMLUtils.getChildTextContext(database, Constants.DB_NAME);
-        String description = MetadataXMLUtils.getChildTextContext(database, Constants.DESCRIPTION);
-        String archiver = MetadataXMLUtils.getChildTextContext(database, Constants.ARCHIVER);
-        String archiverContact = MetadataXMLUtils.getChildTextContext(database, Constants.ARCHIVER_CONTACT);
-        String dataOwner = MetadataXMLUtils.getChildTextContext(database, Constants.DATA_OWNER);
-        String dataOriginTimespan = MetadataXMLUtils.getChildTextContext(database, Constants.DATA_ORIGIN_TIMESPAN);
-        String archivalDate = MetadataXMLUtils.getChildTextContext(database, Constants.ARCHIVAL_DATE);
+        String dbName = XMLUtils.getChildTextContext(database, Constants.DB_NAME);
+        String description = XMLUtils.getChildTextContext(database, Constants.DESCRIPTION);
+        String archiver = XMLUtils.getChildTextContext(database, Constants.ARCHIVER);
+        String archiverContact = XMLUtils.getChildTextContext(database, Constants.ARCHIVER_CONTACT);
+        String dataOwner = XMLUtils.getChildTextContext(database, Constants.DATA_OWNER);
+        String dataOriginTimespan = XMLUtils.getChildTextContext(database, Constants.DATA_ORIGIN_TIMESPAN);
+        String archivalDate = XMLUtils.getChildTextContext(database, Constants.ARCHIVAL_DATE);
 
         NodeList schemasNodes = database.getElementsByTagName(Constants.SCHEMA);
         List<Element> schemasList = new ArrayList<>();

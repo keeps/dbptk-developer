@@ -105,8 +105,8 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
 
       for (int i = 0; i < objectNodes.getLength(); i++) {
         Element tableElement = (Element) objectNodes.item(i);
-        String table = MetadataXMLUtils.getChildTextContext(tableElement, Constants.NAME);
-        String schema = MetadataXMLUtils.getParentNameByTagName(tableElement, Constants.SCHEMA);
+        String table = XMLUtils.getChildTextContext(tableElement, Constants.NAME);
+        String schema = XMLUtils.getParentNameByTagName(tableElement, Constants.SCHEMA);
 
         objectPath.add(schema + OBJECT_SEPARATOR + table);
       }
@@ -120,27 +120,27 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
         String privilegeNode = String.format("Privilege Node[%d]", i);
         String path = buildPath(PRIVILEGE, privilegeNode);
 
-        String type = MetadataXMLUtils.getChildTextContext(role, Constants.TYPE);
+        String type = XMLUtils.getChildTextContext(role, Constants.TYPE);
         if (!validatePrivilegeType(type, path))
           break;
 
-        String object = MetadataXMLUtils.getChildTextContext(role, OBJECT);
+        String object = XMLUtils.getChildTextContext(role, OBJECT);
         if (!validatePrivilegeObject(object, path))
           break;
 
-        String grantor = MetadataXMLUtils.getChildTextContext(role, GRANTOR);
+        String grantor = XMLUtils.getChildTextContext(role, GRANTOR);
         if (!validatePrivilegeGrantor(grantor, path))
           break;
 
-        String grantee = MetadataXMLUtils.getChildTextContext(role, GRANTEE);
+        String grantee = XMLUtils.getChildTextContext(role, GRANTEE);
         if (!validatePrivilegeGrantee(grantee, path))
           break;
 
-        String option = MetadataXMLUtils.getChildTextContext(role, OPTION);
+        String option = XMLUtils.getChildTextContext(role, OPTION);
         if (!validatePrivilegeOption(option, path))
           break;
 
-        String description = MetadataXMLUtils.getChildTextContext(role, Constants.DESCRIPTION);
+        String description = XMLUtils.getChildTextContext(role, Constants.DESCRIPTION);
         if (!validatePrivilegeDescription(description, path))
           break;
       }

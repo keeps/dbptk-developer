@@ -71,21 +71,21 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
         Element tableElement = (Element) checkConstraint.getParentNode().getParentNode();
         Element schemaElement = (Element) tableElement.getParentNode().getParentNode();
 
-        String schema = MetadataXMLUtils.getChildTextContext(schemaElement, Constants.NAME);
-        String table = MetadataXMLUtils.getChildTextContext(tableElement, Constants.NAME);
+        String schema = XMLUtils.getChildTextContext(schemaElement, Constants.NAME);
+        String table = XMLUtils.getChildTextContext(tableElement, Constants.NAME);
 
-        String name = MetadataXMLUtils.getChildTextContext(checkConstraint, Constants.NAME);
+        String name = XMLUtils.getChildTextContext(checkConstraint, Constants.NAME);
         String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.NAME, name);
         if (!validateCheckConstraintName(name, path))
           break;
 
-        String condition = MetadataXMLUtils.getChildTextContext(checkConstraint, Constants.CONDITIONAL);
+        String condition = XMLUtils.getChildTextContext(checkConstraint, Constants.CONDITIONAL);
         // M_512_1
         if (!validateXMLField(M_512_1, condition, Constants.CHECK_CONSTRAINT, true, false, path)) {
           return false;
         }
 
-        String description = MetadataXMLUtils.getChildTextContext(checkConstraint, Constants.DESCRIPTION);
+        String description = XMLUtils.getChildTextContext(checkConstraint, Constants.DESCRIPTION);
         if (!validateCheckConstraintDescription(description, path))
           break;
       }

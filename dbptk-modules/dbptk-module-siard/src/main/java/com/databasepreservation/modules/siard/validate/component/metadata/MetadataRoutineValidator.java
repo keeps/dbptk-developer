@@ -70,14 +70,14 @@ public class MetadataRoutineValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element routine = (Element) nodes.item(i);
-        String schema = MetadataXMLUtils.getParentNameByTagName(routine, Constants.ROUTINE);
+        String schema = XMLUtils.getParentNameByTagName(routine, Constants.ROUTINE);
 
-        String name = MetadataXMLUtils.getChildTextContext(routine, SPECIFIC_NAME);
+        String name = XMLUtils.getChildTextContext(routine, SPECIFIC_NAME);
         String path = buildPath(Constants.SCHEMA, schema, Constants.ROUTINE, name);
         if (!validateRoutineName(name, path))
           break;
 
-        String description = MetadataXMLUtils.getChildTextContext(routine, Constants.DESCRIPTION);
+        String description = XMLUtils.getChildTextContext(routine, Constants.DESCRIPTION);
         if (!validateRoutineDescription(description, path))
           break;
       }

@@ -79,16 +79,16 @@ public class MetadataAttributeValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element type = (Element) nodes.item(i);
-        String typeName = MetadataXMLUtils.getChildTextContext(type, Constants.NAME);
-        String schema = MetadataXMLUtils.getChildTextContext((Element) type.getParentNode().getParentNode(), "name");
+        String typeName = XMLUtils.getChildTextContext(type, Constants.NAME);
+        String schema = XMLUtils.getChildTextContext((Element) type.getParentNode().getParentNode(), "name");
         String path = buildPath(Constants.SCHEMA, schema, Constants.TYPE, typeName);
         NodeList attributesNode = type.getElementsByTagName(Constants.ATTRIBUTE);
         for (int j = 0; j < attributesNode.getLength(); j++) {
           Element attribute = (Element) attributesNode.item(j);
           attributeList.add(attribute);
 
-          String attributeName = MetadataXMLUtils.getChildTextContext(attribute, Constants.NAME);
-          String description = MetadataXMLUtils.getChildTextContext(attribute, Constants.DESCRIPTION);
+          String attributeName = XMLUtils.getChildTextContext(attribute, Constants.NAME);
+          String description = XMLUtils.getChildTextContext(attribute, Constants.DESCRIPTION);
 
           if (!validateAttributeName(attributeName, path)
             || !validateAttributeDescription(description, path + buildPath(Constants.ATTRIBUTE, attributeName))) {

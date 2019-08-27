@@ -31,6 +31,8 @@ import org.apache.commons.lang3.text.translate.LookupTranslator;
 import org.apache.commons.lang3.text.translate.UnicodeEscaper;
 import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
@@ -231,5 +233,35 @@ public class XMLUtils {
     });
 
     return xPath;
+  }
+
+  public static Element getChild(Element parent, String name) {
+    for (Node child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
+      if (child instanceof Element && name.equals(child.getNodeName())) {
+        return (Element) child;
+      }
+    }
+    return null;
+  }
+
+  public static String getChildTextContext(Element parent, String name) {
+    for (Node child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
+      if (child instanceof Element && name.equals(child.getNodeName())) {
+        return child.getTextContent();
+      }
+    }
+    return null;
+  }
+
+  public static String getParentNameByTagName(Element child, String tagName) {
+    Element parent = (Element) child.getParentNode();
+    if (parent == null)
+      return null;
+
+    if (parent.getNodeName().equals(tagName)) {
+      return getChildTextContext(parent, "name");
+    }
+
+    return getParentNameByTagName(parent, tagName);
   }
 }

@@ -81,16 +81,16 @@ public class MetadataRoleValidator extends MetadataValidator {
       for (int i = 0; i < nodes.getLength(); i++) {
         Element role = (Element) nodes.item(i);
 
-        String name = MetadataXMLUtils.getChildTextContext(role, Constants.NAME);
+        String name = XMLUtils.getChildTextContext(role, Constants.NAME);
         String path = buildPath(ROLE, name);
         if (!validateRoleName(name, path))
           break;
 
-        String admin = MetadataXMLUtils.getChildTextContext(role, ADMIN);
+        String admin = XMLUtils.getChildTextContext(role, ADMIN);
         if (!validateRoleAdmin(admin, path))
           break;
 
-        String description = MetadataXMLUtils.getChildTextContext(role, Constants.DESCRIPTION);
+        String description = XMLUtils.getChildTextContext(role, Constants.DESCRIPTION);
         if (!validateRoleDescription(description, path))
           break;
       }

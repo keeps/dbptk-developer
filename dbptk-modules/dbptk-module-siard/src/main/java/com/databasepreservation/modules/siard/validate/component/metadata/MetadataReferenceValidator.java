@@ -83,15 +83,15 @@ public class MetadataReferenceValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element tableElement = (Element) nodes.item(i);
-        String table = MetadataXMLUtils.getChildTextContext(tableElement, Constants.NAME);
-        String schema = MetadataXMLUtils.getParentNameByTagName(tableElement, Constants.SCHEMA);
+        String table = XMLUtils.getChildTextContext(tableElement, Constants.NAME);
+        String schema = XMLUtils.getParentNameByTagName(tableElement, Constants.SCHEMA);
         tableList.add(table);
 
         NodeList foreignKeyNodes = tableElement.getElementsByTagName(Constants.FOREIGN_KEY);
         for (int j = 0; j < foreignKeyNodes.getLength(); j++) {
           Element foreignKeyElement = (Element) foreignKeyNodes.item(j);
-          String foreignKey = MetadataXMLUtils.getChildTextContext(foreignKeyElement, Constants.NAME);
-          String referencedTable = MetadataXMLUtils.getChildTextContext(foreignKeyElement, REFERENCED_TABLE);
+          String foreignKey = XMLUtils.getChildTextContext(foreignKeyElement, Constants.NAME);
+          String referencedTable = XMLUtils.getChildTextContext(foreignKeyElement, REFERENCED_TABLE);
 
           NodeList referenceNodes = foreignKeyElement.getElementsByTagName(REFERENCE);
           for (int k = 0; k < referenceNodes.getLength(); k++) {
@@ -99,7 +99,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
             String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.FOREIGN_KEY,
               foreignKey);
 
-            String column = MetadataXMLUtils.getChildTextContext(reference, Constants.COLUMN);
+            String column = XMLUtils.getChildTextContext(reference, Constants.COLUMN);
             // * M_5.10-1 reference column is mandatory.
             if (column == null || column.isEmpty()) {
               setError(M_510_1, String.format("Column is required (%s)", path));
@@ -108,7 +108,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
             if (!validateColumn(table, column))
               break;
 
-            String referenced = MetadataXMLUtils.getChildTextContext(reference, REFERENCED_COLUMN);
+            String referenced = XMLUtils.getChildTextContext(reference, REFERENCED_COLUMN);
             // * M_5.10-1 reference column is mandatory.
             if (referenced == null || referenced.isEmpty()) {
               setError(M_510_1, String.format("Referenced column is required (%s)", path));
@@ -133,9 +133,9 @@ public class MetadataReferenceValidator extends MetadataValidator {
 
     for (int i = 0; i < tableNodes.getLength(); i++) {
       Element tableElement = (Element) tableNodes.item(i);
-      String table = MetadataXMLUtils.getChildTextContext(tableElement, Constants.NAME);
+      String table = XMLUtils.getChildTextContext(tableElement, Constants.NAME);
 
-      Element tableColumnsElement = MetadataXMLUtils.getChild(tableElement, Constants.COLUMNS);
+      Element tableColumnsElement = XMLUtils.getChild(tableElement, Constants.COLUMNS);
       if (tableColumnsElement == null) {
         break;
       }
@@ -144,8 +144,8 @@ public class MetadataReferenceValidator extends MetadataValidator {
       HashMap<String, String> columnsNameList = new HashMap<>();
       for (int j = 0; j < columnNode.getLength(); j++) {
         Element columnElement = (Element) columnNode.item(j);
-        String name = MetadataXMLUtils.getChildTextContext(columnElement, Constants.NAME);
-        String type = MetadataXMLUtils.getChildTextContext(columnElement, Constants.TYPE);
+        String name = XMLUtils.getChildTextContext(columnElement, Constants.NAME);
+        String type = XMLUtils.getChildTextContext(columnElement, Constants.TYPE);
         columnsNameList.put(name, type);
       }
       columnsTables.put(table, columnsNameList);
@@ -158,7 +158,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
 
     for (int i = 0; i < tableNodes.getLength(); i++) {
       Element tableElement = (Element) tableNodes.item(i);
-      String table = MetadataXMLUtils.getChildTextContext(tableElement, Constants.NAME);
+      String table = XMLUtils.getChildTextContext(tableElement, Constants.NAME);
 
       NodeList keyNodes = tableElement.getElementsByTagName(key);
       if (keyNodes == null) {

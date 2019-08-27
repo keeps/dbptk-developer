@@ -68,12 +68,12 @@ public class MetadataUserValidator extends MetadataValidator {
       for (int i = 0; i < nodes.getLength(); i++) {
         Element user = (Element) nodes.item(i);
 
-        String name = MetadataXMLUtils.getChildTextContext(user, Constants.NAME);
+        String name = XMLUtils.getChildTextContext(user, Constants.NAME);
         String path = buildPath(Constants.USER, name);
         if (!validateUserName(name, path))
           break;
 
-        String description = MetadataXMLUtils.getChildTextContext(user, Constants.DESCRIPTION);
+        String description = XMLUtils.getChildTextContext(user, Constants.DESCRIPTION);
         if (!validateUserDescription(description, path))
           break;
       }

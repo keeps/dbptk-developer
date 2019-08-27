@@ -76,14 +76,14 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element tableElement = (Element) nodes.item(i);
-        String table = MetadataXMLUtils.getChildTextContext(tableElement, Constants.NAME);
-        String schema = MetadataXMLUtils.getChildTextContext((Element) tableElement.getParentNode().getParentNode(),
+        String table = XMLUtils.getChildTextContext(tableElement, Constants.NAME);
+        String schema = XMLUtils.getChildTextContext((Element) tableElement.getParentNode().getParentNode(),
           Constants.NAME);
-        String tableFolder = MetadataXMLUtils.getChildTextContext(tableElement, Constants.FOLDER);
-        String schemaFolder = MetadataXMLUtils
+        String tableFolder = XMLUtils.getChildTextContext(tableElement, Constants.FOLDER);
+        String schemaFolder = XMLUtils
           .getChildTextContext((Element) tableElement.getParentNode().getParentNode(), Constants.FOLDER);
 
-        Element tableColumnsElement = MetadataXMLUtils.getChild(tableElement, Constants.COLUMNS);
+        Element tableColumnsElement = XMLUtils.getChild(tableElement, Constants.COLUMNS);
         if (tableColumnsElement == null) {
           return false;
         }
@@ -91,7 +91,7 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
         LinkedList<String> tableColumnName = new LinkedList<>();
 
         for (int j = 0; j < tableColumns.getLength(); j++) {
-          tableColumnName.add(MetadataXMLUtils.getChildTextContext((Element) tableColumns.item(j), Constants.NAME));
+          tableColumnName.add(XMLUtils.getChildTextContext((Element) tableColumns.item(j), Constants.NAME));
         }
         tableColumnsList.put(table, tableColumnName);
 
@@ -101,7 +101,7 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
         for (int j = 0; j < candidateKeyNodes.getLength(); j++) {
           Element candidateKey = (Element) candidateKeyNodes.item(j);
 
-          String name = MetadataXMLUtils.getChildTextContext(candidateKey, Constants.NAME);
+          String name = XMLUtils.getChildTextContext(candidateKey, Constants.NAME);
 
           // * M_5.8-1 Candidate key name is mandatory.
           if (name == null || name.isEmpty()) {
@@ -129,7 +129,7 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
           if (!validateCandidateKeyColumn(schema, table, name, columnList))
             break;
 
-          String description = MetadataXMLUtils.getChildTextContext(candidateKey, Constants.DESCRIPTION);
+          String description = XMLUtils.getChildTextContext(candidateKey, Constants.DESCRIPTION);
           String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.CANDIDATE_KEY, name);
           if (!validateCandidateKeyDescription(description, path))
             break;
@@ -175,7 +175,7 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
 
         StringBuilder candidateColumn = new StringBuilder();
         for (int j = 0; j < columns.size(); j++) {
-          String columnText = MetadataXMLUtils.getChildTextContext(row, columns.get(j));
+          String columnText = XMLUtils.getChildTextContext(row, columns.get(j));
           if (j > 0 && j < columns.size()) {
             candidateColumn.append(".");
           }

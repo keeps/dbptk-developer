@@ -81,14 +81,14 @@ public class MetadataFieldValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element column = (Element) nodes.item(i);
-        String columnName = MetadataXMLUtils.getChildTextContext(column, Constants.NAME);
-        String columnTypeName = MetadataXMLUtils.getChildTextContext(column, Constants.TYPE_NAME);
-        String columnTypeSchema = MetadataXMLUtils.getChildTextContext(column, Constants.TYPE_SCHEMA);
-        String columnTypeOriginal = MetadataXMLUtils.getChildTextContext(column, Constants.TYPE_ORIGINAL);
-        String schemaName = MetadataXMLUtils.getParentNameByTagName(column, Constants.SCHEMA);
-        String tableName = MetadataXMLUtils.getParentNameByTagName(column, Constants.TABLE);
+        String columnName = XMLUtils.getChildTextContext(column, Constants.NAME);
+        String columnTypeName = XMLUtils.getChildTextContext(column, Constants.TYPE_NAME);
+        String columnTypeSchema = XMLUtils.getChildTextContext(column, Constants.TYPE_SCHEMA);
+        String columnTypeOriginal = XMLUtils.getChildTextContext(column, Constants.TYPE_ORIGINAL);
+        String schemaName = XMLUtils.getParentNameByTagName(column, Constants.SCHEMA);
+        String tableName = XMLUtils.getParentNameByTagName(column, Constants.TABLE);
 
-        Element fieldsElement = MetadataXMLUtils.getChild(column, Constants.FIELDS);
+        Element fieldsElement = XMLUtils.getChild(column, Constants.FIELDS);
         if (fieldsElement == null) {
           // next schema
           continue;
@@ -105,7 +105,7 @@ public class MetadataFieldValidator extends MetadataValidator {
         for (int j = 0; j < fieldNodes.getLength(); j++) {
 
           Element field = (Element) fieldNodes.item(j);
-          String name = MetadataXMLUtils.getChildTextContext(field, Constants.NAME);
+          String name = XMLUtils.getChildTextContext(field, Constants.NAME);
           String path = buildPath(Constants.SCHEMA, schemaName, Constants.TABLE, tableName, Constants.COLUMN,
             columnName, Constants.FIELD, name);
 
@@ -113,12 +113,12 @@ public class MetadataFieldValidator extends MetadataValidator {
             return false;
           }
 
-          String lobFolder = MetadataXMLUtils.getChildTextContext(field, Constants.LOB_FOLDER);
+          String lobFolder = XMLUtils.getChildTextContext(field, Constants.LOB_FOLDER);
           if (!validateType(columnTypeName, columnTypeSchema, columnTypeOriginal, name, lobFolder, path)) {
             return false;
           }
 
-          String description = MetadataXMLUtils.getChildTextContext(field, Constants.DESCRIPTION);
+          String description = XMLUtils.getChildTextContext(field, Constants.DESCRIPTION);
           validateFieldDescription(description, path);
         }
       }
@@ -153,7 +153,7 @@ public class MetadataFieldValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element typeElement = (Element) nodes.item(i);
-        String category = MetadataXMLUtils.getChildTextContext(typeElement, Constants.CATEGORY);
+        String category = XMLUtils.getChildTextContext(typeElement, Constants.CATEGORY);
 
         if (!validateTypeCategory(category, columnTypeName, path)) {
           return false;
@@ -169,8 +169,8 @@ public class MetadataFieldValidator extends MetadataValidator {
 
         for (int k = 0; k < attributeNode.getLength(); k++) {
           Element attribute = (Element) attributeNode.item(k);
-          String attributeType = MetadataXMLUtils.getChildTextContext(attribute, Constants.TYPE);
-          String attributeTypeName = MetadataXMLUtils.getChildTextContext(attribute, Constants.TYPE_NAME);
+          String attributeType = XMLUtils.getChildTextContext(attribute, Constants.TYPE);
+          String attributeTypeName = XMLUtils.getChildTextContext(attribute, Constants.TYPE_NAME);
 
           if (!validateFieldLobFolder(lobFolder, attributeType, attributeTypeName, path)) {
             return false;

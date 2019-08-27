@@ -72,10 +72,10 @@ public class MetadataViewValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element view = (Element) nodes.item(i);
-        String schema = MetadataXMLUtils.getChildTextContext((Element) view.getParentNode().getParentNode(),
+        String schema = XMLUtils.getChildTextContext((Element) view.getParentNode().getParentNode(),
           Constants.NAME);
 
-        String name = MetadataXMLUtils.getChildTextContext(view, Constants.NAME);
+        String name = XMLUtils.getChildTextContext(view, Constants.NAME);
         String path = buildPath(Constants.SCHEMA, schema, Constants.VIEW, name);
         if (!validateViewName(name, path))
           break;
@@ -84,7 +84,7 @@ public class MetadataViewValidator extends MetadataValidator {
         if (!validateViewColumn(columnsList, path))
           break;
 
-        String description = MetadataXMLUtils.getChildTextContext(view, Constants.DESCRIPTION);
+        String description = XMLUtils.getChildTextContext(view, Constants.DESCRIPTION);
         if (!validateViewDescription(description, path))
           break;
       }

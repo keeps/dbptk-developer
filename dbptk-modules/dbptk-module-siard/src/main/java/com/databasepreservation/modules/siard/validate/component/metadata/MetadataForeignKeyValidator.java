@@ -78,14 +78,14 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element tableElement = (Element) nodes.item(i);
-        String table = MetadataXMLUtils.getChildTextContext(tableElement, Constants.NAME);
-        String schema = MetadataXMLUtils.getParentNameByTagName(tableElement, Constants.SCHEMA);
+        String table = XMLUtils.getChildTextContext(tableElement, Constants.NAME);
+        String schema = XMLUtils.getParentNameByTagName(tableElement, Constants.SCHEMA);
 
         NodeList foreignKeyNodes = tableElement.getElementsByTagName(Constants.FOREIGN_KEY);
         for (int j = 0; j < foreignKeyNodes.getLength(); j++) {
           Element foreignKey = (Element) foreignKeyNodes.item(j);
 
-          String name = MetadataXMLUtils.getChildTextContext(foreignKey, Constants.NAME);
+          String name = XMLUtils.getChildTextContext(foreignKey, Constants.NAME);
           String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.FOREIGN_KEY, name);
           // * M_5.9-1 Foreign key name is mandatory.
           if (name == null || name.isEmpty()) {
@@ -95,7 +95,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
           if (!validateForeignKeyName(table, name))
             break;
 
-          String referencedSchema = MetadataXMLUtils.getChildTextContext(foreignKey,
+          String referencedSchema = XMLUtils.getChildTextContext(foreignKey,
             Constants.FOREIGN_KEY_REFERENCED_SCHEMA);
           // * M_5.9-1 Foreign key referencedSchema is mandatory.
           if (referencedSchema == null || referencedSchema.isEmpty()) {
@@ -105,7 +105,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
           if (!validateForeignKeyReferencedSchema(referencedSchema, path))
             break;
 
-          String referencedTable = MetadataXMLUtils.getChildTextContext(foreignKey,
+          String referencedTable = XMLUtils.getChildTextContext(foreignKey,
             Constants.FOREIGN_KEY_REFERENCED_TABLE);
           // * M_5.9-1 Foreign key referencedTable is mandatory.
           if (referencedTable == null || referencedTable.isEmpty()) {
@@ -115,14 +115,14 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
           if (!validateForeignKeyReferencedTable(referencedTable, name))
             break;
 
-          String reference = MetadataXMLUtils.getChildTextContext(foreignKey, Constants.FOREIGN_KEY_REFERENCE);
+          String reference = XMLUtils.getChildTextContext(foreignKey, Constants.FOREIGN_KEY_REFERENCE);
           // * M_5.9-1 Foreign key referencedTable is mandatory.
           if (reference == null || reference.isEmpty()) {
             setError(M_591, String.format("Reference is mandatory (%s)", path));
             return false;
           }
 
-          String description = MetadataXMLUtils.getChildTextContext(foreignKey, Constants.DESCRIPTION);
+          String description = XMLUtils.getChildTextContext(foreignKey, Constants.DESCRIPTION);
           if (!validateForeignKeyDescription(description, path))
             break;
         }
@@ -143,7 +143,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element schema = (Element) nodes.item(i);
-        schemaList.add(MetadataXMLUtils.getChildTextContext(schema, "name"));
+        schemaList.add(XMLUtils.getChildTextContext(schema, "name"));
       }
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       e.printStackTrace();
@@ -160,7 +160,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element tables = (Element) nodes.item(i);
-        tableList.add(MetadataXMLUtils.getChildTextContext(tables, Constants.NAME));
+        tableList.add(XMLUtils.getChildTextContext(tables, Constants.NAME));
       }
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       e.printStackTrace();

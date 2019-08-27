@@ -71,10 +71,10 @@ public class MetadataSchemaValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element schema = (Element) nodes.item(i);
-        String name = MetadataXMLUtils.getChildTextContext(schema, Constants.NAME);
-        String folder = MetadataXMLUtils.getChildTextContext(schema, Constants.FOLDER);
-        String tables = MetadataXMLUtils.getChildTextContext(schema, Constants.TABLES);
-        String description = MetadataXMLUtils.getChildTextContext(schema, Constants.DESCRIPTION);
+        String name = XMLUtils.getChildTextContext(schema, Constants.NAME);
+        String folder = XMLUtils.getChildTextContext(schema, Constants.FOLDER);
+        String tables = XMLUtils.getChildTextContext(schema, Constants.TABLES);
+        String description = XMLUtils.getChildTextContext(schema, Constants.DESCRIPTION);
 
         // M_5.2-1
         // if ((name == null || name.isEmpty()) || (folder == null || folder.isEmpty()))

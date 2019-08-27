@@ -73,18 +73,18 @@ public class MetadataParameterValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element parameter = (Element) nodes.item(i);
-        String schema = MetadataXMLUtils.getParentNameByTagName(parameter, Constants.SCHEMA);
+        String schema = XMLUtils.getParentNameByTagName(parameter, Constants.SCHEMA);
 
-        String name = MetadataXMLUtils.getChildTextContext(parameter, Constants.NAME);
+        String name = XMLUtils.getChildTextContext(parameter, Constants.NAME);
         String path = buildPath(Constants.SCHEMA, schema, Constants.PARAMETER, name);
         if (!validateParameterName(name, path))
           break;
 
-        String mode = MetadataXMLUtils.getChildTextContext(parameter, Constants.PARAMETER_MODE);
+        String mode = XMLUtils.getChildTextContext(parameter, Constants.PARAMETER_MODE);
         if (!validateParameterMode(mode, path))
           break;
 
-        String description = MetadataXMLUtils.getChildTextContext(parameter, Constants.DESCRIPTION);
+        String description = XMLUtils.getChildTextContext(parameter, Constants.DESCRIPTION);
         if (!validateParameterDescription(description, path))
           break;
       }

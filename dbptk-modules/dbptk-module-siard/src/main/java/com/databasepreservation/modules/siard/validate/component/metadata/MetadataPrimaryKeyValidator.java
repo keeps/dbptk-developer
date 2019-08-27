@@ -76,14 +76,14 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element tableElement = (Element) nodes.item(i);
-        String table = MetadataXMLUtils.getChildTextContext(tableElement, Constants.NAME);
-        String tableFolder = MetadataXMLUtils.getChildTextContext(tableElement, Constants.FOLDER);
-        String schema = MetadataXMLUtils.getChildTextContext((Element) tableElement.getParentNode().getParentNode(),
+        String table = XMLUtils.getChildTextContext(tableElement, Constants.NAME);
+        String tableFolder = XMLUtils.getChildTextContext(tableElement, Constants.FOLDER);
+        String schema = XMLUtils.getChildTextContext((Element) tableElement.getParentNode().getParentNode(),
           Constants.NAME);
-        String schemaFolder = MetadataXMLUtils
+        String schemaFolder = XMLUtils
           .getChildTextContext((Element) tableElement.getParentNode().getParentNode(), Constants.FOLDER);
 
-        Element tableColumnsElement = MetadataXMLUtils.getChild(tableElement, Constants.COLUMNS);
+        Element tableColumnsElement = XMLUtils.getChild(tableElement, Constants.COLUMNS);
         if (tableColumnsElement == null) {
           return false;
         }
@@ -91,7 +91,7 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
 
         LinkedList<String> tableColumnName = new LinkedList<>();
         for (int ci = 0; ci < tableColumns.getLength(); ci++) {
-          tableColumnName.add(MetadataXMLUtils.getChildTextContext((Element) tableColumns.item(ci), Constants.NAME));
+          tableColumnName.add(XMLUtils.getChildTextContext((Element) tableColumns.item(ci), Constants.NAME));
         }
         tableColumnsList.put(table, tableColumnName);
 
@@ -101,7 +101,7 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
         for (int j = 0; j < primaryKeyNodes.getLength(); j++) {
           Element primaryKey = (Element) primaryKeyNodes.item(j);
 
-          String name = MetadataXMLUtils.getChildTextContext(primaryKey, Constants.NAME);
+          String name = XMLUtils.getChildTextContext(primaryKey, Constants.NAME);
 
           // * M_5.8-1 Primary key name is mandatory.
           if (name == null || name.isEmpty()) {
@@ -129,7 +129,7 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
           if (!validatePrimaryKeyColumn(schema, table, name, columnList))
             break;
 
-          String description = MetadataXMLUtils.getChildTextContext(primaryKey, Constants.DESCRIPTION);
+          String description = XMLUtils.getChildTextContext(primaryKey, Constants.DESCRIPTION);
           String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.PRIMARY_KEY, name);
           if (!validatePrimaryKeyDescription(description, path))
             break;
@@ -176,7 +176,7 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
 
         StringBuilder primaryColumn = new StringBuilder();
         for (int j = 0; j < columns.size(); j++) {
-          String columnText = MetadataXMLUtils.getChildTextContext(row, columns.get(j));
+          String columnText = XMLUtils.getChildTextContext(row, columns.get(j));
           if (j > 0 && j < columns.size()) {
             primaryColumn.append(".");
           }
