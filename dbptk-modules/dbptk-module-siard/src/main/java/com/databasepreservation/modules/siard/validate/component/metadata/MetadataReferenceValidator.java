@@ -40,12 +40,12 @@ public class MetadataReferenceValidator extends MetadataValidator {
 
   public MetadataReferenceValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    error.clear();
-    warnings.clear();
+    setCodeListToValidate(M_510_1, M_510_1_1, M_510_1_2);
   }
 
   @Override
   public boolean validate() throws ModuleException {
+    observer.notifyStartValidationModule(MODULE_NAME, M_510);
     if (preValidationRequirements())
       return false;
 
@@ -60,9 +60,8 @@ public class MetadataReferenceValidator extends MetadataValidator {
     }
     closeZipFile();
 
-    if (reportValidations(M_510_1, MODULE_NAME) && reportValidations(M_510_1_1, MODULE_NAME)
-      && reportValidations(M_510_1_2, MODULE_NAME)) {
-      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+    if (reportValidations(MODULE_NAME)) {
+      metadataValidationPassed(MODULE_NAME);
       return true;
     }
     return false;

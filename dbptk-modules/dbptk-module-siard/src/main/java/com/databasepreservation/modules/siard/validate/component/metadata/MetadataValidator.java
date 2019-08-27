@@ -1,6 +1,7 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,15 +15,19 @@ import com.databasepreservation.modules.siard.validate.component.ValidatorCompon
 abstract class MetadataValidator extends ValidatorComponentImpl {
   private static final int MIN_FIELD_LENGTH = 3;
   private static final String ENTRY = "metadata.xml";
+  private List<String> codeList = new ArrayList<>();
+  private Map<String, List<Map<String, String>>> warnings = new HashMap<>();
+  private Map<String, List<String>> notice = new HashMap<>();
+  private Map<String, String> error = new HashMap<>();
 
-  Map<String, List<Map<String, String>>> warnings = new HashMap<>();
-  Map<String, List<String>> notice = new HashMap<>();
-  Map<String, String> error = new HashMap<>();
+  void setCodeListToValidate(String... codeIDList) {
+    Collections.addAll(codeList, codeIDList);
+  }
 
   boolean reportValidations(String codeID, String moduleName) {
     if (error.get(codeID) != null && !error.get(codeID).isEmpty()) {
       getValidationReporter().validationStatus(codeID, ValidationReporter.Status.ERROR, error.get(codeID));
-      getValidationReporter().moduleValidatorFinished(moduleName, ValidationReporter.Status.ERROR);
+      metadataValidationFailed(moduleName, codeID);
       return false;
     } else if ((warnings.get(codeID) != null) && !warnings.get(codeID).isEmpty()) {
       for (Map<String, String> entry : warnings.get(codeID)) {
@@ -32,16 +37,44 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
       }
     } else if (notice.get(codeID) != null) {
       getValidationReporter().notice(notice.get(codeID), codeID);
-    } else {
-      getValidationReporter().validationStatus(codeID, ValidationReporter.Status.OK);
+    }
+
+    observer.notifyValidationStep(moduleName, codeID, ValidationReporter.Status.OK);
+    getValidationReporter().validationStatus(codeID, ValidationReporter.Status.OK);
+    return true;
+  }
+
+  boolean reportValidations(String moduleName) {
+    for (String codeId : codeList) {
+      if (!reportValidations(codeId, moduleName)) {
+        return false;
+      }
     }
     return true;
   }
 
-  boolean validateXMLField(String codeId, String value, String field, Boolean mandatory, Boolean checkSize) {
-    return validateXMLField(codeId, value, field, mandatory, checkSize, ENTRY);
+  void metadataValidationPassed(String moduleName) {
+    getValidationReporter().moduleValidatorFinished(moduleName, ValidationReporter.Status.PASSED);
+    observer.notifyFinishValidationModule(moduleName, ValidationReporter.Status.PASSED);
   }
 
+  void metadataValidationFailed(String moduleName, String codeID) {
+    getValidationReporter().moduleValidatorFinished(moduleName, ValidationReporter.Status.ERROR);
+    observer.notifyValidationStep(moduleName, codeID, ValidationReporter.Status.ERROR);
+    observer.notifyFinishValidationModule(moduleName, ValidationReporter.Status.FAILED);
+  }
+
+  /**
+   * Common validator for mandatory and optionals fields
+   *
+   * @param codeId defined by Estonian National Archive
+   * @param value value to validate
+   * @param field field name for display in messages
+   * @param mandatory if value is required in SIARD specification or if was defined by Estonian National Archive
+   * @param checkSize check if field size is smaller than MIN_FIELD_LENGTH (defined by Estonian National Archive)
+   * @param path XML path to assist error and warning messages
+   * @return true if valid otherwise false
+   */
   boolean validateXMLField(String codeId, String value, String field, Boolean mandatory, Boolean checkSize,
     String path) {
     if (!validateMandatoryXMLField(value) && mandatory) {
@@ -53,14 +86,29 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
     return true;
   }
 
+  /**
+   * For mandatory fields in metadata, the value must exist and not be empty
+   * 
+   * @return true if valid otherwise false
+   */
   private boolean validateMandatoryXMLField(String value) {
     return value != null && !value.isEmpty();
   }
 
+  /**
+   * For mandatory and optional fields in metadata, check if field size is smaller
+   * than MIN_FIELD_LENGTH (defined by Estonian National Archive)
+   * 
+   * @return true if valid otherwise false
+   */
   private boolean validateXMLFieldSize(String value) {
     return value != null && value.length() >= MIN_FIELD_LENGTH;
   }
 
+  /**
+   * Commons warning messages for mandatory and optionals fields
+   * @return warning message with XML path or null if not exist any warning
+   */
   private String buildWarningMessage(String field, String value) {
     if (value == null || value.isEmpty()) {
       return String.format("The %s is null", field);
@@ -70,10 +118,18 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
     return null;
   }
 
+  /**
+   * Common error message for mandatory fields
+   * @return error message with XML path
+   */
   private String buildErrorMessage(String field, String path) {
     return String.format("The %s is mandatory inside %s", field, path);
   }
 
+  /**
+   * Build a path to assist error and warning messages
+   * @return XML path
+   */
   protected String buildPath(String... parameters) {
     StringBuilder path = new StringBuilder();
     path.append(ENTRY).append(" ");

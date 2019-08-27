@@ -15,7 +15,6 @@ import org.xml.sax.SAXException;
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.reporters.ValidationReporter;
-import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -34,12 +33,12 @@ public class MetadataColumnsValidator extends MetadataValidator {
 
   public MetadataColumnsValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    error.clear();
-    warnings.clear();
+    setCodeListToValidate(M_561, M_561_1, M_561_3, M_561_5, M_561_12);
   }
 
   @Override
   public boolean validate() throws ModuleException {
+    observer.notifyStartValidationModule(MODULE_NAME, M_56);
     if (preValidationRequirements())
       return false;
 
@@ -52,10 +51,8 @@ public class MetadataColumnsValidator extends MetadataValidator {
     }
     closeZipFile();
 
-    if (reportValidations(M_561, MODULE_NAME) && reportValidations(M_561_1, MODULE_NAME)
-      && reportValidations(M_561_3, MODULE_NAME) && noticeTypeOriginalUsed()
-      && reportValidations(M_561_12, MODULE_NAME)) {
-      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+    if (reportValidations(MODULE_NAME)) {
+      metadataValidationPassed(MODULE_NAME);
       return true;
     }
     return false;
@@ -143,13 +140,12 @@ public class MetadataColumnsValidator extends MetadataValidator {
   private boolean validateColumnLobFolder(String schemaFolder, String tableFolder, String type, String folder,
     String column, String name, String path) {
     String pathToTableColumn = createPath(Constants.SIARD_CONTENT_FOLDER, schemaFolder, tableFolder);
-    if (!HasReferenceToLobFolder(pathToTableColumn, schemaFolder, tableFolder, column,
-      folder)) {
+    if (!HasReferenceToLobFolder(pathToTableColumn, schemaFolder, tableFolder, column, folder)) {
       if (folder == null || folder.isEmpty()) {
         addWarning(M_561_3, String.format("lobFolder must be set for column type  %s", type), path);
       } else {
-        setError(M_561_3, "not found lobFolder(" + folder + ") required by "
-          + createPath(pathToTableColumn, name, column));
+        setError(M_561_3,
+          "not found lobFolder(" + folder + ") required by " + createPath(pathToTableColumn, name, column));
       }
       return false;
     }
@@ -167,7 +163,7 @@ public class MetadataColumnsValidator extends MetadataValidator {
         Element columnNumber = (Element) nodes.item(i);
         String fileName = columnNumber.getAttribute("file");
 
-        if (!fileName.isEmpty() && getZipFile().getEntry(createPath(path, folder, fileName)) == null) {
+        if (!fileName.isEmpty() && getZipFile().getEntry(fileName) == null) {
           return false;
         }
       }

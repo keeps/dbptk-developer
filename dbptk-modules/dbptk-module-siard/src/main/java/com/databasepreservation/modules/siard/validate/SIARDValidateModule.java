@@ -100,140 +100,15 @@ public class SIARDValidateModule implements ValidateModule {
       component.setAllowedUTD(allowedUDTs);
       component.setup();
       if (!component.validate()) {
-        //validationReporter.close();
-        //return false;
+        validationReporter.close();
+        return false;
       }
     }
 
     validationReporter.close();
 
     return true;
-
-    /*
-     * final ZipConstructionValidator zipConstructionValidation =
-     * ZipConstructionValidator.newInstance();
-     * 
-     * zipConstructionValidation.setSIARDPackagePath(SIARDPackageNormalizedPath);
-     * zipConstructionValidation.setReporter(reporter);
-     * zipConstructionValidation.setValidationReporter(validationReporter);
-     * zipConstructionValidation.setValidatorPathStrategy(validatorPathStrategy);
-     * zipConstructionValidation.setup(); zipConstructionValidation.validate();
-     * 
-     * final SIARDStructureValidator siardStructureValidator =
-     * SIARDStructureValidator.newInstance();
-     * siardStructureValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
-     * siardStructureValidator.setReporter(reporter);
-     * siardStructureValidator.setValidationReporter(validationReporter);
-     * siardStructureValidator.setValidatorPathStrategy(validatorPathStrategy);
-     * siardStructureValidator.setup(); siardStructureValidator.validate();
-     * 
-     * final MetadataAndTableDataValidator metadataAndTableDataValidator =
-     * MetadataAndTableDataValidator.newInstance();
-     * metadataAndTableDataValidator.setSIARDPackagePath(SIARDPackageNormalizedPath)
-     * ; metadataAndTableDataValidator.setReporter(reporter);
-     * metadataAndTableDataValidator.setValidationReporter(validationReporter);
-     * metadataAndTableDataValidator.setAllowUDTs(allowedUDTs);
-     * metadataAndTableDataValidator.validate();
-     * 
-     * final RequirementsForTableDataValidator requirementsForTableDataValidator =
-     * RequirementsForTableDataValidator.newInstance();
-     * requirementsForTableDataValidator.setSIARDPackagePath(
-     * SIARDPackageNormalizedPath);
-     * requirementsForTableDataValidator.setReporter(reporter);
-     * requirementsForTableDataValidator.setValidationReporter(validationReporter);
-     * requirementsForTableDataValidator.setValidatorPathStrategy(
-     * validatorPathStrategy); requirementsForTableDataValidator.validate();
-     * 
-     * final TableSchemaDefinitionValidator tableSchemaDefinitionValidator =
-     * TableSchemaDefinitionValidator.newInstance();
-     * tableSchemaDefinitionValidator.setSIARDPackagePath(SIARDPackageNormalizedPath
-     * ); tableSchemaDefinitionValidator.setReporter(reporter);
-     * tableSchemaDefinitionValidator.setValidationReporter(validationReporter);
-     * tableSchemaDefinitionValidator.setValidatorPathStrategy(validatorPathStrategy
-     * ); tableSchemaDefinitionValidator.validate();
-     * 
-     * final DateAndTimestampDataValidator dateAndTimestampDataValidator =
-     * DateAndTimestampDataValidator.newInstance();
-     * dateAndTimestampDataValidator.setSIARDPackagePath(SIARDPackageNormalizedPath)
-     * ; dateAndTimestampDataValidator.setReporter(reporter);
-     * dateAndTimestampDataValidator.setValidationReporter(validationReporter);
-     * dateAndTimestampDataValidator.setValidatorPathStrategy(validatorPathStrategy)
-     * ; dateAndTimestampDataValidator.validate();
-     * 
-     * final TableDataValidator tableDataValidator =
-     * TableDataValidator.newInstance();
-     * tableDataValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
-     * tableDataValidator.setReporter(reporter);
-     * tableDataValidator.setValidationReporter(validationReporter);
-     * tableDataValidator.setValidatorPathStrategy(validatorPathStrategy);
-     * tableDataValidator.validate();
-     * 
-     * final AdditionalChecksValidator additionalChecksValidator =
-     * AdditionalChecksValidator.newInstance();
-     * additionalChecksValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
-     * additionalChecksValidator.setReporter(reporter);
-     * additionalChecksValidator.setValidationReporter(validationReporter);
-     * additionalChecksValidator.setValidatorPathStrategy(validatorPathStrategy);
-     * additionalChecksValidator.validate();
-     * 
-     * final MetadataXMLAgainstXSDValidator metadataXMLAgainstXSDValidator =
-     * MetadataXMLAgainstXSDValidator.newInstance();
-     * 
-     * metadataXMLAgainstXSDValidator.setSIARDPackagePath(SIARDPackageNormalizedPath
-     * ); metadataXMLAgainstXSDValidator.setReporter(reporter);
-     * metadataXMLAgainstXSDValidator.setValidationReporter(validationReporter);
-     * metadataXMLAgainstXSDValidator.validate();
-     * 
-     * final MetadataDatabaseInfoValidator metadataDatabaseInfoValidator =
-     * MetadataDatabaseInfoValidator.newInstance();
-     * 
-     * metadataDatabaseInfoValidator.setSIARDPackagePath(SIARDPackageNormalizedPath)
-     * ; metadataDatabaseInfoValidator.setReporter(reporter);
-     * metadataDatabaseInfoValidator.setValidationReporter(validationReporter);
-     * metadataDatabaseInfoValidator.validate();
-     * 
-     * final MetadataSchemaValidator metadataSchemaValidator =
-     * MetadataSchemaValidator.newInstance();
-     * metadataSchemaValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
-     * metadataSchemaValidator.setReporter(reporter);
-     * metadataSchemaValidator.setValidationReporter(validationReporter);
-     * metadataSchemaValidator.validate();
-     * 
-     * final MetadataTypeValidator metadataTypeValidator =
-     * MetadataTypeValidator.newInstance();
-     * metadataTypeValidator.setSIARDPackagePath(SIARDPackageNormalizedPath);
-     * metadataTypeValidator.setReporter(reporter);
-     * metadataTypeValidator.setValidationReporter(validationReporter);
-     * metadataTypeValidator.validate();
-     * 
-     * startValidation(MetadataXMLAgainstXSDValidator.newInstance());
-     * startValidation(MetadataDatabaseInfoValidator.newInstance());
-     * startValidation(MetadataSchemaValidator.newInstance());
-     * startValidation(MetadataTypeValidator.newInstance());
-     * startValidation(MetadataAttributeValidator.newInstance());
-     * startValidation(MetadataTableValidator.newInstance());
-     * startValidation(MetadataColumnsValidator.newInstance());
-     * startValidation(MetadataFieldValidator.newInstance());
-     * startValidation(MetadataPrimaryKeyValidator.newInstance());
-     * startValidation(MetadataForeignKeyValidator.newInstance());
-     * startValidation(MetadataReferenceValidator.newInstance());
-     * startValidation(MetadataCandidateKeyValidator.newInstance());
-     * startValidation(MetadataCheckConstraintValidator.newInstance());
-     * startValidation(MetadataTriggerValidator.newInstance());
-     * startValidation(MetadataViewValidator.newInstance());
-     * startValidation(MetadataRoutineValidator.newInstance());
-     * startValidation(MetadataParameterValidator.newInstance());
-     * startValidation(MetadataUserValidator.newInstance());
-     * startValidation(MetadataRoleValidator.newInstance());
-     * startValidation(MetadataPrivilegeValidator.newInstance());
-     */
   }
-  /*
-   * private void startValidation(ValidatorComponentImpl module) throws
-   * ModuleException { module.setSIARDPackagePath(SIARDPackageNormalizedPath);
-   * module.setReporter(reporter);
-   * module.setValidationReporter(validationReporter); module.validate(); }
-   */
 
   /**
    * Normalize the exception into a ModuleException that is easier to understand

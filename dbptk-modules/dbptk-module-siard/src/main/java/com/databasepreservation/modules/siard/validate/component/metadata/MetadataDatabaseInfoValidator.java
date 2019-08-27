@@ -42,12 +42,13 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
 
   public MetadataDatabaseInfoValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    error.clear();
-    warnings.clear();
+    setCodeListToValidate(M_511, M_511_1, M_511_2, M_511_3, M_511_4, M_511_5, M_511_6, M_511_7, M_511_10, M_511_16,
+      M_511_17);
   }
 
   @Override
   public boolean validate() throws ModuleException {
+    observer.notifyStartValidationModule(MODULE_NAME, M_51);
     if (preValidationRequirements())
       return false;
 
@@ -55,18 +56,14 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
 
     if (!readXMLMetadataDatabaseLevel()) {
       reportValidations(M_511, MODULE_NAME);
+      reportValidations(M_511_1, MODULE_NAME);
       closeZipFile();
       return false;
     }
     closeZipFile();
 
-    if (reportValidations(M_511, MODULE_NAME) && reportValidations(M_511_1, MODULE_NAME)
-      && reportValidations(M_511_2, MODULE_NAME) && reportValidations(M_511_3, MODULE_NAME)
-      && reportValidations(M_511_4, MODULE_NAME) && reportValidations(M_511_5, MODULE_NAME)
-      && reportValidations(M_511_6, MODULE_NAME) && reportValidations(M_511_7, MODULE_NAME)
-      && reportValidations(M_511_10, MODULE_NAME) && reportValidations(M_511_16, MODULE_NAME)
-      && reportValidations(M_511_17, MODULE_NAME)) {
-      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+    if (reportValidations(MODULE_NAME)) {
+      metadataValidationPassed(MODULE_NAME);
       return true;
     }
     return false;
@@ -81,44 +78,60 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
         "/ns:siardArchive", XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
       String version = nodes.item(0).getAttributes().item(2).getTextContent();
-      validateSIARDVersion(version);
+      if (!validateSIARDVersion(version)) {
+        return false;
+      }
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element database = (Element) nodes.item(i);
-
         String dbName = XMLUtils.getChildTextContext(database, Constants.DB_NAME);
+        String path = buildPath(Constants.DB_NAME, dbName);
+        if (!validateDatabaseName(dbName, path))
+          break;
+
         String description = XMLUtils.getChildTextContext(database, Constants.DESCRIPTION);
+        if (!validateDescription(description, path))
+          break;
+
         String archiver = XMLUtils.getChildTextContext(database, Constants.ARCHIVER);
+        if (!validateArchiver(archiver, path))
+          break;
+
         String archiverContact = XMLUtils.getChildTextContext(database, Constants.ARCHIVER_CONTACT);
+        if (!validateArchiverContact(archiverContact, path))
+          break;
+
         String dataOwner = XMLUtils.getChildTextContext(database, Constants.DATA_OWNER);
+        if (!validateDataOwner(dataOwner, path))
+          break;
+
         String dataOriginTimespan = XMLUtils.getChildTextContext(database, Constants.DATA_ORIGIN_TIMESPAN);
+        if (!validateDataOriginTimespan(dataOriginTimespan, path))
+          break;
+
         String archivalDate = XMLUtils.getChildTextContext(database, Constants.ARCHIVAL_DATE);
+        if (!validateArchivalDate(archivalDate, path))
+          break;
 
         NodeList schemasNodes = database.getElementsByTagName(Constants.SCHEMA);
         List<Element> schemasList = new ArrayList<>();
         for (int j = 0; j < schemasNodes.getLength(); j++) {
           schemasList.add((Element) schemasNodes.item(j));
         }
+        if (!validateSchemas(schemasList, path))
+          break;
 
         NodeList usersNodes = database.getElementsByTagName(Constants.USER);
         List<Element> usersList = new ArrayList<>();
         for (int j = 0; j < usersNodes.getLength(); j++) {
           usersList.add((Element) usersNodes.item(j));
         }
-
-        String path = buildPath(Constants.DB_NAME, dbName);
-
-        if (!validateDatabaseName(dbName) || !validateDescription(description, path)
-          || !validateArchiver(archiver, path) || !validateArchiverContact(archiverContact, path)
-          || !validateDataOwner(dataOwner, path) || !validateDataOriginTimespan(dataOriginTimespan, path)
-          || !validateArchivalDate(archivalDate, path) || !validateSchemas(schemasList, path)
-          || !validateUsers(usersList, path)) {
+        if (!validateUsers(usersList, path))
           break;
-        }
-
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
+      setError(M_511, "Unable to read database info from SIARD file");
       return false;
     }
 
@@ -132,7 +145,7 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateSIARDVersion(String version) {
-    if (version == null || version.isEmpty()) {
+    if (!validateXMLField(M_511_1, version, Constants.VERSION, true, true, Constants.SIARD_METADATA_FILE)) {
       return false;
     } else {
       switch (version) {
@@ -154,8 +167,8 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateDatabaseName(String dbName) {
-    return validateXMLField(M_511_2, dbName, Constants.DB_NAME, true, true);
+  private boolean validateDatabaseName(String dbName, String path) {
+    return validateXMLField(M_511_2, dbName, Constants.DB_NAME, true, true, path);
   }
 
   /**

@@ -31,18 +31,19 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
   private static final String M_591_3 = "M_5.9-1-3";
   private static final String M_591_8 = "M_5.9-1-8";
 
+  private List<Element> foreignKeyList = new ArrayList<>();
   private List<String> tableList = new ArrayList<>();
   private List<String> schemaList = new ArrayList<>();
   private Set<String> checkDuplicates = new HashSet<>();
 
   public MetadataForeignKeyValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    error.clear();
-    warnings.clear();
+    setCodeListToValidate(M_591, M_591_1, M_591_2, M_591_3, M_591_8);
   }
 
   @Override
   public boolean validate() throws ModuleException {
+    observer.notifyStartValidationModule(MODULE_NAME, M_59);
     if (preValidationRequirements())
       return false;
 
@@ -58,10 +59,14 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
     }
     closeZipFile();
 
-    if (reportValidations(M_591, MODULE_NAME) && reportValidations(M_591_1, MODULE_NAME)
-      && reportValidations(M_591_2, MODULE_NAME) && reportValidations(M_591_3, MODULE_NAME)
-      && reportValidations(M_591_8, MODULE_NAME)) {
-      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+    if (foreignKeyList.isEmpty()) {
+      getValidationReporter().skipValidation(M_591, "Database has no foreign keys");
+      metadataValidationPassed(MODULE_NAME);
+      return true;
+    }
+
+    if (reportValidations(MODULE_NAME)) {
+      metadataValidationPassed(MODULE_NAME);
       return true;
     }
     return false;
@@ -79,8 +84,14 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
         String schema = XMLUtils.getParentNameByTagName(tableElement, Constants.SCHEMA);
 
         NodeList foreignKeyNodes = tableElement.getElementsByTagName(Constants.FOREIGN_KEY);
+        if (foreignKeyNodes == null) {
+          // next table
+          continue;
+        }
+
         for (int j = 0; j < foreignKeyNodes.getLength(); j++) {
           Element foreignKey = (Element) foreignKeyNodes.item(j);
+          foreignKeyList.add(foreignKey);
 
           String name = XMLUtils.getChildTextContext(foreignKey, Constants.NAME);
           String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.FOREIGN_KEY, name);
@@ -124,6 +135,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
+      setError(M_591, "Unable to read foreign key from SIARD");
       return false;
     }
 

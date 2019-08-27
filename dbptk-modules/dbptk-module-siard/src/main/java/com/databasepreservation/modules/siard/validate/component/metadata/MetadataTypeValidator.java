@@ -34,12 +34,12 @@ public class MetadataTypeValidator extends MetadataValidator {
 
   public MetadataTypeValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    error.clear();
-    warnings.clear();
+    setCodeListToValidate(M_531, M_531_1, M_531_2, M_531_5, M_531_6, M_531_10);
   }
 
   @Override
   public boolean validate() throws ModuleException {
+    observer.notifyStartValidationModule(MODULE_NAME, M_53);
     if (preValidationRequirements())
       return false;
 
@@ -55,14 +55,12 @@ public class MetadataTypeValidator extends MetadataValidator {
     // there is no need to continue the validation if no have types in any schema
     if (typesList.isEmpty()) {
       getValidationReporter().skipValidation(M_531, "Database has no types");
-      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+      metadataValidationPassed(MODULE_NAME);
       return true;
     }
 
-    if (reportValidations(M_531_1, MODULE_NAME) && reportValidations(M_531_2, MODULE_NAME)
-      && reportValidations(M_531_5, MODULE_NAME) && reportValidations(M_531_6, MODULE_NAME)
-      && reportValidations(M_531_10, MODULE_NAME)) {
-      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+    if (reportValidations(MODULE_NAME)) {
+      metadataValidationPassed(MODULE_NAME);
       return true;
     }
     return false;

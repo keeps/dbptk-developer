@@ -36,10 +36,12 @@ public class MetadataRoleValidator extends MetadataValidator {
 
   public MetadataRoleValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
+    setCodeListToValidate(M_519_1, M_519_1_1, M_519_1_2, M_519_1_3);
   }
 
   @Override
   public boolean validate() throws ModuleException {
+    observer.notifyStartValidationModule(MODULE_NAME, M_519);
     if (preValidationRequirements())
       return false;
     getValidationReporter().moduleValidatorHeader(M_519, MODULE_NAME);
@@ -51,9 +53,8 @@ public class MetadataRoleValidator extends MetadataValidator {
     }
     closeZipFile();
 
-    if (reportValidations(M_519_1, MODULE_NAME) && reportValidations(M_519_1_1, MODULE_NAME)
-      && reportValidations(M_519_1_2, MODULE_NAME) && reportValidations(M_519_1_3, MODULE_NAME)) {
-      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+    if (reportValidations(MODULE_NAME)) {
+      metadataValidationPassed(MODULE_NAME);
       return true;
     }
     return false;

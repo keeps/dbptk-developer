@@ -35,15 +35,16 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
   private static final String BLANK = " ";
 
   private Map<String, LinkedList<String>> tableColumnsList = new HashMap<>();
+  private List<Element> primaryKeyList = new ArrayList<>();
 
   public MetadataPrimaryKeyValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    error.clear();
-    warnings.clear();
+    setCodeListToValidate(M_581, M_581_1, M_581_2, M_581_3);
   }
 
   @Override
   public boolean validate() throws ModuleException {
+    observer.notifyStartValidationModule(MODULE_NAME, M_58);
     if (preValidationRequirements())
       return false;
 
@@ -56,9 +57,14 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
     }
     closeZipFile();
 
-    if (reportValidations(M_581, MODULE_NAME) && reportValidations(M_581_1, MODULE_NAME)
-      && reportValidations(M_581_2, MODULE_NAME) && reportValidations(M_581_3, MODULE_NAME)) {
-      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+    if (primaryKeyList.isEmpty()) {
+      getValidationReporter().skipValidation(M_581, "Database has no primary keys");
+      metadataValidationPassed(MODULE_NAME);
+      return true;
+    }
+
+    if (reportValidations(MODULE_NAME)) {
+      metadataValidationPassed(MODULE_NAME);
       return true;
     }
 
@@ -93,10 +99,14 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
         tableColumnsList.put(table, tableColumnName);
 
         NodeList primaryKeyNodes = tableElement.getElementsByTagName(Constants.PRIMARY_KEY);
-        // primaryKeysCount.put(table, primaryKeyNodes.getLength());
+        if (primaryKeyNodes == null) {
+          // next table
+          continue;
+        }
 
         for (int j = 0; j < primaryKeyNodes.getLength(); j++) {
           Element primaryKey = (Element) primaryKeyNodes.item(j);
+          primaryKeyList.add(primaryKey);
 
           String name = XMLUtils.getChildTextContext(primaryKey, Constants.NAME);
 
@@ -123,7 +133,7 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
           if (!validatePrimaryKeyName(schemaFolder, tableFolder, table, name, columnList))
             break;
 
-          if (!validatePrimaryKeyColumn(schema, table, name, columnList))
+          if (!validatePrimaryKeyColumn(schema, table, columnList))
             break;
 
           String description = XMLUtils.getChildTextContext(primaryKey, Constants.DESCRIPTION);
@@ -204,7 +214,7 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validatePrimaryKeyColumn(String schema, String table, String name, List<String> columnList) {
+  private boolean validatePrimaryKeyColumn(String schema, String table, List<String> columnList) {
 
     for (String column : columnList) {
       if (!tableColumnsList.get(table).contains(column)) {

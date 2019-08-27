@@ -33,12 +33,12 @@ public class MetadataRoutineValidator extends MetadataValidator {
 
   public MetadataRoutineValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    error.clear();
-    warnings.clear();
+    setCodeListToValidate(M_515_1, M_515_1_1, M_515_1_2);
   }
 
   @Override
   public boolean validate() throws ModuleException {
+    observer.notifyStartValidationModule(MODULE_NAME, M_515);
     if (preValidationRequirements())
       return false;
 
@@ -51,12 +51,11 @@ public class MetadataRoutineValidator extends MetadataValidator {
     }
     closeZipFile();
 
-    if (reportValidations(M_515_1, MODULE_NAME) && reportValidations(M_515_1_1, MODULE_NAME)
-      && reportValidations(M_515_1_2, MODULE_NAME)) {
-      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
-      return false;
+    if (reportValidations(MODULE_NAME)) {
+      metadataValidationPassed(MODULE_NAME);
+      return true;
     }
-    return true;
+    return false;
   }
 
   private boolean readXMLMetadataRoutineLevel() {

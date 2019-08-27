@@ -29,12 +29,12 @@ public class MetadataSchemaValidator extends MetadataValidator {
 
   public MetadataSchemaValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    error.clear();
-    warnings.clear();
+    setCodeListToValidate(M_521, M_521_1, M_521_2, M_521_4, M_521_5);
   }
 
   @Override
   public boolean validate() throws ModuleException {
+    observer.notifyStartValidationModule(MODULE_NAME, M_52);
     if (preValidationRequirements())
       return false;
 
@@ -47,9 +47,8 @@ public class MetadataSchemaValidator extends MetadataValidator {
     }
     closeZipFile();
 
-    if (reportValidations(M_521_1, MODULE_NAME) && reportValidations(M_521_2, MODULE_NAME)
-      && reportValidations(M_521_4, MODULE_NAME) && reportValidations(M_521_5, MODULE_NAME)) {
-      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+    if (reportValidations(MODULE_NAME)) {
+      metadataValidationPassed(MODULE_NAME);
       return true;
     }
     return false;

@@ -36,12 +36,12 @@ public class MetadataParameterValidator extends MetadataValidator {
 
   public MetadataParameterValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    error.clear();
-    warnings.clear();
+    setCodeListToValidate(M_516_1, M_516_1_1, M_516_1_2, M_516_1_8);
   }
 
   @Override
   public boolean validate() throws ModuleException {
+    observer.notifyStartValidationModule(MODULE_NAME, M_516);
     if (preValidationRequirements())
       return false;
 
@@ -54,9 +54,8 @@ public class MetadataParameterValidator extends MetadataValidator {
     }
     closeZipFile();
 
-    if (reportValidations(M_516_1, MODULE_NAME) && reportValidations(M_516_1_1, MODULE_NAME)
-      && reportValidations(M_516_1_2, MODULE_NAME) && reportValidations(M_516_1_8, MODULE_NAME)) {
-      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+    if (reportValidations(MODULE_NAME)) {
+      metadataValidationPassed(MODULE_NAME);
       return true;
     }
     return false;

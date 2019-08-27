@@ -30,30 +30,26 @@ public class MetadataTableValidator extends MetadataValidator {
 
   public MetadataTableValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    error.clear();
-    warnings.clear();
+    setCodeListToValidate(M_551, M_551_1, M_551_2, M_551_3, M_551_4, M_551_10);
   }
 
   @Override
   public boolean validate() throws ModuleException {
+    observer.notifyStartValidationModule(MODULE_NAME, M_55);
     if (preValidationRequirements())
       return false;
 
     getValidationReporter().moduleValidatorHeader(M_55, MODULE_NAME);
 
-    readXMLMetadataTable();
-
-    if (readXMLMetadataTable()) {
+    if (!readXMLMetadataTable()) {
       reportValidations(M_551, MODULE_NAME);
       closeZipFile();
       return false;
     }
     closeZipFile();
 
-    if (reportValidations(M_551, MODULE_NAME) && reportValidations(M_551_1, MODULE_NAME)
-      && reportValidations(M_551_2, MODULE_NAME) && reportValidations(M_551_3, MODULE_NAME)
-      && reportValidations(M_551_4, MODULE_NAME) && reportValidations(M_551_10, MODULE_NAME)) {
-      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+    if (reportValidations(MODULE_NAME)) {
+      metadataValidationPassed(MODULE_NAME);
       return true;
     }
     return false;
@@ -93,6 +89,7 @@ public class MetadataTableValidator extends MetadataValidator {
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
+      setError(M_551, "Unable to read tables in SIARD file");
       return false;
     }
 

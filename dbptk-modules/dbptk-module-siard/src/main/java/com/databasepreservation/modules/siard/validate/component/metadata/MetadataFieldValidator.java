@@ -34,30 +34,32 @@ public class MetadataFieldValidator extends MetadataValidator {
 
   public MetadataFieldValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    error.clear();
-    warnings.clear();
+    setCodeListToValidate(M_571, M_571_1, M_571_2, M_571_5);
   }
 
   @Override
   public boolean validate() throws ModuleException {
+    observer.notifyStartValidationModule(MODULE_NAME, M_57);
     if (preValidationRequirements())
       return false;
 
     getValidationReporter().moduleValidatorHeader(M_57, MODULE_NAME);
 
-    if (readXMLMetadataFieldLevel()) {
+    if (!readXMLMetadataFieldLevel()) {
+      reportValidations(M_571, MODULE_NAME);
       closeZipFile();
-      if (fieldList.isEmpty()) {
-        getValidationReporter().skipValidation(M_571, "Database has no fields");
-        getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
-        return true;
-      }
+      return false;
     }
     closeZipFile();
 
-    if (reportValidations(M_571, MODULE_NAME) && reportValidations(M_571_1, MODULE_NAME)
-      && reportValidations(M_571_2, MODULE_NAME) && reportValidations(M_571_5, MODULE_NAME)) {
-      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+    if (fieldList.isEmpty()) {
+      getValidationReporter().skipValidation(M_571, "Database has no fields");
+      metadataValidationPassed(MODULE_NAME);
+      return true;
+    }
+
+    if (reportValidations(MODULE_NAME)) {
+      metadataValidationPassed(MODULE_NAME);
       return true;
     }
 
@@ -85,7 +87,7 @@ public class MetadataFieldValidator extends MetadataValidator {
 
         Element fieldsElement = XMLUtils.getChild(column, Constants.FIELDS);
         if (fieldsElement == null) {
-          // next schema
+          // next column
           continue;
         }
         fieldList.add(fieldsElement);
@@ -119,7 +121,7 @@ public class MetadataFieldValidator extends MetadataValidator {
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
-      setError(M_571, "Cannot read fields from SIARD");
+      setError(M_571, "Unable to read fields from SIARD");
       return false;
     }
     return true;
@@ -173,7 +175,7 @@ public class MetadataFieldValidator extends MetadataValidator {
         }
       }
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
-      setError(M_571, "Cannot read attributes from SIARD");
+      setError(M_571, "Unable to read attributes from SIARD");
       return false;
     }
     return true;

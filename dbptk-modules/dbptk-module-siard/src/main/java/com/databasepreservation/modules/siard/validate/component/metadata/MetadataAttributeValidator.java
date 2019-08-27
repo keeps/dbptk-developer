@@ -31,12 +31,12 @@ public class MetadataAttributeValidator extends MetadataValidator {
 
   public MetadataAttributeValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    error.clear();
-    warnings.clear();
+    setCodeListToValidate(M_541, M_541_1, M_541_8);
   }
 
   @Override
   public boolean validate() throws ModuleException {
+    observer.notifyStartValidationModule(MODULE_NAME, M_54);
     if (preValidationRequirements())
       return false;
 
@@ -53,12 +53,12 @@ public class MetadataAttributeValidator extends MetadataValidator {
     // field of schema
     if (attributeList.isEmpty()) {
       getValidationReporter().skipValidation(M_541, "Database has no attributes");
-      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+      metadataValidationPassed(MODULE_NAME);
       return true;
     }
 
-    if (reportValidations(M_541_1, MODULE_NAME) && reportValidations(M_541_8, MODULE_NAME)) {
-      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+    if (reportValidations(MODULE_NAME)) {
+      metadataValidationPassed(MODULE_NAME);
       return true;
     }
 

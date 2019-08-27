@@ -14,7 +14,6 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -56,10 +55,12 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
 
   public MetadataPrivilegeValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
+    setCodeListToValidate(M_520_1, M_520_1_1, M_520_1_2, M_520_1_3, M_520_1_4, M_520_1_5, M_520_1_6);
   }
 
   @Override
   public boolean validate() throws ModuleException {
+    observer.notifyStartValidationModule(MODULE_NAME, M_520);
     if (preValidationRequirements())
       return false;
 
@@ -72,11 +73,8 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
     }
     closeZipFile();
 
-    if (reportValidations(M_520_1, MODULE_NAME) && reportValidations(M_520_1_1, MODULE_NAME)
-      && reportValidations(M_520_1_2, MODULE_NAME) && reportValidations(M_520_1_3, MODULE_NAME)
-      && reportValidations(M_520_1_4, MODULE_NAME) && reportValidations(M_520_1_5, MODULE_NAME)
-      && reportValidations(M_520_1_6, MODULE_NAME)) {
-      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+    if (reportValidations(MODULE_NAME)) {
+      metadataValidationPassed(MODULE_NAME);
       return true;
     }
     return false;

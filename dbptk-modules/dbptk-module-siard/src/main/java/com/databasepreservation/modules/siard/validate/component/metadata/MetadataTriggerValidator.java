@@ -39,17 +39,16 @@ public class MetadataTriggerValidator extends MetadataValidator {
 
   public MetadataTriggerValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    warnings.clear();
-    error.clear();
+    setCodeListToValidate(M_513_1, M_513_1_1, M_513_1_2, M_513_1_3, M_513_1_5, M_513_1_6);
   }
 
   @Override
   public boolean validate() throws ModuleException {
+    observer.notifyStartValidationModule(MODULE_NAME, M_513);
     if (preValidationRequirements())
       return false;
     getValidationReporter().moduleValidatorHeader(M_513, MODULE_NAME);
 
-    readXMLMetadataTriggerLevel();
     if (!readXMLMetadataTriggerLevel()) {
       reportValidations(M_513, MODULE_NAME);
       closeZipFile();
@@ -57,10 +56,8 @@ public class MetadataTriggerValidator extends MetadataValidator {
     }
     closeZipFile();
 
-    if (reportValidations(M_513_1, MODULE_NAME) && reportValidations(M_513_1_1, MODULE_NAME)
-      && reportValidations(M_513_1_2, MODULE_NAME) && reportValidations(M_513_1_3, MODULE_NAME)
-      && reportValidations(M_513_1_5, MODULE_NAME) && reportValidations(M_513_1_6, MODULE_NAME)) {
-      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+    if (reportValidations(MODULE_NAME)) {
+      metadataValidationPassed(MODULE_NAME);
       return true;
     }
     return false;
@@ -74,8 +71,8 @@ public class MetadataTriggerValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element trigger = (Element) nodes.item(i);
-        String table = XMLUtils.getParentNameByTagName(trigger, Constants.NAME);
-        String schema = XMLUtils.getParentNameByTagName(trigger, Constants.NAME);
+        String table = XMLUtils.getParentNameByTagName(trigger, Constants.TABLE);
+        String schema = XMLUtils.getParentNameByTagName(trigger, Constants.SCHEMA);
         String name = XMLUtils.getChildTextContext(trigger, Constants.NAME);
         String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, TRIGGER, name);
 

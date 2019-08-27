@@ -1,7 +1,9 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -27,16 +29,17 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
   private static final String M_512_1_1 = "M_5.12-1-1";
   private static final String M_512_1_3 = "M_5.12-1-3";
 
+  private List<Element> checkConstraintList = new ArrayList<>();
   private Set<String> checkDuplicates = new HashSet<>();
 
   public MetadataCheckConstraintValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    error.clear();
-    warnings.clear();
+    setCodeListToValidate(M_512_1, M_512_1_1, M_512_1_3);
   }
 
   @Override
   public boolean validate() throws ModuleException {
+    observer.notifyStartValidationModule(MODULE_NAME, M_512);
     if (preValidationRequirements())
       return false;
 
@@ -49,9 +52,14 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
     }
     closeZipFile();
 
-    if (reportValidations(M_512_1, MODULE_NAME) && reportValidations(M_512_1_1, MODULE_NAME)
-      && reportValidations(M_512_1_3, MODULE_NAME)) {
-      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+    if (checkConstraintList.isEmpty()) {
+      getValidationReporter().skipValidation(M_512_1, "Database has no check constraint");
+      metadataValidationPassed(MODULE_NAME);
+      return true;
+    }
+
+    if (reportValidations(MODULE_NAME)) {
+      metadataValidationPassed(MODULE_NAME);
       return true;
     }
     return false;
@@ -65,6 +73,7 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element checkConstraint = (Element) nodes.item(i);
+        checkConstraintList.add(checkConstraint);
         Element tableElement = (Element) checkConstraint.getParentNode().getParentNode();
         Element schemaElement = (Element) tableElement.getParentNode().getParentNode();
 
@@ -76,9 +85,9 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
         if (!validateCheckConstraintName(name, path))
           break;
 
-        String condition = XMLUtils.getChildTextContext(checkConstraint, Constants.CONDITIONAL);
+        String condition = XMLUtils.getChildTextContext(checkConstraint, Constants.CONDITION);
         // M_512_1
-        if (!validateXMLField(M_512_1, condition, Constants.CHECK_CONSTRAINT, true, false, path)) {
+        if (!validateXMLField(M_512_1, condition, Constants.CONDITION, true, false, path)) {
           return false;
         }
 
@@ -88,6 +97,7 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
+      setError(M_512_1, "Unable to read check constraint from SIARD");
       return false;
     }
     return true;
@@ -102,14 +112,14 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
 
   private boolean validateCheckConstraintName(String name, String path) {
     // M_512_1
-    if (!validateXMLField(M_512_1, name, Constants.CHECK_CONSTRAINT, true, false, path)) {
+    if (!validateXMLField(M_512_1_1, name, Constants.NAME, true, false, path)) {
       return false;
     }
     // M_5.12-1-1
-    if (!checkDuplicates.add(name)) {
-      setError(M_512_1_1, String.format("Check Constraint name %s must be unique (%s)", name, path));
-      return false;
-    }
+//    if (!checkDuplicates.add(name)) {
+//      setError(M_512_1_1, String.format("Check Constraint name %s must be unique (%s)", name, path));
+//      return false;
+//    }
 
     return true;
   }
@@ -121,6 +131,6 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateCheckConstraintDescription(String description, String path) {
-    return validateXMLField(M_512_1_3, description, Constants.DESCRIPTION, true, true, path);
+    return validateXMLField(M_512_1_3, description, Constants.DESCRIPTION, false, true, path);
   }
 }

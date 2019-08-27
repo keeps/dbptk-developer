@@ -79,7 +79,7 @@ public class Constants {
   public static final String COMPONENT_METADATA_PRIMARY_KEY = "Primary Key level metadata";
   public static final String COMPONENT_METADATA_FOREIGN_KEY = "Foreign Key level metadata";
   public static final String COMPONENT_METADATA_REFERENCE = "Reference level metadata";
-  public static final String COMPONENT_METADATA_CANDIDATE_KEY = "Candidate Kry level metadata";
+  public static final String COMPONENT_METADATA_CANDIDATE_KEY = "Candidate Key level metadata";
   public static final String COMPONENT_METADATA_CHECK_CONSTRAINT = "Check constraint level metadata";
   public static final String COMPONENT_METADATA_TRIGGER = "Trigger level metadata";
   public static final String COMPONENT_METADATA_VIEW = "View level metadata";
@@ -91,6 +91,7 @@ public class Constants {
   public static final String COMPONENT_END_TAG = "end";
 
   /* SIARD STRUCTURE */
+  public static final String VERSION = "version";
   public static final String DB_NAME = "dbname";
   public static final String ARCHIVER = "archiver";
   public static final String ARCHIVER_CONTACT = "archiverContact";
@@ -118,7 +119,7 @@ public class Constants {
   public static final String NAME = "name";
   public static final String FOLDER = "folder";
   public static final String LOB_FOLDER = "lobFolder";
-  public static final String CONDITIONAL = "conditional";
+  public static final String CONDITION = "condition";
   public static final String DESCRIPTION = "description";
   public static final String TYPE = "type";
   public static final String TYPE_NAME = "typeName";

@@ -19,7 +19,6 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -33,16 +32,17 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
   private static final String M_511_1_2 = "M_5.11-1-2";
   private static final String M_511_1_3 = "M_5.11-1-3";
 
+  private List<Element> candidateKeyList = new ArrayList<>();
   private Map<String, LinkedList<String>> tableColumnsList = new HashMap<>();
 
   public MetadataCandidateKeyValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    error.clear();
-    warnings.clear();
+    setCodeListToValidate(M_511_1, M_511_1_1, M_511_1_2, M_511_1_3);
   }
 
   @Override
   public boolean validate() throws ModuleException {
+    observer.notifyStartValidationModule(MODULE_NAME, M_511);
     if (preValidationRequirements())
       return false;
 
@@ -56,9 +56,14 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
     }
     closeZipFile();
 
-    if (reportValidations(M_511_1, MODULE_NAME) && reportValidations(M_511_1_1, MODULE_NAME)
-      && reportValidations(M_511_1_2, MODULE_NAME) && reportValidations(M_511_1_3, MODULE_NAME)) {
-      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporter.Status.PASSED);
+    if (candidateKeyList.isEmpty()) {
+      getValidationReporter().skipValidation(M_511_1, "Database has no Candidate keys");
+      metadataValidationPassed(MODULE_NAME);
+      return true;
+    }
+
+    if (reportValidations(MODULE_NAME)) {
+      metadataValidationPassed(MODULE_NAME);
       return true;
     }
     return false;
@@ -92,10 +97,14 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
         tableColumnsList.put(table, tableColumnName);
 
         NodeList candidateKeyNodes = tableElement.getElementsByTagName(Constants.CANDIDATE_KEY);
-        // candidateKeysCount.put(table, candidateKeyNodes.getLength());
+        if (candidateKeyNodes == null) {
+          // next table
+          continue;
+        }
 
         for (int j = 0; j < candidateKeyNodes.getLength(); j++) {
           Element candidateKey = (Element) candidateKeyNodes.item(j);
+          candidateKeyList.add(candidateKey);
 
           String name = XMLUtils.getChildTextContext(candidateKey, Constants.NAME);
 
@@ -122,7 +131,7 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
           if (!validateCandidateKeyName(schemaFolder, tableFolder, table, name, columnList))
             break;
 
-          if (!validateCandidateKeyColumn(schema, table, name, columnList))
+          if (!validateCandidateKeyColumn(schema, table, columnList))
             break;
 
           String description = XMLUtils.getChildTextContext(candidateKey, Constants.DESCRIPTION);
@@ -198,7 +207,7 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateCandidateKeyColumn(String schema, String table, String name, ArrayList<String> columnList) {
+  private boolean validateCandidateKeyColumn(String schema, String table, ArrayList<String> columnList) {
     for (String column : columnList) {
       if (!tableColumnsList.get(table).contains(column)) {
         setError(M_511_1_2,
