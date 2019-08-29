@@ -8,19 +8,21 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataRoutineValidator extends MetadataValidator {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MetadataRoutineValidator.class);
   private final String MODULE_NAME;
   private static final String M_515 = "5.15";
   private static final String M_515_1 = "M_5.15-1";
@@ -39,10 +41,19 @@ public class MetadataRoutineValidator extends MetadataValidator {
   @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_515);
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     getValidationReporter().moduleValidatorHeader(M_515, MODULE_NAME);
+
+    if (!validateMandatoryXSDFields(M_515_1, ROUTINE_TYPE,
+      "/ns:siardArchive/ns:schemas/ns:schema/ns:routines/ns:routine")) {
+      reportValidations(M_515_1, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
 
     if (!readXMLMetadataRoutineLevel()) {
       reportValidations(M_515_1, MODULE_NAME);
@@ -79,6 +90,9 @@ public class MetadataRoutineValidator extends MetadataValidator {
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
+      String errorMessage = "Unable to read routines from SIARD file";
+      setError(M_515_1, errorMessage);
+      LOGGER.debug(errorMessage, e);
       return false;
     }
     return true;

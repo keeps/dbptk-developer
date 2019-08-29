@@ -8,19 +8,21 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataParameterValidator extends MetadataValidator {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MetadataParameterValidator.class);
   private final String MODULE_NAME;
   private static final String M_516 = "5.16";
   private static final String M_516_1 = "M_5.16-1";
@@ -42,10 +44,19 @@ public class MetadataParameterValidator extends MetadataValidator {
   @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_516);
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     getValidationReporter().moduleValidatorHeader(M_516, MODULE_NAME);
+
+    if (!validateMandatoryXSDFields(M_516_1, PARAMETER_TYPE,
+      "/ns:siardArchive/ns:schemas/ns:schema/ns:routines/ns:routine/ns:parameters/ns:parameter")) {
+      reportValidations(M_516_1, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
 
     if (!readXMLMetadataParameterLevel()) {
       reportValidations(M_516_1, MODULE_NAME);
@@ -86,6 +97,9 @@ public class MetadataParameterValidator extends MetadataValidator {
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
+      String errorMessage = "Unable to read parameters from SIARD file";
+      setError(M_516_1, errorMessage);
+      LOGGER.debug(errorMessage, e);
       return false;
     }
     return true;

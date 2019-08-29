@@ -6,19 +6,21 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataSchemaValidator extends MetadataValidator {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MetadataSchemaValidator.class);
   private final String MODULE_NAME;
   private static final String M_52 = "5.2";
   private static final String M_521 = "M_5.2-1";
@@ -35,10 +37,18 @@ public class MetadataSchemaValidator extends MetadataValidator {
   @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_52);
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     getValidationReporter().moduleValidatorHeader(M_52, MODULE_NAME);
+
+    if (!validateMandatoryXSDFields(M_521, SCHEMA_TYPE, "/ns:siardArchive/ns:schemas/ns:schema")) {
+      reportValidations(M_521, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
 
     if (!readXMLMetadataSchemaLevel()) {
       reportValidations(M_521, MODULE_NAME);
@@ -72,12 +82,6 @@ public class MetadataSchemaValidator extends MetadataValidator {
         String tables = XMLUtils.getChildTextContext(schema, Constants.TABLES);
         String description = XMLUtils.getChildTextContext(schema, Constants.DESCRIPTION);
 
-        // M_5.2-1
-        // if ((name == null || name.isEmpty()) || (folder == null || folder.isEmpty()))
-        // {
-        // return false;
-        // }
-
         String path = buildPath(Constants.SCHEMA, name);
 
         if (!validateSchemaName(name, path) || !validateSchemaFolder(folder, path)
@@ -86,9 +90,10 @@ public class MetadataSchemaValidator extends MetadataValidator {
         }
       }
 
-    } catch (IOException | ParserConfigurationException | XPathExpressionException |
-
-      SAXException e) {
+    } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
+      String errorMessage = "Unable to read schema from SIARD file";
+      setError(M_521, errorMessage);
+      LOGGER.debug(errorMessage, e);
       return false;
     }
 

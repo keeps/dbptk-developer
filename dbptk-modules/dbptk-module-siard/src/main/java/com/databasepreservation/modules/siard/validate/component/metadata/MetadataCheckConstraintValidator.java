@@ -10,6 +10,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -23,6 +25,7 @@ import com.databasepreservation.utils.XMLUtils;
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataCheckConstraintValidator extends MetadataValidator {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MetadataCheckConstraintValidator.class);
   private final String MODULE_NAME;
   private static final String M_512 = "5.12";
   private static final String M_512_1 = "M_5.12-1";
@@ -40,10 +43,19 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
   @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_512);
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     getValidationReporter().moduleValidatorHeader(M_512, MODULE_NAME);
+
+    if (!validateMandatoryXSDFields(M_512_1, CHECK_CONSTRAINT_TYPE,
+            "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:checkConstraints/ns:checkConstraint")) {
+      reportValidations(M_512_1, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
 
     if (!readXMLMetadataCheckConstraint()) {
       reportValidations(M_512_1, MODULE_NAME);
@@ -97,7 +109,9 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
-      setError(M_512_1, "Unable to read check constraint from SIARD");
+      String errorMessage = "Unable to read check constraint from SIARD file";
+      setError(M_512_1, errorMessage);
+      LOGGER.debug(errorMessage, e);
       return false;
     }
     return true;

@@ -10,19 +10,21 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataForeignKeyValidator extends MetadataValidator {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MetadataForeignKeyValidator.class);
   private final String MODULE_NAME;
   private static final String M_59 = "5.9";
   private static final String M_591 = "M_5.9-1";
@@ -44,13 +46,22 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
   @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_59);
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     getValidationReporter().moduleValidatorHeader(M_59, MODULE_NAME);
 
     schemaList = getListOfSchemas();
     tableList = getListOfTables();
+
+    if (!validateMandatoryXSDFields(M_591, FOREIGN_KEYS_TYPE,
+      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:foreignKeys/ns:foreignKey")) {
+      reportValidations(M_591, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
 
     if (!readXMLMetadataForeignKeyLevel()) {
       reportValidations(M_591, MODULE_NAME);
@@ -135,7 +146,9 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
-      setError(M_591, "Unable to read foreign key from SIARD");
+      String errorMessage = "Unable to read foreign key from SIARD file";
+      setError(M_591, errorMessage);
+      LOGGER.debug(errorMessage, e);
       return false;
     }
 
@@ -153,7 +166,8 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
         schemaList.add(XMLUtils.getChildTextContext(schema, "name"));
       }
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
-      e.printStackTrace();
+      String errorMessage = "Unable to read schemas from SIARD file";
+      LOGGER.debug(errorMessage, e);
     }
     return schemaList;
   }
@@ -170,7 +184,8 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
         tableList.add(XMLUtils.getChildTextContext(tables, Constants.NAME));
       }
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
-      e.printStackTrace();
+      String errorMessage = "Unable to read tables from SIARD file";
+      LOGGER.debug(errorMessage, e);
     }
     return tableList;
   }

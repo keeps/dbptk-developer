@@ -10,19 +10,21 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataReferenceValidator extends MetadataValidator {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MetadataReferenceValidator.class);
   private final String MODULE_NAME;
   private static final String M_510 = "5.10";
   private static final String M_510_1 = "M_5.10-1";
@@ -46,12 +48,19 @@ public class MetadataReferenceValidator extends MetadataValidator {
   @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_510);
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     getValidationReporter().moduleValidatorHeader(M_510, MODULE_NAME);
 
-    readXMLMetadataReferenceLevel();
+    if (!validateMandatoryXSDFields(M_510_1, REFERENCE_TYPE,
+      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:foreignKeys/ns:foreignKey/ns:reference")) {
+      reportValidations(M_510_1, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
 
     if (!readXMLMetadataReferenceLevel()) {
       reportValidations(M_510_1, MODULE_NAME);
@@ -118,6 +127,9 @@ public class MetadataReferenceValidator extends MetadataValidator {
 
       }
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
+      String errorMessage = "Unable to read references from SIARD file";
+      setError(M_510_1, errorMessage);
+      LOGGER.debug(errorMessage, e);
       return false;
     }
 

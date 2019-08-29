@@ -8,19 +8,21 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataUserValidator extends MetadataValidator {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MetadataUserValidator.class);
   private final String MODULE_NAME;
   private static final String M_518 = "5.18";
   private static final String M_518_1 = "M_5.18-1";
@@ -37,10 +39,18 @@ public class MetadataUserValidator extends MetadataValidator {
   @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_518);
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     getValidationReporter().moduleValidatorHeader(M_518, MODULE_NAME);
+
+    if (!validateMandatoryXSDFields(M_518_1, USER_TYPE, "/ns:siardArchive/ns:users/ns:user")) {
+      reportValidations(M_518_1, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
 
     if (!readXMLMetadataUserLevel()) {
       reportValidations(M_518_1, MODULE_NAME);
@@ -74,6 +84,9 @@ public class MetadataUserValidator extends MetadataValidator {
           break;
       }
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
+      String errorMessage = "Unable to read users from SIARD file";
+      setError(M_518_1, errorMessage);
+      LOGGER.debug(errorMessage, e);
       return false;
     }
 

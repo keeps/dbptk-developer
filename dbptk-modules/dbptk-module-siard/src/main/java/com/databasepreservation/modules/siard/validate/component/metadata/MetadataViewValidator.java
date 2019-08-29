@@ -8,6 +8,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -20,6 +22,7 @@ import com.databasepreservation.utils.XMLUtils;
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataViewValidator extends MetadataValidator {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MetadataViewValidator.class);
   private final String MODULE_NAME;
   private static final String M_514 = "5.14";
   private static final String M_514_1 = "M_5.14-1";
@@ -39,10 +42,19 @@ public class MetadataViewValidator extends MetadataValidator {
   @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_514);
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     getValidationReporter().moduleValidatorHeader(M_514, MODULE_NAME);
+
+    if (!validateMandatoryXSDFields(M_514_1, VIEW_TYPE,
+      "/ns:siardArchive/ns:schemas/ns:schema/ns:views/ns:view")) {
+      reportValidations(M_514_1, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
 
     if (!readXMLMetadataViewLevel()) {
       reportValidations(M_514_1, MODULE_NAME);
@@ -83,6 +95,9 @@ public class MetadataViewValidator extends MetadataValidator {
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
+      String errorMessage = "Unable to read views from SIARD file";
+      setError(M_514_1, errorMessage);
+      LOGGER.debug(errorMessage, e);
       return false;
     }
     return true;

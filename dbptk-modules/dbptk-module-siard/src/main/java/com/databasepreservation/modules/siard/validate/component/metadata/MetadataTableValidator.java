@@ -6,6 +6,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -19,6 +21,7 @@ import com.databasepreservation.utils.XMLUtils;
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataTableValidator extends MetadataValidator {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MetadataTableValidator.class);
   private final String MODULE_NAME;
   private static final String M_55 = "5.5";
   private static final String M_551 = "M_5.5-1";
@@ -36,10 +39,18 @@ public class MetadataTableValidator extends MetadataValidator {
   @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_55);
-    if (preValidationRequirements())
+    if (preValidationRequirements()){
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     getValidationReporter().moduleValidatorHeader(M_55, MODULE_NAME);
+
+    if (!validateMandatoryXSDFields(M_551, TABLE_TYPE, "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table")) {
+      reportValidations(M_551, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
 
     if (!readXMLMetadataTable()) {
       reportValidations(M_551, MODULE_NAME);
@@ -89,7 +100,9 @@ public class MetadataTableValidator extends MetadataValidator {
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
-      setError(M_551, "Unable to read tables in SIARD file");
+      String errorMessage = "Unable to read tables from SIARD file";
+      setError(M_551, errorMessage);
+      LOGGER.debug(errorMessage, e);
       return false;
     }
 

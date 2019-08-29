@@ -12,19 +12,21 @@ import org.joda.time.chrono.GJChronology;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataDatabaseInfoValidator extends MetadataValidator {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MetadataDatabaseInfoValidator.class);
   private final String MODULE_NAME;
   private static final String M_51 = "5.1";
   private static final String M_511 = "M_5.1-1";
@@ -49,11 +51,18 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
   @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_51);
-    if (preValidationRequirements())
+    if (preValidationRequirements()){
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     getValidationReporter().moduleValidatorHeader(M_51, MODULE_NAME);
 
+    if (!validateMandatoryXSDFields(M_511, SIARD_ARCHIVE, "/ns:siardArchive")) {
+      reportValidations(M_511, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
     if (!readXMLMetadataDatabaseLevel()) {
       reportValidations(M_511, MODULE_NAME);
       reportValidations(M_511_1, MODULE_NAME);
@@ -77,7 +86,9 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
       NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
         "/ns:siardArchive", XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
-      String version = nodes.item(0).getAttributes().item(2).getTextContent();
+      String version = (String) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/@version", XPathConstants.STRING, Constants.NAMESPACE_FOR_METADATA);
+      // String version = nodes.item(0).getAttributes().item(2).getTextContent();
       if (!validateSIARDVersion(version)) {
         return false;
       }
@@ -131,7 +142,9 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
-      setError(M_511, "Unable to read database info from SIARD file");
+      String errorMessage = "Unable to read database info from SIARD file";
+      setError(M_511, errorMessage);
+      LOGGER.debug(errorMessage, e);
       return false;
     }
 
@@ -139,8 +152,8 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
   }
 
   /**
-   * M_5.1-1-3 The database name in SIARD file must not be empty. ERROR when it is
-   * empty, WARNING if it is less than 3 characters
+   * M_5.1-1-1 Version can be dk, 1.0, 2.0, 2.1. ERROR when it is empty, WARNING
+   * if it is invalid
    *
    * @return true if valid otherwise false
    */
@@ -155,7 +168,7 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
         case "1.0":
           break;
         default:
-          addWarning(M_511_1, "The version of SIARD file is" + version, "SIARD file");
+          addWarning(M_511_1, "The version of SIARD should be 1.0, DK, 2.0 or 2.1. Found: " + version, "siardArchive");
       }
     }
     return true;
