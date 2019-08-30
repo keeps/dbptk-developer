@@ -5,15 +5,23 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,50 +78,15 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
   private HashMap<String, HashMap<String, String>> sql2008Type = new HashMap<>();
   private HashMap<String, HashMap<String, String>> arrayType = new HashMap<>();
   private HashMap<String, HashMap<String, AdvancedOrStructuredColumn>> advancedOrStructuredDataType = new HashMap<>();
-  private HashMap<String, HashMap<String, String>> numberOfNullable = new HashMap<>();
-  private HashMap<String, Integer> numberOfRows = new HashMap<>();
+  private TreeMap<String, HashMap<String, String>> numberOfNullable = new TreeMap<>();
+  private TreeMap<String, Integer> numberOfRows = new TreeMap<>();
   private List<String> skipped = new ArrayList<>();
   private List<String> warnings = new ArrayList<>();
   private HashMap<String, Type> types = new HashMap<>();
 
   public MetadataAndTableDataValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    SQL2008TypeMatchXMLType = new HashMap<>();
-    SQL2008TypeMatchXMLType.put("^BIGINT$", Collections.singletonList("xs:integer"));
-    SQL2008TypeMatchXMLType.put("^BINARY LARGE OBJECT$", Collections.singletonList("blobType"));
-    SQL2008TypeMatchXMLType.put("^BLOB", Collections.singletonList("blobType"));
-    SQL2008TypeMatchXMLType.put("^BINARY VARYING\\(\\d+\\)$", Arrays.asList("clobType", "xs:hexBinary"));
-    SQL2008TypeMatchXMLType.put("BINARY\\(\\d+\\)$", Arrays.asList("blobType", "xs:hexBinary"));
-    SQL2008TypeMatchXMLType.put("^BOOLEAN$", Collections.singletonList("xs:boolean"));
-    SQL2008TypeMatchXMLType.put("^CHARACTER LARGE OBJECT$", Collections.singletonList("clobType"));
-    SQL2008TypeMatchXMLType.put("^CLOB", Collections.singletonList("clobType"));
-    SQL2008TypeMatchXMLType.put("^CHARACTER VARYING\\(\\d+\\)$", Arrays.asList("clobType", "xs:string"));
-    SQL2008TypeMatchXMLType.put("^CHAR VARYING\\(\\d+\\)$", Arrays.asList("clobType", "xs:string"));
-    SQL2008TypeMatchXMLType.put("^VARCHAR\\(\\d+\\)$", Arrays.asList("clobType", "xs:string"));
-    SQL2008TypeMatchXMLType.put("^CHARACTER\\(\\d+\\)$", Arrays.asList("clobType", "xs:string"));
-    SQL2008TypeMatchXMLType.put("^CHAR\\(\\d+\\)$", Arrays.asList("clobType", "xs:string"));
-    SQL2008TypeMatchXMLType.put("^DATE$", Collections.singletonList("dateType"));
-    SQL2008TypeMatchXMLType.put("^DECIMAL\\((\\d+)(\\s*,\\s*(\\d+))?\\)$", Collections.singletonList("xs:decimal"));
-    SQL2008TypeMatchXMLType.put("^DEC\\((\\d+)(\\s*,\\s*(\\d+))?\\)$", Collections.singletonList("xs:decimal"));
-    SQL2008TypeMatchXMLType.put("^DOUBLE PRECISION$", Collections.singletonList("xs:double"));
-    SQL2008TypeMatchXMLType.put("^FLOAT\\(\\d+\\)$", Collections.singletonList("xs:double"));
-    SQL2008TypeMatchXMLType.put("^INTEGER$", Collections.singletonList("xs:integer"));
-    SQL2008TypeMatchXMLType.put("^INT$", Collections.singletonList("xs:integer"));
-    SQL2008TypeMatchXMLType.put("^INTERVAL\\s+\\w+(\\(\\d+\\))?\\s+TO\\s+\\w+$",
-      Collections.singletonList("xs:duration"));
-    SQL2008TypeMatchXMLType.put("^NATIONAL CHARACTER LARGE OBJECT\\(\\d+\\)$", Arrays.asList("clobType", "xs:string"));
-    SQL2008TypeMatchXMLType.put("^NCHAR VARYING\\(\\d+\\)$", Arrays.asList("clobType", "xs:string"));
-    SQL2008TypeMatchXMLType.put("^NATIONAL CHARACTER\\(\\d+\\)$", Arrays.asList("clobType", "xs:string"));
-    SQL2008TypeMatchXMLType.put("^NCHAR\\(\\d+\\)$", Arrays.asList("clobType", "xs:string"));
-    SQL2008TypeMatchXMLType.put("^NATIONAL CHAR\\(\\d+\\)$", Arrays.asList("clobType", "xs:string"));
-    SQL2008TypeMatchXMLType.put("^NUMERIC\\((\\d+)(\\s*,\\s*(\\d+))?\\)$", Collections.singletonList("xs:decimal"));
-    SQL2008TypeMatchXMLType.put("^REAL$", Collections.singletonList("xs:float"));
-    SQL2008TypeMatchXMLType.put("^SMALLINT$", Collections.singletonList("xs:integer"));
-    SQL2008TypeMatchXMLType.put("^TIME$", Collections.singletonList("timeType"));
-    SQL2008TypeMatchXMLType.put("^TIME WITH TIME ZONE$", Collections.singletonList("timeType"));
-    SQL2008TypeMatchXMLType.put("^TIMESTAMP$", Collections.singletonList("dateTimeType"));
-    SQL2008TypeMatchXMLType.put("^TIMESTAMP WITH TIME ZONE$", Collections.singletonList("dateTimeType"));
-    SQL2008TypeMatchXMLType.put("^XML$", Collections.singletonList("clobType"));
+    populateSQL2008Types();
   }
 
   @Override
@@ -129,7 +102,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       obtainSQL2008TypeForEachColumn();
       getTypesFromMetadataXML();
     } catch (ParserConfigurationException | SAXException | XPathExpressionException | IOException e) {
-      LOGGER.debug("Failed to fetch data for validation component {}", MODULE_NAME);
+      LOGGER.debug("Failed to fetch data for validation component {}", MODULE_NAME, e);
       closeZipFile();
       return false;
     }
@@ -289,8 +262,10 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateMetadataStructure() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     try {
       final NodeList nodeList = (NodeList) XMLUtils.getXPathResult(
@@ -310,6 +285,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         }
       }
     } catch (IOException | XPathExpressionException | SAXException | ParserConfigurationException e) {
+      LOGGER.debug("Failed to validate {}", P_431, e);
       return false;
     }
 
@@ -325,8 +301,10 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateColumnCount() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     HashMap<String, Integer> columnCount = new HashMap<>();
     List<String> entries = new ArrayList<>();
@@ -365,6 +343,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         }
       }
     } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+      LOGGER.debug("Failed to validate {}", P_432, e);
       return false;
     }
 
@@ -380,14 +359,17 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateDataTypeInformation() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     for (Map.Entry<String, HashMap<String, String>> entry : sql2008Type.entrySet()) {
       try {
         final List<String> errors = compareSQL2008DataTypeWithXMLType(entry.getKey(), entry.getValue());
         P_433_ERRORS.addAll(errors);
       } catch (SAXException | ParserConfigurationException | IOException | XPathExpressionException e) {
+        LOGGER.debug("Failed to validate {}", P_433, e);
         return false;
       }
     }
@@ -405,8 +387,10 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateDistinctXMLDataTypeConversion() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     warnings = new ArrayList<>();
 
@@ -445,6 +429,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       }
 
     } catch (SAXException | ParserConfigurationException | IOException | XPathExpressionException e) {
+      LOGGER.debug("Failed to validate {}", P_434, e);
       return false;
     }
 
@@ -465,29 +450,62 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateNumberOfRows() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
+    observer.notifyComponent("P_4.3-5", Status.START);
+
+    InputStream zipInputStream = null;
     try {
       // Count number of row element in table[number].xml
       for (Map.Entry<String, Integer> entry : numberOfRows.entrySet()) {
         String tablePath = entry.getKey();
         String XMLPath = tablePath.concat(Constants.XML_EXTENSION);
+        observer.notifyElementValidating(XMLPath);
+        zipInputStream = getZipInputStream(XMLPath);
 
-        final InputStream zipInputStream = getZipInputStream(XMLPath);
+        // Instance of the class which helps on reading tags
+        XMLInputFactory factory = XMLInputFactory.newInstance();
 
-        String count = (String) XMLUtils.getXPathResult(zipInputStream, "count(/ns:table/ns:row)",
-          XPathConstants.STRING, Constants.NAMESPACE_FOR_TABLE);
-        if (entry.getValue() != Integer.parseInt(count)) {
+        // Initializing the handler to access the tags in the XML file
+        XMLStreamReader streamReader = factory.createXMLStreamReader(zipInputStream);
+        int count = 0;
+        while (streamReader.hasNext()) {
+          // Move to next event
+          streamReader.next();
+
+          // Check if its 'START_ELEMENT'
+          if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
+            if (streamReader.getLocalName().equals("row")) {
+              count++;
+            }
+          }
+        }
+
+        if (entry.getValue() != count) {
           String message = "Found $1 rows in $2 but expected were $3 rows";
-          message = message.replace("$1", count);
+          message = message.replace("$1", String.valueOf(count));
           message = message.replace("$2", XMLPath);
           message = message.replace("$3", String.valueOf(entry.getValue()));
           P_435_ERRORS.add(message);
         }
+
+        zipInputStream.close();
       }
-    } catch (ParserConfigurationException | IOException | XPathExpressionException | SAXException e) {
+    } catch (IOException | XMLStreamException e) {
+      LOGGER.debug("Failed to validate {}", P_435, e);
       return false;
+    }
+
+    if (zipInputStream != null) {
+      try {
+        zipInputStream.close();
+      } catch (IOException e) {
+        LOGGER.debug("Failed to validate {}", P_435, e);
+        return false;
+      }
     }
 
     return P_435_ERRORS.isEmpty();
@@ -502,8 +520,10 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * 
    */
   private boolean validateArrayXMLDataTypeConversion() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     warnings.clear();
 
@@ -532,6 +552,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
             }
           }
         } catch (IOException | XPathExpressionException | SAXException | ParserConfigurationException e) {
+          LOGGER.debug("Failed to validate {}", P_436, e);
           return false;
         }
       }
@@ -550,8 +571,10 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    *
    */
   private boolean validateUDTXMLDataTypeConversion() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     if (advancedOrStructuredDataType.isEmpty()) {
       skipped.clear();
@@ -586,6 +609,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
               P_437_ERRORS
                 .addAll(compareSQL2008DataTypeWithXMLType(entry.getKey(), advancedOrStructuredColumn.getKey(), map));
             } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
+              LOGGER.debug("Failed to validate {}", P_437, e);
               return false;
             }
           }
@@ -609,32 +633,50 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateNillableInformation() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
+    observer.notifyComponent("P_4.3-8", Status.START);
 
     warnings.clear();
     int counter = 0;
+
+    InputStream zipInputStream;
+
     try {
       for (Map.Entry<String, HashMap<String, String>> entry : numberOfNullable.entrySet()) {
+        String tablePath = entry.getKey();
+        String XMLPath = tablePath.concat(Constants.XML_EXTENSION);
+        observer.notifyElementValidating(XMLPath);
         for (Map.Entry<String, String> values : entry.getValue().entrySet()) {
           if (values.getValue().equals("false")) {
-            String tablePath = entry.getKey();
-            String XMLPath = tablePath.concat(Constants.XML_EXTENSION);
-            String xpathExpression = "/ns:table/ns:row/ns:" + values.getKey() + "/text()";
 
-            final InputStream zipInputStream = getZipInputStream(XMLPath);
+            int nodeCounter = 0;
+            zipInputStream = getZipInputStream(XMLPath);
 
-            final NodeList nodes = (NodeList) XMLUtils.getXPathResult(zipInputStream, xpathExpression,
-              XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
+            XMLInputFactory factory = XMLInputFactory.newInstance();
+            XMLStreamReader streamReader = factory.createXMLStreamReader(zipInputStream);
+
+            while (streamReader.hasNext()) {
+              streamReader.next();
+              if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
+                if (streamReader.getLocalName().equals(values.getKey())) {
+                  nodeCounter++;
+                }
+              }
+            }
+
             final Integer number = numberOfRows.get(entry.getKey());
-            if (number != nodes.getLength()) {
+            if (number != nodeCounter) {
               counter++;
             }
           }
         }
       }
 
-    } catch (ParserConfigurationException | IOException | XPathExpressionException | SAXException e) {
+    } catch (XMLStreamException e) {
+      LOGGER.debug("Failed to validate {}", P_438, e);
       return false;
     }
 
@@ -653,8 +695,10 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateColumnSequence() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     return validateColumnCount() && validateDataTypeInformation();
   }
@@ -670,8 +714,10 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateFieldSequenceInMetadataXML() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     for (Map.Entry<String, HashMap<String, AdvancedOrStructuredColumn>> entry : advancedOrStructuredDataType
       .entrySet()) {
@@ -705,8 +751,10 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateFieldSequenceInTableXSD() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     for (Map.Entry<String, HashMap<String, AdvancedOrStructuredColumn>> entry : advancedOrStructuredDataType
       .entrySet()) {
@@ -725,15 +773,15 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
           if (advancedOrStructuredColumnEntry.getValue().getFields().size() != count) {
             P_4311_ERRORS
               .add("Different number of fields in " + advancedOrStructuredColumnEntry.getKey() + " at " + XSDPath);
-            return false;
           }
         } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+          LOGGER.debug("Failed to validate {}", P_4311, e);
           return false;
         }
       }
     }
 
-    return true;
+    return P_4311_ERRORS.isEmpty();
   }
 
   /**
@@ -747,21 +795,36 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateNumberOfLinesInATable() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
+
+    observer.notifyComponent("P_4.3-12", Status.START);
 
     for (Map.Entry<String, Integer> entry : numberOfRows.entrySet()) {
       String path = entry.getKey();
       String XSDPath = path.concat(Constants.XSD_EXTENSION);
 
       String XMLPath = path.concat(Constants.XML_EXTENSION);
+
+      observer.notifyElementValidating(XMLPath);
+
       final InputStream zipInputStreamXML = getZipInputStream(XMLPath);
       final InputStream zipInputStreamXSD = getZipInputStream(XSDPath);
       int rows = entry.getValue();
       try {
-        int numberOfRowsInXMLFile = Integer
-          .parseInt((String) XMLUtils.getXPathResult(zipInputStreamXML, "count(/ns:table/ns:row)",
-            XPathConstants.STRING, Constants.NAMESPACE_FOR_TABLE));
+        XMLInputFactory factory = XMLInputFactory.newInstance();
+        XMLStreamReader streamReader = factory.createXMLStreamReader(zipInputStreamXML);
+        int numberOfRowsInXMLFile = 0;
+        while (streamReader.hasNext()) {
+          streamReader.next();
+          if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
+            if (streamReader.getLocalName().equals("row")) {
+              numberOfRowsInXMLFile++;
+            }
+          }
+        }
 
         Node result = (Node) XMLUtils.getXPathResult(zipInputStreamXSD,
           "/xs:schema/xs:element[@name='table']/xs:complexType/xs:sequence/xs:element[@type='recordType']",
@@ -796,7 +859,9 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
           P_4312_ERRORS.add(
             "The number of rows at " + XMLPath + " is not identical to " + validatorPathStrategy.getMetadataXMLPath());
 
-      } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+      } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException
+        | XMLStreamException e) {
+        LOGGER.debug("Failed to validate {}", P_4312, e);
         return false;
       }
     }
@@ -1190,6 +1255,118 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       }
       observer.notifyValidationStep(MODULE_NAME, step, Status.OK);
       getValidationReporter().validationStatus(step, Status.OK);
+    }
+  }
+
+  private void populateSQL2008Types() {
+    SQL2008TypeMatchXMLType = new HashMap<>();
+    SQL2008TypeMatchXMLType.put("^BIGINT$", Collections.singletonList("xs:integer"));
+    SQL2008TypeMatchXMLType.put("^BINARY\\s+LARGE\\s+OBJECT(\\s*\\(\\s*[1-9]\\d*(\\s*(K|M|G))?\\s*\\))?$",
+      Collections.singletonList("blobType"));
+    SQL2008TypeMatchXMLType.put("^BLOB(\\s*\\(\\s*[1-9]\\d*(\\s*(K|M|G))?\\s*\\))?$",
+      Collections.singletonList("blobType"));
+    SQL2008TypeMatchXMLType.put("^BLOB", Collections.singletonList("blobType"));
+    SQL2008TypeMatchXMLType.put("^BINARY VARYING\\(\\d+\\)$", Arrays.asList("clobType", "xs:hexBinary"));
+    SQL2008TypeMatchXMLType.put("^BINARY\\s+VARYING(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$",
+      Arrays.asList("blobType", "xs:hexBinary"));
+    SQL2008TypeMatchXMLType.put("^VARBINARY(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$", Arrays.asList("blobType", "xs:hexBinary"));
+    SQL2008TypeMatchXMLType.put("^BOOLEAN$", Collections.singletonList("xs:boolean"));
+    SQL2008TypeMatchXMLType.put("^CHARACTER\\s+LARGE\\s+OBJECT(\\s*\\(\\s*[1-9]\\d*(\\s*(K|M|G))?\\s*\\))?$",
+      Collections.singletonList("clobType"));
+    SQL2008TypeMatchXMLType.put("^CLOB(\\s*\\(\\s*[1-9]\\d*(\\s*(K|M|G))?\\s*\\))?$",
+      Collections.singletonList("clobType"));
+    SQL2008TypeMatchXMLType.put("^CHARACTER\\s+VARYING(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$",
+      Arrays.asList("clobType", "xs:string"));
+    SQL2008TypeMatchXMLType.put("^CHAR\\s+VARYING(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$",
+      Arrays.asList("clobType", "xs:string"));
+    SQL2008TypeMatchXMLType.put("^VARCHAR(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$", Arrays.asList("clobType", "xs:string"));
+    SQL2008TypeMatchXMLType.put("^CHARACTER(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$", Arrays.asList("clobType", "xs:string"));
+    SQL2008TypeMatchXMLType.put("^CHAR(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$", Arrays.asList("clobType", "xs:string"));
+    SQL2008TypeMatchXMLType.put("^DATE$", Collections.singletonList("dateType"));
+    SQL2008TypeMatchXMLType.put("^DECIMAL(\\s*\\(\\s*[1-9]\\d*\\s*(,\\s*\\d+\\s*)?\\))?$",
+      Collections.singletonList("xs:decimal"));
+    SQL2008TypeMatchXMLType.put("^DEC(\\s*\\(\\s*[1-9]\\d*\\s*(,\\s*\\d+\\s*)?\\))?$",
+      Collections.singletonList("xs:decimal"));
+    SQL2008TypeMatchXMLType.put("^DOUBLE PRECISION$", Collections.singletonList("xs:double"));
+    SQL2008TypeMatchXMLType.put("^FLOAT(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$", Collections.singletonList("xs:double"));
+    SQL2008TypeMatchXMLType.put("^INTEGER$", Collections.singletonList("xs:integer"));
+    SQL2008TypeMatchXMLType.put("^INT$", Collections.singletonList("xs:integer"));
+    SQL2008TypeMatchXMLType.put(
+      "^INTERVAL\\s+(((YEAR|MONTH|DAY|HOUR|MINUTE)(\\s*\\(\\s*[1-9]\\d*\\s*\\))?(\\s+TO\\s+(MONTH|DAY|HOUR|MINUTE|SECOND)(\\s*\\(\\s*[1-9]\\d*\\s*\\))?)?)|(SECOND(\\s*\\(\\s*[1-9]\\d*\\s*(,\\s*\\d+\\s*)?\\))?))$",
+      Collections.singletonList("xs:duration"));
+    SQL2008TypeMatchXMLType.put(
+      "^NATIONAL\\s+CHARACTER\\s+LARGE\\s+OBJECT(\\s*\\(\\s*[1-9]\\d*(\\s*(K|M|G))?\\s*\\))?$",
+      Arrays.asList("clobType", "xs:string"));
+    SQL2008TypeMatchXMLType.put("^NCHAR\\s+LARGE\\s+OBJECT(\\s*\\(\\s*[1-9]\\d*(\\s*(K|M|G))?\\s*\\))?$",
+      Arrays.asList("clobType", "xs:string"));
+    SQL2008TypeMatchXMLType.put("^NCLOB(\\s*\\(\\s*[1-9]\\d*(\\s*(K|M|G))?\\s*\\))?$",
+      Arrays.asList("clobType", "xs:string"));
+    SQL2008TypeMatchXMLType.put("^NATIONAL\\s+CHARACTER\\s+VARYING(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$",
+      Arrays.asList("clobType", "xs:string"));
+    SQL2008TypeMatchXMLType.put("^NATIONAL\\s+CHAR\\s+VARYING(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$",
+      Arrays.asList("clobType", "xs:string"));
+    SQL2008TypeMatchXMLType.put("^NCHAR\\s+VARYING(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$",
+      Arrays.asList("clobType", "xs:string"));
+    SQL2008TypeMatchXMLType.put("^NATIONAL\\s+CHARACTER(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$",
+      Arrays.asList("clobType", "xs:string"));
+    SQL2008TypeMatchXMLType.put("^NATIONAL\\s+CHAR(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$",
+      Arrays.asList("clobType", "xs:string"));
+    SQL2008TypeMatchXMLType.put("^NCHAR(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$", Arrays.asList("clobType", "xs:string"));
+    SQL2008TypeMatchXMLType.put("^NUMERIC(\\s*\\(\\s*[1-9]\\d*\\s*(,\\s*\\d+\\s*)?\\))?$",
+      Collections.singletonList("xs:decimal"));
+    SQL2008TypeMatchXMLType.put("^REAL$", Collections.singletonList("xs:float"));
+    SQL2008TypeMatchXMLType.put("^SMALLINT$", Collections.singletonList("xs:integer"));
+    SQL2008TypeMatchXMLType.put("^TIME(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$", Collections.singletonList("timeType"));
+    SQL2008TypeMatchXMLType.put("^TIME\\s+WITH\\s+TIME\\s+ZONE(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$",
+      Collections.singletonList("timeType"));
+    SQL2008TypeMatchXMLType.put("^TIMESTAMP(\\s*\\(\\s*(0|([1-9]\\d*))\\s*\\))?$",
+      Collections.singletonList("dateTimeType"));
+    SQL2008TypeMatchXMLType.put("^TIMESTAMP\\s+WITH\\s+TIME\\s+ZONE(\\s*\\(\\s*(0|([1-9]\\d*))\\s*\\))?$",
+      Collections.singletonList("dateTimeType"));
+    SQL2008TypeMatchXMLType.put("^XML$", Collections.singletonList("clobType"));
+  }
+
+  private static class TableNameComparator implements Comparator<String> {
+    @Override
+    public int compare(String s1, String s2) {
+      final String[] split1 = s1.split("/");
+      final String[] split2 = s2.split("/");
+      final String schemaName1 = split1[1];
+      final String schemaName2 = split2[1];
+      final String tableName1 = split1[2];
+      final String tableName2 = split1[2];
+
+      Pattern patternSchema = Pattern.compile("schema([0-9]+)");
+      Matcher matcherSchema1 = patternSchema.matcher(schemaName1);
+      Matcher matcherSchema2 = patternSchema.matcher(schemaName2);
+
+      int valueS1 = 0;
+      int valueS2 = 0;
+
+      while (matcherSchema1.find()) {
+        valueS1 = Integer.parseInt(matcherSchema1.group(1));
+      }
+
+      while (matcherSchema2.find()) {
+        valueS2 = Integer.parseInt(matcherSchema2.group(1));
+      }
+
+      Pattern patternTable = Pattern.compile("table([0-9]+)");
+      Matcher matcher1 = patternTable.matcher(tableName1);
+
+      int valueT1 = 0;
+      int valueT2 = 0;
+
+      while (matcher1.find()) {
+        valueT1 = Integer.parseInt(matcher1.group(1));
+      }
+
+      Matcher matcher2 = patternTable.matcher(tableName2);
+      while (matcher2.find()) {
+        valueT2 = Integer.parseInt(matcher2.group(1));
+      }
+
+      return new CompareToBuilder().append(valueS1, valueS2).append(valueT1, valueT2).toComparison();
     }
   }
 }

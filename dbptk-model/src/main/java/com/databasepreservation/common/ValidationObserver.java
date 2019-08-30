@@ -13,4 +13,8 @@ public interface ValidationObserver {
   void notifyMessage(String moduleName, String message, Status status);
 
   void notifyFinishValidationModule(String moduleName, Status status);
+
+  void notifyComponent(String ID, Status status);
+
+  void notifyElementValidating(String path);
 }

@@ -24,7 +24,7 @@ public class ValidationReporter implements AutoCloseable {
   private BufferedWriter writer;
 
   public enum Status {
-    OK, ERROR, WARNING, SKIPPED, NOTICE, PASSED, FAILED;
+    OK, ERROR, WARNING, SKIPPED, NOTICE, PASSED, FAILED, START;
   }
 
   public enum Indent {

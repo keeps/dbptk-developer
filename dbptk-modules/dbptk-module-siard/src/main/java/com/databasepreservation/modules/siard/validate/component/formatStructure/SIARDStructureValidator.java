@@ -132,8 +132,10 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateSIARDStructure() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()){
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     for (String file : getZipFileNames()) {
       if (!file.startsWith("header/") && !file.startsWith("content/")) {
@@ -152,8 +154,10 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateContentFolderStructure() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()){
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     for (String fileName : getZipFileNames()) {
       if (fileName.startsWith(Constants.SIARD_CONTENT_FOLDER)) {
@@ -188,8 +192,10 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateTableFolderStructure() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()){
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     for (String fileName : getZipFileNames()) {
       if (fileName.startsWith(Constants.SIARD_CONTENT_FOLDER)) {
@@ -240,8 +246,10 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateRecognitionOfSIARDFormat() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()){
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     List<Path> versions = new ArrayList<>();
 
@@ -272,8 +280,10 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateHeaderFolderStructure() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()){
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     List<String> headers = new ArrayList<>();
 
@@ -316,8 +326,10 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateFilesAndFoldersNames() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()){
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     for (String fileName : getZipFileNames()) {
       String[] foldersAndFiles = fileName.split("/");

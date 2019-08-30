@@ -5,7 +5,6 @@ import static com.databasepreservation.model.reporters.ValidationReporter.Status
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -55,41 +54,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
 
   public RequirementsForTableDataValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    SQL2008Types = new ArrayList<>();
-    SQL2008Types.add("^BIGINT$");
-    SQL2008Types.add("^BINARY LARGE OBJECT$");
-    SQL2008Types.add("^BLOB");
-    SQL2008Types.add("^BINARY VARYING\\(\\d+\\)$");
-    SQL2008Types.add("^BINARY\\(\\d+\\)$");
-    SQL2008Types.add("^BOOLEAN$");
-    SQL2008Types.add("^CHARACTER LARGE OBJECT$");
-    SQL2008Types.add("^CLOB");
-    SQL2008Types.add("^CHARACTER VARYING\\(\\d+\\)$");
-    SQL2008Types.add("^CHAR VARYING\\(\\d+\\)$");
-    SQL2008Types.add("^VARCHAR\\(\\d+\\)$");
-    SQL2008Types.add("^CHARACTER\\(\\d+\\)$");
-    SQL2008Types.add("^CHAR\\(\\d+\\)$");
-    SQL2008Types.add("^DATE$");
-    SQL2008Types.add("^DECIMAL\\((\\d+)(\\s*,\\s*(\\d+))?\\)$");
-    SQL2008Types.add("^DEC\\((\\d+)(\\s*,\\s*(\\d+))?\\)$");
-    SQL2008Types.add("^DOUBLE PRECISION$");
-    SQL2008Types.add("^FLOAT\\(\\d+\\)$");
-    SQL2008Types.add("^INTEGER$");
-    SQL2008Types.add("^INT$");
-    SQL2008Types.add("^INTERVAL\\s+\\w+(\\(\\d+\\))?\\s+TO\\s+\\w+$");
-    SQL2008Types.add("^NATIONAL CHARACTER LARGE OBJECT\\(\\d+\\)$");
-    SQL2008Types.add("^NCHAR VARYING\\(\\d+\\)$");
-    SQL2008Types.add("^NATIONAL CHARACTER\\(\\d+\\)$");
-    SQL2008Types.add("^NCHAR\\(\\d+\\)$");
-    SQL2008Types.add("^NATIONAL CHAR\\(\\d+\\)$");
-    SQL2008Types.add("^NUMERIC\\((\\d+)(\\s*,\\s*(\\d+))?\\)$");
-    SQL2008Types.add("^REAL$");
-    SQL2008Types.add("^SMALLINT$");
-    SQL2008Types.add("^TIME$");
-    SQL2008Types.add("^TIME WITH TIME ZONE$");
-    SQL2008Types.add("^TIMESTAMP$");
-    SQL2008Types.add("^TIMESTAMP WITH TIME ZONE$");
-    SQL2008Types.add("^XML$");
+    populateSQL2008Validations();
   }
 
   @Override
@@ -525,5 +490,50 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     }
 
     return -1;
+  }
+
+  private void populateSQL2008Validations() {
+    SQL2008Types = new ArrayList<>();
+    SQL2008Types.add("^BIGINT$");
+    SQL2008Types.add("^BINARY\\s+LARGE\\s+OBJECT(\\s*\\(\\s*[1-9]\\d*(\\s*(K|M|G))?\\s*\\))?$");
+    SQL2008Types.add("^BLOB(\\s*\\(\\s*[1-9]\\d*(\\s*(K|M|G))?\\s*\\))?$");
+    SQL2008Types.add("^BLOB");
+    SQL2008Types.add("^BINARY VARYING\\(\\d+\\)$");
+    SQL2008Types.add("^BINARY\\s+VARYING(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    SQL2008Types.add("^VARBINARY(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    SQL2008Types.add("^BOOLEAN$");
+    SQL2008Types.add("^CHARACTER\\s+LARGE\\s+OBJECT(\\s*\\(\\s*[1-9]\\d*(\\s*(K|M|G))?\\s*\\))?$");
+    SQL2008Types.add("^CLOB(\\s*\\(\\s*[1-9]\\d*(\\s*(K|M|G))?\\s*\\))?$");
+    SQL2008Types.add("^CHARACTER\\s+VARYING(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    SQL2008Types.add("^CHAR\\s+VARYING(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    SQL2008Types.add("^VARCHAR(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    SQL2008Types.add("^CHARACTER(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    SQL2008Types.add("^CHAR(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    SQL2008Types.add("^DATE$");
+    SQL2008Types.add("^DECIMAL(\\s*\\(\\s*[1-9]\\d*\\s*(,\\s*\\d+\\s*)?\\))?$");
+    SQL2008Types.add("^DEC(\\s*\\(\\s*[1-9]\\d*\\s*(,\\s*\\d+\\s*)?\\))?$");
+    SQL2008Types.add("^DOUBLE PRECISION$");
+    SQL2008Types.add("^FLOAT(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    SQL2008Types.add("^INTEGER$");
+    SQL2008Types.add("^INT$");
+    SQL2008Types.add(
+      "^INTERVAL\\s+(((YEAR|MONTH|DAY|HOUR|MINUTE)(\\s*\\(\\s*[1-9]\\d*\\s*\\))?(\\s+TO\\s+(MONTH|DAY|HOUR|MINUTE|SECOND)(\\s*\\(\\s*[1-9]\\d*\\s*\\))?)?)|(SECOND(\\s*\\(\\s*[1-9]\\d*\\s*(,\\s*\\d+\\s*)?\\))?))$");
+    SQL2008Types.add("^NATIONAL\\s+CHARACTER\\s+LARGE\\s+OBJECT(\\s*\\(\\s*[1-9]\\d*(\\s*(K|M|G))?\\s*\\))?$");
+    SQL2008Types.add("^NCHAR\\s+LARGE\\s+OBJECT(\\s*\\(\\s*[1-9]\\d*(\\s*(K|M|G))?\\s*\\))?$");
+    SQL2008Types.add("^NCLOB(\\s*\\(\\s*[1-9]\\d*(\\s*(K|M|G))?\\s*\\))?$");
+    SQL2008Types.add("^NATIONAL\\s+CHARACTER\\s+VARYING(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    SQL2008Types.add("^NATIONAL\\s+CHAR\\s+VARYING(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    SQL2008Types.add("^NCHAR\\s+VARYING(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    SQL2008Types.add("^NATIONAL\\s+CHARACTER(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    SQL2008Types.add("^NATIONAL\\s+CHAR(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    SQL2008Types.add("^NCHAR(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    SQL2008Types.add("^NUMERIC(\\s*\\(\\s*[1-9]\\d*\\s*(,\\s*\\d+\\s*)?\\))?$");
+    SQL2008Types.add("^REAL$");
+    SQL2008Types.add("^SMALLINT$");
+    SQL2008Types.add("^TIME(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    SQL2008Types.add("^TIME\\s+WITH\\s+TIME\\s+ZONE(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    SQL2008Types.add("^TIMESTAMP(\\s*\\(\\s*(0|([1-9]\\d*))\\s*\\))?$");
+    SQL2008Types.add("^TIMESTAMP\\s+WITH\\s+TIME\\s+ZONE(\\s*\\(\\s*(0|([1-9]\\d*))\\s*\\))?$");
+    SQL2008Types.add("^XML$");
   }
 }

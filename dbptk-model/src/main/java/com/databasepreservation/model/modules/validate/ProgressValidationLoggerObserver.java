@@ -31,4 +31,14 @@ public class ProgressValidationLoggerObserver implements ValidationObserver {
   public void notifyFinishValidationModule(String moduleName, Status status) {
     LOGGER.info("{} [{}]", moduleName, status);
   }
+
+  @Override
+  public void notifyComponent(String ID, Status status) {
+    LOGGER.info("{}: [{}] ", ID, status);
+  }
+
+  @Override
+  public void notifyElementValidating(String path) {
+    LOGGER.info("{}", path);
+  }
 }

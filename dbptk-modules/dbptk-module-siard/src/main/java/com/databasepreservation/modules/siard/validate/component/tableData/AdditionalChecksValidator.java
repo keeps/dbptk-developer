@@ -14,6 +14,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
@@ -89,8 +90,10 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateTableDataType() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     for (Map.Entry<String, List<ImmutablePair<String, String>>> entry : columnTypes.entrySet()) {
       String path = entry.getKey().concat(Constants.XML_EXTENSION);
@@ -296,10 +299,12 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
       }
 
       if (type.matches(stringRegex)) {
+        final String decodeString = StringEscapeUtils.unescapeJava(content);
+
         final int size = getDataTypeLength(type);
 
         if (size != -1) {
-          if (content.length() > size) {
+          if (decodeString.length() > size) {
             return false;
           }
         }

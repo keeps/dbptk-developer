@@ -7,6 +7,15 @@
  */
 package com.databasepreservation;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.UUID;
+
+import org.apache.commons.cli.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.databasepreservation.cli.CLI;
 import com.databasepreservation.cli.CLIEdit;
 import com.databasepreservation.cli.CLIHelp;
@@ -24,14 +33,6 @@ import com.databasepreservation.model.modules.validate.ProgressValidationLoggerO
 import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.MiscUtils;
 import com.databasepreservation.utils.ReflectionUtils;
-import org.apache.commons.cli.ParseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.UUID;
 
 /**
  * @author Luis Faria <lfaria@keep.pt>

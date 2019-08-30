@@ -103,9 +103,11 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean isZipFile() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
-    
+    }
+
     boolean isZip = true;
 
     byte[] buffer = new byte[ZIP_MAGIC_NUMBER.length];
@@ -120,8 +122,10 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
       }
       raf.close();
     } catch (IOException e) {
+      LOGGER.debug("Failed to validate {}", G_411, e);
       isZip = false;
     }
+
     return isZip;
   }
 
@@ -134,8 +138,10 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean deflateOrStore() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     final Enumeration<ZipArchiveEntry> entries = getZipFile().getEntries();
     while (entries.hasMoreElements()) {
@@ -157,15 +163,18 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean passwordProtected() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     final Enumeration<ZipArchiveEntry> entries = getZipFile().getEntries();
     while (entries.hasMoreElements()) {
       final ZipArchiveEntry entry = entries.nextElement();
       final boolean usesEncryption = entry.getGeneralPurposeBit().usesEncryption();
-      if (usesEncryption)
+      if (usesEncryption) {
         return false;
+      }
     }
 
     return true;
@@ -179,8 +188,10 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean fileExtension() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     return getSIARDPackagePath().getFileName().toString().endsWith(Constants.SIARD_EXTENSION);
   }
