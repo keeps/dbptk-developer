@@ -79,19 +79,19 @@ public class MetadataViewValidator extends MetadataValidator {
       for (int i = 0; i < nodes.getLength(); i++) {
         Element view = (Element) nodes.item(i);
         String schema = XMLUtils.getChildTextContext((Element) view.getParentNode().getParentNode(), Constants.NAME);
+        String path = buildPath(Constants.SCHEMA, schema, Constants.VIEW, Integer.toString(i));
 
         String name = XMLUtils.getChildTextContext(view, Constants.NAME);
-        String path = buildPath(Constants.SCHEMA, schema, Constants.VIEW, name);
         if (!validateViewName(name, path))
-          break;
+          continue; // next view
+        path = buildPath(Constants.SCHEMA, schema, Constants.VIEW, name);
 
         NodeList columnsList = view.getElementsByTagName(Constants.COLUMN);
         if (!validateViewColumn(columnsList, path))
-          break;
+          continue; // next view
 
         String description = XMLUtils.getChildTextContext(view, Constants.DESCRIPTION);
-        if (!validateViewDescription(description, path))
-          break;
+        validateViewDescription(description, path);
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
@@ -139,11 +139,9 @@ public class MetadataViewValidator extends MetadataValidator {
   /**
    * M_5.14-1-5 The view description in SIARD file must not be less than 3
    * characters. WARNING if it is less than 3 characters
-   * 
-   * @return true if valid otherwise false
    */
-  private boolean validateViewDescription(String description, String path) {
-    return validateXMLField(M_514_1_5, description, Constants.DESCRIPTION, false, true, path);
+  private void validateViewDescription(String description, String path) {
+    validateXMLField(M_514_1_5, description, Constants.DESCRIPTION, false, true, path);
   }
 
 }

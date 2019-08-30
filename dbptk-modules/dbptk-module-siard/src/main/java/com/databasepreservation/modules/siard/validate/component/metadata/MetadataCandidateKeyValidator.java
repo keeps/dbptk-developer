@@ -34,6 +34,7 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
   private static final String M_511_1_1 = "M_5.11-1-1";
   private static final String M_511_1_2 = "M_5.11-1-2";
   private static final String M_511_1_3 = "M_5.11-1-3";
+  private static final String BLANK = " ";
 
   private List<Element> candidateKeyList = new ArrayList<>();
   private Map<String, LinkedList<String>> tableColumnsList = new HashMap<>();
@@ -91,9 +92,6 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
         String table = XMLUtils.getChildTextContext(tableElement, Constants.NAME);
         String schema = XMLUtils.getChildTextContext((Element) tableElement.getParentNode().getParentNode(),
           Constants.NAME);
-        String tableFolder = XMLUtils.getChildTextContext(tableElement, Constants.FOLDER);
-        String schemaFolder = XMLUtils.getChildTextContext((Element) tableElement.getParentNode().getParentNode(),
-          Constants.FOLDER);
 
         Element tableColumnsElement = XMLUtils.getChild(tableElement, Constants.COLUMNS);
         if (tableColumnsElement == null) {
@@ -115,6 +113,7 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
 
         for (int j = 0; j < candidateKeyNodes.getLength(); j++) {
           Element candidateKey = (Element) candidateKeyNodes.item(j);
+          String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.CANDIDATE_KEY, Integer.toString(j));
           candidateKeyList.add(candidateKey);
 
           String name = XMLUtils.getChildTextContext(candidateKey, Constants.NAME);
@@ -122,7 +121,7 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
           // * M_5.8-1 Candidate key name is mandatory.
           if (name == null || name.isEmpty()) {
             setError(M_511_1, "Candidate key name is required on table " + table);
-            return false;
+            continue; // next candidate key
           }
 
           // nameList.add(name);
@@ -134,21 +133,20 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
             // * M_5.11-1 Candidate key column is mandatory.
             if (column == null || column.isEmpty()) {
               setError(M_511_1, "Candidate key column is required on table " + table);
-              return false;
+              continue; // next candidate key
             }
             columnList.add(column);
           }
 
-//          if (!validateCandidateKeyName(schemaFolder, tableFolder, table, name, columnList))
-  //          break;
+          if (!validateCandidateKeyName(name, path))
+            continue; // next candidate key
 
+          path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.CANDIDATE_KEY, name);
           if (!validateCandidateKeyColumn(schema, table, columnList))
-            break;
+            continue; // next candidate key
 
           String description = XMLUtils.getChildTextContext(candidateKey, Constants.DESCRIPTION);
-          String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.CANDIDATE_KEY, name);
-          if (!validateCandidateKeyDescription(description, path))
-            break;
+          validateCandidateKeyDescription(description, path);
 
         }
       }
@@ -169,50 +167,9 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateCandidateKeyName(String schemaFolder, String tableFolder, String table, String name,
-    ArrayList<String> columnList) {
-    List<String> columns = new ArrayList<>();
-    for (String column : columnList) {
-      if (tableColumnsList.get(table).indexOf(column) >= 0) {
-        int columnIndex = tableColumnsList.get(table).indexOf(column) + 1;
-        columns.add("c" + columnIndex);
-      } else {
-        setError(M_511_1, String.format("Column %s does not exist on table %s", column, table));
-        return false;
-      }
-    }
-
-    try {
-      NodeList nodes = (NodeList) XMLUtils.getXPathResult(
-        getZipInputStream(validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder)),
-        "/ns:table/ns:row", XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
-
-      Set<String> unique = new HashSet<>();
-
-      for (int i = 0; i < nodes.getLength(); i++) {
-        Element row = (Element) nodes.item(i);
-
-        StringBuilder candidateColumn = new StringBuilder();
-        for (int j = 0; j < columns.size(); j++) {
-          String columnText = XMLUtils.getChildTextContext(row, columns.get(j));
-          if (j > 0 && j < columns.size()) {
-            candidateColumn.append(".");
-          }
-          candidateColumn.append(columnText);
-        }
-
-        if (!unique.add(candidateColumn.toString())) {
-          setError(M_511_1_1, String.format("Found duplicates candidate keys '%s' with value %s on %s.%s column %s",
-            name, candidateColumn.toString(), schemaFolder, tableFolder, columns.toString()));
-          return false;
-        }
-      }
-
-    } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
-      String errorMessage = "Unable to read columns in table.xml";
-      setError(M_511_1_1, errorMessage);
-      LOGGER.debug(errorMessage, e);
-      return false;
+  private boolean validateCandidateKeyName(String name, String path) {
+    if (name.contains(BLANK)) {
+      addWarning(M_511_1_1, "Candidate key " + name + " contain blanks in name", path);
     }
 
     return true;
@@ -228,7 +185,7 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
     for (String column : columnList) {
       if (!tableColumnsList.get(table).contains(column)) {
         setError(M_511_1_2,
-          String.format("Candidate key column reference %s not found on %s.%s" + column, schema, table));
+          String.format("Candidate key column reference %s not found on %s.%s", column, schema, table));
         return false;
       }
     }
@@ -239,7 +196,7 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
    * M_5.11-1-3 The Candidate key description in SIARD file must not be less than
    * 3 characters. WARNING if it is less than 3 characters
    */
-  private boolean validateCandidateKeyDescription(String description, String path) {
-    return validateXMLField(M_511_1_3, description, Constants.DESCRIPTION, false, true, path);
+  private void validateCandidateKeyDescription(String description, String path) {
+    validateXMLField(M_511_1_3, description, Constants.DESCRIPTION, false, true, path);
   }
 }

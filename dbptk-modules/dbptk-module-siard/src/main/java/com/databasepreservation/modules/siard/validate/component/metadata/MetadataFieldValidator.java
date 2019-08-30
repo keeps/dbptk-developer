@@ -112,20 +112,20 @@ public class MetadataFieldValidator extends MetadataValidator {
           Constants.NAMESPACE_FOR_METADATA);
 
         for (int j = 0; j < fieldNodes.getLength(); j++) {
-
           Element field = (Element) fieldNodes.item(j);
-          String name = XMLUtils.getChildTextContext(field, Constants.NAME);
           String path = buildPath(Constants.SCHEMA, schemaName, Constants.TABLE, tableName, Constants.COLUMN,
-            columnName, Constants.FIELD, name);
+                  columnName, Constants.FIELD, Integer.toString(j));
+          String name = XMLUtils.getChildTextContext(field, Constants.NAME);
 
-          if (!validateFieldName(name, path)) {
-            return false;
-          }
+          if (!validateFieldName(name, path))
+            continue; // next field
+
+          path = buildPath(Constants.SCHEMA, schemaName, Constants.TABLE, tableName, Constants.COLUMN,
+                  columnName, Constants.FIELD, name);
 
           String lobFolder = XMLUtils.getChildTextContext(field, Constants.LOB_FOLDER);
-          if (!validateType(columnTypeName, columnTypeSchema, columnTypeOriginal, name, lobFolder, path)) {
-            return false;
-          }
+          if (!validateType(columnTypeName, columnTypeSchema, columnTypeOriginal, name, lobFolder, path))
+            continue; // next field
 
           String description = XMLUtils.getChildTextContext(field, Constants.DESCRIPTION);
           validateFieldDescription(description, path);
@@ -183,6 +183,7 @@ public class MetadataFieldValidator extends MetadataValidator {
           String attributeType = XMLUtils.getChildTextContext(attribute, Constants.TYPE);
           String attributeTypeName = XMLUtils.getChildTextContext(attribute, Constants.TYPE_NAME);
 
+          // M_5.7-1-2
           if (!validateFieldLobFolder(lobFolder, attributeType, attributeTypeName, path)) {
             return false;
           }
@@ -230,7 +231,7 @@ public class MetadataFieldValidator extends MetadataValidator {
   }
 
   /**
-   * M_5.7-1-2 The field name is mandatory.(SIARD Format Specification)
+   * M_5.7-1-2 The field lobFolder is mandatory.(SIARD Format Specification)
    *
    * @return true if valid otherwise false
    */

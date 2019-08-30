@@ -77,17 +77,24 @@ public class MetadataSchemaValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element schema = (Element) nodes.item(i);
+        String path = buildPath(Constants.SCHEMA, Integer.toString(i));
+
         String name = XMLUtils.getChildTextContext(schema, Constants.NAME);
+        if (!validateSchemaName(name, path))
+          continue; // next schema
+
+        path = buildPath(Constants.SCHEMA, name);
+
         String folder = XMLUtils.getChildTextContext(schema, Constants.FOLDER);
+        if (!validateSchemaFolder(folder, path))
+          continue; // next schema
+
         String tables = XMLUtils.getChildTextContext(schema, Constants.TABLES);
+        if (!validateSchemaTable(tables, path))
+          continue; // next schema
+
         String description = XMLUtils.getChildTextContext(schema, Constants.DESCRIPTION);
-
-        String path = buildPath(Constants.SCHEMA, name);
-
-        if (!validateSchemaName(name, path) || !validateSchemaFolder(folder, path)
-          || !validateSchemaDescription(description, path) || !validateSchemaTable(tables, path)) {
-          break;
-        }
+        validateSchemaDescription(description, path);
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
@@ -123,11 +130,9 @@ public class MetadataSchemaValidator extends MetadataValidator {
   /**
    * M_5.2-1-4 if schema description in the database is less than 3 characters a
    * warning must be send
-   *
-   * @return true if valid otherwise false
    */
-  private boolean validateSchemaDescription(String description, String path) {
-    return validateXMLField(M_521_4, description, Constants.DESCRIPTION, false, true, path);
+  private void validateSchemaDescription(String description, String path) {
+    validateXMLField(M_521_4, description, Constants.DESCRIPTION, false, true, path);
   }
 
   /**

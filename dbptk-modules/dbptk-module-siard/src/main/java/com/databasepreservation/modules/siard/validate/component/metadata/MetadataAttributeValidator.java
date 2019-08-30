@@ -8,7 +8,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import com.databasepreservation.model.reporters.ValidationReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -17,6 +16,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -100,10 +100,11 @@ public class MetadataAttributeValidator extends MetadataValidator {
           String attributeName = XMLUtils.getChildTextContext(attribute, Constants.NAME);
           String description = XMLUtils.getChildTextContext(attribute, Constants.DESCRIPTION);
 
-          if (!validateAttributeName(attributeName, path)
-            || !validateAttributeDescription(description, path + buildPath(Constants.ATTRIBUTE, attributeName))) {
-            break;
+          if (!validateAttributeName(attributeName, path)) {
+            continue; // next attribute
           }
+
+          validateAttributeDescription(description, path + buildPath(Constants.ATTRIBUTE, attributeName));
         }
       }
 
@@ -130,7 +131,7 @@ public class MetadataAttributeValidator extends MetadataValidator {
    * M_5.4-1-8 The attribute description in SIARD file must not be less than 3
    * characters. WARNING if it is less than 3 characters
    */
-  private boolean validateAttributeDescription(String description, String path) {
-    return validateXMLField(M_541_8, description, Constants.DESCRIPTION, false, true, path);
+  private void validateAttributeDescription(String description, String path) {
+    validateXMLField(M_541_8, description, Constants.DESCRIPTION, false, true, path);
   }
 }

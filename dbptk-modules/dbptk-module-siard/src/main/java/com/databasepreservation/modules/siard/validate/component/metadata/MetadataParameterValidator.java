@@ -81,19 +81,19 @@ public class MetadataParameterValidator extends MetadataValidator {
       for (int i = 0; i < nodes.getLength(); i++) {
         Element parameter = (Element) nodes.item(i);
         String schema = XMLUtils.getParentNameByTagName(parameter, Constants.SCHEMA);
+        String path = buildPath(Constants.SCHEMA, schema, Constants.PARAMETER, Integer.toString(i));
 
         String name = XMLUtils.getChildTextContext(parameter, Constants.NAME);
-        String path = buildPath(Constants.SCHEMA, schema, Constants.PARAMETER, name);
         if (!validateParameterName(name, path))
-          break;
+          continue; // next parameter
 
+        path = buildPath(Constants.SCHEMA, schema, Constants.PARAMETER, name);
         String mode = XMLUtils.getChildTextContext(parameter, Constants.PARAMETER_MODE);
         if (!validateParameterMode(mode, path))
-          break;
+          continue; // next parameter
 
         String description = XMLUtils.getChildTextContext(parameter, Constants.DESCRIPTION);
-        if (!validateParameterDescription(description, path))
-          break;
+        validateParameterDescription(description, path);
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
@@ -113,7 +113,7 @@ public class MetadataParameterValidator extends MetadataValidator {
   private boolean validateParameterName(String name, String path) {
     // M_516_1
     if (name == null || name.isEmpty()) {
-      addWarning(M_516_1, "Parameter name should exist", path);
+      addWarning(M_516_1_1, "Parameter name should exist", path);
     }
     // M_5.16-1-1
     if (!checkDuplicates.add(name)) {
@@ -145,7 +145,7 @@ public class MetadataParameterValidator extends MetadataValidator {
    * M_5.16-1-8 The parameter description in SIARD file must not be less than 3
    * characters. WARNING if it is less than 3 characters
    */
-  private boolean validateParameterDescription(String description, String path) {
-    return validateXMLField(M_516_1_8, description, Constants.DESCRIPTION, false, true, path);
+  private void validateParameterDescription(String description, String path) {
+    validateXMLField(M_516_1_8, description, Constants.DESCRIPTION, false, true, path);
   }
 }

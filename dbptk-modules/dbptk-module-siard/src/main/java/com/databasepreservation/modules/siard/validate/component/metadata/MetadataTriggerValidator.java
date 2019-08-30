@@ -85,25 +85,25 @@ public class MetadataTriggerValidator extends MetadataValidator {
         Element trigger = (Element) nodes.item(i);
         String table = XMLUtils.getParentNameByTagName(trigger, Constants.TABLE);
         String schema = XMLUtils.getParentNameByTagName(trigger, Constants.SCHEMA);
-        String name = XMLUtils.getChildTextContext(trigger, Constants.NAME);
-        String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, TRIGGER, name);
+        String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, TRIGGER, Integer.toString(i));
 
+        String name = XMLUtils.getChildTextContext(trigger, Constants.NAME);
         if (!validateTriggerName(name, path))
-          break;
+          continue; // next triggert
+        path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, TRIGGER, name);
 
         String triggerActionTime = XMLUtils.getChildTextContext(trigger, TRIGGER_ACTION_TIME);
         if (!validateTriggerActionTime(triggerActionTime, path))
-          break;
+          continue; // next triggert
         String triggerEvent = XMLUtils.getChildTextContext(trigger, TRIGGER_EVENT);
         if (!validateTriggerEvent(triggerEvent, path))
-          break;
+          continue; // next triggert
         String triggeredAction = XMLUtils.getChildTextContext(trigger, TRIGGER_TRIGGERED_ACTION);
         if (!validateTriggerTriggeredAction(triggeredAction, path))
-          break;
+          continue; // next triggert
 
         String description = XMLUtils.getChildTextContext(trigger, Constants.DESCRIPTION);
-        if (!validateTriggerDescription(description, path))
-          break;
+        validateTriggerDescription(description, path);
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
@@ -166,11 +166,9 @@ public class MetadataTriggerValidator extends MetadataValidator {
   /**
    * M_5.13-1-6 The Check Constraint description in SIARD file must not be less
    * than 3 characters. WARNING if it is less than 3 characters
-   *
-   * @return true if valid otherwise false
    */
-  private boolean validateTriggerDescription(String description, String path) {
-    return validateXMLField(M_513_1_6, description, Constants.DESCRIPTION, false, true, path);
+  private void validateTriggerDescription(String description, String path) {
+    validateXMLField(M_513_1_6, description, Constants.DESCRIPTION, false, true, path);
   }
 
 }

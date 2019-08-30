@@ -279,32 +279,30 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element role = (Element) nodes.item(i);
-        String privilegeNode = String.format("Privilege Node[%d]", i);
-        String path = buildPath(PRIVILEGE, privilegeNode);
+        String path = buildPath(PRIVILEGE, Integer.toString(i));
 
         String type = XMLUtils.getChildTextContext(role, Constants.TYPE);
         if (!validatePrivilegeType(type, path))
-          break;
+          continue; // next privilege
 
         String object = XMLUtils.getChildTextContext(role, OBJECT);
         if (!validatePrivilegeObject(object, path))
-          break;
+          continue; // next privilege
 
         String grantor = XMLUtils.getChildTextContext(role, GRANTOR);
         if (!validatePrivilegeGrantor(grantor, path))
-          break;
+          continue; // next privilege
 
         String grantee = XMLUtils.getChildTextContext(role, GRANTEE);
         if (!validatePrivilegeGrantee(grantee, path))
-          break;
+          continue; // next privilege
 
         String option = XMLUtils.getChildTextContext(role, OPTION);
         if (!validatePrivilegeOption(option, path))
-          break;
+          continue; // next privilege
 
         String description = XMLUtils.getChildTextContext(role, Constants.DESCRIPTION);
-        if (!validatePrivilegeDescription(description, path))
-          break;
+        validatePrivilegeDescription(description, path);
       }
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       String errorMessage = "Unable to read privileges from SIARD file";
@@ -445,8 +443,8 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
    * M_5.20-1-6 The privilege description field in SIARD file should not be less
    * than 3 characters. WARNING if it is less than 3 characters
    */
-  private boolean validatePrivilegeDescription(String description, String privilegeNode) {
-    return validateXMLField(M_520_1_6, description, Constants.DESCRIPTION, false, true, privilegeNode);
+  private void validatePrivilegeDescription(String description, String privilegeNode) {
+    validateXMLField(M_520_1_6, description, Constants.DESCRIPTION, false, true, privilegeNode);
   }
 
   private boolean checkIfUserOrRoleExist(String name) {

@@ -73,15 +73,15 @@ public class MetadataUserValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element user = (Element) nodes.item(i);
+        String path = buildPath(Constants.USER, Integer.toString(i));
 
         String name = XMLUtils.getChildTextContext(user, Constants.NAME);
-        String path = buildPath(Constants.USER, name);
         if (!validateUserName(name, path))
-          break;
+          continue; // next user;
 
+        path = buildPath(Constants.USER, name);
         String description = XMLUtils.getChildTextContext(user, Constants.DESCRIPTION);
-        if (!validateUserDescription(description, path))
-          break;
+        validateUserDescription(description, path);
       }
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       String errorMessage = "Unable to read users from SIARD file";
@@ -100,7 +100,7 @@ public class MetadataUserValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateUserName(String name, String path) {
-    if (!validateXMLField(M_518_1, name, Constants.NAME, true, false, path)) {
+    if (!validateXMLField(M_518_1_1, name, Constants.NAME, true, false, path)) {
       return false;
     }
     if (!checkDuplicates.add(name)) {

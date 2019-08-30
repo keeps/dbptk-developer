@@ -88,19 +88,19 @@ public class MetadataRoleValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element role = (Element) nodes.item(i);
+        String path = buildPath(ROLE, Integer.toString(i));
 
         String name = XMLUtils.getChildTextContext(role, Constants.NAME);
-        String path = buildPath(ROLE, name);
         if (!validateRoleName(name, path))
-          break;
+          continue; // next role
 
+        path = buildPath(ROLE, name);
         String admin = XMLUtils.getChildTextContext(role, ADMIN);
         if (!validateRoleAdmin(admin, path))
-          break;
+          continue; // next role
 
         String description = XMLUtils.getChildTextContext(role, Constants.DESCRIPTION);
-        if (!validateRoleDescription(description, path))
-          break;
+        validateRoleDescription(description, path);
       }
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       String errorMessage = "Unable to read roles from SIARD file";
@@ -159,10 +159,8 @@ public class MetadataRoleValidator extends MetadataValidator {
   /**
    * M_5.19-1-2 The role description in SIARD file must not be less than 3
    * characters. WARNING if it is less than 3 characters
-   *
-   * @return true if valid otherwise false
    */
-  private boolean validateRoleDescription(String description, String path) {
-    return validateXMLField(M_519_1_3, description, Constants.DESCRIPTION, false, true, path);
+  private void validateRoleDescription(String description, String path) {
+    validateXMLField(M_519_1_3, description, Constants.DESCRIPTION, false, true, path);
   }
 }

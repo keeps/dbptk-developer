@@ -75,28 +75,29 @@ public class MetadataTableValidator extends MetadataValidator {
       for (int i = 0; i < nodes.getLength(); i++) {
         Element table = (Element) nodes.item(i);
         String schema = XMLUtils.getChildTextContext((Element) table.getParentNode().getParentNode(), "name");
+        String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, Integer.toString(i));
 
         String name = XMLUtils.getChildTextContext(table, Constants.NAME);
-
-        String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, name);
         if (!validateTableName(name, path))
-          break;
+          continue; //next table
+
+        path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, name);
 
         String folder = XMLUtils.getChildTextContext(table, Constants.FOLDER);
         if (!validateTableFolder(folder, path))
-          break;
+          continue; //next table
 
         String description = XMLUtils.getChildTextContext(table, Constants.DESCRIPTION);
         if (!validateTableDescription(description, path))
-          break;
+          continue; //next table
 
         String columns = XMLUtils.getChildTextContext(table, Constants.COLUMNS);
         if (!validateTableColumns(columns, path))
-          break;
+          continue; //next table
 
         String rows = XMLUtils.getChildTextContext(table, Constants.ROWS);
         if (!validateTableRows(rows, path))
-          break;
+          continue;
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {

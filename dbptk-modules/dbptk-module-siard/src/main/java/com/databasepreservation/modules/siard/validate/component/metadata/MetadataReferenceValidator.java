@@ -105,23 +105,12 @@ public class MetadataReferenceValidator extends MetadataValidator {
               foreignKey);
 
             String column = XMLUtils.getChildTextContext(reference, Constants.COLUMN);
-            // * M_5.10-1 reference column is mandatory.
-            if (column == null || column.isEmpty()) {
-              setError(M_510_1, String.format("Column is required (%s)", path));
-              return false;
-            }
             if (!validateColumn(table, column))
-              break;
+              continue; //next reference
 
             String referenced = XMLUtils.getChildTextContext(reference, REFERENCED_COLUMN);
-            // * M_5.10-1 reference column is mandatory.
-            if (referenced == null || referenced.isEmpty()) {
-              setError(M_510_1, String.format("Referenced column is required (%s)", path));
-              return false;
-            }
-
             if (!validateReferencedColumn(table, referencedTable, column, referenced, foreignKey))
-              break;
+              continue; //next reference
           }
         }
 
@@ -194,6 +183,10 @@ public class MetadataReferenceValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateColumn(String table, String column) {
+    if (column == null || column.isEmpty()) {
+      setError(M_510_1_1, String.format("Column is required (%s)", path));
+      return false;
+    }
     if (tableColumnsList.get(table).get(column) == null) {
       setError(M_510_1_1,
         String.format("referenced column name %s does not exist on referenced table %s", column, table));
@@ -220,6 +213,11 @@ public class MetadataReferenceValidator extends MetadataValidator {
     HashMap<String, String> foreignKeyColumnTable = tableColumnsList.get(foreignKeyTable);
     List<String> primaryKeyColumns = primaryKeyList.get(referencedTable);
     List<String> candidateKeyColumns = candidateKeyList.get(referencedTable);
+
+    if (referencedColumn == null || referencedColumn.isEmpty()) {
+      setError(M_510_1_2, String.format("Referenced column is required (%s)", path));
+      return false;
+    }
 
     // M_5.10-1-2
     if (referencedColumnTable.get(referencedColumn) == null) {

@@ -78,15 +78,15 @@ public class MetadataRoutineValidator extends MetadataValidator {
       for (int i = 0; i < nodes.getLength(); i++) {
         Element routine = (Element) nodes.item(i);
         String schema = XMLUtils.getParentNameByTagName(routine, Constants.ROUTINE);
+        String path = buildPath(Constants.SCHEMA, schema, Constants.ROUTINE, Integer.toString(i));
 
         String name = XMLUtils.getChildTextContext(routine, SPECIFIC_NAME);
-        String path = buildPath(Constants.SCHEMA, schema, Constants.ROUTINE, name);
         if (!validateRoutineName(name, path))
-          break;
+          continue; //next view
 
+        path = buildPath(Constants.SCHEMA, schema, Constants.ROUTINE, name);
         String description = XMLUtils.getChildTextContext(routine, Constants.DESCRIPTION);
-        if (!validateRoutineDescription(description, path))
-          break;
+        validateRoutineDescription(description, path);
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
@@ -121,10 +121,8 @@ public class MetadataRoutineValidator extends MetadataValidator {
   /**
    * M_5.15-1-2 The routine description in SIARD file must not be less than 3
    * characters. WARNING if it is less than 3 characters
-   *
-   * @return true if valid otherwise false
    */
-  private boolean validateRoutineDescription(String description, String path) {
-    return validateXMLField(M_515_1_2, description, Constants.DESCRIPTION, false, true, path);
+  private void validateRoutineDescription(String description, String path) {
+    validateXMLField(M_515_1_2, description, Constants.DESCRIPTION, false, true, path);
   }
 }

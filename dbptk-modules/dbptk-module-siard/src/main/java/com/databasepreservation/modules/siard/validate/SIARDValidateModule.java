@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.databasepreservation.modules.siard.validate.component.metadata.MetadataXMLAgainstXSDValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +23,7 @@ import com.databasepreservation.model.modules.validate.ValidateModule;
 import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.modules.DefaultExceptionNormalizer;
 import com.databasepreservation.modules.siard.validate.common.path.ValidatorPathStrategyImpl;
+import com.databasepreservation.modules.siard.validate.component.formatStructure.MetadataAndTableDataValidator;
 import com.databasepreservation.utils.ReflectionUtils;
 
 /**

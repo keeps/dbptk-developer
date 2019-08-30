@@ -51,7 +51,8 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
   private List<String> codeList = new ArrayList<>();
   private Map<String, List<Map<String, String>>> warnings = new HashMap<>();
   private Map<String, List<Map<String, String>>> notices = new HashMap<>();
-  private Map<String, String> error = new HashMap<>();
+  private Map<String, List<String>> errors = new HashMap<>();
+  // private Map<String, String> error = new HashMap<>();
 
   void setCodeListToValidate(String... codeIDList) {
     Collections.addAll(codeList, codeIDList);
@@ -73,8 +74,10 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
    * @return true if found warning, notice or nothing. False if have error
    */
   boolean reportValidations(String codeID, String moduleName) {
-    if (error.get(codeID) != null && !error.get(codeID).isEmpty()) {
-      getValidationReporter().validationStatus(codeID, ValidationReporter.Status.ERROR, error.get(codeID));
+    if (errors.get(codeID) != null && !errors.get(codeID).isEmpty()) {
+      for (String error : errors.get(codeID)) {
+        getValidationReporter().validationStatus(codeID, ValidationReporter.Status.ERROR, error);
+      }
       metadataValidationFailed(moduleName, codeID);
       return false;
     } else if ((warnings.get(codeID) != null) && !warnings.get(codeID).isEmpty()) {
@@ -219,7 +222,10 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
   }
 
   void setError(String codeID, String error) {
-    this.error.put(codeID, error);
+    if (errors.get(codeID) == null) {
+      errors.put(codeID, new ArrayList<String>());
+    }
+    this.errors.get(codeID).add(error);
   }
 
   static String createPath(String... parameters) {

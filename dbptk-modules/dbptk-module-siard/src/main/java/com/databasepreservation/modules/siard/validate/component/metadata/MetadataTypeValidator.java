@@ -96,12 +96,21 @@ public class MetadataTypeValidator extends MetadataValidator {
         String finalField = XMLUtils.getChildTextContext(type, Constants.TYPE_FINAL);
         String description = XMLUtils.getChildTextContext(type, Constants.DESCRIPTION);
 
-        String path = buildPath(Constants.SCHEMA, schema, Constants.TYPE, name);
-        if (!validateTypeName(name, path) || !validateTypeCategory(category, path)
-          || !validateTypeInstantiable(instantiable, path) || !validateTypefinal(finalField, path)
-          || !validateTypeDescription(description, path)) {
-          break;
-        }
+        String path = buildPath(Constants.SCHEMA, schema, Constants.TYPE, Integer.toString(i));
+        if (!validateTypeName(name, path))
+          continue; // next type
+
+        path = buildPath(Constants.SCHEMA, schema, Constants.TYPE, name);
+        if (!validateTypeCategory(category, path))
+          continue; // next type
+
+        if (!validateTypeInstantiable(instantiable, path))
+          continue; // next type
+
+        if (!validateTypefinal(finalField, path))
+          continue; // next type
+
+        validateTypeDescription(description, path);
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
@@ -160,8 +169,8 @@ public class MetadataTypeValidator extends MetadataValidator {
    * less than 3 characters. WARNING if it is less than 3 characters
    *
    */
-  private boolean validateTypeDescription(String description, String path) {
-    return validateXMLField(M_531_10, description, Constants.DESCRIPTION, false, true, path);
+  private void validateTypeDescription(String description, String path) {
+    validateXMLField(M_531_10, description, Constants.DESCRIPTION, false, true, path);
   }
 
 }

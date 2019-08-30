@@ -91,21 +91,21 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
 
         String schema = XMLUtils.getChildTextContext(schemaElement, Constants.NAME);
         String table = XMLUtils.getChildTextContext(tableElement, Constants.NAME);
+        String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.NAME, Integer.toString(i));
 
         String name = XMLUtils.getChildTextContext(checkConstraint, Constants.NAME);
-        String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.NAME, name);
         if (!validateCheckConstraintName(name, path))
-          break;
+          continue; // next constraint
 
+        path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.NAME, name);
         String condition = XMLUtils.getChildTextContext(checkConstraint, Constants.CONDITION);
         // M_512_1
         if (!validateXMLField(M_512_1, condition, Constants.CONDITION, true, false, path)) {
-          return false;
+          continue; // next constraint
         }
 
         String description = XMLUtils.getChildTextContext(checkConstraint, Constants.DESCRIPTION);
-        if (!validateCheckConstraintDescription(description, path))
-          break;
+        validateCheckConstraintDescription(description, path);
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
@@ -144,7 +144,7 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateCheckConstraintDescription(String description, String path) {
-    return validateXMLField(M_512_1_3, description, Constants.DESCRIPTION, false, true, path);
+  private void validateCheckConstraintDescription(String description, String path) {
+    validateXMLField(M_512_1_3, description, Constants.DESCRIPTION, false, true, path);
   }
 }
