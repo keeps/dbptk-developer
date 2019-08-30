@@ -1,10 +1,14 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
@@ -156,39 +160,43 @@ public class MetadataColumnsValidator extends MetadataValidator {
   private boolean validateColumnLobFolder(String schemaFolder, String tableFolder, String type, String folder,
     String column, String name, String path) {
     String pathToTableColumn = createPath(Constants.SIARD_CONTENT_FOLDER, schemaFolder, tableFolder);
-    if (!HasReferenceToLobFolder(pathToTableColumn, schemaFolder, tableFolder, column, folder)) {
-      if (folder == null || folder.isEmpty()) {
-        addWarning(M_561_3, String.format("lobFolder must be set for column type  %s", type), path);
-      } else {
-        setError(M_561_3,
-          "not found lobFolder(" + folder + ") required by " + createPath(pathToTableColumn, name, column));
-      }
-      return false;
-    }
-    return true;
-  }
 
-  private boolean HasReferenceToLobFolder(String path, String schemaFolder, String tableFolder, String column,
-    String folder) {
     try {
-      NodeList nodes = (NodeList) XMLUtils.getXPathResult(
-        getZipInputStream(validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder)),
-        "/ns:table/ns:row/ns:" + column, XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
+      XMLInputFactory factory = XMLInputFactory.newInstance();
+      InputStream zipInputStream = getZipInputStream(
+        validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder));
 
-      for (int i = 0; i < nodes.getLength(); i++) {
-        Element columnNumber = (Element) nodes.item(i);
-        String fileName = columnNumber.getAttribute("file");
+      XMLStreamReader streamReader = factory.createXMLStreamReader(zipInputStream);
 
-        if (!fileName.isEmpty() && getZipFile().getEntry(fileName) == null) {
-          return false;
+      // xPath doesn't work well with files over 1gb
+      int rowNumber = 0;
+      while (streamReader.hasNext()) {
+        streamReader.next();
+        if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
+          if (streamReader.getLocalName().equalsIgnoreCase("row"))
+            rowNumber++;
+          if (streamReader.getLocalName().equalsIgnoreCase(column)) {
+            if (streamReader.getAttributeCount() > 0) {
+              String fileName = streamReader.getAttributeValue(null, "file");
+              if (!fileName.isEmpty()) {
+                if (getZipFile().getEntry(fileName) == null) {
+                  setError(M_561_3, String.format("not found record '%s' required by '%s'", fileName,
+                    String.format("%s [row: %s column: %s]", pathToTableColumn, Integer.toString(rowNumber), column)));
+                  return false;
+                } else if (folder == null || folder.isEmpty()) {
+                  addWarning(M_561_3, String.format("lobFolder must be set for column type  %s", type), path);
+                }
+              }
+            }
+          }
         }
       }
-
-    } catch (IOException | XPathExpressionException | ParserConfigurationException | SAXException e) {
+    } catch (XMLStreamException e) {
       String errorMessage = "Unable to read table.xml";
       LOGGER.debug(errorMessage, e);
       return false;
     }
+
     return true;
   }
 
