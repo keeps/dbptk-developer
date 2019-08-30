@@ -139,8 +139,8 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
             columnList.add(column);
           }
 
-          if (!validateCandidateKeyName(schemaFolder, tableFolder, table, name, columnList))
-            break;
+//          if (!validateCandidateKeyName(schemaFolder, tableFolder, table, name, columnList))
+  //          break;
 
           if (!validateCandidateKeyColumn(schema, table, columnList))
             break;

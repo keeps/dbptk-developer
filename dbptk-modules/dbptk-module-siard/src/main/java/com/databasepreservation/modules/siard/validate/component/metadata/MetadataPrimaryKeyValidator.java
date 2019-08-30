@@ -141,8 +141,9 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
             columnList.add(column);
           }
 
-          if (!validatePrimaryKeyName(schemaFolder, tableFolder, table, name, columnList))
-            break;
+          //if (!validatePrimaryKeyName(schemaFolder, tableFolder, table, name, columnList))
+          //  break;
+
 
           if (!validatePrimaryKeyColumn(schema, table, columnList))
             break;
