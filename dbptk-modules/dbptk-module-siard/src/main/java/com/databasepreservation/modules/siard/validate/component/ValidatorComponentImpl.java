@@ -89,6 +89,11 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
     }
   }
 
+  @Override
+  public void clean() {
+    // Do nothing override
+  }
+
   protected void validationFailed(String ID, String moduleName, String details) {
     validationReporter.validationStatus(ID, Status.ERROR, details);
     validationReporter.moduleValidatorFinished(moduleName, Status.FAILED);
@@ -203,6 +208,8 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
       this.observer = observer;
     }
   }
+
+
 
   private boolean registerSchemaAndTables() throws ModuleException {
     final InputStream zipInputStream = getZipInputStream(validatorPathStrategy.getMetadataXMLPath());

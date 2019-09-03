@@ -9,6 +9,7 @@ package com.databasepreservation.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Iterator;
@@ -33,6 +34,7 @@ import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
@@ -196,6 +198,14 @@ public class XMLUtils {
     return expression.evaluate(document, constants);
   }
 
+  public static Object getXPathResult(final Document document, final String xpathExpression, final QName constants) throws XPathExpressionException {
+    XPathFactory xPathFactory = XPathFactory.newInstance();
+    XPath xpath = xPathFactory.newXPath();
+    XPathExpression expression = xpath.compile(xpathExpression);
+
+    return expression.evaluate(document, constants);
+  }
+
   private static Document getDocument(InputStream inputStream)
       throws IOException, SAXException, ParserConfigurationException {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -233,6 +243,15 @@ public class XMLUtils {
     });
 
     return xPath;
+  }
+
+  public static Document convertStringToDocument(String xmlStr)
+    throws ParserConfigurationException, IOException, SAXException {
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    DocumentBuilder builder;
+
+    builder = factory.newDocumentBuilder();
+    return builder.parse(new InputSource(new StringReader(xmlStr)));
   }
 
   public static Element getChild(Element parent, String name) {

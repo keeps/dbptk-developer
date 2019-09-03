@@ -20,6 +20,8 @@ public interface ValidatorComponent {
 
   boolean validate() throws ModuleException;
 
+  void clean();
+
   void setValidationReporter(ValidationReporter validationReporter);
 
   void setValidatorPathStrategy(ValidatorPathStrategy validatorPathStrategy);

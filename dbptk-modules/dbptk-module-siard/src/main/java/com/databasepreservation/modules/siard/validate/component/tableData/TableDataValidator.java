@@ -5,12 +5,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -42,16 +44,23 @@ public class TableDataValidator extends ValidatorComponentImpl {
 
   private static final String TABLE_REGEX = "^table$";
   private static final String ROW_REGEX = "^row$";
-  private static final String COLUMN_REGEX = "^c[0-9]+$";
-  private static final String ARRAY_REGEX = "^a[0-9]+$";
-  private static final String STRUCTURED_REGEX = "^u[0-9]+$";
+  private static final String COLUMN_REGEX = "^c[1-9]([0-9]+)?$";
+  private static final String ARRAY_REGEX = "^a[1-9]([0-9]+)?$";
+  private static final String STRUCTURED_REGEX = "^u[1-9]([0-9]+)?$";
 
   public TableDataValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
   }
 
   @Override
+  public void clean() {
+    P_641_ERRORS.clear();
+    P_642_ERRORS.clear();
+  }
+
+  @Override
   public boolean validate() throws ModuleException {
+
     observer.notifyStartValidationModule(MODULE_NAME, P_64);
     if (preValidationRequirements()) {
       LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
@@ -82,13 +91,15 @@ public class TableDataValidator extends ValidatorComponentImpl {
       return false;
     }
 
-    /* getValidationReporter().validationStatus(P_643, Status.OK); */
+    getValidationReporter().validationStatus(P_643, Status.OK);
 
-    /*
-     * if (validateLOBAttributes()) {
-     * getValidationReporter().validationStatus(P_645, Status.OK); } else {
-     * validationFailed(P_645, MODULE_NAME); closeZipFile(); return false; }
-     */
+    if (validateLOBAttributes()) {
+      getValidationReporter().validationStatus(P_645, Status.OK);
+    } else {
+      validationFailed(P_645, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
 
     observer.notifyFinishValidationModule(MODULE_NAME, Status.PASSED);
     getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
@@ -105,8 +116,10 @@ public class TableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateStoredExtensionFile() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     List<String> SIARDXMLPaths = new ArrayList<>();
 
@@ -131,6 +144,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
         }
       }
     } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+      LOGGER.debug("Failed to validate {}({})", MODULE_NAME, P_641, e);
       return false;
     }
 
@@ -152,31 +166,39 @@ public class TableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateRowElements() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
+
+    observer.notifyMessage(MODULE_NAME, "Validating row elements", Status.START);
+    XMLInputFactory factory = XMLInputFactory.newInstance();
 
     for (String zipFileName : getZipFileNames()) {
       String regexPattern = "^(content/schema[0-9]+/table[0-9]+/table[0-9]+)\\.xml$";
       if (zipFileName.matches(regexPattern)) {
+        observer.notifyElementValidating(zipFileName);
+
         try {
-          NodeList nodeNames = (NodeList) XMLUtils.getXPathResult(getZipInputStream(zipFileName), "//*",
-            XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
-
-          for (int i = 0; i < nodeNames.getLength(); i++) {
-            Element element = (Element) nodeNames.item(i);
-            String tagName = element.getTagName();
-
-            if (!(tagName.matches(TABLE_REGEX) || tagName.matches(ROW_REGEX) || tagName.matches(COLUMN_REGEX)
-              || tagName.matches(ARRAY_REGEX) || tagName.matches(STRUCTURED_REGEX))) {
-              P_642_ERRORS.add(zipFileName);
+          XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(zipFileName));
+          while (streamReader.hasNext()) {
+            streamReader.next();
+            if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
+              final String tagName = streamReader.getLocalName();
+              if (!(tagName.matches(TABLE_REGEX) || tagName.matches(ROW_REGEX) || tagName.matches(COLUMN_REGEX)
+                || tagName.matches(ARRAY_REGEX) || tagName.matches(STRUCTURED_REGEX))) {
+                P_642_ERRORS.add("Line " + streamReader.getLocation().getLineNumber() + "in " + zipFileName);
+              }
             }
           }
-        } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+        } catch (XMLStreamException e) {
+          LOGGER.debug("Failed to validate {}({})", MODULE_NAME, P_642, e);
           return false;
         }
       }
     }
 
+    observer.notifyMessage(MODULE_NAME, "Validating row elements", Status.FINISH);
     return P_642_ERRORS.isEmpty();
   }
 
@@ -197,8 +219,10 @@ public class TableDataValidator extends ValidatorComponentImpl {
    * @return true is valid otherwise false
    */
   private boolean validateLOBAttributes() {
-    if (preValidationRequirements())
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
+    }
 
     for (String zipFileName : getZipFileNames()) {
       String regexPattern = "^(content/schema[0-9]+/table[0-9]+/table[0-9]+)\\.xsd$";
@@ -213,6 +237,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
           }
 
         } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+          LOGGER.debug("Failed to validate {}({})", MODULE_NAME, P_645, e);
           return false;
         }
       }

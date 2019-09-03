@@ -90,6 +90,30 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
   }
 
   @Override
+  public void clean() {
+    P_431_ERRORS.clear();
+    P_432_ERRORS.clear();
+    P_433_ERRORS.clear();
+    P_434_ERRORS.clear();
+    P_435_ERRORS.clear();
+    P_436_ERRORS.clear();
+    P_437_ERRORS.clear();
+    P_438_ERRORS.clear();
+    P_439_ERRORS.clear();
+    P_4310_ERRORS.clear();
+    P_4311_ERRORS.clear();
+    P_4312_ERRORS.clear();
+    sql2008Type.clear();
+    arrayType.clear();
+    advancedOrStructuredDataType.clear();
+    numberOfNullable.clear();
+    numberOfRows.clear();
+    skipped.clear();
+    warnings.clear();
+    types.clear();
+  }
+
+  @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, P_43);
 
@@ -466,17 +490,12 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         observer.notifyElementValidating(XMLPath);
         zipInputStream = getZipInputStream(XMLPath);
 
-        // Instance of the class which helps on reading tags
         XMLInputFactory factory = XMLInputFactory.newInstance();
-
-        // Initializing the handler to access the tags in the XML file
         XMLStreamReader streamReader = factory.createXMLStreamReader(zipInputStream);
         int count = 0;
         while (streamReader.hasNext()) {
-          // Move to next event
           streamReader.next();
 
-          // Check if its 'START_ELEMENT'
           if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
             if (streamReader.getLocalName().equals("row")) {
               count++;

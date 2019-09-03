@@ -39,6 +39,19 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
     this.MODULE_NAME = moduleName;
   }
 
+  @Override
+  public void clean() {
+    P_421_ERRORS.clear();
+    P_422_ERRORS.clear();
+    P_423_ERRORS.clear();
+    P_426_ERRORS.clear();
+
+    P_421_ERRORS = null;
+    P_422_ERRORS = null;
+    P_423_ERRORS = null;
+    P_426_ERRORS = null;
+  }
+
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, P_42);
 

@@ -101,10 +101,12 @@ public class SIARDValidateModule implements ValidateModule {
       component.setValidatorPathStrategy(validatorPathStrategy);
       component.setAllowedUTD(allowedUDTs);
       component.setup();
-      if (!component.validate()) {
-        validationReporter.close();
-        return false;
-      }
+      component.validate();
+      //if (!component.validate()) {
+       // validationReporter.close();
+        //return false;
+      //}
+      component.clean();
     }
 
     validationReporter.close();
