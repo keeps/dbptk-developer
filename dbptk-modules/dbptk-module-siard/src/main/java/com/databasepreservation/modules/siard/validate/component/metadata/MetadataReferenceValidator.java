@@ -18,6 +18,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.modules.siard.validate.common.model.SQLType;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -36,6 +37,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
   private static final String REFERENCED_COLUMN = "referenced";
 
   private List<String> tableList = new ArrayList<>();
+  private static List<SQLType> SQLTypeList = null;
   private Map<String, HashMap<String, String>> tableColumnsList = new HashMap<>();
   private Map<String, List<String>> primaryKeyList = new HashMap<>();
   private Map<String, List<String>> candidateKeyList = new HashMap<>();
@@ -43,6 +45,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
   public MetadataReferenceValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
     setCodeListToValidate(M_510_1, M_510_1_1, M_510_1_2);
+    populateSQL2008Types();
   }
 
   @Override
@@ -106,11 +109,11 @@ public class MetadataReferenceValidator extends MetadataValidator {
 
             String column = XMLUtils.getChildTextContext(reference, Constants.COLUMN);
             if (!validateColumn(table, column))
-              continue; //next reference
+              continue; // next reference
 
             String referenced = XMLUtils.getChildTextContext(reference, REFERENCED_COLUMN);
             if (!validateReferencedColumn(table, referencedTable, column, referenced, foreignKey))
-              continue; //next reference
+              continue; // next reference
           }
         }
 
@@ -202,9 +205,6 @@ public class MetadataReferenceValidator extends MetadataValidator {
    * Additional check 1: Validation that fk and reference table pk have identical
    * data types
    *
-   * Additional check 2: validation that all instances of foreign keys refer to
-   * the primary key with existing record
-   *
    * @return true if valid otherwise false
    */
   private boolean validateReferencedColumn(String foreignKeyTable, String referencedTable, String column,
@@ -232,7 +232,8 @@ public class MetadataReferenceValidator extends MetadataValidator {
       for (String primaryKey : primaryKeyColumns) {
         String primaryKeyType = referencedColumnTable.get(primaryKey);
 
-        if (!primaryKeyType.equals(foreignKeyType)) {
+        // if (!primaryKeyType.equals(foreignKeyType)) {
+        if (!checkType(foreignKeyType, primaryKeyType)) {
           setError(M_510_1_2,
             String.format("Foreign Key %s.%s type %s does not match with type %s of Primary Key %s.%s", foreignKeyTable,
               foreignKey, foreignKeyType, primaryKeyType, referencedTable, primaryKey));
@@ -244,20 +245,78 @@ public class MetadataReferenceValidator extends MetadataValidator {
       for (String candidateKey : candidateKeyColumns) {
         String candidateKeyType = referencedColumnTable.get(candidateKey);
 
-        if (!candidateKeyType.equals(foreignKeyType)) {
+        // if (!candidateKeyType.equals(foreignKeyType)) {
+        if (!checkType(foreignKeyType, candidateKeyType)) {
           setError(M_510_1_2,
             String.format("Foreign Key %s.%s type %s does not match with type %s of Candidate Key %s.%s",
               foreignKeyTable, foreignKey, foreignKeyType, candidateKeyType, referencedTable, candidateKey));
           return false;
         }
       }
-    } else {
-      // Additional check 2
-      setError(M_510_1_2, String.format("Foreign Key %s.%s has no reference to any key on referenced table %s",
-        foreignKeyTable, foreignKey, referencedTable));
-      return false;
     }
 
     return true;
+  }
+
+  private boolean checkType(String foreignNameType, String referencedType) {
+
+    SQLType foreignKeyType = findTypeInList(foreignNameType);
+    SQLType primaryKeyType = findTypeInList(referencedType);
+
+    if (foreignKeyType == null || primaryKeyType == null) {
+      return false;
+    }
+
+    if (!foreignKeyType.getGroup().equals(primaryKeyType.getGroup())) {
+      return false;
+    }
+
+    return foreignKeyType.checkSize(primaryKeyType);
+  }
+
+  private SQLType findTypeInList(String typeName) {
+    SQLType typeToCompare = null;
+    for (SQLType type : SQLTypeList) {
+      if (typeName.matches(type.getPattern())) {
+        typeToCompare = new SQLType(type.getGroup(), type.getPattern(), type.getSize(), typeName);
+        break;
+      }
+    }
+    return typeToCompare;
+  }
+
+  private void populateSQL2008Types() {
+    SQLTypeList = new ArrayList<>();
+
+    // Character strings
+    SQLTypeList.add(new SQLType(SQLType.Group.CHARACTER, "^CHARACTER\\s+VARYING(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$"));
+    SQLTypeList.add(new SQLType(SQLType.Group.CHARACTER, "^CHAR\\s+VARYING(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$"));
+    SQLTypeList.add(new SQLType(SQLType.Group.CHARACTER, "^VARCHAR(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$"));
+    SQLTypeList.add(new SQLType(SQLType.Group.CHARACTER, "^CHARACTER(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$"));
+    SQLTypeList.add(new SQLType(SQLType.Group.CHARACTER, "^CHAR(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$"));
+    SQLTypeList
+      .add(new SQLType(SQLType.Group.CHARACTER, "^NATIONAL\\s+CHARACTER\\s+VARYING(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$"));
+    SQLTypeList
+      .add(new SQLType(SQLType.Group.CHARACTER, "^NATIONAL\\s+CHAR\\s+VARYING(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$"));
+    SQLTypeList.add(new SQLType(SQLType.Group.CHARACTER, "^NCHAR\\s+VARYING(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$"));
+    SQLTypeList.add(new SQLType(SQLType.Group.CHARACTER, "^NATIONAL\\s+CHARACTER(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$"));
+    SQLTypeList.add(new SQLType(SQLType.Group.CHARACTER, "^NATIONAL\\s+CHAR(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$"));
+    SQLTypeList.add(new SQLType(SQLType.Group.CHARACTER, "^NCHAR(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$"));
+    // Binary strings
+    SQLTypeList.add(new SQLType(SQLType.Group.BINARY, "^BINARY VARYING\\(\\d+\\)$"));
+    SQLTypeList.add(new SQLType(SQLType.Group.BINARY, "^BINARY\\s+VARYING(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$"));
+    SQLTypeList.add(new SQLType(SQLType.Group.BINARY, "^VARBINARY(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$"));
+    // Numbers
+    SQLTypeList.add(new SQLType(SQLType.Group.NUMBERS, "^BIGINT$", 64));
+    SQLTypeList.add(new SQLType(SQLType.Group.NUMBERS, "^DOUBLE PRECISION$", 64));
+    SQLTypeList.add(new SQLType(SQLType.Group.NUMBERS, "^INTEGER$", 32));
+    SQLTypeList.add(new SQLType(SQLType.Group.NUMBERS, "^INT$", 32));
+    SQLTypeList.add(new SQLType(SQLType.Group.NUMBERS, "^SMALLINT$", 16));
+    SQLTypeList.add(new SQLType(SQLType.Group.NUMBERS, "^REAL$", 64));
+    // Precision
+    SQLTypeList.add(new SQLType(SQLType.Group.PRECISION, "^DECIMAL(\\s*\\(\\s*[1-9]\\d*\\s*(,\\s*\\d+\\s*)?\\))?$"));
+    SQLTypeList.add(new SQLType(SQLType.Group.PRECISION, "^DEC(\\s*\\(\\s*[1-9]\\d*\\s*(,\\s*\\d+\\s*)?\\))?$"));
+    SQLTypeList.add(new SQLType(SQLType.Group.PRECISION, "^FLOAT(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$"));
+    SQLTypeList.add(new SQLType(SQLType.Group.PRECISION, "^NUMERIC(\\s*\\(\\s*[1-9]\\d*\\s*(,\\s*\\d+\\s*)?\\))?$"));
   }
 }
