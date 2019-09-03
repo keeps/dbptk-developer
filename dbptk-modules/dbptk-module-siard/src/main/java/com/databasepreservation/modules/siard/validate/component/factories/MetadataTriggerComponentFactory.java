@@ -2,11 +2,10 @@ package com.databasepreservation.modules.siard.validate.component.factories;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.Reporter;
-import com.databasepreservation.model.components.ValidatorComponent;
-import com.databasepreservation.model.components.ValidatorComponentFactory;
+import com.databasepreservation.model.modules.validate.components.ValidatorComponent;
+import com.databasepreservation.model.modules.validate.components.ValidatorComponentFactory;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.validate.component.metadata.MetadataTriggerValidator;
-import com.databasepreservation.modules.siard.validate.component.metadata.MetadataViewValidator;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>

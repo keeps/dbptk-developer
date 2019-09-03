@@ -35,6 +35,7 @@ import org.xml.sax.SAXException;
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.reporters.ValidationReporter.Status;
+import com.databasepreservation.model.validator.SIARDContent;
 import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 import com.databasepreservation.utils.XMLUtils;
 
@@ -45,11 +46,10 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
   private static final Logger LOGGER = LoggerFactory.getLogger(AdditionalChecksValidator.class);
 
   private final String MODULE_NAME;
-  private List<String> SQL2008Types = new ArrayList<>();
-  private HashMap<String, List<String>> tableAndColumns = new HashMap<>();
-  private HashMap<String, List<String>> foreignKeyColumns = new HashMap<>();
-  private TreeMap<String, List<ImmutablePair<String, String>>> columnTypes = new TreeMap<>();
-  private HashMap<String, Integer> rows = new HashMap<>();
+  private TreeMap<SIARDContent, List<String>> tableAndColumns = new TreeMap<>();
+  private TreeMap<SIARDContent, List<String>> foreignKeyColumns = new TreeMap<>();
+  private TreeMap<SIARDContent, List<ImmutablePair<String, String>>> columnTypes = new TreeMap<>();
+  private HashMap<SIARDContent, Integer> rows = new HashMap<>();
 
   private List<String> dataTypeErrors = new ArrayList<>();
 
@@ -94,6 +94,7 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
       validationFailed("Validate Data Type", MODULE_NAME, "", "Data type invalid", dataTypeErrors);
       closeZipFile();
+      return false;
     }
 
     observer.notifyFinishValidationModule(MODULE_NAME, Status.PASSED);
@@ -117,8 +118,9 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
 
     observer.notifyMessage(MODULE_NAME, "Validating data type content", Status.START);
 
-    for (final Map.Entry<String, List<ImmutablePair<String, String>>> entry : columnTypes.entrySet()) {
-      final String path = entry.getKey().concat(Constants.XML_EXTENSION);
+    for (final Map.Entry<SIARDContent, List<ImmutablePair<String, String>>> entry : columnTypes.entrySet()) {
+      final String path = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(),
+        entry.getKey().getTable());
       observer.notifyElementValidating(path);
       try {
         boolean rowTag = false;
@@ -182,6 +184,7 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
       }
     }
 
+    observer.notifyMessage(MODULE_NAME, "Validating data type content", Status.FINISH);
     return dataTypeErrors.isEmpty();
   }
 
@@ -213,10 +216,9 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
    */
   private void numberOfNullValuesForForeignKey() {
     XMLInputFactory factory = XMLInputFactory.newInstance();
-    for (Map.Entry<String, List<String>> entry : foreignKeyColumns.entrySet()) {
-      String key = entry.getKey();
-
-      String path = key.concat(Constants.XML_EXTENSION);
+    for (Map.Entry<SIARDContent, List<String>> entry : foreignKeyColumns.entrySet()) {
+      String path = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(),
+        entry.getKey().getTable());
       observer.notifyElementValidating(path);
 
       HashMap<String, Integer> countColumnsMap = new HashMap<>();
@@ -228,7 +230,7 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
           if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
             final String tagName = streamReader.getLocalName();
             for (String column : entry.getValue()) {
-              final int indexOf = tableAndColumns.get(key).indexOf(column) + 1;
+              final int indexOf = tableAndColumns.get(entry.getKey()).indexOf(column) + 1;
               String columnIndex = "c" + indexOf;
               if (tagName.equals(columnIndex)) {
                 updateCounter(countColumnsMap, columnIndex);
@@ -237,7 +239,7 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
           }
         }
 
-        final Integer metadataXMLNumberOfRows = rows.get(key);
+        final Integer metadataXMLNumberOfRows = rows.get(entry.getKey());
 
         for (Map.Entry<String, Integer> counters : countColumnsMap.entrySet()) {
           if (!counters.getValue().equals(metadataXMLNumberOfRows)) {
@@ -499,20 +501,20 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
     }
 
     for (int i = 0; i < result.getLength(); i++) {
-      final String schemaName = result.item(i).getNodeValue();
+      final String schemaFolder = result.item(i).getNodeValue();
       String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table/ns:folder/text()";
-      xpathExpression = xpathExpression.replace("$1", schemaName);
+      xpathExpression = xpathExpression.replace("$1", schemaFolder);
       try {
         NodeList tables = (NodeList) XMLUtils.getXPathResult(
           getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), xpathExpression, XPathConstants.NODESET,
           Constants.NAMESPACE_FOR_METADATA);
 
         for (int j = 0; j < tables.getLength(); j++) {
-          final String tableName = tables.item(j).getNodeValue();
-          getColumnNames(schemaName, tableName);
-          getForeignKeys(schemaName, tableName);
-          getNumberOfRows(schemaName, tableName);
-          getColumnType(schemaName, tableName);
+          final String tableFolder = tables.item(j).getNodeValue();
+          getColumnNames(schemaFolder, tableFolder);
+          getForeignKeys(schemaFolder, tableFolder);
+          getNumberOfRows(schemaFolder, tableFolder);
+          getColumnType(schemaFolder, tableFolder);
         }
       } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
         LOGGER.error(e.getLocalizedMessage());
@@ -523,22 +525,21 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
     return true;
   }
 
-  private void getColumnType(String schemaName, String tableName)
+  private void getColumnType(String schemaFolder, String tableFolder)
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
     String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table[ns:folder/text()='$2']/ns:columns/ns:column/ns:name/text()";
-    xpathExpression = xpathExpression.replace("$1", schemaName);
-    xpathExpression = xpathExpression.replace("$2", tableName);
+    xpathExpression = xpathExpression.replace("$1", schemaFolder);
+    xpathExpression = xpathExpression.replace("$2", tableFolder);
 
     NodeList columns = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
       xpathExpression, XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
-    final String key = "content/" + schemaName + "/" + tableName + "/" + tableName;
     List<ImmutablePair<String, String>> pairs = new ArrayList<>();
     for (int j = 0; j < columns.getLength(); j++) {
       String columnName = columns.item(j).getNodeValue();
       xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table[ns:folder/text()='$2']/ns:columns/ns:column[ns:name/text()='$3']/ns:type/text()";
-      xpathExpression = xpathExpression.replace("$1", schemaName);
-      xpathExpression = xpathExpression.replace("$2", tableName);
+      xpathExpression = xpathExpression.replace("$1", schemaFolder);
+      xpathExpression = xpathExpression.replace("$2", tableFolder);
       xpathExpression = xpathExpression.replace("$3", columnName);
 
       String type = (String) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
@@ -547,8 +548,8 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
       String index = "c" + (j + 1);
       if (StringUtils.isBlank(type)) {
         xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table[ns:folder/text()='$2']/ns:columns/ns:column[ns:name/text()='$3']";
-        xpathExpression = xpathExpression.replace("$1", schemaName);
-        xpathExpression = xpathExpression.replace("$2", tableName);
+        xpathExpression = xpathExpression.replace("$1", schemaFolder);
+        xpathExpression = xpathExpression.replace("$2", tableFolder);
         xpathExpression = xpathExpression.replace("$3", columnName);
         pairs.addAll(getAdvancedOrUDTData(xpathExpression, index));
       } else {
@@ -557,7 +558,7 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
       }
     }
 
-    columnTypes.put(key, pairs);
+    columnTypes.put(new SIARDContent(schemaFolder, tableFolder), pairs);
   }
 
   private List<ImmutablePair<String, String>> getAdvancedOrUDTData(final String xpathExpression, final String index)
@@ -649,32 +650,31 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
     getTableFieldFromMetadataXML(schemaName, tableName, xpathExpression, foreignKeyColumns);
   }
 
-  private void getNumberOfRows(String schemaName, String tableName)
+  private void getNumberOfRows(String schemaFolder, String tableFolder)
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
     String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table[ns:folder/text()='$2']/ns:rows/text()";
-    xpathExpression = xpathExpression.replace("$1", schemaName);
-    xpathExpression = xpathExpression.replace("$2", tableName);
+    xpathExpression = xpathExpression.replace("$1", schemaFolder);
+    xpathExpression = xpathExpression.replace("$2", tableFolder);
 
     NodeList result = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
       xpathExpression, XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
-    final String key = "content/" + schemaName + "/" + tableName + "/" + tableName;
     for (int k = 0; k < result.getLength(); k++) {
       final String rowsValue = result.item(k).getNodeValue();
-      rows.put(key, Integer.parseInt(rowsValue));
+      rows.put(new SIARDContent(schemaFolder, tableFolder), Integer.parseInt(rowsValue));
     }
   }
 
   private void getTableFieldFromMetadataXML(String schemaName, String tableName, String xpathExpression,
-    HashMap<String, List<String>> map)
+    Map<SIARDContent, List<String>> map)
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
     NodeList result = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
       xpathExpression, XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
     List<String> genericList = new ArrayList<>();
-    final String key = "content/" + schemaName + "/" + tableName + "/" + tableName;
+
     for (int k = 0; k < result.getLength(); k++) {
       final String genericName = result.item(k).getNodeValue();
       genericList.add(genericName);
     }
-    map.put(key, genericList);
+    map.put(new SIARDContent(schemaName, tableName), genericList);
   }
 }

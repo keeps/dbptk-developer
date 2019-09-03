@@ -1,4 +1,4 @@
-package com.databasepreservation.model.components;
+package com.databasepreservation.model.modules.validate.components;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;

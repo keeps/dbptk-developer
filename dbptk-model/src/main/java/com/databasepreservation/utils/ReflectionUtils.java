@@ -7,22 +7,23 @@
  */
 package com.databasepreservation.utils;
 
-import com.databasepreservation.model.components.ValidatorComponentFactory;
-import com.databasepreservation.model.modules.DatabaseModuleFactory;
-import com.databasepreservation.model.modules.edits.EditModuleFactory;
-import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
-import com.databasepreservation.model.modules.validate.ValidateModuleFactory;
-import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.edits.EditModuleFactory;
+import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
+import com.databasepreservation.model.modules.validate.ValidateModuleFactory;
+import com.databasepreservation.model.modules.validate.components.ValidatorComponentFactory;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>

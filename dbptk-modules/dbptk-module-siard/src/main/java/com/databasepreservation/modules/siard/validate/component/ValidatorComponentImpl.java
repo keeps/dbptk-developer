@@ -24,7 +24,7 @@ import com.databasepreservation.Constants;
 import com.databasepreservation.common.ValidationObserver;
 import com.databasepreservation.common.ValidatorPathStrategy;
 import com.databasepreservation.model.Reporter;
-import com.databasepreservation.model.components.ValidatorComponent;
+import com.databasepreservation.model.modules.validate.components.ValidatorComponent;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.utils.XMLUtils;

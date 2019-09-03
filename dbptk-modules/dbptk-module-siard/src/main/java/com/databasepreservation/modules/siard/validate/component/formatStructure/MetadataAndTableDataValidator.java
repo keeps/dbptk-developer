@@ -33,6 +33,7 @@ import org.xml.sax.SAXException;
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.reporters.ValidationReporter.Status;
+import com.databasepreservation.model.validator.SIARDContent;
 import com.databasepreservation.modules.siard.validate.common.model.AdvancedOrStructuredColumn;
 import com.databasepreservation.modules.siard.validate.common.model.Attribute;
 import com.databasepreservation.modules.siard.validate.common.model.Field;
@@ -75,11 +76,11 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
   private List<String> P_4312_ERRORS = new ArrayList<>();
 
   private static HashMap<String, List<String>> SQL2008TypeMatchXMLType;
-  private HashMap<String, HashMap<String, String>> sql2008Type = new HashMap<>();
-  private HashMap<String, HashMap<String, String>> arrayType = new HashMap<>();
-  private HashMap<String, HashMap<String, AdvancedOrStructuredColumn>> advancedOrStructuredDataType = new HashMap<>();
-  private TreeMap<String, HashMap<String, String>> numberOfNullable = new TreeMap<>();
-  private TreeMap<String, Integer> numberOfRows = new TreeMap<>();
+  private HashMap<SIARDContent, HashMap<String, String>> sql2008Type = new HashMap<>();
+  private HashMap<SIARDContent, HashMap<String, String>> arrayType = new HashMap<>();
+  private HashMap<SIARDContent, HashMap<String, AdvancedOrStructuredColumn>> advancedOrStructuredDataType = new HashMap<>();
+  private TreeMap<SIARDContent, HashMap<String, String>> numberOfNullable = new TreeMap<>();
+  private TreeMap<SIARDContent, Integer> numberOfRows = new TreeMap<>();
   private List<String> skipped = new ArrayList<>();
   private List<String> warnings = new ArrayList<>();
   private HashMap<String, Type> types = new HashMap<>();
@@ -330,8 +331,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       return false;
     }
 
-    HashMap<String, Integer> columnCount = new HashMap<>();
-    List<String> entries = new ArrayList<>();
+    HashMap<SIARDContent, Integer> columnCount = new HashMap<>();
+    List<SIARDContent> entries = new ArrayList<>();
 
     try {
       NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
@@ -348,21 +349,20 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
           NodeList columnsNodes = table.getElementsByTagName("columns");
           Element columns = (Element) columnsNodes.item(0);
           NodeList columnNodes = columns.getElementsByTagName("column");
-          final String path = createPath(Constants.SIARD_CONTENT_FOLDER, schemaFolderName, tableFolderName,
-            tableFolderName);
-          entries.add(path);
-          columnCount.put(path, columnNodes.getLength());
+          SIARDContent content = new SIARDContent(schemaFolderName, tableFolderName);
+          entries.add(content);
+          columnCount.put(content, columnNodes.getLength());
         }
       }
 
-      for (String path : entries) {
-        String XSDPath = path.concat(Constants.XSD_EXTENSION);
+      for (SIARDContent content : entries) {
+        final String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(content.getSchema(), content.getTable());
         final InputStream inputStream = getZipInputStream(XSDPath);
         final String evaluate = (String) XMLUtils.getXPathResult(inputStream,
           "count(/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element)", XPathConstants.STRING, null);
         int value = Integer.parseInt(evaluate);
 
-        if (!columnCount.get(path).equals(value)) {
+        if (!columnCount.get(content).equals(value)) {
           P_432_ERRORS.add(XSDPath);
         }
       }
@@ -388,7 +388,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       return false;
     }
 
-    for (Map.Entry<String, HashMap<String, String>> entry : sql2008Type.entrySet()) {
+    for (Map.Entry<SIARDContent, HashMap<String, String>> entry : sql2008Type.entrySet()) {
       try {
         final List<String> errors = compareSQL2008DataTypeWithXMLType(entry.getKey(), entry.getValue());
         P_433_ERRORS.addAll(errors);
@@ -427,9 +427,9 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     }
 
     try {
-      HashMap<String, HashMap<String, String>> distinctTypes = new HashMap<>();
+      HashMap<SIARDContent, HashMap<String, String>> distinctTypes = new HashMap<>();
       // Obtain table[number] where the Type is being used
-      for (Map.Entry<String, HashMap<String, AdvancedOrStructuredColumn>> entry : advancedOrStructuredDataType
+      for (Map.Entry<SIARDContent, HashMap<String, AdvancedOrStructuredColumn>> entry : advancedOrStructuredDataType
         .entrySet()) {
         for (Map.Entry<String, AdvancedOrStructuredColumn> columnDataType : entry.getValue().entrySet()) {
           if (types.get(columnDataType.getValue().getType()) != null) {
@@ -446,7 +446,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         skipped.add("No distinct type found");
       } else {
         // Compare to the base type with the XML type from table[number].xsd
-        for (Map.Entry<String, HashMap<String, String>> entry : distinctTypes.entrySet()) {
+        for (Map.Entry<SIARDContent, HashMap<String, String>> entry : distinctTypes.entrySet()) {
           final List<String> errors = compareSQL2008DataTypeWithXMLType(entry.getKey(), entry.getValue());
           P_434_ERRORS.addAll(errors);
         }
@@ -484,9 +484,9 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     InputStream zipInputStream = null;
     try {
       // Count number of row element in table[number].xml
-      for (Map.Entry<String, Integer> entry : numberOfRows.entrySet()) {
-        String tablePath = entry.getKey();
-        String XMLPath = tablePath.concat(Constants.XML_EXTENSION);
+      for (Map.Entry<SIARDContent, Integer> entry : numberOfRows.entrySet()) {
+        final String XMLPath = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(),
+          entry.getKey().getTable());
         observer.notifyElementValidating(XMLPath);
         zipInputStream = getZipInputStream(XMLPath);
 
@@ -552,8 +552,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       return true;
     }
 
-    for (Map.Entry<String, HashMap<String, String>> entry : arrayType.entrySet()) {
-      final String XSDPath = entry.getKey().concat(Constants.XSD_EXTENSION);
+    for (Map.Entry<SIARDContent, HashMap<String, String>> entry : arrayType.entrySet()) {
+      final String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(entry.getKey().getSchema(), entry.getKey().getTable());
       for (Map.Entry<String, String> column : entry.getValue().entrySet()) {
         try {
           final InputStream zipInputStream = getZipInputStream(XSDPath);
@@ -602,7 +602,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     }
 
     // Obtain table[number] where the Type is being used
-    for (Map.Entry<String, HashMap<String, AdvancedOrStructuredColumn>> entry : advancedOrStructuredDataType
+    for (Map.Entry<SIARDContent, HashMap<String, AdvancedOrStructuredColumn>> entry : advancedOrStructuredDataType
       .entrySet()) {
       for (Map.Entry<String, AdvancedOrStructuredColumn> advancedOrStructuredColumn : entry.getValue().entrySet()) {
         final AdvancedOrStructuredColumn value = advancedOrStructuredColumn.getValue();
@@ -664,9 +664,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     InputStream zipInputStream;
 
     try {
-      for (Map.Entry<String, HashMap<String, String>> entry : numberOfNullable.entrySet()) {
-        String tablePath = entry.getKey();
-        String XMLPath = tablePath.concat(Constants.XML_EXTENSION);
+      for (Map.Entry<SIARDContent, HashMap<String, String>> entry : numberOfNullable.entrySet()) {
+        String XMLPath = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(), entry.getKey().getTable());
         observer.notifyElementValidating(XMLPath);
         for (Map.Entry<String, String> values : entry.getValue().entrySet()) {
           if (values.getValue().equals("false")) {
@@ -738,7 +737,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       return false;
     }
 
-    for (Map.Entry<String, HashMap<String, AdvancedOrStructuredColumn>> entry : advancedOrStructuredDataType
+    for (Map.Entry<SIARDContent, HashMap<String, AdvancedOrStructuredColumn>> entry : advancedOrStructuredDataType
       .entrySet()) {
       for (Map.Entry<String, AdvancedOrStructuredColumn> advancedOrStructuredColumnEntry : entry.getValue()
         .entrySet()) {
@@ -749,8 +748,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
 
         String errorMessage = validateFieldSequence(fields, attributes);
         if (StringUtils.isNotBlank(errorMessage)) {
-          errorMessage = errorMessage.replace("$1", entry.getKey().split("/")[1]);
-          errorMessage = errorMessage.replace("$2", entry.getKey().split("/")[2]);
+          errorMessage = errorMessage.replace("$1", entry.getKey().getSchema());
+          errorMessage = errorMessage.replace("$2", entry.getKey().getTable());
 
           P_4310_ERRORS.add(errorMessage);
         }
@@ -775,11 +774,11 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       return false;
     }
 
-    for (Map.Entry<String, HashMap<String, AdvancedOrStructuredColumn>> entry : advancedOrStructuredDataType
+    for (Map.Entry<SIARDContent, HashMap<String, AdvancedOrStructuredColumn>> entry : advancedOrStructuredDataType
       .entrySet()) {
       for (Map.Entry<String, AdvancedOrStructuredColumn> advancedOrStructuredColumnEntry : entry.getValue()
         .entrySet()) {
-        String XSDPath = entry.getKey().concat(Constants.XSD_EXTENSION);
+        String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(entry.getKey().getSchema(), entry.getKey().getTable());
         String xpathExpression = "count(/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element[@name='$1']/xs:complexType/xs:sequence/xs:element)";
         xpathExpression = xpathExpression.replace("$1", advancedOrStructuredColumnEntry.getKey());
 
@@ -820,12 +819,13 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     }
 
     observer.notifyComponent("P_4.3-12", Status.START);
+    XMLInputFactory factory = XMLInputFactory.newInstance();
+    for (Map.Entry<SIARDContent, Integer> entry : numberOfRows.entrySet()) {
+      String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(entry.getKey().getSchema(),
+        entry.getKey().getTable());
 
-    for (Map.Entry<String, Integer> entry : numberOfRows.entrySet()) {
-      String path = entry.getKey();
-      String XSDPath = path.concat(Constants.XSD_EXTENSION);
-
-      String XMLPath = path.concat(Constants.XML_EXTENSION);
+      String XMLPath = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(),
+        entry.getKey().getTable());
 
       observer.notifyElementValidating(XMLPath);
 
@@ -833,7 +833,6 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       final InputStream zipInputStreamXSD = getZipInputStream(XSDPath);
       int rows = entry.getValue();
       try {
-        XMLInputFactory factory = XMLInputFactory.newInstance();
         XMLStreamReader streamReader = factory.createXMLStreamReader(zipInputStreamXML);
         int numberOfRowsInXMLFile = 0;
         while (streamReader.hasNext()) {
@@ -1040,8 +1039,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         Element columns = (Element) columnsNodes.item(0);
         NodeList columnNodes = columns.getElementsByTagName("column");
 
-        final String path = createPath(Constants.SIARD_CONTENT_FOLDER, schemaFolderName, tableFolderName,
-          tableFolderName);
+        SIARDContent content = new SIARDContent(schemaFolderName, tableFolderName);
+
         HashMap<String, String> columnsSQL2008Map = new HashMap<>();
         HashMap<String, String> arrayMap = new HashMap<>();
         HashMap<String, AdvancedOrStructuredColumn> advanceOrStructuredColumnMap = new HashMap<>();
@@ -1059,19 +1058,19 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
             type = column.getElementsByTagName("type").item(0).getTextContent();
             if (column.getElementsByTagName("cardinality").item(0) == null) { // check if its an array
               columnsSQL2008Map.put(key, type);
-              sql2008Type.put(path, columnsSQL2008Map);
+              sql2008Type.put(content, columnsSQL2008Map);
             } else {
               arrayMap.put(key, type);
-              arrayType.put(path, arrayMap);
+              arrayType.put(content, arrayMap);
             }
           } else {
             advanceOrStructuredColumnMap.put(key,
               obtainAdvancedOrStructuredDataType(column, schemaName, tableName, columnName));
-            advancedOrStructuredDataType.put(path, advanceOrStructuredColumnMap);
+            advancedOrStructuredDataType.put(content, advanceOrStructuredColumnMap);
           }
         }
-        numberOfNullable.put(path, nullableMap);
-        numberOfRows.put(path, Integer.parseInt(rows));
+        numberOfNullable.put(content, nullableMap);
+        numberOfRows.put(content, Integer.parseInt(rows));
       }
     }
   }
@@ -1140,10 +1139,10 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     return field;
   }
 
-  private List<String> compareSQL2008DataTypeWithXMLType(String path, String column, HashMap<String, String> map)
+  private List<String> compareSQL2008DataTypeWithXMLType(SIARDContent content, String column, HashMap<String, String> map)
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
     List<String> errors = new ArrayList<>();
-    String XSDPath = path.concat(Constants.XSD_EXTENSION);
+    String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(content.getSchema(), content.getTable());
     String xpathExpression;
     for (Map.Entry<String, String> entry : map.entrySet()) {
       final String key = entry.getKey();
@@ -1174,10 +1173,10 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     return errors;
   }
 
-  private List<String> compareSQL2008DataTypeWithXMLType(String path, HashMap<String, String> map)
+  private List<String> compareSQL2008DataTypeWithXMLType(SIARDContent content, HashMap<String, String> map)
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
     List<String> errors = new ArrayList<>();
-    String XSDPath = path.concat(Constants.XSD_EXTENSION);
+    String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(content.getSchema(), content.getTable());
     final NodeList nodeList = (NodeList) XMLUtils.getXPathResult(getZipInputStream(XSDPath),
       "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element", XPathConstants.NODESET, null);
     for (int i = 0; i < nodeList.getLength(); i++) {

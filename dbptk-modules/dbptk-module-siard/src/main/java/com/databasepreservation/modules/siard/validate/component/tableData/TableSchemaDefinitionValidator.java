@@ -20,6 +20,7 @@ import org.xml.sax.SAXException;
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.reporters.ValidationReporter.Status;
+import com.databasepreservation.model.validator.SIARDContent;
 import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 import com.databasepreservation.utils.XMLUtils;
 
@@ -118,23 +119,23 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
     if (preValidationRequirements())
       return false;
 
-    List<String> tableData = new ArrayList<>();
+    List<SIARDContent> tableData = new ArrayList<>();
 
     for (String zipFileName : getZipFileNames()) {
-      String regexPattern = "^(content/schema[0-9]+/table[0-9]+/table[0-9]+)\\.xml$";
+      String regexPattern = "^(content/(schema[0-9]+)/(table[0-9]+)/table[0-9]+)\\.xml$";
 
       Pattern pattern = Pattern.compile(regexPattern);
       Matcher matcher = pattern.matcher(zipFileName);
 
       while (matcher.find()) {
-        tableData.add(matcher.group(1));
+        tableData.add(new SIARDContent(matcher.group(2), matcher.group(3)));
       }
     }
 
-    for (String path : tableData) {
-      final String XSDPath = path.concat(Constants.XSD_EXTENSION);
+    for (SIARDContent content : tableData) {
+      final String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(content.getSchema(),content.getTable());
       if (!getZipFileNames().contains(XSDPath)) {
-        P_611_ERRORS.add(path.concat(Constants.XML_EXTENSION));
+        P_611_ERRORS.add(validatorPathStrategy.getXMLTablePathFromFolder(content.getSchema(),content.getTable()));
       }
     }
 

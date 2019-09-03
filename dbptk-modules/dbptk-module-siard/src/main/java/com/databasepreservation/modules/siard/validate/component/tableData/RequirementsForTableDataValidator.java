@@ -27,6 +27,7 @@ import javax.xml.validation.Validator;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import com.databasepreservation.model.validator.SIARDContent;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -232,23 +233,23 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     if (preValidationRequirements())
       return false;
 
-    Set<String> tableDataSchemaDefinition = new TreeSet<>();
+    Set<SIARDContent> tableDataSchemaDefinition = new TreeSet<>();
 
     for (String path : getZipFileNames()) {
-      String regexPattern = "^(content/schema[0-9]+/table[0-9]+/table[0-9]+)\\.(xsd|xml)$";
+      String regexPattern = "^(content/(schema[0-9]+)/(table[0-9]+)/table[0-9]+)\\.(xsd|xml)$";
 
       Pattern pattern = Pattern.compile(regexPattern);
       Matcher matcher = pattern.matcher(path);
 
       while (matcher.find()) {
-        tableDataSchemaDefinition.add(matcher.group(1));
+        tableDataSchemaDefinition.add(new SIARDContent(matcher.group(2), matcher.group(3)));
       }
     }
     observer.notifyMessage(MODULE_NAME, "Validating XML against XSD", Status.START);
 
-    for (String path : tableDataSchemaDefinition) {
-      String XSDPath = path.concat(Constants.XSD_EXTENSION);
-      String XMLPath = path.concat(Constants.XML_EXTENSION);
+    for (SIARDContent content : tableDataSchemaDefinition) {
+      String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(content.getSchema(), content.getTable());
+      String XMLPath = validatorPathStrategy.getXMLTablePathFromFolder(content.getSchema(), content.getTable());
       observer.notifyElementValidating(XMLPath);
 
       final ZipArchiveEntry XSDEntry = getZipFile().getEntry(XSDPath);
