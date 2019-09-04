@@ -232,7 +232,6 @@ public class MetadataReferenceValidator extends MetadataValidator {
       for (String primaryKey : primaryKeyColumns) {
         String primaryKeyType = referencedColumnTable.get(primaryKey);
 
-        // if (!primaryKeyType.equals(foreignKeyType)) {
         if (!checkType(foreignKeyType, primaryKeyType)) {
           setError(M_510_1_2,
             String.format("Foreign Key %s.%s type %s does not match with type %s of Primary Key %s.%s", foreignKeyTable,
@@ -245,7 +244,6 @@ public class MetadataReferenceValidator extends MetadataValidator {
       for (String candidateKey : candidateKeyColumns) {
         String candidateKeyType = referencedColumnTable.get(candidateKey);
 
-        // if (!candidateKeyType.equals(foreignKeyType)) {
         if (!checkType(foreignKeyType, candidateKeyType)) {
           setError(M_510_1_2,
             String.format("Foreign Key %s.%s type %s does not match with type %s of Candidate Key %s.%s",
@@ -258,6 +256,18 @@ public class MetadataReferenceValidator extends MetadataValidator {
     return true;
   }
 
+  /**
+   * Additional check 1
+   *
+   * Checks whether the foreign key type is compatible with the referenced key
+   * type
+   *
+   * The types are separated into groups and are only compatible if the groups are
+   * equal and the size of the referenced key is greater than or equal to that of
+   * the foreign key.
+   * 
+   * @return true when compatible otherwise false
+   */
   private boolean checkType(String foreignNameType, String referencedType) {
 
     SQLType foreignKeyType = findTypeInList(foreignNameType);

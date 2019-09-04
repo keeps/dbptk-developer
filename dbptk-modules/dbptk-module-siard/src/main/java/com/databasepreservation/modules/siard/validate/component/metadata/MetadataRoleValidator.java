@@ -135,11 +135,6 @@ public class MetadataRoleValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateRoleAdmin(String admin, String path) {
-    if (admin == null || admin.isEmpty()) {
-      setError(M_519_1_2, String.format("Role admin inside %s is mandatory", path));
-      return false;
-    }
-
     for (int i = 0; i < users.getLength(); i++) {
       if (users.item(i).getTextContent().equals(admin)) {
         return true;

@@ -382,7 +382,7 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
     }
 
     if (!objectPath.contains(path)) {
-      addWarning(M_520_1_2, String.format("Privilege object '%s' not exist on database", path), privilegeNode);
+      addWarning(M_520_1_2, String.format("Privilege object '%s' does not exist on database", path), privilegeNode);
     }
 
     return true;

@@ -8,7 +8,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import com.databasepreservation.model.reporters.ValidationReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -17,6 +16,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -107,29 +107,9 @@ public class MetadataFieldValidator extends MetadataValidator {
         String xpathField = String.format(
           "/ns:siardArchive/ns:schemas/ns:schema[ns:name='%s']/ns:tables/ns:table[ns:name='%s']/ns:columns/ns:column[ns:name='%s']/ns:fields/ns:field",
           schemaName, tableName, columnName);
-        NodeList fieldNodes = (NodeList) XMLUtils.getXPathResult(
-          getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), xpathField, XPathConstants.NODESET,
-          Constants.NAMESPACE_FOR_METADATA);
 
-        for (int j = 0; j < fieldNodes.getLength(); j++) {
-          Element field = (Element) fieldNodes.item(j);
-          String path = buildPath(Constants.SCHEMA, schemaName, Constants.TABLE, tableName, Constants.COLUMN,
-                  columnName, Constants.FIELD, Integer.toString(j));
-          String name = XMLUtils.getChildTextContext(field, Constants.NAME);
-
-          if (!validateFieldName(name, path))
-            continue; // next field
-
-          path = buildPath(Constants.SCHEMA, schemaName, Constants.TABLE, tableName, Constants.COLUMN,
-                  columnName, Constants.FIELD, name);
-
-          String lobFolder = XMLUtils.getChildTextContext(field, Constants.LOB_FOLDER);
-          if (!validateType(columnTypeName, columnTypeSchema, columnTypeOriginal, name, lobFolder, path))
-            continue; // next field
-
-          String description = XMLUtils.getChildTextContext(field, Constants.DESCRIPTION);
-          validateFieldDescription(description, path);
-        }
+        validateFieldNode(xpathField, schemaName, tableName, columnName, columnTypeName, columnTypeSchema,
+          columnTypeOriginal);
       }
 
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
@@ -141,10 +121,80 @@ public class MetadataFieldValidator extends MetadataValidator {
     return true;
   }
 
-  // Using the attribute found through column typeName and typeSchema to validate
-  // category and lobFolder
+  /**
+   * Perform validations for each field and makes recursive calls to validate subfields.
+   * Return nothing because have to report each error
+   */
+  private void validateFieldNode(String currentXPath, String schemaName, String tableName, String columnName,
+    String columnTypeName, String columnTypeSchema, String columnTypeOriginal)
+    throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+
+    // if no subfields exist, break recursive call
+    if (!(Boolean) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), currentXPath,
+      XPathConstants.BOOLEAN, Constants.NAMESPACE_FOR_METADATA)) {
+      return;
+    }
+
+    NodeList fieldNodes = (NodeList) XMLUtils.getXPathResult(
+      getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), currentXPath, XPathConstants.NODESET,
+      Constants.NAMESPACE_FOR_METADATA);
+
+    // each field will call this method again for find subfields and do the same
+    // validations
+    for (int j = 0; j < fieldNodes.getLength(); j++) {
+      Element field = (Element) fieldNodes.item(j);
+      // build path with field index in SIARD for log error if name not exist
+      String path = buildPath(Constants.SCHEMA, schemaName, Constants.TABLE, tableName, Constants.COLUMN, columnName,
+        Constants.FIELD, Integer.toString(j));
+
+      // M_5.7-1-1
+      String name = XMLUtils.getChildTextContext(field, Constants.NAME);
+      if (!validateFieldName(name, path))
+        continue; // next field
+
+      // build path with field name in SIARD for log errors
+      path = buildPath(Constants.SCHEMA, schemaName, Constants.TABLE, tableName, Constants.COLUMN, columnName,
+        Constants.FIELD, name);
+
+      // M_5.7-1 and M_5.7-1-2
+      String lobFolder = XMLUtils.getChildTextContext(field, Constants.LOB_FOLDER);
+      if (!validateType(columnTypeName, columnTypeSchema, columnTypeOriginal, name, lobFolder, path))
+        continue; // next field
+
+      // M_5.7-1-2
+      String description = XMLUtils.getChildTextContext(field, Constants.DESCRIPTION);
+      validateFieldDescription(description, path);
+
+      // if the field has subfields, the attribute typeName will exist and point to
+      // another type in SIARD, so before making a recursive call, make sure typeName
+      // exists and pass to the method
+      String attrName = (String) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        String.format(
+          "/ns:siardArchive/ns:schemas/ns:schema[ns:name='%s']/ns:types/ns:type[ns:name='%s']/ns:attributes/ns:attribute[ns:name='%s']/ns:typeName/text()",
+          columnTypeSchema, columnTypeName, name),
+        XPathConstants.STRING, Constants.NAMESPACE_FOR_METADATA);
+
+      if (attrName.isEmpty()) {
+        attrName = columnTypeName;
+      }
+
+      // new xpath must have the field name to only retrieve its own subfields
+      String newXPath = String.format("%s[ns:name='%s']/ns:fields/ns:field", currentXPath, name);
+      validateFieldNode(newXPath, schemaName, tableName, columnName, attrName, columnTypeSchema, columnTypeOriginal);
+    }
+  }
+
+  /**
+   * find the type of column or field in the SIARD file and perform
+   * category(M_5.7-1) and lobFolder(M_5.7-1-2) validations
+   * 
+   * @return true if has a originalType or the category and the lobFolder are correctly otherwise false
+   */
   private boolean validateType(String columnTypeName, String columnTypeSchema, String columnTypeOriginal,
     String fieldName, String lobFolder, String path) {
+
+    // if the originalType exists in the column and if it is an array, no need to
+    // validate attribute category
     if (columnTypeOriginal != null && columnTypeOriginal.contains(ARRAY)) {
       return true;
     }
@@ -166,6 +216,7 @@ public class MetadataFieldValidator extends MetadataValidator {
         Element typeElement = (Element) nodes.item(i);
         String category = XMLUtils.getChildTextContext(typeElement, Constants.CATEGORY);
 
+        // M_5.7-1
         if (!validateTypeCategory(category, columnTypeName, path)) {
           return false;
         }
@@ -238,13 +289,10 @@ public class MetadataFieldValidator extends MetadataValidator {
   private boolean validateFieldLobFolder(String lobFolder, String attributeType, String attributeTypeName,
     String path) {
     String type = attributeType != null ? attributeType : attributeTypeName;
-
     if (type == null) {
       setError(M_571_2, String.format("Attribute does not have a type or typeOriginal (%s)", path));
       return false;
-    }
-
-    if (!type.equals(Constants.CHARACTER_LARGE_OBJECT) && !type.equals(Constants.BINARY_LARGE_OBJECT)
+    } else if (!type.equals(Constants.CHARACTER_LARGE_OBJECT) && !type.equals(Constants.BINARY_LARGE_OBJECT)
       && !type.equals(Constants.BLOB) && !type.equals(Constants.CLOB) && !type.equals(Constants.XML_LARGE_OBJECT)) {
       return true;
     }
@@ -253,12 +301,11 @@ public class MetadataFieldValidator extends MetadataValidator {
   }
 
   /**
-   * M_5.7-1-5 The field description in SIARD file must not be empty.
-   *
-   * @return true if valid otherwise false
+   * M_5.7-1-5 The field description in SIARD file should not be less than 3
+   * characters. WARNING if it is less than 3 characters
    */
-  private boolean validateFieldDescription(String description, String path) {
-    return validateXMLField(M_571_5, description, Constants.DESCRIPTION, false, true, path);
+  private void validateFieldDescription(String description, String path) {
+    validateXMLField(M_571_5, description, Constants.DESCRIPTION, false, true, path);
   }
 
 }
