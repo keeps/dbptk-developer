@@ -166,7 +166,7 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
    */
   private String buildWarningMessage(String field, String value) {
     if (value == null || value.isEmpty()) {
-      return String.format("The %s is null", field);
+      return String.format("The %s is empty", field);
     } else if (!validateXMLFieldSize(value)) {
       return String.format("The %s '%s' has less than %d characters", field, value, MIN_FIELD_LENGTH);
     }
