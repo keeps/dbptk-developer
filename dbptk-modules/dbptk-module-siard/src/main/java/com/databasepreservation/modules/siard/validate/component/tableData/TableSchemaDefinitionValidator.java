@@ -42,6 +42,14 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
   private List<String> P_613_ERRORS = new ArrayList<>();
   private List<String> P_614_ERRORS = new ArrayList<>();
 
+  @Override
+  public void clean() {
+    P_611_ERRORS = null;
+    P_612_ERRORS = null;
+    P_613_ERRORS = null;
+    P_614_ERRORS = null;
+  }
+
   public TableSchemaDefinitionValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
   }
@@ -62,7 +70,9 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_611, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_611, MODULE_NAME, "", "Missing XML schema definition", P_611_ERRORS);
+      validationFailed(P_611, Status.ERROR,
+        "There must be an XML schema definition for each table that indicates the XML storage format of the table data.",
+        P_611_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
@@ -73,7 +83,9 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_612, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_612, MODULE_NAME, "", "Invalid path", P_612_ERRORS);
+      validationFailed(P_612, Status.ERROR,
+        "The column tags always start with c1 and increase by 1. There must be no gap, because a NULL value is expressed by a missing corresponding column in the XML file.",
+        P_612_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
@@ -84,7 +96,7 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_613, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_613, MODULE_NAME, "", "Incompatible XML Schema standard types", P_613_ERRORS);
+      validationFailed(P_613, Status.ERROR, "Incompatible XML Schema standard types", P_613_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
@@ -95,7 +107,9 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_614, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_614, MODULE_NAME);
+      validationFailed(P_614, Status.ERROR,
+        "Multiple cell values of advanced or structured types are to be stored as separate elements inside the cell tags.",
+        P_614_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }

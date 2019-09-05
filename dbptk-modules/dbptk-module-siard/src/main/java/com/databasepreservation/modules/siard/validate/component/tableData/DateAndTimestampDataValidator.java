@@ -40,6 +40,11 @@ public class DateAndTimestampDataValidator extends ValidatorComponentImpl {
   }
 
   @Override
+  public void clean() {
+    P_631_ERRORS = null;
+  }
+
+  @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, P_63);
     if (preValidationRequirements()) {
@@ -55,7 +60,9 @@ public class DateAndTimestampDataValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_631, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_631, MODULE_NAME, "", "", P_631_ERRORS);
+      validationFailed(P_631, Status.ERROR,
+        "Dates and timestamps must be restricted to the years 0001-9999 according to the SQL:2008 specification.",
+        P_631_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }

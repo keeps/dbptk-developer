@@ -27,7 +27,6 @@ import javax.xml.validation.Validator;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import com.databasepreservation.model.validator.SIARDContent;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +37,7 @@ import org.xml.sax.SAXException;
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.validator.CategoryNotFoundException;
+import com.databasepreservation.model.validator.SIARDContent;
 import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 import com.databasepreservation.utils.XMLUtils;
 
@@ -48,6 +48,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   private static final Logger LOGGER = LoggerFactory.getLogger(RequirementsForTableDataValidator.class);
 
   private final String MODULE_NAME;
+  private XMLInputFactory factory;
   private static final String P_60 = "T_6.0";
   private static final String P_601 = "T_6.0-1";
   private static final String P_602 = "T_6.0-2";
@@ -61,6 +62,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   public RequirementsForTableDataValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
     populateSQL2008Validations();
+    factory = XMLInputFactory.newInstance();
   }
 
   @Override
@@ -69,7 +71,8 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       SQL2008Types.clear();
       SQL2008Types = null;
     }
-    primaryKeyData.clear();
+    factory = null;
+    primaryKeyData = null;
   }
 
   @Override
@@ -88,7 +91,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_601, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_601, MODULE_NAME, "", "", P_601_ERRORS);
+      validationFailed(P_601, Status.ERROR, "All the table data (primary data) must meet the consistency requirements of SQL:2008.", P_601_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
@@ -99,7 +102,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_602, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_602, MODULE_NAME, "", "Validation against XSD failed", P_602_ERRORS);
+      validationFailed(P_602, Status.ERROR, "Validation against XSD failed", P_602_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
@@ -363,12 +366,10 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     final String path = validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder);
     observer.notifyElementValidating(path);
 
+    XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(path));
     if (indexes.size() == 1) {
       final int index = indexes.get(0);
       String columnIndex = "c" + index;
-
-      XMLInputFactory factory = XMLInputFactory.newInstance();
-      XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(path));
 
       while (streamReader.hasNext()) {
         streamReader.next();
@@ -383,9 +384,6 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       }
     } else if (indexes.size() > 1) {
       Set<List<String>> uniqueCompositePrimaryKeys = new HashSet<>();
-
-      XMLInputFactory factory = XMLInputFactory.newInstance();
-      XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(path));
 
       boolean rowTag = false;
       List<String> compositePrimaryKey = new ArrayList<>();
@@ -504,7 +502,6 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   private Set<String> getColumnDataByIndex(String path, int index) throws XMLStreamException {
     Set<String> data = new HashSet<>();
 
-    XMLInputFactory factory = XMLInputFactory.newInstance();
     XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(path));
     String columnIndex = "c" + index;
 

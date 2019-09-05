@@ -81,7 +81,8 @@ public class SIARDValidateFactory implements ValidateModuleFactory {
     if (parameters.get(report) != null) {
       pReport = Paths.get(parameters.get(report));
     } else {
-      String name = Constants.DBPTK_VALIDATION_REPORTER_PREFIX
+      String name = Constants.DBPTK_VALIDATION_REPORTER_PREFIX + "-"
+        + pFile.getFileName().toString().replaceFirst("[.][^.]+$", "") + "-"
         + new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date()) + ".txt";
       pReport = ConfigUtils.getReportsDirectory().resolve(name);
     }

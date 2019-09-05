@@ -198,10 +198,8 @@ public class XMLUtils {
     return expression.evaluate(document, constants);
   }
 
-  public static Object getXPathResult(final Document document, final String xpathExpression, final QName constants) throws XPathExpressionException {
-    XPathFactory xPathFactory = XPathFactory.newInstance();
-    XPath xpath = xPathFactory.newXPath();
-    XPathExpression expression = xpath.compile(xpathExpression);
+  public static Object getXPathResult(XPath xPath, final Document document, final String xpathExpression, final QName constants) throws XPathExpressionException {
+    XPathExpression expression = xPath.compile(xpathExpression);
 
     return expression.evaluate(document, constants);
   }
@@ -245,13 +243,10 @@ public class XMLUtils {
     return xPath;
   }
 
-  public static Document convertStringToDocument(String xmlStr)
-    throws ParserConfigurationException, IOException, SAXException {
-    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-    DocumentBuilder builder;
+  public static Document convertStringToDocument(String xmlStreamReader, DocumentBuilder builder)
+    throws IOException, SAXException {
 
-    builder = factory.newDocumentBuilder();
-    return builder.parse(new InputSource(new StringReader(xmlStr)));
+    return builder.parse(new InputSource(new StringReader(xmlStreamReader)));
   }
 
   public static Element getChild(Element parent, String name) {

@@ -100,7 +100,12 @@ public class ValidationReporter implements AutoCloseable {
   }
 
   public void validationStatus(String text, Status status, String details) {
-    writeLine(TAB + text + COLON + SINGLE_SPACE + buildStatus(status) + SINGLE_SPACE + details);
+    writeLine(TAB + text + COLON + SINGLE_SPACE + buildStatus(status) + SINGLE_SPACE + COLON + SINGLE_SPACE + details);
+  }
+
+  public void validationStatus(String text, Status status, String message, String path) {
+    writeLine(TAB + text + HYPHEN + SINGLE_SPACE + buildStatus(status) + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + message
+      + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + path);
   }
 
   public void validationStatus(String text, Status status, String pathToEntry, List<String> details) {
@@ -126,7 +131,7 @@ public class ValidationReporter implements AutoCloseable {
 
   public void warning(String ID, String text, String object) {
     writeLine(TAB + ID + COLON + SINGLE_SPACE + buildStatus(Status.WARNING) + SINGLE_SPACE + HYPHEN + SINGLE_SPACE
-      + text + SINGLE_SPACE + OPEN_PARENTHESES + object + CLOSED_PARENTHESES);
+      + text + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + object);
   }
 
   public void skipValidation(String ID, String reasonToSkip) {
@@ -135,7 +140,7 @@ public class ValidationReporter implements AutoCloseable {
   }
 
   public void notice(Object nodeValue, String noticeMessage) {
-    writeLine(TAB + buildStatus(Status.NOTICE) + COLON + SINGLE_SPACE + noticeMessage + COLON + SINGLE_SPACE + nodeValue);
+    writeLine(TAB + buildStatus(Status.NOTICE) + HYPHEN + SINGLE_SPACE + noticeMessage + HYPHEN + SINGLE_SPACE + nodeValue);
   }
 
   private String buildStatus(Status status) {

@@ -12,6 +12,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.bind.DatatypeConverter;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
@@ -19,8 +21,10 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +50,12 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
   private static final Logger LOGGER = LoggerFactory.getLogger(AdditionalChecksValidator.class);
 
   private final String MODULE_NAME;
+  private DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+  private XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+  private XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
+  private XPathFactory xPathFactory;
+  private XPath xpath;
+  private DocumentBuilder builder = null;
   private TreeMap<SIARDContent, List<String>> tableAndColumns = new TreeMap<>();
   private TreeMap<SIARDContent, List<String>> foreignKeyColumns = new TreeMap<>();
   private TreeMap<SIARDContent, List<ImmutablePair<String, String>>> columnTypes = new TreeMap<>();
@@ -55,15 +65,28 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
 
   public AdditionalChecksValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
+    try {
+      builder = documentBuilderFactory.newDocumentBuilder();
+    } catch (ParserConfigurationException e) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
+    }
+    xPathFactory = XPathFactory.newInstance();
+    xpath = xPathFactory.newXPath();
   }
 
   @Override
   public void clean() {
-    tableAndColumns.clear();
-    foreignKeyColumns.clear();
-    columnTypes.clear();
-    rows.clear();
-    dataTypeErrors.clear();
+    tableAndColumns = null;
+    foreignKeyColumns = null;
+    columnTypes = null;
+    rows = null;
+    dataTypeErrors = null;
+    xmlInputFactory = null;
+    xmlOutputFactory = null;
+    xPathFactory = null;
+    xpath = null;
+    documentBuilderFactory = null;
+    builder = null;
   }
 
   @Override
@@ -125,7 +148,6 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
       try {
         boolean rowTag = false;
         StringWriter stringWriter = new StringWriter();
-        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         XMLStreamWriter XMLStreamWriter = null;
         final XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader(getZipInputStream(path));
         while (xmlStreamReader.hasNext()) {
@@ -134,7 +156,7 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
           if (xmlStreamReader.getEventType() == XMLStreamConstants.START_ELEMENT) {
             if (xmlStreamReader.getLocalName().equals("row")) {
               stringWriter = new StringWriter();
-              XMLStreamWriter = XMLOutputFactory.newFactory().createXMLStreamWriter(stringWriter);
+              XMLStreamWriter = xmlOutputFactory.createXMLStreamWriter(stringWriter);
               XMLStreamWriter.writeStartDocument();
               XMLStreamWriter.writeStartElement(xmlStreamReader.getPrefix(), xmlStreamReader.getLocalName(),
                 xmlStreamReader.getNamespaceURI());
@@ -177,7 +199,7 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
             }
           }
         }
-      } catch (XMLStreamException | ParserConfigurationException | IOException | SAXException
+      } catch (XMLStreamException | IOException | SAXException
         | XPathExpressionException e) {
         LOGGER.debug("Failed to validate {}", MODULE_NAME, e);
         return false;
@@ -215,37 +237,32 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
    *
    */
   private void numberOfNullValuesForForeignKey() {
-    XMLInputFactory factory = XMLInputFactory.newInstance();
+    observer.notifyMessage(MODULE_NAME, "Validating missing values for foreign keys", Status.START);
+    HashMap<SIARDContent, HashMap<String, Integer>> countColumnsMap = new HashMap<>();
+
     for (Map.Entry<SIARDContent, List<String>> entry : foreignKeyColumns.entrySet()) {
+      if (entry.getValue().isEmpty())
+        continue;
+
       String path = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(),
         entry.getKey().getTable());
       observer.notifyElementValidating(path);
 
-      HashMap<String, Integer> countColumnsMap = new HashMap<>();
-      int numberOfNulls;
       try {
-        XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(path));
+        XMLStreamReader streamReader = xmlInputFactory.createXMLStreamReader(getZipInputStream(path));
         while (streamReader.hasNext()) {
           streamReader.next();
           if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
             final String tagName = streamReader.getLocalName();
-            for (String column : entry.getValue()) {
-              final int indexOf = tableAndColumns.get(entry.getKey()).indexOf(column) + 1;
-              String columnIndex = "c" + indexOf;
-              if (tagName.equals(columnIndex)) {
-                updateCounter(countColumnsMap, columnIndex);
+            if (!tagName.equals("row") && !tagName.equals("table")) {
+              if (countColumnsMap.get(entry.getKey()) != null) {
+                updateCounter(countColumnsMap.get(entry.getKey()), tagName);
+              } else {
+                final HashMap<String, Integer> map = new HashMap<>();
+                updateCounter(map, tagName);
+                countColumnsMap.put(entry.getKey(), map);
               }
             }
-          }
-        }
-
-        final Integer metadataXMLNumberOfRows = rows.get(entry.getKey());
-
-        for (Map.Entry<String, Integer> counters : countColumnsMap.entrySet()) {
-          if (!counters.getValue().equals(metadataXMLNumberOfRows)) {
-            numberOfNulls = metadataXMLNumberOfRows - counters.getValue();
-            getValidationReporter().notice(numberOfNulls,
-              "Number of null values for " + counters.getKey() + " in " + path);
           }
         }
 
@@ -254,6 +271,29 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
         return;
       }
     }
+
+    for (Map.Entry<SIARDContent, List<String>> entry : foreignKeyColumns.entrySet()) {
+      for (String columnIndex : entry.getValue()) {
+        int numberOfNulls;
+
+        final int metadataXMLNumberOfRows = rows.get(entry.getKey());
+        final int numberOfRows;
+        if (countColumnsMap.get(entry.getKey()).get(columnIndex) != null) {
+          numberOfRows= countColumnsMap.get(entry.getKey()).get(columnIndex);
+        } else {
+          numberOfRows = 0;
+        }
+
+        if (numberOfRows != metadataXMLNumberOfRows) {
+          numberOfNulls = metadataXMLNumberOfRows - numberOfRows;
+          getValidationReporter().notice(numberOfNulls,
+            "Number of missing values for foreign key " + columnIndex + " in "
+              + validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(), entry.getKey().getTable()));
+        }
+      }
+    }
+
+    observer.notifyMessage(MODULE_NAME, "Validating missing values for foreign keys", Status.FINISH);
   }
 
   /*
@@ -270,8 +310,8 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
 
   private void validateDataTypeForEachXMLFraction(final List<ImmutablePair<String, String>> pairs,
     final StringWriter stringWriter, final String zipFilePath)
-    throws IOException, SAXException, ParserConfigurationException, XPathExpressionException {
-    final Document document = XMLUtils.convertStringToDocument(stringWriter.toString());
+    throws IOException, SAXException, XPathExpressionException {
+    final Document document = XMLUtils.convertStringToDocument(stringWriter.toString(), builder);
 
     for (ImmutablePair<String, String> pair : pairs) {
       String columnContent = pair.getLeft();
@@ -293,7 +333,7 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
         xpathExpression = xpathExpression.replace("$1", columnContent);
       }
 
-      NodeList result = (NodeList) XMLUtils.getXPathResult(document, xpathExpression, XPathConstants.NODESET);
+      NodeList result = (NodeList) XMLUtils.getXPathResult(xpath, document, xpathExpression, XPathConstants.NODESET);
       for (int i = 0; i < result.getLength(); i++) {
         final int size = result.item(i).getChildNodes().getLength();
         if (size > 1) {
@@ -641,13 +681,22 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
     getTableFieldFromMetadataXML(schemaName, tableName, xpathExpression, tableAndColumns);
   }
 
-  private void getForeignKeys(String schemaName, String tableName)
+  private void getForeignKeys(String schemaFolder, String tableFolder)
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
-    String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table[ns:folder/text()='$2']/ns:foreignKeys/ns:foreignKey/ns:reference/ns:column/text()";
-    xpathExpression = xpathExpression.replace("$1", schemaName);
-    xpathExpression = xpathExpression.replace("$2", tableName);
 
-    getTableFieldFromMetadataXML(schemaName, tableName, xpathExpression, foreignKeyColumns);
+    String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table[ns:folder/text()='$2']/ns:foreignKeys/ns:foreignKey/ns:reference/ns:column/text()";
+    xpathExpression = xpathExpression.replace("$1", schemaFolder);
+    xpathExpression = xpathExpression.replace("$2", tableFolder);
+
+    NodeList nodeList = (NodeList) XMLUtils.getXPathResult(
+        getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), xpathExpression, XPathConstants.NODESET,
+        Constants.NAMESPACE_FOR_METADATA);
+
+    for (int i = 0; i < nodeList.getLength(); i++) {
+      final String columnName = nodeList.item(i).getTextContent();
+
+      getColumnIndexFromMetadataXML(schemaFolder, tableFolder, columnName, foreignKeyColumns);
+    }
   }
 
   private void getNumberOfRows(String schemaFolder, String tableFolder)
@@ -676,5 +725,36 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
       genericList.add(genericName);
     }
     map.put(new SIARDContent(schemaName, tableName), genericList);
+  }
+
+  private void getColumnIndexFromMetadataXML(String schemaName, String tableName, String columnName,
+    Map<SIARDContent, List<String>> map)
+    throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+    String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table[ns:folder/text()='$2']/ns:columns/ns:column/ns:name/text()";
+    xpathExpression = xpathExpression.replace("$1", schemaName);
+    xpathExpression = xpathExpression.replace("$2", tableName);
+
+    NodeList result = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+      xpathExpression, XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+    List<String> genericList = new ArrayList<>();
+
+    for (int k = 0; k < result.getLength(); k++) {
+      final String genericName = result.item(k).getNodeValue();
+      if (columnName.equals(genericName)) {
+        int index = k+1;
+        final String columnIndex = "c" + index;
+        genericList.add(columnIndex);
+      }
+    }
+
+    final SIARDContent content = new SIARDContent(schemaName, tableName);
+
+    if (map.get(content) != null) {
+      final List<String> strings = map.get(content);
+      strings.addAll(genericList);
+      map.put(content, strings);
+    } else {
+      map.put(content, genericList);
+    }
   }
 }

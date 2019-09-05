@@ -41,11 +41,6 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
 
   @Override
   public void clean() {
-    P_421_ERRORS.clear();
-    P_422_ERRORS.clear();
-    P_423_ERRORS.clear();
-    P_426_ERRORS.clear();
-
     P_421_ERRORS = null;
     P_422_ERRORS = null;
     P_423_ERRORS = null;
@@ -68,8 +63,7 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_421, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_421, MODULE_NAME,
-        "No further folders or files are permitted besides the header/ and content/ folders", P_421_ERRORS);
+      validationFailed(P_421, Status.ERROR,"No further folders or files are permitted besides the header/ and content/ folders", P_421_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
@@ -80,8 +74,8 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_422, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_422, MODULE_NAME, "No other folders or files are permitted inside the content/ folder.",
-        P_422_ERRORS);
+      validationFailed(P_422, Status.ERROR, "No other folders or files are permitted inside the content/ folder.",
+        P_422_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
@@ -92,7 +86,8 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_423, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_423, MODULE_NAME, "", P_423_ERRORS);
+      validationFailed(P_423, Status.ERROR, "The individual table folders contain an XML file and an XSD file, the names of\n" +
+          "which (folder designation and both file names) must be identical.", P_423_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
@@ -125,7 +120,8 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_426, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_426, MODULE_NAME, "", P_426_ERRORS);
+      validationFailed(P_426, Status.ERROR, "All file and folder names referring to elements inside the SIARD (ZIP64) file\n" +
+          "must be well structured", P_426_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }

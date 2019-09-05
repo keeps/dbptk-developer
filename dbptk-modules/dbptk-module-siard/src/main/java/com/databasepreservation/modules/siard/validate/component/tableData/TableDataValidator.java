@@ -29,6 +29,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
   private static final Logger LOGGER = LoggerFactory.getLogger(TableDataValidator.class);
 
   private final String MODULE_NAME;
+  private XMLInputFactory factory;
   private static final String P_64 = "T_6.4";
   private static final String P_641 = "T_6.4-1";
   private static final String P_642 = "T_6.4-2";
@@ -50,12 +51,14 @@ public class TableDataValidator extends ValidatorComponentImpl {
 
   public TableDataValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
+    factory = XMLInputFactory.newInstance();
   }
 
   @Override
   public void clean() {
-    P_641_ERRORS.clear();
-    P_642_ERRORS.clear();
+    P_641_ERRORS = null;
+    P_642_ERRORS = null;
+    factory = null;
   }
 
   @Override
@@ -75,7 +78,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_641, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_641, MODULE_NAME, "", "", P_641_ERRORS);
+      validationFailed(P_641, Status.ERROR, "The table data for each table must be stored in an XML file.", P_641_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
@@ -86,7 +89,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_642, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_642, MODULE_NAME, "", "Path", P_642_ERRORS);
+      validationFailed(P_642, Status.ERROR, "The table file consists of row elements containing the data of a line subdivided into the various columns.", P_642_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
@@ -172,7 +175,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
     }
 
     observer.notifyMessage(MODULE_NAME, "Validating row elements", Status.START);
-    XMLInputFactory factory = XMLInputFactory.newInstance();
+
 
     for (String zipFileName : getZipFileNames()) {
       String regexPattern = "^(content/schema[0-9]+/table[0-9]+/table[0-9]+)\\.xml$";
@@ -233,7 +236,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
             XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
           for (int i = 0; i < nodeNames.getLength(); i++) {
             final String nodeValue = nodeNames.item(i).getNodeValue();
-            // TODO - ASK LOGIC
+            // TODO
           }
 
         } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {

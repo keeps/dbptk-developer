@@ -94,6 +94,13 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
     // Do nothing override
   }
 
+  protected void validationFailed(String ID, Status status, String message, List<String> errors, String moduleName) {
+    for (String error : errors) {
+      validationReporter.validationStatus(ID, status, message, error);
+    }
+    validationReporter.moduleValidatorFinished(moduleName, Status.FAILED);
+  }
+
   protected void validationFailed(String ID, String moduleName, String details) {
     validationReporter.validationStatus(ID, Status.ERROR, details);
     validationReporter.moduleValidatorFinished(moduleName, Status.FAILED);
