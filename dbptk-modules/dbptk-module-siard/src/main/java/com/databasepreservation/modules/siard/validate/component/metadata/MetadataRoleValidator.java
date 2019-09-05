@@ -24,11 +24,11 @@ import com.databasepreservation.utils.XMLUtils;
 public class MetadataRoleValidator extends MetadataValidator {
   private static final Logger LOGGER = LoggerFactory.getLogger(MetadataRoleValidator.class);
   private final String MODULE_NAME;
-  private static final String M_519 = "5.19";
-  private static final String M_519_1 = "M_5.19-1";
-  private static final String M_519_1_1 = "M_5.19-1-1";
-  private static final String M_519_1_2 = "M_5.19-1-2";
-  private static final String M_519_1_3 = "M_5.19-1-3";
+  private static final String M_518 = "5.18";
+  private static final String M_518_1 = "M_5.18-1";
+  private static final String M_518_1_1 = "M_5.18-1-1";
+  private static final String M_518_1_2 = "M_5.18-1-2";
+  private static final String M_518_1_3 = "M_5.18-1-3";
   private static final String ADMIN = "admin";
   private static final String ROLE = "role";
 
@@ -38,27 +38,27 @@ public class MetadataRoleValidator extends MetadataValidator {
 
   public MetadataRoleValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_519_1, M_519_1_1, M_519_1_2, M_519_1_3);
+    setCodeListToValidate(M_518_1, M_518_1_1, M_518_1_2, M_518_1_3);
   }
 
   @Override
   public boolean validate() throws ModuleException {
-    observer.notifyStartValidationModule(MODULE_NAME, M_519);
+    observer.notifyStartValidationModule(MODULE_NAME, M_518);
     if (preValidationRequirements()) {
       LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
     }
 
-    getValidationReporter().moduleValidatorHeader(M_519, MODULE_NAME);
+    getValidationReporter().moduleValidatorHeader(M_518, MODULE_NAME);
 
-    if (!validateMandatoryXSDFields(M_519_1, ROLE_TYPE, "/ns:siardArchive/ns:roles/ns:role")) {
-      reportValidations(M_519_1, MODULE_NAME);
+    if (!validateMandatoryXSDFields(M_518_1, ROLE_TYPE, "/ns:siardArchive/ns:roles/ns:role")) {
+      reportValidations(M_518_1, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
     if (!readXMLMetadataRoleLevel()) {
-      reportValidations(M_519_1, MODULE_NAME);
+      reportValidations(M_518_1, MODULE_NAME);
       closeZipFile();
       return false;
     }
@@ -104,7 +104,7 @@ public class MetadataRoleValidator extends MetadataValidator {
       }
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       String errorMessage = "Unable to read roles from SIARD file";
-      setError(M_519_1, errorMessage);
+      setError(M_518_1, errorMessage);
       LOGGER.debug(errorMessage, e);
       return false;
     }
@@ -119,11 +119,11 @@ public class MetadataRoleValidator extends MetadataValidator {
    * @return true if valid otherwise false
    */
   private boolean validateRoleName(String name, String path) {
-    if (!validateXMLField(M_519_1, name, Constants.NAME, true, false, path)) {
+    if (!validateXMLField(M_518_1, name, Constants.NAME, true, false, path)) {
       return false;
     }
     if (!checkDuplicates.add(name)) {
-      addWarning(M_519_1_1, String.format("Role name %s should be unique", name), path);
+      addWarning(M_518_1_1, String.format("Role name %s should be unique", name), path);
     }
     return true;
   }
@@ -147,7 +147,7 @@ public class MetadataRoleValidator extends MetadataValidator {
       }
     }
 
-    addWarning(M_519_1_2, String.format("Admin %s should be an existing user or role", admin), path);
+    addWarning(M_518_1_2, String.format("Admin %s should be an existing user or role", admin), path);
     return true;
   }
 
@@ -156,6 +156,6 @@ public class MetadataRoleValidator extends MetadataValidator {
    * characters. WARNING if it is less than 3 characters
    */
   private void validateRoleDescription(String description, String path) {
-    validateXMLField(M_519_1_3, description, Constants.DESCRIPTION, false, true, path);
+    validateXMLField(M_518_1_3, description, Constants.DESCRIPTION, false, true, path);
   }
 }

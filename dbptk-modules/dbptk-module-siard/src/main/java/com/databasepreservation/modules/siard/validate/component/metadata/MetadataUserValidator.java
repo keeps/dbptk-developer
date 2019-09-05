@@ -24,36 +24,36 @@ import com.databasepreservation.utils.XMLUtils;
 public class MetadataUserValidator extends MetadataValidator {
   private static final Logger LOGGER = LoggerFactory.getLogger(MetadataUserValidator.class);
   private final String MODULE_NAME;
-  private static final String M_518 = "5.18";
-  private static final String M_518_1 = "M_5.18-1";
-  private static final String M_518_1_1 = "M_5.18-1-1";
-  private static final String M_518_1_2 = "M_5.18-1-2";
+  private static final String M_517 = "5.17";
+  private static final String M_517_1 = "M_5.17-1";
+  private static final String M_517_1_1 = "M_5.17-1-1";
+  private static final String M_517_1_2 = "M_5.17-1-2";
 
   private Set<String> checkDuplicates = new HashSet<>();
 
   public MetadataUserValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_518_1, M_518_1_1, M_518_1_2);
+    setCodeListToValidate(M_517_1, M_517_1_1, M_517_1_2);
   }
 
   @Override
   public boolean validate() throws ModuleException {
-    observer.notifyStartValidationModule(MODULE_NAME, M_518);
+    observer.notifyStartValidationModule(MODULE_NAME, M_517);
     if (preValidationRequirements()) {
       LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
     }
 
-    getValidationReporter().moduleValidatorHeader(M_518, MODULE_NAME);
+    getValidationReporter().moduleValidatorHeader(M_517, MODULE_NAME);
 
-    if (!validateMandatoryXSDFields(M_518_1, USER_TYPE, "/ns:siardArchive/ns:users/ns:user")) {
-      reportValidations(M_518_1, MODULE_NAME);
+    if (!validateMandatoryXSDFields(M_517_1, USER_TYPE, "/ns:siardArchive/ns:users/ns:user")) {
+      reportValidations(M_517_1, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
     if (!readXMLMetadataUserLevel()) {
-      reportValidations(M_518_1, MODULE_NAME);
+      reportValidations(M_517_1, MODULE_NAME);
       closeZipFile();
       return false;
     }
@@ -85,7 +85,7 @@ public class MetadataUserValidator extends MetadataValidator {
       }
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       String errorMessage = "Unable to read users from SIARD file";
-      setError(M_518_1, errorMessage);
+      setError(M_517_1, errorMessage);
       LOGGER.debug(errorMessage, e);
       return false;
     }
@@ -94,28 +94,28 @@ public class MetadataUserValidator extends MetadataValidator {
   }
 
   /**
-   * M_5.18-1-1 The user name in SIARD file should be unique. ERROR when it is
+   * M_5.17-1-1 The user name in SIARD file should be unique. ERROR when it is
    * empty, WARNING when it is not unique
    *
    * @return true if valid otherwise false
    */
   private boolean validateUserName(String name, String path) {
-    if (!validateXMLField(M_518_1_1, name, Constants.NAME, true, false, path)) {
+    if (!validateXMLField(M_517_1_1, name, Constants.NAME, true, false, path)) {
       return false;
     }
     if (!checkDuplicates.add(name)) {
-      addWarning(M_518_1_1, String.format("User name %s should be unique", name), path);
+      addWarning(M_517_1_1, String.format("User name %s should be unique", name), path);
     }
     return true;
   }
 
   /**
-   * M_5.18-1-2 The Check Constraint description in SIARD file must not be less
+   * M_5.17-1-2 The Check Constraint description in SIARD file must not be less
    * than 3 characters. WARNING if it is less than 3 characters
    *
    * @return true if valid otherwise false
    */
   private boolean validateUserDescription(String description, String path) {
-    return validateXMLField(M_518_1_2, description, Constants.DESCRIPTION, false, true, path);
+    return validateXMLField(M_517_1_2, description, Constants.DESCRIPTION, false, true, path);
   }
 }
