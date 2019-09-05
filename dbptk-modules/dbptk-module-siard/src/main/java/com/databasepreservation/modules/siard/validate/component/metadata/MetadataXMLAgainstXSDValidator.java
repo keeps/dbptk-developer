@@ -13,6 +13,7 @@ import javax.xml.validation.Validator;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.SiardArchive;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
@@ -34,30 +35,19 @@ public class MetadataXMLAgainstXSDValidator extends MetadataValidator {
       return false;
 
     getValidationReporter().moduleValidatorHeader(M_50, MODULE_NAME);
-    if (!validateXMLAgainstXSD()) {
-      closeZipFile();
-      reportValidations(M_501, MODULE_NAME);
-      return false;
-    }
-    closeZipFile();
+    validateXMLAgainstXSD();
 
-    if (reportValidations(MODULE_NAME)) {
-      metadataValidationPassed(MODULE_NAME);
-      return true;
-    }
-
-    return false;
+    return reportValidations(MODULE_NAME);
   }
 
   /**
    * M_5.0-1 The schema definition metadata.xsd must be complied with for the
    * metadata.xml file. This means that metadata.xml must be capable of being
    * positively validated against metadata.xsd.
-   *
-   * @return true if valid otherwise false
    */
-  private boolean validateXMLAgainstXSD() {
-    InputStream XSDInputStream = getZipInputStream(validatorPathStrategy.getMetadataXSDPath());
+  private void validateXMLAgainstXSD() {
+    final InputStream XSDInputStream = SiardArchive.class.getClassLoader()
+      .getResourceAsStream("schema/siard2-1-metadata.xsd");
     InputStream XMLInputStream = getZipInputStream(validatorPathStrategy.getMetadataXMLPath());
 
     Source schemaFile = new StreamSource(XSDInputStream);
@@ -71,10 +61,7 @@ public class MetadataXMLAgainstXSDValidator extends MetadataValidator {
       validator.validate(xmlFile);
     } catch (SAXException | IOException e) {
       setError(M_501, e.getMessage());
-      return false;
     }
-
-    return true;
   }
 
 }

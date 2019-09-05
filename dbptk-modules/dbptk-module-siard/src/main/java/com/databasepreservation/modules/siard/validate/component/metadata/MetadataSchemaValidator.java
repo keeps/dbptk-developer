@@ -25,13 +25,14 @@ public class MetadataSchemaValidator extends MetadataValidator {
   private static final String M_52 = "5.2";
   private static final String M_521 = "M_5.2-1";
   private static final String M_521_1 = "M_5.2-1-1";
+  private static final String A_M_521_1 = "A_M_5.2-1-1";
   private static final String M_521_2 = "M_5.2-1-2";
-  private static final String M_521_4 = "M_5.2-1-4";
-  private static final String M_521_5 = "M_5.2-1-5";
+  private static final String A_M_521_2 = "A_M_5.2-1-2";
+  private static final String A_M_521_4 = "A_M_5.2-1-4";
 
   public MetadataSchemaValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_521, M_521_1, M_521_2, M_521_4, M_521_5);
+    setCodeListToValidate(M_521, M_521_1, A_M_521_1, M_521_2, A_M_521_2, A_M_521_4);
   }
 
   @Override
@@ -44,11 +45,7 @@ public class MetadataSchemaValidator extends MetadataValidator {
 
     getValidationReporter().moduleValidatorHeader(M_52, MODULE_NAME);
 
-    if (!validateMandatoryXSDFields(M_521, SCHEMA_TYPE, "/ns:siardArchive/ns:schemas/ns:schema")) {
-      reportValidations(M_521, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
+    validateMandatoryXSDFields(M_521, SCHEMA_TYPE, "/ns:siardArchive/ns:schemas/ns:schema");
 
     if (!readXMLMetadataSchemaLevel()) {
       reportValidations(M_521, MODULE_NAME);
@@ -57,11 +54,7 @@ public class MetadataSchemaValidator extends MetadataValidator {
     }
     closeZipFile();
 
-    if (reportValidations(MODULE_NAME)) {
-      metadataValidationPassed(MODULE_NAME);
-      return true;
-    }
-    return false;
+    return reportValidations(MODULE_NAME);
   }
 
   /**
@@ -80,18 +73,11 @@ public class MetadataSchemaValidator extends MetadataValidator {
         String path = buildPath(Constants.SCHEMA, Integer.toString(i));
 
         String name = XMLUtils.getChildTextContext(schema, Constants.NAME);
-        if (!validateSchemaName(name, path))
-          continue; // next schema
+        validateSchemaName(name, path);
 
         path = buildPath(Constants.SCHEMA, name);
-
         String folder = XMLUtils.getChildTextContext(schema, Constants.FOLDER);
-        if (!validateSchemaFolder(folder, path))
-          continue; // next schema
-
-        String tables = XMLUtils.getChildTextContext(schema, Constants.TABLES);
-        if (!validateSchemaTable(tables, path))
-          continue; // next schema
+        validateSchemaFolder(folder, path);
 
         String description = XMLUtils.getChildTextContext(schema, Constants.DESCRIPTION);
         validateSchemaDescription(description, path);
@@ -108,40 +94,40 @@ public class MetadataSchemaValidator extends MetadataValidator {
   }
 
   /**
-   * M_5.2-1-1 The schema name in the database must not be empty. ERROR when it is
+   * M_5.2-1-1 Schema Name is mandatory in SIARD 2.1 specification
+   * 
+   * A_M_521_1 The schema name in the database must not be empty. ERROR when it is
    * empty, WARNING if it is less than 3 characters
    *
-   * @return true if valid otherwise false
    */
-  private boolean validateSchemaName(String name, String path) {
-    return validateXMLField(M_521_1, name, Constants.NAME, true, true, path);
+  private void validateSchemaName(String name, String path) {
+    if(validateXMLField(M_521_1, name, Constants.NAME, true, false, path)){
+      validateXMLField(A_M_521_1, name, Constants.NAME, false, true, path);
+      return;
+    }
+    setError(A_M_521_1, String.format("Aborted because schema name is mandatory (%s)", path));
   }
 
   /**
-   * M_5.2-1-2 The schema folder in the database must not be empty. ERROR when it
+   * M_5.2-1-2 Schema Folder is mandatory in SIARD 2.1 specification
+   *
+   * A_M_5.2-1-2 The schema folder in the database must not be empty. ERROR when it
    * is empty, WARNING if it is less than 3 characters
    *
-   * @return true if valid otherwise false
    */
-  private boolean validateSchemaFolder(String folder, String path) {
-    return validateXMLField(M_521_2, folder, Constants.FOLDER, true, true, path);
+  private void validateSchemaFolder(String folder, String path) {
+    if(validateXMLField(M_521_2, folder, Constants.FOLDER, true, false, path)){
+      validateXMLField(A_M_521_2, folder, Constants.FOLDER, false, true, path);
+      return;
+    }
+    setError(A_M_521_2, String.format("Aborted because schema folder is mandatory (%s)", path));
   }
 
   /**
-   * M_5.2-1-4 if schema description in the database is less than 3 characters a
+   * A_M_5.2-1-4 if schema description in the database is less than 3 characters a
    * warning must be send
    */
   private void validateSchemaDescription(String description, String path) {
-    validateXMLField(M_521_4, description, Constants.DESCRIPTION, false, true, path);
-  }
-
-  /**
-   * M_5.2-1-5 The schema tables in the database must not be empty. ERROR when it
-   * is empty
-   *
-   * @return true if valid otherwise false
-   */
-  private boolean validateSchemaTable(String tablesList, String path) {
-    return validateXMLField(M_521_5, tablesList, Constants.TABLES, true, false, path);
+    validateXMLField(A_M_521_4, description, Constants.DESCRIPTION, false, true, path);
   }
 }

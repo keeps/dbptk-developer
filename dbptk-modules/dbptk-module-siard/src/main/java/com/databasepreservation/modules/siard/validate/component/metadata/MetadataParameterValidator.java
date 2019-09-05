@@ -1,7 +1,9 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -27,18 +29,21 @@ public class MetadataParameterValidator extends MetadataValidator {
   private static final String M_516 = "5.16";
   private static final String M_516_1 = "M_5.16-1";
   private static final String M_516_1_1 = "M_5.16-1-1";
+  private static final String A_M_516_1_1 = "A_M_5.16-1-1";
   private static final String M_516_1_2 = "M_5.16-1-2";
   private static final String M_516_1_8 = "M_5.16-1-8";
+  private static final String A_M_516_1_8 = "A_M_5.16-1-8";
 
   private static final String IN = "IN";
   private static final String OUT = "OUT";
   private static final String INOUT = "INOUT";
 
   private Set<String> checkDuplicates = new HashSet<>();
+  private List<Element> parameterList = new ArrayList<>();
 
   public MetadataParameterValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_516_1, M_516_1_1, M_516_1_2, M_516_1_8);
+    setCodeListToValidate(M_516_1, M_516_1_1, A_M_516_1_1, M_516_1_2, M_516_1_8, A_M_516_1_8);
   }
 
   @Override
@@ -51,12 +56,8 @@ public class MetadataParameterValidator extends MetadataValidator {
 
     getValidationReporter().moduleValidatorHeader(M_516, MODULE_NAME);
 
-    if (!validateMandatoryXSDFields(M_516_1, PARAMETER_TYPE,
-      "/ns:siardArchive/ns:schemas/ns:schema/ns:routines/ns:routine/ns:parameters/ns:parameter")) {
-      reportValidations(M_516_1, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
+    validateMandatoryXSDFields(M_516_1, PARAMETER_TYPE,
+      "/ns:siardArchive/ns:schemas/ns:schema/ns:routines/ns:routine/ns:parameters/ns:parameter");
 
     if (!readXMLMetadataParameterLevel()) {
       reportValidations(M_516_1, MODULE_NAME);
@@ -65,11 +66,13 @@ public class MetadataParameterValidator extends MetadataValidator {
     }
     closeZipFile();
 
-    if (reportValidations(MODULE_NAME)) {
+    if (parameterList.isEmpty()) {
+      getValidationReporter().skipValidation(M_516_1, "Database has no parameters");
       metadataValidationPassed(MODULE_NAME);
       return true;
     }
-    return false;
+
+    return reportValidations(MODULE_NAME);
   }
 
   private boolean readXMLMetadataParameterLevel() {
@@ -84,13 +87,11 @@ public class MetadataParameterValidator extends MetadataValidator {
         String path = buildPath(Constants.SCHEMA, schema, Constants.PARAMETER, Integer.toString(i));
 
         String name = XMLUtils.getChildTextContext(parameter, Constants.NAME);
-        if (!validateParameterName(name, path))
-          continue; // next parameter
+        validateParameterName(name, path);
 
         path = buildPath(Constants.SCHEMA, schema, Constants.PARAMETER, name);
         String mode = XMLUtils.getChildTextContext(parameter, Constants.PARAMETER_MODE);
-        if (!validateParameterMode(mode, path))
-          continue; // next parameter
+        validateParameterMode(mode, path);
 
         String description = XMLUtils.getChildTextContext(parameter, Constants.DESCRIPTION);
         validateParameterDescription(description, path);
@@ -106,21 +107,20 @@ public class MetadataParameterValidator extends MetadataValidator {
   }
 
   /**
-   * M_5.16-1-1 The parameter name in SIARD file should be unique. WARNING when it
+   * M_516_1_1 The parameter name is mandatory in SIARD 2.1 specification
+   *
+   * A_M_5.16-1-1 The parameter name in SIARD file should be unique. WARNING when it
    * is empty or not unique
    *
    */
-  private boolean validateParameterName(String name, String path) {
-    // M_516_1
-    if (name == null || name.isEmpty()) {
-      addWarning(M_516_1_1, "Parameter name should exist", path);
+  private void validateParameterName(String name, String path) {
+    if(validateXMLField(M_516_1_1, name, Constants.NAME, true, false, path)){
+      if (!checkDuplicates.add(name)) {
+        addWarning(A_M_516_1_1, String.format("Parameter name %s should be unique", name), path);
+      }
+      return;
     }
-    // M_5.16-1-1
-    if (!checkDuplicates.add(name)) {
-      addWarning(M_516_1_1, String.format("Parameter name %s should be unique", name), path);
-    }
-
-    return true;
+    setError(A_M_516_1_1, String.format("Aborted because parameter name is mandatory (%s)", path));
   }
 
   /**
@@ -128,24 +128,24 @@ public class MetadataParameterValidator extends MetadataValidator {
    * mandatory. WARNING when it is empty
    *
    */
-  private boolean validateParameterMode(String mode, String path) {
-    switch (mode) {
-      case IN:
-      case OUT:
-      case INOUT:
-        break;
-      default:
-        addWarning(M_516_1_2, String.format("Mode '%s' is not allowed", mode), path);
-        return false;
+  private void validateParameterMode(String mode, String path) {
+    if(validateXMLField(M_516_1_2, mode, Constants.PARAMETER_MODE, true, false, path)){
+      switch (mode) {
+        case IN:
+        case OUT:
+        case INOUT:
+          break;
+        default:
+          setError(M_516_1_2, String.format("Mode '%s' is not allowed (%s)", mode, path));
+      }
     }
-    return true;
   }
 
   /**
-   * M_5.16-1-8 The parameter description in SIARD file must not be less than 3
+   * A_M_5.16-1-8 The parameter description in SIARD file must not be less than 3
    * characters. WARNING if it is less than 3 characters
    */
   private void validateParameterDescription(String description, String path) {
-    validateXMLField(M_516_1_8, description, Constants.DESCRIPTION, false, true, path);
+    validateXMLField(A_M_516_1_8, description, Constants.DESCRIPTION, false, true, path);
   }
 }

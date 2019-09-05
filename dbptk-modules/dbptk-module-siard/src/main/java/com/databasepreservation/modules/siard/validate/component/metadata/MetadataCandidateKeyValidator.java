@@ -32,8 +32,10 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
   private static final String M_511 = "5.11";
   private static final String M_511_1 = "M_5.11-1";
   private static final String M_511_1_1 = "M_5.11-1-1";
+  private static final String A_M_511_1_1 = "A_M_5.11-1-1";
   private static final String M_511_1_2 = "M_5.11-1-2";
-  private static final String M_511_1_3 = "M_5.11-1-3";
+  private static final String A_M_511_1_2 = "A_M_5.11-1-2";
+  private static final String A_M_511_1_3 = "A_M_5.11-1-3";
   private static final String BLANK = " ";
 
   private List<Element> candidateKeyList = new ArrayList<>();
@@ -41,7 +43,7 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
 
   public MetadataCandidateKeyValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_511_1, M_511_1_1, M_511_1_2, M_511_1_3);
+    setCodeListToValidate(M_511_1, M_511_1_1, A_M_511_1_1, M_511_1_2, A_M_511_1_2, A_M_511_1_3);
   }
 
   @Override
@@ -54,12 +56,8 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
 
     getValidationReporter().moduleValidatorHeader(M_511, MODULE_NAME);
 
-    if (!validateMandatoryXSDFields(M_511_1, UNIQUE_KEY_TYPE,
-      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:candidateKeys/ns:candidateKey")) {
-      reportValidations(M_511_1, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
+    validateMandatoryXSDFields(M_511_1, UNIQUE_KEY_TYPE,
+      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:candidateKeys/ns:candidateKey");
 
     if (!readXMLMetadataCandidateKeyLevel()) {
       reportValidations(M_511_1, MODULE_NAME);
@@ -74,11 +72,7 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
       return true;
     }
 
-    if (reportValidations(MODULE_NAME)) {
-      metadataValidationPassed(MODULE_NAME);
-      return true;
-    }
-    return false;
+    return reportValidations(MODULE_NAME);
   }
 
   private boolean readXMLMetadataCandidateKeyLevel() {
@@ -117,33 +111,18 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
           candidateKeyList.add(candidateKey);
 
           String name = XMLUtils.getChildTextContext(candidateKey, Constants.NAME);
+          validateCandidateKeyName(name, path);
 
-          // * M_5.8-1 Candidate key name is mandatory.
-          if (name == null || name.isEmpty()) {
-            setError(M_511_1, "Candidate key name is required on table " + table);
-            continue; // next candidate key
-          }
-
-          // nameList.add(name);
           NodeList columns = candidateKey.getElementsByTagName(Constants.COLUMN);
 
           ArrayList<String> columnList = new ArrayList<>();
           for (int k = 0; k < columns.getLength(); k++) {
             String column = columns.item(k).getTextContent();
-            // * M_5.11-1 Candidate key column is mandatory.
-            if (column == null || column.isEmpty()) {
-              setError(M_511_1, "Candidate key column is required on table " + table);
-              continue; // next candidate key
-            }
             columnList.add(column);
           }
 
-          if (!validateCandidateKeyName(name, path))
-            continue; // next candidate key
-
           path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.CANDIDATE_KEY, name);
-          if (!validateCandidateKeyColumn(schema, table, columnList))
-            continue; // next candidate key
+          validateCandidateKeyColumn(schema, table, columnList);
 
           String description = XMLUtils.getChildTextContext(candidateKey, Constants.DESCRIPTION);
           validateCandidateKeyDescription(description, path);
@@ -162,41 +141,50 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
   }
 
   /**
-   * M_5.11-1-1 The Candidate Key name of table in SIARD file must be unique.
-   * ERROR if not unique or is null.
+   * M_5.11-1-1 The Candidate Key name is mandatory in SIARD 2.1 specification
    *
-   * @return true if valid otherwise false
+   * A_M_5.11-1-1 validation that candidate key name not contain any blanks
    */
   private boolean validateCandidateKeyName(String name, String path) {
-    if (name.contains(BLANK)) {
-      addWarning(M_511_1_1, "Candidate key " + name + " contain blanks in name", path);
+    if(validateXMLField(M_511_1_1, name, Constants.CANDIDATE_KEY, true, false, path)){
+      if (name.contains(BLANK)) {
+        addWarning(A_M_511_1_1, "Candidate key " + name + " contain blanks in name", path);
+      }
+      return true;
     }
-
-    return true;
+    setError(A_M_511_1_1, String.format("Aborted because candidate key name is mandatory (%s)", path));
+    return false;
   }
 
   /**
+   * M_5.11-1-2 The Candidate Key column is mandatory in SIARD 2.1 specification
+   *
    * M_5.11-1-2 The Candidate Key column in SIARD file must exist on table. ERROR
    * if not exist
-   *
-   * @return true if valid otherwise false
    */
-  private boolean validateCandidateKeyColumn(String schema, String table, ArrayList<String> columnList) {
+  private void validateCandidateKeyColumn(String schema, String table, ArrayList<String> columnList) {
+    if(columnList.isEmpty()){
+      setError(M_511_1_2, String.format("Candidate key must have at least one column on %s.%s",schema, table));
+      setError(A_M_511_1_2, String.format("Aborted because candidate key column is mandatory on %s.%s", schema, table));
+      return;
+    }
+
     for (String column : columnList) {
-      if (!tableColumnsList.get(table).contains(column)) {
-        setError(M_511_1_2,
+      if (column.isEmpty()) {
+        setError(M_511_1_2, String.format("Primary key must have at least one column on %s.%s", schema, table));
+        setError(A_M_511_1_2, String.format("Aborted because primary key column is mandatory on %s.%s", schema, table));
+      }else if (!tableColumnsList.get(table).contains(column)) {
+        setError(A_M_511_1_2,
           String.format("Candidate key column reference %s not found on %s.%s", column, schema, table));
-        return false;
       }
     }
-    return true;
   }
 
   /**
-   * M_5.11-1-3 The Candidate key description in SIARD file must not be less than
+   * A_M_5.11-1-3 The Candidate key description in SIARD file must not be less than
    * 3 characters. WARNING if it is less than 3 characters
    */
   private void validateCandidateKeyDescription(String description, String path) {
-    validateXMLField(M_511_1_3, description, Constants.DESCRIPTION, false, true, path);
+    validateXMLField(A_M_511_1_3, description, Constants.DESCRIPTION, false, true, path);
   }
 }

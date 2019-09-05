@@ -27,13 +27,14 @@ public class MetadataUserValidator extends MetadataValidator {
   private static final String M_517 = "5.17";
   private static final String M_517_1 = "M_5.17-1";
   private static final String M_517_1_1 = "M_5.17-1-1";
-  private static final String M_517_1_2 = "M_5.17-1-2";
+  private static final String A_M_517_1_1 = "A_M_5.17-1-1";
+  private static final String A_M_517_1_2 = "A_M_5.17-1-2";
 
   private Set<String> checkDuplicates = new HashSet<>();
 
   public MetadataUserValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_517_1, M_517_1_1, M_517_1_2);
+    setCodeListToValidate(M_517_1, M_517_1_1, A_M_517_1_1, A_M_517_1_2);
   }
 
   @Override
@@ -46,11 +47,7 @@ public class MetadataUserValidator extends MetadataValidator {
 
     getValidationReporter().moduleValidatorHeader(M_517, MODULE_NAME);
 
-    if (!validateMandatoryXSDFields(M_517_1, USER_TYPE, "/ns:siardArchive/ns:users/ns:user")) {
-      reportValidations(M_517_1, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
+    validateMandatoryXSDFields(M_517_1, USER_TYPE, "/ns:siardArchive/ns:users/ns:user");
 
     if (!readXMLMetadataUserLevel()) {
       reportValidations(M_517_1, MODULE_NAME);
@@ -59,11 +56,7 @@ public class MetadataUserValidator extends MetadataValidator {
     }
     closeZipFile();
 
-    if (reportValidations(MODULE_NAME)) {
-      metadataValidationPassed(MODULE_NAME);
-      return true;
-    }
-    return false;
+    return reportValidations(MODULE_NAME);
   }
 
   private boolean readXMLMetadataUserLevel() {
@@ -76,8 +69,7 @@ public class MetadataUserValidator extends MetadataValidator {
         String path = buildPath(Constants.USER, Integer.toString(i));
 
         String name = XMLUtils.getChildTextContext(user, Constants.NAME);
-        if (!validateUserName(name, path))
-          continue; // next user;
+        validateUserName(name, path);
 
         path = buildPath(Constants.USER, name);
         String description = XMLUtils.getChildTextContext(user, Constants.DESCRIPTION);
@@ -94,28 +86,25 @@ public class MetadataUserValidator extends MetadataValidator {
   }
 
   /**
-   * M_5.17-1-1 The user name in SIARD file should be unique. ERROR when it is
-   * empty, WARNING when it is not unique
+   * M_517_1_1 is mandatory in siard 2.1 specification
    *
-   * @return true if valid otherwise false
+   * A_M_5.17-1-1 The user name in SIARD file should be unique
    */
-  private boolean validateUserName(String name, String path) {
-    if (!validateXMLField(M_517_1_1, name, Constants.NAME, true, false, path)) {
-      return false;
+  private void validateUserName(String name, String path) {
+    if(validateXMLField(M_517_1_1, name, Constants.NAME, true, false, path)) {
+      if (!checkDuplicates.add(name)) {
+        addWarning(A_M_517_1_1, String.format("User name %s should be unique", name), path);
+      }
+      return;
     }
-    if (!checkDuplicates.add(name)) {
-      addWarning(M_517_1_1, String.format("User name %s should be unique", name), path);
-    }
-    return true;
+    setError(A_M_517_1_1, String.format("Aborted because user name is mandatory (%s)", path));
   }
 
   /**
-   * M_5.17-1-2 The Check Constraint description in SIARD file must not be less
+   * A_M_5.17-1-2 The Check Constraint description in SIARD file must not be less
    * than 3 characters. WARNING if it is less than 3 characters
-   *
-   * @return true if valid otherwise false
    */
-  private boolean validateUserDescription(String description, String path) {
-    return validateXMLField(M_517_1_2, description, Constants.DESCRIPTION, false, true, path);
+  private void validateUserDescription(String description, String path) {
+    validateXMLField(A_M_517_1_2, description, Constants.DESCRIPTION, false, true, path);
   }
 }

@@ -3,11 +3,9 @@ package com.databasepreservation.modules.siard.validate.component.metadata;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
@@ -32,8 +30,10 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
   private static final String M_58 = "5.8";
   private static final String M_581 = "M_5.8-1";
   private static final String M_581_1 = "M_5.8-1-1";
+  private static final String A_M_581_1 = "A_M_5.8-1-1";
   private static final String M_581_2 = "M_5.8-1-2";
-  private static final String M_581_3 = "M_5.8-1-3";
+  private static final String A_M_581_2 = "A_M_5.8-1-2";
+  private static final String A_M_581_3 = "A_M_5.8-1-3";
   private static final String BLANK = " ";
 
   private Map<String, LinkedList<String>> tableColumnsList = new HashMap<>();
@@ -41,7 +41,7 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
 
   public MetadataPrimaryKeyValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_581, M_581_1, M_581_2, M_581_3);
+    setCodeListToValidate(M_581, M_581_1, A_M_581_1, M_581_2, A_M_581_2, A_M_581_3);
   }
 
   @Override
@@ -54,12 +54,8 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
 
     getValidationReporter().moduleValidatorHeader(M_58, MODULE_NAME);
 
-    if (!validateMandatoryXSDFields(M_581, UNIQUE_KEY_TYPE,
-      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:primaryKey")) {
-      reportValidations(M_581, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
+    validateMandatoryXSDFields(M_581, UNIQUE_KEY_TYPE,
+      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:primaryKey");
 
     if (!readXMLMetadataPrimaryKeyLevel()) {
       reportValidations(M_581, MODULE_NAME);
@@ -74,12 +70,7 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
       return true;
     }
 
-    if (reportValidations(MODULE_NAME)) {
-      metadataValidationPassed(MODULE_NAME);
-      return true;
-    }
-
-    return false;
+    return reportValidations(MODULE_NAME);
   }
 
   private boolean readXMLMetadataPrimaryKeyLevel() {
@@ -113,30 +104,23 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
 
         for (int j = 0; j < primaryKeyNodes.getLength(); j++) {
           Element primaryKey = (Element) primaryKeyNodes.item(j);
-          String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.PRIMARY_KEY, Integer.toString(j));
+          String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.PRIMARY_KEY,
+            Integer.toString(j));
           primaryKeyList.add(primaryKey);
 
           String name = XMLUtils.getChildTextContext(primaryKey, Constants.NAME);
-          if (!validatePrimaryKeyName(name, path))
-            continue; // next primary key
+          validatePrimaryKeyName(name, path);
 
-          // nameList.add(name);
           NodeList columns = primaryKey.getElementsByTagName(Constants.COLUMN);
 
           ArrayList<String> columnList = new ArrayList<>();
           for (int k = 0; k < columns.getLength(); k++) {
             String column = columns.item(k).getTextContent();
-            // * M_5.8-1 Primary key column is mandatory.
-            if (column == null || column.isEmpty()) {
-              setError(M_581, "Primary key column is required on table " + table);
-              return false;
-            }
             columnList.add(column);
           }
 
           path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.PRIMARY_KEY, name);
-          if (!validatePrimaryKeyColumn(schema, table, columnList))
-            continue; // next primary key
+          validatePrimaryKeyColumn(schema, table, columnList);
 
           String description = XMLUtils.getChildTextContext(primaryKey, Constants.DESCRIPTION);
           validatePrimaryKeyDescription(description, path);
@@ -153,44 +137,48 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
   }
 
   /**
-   * M_5.8-1-1 The Primary Key name of table in SIARD file must be unique. ERROR
-   * if not unique or is null. WARNING if contain any blanks
+   * M_5.8-1-1 The Primary Key name is mandatory in SIARD 2.1 specification
    *
-   * @return true if valid otherwise false
+   * A_M_5.8-1-1 validation that primary key name not contain any blanks
    */
-  private boolean validatePrimaryKeyName(String name, String path) {
-    // * M_5.8-1 Primary key name is mandatory.
-    if (!validateXMLField(M_581, name, Constants.PRIMARY_KEY, true, false, path)){
-      return false;
+  private void validatePrimaryKeyName(String name, String path) {
+    if (validateXMLField(M_581_1, name, Constants.PRIMARY_KEY, true, false, path)) {
+      if (name.contains(BLANK)) {
+        addWarning(A_M_581_1, "Primary key " + name + " contain blanks in name", path);
+      }
+      return;
     }
-    if (name.contains(BLANK)) {
-      addWarning(M_581_1, "Primary key " + name + " contain blanks in name", path);
-    }
-    return true;
+    setError(A_M_581_1, String.format("Aborted because primary key name is mandatory (%s)", path));
   }
 
   /**
-   * M_5.8-1-2 The Primary Key column in SIARD file must exist on table. ERROR if
-   * not exist
+   * M_5.8-1-2 The Primary Key column is mandatory in SIARD 2.1 specification
    *
-   * @return true if valid otherwise false
+   * A_M_5.8-1-2 The Primary Key column in SIARD file must exist on table. ERROR
+   * if not exist
    */
-  private boolean validatePrimaryKeyColumn(String schema, String table, List<String> columnList) {
+  private void validatePrimaryKeyColumn(String schema, String table, List<String> columnList) {
+    if (columnList.isEmpty()) {
+      setError(M_581_2, String.format("Primary key must have at least one column on %s.%s", schema, table));
+      setError(A_M_581_2, String.format("Aborted because primary key column is mandatory on %s.%s", schema, table));
+      return;
+    }
 
     for (String column : columnList) {
-      if (!tableColumnsList.get(table).contains(column)) {
-        setError(M_581_2, String.format("Primary key column reference %s not found on %s.%s", column, schema, table));
-        return false;
+      if (column.isEmpty()) {
+        setError(M_581_2, String.format("Primary key must have at least one column on %s.%s", schema, table));
+        setError(A_M_581_2, String.format("Aborted because primary key column is mandatory on %s.%s", schema, table));
+      } else if (!tableColumnsList.get(table).contains(column)) {
+        setError(A_M_581_2, String.format("Primary key column reference %s not found on %s.%s", column, schema, table));
       }
     }
-    return true;
   }
 
   /**
-   * M_5.8-1-3 The primary key description in SIARD file must not be less than 3
+   * A_M_5.8-1-3 The primary key description in SIARD file must not be less than 3
    * characters. WARNING if it is less than 3 characters
    */
   private void validatePrimaryKeyDescription(String description, String path) {
-    validateXMLField(M_581_3, description, Constants.DESCRIPTION, false, true, path);
+    validateXMLField(A_M_581_3, description, Constants.DESCRIPTION, false, true, path);
   }
 }

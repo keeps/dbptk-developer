@@ -31,15 +31,16 @@ public class MetadataColumnsValidator extends MetadataValidator {
   private static final String M_56 = "5.6";
   private static final String M_561 = "M_5.6-1";
   private static final String M_561_1 = "M_5.6-1-1";
+  private static final String A_M_561_2 = "A_M_5.6-1-2";
   private static final String M_561_3 = "M_5.6-1-3";
-  private static final String M_561_5 = "M_5.6-1-5";
-  private static final String M_561_12 = "M_5.6-1-12";
+  private static final String A_M_561_5 = "A_M_5.6-1-5";
+  private static final String A_M_561_12 = "A_M_5.6-1-12";
 
   private Set<String> typeOriginalSet = new HashSet<>();
 
   public MetadataColumnsValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_561, M_561_1, M_561_3, M_561_5, M_561_12);
+    setCodeListToValidate(M_561, M_561_1, A_M_561_2, M_561_3, A_M_561_5, A_M_561_12);
   }
 
   @Override
@@ -52,12 +53,8 @@ public class MetadataColumnsValidator extends MetadataValidator {
 
     getValidationReporter().moduleValidatorHeader(M_56, MODULE_NAME);
 
-    if (!validateMandatoryXSDFields(M_561, COLUMN_TYPE,
-      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column")) {
-      reportValidations(M_561, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
+    validateMandatoryXSDFields(M_561, COLUMN_TYPE,
+      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column");
 
     if (!readXMLMetadataColumnLevel()) {
       reportValidations(M_561, MODULE_NAME);
@@ -68,11 +65,7 @@ public class MetadataColumnsValidator extends MetadataValidator {
 
     noticeTypeOriginalUsed();
 
-    if (reportValidations(MODULE_NAME)) {
-      metadataValidationPassed(MODULE_NAME);
-      return true;
-    }
-    return false;
+    return reportValidations(MODULE_NAME);
   }
 
   private boolean readXMLMetadataColumnLevel() {
@@ -98,30 +91,20 @@ public class MetadataColumnsValidator extends MetadataValidator {
           String path = buildPath(Constants.SCHEMA, schemaName, Constants.TABLE, tableName, Constants.COLUMN,
             Integer.toString(j));
 
-          // * M_5.6-1 The column name in SIARD is mandatory.
           String name = XMLUtils.getChildTextContext(column, Constants.NAME);
-          if (!validateColumnName(name, path))
-            continue; // next column
+          validateColumnName(name, path);
 
           path = buildPath(Constants.SCHEMA, schemaName, Constants.TABLE, tableName, Constants.COLUMN, name);
 
-          // * M_5.6-1 (SIARD specification) The column type in SIARD is mandatory.
-          String type = XMLUtils.getChildTextContext(column, Constants.TYPE);
-          if (type == null || type.isEmpty()) {
-            String typeName = XMLUtils.getChildTextContext(column, Constants.TYPE_NAME);
-            if (typeName == null || typeName.isEmpty()) {
-              setError(M_561, String.format("Column type cannot be null (%s)", path));
-              continue; // next column
-            }
-            type = typeName;
-          }
+          String type = validateColumnType(XMLUtils.getChildTextContext(column, Constants.TYPE), column, path);
 
-          if (type.equals(Constants.CHARACTER_LARGE_OBJECT) || type.equals(Constants.BINARY_LARGE_OBJECT)
+          if(type == null){
+            setError(A_M_561_2, String.format("Aborted because column type is mandatory (%s)", path));
+          } else if (type.equals(Constants.CHARACTER_LARGE_OBJECT) || type.equals(Constants.BINARY_LARGE_OBJECT)
             || type.equals(Constants.BLOB) || type.equals(Constants.CLOB) || type.equals(Constants.XML_LARGE_OBJECT)) {
             String folder = XMLUtils.getChildTextContext(column, Constants.LOB_FOLDER);
             String columnNumber = "c" + (j + 1);
-            if (!validateColumnLobFolder(schemaFolderName, tableFolderName, type, folder, columnNumber, name, path))
-              continue; // next column
+            validateColumnLobFolder(schemaFolderName, tableFolderName, type, folder, columnNumber, name, path);
           }
 
           String typeOriginal = XMLUtils.getChildTextContext(column, Constants.TYPE_ORIGINAL);
@@ -143,24 +126,50 @@ public class MetadataColumnsValidator extends MetadataValidator {
   }
 
   /**
-   * M_5.6-1-1 The column name in SIARD file must not be empty.
-   *
-   * @return true if valid otherwise false
+   * M_5.6-1-1 The column name is mandatory in SIARD 2.1 specification
    */
-  private boolean validateColumnName(String name, String path) {
-    return validateXMLField(M_561_1, name, Constants.NAME, true, false, path);
+  private void validateColumnName(String name, String path) {
+    validateXMLField(M_561_1, name, Constants.NAME, true, false, path);
   }
 
   /**
-   * M_5.6-1-3 If the column is large object type (e.g. BLOB, CLOB or XML) which
+   * M_5.6-1-3 The column type is mandatory in SIARD 2.1 specification
+   *
+   * @return If the data type of this column is a built-in data type, this field
+   *         must be used. Otherwise the field typeName must refer to a defined
+   *         type in the types list.
+   */
+  private String validateColumnType(String type, Element column, String path) {
+    if (type == null || type.isEmpty()) {
+      String typeName = XMLUtils.getChildTextContext(column, Constants.TYPE_NAME);
+      if (typeName == null || typeName.isEmpty()) {
+        setError(M_561_3, String.format("Column type cannot be empty (%s)", path));
+      }
+      type = typeName;
+    } else {
+      // TODO check SQL:2008 built-in types
+    }
+    return type;
+  }
+
+  /**
+   * A_M_5.6-1-2 If the column is large object type (e.g. BLOB, CLOB or XML) which
    * are stored internally in the SIARD archive and the column has data in it then
    * this element should exist.
-   *
-   * @return true if valid otherwise false
    */
-  private boolean validateColumnLobFolder(String schemaFolder, String tableFolder, String type, String folder,
+  private void validateColumnLobFolder(String schemaFolder, String tableFolder, String type, String folder,
     String column, String name, String path) {
     String pathToTableColumn = createPath(Constants.SIARD_CONTENT_FOLDER, schemaFolder, tableFolder);
+
+    if(schemaFolder == null || schemaFolder.isEmpty()){
+      setError(A_M_561_2, String.format("Aborted because schemaFolder is mandatory (%s)", path));
+      return;
+    }
+
+    if(tableFolder == null || tableFolder.isEmpty()){
+      setError(A_M_561_2, String.format("Aborted because tableFolder is mandatory (%s)", path));
+      return;
+    }
 
     try {
       XMLInputFactory factory = XMLInputFactory.newInstance();
@@ -181,10 +190,10 @@ public class MetadataColumnsValidator extends MetadataValidator {
               String fileName = streamReader.getAttributeValue(null, "file");
               if (!fileName.isEmpty()) {
                 if (getZipFile().getEntry(fileName) == null) {
-                  setError(M_561_3, String.format("not found record '%s' required by '%s'", fileName,
+                  setError(A_M_561_2, String.format("not found record '%s' required by '%s'", fileName,
                     String.format("%s [row: %s column: %s]", pathToTableColumn, Integer.toString(rowNumber), column)));
                 } else if (folder == null || folder.isEmpty()) {
-                  addWarning(M_561_3, String.format("lobFolder must be set for column type  %s", type), path);
+                  addWarning(A_M_561_2, String.format("lobFolder must be set for column type  %s", type), path);
                 }
               }
             }
@@ -194,24 +203,22 @@ public class MetadataColumnsValidator extends MetadataValidator {
     } catch (XMLStreamException e) {
       String errorMessage = "Unable to read table.xml";
       LOGGER.debug(errorMessage, e);
-      return false;
-    }
-
-    return true;
-  }
-
-  private void noticeTypeOriginalUsed() {
-    if (!typeOriginalSet.isEmpty()) {
-      addNotice(M_561_5, String.format("Different data types used %s", typeOriginalSet.toString()), "");
     }
   }
 
   /**
-   * M_5.6-1-12 The column name in SIARD file must not be empty.
-   *
-   * @return true if valid otherwise false
+   * A_M_5.6-1-5
+   */
+  private void noticeTypeOriginalUsed() {
+    if (!typeOriginalSet.isEmpty()) {
+      addNotice(A_M_561_5, String.format("Different data types used %s", typeOriginalSet.toString()), "");
+    }
+  }
+
+  /**
+   * A_M_5.6-1-12 The column name in SIARD file must not be empty.
    */
   private void validateColumnDescription(String description, String path) {
-    validateXMLField(M_561_12, description, Constants.DESCRIPTION, false, true, path);
+    validateXMLField(A_M_561_12, description, Constants.DESCRIPTION, false, true, path);
   }
 }

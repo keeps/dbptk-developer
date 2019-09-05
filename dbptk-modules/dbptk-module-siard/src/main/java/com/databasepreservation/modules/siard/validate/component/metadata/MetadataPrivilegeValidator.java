@@ -29,11 +29,14 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
   private static final String M_519 = "5.19";
   private static final String M_519_1 = "M_5.19-1";
   private static final String M_519_1_1 = "M_5.19-1-1";
-  private static final String M_519_1_2 = "M_5.19-1-2";
+  private static final String A_M_519_1_1 = "A_M_5.19-1-1";
+  private static final String A_M_519_1_2 = "A_M_5.19-1-2";
   private static final String M_519_1_3 = "M_5.19-1-3";
+  private static final String A_M_519_1_3 = "A_M_5.19-1-3";
   private static final String M_519_1_4 = "M_5.19-1-4";
-  private static final String M_519_1_5 = "M_5.19-1-5";
-  private static final String M_519_1_6 = "M_5.19-1-6";
+  private static final String A_M_519_1_4 = "A_M_5.19-1-4";
+  private static final String A_M_519_1_5 = "A_M_5.19-1-5";
+  private static final String A_M_519_1_6 = "A_M_5.19-1-6";
 
   private static final String PRIVILEGE = "privilege";
   private static final String OBJECT = "object";
@@ -127,6 +130,7 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
 
   private NodeList users;
   private NodeList roles;
+  private List<Element> privilegesList = new ArrayList<>();
   private List<String> objectPath = new ArrayList<>();
   private String databaseProduct = COMMON;
   private Map<String, List<String>> databaseProductList = new HashMap<>();
@@ -213,7 +217,8 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
     databaseProductList.put(OPEN_EDGE, new ArrayList<String>());
     databaseProductList.put(SYBASE, new ArrayList<String>());
 
-    setCodeListToValidate(M_519_1, M_519_1_1, M_519_1_2, M_519_1_3, M_519_1_4, M_519_1_5, M_519_1_6);
+    setCodeListToValidate(M_519_1, M_519_1_1, A_M_519_1_1, A_M_519_1_2, M_519_1_3, A_M_519_1_3, M_519_1_4, A_M_519_1_4,
+      A_M_519_1_5, A_M_519_1_6);
   }
 
   @Override
@@ -226,11 +231,7 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
 
     getValidationReporter().moduleValidatorHeader(M_519, MODULE_NAME);
 
-    if (!validateMandatoryXSDFields(M_519_1, PRIVILEGE_TYPE, "/ns:siardArchive/ns:privileges/ns:privilege")) {
-      reportValidations(M_519_1, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
+    validateMandatoryXSDFields(M_519_1, PRIVILEGE_TYPE, "/ns:siardArchive/ns:privileges/ns:privilege");
 
     if (!readXMLMetadataPrivilegeLevel()) {
       reportValidations(M_519_1, MODULE_NAME);
@@ -239,11 +240,13 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
     }
     closeZipFile();
 
-    if (reportValidations(MODULE_NAME)) {
+    if (privilegesList.isEmpty()) {
+      getValidationReporter().skipValidation(M_519_1, "Database has no privileges");
       metadataValidationPassed(MODULE_NAME);
       return true;
     }
-    return false;
+
+    return reportValidations(MODULE_NAME);
   }
 
   private boolean readXMLMetadataPrivilegeLevel() {
@@ -278,30 +281,28 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
         XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
       for (int i = 0; i < nodes.getLength(); i++) {
-        Element role = (Element) nodes.item(i);
+        Element privilege = (Element) nodes.item(i);
+        privilegesList.add(privilege);
         String path = buildPath(PRIVILEGE, Integer.toString(i));
 
-        String type = XMLUtils.getChildTextContext(role, Constants.TYPE);
-        if (!validatePrivilegeType(type, path))
-          continue; // next privilege
+        String type = XMLUtils.getChildTextContext(privilege, Constants.TYPE);
+        validatePrivilegeType(type, path);
 
-        String object = XMLUtils.getChildTextContext(role, OBJECT);
-        if (!validatePrivilegeObject(object, path))
-          continue; // next privilege
+        String object = XMLUtils.getChildTextContext(privilege, OBJECT);
+        if (object != null) {
+          validatePrivilegeObject(object, path);
+        }
 
-        String grantor = XMLUtils.getChildTextContext(role, GRANTOR);
-        if (!validatePrivilegeGrantor(grantor, path))
-          continue; // next privilege
+        String grantor = XMLUtils.getChildTextContext(privilege, GRANTOR);
+        validatePrivilegeGrantor(grantor, path);
 
-        String grantee = XMLUtils.getChildTextContext(role, GRANTEE);
-        if (!validatePrivilegeGrantee(grantee, path))
-          continue; // next privilege
+        String grantee = XMLUtils.getChildTextContext(privilege, GRANTEE);
+        validatePrivilegeGrantee(grantee, path);
 
-        String option = XMLUtils.getChildTextContext(role, OPTION);
-        if (!validatePrivilegeOption(option, path))
-          continue; // next privilege
+        String option = XMLUtils.getChildTextContext(privilege, OPTION);
+        validatePrivilegeOption(option, path);
 
-        String description = XMLUtils.getChildTextContext(role, Constants.DESCRIPTION);
+        String description = XMLUtils.getChildTextContext(privilege, Constants.DESCRIPTION);
         validatePrivilegeDescription(description, path);
       }
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
@@ -338,13 +339,15 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
   }
 
   /**
-   * M_5.19-1-1 The privilege type field in SIARD should be a common DBMS type,
-   * ERROR if it is empty, WARNING if it is not a common type
+   * M_5.19-1-1 The privilege type is mandatory in SIARD specification
+   *
+   * A_M_5.19-1-1 The privilege type field in SIARD should be a common DBMS type
    * 
    * @return true if valid otherwise false
    */
   private boolean validatePrivilegeType(String type, String privilegeNode) {
     if (!validateXMLField(M_519_1_1, type, Constants.TYPE, true, false, privilegeNode)) {
+      setError(A_M_519_1_1, String.format("Aborted because privilege type is mandatory (%s)", privilegeNode));
       return false;
     }
 
@@ -365,12 +368,12 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
       }
     }
 
-    addNotice(M_519_1_1, String.format("Privilege type '%s' is not a common type", type), privilegeNode);
+    addNotice(A_M_519_1_1, String.format("Privilege type '%s' is not a common type", type), privilegeNode);
     return true;
   }
 
   /**
-   * M_5.19-1-2 The privilege object field in SIARD should be an existing object
+   * A_M_5.19-1-2 The privilege object field in SIARD should be an existing object
    * in database. WARNING if object does not exist on database
    */
   private boolean validatePrivilegeObject(String object, String privilegeNode) {
@@ -382,47 +385,53 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
     }
 
     if (!objectPath.contains(path)) {
-      addWarning(M_519_1_2, String.format("Privilege object '%s' does not exist on database", path), privilegeNode);
+      addWarning(A_M_519_1_2, String.format("Privilege object '%s' does not exist on database", path), privilegeNode);
     }
 
     return true;
   }
 
   /**
-   * M_5.19-1-3 The privilege grantor field in SIARD should be an existing user or
-   * role. ERROR if it is empty, WARNING it not exist user or role
+   * M_5.19-1-3 The privilege grantor is mandatory in SIARD specification
+   *
+   * A_M_5.19-1-3 The privilege grantor field in SIARD should be an existing user
+   * or role. ERROR if it is empty, WARNING it not exist user or role
    *
    * @return true if valid otherwise false
    */
   private boolean validatePrivilegeGrantor(String grantor, String privilegeNode) {
     if (!validateXMLField(M_519_1_3, grantor, GRANTOR, true, false, privilegeNode)) {
+      setError(A_M_519_1_3, String.format("Aborted because privilege grantor is mandatory (%s)", privilegeNode));
       return false;
     }
     if (!checkIfUserOrRoleExist(grantor)) {
-      addWarning(M_519_1_3, String.format("Grantor %s should be an existing user or role", grantor), privilegeNode);
+      addWarning(A_M_519_1_3, String.format("Grantor %s should be an existing user or role", grantor), privilegeNode);
     }
     return true;
   }
 
   /**
-   * M_5.19-1-4 The privilege grantee field in SIARD should be an existing user or
-   * role. ERROR if it is empty, WARNING it not exist user or role
+   * M_5.19-1-4 The privilege grantee is mandatory in SIARD specification
+   *
+   * A_M_5.19-1-4 The privilege grantee field in SIARD should be an existing user
+   * or role
    * 
    * @return true if valid otherwise false
    */
   private boolean validatePrivilegeGrantee(String grantee, String privilegeNode) {
     if (!validateXMLField(M_519_1_4, grantee, GRANTOR, true, false, privilegeNode)) {
+      setError(A_M_519_1_4, String.format("Aborted because privilege grantee is mandatory (%s)", privilegeNode));
       return false;
     }
     if (!checkIfUserOrRoleExist(grantee)) {
-      addWarning(M_519_1_4, String.format("Grantee %s should be an existing user or role", grantee), privilegeNode);
+      addWarning(A_M_519_1_4, String.format("Grantee %s should be an existing user or role", grantee), privilegeNode);
     }
     return true;
   }
 
   /**
-   * M_5.19-1-5 The privilege option field in SIARD should be 'ADMIN', 'GRANT' or
-   * empty.
+   * A_M_5.19-1-5 The privilege option field in SIARD should be 'ADMIN', 'GRANT'
+   * or empty.
    */
   private boolean validatePrivilegeOption(String option, String privilegeNode) {
     if (option != null && !option.isEmpty()) {
@@ -431,7 +440,7 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
         case OPTION_GRANT:
           break;
         default:
-          addWarning(M_519_1_5,
+          addWarning(A_M_519_1_5,
             String.format("option should be %s, %s or empty. Found '%s'", OPTION_ADMIN, OPTION_GRANT, option),
             privilegeNode);
       }
@@ -440,11 +449,11 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
   }
 
   /**
-   * M_5.19-1-6 The privilege description field in SIARD file should not be less
+   * A_M_5.19-1-6 The privilege description field in SIARD file should not be less
    * than 3 characters. WARNING if it is less than 3 characters
    */
   private void validatePrivilegeDescription(String description, String privilegeNode) {
-    validateXMLField(M_519_1_6, description, Constants.DESCRIPTION, false, true, privilegeNode);
+    validateXMLField(A_M_519_1_6, description, Constants.DESCRIPTION, false, true, privilegeNode);
   }
 
   private boolean checkIfUserOrRoleExist(String name) {

@@ -28,13 +28,13 @@ public class MetadataAttributeValidator extends MetadataValidator {
   private static final String M_54 = "5.4";
   private static final String M_541 = "M_5.4-1";
   private static final String M_541_1 = "M_5.4-1-1";
-  private static final String M_541_8 = "M_5.4-1-8";
+  private static final String A_M_541_8 = "A_M_5.4-1-8";
 
   private List<Element> attributeList = new ArrayList<>();
 
   public MetadataAttributeValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_541, M_541_1, M_541_8);
+    setCodeListToValidate(M_541, M_541_1, A_M_541_8);
   }
 
   @Override
@@ -47,19 +47,15 @@ public class MetadataAttributeValidator extends MetadataValidator {
 
     getValidationReporter().moduleValidatorHeader(M_54, MODULE_NAME);
 
+    validateMandatoryXSDFields(M_541, ATTRIBUTE_TYPE,
+      "/ns:siardArchive/ns:schemas/ns:schema/ns:types/ns:type/ns:attributes/ns:attribute");
+
     if (!readXMLMetadataAttributeLevel()) {
       reportValidations(M_541, MODULE_NAME);
       closeZipFile();
       return false;
     }
     closeZipFile();
-
-    if (!validateMandatoryXSDFields(M_541, ATTRIBUTE_TYPE,
-      "/ns:siardArchive/ns:schemas/ns:schema/ns:types/ns:type/ns:attributes/ns:attribute")) {
-      reportValidations(M_541, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
 
     // there is no need to continue the validation if no have attributes in any type
     // field of schema
@@ -70,12 +66,7 @@ public class MetadataAttributeValidator extends MetadataValidator {
       return true;
     }
 
-    if (reportValidations(MODULE_NAME)) {
-      metadataValidationPassed(MODULE_NAME);
-      return true;
-    }
-
-    return false;
+    return reportValidations(MODULE_NAME);
   }
 
   private boolean readXMLMetadataAttributeLevel() {
@@ -100,10 +91,7 @@ public class MetadataAttributeValidator extends MetadataValidator {
           String attributeName = XMLUtils.getChildTextContext(attribute, Constants.NAME);
           String description = XMLUtils.getChildTextContext(attribute, Constants.DESCRIPTION);
 
-          if (!validateAttributeName(attributeName, path)) {
-            continue; // next attribute
-          }
-
+          validateAttributeName(attributeName, path);
           validateAttributeDescription(description, path + buildPath(Constants.ATTRIBUTE, attributeName));
         }
       }
@@ -119,19 +107,17 @@ public class MetadataAttributeValidator extends MetadataValidator {
   }
 
   /**
-   * M_5.4-1-1 The attribute name in SIARD file must not be empty.
-   *
-   * @return true if valid otherwise false
+   * M_5.4-1-1 The attribute name is mandatory in SIARD 2.1 specification
    */
-  private boolean validateAttributeName(String name, String path) {
-    return validateXMLField(M_541_1, name, Constants.NAME, true, false, path);
+  private void validateAttributeName(String name, String path) {
+    validateXMLField(M_541_1, name, Constants.NAME, true, false, path);
   }
 
   /**
-   * M_5.4-1-8 The attribute description in SIARD file must not be less than 3
+   * A_M_5.4-1-8 The attribute description in SIARD file must not be less than 3
    * characters. WARNING if it is less than 3 characters
    */
   private void validateAttributeDescription(String description, String path) {
-    validateXMLField(M_541_8, description, Constants.DESCRIPTION, false, true, path);
+    validateXMLField(A_M_541_8, description, Constants.DESCRIPTION, false, true, path);
   }
 }

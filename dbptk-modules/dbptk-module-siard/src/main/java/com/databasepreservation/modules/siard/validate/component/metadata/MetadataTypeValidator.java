@@ -31,13 +31,13 @@ public class MetadataTypeValidator extends MetadataValidator {
   private static final String M_531_2 = "M_5.3-1-2";
   private static final String M_531_5 = "M_5.3-1-5";
   private static final String M_531_6 = "M_5.3-1-6";
-  private static final String M_531_10 = "M_5.3-1-10";
+  private static final String A_M_531_10 = "A_M_5.3-1-10";
 
   private List<Element> typesList = new ArrayList<>();
 
   public MetadataTypeValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_531, M_531_1, M_531_2, M_531_5, M_531_6, M_531_10);
+    setCodeListToValidate(M_531, M_531_1, M_531_2, M_531_5, M_531_6, A_M_531_10);
   }
 
   @Override
@@ -50,11 +50,7 @@ public class MetadataTypeValidator extends MetadataValidator {
 
     getValidationReporter().moduleValidatorHeader(M_53, MODULE_NAME);
 
-    if (!validateMandatoryXSDFields(M_531, TYPE_TYPE, "/ns:siardArchive/ns:schemas/ns:schema/ns:types/ns:type")) {
-      reportValidations(M_531, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
+    validateMandatoryXSDFields(M_531, TYPE_TYPE, "/ns:siardArchive/ns:schemas/ns:schema/ns:types/ns:type");
 
     if (!readXMLMetadataTypeLevel()) {
       reportValidations(M_531, MODULE_NAME);
@@ -71,11 +67,7 @@ public class MetadataTypeValidator extends MetadataValidator {
       return true;
     }
 
-    if (reportValidations(MODULE_NAME)) {
-      metadataValidationPassed(MODULE_NAME);
-      return true;
-    }
-    return false;
+    return reportValidations(MODULE_NAME);
   }
 
   private boolean readXMLMetadataTypeLevel() {
@@ -97,19 +89,12 @@ public class MetadataTypeValidator extends MetadataValidator {
         String description = XMLUtils.getChildTextContext(type, Constants.DESCRIPTION);
 
         String path = buildPath(Constants.SCHEMA, schema, Constants.TYPE, Integer.toString(i));
-        if (!validateTypeName(name, path))
-          continue; // next type
+        validateTypeName(name, path);
 
         path = buildPath(Constants.SCHEMA, schema, Constants.TYPE, name);
-        if (!validateTypeCategory(category, path))
-          continue; // next type
-
-        if (!validateTypeInstantiable(instantiable, path))
-          continue; // next type
-
-        if (!validateTypefinal(finalField, path))
-          continue; // next type
-
+        validateTypeCategory(category, path);
+        validateTypeInstantiable(instantiable, path);
+        validateTypeFinal(finalField, path);
         validateTypeDescription(description, path);
       }
 
@@ -124,53 +109,57 @@ public class MetadataTypeValidator extends MetadataValidator {
   }
 
   /**
-   * M_5.3-1-1 The type name in the schema must not be empty. ERROR when it is
-   * empty
-   *
-   * @return true if valid otherwise false
+   * M_5.3-1-1 The type name is mandatory in SIARD 2.1 specification
    */
-  private boolean validateTypeName(String typeName, String path) {
-    return validateXMLField(M_531_1, typeName, Constants.NAME, true, false, path);
+  private void validateTypeName(String typeName, String path) {
+    validateXMLField(M_531_1, typeName, Constants.NAME, true, false, path);
   }
 
   /**
-   * M_5.3-1-2 The type category in the schema must not be empty. ERROR when it is
-   * empty
+   * M_5.3-1-2 The type category is mandatory in SIARD 2.1 specification
    *
-   * @return true if valid otherwise false
+   * must be distinct or udt
    */
-  private boolean validateTypeCategory(String category, String path) {
-    return validateXMLField(M_531_2, category, Constants.CATEGORY, true, false, path);
+  private void validateTypeCategory(String category, String path) {
+    if(category == null || category.isEmpty()){
+      setError(M_531_2, buildErrorMessage(Constants.CATEGORY, path));
+    } else if (!category.equals(Constants.DISTINCT) && !category.equals(Constants.UDT)){
+      setError(M_531_2, String.format("type category must be 'distinct' or 'udt' (%s)", path));
+    }
   }
 
   /**
-   * M_5.3-1-5 The type instantiable field in the schema must not be empty. ERROR
-   * when it is empty
+   * M_5.3-1-5 The type instantiable is mandatory in SIARD 2.1 specification
    *
-   * @return true if valid otherwise false
+   * must be true or false
    */
-
-  private boolean validateTypeInstantiable(String instantiable, String path) {
-    return validateXMLField(M_531_5, instantiable, Constants.TYPE_INSTANTIABLE, true, false, path);
+  private void validateTypeInstantiable(String instantiable, String path) {
+    if(instantiable == null || instantiable.isEmpty()){
+      setError(M_531_5, buildErrorMessage(Constants.TYPE_INSTANTIABLE, path));
+    } else if (!instantiable.equals(Constants.TRUE) && !instantiable.equals(Constants.FALSE)){
+      setError(M_531_5, String.format("type instantiable must be 'true' or 'false' (%s)", path));
+    }
   }
 
   /**
-   * M_5.3-1-6 The type final field in the schema must not be empty. ERROR when it
-   * is empty
+   * M_5.3-1-6 The type final field is mandatory in SIARD 2.1 specification
    *
-   * @return true if valid otherwise false
+   * must be true or false
    */
-  private boolean validateTypefinal(String typeFinal, String path) {
-    return validateXMLField(M_531_6, typeFinal, Constants.TYPE_FINAL, true, false, path);
+  private void validateTypeFinal(String typeFinal, String path) {
+    if(typeFinal == null || typeFinal.isEmpty()){
+      setError(M_531_6, buildErrorMessage(Constants.TYPE_INSTANTIABLE, path));
+    } else if (!typeFinal.equals(Constants.TRUE) && !typeFinal.equals(Constants.FALSE)) {
+      setError(M_531_6, String.format("type final must be 'true' or 'false' (%s)", path));
+    }
   }
 
   /**
-   * M_5.3-1-10 The type description field in the schema must not be must not be
+   * A_M_5.3-1-10 The type description field in the schema must not be must not be
    * less than 3 characters. WARNING if it is less than 3 characters
-   *
    */
   private void validateTypeDescription(String description, String path) {
-    validateXMLField(M_531_10, description, Constants.DESCRIPTION, false, true, path);
+    validateXMLField(A_M_531_10, description, Constants.DESCRIPTION, false, true, path);
   }
 
 }

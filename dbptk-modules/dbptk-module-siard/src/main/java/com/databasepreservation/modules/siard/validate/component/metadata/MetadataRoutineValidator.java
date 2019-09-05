@@ -1,7 +1,9 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -27,15 +29,17 @@ public class MetadataRoutineValidator extends MetadataValidator {
   private static final String M_515 = "5.15";
   private static final String M_515_1 = "M_5.15-1";
   private static final String M_515_1_1 = "M_5.15-1-1";
-  private static final String M_515_1_2 = "M_5.15-1-2";
+  private static final String A_M_515_1_1 = "A_M_5.15-1-1";
+  private static final String A_M_515_1_2 = "M_5.15-1-2";
 
   private static final String SPECIFIC_NAME = "specificName";
 
   private Set<String> checkDuplicates = new HashSet<>();
+  private List<Element> routineList = new ArrayList<>();
 
   public MetadataRoutineValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_515_1, M_515_1_1, M_515_1_2);
+    setCodeListToValidate(M_515_1, M_515_1_1, A_M_515_1_1, A_M_515_1_2);
   }
 
   @Override
@@ -48,12 +52,8 @@ public class MetadataRoutineValidator extends MetadataValidator {
 
     getValidationReporter().moduleValidatorHeader(M_515, MODULE_NAME);
 
-    if (!validateMandatoryXSDFields(M_515_1, ROUTINE_TYPE,
-      "/ns:siardArchive/ns:schemas/ns:schema/ns:routines/ns:routine")) {
-      reportValidations(M_515_1, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
+    validateMandatoryXSDFields(M_515_1, ROUTINE_TYPE,
+      "/ns:siardArchive/ns:schemas/ns:schema/ns:routines/ns:routine");
 
     if (!readXMLMetadataRoutineLevel()) {
       reportValidations(M_515_1, MODULE_NAME);
@@ -62,11 +62,13 @@ public class MetadataRoutineValidator extends MetadataValidator {
     }
     closeZipFile();
 
-    if (reportValidations(MODULE_NAME)) {
+    if (routineList.isEmpty()) {
+      getValidationReporter().skipValidation(M_515_1, "Database has no routine");
       metadataValidationPassed(MODULE_NAME);
       return true;
     }
-    return false;
+
+    return reportValidations(MODULE_NAME);
   }
 
   private boolean readXMLMetadataRoutineLevel() {
@@ -77,12 +79,12 @@ public class MetadataRoutineValidator extends MetadataValidator {
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element routine = (Element) nodes.item(i);
+        routineList.add(routine);
         String schema = XMLUtils.getParentNameByTagName(routine, Constants.ROUTINE);
         String path = buildPath(Constants.SCHEMA, schema, Constants.ROUTINE, Integer.toString(i));
 
         String name = XMLUtils.getChildTextContext(routine, SPECIFIC_NAME);
-        if (!validateRoutineName(name, path))
-          continue; //next view
+        validateRoutineName(name, path);
 
         path = buildPath(Constants.SCHEMA, schema, Constants.ROUTINE, name);
         String description = XMLUtils.getChildTextContext(routine, Constants.DESCRIPTION);
@@ -99,30 +101,25 @@ public class MetadataRoutineValidator extends MetadataValidator {
   }
 
   /**
-   * M_5.15-1-1 The routine name in SIARD file must be unique. ERROR when it is
-   * empty or not unique
+   * M_515_1_1 is mandatory in SIARD 2.1 specification
    *
-   * @return true if valid otherwise false
+   * A_M_5.15-1-1 The routine name in SIARD file must be unique.
    */
-  private boolean validateRoutineName(String name, String path) {
-    // M_515_1
-    if (!validateXMLField(M_515_1, name, Constants.ROUTINE, true, false, path)) {
-      return false;
+  private void validateRoutineName(String name, String path) {
+    if(validateXMLField(M_515_1_1, name, Constants.ROUTINE, true, false, path)){
+      if (!checkDuplicates.add(name)) {
+        setError(A_M_515_1_1, String.format("Routine specificName %s must be unique (%s)", name, path));
+      }
+      return;
     }
-    // M_5.15-1-1
-    if (!checkDuplicates.add(name)) {
-      setError(M_515_1_1, String.format("Routine specificName %s must be unique (%s)", name, path));
-      return false;
-    }
-
-    return true;
+    setError(A_M_515_1_1, String.format("Aborted because specificName is mandatory (%s)", path));
   }
 
   /**
-   * M_5.15-1-2 The routine description in SIARD file must not be less than 3
+   * A_M_5.15-1-2 The routine description in SIARD file must not be less than 3
    * characters. WARNING if it is less than 3 characters
    */
   private void validateRoutineDescription(String description, String path) {
-    validateXMLField(M_515_1_2, description, Constants.DESCRIPTION, false, true, path);
+    validateXMLField(A_M_515_1_2, description, Constants.DESCRIPTION, false, true, path);
   }
 }

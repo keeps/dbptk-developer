@@ -15,10 +15,10 @@ import org.slf4j.LoggerFactory;
 import com.databasepreservation.common.ValidationObserver;
 import com.databasepreservation.common.ValidatorPathStrategy;
 import com.databasepreservation.model.Reporter;
-import com.databasepreservation.model.modules.validate.components.ValidatorComponent;
-import com.databasepreservation.model.modules.validate.components.ValidatorComponentFactory;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.validate.ValidateModule;
+import com.databasepreservation.model.modules.validate.components.ValidatorComponent;
+import com.databasepreservation.model.modules.validate.components.ValidatorComponentFactory;
 import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.modules.DefaultExceptionNormalizer;
 import com.databasepreservation.modules.siard.validate.common.path.ValidatorPathStrategyImpl;
@@ -100,10 +100,10 @@ public class SIARDValidateModule implements ValidateModule {
       component.setAllowedUTD(allowedUDTs);
       component.setup();
       component.validate();
-      //if (!component.validate()) {
-       // validationReporter.close();
-        //return false;
-      //}
+      // if (!component.validate()) {
+      // validationReporter.close();
+      // return false;
+      // }
       component.clean();
     }
 

@@ -1,6 +1,7 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,6 +20,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.modules.siard.bindings.siard_2_1.SiardArchive;
 import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 import com.databasepreservation.utils.XMLUtils;
 
@@ -37,7 +39,7 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
   static final String COLUMN_TYPE = "columnType";
   static final String FIELD_TYPE = "fieldType";
   static final String UNIQUE_KEY_TYPE = "uniqueKeyType";
-  static final String FOREIGN_KEYS_TYPE = "uniqueKeyType";
+  static final String FOREIGN_KEYS_TYPE = "foreignKeyType";
   static final String REFERENCE_TYPE = "referenceType";
   static final String CHECK_CONSTRAINT_TYPE = "checkConstraintType";
   static final String TRIGGER_TYPE = "triggerType";
@@ -52,7 +54,7 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
   private Map<String, List<Map<String, String>>> warnings = new HashMap<>();
   private Map<String, List<Map<String, String>>> notices = new HashMap<>();
   private Map<String, List<String>> errors = new HashMap<>();
-  // private Map<String, String> error = new HashMap<>();
+  private boolean failed = false;
 
   void setCodeListToValidate(String... codeIDList) {
     Collections.addAll(codeList, codeIDList);
@@ -60,26 +62,28 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
 
   boolean reportValidations(String moduleName) {
     for (String codeId : codeList) {
-      if (!reportValidations(codeId, moduleName)) {
-        return false;
-      }
+      reportValidations(codeId, moduleName);
     }
+    if (failed) {
+      observer.notifyFinishValidationModule(moduleName, ValidationReporter.Status.FAILED);
+      getValidationReporter().moduleValidatorFinished(moduleName, ValidationReporter.Status.ERROR);
+      return false;
+    }
+    metadataValidationPassed(moduleName);
     return true;
   }
 
   /**
    * search through the codeID for errors, warnings or notice, if found write on
-   * reporter and notyfy the observer
-   * 
-   * @return true if found warning, notice or nothing. False if have error
+   * reporter and notify the observer
    */
-  boolean reportValidations(String codeID, String moduleName) {
+  void reportValidations(String codeID, String moduleName) {
+    boolean codeIdFailed = false;
     if (errors.get(codeID) != null && !errors.get(codeID).isEmpty()) {
       for (String error : errors.get(codeID)) {
         getValidationReporter().validationStatus(codeID, ValidationReporter.Status.ERROR, error);
+        codeIdFailed = failed = true;
       }
-      metadataValidationFailed(moduleName, codeID);
-      return false;
     } else if ((warnings.get(codeID) != null) && !warnings.get(codeID).isEmpty()) {
       for (Map<String, String> entry : warnings.get(codeID)) {
         for (Map.Entry<String, String> warning : entry.entrySet()) {
@@ -94,20 +98,17 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
       }
     }
 
-    observer.notifyValidationStep(moduleName, codeID, ValidationReporter.Status.OK);
-    getValidationReporter().validationStatus(codeID, ValidationReporter.Status.OK);
-    return true;
+    if (codeIdFailed) {
+      observer.notifyValidationStep(moduleName, codeID, ValidationReporter.Status.ERROR);
+    } else {
+      observer.notifyValidationStep(moduleName, codeID, ValidationReporter.Status.OK);
+      getValidationReporter().validationStatus(codeID, ValidationReporter.Status.OK);
+    }
   }
 
   void metadataValidationPassed(String moduleName) {
     getValidationReporter().moduleValidatorFinished(moduleName, ValidationReporter.Status.PASSED);
     observer.notifyFinishValidationModule(moduleName, ValidationReporter.Status.PASSED);
-  }
-
-  private void metadataValidationFailed(String moduleName, String codeID) {
-    getValidationReporter().moduleValidatorFinished(moduleName, ValidationReporter.Status.ERROR);
-    observer.notifyValidationStep(moduleName, codeID, ValidationReporter.Status.ERROR);
-    observer.notifyFinishValidationModule(moduleName, ValidationReporter.Status.FAILED);
   }
 
   /**
@@ -146,7 +147,7 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateMandatoryXMLField(String value) {
-    return value != null && !value.isEmpty();
+    return value != null && !value.trim().isEmpty();
   }
 
   /**
@@ -156,7 +157,7 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateXMLFieldSize(String value) {
-    return value != null && value.length() >= MIN_FIELD_LENGTH;
+    return value != null && !value.trim().isEmpty() && value.length() >= MIN_FIELD_LENGTH;
   }
 
   /**
@@ -165,8 +166,12 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
    * @return warning message with XML path or null if not exist any warning
    */
   private String buildWarningMessage(String field, String value) {
-    if (value == null || value.isEmpty()) {
+    if (value == null) {
+      return String.format("The %s element not exist", field);
+    } else if (value.isEmpty()) {
       return String.format("The %s is empty", field);
+    } else if (value.trim().isEmpty()) {
+      return String.format("The %s contains only spaces", field);
     } else if (!validateXMLFieldSize(value)) {
       return String.format("The %s '%s' has less than %d characters", field, value, MIN_FIELD_LENGTH);
     }
@@ -178,7 +183,7 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
    * 
    * @return error message with XML path
    */
-  private String buildErrorMessage(String field, String path) {
+  public String buildErrorMessage(String field, String path) {
     return String.format("The %s is mandatory inside %s", field, path);
   }
 
@@ -256,28 +261,33 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
     try {
       String xsdExpression;
       if (level.equals(SIARD_ARCHIVE)) {
-        xsdExpression = "/xs:schema/xs:element[@name='siardArchive']/xs:complexType/xs:sequence/xs:element[@type='mandatoryString']";
+        xsdExpression = "/xs:schema/xs:element[@name='siardArchive']/xs:complexType/xs:sequence/xs:element[not(@minOccurs='0')]";
       } else {
-        xsdExpression = "/xs:schema/xs:complexType[@name='" + level
-          + "']/xs:sequence/xs:element[@type='mandatoryString']";
+        xsdExpression = "/xs:schema/xs:complexType[@name='" + level + "']/xs:sequence/xs:element[not(@minOccurs='0')]";
       }
 
-      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXSDPath()),
-        xsdExpression, XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+      final InputStream XSDInputStream = SiardArchive.class.getClassLoader()
+        .getResourceAsStream("schema/siard2-1-metadata.xsd");
+
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(XSDInputStream, xsdExpression, XPathConstants.NODESET,
+        Constants.NAMESPACE_FOR_METADATA);
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element element = (Element) nodes.item(i);
         String mandatoryItemName = element.getAttribute(Constants.NAME);
 
         NodeList nodesToValidate = (NodeList) XMLUtils.getXPathResult(
-          getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), xmlExpresion + "/ns:" + mandatoryItemName,
-          XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+          getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), xmlExpresion, XPathConstants.NODESET,
+          Constants.NAMESPACE_FOR_METADATA);
 
+        if(nodesToValidate.getLength() == 0){
+          setError(codeID, String.format("Nothing found in this path %s", xmlExpresion));
+          return false;
+        }
         for (int j = 0; j < nodesToValidate.getLength(); j++) {
-          String itemToValidate = nodesToValidate.item(j).getTextContent();
-          if (itemToValidate == null || itemToValidate.isEmpty()) {
+          Element itemToValidate = XMLUtils.getChild((Element) nodesToValidate.item(j), mandatoryItemName);
+          if (itemToValidate == null) {
             setError(codeID, String.format("Mandatory item '%s' must be set (%s)", mandatoryItemName, xmlExpresion));
-            return false;
           }
         }
       }

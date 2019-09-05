@@ -30,8 +30,11 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
   private static final String M_591 = "M_5.9-1";
   private static final String M_591_1 = "M_5.9-1-1";
   private static final String M_591_2 = "M_5.9-1-2";
+  private static final String A_M_591_2 = "A_M_5.9-1-2";
   private static final String M_591_3 = "M_5.9-1-3";
-  private static final String M_591_8 = "M_5.9-1-8";
+  private static final String A_M_591_3 = "A_M_5.9-1-3";
+  private static final String M_591_4 = "M_5.9-1-4";
+  private static final String A_M_591_8 = "A_M_5.9-1-8";
 
   private List<Element> foreignKeyList = new ArrayList<>();
   private List<String> tableList = new ArrayList<>();
@@ -40,7 +43,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
 
   public MetadataForeignKeyValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_591, M_591_1, M_591_2, M_591_3, M_591_8);
+    setCodeListToValidate(M_591, M_591_1, M_591_2, A_M_591_2, M_591_3, A_M_591_3, M_591_4, A_M_591_8);
   }
 
   @Override
@@ -56,12 +59,8 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
     schemaList = getListOfSchemas();
     tableList = getListOfTables();
 
-    if (!validateMandatoryXSDFields(M_591, FOREIGN_KEYS_TYPE,
-      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:foreignKeys/ns:foreignKey")) {
-      reportValidations(M_591, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
+    validateMandatoryXSDFields(M_591, FOREIGN_KEYS_TYPE,
+      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:foreignKeys/ns:foreignKey");
 
     if (!readXMLMetadataForeignKeyLevel()) {
       reportValidations(M_591, MODULE_NAME);
@@ -76,11 +75,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
       return true;
     }
 
-    if (reportValidations(MODULE_NAME)) {
-      metadataValidationPassed(MODULE_NAME);
-      return true;
-    }
-    return false;
+    return reportValidations(MODULE_NAME);
   }
 
   private boolean readXMLMetadataForeignKeyLevel() {
@@ -103,28 +98,22 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
         for (int j = 0; j < foreignKeyNodes.getLength(); j++) {
           Element foreignKey = (Element) foreignKeyNodes.item(j);
           foreignKeyList.add(foreignKey);
-          String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.FOREIGN_KEY, Integer.toString(j));
+          String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.FOREIGN_KEY,
+            Integer.toString(j));
 
           String name = XMLUtils.getChildTextContext(foreignKey, Constants.NAME);
-          if (!validateForeignKeyName(table, name, path))
-            continue; // next foreign key
+          validateForeignKeyName(name, path);
 
           path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.FOREIGN_KEY, name);
 
           String referencedSchema = XMLUtils.getChildTextContext(foreignKey, Constants.FOREIGN_KEY_REFERENCED_SCHEMA);
-          if (!validateForeignKeyReferencedSchema(referencedSchema, path))
-            continue; // next foreign key
+          validateForeignKeyReferencedSchema(referencedSchema, path);
 
           String referencedTable = XMLUtils.getChildTextContext(foreignKey, Constants.FOREIGN_KEY_REFERENCED_TABLE);
-          if (!validateForeignKeyReferencedTable(referencedTable, name))
-            continue; // next foreign key
+          validateForeignKeyReferencedTable(referencedTable, name);
 
           String reference = XMLUtils.getChildTextContext(foreignKey, Constants.FOREIGN_KEY_REFERENCE);
-          // * M_5.9-1 Foreign key referencedTable is mandatory.(SIARD specification)
-          if (reference == null || reference.isEmpty()) {
-            setError(M_591, String.format("Reference is mandatory (%s)", path));
-            continue; // next foreign key
-          }
+          validateForeignKeyReference(reference, path);
 
           String description = XMLUtils.getChildTextContext(foreignKey, Constants.DESCRIPTION);
           validateForeignKeyDescription(description, path);
@@ -177,68 +166,62 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
   }
 
   /**
-   * M_5.9-1-1 The Foreign Key name in SIARD file must be unique. ERROR if not
-   * unique
+   * M_5.9-1-1 The Foreign Key name is mandatory in SIARD 2.1 specification
    *
-   * @return true if valid otherwise false
+   * A_M_5.9-1-1 The Foreign Key name in SIARD file must be unique. ERROR if not
+   * unique
    */
-  private boolean validateForeignKeyName(String table, String name, String path) {
-    // * M_5.9-1 Foreign key name is mandatory.(SIARD specification)
-    if (name == null || name.isEmpty()) {
-      setError(M_591, String.format("Foreign key name is required (%s)", path));
-      return false; // next foreign key
-    }
+  private void validateForeignKeyName(String name, String path) {
+    validateXMLField(M_591_1, name, Constants.NAME, true, false, path);
     if (!checkDuplicates.add(name)) {
       setError(M_591_1, String.format("Foreign key name %s must be unique (%s)", name, path));
-      return false;
     }
-
-    return true;
   }
 
   /**
-   * M_5.9-1-2 The Schema in referencedSchema must exist. ERROR if not exist
+   * M_5.9-1-2 The Foreign Key referenced schema is mandatory in SIARD 2.1
+   * specification
    *
-   * @return true if valid otherwise false
+   * A_M_5.9-1-2 validation if this schema exists
    */
-  private boolean validateForeignKeyReferencedSchema(String referencedSchema, String path) {
-    // * M_5.9-1 Foreign key referencedSchema is mandatory.(SIARD specification)
-    if (referencedSchema == null || referencedSchema.isEmpty()) {
-      setError(M_591, String.format("ReferencedSchema is mandatory (%s)", path));
-      return false;
+  private void validateForeignKeyReferencedSchema(String referencedSchema, String path) {
+    if(validateXMLField(M_591_2, referencedSchema, Constants.FOREIGN_KEY_REFERENCED_SCHEMA, true, false, path)){
+      if (!schemaList.contains(referencedSchema)) {
+        setError(A_M_591_2, String.format("ReferencedSchema %s does not exist on database (%s)", referencedSchema, path));
+      }
+      return;
     }
-
-    if (!schemaList.contains(referencedSchema)) {
-      setError(M_591_2, String.format("ReferencedSchema %s does not exist on database (%s)", referencedSchema, path));
-      return false;
-    }
-    return true;
+    setError(A_M_591_2, String.format("Aborted because referencedSchema is mandatory (%s)", path));
   }
 
   /**
-   * M_5.9-1-3 The Table in referencedTable must exist. ERROR if not exist
-   *
-   * @return true if valid otherwise false
+   * M_5.9-1-3 The Foreign Key referenced table is mandatory in SIARD 2.1
+   * specification
+   * 
+   * A_M_5.9-1-3 validation if this table exists
    */
-  private boolean validateForeignKeyReferencedTable(String referencedTable, String path) {
-    // * M_5.9-1 Foreign key referencedTable is mandatory.(SIARD specification)
-    if (referencedTable == null || referencedTable.isEmpty()) {
-      setError(M_591, String.format("ReferencedTable is mandatory (%s)", path));
-      return false;
+  private void validateForeignKeyReferencedTable(String referencedTable, String path) {
+    if(validateXMLField(M_591_3, referencedTable, Constants.FOREIGN_KEY_REFERENCED_TABLE, true, false, path)){
+      if (!tableList.contains(referencedTable)) {
+        setError(A_M_591_3, String.format("ReferencedTable %s does not exist on database (%s)", referencedTable, path));
+      }
+      return;
     }
-    if (!tableList.contains(referencedTable)) {
-      setError(M_591_3, String.format("ReferencedTable %s does not exist on database (%s)", referencedTable, path));
-      return false;
-    }
-
-    return true;
+    setError(A_M_591_3, String.format("Aborted because referencedTable is mandatory (%s)", path));
   }
 
   /**
-   * M_5.9-1-8 The foreign key description in SIARD file must not be less than 3
+   * M_5.9-1-4 The Foreign Key reference is mandatory in SIARD 2.1 specification
+   */
+  private void validateForeignKeyReference(String reference, String path) {
+    validateXMLField(M_591_4, reference, Constants.FOREIGN_KEY_REFERENCE, true, false, path);
+  }
+
+  /**
+   * A_M_5.9-1-8 The foreign key description in SIARD file must not be less than 3
    * characters. WARNING if it is less than 3 characters
    */
   private void validateForeignKeyDescription(String description, String path) {
-    validateXMLField(M_591_8, description, Constants.DESCRIPTION, false, true, path);
+    validateXMLField(A_M_591_8, description, Constants.DESCRIPTION, false, true, path);
   }
 }

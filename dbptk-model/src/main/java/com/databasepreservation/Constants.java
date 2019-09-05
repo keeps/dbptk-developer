@@ -139,4 +139,8 @@ public class Constants {
   public static final String CHARACTER_LARGE_OBJECT = "CHARACTER LARGE OBJECT";
   public static final String BINARY_LARGE_OBJECT = "BINARY LARGE OBJECT";
 
+  /* MISC */
+  public static final String TRUE = "true";
+  public static final String FALSE = "false";
+
 }

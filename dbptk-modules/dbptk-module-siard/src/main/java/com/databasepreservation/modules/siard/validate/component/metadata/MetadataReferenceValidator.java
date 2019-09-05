@@ -30,7 +30,9 @@ public class MetadataReferenceValidator extends MetadataValidator {
   private static final String M_510 = "5.10";
   private static final String M_510_1 = "M_5.10-1";
   private static final String M_510_1_1 = "M_5.10-1-1";
+  private static final String A_M_510_1_1 = "A_M_5.10-1-1";
   private static final String M_510_1_2 = "M_5.10-1-2";
+  private static final String A_M_510_1_2 = "A_M_5.10-1-2";
 
   private static final String REFERENCE = "reference";
   private static final String REFERENCED_TABLE = "referencedTable";
@@ -44,7 +46,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
 
   public MetadataReferenceValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_510_1, M_510_1_1, M_510_1_2);
+    setCodeListToValidate(M_510_1, M_510_1_1, A_M_510_1_1, M_510_1_2, A_M_510_1_2);
     populateSQL2008Types();
   }
 
@@ -58,12 +60,8 @@ public class MetadataReferenceValidator extends MetadataValidator {
 
     getValidationReporter().moduleValidatorHeader(M_510, MODULE_NAME);
 
-    if (!validateMandatoryXSDFields(M_510_1, REFERENCE_TYPE,
-      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:foreignKeys/ns:foreignKey/ns:reference")) {
-      reportValidations(M_510_1, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
+    validateMandatoryXSDFields(M_510_1, REFERENCE_TYPE,
+      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:foreignKeys/ns:foreignKey/ns:reference");
 
     if (!readXMLMetadataReferenceLevel()) {
       reportValidations(M_510_1, MODULE_NAME);
@@ -72,11 +70,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
     }
     closeZipFile();
 
-    if (reportValidations(MODULE_NAME)) {
-      metadataValidationPassed(MODULE_NAME);
-      return true;
-    }
-    return false;
+    return reportValidations(MODULE_NAME);
   }
 
   private boolean readXMLMetadataReferenceLevel() {
@@ -104,16 +98,17 @@ public class MetadataReferenceValidator extends MetadataValidator {
           NodeList referenceNodes = foreignKeyElement.getElementsByTagName(REFERENCE);
           for (int k = 0; k < referenceNodes.getLength(); k++) {
             Element reference = (Element) referenceNodes.item(k);
-            String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.FOREIGN_KEY,
-              foreignKey);
+            String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.FOREIGN_KEY, foreignKey,
+              Constants.FOREIGN_KEY_REFERENCE, Integer.toString(k));
 
             String column = XMLUtils.getChildTextContext(reference, Constants.COLUMN);
-            if (!validateColumn(table, column))
-              continue; // next reference
-
-            String referenced = XMLUtils.getChildTextContext(reference, REFERENCED_COLUMN);
-            if (!validateReferencedColumn(table, referencedTable, column, referenced, foreignKey))
-              continue; // next reference
+            if(validateColumn(table, column, path)){
+              String referenced = XMLUtils.getChildTextContext(reference, REFERENCED_COLUMN);
+              validateReferencedColumn(table, referencedTable, column, referenced, foreignKey, path);
+            } else {
+              setError(M_510_1_2, String.format("Unable to validate, column does not exist (%s)", path));
+              setError(A_M_510_1_2, String.format("Unable to validate, column does not exist (%s)", path));
+            }
           }
         }
 
@@ -181,71 +176,97 @@ public class MetadataReferenceValidator extends MetadataValidator {
   }
 
   /**
-   * M_5.10-1-1 The column in reference must exist on table. ERROR if not exist
+   * M_5.10-1-1 The column in reference is mandatory in SIARD 2.1 specification
+   *
+   * A_M_5.10-1-1 The column in reference must exist on table. ERROR if not exist
    *
    * @return true if valid otherwise false
    */
-  private boolean validateColumn(String table, String column) {
-    if (column == null || column.isEmpty()) {
-      setError(M_510_1_1, String.format("Column is required (%s)", path));
-      return false;
+  private boolean validateColumn(String table, String column, String path) {
+    if(validateXMLField(M_510_1_1, column, Constants.COLUMN, true, false, path)){
+      if (tableColumnsList.get(table).get(column) == null) {
+        setError(A_M_510_1_1,
+                String.format("referenced column name %s does not exist on referenced table %s", column, table));
+        return false;
+      }
+      return true;
     }
-    if (tableColumnsList.get(table).get(column) == null) {
-      setError(M_510_1_1,
-        String.format("referenced column name %s does not exist on referenced table %s", column, table));
-      return false;
-    }
-    return true;
+    setError(A_M_510_1_1, String.format("Aborted because referenced column name is mandatory (%s)", path));
+    return false;
   }
 
   /**
-   * M_5.10-1-2 The referenced column in reference must exist on table. ERROR if
-   * not exist
+   * M_5.10-1-2 The referenced column is mandatory in SIARD 2.1 specification
    *
-   * Additional check 1: Validation that fk and reference table pk have identical
-   * data types
+   * A_M_5.10-1-2: Validation that fk and reference table pk have identical data
+   * types
    *
    * @return true if valid otherwise false
    */
   private boolean validateReferencedColumn(String foreignKeyTable, String referencedTable, String column,
-    String referencedColumn, String foreignKey) {
-    HashMap<String, String> referencedColumnTable = tableColumnsList.get(referencedTable);
-    HashMap<String, String> foreignKeyColumnTable = tableColumnsList.get(foreignKeyTable);
-    List<String> primaryKeyColumns = primaryKeyList.get(referencedTable);
-    List<String> candidateKeyColumns = candidateKeyList.get(referencedTable);
+    String referencedColumn, String foreignKey, String path) {
+    HashMap<String, String> referencedColumnTable = new HashMap<>();
+    HashMap<String, String> foreignKeyColumnTable = new HashMap<>();
+    List<String> primaryKeyColumns = new ArrayList<>();
+    List<String> candidateKeyColumns = new ArrayList<>();
 
-    if (referencedColumn == null || referencedColumn.isEmpty()) {
-      setError(M_510_1_2, String.format("Referenced column is required (%s)", path));
+    if (!validateXMLField(M_510_1_2, referencedColumn, REFERENCED_COLUMN, true, false, path)) {
+      setError(A_M_510_1_2, String.format("Unable to validate, referenced does not exist (%s)", path));
       return false;
     }
+
+    if(referencedTable == null || tableColumnsList.get(referencedTable) == null){
+      setError(A_M_510_1_2, String.format("Unable to validate, referenced table does not exist (%s)", path));
+      return false;
+    }
+
+    if(foreignKeyTable == null || tableColumnsList.get(foreignKeyTable) == null){
+      setError(A_M_510_1_2, String.format("Unable to validate, foreign key table does not exist (%s)", path));
+      return false;
+    }
+
+    referencedColumnTable = tableColumnsList.get(referencedTable);
+    foreignKeyColumnTable = tableColumnsList.get(foreignKeyTable);
+    primaryKeyColumns = primaryKeyList.get(referencedTable);
+    candidateKeyColumns = candidateKeyList.get(referencedTable);
 
     // M_5.10-1-2
     if (referencedColumnTable.get(referencedColumn) == null) {
-      setError(M_510_1_2, String.format("referenced column name %s of table %s does not exist on referenced table %s",
+      setError(A_M_510_1_2, String.format("referenced column name %s of table %s does not exist on referenced table %s",
         referencedColumn, foreignKeyTable, referencedTable));
-      return false;
     }
 
+    // Additional check
     String foreignKeyType = foreignKeyColumnTable.get(column);
     if (primaryKeyColumns != null && primaryKeyColumns.contains(referencedColumn)) {
-      // Additional check 1
       for (String primaryKey : primaryKeyColumns) {
         String primaryKeyType = referencedColumnTable.get(primaryKey);
 
+        if (primaryKeyType == null) {
+          setError(A_M_510_1_2, String.format("Unable to find primary key type referencedTable:%s/primaryKey:%s in %s",
+            referencedTable, primaryKey, path));
+          return false;
+        }
+
         if (!checkType(foreignKeyType, primaryKeyType)) {
-          setError(M_510_1_2,
+          setError(A_M_510_1_2,
             String.format("Foreign Key %s.%s type %s does not match with type %s of Primary Key %s.%s", foreignKeyTable,
               foreignKey, foreignKeyType, primaryKeyType, referencedTable, primaryKey));
           return false;
         }
       }
     } else if (candidateKeyColumns != null && candidateKeyColumns.contains(referencedColumn)) {
-      // Additional check 1
       for (String candidateKey : candidateKeyColumns) {
         String candidateKeyType = referencedColumnTable.get(candidateKey);
 
+        if (candidateKeyType == null) {
+          setError(A_M_510_1_2, String.format("Unable to find candidate key type referencedTable:%s/candidateKey:%s in %s",
+                  referencedTable, candidateKey, path));
+          return false;
+        }
+
         if (!checkType(foreignKeyType, candidateKeyType)) {
-          setError(M_510_1_2,
+          setError(A_M_510_1_2,
             String.format("Foreign Key %s.%s type %s does not match with type %s of Candidate Key %s.%s",
               foreignKeyTable, foreignKey, foreignKeyType, candidateKeyType, referencedTable, candidateKey));
           return false;
@@ -257,9 +278,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
   }
 
   /**
-   * Additional check 1
-   *
-   * Checks whether the foreign key type is compatible with the referenced key
+   * * Checks whether the foreign key type is compatible with the referenced key
    * type
    *
    * The types are separated into groups and are only compatible if the groups are

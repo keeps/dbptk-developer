@@ -28,15 +28,15 @@ public class MetadataFieldValidator extends MetadataValidator {
   private static final String M_57 = "5.7";
   private static final String M_571 = "M_5.7-1";
   private static final String M_571_1 = "M_5.7-1-1";
-  private static final String M_571_2 = "M_5.7-1-2";
-  private static final String M_571_5 = "M_5.7-1-5";
+  private static final String A_M_571_2 = "A_M_5.7-1-2";
+  private static final String A_M_571_5 = "A_M_5.7-1-5";
   private static final String ARRAY = "ARRAY";
 
   private List<Element> fieldList = new ArrayList<>();
 
   public MetadataFieldValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_571, M_571_1, M_571_2, M_571_5);
+    setCodeListToValidate(M_571, M_571_1, A_M_571_2, A_M_571_5);
   }
 
   @Override
@@ -49,12 +49,8 @@ public class MetadataFieldValidator extends MetadataValidator {
 
     getValidationReporter().moduleValidatorHeader(M_57, MODULE_NAME);
 
-    if (!validateMandatoryXSDFields(M_571, FIELD_TYPE,
-      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column/ns:fields/ns:field")) {
-      reportValidations(M_571, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
+    validateMandatoryXSDFields(M_571, FIELD_TYPE,
+      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column/ns:fields/ns:field");
 
     if (!readXMLMetadataFieldLevel()) {
       reportValidations(M_571, MODULE_NAME);
@@ -70,12 +66,7 @@ public class MetadataFieldValidator extends MetadataValidator {
       return true;
     }
 
-    if (reportValidations(MODULE_NAME)) {
-      metadataValidationPassed(MODULE_NAME);
-      return true;
-    }
-
-    return false;
+    return reportValidations(MODULE_NAME);
   }
 
   private boolean readXMLMetadataFieldLevel() {
@@ -149,19 +140,17 @@ public class MetadataFieldValidator extends MetadataValidator {
 
       // M_5.7-1-1
       String name = XMLUtils.getChildTextContext(field, Constants.NAME);
-      if (!validateFieldName(name, path))
-        continue; // next field
+      validateFieldName(name, path);
 
       // build path with field name in SIARD for log errors
       path = buildPath(Constants.SCHEMA, schemaName, Constants.TABLE, tableName, Constants.COLUMN, columnName,
         Constants.FIELD, name);
 
-      // M_5.7-1 and M_5.7-1-2
+      // A_M_5.7-1-2
       String lobFolder = XMLUtils.getChildTextContext(field, Constants.LOB_FOLDER);
-      if (!validateType(columnTypeName, columnTypeSchema, columnTypeOriginal, name, lobFolder, path))
-        continue; // next field
+      validateType(columnTypeName, columnTypeSchema, columnTypeOriginal, name, lobFolder, path);
 
-      // M_5.7-1-2
+      // A_M_5.7-1-5
       String description = XMLUtils.getChildTextContext(field, Constants.DESCRIPTION);
       validateFieldDescription(description, path);
 
@@ -186,17 +175,15 @@ public class MetadataFieldValidator extends MetadataValidator {
 
   /**
    * find the type of column or field in the SIARD file and perform
-   * category(M_5.7-1) and lobFolder(M_5.7-1-2) validations
-   * 
-   * @return true if has a originalType or the category and the lobFolder are correctly otherwise false
+   * category and lobFolder validations(M_5.7-1-2)
    */
-  private boolean validateType(String columnTypeName, String columnTypeSchema, String columnTypeOriginal,
+  private void validateType(String columnTypeName, String columnTypeSchema, String columnTypeOriginal,
     String fieldName, String lobFolder, String path) {
 
     // if the originalType exists in the column and if it is an array, no need to
     // validate attribute category
     if (columnTypeOriginal != null && columnTypeOriginal.contains(ARRAY)) {
-      return true;
+      return;
     }
     try {
       String xPathExpression = String.format(
@@ -209,16 +196,15 @@ public class MetadataFieldValidator extends MetadataValidator {
       if (nodes.getLength() < 1) {
         setError(M_571,
           String.format("Field '%s' does not match with any attributes in the database (%s)", fieldName, path));
-        return false;
+        return;
       }
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element typeElement = (Element) nodes.item(i);
         String category = XMLUtils.getChildTextContext(typeElement, Constants.CATEGORY);
 
-        // M_5.7-1
         if (!validateTypeCategory(category, columnTypeName, path)) {
-          return false;
+          return;
         }
 
         xPathExpression = String.format(
@@ -234,9 +220,8 @@ public class MetadataFieldValidator extends MetadataValidator {
           String attributeType = XMLUtils.getChildTextContext(attribute, Constants.TYPE);
           String attributeTypeName = XMLUtils.getChildTextContext(attribute, Constants.TYPE_NAME);
 
-          // M_5.7-1-2
           if (!validateFieldLobFolder(lobFolder, attributeType, attributeTypeName, path)) {
-            return false;
+            return;
           }
         }
       }
@@ -244,13 +229,18 @@ public class MetadataFieldValidator extends MetadataValidator {
       String errorMessage = "Unable to read attributes from SIARD file";
       setError(M_571, errorMessage);
       LOGGER.debug(errorMessage, e);
-      return false;
     }
-    return true;
   }
 
   /**
-   * M_5.7-1 The following field metadata are stored in the metadata.xml file if a
+   * M_5.7-1-1 The field name is mandatory.(SIARD Format Specification)
+   */
+  private void validateFieldName(String name, String path) {
+    validateXMLField(M_571_1, name, Constants.NAME, true, false, path);
+  }
+
+  /**
+   * A_M_5.7-1-2 The following field metadata are stored in the metadata.xml file if a
    * column or a field is an advanced or structured data type of category
    * “distinct” or “udt”:
    *
@@ -259,30 +249,21 @@ public class MetadataFieldValidator extends MetadataValidator {
   private boolean validateTypeCategory(String category, String columnTypeName, String path) {
     if (columnTypeName != null) {
       if (category == null) {
-        setError(M_571, String.format("Type '%s' does not exist on SIARD file (%s)", columnTypeName, path));
+        setError(A_M_571_2, String.format("Type '%s' does not exist on SIARD file (%s)", columnTypeName, path));
         return false;
       } else if (!category.equals(Constants.DISTINCT) && !category.equals(Constants.UDT)) {
-        setError(M_571, String.format("Category of type '%s' must be DISTINCT or UDT (%s)", columnTypeName, path));
+        setError(A_M_571_2, String.format("Category of type '%s' must be DISTINCT or UDT (%s)", columnTypeName, path));
         return false;
       }
     } else {
-      setError(M_571, String.format("Column typeName must exist (%s)", path));
+      setError(A_M_571_2, String.format("Column typeName must exist (%s)", path));
       return false;
     }
     return true;
   }
 
   /**
-   * M_5.7-1-1 The field name is mandatory.(SIARD Format Specification)
-   *
-   * @return true if valid otherwise false
-   */
-  private boolean validateFieldName(String name, String path) {
-    return validateXMLField(M_571_1, name, Constants.NAME, true, false, path);
-  }
-
-  /**
-   * M_5.7-1-2 The field lobFolder is mandatory.(SIARD Format Specification)
+   * A_M_5.7-1-2 The field lobFolder is mandatory.(SIARD Format Specification)
    *
    * @return true if valid otherwise false
    */
@@ -290,22 +271,22 @@ public class MetadataFieldValidator extends MetadataValidator {
     String path) {
     String type = attributeType != null ? attributeType : attributeTypeName;
     if (type == null) {
-      setError(M_571_2, String.format("Attribute does not have a type or typeOriginal (%s)", path));
+      setError(A_M_571_2, String.format("Attribute does not have a type or typeOriginal (%s)", path));
       return false;
     } else if (!type.equals(Constants.CHARACTER_LARGE_OBJECT) && !type.equals(Constants.BINARY_LARGE_OBJECT)
       && !type.equals(Constants.BLOB) && !type.equals(Constants.CLOB) && !type.equals(Constants.XML_LARGE_OBJECT)) {
       return true;
     }
 
-    return validateXMLField(M_571_2, lobFolder, Constants.LOB_FOLDER, true, false, path);
+    return validateXMLField(A_M_571_2, lobFolder, Constants.LOB_FOLDER, true, false, path);
   }
 
   /**
-   * M_5.7-1-5 The field description in SIARD file should not be less than 3
+   * A_M_5.7-1-5 The field description in SIARD file should not be less than 3
    * characters. WARNING if it is less than 3 characters
    */
   private void validateFieldDescription(String description, String path) {
-    validateXMLField(M_571_5, description, Constants.DESCRIPTION, false, true, path);
+    validateXMLField(A_M_571_5, description, Constants.DESCRIPTION, false, true, path);
   }
 
 }
