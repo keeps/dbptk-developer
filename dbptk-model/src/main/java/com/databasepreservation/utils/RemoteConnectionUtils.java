@@ -23,7 +23,7 @@ import com.jcraft.jsch.Session;
 public class RemoteConnectionUtils {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RemoteConnectionUtils.class);
-  public static final Integer localPort = 4321;
+  private static Integer localPort;
   private static final String localHost = "localhost";
 
   public static String replaceHostAndPort(String connectionURL) {
@@ -42,8 +42,8 @@ public class RemoteConnectionUtils {
    *
    */
   public static Session createRemoteSession(String sshHost, String sshUser, String sshPassword, String sshPortNumber,
-    String connectionURL) throws ModuleException {
-
+    String connectionURL, int localPort) throws ModuleException {
+    RemoteConnectionUtils.localPort = localPort;
     int sshPort;
     if (sshPortNumber != null) {
       sshPort = Integer.parseInt(sshPortNumber);
@@ -65,7 +65,7 @@ public class RemoteConnectionUtils {
         LOGGER.debug("Establishing SSH Connection");
         session.connect();
 
-        int assigned_port = session.setPortForwardingL(RemoteConnectionUtils.localPort, remoteHost, remotePort);
+        int assigned_port = session.setPortForwardingL(getLocalPort(), remoteHost, remotePort);
         LOGGER.debug("localhost:{} -> {}:{}", assigned_port, remoteHost, remotePort);
 
         return session;
@@ -75,6 +75,10 @@ public class RemoteConnectionUtils {
     }
 
     return null;
+  }
+
+  public static int getLocalPort() {
+    return RemoteConnectionUtils.localPort;
   }
 
   private static String[] getRemoteHostAndPort(String connectionURL) {

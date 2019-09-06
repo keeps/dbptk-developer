@@ -60,6 +60,7 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.postgreSql.PostgreSQLExceptionNormalizer;
 import com.databasepreservation.modules.postgreSql.PostgreSQLHelper;
+import com.databasepreservation.utils.RemoteConnectionUtils;
 
 /**
  * <p>
@@ -146,6 +147,9 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
   protected Connection createConnection() throws ModuleException {
     Connection connection;
     try {
+      if (ssh) {
+        connectionURL = RemoteConnectionUtils.replaceHostAndPort(connectionURL);
+      }
       connection = DriverManager.getConnection(connectionURL);
       connection.setAutoCommit(false);
     } catch (SQLException e) {
@@ -604,7 +608,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       "SELECT obj_description(oid, 'pg_constraint') FROM pg_constraint WHERE conname = ? AND conrelid = ?::regclass")) {
       for (CheckConstraint checkConstraint : checkConstraints) {
         ps.setString(1, checkConstraint.getName());
-        ps.setString(2, schemaName + '.' + tableName);
+        ps.setString(2, sqlHelper.escapeSchemaName(schemaName) + '.' + sqlHelper.escapeTableName(tableName));
 
         try (ResultSet rs = ps.execute() ? ps.getResultSet() : null) {
           if (rs != null && rs.next()) {
@@ -629,7 +633,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       "SELECT obj_description(oid, 'pg_constraint') FROM pg_constraint WHERE conname = ? AND conrelid = ?::regclass")) {
       for (ForeignKey foreignKey : foreignKeys) {
         ps.setString(1, foreignKey.getName());
-        ps.setString(2, schemaName + '.' + tableName);
+        ps.setString(2, sqlHelper.escapeSchemaName(schemaName) + '.' + sqlHelper.escapeTableName(tableName));
 
         try (ResultSet rs = ps.execute() ? ps.getResultSet() : null) {
           if (rs != null && rs.next()) {
@@ -653,7 +657,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     try (PreparedStatement ps = getConnection().prepareStatement(
       "SELECT d.description FROM pg_proc p INNER JOIN pg_namespace n ON n.oid = p.pronamespace LEFT JOIN pg_description As d ON (d.objoid = p.oid ) WHERE n.nspname = ? and p.proname = ? LIMIT 1")) {
       for (RoutineStructure routine : routines) {
-        ps.setString(1, schemaName);
+        ps.setString(1, sqlHelper.escapeSchemaName(schemaName));
         ps.setString(2, routine.getName());
 
         try (ResultSet rs = ps.execute() ? ps.getResultSet() : null) {
@@ -702,7 +706,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
     try (PreparedStatement ps = getConnection().prepareStatement(
       "SELECT pg_catalog.obj_description(n.oid, 'pg_namespace') FROM pg_catalog.pg_namespace n WHERE n.nspname = ? LIMIT 1")) {
       for (SchemaStructure schema : schemas) {
-        ps.setString(1, schema.getName());
+        ps.setString(1, sqlHelper.escapeSchemaName(schema.getName()));
 
         try (ResultSet rs = ps.execute() ? ps.getResultSet() : null) {
           if (rs != null && rs.next()) {

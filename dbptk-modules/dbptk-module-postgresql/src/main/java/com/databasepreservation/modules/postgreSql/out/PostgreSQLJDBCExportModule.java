@@ -144,7 +144,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 
   public String createConnectionURL(String databaseName) {
     if (ssh) {
-      return createConnectionURL(hostname, RemoteConnectionUtils.localPort, databaseName, username, password, encrypt);
+      return createConnectionURL(hostname, RemoteConnectionUtils.getLocalPort(), databaseName, username, password, encrypt);
     }
     return createConnectionURL(hostname, port, databaseName, username, password, encrypt);
   }

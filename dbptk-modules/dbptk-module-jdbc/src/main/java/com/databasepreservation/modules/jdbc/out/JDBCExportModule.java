@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.databasepreservation.utils.PortUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -182,7 +183,7 @@ public class JDBCExportModule implements DatabaseExportModule {
     currentIsIgnoredSchema = false;
     this.ssh = ssh;
     if (ssh) {
-      RemoteConnectionUtils.createRemoteSession(sshHost, sshUser, sshPassword, sshPort, connectionURL);
+      RemoteConnectionUtils.createRemoteSession(sshHost, sshUser, sshPassword, sshPort, connectionURL, PortUtils.findFreePort());
     }
   }
 
