@@ -37,8 +37,8 @@ import com.databasepreservation.model.structure.type.UnsupportedDataType;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class Sql2008toXSDType {
-  private static final Map<String, String> sql2008toXSDconstant = new HashMap<String, String>();
-  private static final Map<String, String> sql2008toXSDregex = new HashMap<String, String>();
+  private static final Map<String, String> sql2008toXSDConstant = new HashMap<>();
+  private static final Map<String, String> sql2008toXSDRegex = new HashMap<>();
   private static final Map<Type, Boolean> largeObjects = new HashMap<>();
   private static final List<String> largeTypes = Arrays.asList("clobType", "blobType");
 
@@ -48,46 +48,46 @@ public class Sql2008toXSDType {
     // initialize sql2008 conversion tables
 
     // direct mapping
-    sql2008toXSDconstant.put("BINARY LARGE OBJECT", "blobType");
-    sql2008toXSDconstant.put("BINARY VARYING", "blobType");
-    sql2008toXSDconstant.put("BINARY", "blobType");
-    sql2008toXSDconstant.put("BIT VARYING", "blobType");
-    sql2008toXSDconstant.put("BIT", "blobType");
-    sql2008toXSDconstant.put("BLOB", "blobType");
-    sql2008toXSDconstant.put("BOOLEAN", "xs:boolean");
-    sql2008toXSDconstant.put("CHARACTER LARGE OBJECT", "clobType");
-    sql2008toXSDconstant.put("CHARACTER VARYING", "xs:string");
-    sql2008toXSDconstant.put("CHARACTER", "xs:string");
-    sql2008toXSDconstant.put("CLOB", "clobType");
-    sql2008toXSDconstant.put("DATE", "xs:date");
-    sql2008toXSDconstant.put("DECIMAL", "xs:decimal");
-    sql2008toXSDconstant.put("DOUBLE PRECISION", "xs:float");
-    sql2008toXSDconstant.put("DOUBLE", "xs:float");
-    sql2008toXSDconstant.put("FLOAT", "xs:float");
-    sql2008toXSDconstant.put("INTEGER", "xs:integer");
-    sql2008toXSDconstant.put("NATIONAL CHARACTER LARGE OBJECT", "clobType");
-    sql2008toXSDconstant.put("NATIONAL CHARACTER VARYING", "xs:string");
-    sql2008toXSDconstant.put("NATIONAL CHARACTER", "xs:string");
-    sql2008toXSDconstant.put("NUMERIC", "xs:decimal");
-    sql2008toXSDconstant.put("REAL", "xs:float");
-    sql2008toXSDconstant.put("SMALLINT", "xs:integer");
-    sql2008toXSDconstant.put("TIME WITH TIME ZONE", "timeType");
-    sql2008toXSDconstant.put("TIME", "timeType");
-    sql2008toXSDconstant.put("TIMESTAMP WITH TIME ZONE", "dateTimeType");
-    sql2008toXSDconstant.put("TIMESTAMP", "dateTimeType");
+    sql2008toXSDConstant.put("BINARY LARGE OBJECT", "blobType");
+    sql2008toXSDConstant.put("BINARY VARYING", "blobType");
+    sql2008toXSDConstant.put("BINARY", "blobType");
+    sql2008toXSDConstant.put("BIT VARYING", "blobType");
+    sql2008toXSDConstant.put("BIT", "blobType");
+    sql2008toXSDConstant.put("BLOB", "blobType");
+    sql2008toXSDConstant.put("BOOLEAN", "xs:boolean");
+    sql2008toXSDConstant.put("CHARACTER LARGE OBJECT", "clobType");
+    sql2008toXSDConstant.put("CHARACTER VARYING", "xs:string");
+    sql2008toXSDConstant.put("CHARACTER", "xs:string");
+    sql2008toXSDConstant.put("CLOB", "clobType");
+    sql2008toXSDConstant.put("DATE", "dateType");
+    sql2008toXSDConstant.put("DECIMAL", "xs:decimal");
+    sql2008toXSDConstant.put("DOUBLE PRECISION", "xs:float");
+    sql2008toXSDConstant.put("DOUBLE", "xs:float");
+    sql2008toXSDConstant.put("FLOAT", "xs:float");
+    sql2008toXSDConstant.put("INTEGER", "xs:integer");
+    sql2008toXSDConstant.put("NATIONAL CHARACTER LARGE OBJECT", "clobType");
+    sql2008toXSDConstant.put("NATIONAL CHARACTER VARYING", "xs:string");
+    sql2008toXSDConstant.put("NATIONAL CHARACTER", "xs:string");
+    sql2008toXSDConstant.put("NUMERIC", "xs:decimal");
+    sql2008toXSDConstant.put("REAL", "xs:float");
+    sql2008toXSDConstant.put("SMALLINT", "xs:integer");
+    sql2008toXSDConstant.put("TIME WITH TIME ZONE", "timeType");
+    sql2008toXSDConstant.put("TIME", "timeType");
+    sql2008toXSDConstant.put("TIMESTAMP WITH TIME ZONE", "dateTimeType");
+    sql2008toXSDConstant.put("TIMESTAMP", "dateTimeType");
 
     // mapping using regex
-    sql2008toXSDregex.put("^BIT VARYING\\(\\d+\\)$", "blobType");
-    sql2008toXSDregex.put("^BIT\\(\\d+\\)$", "blobType");
-    sql2008toXSDregex.put("^BINARY\\(\\d+\\)$", "blobType");
-    sql2008toXSDregex.put("^BINARY VARYING\\(\\d+\\)$", "blobType");
-    sql2008toXSDregex.put("^CHARACTER VARYING\\(\\d+\\)$", "xs:string");
-    sql2008toXSDregex.put("^CHARACTER\\(\\d+\\)$", "xs:string");
-    sql2008toXSDregex.put("^NATIONAL CHARACTER VARYING\\(\\d+\\)$", "xs:string");
-    sql2008toXSDregex.put("^NATIONAL CHARACTER\\(\\d+\\)$", "xs:string");
-    sql2008toXSDregex.put("^DECIMAL\\(\\d+(,\\d+)?\\)$", "xs:decimal");
-    sql2008toXSDregex.put("^FLOAT\\(\\d+\\)$", "xs:float");
-    sql2008toXSDregex.put("^NUMERIC\\(\\d+(,\\d+)?\\)$", "xs:decimal");
+    sql2008toXSDRegex.put("^BIT VARYING\\(\\d+\\)$", "blobType");
+    sql2008toXSDRegex.put("^BIT\\(\\d+\\)$", "blobType");
+    sql2008toXSDRegex.put("^BINARY\\(\\d+\\)$", "blobType");
+    sql2008toXSDRegex.put("^BINARY VARYING\\(\\d+\\)$", "blobType");
+    sql2008toXSDRegex.put("^CHARACTER VARYING\\(\\d+\\)$", "xs:string");
+    sql2008toXSDRegex.put("^CHARACTER\\(\\d+\\)$", "xs:string");
+    sql2008toXSDRegex.put("^NATIONAL CHARACTER VARYING\\(\\d+\\)$", "xs:string");
+    sql2008toXSDRegex.put("^NATIONAL CHARACTER\\(\\d+\\)$", "xs:string");
+    sql2008toXSDRegex.put("^DECIMAL\\(\\d+(,\\d+)?\\)$", "xs:decimal");
+    sql2008toXSDRegex.put("^FLOAT\\(\\d+\\)$", "xs:float");
+    sql2008toXSDRegex.put("^NUMERIC\\(\\d+(,\\d+)?\\)$", "xs:decimal");
   }
 
   /**
@@ -135,13 +135,13 @@ public class Sql2008toXSDType {
   public static String convert(String sql2008Type) {
     // try to find xsd corresponding to the sql2008 type in the constants
     // conversion table
-    String ret = sql2008toXSDconstant.get(sql2008Type);
+    String ret = sql2008toXSDConstant.get(sql2008Type);
 
     // if that failed, try to find xsd corresponding to the sql2008 type by
     // using
     // the regex in the regex conversion table
     if (ret == null) {
-      for (Map.Entry<String, String> entry : sql2008toXSDregex.entrySet()) {
+      for (Map.Entry<String, String> entry : sql2008toXSDRegex.entrySet()) {
         if (sql2008Type.matches(entry.getKey())) {
           ret = entry.getValue();
           break;
