@@ -1,5 +1,6 @@
 language: java
-jdk: oraclejdk12
+jdk: oraclejdk8
+dist: trusty
 
 services:
   - postgresql
