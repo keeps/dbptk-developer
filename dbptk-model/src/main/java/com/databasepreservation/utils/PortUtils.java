@@ -11,30 +11,34 @@ import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
 
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.PortAvailableNotFoundException;
+
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 public class PortUtils {
   // the ports below 1024 are system ports
-  private static final int MIN_PORT_NUMBER = 1024;
+  private static final int MIN_PORT_NUMBER = ConfigUtils.getProperty(1024, "dbptk.ssh.port.findmin");
 
   // the ports above 49151 are dynamic and/or private
-  private static final int MAX_PORT_NUMBER = 49151;
+  private static final int MAX_PORT_NUMBER = ConfigUtils.getProperty(49151, "dbptk.ssh.port.findmax");
 
   /**
-   * Finds a free port between
-   * {@link #MIN_PORT_NUMBER} and {@link #MAX_PORT_NUMBER}.
+   * Finds a free port between {@link #MIN_PORT_NUMBER} and
+   * {@link #MAX_PORT_NUMBER}.
    *
    * @return a free port
-   * @throw RuntimeException if a port could not be found
+   * @throw PortAvailableNotFoundException if a port could not be found
    */
-  public static int findFreePort() {
+  public static int findFreePort() throws ModuleException {
     for (int i = MIN_PORT_NUMBER; i <= MAX_PORT_NUMBER; i++) {
       if (available(i)) {
         return i;
       }
     }
-    throw new RuntimeException("Could not find an available port between " +
+    throw new PortAvailableNotFoundException(
+      "Could not find an available port between " +
         MIN_PORT_NUMBER + " and " + MAX_PORT_NUMBER);
   }
 
