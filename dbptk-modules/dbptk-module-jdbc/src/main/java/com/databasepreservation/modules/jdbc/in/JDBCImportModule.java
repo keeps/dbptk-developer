@@ -7,6 +7,42 @@
  */
 package com.databasepreservation.modules.jdbc.in;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.sql.Array;
+import java.sql.Blob;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.Date;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.sql.Statement;
+import java.sql.Struct;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.databasepreservation.Constants;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.Yaml;
+
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;
@@ -51,42 +87,9 @@ import com.databasepreservation.modules.SQLHelper;
 import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.MiscUtils;
+import com.databasepreservation.utils.PortUtils;
 import com.databasepreservation.utils.RemoteConnectionUtils;
 import com.jcraft.jsch.Session;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.sql.Array;
-import java.sql.Blob;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.Date;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
-import java.sql.Statement;
-import java.sql.Struct;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Luis Faria <lfaria@keep.pt>
@@ -97,6 +100,8 @@ public class JDBCImportModule implements DatabaseImportModule {
   private final String VIEW_NAME_PREFIX = "VIEW_";
   private final String CUSTOM_VIEW_NAME_PREFIX = "CUSTOM_VIEW_";
   // if fetch size is zero, then the driver decides the best fetch size
+  private static final Integer CUSTOM_VIEW_FETCH_BLOCK_SIZE = 1;
+  private static final Integer CUSTOM_VIEW_FETCH_LIMIT_SIZE = 5;
   protected static final Integer DEFAULT_ROW_FETCH_BLOCK_SIZE = ConfigUtils.getProperty(0,
     "dbptk.jdbc.fetchsize.default");
   protected static final Integer SMALL_ROW_FETCH_BLOCK_SIZE = ConfigUtils.getProperty(10, "dbptk.jdbc.fetchsize.small");
@@ -134,7 +139,9 @@ public class JDBCImportModule implements DatabaseImportModule {
   private String customViewsPath;
 
   // SSH Connection Parameters
-  private final boolean ssh;
+  protected final boolean ssh;
+
+  private boolean fetchWithViewAsTable = true;
 
   /**
    * Create a new JDBC import module
@@ -192,7 +199,9 @@ public class JDBCImportModule implements DatabaseImportModule {
       customViewsPath = queryList.toAbsolutePath().toString();
     }
     if (ssh) {
-      session = RemoteConnectionUtils.createRemoteSession(sshHost, sshUser, sshPassword, sshPortNumber, connectionURL);
+      session = RemoteConnectionUtils.createRemoteSession(sshHost, sshUser, sshPassword, sshPortNumber, connectionURL,
+        PortUtils.findFreePort());
+      LOGGER.debug("Local port: {} used for establishing the SSH connection", RemoteConnectionUtils.getLocalPort());
     }
   }
 
@@ -276,10 +285,51 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   public DatabaseStructure getSchemaInformation() throws ModuleException {
     moduleSettings = new ModuleSettings();
+    this.fetchWithViewAsTable = false;
     DatabaseStructure databaseStructure = getDatabaseStructure();
     closeConnection();
 
     return databaseStructure;
+  }
+
+  public List<String> testCustomViewQuery(String query) throws SQLException, ModuleException {
+    List<String> results = new ArrayList<>();
+    LOGGER.debug("query: " + query);
+    Statement st = getStatement();
+
+    st.setFetchSize(CUSTOM_VIEW_FETCH_BLOCK_SIZE);
+    st.setMaxRows(CUSTOM_VIEW_FETCH_LIMIT_SIZE);
+    StringBuilder row = new StringBuilder();
+    try {
+      final ResultSet resultSet = st.executeQuery(query);
+      ResultSetMetaData metadata = resultSet.getMetaData();
+      int columnCount = metadata.getColumnCount();
+      for (int i = 1; i <= columnCount; i++) {
+        if (i == columnCount) {
+          row.append(metadata.getColumnName(i));
+        } else {
+          row.append(metadata.getColumnName(i)).append(", ");
+        }
+      }
+      results.add(row.toString());
+      row = new StringBuilder();
+      while (resultSetNext(resultSet)) {
+        for (int i = 1; i <= columnCount; i++) {
+          if (i == columnCount) {
+            row.append(resultSet.getString(i));
+          } else {
+            row.append(resultSet.getString(i)).append(", ");
+          }
+        }
+        results.add(row.toString());
+        row = new StringBuilder();
+      }
+    } catch (SQLException sqlException) {
+      LOGGER.debug("Error executing query with default fetch size of {}", st.getFetchSize());
+      closeConnection();
+    }
+
+    return results;
   }
 
   /**
@@ -308,6 +358,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
     if (session != null) {
       session.disconnect();
+      session = null;
     }
 
     this.connection = null;
@@ -610,18 +661,21 @@ public class JDBCImportModule implements DatabaseImportModule {
         }
       }
     }
-    try (
-      ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"VIEW"})) {
-      while (rset.next()) {
-        String viewName = rset.getString(3);
-        String viewDescription = rset.getString(5);
 
-        if (getModuleSettings().isSelectedTable(schema.getName(), viewName)) {
-          LOGGER.info("Obtaining table structure for view " + schema.getName() + "." + viewName);
-          tables.add(getViewStructure(schema, viewName, tableIndex, viewDescription));
-          tableIndex++;
-        } else {
-          LOGGER.info("Ignoring view " + schema.getName() + "." + viewName);
+    if (this.fetchWithViewAsTable) {
+      try (
+        ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"VIEW"})) {
+        while (rset.next()) {
+          String viewName = rset.getString(3);
+          String viewDescription = rset.getString(5);
+
+          if (getModuleSettings().isSelectedTable(schema.getName(), viewName)) {
+            LOGGER.info("Obtaining table structure for view " + schema.getName() + "." + viewName);
+            tables.add(getViewStructure(schema, viewName, tableIndex, viewDescription));
+            tableIndex++;
+          } else {
+            LOGGER.info("Ignoring view " + schema.getName() + "." + viewName);
+          }
         }
       }
     }
