@@ -7,13 +7,6 @@
  */
 package com.databasepreservation.modules.postgreSql.in;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.DatabaseStructure;
@@ -26,6 +19,12 @@ import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCDatatypeImporter;
 import com.databasepreservation.modules.postgreSql.PostgreSQLExceptionNormalizer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -138,6 +137,8 @@ public class PostgreSQLJDBCDatatypeImporter extends JDBCDatatypeImporter {
     throws UnknownTypeException {
     if ("varbit".equals(typeName)) {
       return getBinaryType(typeName, columnSize, decimalDigits, numPrecRadix);
+    } else if ("tsvector".equals(typeName)) {
+      return getVarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
     } else {
       return super.getOtherType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
     }

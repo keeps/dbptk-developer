@@ -60,8 +60,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
   private static final String P_438 = "P_4.3-8";
   private static final String P_439 = "P_4.3-9";
   private static final String P_4310 = "P_4.3-10";
-  private static final String P_4311 = "P_4.3-11";
-  private static final String P_4312 = "P_4.3-12";
+  private static final String A_P_4310 = "A_P_4.3-10";
 
   private List<String> P_431_ERRORS = new ArrayList<>();
   private List<String> P_432_ERRORS = new ArrayList<>();
@@ -69,12 +68,9 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
   private List<String> P_434_ERRORS = new ArrayList<>();
   private List<String> P_435_ERRORS = new ArrayList<>();
   private List<String> P_436_ERRORS = new ArrayList<>();
-  private List<String> P_437_ERRORS = new ArrayList<>();
-  private List<String> P_438_ERRORS = new ArrayList<>();
   private List<String> P_439_ERRORS = new ArrayList<>();
   private List<String> P_4310_ERRORS = new ArrayList<>();
-  private List<String> P_4311_ERRORS = new ArrayList<>();
-  private List<String> P_4312_ERRORS = new ArrayList<>();
+  private List<String> A_P_4310_ERRORS = new ArrayList<>();
 
   private static HashMap<String, List<String>> SQL2008TypeMatchXMLType;
   private HashMap<SIARDContent, HashMap<String, String>> sql2008Type = new HashMap<>();
@@ -100,10 +96,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     P_434_ERRORS = null;
     P_435_ERRORS = null;
     P_436_ERRORS = null;
-    P_437_ERRORS = null;
     P_4310_ERRORS = null;
-    P_4311_ERRORS = null;
-    P_4312_ERRORS = null;
+    A_P_4310_ERRORS = null;
     SQL2008TypeMatchXMLType = null;
     sql2008Type = null;
     arrayType = null;
@@ -137,6 +131,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     getValidationReporter().moduleValidatorHeader(P_43, MODULE_NAME);
 
     if (validateMetadataStructure()) {
+      observer.notifyValidationStep(MODULE_NAME, P_431, Status.OK);
       getValidationReporter().validationStatus(P_431, Status.OK);
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_431, Status.ERROR);
@@ -190,108 +185,96 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       return false;
     }
 
-    if (validateNumberOfRows()) {
-      observer.notifyValidationStep(MODULE_NAME, P_435, Status.OK);
-      getValidationReporter().validationStatus(P_435, Status.OK);
+    if (validateArrayXMLDataTypeConversion()) {
+      skip(P_435);
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_435, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_435, MODULE_NAME, "", "Invalid path", P_435_ERRORS);
-      closeZipFile();
-      return false;
-    }
-
-    if (validateArrayXMLDataTypeConversion()) {
-      skip(P_436);
-    } else {
-      observer.notifyValidationStep(MODULE_NAME, P_436, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_436, Status.ERROR,
+      validationFailed(P_435, Status.ERROR,
         "Arrays are converted in the table[number].xsd schema files into a sequence of structured XML elements which are converted to the XML data type corresponding to the base type of the array.",
-        P_436_ERRORS, MODULE_NAME);
+        P_435_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
     if (validateUDTXMLDataTypeConversion()) {
-      skip(P_437);
+      skip(P_436);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_437, Status.ERROR);
+      observer.notifyValidationStep(MODULE_NAME, P_436, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_437, Status.ERROR,
+      validationFailed(P_436, Status.ERROR,
         "The named user-defined data type (UDT) is converted in the table[number].xsd schema files into a sequence of structured XML elements which are converted to the XML data type corresponding to the type of each attribute.",
-        P_437_ERRORS, MODULE_NAME);
+        P_436_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
     boolean result = validateNillableInformation();
     for (String warning : warnings) {
-      getValidationReporter().warning(P_438,
+      getValidationReporter().warning(P_437,
         "The nullable information on the column definitions in the metadata.xml must\n"
           + "be identical to that in the corresponding table[number].xsd file.",
         warning);
     }
     if (result) {
+      observer.notifyValidationStep(MODULE_NAME, P_437, Status.OK);
+      getValidationReporter().validationStatus(P_437, Status.OK);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, P_437, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
+      validationFailed(P_437, MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
+
+    if (validateColumnSequence()) {
       observer.notifyValidationStep(MODULE_NAME, P_438, Status.OK);
       getValidationReporter().validationStatus(P_438, Status.OK);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_438, Status.ERROR);
+      observer.notifyValidationStep(MODULE_NAME, P_438, Status.OK);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
       validationFailed(P_438, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
-    if (validateColumnSequence()) {
+    if (validateFieldSequenceInTableXSD()) {
       observer.notifyValidationStep(MODULE_NAME, P_439, Status.OK);
       getValidationReporter().validationStatus(P_439, Status.OK);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_439, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, P_439, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_439, MODULE_NAME);
+      validationFailed(P_439, Status.ERROR,
+        "The field sequence in the table definition of the metadata.xml must be identical to the field sequence in the corresponding table[number].xsd.",
+        P_439_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
-    if (validateFieldSequenceInMetadataXML()) {
+    if (validateNumberOfLinesInATable()) {
       observer.notifyValidationStep(MODULE_NAME, P_4310, Status.OK);
       getValidationReporter().validationStatus(P_4310, Status.OK);
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_4310, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
       validationFailed(P_4310, Status.ERROR,
-        "The field sequence in the type definition of a column of the metadata.xml must be identical to the corresponding attribute sequence in the type definition of the metadata.xml.",
+        "The number of lines in a table in metadata.xml must fit into the area specified in the corresponding table[number].xsd. The number of lines in a table in metadata.xml must be identical to the number of lines in the corresponding table[number].xml.",
         P_4310_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
-    if (validateFieldSequenceInTableXSD()) {
-      observer.notifyValidationStep(MODULE_NAME, P_4311, Status.OK);
-      getValidationReporter().validationStatus(P_4311, Status.OK);
+    if (validateNumberOfRows()) {
+      observer.notifyValidationStep(MODULE_NAME, A_P_4310, Status.OK);
+      getValidationReporter().validationStatus(A_P_4310, Status.OK);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_4311, Status.ERROR);
+      observer.notifyValidationStep(MODULE_NAME, A_P_4310, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_4311, Status.ERROR,
-        "The field sequence in the table definition of the metadata.xml must be identical to the field sequence in the corresponding table[number].xsd.",
-        P_4311_ERRORS, MODULE_NAME);
+      validationFailed(A_P_4310, Status.ERROR, "", P_4310_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
-    if (validateNumberOfLinesInATable()) {
-      observer.notifyValidationStep(MODULE_NAME, P_4312, Status.OK);
-      getValidationReporter().validationStatus(P_4312, Status.OK);
-    } else {
-      observer.notifyValidationStep(MODULE_NAME, P_4312, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_4312, Status.ERROR,
-        "The number of lines in a table in metadata.xml must fit into the area specified in the corresponding table[number].xsd. The number of lines in a table in metadata.xml must be identical to the number of lines in the corresponding table[number].xml.",
-        P_4312_ERRORS, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
     observer.notifyFinishValidationModule(MODULE_NAME, Status.PASSED);
     getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
     closeZipFile();
@@ -485,76 +468,6 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
   /**
    * P_4.3-5
    *
-   * The named ROW container type is converted in the table[number].xsd schema
-   * files into a sequence of structured XML elements <r1>, <r2>, … containing an
-   * entry for each field. The data type of each field is converted to the XML
-   * data type just like a column data type.
-   *
-   * Examining whether the number of rows in the header correspond to the actual
-   * number of rows in Content
-   *
-   * @return true if valid otherwise false
-   */
-  private boolean validateNumberOfRows() {
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
-    observer.notifyComponent("P_4.3-5", Status.START);
-
-    InputStream zipInputStream = null;
-    try {
-      // Count number of row element in table[number].xml
-      for (Map.Entry<SIARDContent, Integer> entry : numberOfRows.entrySet()) {
-        final String XMLPath = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(),
-          entry.getKey().getTable());
-
-        observer.notifyElementValidating(XMLPath);
-        zipInputStream = getZipInputStream(XMLPath);
-
-        XMLStreamReader streamReader = factory.createXMLStreamReader(zipInputStream);
-        int count = 0;
-        while (streamReader.hasNext()) {
-          streamReader.next();
-
-          if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
-            if (streamReader.getLocalName().equals("row")) {
-              count++;
-            }
-          }
-        }
-
-        if (entry.getValue() != count) {
-          String message = "Found $1 rows in $2 but expected were $3 rows";
-          message = message.replace("$1", String.valueOf(count));
-          message = message.replace("$2", XMLPath);
-          message = message.replace("$3", String.valueOf(entry.getValue()));
-          P_435_ERRORS.add(message);
-        }
-
-        zipInputStream.close();
-      }
-    } catch (IOException | XMLStreamException e) {
-      LOGGER.debug("Failed to validate {}", P_435, e);
-      return false;
-    }
-
-    if (zipInputStream != null) {
-      try {
-        zipInputStream.close();
-      } catch (IOException e) {
-        LOGGER.debug("Failed to validate {}", P_435, e);
-        return false;
-      }
-    }
-
-    return P_435_ERRORS.isEmpty();
-  }
-
-  /**
-   * P_4.3-6
-   *
    * The ARRAY container type is converted in the table[number].xsd schema files
    * into a sequence of structured XML elements <a1>, <a2>, … which are converted
    * to the XML data type corresponding to the base type of the array.
@@ -587,22 +500,22 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
             Element element = (Element) nodeList.item(i);
             final String xmlType = element.getAttributes().getNamedItem("type").getNodeValue();
             if (!validateSQL2008TypeWithXMLType(entry.getValue().get(column.getKey()), xmlType)) {
-              P_436_ERRORS
+              P_435_ERRORS
                 .add(obtainErrorMessage(entry.getValue().get(column.getKey()), xmlType, column.getKey(), XSDPath));
             }
           }
         } catch (IOException | XPathExpressionException | SAXException | ParserConfigurationException e) {
-          LOGGER.debug("Failed to validate {}", P_436, e);
+          LOGGER.debug("Failed to validate {}", P_435, e);
           return false;
         }
       }
     }
 
-    return P_436_ERRORS.isEmpty();
+    return P_435_ERRORS.isEmpty();
   }
 
   /**
-   * P_4.3-7
+   * P_4.3-6
    *
    * The named user-defined data type (UDT) is converted in the table[number].xsd
    * schema files into a sequence of structured XML elements <u1>, <u2>, … which
@@ -648,10 +561,10 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
               index++;
             }
             try {
-              P_437_ERRORS
+              P_436_ERRORS
                 .addAll(compareSQL2008DataTypeWithXMLType(entry.getKey(), advancedOrStructuredColumn.getKey(), map));
             } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
-              LOGGER.debug("Failed to validate {}", P_437, e);
+              LOGGER.debug("Failed to validate {}", P_436, e);
               return false;
             }
           }
@@ -659,11 +572,11 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       }
     }
 
-    return P_437_ERRORS.isEmpty();
+    return P_436_ERRORS.isEmpty();
   }
 
   /**
-   * P_4.3-8
+   * P_4.3-7
    *
    * The nullable information on the column definitions in the metadata.xml must
    * be identical to that in the corresponding table[number].xsd file.
@@ -679,19 +592,17 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
     }
-    observer.notifyComponent("P_4.3-8", Status.START);
+    observer.notifyComponent(P_437, Status.START);
 
     warnings.clear();
     int counter = 0;
 
-    InputStream zipInputStream;
     try {
       for (Map.Entry<SIARDContent, HashMap<String, String>> entry : numberOfNullable.entrySet()) {
         String XMLPath = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(), entry.getKey().getTable());
         observer.notifyElementValidating(XMLPath);
 
-        zipInputStream = getZipInputStream(XMLPath);
-        XMLStreamReader streamReader = factory.createXMLStreamReader(zipInputStream);
+        XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(XMLPath));
         HashMap<String, Integer> countColumnsMap = new HashMap<>();
 
         while (streamReader.hasNext()) {
@@ -714,9 +625,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
           }
         }
       }
-
     } catch (XMLStreamException e) {
-      LOGGER.debug("Failed to validate {}", P_438, e);
+      LOGGER.debug("Failed to validate {}", P_437, e);
       return false;
     }
 
@@ -727,7 +637,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
   }
 
   /**
-   * P_4.3-9
+   * P_4.3-8
    *
    * The column sequence in the metadata.xml must be identical to that in the
    * corresponding table[number].xsd.
@@ -744,49 +654,10 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
   }
 
   /**
-   * P_4.3-10
-   *
-   *
-   * The field sequence in the type definition of a column of the metadata.xml
-   * must be identical to the corresponding attribute sequence in the type
-   * definition of the metadata.xml.
-   *
-   * @return true if valid otherwise false
-   */
-  private boolean validateFieldSequenceInMetadataXML() {
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
-    for (Map.Entry<SIARDContent, HashMap<String, AdvancedOrStructuredColumn>> entry : advancedOrStructuredDataType
-      .entrySet()) {
-      for (Map.Entry<String, AdvancedOrStructuredColumn> advancedOrStructuredColumnEntry : entry.getValue()
-        .entrySet()) {
-        final List<Field> fields = advancedOrStructuredColumnEntry.getValue().getFields();
-        String key = advancedOrStructuredColumnEntry.getValue().getTypeSchema() + "."
-          + advancedOrStructuredColumnEntry.getValue().getTypeName();
-        final List<Attribute> attributes = types.get(key).getAttributes();
-
-        String errorMessage = validateFieldSequence(fields, attributes);
-        if (StringUtils.isNotBlank(errorMessage)) {
-          errorMessage = errorMessage.replace("$1", entry.getKey().getSchema());
-          errorMessage = errorMessage.replace("$2", entry.getKey().getTable());
-
-          P_4310_ERRORS.add(errorMessage);
-        }
-      }
-    }
-
-    return P_4310_ERRORS.isEmpty();
-  }
-
-  /**
-   * P_4.3-11
+   * P_4.3-9
    * 
    * The field sequence in the table definition of the metadata.xml must be
    * identical to the field sequence in the corresponding table[number].xsd.
-   * 
    * 
    * @return true if valid otherwise false
    */
@@ -811,21 +682,21 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
             Constants.NAMESPACE_FOR_TABLE);
           int count = Integer.parseInt(result);
           if (advancedOrStructuredColumnEntry.getValue().getFields().size() != count) {
-            P_4311_ERRORS
+            P_439_ERRORS
               .add("Different number of fields in " + advancedOrStructuredColumnEntry.getKey() + " at " + XSDPath);
           }
         } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
-          LOGGER.debug("Failed to validate {}", P_4311, e);
+          LOGGER.debug("Failed to validate {}", P_439, e);
           return false;
         }
       }
     }
 
-    return P_4311_ERRORS.isEmpty();
+    return P_439_ERRORS.isEmpty();
   }
 
   /**
-   * P_4.3-12
+   * P_4.3-10
    *
    * The number of lines in a table in metadata.xml must fit into the area
    * specified in the corresponding table[number].xsd. The number of lines in a
@@ -840,7 +711,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       return false;
     }
 
-    observer.notifyComponent("P_4.3-12", Status.START);
+    observer.notifyComponent(P_4310, Status.START);
     for (Map.Entry<SIARDContent, Integer> entry : numberOfRows.entrySet()) {
       String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(entry.getKey().getSchema(),
         entry.getKey().getTable());
@@ -850,11 +721,9 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
 
       observer.notifyElementValidating(XMLPath);
 
-      final InputStream zipInputStreamXML = getZipInputStream(XMLPath);
-      final InputStream zipInputStreamXSD = getZipInputStream(XSDPath);
       int rows = entry.getValue();
       try {
-        XMLStreamReader streamReader = factory.createXMLStreamReader(zipInputStreamXML);
+        XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(XMLPath));
         int numberOfRowsInXMLFile = 0;
         while (streamReader.hasNext()) {
           streamReader.next();
@@ -865,7 +734,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
           }
         }
 
-        Node result = (Node) XMLUtils.getXPathResult(zipInputStreamXSD,
+        Node result = (Node) XMLUtils.getXPathResult(getZipInputStream(XSDPath),
           "/xs:schema/xs:element[@name='table']/xs:complexType/xs:sequence/xs:element[@type='recordType']",
           XPathConstants.NODE, Constants.NAMESPACE_FOR_TABLE);
         String minOccursString = result.getAttributes().getNamedItem("minOccurs").getNodeValue();
@@ -877,16 +746,16 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
          */
         int minOccurs = Integer.parseInt(minOccursString);
         if (minOccurs < 0)
-          P_4312_ERRORS.add("The minOccurs attribute is negative at " + XSDPath);
+          P_4310_ERRORS.add("The minOccurs attribute is negative at " + XSDPath);
 
         if (rows < minOccurs)
-          P_4312_ERRORS
+          P_4310_ERRORS
             .add("The number of rows at " + XMLPath + " is less than defined by minOccurs attribute at " + XSDPath);
 
         if (!maxOccursString.equals("unbounded")) {
           int maxOccurs = Integer.parseInt(maxOccursString);
           if (rows > maxOccurs)
-            P_4312_ERRORS
+            P_4310_ERRORS
               .add("The number of rows at " + XMLPath + " is more than defined by maxOccurs attribute at " + XSDPath);
         }
 
@@ -895,17 +764,103 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
          * number of lines in the corresponding table[number].xml.
          */
         if (numberOfRowsInXMLFile != rows)
-          P_4312_ERRORS.add(
+          P_4310_ERRORS.add(
             "The number of rows at " + XMLPath + " is not identical to " + validatorPathStrategy.getMetadataXMLPath());
 
       } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException
         | XMLStreamException e) {
-        LOGGER.debug("Failed to validate {}", P_4312, e);
+        LOGGER.debug("Failed to validate {}", P_4310, e);
         return false;
       }
     }
 
-    return P_4312_ERRORS.isEmpty();
+    return P_4310_ERRORS.isEmpty();
+  }
+
+  /*
+   * Additional checks
+   */
+
+  /**
+   * A_P_4.3-10
+   *
+   * Examining whether the number of rows in the header correspond to the actual
+   * number of rows in Content
+   *
+   * @return true if valid otherwise false
+   */
+  private boolean validateNumberOfRows() {
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
+      return false;
+    }
+
+    observer.notifyComponent(A_P_4310, Status.START);
+
+    InputStream zipInputStream = null;
+    try {
+      // Count number of row element in table[number].xml
+      for (Map.Entry<SIARDContent, Integer> entry : numberOfRows.entrySet()) {
+        final String XMLPath = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(),
+          entry.getKey().getTable());
+
+        observer.notifyElementValidating(XMLPath);
+        zipInputStream = getZipInputStream(XMLPath);
+
+        XMLStreamReader streamReader = factory.createXMLStreamReader(zipInputStream);
+        int count = 0;
+        while (streamReader.hasNext()) {
+          streamReader.next();
+
+          if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
+            if (streamReader.getLocalName().equals("row")) {
+              count++;
+            }
+          }
+        }
+
+        if (entry.getValue() != count) {
+          String message = "Found $1 rows in $2 but expected were $3 rows";
+          message = message.replace("$1", String.valueOf(count));
+          message = message.replace("$2", XMLPath);
+          message = message.replace("$3", String.valueOf(entry.getValue()));
+          A_P_4310_ERRORS.add(message);
+        }
+
+        zipInputStream.close();
+      }
+    } catch (IOException | XMLStreamException e) {
+      LOGGER.debug("Failed to validate {}", "number of rows", e);
+      return false;
+    }
+
+    if (zipInputStream != null) {
+      try {
+        zipInputStream.close();
+      } catch (IOException e) {
+        LOGGER.debug("Failed to validate {}", "number of rows", e);
+        return false;
+      }
+    }
+
+    return A_P_4310_ERRORS.isEmpty();
+  }
+
+  private void outputDifferentBlobsTypes() {
+    NodeList result;
+    try {
+      result = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column/ns:mimeType/text()",
+        XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+    } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+      LOGGER.error(e.getLocalizedMessage());
+      return;
+    }
+
+    for (int i = 0; i < result.getLength(); i++) {
+      final String nodeValue = result.item(i).getNodeValue();
+      getValidationReporter().notice(nodeValue, "MimeType found");
+    }
   }
 
   /*
@@ -1301,8 +1256,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         observer.notifyValidationStep(MODULE_NAME, step, Status.SKIPPED);
         getValidationReporter().skipValidation(step, skippedReason);
       }
-      observer.notifyValidationStep(MODULE_NAME, step, Status.OK);
-      getValidationReporter().validationStatus(step, Status.OK);
+      // observer.notifyValidationStep(MODULE_NAME, step, Status.OK);
+      // getValidationReporter().validationStatus(step, Status.OK);
     }
   }
 
@@ -1372,49 +1327,5 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     SQL2008TypeMatchXMLType.put("^TIMESTAMP\\s+WITH\\s+TIME\\s+ZONE(\\s*\\(\\s*(0|([1-9]\\d*))\\s*\\))?$",
       Collections.singletonList("dateTimeType"));
     SQL2008TypeMatchXMLType.put("^XML$", Collections.singletonList("clobType"));
-  }
-
-  private static class TableNameComparator implements Comparator<String> {
-    @Override
-    public int compare(String s1, String s2) {
-      final String[] split1 = s1.split("/");
-      final String[] split2 = s2.split("/");
-      final String schemaName1 = split1[1];
-      final String schemaName2 = split2[1];
-      final String tableName1 = split1[2];
-      final String tableName2 = split1[2];
-
-      Pattern patternSchema = Pattern.compile("schema([0-9]+)");
-      Matcher matcherSchema1 = patternSchema.matcher(schemaName1);
-      Matcher matcherSchema2 = patternSchema.matcher(schemaName2);
-
-      int valueS1 = 0;
-      int valueS2 = 0;
-
-      while (matcherSchema1.find()) {
-        valueS1 = Integer.parseInt(matcherSchema1.group(1));
-      }
-
-      while (matcherSchema2.find()) {
-        valueS2 = Integer.parseInt(matcherSchema2.group(1));
-      }
-
-      Pattern patternTable = Pattern.compile("table([0-9]+)");
-      Matcher matcher1 = patternTable.matcher(tableName1);
-
-      int valueT1 = 0;
-      int valueT2 = 0;
-
-      while (matcher1.find()) {
-        valueT1 = Integer.parseInt(matcher1.group(1));
-      }
-
-      Matcher matcher2 = patternTable.matcher(tableName2);
-      while (matcher2.find()) {
-        valueT2 = Integer.parseInt(matcher2.group(1));
-      }
-
-      return new CompareToBuilder().append(valueS1, valueS2).append(valueT1, valueT2).toComparison();
-    }
   }
 }

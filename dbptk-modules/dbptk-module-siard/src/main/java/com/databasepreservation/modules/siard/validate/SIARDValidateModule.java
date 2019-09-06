@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +22,9 @@ import com.databasepreservation.model.modules.validate.components.ValidatorCompo
 import com.databasepreservation.model.modules.validate.components.ValidatorComponentFactory;
 import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.modules.DefaultExceptionNormalizer;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.in.read.ReadStrategy;
+import com.databasepreservation.modules.siard.in.read.ZipAndFolderReadStrategy;
 import com.databasepreservation.modules.siard.validate.common.path.ValidatorPathStrategyImpl;
 import com.databasepreservation.utils.ReflectionUtils;
 
@@ -88,6 +92,10 @@ public class SIARDValidateModule implements ValidateModule {
    */
   @Override
   public boolean validate() throws ModuleException {
+
+    if (!validateSIARDVersion()) {
+      throw new ModuleException().withMessage("SIARD validation only supports SIARD 2.1 version");
+    }
 
     List<ValidatorComponent> components = getValidationComponents();
 
@@ -177,5 +185,20 @@ public class SIARDValidateModule implements ValidateModule {
       }
     }
     return null;
+  }
+
+  private boolean validateSIARDVersion() {
+    SIARDArchiveContainer mainContainer = new SIARDArchiveContainer(SIARDPackageNormalizedPath,
+      SIARDArchiveContainer.OutputContainerType.MAIN);
+    ReadStrategy readStrategy = new ZipAndFolderReadStrategy(mainContainer);
+
+    // identify version before creating metadata import strategy instance
+    try {
+      readStrategy.setup(mainContainer);
+    } catch (ModuleException e) {
+      LOGGER.debug("Problem setting up container", e);
+    }
+
+    return mainContainer.getVersion().equals(SIARDConstants.SiardVersion.V2_1);
   }
 }

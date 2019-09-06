@@ -1,7 +1,9 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import javax.xml.XMLConstants;
 import javax.xml.transform.Source;
@@ -10,6 +12,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
+import com.databasepreservation.modules.siard.bindings.siard_2_1.SiardArchive;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.model.exception.ModuleException;
@@ -46,9 +49,8 @@ public class MetadataXMLAgainstXSDValidator extends MetadataValidator {
    * positively validated against metadata.xsd.
    */
   private void validateXMLAgainstXSD() {
-    final InputStream XSDInputStream = SiardArchive.class.getClassLoader()
-      .getResourceAsStream("schema/siard2-1-metadata.xsd");
-    InputStream XMLInputStream = getZipInputStream(validatorPathStrategy.getMetadataXMLPath());
+    final InputStream XSDInputStream =  SiardArchive.class.getClassLoader().getResourceAsStream("schema/siard2-1-metadata.xsd");
+    final InputStream XMLInputStream = getZipInputStream(validatorPathStrategy.getMetadataXMLPath());
 
     Source schemaFile = new StreamSource(XSDInputStream);
     Source xmlFile = new StreamSource(XMLInputStream);
@@ -63,5 +65,4 @@ public class MetadataXMLAgainstXSDValidator extends MetadataValidator {
       setError(M_501, e.getMessage());
     }
   }
-
 }

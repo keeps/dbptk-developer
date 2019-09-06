@@ -89,4 +89,19 @@ public final class ListUtils {
     }
     return false;
   }
+
+  public static String convertListToStringWithSeparator(List<String> values, String separator) {
+    int index = 0;
+    StringBuilder result = new StringBuilder();
+    for (String value : values) {
+      if (values.size() == index+1) {
+        result.append(value);
+      } else {
+        result.append(value).append(separator);
+      }
+      index++;
+    }
+
+    return result.toString();
+  }
 }

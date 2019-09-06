@@ -17,6 +17,9 @@ public class Constants {
   public static final String PROPERTY_KEY_HOME = "dbptk.home";
   public static final String LOGBACK_FILE_NAME = "logback_manual.xml";
   public static final String UNSPECIFIED_METADATA_VALUE = "unspecified";
+  public static final String SIARD_VERSION_21 = "2.1";
+  public static final String LINK_TO_SPECIFICATION = "https://dilcis.eu/content-types/siard";
+  public static final String LINK_TO_WIKI_ADDITIONAL_CHECKS = "https://github.com/keeps/db-preservation-toolkit/wiki/Validation";
 
   /* STYLE */
   public static final String SMALL_SPACE = "      ";

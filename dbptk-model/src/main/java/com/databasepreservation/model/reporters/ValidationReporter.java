@@ -70,6 +70,9 @@ public class ValidationReporter implements AutoCloseable {
         writeLine("#                                                       DBPTK - Validation Report                                                    #");
         writeLine("######################################################################################################################################");
         writeLine("DBPTK Version: " + MiscUtils.APP_NAME_AND_VERSION);
+        writeLine("SIARD Version: " + Constants.SIARD_VERSION_21);
+        writeLine("The specification to the SIARD can be found at: " + Constants.LINK_TO_SPECIFICATION);
+        writeLine("Additional checks specification can be found at: " + Constants.LINK_TO_WIKI_ADDITIONAL_CHECKS);
         writeLine("Date: " + new org.joda.time.DateTime());
         writeLine("SIARD file: " + SIARDPackagePath.toAbsolutePath().normalize().toString());
         writeLine(NEWLINE);
@@ -104,7 +107,7 @@ public class ValidationReporter implements AutoCloseable {
   }
 
   public void validationStatus(String text, Status status, String message, String path) {
-    writeLine(TAB + text + HYPHEN + SINGLE_SPACE + buildStatus(status) + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + message
+    writeLine(TAB + text + COLON + SINGLE_SPACE + buildStatus(status) + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + message
       + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + path);
   }
 
@@ -139,8 +142,12 @@ public class ValidationReporter implements AutoCloseable {
       + reasonToSkip);
   }
 
+  public void notice(String ID, Object nodeValue, String noticeMessage) {
+    writeLine(TAB + ID + COLON + SINGLE_SPACE + buildStatus(Status.NOTICE) +SINGLE_SPACE + HYPHEN + SINGLE_SPACE + noticeMessage + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + nodeValue);
+  }
+
   public void notice(Object nodeValue, String noticeMessage) {
-    writeLine(TAB + buildStatus(Status.NOTICE) + HYPHEN + SINGLE_SPACE + noticeMessage + HYPHEN + SINGLE_SPACE + nodeValue);
+    writeLine(TAB + buildStatus(Status.NOTICE) + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + noticeMessage + HYPHEN + SINGLE_SPACE + nodeValue);
   }
 
   private String buildStatus(Status status) {

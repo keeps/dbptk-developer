@@ -30,7 +30,7 @@ public class AdditionalChecksComponentFactory implements ValidatorComponentFacto
    */
   @Override
   public boolean isEnabled() {
-    return true;
+    return false;
   }
 
   @Override

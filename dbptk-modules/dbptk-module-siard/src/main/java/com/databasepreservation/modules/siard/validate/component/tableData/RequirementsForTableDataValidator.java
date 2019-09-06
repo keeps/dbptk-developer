@@ -4,16 +4,20 @@ import static com.databasepreservation.model.reporters.ValidationReporter.Status
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.XMLConstants;
+import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -28,6 +32,8 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -39,6 +45,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.validator.CategoryNotFoundException;
 import com.databasepreservation.model.validator.SIARDContent;
 import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
+import com.databasepreservation.utils.ListUtils;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -49,20 +56,43 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
 
   private final String MODULE_NAME;
   private XMLInputFactory factory;
-  private static final String P_60 = "T_6.0";
-  private static final String P_601 = "T_6.0-1";
-  private static final String P_602 = "T_6.0-2";
+  private static final String T_60 = "T_6.0";
+  private static final String T_601 = "T_6.0-1";
+  private static final String T_602 = "T_6.0-2";
+  private static final String A_T_6011 = "A_T_6.0-1-1";
+  private static final String A_T_6012 = "A_T_6.0-1-2";
 
-  private List<String> P_601_ERRORS = new ArrayList<>();
-  private List<String> P_602_ERRORS = new ArrayList<>();
+  private List<String> T_601_ERRORS = new ArrayList<>();
+  private List<String> T_602_ERRORS = new ArrayList<>();
+  private List<String> A_T_6012_ERRORS = new ArrayList<>();
 
   private static List<String> SQL2008Types = null;
   private HashMap<String, Set<String>> primaryKeyData = new HashMap<>();
+  private TreeMap<SIARDContent, HashMap<String, String>> columnTypes = new TreeMap<>();
+  private TreeMap<SIARDContent, List<String>> foreignKeyColumns = new TreeMap<>();
+  private TreeMap<SIARDContent, Integer> rows = new TreeMap<>();
+
+  private Pattern patternBigIntRegex;
+  private Pattern patternIntegerRegex;
+  private Pattern patternSmallIntRegex;
+  private Pattern patternDecimalRegex;
+  private Pattern patternRealRegex;
+  private Pattern patternFloatRegex;
+  private Pattern patternDoublePrecisionRegex;
+  private Pattern patternBinaryRegex;
+  private Pattern patternVarcharRegex;
+  private Pattern patternStringRegex;
+  private Pattern patternNCharRegex;
+  private Pattern patternBooleanRegex;
+  private Pattern patternDateRegex;
+  private Pattern patternTimeRegex;
+  private Pattern patternTimestampRegex;
 
   public RequirementsForTableDataValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
     populateSQL2008Validations();
     factory = XMLInputFactory.newInstance();
+    preCompileRegexPatterns();
   }
 
   @Override
@@ -73,36 +103,59 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     }
     factory = null;
     primaryKeyData = null;
+    columnTypes = null;
   }
 
   @Override
   public boolean validate() throws ModuleException {
-    observer.notifyStartValidationModule(MODULE_NAME, P_60);
+    observer.notifyStartValidationModule(MODULE_NAME, T_60);
     if (preValidationRequirements()) {
       LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
     }
 
-    getValidationReporter().moduleValidatorHeader(P_60, MODULE_NAME);
+    if (!obtainValidationData()) {
+      LOGGER.debug("Failed to obtain data for {}", MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
+
+    getValidationReporter().moduleValidatorHeader(T_60, MODULE_NAME);
 
     if (validateSQL2008Requirements()) {
-      observer.notifyValidationStep(MODULE_NAME, P_601, Status.OK);
-      getValidationReporter().validationStatus(P_601, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, T_601, Status.OK);
+      getValidationReporter().validationStatus(T_601, Status.OK);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_601, Status.ERROR);
+      observer.notifyValidationStep(MODULE_NAME, T_601, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_601, Status.ERROR, "All the table data (primary data) must meet the consistency requirements of SQL:2008.", P_601_ERRORS, MODULE_NAME);
+      validationFailed(T_601, Status.ERROR,
+        "All the table data (primary data) must meet the consistency requirements of SQL:2008.", T_601_ERRORS,
+        MODULE_NAME);
+      closeZipFile();
+      return false;
+    }
+
+    numberOfNullValuesForForeignKey();
+
+    if (validateTableDataType()) {
+      observer.notifyValidationStep(MODULE_NAME, A_T_6012, Status.OK);
+      getValidationReporter().validationStatus(A_T_6012, Status.OK);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, A_T_6012, Status.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
+      validationFailed(A_T_6012, Status.ERROR,"Data type invalid", A_T_6012_ERRORS,
+          MODULE_NAME);
       closeZipFile();
       return false;
     }
 
     if (validateTableXSDAgainstXML()) {
-      observer.notifyValidationStep(MODULE_NAME, P_602, Status.OK);
-      getValidationReporter().validationStatus(P_602, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, T_602, Status.OK);
+      getValidationReporter().validationStatus(T_602, Status.OK);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_602, Status.ERROR);
+      observer.notifyValidationStep(MODULE_NAME, T_602, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_602, Status.ERROR, "Validation against XSD failed", P_602_ERRORS, MODULE_NAME);
+      validationFailed(T_602, Status.ERROR, "Validation against XSD failed", T_602_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
@@ -153,14 +206,14 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         }
       }
     } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException | ModuleException e) {
-      LOGGER.debug("Failed to validate {}({})", MODULE_NAME, P_601, e);
+      LOGGER.debug("Failed to validate {}({})", MODULE_NAME, T_601, e);
       return false;
     }
 
     for (String type : SQL2008FoundTypes) {
       // Checks if the type is in conformity with SQL:2008
       if (!validateSQL2008Type(type)) {
-        P_601_ERRORS.add("The " + type + " type is not in conformity with SQL:2008 data types");
+        T_601_ERRORS.add("The " + type + " type is not in conformity with SQL:2008 data types");
       }
     }
 
@@ -182,13 +235,13 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
 
         for (int j = 0; j < tables.getLength(); j++) {
           String tableFolder = tables.item(j).getTextContent();
-          P_601_ERRORS.addAll(validatePrimaryKeyConstraint(schemaFolder, tableFolder));
+          T_601_ERRORS.addAll(validatePrimaryKeyConstraint(schemaFolder, tableFolder));
         }
       }
       observer.notifyMessage(MODULE_NAME, "Validating Primary Keys", Status.FINISH);
     } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException
       | XMLStreamException e) {
-      LOGGER.debug("Failed to validate {}({})", MODULE_NAME, P_601, e);
+      LOGGER.debug("Failed to validate {}({})", MODULE_NAME, T_601, e);
       return false;
     }
 
@@ -210,17 +263,17 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
 
         for (int j = 0; j < tables.getLength(); j++) {
           String tableFolder = tables.item(j).getTextContent();
-          P_601_ERRORS.addAll(validateForeignKeyConstraint(schemaFolder, tableFolder));
+          T_601_ERRORS.addAll(validateForeignKeyConstraint(schemaFolder, tableFolder));
         }
       }
       observer.notifyMessage(MODULE_NAME, "Validating Foreign Keys", Status.FINISH);
     } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException
       | XMLStreamException e) {
-      LOGGER.debug("Failed to validate {}({})", MODULE_NAME, P_601, e);
+      LOGGER.debug("Failed to validate {}({})", MODULE_NAME, T_601, e);
       return false;
     }
 
-    return P_601_ERRORS.isEmpty();
+    return T_601_ERRORS.isEmpty();
   }
 
   /**
@@ -263,7 +316,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         XSDInputStream = getZipFile().getInputStream(XSDEntry);
         XMLInputStream = getZipFile().getInputStream(XMLEntry);
       } catch (IOException e) {
-        LOGGER.debug("Failed to validate {}({})", MODULE_NAME, P_602, e);
+        LOGGER.debug("Failed to validate {}({})", MODULE_NAME, T_602, e);
         return false;
       }
 
@@ -278,19 +331,398 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         try {
           validator.validate(xmlFile);
         } catch (SAXException | IOException e) {
-          P_602_ERRORS.add(e.getLocalizedMessage());
+          T_602_ERRORS.add(e.getLocalizedMessage());
         }
       } catch (SAXException e) {
-        P_602_ERRORS.add(e.getLocalizedMessage());
+        T_602_ERRORS.add(e.getLocalizedMessage());
       }
     }
     observer.notifyMessage(MODULE_NAME, "Validating XML against XSD", Status.FINISH);
-    return P_602_ERRORS.isEmpty();
+    return T_602_ERRORS.isEmpty();
+  }
+
+  /*
+   * Additional Checks
+   */
+
+  /**
+   * if <type> is integer then all content should be integer, same with decimal,
+   * date, boolean etc.
+   *
+   * @return true if valid otherwise false
+   */
+  private boolean validateTableDataType() {
+    if (preValidationRequirements()) {
+      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
+      return false;
+    }
+    observer.notifyComponent(A_T_6012, Status.START);
+
+    for (final Map.Entry<SIARDContent, HashMap<String, String>> entry : columnTypes.entrySet()) {
+      long startTime = System.currentTimeMillis();
+      long duration;
+      final String path = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(),
+        entry.getKey().getTable());
+      observer.notifyElementValidating(path);
+      try {
+        boolean rowTag = false;
+        String columnElement = "";
+        String content = "";
+        List<String> toClose = new ArrayList<>();
+
+        final XMLStreamReader xmlStreamReader = factory.createXMLStreamReader(getZipInputStream(path));
+        while (xmlStreamReader.hasNext()) {
+          xmlStreamReader.next();
+
+          if (xmlStreamReader.getEventType() == XMLStreamConstants.START_ELEMENT) {
+            if (xmlStreamReader.getLocalName().equals("row")) {
+              rowTag = true;
+            }
+          }
+
+          if (rowTag) {
+            if (xmlStreamReader.getEventType() == XMLStreamConstants.START_ELEMENT) {
+              if (!xmlStreamReader.getLocalName().equals("row")) {
+                if (xmlStreamReader.getLocalName().startsWith("u")) {
+                  toClose.add(xmlStreamReader.getLocalName());
+                } else if (xmlStreamReader.getLocalName().startsWith("a")) {
+                  toClose.add(xmlStreamReader.getLocalName());
+                } else {
+                  columnElement = xmlStreamReader.getLocalName();
+                }
+              }
+            }
+
+            if (xmlStreamReader.getEventType() == XMLStreamConstants.CHARACTERS) {
+              if (!xmlStreamReader.getText().trim().equals("")) {
+                content = xmlStreamReader.getText().trim();
+              }
+            }
+
+            if (xmlStreamReader.getEventType() == XMLStreamConstants.END_ELEMENT) {
+              if (toClose.contains(xmlStreamReader.getLocalName())) {
+                String key = columnElement + "."
+                  + ListUtils.convertListToStringWithSeparator(toClose, Constants.FILE_EXTENSION_SEPARATOR);
+                if (StringUtils.isNotBlank(content)) {
+                  if (entry.getValue().get(key) != null) {
+                    if (!validateType(content, entry.getValue().get(key))) {
+                      A_T_6012_ERRORS.add(
+                        content + " is not in conformity with '" + entry.getValue().get(key) + "' type in " + path);
+                    }
+                  }
+                }
+                final int lastOccurrence = toClose.lastIndexOf(xmlStreamReader.getLocalName());
+                toClose.remove(lastOccurrence);
+                content = "";
+              }
+
+              if (xmlStreamReader.getLocalName().equals(columnElement)) {
+                if (entry.getValue().get(columnElement) != null) {
+                  if (!validateType(content, entry.getValue().get(columnElement))) {
+                    A_T_6012_ERRORS.add(content + " is not in conformity with '" + entry.getValue().get(columnElement)
+                      + "' type in " + path);
+                  }
+                }
+                content = "";
+                columnElement = "";
+              }
+
+              if (xmlStreamReader.getLocalName().equals("row")) { // When the row end validate the data content
+                rowTag = false;
+              }
+            }
+          }
+        }
+      } catch (XMLStreamException e) {
+        LOGGER.debug("Failed to validate {}", MODULE_NAME, e);
+        return false;
+      }
+      duration = System.currentTimeMillis() - startTime;
+      System.out.println("\tTime " + duration / 60000 + "m " + duration % 60000 / 1000 + "s");
+    }
+
+    observer.notifyMessage(MODULE_NAME, A_T_6012, Status.FINISH);
+    return A_T_6012_ERRORS.isEmpty();
+  }
+
+  /**
+   * Count the number of null values for each foreign key
+   *
+   */
+  private void numberOfNullValuesForForeignKey() {
+    observer.notifyMessage(MODULE_NAME, A_T_6011 , Status.START);
+    HashMap<SIARDContent, HashMap<String, Integer>> countColumnsMap = new HashMap<>();
+
+    for (Map.Entry<SIARDContent, List<String>> entry : foreignKeyColumns.entrySet()) {
+      if (entry.getValue().isEmpty())
+        continue;
+
+      String path = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(),
+          entry.getKey().getTable());
+      observer.notifyElementValidating(path);
+
+      try {
+        XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(path));
+        while (streamReader.hasNext()) {
+          streamReader.next();
+          if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
+            final String tagName = streamReader.getLocalName();
+            if (!tagName.equals("row") && !tagName.equals("table")) {
+              if (countColumnsMap.get(entry.getKey()) != null) {
+                updateCounter(countColumnsMap.get(entry.getKey()), tagName);
+              } else {
+                final HashMap<String, Integer> map = new HashMap<>();
+                updateCounter(map, tagName);
+                countColumnsMap.put(entry.getKey(), map);
+              }
+            }
+          }
+        }
+
+      } catch (XMLStreamException e) {
+        LOGGER.debug("Failed to validate {}[{}]", MODULE_NAME, A_T_6011, e);
+        return;
+      }
+    }
+
+    for (Map.Entry<SIARDContent, List<String>> entry : foreignKeyColumns.entrySet()) {
+      for (String columnIndex : entry.getValue()) {
+        int numberOfNulls;
+
+        final int metadataXMLNumberOfRows = rows.get(entry.getKey());
+        final int numberOfRows;
+        if (countColumnsMap.get(entry.getKey()).get(columnIndex) != null) {
+          numberOfRows= countColumnsMap.get(entry.getKey()).get(columnIndex);
+        } else {
+          numberOfRows = 0;
+        }
+
+        if (numberOfRows != metadataXMLNumberOfRows) {
+          numberOfNulls = metadataXMLNumberOfRows - numberOfRows;
+          getValidationReporter().notice(A_T_6011, numberOfNulls,
+              "Number of missing values for foreign key " + columnIndex + " in "
+                  + validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(), entry.getKey().getTable()));
+        }
+      }
+    }
+
+    observer.notifyMessage(MODULE_NAME, A_T_6011, Status.FINISH);
   }
 
   /*
    * Auxiliary Methods
    */
+  private void updateCounter(HashMap<String, Integer> countColumnsMap, String columnIndex) {
+    if (countColumnsMap.get(columnIndex) != null) {
+      Integer integer = countColumnsMap.get(columnIndex);
+      countColumnsMap.put(columnIndex, ++integer);
+    } else {
+      countColumnsMap.put(columnIndex, 1);
+    }
+  }
+
+  private boolean obtainValidationData() {
+    NodeList result;
+    try {
+      result = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+          "/ns:siardArchive/ns:schemas/ns:schema/ns:folder/text()", XPathConstants.NODESET,
+          Constants.NAMESPACE_FOR_METADATA);
+    } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+      LOGGER.error(e.getLocalizedMessage());
+      return false;
+    }
+
+    for (int i = 0; i < result.getLength(); i++) {
+      final String schemaFolder = result.item(i).getNodeValue();
+      String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table/ns:folder/text()";
+      xpathExpression = xpathExpression.replace("$1", schemaFolder);
+      try {
+        NodeList tables = (NodeList) XMLUtils.getXPathResult(
+            getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), xpathExpression, XPathConstants.NODESET,
+            Constants.NAMESPACE_FOR_METADATA);
+
+        for (int j = 0; j < tables.getLength(); j++) {
+          final String tableFolder = tables.item(j).getNodeValue();
+          getColumnType(schemaFolder, tableFolder);
+          getNumberOfRows(schemaFolder, tableFolder);
+
+        }
+      } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+        LOGGER.error(e.getLocalizedMessage());
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private void getColumnIndexFromMetadataXML(String schemaName, String tableName, String columnName,
+                                             Map<SIARDContent, List<String>> map)
+      throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+    String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table[ns:folder/text()='$2']/ns:columns/ns:column/ns:name/text()";
+    xpathExpression = xpathExpression.replace("$1", schemaName);
+    xpathExpression = xpathExpression.replace("$2", tableName);
+
+    NodeList result = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        xpathExpression, XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+    List<String> genericList = new ArrayList<>();
+
+    for (int k = 0; k < result.getLength(); k++) {
+      final String genericName = result.item(k).getNodeValue();
+      if (columnName.equals(genericName)) {
+        int index = k+1;
+        final String columnIndex = "c" + index;
+        genericList.add(columnIndex);
+      }
+    }
+
+    final SIARDContent content = new SIARDContent(schemaName, tableName);
+
+    if (map.get(content) != null) {
+      final List<String> strings = map.get(content);
+      strings.addAll(genericList);
+      map.put(content, strings);
+    } else {
+      map.put(content, genericList);
+    }
+  }
+
+  private void getNumberOfRows(String schemaFolder, String tableFolder)
+      throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+    String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table[ns:folder/text()='$2']/ns:rows/text()";
+    xpathExpression = xpathExpression.replace("$1", schemaFolder);
+    xpathExpression = xpathExpression.replace("$2", tableFolder);
+
+    NodeList result = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        xpathExpression, XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+    for (int k = 0; k < result.getLength(); k++) {
+      final String rowsValue = result.item(k).getNodeValue();
+      rows.put(new SIARDContent(schemaFolder, tableFolder), Integer.parseInt(rowsValue));
+    }
+  }
+
+  private boolean validateType(String content, String type) {
+    try {
+      if (patternStringRegex.matcher(type).matches() || patternVarcharRegex.matcher(type).matches()
+          || patternNCharRegex.matcher(type).matches()) {
+        final String decodeString = StringEscapeUtils.unescapeJava(content);
+        final int size = getDataTypeLength(type);
+        if (size != -1) {
+          if (decodeString.length() > size) {
+            return false;
+          }
+        }
+      } else if (patternBinaryRegex.matcher(type).matches()) {
+        final byte[] bytes = DatatypeConverter.parseHexBinary(content);
+        final int size = getDataTypeLength(type);
+
+        if (size != -1) {
+          if (bytes.length > size) {
+            return false;
+          }
+        }
+      } else if (patternIntegerRegex.matcher(type).matches()) {
+        Integer.parseInt(content);
+      } else if (patternSmallIntRegex.matcher(type).matches()) {
+        Short.parseShort(content);
+      } else if (patternDecimalRegex.matcher(type).matches()) {
+        return checkDecimalNumericDataType(content, type);
+      } else if (patternBooleanRegex.matcher(type).matches()) {
+        return Boolean.FALSE.toString().equals(content) || Boolean.TRUE.toString().equals(content);
+      } else if (patternRealRegex.matcher(type).matches()) {
+        Float.parseFloat(content);
+      } else if (patternFloatRegex.matcher(type).matches()) {
+        Double.parseDouble(content);
+      } else if (patternBigIntRegex.matcher(type).matches()) {
+        Long.parseLong(content);
+      } else if (patternDoublePrecisionRegex.matcher(type).matches()) {
+        Double.parseDouble(content);
+      } else if (patternDateRegex.matcher(type).matches()) {
+        String pattern = "\\d{4}-\\d{2}-\\d{2}Z?";
+        return content.matches(pattern);
+      } else if (patternTimeRegex.matcher(type).matches()) {
+        String pattern = "\\d{2}:\\d{2}:\\d{2}Z?";
+        return content.matches(pattern);
+      } else if (patternTimestampRegex.matcher(type).matches()) {
+        String pattern = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d*)Z?";
+        return content.matches(pattern);
+      }
+
+    } catch (NumberFormatException e) {
+      return false;
+    }
+    return true;
+  }
+
+  private int getDataTypeLength(String type) {
+    Pattern pattern = Pattern.compile("\\d+");
+    Matcher matcher = pattern.matcher(type);
+
+    int size = -1;
+
+    while(matcher.find()) {
+      size = Integer.parseInt(matcher.group(0));
+    }
+
+    return size;
+  }
+
+  private boolean checkDecimalNumericDataType(String content, String type) {
+    final BigDecimal bigDecimal = new BigDecimal(content);
+    final Pattern compile = Pattern.compile("^(DECIMAL|NUMERIC|DEC)(\\s*\\(\\s*[1-9]\\d*\\s*(,\\s*\\d+\\s*)?\\))?$");
+    Matcher matcher = compile.matcher(type);
+
+    String dataTypeName = null;
+    String precisionAndScale = null;
+    int typePrecision, typeScale;
+
+    while (matcher.find()) {
+      dataTypeName = matcher.group(1);
+      precisionAndScale = matcher.group(2);
+    }
+
+    if (dataTypeName == null) {
+      dataTypeName = "null";
+    }
+
+    if (precisionAndScale != null) {
+      precisionAndScale = precisionAndScale.replaceAll("([()])", "");
+      precisionAndScale = StringUtils.deleteWhitespace(precisionAndScale);
+
+      if (precisionAndScale.contains(",")) {
+        final String[] split = precisionAndScale.split(",");
+        typePrecision = Integer.parseInt(split[0]);
+        typeScale = Integer.parseInt(split[1]);
+      } else {
+        typePrecision = Integer.parseInt(precisionAndScale);
+        typeScale = 0;
+      }
+    } else {
+      switch (dataTypeName) {
+        case "DECIMAL":
+        case "DEC":
+        case "NUMERIC":
+          LOGGER
+              .debug("Precision and scale not specified falling back to SQL standard and treat the value as an INTEGER");
+          typePrecision = 10;
+          typeScale = 0;
+          break;
+        case "null":
+        default:
+          LOGGER.debug("Unable to detect the data type name, missing one of this keywords: DECIMAL, DEC or NUMERIC");
+          LOGGER.debug("Assuming default precision of a NUMERIC data type");
+          typePrecision = 10;
+          typeScale = 0;
+          break;
+      }
+    }
+
+    final int precision = bigDecimal.precision();
+    final int scale = bigDecimal.scale();
+
+    return precision <= typePrecision && scale <= typeScale;
+  }
+
   private List<String> getAdvancedOrUDTData(final String typeSchema, final String typeName)
     throws ModuleException, ParserConfigurationException, SAXException, XPathExpressionException, IOException {
 
@@ -376,7 +808,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
           if (streamReader.getLocalName().equals(columnIndex)) {
             if (!uniquePrimaryKeys.add(streamReader.getElementText())) {
-              P_601_ERRORS.add(
+              T_601_ERRORS.add(
                 "Primary key constraint not met at line " + streamReader.getLocation().getLineNumber() + " in " + path);
             }
           }
@@ -485,6 +917,8 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       final String columnName = reference.getElementsByTagName("column").item(0).getTextContent();
       final String referenced = reference.getElementsByTagName("referenced").item(0).getTextContent();
 
+      getColumnIndexFromMetadataXML(schemaFolder, tableFolder, columnName, foreignKeyColumns);
+
       getPrimaryKeyData(referencedSchema, referencedTable, referenced);
       final Set<String> data = getColumnDataByIndex(path,
         getColumnIndexByFolder(schemaFolder, tableFolder, columnName));
@@ -544,6 +978,112 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     return -1;
   }
 
+  private void getColumnType(String schemaFolder, String tableFolder)
+      throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+    String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table[ns:folder/text()='$2']/ns:columns/ns:column/ns:name/text()";
+    xpathExpression = xpathExpression.replace("$1", schemaFolder);
+    xpathExpression = xpathExpression.replace("$2", tableFolder);
+
+    NodeList columns = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        xpathExpression, XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+
+    HashMap<String, String> columnToType = new HashMap<>();
+    for (int j = 0; j < columns.getLength(); j++) {
+      String columnName = columns.item(j).getNodeValue();
+      xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table[ns:folder/text()='$2']/ns:columns/ns:column[ns:name/text()='$3']/ns:type/text()";
+      xpathExpression = xpathExpression.replace("$1", schemaFolder);
+      xpathExpression = xpathExpression.replace("$2", tableFolder);
+      xpathExpression = xpathExpression.replace("$3", columnName);
+
+      String type = (String) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+          xpathExpression, XPathConstants.STRING, Constants.NAMESPACE_FOR_METADATA);
+      String index = "c" + (j + 1);
+      if (StringUtils.isBlank(type)) {
+        xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table[ns:folder/text()='$2']/ns:columns/ns:column[ns:name/text()='$3']";
+        xpathExpression = xpathExpression.replace("$1", schemaFolder);
+        xpathExpression = xpathExpression.replace("$2", tableFolder);
+        xpathExpression = xpathExpression.replace("$3", columnName);
+        columnToType.putAll(getAdvancedOrUDTDataType(xpathExpression, index));
+      } else {
+        columnToType.put(index, type);
+      }
+    }
+
+    columnTypes.put(new SIARDContent(schemaFolder, tableFolder), columnToType);
+  }
+
+  private HashMap<String, String> getAdvancedOrUDTDataType(final String xpathExpression, final String index)
+      throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+    NodeList result = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        xpathExpression, XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+
+    HashMap<String, String> pairs = new HashMap<>();
+
+    for (int i = 0; i < result.getLength(); i++) {
+      Element element = (Element) result.item(i);
+      final String typeSchema = element.getElementsByTagName("typeSchema").item(0).getTextContent();
+      final String typeName = element.getElementsByTagName("typeName").item(0).getTextContent();
+
+      pairs.putAll(getUDT(typeSchema, typeName, index));
+
+      String distinctXPathExpression = xpathExpression.replace("$3", Constants.DISTINCT);
+      distinctXPathExpression = distinctXPathExpression.concat("/ns:base/text()");
+
+      final HashMap<String, String> distinct = getDistinct(distinctXPathExpression, index);
+
+      if (distinct != null) {
+        pairs.putAll(distinct);
+      }
+    }
+
+    return pairs;
+  }
+
+  private HashMap<String, String> getDistinct(final String xpathExpression, final String index)
+      throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+
+    String type = (String) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        xpathExpression, XPathConstants.STRING, Constants.NAMESPACE_FOR_METADATA);
+
+    if (StringUtils.isBlank(type)) {
+      return null;
+    } else {
+      HashMap<String, String> columnToType = new HashMap<>();
+      columnToType.put(index, type);
+      return columnToType;
+    }
+  }
+
+  private HashMap<String, String> getUDT(String typeSchema, String typeName, String index)
+      throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+
+    String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:name/text()='$1']/ns:types/ns:type[ns:name/text()='$2' and ns:category/text()='$3']/ns:attributes/ns:attribute";
+    xpathExpression = xpathExpression.replace("$1", typeSchema);
+    xpathExpression = xpathExpression.replace("$2", typeName);
+    xpathExpression = xpathExpression.replace("$3", Constants.UDT);
+
+    HashMap<String, String> columnToType = new HashMap<>();
+
+    NodeList nodeList = (NodeList) XMLUtils.getXPathResult(
+        getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), xpathExpression, XPathConstants.NODESET,
+        Constants.NAMESPACE_FOR_METADATA);
+    for (int i = 0; i < nodeList.getLength(); i++) {
+      Element element = (Element) nodeList.item(i);
+      String concatIndex = index.concat(".u" + (i + 1));
+      if (element.getElementsByTagName("type").item(0) != null) {
+        final String type = element.getElementsByTagName("type").item(0).getTextContent();
+        columnToType.put(concatIndex, type);
+      } else {
+        final String recTypeSchema = element.getElementsByTagName("typeSchema").item(0).getTextContent();
+        final String recTypeName = element.getElementsByTagName("typeName").item(0).getTextContent();
+
+        columnToType.putAll(getUDT(recTypeSchema, recTypeName, concatIndex));
+      }
+    }
+
+    return columnToType;
+  }
+
   private void populateSQL2008Validations() {
     SQL2008Types = new ArrayList<>();
     SQL2008Types.add("^BIGINT$");
@@ -587,5 +1127,25 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     SQL2008Types.add("^TIMESTAMP(\\s*\\(\\s*(0|([1-9]\\d*))\\s*\\))?$");
     SQL2008Types.add("^TIMESTAMP\\s+WITH\\s+TIME\\s+ZONE(\\s*\\(\\s*(0|([1-9]\\d*))\\s*\\))?$");
     SQL2008Types.add("^XML$");
+  }
+
+  private void preCompileRegexPatterns() {
+    patternBigIntRegex = Pattern.compile("^BIGINT$");
+    patternIntegerRegex = Pattern.compile("^INTEGER$|^INT$");
+    patternSmallIntRegex = Pattern.compile("^SMALLINT$");
+    patternDecimalRegex = Pattern.compile("^(?:DECIMAL|DEC|NUMERIC)(\\s*\\(\\s*[1-9]\\d*\\s*(,\\s*\\d+\\s*)?\\))?$");
+    patternRealRegex = Pattern.compile("^REAL$");
+    patternFloatRegex = Pattern.compile("^FLOAT(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    patternDoublePrecisionRegex = Pattern.compile("^DOUBLE PRECISION$");
+    patternBinaryRegex = Pattern.compile("^(?:BINARY\\s+VARYING|VARBINARY)(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    patternVarcharRegex = Pattern.compile("^VARCHAR\\s*(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    patternStringRegex = Pattern
+        .compile("^(?:NATIONAL\\s+)?(?:CHARACTER|CHAR)(?:\\s+VARYING)?(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    patternNCharRegex = Pattern.compile("^NCHAR(?:\\s+VARYING\\s*)?(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    patternBooleanRegex = Pattern.compile("^BOOLEAN$");
+    patternDateRegex = Pattern.compile("^DATE$");
+    patternTimeRegex = Pattern.compile("^(?:TIME|TIME\\s+WITH\\s+TIME\\s+ZONE)(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    patternTimestampRegex = Pattern
+        .compile("^(?:TIMESTAMP|TIMESTAMP\\s+WITH\\s+TIME\\s+ZONE)(\\s*\\(\\s*(0|([1-9]\\d*))\\s*\\))?$");
   }
 }
