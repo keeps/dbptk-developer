@@ -33,7 +33,6 @@ import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -64,7 +63,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
 
   private List<String> T_601_ERRORS = new ArrayList<>();
   private List<String> T_602_ERRORS = new ArrayList<>();
-  private List<String> A_T_6012_ERRORS = new ArrayList<>();
+  private boolean A_T_6012_ERRORS = false;
 
   private static List<String> SQL2008Types = null;
   private HashMap<String, Set<String>> primaryKeyData = new HashMap<>();
@@ -87,6 +86,11 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   private Pattern patternDateRegex;
   private Pattern patternTimeRegex;
   private Pattern patternTimestampRegex;
+  private Pattern patternSizeRegex;
+  private Pattern patternDecimalRegexWithDataType;
+  private Pattern patternDateContentRegex;
+  private Pattern patternTimeContentRegex;
+  private Pattern patternTimestampContentRegex;
 
   public RequirementsForTableDataValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
@@ -136,15 +140,15 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     }
 
     numberOfNullValuesForForeignKey();
+    getValidationReporter().validationStatus(A_T_6011, Status.OK);
 
-    if (validateTableDataType()) {
+    if (!validateTableDataType()) {
       observer.notifyValidationStep(MODULE_NAME, A_T_6012, Status.OK);
       getValidationReporter().validationStatus(A_T_6012, Status.OK);
     } else {
       observer.notifyValidationStep(MODULE_NAME, A_T_6012, Status.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(A_T_6012, Status.ERROR,"Data type invalid", A_T_6012_ERRORS,
-          MODULE_NAME);
+      validationFailed(A_T_6012, MODULE_NAME);
       closeZipFile();
       return false;
     }
@@ -356,11 +360,9 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
     }
-    observer.notifyComponent(A_T_6012, Status.START);
+    observer.notifyMessage(MODULE_NAME, A_T_6012 , Status.START);
 
     for (final Map.Entry<SIARDContent, HashMap<String, String>> entry : columnTypes.entrySet()) {
-      long startTime = System.currentTimeMillis();
-      long duration;
       final String path = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(),
         entry.getKey().getTable());
       observer.notifyElementValidating(path);
@@ -404,12 +406,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
                 String key = columnElement + "."
                   + ListUtils.convertListToStringWithSeparator(toClose, Constants.FILE_EXTENSION_SEPARATOR);
                 if (StringUtils.isNotBlank(content)) {
-                  if (entry.getValue().get(key) != null) {
-                    if (!validateType(content, entry.getValue().get(key))) {
-                      A_T_6012_ERRORS.add(
-                        content + " is not in conformity with '" + entry.getValue().get(key) + "' type in " + path);
-                    }
-                  }
+                  reportDataTypeValidation(content, entry.getValue().get(key), path);
                 }
                 final int lastOccurrence = toClose.lastIndexOf(xmlStreamReader.getLocalName());
                 toClose.remove(lastOccurrence);
@@ -417,12 +414,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
               }
 
               if (xmlStreamReader.getLocalName().equals(columnElement)) {
-                if (entry.getValue().get(columnElement) != null) {
-                  if (!validateType(content, entry.getValue().get(columnElement))) {
-                    A_T_6012_ERRORS.add(content + " is not in conformity with '" + entry.getValue().get(columnElement)
-                      + "' type in " + path);
-                  }
-                }
+                reportDataTypeValidation(content, entry.getValue().get(columnElement), path);
                 content = "";
                 columnElement = "";
               }
@@ -437,12 +429,10 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         LOGGER.debug("Failed to validate {}", MODULE_NAME, e);
         return false;
       }
-      duration = System.currentTimeMillis() - startTime;
-      System.out.println("\tTime " + duration / 60000 + "m " + duration % 60000 / 1000 + "s");
     }
 
     observer.notifyMessage(MODULE_NAME, A_T_6012, Status.FINISH);
-    return A_T_6012_ERRORS.isEmpty();
+    return A_T_6012_ERRORS;
   }
 
   /**
@@ -454,12 +444,12 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     HashMap<SIARDContent, HashMap<String, Integer>> countColumnsMap = new HashMap<>();
 
     for (Map.Entry<SIARDContent, List<String>> entry : foreignKeyColumns.entrySet()) {
-      if (entry.getValue().isEmpty())
-        continue;
-
       String path = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(),
           entry.getKey().getTable());
       observer.notifyElementValidating(path);
+
+      if (entry.getValue().isEmpty())
+        continue;
 
       try {
         XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(path));
@@ -512,6 +502,16 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   /*
    * Auxiliary Methods
    */
+  private void reportDataTypeValidation(String content, String dataType, String archivePath) {
+    if (dataType != null) {
+      if (!validateType(content, dataType)) {
+        A_T_6012_ERRORS = true;
+        String message = content + " is not in conformity with '" + dataType + "' type in " + archivePath;
+        getValidationReporter().validationStatus(A_T_6012, Status.ERROR, "Data type invalid", message);
+      }
+    }
+  }
+
   private void updateCounter(HashMap<String, Integer> countColumnsMap, String columnIndex) {
     if (countColumnsMap.get(columnIndex) != null) {
       Integer integer = countColumnsMap.get(columnIndex);
@@ -605,22 +605,24 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     try {
       if (patternStringRegex.matcher(type).matches() || patternVarcharRegex.matcher(type).matches()
           || patternNCharRegex.matcher(type).matches()) {
-        final String decodeString = StringEscapeUtils.unescapeJava(content);
-        final int size = getDataTypeLength(type);
+        String decodeString = XMLUtils.decode(content);
+        int size = getDataTypeLength(type);
         if (size != -1) {
           if (decodeString.length() > size) {
             return false;
           }
         }
+        decodeString = null;
       } else if (patternBinaryRegex.matcher(type).matches()) {
-        final byte[] bytes = DatatypeConverter.parseHexBinary(content);
+        byte[] bytes = DatatypeConverter.parseHexBinary(content);
         final int size = getDataTypeLength(type);
-
         if (size != -1) {
           if (bytes.length > size) {
+            bytes = null;
             return false;
           }
         }
+        bytes = null;
       } else if (patternIntegerRegex.matcher(type).matches()) {
         Integer.parseInt(content);
       } else if (patternSmallIntRegex.matcher(type).matches()) {
@@ -638,16 +640,12 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       } else if (patternDoublePrecisionRegex.matcher(type).matches()) {
         Double.parseDouble(content);
       } else if (patternDateRegex.matcher(type).matches()) {
-        String pattern = "\\d{4}-\\d{2}-\\d{2}Z?";
-        return content.matches(pattern);
+        return patternDateContentRegex.matcher(content).matches();
       } else if (patternTimeRegex.matcher(type).matches()) {
-        String pattern = "\\d{2}:\\d{2}:\\d{2}Z?";
-        return content.matches(pattern);
+        return patternTimeContentRegex.matcher(content).matches();
       } else if (patternTimestampRegex.matcher(type).matches()) {
-        String pattern = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d*)Z?";
-        return content.matches(pattern);
+        return patternTimestampContentRegex.matcher(content).matches();
       }
-
     } catch (NumberFormatException e) {
       return false;
     }
@@ -655,8 +653,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   }
 
   private int getDataTypeLength(String type) {
-    Pattern pattern = Pattern.compile("\\d+");
-    Matcher matcher = pattern.matcher(type);
+    Matcher matcher = patternSizeRegex.matcher(type);
 
     int size = -1;
 
@@ -668,9 +665,8 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   }
 
   private boolean checkDecimalNumericDataType(String content, String type) {
-    final BigDecimal bigDecimal = new BigDecimal(content);
-    final Pattern compile = Pattern.compile("^(DECIMAL|NUMERIC|DEC)(\\s*\\(\\s*[1-9]\\d*\\s*(,\\s*\\d+\\s*)?\\))?$");
-    Matcher matcher = compile.matcher(type);
+    BigDecimal bigDecimal = new BigDecimal(content);
+    Matcher matcher = patternDecimalRegexWithDataType.matcher(type);
 
     String dataTypeName = null;
     String precisionAndScale = null;
@@ -686,13 +682,14 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     }
 
     if (precisionAndScale != null) {
-      precisionAndScale = precisionAndScale.replaceAll("([()])", "");
+      precisionAndScale = precisionAndScale.substring(1, precisionAndScale.length() - 1);
       precisionAndScale = StringUtils.deleteWhitespace(precisionAndScale);
 
       if (precisionAndScale.contains(",")) {
-        final String[] split = precisionAndScale.split(",");
+        String[] split = StringUtils.split(precisionAndScale, ",");
         typePrecision = Integer.parseInt(split[0]);
         typeScale = Integer.parseInt(split[1]);
+        split = null;
       } else {
         typePrecision = Integer.parseInt(precisionAndScale);
         typeScale = 0;
@@ -1134,6 +1131,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     patternIntegerRegex = Pattern.compile("^INTEGER$|^INT$");
     patternSmallIntRegex = Pattern.compile("^SMALLINT$");
     patternDecimalRegex = Pattern.compile("^(?:DECIMAL|DEC|NUMERIC)(\\s*\\(\\s*[1-9]\\d*\\s*(,\\s*\\d+\\s*)?\\))?$");
+    patternDecimalRegexWithDataType = Pattern.compile("^(DECIMAL|DEC|NUMERIC)(\\s*\\(\\s*[1-9]\\d*\\s*(,\\s*\\d+\\s*)?\\))?$");
     patternRealRegex = Pattern.compile("^REAL$");
     patternFloatRegex = Pattern.compile("^FLOAT(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
     patternDoublePrecisionRegex = Pattern.compile("^DOUBLE PRECISION$");
@@ -1147,5 +1145,9 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     patternTimeRegex = Pattern.compile("^(?:TIME|TIME\\s+WITH\\s+TIME\\s+ZONE)(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
     patternTimestampRegex = Pattern
         .compile("^(?:TIMESTAMP|TIMESTAMP\\s+WITH\\s+TIME\\s+ZONE)(\\s*\\(\\s*(0|([1-9]\\d*))\\s*\\))?$");
+    patternSizeRegex = Pattern.compile("\\d+");
+    patternDateContentRegex = Pattern.compile("\\d{4}-\\d{2}-\\d{2}Z?");
+    patternTimeContentRegex = Pattern.compile("\\d{2}:\\d{2}:\\d{2}Z?");
+    patternTimestampContentRegex = Pattern.compile("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d*)Z?");
   }
 }

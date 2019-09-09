@@ -26,7 +26,7 @@ import com.databasepreservation.utils.ConfigUtils;
  */
 public class SIARDValidateFactory implements ValidateModuleFactory {
   public static final String PARAMETER_FILE = "file";
-  public static final String PARAMETER_UDT = "udt";
+  public static final String PARAMETER_ALLOWED = "allowed";
   public static final String PARAMETER_REPORT = "report";
 
   private static final Parameter file = new Parameter().shortName("f").longName(PARAMETER_FILE)
@@ -37,9 +37,9 @@ public class SIARDValidateFactory implements ValidateModuleFactory {
       "Path to save the validation report. If not set a report will be generated in the installation folder.")
     .hasArgument(true).setOptionalArgument(false).required(false);
 
-  private static final Parameter udt = new Parameter().shortName("udt").longName(PARAMETER_UDT)
-    .description("Path to the configuration file with all the user-defined types allowed. "
-      + "The file should have a line for each allowed user-defined type.")
+  private static final Parameter allowed = new Parameter().shortName("a").longName(PARAMETER_ALLOWED)
+    .description("Path to the configuration file with all the allowed types for the user-defined or distinct categories. "
+      + "The file should have a line for each allowed type.")
     .hasArgument(true).setOptionalArgument(false).required(false);
 
   @Override
@@ -59,7 +59,7 @@ public class SIARDValidateFactory implements ValidateModuleFactory {
 
   @Override
   public Parameters getSingleParameters() {
-    return new Parameters(Arrays.asList(udt, report), null);
+    return new Parameters(Arrays.asList(allowed, report), null);
   }
 
   @Override
@@ -67,7 +67,7 @@ public class SIARDValidateFactory implements ValidateModuleFactory {
     HashMap<String, Parameter> parameterHashMap = new HashMap<>();
     parameterHashMap.put(file.longName(), file);
     parameterHashMap.put(report.longName(), report);
-    parameterHashMap.put(udt.longName(), udt);
+    parameterHashMap.put(allowed.longName(), allowed);
 
     return parameterHashMap;
   }
@@ -87,8 +87,8 @@ public class SIARDValidateFactory implements ValidateModuleFactory {
       pReport = ConfigUtils.getReportsDirectory().resolve(name);
     }
 
-    if (parameters.get(udt) != null) {
-      pAllowUDTs = Paths.get(parameters.get(udt));
+    if (parameters.get(allowed) != null) {
+      pAllowUDTs = Paths.get(parameters.get(allowed));
     }
 
     if (Files.notExists(pFile)) {
@@ -98,7 +98,7 @@ public class SIARDValidateFactory implements ValidateModuleFactory {
 
     if (pAllowUDTs != null) {
       reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString(),
-        PARAMETER_UDT, pAllowUDTs.normalize().toAbsolutePath().toString(), PARAMETER_REPORT,
+          PARAMETER_ALLOWED, pAllowUDTs.normalize().toAbsolutePath().toString(), PARAMETER_REPORT,
         pReport.normalize().toAbsolutePath().toString());
       return new SIARDValidateModule(pFile, pReport, pAllowUDTs);
     } else {

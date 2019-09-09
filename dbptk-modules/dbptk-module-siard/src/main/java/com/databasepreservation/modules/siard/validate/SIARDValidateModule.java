@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import com.databasepreservation.modules.siard.constants.SIARDConstants;
+import com.databasepreservation.model.exception.SIARDVersionNotSupportedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +23,7 @@ import com.databasepreservation.model.modules.validate.components.ValidatorCompo
 import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.modules.DefaultExceptionNormalizer;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.modules.siard.in.read.ZipAndFolderReadStrategy;
 import com.databasepreservation.modules.siard.validate.common.path.ValidatorPathStrategyImpl;
@@ -94,7 +95,7 @@ public class SIARDValidateModule implements ValidateModule {
   public boolean validate() throws ModuleException {
 
     if (!validateSIARDVersion()) {
-      throw new ModuleException().withMessage("SIARD validation only supports SIARD 2.1 version");
+      throw new SIARDVersionNotSupportedException().withVersionInfo("SIARD 2.1 version").withMessage("SIARD validator only supports");
     }
 
     List<ValidatorComponent> components = getValidationComponents();
@@ -192,12 +193,13 @@ public class SIARDValidateModule implements ValidateModule {
       SIARDArchiveContainer.OutputContainerType.MAIN);
     ReadStrategy readStrategy = new ZipAndFolderReadStrategy(mainContainer);
 
-    // identify version before creating metadata import strategy instance
     try {
       readStrategy.setup(mainContainer);
     } catch (ModuleException e) {
-      LOGGER.debug("Problem setting up container", e);
+      return false;
     }
+
+    if (mainContainer.getVersion() == null) return false;
 
     return mainContainer.getVersion().equals(SIARDConstants.SiardVersion.V2_1);
   }

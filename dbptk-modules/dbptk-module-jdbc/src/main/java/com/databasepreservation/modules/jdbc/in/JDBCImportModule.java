@@ -292,7 +292,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     return databaseStructure;
   }
 
-  public List<String> testCustomViewQuery(String query) throws SQLException, ModuleException {
+  public List<String> testCustomViewQuery(String query) throws ModuleException, SQLException {
     List<String> results = new ArrayList<>();
     LOGGER.debug("query: " + query);
     Statement st = getStatement();
@@ -325,8 +325,8 @@ public class JDBCImportModule implements DatabaseImportModule {
         row = new StringBuilder();
       }
     } catch (SQLException sqlException) {
-      LOGGER.debug("Error executing query with default fetch size of {}", st.getFetchSize());
       closeConnection();
+      throw new ModuleException().withMessage(sqlException.getSQLState());
     }
 
     return results;

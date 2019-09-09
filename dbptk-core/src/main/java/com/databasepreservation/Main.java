@@ -26,6 +26,7 @@ import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.EditDatabaseMetadataParserException;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.SIARDVersionNotSupportedException;
 import com.databasepreservation.model.exception.SiardNotFoundException;
 import com.databasepreservation.model.modules.filters.ObservableFilter;
 import com.databasepreservation.model.modules.filters.ProgressLoggerObserver;
@@ -192,8 +193,10 @@ public class Main {
         duration = System.currentTimeMillis() - startTime;
         LOGGER.info("Validate SIARD took {}m {}s to complete.", duration / 60000, duration % 60000 / 1000);
       } catch (SiardNotFoundException e) {
-        LOGGER.error(e.getMessage() + ": " + e.getPath());
+        LOGGER.error("{}: {}", e.getMessage(), e.getPath());
         return EXIT_CODE_FILE_NOT_FOUND;
+      } catch (SIARDVersionNotSupportedException e) {
+        LOGGER.error("{}: {}", e.getMessage(), e.getVersionInfo());
       } catch (ModuleException e) {
         if (!e.getClass().equals(ModuleException.class)) {
           LOGGER.error(e.getMessage(), e);

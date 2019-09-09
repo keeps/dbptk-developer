@@ -198,12 +198,6 @@ public class XMLUtils {
     return expression.evaluate(document, constants);
   }
 
-  public static Object getXPathResult(XPath xPath, final Document document, final String xpathExpression, final QName constants) throws XPathExpressionException {
-    XPathExpression expression = xPath.compile(xpathExpression);
-
-    return expression.evaluate(document, constants);
-  }
-
   private static Document getDocument(InputStream inputStream)
       throws IOException, SAXException, ParserConfigurationException {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
