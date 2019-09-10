@@ -15,6 +15,7 @@ import java.sql.Time;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Set;
 import java.util.TreeSet;
 
 import org.slf4j.Logger;
@@ -178,6 +179,26 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
         throw new ModuleException().withMessage("Error creating database " + database).withCause(e);
       }
     }
+  }
+
+  /**
+   * Checks if a schema with 'schemaName' already exists on the database.
+   *
+   * @param schemaName the schema name to be checked.
+   * @return
+   * @throws SQLException
+   * @throws ModuleException
+   */
+  @Override
+  protected boolean isExistingSchema(String schemaName) throws SQLException, ModuleException {
+    boolean exists = false;
+    for (String existingName : getExistingSchemasNames()) {
+      if (existingName.equals(schemaName)) {
+        exists = true;
+        break;
+      }
+    }
+    return exists;
   }
 
   @Override
