@@ -37,11 +37,15 @@ script:
   - travis_wait 30 mvn $MAVEN_CLI_OPTS -Dtestng.groups="travis-ci" -Dlogback.configurationFile=logback-travis.xml -Dsonar.scm.disabled=true clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar
 
 deploy:
-  provider: script
-  script: .travis/deploy.sh
-  on:
-    all_branches: true
-    tags: true
+  - provider: script
+    script: .travis/deploy.sh
+    on:
+      all_branches: true
+      tags: true
+  - provider: script
+    script: .travis/deploy_snapshot.sh
+    on:
+     branch: master
 
 after_script:
   - rm $HOME/.m2/settings.xml
