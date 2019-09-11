@@ -654,7 +654,13 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         for (Map.Entry<String, String> values : entry.getValue().entrySet()) {
           if (values.getValue().equals("false")) {
             final int number = numberOfRows.get(entry.getKey());
-            final int nodeCounter = countColumnsMap.get(values.getKey());
+            final int nodeCounter;
+            if (countColumnsMap.get(values.getKey()) != null) {
+              nodeCounter = countColumnsMap.get(values.getKey());
+            } else {
+              nodeCounter = 0;
+            }
+
             if (number != nodeCounter) {
               counter++;
             }
