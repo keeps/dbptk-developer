@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.databasepreservation.Constants;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -102,6 +101,7 @@ public class JDBCImportModule implements DatabaseImportModule {
   // if fetch size is zero, then the driver decides the best fetch size
   private static final Integer CUSTOM_VIEW_FETCH_BLOCK_SIZE = 1;
   private static final Integer CUSTOM_VIEW_FETCH_LIMIT_SIZE = 5;
+  private static final Integer CUSTOM_VIEW_MAX_FIELD_SIZE = 256;
   protected static final Integer DEFAULT_ROW_FETCH_BLOCK_SIZE = ConfigUtils.getProperty(0,
     "dbptk.jdbc.fetchsize.default");
   protected static final Integer SMALL_ROW_FETCH_BLOCK_SIZE = ConfigUtils.getProperty(10, "dbptk.jdbc.fetchsize.small");
@@ -292,41 +292,33 @@ public class JDBCImportModule implements DatabaseImportModule {
     return databaseStructure;
   }
 
-  public List<String> testCustomViewQuery(String query) throws ModuleException, SQLException {
-    List<String> results = new ArrayList<>();
+  public List<List<String>> testCustomViewQuery(String query) throws ModuleException {
+    List<List<String>> results = new ArrayList<>();
     LOGGER.debug("query: " + query);
-    Statement st = getStatement();
-
-    st.setFetchSize(CUSTOM_VIEW_FETCH_BLOCK_SIZE);
-    st.setMaxRows(CUSTOM_VIEW_FETCH_LIMIT_SIZE);
-    StringBuilder row = new StringBuilder();
+    Statement st = null;
     try {
+      st = getStatement();
+      st.setMaxFieldSize(CUSTOM_VIEW_MAX_FIELD_SIZE);
+      st.setFetchSize(CUSTOM_VIEW_FETCH_BLOCK_SIZE);
+      st.setMaxRows(CUSTOM_VIEW_FETCH_LIMIT_SIZE);
+
       final ResultSet resultSet = st.executeQuery(query);
       ResultSetMetaData metadata = resultSet.getMetaData();
       int columnCount = metadata.getColumnCount();
+      List<String> header = new ArrayList<>();
       for (int i = 1; i <= columnCount; i++) {
-        if (i == columnCount) {
-          row.append(metadata.getColumnName(i));
-        } else {
-          row.append(metadata.getColumnName(i)).append(", ");
-        }
+        header.add(metadata.getColumnLabel(i));
       }
-      results.add(row.toString());
-      row = new StringBuilder();
+      results.add(header);
       while (resultSetNext(resultSet)) {
+        List<String> content = new ArrayList<>();
         for (int i = 1; i <= columnCount; i++) {
-          if (i == columnCount) {
-            row.append(resultSet.getString(i));
-          } else {
-            row.append(resultSet.getString(i)).append(", ");
-          }
+          content.add(resultSet.getString(i));
         }
-        results.add(row.toString());
-        row = new StringBuilder();
+        results.add(content);
       }
-    } catch (SQLException sqlException) {
-      closeConnection();
-      throw new ModuleException().withMessage(sqlException.getSQLState());
+    } catch (SQLException e) {
+      throw new ModuleException().withCause(e).withMessage(e.getMessage());
     }
 
     return results;
