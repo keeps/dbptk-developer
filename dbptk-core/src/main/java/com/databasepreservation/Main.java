@@ -198,9 +198,9 @@ public class Main {
       } catch (SIARDVersionNotSupportedException e) {
         LOGGER.error("{}: {}", e.getMessage(), e.getVersionInfo());
       } catch (ModuleException e) {
-        if (!e.getClass().equals(ModuleException.class)) {
-          LOGGER.error(e.getMessage(), e);
-        }
+        LOGGER.error(e.getMessage(), e);
+      } catch (Exception e) {
+        LOGGER.error("Fatal error: Unexpected exception (" + e.getMessage() + ")", e);
       }
     }
 

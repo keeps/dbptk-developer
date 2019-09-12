@@ -16,7 +16,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import com.databasepreservation.model.exception.SIARDVersionNotSupportedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +23,7 @@ import com.databasepreservation.common.ValidationObserver;
 import com.databasepreservation.common.ValidatorPathStrategy;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.SIARDVersionNotSupportedException;
 import com.databasepreservation.model.modules.validate.ValidateModule;
 import com.databasepreservation.model.modules.validate.components.ValidatorComponent;
 import com.databasepreservation.model.modules.validate.components.ValidatorComponentFactory;
@@ -195,16 +195,12 @@ public class SIARDValidateModule implements ValidateModule {
     return null;
   }
 
-  private boolean validateSIARDVersion() {
+  private boolean validateSIARDVersion() throws ModuleException {
     SIARDArchiveContainer mainContainer = new SIARDArchiveContainer(SIARDPackageNormalizedPath,
       SIARDArchiveContainer.OutputContainerType.MAIN);
     ReadStrategy readStrategy = new ZipAndFolderReadStrategy(mainContainer);
 
-    try {
-      readStrategy.setup(mainContainer);
-    } catch (ModuleException e) {
-      return false;
-    }
+    readStrategy.setup(mainContainer);
 
     if (mainContainer.getVersion() == null) return false;
 
