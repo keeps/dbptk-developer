@@ -237,12 +237,6 @@ public class XMLUtils {
     return xPath;
   }
 
-  public static Document convertStringToDocument(String xmlStreamReader, DocumentBuilder builder)
-    throws IOException, SAXException {
-
-    return builder.parse(new InputSource(new StringReader(xmlStreamReader)));
-  }
-
   public static Element getChild(Element parent, String name) {
     for (Node child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
       if (child instanceof Element && name.equals(child.getNodeName())) {

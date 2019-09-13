@@ -106,6 +106,7 @@ public class SIARDValidateModule implements ValidateModule {
     }
 
     List<ValidatorComponent> components = getValidationComponents();
+    int counter = 0;
 
     for (ValidatorComponent component : components) {
       component.setReporter(reporter);
@@ -115,17 +116,16 @@ public class SIARDValidateModule implements ValidateModule {
       component.setValidatorPathStrategy(validatorPathStrategy);
       component.setAllowedUTD(allowedUDTs);
       component.setup();
-      component.validate();
-      // if (!component.validate()) {
-      // validationReporter.close();
-      // return false;
-      // }
+      final boolean validate = component.validate();
+      if (!validate) {
+        counter++;
+      }
       component.clean();
     }
 
     validationReporter.close();
 
-    return true;
+    return counter == 0;
   }
 
   /**

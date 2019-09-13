@@ -95,7 +95,7 @@ public class SIARDValidation {
    * @throws ModuleException
    *           Generic module exception
    */
-  public void validate() throws ModuleException {
+  public boolean validate() throws ModuleException {
 
     HashMap<Parameter, String> importParameters = buildImportParameters(validateModuleStringParameters, validateModuleFactory);
 
@@ -103,7 +103,7 @@ public class SIARDValidation {
     validateModule.setOnceReporter(reporter);
     validateModule.setObserver(validationObserver);
 
-    validateModule.validate();
+    return validateModule.validate();
   }
 
   // Auxiliary Internal Methods

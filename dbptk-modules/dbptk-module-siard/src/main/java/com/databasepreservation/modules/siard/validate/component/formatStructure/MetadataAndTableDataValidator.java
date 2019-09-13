@@ -1197,20 +1197,12 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     final NodeList nodeList = (NodeList) XMLUtils.getXPathResult(getZipInputStream(XSDPath),
       "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element", XPathConstants.NODESET, null);
     for (int i = 0; i < nodeList.getLength(); i++) {
-      String XMLType = "";
+      String XMLType;
       final Node item = nodeList.item(i);
       if (item.getAttributes().getNamedItem("type") != null) {
         XMLType = item.getAttributes().getNamedItem("type").getNodeValue();
       } else {
-        Element sequence = (Element) item;
-        final NodeList complexTypeNode = sequence.getElementsByTagName("xs:complexType");
-        for (int j = 0; j < complexTypeNode.getLength(); j++) {
-          Element complexType = (Element) complexTypeNode.item(i);
-          final NodeList sequenceNodes = complexType.getElementsByTagName("xs:sequence");
-          for (int k = 0; k < sequenceNodes.getLength(); k++) {
-            XMLType = sequenceNodes.item(k).getAttributes().getNamedItem("type").getNodeValue();
-          }
-        }
+        XMLType = null;
       }
 
       String columnName = item.getAttributes().getNamedItem("name").getNodeValue();
@@ -1270,6 +1262,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
 
   private boolean validateSQL2008TypeWithXMLType(final String SQL2008Type, final String XMLType) {
     for (Map.Entry<String, List<String>> entry : SQL2008TypeMatchXMLType.entrySet()) {
+      if (XMLType == null) continue;
       if (SQL2008Type.matches(entry.getKey())) {
         final List<String> XMLTypeMatches = entry.getValue();
         return XMLTypeMatches.contains(XMLType);
