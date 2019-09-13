@@ -117,9 +117,6 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
   @Override
   public void handleDataOpenSchema(String schemaName) throws ModuleException {
     currentSchema = externalLOBS.get(schemaName);
-    if (currentSchema == null) {
-      throw new ModuleException().withMessage("Unrecognized schema name " + schemaName);
-    }
     this.exportModule.handleDataOpenSchema(schemaName);
   }
 
@@ -127,7 +124,7 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
   public void handleDataOpenTable(String tableId) throws ModuleException {
     List<ColumnStructure> columns = databaseStructure.getTableById(tableId).getColumns();
     String tableName = databaseStructure.getTableById(tableId).getName();
-    if (currentSchema.keySet().contains(tableName)) {
+    if (currentSchema != null && currentSchema.containsKey(tableName)) {
       hasExternalLOBS = true;
       List<String> cellList = currentSchema.get(tableName);
 
