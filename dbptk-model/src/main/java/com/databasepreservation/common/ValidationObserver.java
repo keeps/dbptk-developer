@@ -7,7 +7,7 @@
  */
 package com.databasepreservation.common;
 
-import com.databasepreservation.model.reporters.ValidationReporter.Status;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -15,13 +15,13 @@ import com.databasepreservation.model.reporters.ValidationReporter.Status;
 public interface ValidationObserver {
   void notifyStartValidationModule(String moduleName, String ID);
 
-  void notifyValidationStep(String moduleName, String step, Status status);
+  void notifyValidationStep(String moduleName, String step, ValidationReporterStatus status);
 
-  void notifyMessage(String moduleName, String message, Status status);
+  void notifyMessage(String moduleName, String message, ValidationReporterStatus status);
 
-  void notifyFinishValidationModule(String moduleName, Status status);
+  void notifyFinishValidationModule(String moduleName, ValidationReporterStatus status);
 
-  void notifyComponent(String ID, Status status);
+  void notifyComponent(String ID, ValidationReporterStatus status);
 
   void notifyElementValidating(String path);
 }

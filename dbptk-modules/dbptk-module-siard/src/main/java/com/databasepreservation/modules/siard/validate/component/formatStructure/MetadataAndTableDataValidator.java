@@ -35,7 +35,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.reporters.ValidationReporter.Status;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.model.validator.SIARDContent;
 import com.databasepreservation.modules.siard.validate.common.model.AdvancedOrStructuredColumn;
 import com.databasepreservation.modules.siard.validate.common.model.Attribute;
@@ -134,26 +134,27 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     getValidationReporter().moduleValidatorHeader(P_43, MODULE_NAME);
 
     if (validateMetadataStructure()) {
-      observer.notifyValidationStep(MODULE_NAME, P_431, Status.OK);
-      getValidationReporter().validationStatus(P_431, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, P_431, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(P_431, ValidationReporterStatus.OK);
       closeZipFile();
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_431, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_431, Status.ERROR, "The metadata.xml must be identical to that in the content/", P_431_ERRORS,
+      observer.notifyValidationStep(MODULE_NAME, P_431, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+      validationFailed(P_431, ValidationReporterStatus.ERROR,
+        "The metadata.xml must be identical to that in the content/", P_431_ERRORS,
         MODULE_NAME);
       closeZipFile();
       return false;
     }
 
     if (validateColumnCount()) {
-      observer.notifyValidationStep(MODULE_NAME, P_432, Status.OK);
-      getValidationReporter().validationStatus(P_432, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, P_432, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(P_432, ValidationReporterStatus.OK);
       closeZipFile();
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_432, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_432, Status.ERROR,
+      observer.notifyValidationStep(MODULE_NAME, P_432, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+      validationFailed(P_432, ValidationReporterStatus.ERROR,
         "The number of columns in a table specified in metadata.xml must be identical to that in the corresponding table[number].xsd file",
         P_432_ERRORS, MODULE_NAME);
       closeZipFile();
@@ -161,13 +162,13 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     }
 
     if (validateDataTypeInformation()) {
-      observer.notifyValidationStep(MODULE_NAME, P_433, Status.OK);
-      getValidationReporter().validationStatus(P_433, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, P_433, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(P_433, ValidationReporterStatus.OK);
       closeZipFile();
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_433, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_433, Status.ERROR,
+      observer.notifyValidationStep(MODULE_NAME, P_433, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+      validationFailed(P_433, ValidationReporterStatus.ERROR,
         "The data type information on the column definitions in metadata.xml must be identical to that in the corresponding table[number].xsd file",
         P_433_ERRORS, MODULE_NAME);
       closeZipFile();
@@ -188,9 +189,9 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       skip(P_434);
       closeZipFile();
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_434, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_434, Status.ERROR,
+      observer.notifyValidationStep(MODULE_NAME, P_434, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+      validationFailed(P_434, ValidationReporterStatus.ERROR,
         "The named DISTINCT data types are converted to the XML data type in the table[number].xsd schema files which would be used for representing their base types.",
         P_434_ERRORS, MODULE_NAME);
       closeZipFile();
@@ -201,9 +202,9 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       skip(P_435);
       closeZipFile();
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_435, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_435, Status.ERROR,
+      observer.notifyValidationStep(MODULE_NAME, P_435, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+      validationFailed(P_435, ValidationReporterStatus.ERROR,
         "Arrays are converted in the table[number].xsd schema files into a sequence of structured XML elements which are converted to the XML data type corresponding to the base type of the array.",
         P_435_ERRORS, MODULE_NAME);
       closeZipFile();
@@ -219,9 +220,9 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       skip(P_436);
       closeZipFile();
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_436, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_436, Status.ERROR,
+      observer.notifyValidationStep(MODULE_NAME, P_436, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+      validationFailed(P_436, ValidationReporterStatus.ERROR,
         "The named user-defined data type (UDT) is converted in the table[number].xsd schema files into a sequence of structured XML elements which are converted to the XML data type corresponding to the type of each attribute.",
         P_436_ERRORS, MODULE_NAME);
       closeZipFile();
@@ -236,37 +237,37 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         warning);
     }
     if (result) {
-      observer.notifyValidationStep(MODULE_NAME, P_437, Status.OK);
-      getValidationReporter().validationStatus(P_437, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, P_437, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(P_437, ValidationReporterStatus.OK);
       closeZipFile();
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_437, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
+      observer.notifyValidationStep(MODULE_NAME, P_437, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(P_437, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
     if (validateColumnSequence()) {
-      observer.notifyValidationStep(MODULE_NAME, P_438, Status.OK);
-      getValidationReporter().validationStatus(P_438, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, P_438, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(P_438, ValidationReporterStatus.OK);
       closeZipFile();
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_438, Status.OK);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
+      observer.notifyValidationStep(MODULE_NAME, P_438, ValidationReporterStatus.OK);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(P_438, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
     if (validateFieldSequenceInTableXSD()) {
-      observer.notifyValidationStep(MODULE_NAME, P_439, Status.OK);
-      getValidationReporter().validationStatus(P_439, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, P_439, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(P_439, ValidationReporterStatus.OK);
       closeZipFile();
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_439, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_439, Status.ERROR,
+      observer.notifyValidationStep(MODULE_NAME, P_439, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+      validationFailed(P_439, ValidationReporterStatus.ERROR,
         "The field sequence in the table definition of the metadata.xml must be identical to the field sequence in the corresponding table[number].xsd.",
         P_439_ERRORS, MODULE_NAME);
       closeZipFile();
@@ -274,13 +275,13 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     }
 
     if (validateNumberOfLinesInATable()) {
-      observer.notifyValidationStep(MODULE_NAME, P_4310, Status.OK);
-      getValidationReporter().validationStatus(P_4310, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, P_4310, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(P_4310, ValidationReporterStatus.OK);
       closeZipFile();
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_4310, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_4310, Status.ERROR,
+      observer.notifyValidationStep(MODULE_NAME, P_4310, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+      validationFailed(P_4310, ValidationReporterStatus.ERROR,
         "The number of lines in a table in metadata.xml must fit into the area specified in the corresponding table[number].xsd. The number of lines in a table in metadata.xml must be identical to the number of lines in the corresponding table[number].xml.",
         P_4310_ERRORS, MODULE_NAME);
       closeZipFile();
@@ -288,19 +289,19 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     }
 
     if (validateNumberOfRows()) {
-      observer.notifyValidationStep(MODULE_NAME, A_P_4310, Status.OK);
-      getValidationReporter().validationStatus(A_P_4310, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, A_P_4310, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(A_P_4310, ValidationReporterStatus.OK);
       closeZipFile();
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_P_4310, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(A_P_4310, Status.ERROR, "", P_4310_ERRORS, MODULE_NAME);
+      observer.notifyValidationStep(MODULE_NAME, A_P_4310, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+      validationFailed(A_P_4310, ValidationReporterStatus.ERROR, "", P_4310_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
-    observer.notifyFinishValidationModule(MODULE_NAME, Status.PASSED);
-    getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
+    observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.PASSED);
+    getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.PASSED);
     closeZipFile();
 
     return true;
@@ -626,7 +627,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
     }
-    observer.notifyComponent(P_437, Status.START);
+    observer.notifyComponent(P_437, ValidationReporterStatus.START);
 
     warnings.clear();
     int counter = 0;
@@ -752,7 +753,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       return false;
     }
 
-    observer.notifyComponent(P_4310, Status.START);
+    observer.notifyComponent(P_4310, ValidationReporterStatus.START);
     for (Map.Entry<SIARDContent, Integer> entry : numberOfRows.entrySet()) {
       String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(entry.getKey().getSchema(),
         entry.getKey().getTable());
@@ -838,7 +839,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       return false;
     }
 
-    observer.notifyComponent(A_P_4310, Status.START);
+    observer.notifyComponent(A_P_4310, ValidationReporterStatus.START);
 
     try {
       // Count number of row element in table[number].xml
@@ -1274,11 +1275,11 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
 
   private void skip(final String step) {
     if (skipped.isEmpty()) {
-      observer.notifyValidationStep(MODULE_NAME, step, Status.OK);
-      getValidationReporter().validationStatus(step, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, step, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(step, ValidationReporterStatus.OK);
     } else {
       for (String skippedReason : skipped) {
-        observer.notifyValidationStep(MODULE_NAME, step, Status.SKIPPED);
+        observer.notifyValidationStep(MODULE_NAME, step, ValidationReporterStatus.SKIPPED);
         getValidationReporter().skipValidation(step, skippedReason);
       }
       // observer.notifyValidationStep(MODULE_NAME, step, Status.OK);

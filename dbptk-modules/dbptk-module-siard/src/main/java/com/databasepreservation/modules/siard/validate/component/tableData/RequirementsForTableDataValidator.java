@@ -7,8 +7,6 @@
  */
 package com.databasepreservation.modules.siard.validate.component.tableData;
 
-import static com.databasepreservation.model.reporters.ValidationReporter.Status;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -49,6 +47,7 @@ import org.xml.sax.SAXException;
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.validator.CategoryNotFoundException;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.model.validator.SIARDContent;
 import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 import com.databasepreservation.utils.ListUtils;
@@ -134,12 +133,12 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     getValidationReporter().moduleValidatorHeader(T_60, MODULE_NAME);
 
     if (validateSQL2008Requirements()) {
-      observer.notifyValidationStep(MODULE_NAME, T_601, Status.OK);
-      getValidationReporter().validationStatus(T_601, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, T_601, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(T_601, ValidationReporterStatus.OK);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, T_601, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(T_601, Status.ERROR,
+      observer.notifyValidationStep(MODULE_NAME, T_601, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+      validationFailed(T_601, ValidationReporterStatus.ERROR,
         "All the table data (primary data) must meet the consistency requirements of SQL:2008.", T_601_ERRORS,
         MODULE_NAME);
       closeZipFile();
@@ -147,32 +146,33 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     }
 
     numberOfNullValuesForForeignKey();
-    getValidationReporter().validationStatus(A_T_6011, Status.OK);
+    getValidationReporter().validationStatus(A_T_6011, ValidationReporterStatus.OK);
 
     if (!validateTableDataType()) {
-      observer.notifyValidationStep(MODULE_NAME, A_T_6012, Status.OK);
-      getValidationReporter().validationStatus(A_T_6012, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, A_T_6012, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(A_T_6012, ValidationReporterStatus.OK);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_T_6012, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
+      observer.notifyValidationStep(MODULE_NAME, A_T_6012, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(A_T_6012, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
     if (validateTableXSDAgainstXML()) {
-      observer.notifyValidationStep(MODULE_NAME, T_602, Status.OK);
-      getValidationReporter().validationStatus(T_602, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, T_602, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(T_602, ValidationReporterStatus.OK);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, T_602, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(T_602, Status.ERROR, "Validation against XSD failed", T_602_ERRORS, MODULE_NAME);
+      observer.notifyValidationStep(MODULE_NAME, T_602, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+      validationFailed(T_602, ValidationReporterStatus.ERROR, "Validation against XSD failed", T_602_ERRORS,
+        MODULE_NAME);
       closeZipFile();
       return false;
     }
 
-    observer.notifyFinishValidationModule(MODULE_NAME, Status.PASSED);
-    getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
+    observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.PASSED);
+    getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.PASSED);
     closeZipFile();
 
     return true;
@@ -234,7 +234,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         "/ns:siardArchive/ns:schemas/ns:schema/ns:folder/text()", XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
 
-      observer.notifyMessage(MODULE_NAME, "Validating Primary Keys", Status.START);
+      observer.notifyMessage(MODULE_NAME, "Validating Primary Keys", ValidationReporterStatus.START);
       for (int i = 0; i < result.getLength(); i++) {
         String schemaFolder = result.item(i).getTextContent();
 
@@ -249,7 +249,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
           T_601_ERRORS.addAll(validatePrimaryKeyConstraint(schemaFolder, tableFolder));
         }
       }
-      observer.notifyMessage(MODULE_NAME, "Validating Primary Keys", Status.FINISH);
+      observer.notifyMessage(MODULE_NAME, "Validating Primary Keys", ValidationReporterStatus.FINISH);
     } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException
       | XMLStreamException e) {
       LOGGER.debug("Failed to validate {}({})", MODULE_NAME, T_601, e);
@@ -262,7 +262,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         "/ns:siardArchive/ns:schemas/ns:schema/ns:folder/text()", XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
 
-      observer.notifyMessage(MODULE_NAME, "Validating Foreign Keys", Status.START);
+      observer.notifyMessage(MODULE_NAME, "Validating Foreign Keys", ValidationReporterStatus.START);
       for (int i = 0; i < result.getLength(); i++) {
         String schemaFolder = result.item(i).getTextContent();
 
@@ -277,7 +277,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
           T_601_ERRORS.addAll(validateForeignKeyConstraint(schemaFolder, tableFolder));
         }
       }
-      observer.notifyMessage(MODULE_NAME, "Validating Foreign Keys", Status.FINISH);
+      observer.notifyMessage(MODULE_NAME, "Validating Foreign Keys", ValidationReporterStatus.FINISH);
     } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException
       | XMLStreamException e) {
       LOGGER.debug("Failed to validate {}({})", MODULE_NAME, T_601, e);
@@ -312,7 +312,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         tableDataSchemaDefinition.add(new SIARDContent(matcher.group(2), matcher.group(3)));
       }
     }
-    observer.notifyMessage(MODULE_NAME, "Validating XML against XSD", Status.START);
+    observer.notifyMessage(MODULE_NAME, "Validating XML against XSD", ValidationReporterStatus.START);
 
     for (SIARDContent content : tableDataSchemaDefinition) {
       String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(content.getSchema(), content.getTable());
@@ -348,7 +348,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         T_602_ERRORS.add(e.getLocalizedMessage());
       }
     }
-    observer.notifyMessage(MODULE_NAME, "Validating XML against XSD", Status.FINISH);
+    observer.notifyMessage(MODULE_NAME, "Validating XML against XSD", ValidationReporterStatus.FINISH);
     return T_602_ERRORS.isEmpty();
   }
 
@@ -367,7 +367,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
     }
-    observer.notifyMessage(MODULE_NAME, A_T_6012 , Status.START);
+    observer.notifyMessage(MODULE_NAME, A_T_6012, ValidationReporterStatus.START);
 
     for (final Map.Entry<SIARDContent, HashMap<String, String>> entry : columnTypes.entrySet()) {
       final String path = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(),
@@ -438,7 +438,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       }
     }
 
-    observer.notifyMessage(MODULE_NAME, A_T_6012, Status.FINISH);
+    observer.notifyMessage(MODULE_NAME, A_T_6012, ValidationReporterStatus.FINISH);
     return A_T_6012_ERRORS;
   }
 
@@ -447,7 +447,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
    *
    */
   private void numberOfNullValuesForForeignKey() {
-    observer.notifyMessage(MODULE_NAME, A_T_6011 , Status.START);
+    observer.notifyMessage(MODULE_NAME, A_T_6011, ValidationReporterStatus.START);
     HashMap<SIARDContent, HashMap<String, Integer>> countColumnsMap = new HashMap<>();
 
     for (Map.Entry<SIARDContent, List<String>> entry : foreignKeyColumns.entrySet()) {
@@ -503,7 +503,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       }
     }
 
-    observer.notifyMessage(MODULE_NAME, A_T_6011, Status.FINISH);
+    observer.notifyMessage(MODULE_NAME, A_T_6011, ValidationReporterStatus.FINISH);
   }
 
   /*
@@ -514,7 +514,8 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       if (!validateType(content, dataType)) {
         A_T_6012_ERRORS = true;
         String message = content + " is not in conformity with '" + dataType + "' type in " + archivePath;
-        getValidationReporter().validationStatus(A_T_6012, Status.ERROR, "Data type invalid", message);
+        getValidationReporter().validationStatus(A_T_6012, ValidationReporterStatus.ERROR, "Data type invalid",
+          message);
       }
     }
   }

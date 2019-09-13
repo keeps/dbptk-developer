@@ -26,7 +26,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
-import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.modules.siard.bindings.siard_2_1.SiardArchive;
 import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 import com.databasepreservation.utils.XMLUtils;
@@ -72,8 +72,8 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
       reportValidations(codeId, moduleName);
     }
     if (failed) {
-      observer.notifyFinishValidationModule(moduleName, ValidationReporter.Status.FAILED);
-      getValidationReporter().moduleValidatorFinished(moduleName, ValidationReporter.Status.ERROR);
+      observer.notifyFinishValidationModule(moduleName, ValidationReporterStatus.FAILED);
+      getValidationReporter().moduleValidatorFinished(moduleName, ValidationReporterStatus.ERROR);
       return false;
     }
     metadataValidationPassed(moduleName);
@@ -88,7 +88,7 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
     boolean codeIdFailed = false;
     if (errors.get(codeID) != null && !errors.get(codeID).isEmpty()) {
       for (String error : errors.get(codeID)) {
-        getValidationReporter().validationStatus(codeID, ValidationReporter.Status.ERROR, error);
+        getValidationReporter().validationStatus(codeID, ValidationReporterStatus.ERROR, error);
         codeIdFailed = failed = true;
       }
     } else if ((warnings.get(codeID) != null) && !warnings.get(codeID).isEmpty()) {
@@ -106,16 +106,16 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
     }
 
     if (codeIdFailed) {
-      observer.notifyValidationStep(moduleName, codeID, ValidationReporter.Status.ERROR);
+      observer.notifyValidationStep(moduleName, codeID, ValidationReporterStatus.ERROR);
     } else {
-      observer.notifyValidationStep(moduleName, codeID, ValidationReporter.Status.OK);
-      getValidationReporter().validationStatus(codeID, ValidationReporter.Status.OK);
+      observer.notifyValidationStep(moduleName, codeID, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(codeID, ValidationReporterStatus.OK);
     }
   }
 
   void metadataValidationPassed(String moduleName) {
-    getValidationReporter().moduleValidatorFinished(moduleName, ValidationReporter.Status.PASSED);
-    observer.notifyFinishValidationModule(moduleName, ValidationReporter.Status.PASSED);
+    getValidationReporter().moduleValidatorFinished(moduleName, ValidationReporterStatus.PASSED);
+    observer.notifyFinishValidationModule(moduleName, ValidationReporterStatus.PASSED);
   }
 
   /**

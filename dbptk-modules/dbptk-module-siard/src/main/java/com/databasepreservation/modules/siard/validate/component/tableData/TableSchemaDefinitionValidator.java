@@ -26,7 +26,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.reporters.ValidationReporter.Status;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.model.validator.SIARDContent;
 import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 import com.databasepreservation.utils.XMLUtils;
@@ -72,12 +72,12 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
     getValidationReporter().moduleValidatorHeader(P_61, MODULE_NAME);
 
     if (validateXMLSchemaDefinition()) {
-      observer.notifyValidationStep(MODULE_NAME, P_611, Status.OK);
-      getValidationReporter().validationStatus(P_611, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, P_611, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(P_611, ValidationReporterStatus.OK);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_611, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_611, Status.ERROR,
+      observer.notifyValidationStep(MODULE_NAME, P_611, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+      validationFailed(P_611, ValidationReporterStatus.ERROR,
         "There must be an XML schema definition for each table that indicates the XML storage format of the table data.",
         P_611_ERRORS, MODULE_NAME);
       closeZipFile();
@@ -85,12 +85,12 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
     }
 
     if (validateColumnsTag()) {
-      observer.notifyValidationStep(MODULE_NAME, P_612, Status.OK);
-      getValidationReporter().validationStatus(P_612, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, P_612, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(P_612, ValidationReporterStatus.OK);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_612, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_612, Status.ERROR,
+      observer.notifyValidationStep(MODULE_NAME, P_612, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+      validationFailed(P_612, ValidationReporterStatus.ERROR,
         "The column tags always start with c1 and increase by 1. There must be no gap, because a NULL value is expressed by a missing corresponding column in the XML file.",
         P_612_ERRORS, MODULE_NAME);
       closeZipFile();
@@ -98,31 +98,32 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
     }
 
     if (validateXMLSchemaStandardTypes()) {
-      observer.notifyValidationStep(MODULE_NAME, P_613, Status.OK);
-      getValidationReporter().validationStatus(P_613, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, P_613, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(P_613, ValidationReporterStatus.OK);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_613, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_613, Status.ERROR, "Incompatible XML Schema standard types", P_613_ERRORS, MODULE_NAME);
+      observer.notifyValidationStep(MODULE_NAME, P_613, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+      validationFailed(P_613, ValidationReporterStatus.ERROR, "Incompatible XML Schema standard types", P_613_ERRORS,
+        MODULE_NAME);
       closeZipFile();
       return false;
     }
 
     if (validateAdvancedOrStructuredType()) {
-      observer.notifyValidationStep(MODULE_NAME, P_614, Status.OK);
-      getValidationReporter().validationStatus(P_614, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, P_614, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(P_614, ValidationReporterStatus.OK);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_614, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_614, Status.ERROR,
+      observer.notifyValidationStep(MODULE_NAME, P_614, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+      validationFailed(P_614, ValidationReporterStatus.ERROR,
         "Multiple cell values of advanced or structured types are to be stored as separate elements inside the cell tags.",
         P_614_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
-    observer.notifyFinishValidationModule(MODULE_NAME, Status.PASSED);
-    getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
+    observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.PASSED);
+    getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.PASSED);
     closeZipFile();
 
     return true;

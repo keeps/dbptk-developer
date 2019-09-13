@@ -23,7 +23,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -68,7 +68,7 @@ public class MetadataAttributeValidator extends MetadataValidator {
     // field of schema
     if (attributeList.isEmpty()) {
       getValidationReporter().skipValidation(M_541, "Database has no attributes");
-      observer.notifyValidationStep(MODULE_NAME, M_541, ValidationReporter.Status.SKIPPED);
+      observer.notifyValidationStep(MODULE_NAME, M_541, ValidationReporterStatus.SKIPPED);
       metadataValidationPassed(MODULE_NAME);
       return true;
     }

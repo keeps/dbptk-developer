@@ -23,7 +23,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -68,7 +68,7 @@ public class MetadataFieldValidator extends MetadataValidator {
 
     if (fieldList.isEmpty()) {
       getValidationReporter().skipValidation(M_571, "Database has no fields");
-      observer.notifyValidationStep(MODULE_NAME, M_571, ValidationReporter.Status.SKIPPED);
+      observer.notifyValidationStep(MODULE_NAME, M_571, ValidationReporterStatus.SKIPPED);
       metadataValidationPassed(MODULE_NAME);
       return true;
     }

@@ -30,10 +30,6 @@ public class ValidationReporter implements AutoCloseable {
   private Path outputFile;
   private BufferedWriter writer;
 
-  public enum Status {
-    OK, ERROR, WARNING, SKIPPED, NOTICE, PASSED, FAILED, START, FINISH;
-  }
-
   public enum Indent {
     TAB, TAB_2, TAB_4
   }
@@ -97,35 +93,36 @@ public class ValidationReporter implements AutoCloseable {
     writeLine(ID + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + text);
   }
 
-  public void validationStatus(String text, Status status) {
+  public void validationStatus(String text, ValidationReporterStatus status) {
     writeLine(TAB + text + COLON + SINGLE_SPACE + buildStatus(status));
   }
 
-  public void validationStatus(String text, Status status, String details, Indent indent) {
+  public void validationStatus(String text, ValidationReporterStatus status, String details, Indent indent) {
     writeLine(resolveIndent(indent) + text + COLON + SINGLE_SPACE + buildStatus(status) + SINGLE_SPACE + details);
   }
 
-  public void validationStatus(Status status, String details, Indent indent) {
+  public void validationStatus(ValidationReporterStatus status, String details, Indent indent) {
     writeLine(resolveIndent(indent) + buildStatus(status) + SINGLE_SPACE + details);
   }
 
-  public void validationStatus(String text, Status status, String details) {
+  public void validationStatus(String text, ValidationReporterStatus status, String details) {
     writeLine(TAB + text + COLON + SINGLE_SPACE + buildStatus(status) + SINGLE_SPACE + COLON + SINGLE_SPACE + details);
   }
 
-  public void validationStatus(String text, Status status, String message, String path) {
+  public void validationStatus(String text, ValidationReporterStatus status, String message, String path) {
     writeLine(TAB + text + COLON + SINGLE_SPACE + buildStatus(status) + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + message
       + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + path);
   }
 
-  public void validationStatus(String text, Status status, String pathToEntry, List<String> details) {
+  public void validationStatus(String text, ValidationReporterStatus status, String pathToEntry, List<String> details) {
     writeLine(TAB + text + COLON + SINGLE_SPACE + buildStatus(status));
     for (String detail: details ) {
       writeLine(TAB  + TAB +  pathToEntry + COLON +SINGLE_SPACE + detail);
     }
   }
 
-  public void validationStatus(String text, Status status, String pathToEntry, Map<String, List<String>> details) {
+  public void validationStatus(String text, ValidationReporterStatus status, String pathToEntry,
+    Map<String, List<String>> details) {
     writeLine(TAB + text + COLON + SINGLE_SPACE + buildStatus(status));
     for (Map.Entry<String, List<String>> entry: details.entrySet() ) {
       for(String detail: entry.getValue()){
@@ -134,30 +131,34 @@ public class ValidationReporter implements AutoCloseable {
     }
   }
 
-  public void moduleValidatorFinished(String text, Status status) {
+  public void moduleValidatorFinished(String text, ValidationReporterStatus status) {
     writeLine(text + SINGLE_SPACE + buildStatus(status));
     writeLine(EMPTY_MESSAGE_LINE);
   }
 
   public void warning(String ID, String text, String object) {
-    writeLine(TAB + ID + COLON + SINGLE_SPACE + buildStatus(Status.WARNING) + SINGLE_SPACE + HYPHEN + SINGLE_SPACE
+    writeLine(TAB + ID + COLON + SINGLE_SPACE + buildStatus(ValidationReporterStatus.WARNING) + SINGLE_SPACE + HYPHEN
+      + SINGLE_SPACE
       + text + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + object);
   }
 
   public void skipValidation(String ID, String reasonToSkip) {
-    writeLine(TAB + ID + COLON + SINGLE_SPACE + buildStatus(Status.SKIPPED) + SINGLE_SPACE + HYPHEN + SINGLE_SPACE
+    writeLine(TAB + ID + COLON + SINGLE_SPACE + buildStatus(ValidationReporterStatus.SKIPPED) + SINGLE_SPACE + HYPHEN
+      + SINGLE_SPACE
       + reasonToSkip);
   }
 
   public void notice(String ID, Object nodeValue, String noticeMessage) {
-    writeLine(TAB + ID + COLON + SINGLE_SPACE + buildStatus(Status.NOTICE) +SINGLE_SPACE + HYPHEN + SINGLE_SPACE + noticeMessage + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + nodeValue);
+    writeLine(TAB + ID + COLON + SINGLE_SPACE + buildStatus(ValidationReporterStatus.NOTICE) + SINGLE_SPACE + HYPHEN
+      + SINGLE_SPACE + noticeMessage + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + nodeValue);
   }
 
   public void notice(Object nodeValue, String noticeMessage) {
-    writeLine(TAB + buildStatus(Status.NOTICE) + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + noticeMessage + HYPHEN + SINGLE_SPACE + nodeValue);
+    writeLine(TAB + buildStatus(ValidationReporterStatus.NOTICE) + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + noticeMessage
+      + HYPHEN + SINGLE_SPACE + nodeValue);
   }
 
-  private String buildStatus(Status status) {
+  private String buildStatus(ValidationReporterStatus status) {
     return OPEN_BRACKET + status.name() + CLOSED_BRACKET;
   }
 

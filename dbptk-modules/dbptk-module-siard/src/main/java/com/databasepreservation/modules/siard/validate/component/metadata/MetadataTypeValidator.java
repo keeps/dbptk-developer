@@ -15,7 +15,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import com.databasepreservation.model.reporters.ValidationReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -24,6 +23,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -69,7 +69,7 @@ public class MetadataTypeValidator extends MetadataValidator {
     // there is no need to continue the validation if no have types in any schema
     if (typesList.isEmpty()) {
       getValidationReporter().skipValidation(M_531, "Database has no types");
-      observer.notifyValidationStep(MODULE_NAME, M_531, ValidationReporter.Status.SKIPPED);
+      observer.notifyValidationStep(MODULE_NAME, M_531, ValidationReporterStatus.SKIPPED);
       metadataValidationPassed(MODULE_NAME);
       return true;
     }

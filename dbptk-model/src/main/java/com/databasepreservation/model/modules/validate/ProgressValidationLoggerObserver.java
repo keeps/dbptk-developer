@@ -7,11 +7,11 @@
  */
 package com.databasepreservation.model.modules.validate;
 
-import com.databasepreservation.common.ValidationObserver;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.databasepreservation.model.reporters.ValidationReporter.Status;
+import com.databasepreservation.common.ValidationObserver;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -25,22 +25,22 @@ public class ProgressValidationLoggerObserver implements ValidationObserver {
   }
 
   @Override
-  public void notifyValidationStep(String moduleName, String step, Status status) {
+  public void notifyValidationStep(String moduleName, String step, ValidationReporterStatus status) {
     LOGGER.info("{}: [{}]", step, status);
   }
 
   @Override
-  public void notifyMessage(String moduleName, String message, Status status) {
+  public void notifyMessage(String moduleName, String message, ValidationReporterStatus status) {
     LOGGER.info("{}: [{}] - {}", moduleName, status, message);
   }
 
   @Override
-  public void notifyFinishValidationModule(String moduleName, Status status) {
+  public void notifyFinishValidationModule(String moduleName, ValidationReporterStatus status) {
     LOGGER.info("{} [{}]", moduleName, status);
   }
 
   @Override
-  public void notifyComponent(String ID, Status status) {
+  public void notifyComponent(String ID, ValidationReporterStatus status) {
     LOGGER.info("{}: [{}] ", ID, status);
   }
 

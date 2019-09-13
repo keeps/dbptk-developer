@@ -7,8 +7,6 @@
  */
 package com.databasepreservation.modules.siard.validate.component.formatStructure;
 
-import static com.databasepreservation.model.reporters.ValidationReporter.Status;
-
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -20,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.Constants;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 
 /**
@@ -52,52 +51,52 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
     getValidationReporter().moduleValidatorHeader(G_41, MODULE_NAME);
 
     if (isZipFile()) {
-      observer.notifyValidationStep(MODULE_NAME, G_411, Status.OK);
-      getValidationReporter().validationStatus(G_411, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, G_411, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(G_411, ValidationReporterStatus.OK);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, G_411, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
+      observer.notifyValidationStep(MODULE_NAME, G_411, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(G_411, MODULE_NAME,
         "Zip archive is not in accordance with the specification published by the company PkWare");
       return false;
     }
 
     if (deflateOrStore()) {
-      observer.notifyValidationStep(MODULE_NAME, G_412, Status.OK);
-      getValidationReporter().validationStatus(G_412, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, G_412, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(G_412, ValidationReporterStatus.OK);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, G_412, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
+      observer.notifyValidationStep(MODULE_NAME, G_412, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(G_412, MODULE_NAME, "", "Invalid entries", compressionZipEntriesWithErrors);
       return false;
     }
 
     if (passwordProtected()) {
-      observer.notifyValidationStep(MODULE_NAME, G_413, Status.OK);
-      getValidationReporter().validationStatus(G_413, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, G_413, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(G_413, ValidationReporterStatus.OK);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, G_413, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
+      observer.notifyValidationStep(MODULE_NAME, G_413, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(G_413, MODULE_NAME, "The SIARD file is password-protected or encrypted.");
       return false;
     }
 
     // G_414 SELF VALIDATE
-    observer.notifyValidationStep(MODULE_NAME, G_414, Status.OK);
-    getValidationReporter().validationStatus(G_414, Status.OK);
+    observer.notifyValidationStep(MODULE_NAME, G_414, ValidationReporterStatus.OK);
+    getValidationReporter().validationStatus(G_414, ValidationReporterStatus.OK);
 
     if (fileExtension()) {
-      observer.notifyValidationStep(MODULE_NAME, G_415, Status.OK);
-      getValidationReporter().validationStatus(G_415, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, G_415, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(G_415, ValidationReporterStatus.OK);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, G_415, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
+      observer.notifyValidationStep(MODULE_NAME, G_415, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(G_415, MODULE_NAME,  "The ZIP archive must have the file extension .siard");
       return false;
     }
 
-    observer.notifyFinishValidationModule(MODULE_NAME, Status.PASSED);
-    getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
+    observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.PASSED);
+    getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.PASSED);
     return true;
   }
 

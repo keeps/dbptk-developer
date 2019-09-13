@@ -25,7 +25,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.reporters.ValidationReporter.Status;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 import com.databasepreservation.utils.XMLUtils;
 
@@ -80,39 +80,42 @@ public class TableDataValidator extends ValidatorComponentImpl {
     getValidationReporter().moduleValidatorHeader(P_64, MODULE_NAME);
 
     if (validateStoredExtensionFile()) {
-      observer.notifyValidationStep(MODULE_NAME, P_641, Status.OK);
-      getValidationReporter().validationStatus(P_641, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, P_641, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(P_641, ValidationReporterStatus.OK);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_641, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_641, Status.ERROR, "The table data for each table must be stored in an XML file.", P_641_ERRORS, MODULE_NAME);
+      observer.notifyValidationStep(MODULE_NAME, P_641, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+      validationFailed(P_641, ValidationReporterStatus.ERROR,
+        "The table data for each table must be stored in an XML file.", P_641_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
     if (validateRowElements()) {
-      observer.notifyValidationStep(MODULE_NAME, P_642, Status.OK);
-      getValidationReporter().validationStatus(P_642, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, P_642, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(P_642, ValidationReporterStatus.OK);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_642, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_642, Status.ERROR, "The table file consists of row elements containing the data of a line subdivided into the various columns.", P_642_ERRORS, MODULE_NAME);
+      observer.notifyValidationStep(MODULE_NAME, P_642, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+      validationFailed(P_642, ValidationReporterStatus.ERROR,
+        "The table file consists of row elements containing the data of a line subdivided into the various columns.",
+        P_642_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
-    getValidationReporter().validationStatus(P_643, Status.OK);
+    getValidationReporter().validationStatus(P_643, ValidationReporterStatus.OK);
 
     if (validateLOBAttributes()) {
-      getValidationReporter().validationStatus(P_645, Status.OK);
+      getValidationReporter().validationStatus(P_645, ValidationReporterStatus.OK);
     } else {
       validationFailed(P_645, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
-    observer.notifyFinishValidationModule(MODULE_NAME, Status.PASSED);
-    getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
+    observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.PASSED);
+    getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.PASSED);
     closeZipFile();
 
     return true;
@@ -181,7 +184,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
       return false;
     }
 
-    observer.notifyMessage(MODULE_NAME, "Validating row elements", Status.START);
+    observer.notifyMessage(MODULE_NAME, "Validating row elements", ValidationReporterStatus.START);
 
 
     for (String zipFileName : getZipFileNames()) {
@@ -208,7 +211,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
       }
     }
 
-    observer.notifyMessage(MODULE_NAME, "Validating row elements", Status.FINISH);
+    observer.notifyMessage(MODULE_NAME, "Validating row elements", ValidationReporterStatus.FINISH);
     return P_642_ERRORS.isEmpty();
   }
 

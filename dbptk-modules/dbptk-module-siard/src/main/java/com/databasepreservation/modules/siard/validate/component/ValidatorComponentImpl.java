@@ -8,7 +8,6 @@
 package com.databasepreservation.modules.siard.validate.component;
 
 import static com.databasepreservation.model.reporters.ValidationReporter.Indent;
-import static com.databasepreservation.model.reporters.ValidationReporter.Status;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,9 +30,10 @@ import com.databasepreservation.Constants;
 import com.databasepreservation.common.ValidationObserver;
 import com.databasepreservation.common.ValidatorPathStrategy;
 import com.databasepreservation.model.Reporter;
-import com.databasepreservation.model.modules.validate.components.ValidatorComponent;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.modules.validate.components.ValidatorComponent;
 import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -101,37 +101,38 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
     // Do nothing override
   }
 
-  protected void validationFailed(String ID, Status status, String message, List<String> errors, String moduleName) {
+  protected void validationFailed(String ID, ValidationReporterStatus status, String message, List<String> errors,
+    String moduleName) {
     for (String error : errors) {
       validationReporter.validationStatus(ID, status, message, error);
     }
-    validationReporter.moduleValidatorFinished(moduleName, Status.FAILED);
+    validationReporter.moduleValidatorFinished(moduleName, ValidationReporterStatus.FAILED);
   }
 
   protected void validationFailed(String ID, String moduleName, String details) {
-    validationReporter.validationStatus(ID, Status.ERROR, details);
-    validationReporter.moduleValidatorFinished(moduleName, Status.FAILED);
+    validationReporter.validationStatus(ID, ValidationReporterStatus.ERROR, details);
+    validationReporter.moduleValidatorFinished(moduleName, ValidationReporterStatus.FAILED);
   }
 
   protected void validationFailed(String ID, String moduleName, String details, List<String> errors) {
-    validationReporter.validationStatus(ID, Status.ERROR, details);
+    validationReporter.validationStatus(ID, ValidationReporterStatus.ERROR, details);
     for (String error : errors) {
-      validationReporter.validationStatus(Status.ERROR, error, Indent.TAB_2);
+      validationReporter.validationStatus(ValidationReporterStatus.ERROR, error, Indent.TAB_2);
     }
-    validationReporter.moduleValidatorFinished(moduleName, Status.FAILED);
+    validationReporter.moduleValidatorFinished(moduleName, ValidationReporterStatus.FAILED);
   }
 
   protected void validationFailed(String ID, String moduleName, String details, String errorMessage, List<String> errors) {
-    validationReporter.validationStatus(ID, Status.ERROR, details);
+    validationReporter.validationStatus(ID, ValidationReporterStatus.ERROR, details);
     for (String error : errors) {
-      validationReporter.validationStatus(errorMessage, Status.ERROR, error, Indent.TAB_2);
+      validationReporter.validationStatus(errorMessage, ValidationReporterStatus.ERROR, error, Indent.TAB_2);
     }
-    validationReporter.moduleValidatorFinished(moduleName, Status.FAILED);
+    validationReporter.moduleValidatorFinished(moduleName, ValidationReporterStatus.FAILED);
   }
 
   protected void validationFailed(String ID, String moduleName) {
-    validationReporter.validationStatus(ID, Status.ERROR);
-    validationReporter.moduleValidatorFinished(moduleName, Status.FAILED);
+    validationReporter.validationStatus(ID, ValidationReporterStatus.ERROR);
+    validationReporter.moduleValidatorFinished(moduleName, ValidationReporterStatus.FAILED);
   }
 
   protected ZipFile getZipFile() {

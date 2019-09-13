@@ -22,7 +22,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.reporters.ValidationReporter.Status;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
 import com.databasepreservation.utils.XMLUtils;
 
@@ -62,20 +62,20 @@ public class DateAndTimestampDataValidator extends ValidatorComponentImpl {
     getValidationReporter().moduleValidatorHeader(P_63, MODULE_NAME);
 
     if (validateDatesAndTimestamps()) {
-      observer.notifyValidationStep(MODULE_NAME, P_631, Status.OK);
-      getValidationReporter().validationStatus(P_631, Status.OK);
+      observer.notifyValidationStep(MODULE_NAME, P_631, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(P_631, ValidationReporterStatus.OK);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, P_631, Status.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, Status.FAILED);
-      validationFailed(P_631, Status.ERROR,
+      observer.notifyValidationStep(MODULE_NAME, P_631, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+      validationFailed(P_631, ValidationReporterStatus.ERROR,
         "Dates and timestamps must be restricted to the years 0001-9999 according to the SQL:2008 specification.",
         P_631_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
 
-    observer.notifyFinishValidationModule(MODULE_NAME, Status.PASSED);
-    getValidationReporter().moduleValidatorFinished(MODULE_NAME, Status.PASSED);
+    observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.PASSED);
+    getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.PASSED);
     closeZipFile();
 
     return true;
