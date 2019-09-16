@@ -489,7 +489,11 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         final int metadataXMLNumberOfRows = rows.get(entry.getKey());
         final int numberOfRows;
         if (countColumnsMap.get(entry.getKey()) != null) {
-          numberOfRows= countColumnsMap.get(entry.getKey()).get(columnIndex);
+          if (countColumnsMap.get(entry.getKey()).get(columnIndex) != null) {
+            numberOfRows = countColumnsMap.get(entry.getKey()).get(columnIndex);
+          } else {
+            numberOfRows = 0;
+          }
         } else {
           numberOfRows = 0;
         }
