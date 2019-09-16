@@ -48,4 +48,14 @@ public class ProgressValidationLoggerObserver implements ValidationObserver {
   public void notifyElementValidating(String path) {
     LOGGER.info("{}", path);
   }
+
+  @Override
+  public void notifyValidationProcessFinish(boolean value) {
+    LOGGER.info("Validation process finished the SIARD is {}.", transformValidationStatus(value));
+  }
+
+  private String transformValidationStatus(boolean value) {
+    if (value) return "valid";
+    else return "not valid";
+  }
 }

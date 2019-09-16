@@ -24,4 +24,6 @@ public interface ValidationObserver {
   void notifyComponent(String ID, ValidationReporterStatus status);
 
   void notifyElementValidating(String path);
+
+  void notifyValidationProcessFinish(boolean value);
 }

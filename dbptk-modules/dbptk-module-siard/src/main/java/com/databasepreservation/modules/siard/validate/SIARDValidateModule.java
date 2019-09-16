@@ -123,9 +123,12 @@ public class SIARDValidateModule implements ValidateModule {
       component.clean();
     }
 
-    validationReporter.close();
+    boolean result = counter == 0;
+    observer.notifyValidationProcessFinish(result);
 
-    return counter == 0;
+    validationReporter.close();
+    
+    return result;
   }
 
   /**
