@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,14 +47,14 @@ public class ExternalLOBSCellHandlerFileSystem implements ExternalLOBSCellHandle
         try (InputStream stream = Files.newInputStream(blobPath)) {
           newCell = new BinaryCell(cellId, stream);
         } catch (IOException e) {
-          reporter.ignored("Cell " + cellId, "there was an error accessing the file " + blobPath.toString());
+          reporter.ignored("Cell " + cellId, "there was an error accessing the file " + blobPath.toString() + "; Base path: " + this.basePath + " Cell Value: " + cellValue);
           LOGGER.debug("Could not open stream to file", e);
         }
       } else {
-        reporter.ignored("Cell " + cellId, blobPath.toString() + " is not a file");
+        reporter.ignored("Cell " + cellId, blobPath.toString() + " is not a file; Base path: " + this.basePath + " Cell Value: " + cellValue);
       }
     } else {
-      reporter.ignored("Cell " + cellId, blobPath.toString() + " could not be found");
+      reporter.ignored("Cell " + cellId, "Path: " + blobPath.toString() + " could not be found; Base path: " + this.basePath + " Cell Value: " + cellValue);
     }
     return newCell;
   }

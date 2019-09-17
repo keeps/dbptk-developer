@@ -25,6 +25,7 @@ public class Constants {
   public static final String SMALL_SPACE = "      ";
   public static final String MEDIUM_SPACE = "        ";
   public static final String SEPARATOR = "---";
+  public static final String NEW_LINE = System.getProperty("line.separator", "\n");
 
   /* FILE HELPERS */
   public static final String RESOURCE_FILE_SEPARATOR = "/";

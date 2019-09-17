@@ -316,6 +316,10 @@ public class Reporter implements AutoCloseable {
     moduleParameters(moduleName, "Import", parameters);
   }
 
+  public void filterParameters(String filterName, String... parameters) {
+    moduleParameters(filterName, "Filter", parameters);
+  }
+
   public void customMessage(String invokerNameForDebug, String customMessage, String prefix) {
     StringBuilder message = new StringBuilder();
     if (prefix != null) {

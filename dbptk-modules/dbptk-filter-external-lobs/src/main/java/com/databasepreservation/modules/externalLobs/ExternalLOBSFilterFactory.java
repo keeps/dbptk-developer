@@ -11,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,6 +23,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.databasepreservation.Constants;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
@@ -40,6 +42,7 @@ public class ExternalLOBSFilterFactory implements DatabaseFilterFactory {
   public static final String PARAMETER_COLUMN_LIST = "column-list";
   public static final String PARAMETER_BASE_PATH = "base-path";
   public static final String PARAMETER_REFERENCE_TYPE = "reference-type";
+  private static final String PARAMETER_COLUMN_LIST_CONTENT = "column-list-content";
 
   private static final Parameter colList = new Parameter().shortName("cl").longName(PARAMETER_COLUMN_LIST).description(
     "file with the list of columns that refer to external LOBs (this file uses the same format as the one created by the list-tables export module).")
@@ -82,8 +85,9 @@ public class ExternalLOBSFilterFactory implements DatabaseFilterFactory {
   @Override
   public DatabaseFilterModule buildFilterModule(Map<Parameter, String> parameters, Reporter reporter)
     throws ModuleException {
+    StringBuilder content = new StringBuilder();
     Path pColList = Paths.get(parameters.get(colList));
-    Map<String, Map<String, List<String>>> parsedColList = parseColumnList(pColList);
+    Map<String, Map<String, List<String>>> parsedColList = parseColumnList(pColList, content);
 
     String pCellHandlerType = parameters.get(referenceType);
 
@@ -96,6 +100,12 @@ public class ExternalLOBSFilterFactory implements DatabaseFilterFactory {
       }
 
       cellHandler = new ExternalLOBSCellHandlerFileSystem(pBasePath, reporter);
+
+      reporter.filterParameters(getFilterName(),
+          PARAMETER_COLUMN_LIST, pColList.normalize().toAbsolutePath().toString(),
+          PARAMETER_COLUMN_LIST_CONTENT, content.toString(),
+          PARAMETER_BASE_PATH, pBasePath.normalize().toAbsolutePath().toString(),
+          PARAMETER_REFERENCE_TYPE, pCellHandlerType);
     } else {
       throw new ModuleException().withMessage("Unrecognized reference type " + pCellHandlerType);
     }
@@ -103,19 +113,20 @@ public class ExternalLOBSFilterFactory implements DatabaseFilterFactory {
     return new ExternalLOBSFilter(parsedColList, cellHandler);
   }
 
-  private Map<String, Map<String, List<String>>> parseColumnList(Path columnListPath) throws ModuleException {
+  private Map<String, Map<String, List<String>>> parseColumnList(Path columnListPath, StringBuilder content) throws ModuleException {
     Map<String, Map<String, List<String>>> colList = new HashMap<>();
 
     if (columnListPath != null) {
-      try (InputStream inputStream = Files.newInputStream(columnListPath);) {
+      try (InputStream inputStream = Files.newInputStream(columnListPath)) {
         // attempt to get a col list from the file at columnListPath
 
-        InputStreamReader inputStreamReader = new InputStreamReader(inputStream, "UTF8");
+        InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
         BufferedReader reader = new BufferedReader(inputStreamReader);
 
         String line;
         while ((line = reader.readLine()) != null) {
           if (StringUtils.isNotBlank(line)) {
+            content.append(line).append(Constants.NEW_LINE);
 
             Matcher lineMatcher = ListTables.LINE_PATTERN.matcher(line);
             if (!lineMatcher.matches()) {
@@ -127,8 +138,8 @@ public class ExternalLOBSFilterFactory implements DatabaseFilterFactory {
             String columnPart = lineMatcher.group(3);
             String[] columns = columnPart.split(ListTables.COLUMNS_SEPARATOR);
 
-            if (colList.keySet().contains(schemaPart)) {
-              if (colList.get(schemaPart).keySet().contains(tablePart)) {
+            if (colList.containsKey(schemaPart)) {
+              if (colList.get(schemaPart).containsKey(tablePart)) {
                 colList.get(schemaPart).get(tablePart).addAll(Arrays.asList(columns));
               } else {
                 colList.get(schemaPart).put(tablePart, new ArrayList<>(Arrays.asList(columns)));
@@ -145,6 +156,7 @@ public class ExternalLOBSFilterFactory implements DatabaseFilterFactory {
           .withMessage("Could not read col list from file " + columnListPath.toAbsolutePath().toString()).withCause(e);
       }
     }
+
     return colList;
   }
 }
