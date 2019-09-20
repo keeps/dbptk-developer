@@ -57,7 +57,7 @@ public class ListTables implements DatabaseExportModule {
    * </code>
    */
   public static final Pattern LINE_PATTERN = Pattern
-    .compile("^([^\\s\\.\\{\\}\\;]+)\\.([^\\s\\.\\{\\}\\;]+)\\{((?:[^\\s][^\\.\\{\\}\\;]*\\;)*[^\\s\\.\\{\\}\\;]*)\\}$");
+    .compile("^([^\\s\\.\\{\\}\\;]+)((?:\\.(?:[^\\s\\.\\{\\}\\;]+))+)\\{((?:[^\\s][^\\.\\{\\}\\;]*\\;)*[^\\s\\.\\{\\}\\;]*)\\}$");
 
   private DatabaseStructure dbStructure;
   private SchemaStructure currentSchema;

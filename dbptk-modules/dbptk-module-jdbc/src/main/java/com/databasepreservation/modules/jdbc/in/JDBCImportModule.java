@@ -1046,7 +1046,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
     // LOGGER.debug("id: " + schemaName + "." + tableName);
     List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
-    try (ResultSet rs = getMetadata().getColumns(dbStructure.getName(), schemaName, tableName, "%")) {
+    try (ResultSet rs = getMetadata().getColumns(dbStructure.getName(), schemaName, sqlHelper.escapeTableName(tableName), "%")) {
       while (rs.next()) {
         columns.add(getColumn(rs, tableName));
       }
