@@ -66,7 +66,7 @@ public class RemoteConnectionUtils {
         session.connect();
 
         int assigned_port = session.setPortForwardingL(getLocalPort(), remoteHost, remotePort);
-        LOGGER.debug("localhost:{} -> {}:{}", assigned_port, remoteHost, remotePort);
+        LOGGER.debug("SSH session established on localhost:{} to {}:{}", assigned_port, remoteHost, remotePort);
 
         return session;
       } catch (Exception e) {
