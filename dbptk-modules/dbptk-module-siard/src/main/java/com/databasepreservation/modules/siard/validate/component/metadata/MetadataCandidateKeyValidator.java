@@ -20,6 +20,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -75,6 +76,7 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
 
     if (candidateKeyList.isEmpty()) {
       getValidationReporter().skipValidation(M_511_1, "Database has no Candidate keys");
+      observer.notifyValidationStep(MODULE_NAME, M_511_1, ValidationReporterStatus.SKIPPED);
       metadataValidationPassed(MODULE_NAME);
       return true;
     }

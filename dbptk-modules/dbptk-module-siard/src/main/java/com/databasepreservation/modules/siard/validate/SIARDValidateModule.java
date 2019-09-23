@@ -124,6 +124,7 @@ public class SIARDValidateModule implements ValidateModule {
     }
 
     boolean result = counter == 0;
+    observer.notifyNumberOfWarnings(validationReporter.getNumberOfWarnings());
     observer.notifyValidationProcessFinish(result);
 
     validationReporter.close();

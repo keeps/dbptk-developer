@@ -29,6 +29,11 @@ public class ValidationReporter implements AutoCloseable {
   private static final Logger LOGGER = LoggerFactory.getLogger(ValidationReporter.class);
   private Path outputFile;
   private BufferedWriter writer;
+  private int numberOfWarnings;
+
+  public int getNumberOfWarnings() {
+    return numberOfWarnings;
+  }
 
   public enum Indent {
     TAB, TAB_2, TAB_4
@@ -137,6 +142,7 @@ public class ValidationReporter implements AutoCloseable {
   }
 
   public void warning(String ID, String text, String object) {
+    numberOfWarnings++;
     writeLine(TAB + ID + COLON + SINGLE_SPACE + buildStatus(ValidationReporterStatus.WARNING) + SINGLE_SPACE + HYPHEN
       + SINGLE_SPACE
       + text + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + object);

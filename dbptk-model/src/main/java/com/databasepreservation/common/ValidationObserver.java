@@ -25,5 +25,7 @@ public interface ValidationObserver {
 
   void notifyElementValidating(String path);
 
+  void notifyNumberOfWarnings(int warnings);
+
   void notifyValidationProcessFinish(boolean value);
 }

@@ -50,6 +50,11 @@ public class ProgressValidationLoggerObserver implements ValidationObserver {
   }
 
   @Override
+  public void notifyNumberOfWarnings(int warnings) {
+    LOGGER.info("Number of warnings [{}]", warnings);
+  }
+
+  @Override
   public void notifyValidationProcessFinish(boolean value) {
     LOGGER.info("Validation process finished the SIARD is {}.", transformValidationStatus(value));
   }
