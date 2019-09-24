@@ -318,9 +318,11 @@ public class JDBCImportModule implements DatabaseImportModule {
         results.add(content);
       }
     } catch (SQLException e) {
+      closeConnection();
       throw new ModuleException().withCause(e).withMessage(e.getMessage());
     }
 
+    closeConnection();
     return results;
   }
 
@@ -852,8 +854,6 @@ public class JDBCImportModule implements DatabaseImportModule {
     return view;
   }
 
-
-
   private int getRows(String schemaName, String tableName) throws SQLException, ModuleException {
     String query = sqlHelper.getRowsSQL(schemaName, tableName);
     LOGGER.debug("count query: " + query);
@@ -1046,7 +1046,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
     // LOGGER.debug("id: " + schemaName + "." + tableName);
     List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
-    try (ResultSet rs = getMetadata().getColumns(dbStructure.getName(), schemaName, sqlHelper.escapeTableName(tableName), "%")) {
+    try (ResultSet rs = getMetadata().getColumns(dbStructure.getName(), schemaName, tableName, "%")) {
       while (rs.next()) {
         columns.add(getColumn(rs, tableName));
       }

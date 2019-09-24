@@ -164,8 +164,12 @@ public class SQLServerHelper extends SQLHelper {
   }
 
   @Override
+  //public String getRolesSQL() {
+  //  return "SELECT name AS ROLE_NAME FROM sysusers WHERE issqlrole = 1";
+  //}
+
   public String getRolesSQL() {
-    return "SELECT name AS ROLE_NAME FROM sysusers WHERE issqlrole = 1";
+    return "SELECT sysu1.name as ROLE_NAME, sysu2.name as ADMIN FROM sysusers sysu1, sysusers sysu2 WHERE sysu1.issqlrole = 1 and sysu1.altuid = sysu2.uid;";
   }
 
   @Override
