@@ -7,7 +7,6 @@
  */
 package com.databasepreservation.model.reporters;
 
-
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -29,11 +28,10 @@ public class ValidationReporter implements AutoCloseable {
   private static final Logger LOGGER = LoggerFactory.getLogger(ValidationReporter.class);
   private Path outputFile;
   private BufferedWriter writer;
+  private int numberOfPassed;
+  private int numberOfErrors;
   private int numberOfWarnings;
-
-  public int getNumberOfWarnings() {
-    return numberOfWarnings;
-  }
+  private int numberOfSkipped;
 
   public enum Indent {
     TAB, TAB_2, TAB_4
@@ -74,9 +72,12 @@ public class ValidationReporter implements AutoCloseable {
     if (outputFile != null) {
       try {
         writer = Files.newBufferedWriter(outputFile, StandardCharsets.UTF_8);
-        writeLine("######################################################################################################################################");
-        writeLine("#                                                       DBPTK - Validation Report                                                    #");
-        writeLine("######################################################################################################################################");
+        writeLine(
+          "######################################################################################################################################");
+        writeLine(
+          "#                                                       DBPTK - Validation Report                                                    #");
+        writeLine(
+          "######################################################################################################################################");
         writeLine("DBPTK Version: " + MiscUtils.APP_NAME_AND_VERSION);
         writeLine("SIARD Version: " + Constants.SIARD_VERSION_21);
         writeLine("The specification to the SIARD can be found at: " + Constants.LINK_TO_SPECIFICATION);
@@ -121,17 +122,17 @@ public class ValidationReporter implements AutoCloseable {
 
   public void validationStatus(String text, ValidationReporterStatus status, String pathToEntry, List<String> details) {
     writeLine(TAB + text + COLON + SINGLE_SPACE + buildStatus(status));
-    for (String detail: details ) {
-      writeLine(TAB  + TAB +  pathToEntry + COLON +SINGLE_SPACE + detail);
+    for (String detail : details) {
+      writeLine(TAB + TAB + pathToEntry + COLON + SINGLE_SPACE + detail);
     }
   }
 
   public void validationStatus(String text, ValidationReporterStatus status, String pathToEntry,
     Map<String, List<String>> details) {
     writeLine(TAB + text + COLON + SINGLE_SPACE + buildStatus(status));
-    for (Map.Entry<String, List<String>> entry: details.entrySet() ) {
-      for(String detail: entry.getValue()){
-        writeLine(TAB  + TAB +  pathToEntry + COLON +SINGLE_SPACE + detail);
+    for (Map.Entry<String, List<String>> entry : details.entrySet()) {
+      for (String detail : entry.getValue()) {
+        writeLine(TAB + TAB + pathToEntry + COLON + SINGLE_SPACE + detail);
       }
     }
   }
@@ -142,16 +143,13 @@ public class ValidationReporter implements AutoCloseable {
   }
 
   public void warning(String ID, String text, String object) {
-    numberOfWarnings++;
     writeLine(TAB + ID + COLON + SINGLE_SPACE + buildStatus(ValidationReporterStatus.WARNING) + SINGLE_SPACE + HYPHEN
-      + SINGLE_SPACE
-      + text + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + object);
+      + SINGLE_SPACE + text + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + object);
   }
 
   public void skipValidation(String ID, String reasonToSkip) {
     writeLine(TAB + ID + COLON + SINGLE_SPACE + buildStatus(ValidationReporterStatus.SKIPPED) + SINGLE_SPACE + HYPHEN
-      + SINGLE_SPACE
-      + reasonToSkip);
+      + SINGLE_SPACE + reasonToSkip);
   }
 
   public void notice(String ID, Object nodeValue, String noticeMessage) {
@@ -164,7 +162,37 @@ public class ValidationReporter implements AutoCloseable {
       + HYPHEN + SINGLE_SPACE + nodeValue);
   }
 
+  public int getNumberOfWarnings() {
+    return numberOfWarnings;
+  }
+
+  public int getNumberOfErrors() {
+    return numberOfErrors;
+  }
+
+  public int getNumberOfPassed() {
+    return numberOfPassed;
+  }
+
+  public int getNumberOfSkipped() {
+    return numberOfSkipped;
+  }
+
   private String buildStatus(ValidationReporterStatus status) {
+    switch (status) {
+      case ERROR:
+        numberOfErrors++;
+        break;
+      case WARNING:
+        numberOfWarnings++;
+        break;
+      case PASSED:
+        numberOfPassed++;
+        break;
+      case SKIPPED:
+        numberOfSkipped++;
+        break;
+    }
     return OPEN_BRACKET + status.name() + CLOSED_BRACKET;
   }
 
