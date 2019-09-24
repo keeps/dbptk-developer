@@ -184,13 +184,13 @@ public class TableDataValidator extends ValidatorComponentImpl {
       return false;
     }
 
-    observer.notifyMessage(MODULE_NAME, "Validating row elements", ValidationReporterStatus.START);
+    observer.notifyMessage(MODULE_NAME, P_642, "Validating row elements", ValidationReporterStatus.START);
 
 
     for (String zipFileName : getZipFileNames()) {
       String regexPattern = "^(content/schema[0-9]+/table[0-9]+/table[0-9]+)\\.xml$";
       if (zipFileName.matches(regexPattern)) {
-        observer.notifyElementValidating(zipFileName);
+        observer.notifyElementValidating(P_642, zipFileName);
 
         try {
           XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(zipFileName));
@@ -211,7 +211,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
       }
     }
 
-    observer.notifyMessage(MODULE_NAME, "Validating row elements", ValidationReporterStatus.FINISH);
+    observer.notifyMessage(MODULE_NAME, P_642, "Validating row elements", ValidationReporterStatus.FINISH);
     return P_642_ERRORS.isEmpty();
   }
 

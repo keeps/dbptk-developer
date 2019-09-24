@@ -146,6 +146,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     }
 
     numberOfNullValuesForForeignKey();
+    observer.notifyValidationStep(MODULE_NAME, A_T_6011, ValidationReporterStatus.OK);
     getValidationReporter().validationStatus(A_T_6011, ValidationReporterStatus.OK);
 
     if (!validateTableDataType()) {
@@ -234,7 +235,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         "/ns:siardArchive/ns:schemas/ns:schema/ns:folder/text()", XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
 
-      observer.notifyMessage(MODULE_NAME, "Validating Primary Keys", ValidationReporterStatus.START);
+      observer.notifyMessage(MODULE_NAME, T_601, "Validating Primary Keys", ValidationReporterStatus.START);
       for (int i = 0; i < result.getLength(); i++) {
         String schemaFolder = result.item(i).getTextContent();
 
@@ -249,7 +250,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
           T_601_ERRORS.addAll(validatePrimaryKeyConstraint(schemaFolder, tableFolder));
         }
       }
-      observer.notifyMessage(MODULE_NAME, "Validating Primary Keys", ValidationReporterStatus.FINISH);
+      observer.notifyMessage(MODULE_NAME, T_601, "Validating Primary Keys", ValidationReporterStatus.FINISH);
     } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException
       | XMLStreamException e) {
       LOGGER.debug("Failed to validate {}({})", MODULE_NAME, T_601, e);
@@ -262,7 +263,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         "/ns:siardArchive/ns:schemas/ns:schema/ns:folder/text()", XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
 
-      observer.notifyMessage(MODULE_NAME, "Validating Foreign Keys", ValidationReporterStatus.START);
+      observer.notifyMessage(MODULE_NAME, T_601, "Validating Foreign Keys", ValidationReporterStatus.START);
       for (int i = 0; i < result.getLength(); i++) {
         String schemaFolder = result.item(i).getTextContent();
 
@@ -277,7 +278,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
           T_601_ERRORS.addAll(validateForeignKeyConstraint(schemaFolder, tableFolder));
         }
       }
-      observer.notifyMessage(MODULE_NAME, "Validating Foreign Keys", ValidationReporterStatus.FINISH);
+      observer.notifyMessage(MODULE_NAME, T_601, "Validating Foreign Keys", ValidationReporterStatus.FINISH);
     } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException
       | XMLStreamException e) {
       LOGGER.debug("Failed to validate {}({})", MODULE_NAME, T_601, e);
@@ -312,12 +313,12 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         tableDataSchemaDefinition.add(new SIARDContent(matcher.group(2), matcher.group(3)));
       }
     }
-    observer.notifyMessage(MODULE_NAME, "Validating XML against XSD", ValidationReporterStatus.START);
+    observer.notifyMessage(MODULE_NAME, T_602, "Validating XML against XSD", ValidationReporterStatus.START);
 
     for (SIARDContent content : tableDataSchemaDefinition) {
       String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(content.getSchema(), content.getTable());
       String XMLPath = validatorPathStrategy.getXMLTablePathFromFolder(content.getSchema(), content.getTable());
-      observer.notifyElementValidating(XMLPath);
+      observer.notifyElementValidating(T_602, XMLPath);
 
       final ZipArchiveEntry XSDEntry = getZipFile().getEntry(XSDPath);
       final ZipArchiveEntry XMLEntry = getZipFile().getEntry(XMLPath);
@@ -348,7 +349,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         T_602_ERRORS.add(e.getLocalizedMessage());
       }
     }
-    observer.notifyMessage(MODULE_NAME, "Validating XML against XSD", ValidationReporterStatus.FINISH);
+    observer.notifyMessage(MODULE_NAME, T_602, "Validating XML against XSD", ValidationReporterStatus.FINISH);
     return T_602_ERRORS.isEmpty();
   }
 
@@ -367,12 +368,12 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
     }
-    observer.notifyMessage(MODULE_NAME, A_T_6012, ValidationReporterStatus.START);
+    observer.notifyMessage(MODULE_NAME, A_T_6012, "Validating data type", ValidationReporterStatus.START);
 
     for (final Map.Entry<SIARDContent, HashMap<String, String>> entry : columnTypes.entrySet()) {
       final String path = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(),
         entry.getKey().getTable());
-      observer.notifyElementValidating(path);
+      observer.notifyElementValidating(A_T_6012, path);
       try {
         boolean rowTag = false;
         String columnElement = "";
@@ -438,7 +439,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       }
     }
 
-    observer.notifyMessage(MODULE_NAME, A_T_6012, ValidationReporterStatus.FINISH);
+    observer.notifyMessage(MODULE_NAME, A_T_6012, "Validating data type", ValidationReporterStatus.FINISH);
     return A_T_6012_ERRORS;
   }
 
@@ -447,13 +448,13 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
    *
    */
   private void numberOfNullValuesForForeignKey() {
-    observer.notifyMessage(MODULE_NAME, A_T_6011, ValidationReporterStatus.START);
+    observer.notifyMessage(MODULE_NAME, A_T_6011, "Validating foreign key null values", ValidationReporterStatus.START);
     HashMap<SIARDContent, HashMap<String, Integer>> countColumnsMap = new HashMap<>();
 
     for (Map.Entry<SIARDContent, List<String>> entry : foreignKeyColumns.entrySet()) {
       String path = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(),
           entry.getKey().getTable());
-      observer.notifyElementValidating(path);
+      observer.notifyElementValidating(A_T_6011, path);
 
       if (entry.getValue().isEmpty())
         continue;
@@ -507,7 +508,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       }
     }
 
-    observer.notifyMessage(MODULE_NAME, A_T_6011, ValidationReporterStatus.FINISH);
+    observer.notifyMessage(MODULE_NAME, A_T_6011, "Validating foreign key null values", ValidationReporterStatus.FINISH);
   }
 
   /*
@@ -805,7 +806,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     Set<String> uniquePrimaryKeys = new HashSet<>();
 
     final String path = validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder);
-    observer.notifyElementValidating(path);
+    observer.notifyElementValidating(T_601, path);
 
     XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(path));
     if (indexes.size() == 1) {
@@ -915,7 +916,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       Constants.NAMESPACE_FOR_METADATA);
 
     final String path = validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder);
-    observer.notifyElementValidating(path);
+    observer.notifyElementValidating(T_601, path);
 
     for (int i = 0; i < nodeList.getLength(); i++) {
       Element element = (Element) nodeList.item(i);

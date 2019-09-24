@@ -635,7 +635,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     try {
       for (Map.Entry<SIARDContent, HashMap<String, String>> entry : numberOfNullable.entrySet()) {
         String XMLPath = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(), entry.getKey().getTable());
-        observer.notifyElementValidating(XMLPath);
+        observer.notifyElementValidating(P_437, XMLPath);
 
         XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(XMLPath));
         HashMap<String, Integer> countColumnsMap = new HashMap<>();
@@ -761,7 +761,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       String XMLPath = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(),
         entry.getKey().getTable());
 
-      observer.notifyElementValidating(XMLPath);
+      observer.notifyElementValidating(P_4310, XMLPath);
 
       int rows = entry.getValue();
       try {
@@ -847,7 +847,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         final String XMLPath = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(),
           entry.getKey().getTable());
 
-        observer.notifyElementValidating(XMLPath);
+        observer.notifyElementValidating(A_P_4310, XMLPath);
 
         XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(XMLPath));
         int count = 0;

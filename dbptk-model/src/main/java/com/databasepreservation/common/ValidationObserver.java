@@ -17,13 +17,13 @@ public interface ValidationObserver {
 
   void notifyValidationStep(String moduleName, String step, ValidationReporterStatus status);
 
-  void notifyMessage(String moduleName, String message, ValidationReporterStatus status);
+  void notifyMessage(String moduleName, String ID, String message, ValidationReporterStatus status);
 
   void notifyFinishValidationModule(String moduleName, ValidationReporterStatus status);
 
   void notifyComponent(String ID, ValidationReporterStatus status);
 
-  void notifyElementValidating(String path);
+  void notifyElementValidating(String ID, String path);
 
   void notifyNumberOfWarnings(int warnings);
 

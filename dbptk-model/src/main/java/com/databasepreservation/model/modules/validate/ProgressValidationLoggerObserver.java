@@ -30,8 +30,8 @@ public class ProgressValidationLoggerObserver implements ValidationObserver {
   }
 
   @Override
-  public void notifyMessage(String moduleName, String message, ValidationReporterStatus status) {
-    LOGGER.info("{}: [{}] - {}", moduleName, status, message);
+  public void notifyMessage(String moduleName, String ID, String message, ValidationReporterStatus status) {
+    LOGGER.info("{} {}: [{}] - {}", moduleName, ID, status, message);
   }
 
   @Override
@@ -45,7 +45,7 @@ public class ProgressValidationLoggerObserver implements ValidationObserver {
   }
 
   @Override
-  public void notifyElementValidating(String path) {
+  public void notifyElementValidating(String ID, String path) {
     LOGGER.info("{}", path);
   }
 
