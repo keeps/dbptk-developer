@@ -186,7 +186,7 @@ public class ValidationReporter implements AutoCloseable {
       case WARNING:
         numberOfWarnings++;
         break;
-      case PASSED:
+      case OK:
         numberOfPassed++;
         break;
       case SKIPPED:
