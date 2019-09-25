@@ -73,4 +73,8 @@ public class ModuleSettings {
   public boolean isSelectedColumn(String schemaName, String tableName, String columnName) {
     return selectedTables() == null || selectedTables().contains(Triple.of(schemaName, tableName, columnName));
   }
+
+  public boolean shouldCountRows() {
+    return true;
+  }
 }

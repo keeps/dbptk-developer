@@ -817,8 +817,9 @@ public class JDBCImportModule implements DatabaseImportModule {
       table.setTriggers(getTriggers(schema.getName(), tableName));
     }
 
-    table.setRows(getRows(schema.getName(), tableName));
-
+    if (moduleSettings.shouldCountRows()) {
+      table.setRows(getRows(schema.getName(), tableName));
+    }
     return table;
   }
 

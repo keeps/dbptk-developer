@@ -84,6 +84,11 @@ public class ListTables implements DatabaseExportModule {
       public boolean shouldFetchRows() {
         return false;
       }
+
+      @Override
+      public boolean shouldCountRows() {
+        return false;
+      }
     };
   }
 
