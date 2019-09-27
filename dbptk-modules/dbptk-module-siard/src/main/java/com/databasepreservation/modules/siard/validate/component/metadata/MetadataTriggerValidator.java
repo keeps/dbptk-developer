@@ -168,7 +168,7 @@ public class MetadataTriggerValidator extends MetadataValidator {
   private void validateTriggerEvent(String event, String path) {
     if (validateXMLField(M_513_1_3, event, TRIGGER_EVENT, true, false, path)) {
       if (!eventList.contains(event)) {
-        setError(M_513_1_2,
+        setError(M_513_1_3,
           String.format("Trigger event %s must be one of this:%s (%s)", event, actionTimeList.toString(), path));
       }
     }

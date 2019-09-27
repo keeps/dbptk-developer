@@ -47,6 +47,7 @@ import org.xml.sax.SAXException;
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.validator.CategoryNotFoundException;
+import com.databasepreservation.model.exception.validator.XMLFileNotFoundException;
 import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.model.validator.SIARDContent;
 import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
@@ -255,6 +256,10 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       | XMLStreamException e) {
       LOGGER.debug("Failed to validate {}({})", MODULE_NAME, T_601, e);
       return false;
+    } catch (XMLFileNotFoundException e) {
+      LOGGER.debug("Failed to validate {}({})", MODULE_NAME, T_601, e);
+      T_601_ERRORS.add(e.getMessage());
+      return false;
     }
 
     try {
@@ -453,7 +458,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
 
     for (Map.Entry<SIARDContent, List<String>> entry : foreignKeyColumns.entrySet()) {
       String path = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(),
-          entry.getKey().getTable());
+        entry.getKey().getTable());
       observer.notifyElementValidating(A_T_6011, path);
 
       if (entry.getValue().isEmpty())
@@ -502,13 +507,14 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         if (numberOfRows != metadataXMLNumberOfRows) {
           numberOfNulls = metadataXMLNumberOfRows - numberOfRows;
           getValidationReporter().notice(A_T_6011, numberOfNulls,
-              "Number of missing values for foreign key " + columnIndex + " in "
-                  + validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(), entry.getKey().getTable()));
+            "Number of missing values for foreign key " + columnIndex + " in "
+              + validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(), entry.getKey().getTable()));
         }
       }
     }
 
-    observer.notifyMessage(MODULE_NAME, A_T_6011, "Validating foreign key null values", ValidationReporterStatus.FINISH);
+    observer.notifyMessage(MODULE_NAME, A_T_6011, "Validating foreign key null values",
+      ValidationReporterStatus.FINISH);
   }
 
   /*
@@ -538,8 +544,8 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     NodeList result;
     try {
       result = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
-          "/ns:siardArchive/ns:schemas/ns:schema/ns:folder/text()", XPathConstants.NODESET,
-          Constants.NAMESPACE_FOR_METADATA);
+        "/ns:siardArchive/ns:schemas/ns:schema/ns:folder/text()", XPathConstants.NODESET,
+        Constants.NAMESPACE_FOR_METADATA);
     } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
       LOGGER.error(e.getLocalizedMessage());
       return false;
@@ -551,8 +557,8 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       xpathExpression = xpathExpression.replace("$1", schemaFolder);
       try {
         NodeList tables = (NodeList) XMLUtils.getXPathResult(
-            getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), xpathExpression, XPathConstants.NODESET,
-            Constants.NAMESPACE_FOR_METADATA);
+          getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), xpathExpression, XPathConstants.NODESET,
+          Constants.NAMESPACE_FOR_METADATA);
 
         for (int j = 0; j < tables.getLength(); j++) {
           final String tableFolder = tables.item(j).getNodeValue();
@@ -570,20 +576,20 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   }
 
   private void getColumnIndexFromMetadataXML(String schemaName, String tableName, String columnName,
-                                             Map<SIARDContent, List<String>> map)
-      throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+    Map<SIARDContent, List<String>> map)
+    throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
     String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table[ns:folder/text()='$2']/ns:columns/ns:column/ns:name/text()";
     xpathExpression = xpathExpression.replace("$1", schemaName);
     xpathExpression = xpathExpression.replace("$2", tableName);
 
     NodeList result = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
-        xpathExpression, XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+      xpathExpression, XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
     List<String> genericList = new ArrayList<>();
 
     for (int k = 0; k < result.getLength(); k++) {
       final String genericName = result.item(k).getNodeValue();
       if (columnName.equals(genericName)) {
-        int index = k+1;
+        int index = k + 1;
         final String columnIndex = "c" + index;
         genericList.add(columnIndex);
       }
@@ -601,13 +607,13 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   }
 
   private void getNumberOfRows(String schemaFolder, String tableFolder)
-      throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+    throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
     String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table[ns:folder/text()='$2']/ns:rows/text()";
     xpathExpression = xpathExpression.replace("$1", schemaFolder);
     xpathExpression = xpathExpression.replace("$2", tableFolder);
 
     NodeList result = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
-        xpathExpression, XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+      xpathExpression, XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
     for (int k = 0; k < result.getLength(); k++) {
       final String rowsValue = result.item(k).getNodeValue();
       rows.put(new SIARDContent(schemaFolder, tableFolder), Integer.parseInt(rowsValue));
@@ -617,7 +623,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   private boolean validateType(String content, String type) {
     try {
       if (patternStringRegex.matcher(type).matches() || patternVarcharRegex.matcher(type).matches()
-          || patternNCharRegex.matcher(type).matches()) {
+        || patternNCharRegex.matcher(type).matches()) {
         String decodeString = XMLUtils.decode(content);
         int size = getDataTypeLength(type);
         if (size != -1) {
@@ -670,7 +676,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
 
     int size = -1;
 
-    while(matcher.find()) {
+    while (matcher.find()) {
       size = Integer.parseInt(matcher.group(0));
     }
 
@@ -713,7 +719,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         case "DEC":
         case "NUMERIC":
           LOGGER
-              .debug("Precision and scale not specified falling back to SQL standard and treat the value as an INTEGER");
+            .debug("Precision and scale not specified falling back to SQL standard and treat the value as an INTEGER");
           typePrecision = 10;
           typeScale = 0;
           break;
@@ -800,14 +806,17 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   }
 
   private List<String> validatePrimaryKeyConstraint(String schemaFolder, String tableFolder)
-    throws ParserConfigurationException, SAXException, XPathExpressionException, IOException, XMLStreamException {
+    throws ParserConfigurationException, SAXException, XPathExpressionException, IOException, XMLStreamException,
+    XMLFileNotFoundException {
     List<String> errors = new ArrayList<>();
     final List<Integer> indexes = getPrimaryKeyColumnIndexes(schemaFolder, tableFolder);
     Set<String> uniquePrimaryKeys = new HashSet<>();
 
     final String path = validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder);
     observer.notifyElementValidating(T_601, path);
-
+    if (getZipInputStream(path) == null) {
+      throw new XMLFileNotFoundException("Missing XML file " + path);
+    }
     XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(path));
     if (indexes.size() == 1) {
       final int index = indexes.get(0);
@@ -935,7 +944,8 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       String key = referencedSchema + "." + referencedTable + "." + referenced;
       for (String value : data) {
         if (!primaryKeyData.get(key).contains(value)) {
-          errors.add("The value ("+ value + ") for foreign key '" + foreignKeyName + "' is not present in '" + referencedTable + "'");
+          errors.add("The value (" + value + ") for foreign key '" + foreignKeyName + "' is not present in '"
+            + referencedTable + "'");
         }
       }
     }
@@ -989,13 +999,13 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   }
 
   private void getColumnType(String schemaFolder, String tableFolder)
-      throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+    throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
     String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table[ns:folder/text()='$2']/ns:columns/ns:column/ns:name/text()";
     xpathExpression = xpathExpression.replace("$1", schemaFolder);
     xpathExpression = xpathExpression.replace("$2", tableFolder);
 
     NodeList columns = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
-        xpathExpression, XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+      xpathExpression, XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
     HashMap<String, String> columnToType = new HashMap<>();
     for (int j = 0; j < columns.getLength(); j++) {
@@ -1006,7 +1016,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       xpathExpression = xpathExpression.replace("$3", columnName);
 
       String type = (String) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
-          xpathExpression, XPathConstants.STRING, Constants.NAMESPACE_FOR_METADATA);
+        xpathExpression, XPathConstants.STRING, Constants.NAMESPACE_FOR_METADATA);
       String index = "c" + (j + 1);
       if (StringUtils.isBlank(type)) {
         xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table[ns:folder/text()='$2']/ns:columns/ns:column[ns:name/text()='$3']";
@@ -1023,9 +1033,9 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   }
 
   private HashMap<String, String> getAdvancedOrUDTDataType(final String xpathExpression, final String index)
-      throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+    throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
     NodeList result = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
-        xpathExpression, XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+      xpathExpression, XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
     HashMap<String, String> pairs = new HashMap<>();
 
@@ -1050,10 +1060,10 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   }
 
   private HashMap<String, String> getDistinct(final String xpathExpression, final String index)
-      throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+    throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
 
     String type = (String) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
-        xpathExpression, XPathConstants.STRING, Constants.NAMESPACE_FOR_METADATA);
+      xpathExpression, XPathConstants.STRING, Constants.NAMESPACE_FOR_METADATA);
 
     if (StringUtils.isBlank(type)) {
       return null;
@@ -1065,7 +1075,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   }
 
   private HashMap<String, String> getUDT(String typeSchema, String typeName, String index)
-      throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+    throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
 
     String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:name/text()='$1']/ns:types/ns:type[ns:name/text()='$2' and ns:category/text()='$3']/ns:attributes/ns:attribute";
     xpathExpression = xpathExpression.replace("$1", typeSchema);
@@ -1075,8 +1085,8 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     HashMap<String, String> columnToType = new HashMap<>();
 
     NodeList nodeList = (NodeList) XMLUtils.getXPathResult(
-        getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), xpathExpression, XPathConstants.NODESET,
-        Constants.NAMESPACE_FOR_METADATA);
+      getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), xpathExpression, XPathConstants.NODESET,
+      Constants.NAMESPACE_FOR_METADATA);
     for (int i = 0; i < nodeList.getLength(); i++) {
       Element element = (Element) nodeList.item(i);
       String concatIndex = index.concat(".u" + (i + 1));
@@ -1144,20 +1154,21 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     patternIntegerRegex = Pattern.compile("^INTEGER$|^INT$");
     patternSmallIntRegex = Pattern.compile("^SMALLINT$");
     patternDecimalRegex = Pattern.compile("^(?:DECIMAL|DEC|NUMERIC)(\\s*\\(\\s*[1-9]\\d*\\s*(,\\s*\\d+\\s*)?\\))?$");
-    patternDecimalRegexWithDataType = Pattern.compile("^(DECIMAL|DEC|NUMERIC)(\\s*\\(\\s*[1-9]\\d*\\s*(,\\s*\\d+\\s*)?\\))?$");
+    patternDecimalRegexWithDataType = Pattern
+      .compile("^(DECIMAL|DEC|NUMERIC)(\\s*\\(\\s*[1-9]\\d*\\s*(,\\s*\\d+\\s*)?\\))?$");
     patternRealRegex = Pattern.compile("^REAL$");
     patternFloatRegex = Pattern.compile("^FLOAT(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
     patternDoublePrecisionRegex = Pattern.compile("^DOUBLE PRECISION$");
     patternBinaryRegex = Pattern.compile("^(?:BINARY\\s+VARYING|VARBINARY)(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
     patternVarcharRegex = Pattern.compile("^VARCHAR\\s*(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
     patternStringRegex = Pattern
-        .compile("^(?:NATIONAL\\s+)?(?:CHARACTER|CHAR)(?:\\s+VARYING)?(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+      .compile("^(?:NATIONAL\\s+)?(?:CHARACTER|CHAR)(?:\\s+VARYING)?(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
     patternNCharRegex = Pattern.compile("^NCHAR(?:\\s+VARYING\\s*)?(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
     patternBooleanRegex = Pattern.compile("^BOOLEAN$");
     patternDateRegex = Pattern.compile("^DATE$");
     patternTimeRegex = Pattern.compile("^(?:TIME|TIME\\s+WITH\\s+TIME\\s+ZONE)(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
     patternTimestampRegex = Pattern
-        .compile("^(?:TIMESTAMP|TIMESTAMP\\s+WITH\\s+TIME\\s+ZONE)(\\s*\\(\\s*(0|([1-9]\\d*))\\s*\\))?$");
+      .compile("^(?:TIMESTAMP|TIMESTAMP\\s+WITH\\s+TIME\\s+ZONE)(\\s*\\(\\s*(0|([1-9]\\d*))\\s*\\))?$");
     patternSizeRegex = Pattern.compile("\\d+");
     patternDateContentRegex = Pattern.compile("\\d{4}-\\d{2}-\\d{2}Z?");
     patternTimeContentRegex = Pattern.compile("\\d{2}:\\d{2}:\\d{2}Z?");

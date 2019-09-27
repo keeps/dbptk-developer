@@ -27,6 +27,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.validator.XMLFileNotFoundException;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -105,7 +106,7 @@ public class MetadataColumnsValidator extends MetadataValidator {
 
           String type = validateColumnType(XMLUtils.getChildTextContext(column, Constants.TYPE), column, path);
 
-          if(type == null){
+          if (type == null) {
             setError(A_M_561_2, String.format("Aborted because column type is mandatory (%s)", path));
           } else if (type.equals(Constants.CHARACTER_LARGE_OBJECT) || type.equals(Constants.BINARY_LARGE_OBJECT)
             || type.equals(Constants.BLOB) || type.equals(Constants.CLOB) || type.equals(Constants.XML_LARGE_OBJECT)) {
@@ -168,12 +169,12 @@ public class MetadataColumnsValidator extends MetadataValidator {
     String column, String name, String path) {
     String pathToTableColumn = createPath(Constants.SIARD_CONTENT_FOLDER, schemaFolder, tableFolder);
 
-    if(schemaFolder == null || schemaFolder.isEmpty()){
+    if (schemaFolder == null || schemaFolder.isEmpty()) {
       setError(A_M_561_2, String.format("Aborted because schemaFolder is mandatory (%s)", path));
       return;
     }
 
-    if(tableFolder == null || tableFolder.isEmpty()){
+    if (tableFolder == null || tableFolder.isEmpty()) {
       setError(A_M_561_2, String.format("Aborted because tableFolder is mandatory (%s)", path));
       return;
     }
@@ -182,6 +183,10 @@ public class MetadataColumnsValidator extends MetadataValidator {
       XMLInputFactory factory = XMLInputFactory.newInstance();
       InputStream zipInputStream = getZipInputStream(
         validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder));
+      if (zipInputStream == null) {
+        throw new XMLFileNotFoundException(
+          "Missing XML file " + validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder));
+      }
 
       XMLStreamReader streamReader = factory.createXMLStreamReader(zipInputStream);
 
@@ -208,8 +213,13 @@ public class MetadataColumnsValidator extends MetadataValidator {
         }
       }
     } catch (XMLStreamException e) {
-      String errorMessage = "Unable to read table.xml";
+      String errorMessage = "Unable to read "
+        + validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder);
+      setError(A_M_561_2, errorMessage);
       LOGGER.debug(errorMessage, e);
+    } catch (XMLFileNotFoundException e) {
+      setError(A_M_561_2, e.getMessage());
+      LOGGER.debug(e.getMessage(), e);
     }
   }
 

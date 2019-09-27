@@ -122,7 +122,8 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
     validationReporter.moduleValidatorFinished(moduleName, ValidationReporterStatus.FAILED);
   }
 
-  protected void validationFailed(String ID, String moduleName, String details, String errorMessage, List<String> errors) {
+  protected void validationFailed(String ID, String moduleName, String details, String errorMessage,
+    List<String> errors) {
     validationReporter.validationStatus(ID, ValidationReporterStatus.ERROR, details);
     for (String error : errors) {
       validationReporter.validationStatus(errorMessage, ValidationReporterStatus.ERROR, error, Indent.TAB_2);
@@ -223,8 +224,6 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
       this.observer = observer;
     }
   }
-
-
 
   private boolean registerSchemaAndTables() throws ModuleException {
     final InputStream zipInputStream = getZipInputStream(validatorPathStrategy.getMetadataXMLPath());
