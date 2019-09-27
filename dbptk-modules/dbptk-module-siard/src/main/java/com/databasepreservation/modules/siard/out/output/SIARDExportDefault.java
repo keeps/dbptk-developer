@@ -11,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -107,7 +108,7 @@ public class SIARDExportDefault implements DatabaseExportModule {
         // attempt to get a table list from the file at tableFilter and use that
         // list as selectedTables in the ModuleSettings
         inputStream = Files.newInputStream(tableFilter);
-        InputStreamReader inputStreamReader = new InputStreamReader(inputStream, "UTF8");
+        InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
         BufferedReader reader = new BufferedReader(inputStreamReader);
 
         final HashSet<Triple<String, String, String>> selectedTables = new HashSet<>();
