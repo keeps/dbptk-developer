@@ -257,5 +257,4 @@ public class MySQLHelper extends SQLHelper {
 
     return super.escapePrimaryKeyName(pkey_name);
   }
-
 }

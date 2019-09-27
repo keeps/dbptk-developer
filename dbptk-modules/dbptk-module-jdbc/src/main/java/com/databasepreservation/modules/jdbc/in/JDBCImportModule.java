@@ -295,7 +295,7 @@ public class JDBCImportModule implements DatabaseImportModule {
   public List<List<String>> testCustomViewQuery(String query) throws ModuleException {
     List<List<String>> results = new ArrayList<>();
     LOGGER.debug("query: " + query);
-    Statement st = null;
+    Statement st;
     try {
       st = getStatement();
       st.setMaxFieldSize(CUSTOM_VIEW_MAX_FIELD_SIZE);

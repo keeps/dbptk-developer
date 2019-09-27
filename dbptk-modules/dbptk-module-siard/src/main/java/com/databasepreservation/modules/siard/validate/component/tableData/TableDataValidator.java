@@ -10,6 +10,8 @@ package com.databasepreservation.modules.siard.validate.component.tableData;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLInputFactory;
@@ -27,6 +29,7 @@ import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
+import com.databasepreservation.utils.ListUtils;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -46,9 +49,8 @@ public class TableDataValidator extends ValidatorComponentImpl {
 
   private List<String> P_641_ERRORS = new ArrayList<>();
   private List<String> P_642_ERRORS = new ArrayList<>();
-  private List<String> P_643_ERRORS = new ArrayList<>();
-  private List<String> P_644_ERRORS = new ArrayList<>();
   private List<String> P_645_ERRORS = new ArrayList<>();
+  private List<String> P_645_ERRORS_ATTRIBUTES;
 
   private static final String TABLE_REGEX = "^table$";
   private static final String ROW_REGEX = "^row$";
@@ -56,9 +58,12 @@ public class TableDataValidator extends ValidatorComponentImpl {
   private static final String ARRAY_REGEX = "^a[1-9]([0-9]+)?$";
   private static final String STRUCTURED_REGEX = "^u[1-9]([0-9]+)?$";
 
+  private static Pattern patternXSDFile;
+
   public TableDataValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
     factory = XMLInputFactory.newInstance();
+    compileRegexPattern();
   }
 
   @Override
@@ -106,10 +111,18 @@ public class TableDataValidator extends ValidatorComponentImpl {
 
     getValidationReporter().validationStatus(P_643, ValidationReporterStatus.OK);
 
+    observer.notifyValidationStep(MODULE_NAME, P_644, ValidationReporterStatus.SKIPPED);
+    getValidationReporter().skipValidation(P_644, "Optional");
+
     if (validateLOBAttributes()) {
+      observer.notifyValidationStep(MODULE_NAME, P_645, ValidationReporterStatus.OK);
       getValidationReporter().validationStatus(P_645, ValidationReporterStatus.OK);
     } else {
-      validationFailed(P_645, MODULE_NAME);
+      observer.notifyValidationStep(MODULE_NAME, P_645, ValidationReporterStatus.ERROR);
+      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+      validationFailed(P_645, ValidationReporterStatus.ERROR,
+        "If a large object is stored in a separate file, its cell element must have attributes file, length and digest",
+        P_645_ERRORS, MODULE_NAME);
       closeZipFile();
       return false;
     }
@@ -238,15 +251,24 @@ public class TableDataValidator extends ValidatorComponentImpl {
     }
 
     for (String zipFileName : getZipFileNames()) {
-      String regexPattern = "^(content/schema[0-9]+/table[0-9]+/table[0-9]+)\\.xsd$";
-      if (zipFileName.matches(regexPattern)) {
+      final Matcher matcher = patternXSDFile.matcher(zipFileName);
+
+      String schema = "", table = "";
+      while (matcher.find()) {
+        schema = matcher.group(1);
+        table = matcher.group(2);
+
         try {
           NodeList nodeNames = (NodeList) XMLUtils.getXPathResult(getZipInputStream(zipFileName),
             "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element[@type='clobType' or @type='blobType']/@name",
             XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
           for (int i = 0; i < nodeNames.getLength(); i++) {
-            final String nodeValue = nodeNames.item(i).getNodeValue();
-            // TODO
+            try {
+              validateOutsideLOB(schema, table, nodeNames.item(i).getNodeValue());
+            } catch (XMLStreamException e) {
+              LOGGER.debug("Failed to validate {}({})", MODULE_NAME, P_645, e);
+              return false;
+            }
           }
 
         } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
@@ -256,6 +278,82 @@ public class TableDataValidator extends ValidatorComponentImpl {
       }
     }
 
-    return true;
+    return P_645_ERRORS.isEmpty();
+  }
+
+  private void validateOutsideLOB(final String schemaFolder, final String tableFolder, final String columnIndex)
+    throws XMLStreamException {
+    final String path = validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder);
+
+    XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(path));
+    boolean columnIndexFound = false;
+    boolean validate = false;
+    String tagName = "";
+    ArrayList<Integer> eventTypes = new ArrayList<>();
+    ArrayList<String> attributes = new ArrayList<>();
+    while (streamReader.hasNext()) {
+      streamReader.next();
+
+      eventTypes.add(streamReader.getEventType());
+      if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
+        tagName = streamReader.getLocalName();
+        if (tagName.equals(columnIndex)) {
+          columnIndexFound = true;
+          final int attributeCount = streamReader.getAttributeCount();
+          for (int i = 0; i < attributeCount; i++) {
+            attributes.add(streamReader.getAttributeLocalName(i));
+          }
+        }
+      }
+
+      if (streamReader.getEventType() == XMLStreamReader.END_ELEMENT) {
+        if (eventTypes.size() == 2) {
+          validate = true;
+        }
+        eventTypes.clear();
+      }
+
+      if (columnIndexFound && validate) {
+        if (!validateRequiredLOBAttributes(attributes)) {
+          P_645_ERRORS.add(ListUtils.convertListToStringWithSeparator(P_645_ERRORS_ATTRIBUTES, ", ") + " at " + path);
+        }
+        validate = false;
+        columnIndexFound = false;
+        attributes.clear();
+      }
+    }
+  }
+
+  private boolean validateRequiredLOBAttributes(ArrayList<String> attributes) {
+    P_645_ERRORS_ATTRIBUTES = new ArrayList<>();
+
+    if (attributes.size() < 3) {
+      P_645_ERRORS_ATTRIBUTES.add("Expecting at least 3 attributes (file, length and digest) found only: "
+        + ListUtils.convertListToStringWithSeparator(attributes, ", "));
+      return false;
+    }
+
+    boolean matchesFile, matchesLength, matchesDigest;
+    matchesFile = attributes.contains("file");
+    matchesLength = attributes.contains("length");
+    matchesDigest = attributes.contains("digest");
+
+    if (!matchesFile) {
+      P_645_ERRORS_ATTRIBUTES.add("Missing file attribute");
+    }
+
+    if (!matchesLength) {
+      P_645_ERRORS_ATTRIBUTES.add("Missing length attribute");
+    }
+
+    if (!matchesDigest) {
+      P_645_ERRORS_ATTRIBUTES.add("Missing digest attribute");
+    }
+
+    return P_645_ERRORS_ATTRIBUTES.isEmpty();
+  }
+
+  private void compileRegexPattern() {
+    patternXSDFile = Pattern.compile("^content/(schema[0-9]+)/(table[0-9]+)/table[0-9]+\\.xsd$");
   }
 }

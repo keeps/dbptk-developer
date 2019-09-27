@@ -7,7 +7,8 @@
  */
 package com.databasepreservation.common;
 
-import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
