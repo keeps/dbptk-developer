@@ -181,8 +181,8 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
       String.valueOf(lobSizeParameter));
 
     if (lobDigestChecksum != null) {
-      currentWriter.appendAttribute("messageDigest",
-        ZipWithExternalLobsWriteStrategy.DIGEST_ALGORITHM + lobDigestChecksum);
+      currentWriter.appendAttribute("digestType", writeStrategy.getDigestAlgorithm().name());
+      currentWriter.appendAttribute("digest", lobDigestChecksum);
       lobDigestChecksum = null; // reset it to the default value
     }
 

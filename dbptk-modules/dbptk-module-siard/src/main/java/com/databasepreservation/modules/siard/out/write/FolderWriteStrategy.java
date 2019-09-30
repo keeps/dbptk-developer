@@ -55,4 +55,9 @@ public class FolderWriteStrategy implements WriteStrategy {
   public void setup(SIARDArchiveContainer baseContainer) throws ModuleException {
     // nothing to do
   }
+
+  @Override
+  public DigestAlgorithm getDigestAlgorithm() {
+    return DigestAlgorithm.NONE;
+  }
 }

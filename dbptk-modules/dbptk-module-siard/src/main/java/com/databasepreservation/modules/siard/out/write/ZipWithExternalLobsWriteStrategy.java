@@ -24,20 +24,20 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class ZipWithExternalLobsWriteStrategy implements WriteStrategy {
-  public static final String DIGEST_ALGORITHM = "MD5";
   private final MessageDigest digest;
-
+  private DigestAlgorithm digestAlgorithm;
   private final ZipWriteStrategy zipWriter;
   private final FolderWriteStrategy folderWriter;
 
   public ZipWithExternalLobsWriteStrategy(ZipWriteStrategy zipWriteStrategy, FolderWriteStrategy folderWriteStrategy) {
     zipWriter = zipWriteStrategy;
     folderWriter = folderWriteStrategy;
+    digestAlgorithm = DigestAlgorithm.MD5;
 
     try {
-      digest = MessageDigest.getInstance(DIGEST_ALGORITHM);
+      digest = MessageDigest.getInstance(digestAlgorithm.name());
     } catch (NoSuchAlgorithmException e) {
-      throw new IllegalArgumentException("Unknown digest algorithm: " + DIGEST_ALGORITHM, e);
+      throw new IllegalArgumentException("Unknown digest algorithm: " + digestAlgorithm.name(), e);
     }
   }
 
@@ -105,6 +105,11 @@ public class ZipWithExternalLobsWriteStrategy implements WriteStrategy {
     } else {
       throw createUnsupportedOutputContainerType(container);
     }
+  }
+
+  @Override
+  public DigestAlgorithm getDigestAlgorithm() {
+    return this.digestAlgorithm;
   }
 
   /**

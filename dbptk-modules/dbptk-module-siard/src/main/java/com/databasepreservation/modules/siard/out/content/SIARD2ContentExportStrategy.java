@@ -19,6 +19,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -43,6 +44,7 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.common.LargeObject;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.write.DigestAlgorithm;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.XMLUtils;
 
@@ -367,7 +369,9 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
         .append(contentPathStrategy.getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
           currentRowIndex + 1))
         .append('"').space().append("length=\"")
-        .append(String.valueOf(binCell.getSize())).append("\"");
+        .append(String.valueOf(binCell.getSize())).append("\"").space().append("digest=\"")
+        .append(digestInputStream(binCell.createInputStream())).append("\"").space().append("digestType=\"")
+          .append(writeStrategy.getDigestAlgorithm().name()).append("\"");
 
     } else if (cell instanceof SimpleCell) {
       SimpleCell txtCell = (SimpleCell) cell;
@@ -389,7 +393,9 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
         .append(contentPathStrategy.getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
           currentRowIndex + 1))
         .append('"').space().append("length=\"")
-        .append(String.valueOf(txtCell.getBytesSize())).append("\"");
+        .append(String.valueOf(txtCell.getBytesSize())).append("\"").space().append("digest=\"")
+        .append(digestInputStream(inputStream)).append("\"").space().append("digestType=\"")
+          .append(writeStrategy.getDigestAlgorithm().name()).append("\"");
     }
 
     // decide to whether write the LOB right away or later
@@ -438,6 +444,20 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       throw new ModuleException().withMessage("Could not write lob").withCause(e);
     } finally {
       lob.getInputStreamProvider().cleanResources();
+    }
+  }
+
+  private String digestInputStream(InputStream inputStream) throws IOException {
+    final DigestAlgorithm digestAlgorithm = writeStrategy.getDigestAlgorithm();
+
+    switch (digestAlgorithm) {
+      case SHA1:
+        return DigestUtils.sha1Hex(inputStream);
+      case SHA256:
+        return DigestUtils.sha256Hex(inputStream);
+      case MD5:
+      default:
+        return DigestUtils.md5Hex(inputStream);
     }
   }
 
@@ -570,7 +590,10 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       .beginOpenTag("xs:attribute", 4).appendAttribute("name", "length").appendAttribute("type", "xs:integer")
       .endShorthandTag()
 
-      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "messageDigest").appendAttribute("type", "xs:string")
+      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "digestType").appendAttribute("type", "digestTypeType")
+      .endShorthandTag()
+
+      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "digest").appendAttribute("type", "xs:string")
       .endShorthandTag()
 
       .closeTag("xs:extension", 3)
@@ -599,7 +622,10 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       .beginOpenTag("xs:attribute", 4).appendAttribute("name", "length").appendAttribute("type", "xs:integer")
       .endShorthandTag()
 
-      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "messageDigest").appendAttribute("type", "xs:string")
+      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "digestType").appendAttribute("type", "digestTypeType")
+      .endShorthandTag()
+
+      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "digest").appendAttribute("type", "xs:string")
       .endShorthandTag()
 
       .closeTag("xs:extension", 3)
@@ -670,6 +696,22 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
       .beginOpenTag("xs:pattern", 3).appendAttribute("value", "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d*)Z?")
       .endShorthandTag()
+
+      .closeTag("xs:restriction", 2)
+
+      .closeTag("xs:simpleType", 1);
+
+    xsdWriter.beginOpenTag("xs:simpleType", 1).appendAttribute("name", "digestTypeType").endOpenTag()
+
+      .beginOpenTag("xs:restriction", 2).appendAttribute("base", "xs:string").endOpenTag()
+
+      .beginOpenTag("xs:whiteSpace", 3).appendAttribute("value", "collapse").endShorthandTag()
+
+      .beginOpenTag("xs:enumeration", 3).appendAttribute("value", "MD5").endShorthandTag()
+
+      .beginOpenTag("xs:enumeration", 3).appendAttribute("value", "SHA-1").endShorthandTag()
+
+      .beginOpenTag("xs:enumeration", 3).appendAttribute("value", "SHA-256").endShorthandTag()
 
       .closeTag("xs:restriction", 2)
 
