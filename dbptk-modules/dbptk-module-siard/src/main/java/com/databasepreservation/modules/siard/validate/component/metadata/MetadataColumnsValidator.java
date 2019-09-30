@@ -7,8 +7,10 @@
  */
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -190,7 +192,7 @@ public class MetadataColumnsValidator extends MetadataValidator {
 
       XMLStreamReader streamReader = factory.createXMLStreamReader(zipInputStream);
 
-      // xPath doesn't work well with files over 1gb
+      // Used XMLStreamReader because xPath doesn't work well with files over 1gb
       int rowNumber = 0;
       while (streamReader.hasNext()) {
         streamReader.next();
@@ -201,18 +203,32 @@ public class MetadataColumnsValidator extends MetadataValidator {
             if (streamReader.getAttributeCount() > 0) {
               String fileName = streamReader.getAttributeValue(null, "file");
               if (!fileName.isEmpty()) {
-                if (getZipFile().getEntry(fileName) == null) {
-                  setError(A_M_561_2, String.format("not found record '%s' required by '%s'", fileName,
-                    String.format("%s [row: %s column: %s]", pathToTableColumn, Integer.toString(rowNumber), column)));
-                } else if (folder == null || folder.isEmpty()) {
-                  addWarning(A_M_561_2, String.format("lobFolder must be set for column type  %s", type), path);
+                if (Paths.get(fileName).getName(0).toString().equals(Constants.SIARD_CONTENT_FOLDER)) {
+                  // Internal LOB
+                  if (getZipFile().getEntry(fileName) == null) {
+                    setError(A_M_561_2, String.format("not found record '%s' required by '%s'", fileName, String
+                      .format("%s [row: %s column: %s]", pathToTableColumn, Integer.toString(rowNumber), column)));
+                  } else if (folder == null || folder.isEmpty()) {
+                    addWarning(A_M_561_2, String.format("lobFolder must be set for column type  %s", type), path);
+                  }
+                } else {
+                  // External LOB
+                  File SIARDFile = getSIARDPackagePath().resolve(fileName).toFile();
+                  File lobFolderFile = SIARDFile.getCanonicalFile();
+
+                  if (!lobFolderFile.exists()) {
+                    setError(A_M_561_2, String.format("not found external lob '%s' required by '%s'", fileName, String
+                      .format("%s [row: %s column: %s]", pathToTableColumn, Integer.toString(rowNumber), column)));
+                  } else if (folder == null || folder.isEmpty()) {
+                    addWarning(A_M_561_2, String.format("lobFolder must be set for column type  %s", type), path);
+                  }
                 }
               }
             }
           }
         }
       }
-    } catch (XMLStreamException e) {
+    } catch (XMLStreamException | IOException e) {
       String errorMessage = "Unable to read "
         + validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder);
       setError(A_M_561_2, errorMessage);
