@@ -20,6 +20,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.NodeList;
@@ -109,7 +110,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
       return false;
     }
 
-    getValidationReporter().validationStatus(P_643, ValidationReporterStatus.OK);
+    //getValidationReporter().validationStatus(P_643, ValidationReporterStatus.OK);
 
     observer.notifyValidationStep(MODULE_NAME, P_644, ValidationReporterStatus.SKIPPED);
     getValidationReporter().skipValidation(P_644, "Optional");
@@ -286,19 +287,13 @@ public class TableDataValidator extends ValidatorComponentImpl {
     final String path = validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder);
 
     XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(path));
-    boolean columnIndexFound = false;
-    boolean validate = false;
-    String tagName = "";
-    ArrayList<Integer> eventTypes = new ArrayList<>();
+    StringBuilder text = new StringBuilder();
     ArrayList<String> attributes = new ArrayList<>();
     while (streamReader.hasNext()) {
       streamReader.next();
 
-      eventTypes.add(streamReader.getEventType());
       if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
-        tagName = streamReader.getLocalName();
-        if (tagName.equals(columnIndex)) {
-          columnIndexFound = true;
+        if (columnIndex.equals(streamReader.getLocalName())) {
           final int attributeCount = streamReader.getAttributeCount();
           for (int i = 0; i < attributeCount; i++) {
             attributes.add(streamReader.getAttributeLocalName(i));
@@ -306,27 +301,63 @@ public class TableDataValidator extends ValidatorComponentImpl {
         }
       }
 
-      if (streamReader.getEventType() == XMLStreamReader.END_ELEMENT) {
-        if (eventTypes.size() == 2) {
-          validate = true;
-        }
-        eventTypes.clear();
+      if (streamReader.getEventType() == XMLStreamReader.CHARACTERS) {
+        text.append(streamReader.getText().trim());
       }
 
-      if (columnIndexFound && validate) {
-        if (!validateRequiredLOBAttributes(attributes)) {
-          P_645_ERRORS.add(ListUtils.convertListToStringWithSeparator(P_645_ERRORS_ATTRIBUTES, ", ") + " at " + path);
+      if (streamReader.getEventType() == XMLStreamReader.END_ELEMENT) {
+        if (columnIndex.equals(streamReader.getLocalName())) {
+          if (!validateRequiredLOBAttributes(attributes, text.toString())) {
+            P_645_ERRORS.add(ListUtils.convertListToStringWithSeparator(P_645_ERRORS_ATTRIBUTES, ", ") + " on " + columnIndex + " at " + path);
+          }
         }
-        validate = false;
-        columnIndexFound = false;
-        attributes.clear();
+        text = new StringBuilder();
+        attributes = new ArrayList<>();
       }
     }
   }
 
-  private boolean validateRequiredLOBAttributes(ArrayList<String> attributes) {
+  private boolean validateRequiredLOBAttributes(final ArrayList<String> attributes, final String text) {
     P_645_ERRORS_ATTRIBUTES = new ArrayList<>();
 
+    if (attributes.contains("file")) {
+      boolean matchesFile, matchesLength, matchesDigest;
+      matchesFile = attributes.contains("file");
+      matchesLength = attributes.contains("length");
+      matchesDigest = attributes.contains("digest");
+
+      if (StringUtils.isBlank(text)) {
+        if (!matchesFile) {
+          P_645_ERRORS_ATTRIBUTES.add("Missing file attribute");
+        }
+
+        if (!matchesLength) {
+          P_645_ERRORS_ATTRIBUTES.add("Missing length attribute");
+        }
+
+        if (!matchesDigest) {
+          P_645_ERRORS_ATTRIBUTES.add("Missing digest attribute");
+        }
+        return P_645_ERRORS_ATTRIBUTES.isEmpty();
+      } else {
+        P_645_ERRORS_ATTRIBUTES.add("Found an outside lob however the content is filled");
+        return false;
+      }
+    } else {
+      if (StringUtils.isBlank(text)) {
+        P_645_ERRORS_ATTRIBUTES.add("Found an inline lob however the content is empty");
+        return false;
+      } else {
+        if (attributes.isEmpty()) {
+          return true;
+        } else {
+          P_645_ERRORS_ATTRIBUTES.add("Found an inline lob however with attributes: " + attributes.toString());
+          return false;
+        }
+      }
+    }
+  }
+/*
     if (attributes.isEmpty()) {
       P_645_ERRORS_ATTRIBUTES.add("Expecting at least 3 attributes (file, length and digest) found none ");
       return false;
@@ -357,6 +388,8 @@ public class TableDataValidator extends ValidatorComponentImpl {
 
     return P_645_ERRORS_ATTRIBUTES.isEmpty();
   }
+
+ */
 
   private void compileRegexPattern() {
     patternXSDFile = Pattern.compile("^content/(schema[0-9]+)/(table[0-9]+)/table[0-9]+\\.xsd$");
