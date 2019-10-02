@@ -382,7 +382,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       try {
         boolean rowTag = false;
         String columnElement = "";
-        String content = "";
+        StringBuilder content = new StringBuilder();
         List<String> toClose = new ArrayList<>();
 
         final XMLStreamReader xmlStreamReader = factory.createXMLStreamReader(getZipInputStream(path));
@@ -410,7 +410,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
 
             if (xmlStreamReader.getEventType() == XMLStreamConstants.CHARACTERS) {
               if (!xmlStreamReader.getText().trim().equals("")) {
-                content = xmlStreamReader.getText().trim();
+                content.append(xmlStreamReader.getText().trim());
               }
             }
 
@@ -418,17 +418,17 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
               if (toClose.contains(xmlStreamReader.getLocalName())) {
                 String key = columnElement + "."
                   + ListUtils.convertListToStringWithSeparator(toClose, Constants.FILE_EXTENSION_SEPARATOR);
-                if (StringUtils.isNotBlank(content)) {
-                  reportDataTypeValidation(content, entry.getValue().get(key), path);
+                if (StringUtils.isNotBlank(content.toString())) {
+                  reportDataTypeValidation(content.toString(), entry.getValue().get(key), path);
                 }
                 final int lastOccurrence = toClose.lastIndexOf(xmlStreamReader.getLocalName());
                 toClose.remove(lastOccurrence);
-                content = "";
+                content = new StringBuilder();
               }
 
               if (xmlStreamReader.getLocalName().equals(columnElement)) {
-                reportDataTypeValidation(content, entry.getValue().get(columnElement), path);
-                content = "";
+                reportDataTypeValidation(content.toString(), entry.getValue().get(columnElement), path);
+                content = new StringBuilder();
                 columnElement = "";
               }
 

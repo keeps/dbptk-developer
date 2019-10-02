@@ -327,6 +327,11 @@ public class TableDataValidator extends ValidatorComponentImpl {
   private boolean validateRequiredLOBAttributes(ArrayList<String> attributes) {
     P_645_ERRORS_ATTRIBUTES = new ArrayList<>();
 
+    if (attributes.isEmpty()) {
+      P_645_ERRORS_ATTRIBUTES.add("Expecting at least 3 attributes (file, length and digest) found none ");
+      return false;
+    }
+
     if (attributes.size() < 3) {
       P_645_ERRORS_ATTRIBUTES.add("Expecting at least 3 attributes (file, length and digest) found only: "
         + ListUtils.convertListToStringWithSeparator(attributes, ", "));
