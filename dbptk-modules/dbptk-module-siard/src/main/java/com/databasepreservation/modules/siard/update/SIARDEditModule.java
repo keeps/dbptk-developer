@@ -137,7 +137,7 @@ public class SIARDEditModule implements EditModule {
 
       dbStructure = metadataImportStrategy.getDatabaseStructure();
     } catch (NullPointerException e) {
-      throw new ModuleException().withMessage("Metadata editing only supports SIARD 2 version").withCause(e);
+      throw new ModuleException().withMessage("Metadata editing only supports SIARD version 1, 2.0 and 2.1").withCause(e);
     } finally {
       readStrategy.finish(mainContainer);
     }
