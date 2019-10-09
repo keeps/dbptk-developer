@@ -84,6 +84,7 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.content.Sql99toXSDType;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.update.UpdateStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.XMLUtils;
@@ -104,6 +105,51 @@ public class SIARD1MetadataExportStrategy implements MetadataExportStrategy {
   public SIARD1MetadataExportStrategy(MetadataPathStrategy metadataPathStrategy, ContentPathExportStrategy paths) {
     this.contentPathStrategy = paths;
     this.metadataPathStrategy = metadataPathStrategy;
+  }
+
+  public void updateMetadataXML(DatabaseStructure dbStructure, SIARDArchiveContainer container,
+    UpdateStrategy updateStrategy) throws ModuleException {
+
+    JAXBContext context;
+    try {
+      context = JAXBContext.newInstance(SiardArchive.class.getPackage().getName(), SiardArchive.class.getClassLoader());
+    } catch (JAXBException e) {
+      throw new ModuleException().withMessage("Error loading JAXBContext").withCause(e);
+    }
+
+    SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+    Schema xsdSchema = null;
+    try {
+      xsdSchema = schemaFactory.newSchema(new StreamSource(
+        SiardArchive.class.getResourceAsStream(metadataPathStrategy.getXsdResourcePath(METADATA_RESOURCE_FILENAME))));
+    } catch (SAXException e) {
+      throw new ModuleException()
+        .withMessage("XSD file has errors: " + metadataPathStrategy.getXsdResourcePath(METADATA_RESOURCE_FILENAME))
+        .withCause(e);
+    }
+
+    SiardArchive xmlroot = jaxbSiardArchive(dbStructure);
+    Marshaller m;
+
+    try {
+      m = context.createMarshaller();
+      m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+      m.setProperty(Marshaller.JAXB_ENCODING, ENCODING);
+      m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
+        "http://www.bar.admin.ch/xmlns/siard/" + container.getVersion().getNamespace() + "/metadata.xsd metadata.xsd");
+
+      m.setSchema(xsdSchema);
+
+      OutputStream metadataOutputStream = updateStrategy.createOutputStream();
+      m.marshal(xmlroot, metadataOutputStream);
+
+      updateStrategy.close();
+
+      updateStrategy.updateSIARDArchive(container, metadataPathStrategy.getXmlFilePath(METADATA_FILENAME));
+
+    } catch (JAXBException e) {
+      throw new ModuleException().withMessage("Error while Marshalling JAXB").withCause(e);
+    }
   }
 
   @Override

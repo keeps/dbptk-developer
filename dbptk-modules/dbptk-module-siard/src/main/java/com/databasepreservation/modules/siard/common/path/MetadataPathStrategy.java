@@ -71,7 +71,7 @@ public interface MetadataPathStrategy {
       } catch (IOException | ModuleException e) {
         // ignore
       }
-      return SIARDConstants.SiardVersion.V2_0;
+      return SIARDConstants.SiardVersion.V1_0;
     }
   }
 }

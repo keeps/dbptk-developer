@@ -97,6 +97,15 @@ public class SIARDEdition {
     return editModule.getMetadata();
   }
 
+  public String getSIARDVersion() throws ModuleException {
+    HashMap<Parameter, String> importParameters = buildImportParameters(editModuleStringParameters, editModuleFactory);
+
+    EditModule editModule = editModuleFactory.buildModule(importParameters, reporter);
+    editModule.setOnceReporter(reporter);
+
+    return editModule.getSIARDVersion();
+  }
+
   /**
    * lists all the possible changes in a SIARD archive.
    *

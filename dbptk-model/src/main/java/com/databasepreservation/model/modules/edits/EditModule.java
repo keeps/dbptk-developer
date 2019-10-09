@@ -33,12 +33,19 @@ public interface EditModule extends ExceptionNormalizer {
    * SIARD archive.
    *
    * @return A <code>DatabaseStructure</code>
-   * @throws NullPointerException
-   *           If the SIARD archive version were not 2.0 or 2.1
    * @throws ModuleException
    *           Generic module exception
    */
   DatabaseStructure getMetadata() throws ModuleException;
+
+  /**
+   * Gets the version of the SIARD file.
+   *
+   * @return The SIARD version
+   * @throws ModuleException
+   *           Generic module exception
+   */
+  String getSIARDVersion();
 
   /**
    * Returns a list of <code>SIARDDatabaseMetadata</code> with the descriptive metadata.

@@ -24,6 +24,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import com.databasepreservation.modules.siard.out.path.SIARD1ContentPathExportStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -41,15 +42,20 @@ import com.databasepreservation.model.structure.PrivilegeStructure;
 import com.databasepreservation.modules.DefaultExceptionNormalizer;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
+import com.databasepreservation.modules.siard.common.path.SIARD1MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD2MetadataPathStrategy;
+import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.in.metadata.MetadataImportStrategy;
+import com.databasepreservation.modules.siard.in.metadata.SIARD1MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.SIARD20MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.SIARD21MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARD1ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.modules.siard.in.read.ZipAndFolderReadStrategy;
 import com.databasepreservation.modules.siard.in.read.ZipReadStrategy;
+import com.databasepreservation.modules.siard.out.metadata.SIARD1MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARD20MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARD21MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
@@ -99,8 +105,11 @@ public class SIARDEditModule implements EditModule {
       case V2_1:
         metadataImportStrategy = new SIARD21MetadataImportStrategy(metadataPathStrategy, contentPathStrategy);
         break;
-      case DK:
       case V1_0:
+        metadataImportStrategy = new SIARD1MetadataImportStrategy(new SIARD1MetadataPathStrategy(),
+          new SIARD1ContentPathImportStrategy());
+        break;
+      case DK:
       default:
         metadataImportStrategy = null;
     }
@@ -135,6 +144,10 @@ public class SIARDEditModule implements EditModule {
     return dbStructure;
   }
 
+  @Override
+  public String getSIARDVersion() {
+    return mainContainer.getVersion().getDisplayName();
+  }
 
   /**
    * @param dbStructure The {@link DatabaseStructure} with the updated values.
@@ -163,8 +176,13 @@ public class SIARDEditModule implements EditModule {
         metadata21ExportStrategy.setOnceReporter(reporter);
         metadata21ExportStrategy.updateMetadataXML(dbStructure, mainContainer, updateStrategy);
         break;
-      case DK:
       case V1_0:
+        SIARD1MetadataExportStrategy metadata1ExportStrategy = new SIARD1MetadataExportStrategy(
+          new SIARD1MetadataPathStrategy(), new SIARD1ContentPathExportStrategy());
+        metadata1ExportStrategy.setOnceReporter(reporter);
+        metadata1ExportStrategy.updateMetadataXML(dbStructure, mainContainer, updateStrategy);
+        break;
+      case DK:
       default:
     }
   }
@@ -276,12 +294,12 @@ public class SIARDEditModule implements EditModule {
 
   // Auxiliary Internal Methods
 
-  private static List<SIARDDatabaseMetadata> getUsersMetadata(Document document, String xpathExpression)
+  private List<SIARDDatabaseMetadata> getUsersMetadata(Document document, String xpathExpression)
     throws ModuleException {
     XPathFactory xPathFactory = XPathFactory.newInstance();
     XPath xpath = xPathFactory.newXPath();
 
-    xpath = setXPathForXML(xpath);
+    xpath = setXPathForXML(xpath, mainContainer.getVersion());
 
     List<SIARDDatabaseMetadata> metadata = new ArrayList<>();
 
@@ -304,12 +322,12 @@ public class SIARDEditModule implements EditModule {
     return metadata;
   }
 
-  private static List<SIARDDatabaseMetadata> getRolesMetadata(Document document, String xpathExpression)
+  private List<SIARDDatabaseMetadata> getRolesMetadata(Document document, String xpathExpression)
     throws ModuleException {
     XPathFactory xPathFactory = XPathFactory.newInstance();
     XPath xpath = xPathFactory.newXPath();
 
-    xpath = setXPathForXML(xpath);
+    xpath = setXPathForXML(xpath, mainContainer.getVersion());
 
     List<SIARDDatabaseMetadata> metadata = new ArrayList<>();
 
@@ -332,12 +350,12 @@ public class SIARDEditModule implements EditModule {
     return metadata;
   }
 
-  private static List<SIARDDatabaseMetadata> getPrivilegesMetadata(Document document, String xpathExpression)
+  private List<SIARDDatabaseMetadata> getPrivilegesMetadata(Document document, String xpathExpression)
       throws ModuleException {
     XPathFactory xPathFactory = XPathFactory.newInstance();
     XPath xpath = xPathFactory.newXPath();
 
-    xpath = setXPathForXML(xpath);
+    xpath = setXPathForXML(xpath, mainContainer.getVersion());
 
     List<SIARDDatabaseMetadata> metadata = new ArrayList<>();
 
@@ -369,12 +387,12 @@ public class SIARDEditModule implements EditModule {
   }
 
 
-  private static List<SIARDDatabaseMetadata> getSchemaMetadata(Document document, String xpathExpression)
+  private List<SIARDDatabaseMetadata> getSchemaMetadata(Document document, String xpathExpression)
     throws ModuleException {
     XPathFactory xPathFactory = XPathFactory.newInstance();
     XPath xpath = xPathFactory.newXPath();
 
-    xpath = setXPathForXML(xpath);
+    xpath = setXPathForXML(xpath, mainContainer.getVersion());
 
     List<SIARDDatabaseMetadata> siardatabaseMetadata = new ArrayList<>();
 
@@ -591,7 +609,7 @@ public class SIARDEditModule implements EditModule {
     return builder.parse(inputStream);
   }
 
-  private static XPath setXPathForXML(XPath xPath) {
+  private static XPath setXPathForXML(XPath xPath, final SIARDConstants.SiardVersion siardVersion) {
     xPath.setNamespaceContext(new NamespaceContext() {
       @Override
       public Iterator getPrefixes(String arg0) {
@@ -606,7 +624,13 @@ public class SIARDEditModule implements EditModule {
       @Override
       public String getNamespaceURI(String arg0) {
         if ("ns".equals(arg0)) {
-          return "http://www.bar.admin.ch/xmlns/siard/2/metadata.xsd";
+          if (siardVersion.equals(SIARDConstants.SiardVersion.V2_0)) {
+            return "http://www.bar.admin.ch/xmlns/siard/2.0/metadata.xsd";
+          } else if (siardVersion.equals(SIARDConstants.SiardVersion.V2_1)) {
+            return "http://www.bar.admin.ch/xmlns/siard/2/metadata.xsd";
+          } else {
+            return "http://www.bar.admin.ch/xmlns/siard/1.0/metadata.xsd";
+          }
         }
         return null;
       }
