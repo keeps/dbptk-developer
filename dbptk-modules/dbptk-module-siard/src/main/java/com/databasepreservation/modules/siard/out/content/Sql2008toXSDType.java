@@ -61,9 +61,9 @@ public class Sql2008toXSDType {
     sql2008toXSDConstant.put("CLOB", "clobType");
     sql2008toXSDConstant.put("DATE", "dateType");
     sql2008toXSDConstant.put("DECIMAL", "xs:decimal");
-    sql2008toXSDConstant.put("DOUBLE PRECISION", "xs:float");
+    sql2008toXSDConstant.put("DOUBLE PRECISION", "xs:double");
     sql2008toXSDConstant.put("DOUBLE", "xs:float");
-    sql2008toXSDConstant.put("FLOAT", "xs:float");
+    sql2008toXSDConstant.put("FLOAT", "xs:double");
     sql2008toXSDConstant.put("INTEGER", "xs:integer");
     sql2008toXSDConstant.put("NATIONAL CHARACTER LARGE OBJECT", "clobType");
     sql2008toXSDConstant.put("NATIONAL CHARACTER VARYING", "xs:string");

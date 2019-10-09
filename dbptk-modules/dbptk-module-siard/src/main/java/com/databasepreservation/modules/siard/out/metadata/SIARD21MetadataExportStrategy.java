@@ -755,7 +755,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     // TODO: set fields related to lob and complex types
 
     // specific fields for lobs
-    String xsdTypeFromColumnSql2008Type = null;
+    String xsdTypeFromColumnSql2008Type;
     try {
       xsdTypeFromColumnSql2008Type = Sql2008toXSDType.convert(column.getType(), reporter);
     } catch (UnknownTypeException e) {
@@ -763,7 +763,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     // don't set Folder if LOBs are being saved externally
-    if (xsdTypeFromColumnSql2008Type != null && !savingLobsExternally
+    if (!savingLobsExternally
       && ("clobType".equals(xsdTypeFromColumnSql2008Type) || "blobType".equals(xsdTypeFromColumnSql2008Type))) {
       columnType.setLobFolder(contentPathStrategy.getColumnFolderName(columnIndex));
     }
