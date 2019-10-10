@@ -107,7 +107,7 @@ public class MetadataTriggerValidator extends MetadataValidator {
         String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, TRIGGER, Integer.toString(i));
 
         String name = XMLUtils.getChildTextContext(trigger, Constants.NAME);
-        validateTriggerName(name, path);
+        validateTriggerName(name, path, table);
 
         path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, TRIGGER, name);
         String triggerActionTime = XMLUtils.getChildTextContext(trigger, TRIGGER_ACTION_TIME);
@@ -139,10 +139,10 @@ public class MetadataTriggerValidator extends MetadataValidator {
    * A_M_5.13-1-1 The trigger name in SIARD file must be unique. ERROR when it is
    * empty or not unique
    */
-  private void validateTriggerName(String name, String path) {
+  private void validateTriggerName(String name, String path, String table) {
     if(validateXMLField(M_513_1_1, name, Constants.NAME, true, false, path)){
-      if (!checkDuplicates.add(name)) {
-        setError(A_M_513_1_1, String.format("Trigger name %s must be unique (%s)", name, path));
+      if (!checkDuplicates.add(table + name)) {
+        setError(A_M_513_1_1, String.format("Trigger name %s must be unique per table (%s)", name, path));
       }
       return;
     }

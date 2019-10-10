@@ -97,7 +97,7 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
         String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.NAME, Integer.toString(i));
 
         String name = XMLUtils.getChildTextContext(checkConstraint, Constants.NAME);
-        validateCheckConstraintName(name, path);
+        validateCheckConstraintName(name, path, table);
 
         path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.NAME, name);
         String condition = XMLUtils.getChildTextContext(checkConstraint, Constants.CONDITION);
@@ -122,15 +122,15 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
    * A_M_5.12-1-1 The Check Constraint name should be unique
    */
 
-  private void validateCheckConstraintName(String name, String path) {
+  private void validateCheckConstraintName(String name, String path, String table) {
     if(validateXMLField(M_512_1_1, name, Constants.NAME, true, false, path)){
-      if (!checkDuplicates.add(name)) {
-        setError(M_512_1_1, String.format("Check Constraint name %s must be unique (%s)", name, path));
+      if (!checkDuplicates.add(table + name)) {
+        setError(A_M_512_1_1, String.format("Check Constraint name %s must be unique per table(%s)", name, path));
       }
       return;
     }
 
-    setError(M_512_1_1, String.format("Aborted because check constraint name is mandatory (%s)", path));
+    setError(A_M_512_1_1, String.format("Aborted because check constraint name is mandatory (%s)", path));
   }
 
   /**

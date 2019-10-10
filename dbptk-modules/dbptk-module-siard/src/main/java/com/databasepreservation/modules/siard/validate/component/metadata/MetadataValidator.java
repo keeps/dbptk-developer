@@ -174,7 +174,7 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
    */
   private String buildWarningMessage(String field, String value) {
     if (value == null) {
-      return String.format("The %s element not exist", field);
+      return String.format("The %s element does not exist", field);
     } else if (value.isEmpty()) {
       return String.format("The %s is empty", field);
     } else if (value.trim().isEmpty()) {

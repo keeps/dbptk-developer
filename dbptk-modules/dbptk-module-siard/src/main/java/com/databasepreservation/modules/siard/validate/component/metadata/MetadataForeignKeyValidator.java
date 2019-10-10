@@ -37,6 +37,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
   private static final String M_59 = "5.9";
   private static final String M_591 = "M_5.9-1";
   private static final String M_591_1 = "M_5.9-1-1";
+  private static final String A_M_591_1 = "A_M_5.9-1-1";
   private static final String M_591_2 = "M_5.9-1-2";
   private static final String A_M_591_2 = "A_M_5.9-1-2";
   private static final String M_591_3 = "M_5.9-1-3";
@@ -51,7 +52,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
 
   public MetadataForeignKeyValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_591, M_591_1, M_591_2, A_M_591_2, M_591_3, A_M_591_3, M_591_4, A_M_591_8);
+    setCodeListToValidate(M_591, M_591_1, A_M_591_1, M_591_2, A_M_591_2, M_591_3, A_M_591_3, M_591_4, A_M_591_8);
   }
 
   @Override
@@ -111,7 +112,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
             Integer.toString(j));
 
           String name = XMLUtils.getChildTextContext(foreignKey, Constants.NAME);
-          validateForeignKeyName(name, path);
+          validateForeignKeyName(name, path, table);
 
           path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.FOREIGN_KEY, name);
 
@@ -180,11 +181,14 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
    * A_M_5.9-1-1 The Foreign Key name in SIARD file must be unique. ERROR if not
    * unique
    */
-  private void validateForeignKeyName(String name, String path) {
-    validateXMLField(M_591_1, name, Constants.NAME, true, false, path);
-    if (!checkDuplicates.add(name)) {
-      setError(M_591_1, String.format("Foreign key name %s must be unique (%s)", name, path));
+  private void validateForeignKeyName(String name, String path, String table) {
+    if(validateXMLField(M_591_1, name, Constants.NAME, true, false, path)){
+      if (!checkDuplicates.add(table + name)) {
+        setError(A_M_591_1, String.format("Foreign key name %s must be unique per table (%s)", name, path));
+      }
+      return;
     }
+    setError(A_M_591_1, String.format("Aborted because Foreign key name is mandatory (%s)", path));
   }
 
   /**
