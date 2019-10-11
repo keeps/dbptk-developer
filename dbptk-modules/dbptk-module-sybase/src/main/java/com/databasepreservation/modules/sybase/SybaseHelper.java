@@ -38,7 +38,7 @@ public class SybaseHelper extends SQLHelper {
 
   @Override
   public String getRolesSQL() {
-    return "SELECT name as ROLE_NAME FROM master..sysloginroles AS a, master.dbo.syssrvroles as b where a.srid = b.srid";
+    return "SELECT name as ROLE_NAME, name as ADMIN FROM master.dbo.sysloginroles AS a, master.dbo.syssrvroles as b where a.srid = b.srid";
   }
 
   public String getTriggerEventSQL(String schemaName, String tableName) {

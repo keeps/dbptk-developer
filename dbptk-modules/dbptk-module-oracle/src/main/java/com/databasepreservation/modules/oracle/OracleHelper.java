@@ -68,7 +68,7 @@ public class OracleHelper extends SQLHelper {
 
   @Override
   public String getRolesSQL() {
-    return "SELECT role AS ROLE_NAME FROM session_roles";
+    return "SELECT role AS ROLE_NAME, role as ADMIN FROM session_roles";
   }
 
   @Override

@@ -170,7 +170,7 @@ public class PostgreSQLHelper extends SQLHelper {
 
   @Override
   public String getRolesSQL() {
-    return "SELECT rolname AS ROLE_NAME FROM pg_roles";
+    return "select rolname as ROLE_NAME, rolname as ADMIN from pg_catalog.pg_roles";
   }
 
   @Override

@@ -169,7 +169,7 @@ public class SQLServerHelper extends SQLHelper {
   //}
 
   public String getRolesSQL() {
-    return "SELECT sysu1.name as ROLE_NAME, sysu2.name as ADMIN FROM sysusers sysu1, sysusers sysu2 WHERE sysu1.issqlrole = 1 and sysu1.altuid = sysu2.uid;";
+    return "SELECT name as ROLE_NAME, name as ADMIN FROM sysusers";
   }
 
   @Override
