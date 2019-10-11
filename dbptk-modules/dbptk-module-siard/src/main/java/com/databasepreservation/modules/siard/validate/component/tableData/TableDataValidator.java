@@ -344,52 +344,14 @@ public class TableDataValidator extends ValidatorComponentImpl {
         return false;
       }
     } else {
-      if (StringUtils.isBlank(text)) {
-        P_645_ERRORS_ATTRIBUTES.add("Found an inline lob however the content is empty");
-        return false;
+      if (attributes.isEmpty()) {
+        return true;
       } else {
-        if (attributes.isEmpty()) {
-          return true;
-        } else {
-          P_645_ERRORS_ATTRIBUTES.add("Found an inline lob however with attributes: " + attributes.toString());
-          return false;
-        }
+        P_645_ERRORS_ATTRIBUTES.add("Found an inline lob however with attributes: " + attributes.toString());
+        return false;
       }
     }
   }
-/*
-    if (attributes.isEmpty()) {
-      P_645_ERRORS_ATTRIBUTES.add("Expecting at least 3 attributes (file, length and digest) found none ");
-      return false;
-    }
-
-    if (attributes.size() < 3) {
-      P_645_ERRORS_ATTRIBUTES.add("Expecting at least 3 attributes (file, length and digest) found only: "
-        + ListUtils.convertListToStringWithSeparator(attributes, ", "));
-      return false;
-    }
-
-    boolean matchesFile, matchesLength, matchesDigest;
-    matchesFile = attributes.contains("file");
-    matchesLength = attributes.contains("length");
-    matchesDigest = attributes.contains("digest");
-
-    if (!matchesFile) {
-      P_645_ERRORS_ATTRIBUTES.add("Missing file attribute");
-    }
-
-    if (!matchesLength) {
-      P_645_ERRORS_ATTRIBUTES.add("Missing length attribute");
-    }
-
-    if (!matchesDigest) {
-      P_645_ERRORS_ATTRIBUTES.add("Missing digest attribute");
-    }
-
-    return P_645_ERRORS_ATTRIBUTES.isEmpty();
-  }
-
- */
 
   private void compileRegexPattern() {
     patternXSDFile = Pattern.compile("^content/(schema[0-9]+)/(table[0-9]+)/table[0-9]+\\.xsd$");

@@ -141,8 +141,6 @@ public class JDBCImportModule implements DatabaseImportModule {
   // SSH Connection Parameters
   protected final boolean ssh;
 
-  private boolean fetchWithViewAsTable = true;
-
   /**
    * Create a new JDBC import module
    *
@@ -284,8 +282,12 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   public DatabaseStructure getSchemaInformation() throws ModuleException {
-    moduleSettings = new ModuleSettings();
-    this.fetchWithViewAsTable = false;
+    moduleSettings = new ModuleSettings() {
+      @Override
+      public boolean fetchWithViewAsTable() {
+        return false;
+      }
+    };
     DatabaseStructure databaseStructure = getDatabaseStructure();
     closeConnection();
 
@@ -656,7 +658,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
     }
 
-    if (this.fetchWithViewAsTable) {
+    if (getModuleSettings().fetchWithViewAsTable()) {
       try (
         ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"VIEW"})) {
         while (rset.next()) {

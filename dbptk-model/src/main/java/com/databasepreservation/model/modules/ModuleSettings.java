@@ -77,4 +77,6 @@ public class ModuleSettings {
   public boolean shouldCountRows() {
     return true;
   }
+
+  public boolean fetchWithViewAsTable() { return true; }
 }
