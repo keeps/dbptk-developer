@@ -20,7 +20,7 @@ public class Parameter {
 
   /* GUI Helper */
   public enum INPUT_TYPE {
-    FILE, FOLDER, TEXT, PASSWORD, CHECKBOX, NUMBER, DEFAULT, NONE
+    DRIVER, FILE, FOLDER, TEXT, PASSWORD, CHECKBOX, NUMBER, DEFAULT, NONE
   }
 
   /* GUI Helper for SIARD Export Module */

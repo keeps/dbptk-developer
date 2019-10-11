@@ -77,7 +77,7 @@ public class MsAccessUCanAccessModuleFactory implements DatabaseModuleFactory {
   @Override
   public Parameters getConnectionParameters() {
     return new Parameters(
-      Arrays.asList(accessFilePath.inputType(INPUT_TYPE.FILE), accessPassword.inputType(INPUT_TYPE.PASSWORD)), null);
+      Arrays.asList(accessFilePath.inputType(INPUT_TYPE.FILE), accessPassword.longName("ms-password").inputType(INPUT_TYPE.PASSWORD)), null);
   }
 
   @Override

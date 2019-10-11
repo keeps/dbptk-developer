@@ -30,10 +30,11 @@ public class JDBCModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_DRIVER = "driver";
   public static final String PARAMETER_CONNECTION = "connection";
   public static final String PARAMETER_PARAMETER = "parameter";
+  private static final String PARAMETER_DRIVER_CLASS = "class";
 
   private static final Parameter driver = new Parameter().shortName("d").longName(PARAMETER_DRIVER)
     .description(
-      "the name of the the JDBC driver class. For more info about this refer to the website or the README file")
+      "the name of the JDBC driver class. For more info about this refer to the website or the README file")
     .hasArgument(true).setOptionalArgument(false).required(true);
 
   private static final Parameter connection = new Parameter().shortName("c").longName(PARAMETER_CONNECTION)
@@ -75,7 +76,11 @@ public class JDBCModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Parameters getConnectionParameters() {
-    return new Parameters(Arrays.asList(driver.inputType(INPUT_TYPE.TEXT), connection.inputType(INPUT_TYPE.TEXT)),
+    final Parameter driverJAR = new Parameter().shortName("d").longName(PARAMETER_DRIVER)
+      .description("the location of the JDBC driver").hasArgument(true).setOptionalArgument(false).required(true)
+      .inputType(INPUT_TYPE.DRIVER);
+    return new Parameters(Arrays.asList(driverJAR, driver.longName(PARAMETER_DRIVER_CLASS).inputType(INPUT_TYPE.TEXT),
+      connection.inputType(INPUT_TYPE.TEXT)),
       null);
   }
 

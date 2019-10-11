@@ -128,7 +128,7 @@ public class OpenEdgeModuleFactory implements DatabaseModuleFactory {
   public Parameters getConnectionParameters() {
     final Parameter driver = new Parameter().shortName("d").longName(PARAMETER_DRIVER)
       .description("the location of the JDBC driver").hasArgument(true).setOptionalArgument(false).required(true)
-      .inputType(INPUT_TYPE.FILE);
+      .inputType(INPUT_TYPE.DRIVER);
     return new Parameters(Arrays.asList(driver, hostname.inputType(INPUT_TYPE.TEXT),
       portNumber.inputType(INPUT_TYPE.NUMBER), username.inputType(INPUT_TYPE.TEXT),
       password.inputType(INPUT_TYPE.PASSWORD), database.inputType(INPUT_TYPE.TEXT)), null);
