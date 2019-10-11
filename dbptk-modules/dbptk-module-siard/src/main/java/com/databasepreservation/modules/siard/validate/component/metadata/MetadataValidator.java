@@ -73,7 +73,7 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
     }
     if (failed) {
       observer.notifyFinishValidationModule(moduleName, ValidationReporterStatus.FAILED);
-      getValidationReporter().moduleValidatorFinished(moduleName, ValidationReporterStatus.ERROR);
+      getValidationReporter().moduleValidatorFinished(moduleName, ValidationReporterStatus.FAILED);
       return false;
     }
     metadataValidationPassed(moduleName);
