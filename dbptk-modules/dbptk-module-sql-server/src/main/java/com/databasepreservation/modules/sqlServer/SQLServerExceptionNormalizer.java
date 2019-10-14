@@ -33,6 +33,10 @@ public class SQLServerExceptionNormalizer implements ExceptionNormalizer {
     if (exception instanceof SQLServerException) {
       SQLServerException e = (SQLServerException) exception;
 
+      if (e.getSQLState() == null) {
+        return new ModuleException().withMessage(e.getMessage()).withCause(e);
+      }
+
       if (e.getSQLState().equals("S0001")) {
         return new PermissionDeniedException().withCause(e);
       }
