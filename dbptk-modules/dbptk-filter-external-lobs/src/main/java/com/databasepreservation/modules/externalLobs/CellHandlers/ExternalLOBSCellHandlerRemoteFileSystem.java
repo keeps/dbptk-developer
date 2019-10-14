@@ -7,23 +7,21 @@
  */
 package com.databasepreservation.modules.externalLobs.CellHandlers;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
-import com.databasepreservation.RemoteConnectionManager;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.SftpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.RemoteConnectionManager;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.externalLobs.ExternalLOBSCellHandler;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.SftpException;
 
 public class ExternalLOBSCellHandlerRemoteFileSystem implements ExternalLOBSCellHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(ExternalLOBSCellHandlerRemoteFileSystem.class);
@@ -48,7 +46,8 @@ public class ExternalLOBSCellHandlerRemoteFileSystem implements ExternalLOBSCell
       final InputStream stream = RemoteConnectionManager.getInstance().getInputStream(blobPath);
       newCell = new BinaryCell(cellId, stream);
     } catch (JSchException | SftpException e) {
-      reporter.ignored("Cell " + cellId, "there was an error accessing the remote file " + blobPath.toString() + ": " + e.getMessage() + "; Base path: " + this.basePath + " Cell Value: " + cellValue);
+      reporter.ignored("Cell " + cellId, "there was an error accessing the remote file " + blobPath.toString() + ": "
+        + e.getMessage() + "; Base path: " + this.basePath + " Cell Value: " + cellValue);
     }
 
     return newCell;

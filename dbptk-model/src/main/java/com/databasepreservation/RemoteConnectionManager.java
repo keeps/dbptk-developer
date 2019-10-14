@@ -39,6 +39,10 @@ public class RemoteConnectionManager {
     }
   }
 
+  public boolean isConfigured() {
+    return configured;
+  }
+
   public InputStream getInputStream(Path blobPath) throws JSchException, SftpException {
     if (channelSftp == null) {
       JSch jsch = new JSch();

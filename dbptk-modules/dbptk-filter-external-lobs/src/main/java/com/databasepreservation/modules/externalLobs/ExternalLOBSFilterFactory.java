@@ -24,6 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.databasepreservation.Constants;
+import com.databasepreservation.RemoteConnectionManager;
 import com.databasepreservation.modules.externalLobs.CellHandlers.ExternalLOBSCellHandlerRemoteFileSystem;
 import org.apache.commons.lang3.StringUtils;
 
@@ -104,8 +105,12 @@ public class ExternalLOBSFilterFactory implements DatabaseFilterFactory {
       cellHandler = new ExternalLOBSCellHandlerFileSystem(pBasePath, reporter);
       report(reporter, pColList, content.toString(), pBasePath, pCellHandlerType);
     } else if ("remote-file-system".equalsIgnoreCase(pCellHandlerType)) {
-      cellHandler = new ExternalLOBSCellHandlerRemoteFileSystem(pBasePath, reporter);
-      report(reporter, pColList, content.toString(), pBasePath, pCellHandlerType);
+      if (RemoteConnectionManager.getInstance().isConfigured()) {
+        cellHandler = new ExternalLOBSCellHandlerRemoteFileSystem(pBasePath, reporter);
+        report(reporter, pColList, content.toString(), pBasePath, pCellHandlerType);
+      } else {
+        throw new ModuleException().withMessage("Missing remote connection parameters");
+      }
     } else {
       throw new ModuleException().withMessage("Unrecognized reference type " + pCellHandlerType);
     }
