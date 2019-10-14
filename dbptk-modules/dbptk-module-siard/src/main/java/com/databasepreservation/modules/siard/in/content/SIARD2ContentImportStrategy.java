@@ -28,6 +28,7 @@ import javax.xml.validation.SchemaFactory;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -175,7 +176,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
                 XMLReader xmlReader = saxParser.getXMLReader();
                 xmlReader.setContentHandler(this);
                 xmlReader.setErrorHandler(errorHandler);
-                InputStreamReader tableInputStreamReader = new InputStreamReader(currentTableStream, "UTF-8");
+                InputStreamReader tableInputStreamReader = new InputStreamReader(new BOMInputStream(currentTableStream), "UTF-8");
                 InputSource tableInputSource = new InputSource(tableInputStreamReader);
                 tableInputSource.setEncoding("UTF-8");
                 xmlReader.parse(tableInputSource);
