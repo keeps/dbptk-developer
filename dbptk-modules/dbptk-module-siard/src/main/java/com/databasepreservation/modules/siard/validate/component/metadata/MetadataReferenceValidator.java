@@ -17,6 +17,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -45,6 +46,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
   private static final String REFERENCED_TABLE = "referencedTable";
   private static final String REFERENCED_COLUMN = "referenced";
 
+  private List<Element> foreignKeyList = new ArrayList<>();
   private List<String> tableList = new ArrayList<>();
   private static List<SQLType> SQLTypeList = null;
   private Map<String, HashMap<String, String>> tableColumnsList = new HashMap<>();
@@ -77,6 +79,13 @@ public class MetadataReferenceValidator extends MetadataValidator {
     }
     closeZipFile();
 
+    if (foreignKeyList.isEmpty()) {
+      getValidationReporter().skipValidation(M_510, "Database has no foreign keys and references");
+      observer.notifyValidationStep(MODULE_NAME, M_510, ValidationReporterStatus.SKIPPED);
+      metadataValidationPassed(MODULE_NAME);
+      return true;
+    }
+
     return reportValidations(MODULE_NAME);
   }
 
@@ -99,6 +108,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
         NodeList foreignKeyNodes = tableElement.getElementsByTagName(Constants.FOREIGN_KEY);
         for (int j = 0; j < foreignKeyNodes.getLength(); j++) {
           Element foreignKeyElement = (Element) foreignKeyNodes.item(j);
+          foreignKeyList.add(foreignKeyElement);
           String foreignKey = XMLUtils.getChildTextContext(foreignKeyElement, Constants.NAME);
           String referencedTable = XMLUtils.getChildTextContext(foreignKeyElement, REFERENCED_TABLE);
 
