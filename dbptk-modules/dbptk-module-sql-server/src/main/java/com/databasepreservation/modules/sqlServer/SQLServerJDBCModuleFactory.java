@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.databasepreservation.RemoteConnectionManager;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
@@ -207,6 +208,10 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
     String pSSHPortNumber = "22";
     if (StringUtils.isNotBlank(parameters.get(sshPort))) {
       pSSHPortNumber = parameters.get(sshPort);
+    }
+
+    if (pSSH) {
+      RemoteConnectionManager.getInstance().setup(pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
     }
 
     if (pInstanceName != null) {

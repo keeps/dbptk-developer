@@ -24,6 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.databasepreservation.Constants;
+import com.databasepreservation.modules.externalLobs.CellHandlers.ExternalLOBSCellHandlerRemoteFileSystem;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
@@ -49,7 +50,7 @@ public class ExternalLOBSFilterFactory implements DatabaseFilterFactory {
     .required(true).hasArgument(true).setOptionalArgument(false);
 
   private static final Parameter referenceType = new Parameter().shortName("t").longName(PARAMETER_REFERENCE_TYPE)
-    .description("type of the references found in the listed columns (supported types: 'file-system')").required(true)
+    .description("type of the references found in the listed columns (supported types: 'file-system', 'remote-file-system')").required(true)
     .hasArgument(true).setOptionalArgument(false);
 
   private static final Parameter basePath = new Parameter().shortName("bp").longName(PARAMETER_BASE_PATH)
@@ -93,19 +94,18 @@ public class ExternalLOBSFilterFactory implements DatabaseFilterFactory {
 
     // initialize cell handler to be used in the filter
     ExternalLOBSCellHandler cellHandler;
+
+    Path pBasePath = Paths.get(basePath.valueIfNotSet());
+    if (StringUtils.isNotBlank(parameters.get(basePath))) {
+      pBasePath = Paths.get(parameters.get(basePath));
+    }
+
     if ("file-system".equalsIgnoreCase(pCellHandlerType)) {
-      Path pBasePath = Paths.get(basePath.valueIfNotSet());
-      if (StringUtils.isNotBlank(parameters.get(basePath))) {
-        pBasePath = Paths.get(parameters.get(basePath));
-      }
-
       cellHandler = new ExternalLOBSCellHandlerFileSystem(pBasePath, reporter);
-
-      reporter.filterParameters(getFilterName(),
-          PARAMETER_COLUMN_LIST, pColList.normalize().toAbsolutePath().toString(),
-          PARAMETER_COLUMN_LIST_CONTENT, content.toString(),
-          PARAMETER_BASE_PATH, pBasePath.normalize().toAbsolutePath().toString(),
-          PARAMETER_REFERENCE_TYPE, pCellHandlerType);
+      report(reporter, pColList, content.toString(), pBasePath, pCellHandlerType);
+    } else if ("remote-file-system".equalsIgnoreCase(pCellHandlerType)) {
+      cellHandler = new ExternalLOBSCellHandlerRemoteFileSystem(pBasePath, reporter);
+      report(reporter, pColList, content.toString(), pBasePath, pCellHandlerType);
     } else {
       throw new ModuleException().withMessage("Unrecognized reference type " + pCellHandlerType);
     }
@@ -135,6 +135,7 @@ public class ExternalLOBSFilterFactory implements DatabaseFilterFactory {
 
             String schemaPart = lineMatcher.group(1);
             String tablePart = lineMatcher.group(2);
+            tablePart = tablePart.substring(1);
             String columnPart = lineMatcher.group(3);
             String[] columns = columnPart.split(ListTables.COLUMNS_SEPARATOR);
 
@@ -158,5 +159,13 @@ public class ExternalLOBSFilterFactory implements DatabaseFilterFactory {
     }
 
     return colList;
+  }
+
+  private void report(Reporter reporter, Path pColList, String content, Path pBasePath, String pCellHandlerType) {
+    reporter.filterParameters(getFilterName(),
+        PARAMETER_COLUMN_LIST, pColList.normalize().toAbsolutePath().toString(),
+        PARAMETER_COLUMN_LIST_CONTENT, content,
+        PARAMETER_BASE_PATH, pBasePath.normalize().toAbsolutePath().toString(),
+        PARAMETER_REFERENCE_TYPE, pCellHandlerType);
   }
 }

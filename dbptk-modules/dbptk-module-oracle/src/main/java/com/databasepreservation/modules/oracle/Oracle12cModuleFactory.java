@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.databasepreservation.RemoteConnectionManager;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
@@ -190,6 +191,7 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
     int pPortNumber = Integer.parseInt(parameters.get(portNumber));
 
     if (pSSH) {
+      RemoteConnectionManager.getInstance().setup(pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
       reporter.importModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_INSTANCE,
         pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
         Integer.toString(pPortNumber), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser,
