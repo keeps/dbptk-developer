@@ -9,11 +9,7 @@ package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
@@ -58,9 +54,6 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
   static final String PRIVILEGE_TYPE = "privilegeType";
 
   private List<String> codeList = new ArrayList<>();
-  private Map<String, List<Map<String, String>>> warnings = new HashMap<>();
-  private Map<String, List<Map<String, String>>> notices = new HashMap<>();
-  private Map<String, List<String>> errors = new HashMap<>();
   private boolean failed = false;
 
   void setCodeListToValidate(String... codeIDList) {
@@ -68,9 +61,6 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
   }
 
   boolean reportValidations(String moduleName) {
-    for (String codeId : codeList) {
-      reportValidations(codeId, moduleName);
-    }
     if (failed) {
       observer.notifyFinishValidationModule(moduleName, ValidationReporterStatus.FAILED);
       getValidationReporter().moduleValidatorFinished(moduleName, ValidationReporterStatus.FAILED);
@@ -80,37 +70,9 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
     return true;
   }
 
-  /**
-   * search through the codeID for errors, warnings or notice, if found write on
-   * reporter and notify the observer
-   */
-  void reportValidations(String codeID, String moduleName) {
-    boolean codeIdFailed = false;
-    if (errors.get(codeID) != null && !errors.get(codeID).isEmpty()) {
-      for (String error : errors.get(codeID)) {
-        getValidationReporter().validationStatus(codeID, ValidationReporterStatus.ERROR, error);
-        codeIdFailed = failed = true;
-      }
-    } else if ((warnings.get(codeID) != null) && !warnings.get(codeID).isEmpty()) {
-      for (Map<String, String> entry : warnings.get(codeID)) {
-        for (Map.Entry<String, String> warning : entry.entrySet()) {
-          getValidationReporter().warning(codeID, warning.getKey(), warning.getValue());
-        }
-      }
-    } else if (notices.get(codeID) != null) {
-      for (Map<String, String> entry : notices.get(codeID)) {
-        for (Map.Entry<String, String> notice : entry.entrySet()) {
-          getValidationReporter().notice(notice.getValue(), notice.getKey());
-        }
-      }
-    }
-
-    if (codeIdFailed) {
-      observer.notifyValidationStep(moduleName, codeID, ValidationReporterStatus.ERROR);
-    } else {
-      observer.notifyValidationStep(moduleName, codeID, ValidationReporterStatus.OK);
-      getValidationReporter().validationStatus(codeID, ValidationReporterStatus.OK);
-    }
+  void validationOk(String moduleName, String codeID) {
+    observer.notifyValidationStep(moduleName, codeID, ValidationReporterStatus.OK);
+    getValidationReporter().validationStatus(codeID, ValidationReporterStatus.OK);
   }
 
   void metadataValidationPassed(String moduleName) {
@@ -216,28 +178,16 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
   }
 
   void addWarning(String codeID, String message, String path) {
-    addMessageList(codeID, message, path, warnings);
+    getValidationReporter().warning(codeID, message, path);
   }
 
   void addNotice(String codeID, String message, String path) {
-    addMessageList(codeID, message, path, notices);
-  }
-
-  private void addMessageList(String codeID, String message, String path,
-    Map<String, List<Map<String, String>>> typeMessage) {
-    if (typeMessage.get(codeID) == null) {
-      typeMessage.put(codeID, new ArrayList<Map<String, String>>());
-    }
-    Map<String, String> messageObject = new HashMap<>();
-    messageObject.put(path, message);
-    typeMessage.get(codeID).add(messageObject);
+    getValidationReporter().notice(path, message);
   }
 
   void setError(String codeID, String error) {
-    if (errors.get(codeID) == null) {
-      errors.put(codeID, new ArrayList<String>());
-    }
-    this.errors.get(codeID).add(error);
+    getValidationReporter().validationStatus(codeID, ValidationReporterStatus.ERROR, error);
+    failed = true;
   }
 
   static String createPath(String... parameters) {
@@ -287,7 +237,7 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
           getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), xmlExpresion, XPathConstants.NODESET,
           Constants.NAMESPACE_FOR_METADATA);
 
-        if(nodesToValidate.getLength() == 0){
+        if (nodesToValidate.getLength() == 0) {
           setError(codeID, String.format("Nothing found in this path %s", xmlExpresion));
           return false;
         }

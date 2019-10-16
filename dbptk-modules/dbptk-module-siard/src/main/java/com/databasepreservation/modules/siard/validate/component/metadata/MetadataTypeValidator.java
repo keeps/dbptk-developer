@@ -8,8 +8,6 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
@@ -40,11 +38,8 @@ public class MetadataTypeValidator extends MetadataValidator {
   private static final String M_531_6 = "M_5.3-1-6";
   private static final String A_M_531_10 = "A_M_5.3-1-10";
 
-  private List<Element> typesList = new ArrayList<>();
-
   public MetadataTypeValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_531, M_531_1, M_531_2, M_531_5, M_531_6, A_M_531_10);
   }
 
   @Override
@@ -57,54 +52,11 @@ public class MetadataTypeValidator extends MetadataValidator {
 
     getValidationReporter().moduleValidatorHeader(M_53, MODULE_NAME);
 
-    validateMandatoryXSDFields(M_531, TYPE_TYPE, "/ns:siardArchive/ns:schemas/ns:schema/ns:types/ns:type");
-
-    if (!readXMLMetadataTypeLevel()) {
-      reportValidations(M_531, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
-    closeZipFile();
-
-    // there is no need to continue the validation if no have types in any schema
-    if (typesList.isEmpty()) {
-      getValidationReporter().skipValidation(M_531, "Database has no types");
-      observer.notifyValidationStep(MODULE_NAME, M_531, ValidationReporterStatus.SKIPPED);
-      metadataValidationPassed(MODULE_NAME);
-      return true;
-    }
-
-    return reportValidations(MODULE_NAME);
-  }
-
-  private boolean readXMLMetadataTypeLevel() {
+    NodeList nodes;
     try {
-      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+      nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
         "/ns:siardArchive/ns:schemas/ns:schema/ns:types/ns:type", XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
-
-      for (int i = 0; i < nodes.getLength(); i++) {
-        Element type = (Element) nodes.item(i);
-        typesList.add(type);
-
-        String schema = XMLUtils.getChildTextContext((Element) type.getParentNode().getParentNode(), "name");
-
-        String name = XMLUtils.getChildTextContext(type, Constants.NAME);
-        String category = XMLUtils.getChildTextContext(type, Constants.CATEGORY);
-        String instantiable = XMLUtils.getChildTextContext(type, Constants.TYPE_INSTANTIABLE);
-        String finalField = XMLUtils.getChildTextContext(type, Constants.TYPE_FINAL);
-        String description = XMLUtils.getChildTextContext(type, Constants.DESCRIPTION);
-
-        String path = buildPath(Constants.SCHEMA, schema, Constants.TYPE, Integer.toString(i));
-        validateTypeName(name, path);
-
-        path = buildPath(Constants.SCHEMA, schema, Constants.TYPE, name);
-        validateTypeCategory(category, path);
-        validateTypeInstantiable(instantiable, path);
-        validateTypeFinal(finalField, path);
-        validateTypeDescription(description, path);
-      }
-
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       String errorMessage = "Unable to read types from SIARD file";
       setError(M_531, errorMessage);
@@ -112,14 +64,64 @@ public class MetadataTypeValidator extends MetadataValidator {
       return false;
     }
 
-    return true;
+    if (nodes.getLength() == 0) {
+      getValidationReporter().skipValidation(M_531, "Database has no types");
+      observer.notifyValidationStep(MODULE_NAME, M_531, ValidationReporterStatus.SKIPPED);
+      metadataValidationPassed(MODULE_NAME);
+      return true;
+    }
+
+    validateMandatoryXSDFields(M_531, TYPE_TYPE, "/ns:siardArchive/ns:schemas/ns:schema/ns:types/ns:type");
+
+    if (validateTypeName(nodes)) {
+      validationOk(MODULE_NAME, M_531_1);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_531_1, ValidationReporterStatus.ERROR);
+    }
+
+    if (validateTypeCategory(nodes)) {
+      validationOk(MODULE_NAME, M_531_2);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_531_2, ValidationReporterStatus.ERROR);
+    }
+
+    if (validateTypeInstantiable(nodes)) {
+      validationOk(MODULE_NAME, M_531_5);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_531_5, ValidationReporterStatus.ERROR);
+    }
+
+    if (validateTypeFinal(nodes)) {
+      validationOk(MODULE_NAME, M_531_6);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_531_6, ValidationReporterStatus.ERROR);
+    }
+
+    validateTypeDescription(nodes);
+    validationOk(MODULE_NAME, A_M_531_10);
+
+    closeZipFile();
+
+    return reportValidations(MODULE_NAME);
   }
 
   /**
    * M_5.3-1-1 The type name is mandatory in SIARD 2.1 specification
    */
-  private void validateTypeName(String typeName, String path) {
-    validateXMLField(M_531_1, typeName, Constants.NAME, true, false, path);
+  private boolean validateTypeName(NodeList nodes) {
+    boolean hasErrors = false;
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element type = (Element) nodes.item(i);
+      String path = buildPath(Constants.SCHEMA, XMLUtils.getParentNameByTagName(type, Constants.SCHEMA), Constants.TYPE,
+        Integer.toString(i));
+      String name = XMLUtils.getChildTextContext(type, Constants.NAME);
+
+      if (!validateXMLField(M_531_1, name, Constants.NAME, true, false, path)) {
+        hasErrors = true;
+      }
+    }
+
+    return !hasErrors;
   }
 
   /**
@@ -127,12 +129,24 @@ public class MetadataTypeValidator extends MetadataValidator {
    *
    * must be distinct or udt
    */
-  private void validateTypeCategory(String category, String path) {
-    if(category == null || category.isEmpty()){
-      setError(M_531_2, buildErrorMessage(Constants.CATEGORY, path));
-    } else if (!category.equals(Constants.DISTINCT) && !category.equals(Constants.UDT)){
-      setError(M_531_2, String.format("type category must be 'distinct' or 'udt' (%s)", path));
+  private boolean validateTypeCategory(NodeList nodes) {
+    boolean hasErrors = false;
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element type = (Element) nodes.item(i);
+      String path = buildPath(Constants.SCHEMA, XMLUtils.getParentNameByTagName(type, Constants.SCHEMA), Constants.TYPE,
+        XMLUtils.getChildTextContext(type, Constants.NAME));
+      String category = XMLUtils.getChildTextContext(type, Constants.CATEGORY);
+
+      if (category == null || category.isEmpty()) {
+        setError(M_531_2, buildErrorMessage(Constants.CATEGORY, path));
+        hasErrors = true;
+      } else if (!category.equals(Constants.DISTINCT) && !category.equals(Constants.UDT)) {
+        setError(M_531_2, String.format("type category must be 'distinct' or 'udt' (%s)", path));
+        hasErrors = true;
+      }
     }
+
+    return !hasErrors;
   }
 
   /**
@@ -140,12 +154,24 @@ public class MetadataTypeValidator extends MetadataValidator {
    *
    * must be true or false
    */
-  private void validateTypeInstantiable(String instantiable, String path) {
-    if(instantiable == null || instantiable.isEmpty()){
-      setError(M_531_5, buildErrorMessage(Constants.TYPE_INSTANTIABLE, path));
-    } else if (!instantiable.equals(Constants.TRUE) && !instantiable.equals(Constants.FALSE)){
-      setError(M_531_5, String.format("type instantiable must be 'true' or 'false' (%s)", path));
+  private boolean validateTypeInstantiable(NodeList nodes) {
+    boolean hasErrors = false;
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element type = (Element) nodes.item(i);
+      String path = buildPath(Constants.SCHEMA, XMLUtils.getParentNameByTagName(type, Constants.SCHEMA), Constants.TYPE,
+        XMLUtils.getChildTextContext(type, Constants.NAME));
+      String instantiable = XMLUtils.getChildTextContext(type, Constants.TYPE_INSTANTIABLE);
+
+      if (instantiable == null || instantiable.isEmpty()) {
+        setError(M_531_5, buildErrorMessage(Constants.TYPE_INSTANTIABLE, path));
+        hasErrors = true;
+      } else if (!instantiable.equals(Constants.TRUE) && !instantiable.equals(Constants.FALSE)) {
+        setError(M_531_5, String.format("type instantiable must be 'true' or 'false' (%s)", path));
+        hasErrors = true;
+      }
     }
+
+    return !hasErrors;
   }
 
   /**
@@ -153,20 +179,39 @@ public class MetadataTypeValidator extends MetadataValidator {
    *
    * must be true or false
    */
-  private void validateTypeFinal(String typeFinal, String path) {
-    if(typeFinal == null || typeFinal.isEmpty()){
-      setError(M_531_6, buildErrorMessage(Constants.TYPE_INSTANTIABLE, path));
-    } else if (!typeFinal.equals(Constants.TRUE) && !typeFinal.equals(Constants.FALSE)) {
-      setError(M_531_6, String.format("type final must be 'true' or 'false' (%s)", path));
+  private boolean validateTypeFinal(NodeList nodes) {
+    boolean hasErrors = false;
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element type = (Element) nodes.item(i);
+      String path = buildPath(Constants.SCHEMA, XMLUtils.getParentNameByTagName(type, Constants.SCHEMA), Constants.TYPE,
+        XMLUtils.getChildTextContext(type, Constants.NAME));
+      String typeFinal = XMLUtils.getChildTextContext(type, Constants.TYPE_FINAL);
+
+      if (typeFinal == null || typeFinal.isEmpty()) {
+        setError(M_531_6, buildErrorMessage(Constants.TYPE_FINAL, path));
+        hasErrors = true;
+      } else if (!typeFinal.equals(Constants.TRUE) && !typeFinal.equals(Constants.FALSE)) {
+        setError(M_531_6, String.format("type final must be 'true' or 'false' (%s)", path));
+        hasErrors = true;
+      }
     }
+
+    return !hasErrors;
   }
 
   /**
    * A_M_5.3-1-10 The type description field in the schema must not be must not be
    * less than 3 characters. WARNING if it is less than 3 characters
    */
-  private void validateTypeDescription(String description, String path) {
-    validateXMLField(A_M_531_10, description, Constants.DESCRIPTION, false, true, path);
+  private void validateTypeDescription(NodeList nodes) {
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element type = (Element) nodes.item(i);
+      String path = buildPath(Constants.SCHEMA, XMLUtils.getParentNameByTagName(type, Constants.SCHEMA), Constants.TYPE,
+        XMLUtils.getChildTextContext(type, Constants.NAME));
+      String description = XMLUtils.getChildTextContext(type, Constants.DESCRIPTION);
+
+      validateXMLField(A_M_531_10, description, Constants.DESCRIPTION, false, true, path);
+    }
   }
 
 }

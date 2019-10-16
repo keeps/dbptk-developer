@@ -17,7 +17,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -26,6 +25,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.modules.siard.validate.common.model.SQLType;
 import com.databasepreservation.utils.XMLUtils;
 
@@ -52,10 +52,10 @@ public class MetadataReferenceValidator extends MetadataValidator {
   private Map<String, HashMap<String, String>> tableColumnsList = new HashMap<>();
   private Map<String, List<String>> primaryKeyList = new HashMap<>();
   private Map<String, List<String>> candidateKeyList = new HashMap<>();
+  private boolean additionalCheckError = false;
 
   public MetadataReferenceValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_510_1, M_510_1_1, A_M_510_1_1, M_510_1_2, A_M_510_1_2);
     populateSQL2008Types();
   }
 
@@ -69,15 +69,38 @@ public class MetadataReferenceValidator extends MetadataValidator {
 
     getValidationReporter().moduleValidatorHeader(M_510, MODULE_NAME);
 
-    validateMandatoryXSDFields(M_510_1, REFERENCE_TYPE,
-      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:foreignKeys/ns:foreignKey/ns:reference");
+    NodeList references;
+    NodeList nodes;
 
-    if (!readXMLMetadataReferenceLevel()) {
-      reportValidations(M_510_1, MODULE_NAME);
-      closeZipFile();
+    try {
+      nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table", XPathConstants.NODESET,
+        Constants.NAMESPACE_FOR_METADATA);
+
+      references = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:foreignKeys/ns:foreignKey/ns:reference",
+        XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+
+      tableColumnsList = getListColumnsByTables(nodes);
+      primaryKeyList = getListKeysByTables(nodes, Constants.PRIMARY_KEY);
+      candidateKeyList = getListKeysByTables(nodes, Constants.CANDIDATE_KEY);
+
+      for (int i = 0; i < nodes.getLength(); i++) {
+        Element tableElement = (Element) nodes.item(i);
+        NodeList foreignKeyNodes = tableElement.getElementsByTagName(Constants.FOREIGN_KEY);
+        for (int j = 0; j < foreignKeyNodes.getLength(); j++) {
+          Element foreignKeyElement = (Element) foreignKeyNodes.item(j);
+          foreignKeyList.add(foreignKeyElement);
+        }
+
+      }
+
+    } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
+      String errorMessage = "Unable to read references from SIARD file";
+      setError(M_510_1, errorMessage);
+      LOGGER.debug(errorMessage, e);
       return false;
     }
-    closeZipFile();
 
     if (foreignKeyList.isEmpty()) {
       getValidationReporter().skipValidation(M_510, "Database has no foreign keys and references");
@@ -86,58 +109,38 @@ public class MetadataReferenceValidator extends MetadataValidator {
       return true;
     }
 
-    return reportValidations(MODULE_NAME);
-  }
+    validateMandatoryXSDFields(M_510_1, REFERENCE_TYPE,
+      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:foreignKeys/ns:foreignKey/ns:reference");
 
-  private boolean readXMLMetadataReferenceLevel() {
-    try {
-      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
-        "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table", XPathConstants.NODESET,
-        Constants.NAMESPACE_FOR_METADATA);
-
-      tableColumnsList = getListColumnsByTables(nodes);
-      primaryKeyList = getListKeysByTables(nodes, Constants.PRIMARY_KEY);
-      candidateKeyList = getListKeysByTables(nodes, Constants.CANDIDATE_KEY);
-
-      for (int i = 0; i < nodes.getLength(); i++) {
-        Element tableElement = (Element) nodes.item(i);
-        String table = XMLUtils.getChildTextContext(tableElement, Constants.NAME);
-        String schema = XMLUtils.getParentNameByTagName(tableElement, Constants.SCHEMA);
-        tableList.add(table);
-
-        NodeList foreignKeyNodes = tableElement.getElementsByTagName(Constants.FOREIGN_KEY);
-        for (int j = 0; j < foreignKeyNodes.getLength(); j++) {
-          Element foreignKeyElement = (Element) foreignKeyNodes.item(j);
-          foreignKeyList.add(foreignKeyElement);
-          String foreignKey = XMLUtils.getChildTextContext(foreignKeyElement, Constants.NAME);
-          String referencedTable = XMLUtils.getChildTextContext(foreignKeyElement, REFERENCED_TABLE);
-
-          NodeList referenceNodes = foreignKeyElement.getElementsByTagName(REFERENCE);
-          for (int k = 0; k < referenceNodes.getLength(); k++) {
-            Element reference = (Element) referenceNodes.item(k);
-            String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.FOREIGN_KEY, foreignKey,
-              Constants.FOREIGN_KEY_REFERENCE, Integer.toString(k));
-
-            String column = XMLUtils.getChildTextContext(reference, Constants.COLUMN);
-            if(validateColumn(table, column, path)){
-              String referenced = XMLUtils.getChildTextContext(reference, REFERENCED_COLUMN);
-              validateReferencedColumn(table, referencedTable, column, referenced, foreignKey, path);
-            } else {
-              setError(M_510_1_2, String.format("Unable to validate, column does not exist (%s)", path));
-              setError(A_M_510_1_2, String.format("Unable to validate, column does not exist (%s)", path));
-            }
-          }
-        }
-
-      }
-    } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
-      String errorMessage = "Unable to read references from SIARD file";
-      setError(M_510_1, errorMessage);
-      LOGGER.debug(errorMessage, e);
-      return false;
+    if (validateColumn(references)) {
+      validationOk(MODULE_NAME, M_510_1_1);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_510_1_1, ValidationReporterStatus.ERROR);
     }
 
-    return true;
+    // A_M_510_1_1
+    if (!additionalCheckError) {
+      validationOk(MODULE_NAME, A_M_510_1_1);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, A_M_510_1_1, ValidationReporterStatus.ERROR);
+    }
+
+    if (validateReferencedColumn(nodes)) {
+      validationOk(MODULE_NAME, M_510_1_2);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_510_1_2, ValidationReporterStatus.ERROR);
+    }
+
+    // A_M_510_1_2
+    if (!additionalCheckError) {
+      validationOk(MODULE_NAME, A_M_510_1_2);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, A_M_510_1_2, ValidationReporterStatus.ERROR);
+    }
+
+    closeZipFile();
+
+    return reportValidations(MODULE_NAME);
   }
 
   private Map<String, HashMap<String, String>> getListColumnsByTables(NodeList tableNodes) {
@@ -199,17 +202,34 @@ public class MetadataReferenceValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateColumn(String table, String column, String path) {
-    if(validateXMLField(M_510_1_1, column, Constants.COLUMN, true, false, path)){
-      if (tableColumnsList.get(table).get(column) == null) {
-        setError(A_M_510_1_1,
-                String.format("referenced column name %s does not exist on referenced table %s", column, table));
-        return false;
+  private boolean validateColumn(NodeList nodes) {
+    boolean hasErrors = false;
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element reference = (Element) nodes.item(i);
+      String schema = XMLUtils.getParentNameByTagName(reference, Constants.SCHEMA);
+      String table = XMLUtils.getParentNameByTagName(reference, Constants.TABLE);
+      String foreignKey = XMLUtils.getParentNameByTagName(reference, Constants.FOREIGN_KEY);
+
+      String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.FOREIGN_KEY, foreignKey,
+        Constants.FOREIGN_KEY_REFERENCE, Integer.toString(i));
+
+      String column = XMLUtils.getChildTextContext(reference, Constants.COLUMN);
+
+      if (validateXMLField(M_510_1_1, column, Constants.COLUMN, true, false, path)) {
+        if (tableColumnsList.get(table).get(column) == null) {
+          setError(A_M_510_1_1,
+            String.format("referenced column name %s does not exist on referenced table %s", column, table));
+          additionalCheckError = true;
+          continue;
+        }
+        continue;
       }
-      return true;
+      setError(A_M_510_1_1, String.format("Aborted because referenced column name is mandatory (%s)", path));
+      additionalCheckError = true;
+      hasErrors = true;
     }
-    setError(A_M_510_1_1, String.format("Aborted because referenced column name is mandatory (%s)", path));
-    return false;
+
+    return !hasErrors;
   }
 
   /**
@@ -220,78 +240,115 @@ public class MetadataReferenceValidator extends MetadataValidator {
    *
    * @return true if valid otherwise false
    */
-  private boolean validateReferencedColumn(String foreignKeyTable, String referencedTable, String column,
-    String referencedColumn, String foreignKey, String path) {
-    HashMap<String, String> referencedColumnTable = new HashMap<>();
-    HashMap<String, String> foreignKeyColumnTable = new HashMap<>();
-    List<String> primaryKeyColumns = new ArrayList<>();
-    List<String> candidateKeyColumns = new ArrayList<>();
+  private boolean validateReferencedColumn(NodeList nodes) {
+    boolean hasErrors = false;
+    additionalCheckError = false;
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element tableElement = (Element) nodes.item(i);
+      String table = XMLUtils.getChildTextContext(tableElement, Constants.NAME);
+      String schema = XMLUtils.getParentNameByTagName(tableElement, Constants.SCHEMA);
+      String foreignKeyTable = table;
+      tableList.add(table);
 
-    if (!validateXMLField(M_510_1_2, referencedColumn, REFERENCED_COLUMN, true, false, path)) {
-      setError(A_M_510_1_2, String.format("Unable to validate, referenced does not exist (%s)", path));
-      return false;
-    }
+      NodeList foreignKeyNodes = tableElement.getElementsByTagName(Constants.FOREIGN_KEY);
+      for (int j = 0; j < foreignKeyNodes.getLength(); j++) {
+        Element foreignKeyElement = (Element) foreignKeyNodes.item(j);
+        foreignKeyList.add(foreignKeyElement);
+        String foreignKey = XMLUtils.getChildTextContext(foreignKeyElement, Constants.NAME);
+        String referencedTable = XMLUtils.getChildTextContext(foreignKeyElement, REFERENCED_TABLE);
+        NodeList referenceNodes = foreignKeyElement.getElementsByTagName(REFERENCE);
+        for (int k = 0; k < referenceNodes.getLength(); k++) {
+          Element reference = (Element) referenceNodes.item(k);
+          String column = XMLUtils.getChildTextContext(reference, Constants.COLUMN);
 
-    if(referencedTable == null || tableColumnsList.get(referencedTable) == null){
-      setError(A_M_510_1_2, String.format("Unable to validate, referenced table does not exist (%s)", path));
-      return false;
-    }
+          String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.FOREIGN_KEY, foreignKey,
+            Constants.FOREIGN_KEY_REFERENCE, column);
 
-    if(foreignKeyTable == null || tableColumnsList.get(foreignKeyTable) == null){
-      setError(A_M_510_1_2, String.format("Unable to validate, foreign key table does not exist (%s)", path));
-      return false;
-    }
+          if (column == null || column.isEmpty()) {
+            setError(M_510_1_2, String.format("Unable to validate, column does not exist (%s)", path));
+            setError(A_M_510_1_2, String.format("Unable to validate, column does not exist (%s)", path));
+            hasErrors = true;
+            additionalCheckError = true;
+            continue;
+          }
 
-    referencedColumnTable = tableColumnsList.get(referencedTable);
-    foreignKeyColumnTable = tableColumnsList.get(foreignKeyTable);
-    primaryKeyColumns = primaryKeyList.get(referencedTable);
-    candidateKeyColumns = candidateKeyList.get(referencedTable);
+          if (tableColumnsList.get(table).get(column) == null) {
+            setError(M_510_1_2, String.format("Unable to validate, column does not exist (%s)", path));
+            setError(A_M_510_1_2, String.format("Unable to validate, column does not exist (%s)", path));
+            hasErrors = true;
+            additionalCheckError = true;
+            continue;
+          }
 
-    // M_5.10-1-2
-    if (referencedColumnTable.get(referencedColumn) == null) {
-      setError(A_M_510_1_2, String.format("referenced column name %s of table %s does not exist on referenced table %s",
-        referencedColumn, foreignKeyTable, referencedTable));
-    }
+          String referencedColumn = XMLUtils.getChildTextContext(reference, REFERENCED_COLUMN);
+          HashMap<String, String> referencedColumnTable = new HashMap<>();
+          HashMap<String, String> foreignKeyColumnTable = new HashMap<>();
+          List<String> primaryKeyColumns = new ArrayList<>();
+          List<String> candidateKeyColumns = new ArrayList<>();
 
-    // Additional check
-    String foreignKeyType = foreignKeyColumnTable.get(column);
-    if (primaryKeyColumns != null && primaryKeyColumns.contains(referencedColumn)) {
-      for (String primaryKey : primaryKeyColumns) {
-        String primaryKeyType = referencedColumnTable.get(primaryKey);
+          if (!validateXMLField(M_510_1_2, referencedColumn, REFERENCED_COLUMN, true, false, path)) {
+            setError(A_M_510_1_2, String.format("Unable to validate, referenced does not exist (%s)", path));
+            hasErrors = true;
+            additionalCheckError = true;
+            continue;
+          }
 
-        if (primaryKeyType == null) {
-          setError(A_M_510_1_2, String.format("Unable to find primary key type referencedTable:%s/primaryKey:%s in %s",
-            referencedTable, primaryKey, path));
-          return false;
-        }
+          if (referencedTable == null || tableColumnsList.get(referencedTable) == null) {
+            setError(A_M_510_1_2, String.format("Unable to validate, referenced table does not exist (%s)", path));
+            additionalCheckError = true;
+            continue;
+          }
 
-        if (!checkType(foreignKeyType, primaryKeyType)) {
-          setError(A_M_510_1_2,
-            String.format("Foreign Key %s.%s type %s does not match with type %s of Primary Key %s.%s", foreignKeyTable,
-              foreignKey, foreignKeyType, primaryKeyType, referencedTable, primaryKey));
-          return false;
+          if (foreignKeyTable == null || tableColumnsList.get(foreignKeyTable) == null) {
+            setError(A_M_510_1_2, String.format("Unable to validate, foreign key table does not exist (%s)", path));
+            additionalCheckError = true;
+            continue;
+          }
+
+          referencedColumnTable = tableColumnsList.get(referencedTable);
+          foreignKeyColumnTable = tableColumnsList.get(foreignKeyTable);
+          primaryKeyColumns = primaryKeyList.get(referencedTable);
+          candidateKeyColumns = candidateKeyList.get(referencedTable);
+
+          // M_5.10-1-2
+          if (referencedColumnTable.get(referencedColumn) == null) {
+            setError(A_M_510_1_2,
+              String.format("referenced column name %s of table %s does not exist on referenced table %s",
+                referencedColumn, foreignKeyTable, referencedTable));
+            additionalCheckError = true;
+            continue;
+          }
+
+          // Additional check
+          String foreignKeyType = foreignKeyColumnTable.get(column);
+          if (primaryKeyColumns != null && primaryKeyColumns.contains(referencedColumn)) {
+            for (String primaryKey : primaryKeyColumns) {
+              if (primaryKey != referencedColumn)
+                continue;
+              String primaryKeyType = referencedColumnTable.get(primaryKey);
+
+              if (primaryKeyType == null) {
+                setError(A_M_510_1_2,
+                  String.format("Unable to find primary key type referencedTable:%s/primaryKey:%s in %s",
+                    referencedTable, primaryKey, path));
+                additionalCheckError = true;
+                break;
+              }
+
+              if (!checkType(foreignKeyType, primaryKeyType)) {
+                setError(A_M_510_1_2,
+                  String.format("Foreign Key %s.%s type %s does not match with type %s of Primary Key %s.%s",
+                    foreignKeyTable, foreignKey, foreignKeyType, primaryKeyType, referencedTable, primaryKey));
+                additionalCheckError = true;
+                break;
+              }
+            }
+          }
         }
       }
-    } else if (candidateKeyColumns != null && candidateKeyColumns.contains(referencedColumn)) {
-      for (String candidateKey : candidateKeyColumns) {
-        String candidateKeyType = referencedColumnTable.get(candidateKey);
-
-        if (candidateKeyType == null) {
-          setError(A_M_510_1_2, String.format("Unable to find candidate key type referencedTable:%s/candidateKey:%s in %s",
-                  referencedTable, candidateKey, path));
-          return false;
-        }
-
-        if (!checkType(foreignKeyType, candidateKeyType)) {
-          setError(A_M_510_1_2,
-            String.format("Foreign Key %s.%s type %s does not match with type %s of Candidate Key %s.%s",
-              foreignKeyTable, foreignKey, foreignKeyType, candidateKeyType, referencedTable, candidateKey));
-          return false;
-        }
-      }
     }
 
-    return true;
+    return !hasErrors;
   }
 
   /**

@@ -43,7 +43,6 @@ public class MetadataFieldValidator extends MetadataValidator {
 
   public MetadataFieldValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_571, M_571_1, A_M_571_2, A_M_571_5);
   }
 
   @Override
@@ -56,31 +55,86 @@ public class MetadataFieldValidator extends MetadataValidator {
 
     getValidationReporter().moduleValidatorHeader(M_57, MODULE_NAME);
 
-    validateMandatoryXSDFields(M_571, FIELD_TYPE,
-      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column/ns:fields/ns:field");
-
-    if (!readXMLMetadataFieldLevel()) {
-      reportValidations(M_571, MODULE_NAME);
-      closeZipFile();
+    NodeList fields;
+    try {
+      fields = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column/ns:fields/ns:field",
+        XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+    } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
+      String errorMessage = "Unable to read fields from SIARD file";
+      setError(M_571, errorMessage);
+      LOGGER.debug(errorMessage, e);
       return false;
     }
+
     closeZipFile();
 
-    if (fieldList.isEmpty()) {
+    if (fields.getLength() == 0) {
       getValidationReporter().skipValidation(M_571, "Database has no fields");
       observer.notifyValidationStep(MODULE_NAME, M_571, ValidationReporterStatus.SKIPPED);
       metadataValidationPassed(MODULE_NAME);
       return true;
     }
 
+    validateMandatoryXSDFields(M_571, FIELD_TYPE,
+      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column/ns:fields/ns:field");
+
+    if (validateFieldName(fields)) {
+      validationOk(MODULE_NAME, M_571_1);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_571_1, ValidationReporterStatus.ERROR);
+    }
+
+    closeZipFile();
+
+    if (validateType()) {
+      validationOk(MODULE_NAME, A_M_571_2);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, A_M_571_2, ValidationReporterStatus.ERROR);
+    }
+
+    closeZipFile();
+
+    validateFieldDescription(fields);
+    validationOk(MODULE_NAME, A_M_571_5);
+
+    closeZipFile();
+
     return reportValidations(MODULE_NAME);
   }
 
-  private boolean readXMLMetadataFieldLevel() {
+  /**
+   * M_5.7-1-1 The field name is mandatory.(SIARD Format Specification)
+   */
+  private boolean validateFieldName(NodeList nodes) {
+    boolean hasErrors = false;
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element field = (Element) nodes.item(i);
+      String schemaName = XMLUtils.getParentNameByTagName(field, Constants.SCHEMA);
+      String tableName = XMLUtils.getParentNameByTagName(field, Constants.TABLE);
+      String columnName = XMLUtils.getParentNameByTagName(field, Constants.COLUMN);
+      String path = buildPath(Constants.SCHEMA, schemaName, Constants.TABLE, tableName, Constants.COLUMN, columnName,
+        Constants.FIELD, Integer.toString(i));
+
+      String name = XMLUtils.getChildTextContext(field, Constants.NAME);
+      if (!validateXMLField(M_571_1, name, Constants.NAME, true, false, path)) {
+        hasErrors = true;
+      }
+    }
+    return !hasErrors;
+  }
+
+  /**
+   * find the type of column or field in the SIARD file and perform category and
+   * lobFolder validations(M_5.7-1-2)
+   */
+  private boolean validateType() {
+    boolean hasErrors = false;
     try {
       NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
         "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column", XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
+      closeZipFile();
 
       if (nodes == null) {
         return true;
@@ -106,60 +160,57 @@ public class MetadataFieldValidator extends MetadataValidator {
           "/ns:siardArchive/ns:schemas/ns:schema[ns:name='%s']/ns:tables/ns:table[ns:name='%s']/ns:columns/ns:column[ns:name='%s']/ns:fields/ns:field",
           schemaName, tableName, columnName);
 
-        validateFieldNode(xpathField, schemaName, tableName, columnName, columnTypeName, columnTypeSchema,
-          columnTypeOriginal);
+        if (!validateFieldNode(xpathField, schemaName, tableName, columnName, columnTypeName, columnTypeSchema,
+          columnTypeOriginal)) {
+          hasErrors = true;
+        }
       }
 
-    } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
+    } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException | ModuleException e) {
       String errorMessage = "Unable to read fields from SIARD file";
       setError(M_571, errorMessage);
       LOGGER.debug(errorMessage, e);
       return false;
     }
-    return true;
+    return !hasErrors;
   }
 
   /**
-   * Perform validations for each field and makes recursive calls to validate subfields.
-   * Return nothing because have to report each error
+   * Perform validations for each field and makes recursive calls to validate
+   * subfields. Return nothing because have to report each error
    */
-  private void validateFieldNode(String currentXPath, String schemaName, String tableName, String columnName,
+  private boolean validateFieldNode(String currentXPath, String schemaName, String tableName, String columnName,
     String columnTypeName, String columnTypeSchema, String columnTypeOriginal)
-    throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
-
+    throws ParserConfigurationException, SAXException, XPathExpressionException, IOException, ModuleException {
+    boolean hasErrors = false;
     // if no subfields exist, break recursive call
     if (!(Boolean) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), currentXPath,
       XPathConstants.BOOLEAN, Constants.NAMESPACE_FOR_METADATA)) {
-      return;
+      return true;
     }
+    closeZipFile();
 
     NodeList fieldNodes = (NodeList) XMLUtils.getXPathResult(
       getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), currentXPath, XPathConstants.NODESET,
       Constants.NAMESPACE_FOR_METADATA);
+    closeZipFile();
 
     // each field will call this method again for find subfields and do the same
     // validations
     for (int j = 0; j < fieldNodes.getLength(); j++) {
       Element field = (Element) fieldNodes.item(j);
       // build path with field index in SIARD for log error if name not exist
-      String path = buildPath(Constants.SCHEMA, schemaName, Constants.TABLE, tableName, Constants.COLUMN, columnName,
-        Constants.FIELD, Integer.toString(j));
-
-      // M_5.7-1-1
       String name = XMLUtils.getChildTextContext(field, Constants.NAME);
-      validateFieldName(name, path);
 
       // build path with field name in SIARD for log errors
-      path = buildPath(Constants.SCHEMA, schemaName, Constants.TABLE, tableName, Constants.COLUMN, columnName,
+      String path = buildPath(Constants.SCHEMA, schemaName, Constants.TABLE, tableName, Constants.COLUMN, columnName,
         Constants.FIELD, name);
 
       // A_M_5.7-1-2
       String lobFolder = XMLUtils.getChildTextContext(field, Constants.LOB_FOLDER);
-      validateType(columnTypeName, columnTypeSchema, columnTypeOriginal, name, lobFolder, path);
-
-      // A_M_5.7-1-5
-      String description = XMLUtils.getChildTextContext(field, Constants.DESCRIPTION);
-      validateFieldDescription(description, path);
+      if (!validateType(columnTypeName, columnTypeSchema, columnTypeOriginal, name, lobFolder, path)) {
+        hasErrors = true;
+      }
 
       // if the field has subfields, the attribute typeName will exist and point to
       // another type in SIARD, so before making a recursive call, make sure typeName
@@ -169,28 +220,31 @@ public class MetadataFieldValidator extends MetadataValidator {
           "/ns:siardArchive/ns:schemas/ns:schema[ns:name='%s']/ns:types/ns:type[ns:name='%s']/ns:attributes/ns:attribute[ns:name='%s']/ns:typeName/text()",
           columnTypeSchema, columnTypeName, name),
         XPathConstants.STRING, Constants.NAMESPACE_FOR_METADATA);
-
+      closeZipFile();
       if (attrName.isEmpty()) {
         attrName = columnTypeName;
       }
 
       // new xpath must have the field name to only retrieve its own subfields
       String newXPath = String.format("%s[ns:name='%s']/ns:fields/ns:field", currentXPath, name);
-      validateFieldNode(newXPath, schemaName, tableName, columnName, attrName, columnTypeSchema, columnTypeOriginal);
+      if (!validateFieldNode(newXPath, schemaName, tableName, columnName, attrName, columnTypeSchema,
+        columnTypeOriginal)) {
+        hasErrors = true;
+      }
     }
+    return !hasErrors;
   }
 
   /**
-   * find the type of column or field in the SIARD file and perform
-   * category and lobFolder validations(M_5.7-1-2)
+   * find the type of column or field in the SIARD file and perform category and
+   * lobFolder validations(M_5.7-1-2)
    */
-  private void validateType(String columnTypeName, String columnTypeSchema, String columnTypeOriginal,
+  private boolean validateType(String columnTypeName, String columnTypeSchema, String columnTypeOriginal,
     String fieldName, String lobFolder, String path) {
-
     // if the originalType exists in the column and if it is an array, no need to
     // validate attribute category
     if (columnTypeOriginal != null && columnTypeOriginal.contains(ARRAY)) {
-      return;
+      return true;
     }
     try {
       String xPathExpression = String.format(
@@ -199,11 +253,12 @@ public class MetadataFieldValidator extends MetadataValidator {
 
       NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
         xPathExpression, XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+      closeZipFile();
 
       if (nodes.getLength() < 1) {
         setError(M_571,
           String.format("Field '%s' does not match with any attributes in the database (%s)", fieldName, path));
-        return;
+        return false;
       }
 
       for (int i = 0; i < nodes.getLength(); i++) {
@@ -211,7 +266,7 @@ public class MetadataFieldValidator extends MetadataValidator {
         String category = XMLUtils.getChildTextContext(typeElement, Constants.CATEGORY);
 
         if (!validateTypeCategory(category, columnTypeName, path)) {
-          return;
+          return false;
         }
 
         xPathExpression = String.format(
@@ -221,6 +276,7 @@ public class MetadataFieldValidator extends MetadataValidator {
         NodeList attributeNode = (NodeList) XMLUtils.getXPathResult(
           getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), xPathExpression, XPathConstants.NODESET,
           Constants.NAMESPACE_FOR_METADATA);
+        closeZipFile();
 
         for (int k = 0; k < attributeNode.getLength(); k++) {
           Element attribute = (Element) attributeNode.item(k);
@@ -228,27 +284,21 @@ public class MetadataFieldValidator extends MetadataValidator {
           String attributeTypeName = XMLUtils.getChildTextContext(attribute, Constants.TYPE_NAME);
 
           if (!validateFieldLobFolder(lobFolder, attributeType, attributeTypeName, path)) {
-            return;
+            return false;
           }
         }
       }
-    } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
+    } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException | ModuleException e) {
       String errorMessage = "Unable to read attributes from SIARD file";
       setError(M_571, errorMessage);
       LOGGER.debug(errorMessage, e);
     }
+    return true;
   }
 
   /**
-   * M_5.7-1-1 The field name is mandatory.(SIARD Format Specification)
-   */
-  private void validateFieldName(String name, String path) {
-    validateXMLField(M_571_1, name, Constants.NAME, true, false, path);
-  }
-
-  /**
-   * A_M_5.7-1-2 The following field metadata are stored in the metadata.xml file if a
-   * column or a field is an advanced or structured data type of category
+   * A_M_5.7-1-2 The following field metadata are stored in the metadata.xml file
+   * if a column or a field is an advanced or structured data type of category
    * “distinct” or “udt”:
    *
    * @return true if valid otherwise false
@@ -292,8 +342,17 @@ public class MetadataFieldValidator extends MetadataValidator {
    * A_M_5.7-1-5 The field description in SIARD file should not be less than 3
    * characters. WARNING if it is less than 3 characters
    */
-  private void validateFieldDescription(String description, String path) {
-    validateXMLField(A_M_571_5, description, Constants.DESCRIPTION, false, true, path);
-  }
+  private void validateFieldDescription(NodeList nodes) {
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element field = (Element) nodes.item(i);
+      String schemaName = XMLUtils.getParentNameByTagName(field, Constants.SCHEMA);
+      String tableName = XMLUtils.getParentNameByTagName(field, Constants.TABLE);
+      String columnName = XMLUtils.getParentNameByTagName(field, Constants.COLUMN);
+      String path = buildPath(Constants.SCHEMA, schemaName, Constants.TABLE, tableName, Constants.COLUMN, columnName,
+        Constants.FIELD, XMLUtils.getChildTextContext(field, Constants.NAME));
 
+      String description = XMLUtils.getChildTextContext(field, Constants.DESCRIPTION);
+      validateXMLField(A_M_571_5, description, Constants.DESCRIPTION, false, true, path);
+    }
+  }
 }

@@ -8,16 +8,13 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -26,6 +23,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -43,15 +41,14 @@ public class MetadataRoleValidator extends MetadataValidator {
   private static final String A_M_518_1_3 = "A_M_5.18-1-3";
   private static final String ADMIN = "admin";
   private static final String ROLE = "role";
+  private boolean additionalCheckError = false;
 
   private Set<String> checkDuplicates = new HashSet<>();
-  private List<Element> roleList = new ArrayList<>();
   private NodeList users;
   private NodeList roles;
 
   public MetadataRoleValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_518_1, M_518_1_1, A_M_518_1_1, M_518_1_2, A_M_518_1_2, A_M_518_1_3);
   }
 
   @Override
@@ -64,55 +61,16 @@ public class MetadataRoleValidator extends MetadataValidator {
 
     getValidationReporter().moduleValidatorHeader(M_518, MODULE_NAME);
 
-    validateMandatoryXSDFields(M_518_1, ROLE_TYPE, "/ns:siardArchive/ns:roles/ns:role");
-
-    if (!readXMLMetadataRoleLevel()) {
-      reportValidations(M_518_1, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
-    closeZipFile();
-
-    if (roleList.isEmpty()) {
-      getValidationReporter().skipValidation(M_518_1, "Database has no roles");
-      observer.notifyValidationStep(MODULE_NAME, M_518_1, ValidationReporterStatus.SKIPPED);
-      metadataValidationPassed(MODULE_NAME);
-      return true;
-    }
-
-    return reportValidations(MODULE_NAME);
-  }
-
-  private boolean readXMLMetadataRoleLevel() {
+    NodeList nodes;
     try {
-      String pathToEntry = validatorPathStrategy.getMetadataXMLPath();
-      String xpathExpressionUser = "/ns:siardArchive/ns:users/ns:user/ns:name";
-      users = (NodeList) XMLUtils.getXPathResult(getZipInputStream(pathToEntry), xpathExpressionUser,
-        XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+      users = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/ns:users/ns:user/ns:name", XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
-      String xpathExpressionRoles = "/ns:siardArchive/ns:roles/ns:role/ns:name";
-      roles = (NodeList) XMLUtils.getXPathResult(getZipInputStream(pathToEntry), xpathExpressionRoles,
-        XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+      roles = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/ns:roles/ns:role/ns:name", XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
-      String xpathExpression = "/ns:siardArchive/ns:roles/ns:role";
-      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(pathToEntry), xpathExpression,
-        XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
-
-      for (int i = 0; i < nodes.getLength(); i++) {
-        Element role = (Element) nodes.item(i);
-        roleList.add(role);
-        String path = buildPath(ROLE, Integer.toString(i));
-
-        String name = XMLUtils.getChildTextContext(role, Constants.NAME);
-        validateRoleName(name, path);
-
-        path = buildPath(ROLE, name);
-        String admin = XMLUtils.getChildTextContext(role, ADMIN);
-        validateRoleAdmin(admin, path);
-
-        String description = XMLUtils.getChildTextContext(role, Constants.DESCRIPTION);
-        validateRoleDescription(description, path);
-      }
+      nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/ns:roles/ns:role", XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       String errorMessage = "Unable to read roles from SIARD file";
       setError(M_518_1, errorMessage);
@@ -120,7 +78,41 @@ public class MetadataRoleValidator extends MetadataValidator {
       return false;
     }
 
-    return true;
+    if (nodes.getLength() == 0) {
+      getValidationReporter().skipValidation(M_518_1, "Database has no roles");
+      observer.notifyValidationStep(MODULE_NAME, M_518_1, ValidationReporterStatus.SKIPPED);
+      metadataValidationPassed(MODULE_NAME);
+      return true;
+    }
+
+    validateMandatoryXSDFields(M_518_1, ROLE_TYPE, "/ns:siardArchive/ns:roles/ns:role");
+
+    if (validateRoleName(nodes)) {
+      validationOk(MODULE_NAME, M_518_1_1);
+      validationOk(MODULE_NAME, A_M_518_1_1);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_518_1_1, ValidationReporterStatus.ERROR);
+      observer.notifyValidationStep(MODULE_NAME, A_M_518_1_1, ValidationReporterStatus.ERROR);
+    }
+
+    if (validateRoleAdmin(nodes)) {
+      validationOk(MODULE_NAME, M_518_1_2);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_518_1_2, ValidationReporterStatus.ERROR);
+    }
+
+    if (!additionalCheckError) {
+      validationOk(MODULE_NAME, A_M_518_1_2);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, A_M_518_1_2, ValidationReporterStatus.ERROR);
+    }
+
+    validateRoleDescription(nodes);
+    validationOk(MODULE_NAME, A_M_518_1_3);
+
+    closeZipFile();
+
+    return reportValidations(MODULE_NAME);
   }
 
   /**
@@ -128,44 +120,79 @@ public class MetadataRoleValidator extends MetadataValidator {
    *
    * A_M_5.18-1-1 The role name in SIARD file should be unique
    */
-  private void validateRoleName(String name, String path) {
-    if(validateXMLField(M_518_1_1, name, Constants.NAME, true, false, path)){
-      if (!checkDuplicates.add(name)) {
-        addWarning(A_M_518_1_1, String.format("Role name %s should be unique", name), path);
+  private boolean validateRoleName(NodeList nodes) {
+    boolean hasErrors = false;
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element role = (Element) nodes.item(i);
+      String path = buildPath(ROLE, Integer.toString(i));
+
+      String name = XMLUtils.getChildTextContext(role, Constants.NAME);
+
+      if (validateXMLField(M_518_1_1, name, Constants.NAME, true, false, path)) {
+        if (!checkDuplicates.add(name)) {
+          addWarning(A_M_518_1_1, String.format("Role name %s should be unique", name), path);
+        }
+        continue;
       }
-      return;
+      setError(A_M_518_1_1, String.format("Aborted because role name is mandatory (%s)", path));
+      hasErrors = true;
     }
-    setError(A_M_518_1_1, String.format("Aborted because role name is mandatory (%s)", path));
+
+    return !hasErrors;
   }
 
   /**
    * M_5.18-1-2 The role admin in SIARD file should exist. WARNING if it is not a
    * user or role
    */
-  private void validateRoleAdmin(String admin, String path) {
-    if(validateXMLField(M_518_1_2, admin, ADMIN, true, false, path)){
-      for (int i = 0; i < users.getLength(); i++) {
-        if (users.item(i).getTextContent().equals(admin)) {
-          return;
-        }
-      }
+  private boolean validateRoleAdmin(NodeList nodes) {
+    boolean hasErrors = false;
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element role = (Element) nodes.item(i);
+      String path = buildPath(ROLE, XMLUtils.getChildTextContext(role, Constants.NAME));
 
-      for (int i = 0; i < roles.getLength(); i++) {
-        if (roles.item(i).getTextContent().equals(admin)) {
-          return;
+      String admin = XMLUtils.getChildTextContext(role, ADMIN);
+
+      if (validateXMLField(M_518_1_2, admin, ADMIN, true, false, path)) {
+        boolean foundUserOrRole = false;
+        for (int j = 0; j < users.getLength(); j++) {
+          if (users.item(j).getTextContent().equals(admin)) {
+            foundUserOrRole = true;
+            break;
+          }
         }
+
+        for (int j = 0; j < roles.getLength(); j++) {
+          if (roles.item(i).getTextContent().equals(admin)) {
+            foundUserOrRole = true;
+            break;
+          }
+        }
+        if (!foundUserOrRole) {
+          addWarning(A_M_518_1_2, String.format("Admin %s should be an existing user or role", admin), path);
+        }
+        continue;
       }
-      addWarning(A_M_518_1_2, String.format("Admin %s should be an existing user or role", admin), path);
-      return;
+      setError(A_M_518_1_2, String.format("Aborted because role admin is mandatory (%s)", path));
+      additionalCheckError = true;
+      hasErrors = true;
     }
-    setError(A_M_518_1_2, String.format("Aborted because role admin is mandatory (%s)", path));
+
+    return !hasErrors;
   }
 
   /**
    * A_M_5.18-1-3 The role description in SIARD file must not be less than 3
    * characters. WARNING if it is less than 3 characters
    */
-  private void validateRoleDescription(String description, String path) {
-    validateXMLField(A_M_518_1_3, description, Constants.DESCRIPTION, false, true, path);
+  private void validateRoleDescription(NodeList nodes) {
+
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element role = (Element) nodes.item(i);
+      String path = buildPath(ROLE, XMLUtils.getChildTextContext(role, Constants.NAME));
+      String description = XMLUtils.getChildTextContext(role, Constants.DESCRIPTION);
+
+      validateXMLField(A_M_518_1_3, description, Constants.DESCRIPTION, false, true, path);
+    }
   }
 }

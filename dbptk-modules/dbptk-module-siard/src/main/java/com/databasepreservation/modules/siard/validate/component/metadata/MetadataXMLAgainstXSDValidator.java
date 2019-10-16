@@ -7,10 +7,8 @@
  */
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 
 import javax.xml.XMLConstants;
 import javax.xml.transform.Source;
@@ -19,10 +17,10 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
-import com.databasepreservation.modules.siard.bindings.siard_2_1.SiardArchive;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.modules.siard.bindings.siard_2_1.SiardArchive;
 
 /**
@@ -35,7 +33,6 @@ public class MetadataXMLAgainstXSDValidator extends MetadataValidator {
 
   public MetadataXMLAgainstXSDValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_501);
   }
 
   @Override
@@ -45,7 +42,11 @@ public class MetadataXMLAgainstXSDValidator extends MetadataValidator {
       return false;
 
     getValidationReporter().moduleValidatorHeader(M_50, MODULE_NAME);
-    validateXMLAgainstXSD();
+    if (validateXMLAgainstXSD()) {
+      validationOk(MODULE_NAME, M_501);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_501, ValidationReporterStatus.ERROR);
+    }
 
     return reportValidations(MODULE_NAME);
   }
@@ -55,8 +56,9 @@ public class MetadataXMLAgainstXSDValidator extends MetadataValidator {
    * metadata.xml file. This means that metadata.xml must be capable of being
    * positively validated against metadata.xsd.
    */
-  private void validateXMLAgainstXSD() {
-    final InputStream XSDInputStream =  SiardArchive.class.getClassLoader().getResourceAsStream("schema/siard2-1-metadata.xsd");
+  private boolean validateXMLAgainstXSD() {
+    final InputStream XSDInputStream = SiardArchive.class.getClassLoader()
+      .getResourceAsStream("schema/siard2-1-metadata.xsd");
     final InputStream XMLInputStream = getZipInputStream(validatorPathStrategy.getMetadataXMLPath());
 
     Source schemaFile = new StreamSource(XSDInputStream);
@@ -70,6 +72,8 @@ public class MetadataXMLAgainstXSDValidator extends MetadataValidator {
       validator.validate(xmlFile);
     } catch (SAXException | IOException e) {
       setError(M_501, e.getMessage());
+      return false;
     }
+    return true;
   }
 }

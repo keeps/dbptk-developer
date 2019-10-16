@@ -21,7 +21,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -41,13 +41,12 @@ public class MetadataTableValidator extends MetadataValidator {
 
   public MetadataTableValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_551, M_551_1, A_M_551_1, M_551_2, A_M_551_3, M_551_4, M_551_10);
   }
 
   @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_55);
-    if (preValidationRequirements()){
+    if (preValidationRequirements()) {
       LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
     }
@@ -56,45 +55,11 @@ public class MetadataTableValidator extends MetadataValidator {
 
     validateMandatoryXSDFields(M_551, TABLE_TYPE, "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table");
 
-    if (!readXMLMetadataTable()) {
-      reportValidations(M_551, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
-    closeZipFile();
-
-    return reportValidations(MODULE_NAME);
-  }
-
-  private boolean readXMLMetadataTable() {
+    NodeList nodes;
     try {
-      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+      nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
         "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table", XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
-
-      for (int i = 0; i < nodes.getLength(); i++) {
-        Element table = (Element) nodes.item(i);
-        String schema = XMLUtils.getChildTextContext((Element) table.getParentNode().getParentNode(), "name");
-        String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, Integer.toString(i));
-
-        String name = XMLUtils.getChildTextContext(table, Constants.NAME);
-        validateTableName(name, path);
-
-        path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, name);
-
-        String folder = XMLUtils.getChildTextContext(table, Constants.FOLDER);
-        validateTableFolder(folder, path);
-
-        String description = XMLUtils.getChildTextContext(table, Constants.DESCRIPTION);
-        validateTableDescription(description, path);
-
-        String columns = XMLUtils.getChildTextContext(table, Constants.COLUMNS);
-        validateTableColumns(columns, path);
-
-        String rows = XMLUtils.getChildTextContext(table, Constants.ROWS);
-        validateTableRows(rows, path);
-      }
-
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       String errorMessage = "Unable to read tables from SIARD file";
       setError(M_551, errorMessage);
@@ -102,46 +67,135 @@ public class MetadataTableValidator extends MetadataValidator {
       return false;
     }
 
-    return true;
+    if (validateTableNames(nodes)) {
+      validationOk(MODULE_NAME, M_551_1);
+      validationOk(MODULE_NAME, A_M_551_1);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_551_1, ValidationReporterStatus.ERROR);
+      observer.notifyValidationStep(MODULE_NAME, A_M_551_1, ValidationReporterStatus.ERROR);
+    }
+
+    if (validateTableFolders(nodes)) {
+      validationOk(MODULE_NAME, M_551_2);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_551_2, ValidationReporterStatus.ERROR);
+    }
+
+    validateTableDescriptions(nodes);
+    validationOk(MODULE_NAME, A_M_551_3);
+
+    if (validateTableColumns(nodes)) {
+      validationOk(MODULE_NAME, M_551_4);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_551_4, ValidationReporterStatus.ERROR);
+    }
+
+    if (validateTableRows(nodes)) {
+      validationOk(MODULE_NAME, M_551_10);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_551_10, ValidationReporterStatus.ERROR);
+    }
+
+    closeZipFile();
+
+    return reportValidations(MODULE_NAME);
   }
 
   /**
    * M_5.5-1-1 The table name is mandatory in SIARD 2.1 specification
    */
-  private void validateTableName(String name, String path) {
-    if(validateXMLField(M_551_1, name, Constants.NAME, true, false, path)){
-      validateXMLField(A_M_551_1, name, Constants.NAME, false, true, path);
-      return;
+  private boolean validateTableNames(NodeList nodes) {
+    boolean hasErrors = false;
+
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element table = (Element) nodes.item(i);
+      String schema = XMLUtils.getParentNameByTagName(table, Constants.SCHEMA);
+      String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, Integer.toString(i));
+      String name = XMLUtils.getChildTextContext(table, Constants.NAME);
+
+      if (validateXMLField(M_551_1, name, Constants.NAME, true, false, path)) {
+        validateXMLField(A_M_551_1, name, Constants.NAME, false, true, path);
+        continue;
+      }
+      hasErrors = true;
+      setError(A_M_551_1, String.format("Aborted because table name is mandatory (%s)", path));
     }
-    setError(A_M_551_1, String.format("Aborted because table name is mandatory (%s)", path));
+
+    return !hasErrors;
   }
 
   /**
    * M_5.5-1-2 The table folder is mandatory in SIARD 2.1 specification
    */
-  private void validateTableFolder(String folder, String path) {
-    validateXMLField(M_551_2, folder, Constants.FOLDER, true, false, path);
+  private boolean validateTableFolders(NodeList nodes) {
+    boolean hasErrors = false;
+
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element table = (Element) nodes.item(i);
+      // schema/table/name
+      String path = buildPath(Constants.SCHEMA, XMLUtils.getParentNameByTagName(table, Constants.SCHEMA),
+        Constants.TABLE, XMLUtils.getChildTextContext(table, Constants.NAME));
+      String folder = XMLUtils.getChildTextContext(table, Constants.FOLDER);
+
+      if (!validateXMLField(M_551_2, folder, Constants.FOLDER, true, false, path)) {
+        hasErrors = true;
+      }
+    }
+
+    return !hasErrors;
   }
 
   /**
    * A_M_5.5-1-3 The table description in SIARD file must not be less than 3
    * characters.
    */
-  private void validateTableDescription(String description, String path) {
-    validateXMLField(A_M_551_3, description, Constants.DESCRIPTION, false, true, path);
+  private void validateTableDescriptions(NodeList nodes) {
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element table = (Element) nodes.item(i);
+      String path = buildPath(Constants.SCHEMA, XMLUtils.getParentNameByTagName(table, Constants.SCHEMA),
+        Constants.TABLE, XMLUtils.getChildTextContext(table, Constants.NAME));
+      String description = XMLUtils.getChildTextContext(table, Constants.DESCRIPTION);
+      validateXMLField(A_M_551_3, description, Constants.DESCRIPTION, false, true, path);
+    }
   }
 
   /**
    * M_5.5-1-4 The table columns is mandatory in SIARD 2.1 specification
    */
-  private void validateTableColumns(String columns, String path) {
-    validateXMLField(M_551_4, columns, Constants.COLUMNS, true, false, path);
+  private boolean validateTableColumns(NodeList nodes) {
+    boolean hasErrors = false;
+
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element table = (Element) nodes.item(i);
+      String path = buildPath(Constants.SCHEMA, XMLUtils.getParentNameByTagName(table, Constants.SCHEMA),
+        Constants.TABLE, XMLUtils.getChildTextContext(table, Constants.NAME));
+      String columns = XMLUtils.getChildTextContext(table, Constants.COLUMNS);
+
+      if (!validateXMLField(M_551_4, columns, Constants.COLUMNS, true, false, path)) {
+        hasErrors = true;
+      }
+    }
+
+    return !hasErrors;
   }
 
   /**
    * M_5.5-1-10 The table rows is mandatory in SIARD 2.1 specification
    */
-  private void validateTableRows(String rows, String path) {
-    validateXMLField(M_551_10, rows, Constants.ROWS, true, false, path);
+  private boolean validateTableRows(NodeList nodes) {
+    boolean hasErrors = false;
+
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element table = (Element) nodes.item(i);
+      String path = buildPath(Constants.SCHEMA, XMLUtils.getParentNameByTagName(table, Constants.SCHEMA),
+        Constants.TABLE, XMLUtils.getChildTextContext(table, Constants.NAME));
+      String rows = XMLUtils.getChildTextContext(table, Constants.ROWS);
+
+      if (!validateXMLField(M_551_10, rows, Constants.ROWS, true, false, path)) {
+        hasErrors = true;
+      }
+    }
+
+    return !hasErrors;
   }
 }

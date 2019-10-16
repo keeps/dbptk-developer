@@ -17,7 +17,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -26,6 +25,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -45,6 +45,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
   private static final String M_591_4 = "M_5.9-1-4";
   private static final String A_M_591_8 = "A_M_5.9-1-8";
 
+  private boolean additionalCheckError = false;
   private List<Element> foreignKeyList = new ArrayList<>();
   private List<String> tableList = new ArrayList<>();
   private List<String> schemaList = new ArrayList<>();
@@ -52,7 +53,6 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
 
   public MetadataForeignKeyValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_591, M_591_1, A_M_591_1, M_591_2, A_M_591_2, M_591_3, A_M_591_3, M_591_4, A_M_591_8);
   }
 
   @Override
@@ -68,68 +68,11 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
     schemaList = getListOfSchemas();
     tableList = getListOfTables();
 
-    validateMandatoryXSDFields(M_591, FOREIGN_KEYS_TYPE,
-      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:foreignKeys/ns:foreignKey");
-
-    if (!readXMLMetadataForeignKeyLevel()) {
-      reportValidations(M_591, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
-    closeZipFile();
-
-    if (foreignKeyList.isEmpty()) {
-      getValidationReporter().skipValidation(M_591, "Database has no foreign keys");
-      observer.notifyValidationStep(MODULE_NAME, M_591, ValidationReporterStatus.SKIPPED);
-      metadataValidationPassed(MODULE_NAME);
-      return true;
-    }
-
-    return reportValidations(MODULE_NAME);
-  }
-
-  private boolean readXMLMetadataForeignKeyLevel() {
+    NodeList nodes;
     try {
-      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
-        "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table", XPathConstants.NODESET,
+      nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:foreignKeys/ns:foreignKey", XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
-
-      for (int i = 0; i < nodes.getLength(); i++) {
-        Element tableElement = (Element) nodes.item(i);
-        String table = XMLUtils.getChildTextContext(tableElement, Constants.NAME);
-        String schema = XMLUtils.getParentNameByTagName(tableElement, Constants.SCHEMA);
-
-        NodeList foreignKeyNodes = tableElement.getElementsByTagName(Constants.FOREIGN_KEY);
-        if (foreignKeyNodes == null) {
-          // next table
-          continue;
-        }
-
-        for (int j = 0; j < foreignKeyNodes.getLength(); j++) {
-          Element foreignKey = (Element) foreignKeyNodes.item(j);
-          foreignKeyList.add(foreignKey);
-          String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.FOREIGN_KEY,
-            Integer.toString(j));
-
-          String name = XMLUtils.getChildTextContext(foreignKey, Constants.NAME);
-          validateForeignKeyName(name, path, table);
-
-          path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.FOREIGN_KEY, name);
-
-          String referencedSchema = XMLUtils.getChildTextContext(foreignKey, Constants.FOREIGN_KEY_REFERENCED_SCHEMA);
-          validateForeignKeyReferencedSchema(referencedSchema, path);
-
-          String referencedTable = XMLUtils.getChildTextContext(foreignKey, Constants.FOREIGN_KEY_REFERENCED_TABLE);
-          validateForeignKeyReferencedTable(referencedTable, name);
-
-          String reference = XMLUtils.getChildTextContext(foreignKey, Constants.FOREIGN_KEY_REFERENCE);
-          validateForeignKeyReference(reference, path);
-
-          String description = XMLUtils.getChildTextContext(foreignKey, Constants.DESCRIPTION);
-          validateForeignKeyDescription(description, path);
-        }
-      }
-
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       String errorMessage = "Unable to read foreign key from SIARD file";
       setError(M_591, errorMessage);
@@ -137,7 +80,67 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
       return false;
     }
 
-    return true;
+    if (nodes.getLength() == 0) {
+      getValidationReporter().skipValidation(M_591, "Database has no foreign keys");
+      observer.notifyValidationStep(MODULE_NAME, M_591, ValidationReporterStatus.SKIPPED);
+      metadataValidationPassed(MODULE_NAME);
+      return true;
+    }
+
+    validateMandatoryXSDFields(M_591, FOREIGN_KEYS_TYPE,
+      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:foreignKeys/ns:foreignKey");
+
+    if (validateForeignKeyName(nodes)) {
+      validationOk(MODULE_NAME, M_591_1);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_591_1, ValidationReporterStatus.ERROR);
+    }
+
+    // A_M_591_1
+    if (!additionalCheckError) {
+      validationOk(MODULE_NAME, A_M_591_1);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, A_M_591_1, ValidationReporterStatus.ERROR);
+    }
+
+    if (validateForeignKeyReferencedSchema(nodes)) {
+      validationOk(MODULE_NAME, M_591_2);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_591_2, ValidationReporterStatus.ERROR);
+    }
+
+    // A_M_591_2
+    if (!additionalCheckError) {
+      validationOk(MODULE_NAME, A_M_591_2);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, A_M_591_2, ValidationReporterStatus.ERROR);
+    }
+
+    if (validateForeignKeyReferencedTable(nodes)) {
+      validationOk(MODULE_NAME, M_591_3);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_591_3, ValidationReporterStatus.ERROR);
+    }
+
+    // A_M_591_3
+    if (!additionalCheckError) {
+      validationOk(MODULE_NAME, A_M_591_3);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, A_M_591_3, ValidationReporterStatus.ERROR);
+    }
+
+    if (validateForeignKeyReference(nodes)) {
+      validationOk(MODULE_NAME, M_591_4);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_591_4, ValidationReporterStatus.ERROR);
+    }
+
+    validateForeignKeyDescription(nodes);
+    validationOk(MODULE_NAME, A_M_591_8);
+
+    closeZipFile();
+
+    return reportValidations(MODULE_NAME);
   }
 
   private List<String> getListOfSchemas() {
@@ -181,14 +184,31 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
    * A_M_5.9-1-1 The Foreign Key name in SIARD file must be unique. ERROR if not
    * unique
    */
-  private void validateForeignKeyName(String name, String path, String table) {
-    if(validateXMLField(M_591_1, name, Constants.NAME, true, false, path)){
-      if (!checkDuplicates.add(table + name)) {
-        setError(A_M_591_1, String.format("Foreign key name %s must be unique per table (%s)", name, path));
+  private boolean validateForeignKeyName(NodeList nodes) {
+    boolean hasErrors = false;
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element foreignKey = (Element) nodes.item(i);
+      String table = XMLUtils.getParentNameByTagName(foreignKey, Constants.TABLE);
+      String schema = XMLUtils.getParentNameByTagName(foreignKey, Constants.SCHEMA);
+      String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.FOREIGN_KEY,
+        Integer.toString(i));
+
+      String name = XMLUtils.getChildTextContext(foreignKey, Constants.NAME);
+
+      if (validateXMLField(M_591_1, name, Constants.NAME, true, false, path)) {
+        if (!checkDuplicates.add(table + name)) {
+          setError(A_M_591_1, String.format("Foreign key name %s must be unique per table (%s)", name, path));
+          additionalCheckError = true;
+          hasErrors = true;
+        }
+        continue;
       }
-      return;
+      setError(A_M_591_1, String.format("Aborted because Foreign key name is mandatory (%s)", path));
+      additionalCheckError = true;
+      hasErrors = true;
     }
-    setError(A_M_591_1, String.format("Aborted because Foreign key name is mandatory (%s)", path));
+
+    return !hasErrors;
   }
 
   /**
@@ -197,14 +217,32 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
    *
    * A_M_5.9-1-2 validation if this schema exists
    */
-  private void validateForeignKeyReferencedSchema(String referencedSchema, String path) {
-    if(validateXMLField(M_591_2, referencedSchema, Constants.FOREIGN_KEY_REFERENCED_SCHEMA, true, false, path)){
-      if (!schemaList.contains(referencedSchema)) {
-        setError(A_M_591_2, String.format("ReferencedSchema %s does not exist on database (%s)", referencedSchema, path));
+  private boolean validateForeignKeyReferencedSchema(NodeList nodes) {
+    boolean hasErrors = false;
+    additionalCheckError = false;
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element foreignKey = (Element) nodes.item(i);
+      String table = XMLUtils.getParentNameByTagName(foreignKey, Constants.TABLE);
+      String schema = XMLUtils.getParentNameByTagName(foreignKey, Constants.SCHEMA);
+      String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.FOREIGN_KEY,
+        XMLUtils.getChildTextContext(foreignKey, Constants.NAME));
+
+      String referencedSchema = XMLUtils.getChildTextContext(foreignKey, Constants.FOREIGN_KEY_REFERENCED_SCHEMA);
+      if (validateXMLField(M_591_2, referencedSchema, Constants.FOREIGN_KEY_REFERENCED_SCHEMA, true, false, path)) {
+        if (!schemaList.contains(referencedSchema)) {
+          setError(A_M_591_2,
+            String.format("ReferencedSchema %s does not exist on database (%s)", referencedSchema, path));
+          additionalCheckError = true;
+          hasErrors = true;
+        }
+        continue;
       }
-      return;
+      setError(A_M_591_2, String.format("Aborted because referencedSchema is mandatory (%s)", path));
+      additionalCheckError = true;
+      hasErrors = true;
     }
-    setError(A_M_591_2, String.format("Aborted because referencedSchema is mandatory (%s)", path));
+
+    return !hasErrors;
   }
 
   /**
@@ -213,28 +251,67 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
    * 
    * A_M_5.9-1-3 validation if this table exists
    */
-  private void validateForeignKeyReferencedTable(String referencedTable, String path) {
-    if(validateXMLField(M_591_3, referencedTable, Constants.FOREIGN_KEY_REFERENCED_TABLE, true, false, path)){
-      if (!tableList.contains(referencedTable)) {
-        setError(A_M_591_3, String.format("ReferencedTable %s does not exist on database (%s)", referencedTable, path));
+  private boolean validateForeignKeyReferencedTable(NodeList nodes) {
+    boolean hasErrors = false;
+    additionalCheckError = false;
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element foreignKey = (Element) nodes.item(i);
+      String path = buildPath(Constants.SCHEMA, XMLUtils.getParentNameByTagName(foreignKey, Constants.SCHEMA),
+        Constants.TABLE, XMLUtils.getParentNameByTagName(foreignKey, Constants.TABLE), Constants.FOREIGN_KEY,
+        XMLUtils.getChildTextContext(foreignKey, Constants.NAME));
+
+      String referencedTable = XMLUtils.getChildTextContext(foreignKey, Constants.FOREIGN_KEY_REFERENCED_TABLE);
+      if (validateXMLField(M_591_3, referencedTable, Constants.FOREIGN_KEY_REFERENCED_TABLE, true, false, path)) {
+        if (!tableList.contains(referencedTable)) {
+          setError(A_M_591_3,
+            String.format("ReferencedTable %s does not exist on database (%s)", referencedTable, path));
+          additionalCheckError = true;
+          hasErrors = true;
+        }
+        continue;
       }
-      return;
+      setError(A_M_591_3, String.format("Aborted because referencedTable is mandatory (%s)", path));
+      additionalCheckError = true;
+      hasErrors = true;
     }
-    setError(A_M_591_3, String.format("Aborted because referencedTable is mandatory (%s)", path));
+
+    return !hasErrors;
   }
 
   /**
    * M_5.9-1-4 The Foreign Key reference is mandatory in SIARD 2.1 specification
    */
-  private void validateForeignKeyReference(String reference, String path) {
-    validateXMLField(M_591_4, reference, Constants.FOREIGN_KEY_REFERENCE, true, false, path);
+  private boolean validateForeignKeyReference(NodeList nodes) {
+    boolean hasErrors = false;
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element foreignKey = (Element) nodes.item(i);
+      String path = buildPath(Constants.SCHEMA, XMLUtils.getParentNameByTagName(foreignKey, Constants.SCHEMA),
+        Constants.TABLE, XMLUtils.getParentNameByTagName(foreignKey, Constants.TABLE), Constants.FOREIGN_KEY,
+        XMLUtils.getChildTextContext(foreignKey, Constants.NAME));
+
+      String reference = XMLUtils.getChildTextContext(foreignKey, Constants.FOREIGN_KEY_REFERENCE);
+      if (!validateXMLField(M_591_4, reference, Constants.FOREIGN_KEY_REFERENCE, true, false, path)) {
+        hasErrors = true;
+      }
+    }
+
+    return !hasErrors;
   }
 
   /**
    * A_M_5.9-1-8 The foreign key description in SIARD file must not be less than 3
    * characters. WARNING if it is less than 3 characters
    */
-  private void validateForeignKeyDescription(String description, String path) {
-    validateXMLField(A_M_591_8, description, Constants.DESCRIPTION, false, true, path);
+  private void validateForeignKeyDescription(NodeList nodes) {
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element foreignKey = (Element) nodes.item(i);
+      String path = buildPath(Constants.SCHEMA, XMLUtils.getParentNameByTagName(foreignKey, Constants.SCHEMA),
+        Constants.TABLE, XMLUtils.getParentNameByTagName(foreignKey, Constants.TABLE), Constants.FOREIGN_KEY,
+        XMLUtils.getChildTextContext(foreignKey, Constants.NAME));
+
+      String description = XMLUtils.getChildTextContext(foreignKey, Constants.DESCRIPTION);
+
+      validateXMLField(A_M_591_8, description, Constants.DESCRIPTION, false, true, path);
+    }
   }
 }

@@ -8,16 +8,13 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -26,7 +23,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.reporters.ValidationReporter;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -41,13 +38,11 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
   private static final String A_M_512_1_1 = "A_M_5.12-1-1";
   private static final String M_512_1_2 = "M_5.12-1-2";
   private static final String A_M_512_1_3 = "A_M_5.12-1-3";
-
-  private List<Element> checkConstraintList = new ArrayList<>();
+  private boolean additionalCheckError = false;
   private Set<String> checkDuplicates = new HashSet<>();
 
   public MetadataCheckConstraintValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_512_1, M_512_1_1, A_M_512_1_1, M_512_1_2, A_M_512_1_3);
   }
 
   @Override
@@ -60,60 +55,52 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
 
     getValidationReporter().moduleValidatorHeader(M_512, MODULE_NAME);
 
-    validateMandatoryXSDFields(M_512_1, CHECK_CONSTRAINT_TYPE,
-      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:checkConstraints/ns:checkConstraint");
-
-    if (!readXMLMetadataCheckConstraint()) {
-      reportValidations(M_512_1, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
-    closeZipFile();
-
-    if (checkConstraintList.isEmpty()) {
-      getValidationReporter().skipValidation(M_512_1, "Database has no check constraint");
-      observer.notifyValidationStep(MODULE_NAME, M_512_1, ValidationReporterStatus.SKIPPED);
-      metadataValidationPassed(MODULE_NAME);
-      return true;
-    }
-
-    return reportValidations(MODULE_NAME);
-  }
-
-  private boolean readXMLMetadataCheckConstraint() {
+    NodeList nodes;
     try {
-      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+      nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
         "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:checkConstraints/ns:checkConstraint",
         XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
-
-      for (int i = 0; i < nodes.getLength(); i++) {
-        Element checkConstraint = (Element) nodes.item(i);
-        checkConstraintList.add(checkConstraint);
-        Element tableElement = (Element) checkConstraint.getParentNode().getParentNode();
-        Element schemaElement = (Element) tableElement.getParentNode().getParentNode();
-
-        String schema = XMLUtils.getChildTextContext(schemaElement, Constants.NAME);
-        String table = XMLUtils.getChildTextContext(tableElement, Constants.NAME);
-        String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.NAME, Integer.toString(i));
-
-        String name = XMLUtils.getChildTextContext(checkConstraint, Constants.NAME);
-        validateCheckConstraintName(name, path, table);
-
-        path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, Constants.NAME, name);
-        String condition = XMLUtils.getChildTextContext(checkConstraint, Constants.CONDITION);
-        validateCheckConstraintCondition(condition, path);
-
-        String description = XMLUtils.getChildTextContext(checkConstraint, Constants.DESCRIPTION);
-        validateCheckConstraintDescription(description, path);
-      }
-
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       String errorMessage = "Unable to read check constraint from SIARD file";
       setError(M_512_1, errorMessage);
       LOGGER.debug(errorMessage, e);
       return false;
     }
-    return true;
+
+    if (nodes.getLength() == 0) {
+      getValidationReporter().skipValidation(M_512_1, "Database has no check constraint");
+      observer.notifyValidationStep(MODULE_NAME, M_512_1, ValidationReporterStatus.SKIPPED);
+      metadataValidationPassed(MODULE_NAME);
+      return true;
+    }
+
+    validateMandatoryXSDFields(M_512_1, CHECK_CONSTRAINT_TYPE,
+      "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:checkConstraints/ns:checkConstraint");
+
+    if (validateCheckConstraintName(nodes)) {
+      validationOk(MODULE_NAME, M_512_1_1);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_512_1_1, ValidationReporterStatus.ERROR);
+    }
+
+    if (!additionalCheckError) {
+      validationOk(MODULE_NAME, A_M_512_1_1);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, A_M_512_1_1, ValidationReporterStatus.ERROR);
+    }
+
+    if (validateCheckConstraintCondition(nodes)) {
+      validationOk(MODULE_NAME, M_512_1_2);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_512_1_1, ValidationReporterStatus.ERROR);
+    }
+
+    validateAttributeDescription(nodes);
+    validationOk(MODULE_NAME, A_M_512_1_3);
+
+    closeZipFile();
+
+    return reportValidations(MODULE_NAME);
   }
 
   /**
@@ -121,31 +108,64 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
    * 
    * A_M_5.12-1-1 The Check Constraint name should be unique
    */
+  private boolean validateCheckConstraintName(NodeList nodes) {
+    boolean hasErrors = false;
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element checkConstraint = (Element) nodes.item(i);
+      String table = XMLUtils.getParentNameByTagName(checkConstraint, Constants.TABLE);
+      String path = buildPath(Constants.SCHEMA, XMLUtils.getParentNameByTagName(checkConstraint, Constants.SCHEMA),
+        Constants.TABLE, table, Constants.CHECK_CONSTRAINT, Integer.toString(i));
+      String name = XMLUtils.getChildTextContext(checkConstraint, Constants.NAME);
 
-  private void validateCheckConstraintName(String name, String path, String table) {
-    if(validateXMLField(M_512_1_1, name, Constants.NAME, true, false, path)){
-      if (!checkDuplicates.add(table + name)) {
-        setError(A_M_512_1_1, String.format("Check Constraint name %s must be unique per table(%s)", name, path));
+      if (validateXMLField(M_512_1_1, name, Constants.NAME, true, false, path)) {
+        if (!checkDuplicates.add(table + name)) {
+          setError(A_M_512_1_1, String.format("Check Constraint name %s must be unique per table(%s)", name, path));
+          additionalCheckError = true;
+          hasErrors = true;
+        }
+        continue;
       }
-      return;
+      setError(A_M_512_1_1, String.format("Aborted because check constraint name is mandatory (%s)", path));
+      additionalCheckError = true;
+      hasErrors = true;
     }
 
-    setError(A_M_512_1_1, String.format("Aborted because check constraint name is mandatory (%s)", path));
+    return !hasErrors;
   }
 
   /**
    * M_5.12-1-2 The Check Constraint condition is mandatory in SIARD 2.1
    * specification
    */
-  private void validateCheckConstraintCondition(String condition, String path) {
-    validateXMLField(M_512_1_2, condition, Constants.CONDITION, true, false, path);
+  private boolean validateCheckConstraintCondition(NodeList nodes) {
+    boolean hasErrors = false;
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element checkConstraint = (Element) nodes.item(i);
+      String path = buildPath(Constants.SCHEMA, XMLUtils.getParentNameByTagName(checkConstraint, Constants.SCHEMA),
+        Constants.TABLE, XMLUtils.getParentNameByTagName(checkConstraint, Constants.TABLE), Constants.CHECK_CONSTRAINT,
+        XMLUtils.getChildTextContext(checkConstraint, Constants.NAME));
+      String condition = XMLUtils.getChildTextContext(checkConstraint, Constants.CONDITION);
+
+      if (!validateXMLField(M_512_1_2, condition, Constants.CONDITION, true, false, path)) {
+        hasErrors = true;
+      }
+    }
+    return !hasErrors;
   }
 
   /**
    * A_M_5.12-1-3 The Check Constraint description in SIARD file must not be less
    * than 3 characters. WARNING if it is less than 3 characters
    */
-  private void validateCheckConstraintDescription(String description, String path) {
-    validateXMLField(A_M_512_1_3, description, Constants.DESCRIPTION, false, true, path);
+  private void validateAttributeDescription(NodeList nodes) {
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element checkConstraint = (Element) nodes.item(i);
+      String path = buildPath(Constants.SCHEMA, XMLUtils.getParentNameByTagName(checkConstraint, Constants.SCHEMA),
+        Constants.TABLE, XMLUtils.getParentNameByTagName(checkConstraint, Constants.TABLE), Constants.CHECK_CONSTRAINT,
+        XMLUtils.getChildTextContext(checkConstraint, Constants.NAME));
+      String description = XMLUtils.getChildTextContext(checkConstraint, Constants.DESCRIPTION);
+
+      validateXMLField(A_M_512_1_3, description, Constants.DESCRIPTION, false, true, path);
+    }
   }
 }

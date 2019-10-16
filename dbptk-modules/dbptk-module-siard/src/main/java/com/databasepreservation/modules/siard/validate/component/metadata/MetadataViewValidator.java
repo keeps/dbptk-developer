@@ -17,7 +17,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -26,6 +25,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
@@ -41,6 +41,7 @@ public class MetadataViewValidator extends MetadataValidator {
   private static final String A_M_514_1_1 = "A_M_5.14-1-1";
   private static final String A_M_514_1_2 = "A_M_5.14-1-1";
   private static final String A_M_514_1_5 = "A_M_5.14-1-5";
+  private boolean additionalCheckError = false;
 
   private static final int MIN_COLUMN_COUNT = 1;
 
@@ -49,7 +50,6 @@ public class MetadataViewValidator extends MetadataValidator {
 
   public MetadataViewValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
-    setCodeListToValidate(M_514_1, M_514_1_1, A_M_514_1_1, M_514_1_2, A_M_514_1_2, A_M_514_1_5);
   }
 
   @Override
@@ -62,92 +62,123 @@ public class MetadataViewValidator extends MetadataValidator {
 
     getValidationReporter().moduleValidatorHeader(M_514, MODULE_NAME);
 
-    validateMandatoryXSDFields(M_514_1, VIEW_TYPE,
-      "/ns:siardArchive/ns:schemas/ns:schema/ns:views/ns:view");
-
-    if (!readXMLMetadataViewLevel()) {
-      reportValidations(M_514_1, MODULE_NAME);
-      closeZipFile();
-      return false;
-    }
-    closeZipFile();
-
-    if (viewList.isEmpty()) {
-      getValidationReporter().skipValidation(M_514_1, "Database has no view");
-      observer.notifyValidationStep(MODULE_NAME, M_514_1, ValidationReporterStatus.SKIPPED);
-      metadataValidationPassed(MODULE_NAME);
-      return true;
-    }
-
-    return reportValidations(MODULE_NAME);
-  }
-
-  private boolean readXMLMetadataViewLevel() {
+    NodeList nodes;
     try {
-      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+      nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
         "/ns:siardArchive/ns:schemas/ns:schema/ns:views/ns:view", XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
-
-      for (int i = 0; i < nodes.getLength(); i++) {
-        Element view = (Element) nodes.item(i);
-        viewList.add(view);
-        String schema = XMLUtils.getChildTextContext((Element) view.getParentNode().getParentNode(), Constants.NAME);
-        String path = buildPath(Constants.SCHEMA, schema, Constants.VIEW, Integer.toString(i));
-
-        String name = XMLUtils.getChildTextContext(view, Constants.NAME);
-        validateViewName(name, path);
-        path = buildPath(Constants.SCHEMA, schema, Constants.VIEW, name);
-
-        NodeList columnsList = view.getElementsByTagName(Constants.COLUMN);
-        validateViewColumn(columnsList, path);
-
-        String description = XMLUtils.getChildTextContext(view, Constants.DESCRIPTION);
-        validateViewDescription(description, path);
-      }
-
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       String errorMessage = "Unable to read views from SIARD file";
       setError(M_514_1, errorMessage);
       LOGGER.debug(errorMessage, e);
       return false;
     }
-    return true;
+
+    if (nodes.getLength() == 0) {
+      getValidationReporter().skipValidation(M_514_1, "Database has no view");
+      observer.notifyValidationStep(MODULE_NAME, M_514_1, ValidationReporterStatus.SKIPPED);
+      metadataValidationPassed(MODULE_NAME);
+      return true;
+    }
+
+    validateMandatoryXSDFields(M_514_1, VIEW_TYPE, "/ns:siardArchive/ns:schemas/ns:schema/ns:views/ns:view");
+
+    if (validateViewName(nodes)) {
+      validationOk(MODULE_NAME, M_514_1_1);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, M_514_1_1, ValidationReporterStatus.ERROR);
+    }
+
+    if (!additionalCheckError) {
+      validationOk(MODULE_NAME, A_M_514_1_1);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, A_M_514_1_1, ValidationReporterStatus.ERROR);
+    }
+
+    if (validateViewColumn(nodes)) {
+      validationOk(MODULE_NAME, A_M_514_1_2);
+    } else {
+      observer.notifyValidationStep(MODULE_NAME, A_M_514_1_2, ValidationReporterStatus.ERROR);
+    }
+
+    validateAttributeDescription(nodes);
+    validationOk(MODULE_NAME, A_M_514_1_5);
+
+    closeZipFile();
+
+    return reportValidations(MODULE_NAME);
   }
 
   /**
    * M_5.14-1-1 The view name is mandatory in SIARD 2.1 specification
    *
-   * A_M_5.14-1-1 The view name in SIARD file must be unique. ERROR when it is empty
-   * or not unique
+   * A_M_5.14-1-1 The view name in SIARD file must be unique. ERROR when it is
+   * empty or not unique
    */
-  private void validateViewName(String name, String path) {
-    if(validateXMLField(M_514_1_1, name, Constants.NAME, true, false, path)){
-      if (!checkDuplicates.add(name)) {
-        setError(A_M_514_1_1, String.format("View name %s must be unique (%s)", name, path));
+  private boolean validateViewName(NodeList nodes) {
+    additionalCheckError = false;
+    boolean hasErrors = false;
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element view = (Element) nodes.item(i);
+      String schema = XMLUtils.getChildTextContext((Element) view.getParentNode().getParentNode(), Constants.NAME);
+      String path = buildPath(Constants.SCHEMA, schema, Constants.VIEW, Integer.toString(i));
+      String name = XMLUtils.getChildTextContext(view, Constants.NAME);
+
+      if (validateXMLField(M_514_1_1, name, Constants.NAME, true, false, path)) {
+        if (!checkDuplicates.add(name)) {
+          setError(A_M_514_1_1, String.format("View name %s must be unique (%s)", name, path));
+          hasErrors = true;
+          additionalCheckError = true;
+        }
+        continue;
       }
-      return;
+      setError(A_M_514_1_1, String.format("Aborted because view name is mandatory (%s)", path));
+      additionalCheckError = true;
+      hasErrors = true;
     }
-    setError(A_M_514_1_1, String.format("Aborted because view name is mandatory (%s)", path));
+
+    return !hasErrors;
   }
 
   /**
-   * M_5.14-1-2 The view list of columns is mandatory in siard, and must exist on table column.
+   * M_5.14-1-2 The view list of columns is mandatory in siard, and must exist on
+   * table column.
    *
    * A_M_5.14-1-2 should exist at least one column.
    */
-  private void validateViewColumn(NodeList columns, String path) {
-    //TODO check if column exist M_5.14-1-2
-    if (columns.getLength() < MIN_COLUMN_COUNT) {
-      setError(A_M_514_1_2, String.format("View must have at least '%d' column (%s)", MIN_COLUMN_COUNT, path));
+  private boolean validateViewColumn(NodeList nodes) {
+    boolean hasErrors = false;
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element view = (Element) nodes.item(i);
+      String schema = XMLUtils.getChildTextContext((Element) view.getParentNode().getParentNode(), Constants.NAME);
+      String path = buildPath(Constants.SCHEMA, schema, Constants.VIEW,
+        XMLUtils.getChildTextContext(view, Constants.NAME));
+      NodeList columnsList = view.getElementsByTagName(Constants.COLUMN);
+
+      if (columnsList.getLength() < MIN_COLUMN_COUNT) {
+        setError(A_M_514_1_2, String.format("View must have at least '%d' column (%s)", MIN_COLUMN_COUNT, path));
+        hasErrors = true;
+      }
     }
+
+    return !hasErrors;
   }
 
   /**
    * A_M_5.14-1-5 The view description in SIARD file must not be less than 3
    * characters. WARNING if it is less than 3 characters
    */
-  private void validateViewDescription(String description, String path) {
-    validateXMLField(A_M_514_1_5, description, Constants.DESCRIPTION, false, true, path);
+  private void validateAttributeDescription(NodeList nodes) {
+
+    for (int i = 0; i < nodes.getLength(); i++) {
+      Element view = (Element) nodes.item(i);
+      String schema = XMLUtils.getChildTextContext((Element) view.getParentNode().getParentNode(), Constants.NAME);
+      String path = buildPath(Constants.SCHEMA, schema, Constants.VIEW,
+        XMLUtils.getChildTextContext(view, Constants.NAME));
+      String description = XMLUtils.getChildTextContext(view, Constants.DESCRIPTION);
+
+      validateXMLField(A_M_514_1_5, description, Constants.DESCRIPTION, false, true, path);
+    }
   }
 
 }
