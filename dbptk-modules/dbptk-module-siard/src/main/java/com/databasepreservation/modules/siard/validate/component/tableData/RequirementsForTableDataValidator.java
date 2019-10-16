@@ -36,6 +36,7 @@ import javax.xml.validation.Validator;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -68,8 +69,6 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   private static final String A_T_6011 = "A_T_6.0-1-1";
   private static final String A_T_6012 = "A_T_6.0-1-2";
 
-  private List<String> T_601_ERRORS = new ArrayList<>();
-  private List<String> T_602_ERRORS = new ArrayList<>();
   private boolean A_T_6012_ERRORS = false;
 
   private static List<String> SQL2008Types = null;
@@ -115,6 +114,8 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     factory = null;
     primaryKeyData = null;
     columnTypes = null;
+    foreignKeyColumns = null;
+    rows = null;
   }
 
   @Override
@@ -139,9 +140,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, T_601, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
-      validationFailed(T_601, ValidationReporterStatus.ERROR,
-        "All the table data (primary data) must meet the consistency requirements of SQL:2008.", T_601_ERRORS,
-        MODULE_NAME);
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.FAILED);
       closeZipFile();
       return false;
     }
@@ -167,8 +166,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, T_602, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
-      validationFailed(T_602, ValidationReporterStatus.ERROR, "Validation against XSD failed", T_602_ERRORS,
-        MODULE_NAME);
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.FAILED);
       closeZipFile();
       return false;
     }
@@ -199,6 +197,10 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       return false;
     }
 
+    boolean valid = true;
+    boolean primaryKeyValid = true;
+    boolean foreignKeyValid = true;
+
     List<String> SQL2008FoundTypes = new ArrayList<>();
 
     final String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column";
@@ -226,7 +228,10 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     for (String type : SQL2008FoundTypes) {
       // Checks if the type is in conformity with SQL:2008
       if (!validateSQL2008Type(type)) {
-        T_601_ERRORS.add("The " + type + " type is not in conformity with SQL:2008 data types");
+        getValidationReporter().validationStatus(T_601, ValidationReporterStatus.ERROR,
+          "All the table data (primary data) must meet the consistency requirements of SQL:2008.",
+          "The " + type + " type is not in conformity with SQL:2008 data types");
+        valid = false;
       }
     }
 
@@ -248,17 +253,15 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
 
         for (int j = 0; j < tables.getLength(); j++) {
           String tableFolder = tables.item(j).getTextContent();
-          T_601_ERRORS.addAll(validatePrimaryKeyConstraint(schemaFolder, tableFolder));
+          boolean r = validatePrimaryKeyConstraint(schemaFolder, tableFolder);
+          if (!r)
+            primaryKeyValid = false;
         }
       }
       observer.notifyMessage(MODULE_NAME, T_601, "Validating Primary Keys", ValidationReporterStatus.FINISH);
-    } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException
-      | XMLStreamException e) {
+    } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException | XMLStreamException
+      | XMLFileNotFoundException e) {
       LOGGER.debug("Failed to validate {}({})", MODULE_NAME, T_601, e);
-      return false;
-    } catch (XMLFileNotFoundException e) {
-      LOGGER.debug("Failed to validate {}({})", MODULE_NAME, T_601, e);
-      T_601_ERRORS.add(e.getMessage());
       return false;
     }
 
@@ -280,7 +283,9 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
 
         for (int j = 0; j < tables.getLength(); j++) {
           String tableFolder = tables.item(j).getTextContent();
-          T_601_ERRORS.addAll(validateForeignKeyConstraint(schemaFolder, tableFolder));
+          boolean r = validateForeignKeyConstraint(schemaFolder, tableFolder);
+          if (!r)
+            foreignKeyValid = false;
         }
       }
       observer.notifyMessage(MODULE_NAME, T_601, "Validating Foreign Keys", ValidationReporterStatus.FINISH);
@@ -290,7 +295,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       return false;
     }
 
-    return T_601_ERRORS.isEmpty();
+    return valid && primaryKeyValid && foreignKeyValid;
   }
 
   /**
@@ -305,6 +310,8 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   private boolean validateTableXSDAgainstXML() {
     if (preValidationRequirements())
       return false;
+
+    boolean valid = true;
 
     Set<SIARDContent> tableDataSchemaDefinition = new TreeSet<>();
 
@@ -348,14 +355,18 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         try {
           validator.validate(xmlFile);
         } catch (SAXException | IOException e) {
-          T_602_ERRORS.add(e.getLocalizedMessage());
+          valid = false;
+          getValidationReporter().validationStatus(T_602, ValidationReporterStatus.ERROR,
+            "Validation against XSD failed.", e.getLocalizedMessage());
         }
       } catch (SAXException e) {
-        T_602_ERRORS.add(e.getLocalizedMessage());
+        valid = false;
+        getValidationReporter().validationStatus(T_602, ValidationReporterStatus.ERROR,
+          "Validation against XSD failed.", e.getLocalizedMessage());
       }
     }
     observer.notifyMessage(MODULE_NAME, T_602, "Validating XML against XSD", ValidationReporterStatus.FINISH);
-    return T_602_ERRORS.isEmpty();
+    return valid;
   }
 
   /*
@@ -805,10 +816,10 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     return false;
   }
 
-  private List<String> validatePrimaryKeyConstraint(String schemaFolder, String tableFolder)
+  private boolean validatePrimaryKeyConstraint(String schemaFolder, String tableFolder)
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException, XMLStreamException,
     XMLFileNotFoundException {
-    List<String> errors = new ArrayList<>();
+    boolean valid = true;
     final List<Integer> indexes = getPrimaryKeyColumnIndexes(schemaFolder, tableFolder);
     Set<String> uniquePrimaryKeys = new HashSet<>();
 
@@ -821,14 +832,29 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     if (indexes.size() == 1) {
       final int index = indexes.get(0);
       String columnIndex = "c" + index;
+      boolean found = false;
 
       while (streamReader.hasNext()) {
         streamReader.next();
         if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
           if (streamReader.getLocalName().equals(columnIndex)) {
-            if (!uniquePrimaryKeys.add(streamReader.getElementText())) {
-              T_601_ERRORS.add(
+            found = true;
+          }
+        }
+
+        if (streamReader.getEventType() == XMLStreamReader.END_ELEMENT) {
+          if (streamReader.getLocalName().equals(columnIndex)) {
+            found = false;
+          }
+        }
+
+        if (streamReader.getEventType() == XMLStreamReader.CHARACTERS) {
+          if (found) {
+            if (!uniquePrimaryKeys.add(DigestUtils.sha256Hex(streamReader.getText()))) {
+              getValidationReporter().validationStatus(T_601, ValidationReporterStatus.ERROR,
+                "All the table data (primary data) must meet the consistency requirements of SQL:2008.",
                 "Primary key constraint not met at line " + streamReader.getLocation().getLineNumber() + " in " + path);
+              valid = false;
             }
           }
         }
@@ -837,6 +863,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       Set<List<String>> uniqueCompositePrimaryKeys = new HashSet<>();
 
       boolean rowTag = false;
+      boolean found = false;
       List<String> compositePrimaryKey = new ArrayList<>();
       List<String> lines = new ArrayList<>();
 
@@ -852,33 +879,38 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
           for (int index : indexes) {
             String columnIndex = "c" + index;
             if (rowTag && streamReader.getLocalName().equals(columnIndex)) {
-              compositePrimaryKey.add(streamReader.getElementText());
-              lines.add(String.valueOf(streamReader.getLocation().getLineNumber()));
+              found = true;
             }
           }
         }
 
+        if (streamReader.getEventType() == XMLStreamReader.CHARACTERS) {
+          if (rowTag && found) {
+            compositePrimaryKey.add(streamReader.getText());
+            lines.add(String.valueOf(streamReader.getLocation().getLineNumber()));
+          }
+        }
+
         if (streamReader.getEventType() == XMLStreamConstants.END_ELEMENT) {
+          if (streamReader.getLocalName().equals("c" + indexes.get(indexes.size() - 1))) {
+            found = false;
+          }
           if (streamReader.getLocalName().equals("row")) {
             rowTag = false;
             if (!uniqueCompositePrimaryKeys.add(compositePrimaryKey)) {
-              StringBuilder sb = new StringBuilder();
-              sb.append("(");
-              for (String s : lines) {
-                if (lines.indexOf(s) == lines.size() - 1) {
-                  sb.append(s);
-                } else {
-                  sb.append(s).append(", ");
-                }
-              }
-              sb.append(")");
-              errors.add("Composite Primary key duplicated at lines " + sb.toString() + " in " + path);
+              getValidationReporter().validationStatus(T_601, ValidationReporterStatus.ERROR,
+                "All the table data (primary data) must meet the consistency requirements of SQL:2008.",
+                "Composite Primary key duplicated at lines (" + ListUtils.convertListToStringWithSeparator(lines, ",")
+                  + ") in " + path);
+              valid = false;
             }
           }
         }
       }
+      uniqueCompositePrimaryKeys.clear();
+      uniqueCompositePrimaryKeys = null;
     }
-    return errors;
+    return valid;
   }
 
   private List<Integer> getPrimaryKeyColumnIndexes(String schemaFolder, String tableFolder)
@@ -913,9 +945,9 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     LOGGER.debug("Finish obtaining primary key data for {}", path);
   }
 
-  private List<String> validateForeignKeyConstraint(String schemaFolder, String tableFolder)
+  private boolean validateForeignKeyConstraint(String schemaFolder, String tableFolder)
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException, XMLStreamException {
-    List<String> errors = new ArrayList<>();
+    boolean valid = true;
     String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table[ns:folder/text()='$2']/ns:foreignKeys/ns:foreignKey";
     xpathExpression = xpathExpression.replace("$1", schemaFolder);
     xpathExpression = xpathExpression.replace("$2", tableFolder);
@@ -944,13 +976,15 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       String key = referencedSchema + "." + referencedTable + "." + referenced;
       for (String value : data) {
         if (!primaryKeyData.get(key).contains(value)) {
-          errors.add("The value (" + value + ") for foreign key '" + foreignKeyName + "' is not present in '"
-            + referencedTable + "'");
+          getValidationReporter().validationStatus(T_601, ValidationReporterStatus.ERROR,
+            "All the table data (primary data) must meet the consistency requirements of SQL:2008.", "The value ("
+              + value + ") for foreign key '" + foreignKeyName + "' is not present in '" + referencedTable + "'");
+          valid = false;
         }
       }
     }
 
-    return errors;
+    return valid;
   }
 
   private Set<String> getColumnDataByIndex(String path, int index) throws XMLStreamException {
@@ -958,12 +992,24 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
 
     XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(path));
     String columnIndex = "c" + index;
-
+    boolean found = false;
     while (streamReader.hasNext()) {
       streamReader.next();
       if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
         if (streamReader.getLocalName().equals(columnIndex)) {
-          data.add(streamReader.getElementText());
+          found = true;
+        }
+      }
+
+      if (streamReader.getEventType() == XMLStreamReader.END_ELEMENT) {
+        if (streamReader.getLocalName().equals(columnIndex)) {
+          found = false;
+        }
+      }
+
+      if (streamReader.getEventType() == XMLStreamReader.CHARACTERS) {
+        if (found) {
+          data.add(streamReader.getText());
         }
       }
     }

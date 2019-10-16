@@ -44,17 +44,8 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
   private static final String P_613 = "T_6.1-3";
   private static final String P_614 = "T_6.1-4";
 
-  private List<String> P_611_ERRORS = new ArrayList<>();
-  private List<String> P_612_ERRORS = new ArrayList<>();
-  private List<String> P_613_ERRORS = new ArrayList<>();
-  private List<String> P_614_ERRORS = new ArrayList<>();
-
   @Override
   public void clean() {
-    P_611_ERRORS = null;
-    P_612_ERRORS = null;
-    P_613_ERRORS = null;
-    P_614_ERRORS = null;
   }
 
   public TableSchemaDefinitionValidator(String moduleName) {
@@ -77,9 +68,7 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_611, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
-      validationFailed(P_611, ValidationReporterStatus.ERROR,
-        "There must be an XML schema definition for each table that indicates the XML storage format of the table data.",
-        P_611_ERRORS, MODULE_NAME);
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.ERROR);
       closeZipFile();
       return false;
     }
@@ -90,9 +79,7 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_612, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
-      validationFailed(P_612, ValidationReporterStatus.ERROR,
-        "The column tags always start with c1 and increase by 1. There must be no gap, because a NULL value is expressed by a missing corresponding column in the XML file.",
-        P_612_ERRORS, MODULE_NAME);
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.ERROR);
       closeZipFile();
       return false;
     }
@@ -103,8 +90,7 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_613, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
-      validationFailed(P_613, ValidationReporterStatus.ERROR, "Incompatible XML Schema standard types", P_613_ERRORS,
-        MODULE_NAME);
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.FAILED);
       closeZipFile();
       return false;
     }
@@ -115,9 +101,7 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_614, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
-      validationFailed(P_614, ValidationReporterStatus.ERROR,
-        "Multiple cell values of advanced or structured types are to be stored as separate elements inside the cell tags.",
-        P_614_ERRORS, MODULE_NAME);
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.FAILED);
       closeZipFile();
       return false;
     }
@@ -141,6 +125,7 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
     if (preValidationRequirements())
       return false;
 
+    boolean valid = true;
     List<SIARDContent> tableData = new ArrayList<>();
 
     for (String zipFileName : getZipFileNames()) {
@@ -157,11 +142,15 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
     for (SIARDContent content : tableData) {
       final String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(content.getSchema(),content.getTable());
       if (!getZipFileNames().contains(XSDPath)) {
-        P_611_ERRORS.add(validatorPathStrategy.getXMLTablePathFromFolder(content.getSchema(),content.getTable()));
+        getValidationReporter().validationStatus(P_611, ValidationReporterStatus.ERROR,
+          "There must be an XML schema definition for each table that indicates the XML storage format of the table data.",
+          validatorPathStrategy.getXMLTablePathFromFolder(content.getSchema(), content.getTable()));
+        valid = false;
+
       }
     }
 
-    return P_611_ERRORS.isEmpty();
+    return valid;
   }
 
   /**
@@ -183,6 +172,8 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
     if (preValidationRequirements())
       return false;
 
+    boolean valid = true;
+
     for (String zipFileName : getZipFileNames()) {
       String regexPattern = "^(content/schema[0-9]+/table[0-9]+/table[0-9]+)\\.xsd$";
 
@@ -201,7 +192,10 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
           for (int i = 0; i < resultNodes.getLength(); i++) {
             final String name = resultNodes.item(i).getAttributes().getNamedItem("name").getNodeValue();
             if (!validateSequence(name, "^c[0-9]+$", i + 1)) {
-              P_612_ERRORS.add("Column tags invalid in " + zipFileName);
+              getValidationReporter().validationStatus(P_612, ValidationReporterStatus.ERROR,
+                "The column tags always start with c1 and increase by 1. There must be no gap, because a NULL value is expressed by a missing corresponding column in the XML file.",
+                "Column tags invalid in " + zipFileName);
+              valid = false;
             }
           }
         } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
@@ -209,7 +203,7 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
         }
       }
     }
-    return P_612_ERRORS.isEmpty();
+    return valid;
   }
 
   /**
@@ -227,6 +221,8 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
     if (preValidationRequirements())
       return false;
 
+    boolean valid = true;
+
     for (String zipFileName : getZipFileNames()) {
       String regexPattern = "^(content/schema[0-9]+/table[0-9]+/table[0-9]+)\\.xsd$";
 
@@ -241,7 +237,10 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
             if (!type.startsWith("xs")) {
               if (!(type.equals("clobType") || type.equals("blobType") || type.equals("dateType")
                 || type.equals("timeType") || type.equals("dateTimeType"))) {
-                P_613_ERRORS.add(type + " at " + zipFileName);
+
+                valid = false;
+                getValidationReporter().validationStatus(P_613, ValidationReporterStatus.ERROR,
+                  "Incompatible XML Schema standard types", type + " at " + zipFileName);
               }
             }
           }
@@ -251,7 +250,7 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
       }
     }
 
-    return P_613_ERRORS.isEmpty();
+    return valid;
   }
 
   /**
@@ -270,6 +269,8 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
     if (preValidationRequirements())
       return false;
 
+    boolean valid = true;
+
     for (String zipFileName : getZipFileNames()) {
       String regexPattern = "^(content/schema[0-9]+/table[0-9]+/table[0-9]+)\\.xsd$";
 
@@ -283,7 +284,9 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
             final String nodeValue = resultNodes.item(i).getNodeValue();
             String xpathExpression = "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element[@name='$1']/xs:complexType/xs:sequence/xs:element";
             xpathExpression = xpathExpression.replace("$1", nodeValue);
-            P_614_ERRORS.addAll(checkAdvancedOrStructuredSequence(zipFileName, xpathExpression, null));
+            if (!checkAdvancedOrStructuredSequence(zipFileName, xpathExpression, null)) {
+              valid = false;
+            }
           }
         } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
           return false;
@@ -291,14 +294,16 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
       }
     }
 
-    return P_614_ERRORS.isEmpty();
+    return valid;
   }
 
   /*
    * Auxiliary Methods
    */
-  private List<String> checkAdvancedOrStructuredSequence(String zipFileName, String xpathExpression, String userDefinedColumnName) throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
-    List<String> errors = new ArrayList<>();
+  private boolean checkAdvancedOrStructuredSequence(String zipFileName, String xpathExpression,
+    String userDefinedColumnName)
+    throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+    boolean valid = true;
 
     if (userDefinedColumnName != null) {
       xpathExpression = xpathExpression.concat("[@name='$1']/xs:complexType/xs:sequence/xs:element");
@@ -311,16 +316,19 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
       final Node type = result.item(i).getAttributes().getNamedItem("type");
       final String name = result.item(i).getAttributes().getNamedItem("name").getNodeValue();;
       if (type == null) {
-        errors.addAll(checkAdvancedOrStructuredSequence(zipFileName, xpathExpression, name));
+        checkAdvancedOrStructuredSequence(zipFileName, xpathExpression, name);
       }
 
       if (!validateSequence(name, "^a[0-9]+$", i+1)) {
         if (!validateSequence(name, "u[0-9]+$", i+1)) {
-          errors.add("Invalid cell tag at " + zipFileName);
+          valid = false;
+          getValidationReporter().validationStatus(P_614, ValidationReporterStatus.ERROR,
+            "Multiple cell values of advanced or structured types are to be stored as separate elements inside the cell tags.",
+            "Invalid cell tag at " + zipFileName);
         }
       }
     }
-    return errors;
+    return valid;
   }
 
   private boolean validateSequence(String name, String regex, int sequenceValue) {

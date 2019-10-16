@@ -48,9 +48,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
   private static final String P_644 = "T_6.4-4";
   private static final String P_645 = "T_6.4-5";
 
-  private List<String> P_641_ERRORS = new ArrayList<>();
-  private List<String> P_642_ERRORS = new ArrayList<>();
-  private List<String> P_645_ERRORS = new ArrayList<>();
+  private boolean P_645_HAS_ERRORS = false;
   private List<String> P_645_ERRORS_ATTRIBUTES;
 
   private static final String TABLE_REGEX = "^table$";
@@ -69,8 +67,6 @@ public class TableDataValidator extends ValidatorComponentImpl {
 
   @Override
   public void clean() {
-    P_641_ERRORS = null;
-    P_642_ERRORS = null;
     factory = null;
   }
 
@@ -91,8 +87,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_641, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
-      validationFailed(P_641, ValidationReporterStatus.ERROR,
-        "The table data for each table must be stored in an XML file.", P_641_ERRORS, MODULE_NAME);
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.FAILED);
       closeZipFile();
       return false;
     }
@@ -103,9 +98,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_642, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
-      validationFailed(P_642, ValidationReporterStatus.ERROR,
-        "The table file consists of row elements containing the data of a line subdivided into the various columns.",
-        P_642_ERRORS, MODULE_NAME);
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.FAILED);
       closeZipFile();
       return false;
     }
@@ -121,9 +114,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_645, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
-      validationFailed(P_645, ValidationReporterStatus.ERROR,
-        "If a large object is stored in a separate file, its cell element must have attributes file, length and digest",
-        P_645_ERRORS, MODULE_NAME);
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.FAILED);
       closeZipFile();
       return false;
     }
@@ -147,7 +138,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
       LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
       return false;
     }
-
+    boolean valid = true;
     List<String> SIARDXMLPaths = new ArrayList<>();
 
     try {
@@ -177,11 +168,13 @@ public class TableDataValidator extends ValidatorComponentImpl {
 
     for (String path : SIARDXMLPaths) {
       if (!getZipFileNames().contains(path)) {
-        P_641_ERRORS.add("Missing XML file " + path);
+        getValidationReporter().validationStatus(P_641, ValidationReporterStatus.ERROR,
+          "The table data for each table must be stored in an XML file.", "Missing XML file " + path);
+        valid = false;
       }
     }
 
-    return P_641_ERRORS.isEmpty();
+    return valid;
   }
 
   /**
@@ -198,8 +191,8 @@ public class TableDataValidator extends ValidatorComponentImpl {
       return false;
     }
 
+    boolean valid = true;
     observer.notifyMessage(MODULE_NAME, P_642, "Validating row elements", ValidationReporterStatus.START);
-
 
     for (String zipFileName : getZipFileNames()) {
       String regexPattern = "^(content/schema[0-9]+/table[0-9]+/table[0-9]+)\\.xml$";
@@ -214,7 +207,10 @@ public class TableDataValidator extends ValidatorComponentImpl {
               final String tagName = streamReader.getLocalName();
               if (!(tagName.matches(TABLE_REGEX) || tagName.matches(ROW_REGEX) || tagName.matches(COLUMN_REGEX)
                 || tagName.matches(ARRAY_REGEX) || tagName.matches(STRUCTURED_REGEX))) {
-                P_642_ERRORS.add("Line " + streamReader.getLocation().getLineNumber() + "in " + zipFileName);
+                getValidationReporter().validationStatus(P_642, ValidationReporterStatus.ERROR,
+                  "The table file consists of row elements containing the data of a line subdivided into the various columns.",
+                  "Line " + streamReader.getLocation().getLineNumber() + " in " + zipFileName);
+                valid = false;
               }
             }
           }
@@ -226,7 +222,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
     }
 
     observer.notifyMessage(MODULE_NAME, P_642, "Validating row elements", ValidationReporterStatus.FINISH);
-    return P_642_ERRORS.isEmpty();
+    return valid;
   }
 
   /**
@@ -279,7 +275,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
       }
     }
 
-    return P_645_ERRORS.isEmpty();
+    return !P_645_HAS_ERRORS;
   }
 
   private void validateOutsideLOB(final String schemaFolder, final String tableFolder, final String columnIndex)
@@ -308,7 +304,11 @@ public class TableDataValidator extends ValidatorComponentImpl {
       if (streamReader.getEventType() == XMLStreamReader.END_ELEMENT) {
         if (columnIndex.equals(streamReader.getLocalName())) {
           if (!validateRequiredLOBAttributes(attributes, text.toString())) {
-            P_645_ERRORS.add(ListUtils.convertListToStringWithSeparator(P_645_ERRORS_ATTRIBUTES, ", ") + " on " + columnIndex + " at " + path);
+            getValidationReporter().validationStatus(P_645, ValidationReporterStatus.ERROR,
+              "If a large object is stored in a separate file, its cell element must have attributes file, length and digest",
+              ListUtils.convertListToStringWithSeparator(P_645_ERRORS_ATTRIBUTES, ", ") + " on " + columnIndex + " at "
+                + path);
+            P_645_HAS_ERRORS = true;
           }
         }
         text = new StringBuilder();

@@ -8,8 +8,6 @@
 package com.databasepreservation.modules.siard.validate.component.tableData;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
@@ -40,15 +38,12 @@ public class DateAndTimestampDataValidator extends ValidatorComponentImpl {
   private static final String DATE_TIME_TYPE_MIN = "0001-01-01T00:00:00.000000000Z";
   private static final String DATE_TIME_TYPE_MAX = "10000-01-01T00:00:00.000000000Z";
 
-  private List<String> P_631_ERRORS = new ArrayList<>();
-
   public DateAndTimestampDataValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
   }
 
   @Override
   public void clean() {
-    P_631_ERRORS = null;
   }
 
   @Override
@@ -67,9 +62,7 @@ public class DateAndTimestampDataValidator extends ValidatorComponentImpl {
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_631, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
-      validationFailed(P_631, ValidationReporterStatus.ERROR,
-        "Dates and timestamps must be restricted to the years 0001-9999 according to the SQL:2008 specification.",
-        P_631_ERRORS, MODULE_NAME);
+      getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.FAILED);
       closeZipFile();
       return false;
     }
@@ -94,6 +87,8 @@ public class DateAndTimestampDataValidator extends ValidatorComponentImpl {
     if (preValidationRequirements())
       return false;
 
+    boolean valid = true;
+
     for (String zipFileName : getZipFileNames()) {
       String regexPattern = "^(content/schema[0-9]+/table[0-9]+/table[0-9]+)\\.xsd$";
 
@@ -107,7 +102,10 @@ public class DateAndTimestampDataValidator extends ValidatorComponentImpl {
             final String dateTypeMaxXPathExpression = "/xs:schema/xs:simpleType[@name='dateType']/xs:restriction/xs:maxExclusive/@value";
             if (!validateDateType(zipFileName, dateTypeMinXPathExpression, dateTypeMaxXPathExpression, DATE_TYPE_MIN,
               DATE_TYPE_MAX)) {
-              P_631_ERRORS.add("Error on " + zipFileName + " restriction not enforced");
+              getValidationReporter().validationStatus(P_631, ValidationReporterStatus.ERROR,
+                "Dates and timestamps must be restricted to the years 0001-9999 according to the SQL:2008 specification.",
+                "Error on " + zipFileName + " restriction not enforced");
+              valid = false;
             }
           }
 
@@ -118,7 +116,10 @@ public class DateAndTimestampDataValidator extends ValidatorComponentImpl {
             final String dateTimeTypeMaxXPathExpression = "/xs:schema/xs:simpleType[@name='dateTimeType']/xs:restriction/xs:maxExclusive/@value";
             if (!validateDateType(zipFileName, dateTimeTypeMinXPathExpression, dateTimeTypeMaxXPathExpression,
               DATE_TIME_TYPE_MIN, DATE_TIME_TYPE_MAX)) {
-              P_631_ERRORS.add("Error on " + zipFileName + " restriction not enforced");
+              getValidationReporter().validationStatus(P_631, ValidationReporterStatus.ERROR,
+                "Dates and timestamps must be restricted to the years 0001-9999 according to the SQL:2008 specification.",
+                "Error on " + zipFileName + " restriction not enforced");
+              valid = false;
             }
           }
 
@@ -128,7 +129,7 @@ public class DateAndTimestampDataValidator extends ValidatorComponentImpl {
       }
     }
 
-    return P_631_ERRORS.isEmpty();
+    return valid;
   }
 
   private boolean validateDateType(String zipFileName, String minXPathExpression, String maxXPathExpression,
