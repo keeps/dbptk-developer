@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.security.DigestOutputStream;
 
@@ -35,7 +36,6 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentWithExternalLobsPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
-import com.databasepreservation.modules.siard.out.write.ZipWithExternalLobsWriteStrategy;
 
 /**
  * SIARD 2 external LOBs export strategy, that exports LOBs according to the
@@ -101,6 +101,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
     }
   }
 
+  @Override
   protected void writeLargeObjectData(String cellPrefix, Cell cell, int columnIndex)
     throws IOException, ModuleException {
     String lobFileParameter = null;
@@ -158,7 +159,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
     } else if (cell instanceof SimpleCell) {
       SimpleCell txtCell = (SimpleCell) cell;
       String data = txtCell.getSimpleData();
-      ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes("UTF-8"));
+      ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8));
       lob = new LargeObject(new TemporaryPathInputStreamProvider(inputStream), lobFileParameter);
     }
 
@@ -193,15 +194,17 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
   }
 
   @Override
-  protected void writeLOB(LargeObject lob) throws ModuleException, IOException {
+  protected void writeLOB(LargeObject lob) throws ModuleException {
     String lobRelativePath = lob.getOutputPath();
-    OutputStream out = writeStrategy.createOutputStream(currentExternalContainer, lobRelativePath);
-    InputStream in = lob.getInputStreamProvider().createInputStream();
-
-    LOGGER.debug("Writing lob to " + lobRelativePath);
-
     // copy lob to output and save digest checksum if possible
+    OutputStream out = null;
+    InputStream in = null;
     try {
+      out = writeStrategy.createOutputStream(currentExternalContainer, lobRelativePath);
+      in = lob.getInputStreamProvider().createInputStream();
+
+      LOGGER.debug("Writing lob to {}", lobRelativePath);
+
       IOUtils.copy(in, out);
     } catch (IOException e) {
       throw new ModuleException().withMessage("Could not write lob").withCause(e);

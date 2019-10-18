@@ -7,7 +7,6 @@
  */
 package com.databasepreservation.model.exception.validator;
 
-import com.databasepreservation.model.exception.EditDatabaseMetadataParserException;
 import com.databasepreservation.model.exception.ModuleException;
 
 /**

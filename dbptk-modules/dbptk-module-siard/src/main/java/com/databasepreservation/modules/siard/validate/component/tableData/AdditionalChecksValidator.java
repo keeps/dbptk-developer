@@ -30,6 +30,7 @@ public class AdditionalChecksValidator extends ValidatorComponentImpl {
 
   @Override
   public void clean() {
+    // Nothing to do
   }
 
   @Override

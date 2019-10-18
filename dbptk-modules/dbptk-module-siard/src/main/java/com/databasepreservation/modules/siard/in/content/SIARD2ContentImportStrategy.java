@@ -11,6 +11,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,7 +46,6 @@ import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
-import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.ModuleSettings;
@@ -81,7 +81,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
   // ImportStrategy
   private final ContentPathImportStrategy contentPathStrategy;
   private final ReadStrategy readStrategy;
-  private final Deque<String> tagsStack = new LinkedList<String>();
+  private final Deque<String> tagsStack = new LinkedList<>();
   private final StringBuilder tempVal = new StringBuilder();
   private SIARDArchiveContainer contentContainer;
   private SIARDArchiveContainer lobContainer;
@@ -151,9 +151,10 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
           this.currentTableTotalRows = currentTable.getRows();
 
           if (tableHandled && moduleSettings.shouldFetchRows()) {
+            InputStream xsdStream = null;
             try {
               // setup a new validating parser
-              InputStream xsdStream = readStrategy.createInputStream(container,
+              xsdStream = readStrategy.createInputStream(container,
                 contentPathStrategy.getTableXSDFilePath(schema.getName(), currentTable.getId()));
 
               try {
@@ -176,7 +177,8 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
                 XMLReader xmlReader = saxParser.getXMLReader();
                 xmlReader.setContentHandler(this);
                 xmlReader.setErrorHandler(errorHandler);
-                InputStreamReader tableInputStreamReader = new InputStreamReader(new BOMInputStream(currentTableStream), "UTF-8");
+                InputStreamReader tableInputStreamReader = new InputStreamReader(new BOMInputStream(currentTableStream),
+                  StandardCharsets.UTF_8);
                 InputSource tableInputSource = new InputSource(tableInputStreamReader);
                 tableInputSource.setEncoding("UTF-8");
                 xmlReader.parse(tableInputSource);
@@ -206,10 +208,18 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
               }
             } catch (ModuleException e) {
               LOGGER.error("An error occurred converting table contents", e);
+            } finally {
+              try {
+                if (xsdStream != null) {
+                  xsdStream.close();
+                }
+              } catch (IOException e) {
+                LOGGER.debug("Could not close the stream after an error occurred", e);
+              }
             }
           }
 
-          LOGGER.debug("Total of " + rowIndex + " row(s) processed");
+          LOGGER.debug("Total of {} row(s) processed", rowIndex);
 
           completedTablesInSchema++;
           try {
@@ -284,6 +294,8 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
           container = contentContainer;
         }
 
+        InputStream inputStream = null;
+
         try {
           if (lobDir.endsWith(SIARD2ContentPathExportStrategy.BLOB_EXTENSION)) {
             // assuming auxiliary containers are in a directory, use the
@@ -302,14 +314,22 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
             LOGGER.debug(
               String.format("BLOB cell %s on row #%d with lob dir %s", currentBlobCell.getId(), rowIndex, lobDir));
           } else if (lobDir.endsWith(SIARD2ContentPathExportStrategy.CLOB_EXTENSION)) {
-            String data = IOUtils.toString(readStrategy.createInputStream(container, lobPath));
+            inputStream = readStrategy.createInputStream(container, lobPath);
+            String data = IOUtils.toString(inputStream);
             currentClobCell = new SimpleCell(
               currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex, data);
 
             LOGGER.debug("CLOB cell {} on row #{} with lob dir {}", currentClobCell.getId(), rowIndex, lobDir);
           }
         } catch (ModuleException | IOException e) {
-          LOGGER.error("Failed to open lob at " + lobDir, e);
+          LOGGER.error("Failed to open lob at {}", lobDir, e);
+        } finally {
+          try {
+            if (inputStream != null)
+              inputStream.close();
+          } catch (IOException e) {
+            LOGGER.debug("Could not close the stream after an error occurred", e);
+          }
         }
       }
     } else if (qName.startsWith(ARRAY_KEYWORD)) {
@@ -345,8 +365,6 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
       rowIndex++;
       try {
         databaseExportModule.handleDataRow(row);
-      } catch (InvalidDataException e) {
-        LOGGER.error("An error occurred while handling data row", e);
       } catch (ModuleException e) {
         LOGGER.error("An error occurred while handling data row", e);
       }

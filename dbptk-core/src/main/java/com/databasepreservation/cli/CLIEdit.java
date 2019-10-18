@@ -7,27 +7,26 @@
  */
 package com.databasepreservation.cli;
 
-import com.databasepreservation.Constants;
-import com.databasepreservation.model.exception.TooMuchArgumentsException;
-import com.databasepreservation.model.modules.edits.EditModuleFactory;
-import com.databasepreservation.model.parameters.Parameter;
-import com.databasepreservation.model.parameters.ParameterGroup;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.MissingArgumentException;
-import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.databasepreservation.Constants;
+import com.databasepreservation.model.exception.TooMuchArgumentsException;
+import com.databasepreservation.model.modules.edits.EditModuleFactory;
+import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.parameters.ParameterGroup;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>

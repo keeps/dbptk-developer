@@ -101,7 +101,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     currentWriter = new XMLBufferedWriter(currentStream, prettyXMLOutput);
     currentTable = table;
     currentRowIndex = 0;
-    LOBsToExport = new ArrayList<LargeObject>();
+    LOBsToExport = new ArrayList<>();
 
     try {
       writeXmlOpenTable();
@@ -436,10 +436,15 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   protected void writeLOB(LargeObject lob) throws ModuleException, IOException {
     LOGGER.debug("Writing lob to {}", lob.getOutputPath());
 
+    InputStream in = null;
+    OutputStream out = null;
     // copy lob to output
-    try (OutputStream out = writeStrategy.createOutputStream(baseContainer, lob.getOutputPath());
-      InputStream in = lob.getInputStreamProvider().createInputStream()) {
+    try {
+      out = writeStrategy.createOutputStream(baseContainer, lob.getOutputPath());
+      in = lob.getInputStreamProvider().createInputStream();
       IOUtils.copy(in, out);
+      out.close();
+      in.close();
     } catch (IOException e) {
       throw new ModuleException().withMessage("Could not write lob").withCause(e);
     } finally {
@@ -450,15 +455,25 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   private String digestInputStream(InputStream inputStream) throws IOException {
     final DigestAlgorithm digestAlgorithm = writeStrategy.getDigestAlgorithm();
 
+    String messageDigest;
+
     switch (digestAlgorithm) {
       case SHA1:
-        return DigestUtils.sha1Hex(inputStream);
+        messageDigest = DigestUtils.sha1Hex(inputStream);
+        inputStream.close();
+        break;
       case SHA256:
-        return DigestUtils.sha256Hex(inputStream);
+        messageDigest = DigestUtils.sha256Hex(inputStream);
+        inputStream.close();
+        break;
       case MD5:
       default:
-        return DigestUtils.md5Hex(inputStream);
+        messageDigest = DigestUtils.md5Hex(inputStream);
+        inputStream.close();
+        break;
     }
+
+    return messageDigest;
   }
 
   private void writeXsd() throws IOException, ModuleException {

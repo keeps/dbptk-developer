@@ -35,7 +35,7 @@ import com.databasepreservation.model.exception.ModuleException;
 public class TemporaryPathInputStreamProvider extends PathInputStreamProvider {
   private static final Logger LOGGER = LoggerFactory.getLogger(TemporaryPathInputStreamProvider.class);
 
-  private Thread removeTemporaryFileHook = null;
+  private Thread removeTemporaryFileHook;
 
   /**
    * Copies the data from the inputStream to a temporary file and closes the

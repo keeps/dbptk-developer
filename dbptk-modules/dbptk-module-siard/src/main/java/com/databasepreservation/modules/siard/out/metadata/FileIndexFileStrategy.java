@@ -16,6 +16,7 @@
  */
 package com.databasepreservation.modules.siard.out.metadata;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.security.DigestOutputStream;
@@ -107,8 +108,9 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
       this.outputContainer = outputContainer;
     }
 
-    OutputStream writerFromWriteStrategy = writeStrategy.createOutputStream(outputContainer, path);
+    OutputStream writerFromWriteStrategy = null;
     try {
+      writerFromWriteStrategy = writeStrategy.createOutputStream(outputContainer, path);
       if (writingLOB) {
         currentlyDigestingLOB = true;
         lobMessageDigest = MessageDigest.getInstance(SIARDDKConstants.DIGEST_ALGORITHM);
@@ -120,6 +122,14 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
     } catch (NoSuchAlgorithmException e) {
       LOGGER.debug("NoSuchAlgorithmException", e);
       return null;
+    } finally {
+      try {
+        if (writerFromWriteStrategy != null) {
+          writerFromWriteStrategy.close();
+        }
+      } catch (IOException e) {
+        LOGGER.debug("Could not close the stream after an error occurred", e);
+      }
     }
   }
 
