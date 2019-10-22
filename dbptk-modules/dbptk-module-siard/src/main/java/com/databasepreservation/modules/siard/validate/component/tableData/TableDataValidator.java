@@ -8,6 +8,7 @@
 package com.databasepreservation.modules.siard.validate.component.tableData;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -68,17 +69,15 @@ public class TableDataValidator extends ValidatorComponentImpl {
   @Override
   public void clean() {
     factory = null;
+    if (P_645_ERRORS_ATTRIBUTES != null) {
+      P_645_ERRORS_ATTRIBUTES.clear();
+    }
+    zipFileManagerStrategy.closeZipFile();
   }
 
   @Override
   public boolean validate() throws ModuleException {
-
     observer.notifyStartValidationModule(MODULE_NAME, P_64);
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     getValidationReporter().moduleValidatorHeader(P_64, MODULE_NAME);
 
     if (validateStoredExtensionFile()) {
@@ -88,7 +87,6 @@ public class TableDataValidator extends ValidatorComponentImpl {
       observer.notifyValidationStep(MODULE_NAME, P_641, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.FAILED);
-      closeZipFile();
       return false;
     }
 
@@ -99,7 +97,6 @@ public class TableDataValidator extends ValidatorComponentImpl {
       observer.notifyValidationStep(MODULE_NAME, P_642, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.FAILED);
-      closeZipFile();
       return false;
     }
 
@@ -115,13 +112,11 @@ public class TableDataValidator extends ValidatorComponentImpl {
       observer.notifyValidationStep(MODULE_NAME, P_645, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.FAILED);
-      closeZipFile();
       return false;
     }
 
     observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.PASSED);
     getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.PASSED);
-    closeZipFile();
 
     return true;
   }
@@ -134,16 +129,11 @@ public class TableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateStoredExtensionFile() {
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
     boolean valid = true;
     List<String> SIARDXMLPaths = new ArrayList<>();
 
-    try {
-      NodeList schemaFolders = (NodeList) XMLUtils.getXPathResult(
-        getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+    try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath())) {
+      NodeList schemaFolders = (NodeList) XMLUtils.getXPathResult(is,
         "/ns:siardArchive/ns:schemas/ns:schema/ns:folder/text()", XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
 
@@ -151,14 +141,16 @@ public class TableDataValidator extends ValidatorComponentImpl {
         String schemaFolderName = schemaFolders.item(i).getNodeValue();
         String xpathExpression = "/ns:siardArchive/ns:schemas/ns:schema[ns:folder/text()='$1']/ns:tables/ns:table/ns:folder/text()";
         xpathExpression = xpathExpression.replace("$1", schemaFolderName);
-        NodeList tableFolders = (NodeList) XMLUtils.getXPathResult(
-          getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), xpathExpression, XPathConstants.NODESET,
-          Constants.NAMESPACE_FOR_METADATA);
+        try (InputStream tableFoldersInputStream = zipFileManagerStrategy.getZipInputStream(path,
+          validatorPathStrategy.getMetadataXMLPath())) {
+          NodeList tableFolders = (NodeList) XMLUtils.getXPathResult(tableFoldersInputStream, xpathExpression,
+            XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
-        for (int j = 0; j < tableFolders.getLength(); j++) {
-          final String path = validatorPathStrategy.getXMLTablePathFromFolder(schemaFolderName,
-            tableFolders.item(j).getTextContent());
-          SIARDXMLPaths.add(path);
+          for (int j = 0; j < tableFolders.getLength(); j++) {
+            final String path = validatorPathStrategy.getXMLTablePathFromFolder(schemaFolderName,
+              tableFolders.item(j).getTextContent());
+            SIARDXMLPaths.add(path);
+          }
         }
       }
     } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
@@ -166,8 +158,10 @@ public class TableDataValidator extends ValidatorComponentImpl {
       return false;
     }
 
+    final List<String> zipArchiveEntriesPath = zipFileManagerStrategy.getZipArchiveEntriesPath(path);
+
     for (String path : SIARDXMLPaths) {
-      if (!getZipFileNames().contains(path)) {
+      if (!zipArchiveEntriesPath.contains(path)) {
         getValidationReporter().validationStatus(P_641, ValidationReporterStatus.ERROR,
           "The table data for each table must be stored in an XML file.", "Missing XML file " + path);
         valid = false;
@@ -186,21 +180,18 @@ public class TableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateRowElements() {
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     boolean valid = true;
     observer.notifyMessage(MODULE_NAME, P_642, "Validating row elements", ValidationReporterStatus.START);
 
-    for (String zipFileName : getZipFileNames()) {
+    final List<String> zipArchiveEntriesPath = zipFileManagerStrategy.getZipArchiveEntriesPath(path);
+
+    for (String zipFileName : zipArchiveEntriesPath) {
       String regexPattern = "^(content/schema[0-9]+/table[0-9]+/table[0-9]+)\\.xml$";
       if (zipFileName.matches(regexPattern)) {
         observer.notifyElementValidating(P_642, zipFileName);
 
-        try {
-          XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(zipFileName));
+        try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, zipFileName)) {
+          XMLStreamReader streamReader = factory.createXMLStreamReader(is);
           while (streamReader.hasNext()) {
             streamReader.next();
             if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
@@ -214,7 +205,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
               }
             }
           }
-        } catch (XMLStreamException e) {
+        } catch (XMLStreamException | IOException e) {
           LOGGER.debug("Failed to validate {}({})", MODULE_NAME, P_642, e);
           return false;
         }
@@ -242,12 +233,9 @@ public class TableDataValidator extends ValidatorComponentImpl {
    * @return true is valid otherwise false
    */
   private boolean validateLOBAttributes() {
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
+    final List<String> zipArchiveEntriesPath = zipFileManagerStrategy.getZipArchiveEntriesPath(path);
 
-    for (String zipFileName : getZipFileNames()) {
+    for (String zipFileName : zipArchiveEntriesPath) {
       final Matcher matcher = patternXSDFile.matcher(zipFileName);
 
       String schema = "", table = "";
@@ -255,8 +243,8 @@ public class TableDataValidator extends ValidatorComponentImpl {
         schema = matcher.group(1);
         table = matcher.group(2);
 
-        try {
-          NodeList nodeNames = (NodeList) XMLUtils.getXPathResult(getZipInputStream(zipFileName),
+        try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, zipFileName)) {
+          NodeList nodeNames = (NodeList) XMLUtils.getXPathResult(is,
             "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element[@type='clobType' or @type='blobType']/@name",
             XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
           for (int i = 0; i < nodeNames.getLength(); i++) {
@@ -280,40 +268,44 @@ public class TableDataValidator extends ValidatorComponentImpl {
 
   private void validateOutsideLOB(final String schemaFolder, final String tableFolder, final String columnIndex)
     throws XMLStreamException {
-    final String path = validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder);
+    final String zipPath = validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder);
+    try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, zipPath)) {
 
-    XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(path));
-    StringBuilder text = new StringBuilder();
-    ArrayList<String> attributes = new ArrayList<>();
-    while (streamReader.hasNext()) {
-      streamReader.next();
+      XMLStreamReader streamReader = factory.createXMLStreamReader(is);
+      StringBuilder text = new StringBuilder();
+      ArrayList<String> attributes = new ArrayList<>();
+      while (streamReader.hasNext()) {
+        streamReader.next();
 
-      if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
-        if (columnIndex.equals(streamReader.getLocalName())) {
-          final int attributeCount = streamReader.getAttributeCount();
-          for (int i = 0; i < attributeCount; i++) {
-            attributes.add(streamReader.getAttributeLocalName(i));
+        if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
+          if (columnIndex.equals(streamReader.getLocalName())) {
+            final int attributeCount = streamReader.getAttributeCount();
+            for (int i = 0; i < attributeCount; i++) {
+              attributes.add(streamReader.getAttributeLocalName(i));
+            }
           }
         }
-      }
 
-      if (streamReader.getEventType() == XMLStreamReader.CHARACTERS) {
-        text.append(streamReader.getText().trim());
-      }
-
-      if (streamReader.getEventType() == XMLStreamReader.END_ELEMENT) {
-        if (columnIndex.equals(streamReader.getLocalName())) {
-          if (!validateRequiredLOBAttributes(attributes, text.toString())) {
-            getValidationReporter().validationStatus(P_645, ValidationReporterStatus.ERROR,
-              "If a large object is stored in a separate file, its cell element must have attributes file, length and digest",
-              ListUtils.convertListToStringWithSeparator(P_645_ERRORS_ATTRIBUTES, ", ") + " on " + columnIndex + " at "
-                + path);
-            P_645_HAS_ERRORS = true;
-          }
+        if (streamReader.getEventType() == XMLStreamReader.CHARACTERS) {
+          text.append(streamReader.getText().trim());
         }
-        text = new StringBuilder();
-        attributes = new ArrayList<>();
+
+        if (streamReader.getEventType() == XMLStreamReader.END_ELEMENT) {
+          if (columnIndex.equals(streamReader.getLocalName())) {
+            if (!validateRequiredLOBAttributes(attributes, text.toString())) {
+              getValidationReporter().validationStatus(P_645, ValidationReporterStatus.ERROR,
+                "If a large object is stored in a separate file, its cell element must have attributes file, length and digest",
+                ListUtils.convertListToStringWithSeparator(P_645_ERRORS_ATTRIBUTES, ", ") + " on " + columnIndex
+                  + " at " + path);
+              P_645_HAS_ERRORS = true;
+            }
+          }
+          text = new StringBuilder();
+          attributes = new ArrayList<>();
+        }
       }
+    } catch (IOException e) {
+      LOGGER.debug("Failed to validate {}({})", MODULE_NAME, P_645, e);
     }
   }
 

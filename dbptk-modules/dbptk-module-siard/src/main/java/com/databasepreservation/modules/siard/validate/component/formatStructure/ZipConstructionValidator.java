@@ -7,6 +7,9 @@
  */
 package com.databasepreservation.modules.siard.validate.component.formatStructure;
 
+import static java.util.zip.ZipEntry.DEFLATED;
+import static java.util.zip.ZipEntry.STORED;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -43,6 +46,12 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
 
   public ZipConstructionValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
+  }
+
+  @Override
+  public void clean() {
+    compressionZipEntriesWithErrors.clear();
+    zipFileManagerStrategy.closeZipFile();
   }
 
   @Override
@@ -109,16 +118,15 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean isZipFile() {
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
+    if (path == null) {
+      LOGGER.debug("The path to the SIARD file mist exists on {}", MODULE_NAME);
       return false;
     }
 
     boolean isZip = true;
 
     byte[] buffer = new byte[ZIP_MAGIC_NUMBER.length];
-    try {
-      RandomAccessFile raf = new RandomAccessFile(path.toFile(), "r");
+    try (RandomAccessFile raf = new RandomAccessFile(path.toFile(), "r")) {
       raf.readFully(buffer);
       for (int i = 0; i < ZIP_MAGIC_NUMBER.length; i++) {
         if (buffer[i] != ZIP_MAGIC_NUMBER[i]) {
@@ -126,7 +134,6 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
           break;
         }
       }
-      raf.close();
     } catch (IOException e) {
       LOGGER.debug("Failed to validate {}", G_411, e);
       isZip = false;
@@ -144,18 +151,23 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean deflateOrStore() {
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
+    if (path == null) {
+      LOGGER.debug("The path to the SIARD file mist exists on {}", MODULE_NAME);
       return false;
     }
 
-    final Enumeration<ZipArchiveEntry> entries = getZipFile().getEntries();
-    while (entries.hasMoreElements()) {
-      final ZipArchiveEntry zipArchiveEntry = entries.nextElement();
-      final int method = zipArchiveEntry.getMethod();
-      if (method != ZipArchiveEntry.DEFLATED && method != ZipArchiveEntry.STORED) {
-        compressionZipEntriesWithErrors.add(zipArchiveEntry.getName());
+    try {
+      final Enumeration<ZipArchiveEntry> entries = zipFileManagerStrategy.getZipArchiveEntries(path);
+      while (entries.hasMoreElements()) {
+        final ZipArchiveEntry zipArchiveEntry = entries.nextElement();
+        final int method = zipArchiveEntry.getMethod();
+        if (method != DEFLATED && method != STORED) {
+          compressionZipEntriesWithErrors.add(zipArchiveEntry.getName());
+        }
       }
+    } catch (IOException e) {
+      LOGGER.debug("Failed to validate {} due to an error", G_412, e);
+      return false;
     }
 
     return compressionZipEntriesWithErrors.isEmpty();
@@ -169,18 +181,23 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean passwordProtected() {
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
+    if (path == null) {
+      LOGGER.debug("The path to the SIARD file must exists on {}", MODULE_NAME);
       return false;
     }
 
-    final Enumeration<ZipArchiveEntry> entries = getZipFile().getEntries();
-    while (entries.hasMoreElements()) {
-      final ZipArchiveEntry entry = entries.nextElement();
-      final boolean usesEncryption = entry.getGeneralPurposeBit().usesEncryption();
-      if (usesEncryption) {
-        return false;
+    try {
+      final Enumeration<ZipArchiveEntry> entries = zipFileManagerStrategy.getZipArchiveEntries(path);
+      while (entries.hasMoreElements()) {
+        final ZipArchiveEntry zipArchiveEntry = entries.nextElement();
+        final boolean usesEncryption = zipArchiveEntry.getGeneralPurposeBit().usesEncryption();
+        if (usesEncryption) {
+          return false;
+        }
       }
+    } catch (IOException e) {
+      LOGGER.debug("Failed to validate {} due to an error", G_412, e);
+      return false;
     }
 
     return true;
@@ -194,11 +211,11 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean fileExtension() {
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
+    if (path == null) {
+      LOGGER.debug("The path to the SIARD file must exists on {}", MODULE_NAME);
       return false;
     }
 
-    return getSIARDPackagePath().getFileName().toString().endsWith(Constants.SIARD_EXTENSION);
+    return path.getFileName().toString().endsWith(Constants.SIARD_EXTENSION);
   }
 }

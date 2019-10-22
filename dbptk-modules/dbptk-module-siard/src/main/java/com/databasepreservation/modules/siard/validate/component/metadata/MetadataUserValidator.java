@@ -8,6 +8,7 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -45,18 +46,19 @@ public class MetadataUserValidator extends MetadataValidator {
   }
 
   @Override
+  public void clean() {
+    checkDuplicates.clear();
+    zipFileManagerStrategy.closeZipFile();
+  }
+
+  @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_517);
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     getValidationReporter().moduleValidatorHeader(M_517, MODULE_NAME);
 
     NodeList nodes;
-    try {
-      nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+    try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath())) {
+      nodes = (NodeList) XMLUtils.getXPathResult(is,
         "/ns:siardArchive/ns:schemas/ns:schema/ns:types/ns:type/ns:attributes/ns:attribute", XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
@@ -67,8 +69,6 @@ public class MetadataUserValidator extends MetadataValidator {
     }
 
     validateMandatoryXSDFields(M_517_1, USER_TYPE, "/ns:siardArchive/ns:users/ns:user");
-
-    closeZipFile();
 
     if (validateUserName(nodes)) {
       validationOk(MODULE_NAME, M_517_1_1);

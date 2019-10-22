@@ -8,6 +8,7 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -46,18 +47,20 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
   }
 
   @Override
+  public void clean() {
+    checkDuplicates.clear();
+    zipFileManagerStrategy.closeZipFile();
+  }
+
+  @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_512);
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
 
     getValidationReporter().moduleValidatorHeader(M_512, MODULE_NAME);
 
     NodeList nodes;
-    try {
-      nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+    try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath())) {
+      nodes = (NodeList) XMLUtils.getXPathResult(is,
         "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:checkConstraints/ns:checkConstraint",
         XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
@@ -97,8 +100,6 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
 
     validateAttributeDescription(nodes);
     validationOk(MODULE_NAME, A_M_512_1_3);
-
-    closeZipFile();
 
     return reportValidations(MODULE_NAME);
   }

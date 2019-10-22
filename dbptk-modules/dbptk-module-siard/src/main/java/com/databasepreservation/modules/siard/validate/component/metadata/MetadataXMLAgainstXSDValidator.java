@@ -17,6 +17,8 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.model.exception.ModuleException;
@@ -36,10 +38,13 @@ public class MetadataXMLAgainstXSDValidator extends MetadataValidator {
   }
 
   @Override
+  public void clean() {
+    zipFileManagerStrategy.closeZipFile();
+  }
+
+  @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_50);
-    if (preValidationRequirements())
-      return false;
 
     getValidationReporter().moduleValidatorHeader(M_50, MODULE_NAME);
     if (validateXMLAgainstXSD()) {
@@ -57,16 +62,18 @@ public class MetadataXMLAgainstXSDValidator extends MetadataValidator {
    * positively validated against metadata.xsd.
    */
   private boolean validateXMLAgainstXSD() {
-    final InputStream XSDInputStream = SiardArchive.class.getClassLoader()
-      .getResourceAsStream("schema/siard2-1-metadata.xsd");
-    final InputStream XMLInputStream = getZipInputStream(validatorPathStrategy.getMetadataXMLPath());
+    try (
+      InputStream XSDInputStream = SiardArchive.class.getClassLoader()
+        .getResourceAsStream("schema/siard2-1-metadata.xsd");
+      InputStream XMLInputStream = zipFileManagerStrategy.getZipInputStream(path,
+        validatorPathStrategy.getMetadataXMLPath())) {
 
     Source schemaFile = new StreamSource(XSDInputStream);
     Source xmlFile = new StreamSource(XMLInputStream);
 
     SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
     Schema schema;
-    try {
+
       schema = schemaFactory.newSchema(schemaFile);
       Validator validator = schema.newValidator();
       validator.validate(xmlFile);
@@ -74,6 +81,7 @@ public class MetadataXMLAgainstXSDValidator extends MetadataValidator {
       setError(M_501, e.getMessage());
       return false;
     }
+
     return true;
   }
 }

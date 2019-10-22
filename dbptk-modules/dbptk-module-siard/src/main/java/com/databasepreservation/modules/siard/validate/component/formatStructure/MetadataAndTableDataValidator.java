@@ -7,6 +7,8 @@
  */
 package com.databasepreservation.modules.siard.validate.component.formatStructure;
 
+import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -93,41 +95,36 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
 
   @Override
   public void clean() {
-    P_431_ERRORS = null;
-    P_432_ERRORS = null;
-    P_433_ERRORS = null;
-    P_434_ERRORS = null;
-    P_435_ERRORS = null;
-    P_436_ERRORS = null;
-    P_4310_ERRORS = null;
-    A_P_4310_ERRORS = null;
+    P_431_ERRORS.clear();
+    P_432_ERRORS.clear();
+    P_433_ERRORS.clear();
+    P_434_ERRORS.clear();
+    P_435_ERRORS.clear();
+    P_436_ERRORS.clear();
+    P_4310_ERRORS.clear();
+    A_P_4310_ERRORS.clear();
     SQL2008TypeMatchXMLType = null;
-    sql2008Type = null;
-    arrayType = null;
-    advancedOrStructuredDataType = null;
-    numberOfNullable = null;
-    numberOfRows = null;
-    skipped = null;
-    warnings = null;
-    types = null;
+    sql2008Type.clear();
+    arrayType.clear();
+    advancedOrStructuredDataType.clear();
+    numberOfNullable.clear();
+    numberOfRows.clear();
+    skipped.clear();
+    warnings.clear();
+    types.clear();
     factory = null;
+    zipFileManagerStrategy.closeZipFile();
   }
 
   @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, P_43);
 
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     try {
       obtainSQL2008TypeForEachColumn();
       getTypesFromMetadataXML();
     } catch (ParserConfigurationException | SAXException | XPathExpressionException | IOException e) {
       LOGGER.debug("Failed to fetch data for validation component {}", MODULE_NAME, e);
-      closeZipFile();
       return false;
     }
 
@@ -136,42 +133,36 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     if (validateMetadataStructure()) {
       observer.notifyValidationStep(MODULE_NAME, P_431, ValidationReporterStatus.OK);
       getValidationReporter().validationStatus(P_431, ValidationReporterStatus.OK);
-      closeZipFile();
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_431, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(P_431, ValidationReporterStatus.ERROR,
         "The metadata.xml must be identical to that in the content/", P_431_ERRORS,
         MODULE_NAME);
-      closeZipFile();
       return false;
     }
 
     if (validateColumnCount()) {
       observer.notifyValidationStep(MODULE_NAME, P_432, ValidationReporterStatus.OK);
       getValidationReporter().validationStatus(P_432, ValidationReporterStatus.OK);
-      closeZipFile();
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_432, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(P_432, ValidationReporterStatus.ERROR,
         "The number of columns in a table specified in metadata.xml must be identical to that in the corresponding table[number].xsd file",
         P_432_ERRORS, MODULE_NAME);
-      closeZipFile();
       return false;
     }
 
     if (validateDataTypeInformation()) {
       observer.notifyValidationStep(MODULE_NAME, P_433, ValidationReporterStatus.OK);
       getValidationReporter().validationStatus(P_433, ValidationReporterStatus.OK);
-      closeZipFile();
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_433, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(P_433, ValidationReporterStatus.ERROR,
         "The data type information on the column definitions in metadata.xml must be identical to that in the corresponding table[number].xsd file",
         P_433_ERRORS, MODULE_NAME);
-      closeZipFile();
       return false;
     }
 
@@ -187,27 +178,23 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         }
       }
       skip(P_434);
-      closeZipFile();
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_434, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(P_434, ValidationReporterStatus.ERROR,
         "The named DISTINCT data types are converted to the XML data type in the table[number].xsd schema files which would be used for representing their base types.",
         P_434_ERRORS, MODULE_NAME);
-      closeZipFile();
       return false;
     }
 
     if (validateArrayXMLDataTypeConversion()) {
       skip(P_435);
-      closeZipFile();
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_435, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(P_435, ValidationReporterStatus.ERROR,
         "Arrays are converted in the table[number].xsd schema files into a sequence of structured XML elements which are converted to the XML data type corresponding to the base type of the array.",
         P_435_ERRORS, MODULE_NAME);
-      closeZipFile();
       return false;
     }
 
@@ -218,14 +205,12 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         }
       }
       skip(P_436);
-      closeZipFile();
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_436, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(P_436, ValidationReporterStatus.ERROR,
         "The named user-defined data type (UDT) is converted in the table[number].xsd schema files into a sequence of structured XML elements which are converted to the XML data type corresponding to the type of each attribute.",
         P_436_ERRORS, MODULE_NAME);
-      closeZipFile();
       return false;
     }
 
@@ -239,71 +224,60 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     if (result) {
       observer.notifyValidationStep(MODULE_NAME, P_437, ValidationReporterStatus.OK);
       getValidationReporter().validationStatus(P_437, ValidationReporterStatus.OK);
-      closeZipFile();
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_437, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(P_437, MODULE_NAME);
-      closeZipFile();
       return false;
     }
 
     if (validateColumnSequence()) {
       observer.notifyValidationStep(MODULE_NAME, P_438, ValidationReporterStatus.OK);
       getValidationReporter().validationStatus(P_438, ValidationReporterStatus.OK);
-      closeZipFile();
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_438, ValidationReporterStatus.OK);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(P_438, MODULE_NAME);
-      closeZipFile();
       return false;
     }
 
     if (validateFieldSequenceInTableXSD()) {
       observer.notifyValidationStep(MODULE_NAME, P_439, ValidationReporterStatus.OK);
       getValidationReporter().validationStatus(P_439, ValidationReporterStatus.OK);
-      closeZipFile();
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_439, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(P_439, ValidationReporterStatus.ERROR,
         "The field sequence in the table definition of the metadata.xml must be identical to the field sequence in the corresponding table[number].xsd.",
         P_439_ERRORS, MODULE_NAME);
-      closeZipFile();
       return false;
     }
 
     if (validateNumberOfLinesInATable()) {
       observer.notifyValidationStep(MODULE_NAME, P_4310, ValidationReporterStatus.OK);
       getValidationReporter().validationStatus(P_4310, ValidationReporterStatus.OK);
-      closeZipFile();
     } else {
       observer.notifyValidationStep(MODULE_NAME, P_4310, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(P_4310, ValidationReporterStatus.ERROR,
         "The number of lines in a table in metadata.xml must fit into the area specified in the corresponding table[number].xsd. The number of lines in a table in metadata.xml must be identical to the number of lines in the corresponding table[number].xml.",
         P_4310_ERRORS, MODULE_NAME);
-      closeZipFile();
       return false;
     }
 
     if (validateNumberOfRows()) {
       observer.notifyValidationStep(MODULE_NAME, A_P_4310, ValidationReporterStatus.OK);
       getValidationReporter().validationStatus(A_P_4310, ValidationReporterStatus.OK);
-      closeZipFile();
     } else {
       observer.notifyValidationStep(MODULE_NAME, A_P_4310, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(A_P_4310, ValidationReporterStatus.ERROR, "", P_4310_ERRORS, MODULE_NAME);
-      closeZipFile();
       return false;
     }
 
     observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.PASSED);
     getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.PASSED);
-    closeZipFile();
-
+    zipFileManagerStrategy.closeZipFile();
     return true;
   }
 
@@ -316,15 +290,12 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateMetadataStructure() {
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
+    InputStream is = null;
     try {
-      final NodeList nodeList = (NodeList) XMLUtils.getXPathResult(
-        getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+      is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath());
+      final NodeList nodeList = (NodeList) XMLUtils.getXPathResult(is,
         "/ns:siardArchive/ns:schemas/ns:schema", XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+      is.close();
       for (int i = 0; i < nodeList.getLength(); i++) {
         Element schema = (Element) nodeList.item(i);
         String schemaFolderName = schema.getElementsByTagName("folder").item(0).getTextContent();
@@ -341,6 +312,14 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     } catch (IOException | XPathExpressionException | SAXException | ParserConfigurationException e) {
       LOGGER.debug("Failed to validate {}", P_431, e);
       return false;
+    } finally {
+      if (is != null) {
+        try {
+          is.close();
+        } catch (IOException e) {
+          LOGGER.debug("Could not close the stream after an error occurred", e);
+        }
+      }
     }
 
     return P_431_ERRORS.isEmpty();
@@ -355,18 +334,16 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateColumnCount() {
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     HashMap<SIARDContent, Integer> columnCount = new HashMap<>();
     List<SIARDContent> entries = new ArrayList<>();
-
+    InputStream is = null;
+    InputStream anotherIs = null;
     try {
-      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+      is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath());
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(is,
         "/ns:siardArchive/ns:schemas/ns:schema",
         XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+      is.close();
 
       for (int i = 0; i < nodes.getLength(); i++) {
         Element schema = (Element) nodes.item(i);
@@ -386,8 +363,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
 
       for (SIARDContent content : entries) {
         final String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(content.getSchema(), content.getTable());
-        final InputStream inputStream = getZipInputStream(XSDPath);
-        final String evaluate = (String) XMLUtils.getXPathResult(inputStream,
+        anotherIs = zipFileManagerStrategy.getZipInputStream(path, XSDPath);
+        final String evaluate = (String) XMLUtils.getXPathResult(anotherIs,
           "count(/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element)", XPathConstants.STRING, null);
         int value = Integer.parseInt(evaluate);
 
@@ -395,11 +372,26 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
           P_432_ERRORS.add(XSDPath);
         }
 
-        inputStream.close();
+        anotherIs.close();
       }
     } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
       LOGGER.debug("Failed to validate {}", P_432, e);
       return false;
+    } finally {
+      if (is != null) {
+        try {
+          is.close();
+        } catch (IOException e) {
+          LOGGER.debug("Could not close the stream after an error occurred", e);
+        }
+      }
+      if (anotherIs != null) {
+        try {
+          anotherIs.close();
+        } catch (IOException e) {
+          LOGGER.debug("Could not close the stream after an error occurred", e);
+        }
+      }
     }
 
     return P_432_ERRORS.isEmpty();
@@ -414,11 +406,6 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateDataTypeInformation() {
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     for (Map.Entry<SIARDContent, HashMap<String, String>> entry : sql2008Type.entrySet()) {
       try {
         final List<String> errors = compareSQL2008DataTypeWithXMLType(entry.getKey(), entry.getValue());
@@ -442,11 +429,6 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateDistinctXMLDataTypeConversion() {
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     warnings = new ArrayList<>();
 
     for (Type type : types.values()) {
@@ -501,11 +483,6 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * 
    */
   private boolean validateArrayXMLDataTypeConversion() {
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     warnings.clear();
     skipped.clear();
     if (arrayType.isEmpty()) {
@@ -516,8 +493,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     for (Map.Entry<SIARDContent, HashMap<String, String>> entry : arrayType.entrySet()) {
       final String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(entry.getKey().getSchema(), entry.getKey().getTable());
       for (Map.Entry<String, String> column : entry.getValue().entrySet()) {
-        try {
-          final InputStream zipInputStream = getZipInputStream(XSDPath);
+        try (InputStream zipInputStream = zipFileManagerStrategy.getZipInputStream(path, XSDPath)) {
           final NodeList nodeList = (NodeList) XMLUtils.getXPathResult(zipInputStream,
             "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element[@name='" + column.getKey()
               + "']/xs:complexType/xs:sequence/xs:element",
@@ -551,11 +527,6 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    *
    */
   private boolean validateUDTXMLDataTypeConversion() {
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     warnings.clear();
     skipped.clear();
 
@@ -623,26 +594,22 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateNillableInformation() {
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
     observer.notifyComponent(P_437, ValidationReporterStatus.START);
 
     warnings.clear();
     int counter = 0;
 
-    try {
-      for (Map.Entry<SIARDContent, HashMap<String, String>> entry : numberOfNullable.entrySet()) {
-        String XMLPath = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(), entry.getKey().getTable());
-        observer.notifyElementValidating(P_437, XMLPath);
+    for (Map.Entry<SIARDContent, HashMap<String, String>> entry : numberOfNullable.entrySet()) {
+      String XMLPath = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(),
+        entry.getKey().getTable());
+      observer.notifyElementValidating(P_437, XMLPath);
 
-        XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(XMLPath));
+      try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, XMLPath)) {
+        XMLStreamReader streamReader = factory.createXMLStreamReader(is);
         HashMap<String, Integer> countColumnsMap = new HashMap<>();
-
         while (streamReader.hasNext()) {
           streamReader.next();
-          if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
+          if (streamReader.getEventType() == START_ELEMENT) {
             final String localName = streamReader.getLocalName();
             if (!localName.equals("row") && !localName.equals("table")) {
               updateCounter(countColumnsMap, localName);
@@ -667,11 +634,11 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
             }
           }
         }
-      }
 
-    } catch (XMLStreamException e) {
-      LOGGER.debug("Failed to validate {}", P_437, e);
-      return false;
+      } catch (IOException | XMLStreamException e) {
+        LOGGER.debug("Failed to validate {}", P_437, e);
+        return false;
+      }
     }
 
     if (counter != 0)
@@ -689,11 +656,6 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateColumnSequence() {
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     return true; // validateColumnCount() && validateDataTypeInformation();
   }
 
@@ -706,11 +668,6 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateFieldSequenceInTableXSD() {
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     for (Map.Entry<SIARDContent, HashMap<String, AdvancedOrStructuredColumn>> entry : advancedOrStructuredDataType
       .entrySet()) {
       for (Map.Entry<String, AdvancedOrStructuredColumn> advancedOrStructuredColumnEntry : entry.getValue()
@@ -719,8 +676,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         String xpathExpression = "count(/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element[@name='$1']/xs:complexType/xs:sequence/xs:element)";
         xpathExpression = xpathExpression.replace("$1", advancedOrStructuredColumnEntry.getKey());
 
-        try {
-          String result = (String) XMLUtils.getXPathResult(getZipInputStream(XSDPath), xpathExpression, XPathConstants.STRING,
+        try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, XSDPath)) {
+          String result = (String) XMLUtils.getXPathResult(is, xpathExpression, XPathConstants.STRING,
             Constants.NAMESPACE_FOR_TABLE);
           int count = Integer.parseInt(result);
           if (advancedOrStructuredColumnEntry.getValue().getFields().size() != count) {
@@ -748,11 +705,6 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateNumberOfLinesInATable() {
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     observer.notifyComponent(P_4310, ValidationReporterStatus.START);
     for (Map.Entry<SIARDContent, Integer> entry : numberOfRows.entrySet()) {
       String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(entry.getKey().getSchema(),
@@ -764,12 +716,12 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       observer.notifyElementValidating(P_4310, XMLPath);
 
       int rows = entry.getValue();
-      try {
-        XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(XMLPath));
+      try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, XMLPath)) {
+        XMLStreamReader streamReader = factory.createXMLStreamReader(is);
         int numberOfRowsInXMLFile = 0;
         while (streamReader.hasNext()) {
           streamReader.next();
-          if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
+          if (streamReader.getEventType() == START_ELEMENT) {
             if (streamReader.getLocalName().equals("row")) {
               numberOfRowsInXMLFile++;
             }
@@ -778,39 +730,40 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
 
         streamReader.close();
 
-        Node result = (Node) XMLUtils.getXPathResult(getZipInputStream(XSDPath),
-          "/xs:schema/xs:element[@name='table']/xs:complexType/xs:sequence/xs:element[@type='recordType']",
-          XPathConstants.NODE, Constants.NAMESPACE_FOR_TABLE);
-        String minOccursString = result.getAttributes().getNamedItem("minOccurs").getNodeValue();
-        String maxOccursString = result.getAttributes().getNamedItem("maxOccurs").getNodeValue();
+        try (InputStream inputStream = zipFileManagerStrategy.getZipInputStream(path, XSDPath)) {
+          Node result = (Node) XMLUtils.getXPathResult(inputStream,
+            "/xs:schema/xs:element[@name='table']/xs:complexType/xs:sequence/xs:element[@type='recordType']",
+            XPathConstants.NODE, Constants.NAMESPACE_FOR_TABLE);
+          String minOccursString = result.getAttributes().getNamedItem("minOccurs").getNodeValue();
+          String maxOccursString = result.getAttributes().getNamedItem("maxOccurs").getNodeValue();
 
-        /*
-         * The number of lines in a table in metadata.xml must fit into the area
-         * specified in the corresponding table[number].xsd.
-         */
-        int minOccurs = Integer.parseInt(minOccursString);
-        if (minOccurs < 0)
-          P_4310_ERRORS.add("The minOccurs attribute is negative at " + XSDPath);
+          /*
+           * The number of lines in a table in metadata.xml must fit into the area
+           * specified in the corresponding table[number].xsd.
+           */
+          int minOccurs = Integer.parseInt(minOccursString);
+          if (minOccurs < 0)
+            P_4310_ERRORS.add("The minOccurs attribute is negative at " + XSDPath);
 
-        if (rows < minOccurs)
-          P_4310_ERRORS
-            .add("The number of rows at " + XMLPath + " is less than defined by minOccurs attribute at " + XSDPath);
-
-        if (!maxOccursString.equals("unbounded")) {
-          int maxOccurs = Integer.parseInt(maxOccursString);
-          if (rows > maxOccurs)
+          if (rows < minOccurs)
             P_4310_ERRORS
-              .add("The number of rows at " + XMLPath + " is more than defined by maxOccurs attribute at " + XSDPath);
+              .add("The number of rows at " + XMLPath + " is less than defined by minOccurs attribute at " + XSDPath);
+
+          if (!maxOccursString.equals("unbounded")) {
+            int maxOccurs = Integer.parseInt(maxOccursString);
+            if (rows > maxOccurs)
+              P_4310_ERRORS
+                .add("The number of rows at " + XMLPath + " is more than defined by maxOccurs attribute at " + XSDPath);
+          }
+
+          /*
+           * The number of lines in a table in metadata.xml must be identical to the
+           * number of lines in the corresponding table[number].xml.
+           */
+          if (numberOfRowsInXMLFile != rows)
+            P_4310_ERRORS.add("The number of rows at " + XMLPath + " is not identical to "
+              + validatorPathStrategy.getMetadataXMLPath());
         }
-
-        /*
-         * The number of lines in a table in metadata.xml must be identical to the
-         * number of lines in the corresponding table[number].xml.
-         */
-        if (numberOfRowsInXMLFile != rows)
-          P_4310_ERRORS.add(
-            "The number of rows at " + XMLPath + " is not identical to " + validatorPathStrategy.getMetadataXMLPath());
-
       } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException
         | XMLStreamException e) {
         LOGGER.debug("Failed to validate {}", P_4310, e);
@@ -834,27 +787,22 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateNumberOfRows() {
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     observer.notifyComponent(A_P_4310, ValidationReporterStatus.START);
 
-    try {
-      // Count number of row element in table[number].xml
-      for (Map.Entry<SIARDContent, Integer> entry : numberOfRows.entrySet()) {
-        final String XMLPath = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(),
-          entry.getKey().getTable());
+    // Count number of row element in table[number].xml
+    for (Map.Entry<SIARDContent, Integer> entry : numberOfRows.entrySet()) {
+      final String XMLPath = validatorPathStrategy.getXMLTablePathFromFolder(entry.getKey().getSchema(),
+        entry.getKey().getTable());
 
-        observer.notifyElementValidating(A_P_4310, XMLPath);
+      observer.notifyElementValidating(A_P_4310, XMLPath);
 
-        XMLStreamReader streamReader = factory.createXMLStreamReader(getZipInputStream(XMLPath));
+      try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, XMLPath)) {
+        XMLStreamReader streamReader = factory.createXMLStreamReader(is);
         int count = 0;
         while (streamReader.hasNext()) {
           streamReader.next();
 
-          if (streamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
+          if (streamReader.getEventType() == START_ELEMENT) {
             if (streamReader.getLocalName().equals("row")) {
               count++;
             }
@@ -870,10 +818,11 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
           message = message.replace("$3", String.valueOf(entry.getValue()));
           A_P_4310_ERRORS.add(message);
         }
+
+      } catch (XMLStreamException | IOException e) {
+        LOGGER.debug("Failed to validate {}", "number of rows", e);
+        return false;
       }
-    } catch (XMLStreamException e) {
-      LOGGER.debug("Failed to validate {}", "number of rows", e);
-      return false;
     }
 
     return A_P_4310_ERRORS.isEmpty();
@@ -881,8 +830,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
 
   private void outputDifferentBlobsTypes() {
     NodeList result;
-    try {
-      result = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+    try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath())) {
+      result = (NodeList) XMLUtils.getXPathResult(is,
         "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column/ns:mimeType/text()",
         XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
     } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
@@ -934,18 +883,19 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
 
   private void getTypesFromMetadataXML()
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
-    NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
-      "/ns:siardArchive/ns:schemas/ns:schema",
+    InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath());
+    NodeList nodes = (NodeList) XMLUtils.getXPathResult(is, "/ns:siardArchive/ns:schemas/ns:schema",
       XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
     // Obtain Types
     for (int i = 0; i < nodes.getLength(); i++) {
       Element schema = (Element) nodes.item(i);
       String schemaName = schema.getElementsByTagName("name").item(0).getTextContent();
-      NodeList types = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+      InputStream inputStream = zipFileManagerStrategy.getZipInputStream(path,
+        validatorPathStrategy.getMetadataXMLPath());
+      NodeList types = (NodeList) XMLUtils.getXPathResult(inputStream,
         "/ns:siardArchive/ns:schemas/ns:schema[ns:name/text() = '" + schemaName + "']/ns:types/ns:type",
         XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
-
       for (int j = 0; j < types.getLength(); j++) {
         Element type = (Element) types.item(j);
         String name = type.getElementsByTagName("name").item(0).getTextContent();
@@ -973,7 +923,9 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         this.types.put(key, new Type(schemaName, name, category, underSchema, underType, instantiable, _final, base,
           attributes, description));
       }
+      inputStream.close();
     }
+    is.close();
   }
 
   private List<Attribute> getAttributesFromType(Element element, String category) {
@@ -1040,9 +992,10 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
 
   private void obtainSQL2008TypeForEachColumn()
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
-    NodeList resultNodes = (NodeList) XMLUtils.getXPathResult(
-      getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), "/ns:siardArchive/ns:schemas/ns:schema",
+    InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath());
+    NodeList resultNodes = (NodeList) XMLUtils.getXPathResult(is, "/ns:siardArchive/ns:schemas/ns:schema",
       XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+    is.close();
     for (int i = 0; i < resultNodes.getLength(); i++) {
       Element schema = (Element) resultNodes.item(i);
       String schemaName = schema.getElementsByTagName("name").item(0).getTextContent();
@@ -1090,7 +1043,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         numberOfNullable.put(content, nullableMap);
         numberOfRows.put(content, Integer.parseInt(rows));
       }
-    }
+      }
   }
 
   private String calculateKey(int number) {
@@ -1124,16 +1077,18 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     xpathExpression = xpathExpression.replace("$2", tableName);
     xpathExpression = xpathExpression.replace("$3", columnName);
 
-    final NodeList resultNodes = (NodeList) XMLUtils.getXPathResult(
-      getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), xpathExpression,
-      XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+    try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath())) {
 
-    for (int l = 0; l < resultNodes.getLength(); l++) {
-      Element element = (Element) resultNodes.item(l);
-      fields.add(getField(element, xpathExpression));
+      final NodeList resultNodes = (NodeList) XMLUtils.getXPathResult(is, xpathExpression, XPathConstants.NODESET,
+        Constants.NAMESPACE_FOR_METADATA);
+
+      for (int l = 0; l < resultNodes.getLength(); l++) {
+        Element element = (Element) resultNodes.item(l);
+        fields.add(getField(element, xpathExpression));
+      }
+
+      return new AdvancedOrStructuredColumn(columnName, typeSchema, typeName, fields);
     }
-
-    return new AdvancedOrStructuredColumn(columnName, typeSchema, typeName, fields);
   }
 
   private Field getField(Element item, String xpathExpression)
@@ -1146,21 +1101,23 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
 
     String concat = xpathExpression.concat("[ns:name/text()='$1']/ns:fields/ns:field");
     concat = concat.replace("$1", name);
-    final NodeList fields = (NodeList) XMLUtils.getXPathResult(
-      getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), concat,
-      XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
-    for (int l = 0; l < fields.getLength(); l++) {
-      Element element = (Element) fields.item(l);
-      field.addFieldToList(getField(element, concat));
-    }
 
-    return field;
+    try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath())) {
+      final NodeList fields = (NodeList) XMLUtils.getXPathResult(is, concat, XPathConstants.NODESET,
+        Constants.NAMESPACE_FOR_METADATA);
+      for (int l = 0; l < fields.getLength(); l++) {
+        Element element = (Element) fields.item(l);
+        field.addFieldToList(getField(element, concat));
+      }
+
+      return field;
+    }
   }
 
   private List<String> compareSQL2008DataTypeWithXMLType(SIARDContent content, String column, HashMap<String, String> map)
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
     List<String> errors = new ArrayList<>();
-    String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(content.getSchema(), content.getTable());
+    String xsdPath = validatorPathStrategy.getXSDTablePathFromFolder(content.getSchema(), content.getTable());
     String xpathExpression;
     for (Map.Entry<String, String> entry : map.entrySet()) {
       final String key = entry.getKey();
@@ -1180,11 +1137,13 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       }
       xpathExpression = xpathExpression.concat("/@type");
 
-      String XMLType = (String) XMLUtils.getXPathResult(getZipInputStream(XSDPath), xpathExpression,
-        XPathConstants.STRING, Constants.NAMESPACE_FOR_TABLE);
+      try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, xsdPath)) {
+        String xmlType = (String) XMLUtils.getXPathResult(is, xpathExpression, XPathConstants.STRING,
+          Constants.NAMESPACE_FOR_TABLE);
 
-      if (!validateSQL2008TypeWithXMLType(entry.getValue(), XMLType)) {
-        errors.add(obtainErrorMessage(entry.getValue(), XMLType, key, XSDPath));
+        if (!validateSQL2008TypeWithXMLType(entry.getValue(), xmlType)) {
+          errors.add(obtainErrorMessage(entry.getValue(), xmlType, key, xsdPath));
+        }
       }
     }
 
@@ -1194,27 +1153,31 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
   private List<String> compareSQL2008DataTypeWithXMLType(SIARDContent content, HashMap<String, String> map)
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
     List<String> errors = new ArrayList<>();
-    String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(content.getSchema(), content.getTable());
-    final NodeList nodeList = (NodeList) XMLUtils.getXPathResult(getZipInputStream(XSDPath),
-      "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element", XPathConstants.NODESET, null);
-    for (int i = 0; i < nodeList.getLength(); i++) {
-      String XMLType;
-      final Node item = nodeList.item(i);
-      if (item.getAttributes().getNamedItem("type") != null) {
-        XMLType = item.getAttributes().getNamedItem("type").getNodeValue();
-      } else {
-        XMLType = null;
-      }
+    String xsdPath = validatorPathStrategy.getXSDTablePathFromFolder(content.getSchema(), content.getTable());
+    try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, xsdPath)) {
 
-      String columnName = item.getAttributes().getNamedItem("name").getNodeValue();
-      if (map.get(columnName) != null) {
-        if (!validateSQL2008TypeWithXMLType(map.get(columnName), XMLType)) {
-          errors.add(obtainErrorMessage(map.get(columnName), XMLType, columnName, XSDPath));
+      final NodeList nodeList = (NodeList) XMLUtils.getXPathResult(is,
+        "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element", XPathConstants.NODESET, null);
+
+      for (int i = 0; i < nodeList.getLength(); i++) {
+        String xmltype;
+        final Node item = nodeList.item(i);
+        if (item.getAttributes().getNamedItem("type") != null) {
+          xmltype = item.getAttributes().getNamedItem("type").getNodeValue();
+        } else {
+          xmltype = null;
+        }
+
+        String columnName = item.getAttributes().getNamedItem("name").getNodeValue();
+        if (map.get(columnName) != null) {
+          if (!validateSQL2008TypeWithXMLType(map.get(columnName), xmltype)) {
+            errors.add(obtainErrorMessage(map.get(columnName), xmltype, columnName, xsdPath));
+          }
         }
       }
-    }
 
-    return errors;
+      return errors;
+    }
   }
 
   private String obtainErrorMessage(String SQL2008Type, String XMLType, String column, String file) {
@@ -1243,7 +1206,11 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
   }
 
   private boolean checkRelativePathExists(final String pathToValidate) {
-    for (String pathInZip : getZipFileNames()) {
+    final List<String> zipArchiveEntriesPath = zipFileManagerStrategy.getZipArchiveEntriesPath(path);
+    if (zipArchiveEntriesPath == null) {
+      return false;
+    }
+    for (String pathInZip : zipArchiveEntriesPath) {
       if (pathInZip.contains(pathToValidate)) {
         return true;
       }

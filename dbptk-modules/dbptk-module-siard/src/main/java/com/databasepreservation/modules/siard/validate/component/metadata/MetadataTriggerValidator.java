@@ -8,7 +8,12 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
-import java.util.*;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
@@ -53,7 +58,6 @@ public class MetadataTriggerValidator extends MetadataValidator {
   private List<String> actionTimeList = new ArrayList<>();
   private List<String> eventList = new ArrayList<>();
   private Set<String> checkDuplicates = new HashSet<>();
-  private List<Element> triggerList = new ArrayList<>();
 
   public MetadataTriggerValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
@@ -62,18 +66,21 @@ public class MetadataTriggerValidator extends MetadataValidator {
   }
 
   @Override
+  public void clean() {
+    actionTimeList.clear();
+    eventList.clear();
+    checkDuplicates.clear();
+    zipFileManagerStrategy.closeZipFile();
+  }
+
+  @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_513);
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     getValidationReporter().moduleValidatorHeader(M_513, MODULE_NAME);
 
     NodeList nodes;
-    try {
-      nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+    try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath())) {
+      nodes = (NodeList) XMLUtils.getXPathResult(is,
         "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:triggers/ns:trigger", XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
@@ -121,8 +128,6 @@ public class MetadataTriggerValidator extends MetadataValidator {
 
     validateTriggerDescription(nodes);
     validationOk(MODULE_NAME, A_M_513_1_6);
-
-    closeZipFile();
 
     return reportValidations(MODULE_NAME);
   }

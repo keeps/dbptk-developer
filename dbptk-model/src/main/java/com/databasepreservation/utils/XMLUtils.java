@@ -193,7 +193,6 @@ public class XMLUtils {
     XPath xpath = xPathFactory.newXPath();
     xpath = setXPath(xpath, type);
     XPathExpression expression = xpath.compile(xpathExpression);
-    inputStream.close();
 
     return expression.evaluate(document, constants);
   }

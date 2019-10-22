@@ -8,6 +8,7 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,22 +57,26 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
   }
 
   @Override
+  public void clean() {
+    zipFileManagerStrategy.closeZipFile();
+  }
+
+  @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_51);
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
 
     getValidationReporter().moduleValidatorHeader(M_51, MODULE_NAME);
 
     NodeList nodes;
     String version;
-    try {
-      nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+    try (
+      InputStream isNodes = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath());
+      InputStream isVersion = zipFileManagerStrategy.getZipInputStream(path,
+        validatorPathStrategy.getMetadataXMLPath())) {
+      nodes = (NodeList) XMLUtils.getXPathResult(isNodes,
         "/ns:siardArchive", XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
-      version = (String) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+      version = (String) XMLUtils.getXPathResult(isVersion,
         "/ns:siardArchive/@version", XPathConstants.STRING, Constants.NAMESPACE_FOR_METADATA);
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       String errorMessage = "Unable to read database info from SIARD file";
@@ -145,8 +150,6 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
     } else {
       observer.notifyValidationStep(MODULE_NAME, M_511_17, ValidationReporterStatus.ERROR);
     }
-
-    closeZipFile();
 
     return reportValidations(MODULE_NAME);
   }

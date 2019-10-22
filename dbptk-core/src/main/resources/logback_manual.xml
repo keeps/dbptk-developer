@@ -36,7 +36,7 @@
             <!-- each file should be at most 35MB, keep 50 days worth of history, but at most 350MB -->
             <maxFileSize>35MB</maxFileSize>
             <maxHistory>50</maxHistory>
-            <totalSizeCap>350MB</totalSizeCap>
+            <totalSizeCap>20GB</totalSizeCap>
         </rollingPolicy>
     </appender>
 

@@ -8,6 +8,7 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -49,23 +50,26 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
   }
 
   @Override
+  public void clean() {
+    zipFileManagerStrategy.closeZipFile();
+  }
+
+  @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_511);
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
 
     getValidationReporter().moduleValidatorHeader(M_511, MODULE_NAME);
 
     NodeList tables;
     NodeList keys;
-    try {
-      tables = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+    try (
+      InputStream isTables = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath());
+      InputStream isKeys = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath())) {
+      tables = (NodeList) XMLUtils.getXPathResult(isTables,
         "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table", XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
 
-      keys = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+      keys = (NodeList) XMLUtils.getXPathResult(isKeys,
         "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:candidateKeys/ns:candidateKey",
         XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
@@ -108,8 +112,6 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
 
     validateCandidateKeyDescription(keys);
     validationOk(MODULE_NAME, A_M_511_1_3);
-
-    closeZipFile();
 
     return reportValidations(MODULE_NAME);
   }

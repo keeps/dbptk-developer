@@ -8,6 +8,7 @@
 package com.databasepreservation.modules.siard.validate.component.tableData;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -43,9 +44,12 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
   private static final String P_612 = "T_6.1-2";
   private static final String P_613 = "T_6.1-3";
   private static final String P_614 = "T_6.1-4";
+  private List<String> zipArchiveEntriesPath;
 
   @Override
   public void clean() {
+    zipArchiveEntriesPath.clear();
+    zipFileManagerStrategy.closeZipFile();
   }
 
   public TableSchemaDefinitionValidator(String moduleName) {
@@ -54,12 +58,9 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
 
   @Override
   public boolean validate() throws ModuleException {
-    observer.notifyStartValidationModule(MODULE_NAME, P_61);
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
+    zipArchiveEntriesPath = zipFileManagerStrategy.getZipArchiveEntriesPath(path);
 
+    observer.notifyStartValidationModule(MODULE_NAME, P_61);
     getValidationReporter().moduleValidatorHeader(P_61, MODULE_NAME);
 
     if (validateXMLSchemaDefinition()) {
@@ -69,7 +70,6 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
       observer.notifyValidationStep(MODULE_NAME, P_611, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.ERROR);
-      closeZipFile();
       return false;
     }
 
@@ -80,7 +80,6 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
       observer.notifyValidationStep(MODULE_NAME, P_612, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.ERROR);
-      closeZipFile();
       return false;
     }
 
@@ -91,7 +90,6 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
       observer.notifyValidationStep(MODULE_NAME, P_613, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.FAILED);
-      closeZipFile();
       return false;
     }
 
@@ -102,13 +100,11 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
       observer.notifyValidationStep(MODULE_NAME, P_614, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.FAILED);
-      closeZipFile();
       return false;
     }
 
     observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.PASSED);
     getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.PASSED);
-    closeZipFile();
 
     return true;
   }
@@ -122,13 +118,9 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateXMLSchemaDefinition() {
-    if (preValidationRequirements())
-      return false;
-
     boolean valid = true;
     List<SIARDContent> tableData = new ArrayList<>();
-
-    for (String zipFileName : getZipFileNames()) {
+    for (String zipFileName : zipArchiveEntriesPath) {
       String regexPattern = "^(content/(schema[0-9]+)/(table[0-9]+)/table[0-9]+)\\.xml$";
 
       Pattern pattern = Pattern.compile(regexPattern);
@@ -141,7 +133,7 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
 
     for (SIARDContent content : tableData) {
       final String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(content.getSchema(),content.getTable());
-      if (!getZipFileNames().contains(XSDPath)) {
+      if (!zipArchiveEntriesPath.contains(XSDPath)) {
         getValidationReporter().validationStatus(P_611, ValidationReporterStatus.ERROR,
           "There must be an XML schema definition for each table that indicates the XML storage format of the table data.",
           validatorPathStrategy.getXMLTablePathFromFolder(content.getSchema(), content.getTable()));
@@ -169,23 +161,21 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateColumnsTag() {
-    if (preValidationRequirements())
-      return false;
-
     boolean valid = true;
 
-    for (String zipFileName : getZipFileNames()) {
+    for (String zipFileName : zipArchiveEntriesPath) {
       String regexPattern = "^(content/schema[0-9]+/table[0-9]+/table[0-9]+)\\.xsd$";
 
       if (zipFileName.matches(regexPattern)) {
-        try {
-          String rowName = (String) XMLUtils.getXPathResult(getZipInputStream(zipFileName),
+        try (InputStream is = zipFileManagerStrategy.getZipInputStream(this.path, zipFileName);
+             InputStream inputStream = zipFileManagerStrategy.getZipInputStream(this.path, zipFileName)) {
+          String rowName = (String) XMLUtils.getXPathResult(is,
             "/xs:schema/xs:element[@name='table']/xs:complexType/xs:sequence/xs:element/@name", XPathConstants.STRING,
             Constants.NAMESPACE_FOR_TABLE);
           if (StringUtils.isNotBlank(rowName) && !rowName.equals("row"))
             return false;
 
-          NodeList resultNodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(zipFileName),
+          NodeList resultNodes = (NodeList) XMLUtils.getXPathResult(inputStream,
             "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element", XPathConstants.NODESET,
             Constants.NAMESPACE_FOR_TABLE);
 
@@ -199,6 +189,7 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
             }
           }
         } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+          LOGGER.debug("Failed to validate {} at {}", P_612, MODULE_NAME);
           return false;
         }
       }
@@ -218,17 +209,14 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateXMLSchemaStandardTypes() {
-    if (preValidationRequirements())
-      return false;
-
     boolean valid = true;
 
-    for (String zipFileName : getZipFileNames()) {
+    for (String zipFileName : zipArchiveEntriesPath) {
       String regexPattern = "^(content/schema[0-9]+/table[0-9]+/table[0-9]+)\\.xsd$";
 
       if (zipFileName.matches(regexPattern)) {
-        try {
-          NodeList resultNodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(zipFileName),
+        try (InputStream is = zipFileManagerStrategy.getZipInputStream(this.path, zipFileName)) {
+          NodeList resultNodes = (NodeList) XMLUtils.getXPathResult(is,
             "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element/@type", XPathConstants.NODESET,
             Constants.NAMESPACE_FOR_TABLE);
 
@@ -245,6 +233,7 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
             }
           }
         } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+          LOGGER.debug("Failed to validate {} at {}", P_613, MODULE_NAME);
           return false;
         }
       }
@@ -266,17 +255,14 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateAdvancedOrStructuredType() {
-    if (preValidationRequirements())
-      return false;
-
     boolean valid = true;
 
-    for (String zipFileName : getZipFileNames()) {
+    for (String zipFileName : zipArchiveEntriesPath) {
       String regexPattern = "^(content/schema[0-9]+/table[0-9]+/table[0-9]+)\\.xsd$";
 
       if (zipFileName.matches(regexPattern)) {
-        try {
-          NodeList resultNodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(zipFileName),
+        try (InputStream is = zipFileManagerStrategy.getZipInputStream(this.path, zipFileName)) {
+          NodeList resultNodes = (NodeList) XMLUtils.getXPathResult(is,
             "/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element[not(@type)]/@name",
             XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
 
@@ -310,25 +296,28 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
       xpathExpression = xpathExpression.replace("$1", userDefinedColumnName);
     }
 
-    NodeList result = (NodeList) XMLUtils.getXPathResult(getZipInputStream(zipFileName), xpathExpression,
-      XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
-    for (int i = 0; i < result.getLength(); i++) {
-      final Node type = result.item(i).getAttributes().getNamedItem("type");
-      final String name = result.item(i).getAttributes().getNamedItem("name").getNodeValue();;
-      if (type == null) {
-        checkAdvancedOrStructuredSequence(zipFileName, xpathExpression, name);
-      }
+    try (InputStream is = zipFileManagerStrategy.getZipInputStream(this.path, zipFileName)) {
+      NodeList result = (NodeList) XMLUtils.getXPathResult(is, xpathExpression,
+              XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
+      for (int i = 0; i < result.getLength(); i++) {
+        final Node type = result.item(i).getAttributes().getNamedItem("type");
+        final String name = result.item(i).getAttributes().getNamedItem("name").getNodeValue();
+        ;
+        if (type == null) {
+          checkAdvancedOrStructuredSequence(zipFileName, xpathExpression, name);
+        }
 
-      if (!validateSequence(name, "^a[0-9]+$", i+1)) {
-        if (!validateSequence(name, "u[0-9]+$", i+1)) {
-          valid = false;
-          getValidationReporter().validationStatus(P_614, ValidationReporterStatus.ERROR,
-            "Multiple cell values of advanced or structured types are to be stored as separate elements inside the cell tags.",
-            "Invalid cell tag at " + zipFileName);
+        if (!validateSequence(name, "^a[0-9]+$", i + 1)) {
+          if (!validateSequence(name, "u[0-9]+$", i + 1)) {
+            valid = false;
+            getValidationReporter().validationStatus(P_614, ValidationReporterStatus.ERROR,
+                    "Multiple cell values of advanced or structured types are to be stored as separate elements inside the cell tags.",
+                    "Invalid cell tag at " + zipFileName);
+          }
         }
       }
+      return valid;
     }
-    return valid;
   }
 
   private boolean validateSequence(String name, String regex, int sequenceValue) {

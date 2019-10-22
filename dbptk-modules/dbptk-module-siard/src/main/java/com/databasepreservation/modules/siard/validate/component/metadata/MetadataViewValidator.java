@@ -8,9 +8,8 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.io.InputStream;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -46,25 +45,25 @@ public class MetadataViewValidator extends MetadataValidator {
   private static final int MIN_COLUMN_COUNT = 1;
 
   private Set<String> checkDuplicates = new HashSet<>();
-  private List<Element> viewList = new ArrayList<>();
 
   public MetadataViewValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
   }
 
   @Override
+  public void clean() {
+    checkDuplicates.clear();
+    zipFileManagerStrategy.closeZipFile();
+  }
+
+  @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_514);
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     getValidationReporter().moduleValidatorHeader(M_514, MODULE_NAME);
 
     NodeList nodes;
-    try {
-      nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+    try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath())) {
+      nodes = (NodeList) XMLUtils.getXPathResult(is,
         "/ns:siardArchive/ns:schemas/ns:schema/ns:views/ns:view", XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
@@ -103,8 +102,6 @@ public class MetadataViewValidator extends MetadataValidator {
 
     validateAttributeDescription(nodes);
     validationOk(MODULE_NAME, A_M_514_1_5);
-
-    closeZipFile();
 
     return reportValidations(MODULE_NAME);
   }

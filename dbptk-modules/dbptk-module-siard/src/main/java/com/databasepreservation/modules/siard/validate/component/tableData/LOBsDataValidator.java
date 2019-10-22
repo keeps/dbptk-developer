@@ -34,16 +34,10 @@ public class LOBsDataValidator extends ValidatorComponentImpl {
   @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, P_62);
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     getValidationReporter().moduleValidatorHeader(P_62, MODULE_NAME);
 
     observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.PASSED);
     getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.PASSED);
-    closeZipFile();
 
     return true;
   }

@@ -54,12 +54,14 @@ public class MetadataColumnsValidator extends MetadataValidator {
   }
 
   @Override
+  public void clean() {
+    typeOriginalSet.clear();
+    zipFileManagerStrategy.closeZipFile();
+  }
+
+  @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_56);
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
 
     getValidationReporter().moduleValidatorHeader(M_56, MODULE_NAME);
 
@@ -68,12 +70,16 @@ public class MetadataColumnsValidator extends MetadataValidator {
 
     NodeList columns;
     NodeList tables;
-    try {
-      columns = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+    try (
+      InputStream isColumns = zipFileManagerStrategy.getZipInputStream(path,
+        validatorPathStrategy.getMetadataXMLPath());
+      InputStream isTables = zipFileManagerStrategy.getZipInputStream(path,
+        validatorPathStrategy.getMetadataXMLPath())) {
+      columns = (NodeList) XMLUtils.getXPathResult(isColumns,
         "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column", XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
 
-      tables = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+      tables = (NodeList) XMLUtils.getXPathResult(isTables,
         "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table", XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
 
@@ -106,8 +112,6 @@ public class MetadataColumnsValidator extends MetadataValidator {
 
     validateColumnDescription(columns);
     validationOk(MODULE_NAME, A_M_561_12);
-
-    closeZipFile();
 
     return reportValidations(MODULE_NAME);
   }
@@ -193,16 +197,15 @@ public class MetadataColumnsValidator extends MetadataValidator {
       return false;
     }
 
-    try {
+    try (InputStream is = zipFileManagerStrategy.getZipInputStream(this.path,
+      validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder))) {
       XMLInputFactory factory = XMLInputFactory.newInstance();
-      InputStream zipInputStream = getZipInputStream(
-        validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder));
-      if (zipInputStream == null) {
+      if (is == null) {
         throw new XMLFileNotFoundException(
           "Missing XML file " + validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder));
       }
 
-      XMLStreamReader streamReader = factory.createXMLStreamReader(zipInputStream);
+      XMLStreamReader streamReader = factory.createXMLStreamReader(is);
 
       // Used XMLStreamReader because xPath doesn't work well with files over 1gb
       int rowNumber = 0;
@@ -217,7 +220,7 @@ public class MetadataColumnsValidator extends MetadataValidator {
               if (!fileName.isEmpty()) {
                 if (Paths.get(fileName).getName(0).toString().equals(Constants.SIARD_CONTENT_FOLDER)) {
                   // Internal LOB
-                  if (getZipFile().getEntry(fileName) == null) {
+                  if (zipFileManagerStrategy.getZipArchiveEntry(this.path, fileName) == null) {
                     setError(A_M_561_2, String.format("not found record '%s' required by '%s'", fileName, String
                       .format("%s [row: %s column: %s]", pathToTableColumn, Integer.toString(rowNumber), column)));
                     hasErrors = true;

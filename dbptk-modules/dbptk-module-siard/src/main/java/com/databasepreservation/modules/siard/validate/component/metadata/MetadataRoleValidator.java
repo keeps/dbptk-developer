@@ -8,6 +8,7 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -52,24 +53,34 @@ public class MetadataRoleValidator extends MetadataValidator {
   }
 
   @Override
+  public void clean() {
+    checkDuplicates.clear();
+    users = null;
+    roles = null;
+    zipFileManagerStrategy.closeZipFile();
+  }
+
+  @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_518);
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
 
     getValidationReporter().moduleValidatorHeader(M_518, MODULE_NAME);
 
     NodeList nodes;
-    try {
-      users = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+    try (
+      InputStream usersInputStream = zipFileManagerStrategy.getZipInputStream(path,
+        validatorPathStrategy.getMetadataXMLPath());
+      InputStream rolesInputStream = zipFileManagerStrategy.getZipInputStream(path,
+        validatorPathStrategy.getMetadataXMLPath());
+      InputStream nodesInputStream = zipFileManagerStrategy.getZipInputStream(path,
+        validatorPathStrategy.getMetadataXMLPath());) {
+      users = (NodeList) XMLUtils.getXPathResult(usersInputStream,
         "/ns:siardArchive/ns:users/ns:user/ns:name", XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
-      roles = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+      roles = (NodeList) XMLUtils.getXPathResult(rolesInputStream,
         "/ns:siardArchive/ns:roles/ns:role/ns:name", XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
-      nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+      nodes = (NodeList) XMLUtils.getXPathResult(nodesInputStream,
         "/ns:siardArchive/ns:roles/ns:role", XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       String errorMessage = "Unable to read roles from SIARD file";
@@ -109,8 +120,6 @@ public class MetadataRoleValidator extends MetadataValidator {
 
     validateRoleDescription(nodes);
     validationOk(MODULE_NAME, A_M_518_1_3);
-
-    closeZipFile();
 
     return reportValidations(MODULE_NAME);
   }

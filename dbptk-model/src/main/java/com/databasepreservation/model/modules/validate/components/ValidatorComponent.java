@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.databasepreservation.common.ValidationObserver;
 import com.databasepreservation.common.ValidatorPathStrategy;
+import com.databasepreservation.common.ZipFileManagerStrategy;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.reporters.ValidationReporter;
@@ -24,6 +25,8 @@ public interface ValidatorComponent {
   void setSIARDPath(Path path);
 
   void setReporter(Reporter reporter);
+
+  void setZipFileManager(ZipFileManagerStrategy manager);
 
   boolean validate() throws ModuleException;
 

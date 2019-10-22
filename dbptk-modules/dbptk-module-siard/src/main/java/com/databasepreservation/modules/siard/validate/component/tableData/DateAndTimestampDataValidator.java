@@ -8,6 +8,8 @@
 package com.databasepreservation.modules.siard.validate.component.tableData;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
@@ -44,16 +46,12 @@ public class DateAndTimestampDataValidator extends ValidatorComponentImpl {
 
   @Override
   public void clean() {
+    zipFileManagerStrategy.closeZipFile();
   }
 
   @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, P_63);
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     getValidationReporter().moduleValidatorHeader(P_63, MODULE_NAME);
 
     if (validateDatesAndTimestamps()) {
@@ -63,13 +61,11 @@ public class DateAndTimestampDataValidator extends ValidatorComponentImpl {
       observer.notifyValidationStep(MODULE_NAME, P_631, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.FAILED);
-      closeZipFile();
       return false;
     }
 
     observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.PASSED);
     getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.PASSED);
-    closeZipFile();
 
     return true;
   }
@@ -84,18 +80,18 @@ public class DateAndTimestampDataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateDatesAndTimestamps() {
-    if (preValidationRequirements())
-      return false;
-
     boolean valid = true;
 
-    for (String zipFileName : getZipFileNames()) {
+    final List<String> zipArchiveEntriesPath = zipFileManagerStrategy.getZipArchiveEntriesPath(path);
+
+    for (String zipFileName : zipArchiveEntriesPath) {
       String regexPattern = "^(content/schema[0-9]+/table[0-9]+/table[0-9]+)\\.xsd$";
 
       if (zipFileName.matches(regexPattern)) {
-        try {
+        try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, zipFileName);
+          InputStream dateTimeInputStream = zipFileManagerStrategy.getZipInputStream(path, zipFileName);) {
 
-          NodeList dateTypeNodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(zipFileName),
+          NodeList dateTypeNodes = (NodeList) XMLUtils.getXPathResult(is,
             "//xs:element[@type='dateType']", XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
           if (dateTypeNodes.getLength() > 1) {
             final String dateTypeMinXPathExpression = "/xs:schema/xs:simpleType[@name='dateType']/xs:restriction/xs:minInclusive/@value";
@@ -109,7 +105,7 @@ public class DateAndTimestampDataValidator extends ValidatorComponentImpl {
             }
           }
 
-          NodeList dateTimeTypeNodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(zipFileName),
+          NodeList dateTimeTypeNodes = (NodeList) XMLUtils.getXPathResult(dateTimeInputStream,
             "//xs:element[@type='dateTimeType']", XPathConstants.NODESET, Constants.NAMESPACE_FOR_TABLE);
           if (dateTimeTypeNodes.getLength() > 1) {
             final String dateTimeTypeMinXPathExpression = "/xs:schema/xs:simpleType[@name='dateTimeType']/xs:restriction/xs:minInclusive/@value";
@@ -135,13 +131,16 @@ public class DateAndTimestampDataValidator extends ValidatorComponentImpl {
   private boolean validateDateType(String zipFileName, String minXPathExpression, String maxXPathExpression,
     String minRegex, String maxRegex)
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
-    String min = (String) XMLUtils.getXPathResult(getZipInputStream(zipFileName), minXPathExpression,
-      XPathConstants.STRING, Constants.NAMESPACE_FOR_TABLE);
-    String max = (String) XMLUtils.getXPathResult(getZipInputStream(zipFileName), maxXPathExpression,
-      XPathConstants.STRING, Constants.NAMESPACE_FOR_TABLE);
+    try (InputStream minInputStream = zipFileManagerStrategy.getZipInputStream(path, zipFileName);
+      InputStream maxInputStream = zipFileManagerStrategy.getZipInputStream(path, zipFileName)) {
+      String min = (String) XMLUtils.getXPathResult(minInputStream, minXPathExpression, XPathConstants.STRING,
+        Constants.NAMESPACE_FOR_TABLE);
+      String max = (String) XMLUtils.getXPathResult(maxInputStream, maxXPathExpression, XPathConstants.STRING,
+        Constants.NAMESPACE_FOR_TABLE);
 
-    if (!min.matches(minRegex))
-      return false;
-    return max.matches(maxRegex);
+      if (!min.matches(minRegex))
+        return false;
+      return max.matches(maxRegex);
+    }
   }
 }

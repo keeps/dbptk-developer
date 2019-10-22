@@ -8,6 +8,7 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -60,24 +61,32 @@ public class MetadataReferenceValidator extends MetadataValidator {
   }
 
   @Override
+  public void clean() {
+    foreignKeyList.clear();
+    tableList.clear();
+    SQLTypeList.clear();
+    tableColumnsList.clear();
+    primaryKeyList.clear();
+    candidateKeyList.clear();
+    zipFileManagerStrategy.closeZipFile();
+  }
+
+  @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_510);
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     getValidationReporter().moduleValidatorHeader(M_510, MODULE_NAME);
 
     NodeList references;
     NodeList nodes;
 
-    try {
-      nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+    try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath());
+      InputStream referencesInputStream = zipFileManagerStrategy.getZipInputStream(path,
+        validatorPathStrategy.getMetadataXMLPath())) {
+      nodes = (NodeList) XMLUtils.getXPathResult(is,
         "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table", XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
 
-      references = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+      references = (NodeList) XMLUtils.getXPathResult(referencesInputStream,
         "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:foreignKeys/ns:foreignKey/ns:reference",
         XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
@@ -137,8 +146,6 @@ public class MetadataReferenceValidator extends MetadataValidator {
     } else {
       observer.notifyValidationStep(MODULE_NAME, A_M_510_1_2, ValidationReporterStatus.ERROR);
     }
-
-    closeZipFile();
 
     return reportValidations(MODULE_NAME);
   }

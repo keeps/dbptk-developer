@@ -22,6 +22,8 @@ import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -29,6 +31,7 @@ import org.xml.sax.SAXException;
 import com.databasepreservation.Constants;
 import com.databasepreservation.common.ValidationObserver;
 import com.databasepreservation.common.ValidatorPathStrategy;
+import com.databasepreservation.common.ZipFileManagerStrategy;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.validate.components.ValidatorComponent;
@@ -40,12 +43,13 @@ import com.databasepreservation.utils.XMLUtils;
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 public abstract class ValidatorComponentImpl implements ValidatorComponent {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ValidatorComponentImpl.class);
+
   protected Path path = null;
   private Reporter reporter = null;
   protected ValidationObserver observer = null;
   private ValidationReporter validationReporter = null;
-  private ZipFile zipFile = null;
-  private List<String> zipFileNames = null;
+  protected ZipFileManagerStrategy zipFileManagerStrategy = null;
   protected ValidatorPathStrategy validatorPathStrategy = null;
   protected List<String> allowedUDTs = null;
 
@@ -97,6 +101,13 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
   }
 
   @Override
+  public void setZipFileManager(ZipFileManagerStrategy manager) {
+    if (this.zipFileManagerStrategy == null) {
+      this.zipFileManagerStrategy = manager;
+    }
+  }
+
+  @Override
   public void clean() {
     // Do nothing override
   }
@@ -136,77 +147,6 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
     validationReporter.moduleValidatorFinished(moduleName, ValidationReporterStatus.FAILED);
   }
 
-  protected ZipFile getZipFile() {
-    return zipFile;
-  }
-
-  protected List<String> getZipFileNames() {
-    return zipFileNames;
-  }
-
-  private void importZipFile() throws IOException {
-    if (zipFile == null)
-      zipFile = new ZipFile(path.toFile());
-  }
-
-  protected InputStream getZipInputStream(final String fileName) {
-    try {
-      if (this.zipFile == null) {
-        importZipFile();
-      }
-      final ZipArchiveEntry entry = this.zipFile.getEntry(fileName);
-      return this.zipFile.getInputStream(entry);
-    } catch (IOException e) {
-      return null;
-    }
-  }
-
-  protected void closeZipFile() throws ModuleException {
-    if (zipFile != null) {
-      try {
-        zipFile.close();
-      } catch (IOException e) {
-        throw new ModuleException().withCause(e.getCause()).withMessage("Error trying to close the SIARD file");
-      }
-      zipFile = null;
-    }
-  }
-
-  private void retrieveFilesInsideZip() throws IOException {
-    this.zipFileNames = new ArrayList<>();
-    if (this.zipFile == null) {
-      importZipFile();
-    }
-    final Enumeration<ZipArchiveEntry> entries = this.zipFile.getEntries();
-    while (entries.hasMoreElements()) {
-      this.zipFileNames.add(entries.nextElement().getName());
-    }
-  }
-
-  protected boolean preValidationRequirements() {
-    if (path == null) {
-      return true;
-    }
-
-    if (this.zipFile == null) {
-      try {
-        importZipFile();
-      } catch (IOException e) {
-        return true;
-      }
-    }
-
-    if (this.zipFileNames == null) {
-      try {
-        retrieveFilesInsideZip();
-      } catch (IOException e) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
   /**
    * Lazy loading, needs the validatorPathStrategy otherwise it will throw a
    * nullPointerException
@@ -226,11 +166,10 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
   }
 
   private boolean registerSchemaAndTables() throws ModuleException {
-    final InputStream zipInputStream = getZipInputStream(validatorPathStrategy.getMetadataXMLPath());
-    if (zipInputStream == null) {
-      return false;
-    }
+    InputStream zipInputStream = null;
     try {
+      zipInputStream = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath());
+
       NodeList result = (NodeList) XMLUtils.getXPathResult(zipInputStream, "/ns:siardArchive/ns:schemas/ns:schema",
         XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
@@ -239,8 +178,8 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
         String schemaName = element.getElementsByTagName("name").item(0).getTextContent();
         String schemaFolder = element.getElementsByTagName("folder").item(0).getTextContent();
         validatorPathStrategy.registerSchema(schemaName, schemaFolder);
-        NodeList tables = (NodeList) XMLUtils.getXPathResult(
-          getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+        InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath());
+        NodeList tables = (NodeList) XMLUtils.getXPathResult(is,
           "/ns:siardArchive/ns:schemas/ns:schema[ns:name/text()='" + schemaName + "']/ns:tables/ns:table",
           XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
@@ -250,9 +189,19 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
           final String tableFolder = table.getElementsByTagName("folder").item(0).getTextContent();
           validatorPathStrategy.registerTable(schemaName, tableName, tableFolder);
         }
+
+        is.close();
       }
     } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
       throw new ModuleException().withMessage("Error registering the schemas and tables").withCause(e);
+    } finally {
+      try {
+        if (zipInputStream != null) {
+          zipInputStream.close();
+        }
+      } catch (IOException e) {
+        LOGGER.debug("Could not close the stream after an error occurred", e);
+      }
     }
 
     return true;

@@ -8,6 +8,7 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
@@ -43,20 +44,20 @@ public class MetadataSchemaValidator extends MetadataValidator {
   }
 
   @Override
+  public void clean() {
+    zipFileManagerStrategy.closeZipFile();
+  }
+
+  @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_52);
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     getValidationReporter().moduleValidatorHeader(M_52, MODULE_NAME);
 
     validateMandatoryXSDFields(M_521, SCHEMA_TYPE, "/ns:siardArchive/ns:schemas/ns:schema");
 
     NodeList nodes;
-    try {
-      nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+    try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath())) {
+      nodes = (NodeList) XMLUtils.getXPathResult(is,
         "/ns:siardArchive/ns:schemas/ns:schema", XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       String errorMessage = "Unable to read schema from SIARD file";
@@ -83,8 +84,6 @@ public class MetadataSchemaValidator extends MetadataValidator {
 
     validateSchemaDescriptions(nodes);
     validationOk(MODULE_NAME, A_M_521_4);
-
-    closeZipFile();
 
     return reportValidations(MODULE_NAME);
   }

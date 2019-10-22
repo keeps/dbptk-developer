@@ -8,6 +8,7 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -228,41 +229,53 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
   }
 
   @Override
+  public void clean() {
+    objectPath.clear();
+    databaseProductList.clear();
+    zipFileManagerStrategy.closeZipFile();
+    users = null;
+    roles = null;
+  }
+
+  @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_519);
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     getValidationReporter().moduleValidatorHeader(M_519, MODULE_NAME);
 
     NodeList nodes;
-    try {
-      users = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+    try (
+      InputStream isUsers = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath());
+      InputStream isRoles = zipFileManagerStrategy.getZipInputStream(path,
+        validatorPathStrategy.getMetadataXMLPath())) {
+      users = (NodeList) XMLUtils.getXPathResult(isUsers,
         "/ns:siardArchive/ns:users/ns:user/ns:name", XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
-      roles = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+      roles = (NodeList) XMLUtils.getXPathResult(isRoles,
         "/ns:siardArchive/ns:roles/ns:role/ns:name", XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
       databaseProduct = getDatabaseProduct();
 
       // build list of objects ( SCHEMA.TABLE ) for use on validatePrivilegeObject
-      NodeList objectNodes = (NodeList) XMLUtils.getXPathResult(
-        getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
-        "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table", XPathConstants.NODESET,
-        Constants.NAMESPACE_FOR_METADATA);
+      try (
+        InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath())) {
+        NodeList objectNodes = (NodeList) XMLUtils.getXPathResult(is,
+          "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table", XPathConstants.NODESET,
+          Constants.NAMESPACE_FOR_METADATA);
 
-      for (int i = 0; i < objectNodes.getLength(); i++) {
-        Element tableElement = (Element) objectNodes.item(i);
-        String table = XMLUtils.getChildTextContext(tableElement, Constants.NAME);
-        String schema = XMLUtils.getParentNameByTagName(tableElement, Constants.SCHEMA);
+        for (int i = 0; i < objectNodes.getLength(); i++) {
+          Element tableElement = (Element) objectNodes.item(i);
+          String table = XMLUtils.getChildTextContext(tableElement, Constants.NAME);
+          String schema = XMLUtils.getParentNameByTagName(tableElement, Constants.SCHEMA);
 
-        objectPath.add(schema + OBJECT_SEPARATOR + table);
+          objectPath.add(schema + OBJECT_SEPARATOR + table);
+        }
+
+        try (InputStream inputStream = zipFileManagerStrategy.getZipInputStream(path,
+          validatorPathStrategy.getMetadataXMLPath())) {
+          nodes = (NodeList) XMLUtils.getXPathResult(inputStream, "/ns:siardArchive/ns:privileges/ns:privilege",
+            XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+        }
       }
-
-      nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
-        "/ns:siardArchive/ns:privileges/ns:privilege", XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       String errorMessage = "Unable to read privileges from SIARD file";
       setError(M_519_1, errorMessage);
@@ -322,20 +335,17 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
     validatePrivilegeDescription(nodes);
     validationOk(MODULE_NAME, A_M_519_1_6);
 
-    closeZipFile();
-
     return reportValidations(MODULE_NAME);
   }
 
   private String getDatabaseProduct() {
-    try {
+    try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath())) {
       String xpathExpression = "/ns:siardArchive/ns:databaseProduct/text()";
-      String databaseProduct = ((String) XMLUtils.getXPathResult(
-        getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), xpathExpression, XPathConstants.STRING,
+      String dbProduct = ((String) XMLUtils.getXPathResult(is, xpathExpression, XPathConstants.STRING,
         Constants.NAMESPACE_FOR_METADATA)).replace(" ", "").toLowerCase();
 
       for (Map.Entry<String, List<String>> entry : databaseProductList.entrySet()) {
-        if (databaseProduct.contains(entry.getKey())) {
+        if (dbProduct.contains(entry.getKey())) {
           return entry.getKey();
         }
       }

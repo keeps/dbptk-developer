@@ -8,6 +8,7 @@
 package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -46,7 +47,6 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
   private static final String A_M_591_8 = "A_M_5.9-1-8";
 
   private boolean additionalCheckError = false;
-  private List<Element> foreignKeyList = new ArrayList<>();
   private List<String> tableList = new ArrayList<>();
   private List<String> schemaList = new ArrayList<>();
   private Set<String> checkDuplicates = new HashSet<>();
@@ -56,21 +56,24 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
   }
 
   @Override
+  public void clean() {
+    tableList.clear();
+    schemaList.clear();
+    checkDuplicates.clear();
+    zipFileManagerStrategy.closeZipFile();
+  }
+
+  @Override
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, M_59);
-    if (preValidationRequirements()) {
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
-
     getValidationReporter().moduleValidatorHeader(M_59, MODULE_NAME);
 
     schemaList = getListOfSchemas();
     tableList = getListOfTables();
 
     NodeList nodes;
-    try {
-      nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+    try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath())) {
+      nodes = (NodeList) XMLUtils.getXPathResult(is,
         "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:foreignKeys/ns:foreignKey", XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
@@ -138,15 +141,13 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
     validateForeignKeyDescription(nodes);
     validationOk(MODULE_NAME, A_M_591_8);
 
-    closeZipFile();
-
     return reportValidations(MODULE_NAME);
   }
 
   private List<String> getListOfSchemas() {
     List<String> schemaList = new ArrayList<>();
-    try {
-      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+    try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath())) {
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(is,
         "/ns:siardArchive/ns:schemas/ns:schema", XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
       for (int i = 0; i < nodes.getLength(); i++) {
@@ -162,8 +163,8 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
 
   private List<String> getListOfTables() {
     List<String> tableList = new ArrayList<>();
-    try {
-      NodeList nodes = (NodeList) XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
+    try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath())) {
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(is,
         "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table", XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
 

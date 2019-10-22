@@ -9,7 +9,9 @@ package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
@@ -213,18 +215,15 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   boolean validateMandatoryXSDFields(String codeID, String level, String xmlExpresion) {
-    if (preValidationRequirements())
-      return false;
-    try {
+    try (
+      InputStream XSDInputStream = SiardArchive.class.getClassLoader()
+        .getResourceAsStream("schema/siard2-1-metadata.xsd")) {
       String xsdExpression;
       if (level.equals(SIARD_ARCHIVE)) {
         xsdExpression = "/xs:schema/xs:element[@name='siardArchive']/xs:complexType/xs:sequence/xs:element[not(@minOccurs='0')]";
       } else {
         xsdExpression = "/xs:schema/xs:complexType[@name='" + level + "']/xs:sequence/xs:element[not(@minOccurs='0')]";
       }
-
-      final InputStream XSDInputStream = SiardArchive.class.getClassLoader()
-        .getResourceAsStream("schema/siard2-1-metadata.xsd");
 
       NodeList nodes = (NodeList) XMLUtils.getXPathResult(XSDInputStream, xsdExpression, XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
@@ -233,28 +232,34 @@ abstract class MetadataValidator extends ValidatorComponentImpl {
         Element element = (Element) nodes.item(i);
         String mandatoryItemName = element.getAttribute(Constants.NAME);
 
-        NodeList nodesToValidate = (NodeList) XMLUtils.getXPathResult(
-          getZipInputStream(validatorPathStrategy.getMetadataXMLPath()), xmlExpresion, XPathConstants.NODESET,
-          Constants.NAMESPACE_FOR_METADATA);
+        try (InputStream XMLInputStream = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath())) {
+          NodeList nodesToValidate = (NodeList) XMLUtils.getXPathResult(
+              XMLInputStream, xmlExpresion, XPathConstants.NODESET,
+              Constants.NAMESPACE_FOR_METADATA);
 
-        if (nodesToValidate.getLength() == 0) {
-          setError(codeID, String.format("Nothing found in this path %s", xmlExpresion));
+          if (nodesToValidate.getLength() == 0) {
+            setError(codeID, String.format("Nothing found in this path %s", xmlExpresion));
+            return false;
+          }
+          for (int j = 0; j < nodesToValidate.getLength(); j++) {
+            Element itemToValidate = XMLUtils.getChild((Element) nodesToValidate.item(j), mandatoryItemName);
+            if (itemToValidate == null) {
+              setError(codeID, String.format("Mandatory item '%s' must be set (%s)", mandatoryItemName, xmlExpresion));
+            }
+          }
+        } catch (IOException e) {
+          String errorMessage = "Unable to read metadata.xml file";
+          setError(codeID, errorMessage);
+          LOGGER.debug(errorMessage, e);
           return false;
         }
-        for (int j = 0; j < nodesToValidate.getLength(); j++) {
-          Element itemToValidate = XMLUtils.getChild((Element) nodesToValidate.item(j), mandatoryItemName);
-          if (itemToValidate == null) {
-            setError(codeID, String.format("Mandatory item '%s' must be set (%s)", mandatoryItemName, xmlExpresion));
-          }
-        }
       }
-
+      return true;
     } catch (IOException | ParserConfigurationException | XPathExpressionException | SAXException e) {
       String errorMessage = "Unable to read metadata.xsd file";
       setError(codeID, errorMessage);
       LOGGER.debug(errorMessage, e);
       return false;
     }
-    return true;
   }
 }

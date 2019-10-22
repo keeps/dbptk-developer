@@ -71,5 +71,10 @@
             <artifactId>commons-compress</artifactId>
             <version>1.18</version>
         </dependency>
+        <dependency>
+            <groupId>org.mapdb</groupId>
+            <artifactId>mapdb</artifactId>
+            <version>3.0.7</version>
+        </dependency>
     </dependencies>
 </project>

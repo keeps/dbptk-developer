@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.common.ValidationObserver;
 import com.databasepreservation.common.ValidatorPathStrategy;
+import com.databasepreservation.common.ZipFileManagerStrategy;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.SIARDVersionNotSupportedException;
@@ -33,6 +34,7 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.modules.siard.in.read.ZipAndFolderReadStrategy;
+import com.databasepreservation.modules.siard.validate.common.ZipFileManager;
 import com.databasepreservation.modules.siard.validate.common.path.ValidatorPathStrategyImpl;
 import com.databasepreservation.utils.ReflectionUtils;
 
@@ -47,6 +49,7 @@ public class SIARDValidateModule implements ValidateModule {
   private ValidationReporter validationReporter;
   private final List<String> allowedUDTs;
   private final ValidatorPathStrategy validatorPathStrategy;
+  private final ZipFileManagerStrategy zipFileManager;
 
   /**
    * Constructor used to initialize required objects to get an validate module for
@@ -61,6 +64,7 @@ public class SIARDValidateModule implements ValidateModule {
       SIARDPackageNormalizedPath);
     allowedUDTs = Collections.emptyList();
     validatorPathStrategy = new ValidatorPathStrategyImpl();
+    zipFileManager = new ZipFileManager();
   }
 
   /**
@@ -76,6 +80,7 @@ public class SIARDValidateModule implements ValidateModule {
       SIARDPackageNormalizedPath);
     this.allowedUDTs = parseAllowUDTs(allowedUDTs);
     validatorPathStrategy = new ValidatorPathStrategyImpl();
+    zipFileManager = new ZipFileManager();
   }
 
   /**
@@ -111,6 +116,7 @@ public class SIARDValidateModule implements ValidateModule {
     for (ValidatorComponent component : components) {
       component.setReporter(reporter);
       component.setObserver(observer);
+      component.setZipFileManager(zipFileManager);
       component.setSIARDPath(SIARDPackageNormalizedPath);
       component.setValidationReporter(validationReporter);
       component.setValidatorPathStrategy(validatorPathStrategy);
@@ -207,7 +213,7 @@ public class SIARDValidateModule implements ValidateModule {
     readStrategy.setup(mainContainer);
 
     if (mainContainer.getVersion() == null) return false;
-
+    readStrategy.finish(mainContainer);
     return mainContainer.getVersion().equals(SIARDConstants.SiardVersion.V2_1);
   }
 }

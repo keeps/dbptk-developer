@@ -48,19 +48,15 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
 
   @Override
   public void clean() {
-    P_421_ERRORS = null;
-    P_422_ERRORS = null;
-    P_423_ERRORS = null;
-    P_426_ERRORS = null;
+    P_421_ERRORS.clear();
+    P_422_ERRORS.clear();
+    P_423_ERRORS.clear();
+    P_426_ERRORS.clear();
+    zipFileManagerStrategy.closeZipFile();
   }
 
   public boolean validate() throws ModuleException {
     observer.notifyStartValidationModule(MODULE_NAME, P_42);
-
-    if (preValidationRequirements()){
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
-      return false;
-    }
 
     getValidationReporter().moduleValidatorHeader(P_42, MODULE_NAME);
 
@@ -73,7 +69,6 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
       validationFailed(P_421, ValidationReporterStatus.ERROR,
         "No further folders or files are permitted besides the header/ and content/ folders", P_421_ERRORS,
         MODULE_NAME);
-      closeZipFile();
       return false;
     }
 
@@ -86,7 +81,6 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
       validationFailed(P_422, ValidationReporterStatus.ERROR,
         "No other folders or files are permitted inside the content/ folder.",
         P_422_ERRORS, MODULE_NAME);
-      closeZipFile();
       return false;
     }
 
@@ -100,7 +94,6 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
         "The individual table folders contain an XML file and an XSD file, the names of\n"
           +
           "which (folder designation and both file names) must be identical.", P_423_ERRORS, MODULE_NAME);
-      closeZipFile();
       return false;
     }
 
@@ -111,7 +104,6 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
       observer.notifyValidationStep(MODULE_NAME, P_424, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(P_424, MODULE_NAME, "Missing the folder to facilitate the recognition of the SIARD format");
-      closeZipFile();
       return false;
     }
 
@@ -122,7 +114,6 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
       observer.notifyValidationStep(MODULE_NAME, P_425, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(P_425, MODULE_NAME, "The metadata.xml and metadata.xsd files must be present in the header/ folder");
-      closeZipFile();
       return false;
     }
 
@@ -135,13 +126,11 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
       validationFailed(P_426, ValidationReporterStatus.ERROR,
         "All file and folder names referring to elements inside the SIARD (ZIP64) file\n" +
           "must be well structured", P_426_ERRORS, MODULE_NAME);
-      closeZipFile();
       return false;
     }
 
     observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.PASSED);
     getValidationReporter().moduleValidatorFinished(MODULE_NAME, ValidationReporterStatus.PASSED);
-    closeZipFile();
 
     return true;
   }
@@ -154,12 +143,11 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateSIARDStructure() {
-    if (preValidationRequirements()){
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
+    final List<String> zipArchiveEntriesPath = zipFileManagerStrategy.getZipArchiveEntriesPath(path);
+    if (zipArchiveEntriesPath == null) {
       return false;
     }
-
-    for (String file : getZipFileNames()) {
+    for (String file : zipArchiveEntriesPath) {
       if (!file.startsWith("header/") && !file.startsWith("content/")) {
         P_421_ERRORS.add(file);
       }
@@ -176,19 +164,17 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateContentFolderStructure() {
-    if (preValidationRequirements()){
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
+
+    final List<String> zipArchiveEntriesPaths = zipFileManagerStrategy.getZipArchiveEntriesPath(path);
+    if (zipArchiveEntriesPaths == null) {
       return false;
     }
-
-    for (String fileName : getZipFileNames()) {
+    for (String fileName : zipArchiveEntriesPaths) {
       if (fileName.startsWith(Constants.SIARD_CONTENT_FOLDER)) {
         Path path = Paths.get(fileName);
-        if (path.getNameCount() == 2) {
-          if (!path.getName(1).toString().matches("schema[0-9]+")) {
+        if (path.getNameCount() == 2 && !path.getName(1).toString().matches("schema[0-9]+")) {
             P_422_ERRORS.add(path.toString());
           }
-        }
         if (path.getNameCount() >= 3) {
           final Path schema = path.getName(1);
           final Path table = path.getName(2);
@@ -214,12 +200,11 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateTableFolderStructure() {
-    if (preValidationRequirements()){
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
+    final List<String> zipArchiveEntriesPaths = zipFileManagerStrategy.getZipArchiveEntriesPath(path);
+    if (zipArchiveEntriesPaths == null) {
       return false;
     }
-
-    for (String fileName : getZipFileNames()) {
+    for (String fileName : zipArchiveEntriesPaths) {
       if (fileName.startsWith(Constants.SIARD_CONTENT_FOLDER)) {
         Path path = Paths.get(fileName);
         if (path.getNameCount() >= 4) {
@@ -268,30 +253,25 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateRecognitionOfSIARDFormat() {
-    if (preValidationRequirements()){
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
+    List<Path> versions = new ArrayList<>();
+    final List<String> zipArchiveEntriesPaths = zipFileManagerStrategy.getZipArchiveEntriesPath(path);
+    if (zipArchiveEntriesPaths == null) {
       return false;
     }
-
-    List<Path> versions = new ArrayList<>();
-
-    for (String fileName : getZipFileNames()) {
+    for (String fileName : zipArchiveEntriesPaths) {
       Path path = Paths.get(fileName);
-      if (path.startsWith(validatorPathStrategy.getSIARDVersionPath())) {
-        if (path.getNameCount() > 2) {
+      if (path.startsWith(validatorPathStrategy.getSIARDVersionPath()) && path.getNameCount() > 2) {
           versions.add(path);
         }
       }
-    }
 
     if (versions.size() != 1) {
       return false;
     }
 
     final int v2_1 = versions.get(0).compareTo(Paths.get("header/siardversion/2.1"));
-    final int v2_0 = versions.get(0).compareTo(Paths.get("header/siardversion/2.0"));
 
-    return v2_1 == 0 || v2_0 == 0;
+    return v2_1 == 0;
   }
 
   /**
@@ -302,22 +282,23 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateHeaderFolderStructure() {
-    if (preValidationRequirements()){
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
+    final List<String> zipArchiveEntriesPaths = zipFileManagerStrategy.getZipArchiveEntriesPath(path);
+    List<String> headers = new ArrayList<>();
+    if (zipArchiveEntriesPaths == null) {
       return false;
     }
-
-    List<String> headers = new ArrayList<>();
-
-    for (String fileName : getZipFileNames()) {
+    for (String fileName : zipArchiveEntriesPaths) {
       if (fileName.startsWith(Constants.SIARD_HEADER_FOLDER))
         headers.add(fileName);
     }
 
-    if (headers.isEmpty()) return false;
+    if (headers.isEmpty())
+      return false;
 
-    if (!headers.contains(validatorPathStrategy.getMetadataXMLPath())) return false;
-    if (!headers.contains(validatorPathStrategy.getMetadataXSDPath())) return false;
+    if (!headers.contains(validatorPathStrategy.getMetadataXMLPath()))
+      return false;
+    if (!headers.contains(validatorPathStrategy.getMetadataXSDPath()))
+      return false;
 
     headers.remove(validatorPathStrategy.getMetadataXMLPath());
     headers.remove(validatorPathStrategy.getMetadataXSDPath());
@@ -325,8 +306,8 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
     headers.remove(validatorPathStrategy.getSIARDVersionPath());
 
     for (String header : headers) {
-      if (!header.endsWith("2.1/") && !header.endsWith("2.0/")) {
-        if (!header.endsWith(".xsd")) return false;
+      if (!header.endsWith("2.1/") && !header.endsWith(".xsd")) {
+        return false;
       }
     }
 
@@ -348,12 +329,11 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
    * @return true if valid otherwise false
    */
   private boolean validateFilesAndFoldersNames() {
-    if (preValidationRequirements()){
-      LOGGER.debug("Failed to validate the pre-requirements for {}", MODULE_NAME);
+    final List<String> zipArchiveEntriesPaths = zipFileManagerStrategy.getZipArchiveEntriesPath(path);
+    if (zipArchiveEntriesPaths == null) {
       return false;
     }
-
-    for (String fileName : getZipFileNames()) {
+    for (String fileName : zipArchiveEntriesPaths) {
       String[] foldersAndFiles = fileName.split("/");
       for (String s : foldersAndFiles) {
         if (s.length() > 20) {
@@ -362,7 +342,7 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
       }
 
       final String replaced = fileName.replace("/", "");
-      final int lastIndexOf = replaced.lastIndexOf(".");
+      final int lastIndexOf = replaced.lastIndexOf('.');
       final String substring;
       if (lastIndexOf != -1) {
         substring = replaced.substring(0, lastIndexOf);
@@ -370,8 +350,10 @@ public class SIARDStructureValidator extends ValidatorComponentImpl {
         substring = replaced;
       }
 
-      if (substring.contains(".")) P_426_ERRORS.add(fileName);
-      if (!substring.matches("[A-Za-z0-9_]+")) P_426_ERRORS.add(fileName);
+      if (substring.contains("."))
+        P_426_ERRORS.add(fileName);
+      if (!substring.matches("[A-Za-z0-9_]+"))
+        P_426_ERRORS.add(fileName);
     }
 
     return P_426_ERRORS.isEmpty();
