@@ -14,6 +14,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -46,6 +47,8 @@ public class MetadataTriggerValidator extends MetadataValidator {
   private static final String TRIGGER_TRIGGERED_ACTION = "triggeredAction";
   private static final String[] ACTION_TIME_LIST = {"BEFORE", "AFTER", "INSTEAD OF"};
   private static final String[] EVENT_LIST = {"INSERT", "DELETE", "UPDATE"};
+  private static final String EVENT_COLUMN_SEPARATOR = "OF";
+  private static final String EVENT_REGEX_SEPARATOR = "(OR)|(,)";
 
   private List<String> actionTimeList = new ArrayList<>();
   private List<String> eventList = new ArrayList<>();
@@ -124,54 +127,6 @@ public class MetadataTriggerValidator extends MetadataValidator {
     return reportValidations(MODULE_NAME);
   }
 
-  // private boolean readXMLMetadataTriggerLevel() {
-  // try {
-  // NodeList nodes = (NodeList)
-  // XMLUtils.getXPathResult(getZipInputStream(validatorPathStrategy.getMetadataXMLPath()),
-  // "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:triggers/ns:trigger",
-  // XPathConstants.NODESET,
-  // Constants.NAMESPACE_FOR_METADATA);
-  //
-  // for (int i = 0; i < nodes.getLength(); i++) {
-  // Element trigger = (Element) nodes.item(i);
-  // triggerList.add(trigger);
-  // String table = XMLUtils.getParentNameByTagName(trigger, Constants.TABLE);
-  // String schema = XMLUtils.getParentNameByTagName(trigger, Constants.SCHEMA);
-  // String path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table,
-  // TRIGGER, Integer.toString(i));
-  //
-  // String name = XMLUtils.getChildTextContext(trigger, Constants.NAME);
-  // validateTriggerName(name, path, table);
-  //
-  // path = buildPath(Constants.SCHEMA, schema, Constants.TABLE, table, TRIGGER,
-  // name);
-  // String triggerActionTime = XMLUtils.getChildTextContext(trigger,
-  // TRIGGER_ACTION_TIME);
-  // validateTriggerActionTime(triggerActionTime, path);
-  //
-  // String triggerEvent = XMLUtils.getChildTextContext(trigger, TRIGGER_EVENT);
-  // validateTriggerEvent(triggerEvent, path);
-  //
-  // String triggeredAction = XMLUtils.getChildTextContext(trigger,
-  // TRIGGER_TRIGGERED_ACTION);
-  // validateTriggerTriggeredAction(triggeredAction, path);
-  //
-  // String description = XMLUtils.getChildTextContext(trigger,
-  // Constants.DESCRIPTION);
-  // validateTriggerDescription(description, path);
-  // }
-  //
-  // } catch (IOException | ParserConfigurationException |
-  // XPathExpressionException | SAXException e) {
-  // String errorMessage = "Unable to read triggers from SIARD file";
-  // setError(M_513_1, errorMessage);
-  // LOGGER.debug(errorMessage, e);
-  // return false;
-  // }
-  //
-  // return true;
-  // }
-
   /**
    * M_5.13-1-1 The trigger name is mandatory in SIARD 2.1 specification
    *
@@ -232,13 +187,16 @@ public class MetadataTriggerValidator extends MetadataValidator {
       String table = XMLUtils.getParentNameByTagName(trigger, Constants.TABLE);
       String path = buildPath(Constants.SCHEMA, XMLUtils.getParentNameByTagName(trigger, Constants.SCHEMA),
         Constants.TABLE, table, TRIGGER, XMLUtils.getChildTextContext(trigger, Constants.NAME));
-      String event = XMLUtils.getChildTextContext(trigger, TRIGGER_EVENT);
-
-      if (validateXMLField(M_513_1_3, event, TRIGGER_EVENT, true, false, path)) {
-        if (!eventList.contains(event)) {
-          setError(M_513_1_3,
-            String.format("Trigger event %s must be one of this:%s (%s)", event, eventList.toString(), path));
-          hasErrors = true;
+      String events = XMLUtils.getChildTextContext(trigger, TRIGGER_EVENT);
+      if (validateXMLField(M_513_1_3, events, TRIGGER_EVENT, true, false, path)) {
+        List<String> eventsArrayList = Arrays
+          .asList(StringUtils.substringBeforeLast(events, EVENT_COLUMN_SEPARATOR).split(EVENT_REGEX_SEPARATOR));
+        for (String event : eventsArrayList) {
+          if (!eventList.contains(StringUtils.deleteWhitespace(event))) {
+            setError(M_513_1_3,
+              String.format("Trigger event %s must be one of this:%s (%s)", event, eventList.toString(), path));
+            hasErrors = true;
+          }
         }
       }
     }
