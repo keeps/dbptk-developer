@@ -45,7 +45,7 @@ public class SIARDValidateModule implements ValidateModule {
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARDValidateModule.class);
   private Reporter reporter;
   private ValidationObserver observer;
-  private final Path SIARDPackageNormalizedPath;
+  private final Path siardPackageNormalizedPath;
   private ValidationReporter validationReporter;
   private final List<String> allowedUDTs;
   private final ValidatorPathStrategy validatorPathStrategy;
@@ -59,9 +59,9 @@ public class SIARDValidateModule implements ValidateModule {
    *          Path to the main SIARD file (file with extension .siard)
    */
   public SIARDValidateModule(Path SIARDPackagePath, Path validationReporterPath) {
-    SIARDPackageNormalizedPath = SIARDPackagePath.toAbsolutePath().normalize();
+    siardPackageNormalizedPath = SIARDPackagePath.toAbsolutePath().normalize();
     validationReporter = new ValidationReporter(validationReporterPath.toAbsolutePath().normalize(),
-      SIARDPackageNormalizedPath);
+      siardPackageNormalizedPath);
     allowedUDTs = Collections.emptyList();
     validatorPathStrategy = new ValidatorPathStrategyImpl();
     zipFileManager = new ZipFileManager();
@@ -74,10 +74,11 @@ public class SIARDValidateModule implements ValidateModule {
    * @param SIARDPackagePath
    *          Path to the main SIARD file (file with extension .siard)
    */
-  public SIARDValidateModule(Path SIARDPackagePath, Path validationReporterPath, Path allowedUDTs) {
-    SIARDPackageNormalizedPath = SIARDPackagePath.toAbsolutePath().normalize();
+  public SIARDValidateModule(Path SIARDPackagePath, Path validationReporterPath, Path allowedUDTs)
+    throws ModuleException {
+    siardPackageNormalizedPath = SIARDPackagePath.toAbsolutePath().normalize();
     validationReporter = new ValidationReporter(validationReporterPath.toAbsolutePath().normalize(),
-      SIARDPackageNormalizedPath);
+      siardPackageNormalizedPath);
     this.allowedUDTs = parseAllowUDTs(allowedUDTs);
     validatorPathStrategy = new ValidatorPathStrategyImpl();
     zipFileManager = new ZipFileManager();
@@ -107,7 +108,8 @@ public class SIARDValidateModule implements ValidateModule {
   public boolean validate() throws ModuleException {
 
     if (!validateSIARDVersion()) {
-      throw new SIARDVersionNotSupportedException().withVersionInfo("SIARD 2.1 version").withMessage("SIARD validator only supports");
+      throw new SIARDVersionNotSupportedException().withVersionInfo("SIARD 2.1 version")
+        .withMessage("SIARD validator only supports");
     }
 
     List<ValidatorComponent> components = getValidationComponents();
@@ -117,7 +119,7 @@ public class SIARDValidateModule implements ValidateModule {
       component.setReporter(reporter);
       component.setObserver(observer);
       component.setZipFileManager(zipFileManager);
-      component.setSIARDPath(SIARDPackageNormalizedPath);
+      component.setSIARDPath(siardPackageNormalizedPath);
       component.setValidationReporter(validationReporter);
       component.setValidatorPathStrategy(validatorPathStrategy);
       component.setAllowedUTD(allowedUDTs);
@@ -127,14 +129,16 @@ public class SIARDValidateModule implements ValidateModule {
         counter++;
       }
       component.clean();
+
     }
 
     boolean result = counter == 0;
-    observer.notifyIndicators(validationReporter.getNumberOfPassed(), validationReporter.getNumberOfErrors(), validationReporter.getNumberOfWarnings() , validationReporter.getNumberOfSkipped());
+    observer.notifyIndicators(validationReporter.getNumberOfPassed(), validationReporter.getNumberOfErrors(),
+      validationReporter.getNumberOfWarnings(), validationReporter.getNumberOfSkipped());
     observer.notifyValidationProcessFinish(result);
 
     validationReporter.close();
-    
+
     return result;
   }
 
@@ -152,19 +156,21 @@ public class SIARDValidateModule implements ValidateModule {
     return DefaultExceptionNormalizer.getInstance().normalizeException(exception, contextMessage);
   }
 
-  private List<String> parseAllowUDTs(Path path) {
-    if (path.toFile().exists() && path.toFile().isFile()) {
-      List<String> lines = Collections.emptyList();
-      try {
-        lines = Files.readAllLines(path, StandardCharsets.UTF_8);
-      } catch (IOException e) {
-        e.printStackTrace();
+  private List<String> parseAllowUDTs(Path path) throws ModuleException {
+    List<String> lines;
+    try {
+      lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      if (!path.toFile().exists()) {
+        throw new ModuleException().withCause(e)
+          .withMessage("File to allowed UDTs not found at path " + path.normalize().toString());
+      } else if (path.toFile().isDirectory()) {
+        throw new ModuleException().withCause(e).withMessage("File to allowed UDTs is a directory");
       }
-
-      return lines;
+      throw new ModuleException().withCause(e).withMessage(e.getMessage());
     }
 
-    return Collections.emptyList();
+    return lines;
   }
 
   private List<ValidatorComponent> getValidationComponents() throws ModuleException {
@@ -206,13 +212,14 @@ public class SIARDValidateModule implements ValidateModule {
   }
 
   private boolean validateSIARDVersion() throws ModuleException {
-    SIARDArchiveContainer mainContainer = new SIARDArchiveContainer(SIARDPackageNormalizedPath,
+    SIARDArchiveContainer mainContainer = new SIARDArchiveContainer(siardPackageNormalizedPath,
       SIARDArchiveContainer.OutputContainerType.MAIN);
     ReadStrategy readStrategy = new ZipAndFolderReadStrategy(mainContainer);
 
     readStrategy.setup(mainContainer);
 
-    if (mainContainer.getVersion() == null) return false;
+    if (mainContainer.getVersion() == null)
+      return false;
     readStrategy.finish(mainContainer);
     return mainContainer.getVersion().equals(SIARDConstants.SiardVersion.V2_1);
   }

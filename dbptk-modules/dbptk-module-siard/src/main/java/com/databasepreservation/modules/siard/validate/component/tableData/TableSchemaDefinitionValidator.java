@@ -190,6 +190,8 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
           }
         } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
           LOGGER.debug("Failed to validate {} at {}", P_612, MODULE_NAME);
+          getValidationReporter().validationStatus(P_612, ValidationReporterStatus.ERROR,
+                  "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
           return false;
         }
       }
@@ -234,6 +236,8 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
           }
         } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
           LOGGER.debug("Failed to validate {} at {}", P_613, MODULE_NAME);
+          getValidationReporter().validationStatus(P_613, ValidationReporterStatus.ERROR,
+                  "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
           return false;
         }
       }
@@ -275,6 +279,9 @@ public class TableSchemaDefinitionValidator extends ValidatorComponentImpl {
             }
           }
         } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+          LOGGER.debug("Failed to validate {} at {}", P_614, MODULE_NAME);
+          getValidationReporter().validationStatus(P_614, ValidationReporterStatus.ERROR,
+                  "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
           return false;
         }
       }

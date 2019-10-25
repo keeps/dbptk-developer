@@ -119,7 +119,9 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
    */
   private boolean isZipFile() {
     if (path == null) {
-      LOGGER.debug("The path to the SIARD file mist exists on {}", MODULE_NAME);
+      LOGGER.debug("The path to the SIARD file must exists on {}", MODULE_NAME);
+      getValidationReporter().validationStatus(G_411, ValidationReporterStatus.ERROR,
+              "Failed to validate " + MODULE_NAME, "Please check the log file for more information");
       return false;
     }
 
@@ -136,6 +138,8 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
       }
     } catch (IOException e) {
       LOGGER.debug("Failed to validate {}", G_411, e);
+      getValidationReporter().validationStatus(G_411, ValidationReporterStatus.ERROR,
+              "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
       isZip = false;
     }
 
@@ -152,7 +156,7 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
    */
   private boolean deflateOrStore() {
     if (path == null) {
-      LOGGER.debug("The path to the SIARD file mist exists on {}", MODULE_NAME);
+      LOGGER.debug("The path to the SIARD file must exists on {}", MODULE_NAME);
       return false;
     }
 
@@ -167,6 +171,8 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
       }
     } catch (IOException e) {
       LOGGER.debug("Failed to validate {} due to an error", G_412, e);
+      getValidationReporter().validationStatus(G_412, ValidationReporterStatus.ERROR,
+              "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
       return false;
     }
 
@@ -196,7 +202,9 @@ public class ZipConstructionValidator extends ValidatorComponentImpl {
         }
       }
     } catch (IOException e) {
-      LOGGER.debug("Failed to validate {} due to an error", G_412, e);
+      LOGGER.debug("Failed to validate {} due to an error", G_413, e);
+      getValidationReporter().validationStatus(G_413, ValidationReporterStatus.ERROR,
+              "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
       return false;
     }
 

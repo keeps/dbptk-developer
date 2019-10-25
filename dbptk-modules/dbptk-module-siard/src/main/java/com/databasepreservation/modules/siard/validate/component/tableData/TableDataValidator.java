@@ -155,6 +155,8 @@ public class TableDataValidator extends ValidatorComponentImpl {
       }
     } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
       LOGGER.debug("Failed to validate {}({})", MODULE_NAME, P_641, e);
+      getValidationReporter().validationStatus(P_641, ValidationReporterStatus.ERROR,
+              "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
       return false;
     }
 
@@ -207,6 +209,8 @@ public class TableDataValidator extends ValidatorComponentImpl {
           }
         } catch (XMLStreamException | IOException e) {
           LOGGER.debug("Failed to validate {}({})", MODULE_NAME, P_642, e);
+          getValidationReporter().validationStatus(P_642, ValidationReporterStatus.ERROR,
+                  "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
           return false;
         }
       }
@@ -238,7 +242,8 @@ public class TableDataValidator extends ValidatorComponentImpl {
     for (String zipFileName : zipArchiveEntriesPath) {
       final Matcher matcher = patternXSDFile.matcher(zipFileName);
 
-      String schema = "", table = "";
+      String schema;
+      String table;
       while (matcher.find()) {
         schema = matcher.group(1);
         table = matcher.group(2);
@@ -250,14 +255,18 @@ public class TableDataValidator extends ValidatorComponentImpl {
           for (int i = 0; i < nodeNames.getLength(); i++) {
             try {
               validateOutsideLOB(schema, table, nodeNames.item(i).getNodeValue());
-            } catch (XMLStreamException e) {
+            } catch (XMLStreamException | IOException e) {
               LOGGER.debug("Failed to validate {}({})", MODULE_NAME, P_645, e);
+              getValidationReporter().validationStatus(P_645, ValidationReporterStatus.ERROR,
+                      "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
               return false;
             }
           }
 
         } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
           LOGGER.debug("Failed to validate {}({})", MODULE_NAME, P_645, e);
+          getValidationReporter().validationStatus(P_645, ValidationReporterStatus.ERROR,
+                  "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
           return false;
         }
       }
@@ -267,7 +276,7 @@ public class TableDataValidator extends ValidatorComponentImpl {
   }
 
   private void validateOutsideLOB(final String schemaFolder, final String tableFolder, final String columnIndex)
-    throws XMLStreamException {
+          throws XMLStreamException, IOException {
     final String zipPath = validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder);
     try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, zipPath)) {
 
@@ -304,8 +313,6 @@ public class TableDataValidator extends ValidatorComponentImpl {
           attributes = new ArrayList<>();
         }
       }
-    } catch (IOException e) {
-      LOGGER.debug("Failed to validate {}({})", MODULE_NAME, P_645, e);
     }
   }
 
@@ -313,7 +320,9 @@ public class TableDataValidator extends ValidatorComponentImpl {
     P_645_ERRORS_ATTRIBUTES = new ArrayList<>();
 
     if (attributes.contains("file")) {
-      boolean matchesFile, matchesLength, matchesDigest;
+      boolean matchesFile;
+      boolean matchesLength;
+      boolean matchesDigest;
       matchesFile = attributes.contains("file");
       matchesLength = attributes.contains("length");
       matchesDigest = attributes.contains("digest");

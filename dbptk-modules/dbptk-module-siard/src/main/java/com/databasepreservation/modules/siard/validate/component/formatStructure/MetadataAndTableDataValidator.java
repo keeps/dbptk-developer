@@ -125,6 +125,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       getTypesFromMetadataXML();
     } catch (ParserConfigurationException | SAXException | XPathExpressionException | IOException e) {
       LOGGER.debug("Failed to fetch data for validation component {}", MODULE_NAME, e);
+      getValidationReporter().validationStatus(P_43, ValidationReporterStatus.ERROR,
+              "Failed to fetch data for validation component " + MODULE_NAME, "Please check the log file for more information");
       return false;
     }
 
@@ -311,6 +313,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       }
     } catch (IOException | XPathExpressionException | SAXException | ParserConfigurationException e) {
       LOGGER.debug("Failed to validate {}", P_431, e);
+      getValidationReporter().validationStatus(P_431, ValidationReporterStatus.ERROR,
+              "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
       return false;
     } finally {
       if (is != null) {
@@ -376,6 +380,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       }
     } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
       LOGGER.debug("Failed to validate {}", P_432, e);
+      getValidationReporter().validationStatus(P_432, ValidationReporterStatus.ERROR,
+              "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
       return false;
     } finally {
       if (is != null) {
@@ -412,6 +418,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         P_433_ERRORS.addAll(errors);
       } catch (SAXException | ParserConfigurationException | IOException | XPathExpressionException e) {
         LOGGER.debug("Failed to validate {}", P_433, e);
+        getValidationReporter().validationStatus(P_433, ValidationReporterStatus.ERROR,
+                "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
         return false;
       }
     }
@@ -468,6 +476,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
 
     } catch (SAXException | ParserConfigurationException | IOException | XPathExpressionException e) {
       LOGGER.debug("Failed to validate {}", P_434, e);
+      getValidationReporter().validationStatus(P_434, ValidationReporterStatus.ERROR,
+              "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
       return false;
     }
 
@@ -509,6 +519,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
           }
         } catch (IOException | XPathExpressionException | SAXException | ParserConfigurationException e) {
           LOGGER.debug("Failed to validate {}", P_435, e);
+          getValidationReporter().validationStatus(P_435, ValidationReporterStatus.ERROR,
+                  "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
           return false;
         }
       }
@@ -571,6 +583,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
                 .addAll(compareSQL2008DataTypeWithXMLType(entry.getKey(), advancedOrStructuredColumn.getKey(), map));
             } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
               LOGGER.debug("Failed to validate {}", P_436, e);
+              getValidationReporter().validationStatus(P_436, ValidationReporterStatus.ERROR,
+                      "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
               return false;
             }
           }
@@ -636,6 +650,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         }
 
       } catch (IOException | XMLStreamException e) {
+        getValidationReporter().validationStatus(P_437, ValidationReporterStatus.ERROR,
+                "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
         LOGGER.debug("Failed to validate {}", P_437, e);
         return false;
       }
@@ -686,6 +702,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
           }
         } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
           LOGGER.debug("Failed to validate {}", P_439, e);
+          getValidationReporter().validationStatus(P_439, ValidationReporterStatus.ERROR,
+                  "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
           return false;
         }
       }
@@ -767,6 +785,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException
         | XMLStreamException e) {
         LOGGER.debug("Failed to validate {}", P_4310, e);
+        getValidationReporter().validationStatus(P_4310, ValidationReporterStatus.ERROR,
+                "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
         return false;
       }
     }
@@ -820,6 +840,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         }
 
       } catch (XMLStreamException | IOException e) {
+        getValidationReporter().validationStatus(A_P_4310, ValidationReporterStatus.ERROR,
+                "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
         LOGGER.debug("Failed to validate {}", "number of rows", e);
         return false;
       }
@@ -828,20 +850,17 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     return A_P_4310_ERRORS.isEmpty();
   }
 
-  private void outputDifferentBlobsTypes() {
+  private void outputDifferentBlobsTypes() throws IOException, XPathExpressionException, SAXException, ParserConfigurationException {
     NodeList result;
     try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath())) {
       result = (NodeList) XMLUtils.getXPathResult(is,
-        "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column/ns:mimeType/text()",
-        XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
-    } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
-      LOGGER.error(e.getLocalizedMessage());
-      return;
-    }
+              "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column/ns:mimeType/text()",
+              XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
-    for (int i = 0; i < result.getLength(); i++) {
-      final String nodeValue = result.item(i).getNodeValue();
-      getValidationReporter().notice(nodeValue, "MimeType found");
+      for (int i = 0; i < result.getLength(); i++) {
+        final String nodeValue = result.item(i).getNodeValue();
+        getValidationReporter().notice(nodeValue, "MimeType found");
+      }
     }
   }
 

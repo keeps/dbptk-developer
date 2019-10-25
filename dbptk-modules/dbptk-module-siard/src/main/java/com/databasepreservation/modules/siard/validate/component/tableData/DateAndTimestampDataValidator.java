@@ -120,6 +120,9 @@ public class DateAndTimestampDataValidator extends ValidatorComponentImpl {
           }
 
         } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+          LOGGER.debug("Failed to validate {} at {}", P_631, MODULE_NAME);
+          getValidationReporter().validationStatus(P_631, ValidationReporterStatus.ERROR,
+                  "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
           return false;
         }
       }
