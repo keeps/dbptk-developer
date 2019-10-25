@@ -9,6 +9,7 @@ package com.databasepreservation.modules.jdbc.in;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
@@ -1655,56 +1656,13 @@ public class JDBCImportModule implements DatabaseImportModule {
     if (wasNull) {
       cell = new NullCell(id);
     } else {
-      int eIndex = stringValue.indexOf('E');
-      if (eIndex > 0) {
-        String fst = stringValue.substring(0, eIndex);
-        String newValue = null;
-
-        if (eIndex < stringValue.length() - 1) {
-          String snd = stringValue.substring(eIndex + 1);
-          Integer fstNum = null;
-          Integer sndNum = null;
-
-          try {
-            fstNum = Integer.parseInt(fst);
-          } catch (NumberFormatException e) {
-            LOGGER.debug("could not parse `" + fst + "` as integer", e);
-          }
-
-          try {
-            sndNum = Integer.parseInt(snd);
-          } catch (NumberFormatException e) {
-            LOGGER.debug("could not parse `" + snd + "` as integer", e);
-          }
-
-          if (fstNum == null && sndNum == null) {
-            // this will save the value as NULL and trigger the Reporter
-            throw new ModuleException().withMessage("Could not parse `" + stringValue + "` as an exact numeric value");
-          } else {
-            if (fstNum != null && sndNum != null) {
-              if (fstNum == 0 || sndNum == 0) {
-                newValue = "0";
-              } else {
-                newValue = String.valueOf(Math.pow(fstNum, sndNum));
-                reporter.valueChanged(stringValue, newValue, " exact numeric values can not have exponent (`E`) ",
-                  "column " + columnName);
-              }
-            } else if (fstNum != null) {
-              // fstNum != null && sndNum == null
-              newValue = fst;
-              reporter.valueChanged(stringValue, newValue, " exact numeric values can not have exponent (`E`) ",
-                "column " + columnName);
-            } else {
-              // fstNum == null && sndNum != null
-              newValue = "0";
-              reporter.valueChanged(stringValue, newValue, " exact numeric values can not have exponent (`E`) ",
-                "column " + columnName);
-            }
-            cell = new SimpleCell(id, newValue);
-          }
-        } else {
-          // 'E' is the last character in the string, use only the first part
-          cell = new SimpleCell(id, fst);
+      if (stringValue.contains("E")) {
+        try {
+          BigDecimal decimal =  new BigDecimal(stringValue);
+          cell = new SimpleCell(id, decimal.toPlainString());
+        } catch (NumberFormatException e) {
+          LOGGER.debug("could not parse `{}` as a decimal", stringValue, e);
+          cell = new SimpleCell(id, stringValue);
         }
       } else {
         cell = new SimpleCell(id, stringValue);
