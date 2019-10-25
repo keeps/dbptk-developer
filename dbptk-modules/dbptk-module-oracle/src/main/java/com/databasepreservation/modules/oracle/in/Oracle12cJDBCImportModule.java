@@ -190,6 +190,9 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
       try {
         Geometry geometry = geometryConverter.asGeometry(asStruct);
         GMLWriter gmlWriter = new GMLWriter();
+        if (geometry == null) {
+         return new NullCell(id);
+        }
         return new SimpleCell(id, gmlWriter.write(geometry));
       } catch (Exception e) {
         throw normalizeException(e, "Could not convert SDO_GEOMETRY to GML");
