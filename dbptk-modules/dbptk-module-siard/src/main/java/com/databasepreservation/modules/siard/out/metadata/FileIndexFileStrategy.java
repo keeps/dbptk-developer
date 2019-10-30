@@ -108,9 +108,8 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
       this.outputContainer = outputContainer;
     }
 
-    OutputStream writerFromWriteStrategy = null;
     try {
-      writerFromWriteStrategy = writeStrategy.createOutputStream(outputContainer, path);
+      OutputStream writerFromWriteStrategy = writeStrategy.createOutputStream(outputContainer, path);
       if (writingLOB) {
         currentlyDigestingLOB = true;
         lobMessageDigest = MessageDigest.getInstance(SIARDDKConstants.DIGEST_ALGORITHM);
@@ -122,14 +121,6 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
     } catch (NoSuchAlgorithmException e) {
       LOGGER.debug("NoSuchAlgorithmException", e);
       return null;
-    } finally {
-      try {
-        if (writerFromWriteStrategy != null) {
-          writerFromWriteStrategy.close();
-        }
-      } catch (IOException e) {
-        LOGGER.debug("Could not close the stream after an error occurred", e);
-      }
     }
   }
 

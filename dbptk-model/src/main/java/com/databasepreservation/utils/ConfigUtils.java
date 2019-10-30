@@ -35,10 +35,13 @@ public class ConfigUtils {
   private static boolean initialized = false;
 
   private static Path homeDirectory;
+  private static Path hiddenHomeDirectory;
+  private static Path mapDBHomeDirectory;
 
   public static void initialize() {
     if (!initialized) {
       Path defaultHome;
+      Path hiddenHome = Paths.get(System.getProperty("user.home"), ".dbptk").normalize().toAbsolutePath();
 
       Path jarPath = FileUtils.getJarPath();
       if (jarPath != null) {
@@ -54,16 +57,21 @@ public class ConfigUtils {
 
       String homeDirectoryAsString = getProperty(defaultHome.toString(), Constants.PROPERTY_KEY_HOME);
 
-      initialize(Paths.get(homeDirectoryAsString).toAbsolutePath());
+      initialize(Paths.get(homeDirectoryAsString).toAbsolutePath(), hiddenHome);
     }
   }
 
-  public static void initialize(Path dbptkHome) {
+  public static void initialize(Path dbptkHome, Path hiddenHome) {
     if (!initialized) {
       homeDirectory = dbptkHome;
       System.setProperty(Constants.PROPERTY_KEY_HOME, homeDirectory.toAbsolutePath().toString());
 
-      instantiateEssentialDirectories(homeDirectory);
+      hiddenHomeDirectory = hiddenHome;
+      System.setProperty(Constants.PROPERTY_KEY_HIDDEN_HOME, hiddenHomeDirectory.toAbsolutePath().toString());
+
+      mapDBHomeDirectory = Paths.get(hiddenHome.toAbsolutePath().toString(), Constants.MAPDB_FOLDER);
+
+      instantiateEssentialDirectories(homeDirectory, hiddenHomeDirectory, mapDBHomeDirectory);
 
       configureLogback();
       initialized = true;
@@ -78,15 +86,19 @@ public class ConfigUtils {
     return homeDirectory;
   }
 
+  public static Path getHiddenHomeDirectory() { return hiddenHomeDirectory; }
+
+  public static Path getMapDBHomeDirectory() { return mapDBHomeDirectory; }
+
   private static void instantiateEssentialDirectories(Path... directories) {
     for (Path path : directories) {
       try {
         if (!Files.exists(path)) {
-          LOGGER.error("CREATING: " + path);
+          LOGGER.debug("CREATING: {}", path);
           Files.createDirectories(path);
         }
       } catch (IOException e) {
-        LOGGER.error("Unable to create " + path, e);
+        LOGGER.error("Unable to create {}", path, e);
       }
     }
   }
@@ -122,7 +134,7 @@ public class ConfigUtils {
       ret = IOUtils.toString(versionInfoAsStream);
 
     } catch (IOException e) {
-      LOGGER.debug("Could not obtain resource {}" + Constants.VERSION_INFO_FILE);
+      LOGGER.debug("Could not obtain resource {}", Constants.VERSION_INFO_FILE);
       ret = "<unavailable>";
     } finally {
       IOUtils.closeQuietly(versionInfoAsStream);

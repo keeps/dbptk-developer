@@ -16,6 +16,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +44,7 @@ import javax.xml.validation.Validator;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.mapdb.DB;
@@ -66,6 +69,7 @@ import com.databasepreservation.modules.siard.validate.component.ValidatorCompon
 import com.databasepreservation.modules.siard.validate.parserHandlers.CompositePrimaryKeyValidationHandler;
 import com.databasepreservation.modules.siard.validate.parserHandlers.PrimaryKeyValidationHandler;
 import com.databasepreservation.modules.siard.validate.parserHandlers.TableContentHandler;
+import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.ListUtils;
 import com.databasepreservation.utils.XMLUtils;
 
@@ -75,9 +79,14 @@ import com.databasepreservation.utils.XMLUtils;
 public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   private static final Logger LOGGER = LoggerFactory.getLogger(RequirementsForTableDataValidator.class);
   // SAXHandler settings
-  static final String JAXP_SCHEMA_LANGUAGE = "http://java.sun.com/xml/jaxp/properties/schemaLanguage";
-  static final String W3C_XML_SCHEMA = "http://www.w3.org/2001/XMLSchema";
-  static final String JAXP_SCHEMA_SOURCE = "http://java.sun.com/xml/jaxp/properties/schemaSource";
+  private static final String JAXP_SCHEMA_LANGUAGE = "http://java.sun.com/xml/jaxp/properties/schemaLanguage";
+  private static final String W3C_XML_SCHEMA = "http://www.w3.org/2001/XMLSchema";
+  private static final String JAXP_SCHEMA_SOURCE = "http://java.sun.com/xml/jaxp/properties/schemaSource";
+
+  // MapDB configurations
+  private static final String FILE_DIRECTORY_LOCATION = ConfigUtils.getProperty(Constants.PROPERTY_UNSET,
+    "dbptk.memory.dir");
+  private static final String MAPDB_FILENAME = "mapdb.bin";
 
   private final String MODULE_NAME;
   private final XMLInputFactory factory;
@@ -127,11 +136,23 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     this.MODULE_NAME = moduleName;
     populateSQL2008Validations();
     factory = XMLInputFactory.newInstance();
-    saxParserFactory = SAXParserFactory.newInstance();
+    saxParserFactory = SAXParserFactory.newInstance(SAXParserFactoryImpl.class.getName(), SAXParserFactoryImpl.class.getClassLoader());
     saxParserFactory.setValidating(true);
     saxParserFactory.setNamespaceAware(true);
     preCompileRegexPatterns();
-    db = DBMaker.memoryDB().make();
+    db = setupMapDB();
+  }
+
+  private DB setupMapDB() {
+    Path fileDBPath;
+    if (FILE_DIRECTORY_LOCATION.equals(Constants.PROPERTY_UNSET)) {
+      fileDBPath = Paths.get(ConfigUtils.getMapDBHomeDirectory().normalize().toAbsolutePath().toString(),
+        MAPDB_FILENAME);
+    } else {
+      fileDBPath = Paths.get(FILE_DIRECTORY_LOCATION, MAPDB_FILENAME);
+    }
+    return DBMaker.fileDB(fileDBPath.toFile()).fileDeleteAfterClose().fileMmapEnable().fileMmapEnableIfSupported()
+      .fileMmapPreclearDisable().make();
   }
 
   @Override
