@@ -152,7 +152,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       fileDBPath = Paths.get(FILE_DIRECTORY_LOCATION, MAPDB_FILENAME);
     }
     return DBMaker.fileDB(fileDBPath.toFile()).fileDeleteAfterClose().fileMmapEnable().fileMmapEnableIfSupported()
-      .fileMmapPreclearDisable().make();
+      .fileMmapPreclearDisable().closeOnJvmShutdown().make();
   }
 
   @Override
