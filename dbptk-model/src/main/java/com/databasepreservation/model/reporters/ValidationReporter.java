@@ -235,7 +235,7 @@ public class ValidationReporter implements AutoCloseable {
     } finally {
       if (writer != null) {
         LOGGER.info("A report was generated with a listing of information about the individual validations.");
-        LOGGER.info("The report file is located at {}", outputFile.normalize().toAbsolutePath().toString());
+        LOGGER.info("The report file is located at {}", outputFile.normalize().toAbsolutePath());
       } else {
         LOGGER.info(
           "A report with a listing of information  about the individual validations could not be generated, please submit a bug report to help us fix this.");

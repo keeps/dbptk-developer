@@ -214,7 +214,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    */
   public Connection getConnection() throws ModuleException {
     if (connection == null) {
-      LOGGER.debug("Loading JDBC Driver " + driverClassName);
+      LOGGER.debug("Loading JDBC Driver {}", driverClassName);
       try {
         Class.forName(driverClassName);
       } catch (ClassNotFoundException e) {
@@ -297,7 +297,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   public List<List<String>> testCustomViewQuery(String query) throws ModuleException {
     List<List<String>> results = new ArrayList<>();
-    LOGGER.debug("query: " + query);
+    LOGGER.debug("query: {}", query);
     Statement st;
     try {
       st = getStatement();
@@ -434,7 +434,7 @@ public class JDBCImportModule implements DatabaseImportModule {
   protected boolean isIgnoredImportedSchema(String schemaName) {
     boolean ignoredSchema = false;
     for (String s : getIgnoredImportedSchemas()) {
-      if (schemaName.matches(s)) {
+      if (s.matches(schemaName)) {
         ignoredSchema = true;
       }
     }
