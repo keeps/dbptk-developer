@@ -1,4 +1,4 @@
-package com.databasepreservation.modules.siard.validate.parserHandlers;
+package com.databasepreservation.modules.siard.validate.handlers;
 
 import java.util.Map;
 

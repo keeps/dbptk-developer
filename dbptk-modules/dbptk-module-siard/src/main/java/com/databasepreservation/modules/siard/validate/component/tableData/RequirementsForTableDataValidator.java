@@ -44,7 +44,6 @@ import javax.xml.validation.Validator;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.mapdb.DB;
@@ -66,12 +65,13 @@ import com.databasepreservation.model.exception.validator.XMLFileNotFoundExcepti
 import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.model.validator.SIARDContent;
 import com.databasepreservation.modules.siard.validate.component.ValidatorComponentImpl;
-import com.databasepreservation.modules.siard.validate.parserHandlers.CompositePrimaryKeyValidationHandler;
-import com.databasepreservation.modules.siard.validate.parserHandlers.PrimaryKeyValidationHandler;
-import com.databasepreservation.modules.siard.validate.parserHandlers.TableContentHandler;
+import com.databasepreservation.modules.siard.validate.handlers.CompositePrimaryKeyValidationHandler;
+import com.databasepreservation.modules.siard.validate.handlers.PrimaryKeyValidationHandler;
+import com.databasepreservation.modules.siard.validate.handlers.TableContentHandler;
 import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.ListUtils;
 import com.databasepreservation.utils.XMLUtils;
+import com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -1008,7 +1008,8 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
           if (!primaryKeyData.get(key).contains(value)) {
             getValidationReporter().validationStatus(T_601, ValidationReporterStatus.ERROR,
               "All the table data (primary data) must meet the consistency requirements of SQL:2008.", "The value ("
-                + value + ") for foreign key '" + foreignKeyName + "' is not present in '" + referencedTable + "'");
+                + value + ") for foreign key '" + foreignKeyName + "' is not present in '" + referencedTable + "' on "
+                + validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder));
             valid = false;
           }
         }

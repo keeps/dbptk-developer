@@ -1,7 +1,6 @@
-package com.databasepreservation.modules.siard.validate.parserHandlers;
+package com.databasepreservation.modules.siard.validate.handlers;
 
 import org.xml.sax.Attributes;
-import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
