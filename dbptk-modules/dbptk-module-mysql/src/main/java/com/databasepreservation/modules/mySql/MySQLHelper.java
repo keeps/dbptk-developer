@@ -132,7 +132,7 @@ public class MySQLHelper extends SQLHelper {
       if (!dateTime.getTimeDefined() && !dateTime.getTimeZoneDefined()) {
         ret = "date";
       } else if (StringUtils.equalsIgnoreCase(type.getSql99TypeName(), "TIMESTAMP")) {
-        ret = "datetime";
+        ret = "timestamp";
       } else if (StringUtils.startsWithIgnoreCase(type.getSql99TypeName(), "TIME")) {
         if (dateTime.getTimeZoneDefined()) {
           logger.warn("Timezone not supported on MySQL: " + "defining type as 'time'");

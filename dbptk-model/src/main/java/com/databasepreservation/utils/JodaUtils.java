@@ -16,6 +16,7 @@ import org.joda.time.chrono.GJChronology;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
+import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,8 +70,14 @@ public final class JodaUtils {
   private JodaUtils() {
   }
 
-  public static DateTime getDateTime(Timestamp timestamp) {
-    return new DateTime(timestamp, GJChronology.getInstance(DateTimeZone.UTC));
+  public static String getDateTime(Timestamp timestamp) {
+      DateTime dateTime = new DateTime(timestamp, GJChronology.getInstance(DateTimeZone.UTC));
+      String dateTimeNoMillis = dateTime.toString(ISODateTimeFormat.dateTimeNoMillis());
+      StringBuilder dateTimeWithMicros = new StringBuilder();
+      String substring = dateTimeNoMillis.substring(0, dateTimeNoMillis.length() - 1);
+
+      String nanos = String.format("%06d", timestamp.getNanos()/1000);
+      return dateTimeWithMicros.append(substring).append(".").append(nanos).append(dateTimeNoMillis.charAt(dateTimeNoMillis.length()-1)).toString();
   }
 
   /**

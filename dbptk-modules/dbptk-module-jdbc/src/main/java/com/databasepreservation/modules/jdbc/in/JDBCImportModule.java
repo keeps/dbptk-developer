@@ -1776,7 +1776,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       } else {
         Timestamp timestamp = rawData.getTimestamp(columnName);
         if (timestamp != null) {
-          cell = new SimpleCell(id, JodaUtils.getDateTime(timestamp).toString());
+          cell = new SimpleCell(id, JodaUtils.getDateTime(timestamp));
         } else {
           cell = new NullCell(id);
         }
