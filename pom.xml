@@ -18,7 +18,7 @@
         <url>http://www.keep.pt</url>
     </organization>
     <properties>
-        <version.java>1.7</version.java>
+        <version.java>1.8</version.java>
         <projectLocalRepository>${project.basedir}/vendor-libs/repository</projectLocalRepository>
     </properties>
     <repositories>

@@ -16,7 +16,7 @@ CREATE TABLE datatypes (
 
   -- Date and time types
   col12 DATE,
-  col13 DATETIME,
+  col13 DATETIME(6),
   col14 TIMESTAMP,
   col15 YEAR(4),
 

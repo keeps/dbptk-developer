@@ -132,7 +132,7 @@ public class MySQLHelper extends SQLHelper {
       if (!dateTime.getTimeDefined() && !dateTime.getTimeZoneDefined()) {
         ret = "date";
       } else if (StringUtils.equalsIgnoreCase(type.getSql99TypeName(), "TIMESTAMP")) {
-        ret = "timestamp";
+        ret = "datetime(6)";
       } else if (StringUtils.startsWithIgnoreCase(type.getSql99TypeName(), "TIME")) {
         if (dateTime.getTimeZoneDefined()) {
           logger.warn("Timezone not supported on MySQL: " + "defining type as 'time'");
@@ -142,7 +142,7 @@ public class MySQLHelper extends SQLHelper {
         if (dateTime.getTimeZoneDefined()) {
           logger.warn("Timezone not supported on MySQL: " + "defining type as 'datetime'");
         }
-        ret = "datetime";
+        ret = "datetime(6)";
       }
     } else if (type instanceof SimpleTypeBinary) {
       SimpleTypeBinary binary = (SimpleTypeBinary) type;

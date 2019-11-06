@@ -23,6 +23,9 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -32,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.PortUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -730,10 +734,15 @@ public class JDBCExportModule implements DatabaseExportModule {
         || "TIMESTAMP WITH TIME ZONE".equalsIgnoreCase(type.getSql99TypeName())) {
         if (data != null) {
           // LOGGER.debug("timestamp before: " + data);
-          Calendar cal = javax.xml.bind.DatatypeConverter.parseDateTime(data);
-          Timestamp sqlTimestamp = new Timestamp(cal.getTimeInMillis());
-          LOGGER.trace("timestamp after: " + sqlTimestamp.toString());
-          ps.setTimestamp(index, sqlTimestamp);
+//          Calendar cal = javax.xml.bind.DatatypeConverter.parseDateTime(data);
+//          Timestamp sqlTimestamp = new Timestamp(cal.getTimeInMillis());
+//          LOGGER.trace("timestamp after: " + sqlTimestamp.toString());
+//          ps.setTimestamp(index, sqlTimestamp);
+          DateTimeFormatter formatter = DateTimeFormatter
+              .ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")
+              .withZone(ZoneOffset.UTC);
+          Instant instant = Instant.parse(data);
+          ps.setString(index, formatter.format(instant));
         } else {
           ps.setNull(index, Types.TIMESTAMP);
         }
