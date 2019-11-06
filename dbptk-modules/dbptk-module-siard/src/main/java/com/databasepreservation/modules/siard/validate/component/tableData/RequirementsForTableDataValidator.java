@@ -7,6 +7,7 @@
  */
 package com.databasepreservation.modules.siard.validate.component.tableData;
 
+import static com.databasepreservation.Constants.MAPDB_FILENAME;
 import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
@@ -86,7 +87,6 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   // MapDB configurations
   private static final String FILE_DIRECTORY_LOCATION = ConfigUtils.getProperty(Constants.PROPERTY_UNSET,
     "dbptk.memory.dir");
-  private static final String MAPDB_FILENAME = "mapdb.bin";
 
   private final String MODULE_NAME;
   private final XMLInputFactory factory;

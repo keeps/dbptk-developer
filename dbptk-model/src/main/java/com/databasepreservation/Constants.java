@@ -23,6 +23,7 @@ public class Constants {
   public static final String LINK_TO_WIKI_ADDITIONAL_CHECKS = "https://github.com/keeps/db-preservation-toolkit/wiki/Validation";
   public static final String PROPERTY_UNSET = "property_unset";
   public static final String MAPDB_FOLDER = "mapdb";
+  public static final String MAPDB_FILENAME = "mapdb.bin";
 
   /* STYLE */
   public static final String SMALL_SPACE = "      ";

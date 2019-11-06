@@ -437,13 +437,10 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     LOGGER.debug("Writing lob to {}", lob.getOutputPath());
 
     InputStream in = null;
-    OutputStream out = null;
     // copy lob to output
-    try {
-      out = writeStrategy.createOutputStream(baseContainer, lob.getOutputPath());
+    try (OutputStream out = writeStrategy.createOutputStream(baseContainer, lob.getOutputPath())) {
       in = lob.getInputStreamProvider().createInputStream();
       IOUtils.copy(in, out);
-      out.close();
       in.close();
     } catch (IOException e) {
       throw new ModuleException().withMessage("Could not write lob").withCause(e);
