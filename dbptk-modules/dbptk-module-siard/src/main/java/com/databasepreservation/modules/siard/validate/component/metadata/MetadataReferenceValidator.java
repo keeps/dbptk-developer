@@ -330,7 +330,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
           String foreignKeyType = foreignKeyColumnTable.get(column);
           if (primaryKeyColumns != null && primaryKeyColumns.contains(referencedColumn)) {
             for (String primaryKey : primaryKeyColumns) {
-              if (primaryKey != referencedColumn)
+              if (!primaryKey.equals(referencedColumn))
                 continue;
               String primaryKeyType = referencedColumnTable.get(primaryKey);
 
