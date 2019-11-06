@@ -290,6 +290,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    * @return
    * @throws SQLException
    */
+  @Override
   protected List<RoutineStructure> getRoutines(String schemaName) throws SQLException, ModuleException {
     // TODO add optional fields to routine (use getProcedureColumns)
     List<RoutineStructure> routines = new ArrayList<RoutineStructure>();
@@ -297,6 +298,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
     ResultSet rset = getMetadata().getProcedures(dbStructure.getName(), schemaName, "%");
     while (rset.next()) {
       String routineName = rset.getString(3);
+      LOGGER.info("Obtaining routine {}", routineName);
       RoutineStructure routine = new RoutineStructure();
       routine.setName(routineName);
       if (rset.getString(7) != null) {

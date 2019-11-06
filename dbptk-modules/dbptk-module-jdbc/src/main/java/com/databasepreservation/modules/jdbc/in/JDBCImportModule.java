@@ -768,6 +768,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     try (ResultSet rset = getMetadata().getProcedures(dbStructure.getName(), schemaName, "%")) {
       while (rset.next()) {
         String routineName = rset.getString(3);
+        LOGGER.info("Obtaining routine {}", routineName);
         RoutineStructure routine = new RoutineStructure();
         routine.setName(routineName);
         if (rset.getString(7) != null) {
@@ -779,6 +780,7 @@ public class JDBCImportModule implements DatabaseImportModule {
             routine.setDescription("Routine returns a result");
           }
         }
+
         routines.add(routine);
       }
     }

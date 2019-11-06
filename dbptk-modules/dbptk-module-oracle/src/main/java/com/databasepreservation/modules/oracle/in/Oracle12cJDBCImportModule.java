@@ -239,6 +239,7 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
       for (String routineName : routineNames) {
         //String routineName = resultSet.getString(1);
         RoutineStructure routine = new RoutineStructure();
+        LOGGER.info("Obtaining routine {}", routineName);
         routine.setName(routineName);
 
         try(ResultSet rsetCode = getStatement()
