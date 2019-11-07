@@ -16,40 +16,61 @@ import com.databasepreservation.modules.SQLHelper;
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 public class SybaseHelper extends SQLHelper {
-
   private static final Logger LOGGER = LoggerFactory.getLogger(SybaseHelper.class);
+
+  private String startQuote = "\"";
+
+  private String endQuote = "\"";
+
+  @Override
+  public String getStartQuote() {
+    return startQuote;
+  }
+
+  @Override
+  public String getEndQuote() {
+    return endQuote;
+  }
+
+  @Override
+  public String escapeSchemaName(String schema) {
+    return getStartQuote() + schema + getEndQuote();
+  }
+
+  @Override
+  public String escapeTableName(String table) {
+    return getStartQuote() + table + getEndQuote();
+  }
+
+  @Override
+  protected String escapeColumnName(String column) {
+    return getStartQuote() + column + getEndQuote();
+  }
 
   @Override
   public String getTriggersSQL(String schemaName, String tableName) {
-    return "SELECT so2.name AS TRIGGER_NAME FROM sysobjects so1, sysobjects so2 WHERE (so2.id = so1.deltrig OR so2.id = so1.instrig OR so2.id=so1.updtrig OR so2.id=so1.seltrig) AND so1.name='" + tableName + "'";
+    return "select c.trigger_name as TRIGGER_NAME, " + "c.trigger_time as ACTION_TIME, " + "c.event as TRIGGER_EVENT, "
+      + "c.trigger_defn as TRIGGERED_ACTION, " + "c.remarks as REMARKS " + "FROM systrigger c, systab t, sysuser u "
+      + "wHERE c.table_id = t.table_id and t.table_name = '" + tableName
+      + "' and u.user_id = t.creator and u.user_name='" + schemaName + "'";
   }
 
   @Override
   public String getCheckConstraintsSQL(String schemaName, String tableName) {
-    return "SELECT object_name(sys_const.tableid) AS TABLE_NAME, object_name(sys_const.constrid) as CHECK_NAME, sys_comm.text as CHECK_CONDITION" +
-    " FROM sysconstraints sys_const, syscomments sys_comm" +
-    " WHERE sys_const.status=128 AND sys_const.constrid=sys_comm.id AND object_name(sys_const.tableid)='" + tableName + "'";
+    return "select const.constraint_name as CHECK_NAME, ch.check_defn as CHECK_CONDITION "
+      + "from sysconstraint const, systab tab, syscheck ch, sysuser u "
+      + "where const.table_object_id = tab.object_id and ch.check_id = " + "const.constraint_id and tab.table_name='"
+      + tableName + "' and u.user_id = tab.creator and u.user_name='" + schemaName + "'";
   }
 
   @Override
   public String getUsersSQL(String dbName) {
-    return "SELECT name AS USER_NAME FROM dbo.sysusers WHERE uid < 16384";
+    return "SELECT name AS USER_NAME FROM sysusers WHERE uid < 16384";
   }
 
-  @Override
-  public String getRolesSQL() {
-    return "SELECT name as ROLE_NAME, name as ADMIN FROM master.dbo.sysloginroles AS a, master.dbo.syssrvroles as b where a.srid = b.srid";
-  }
-
-  public String getTriggerEventSQL(String schemaName, String tableName) {
-    return "SELECT object_name(so2.deltrig) AS TRIGGER_DEL, object_name(so2.instrig) AS TRIGGER_INS, object_name(so2.updtrig) AS TRIGGER_UPD " +
-        "FROM sysobjects so1, sysobjects so2 WHERE (so2.id = so1.id) AND so1.name='" + tableName + "' AND (object_name(so2.instrig) IS NOT NULL OR object_name(so2.deltrig) IS NOT NULL OR object_name(so2.updtrig) IS NOT NULL)";
-  }
-
-  public String getTriggeredActionSQL(String triggerName) {
-    return "SELECT u.name as SCHEMA_NAME, o.name AS TRIGGER_NAME, c.text as TRIGGERED_ACTION " +
-        "FROM sysusers u, syscomments c, sysobjects o " +
-        "WHERE o.type = 'TR' AND o.id = c.id AND o.uid = u.uid AND o.name = '" + triggerName + "'";
+  public String getRolesSQL(String userID) {
+    return "SELECT role_name as ROLE_NAME, parent_role_name as ADMIN FROM sp_displayroles('" + userID
+      + "', 'expand_down');";
   }
 
   public String getViewSQL(String viewName) {
@@ -62,18 +83,5 @@ public class SybaseHelper extends SQLHelper {
     return "SELECT u.name as SCHEMA_NAME, o.name AS PROC_NAME, c.text as TEXT " +
         "FROM sysusers u, syscomments c, sysobjects o " +
         "WHERE o.type = 'P' AND o.id = c.id AND o.uid = u.uid AND o.name = '" + procName + "'";
-  }
-
-  public String getRuleNameSQL(String tableName) {
-    return "SELECT DISTINCT(sysobjects.name) AS RULE_NAME" +
-    " FROM sysobjects, syscolumns, syscomments" +
-    " WHERE object_name(syscolumns.domain)=sysobjects.name AND sysobjects.id = syscomments.id" +
-    " AND sysobjects.type='R' AND object_name(syscolumns.id)='" + tableName + "'";
-  }
-
-  public String getRuleSQL(String tableName, String ruleName) {
-    return "SELECT u.name as SCHEMA_NAME, o.name AS RULE_NAME, object_name(syscolumns.id) as TABLE_NAME, c.text as TEXT" +
-        " FROM sysusers u, syscomments c, sysobjects o, syscolumns" +
-        " WHERE o.type = 'R' AND o.id = c.id AND o.uid = u.uid and object_name(syscolumns.domain)=o.name and object_name(syscolumns.id)='" + tableName + "' and o.name='" + ruleName + "'";
   }
 }

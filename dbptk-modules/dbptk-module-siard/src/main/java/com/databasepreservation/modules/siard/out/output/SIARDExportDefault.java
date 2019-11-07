@@ -127,6 +127,7 @@ public class SIARDExportDefault implements DatabaseExportModule {
             String columnPart = lineMatcher.group(3);
             String[] columns = columnPart.split(ListTables.COLUMNS_SEPARATOR);
 
+            selectedTables.add(Triple.of(schemaPart, (String) null, (String) null));
             selectedTables.add(Triple.of(schemaPart, tablePart, (String) null));
 
             for (String column : columns) {

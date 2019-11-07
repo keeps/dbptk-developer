@@ -89,6 +89,11 @@ public class ListTables implements DatabaseExportModule {
       public boolean shouldCountRows() {
         return false;
       }
+
+      @Override
+      public boolean fetchMetadataInformation() {
+        return false;
+      }
     };
   }
 

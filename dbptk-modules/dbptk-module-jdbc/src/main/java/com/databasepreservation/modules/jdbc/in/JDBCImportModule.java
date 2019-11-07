@@ -29,6 +29,7 @@ import java.sql.Struct;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -404,9 +405,11 @@ public class JDBCImportModule implements DatabaseImportModule {
         dbStructure.setSchemas(getSchemas());
         actualSchema = null;
 
-        dbStructure.setUsers(getUsers(dbStructure.getName()));
-        dbStructure.setRoles(getRoles());
-        dbStructure.setPrivileges(getPrivileges());
+        if (getModuleSettings().fetchMetadataInformation()) {
+          dbStructure.setUsers(getUsers(dbStructure.getName()));
+          dbStructure.setRoles(getRoles());
+          dbStructure.setPrivileges(getPrivileges());
+        }
 
         LOGGER.debug("Database structure obtained");
       } catch (SQLException e) {
@@ -432,13 +435,12 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return true if schema is ignored; false if it isn't
    */
   protected boolean isIgnoredImportedSchema(String schemaName) {
-    boolean ignoredSchema = false;
     for (String s : getIgnoredImportedSchemas()) {
-      if (s.matches(schemaName)) {
-        ignoredSchema = true;
+      if (schemaName.matches(s)) {
+        return true;
       }
     }
-    return ignoredSchema;
+    return false;
   }
 
   /**
@@ -493,7 +495,9 @@ public class JDBCImportModule implements DatabaseImportModule {
     actualSchema.setUserDefinedTypesComposed(new ArrayList<ComposedTypeStructure>());
     actualSchema.setTables(getTables(actualSchema));
     actualSchema.setViews(getViews(schemaName));
-    actualSchema.setRoutines(getRoutines(schemaName));
+    if (getModuleSettings().fetchMetadataInformation()) {
+      actualSchema.setRoutines(getRoutines(schemaName));
+    }
 
     return actualSchema;
   }
@@ -688,28 +692,31 @@ public class JDBCImportModule implements DatabaseImportModule {
    */
   protected List<ViewStructure> getViews(String schemaName) throws SQLException, ModuleException {
     List<ViewStructure> views = new ArrayList<>();
-    try (ResultSet rset = getMetadata().getTables(dbStructure.getName(), schemaName, "%", new String[] {"VIEW"})) {
-      while (rset.next()) {
-        String viewName = rset.getString(3);
-        ViewStructure view = new ViewStructure();
-        view.setName(viewName);
-        view.setDescription(rset.getString(5));
-        if (getModuleSettings().isSelectedTable(schemaName, viewName)) {
-          try {
-            view.setColumns(getColumns(schemaName, viewName));
-          } catch (SQLException e) {
-            reporter.ignored("Columns from view " + viewName + " in schema " + schemaName,
+    if (getModuleSettings().fetchMetadataInformation()) {
+      try (ResultSet rset = getMetadata().getTables(dbStructure.getName(), schemaName, "%", new String[] {"VIEW"})) {
+        while (rset.next()) {
+          String viewName = rset.getString(3);
+          ViewStructure view = new ViewStructure();
+          view.setName(viewName);
+          view.setDescription(rset.getString(5));
+          if (getModuleSettings().isSelectedTable(schemaName, viewName)) {
+            try {
+              view.setColumns(getColumns(schemaName, viewName));
+            } catch (SQLException e) {
+              reporter.ignored("Columns from view " + viewName + " in schema " + schemaName,
                 "there was a problem retrieving them form the database");
-          }
-          if (view.getColumns().isEmpty()) {
-            reporter.ignored("View " + viewName + " in schema " + schemaName, "it contains no columns");
-          } else {
-            views.add(view);
+            }
+            if (view.getColumns().isEmpty()) {
+              reporter.ignored("View " + viewName + " in schema " + schemaName, "it contains no columns");
+            } else {
+              views.add(view);
+            }
           }
         }
       }
+      views.addAll(getCustomViews(schemaName));
     }
-    views.addAll(getCustomViews(schemaName));
+
     return views;
   }
 
@@ -763,7 +770,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    */
   protected List<RoutineStructure> getRoutines(String schemaName) throws SQLException, ModuleException {
     // TODO add optional fields to routine (use getProcedureColumns)
-    List<RoutineStructure> routines = new ArrayList<RoutineStructure>();
+    List<RoutineStructure> routines = new ArrayList<>();
 
     try (ResultSet rset = getMetadata().getProcedures(dbStructure.getName(), schemaName, "%")) {
       while (rset.next()) {
@@ -912,7 +919,7 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   protected List<UserStructure> getUsers(String databaseName) throws SQLException, ModuleException {
-    List<UserStructure> users = new ArrayList<UserStructure>();
+    List<UserStructure> users = new ArrayList<>();
     String query = sqlHelper.getUsersSQL(databaseName);
     if (query != null) {
       try (ResultSet rs = getStatement().executeQuery(query)) {
@@ -936,7 +943,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @throws SQLException
    */
   protected List<RoleStructure> getRoles() throws SQLException, ModuleException {
-    List<RoleStructure> roles = new ArrayList<RoleStructure>();
+    List<RoleStructure> roles = new ArrayList<>();
     String query = sqlHelper.getRolesSQL();
     if (query != null) {
       try (ResultSet rs = getStatement().executeQuery(query)) {
@@ -1438,11 +1445,11 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return
    */
   protected List<Trigger> getTriggers(String schemaName, String tableName) throws ModuleException {
-    List<Trigger> triggers = new ArrayList<Trigger>();
+    List<Trigger> triggers = new ArrayList<>();
 
     String query = sqlHelper.getTriggersSQL(schemaName, tableName);
     if (query != null) {
-      try (ResultSet rs = getStatement().executeQuery(sqlHelper.getTriggersSQL(schemaName, tableName))) {
+      try (ResultSet rs = getStatement().executeQuery(query)) {
         while (rs.next()) {
           Trigger trigger = new Trigger();
 
@@ -1493,13 +1500,18 @@ public class JDBCImportModule implements DatabaseImportModule {
             trigger.setDescription(description);
           }
 
+          if (triggerName == null) {
+            LOGGER.debug("trigger name unable to be retrieved, trying to retrieve from the triggered action");
+            trigger.setName(processTriggerName(triggeredAction));
+          }
+
           triggers.add(trigger);
         }
       } catch (SQLException e) {
-        LOGGER.debug("No triggers imported for " + schemaName + "." + tableName, e);
+        LOGGER.debug("No triggers imported for {}.{}", schemaName, tableName, e);
       }
     } else {
-      LOGGER.debug("Triggers were not imported: not supported yet on " + getClass().getSimpleName());
+      LOGGER.debug("Triggers were not imported: not supported yet on {}", getClass().getSimpleName());
     }
     return triggers;
   }
@@ -1521,6 +1533,16 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return
    */
   protected String processActionTime(String string) {
+    return string;
+  }
+
+  /**
+   * Method invoked to try obtain the trigger name from the source code
+   *
+   * @param string
+   * @return
+   */
+  protected String processTriggerName(String string) {
     return string;
   }
 
@@ -1772,6 +1794,15 @@ public class JDBCImportModule implements DatabaseImportModule {
         Time time = rawData.getTime(columnName);
         if (time != null) {
           cell = new SimpleCell(id, time.toString());
+        } else {
+          cell = new NullCell(id);
+        }
+      } else if ("TIMESTAMP WITH TIME ZONE".equalsIgnoreCase(cellType.getSql2008TypeName())) {
+        String rawTimestamp = rawData.getString(columnName);
+        if (rawTimestamp != null) {
+          rawTimestamp = rawTimestamp.replace(" ", "T");
+          final OffsetDateTime parse = OffsetDateTime.parse(rawTimestamp);
+          cell = new SimpleCell(id, parse.toInstant().toString());
         } else {
           cell = new NullCell(id);
         }

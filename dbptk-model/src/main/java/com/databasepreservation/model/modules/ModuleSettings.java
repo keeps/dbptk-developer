@@ -46,6 +46,10 @@ public class ModuleSettings {
     return null;
   }
 
+  public boolean isSelectedSchema(String schemaName) {
+    return selectedTables() == null || selectedTables().contains(Triple.of(schemaName, null, null));
+  }
+
   /**
    * Use the selectedTables set to determine if a table is selected.
    *
@@ -79,4 +83,6 @@ public class ModuleSettings {
   }
 
   public boolean fetchWithViewAsTable() { return true; }
+
+  public boolean fetchMetadataInformation() { return true; }
 }

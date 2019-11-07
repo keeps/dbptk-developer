@@ -9,6 +9,8 @@ package com.databasepreservation.modules.sybase.in;
 
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -36,6 +38,7 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.CloseableUtils;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.sybase.SybaseHelper;
+import com.databasepreservation.utils.RemoteConnectionUtils;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -43,23 +46,11 @@ import com.databasepreservation.modules.sybase.SybaseHelper;
 public class SybaseJDBCImportModule extends JDBCImportModule {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SybaseJDBCImportModule.class);
-
-  /**
-   * Creates a new Sybase import module using the default instance.
-   * @param hostname
-   *          the name of the Sybase server host (e.g. localhost)
-   * @param database
-   *          the name of the database we'll be accessing
-   * @param username
-   *          the name of the user to use in the connection
-   * @param password
-   *          the password of the user to use in the connection
-   */
-  public SybaseJDBCImportModule(String hostname, String database, String username, String password, Path customViews) throws ModuleException {
-    super("net.sourceforge.jtds.jdbc.Driver",
-        "jdbc:jtds:sybase://" + hostname + "/" + database + ";user=" + username + ";password=" + password,
-        new SybaseHelper(), new SybaseDataTypeImporter(), customViews);
-  }
+  private static final String DRIVER_CLASS_NAME = "com.sybase.jdbc4.jdbc.SybDriver";
+  private static final String URL_CONNECTION_PREFIX = "jdbc:sybase:Tds:";
+  private String username;
+  private String password;
+  private Pattern pattern = Pattern.compile("create trigger ([^\\s]+)", Pattern.CASE_INSENSITIVE);
 
   /**
    * Creates a new Sybase import module using the default instance.
@@ -76,44 +67,66 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
    *
    */
   public SybaseJDBCImportModule(String hostname, int port, String database, String username, String password, Path customViews) throws ModuleException {
-    super("net.sourceforge.jtds.jdbc.Driver",
-        "jdbc:jtds:sybase://" + hostname + ":" + port + "/" + database + ";user=" + username + ";password=" + password,
+    super(DRIVER_CLASS_NAME, URL_CONNECTION_PREFIX + hostname + ":" + port + "/" + database,
         new SybaseHelper(), new SybaseDataTypeImporter(), customViews);
+    this.username = username;
+    this.password = password;
   }
 
   public SybaseJDBCImportModule(String hostname, int port, String database, String username, String password,
     boolean ssh, String sshHost, String sshUser, String sshPassword, String sshPortNumber, Path customViews)
     throws ModuleException {
-    super("net.sourceforge.jtds.jdbc.Driver",
-      "jdbc:jtds:sybase://" + hostname + ":" + port + "/" + database + ";user=" + username + ";password=" + password,
+    super(DRIVER_CLASS_NAME, URL_CONNECTION_PREFIX + hostname + ":" + port + "/" + database,
       new SybaseHelper(), new SybaseDataTypeImporter(), ssh, sshHost, sshUser, sshPassword, sshPortNumber, customViews);
+    this.username = username;
+    this.password = password;
+  }
+
+  /**
+   * Connect to the server using the properties defined in the constructor
+   *
+   * @return the new connection
+   * @throws ModuleException
+   */
+  @Override
+  protected Connection createConnection() throws ModuleException {
+    Connection connection;
+    try {
+      if (ssh) {
+        connectionURL = RemoteConnectionUtils.replaceHostAndPort(connectionURL);
+      }
+      connection = DriverManager.getConnection(connectionURL, this.username, this.password);
+      connection.setAutoCommit(false);
+    } catch (SQLException e) {
+      throw normalizeException(e, null);
+    }
+    LOGGER.debug("Connected");
+    return connection;
   }
 
   /**
    * Gets schemas that won't be imported
    * <p>
-   * Accepts schema names in as regular expressions I.e. SYS.* will ignore
-   * SYSCAT, SYSFUN, etc
+   * Accepts schema names in as regular expressions I.e. SYS.* will ignore SYSCAT,
+   * SYSFUN, etc
    *
    * @return the schema names not to be imported
    */
   @Override
   protected Set<String> getIgnoredImportedSchemas() {
-    Set<String> ignored = new HashSet<String>();
-    ignored.add("js_.*");
-    ignored.add("dtm_tm_role");
-    ignored.add("ha.*");
-    ignored.add("keycustodian_role");
-    ignored.add("messaging_role");
-    ignored.add("mon_role");
-    ignored.add("navigator_role");
-    ignored.add("oper_role");
-    ignored.add("replication_maint_role_gp");
-    ignored.add("replication_role");
-    ignored.add("sa_role");
-    ignored.add("sso_role");
-    ignored.add("sybase_ts_role");
-    ignored.add("webservices_role");
+    Set<String> ignored = new HashSet<>();
+    ignored.add("diagnostics");
+    ignored.add("EXEC_ROLE");
+    ignored.add("EXTENV_MAIN");
+    ignored.add("EXTENV_WORKER");
+    ignored.add("MODIFY_ROLE");
+    ignored.add("READ_ROLE");
+    ignored.add("rs_systabgroup");
+    ignored.add("SA_DEBUG");
+    ignored.add("SYS");
+    ignored.add("SYS_.*");
+    ignored.add("UPDATER");
+
     return ignored;
   }
 
@@ -148,44 +161,93 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
   }
 
   /**
-   * Gets the check constraints of a given schema table
-   * Sybase rules (http://infocenter.sybase.com/help/index.jsp?topic=/com.sybase.infocenter.dc32300.1570/html/sqlug/X50891.htm)
-   * were also treated as check constraints due to its definition.
+   * Sanitizes the trigger action time data
    *
-   * @param schemaName
-   * @param tableName
-   * @return A list of {@link CheckConstraint}
+   * @param string
+   * @return
    */
-  protected List<CheckConstraint> getCheckConstraints(String schemaName, String tableName) throws ModuleException {
-    List<CheckConstraint> checkConstraints = super.getCheckConstraints(schemaName, tableName);
+  @Override
+  protected String processActionTime(String string) {
+    LOGGER.debug("Trigger action time: {}", string);
+    char[] charArray = string.toCharArray();
 
-    /* Sybase Rule Binding */
-    String queryForRuleNameSQL = ((SybaseHelper) sqlHelper).getRuleNameSQL(tableName);
-    try (ResultSet res = getStatement().executeQuery(queryForRuleNameSQL)) {
-      while(res.next()) {
-        CheckConstraint c = new CheckConstraint();
-        String ruleName = res.getString("RULE_NAME");
-        String queryForRuleSQL = ((SybaseHelper) sqlHelper).getRuleSQL(tableName, ruleName);
-
-        try (ResultSet rset = getStatement().executeQuery(queryForRuleSQL)) {
-          StringBuilder b = new StringBuilder();
-          while (rset.next()) {
-            b.append(rset.getString("TEXT"));
-          }
-
-          c.setName(ruleName);
-          c.setCondition(b.toString());
-          c.setDescription("Sybase Rule"); // Add on description the source of the constraint
-
-          checkConstraints.add(c);
-        }
-      }
-    } catch (SQLException e) {
-      LOGGER.debug("Exception trying to get rule SQL in Sybase", e);
+    String res = "";
+    if (charArray.length == 1 && (charArray[0] == 'A' || charArray[0] == 'S')) {
+      res = "AFTER";
     }
 
-    return checkConstraints;
-    
+    if (charArray.length == 1 && charArray[0] == 'B') {
+      res = "BEFORE";
+    }
+    if (charArray.length == 1 && (charArray[0] == 'K' || charArray[0] == 'I')) {
+      res = "INSTEAD OF";
+    }
+
+    return res;
+  }
+
+  /**
+   * Sanitizes the trigger event data
+   *
+   * @param string
+   * @return
+   */
+  @Override
+  protected String processTriggerEvent(String string) {
+    LOGGER.debug("Trigger event: {}", string);
+    char[] charArray = string.toCharArray();
+
+    String res = "";
+    if (charArray.length == 1 && charArray[0] == 'A') {
+      res = "INSERT, DELETE";
+    }
+
+    if (charArray.length == 1 && charArray[0] == 'B') {
+      res = "INSERT, UPDATE";
+    }
+
+    if (charArray.length == 1 && charArray[0] == 'C') {
+      res = "UPDATE";
+    }
+
+    if (charArray.length == 1 && charArray[0] == 'D') {
+      res = "DELETE";
+    }
+
+    if (charArray.length == 1 && charArray[0] == 'E') {
+      res = "DELETE, UPDATE";
+    }
+
+    if (charArray.length == 1 && charArray[0] == 'I') {
+      res = "INSERT";
+    }
+
+    if (charArray.length == 1 && charArray[0] == 'U') {
+      res = "UPDATE";
+    }
+
+    if (charArray.length == 1 && charArray[0] == 'M') {
+      res = "INSERT, DELETE, UPDATE";
+    }
+
+    return res;
+  }
+
+  /**
+   * Method invoked to try obtain the trigger name from the source code
+   *
+   * @param string
+   * @return
+   */
+  @Override
+  protected String processTriggerName(String string) {
+    final Matcher matcher = pattern.matcher(string);
+    String triggerName = "undefined";
+    while (matcher.find()) {
+      triggerName = matcher.group(1);
+    }
+
+    return triggerName;
   }
 
   /**
@@ -197,126 +259,39 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
    */
   @Override
   protected List<RoleStructure> getRoles() throws SQLException, ModuleException {
-    List<RoleStructure> roles = super.getRoles();
+    List<RoleStructure> roles = new ArrayList<>();
+    String query = ((SybaseHelper) sqlHelper).getRolesSQL(this.username);
+    if (query != null) {
+      try (ResultSet rs = getStatement().executeQuery(query)) {
+        while (rs.next()) {
+          RoleStructure role = new RoleStructure();
+          String roleName;
+          try {
+            roleName = rs.getString("ROLE_NAME");
+          } catch (SQLException e) {
+            LOGGER.debug("handled SQLException", e);
+            roleName = "";
+          }
+          role.setName(roleName);
 
-    for (RoleStructure role : roles) {
-      role.setAdmin("sa");
-      role.setDescription("");
+          String admin = "";
+          try {
+            admin = rs.getString("ADMIN");
+            if (admin == null) {
+              admin = roleName;
+            }
+          } catch (SQLException e) {
+            LOGGER.trace("handled SQLException", e);
+          }
+          role.setAdmin(admin);
+
+          roles.add(role);
+        }
+      }
     }
 
     return roles;
   }
-
-  /**
-   * Gets the triggers of a given schema table
-   *
-   * @param schemaName
-   * @param tableName
-   * @return A list of {@link Trigger}
-   * @throws ModuleException
-   */
-  @Override
-  protected List<Trigger> getTriggers(String schemaName, String tableName) throws ModuleException {
-    List<Trigger> triggers = new ArrayList<Trigger>();
-
-    String query = sqlHelper.getTriggersSQL(schemaName, tableName);
-
-    try (ResultSet rs = getStatement().executeQuery(query)) {
-      while (rs.next()) {
-        Trigger trigger = new Trigger();
-
-        String triggerName;
-        try {
-          triggerName = rs.getString("TRIGGER_NAME");
-        } catch (SQLException e) {
-          LOGGER.debug("handled SQLException", e);
-          triggerName = "";
-        }
-        trigger.setName(triggerName);
-
-        String triggerEvent = "";
-
-        String queryForTriggerEvent = ((SybaseHelper) sqlHelper).getTriggerEventSQL(schemaName, tableName);
-
-        try (ResultSet res = getStatement().executeQuery(queryForTriggerEvent)) {
-          while(res.next()) {
-            String triggerInsert = "";
-            String triggerDelete = "";
-            String triggerUpdate = "";
-
-            triggerInsert = res.getString("TRIGGER_INS");
-            triggerDelete = res.getString("TRIGGER_DEL");
-            triggerUpdate = res.getString("TRIGGER_UPD");
-
-            List<String> triggerEvents = new ArrayList<>();
-
-            if (triggerInsert != null) triggerEvents.add("INSERT");
-            if (triggerDelete != null) triggerEvents.add("DELETE");
-            if (triggerUpdate != null) triggerEvents.add("UPDATE");
-
-            StringBuilder sb = new StringBuilder();
-
-            for (String s : triggerEvents) {
-              sb.append(s).append(",");
-            }
-
-            triggerEvent = sb.deleteCharAt(sb.length() - 1).toString();
-          }
-        } catch (SQLException e) {
-          LOGGER.error("Error getting trigger event for " + tableName, e);
-        }
-
-        trigger.setTriggerEvent(triggerEvent);
-
-        String triggeredAction = "";
-
-        String queryForTriggeredAction = ((SybaseHelper) sqlHelper).getTriggeredActionSQL(triggerName);
-
-        try (ResultSet res = getStatement().executeQuery(queryForTriggeredAction)) {
-          StringBuilder b = new StringBuilder();
-          while (res.next()) {
-            b.append(res.getString("TRIGGERED_ACTION"));
-          }
-
-          triggeredAction = b.toString();
-        } catch(SQLException | NullPointerException e) {
-          LOGGER.error("Error getting triggered action for " + triggerName, e);
-          triggeredAction = "";
-        }
-
-        trigger.setTriggeredAction(triggeredAction);
-
-        String actionTime;
-        Pattern pattern;
-        Matcher matcher;
-
-        pattern = Pattern.compile("create trigger (\\S+) on (\\S+) (for|instead of)", Pattern.CASE_INSENSITIVE);
-
-        matcher = pattern.matcher(triggeredAction.replace('\n', ' '));
-
-        if (matcher.find()) {
-          String parsedTriggerName = matcher.group(1);
-          String parsedTableName = matcher.group(2);
-          String parsedActionTime = matcher.group(3);
-
-          actionTime = parsedActionTime.equalsIgnoreCase("for")? "AFTER" : "INSTEAD OF";
-
-        } else {
-          LOGGER.error("Error getting trigger action time for " + triggerName);
-          actionTime = "";
-        }
-
-        trigger.setActionTime(actionTime);
-
-        triggers.add(trigger);
-      }
-    } catch (SQLException e) {
-      LOGGER.debug("No triggers imported for " + schemaName + "." + tableName, e);
-    }
-
-    return triggers;
-  }
-
 
   /**
    * Gets the views of a given schema
@@ -329,29 +304,33 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
    */
   @Override
   protected List<ViewStructure> getViews(String schemaName) throws SQLException, ModuleException {
-    List<ViewStructure> views = super.getViews(schemaName);
-    for (ViewStructure v : views) {
+    if (getModuleSettings().fetchMetadataInformation()) {
+      List<ViewStructure> views = super.getViews(schemaName);
+      for (ViewStructure v : views) {
 
-      String queryForViewSQL = ((SybaseHelper) sqlHelper).getViewSQL(v.getName());
-      ResultSet rset = null;
-      PreparedStatement statement = null;
-      statement = getConnection().prepareStatement(queryForViewSQL);
-      try {
-        rset = statement.executeQuery();
-        StringBuilder b = new StringBuilder();
-        while (rset.next()) {
-          b.append(rset.getString("TEXT"));
+        String queryForViewSQL = ((SybaseHelper) sqlHelper).getViewSQL(v.getName());
+        ResultSet rset = null;
+        PreparedStatement statement = null;
+        statement = getConnection().prepareStatement(queryForViewSQL);
+        try {
+          rset = statement.executeQuery();
+          StringBuilder b = new StringBuilder();
+          while (rset.next()) {
+            b.append(rset.getString("TEXT"));
+          }
+
+          v.setQueryOriginal(b.toString());
+        } catch (SQLException e) {
+          LOGGER.debug("Exception trying to get view SQL in Sybase", e);
+        } finally {
+          CloseableUtils.closeQuietly(rset);
+          CloseableUtils.closeQuietly(statement);
         }
-
-        v.setQueryOriginal(b.toString());
-      } catch (SQLException e) {
-        LOGGER.debug("Exception trying to get view SQL in Sybase", e);
-      } finally {
-        CloseableUtils.closeQuietly(rset);
-        CloseableUtils.closeQuietly(statement);
       }
+      return views;
     }
-    return views;
+
+    return new ArrayList<>();
   }
 
   /**
@@ -366,22 +345,44 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
    */
   @Override
   protected List<RoutineStructure> getRoutines(String schemaName) throws SQLException, ModuleException {
-    List<RoutineStructure> routines = super.getRoutines(schemaName);
+    List<RoutineStructure> routines = new ArrayList<>();
+    if (getModuleSettings().isSelectedSchema(schemaName)) {
+      try (ResultSet rset = getMetadata().getProcedures(dbStructure.getName(), schemaName, "%")) {
+        while (rset.next()) {
+          String routineName = rset.getString(3);
+          LOGGER.info("Obtaining routine {}", routineName);
+          RoutineStructure routine = new RoutineStructure();
+          routine.setName(routineName);
+          if (rset.getString(7) != null) {
+            routine.setDescription(rset.getString(7));
+          } else {
+            if (rset.getShort(8) == 1) {
+              routine.setDescription("Routine does not " + "return a result");
+            } else if (rset.getShort(8) == 2) {
+              routine.setDescription("Routine returns a result");
+            }
+          }
 
-    for (RoutineStructure routine : routines) {
-      String queryForProcedureSQL = ((SybaseHelper) sqlHelper).getProcedureSQL(routine.getName());
-      try (ResultSet res = getStatement().executeQuery(queryForProcedureSQL)) {
-        StringBuilder b = new StringBuilder();
-        while (res.next()) {
-          b.append(res.getString("TEXT"));
+          String queryForProcedureSQL = ((SybaseHelper) sqlHelper).getProcedureSQL(routine.getName());
+          try (ResultSet res = getStatement().executeQuery(queryForProcedureSQL)) {
+            StringBuilder b = new StringBuilder();
+            while (res.next()) {
+              b.append(res.getString("TEXT"));
+            }
+            routine.setBody(b.toString());
+          } catch (SQLException e) {
+            LOGGER.debug("Could not retrieve routine code (as routine) for " + routine.getName(), e);
+            routine.setBody("");
+          }
+
+
+          routines.add(routine);
         }
-        routine.setBody(b.toString());
-      } catch (SQLException e) {
-        LOGGER.debug("Could not retrieve routine code (as routine) for " + routine.getName(), e);
-        routine.setBody("");
       }
-
+    } else {
+      LOGGER.info("Ignoring routines for schema {}", schemaName);
     }
+
     return routines;
   }
 }
