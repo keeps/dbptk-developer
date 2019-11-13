@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
@@ -27,6 +28,7 @@ import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.modules.DefaultExceptionNormalizer;
 
 /**
@@ -94,6 +96,9 @@ public class ListTables implements DatabaseExportModule {
       public boolean fetchMetadataInformation() {
         return false;
       }
+
+      @Override
+      public boolean fetchWithViewAsTable() { return false; }
     };
   }
 
@@ -106,7 +111,7 @@ public class ListTables implements DatabaseExportModule {
   public void initDatabase() throws ModuleException {
     try {
       outStream = Files.newOutputStream(outputFile);
-      out = new OutputStreamWriter(outStream, "UTF8");
+      out = new OutputStreamWriter(outStream, StandardCharsets.UTF_8);
 
     } catch (IOException e) {
       throw new ModuleException().withMessage("Could not create file " + outputFile.toAbsolutePath().toString())
@@ -232,6 +237,25 @@ public class ListTables implements DatabaseExportModule {
   @Override
   public void handleDataCloseSchema(String schemaName) throws ModuleException {
     // nothing to do
+    // Add the views for this schema
+    try {
+      if (currentSchema == null) {
+        throw new ModuleException().withMessage("Couldn't find schema with name: " + schemaName);
+      }
+
+      for (ViewStructure view : currentSchema.getViews()) {
+        out.append(currentSchema.getName()).append(SCHEMA_TABLE_SEPARATOR).append(view.getName()).append(COLUMNS_START);
+
+        for (ColumnStructure column : view.getColumns()) {
+          out.append(column.getName()).append(COLUMNS_SEPARATOR);
+        }
+
+        out.append(COLUMNS_END).append("\n");
+      }
+    } catch (IOException e) {
+      throw new ModuleException()
+          .withMessage("Could not write to file (" + outputFile.toAbsolutePath().toString() + ")").withCause(e);
+    }
   }
 
   /**
