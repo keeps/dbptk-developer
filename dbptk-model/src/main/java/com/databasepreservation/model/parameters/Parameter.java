@@ -20,12 +20,16 @@ public class Parameter {
 
   /* GUI Helper */
   public enum INPUT_TYPE {
-    DRIVER, FILE, FOLDER, TEXT, PASSWORD, CHECKBOX, NUMBER, DEFAULT, NONE
+    DRIVER, FILE_SAVE, FILE_OPEN, FOLDER, TEXT, PASSWORD, CHECKBOX, NUMBER, DEFAULT, NONE
   }
 
   /* GUI Helper for SIARD Export Module */
   public enum CATEGORY_TYPE {
     SIARD_EXPORT_OPTIONS, METADATA_EXPORT_OPTIONS, EXTERNAL_LOBS, NONE
+  }
+
+  public enum FILE_FILTER_TYPE {
+    XML_EXTENSION, SIARD_EXTENSION
   }
 
   private String shortName = null;
@@ -39,6 +43,7 @@ public class Parameter {
   private Integer numberOfArgs = null; // for parameters that receive more than one argument
   private INPUT_TYPE inputType = null;
   private CATEGORY_TYPE exportOptions = null;
+  private FILE_FILTER_TYPE fileFilter = null;
 
   private HashMap<String, Option> options = new HashMap<String, Option>();
 
@@ -283,6 +288,13 @@ public class Parameter {
     this.exportOptions = exportOptions;
     return this;
   }
+
+  public Parameter fileFilter(FILE_FILTER_TYPE fileFilter) {
+    this.fileFilter = fileFilter;
+    return this;
+  }
+
+  public FILE_FILTER_TYPE getFileFilter() { return fileFilter; }
 
   /**
    * Convert this parameter into a command line option (used internally by

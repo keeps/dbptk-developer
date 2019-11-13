@@ -45,6 +45,7 @@ public class SybaseModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_DATABASE = "database";
   public static final String PARAMETER_PORT_NUMBER = "port-number";
   public static final String PARAMETER_CUSTOM_VIEWS = "custom-views";
+  public static final String PARAMETER_DRIVER = "driver";
   public static final String PARAMETER_SSH = "ssh";
   public static final String PARAMETER_SSH_HOST = "ssh-host";
   public static final String PARAMETER_SSH_USER = "ssh-user";
@@ -133,7 +134,10 @@ public class SybaseModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Parameters getConnectionParameters() {
-    return new Parameters(Arrays.asList(hostname.inputType(INPUT_TYPE.TEXT), portNumber.inputType(INPUT_TYPE.NUMBER),
+    final Parameter driver = new Parameter().shortName("d").longName(PARAMETER_DRIVER)
+        .description("the location of the JDBC driver").hasArgument(true).setOptionalArgument(false).required(true)
+        .inputType(INPUT_TYPE.DRIVER);
+    return new Parameters(Arrays.asList(driver, hostname.inputType(INPUT_TYPE.TEXT), portNumber.inputType(INPUT_TYPE.NUMBER),
       username.inputType(INPUT_TYPE.TEXT), password.inputType(INPUT_TYPE.PASSWORD),
       database.inputType(INPUT_TYPE.TEXT)), null);
   }

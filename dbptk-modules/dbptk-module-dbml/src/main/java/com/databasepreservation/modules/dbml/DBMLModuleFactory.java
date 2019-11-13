@@ -60,7 +60,7 @@ public class DBMLModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Parameters getConnectionParameters() {
-    return new Parameters(Collections.singletonList(file.inputType(Parameter.INPUT_TYPE.FILE)), null);
+    return new Parameters(Collections.singletonList(file.inputType(Parameter.INPUT_TYPE.FILE_OPEN)), null);
   }
 
   @Override

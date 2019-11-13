@@ -139,7 +139,7 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Parameters getConnectionParameters() {
-    return new Parameters(Collections.singletonList(file.inputType(INPUT_TYPE.FILE)), null);
+    return new Parameters(Collections.singletonList(file.inputType(INPUT_TYPE.FILE_OPEN)), null);
   }
 
   @Override
@@ -150,7 +150,9 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
   @Override
   public Parameters getExportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(
-      Arrays.asList(file.inputType(INPUT_TYPE.FILE).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+      Arrays.asList(
+        file.inputType(INPUT_TYPE.FILE_SAVE).fileFilter(Parameter.FILE_FILTER_TYPE.SIARD_EXTENSION)
+          .exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
         compress.inputType(INPUT_TYPE.CHECKBOX).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
         prettyPrintXML.inputType(INPUT_TYPE.DEFAULT), tableFilter.inputType(INPUT_TYPE.NONE),
         metaDescription.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),

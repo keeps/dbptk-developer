@@ -183,7 +183,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Parameters getConnectionParameters() {
-    return new Parameters(Collections.singletonList(file.inputType(INPUT_TYPE.FILE)), null);
+    return new Parameters(Collections.singletonList(file.inputType(INPUT_TYPE.FILE_OPEN)), null);
   }
 
   @Override
@@ -195,9 +195,9 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
   public Parameters getExportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(
       Arrays.asList(version.inputType(INPUT_TYPE.NONE).exportOptions(CATEGORY_TYPE.NONE),
-        file.inputType(INPUT_TYPE.FILE).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+        file.inputType(INPUT_TYPE.FILE_SAVE).fileFilter(Parameter.FILE_FILTER_TYPE.SIARD_EXTENSION).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
         compress.inputType(INPUT_TYPE.CHECKBOX).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
-        prettyPrintXML.inputType(INPUT_TYPE.DEFAULT).exportOptions(CATEGORY_TYPE.NONE),
+        prettyPrintXML.inputType(INPUT_TYPE.CHECKBOX).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
         tableFilter.inputType(INPUT_TYPE.NONE).exportOptions(CATEGORY_TYPE.NONE),
         externalLobs.inputType(INPUT_TYPE.CHECKBOX).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS),
         externalLobsPerFolder.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS),

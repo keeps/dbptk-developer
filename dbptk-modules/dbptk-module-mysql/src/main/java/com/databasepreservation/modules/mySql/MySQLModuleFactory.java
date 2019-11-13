@@ -112,7 +112,7 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Map<String, Parameter> getAllParameters() {
-    HashMap<String, Parameter> parameterHashMap = new HashMap<String, Parameter>();
+    HashMap<String, Parameter> parameterHashMap = new HashMap<>();
     parameterHashMap.put(hostname.longName(), hostname);
     parameterHashMap.put(database.longName(), database);
     parameterHashMap.put(username.longName(), username);

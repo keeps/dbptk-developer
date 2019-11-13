@@ -155,8 +155,8 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     return new Parameters(
       Arrays.asList(folder.inputType(INPUT_TYPE.FOLDER).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
         tableFilter.inputType(INPUT_TYPE.NONE),
-        archiveIndex.inputType(INPUT_TYPE.FILE).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
-        contextDocumentationIndex.inputType(INPUT_TYPE.FILE).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+        archiveIndex.inputType(INPUT_TYPE.FILE_OPEN).fileFilter(Parameter.FILE_FILTER_TYPE.XML_EXTENSION).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+        contextDocumentationIndex.inputType(INPUT_TYPE.FILE_OPEN).fileFilter(Parameter.FILE_FILTER_TYPE.XML_EXTENSION).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
         contextDocumentationFolder.inputType(INPUT_TYPE.FOLDER).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
         lobsPerFolder.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS),
         lobsFolderSize.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS)),
