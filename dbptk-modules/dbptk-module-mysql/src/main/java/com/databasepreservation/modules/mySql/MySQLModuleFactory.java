@@ -187,14 +187,14 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
       RemoteConnectionManager.getInstance().setup(pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
       reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
         PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
-          String.valueOf(pPortNumber), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(pEncrypt), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD,
+          String.valueOf(pPortNumber), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD,
         reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
       return new MySQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt, true, pSSHHost,
         pSSHUser, pSSHPassword, pSSHPortNumber, pCustomViews);
     } else {
       reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
         PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
-        String.valueOf(pPortNumber), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(pEncrypt));
+        String.valueOf(pPortNumber), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt));
       return new MySQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt, pCustomViews);
     }
   }

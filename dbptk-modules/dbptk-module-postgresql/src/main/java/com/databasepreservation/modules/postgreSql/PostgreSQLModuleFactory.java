@@ -187,14 +187,14 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
     if (pSSH) {
       reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
         PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
-        pPortNumber.toString(), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD,
+        pPortNumber.toString(), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD,
         reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
       return new PostgreSQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt, true,
         pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber, pCustomViews);
     } else {
       reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
         PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
-        pPortNumber.toString());
+        pPortNumber.toString(), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt));
       return new PostgreSQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt,
         pCustomViews);
     }
@@ -234,11 +234,11 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
       RemoteConnectionManager.getInstance().setup(pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
       reporter.exportModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
         PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
-        pPortNumber.toString());
+        pPortNumber.toString(), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt));
     } else {
       reporter.exportModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
         PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
-        pPortNumber.toString(), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD,
+        pPortNumber.toString(), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD,
         reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
     }
 
