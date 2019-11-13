@@ -251,49 +251,6 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
   }
 
   /**
-   * Gets the database roles
-   *
-   * @return A list of {@link RoleStructure}
-   * @throws SQLException
-   * @throws ModuleException
-   */
-  @Override
-  protected List<RoleStructure> getRoles() throws SQLException, ModuleException {
-    List<RoleStructure> roles = new ArrayList<>();
-    String query = ((SybaseHelper) sqlHelper).getRolesSQL(this.username);
-    if (query != null) {
-      try (ResultSet rs = getStatement().executeQuery(query)) {
-        while (rs.next()) {
-          RoleStructure role = new RoleStructure();
-          String roleName;
-          try {
-            roleName = rs.getString("ROLE_NAME");
-          } catch (SQLException e) {
-            LOGGER.debug("handled SQLException", e);
-            roleName = "";
-          }
-          role.setName(roleName);
-
-          String admin = "";
-          try {
-            admin = rs.getString("ADMIN");
-            if (admin == null) {
-              admin = roleName;
-            }
-          } catch (SQLException e) {
-            LOGGER.trace("handled SQLException", e);
-          }
-          role.setAdmin(admin);
-
-          roles.add(role);
-        }
-      }
-    }
-
-    return roles;
-  }
-
-  /**
    * Gets the views of a given schema
    *
    * @param schemaName

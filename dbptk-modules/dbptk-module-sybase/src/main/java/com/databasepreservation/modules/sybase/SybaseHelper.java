@@ -68,11 +68,6 @@ public class SybaseHelper extends SQLHelper {
     return "SELECT name AS USER_NAME FROM sysusers WHERE uid < 16384";
   }
 
-  public String getRolesSQL(String userID) {
-    return "SELECT role_name as ROLE_NAME, parent_role_name as ADMIN FROM sp_displayroles('" + userID
-      + "', 'expand_down');";
-  }
-
   public String getViewSQL(String viewName) {
     return "SELECT u.name as SCHEMA_NAME, o.name AS VIEW_NAME, c.text as TEXT " +
         "FROM sysusers u, syscomments c, sysobjects o " +
