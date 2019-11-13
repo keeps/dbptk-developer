@@ -223,7 +223,6 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
       LOGGER.debug("Getting connection");
 
-
       connection = createConnection();
       datatypeImporter.setConnection(connection);
     }
@@ -244,7 +243,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
       connection = DriverManager.getConnection(connectionURL);
     } catch (SQLException e) {
-        closeConnection();
+      closeConnection();
       throw normalizeException(e, null);
     }
     LOGGER.debug("Connected");
@@ -306,20 +305,21 @@ public class JDBCImportModule implements DatabaseImportModule {
       st.setFetchSize(CUSTOM_VIEW_FETCH_BLOCK_SIZE);
       st.setMaxRows(CUSTOM_VIEW_FETCH_LIMIT_SIZE);
 
-      final ResultSet resultSet = st.executeQuery(query);
-      ResultSetMetaData metadata = resultSet.getMetaData();
-      int columnCount = metadata.getColumnCount();
-      List<String> header = new ArrayList<>();
-      for (int i = 1; i <= columnCount; i++) {
-        header.add(metadata.getColumnLabel(i));
-      }
-      results.add(header);
-      while (resultSetNext(resultSet)) {
-        List<String> content = new ArrayList<>();
+      try (ResultSet resultSet = st.executeQuery(query)) {
+        ResultSetMetaData metadata = resultSet.getMetaData();
+        int columnCount = metadata.getColumnCount();
+        List<String> header = new ArrayList<>();
         for (int i = 1; i <= columnCount; i++) {
-          content.add(resultSet.getString(i));
+          header.add(metadata.getColumnLabel(i));
         }
-        results.add(content);
+        results.add(header);
+        while (resultSetNext(resultSet)) {
+          List<String> content = new ArrayList<>();
+          for (int i = 1; i <= columnCount; i++) {
+            content.add(resultSet.getString(i));
+          }
+          results.add(content);
+        }
       }
     } catch (SQLException e) {
       closeConnection();
@@ -344,8 +344,8 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
     }
 
-    //Connection connection = null;
-    //connection = getConnection();
+    // Connection connection = null;
+    // connection = getConnection();
     if (connection != null) {
       try {
         connection.close();
@@ -448,7 +448,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    *         SQLException @throws
    */
   protected List<SchemaStructure> getSchemas() throws SQLException, ModuleException {
-    List<SchemaStructure> schemas = new ArrayList<SchemaStructure>();
+    List<SchemaStructure> schemas = new ArrayList<>();
 
     try (ResultSet rs = getMetadata().getSchemas()) {
       int schemaIndex = 1;
@@ -536,7 +536,7 @@ public class JDBCImportModule implements DatabaseImportModule {
               debug.append("DATA_TYPE: DISTINCT");
               break;
             default:
-              debug.append("DATA_TYPE: " + dataType + "(unknown)");
+              debug.append("DATA_TYPE: ").append(dataType).append("(unknown)");
           }
           // 6. REMARKS String => explanatory comment on the type
           debug.append("\nREMARKS: ").append(udtTypes.getString(6));
@@ -548,8 +548,8 @@ public class JDBCImportModule implements DatabaseImportModule {
            * USER_DEFINED)
            */
           debug.append("\nBASE_TYPE: ").append(udtTypes.getShort(7));
-          LOGGER.debug("Possible UDT is not a STRUCT. " + debug.toString());
-          LOGGER.debug("Unsupported UDT found: " + debug.toString());
+          LOGGER.debug("Possible UDT is not a STRUCT. {}", debug.toString());
+          LOGGER.debug("Unsupported UDT found: {}", debug.toString());
         }
       }
     }
@@ -610,7 +610,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @throws SQLException
    */
   protected List<TableStructure> getTables(SchemaStructure schema) throws SQLException, ModuleException {
-    List<TableStructure> tables = new ArrayList<TableStructure>();
+    List<TableStructure> tables = new ArrayList<>();
     int tableIndex = 1;
 
     // Get custom views first so if there is any error in the queries there is no
@@ -619,28 +619,29 @@ public class JDBCImportModule implements DatabaseImportModule {
     if (!customViews.isEmpty()) {
       Map<String, Map<String, String>> schemaCustomViews = customViews.get(schema.getName());
       if (schemaCustomViews != null) {
-        for (String viewName : schemaCustomViews.keySet()) {
-          String viewDescription = schemaCustomViews.get(viewName).get("description");
-          String query = schemaCustomViews.get(viewName).get("query");
-          LOGGER.info("Obtaining table structure for custom view " + viewName);
+        for (Map.Entry<String, Map<String, String>> entry : schemaCustomViews.entrySet()) {
+          String viewDescription = entry.getValue().get("description");
+          String query = entry.getValue().get("query");
+          LOGGER.info("Obtaining table structure for custom view {}", entry.getKey());
           try {
-            TableStructure customViewStructureAsTable = getCustomViewStructureAsTable(schema, viewName, tableIndex,
-              viewDescription, query);
+            TableStructure customViewStructureAsTable = getCustomViewStructureAsTable(schema, entry.getKey(),
+              tableIndex, viewDescription, query);
             tables.add(customViewStructureAsTable);
             tableIndex++;
           } catch (SQLException e) {
             if (e.getSQLState().equals("42S02")) {
-              throw new TableNotFoundException().withMessage(e.getMessage() + "\nPlease check if the query in the YAML file is correct");
+              throw new TableNotFoundException()
+                .withMessage(e.getMessage() + "\nPlease check if the query in the YAML file is correct");
             } else if (e.getSQLState().equals("42000")) {
               throw new SQLParseException().withMessage(
-                "The query has parsing errors\nPlease test the query for custom view '" + viewName + "' in a DBMS");
+                "The query has parsing errors\nPlease test the query for custom view '" + entry.getKey()
+                  + "' in a DBMS");
             } else {
               throw new ModuleException()
-                .withMessage("Error getting custom view structure for " + schema.getName() + "." + viewName)
+                .withMessage("Error getting custom view structure for " + schema.getName() + "." + entry.getKey())
                 .withCause(e);
             }
           }
-
         }
       } else {
         throw new ModuleException().withMessage("The schema '" + schema.getName() + "' was not found in "
@@ -654,11 +655,11 @@ public class JDBCImportModule implements DatabaseImportModule {
         String tableDescription = rset.getString(5);
 
         if (getModuleSettings().isSelectedTable(schema.getName(), tableName)) {
-          LOGGER.info("Obtaining table structure for " + schema.getName() + "." + tableName);
+          LOGGER.info("Obtaining table structure for {}.{}", schema.getName(), tableName);
           tables.add(getTableStructure(schema, tableName, tableIndex, tableDescription, false));
           tableIndex++;
         } else {
-          LOGGER.info("Ignoring table " + schema.getName() + "." + tableName);
+          LOGGER.info("Ignoring table {}.{}", schema.getName(), tableName);
         }
       }
     }
@@ -671,11 +672,11 @@ public class JDBCImportModule implements DatabaseImportModule {
           String viewDescription = rset.getString(5);
 
           if (getModuleSettings().isSelectedTable(schema.getName(), viewName)) {
-            LOGGER.info("Obtaining table structure for view " + schema.getName() + "." + viewName);
+            LOGGER.info("Obtaining table structure for view {}.{}", schema.getName(), viewName);
             tables.add(getViewStructure(schema, viewName, tableIndex, viewDescription));
             tableIndex++;
           } else {
-            LOGGER.info("Ignoring view " + schema.getName() + "." + viewName);
+            LOGGER.info("Ignoring view {}.{}", schema.getName(), viewName);
           }
         }
       }
@@ -692,26 +693,22 @@ public class JDBCImportModule implements DatabaseImportModule {
    */
   protected List<ViewStructure> getViews(String schemaName) throws SQLException, ModuleException {
     List<ViewStructure> views = new ArrayList<>();
-    if (getModuleSettings().fetchMetadataInformation()) {
-      try (ResultSet rset = getMetadata().getTables(dbStructure.getName(), schemaName, "%", new String[] {"VIEW"})) {
-        while (rset.next()) {
-          String viewName = rset.getString(3);
-          ViewStructure view = new ViewStructure();
-          view.setName(viewName);
-          view.setDescription(rset.getString(5));
-          if (getModuleSettings().isSelectedTable(schemaName, viewName)) {
-            try {
-              view.setColumns(getColumns(schemaName, viewName));
-            } catch (SQLException e) {
-              reporter.ignored("Columns from view " + viewName + " in schema " + schemaName,
-                "there was a problem retrieving them form the database");
-            }
-            if (view.getColumns().isEmpty()) {
-              reporter.ignored("View " + viewName + " in schema " + schemaName, "it contains no columns");
-            } else {
-              views.add(view);
-            }
-          }
+    try (ResultSet rset = getMetadata().getTables(dbStructure.getName(), schemaName, "%", new String[] {"VIEW"})) {
+      while (rset.next()) {
+        String viewName = rset.getString(3);
+        ViewStructure view = new ViewStructure();
+        view.setName(viewName);
+        view.setDescription(rset.getString(5));
+        try {
+          view.setColumns(getColumns(schemaName, viewName));
+        } catch (SQLException e) {
+          reporter.ignored("Columns from view " + viewName + " in schema " + schemaName,
+            "there was a problem retrieving them form the database");
+        }
+        if (view.getColumns().isEmpty()) {
+          reporter.ignored("View " + viewName + " in schema " + schemaName, "it contains no columns");
+        } else {
+          views.add(view);
         }
       }
       views.addAll(getCustomViews(schemaName));
@@ -727,7 +724,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     if (schemaCustomViews != null) {
       for (String viewName : schemaCustomViews.keySet()) {
         ViewStructure view = new ViewStructure();
-        view.setName("CUSTOM_" + viewName);
+        view.setName(CUSTOM_VIEW_NAME_PREFIX + viewName);
         view.setDescription(schemaCustomViews.get(viewName).get("description"));
         view.setQueryOriginal(schemaCustomViews.get(viewName).get("query"));
         try {
@@ -747,7 +744,8 @@ public class JDBCImportModule implements DatabaseImportModule {
     return views;
   }
 
-  protected Map<String, Map<String, Map<String, String>>> parseCustomViewsList(Path queryListPath) throws ModuleException {
+  protected Map<String, Map<String, Map<String, String>>> parseCustomViewsList(Path queryListPath)
+    throws ModuleException {
     Map<String, Map<String, Map<String, String>>> queryList = new HashMap<>();
     Yaml yaml = new Yaml();
     if (queryListPath != null) {
@@ -839,8 +837,8 @@ public class JDBCImportModule implements DatabaseImportModule {
     String description) throws SQLException, ModuleException {
     TableStructure view = getTableStructure(schema, tableName, tableIndex, description, true);
     view.setFromView(true);
-    view.setName(VIEW_NAME_PREFIX+view.getName());
-    view.setDescription("Table materialized from view.\n"+view.getDescription());
+    view.setName(VIEW_NAME_PREFIX + view.getName());
+    view.setDescription("Table materialized from view.\n" + view.getDescription());
 
     return view;
   }
@@ -869,7 +867,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   private int getRows(String schemaName, String tableName) throws SQLException, ModuleException {
     String query = sqlHelper.getRowsSQL(schemaName, tableName);
-    LOGGER.debug("count query: " + query);
+    LOGGER.debug("count query: {}", query);
     try (ResultSet rs = getStatement().executeQuery(query)) {
       int count;
 
@@ -877,7 +875,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       if (rs.next()) {
         count = rs.getInt(1);
       }
-      LOGGER.debug("Counted " + count + " rows");
+      LOGGER.debug("Counted {} rows", count);
 
       return count;
     }
@@ -886,7 +884,7 @@ public class JDBCImportModule implements DatabaseImportModule {
   private int getCustomViewRows(String query) throws SQLException, ModuleException {
     try (ResultSet rs = getStatement().executeQuery(query)) {
       int count = rs.last() ? rs.getRow() : 0;
-      LOGGER.debug("Counted " + count + " rows");
+      LOGGER.debug("Counted {} rows", count);
 
       return count;
     }
@@ -1260,7 +1258,8 @@ public class JDBCImportModule implements DatabaseImportModule {
 
         String fkeyName = rs.getString("FK_NAME");
         if (fkeyName == null) {
-          fkeyName = "FK_" + rs.getString("PKTABLE_NAME") + "_" + rs.getString("FKTABLE_NAME") +  "_" + rs.getString("FKCOLUMN_NAME");
+          fkeyName = "FK_" + rs.getString("PKTABLE_NAME") + "_" + rs.getString("FKTABLE_NAME") + "_"
+            + rs.getString("FKCOLUMN_NAME");
         }
 
         for (ForeignKey key : foreignKeys) {
@@ -1682,7 +1681,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     } else {
       if (stringValue.contains("E")) {
         try {
-          BigDecimal decimal =  new BigDecimal(stringValue);
+          BigDecimal decimal = new BigDecimal(stringValue);
           cell = new SimpleCell(id, decimal.toPlainString());
         } catch (NumberFormatException e) {
           LOGGER.debug("could not parse `{}` as a decimal", stringValue, e);
@@ -1829,7 +1828,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     throws SQLException, ModuleException {
     Cell cell;
 
-    if(cellType instanceof SimpleTypeBinary && ((SimpleTypeBinary) cellType).isOutsideDatabase()) {
+    if (cellType instanceof SimpleTypeBinary && ((SimpleTypeBinary) cellType).isOutsideDatabase()) {
       cell = new SimpleCell(id, rawData.getString(columnName));
     } else {
       Blob blob = rawData.getBlob(columnName);
@@ -1988,10 +1987,11 @@ public class JDBCImportModule implements DatabaseImportModule {
           long tableRows = table.getRows();
           if (moduleSettings.shouldFetchRows()) {
 
-            if(table.isFromCustomView()) {
+            if (table.isFromCustomView()) {
               if (schemaCustomViews != null) {
                 try (ResultSet tableRawData = getTableRawData(
-                  schemaCustomViews.get(table.getName().replace(CUSTOM_VIEW_NAME_PREFIX, "")).get("query"), table.getId())) {
+                  schemaCustomViews.get(table.getName().replace(CUSTOM_VIEW_NAME_PREFIX, "")).get("query"),
+                  table.getId())) {
                   while (resultSetNext(tableRawData)) {
                     exportModule.handleDataRow(convertRawToRow(tableRawData, table));
                     nRows++;
@@ -2002,8 +2002,7 @@ public class JDBCImportModule implements DatabaseImportModule {
                   }
                   LOGGER.error("Could not obtain all data from the custom view.", e);
                 }
-              }
-              else {
+              } else {
                 LOGGER.error("Could not obtain data from the custom view.");
               }
             } else {
