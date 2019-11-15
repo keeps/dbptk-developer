@@ -20,6 +20,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Date;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -98,8 +99,8 @@ import com.jcraft.jsch.Session;
  */
 public class JDBCImportModule implements DatabaseImportModule {
 
-  private final String VIEW_NAME_PREFIX = "VIEW_";
-  private final String CUSTOM_VIEW_NAME_PREFIX = "CUSTOM_VIEW_";
+  private static final String VIEW_NAME_PREFIX = "VIEW_";
+  private static final String CUSTOM_VIEW_NAME_PREFIX = "CUSTOM_VIEW_";
   // if fetch size is zero, then the driver decides the best fetch size
   private static final Integer CUSTOM_VIEW_FETCH_BLOCK_SIZE = 1;
   private static final Integer CUSTOM_VIEW_FETCH_LIMIT_SIZE = 5;
@@ -484,7 +485,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return the schema names not to be imported
    */
   protected Set<String> getIgnoredImportedSchemas() {
-    HashSet ignore = new HashSet<String>();
+    Set<String> ignore = new HashSet<>();
     ignore.add("information_schema");
     ignore.add("pg_catalog");
     return ignore;
@@ -558,8 +559,8 @@ public class JDBCImportModule implements DatabaseImportModule {
            * USER_DEFINED)
            */
           debug.append("\nBASE_TYPE: ").append(udtTypes.getShort(7));
-          LOGGER.debug("Possible UDT is not a STRUCT. {}", debug.toString());
-          LOGGER.debug("Unsupported UDT found: {}", debug.toString());
+          LOGGER.debug("Possible UDT is not a STRUCT. {}", debug);
+          LOGGER.debug("Unsupported UDT found: {}", debug);
         }
       }
     }
@@ -643,8 +644,8 @@ public class JDBCImportModule implements DatabaseImportModule {
               throw new TableNotFoundException()
                 .withMessage(e.getMessage() + "\nPlease check if the query in the YAML file is correct");
             } else if (e.getSQLState().equals("42000")) {
-              throw new SQLParseException().withMessage(
-                "The query has parsing errors\nPlease test the query for custom view '" + entry.getKey()
+              throw new SQLParseException()
+                .withMessage("The query has parsing errors\nPlease test the query for custom view '" + entry.getKey()
                   + "' in a DBMS");
             } else {
               throw new ModuleException()
@@ -732,19 +733,20 @@ public class JDBCImportModule implements DatabaseImportModule {
     Map<String, Map<String, String>> schemaCustomViews = customViews.get(schemaName);
 
     if (schemaCustomViews != null) {
-      for (String viewName : schemaCustomViews.keySet()) {
+      for (Map.Entry<String, Map<String, String>> entry : schemaCustomViews.entrySet()) {
         ViewStructure view = new ViewStructure();
-        view.setName(CUSTOM_VIEW_NAME_PREFIX + viewName);
-        view.setDescription(schemaCustomViews.get(viewName).get("description"));
-        view.setQueryOriginal(schemaCustomViews.get(viewName).get("query"));
+        view.setName(CUSTOM_VIEW_NAME_PREFIX + entry.getKey());
+        view.setDescription(entry.getValue().get("description"));
+        view.setQueryOriginal(entry.getValue().get("query"));
+
         try {
-          view.setColumns(getColumnsFromCustomView(viewName, schemaCustomViews.get(viewName).get("query")));
+          view.setColumns(getColumnsFromCustomView(entry.getKey(), entry.getValue().get("query")));
         } catch (SQLException e) {
-          reporter.ignored("Columns from custom view " + viewName + " in schema " + schemaName,
+          reporter.ignored("Columns from custom view " + entry.getKey() + " in schema " + schemaName,
             "there was a problem retrieving them form the database");
         }
         if (view.getColumns().isEmpty()) {
-          reporter.ignored("Custom view " + viewName + " in schema " + schemaName, "it contains no columns");
+          reporter.ignored("Custom view " + entry.getKey() + " in schema " + schemaName, "it contains no columns");
         } else {
           views.add(view);
         }
@@ -921,9 +923,8 @@ public class JDBCImportModule implements DatabaseImportModule {
    */
   protected ColumnStructure getColumnStructure(String tableName, String columnName, Type type, Boolean nillable,
     int index, String description, String defaultValue, Boolean isAutoIncrement) {
-    ColumnStructure column = new ColumnStructure(tableName + "." + columnName, columnName, type, nillable, description,
-      defaultValue, isAutoIncrement);
-    return column;
+    return new ColumnStructure(tableName + "." + columnName, columnName, type, nillable, description, defaultValue,
+      isAutoIncrement);
   }
 
   protected List<UserStructure> getUsers(String databaseName) throws SQLException, ModuleException {
@@ -988,7 +989,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @throws SQLException
    */
   protected List<PrivilegeStructure> getPrivileges() throws SQLException, ModuleException {
-    List<PrivilegeStructure> privileges = new ArrayList<PrivilegeStructure>();
+    List<PrivilegeStructure> privileges = new ArrayList<>();
 
     for (SchemaStructure schema : dbStructure.getSchemas()) {
       for (TableStructure table : schema.getTables()) {
@@ -1044,7 +1045,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     throws SQLException, ModuleException {
 
     // LOGGER.debug("id: " + schemaName + "." + udtName);
-    List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
+    List<ColumnStructure> columns = new ArrayList<>();
     try (ResultSet rs = getMetadata().getColumns(dbStructure.getName(), schemaName, udtName, "%")) {
       LOGGER.debug("Getting structure of (possible) UDT " + schemaName + "." + udtName);
       while (rs.next()) {
@@ -1066,7 +1067,7 @@ public class JDBCImportModule implements DatabaseImportModule {
   protected List<ColumnStructure> getColumns(String schemaName, String tableName) throws SQLException, ModuleException {
 
     // LOGGER.debug("id: " + schemaName + "." + tableName);
-    List<ColumnStructure> columns = new ArrayList<ColumnStructure>();
+    List<ColumnStructure> columns = new ArrayList<>();
     try (ResultSet rs = getMetadata().getColumns(dbStructure.getName(), schemaName, tableName, "%")) {
       while (rs.next()) {
         columns.add(getColumn(rs, tableName));
@@ -1080,25 +1081,28 @@ public class JDBCImportModule implements DatabaseImportModule {
     throws ModuleException, SQLException {
     List<ColumnStructure> columns = new ArrayList<>();
 
-    ResultSetMetaData metaData = getConnection().prepareStatement(query).getMetaData();
-    int nColumns = metaData.getColumnCount();
-    for (int i = 1; i <= nColumns; i++) {
-      String tableName = metaData.getTableName(i);
-      String columnName = metaData.getColumnName(i);
-      int columnType = metaData.getColumnType(i);
-      String columnTypeName = metaData.getColumnTypeName(i);
-      int columnDisplaySize = metaData.getColumnDisplaySize(i);
-      int precision = metaData.getPrecision(i);
+    try (PreparedStatement preparedStatement = getConnection().prepareStatement(query)) {
+      ResultSetMetaData metaData = preparedStatement.getMetaData();
 
-      Type checkedType = datatypeImporter.getCheckedType(dbStructure, actualSchema, tableName, columnName, columnType,
-        columnTypeName, columnDisplaySize, precision, 10);
+      int nColumns = metaData.getColumnCount();
+      for (int i = 1; i <= nColumns; i++) {
+        String tableName = metaData.getTableName(i);
+        String columnName = metaData.getColumnName(i);
+        int columnType = metaData.getColumnType(i);
+        String columnTypeName = metaData.getColumnTypeName(i);
+        int columnDisplaySize = metaData.getColumnDisplaySize(i);
+        int precision = metaData.getPrecision(i);
 
-      ColumnStructure column = new ColumnStructure(viewName + "." + columnName, columnName, checkedType, true, "", "",
-        false);
+        Type checkedType = datatypeImporter.getCheckedType(dbStructure, actualSchema, tableName, columnName, columnType,
+          columnTypeName, columnDisplaySize, precision, 10);
 
-      columns.add(column);
+        ColumnStructure column = new ColumnStructure(viewName + "." + columnName, columnName, checkedType, true, "", "",
+          false);
+
+        columns.add(column);
+      }
+      return columns;
     }
-    return columns;
   }
 
   private ColumnStructure getColumn(ResultSet rs, String tableOrUdtName) throws SQLException {
@@ -1114,11 +1118,11 @@ public class JDBCImportModule implements DatabaseImportModule {
     // cLogMessage.append("Column name: " + columnName + "\n");
     // 5. SQL type from java.sql.Types
     int dataType = rs.getInt(5);
-    cLogMessage.append("Data type: " + dataType + "\n");
+    cLogMessage.append("Data type: ").append(dataType).append("\n");
     // 6. Data source dependent type name, for a UDT the type name is
     // fully qualified
     String typeName = rs.getString(6);
-    cLogMessage.append("Type name: " + typeName + "\n");
+    cLogMessage.append("Type name: ").append(typeName).append("\n");
     // 7. Column size
     // The COLUMN_SIZE column specifies the column size for the given
     // column. For numeric data, this is the maximum precision. For
@@ -1175,8 +1179,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     // user-generated Ref type, SQL type from java.sql.Types (null if
     // DATA_TYPE isn't DISTINCT or user-generated REF)
     if (dataType == Types.DISTINCT) {
-      Integer sourceDataType = (int) rs.getShort(22);
-      dataType = sourceDataType;
+      dataType = rs.getShort(22);
     }
     // 23. IS_AUTOINCREMENT String => Indicates whether this column is
     // auto incremented
@@ -1226,7 +1229,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    */
   protected PrimaryKey getPrimaryKey(String schemaName, String tableName) throws SQLException, ModuleException {
     String pkName = null;
-    List<String> pkColumns = new ArrayList<String>();
+    List<String> pkColumns = new ArrayList<>();
 
     try (ResultSet rs = getMetadata().getPrimaryKeys(getDatabaseStructure().getName(), schemaName, tableName)) {
       while (rs.next()) {
@@ -1257,12 +1260,11 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @throws ModuleException
    */
   protected List<ForeignKey> getForeignKeys(String schemaName, String tableName) throws SQLException, ModuleException {
-
-    List<ForeignKey> foreignKeys = new ArrayList<ForeignKey>();
+    List<ForeignKey> foreignKeys = new ArrayList<>();
 
     try (ResultSet rs = getMetadata().getImportedKeys(getDatabaseStructure().getName(), schemaName, tableName)) {
       while (rs.next()) {
-        List<Reference> references = new ArrayList<Reference>();
+        List<Reference> references = new ArrayList<>();
         boolean found = false;
         Reference reference = new Reference(rs.getString("FKCOLUMN_NAME"), rs.getString("PKCOLUMN_NAME"));
 
@@ -1326,8 +1328,6 @@ public class JDBCImportModule implements DatabaseImportModule {
         rule = "NO ACTION";
         break;
       case 4:
-        rule = "SET DEFAULT";
-        break;
       default:
         rule = "SET DEFAULT";
         break;
@@ -1356,12 +1356,12 @@ public class JDBCImportModule implements DatabaseImportModule {
   // VERIFY adding PKs
   protected List<CandidateKey> getCandidateKeys(String schemaName, String tableName)
     throws SQLException, ModuleException {
-    List<CandidateKey> candidateKeys = new ArrayList<CandidateKey>();
+    List<CandidateKey> candidateKeys = new ArrayList<>();
 
     try (ResultSet rs = getMetadata().getIndexInfo(dbStructure.getName(), schemaName, escapeObjectName(tableName), true,
       true)) {
       while (rs.next()) {
-        List<String> columns = new ArrayList<String>();
+        List<String> columns = new ArrayList<>();
         boolean found = false;
 
         for (CandidateKey key : candidateKeys) {
@@ -1374,14 +1374,12 @@ public class JDBCImportModule implements DatabaseImportModule {
           }
         }
 
-        if (!found) {
-          if (rs.getString(6) != null) {
-            CandidateKey candidateKey = new CandidateKey();
-            candidateKey.setName(rs.getString(6));
-            columns.add(rs.getString(9));
-            candidateKey.setColumns(columns);
-            candidateKeys.add(candidateKey);
-          }
+        if (!found && rs.getString(6) != null) {
+          CandidateKey candidateKey = new CandidateKey();
+          candidateKey.setName(rs.getString(6));
+          columns.add(rs.getString(9));
+          candidateKey.setColumns(columns);
+          candidateKeys.add(candidateKey);
         }
       }
     }
@@ -1396,7 +1394,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return
    */
   protected List<CheckConstraint> getCheckConstraints(String schemaName, String tableName) throws ModuleException {
-    List<CheckConstraint> checkConstraints = new ArrayList<CheckConstraint>();
+    List<CheckConstraint> checkConstraints = new ArrayList<>();
 
     String query = sqlHelper.getCheckConstraintsSQL(schemaName, tableName);
     if (query != null) {
@@ -1450,8 +1448,13 @@ public class JDBCImportModule implements DatabaseImportModule {
    * Gets the triggers of a given schema table
    *
    * @param schemaName
+   *          the schema name used for searching
    * @param tableName
-   * @return
+   *          the table name used for searching
+   * @exception ModuleException
+   *              when was not possible to obtain a connection to the database
+   * @return a <code>List</code> that contains <code>Trigger</code> objects of a
+   *         given schema
    */
   protected List<Trigger> getTriggers(String schemaName, String tableName) throws ModuleException {
     List<Trigger> triggers = new ArrayList<>();
@@ -1559,7 +1562,7 @@ public class JDBCImportModule implements DatabaseImportModule {
     throws InvalidDataException, SQLException, ModuleException {
     Row row = null;
     if (isRowValid(rawData, tableStructure)) {
-      List<Cell> cells = new ArrayList<Cell>(tableStructure.getColumns().size());
+      List<Cell> cells = new ArrayList<>(tableStructure.getColumns().size());
 
       long currentRow = tableStructure.getCurrentRow();
       if (isGetRowAvailable()) {
@@ -1581,7 +1584,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       row = new Row(currentRow, cells);
     } else {
       // insert null in all fields
-      List<Cell> cells = new ArrayList<Cell>(tableStructure.getColumns().size());
+      List<Cell> cells = new ArrayList<>(tableStructure.getColumns().size());
       for (int i = 0; i < tableStructure.getColumns().size(); i++) {
         ColumnStructure colStruct = tableStructure.getColumns().get(i);
         cells.add(new SimpleCell(tableStructure.getName() + "." + colStruct.getName() + "." + (i + 1), null));
@@ -1604,7 +1607,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       if (cellType instanceof ComposedTypeArray) {
         ComposedTypeArray composedTypeArray = (ComposedTypeArray) cellType;
         Array array = rawData.getArray(columnName);
-        LOGGER.trace("Parsing array of subtype " + composedTypeArray.getElementType().getClass().getSimpleName());
+        LOGGER.trace("Parsing array of subtype {}", composedTypeArray.getElementType().getClass().getSimpleName());
         cell = parseArray(id, array);
       } else if (cellType instanceof ComposedTypeStructure) {
         cell = rawToCellComposedTypeStructure(id, columnName, cellType, rawData);

@@ -7,8 +7,12 @@
  */
 package com.databasepreservation.modules.oracle.in;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.sql.Array;
+import java.sql.Blob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,6 +20,10 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.databasepreservation.model.data.BinaryCell;
+import com.databasepreservation.model.structure.type.SimpleTypeBinary;
+import oracle.jdbc.OracleBfile;
+import oracle.sql.BFILE;
 import org.geotools.data.oracle.sdo.GeometryConverter;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.gml2.GMLWriter;
@@ -176,6 +184,33 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
     }
 
     return columns;
+  }
+
+  @Override
+  protected Cell rawToCellSimpleTypeBinary(String id, String columnName, Type cellType, ResultSet rawData) throws SQLException, ModuleException {
+    Cell cell;
+
+    if (cellType instanceof SimpleTypeBinary && ((SimpleTypeBinary) cellType).isOutsideDatabase()) {
+      cell = new SimpleCell(id, rawData.getString(columnName));
+    } else if (cellType.getOriginalTypeName().equals("BFILE")) {
+        if (rawData instanceof OracleResultSet) {
+          final OracleBfile bfile = ((OracleResultSet) rawData).getBfile(columnName);
+          bfile.openFile();
+          final InputStream binaryStream = bfile.getBinaryStream();
+          cell = new BinaryCell(id, binaryStream);
+          bfile.closeFile();
+        } else {
+          cell = new NullCell(id);
+        }
+    } else {
+      Blob blob = rawData.getBlob(columnName);
+      if (blob != null && !rawData.wasNull()) {
+        cell = new BinaryCell(id, blob);
+      } else {
+        cell = new NullCell(id);
+      }
+    }
+    return cell;
   }
 
   @Override

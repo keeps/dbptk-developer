@@ -7,9 +7,13 @@
  */
 package com.databasepreservation.modules.oracle.in;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
+import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
@@ -24,6 +28,9 @@ import oracle.jdbc.OracleTypes;
  * @author Luis Faria <lfaria@keep.pt>
  */
 public class Oracle12cJDBCDatatypeImporter extends JDBCDatatypeImporter {
+  private static final Logger LOGGER = LoggerFactory.getLogger(Oracle12cJDBCDatatypeImporter.class.getName());
+  private static final int CHAR_MIN_COLUMN_SIZE_VALUE = 1;
+
   @Override
   protected Type getLongVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     return getClobType(typeName, columnSize, decimalDigits, numPrecRadix);
@@ -64,12 +71,36 @@ public class Oracle12cJDBCDatatypeImporter extends JDBCDatatypeImporter {
   }
 
   @Override
+  protected Type getCharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+    SimpleTypeString type = new SimpleTypeString(columnSize, false);
+    if (columnSize == 0) {
+      LOGGER.debug("Column data length is 0 replacing the length to the minimum required {}",
+        CHAR_MIN_COLUMN_SIZE_VALUE);
+      type.setSql99TypeName("CHARACTER", CHAR_MIN_COLUMN_SIZE_VALUE);
+      type.setSql2008TypeName("CHARACTER", CHAR_MIN_COLUMN_SIZE_VALUE);
+    } else {
+      type.setSql99TypeName("CHARACTER", columnSize);
+      type.setSql2008TypeName("CHARACTER", columnSize);
+    }
+    type.setOriginalTypeName("CHARACTER", columnSize);
+    return type;
+  }
+
+  @Override
   protected Type getVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type;
     if ("VARCHAR2".equalsIgnoreCase(typeName)) {
-      type = new SimpleTypeString(2000, true);
-      type.setSql99TypeName("CHARACTER VARYING", 2000);
-      type.setSql2008TypeName("CHARACTER VARYING", 2000);
+      type = new SimpleTypeString(columnSize, true);
+      if (columnSize == 0) {
+        LOGGER.debug("Column data length is 0 replacing the length to the minimum required {}",
+          CHAR_MIN_COLUMN_SIZE_VALUE);
+        type.setSql99TypeName("CHARACTER VARYING", CHAR_MIN_COLUMN_SIZE_VALUE);
+        type.setSql2008TypeName("CHARACTER VARYING", CHAR_MIN_COLUMN_SIZE_VALUE);
+      } else {
+        type.setSql99TypeName("CHARACTER VARYING", columnSize);
+        type.setSql2008TypeName("CHARACTER VARYING", columnSize);
+      }
+      type.setOriginalTypeName(typeName, columnSize);
     } else {
       type = super.getVarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
     }
@@ -148,9 +179,11 @@ public class Oracle12cJDBCDatatypeImporter extends JDBCDatatypeImporter {
         // here
         break;
       // TODO add support to BFILEs
-      // case OracleTypes.BFILE:
-      // type = new SimpleTypeBinary();
-      // break;
+      case OracleTypes.BFILE:
+        type = new SimpleTypeBinary();
+        type.setSql99TypeName("BINARY LARGE OBJECT");
+        type.setSql2008TypeName("BINARY LARGE OBJECT");
+        break;
       case OracleTypes.TIMESTAMPTZ:
         type = new SimpleTypeDateTime(true, true);
         type.setSql99TypeName("TIMESTAMP");
