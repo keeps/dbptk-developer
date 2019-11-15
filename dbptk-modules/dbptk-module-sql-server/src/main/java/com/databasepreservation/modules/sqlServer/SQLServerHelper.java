@@ -79,7 +79,7 @@ public class SQLServerHelper extends SQLHelper {
         ret = "smallint";
       } else {
         ret = "decimal(";
-        int min = Math.min(precision, 28);
+        int min = Math.min(precision, 38);
         ret += Integer.toString(min);
         if (scale > 0) {
           ret += "," + (scale - precision + min);
