@@ -14,26 +14,34 @@ import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.databasepreservation.common.ValidationObserver;
 import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.model.reporters.ValidationReporterStatus;
 
 public class PrimaryKeyValidationHandler extends DefaultHandler {
+  private static final String SIARD_ROW = "row";
+  private static final int SPARSE_PROGRESS_MINIMUM_TIME = 3000;
+  private static final int SPARSE_PROGRESS_MINIMUM_ROWS = 1000;
   private static final String LINE_CONSTANT = "line ";
   private static final String COLUMN_CONSTANT = ", column ";
   private final String columnIndex;
   private final String reqNumber;
   private final String path;
-  private ValidationReporter reporter;
+  private final ValidationReporter reporter;
+  private final ValidationObserver observer;
   private Locator locator;
   private Map<String, String> primaryKeyData;
   private boolean valid;
   private boolean found;
   private StringBuilder tmp = new StringBuilder();
+  private int rowCount = 0;
+  private long lastSparseProgressTimestamp = 0;
 
   public PrimaryKeyValidationHandler(final String path, final String columnIndex, final String requirementNumber,
-    final Map<String, String> map, final ValidationReporter reporter) {
+    final Map<String, String> map, final ValidationReporter reporter, final ValidationObserver observer) {
     this.columnIndex = columnIndex;
     this.reporter = reporter;
+    this.observer = observer;
     this.primaryKeyData = map;
     this.reqNumber = requirementNumber;
     this.path = path;
@@ -74,6 +82,17 @@ public class PrimaryKeyValidationHandler extends DefaultHandler {
           LINE_CONSTANT + locator.getLineNumber() + COLUMN_CONSTANT + locator.getColumnNumber());
       }
       found = false;
+    }
+
+    if (qName.equals(SIARD_ROW)) {
+      // notify sparse
+      if (rowCount != 0 && rowCount % SPARSE_PROGRESS_MINIMUM_ROWS == 0
+        && System.currentTimeMillis() - lastSparseProgressTimestamp > SPARSE_PROGRESS_MINIMUM_TIME) {
+        lastSparseProgressTimestamp = System.currentTimeMillis();
+        observer.notifyValidationProgressSparse(rowCount);
+      }
+
+      rowCount++;
     }
   }
 

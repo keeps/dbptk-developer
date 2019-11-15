@@ -84,6 +84,8 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   private static final String W3C_XML_SCHEMA = "http://www.w3.org/2001/XMLSchema";
   private static final String JAXP_SCHEMA_SOURCE = "http://java.sun.com/xml/jaxp/properties/schemaSource";
 
+  private static final int SPARSE_PROGRESS_MINIMUM_TIME = 3000;
+  private static final int SPARSE_PROGRESS_MINIMUM_ROWS = 1000;
   // MapDB configurations
   private static final String FILE_DIRECTORY_LOCATION = ConfigUtils.getProperty(Constants.PROPERTY_UNSET,
     "dbptk.memory.dir");
@@ -298,8 +300,12 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
           for (int j = 0; j < tables.getLength(); j++) {
             String tableFolder = tables.item(j).getTextContent();
             boolean r = validatePrimaryKeyConstraint(schemaFolder, tableFolder);
-            if (!r)
+            if (!r) {
               primaryKeyValid = false;
+              observer.notifyElementValidationFinish(A_T_6012, validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder), ValidationReporterStatus.ERROR);
+            } else {
+              observer.notifyElementValidationFinish(A_T_6012, validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder), ValidationReporterStatus.OK);
+            }
           }
         }
         observer.notifyMessage(MODULE_NAME, T_601, "Validating Primary Keys", ValidationReporterStatus.FINISH);
@@ -329,8 +335,12 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
           for (int j = 0; j < tables.getLength(); j++) {
             String tableFolder = tables.item(j).getTextContent();
             boolean r = validateForeignKeyConstraint(schemaFolder, tableFolder);
-            if (!r)
+            if (!r) {
               foreignKeyValid = false;
+              observer.notifyElementValidationFinish(A_T_6012, validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder), ValidationReporterStatus.ERROR);
+            } else {
+              observer.notifyElementValidationFinish(A_T_6012, validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder), ValidationReporterStatus.OK);
+            }
           }
         }
       }
@@ -436,6 +446,8 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         entry.getKey().getTable());
       observer.notifyElementValidating(A_T_6012, path);
       try (InputStream is = zipFileManagerStrategy.getZipInputStream(this.path, path)) {
+        int rowCount = 0;
+        long lastSparseProgressTimestamp = 0;
         boolean rowTag = false;
         String columnElement = "";
         StringBuilder content = new StringBuilder();
@@ -490,9 +502,22 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
 
               if (xmlStreamReader.getLocalName().equals("row")) { // When the row end validate the data content
                 rowTag = false;
+                if (rowCount != 0 && rowCount % SPARSE_PROGRESS_MINIMUM_ROWS == 0
+                  && System.currentTimeMillis() - lastSparseProgressTimestamp > SPARSE_PROGRESS_MINIMUM_TIME) {
+                  lastSparseProgressTimestamp = System.currentTimeMillis();
+                  observer.notifyValidationProgressSparse(rowCount);
+                }
+
+                rowCount++;
               }
             }
           }
+        }
+
+        if (!A_T_6012_ERRORS) {
+          observer.notifyElementValidationFinish(A_T_6012, path, ValidationReporterStatus.OK);
+        } else {
+          observer.notifyElementValidationFinish(A_T_6012, path, ValidationReporterStatus.ERROR);
         }
       } catch (XMLStreamException | IOException e) {
         LOGGER.debug("Failed to validate {}", MODULE_NAME, e);
@@ -885,7 +910,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
             .hashMap("uniqPrimaryKeys" + schemaFolder + tableFolder, Serializer.STRING, Serializer.STRING)
             .createOrOpen();
           PrimaryKeyValidationHandler handler = new PrimaryKeyValidationHandler(tablePathFromFolder, indexes.get(0),
-            T_601, map, getValidationReporter());
+            T_601, map, getValidationReporter(), observer);
 
           final String xsdTablePathFromFolder = validatorPathStrategy.getXSDTablePathFromFolder(schemaFolder,
             tableFolder);
@@ -913,7 +938,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
             .hashMap("compPrimaryKeys" + schemaFolder + tableFolder, Serializer.STRING, Serializer.STRING)
             .createOrOpen();
           CompositePrimaryKeyValidationHandler handler = new CompositePrimaryKeyValidationHandler(indexes, map,
-            getValidationReporter(), T_601, tablePathFromFolder);
+            getValidationReporter(), observer, T_601, tablePathFromFolder);
 
           final String xsdTablePathFromFolder = validatorPathStrategy.getXSDTablePathFromFolder(schemaFolder,
             tableFolder);

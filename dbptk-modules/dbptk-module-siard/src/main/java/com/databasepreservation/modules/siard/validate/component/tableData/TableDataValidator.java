@@ -207,6 +207,13 @@ public class TableDataValidator extends ValidatorComponentImpl {
               }
             }
           }
+
+          if (valid) {
+            observer.notifyElementValidationFinish(P_642, zipFileName, ValidationReporterStatus.OK);
+          } else {
+            observer.notifyElementValidationFinish(P_642, zipFileName, ValidationReporterStatus.ERROR);
+          }
+
         } catch (XMLStreamException | IOException e) {
           LOGGER.debug("Failed to validate {}({})", MODULE_NAME, P_642, e);
           getValidationReporter().validationStatus(P_642, ValidationReporterStatus.ERROR,

@@ -28,4 +28,8 @@ public interface ValidationObserver {
   void notifyIndicators(int passed, int errors, int warnings, int skipped);
 
   void notifyValidationProcessFinish(boolean value);
+
+  void notifyValidationProgressSparse(int numberOfRows);
+
+  void notifyElementValidationFinish(String ID, String path, ValidationReporterStatus status);
 }

@@ -282,11 +282,21 @@ public class JDBCImportModule implements DatabaseImportModule {
     }
   }
 
-  public DatabaseStructure getSchemaInformation() throws ModuleException {
+  public DatabaseStructure getSchemaInformation(final boolean shouldCountRows) throws ModuleException {
     moduleSettings = new ModuleSettings() {
       @Override
       public boolean fetchWithViewAsTable() {
         return false;
+      }
+
+      @Override
+      public boolean shouldFetchRows() {
+        return false;
+      }
+
+      @Override
+      public boolean shouldCountRows() {
+        return shouldCountRows;
       }
     };
     DatabaseStructure databaseStructure = getDatabaseStructure();
