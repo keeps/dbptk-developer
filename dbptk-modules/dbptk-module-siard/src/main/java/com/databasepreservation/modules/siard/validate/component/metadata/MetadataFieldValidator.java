@@ -87,16 +87,25 @@ public class MetadataFieldValidator extends MetadataValidator {
       observer.notifyValidationStep(MODULE_NAME, M_571_1, ValidationReporterStatus.ERROR);
     }
 
-
-    if (validateType()) {
-      validationOk(MODULE_NAME, A_M_571_2);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_571_2, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_571_2, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_571_2, ValidationReporterStatus.ERROR);
+      if (validateType()) {
+        validationOk(MODULE_NAME, A_M_571_2);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_571_2, ValidationReporterStatus.ERROR);
+      }
     }
 
 
-    validateFieldDescription(fields);
-    validationOk(MODULE_NAME, A_M_571_5);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_571_5, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_571_5, ADDITIONAL_CHECKS_SKIP_REASON);
+    } else {
+      validateFieldDescription(fields);
+      validationOk(MODULE_NAME, A_M_571_5);
+    }
 
     return reportValidations(MODULE_NAME);
   }

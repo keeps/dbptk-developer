@@ -294,14 +294,26 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
 
     if (validatePrivilegeType(nodes)) {
       validationOk(MODULE_NAME, M_519_1_1);
-      validationOk(MODULE_NAME, A_M_519_1_1);
+      if (this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_519_1_1, ValidationReporterStatus.SKIPPED);
+        getValidationReporter().skipValidation(A_M_519_1_1, ADDITIONAL_CHECKS_SKIP_REASON);
+      } else {
+        validationOk(MODULE_NAME, A_M_519_1_1);
+      }
     } else {
       observer.notifyValidationStep(MODULE_NAME, M_519_1_1, ValidationReporterStatus.ERROR);
-      observer.notifyValidationStep(MODULE_NAME, A_M_519_1_1, ValidationReporterStatus.ERROR);
+      if (!this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_519_1_1, ValidationReporterStatus.ERROR);
+      }
     }
 
-    validatePrivilegeObject(nodes);
-    validationOk(MODULE_NAME, A_M_519_1_2);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_519_1_2, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_519_1_2, ADDITIONAL_CHECKS_SKIP_REASON);
+    } else {
+      validatePrivilegeObject(nodes);
+      validationOk(MODULE_NAME, A_M_519_1_2);
+    }
 
     if (validatePrivilegeGrantor(nodes)) {
       validationOk(MODULE_NAME, M_519_1_3);
@@ -310,30 +322,46 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
     }
 
     // A_M_519_1_3
-    if (!additionalCheckError) {
-      validationOk(MODULE_NAME, A_M_519_1_3);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_519_1_3, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_519_1_3, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_519_1_3, ValidationReporterStatus.ERROR);
+      if (!additionalCheckError) {
+        validationOk(MODULE_NAME, A_M_519_1_3);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_519_1_3, ValidationReporterStatus.ERROR);
+      }
     }
 
-    if (validatePrivilegeGrantor(nodes)) {
+    if (validatePrivilegeGrantee(nodes)) {
       validationOk(MODULE_NAME, M_519_1_4);
     } else {
       observer.notifyValidationStep(MODULE_NAME, M_519_1_4, ValidationReporterStatus.ERROR);
     }
 
     // A_M_519_1_4
-    if (!additionalCheckError) {
-      validationOk(MODULE_NAME, A_M_519_1_4);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_519_1_4, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_519_1_4, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_519_1_4, ValidationReporterStatus.ERROR);
+      if (!additionalCheckError) {
+        validationOk(MODULE_NAME, A_M_519_1_4);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_519_1_4, ValidationReporterStatus.ERROR);
+      }
     }
 
-    validatePrivilegeOption(nodes);
-    validationOk(MODULE_NAME, A_M_519_1_5);
-
-    validatePrivilegeDescription(nodes);
-    validationOk(MODULE_NAME, A_M_519_1_6);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_519_1_5, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_519_1_5, ADDITIONAL_CHECKS_SKIP_REASON);
+      observer.notifyValidationStep(MODULE_NAME, A_M_519_1_6, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_519_1_6, ADDITIONAL_CHECKS_SKIP_REASON);
+    } else {
+      validatePrivilegeOption(nodes);
+      validationOk(MODULE_NAME, A_M_519_1_5);
+      validatePrivilegeDescription(nodes);
+      validationOk(MODULE_NAME, A_M_519_1_6);
+    }
 
     return reportValidations(MODULE_NAME);
   }
@@ -460,13 +488,14 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
 
       String grantor = XMLUtils.getChildTextContext(privilege, GRANTOR);
 
-      if (!validateXMLField(M_519_1_3, grantor, GRANTOR, true, false, path)) {
+      boolean result = validateXMLField(M_519_1_3, grantor, GRANTOR, true, false, path);
+      if (!result && !this.additionalCheckError) {
         setError(A_M_519_1_3, String.format("Aborted because privilege grantor is mandatory (%s)", path));
         additionalCheckError = true;
         hasErrors = true;
         continue;
       }
-      if (!checkIfUserOrRoleExist(grantor)) {
+      if (!checkIfUserOrRoleExist(grantor) && !this.additionalCheckError) {
         addWarning(A_M_519_1_3, String.format("Grantor %s should be an existing user or role", grantor), path);
       }
     }
@@ -490,14 +519,14 @@ public class MetadataPrivilegeValidator extends MetadataValidator {
       String path = buildPath(PRIVILEGE, XMLUtils.getChildTextContext(privilege, Constants.TYPE));
 
       String grantee = XMLUtils.getChildTextContext(privilege, GRANTEE);
-
-      if (!validateXMLField(M_519_1_4, grantee, GRANTOR, true, false, path)) {
+      boolean result = validateXMLField(M_519_1_4, grantee, GRANTOR, true, false, path);
+      if (!result && !this.skipAdditionalChecks) {
         setError(A_M_519_1_4, String.format("Aborted because privilege grantee is mandatory (%s)", path));
         additionalCheckError = true;
         hasErrors = true;
         continue;
       }
-      if (!checkIfUserOrRoleExist(grantee)) {
+      if (!checkIfUserOrRoleExist(grantee) && !this.skipAdditionalChecks) {
         addWarning(A_M_519_1_4, String.format("Grantee %s should be an existing user or role", grantee), path);
       }
     }

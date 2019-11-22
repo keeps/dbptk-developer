@@ -86,14 +86,24 @@ public class MetadataRoutineValidator extends MetadataValidator {
       observer.notifyValidationStep(MODULE_NAME, M_515_1_1, ValidationReporterStatus.ERROR);
     }
 
-    if (!additionalCheckError) {
-      validationOk(MODULE_NAME, A_M_515_1_1);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_515_1_1, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_515_1_1, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_515_1_1, ValidationReporterStatus.ERROR);
+      if (!additionalCheckError) {
+        validationOk(MODULE_NAME, A_M_515_1_1);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_515_1_1, ValidationReporterStatus.ERROR);
+      }
     }
 
-    validateRoutineDescription(nodes);
-    validationOk(MODULE_NAME, A_M_515_1_2);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_515_1_2, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_515_1_2, ADDITIONAL_CHECKS_SKIP_REASON);
+    } else {
+      validateRoutineDescription(nodes);
+      validationOk(MODULE_NAME, A_M_515_1_2);
+    }
 
     return reportValidations(MODULE_NAME);
   }
@@ -112,15 +122,17 @@ public class MetadataRoutineValidator extends MetadataValidator {
 
       String name = XMLUtils.getChildTextContext(routine, SPECIFIC_NAME);
       if (validateXMLField(M_515_1_1, name, Constants.ROUTINE, true, false, path)) {
-        if (!checkDuplicates.add(name)) {
+        if (!checkDuplicates.add(name) && !this.skipAdditionalChecks) {
           setError(A_M_515_1_1, String.format("Routine specificName %s must be unique (%s)", name, path));
           additionalCheckError = true;
           hasErrors = true;
         }
         continue;
       }
-      setError(A_M_515_1_1, String.format("Aborted because specificName is mandatory (%s)", path));
-      additionalCheckError = true;
+      if (!this.skipAdditionalChecks) {
+        setError(A_M_515_1_1, String.format("Aborted because specificName is mandatory (%s)", path));
+        additionalCheckError = true;
+      }
       hasErrors = true;
     }
 

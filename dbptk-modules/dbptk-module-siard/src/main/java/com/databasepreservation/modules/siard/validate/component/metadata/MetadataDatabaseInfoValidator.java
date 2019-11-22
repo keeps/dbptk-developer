@@ -89,10 +89,20 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
 
     if (validateSIARDVersion(version)) {
       validationOk(MODULE_NAME, M_511_1);
-      validationOk(MODULE_NAME, A_M_511_1);
+      if (this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_511_1, ValidationReporterStatus.SKIPPED);
+        getValidationReporter().skipValidation(A_M_511_1, ADDITIONAL_CHECKS_SKIP_REASON);
+      } else {
+        validationOk(MODULE_NAME, A_M_511_1);
+      }
     } else {
       observer.notifyValidationStep(MODULE_NAME, M_511_1, ValidationReporterStatus.ERROR);
-      observer.notifyValidationStep(MODULE_NAME, A_M_511_1, ValidationReporterStatus.ERROR);
+      if (this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_511_1, ValidationReporterStatus.SKIPPED);
+        getValidationReporter().skipValidation(A_M_511_1, ADDITIONAL_CHECKS_SKIP_REASON);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_511_1, ValidationReporterStatus.ERROR);
+      }
     }
 
     if (validateDatabaseName(nodes)) {
@@ -101,22 +111,37 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
       observer.notifyValidationStep(MODULE_NAME, M_511_2, ValidationReporterStatus.ERROR);
     }
 
-    if (validateDescription(nodes)) {
-      validationOk(MODULE_NAME, A_M_511_3);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_511_3, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_511_3, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_511_3, ValidationReporterStatus.ERROR);
+      if (validateDescription(nodes)) {
+        validationOk(MODULE_NAME, A_M_511_3);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_511_3, ValidationReporterStatus.ERROR);
+      }
     }
 
-    if (validateArchiver(nodes)) {
-      validationOk(MODULE_NAME, A_M_511_4);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_511_4, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_511_4, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_511_4, ValidationReporterStatus.ERROR);
+      if (validateArchiver(nodes)) {
+        validationOk(MODULE_NAME, A_M_511_4);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_511_4, ValidationReporterStatus.ERROR);
+      }
     }
 
-    if (validateArchiverContact(nodes)) {
-      validationOk(MODULE_NAME, A_M_511_5);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_511_5, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_511_5, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_511_5, ValidationReporterStatus.ERROR);
+      if (validateArchiverContact(nodes)) {
+        validationOk(MODULE_NAME, A_M_511_5);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_511_5, ValidationReporterStatus.ERROR);
+      }
     }
 
     if (validateDataOwner(nodes)) {
@@ -125,18 +150,30 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
       observer.notifyValidationStep(MODULE_NAME, M_511_6, ValidationReporterStatus.ERROR);
     }
 
-    if (validateDataOriginTimespan(nodes)) {
-      validationOk(MODULE_NAME, A_M_511_7);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_511_7, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_511_7, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_511_7, ValidationReporterStatus.ERROR);
+      if (validateDataOriginTimespan(nodes)) {
+        validationOk(MODULE_NAME, A_M_511_7);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_511_7, ValidationReporterStatus.ERROR);
+      }
     }
 
     if (validateArchivalDate(nodes)) {
       validationOk(MODULE_NAME, M_511_10);
-      validationOk(MODULE_NAME, A_M_511_10);
+      if (this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_511_10, ValidationReporterStatus.SKIPPED);
+        getValidationReporter().skipValidation(A_M_511_10, ADDITIONAL_CHECKS_SKIP_REASON);
+      } else {
+        validationOk(MODULE_NAME, A_M_511_10);
+      }
     } else {
       observer.notifyValidationStep(MODULE_NAME, M_511_10, ValidationReporterStatus.ERROR);
-      observer.notifyValidationStep(MODULE_NAME, A_M_511_10, ValidationReporterStatus.ERROR);
+      if (!this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_511_10, ValidationReporterStatus.ERROR);
+      }
     }
 
     if (validateSchemas(nodes)) {
@@ -167,15 +204,18 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
       return false;
     }
 
-    // A_M_511_1
-    switch (version) {
-      case "2.0":
-      case "2.1":
-      case "DK":
-      case "1.0":
-        break;
-      default:
-        addWarning(A_M_511_1, "The version of SIARD should be 1.0, DK, 2.0 or 2.1. Found: " + version, "siardArchive");
+    if (!this.skipAdditionalChecks) {
+      // A_M_511_1
+      switch (version) {
+        case "2.0":
+        case "2.1":
+        case "DK":
+        case "1.0":
+          break;
+        default:
+          addWarning(A_M_511_1, "The version of SIARD should be 1.0, DK, 2.0 or 2.1. Found: " + version,
+            "siardArchive");
+      }
     }
     return true;
   }

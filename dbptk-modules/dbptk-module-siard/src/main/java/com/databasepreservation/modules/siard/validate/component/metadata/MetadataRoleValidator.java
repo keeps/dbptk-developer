@@ -100,10 +100,17 @@ public class MetadataRoleValidator extends MetadataValidator {
 
     if (validateRoleName(nodes)) {
       validationOk(MODULE_NAME, M_518_1_1);
-      validationOk(MODULE_NAME, A_M_518_1_1);
+      if (this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_518_1_1, ValidationReporterStatus.SKIPPED);
+        getValidationReporter().skipValidation(A_M_518_1_1, ADDITIONAL_CHECKS_SKIP_REASON);
+      } else {
+        validationOk(MODULE_NAME, A_M_518_1_1);
+      }
     } else {
       observer.notifyValidationStep(MODULE_NAME, M_518_1_1, ValidationReporterStatus.ERROR);
-      observer.notifyValidationStep(MODULE_NAME, A_M_518_1_1, ValidationReporterStatus.ERROR);
+      if (!this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_518_1_1, ValidationReporterStatus.ERROR);
+      }
     }
 
     if (validateRoleAdmin(nodes)) {
@@ -112,14 +119,24 @@ public class MetadataRoleValidator extends MetadataValidator {
       observer.notifyValidationStep(MODULE_NAME, M_518_1_2, ValidationReporterStatus.ERROR);
     }
 
-    if (!additionalCheckError) {
-      validationOk(MODULE_NAME, A_M_518_1_2);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_518_1_2, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_518_1_2, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_518_1_2, ValidationReporterStatus.ERROR);
+      if (!additionalCheckError) {
+        validationOk(MODULE_NAME, A_M_518_1_2);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_518_1_2, ValidationReporterStatus.ERROR);
+      }
     }
 
-    validateRoleDescription(nodes);
-    validationOk(MODULE_NAME, A_M_518_1_3);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_518_1_3, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_518_1_3, ADDITIONAL_CHECKS_SKIP_REASON);
+    } else {
+      validateRoleDescription(nodes);
+      validationOk(MODULE_NAME, A_M_518_1_3);
+    }
 
     return reportValidations(MODULE_NAME);
   }
@@ -177,13 +194,15 @@ public class MetadataRoleValidator extends MetadataValidator {
             break;
           }
         }
-        if (!foundUserOrRole) {
+        if (!foundUserOrRole && !this.skipAdditionalChecks) {
           addWarning(A_M_518_1_2, String.format("Admin %s should be an existing user or role", admin), path);
         }
         continue;
       }
-      setError(A_M_518_1_2, String.format("Aborted because role admin is mandatory (%s)", path));
-      additionalCheckError = true;
+      if (!this.skipAdditionalChecks) {
+        setError(A_M_518_1_2, String.format("Aborted because role admin is mandatory (%s)", path));
+        additionalCheckError = true;
+      }
       hasErrors = true;
     }
 

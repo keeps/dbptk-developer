@@ -72,14 +72,26 @@ public class MetadataUserValidator extends MetadataValidator {
 
     if (validateUserName(nodes)) {
       validationOk(MODULE_NAME, M_517_1_1);
-      validationOk(MODULE_NAME, A_M_517_1_1);
+      if (this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_517_1_1, ValidationReporterStatus.SKIPPED);
+        getValidationReporter().skipValidation(A_M_517_1_1, ADDITIONAL_CHECKS_SKIP_REASON);
+      } else {
+        validationOk(MODULE_NAME, A_M_517_1_1);
+      }
     } else {
       observer.notifyValidationStep(MODULE_NAME, M_517_1_1, ValidationReporterStatus.ERROR);
-      observer.notifyValidationStep(MODULE_NAME, A_M_517_1_1, ValidationReporterStatus.ERROR);
+      if (!this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_517_1_1, ValidationReporterStatus.ERROR);
+      }
     }
 
-    validateUserDescription(nodes);
-    validationOk(MODULE_NAME, A_M_517_1_2);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_517_1_2, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_517_1_2, ADDITIONAL_CHECKS_SKIP_REASON);
+    } else {
+      validateUserDescription(nodes);
+      validationOk(MODULE_NAME, A_M_517_1_2);
+    }
 
     return reportValidations(MODULE_NAME);
   }

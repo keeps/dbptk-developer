@@ -83,7 +83,7 @@ public class CLIValidate extends CLIHandler {
   }
 
   private HashMap<Parameter, String> getValidationArguments(ValidateModuleFactory factory, List<String> args)
-      throws ParseException {
+    throws ParseException {
     // get appropriate command line options
     CommandLineParser commandLineParser = new DefaultParser();
     CommandLine commandLine;
@@ -114,8 +114,11 @@ public class CLIValidate extends CLIHandler {
     for (Option option : commandLine.getOptions()) {
       Parameter p = mapOptionToParameter.get(getUniqueOptionIdentifier(option));
       if (p != null) {
-          if (p.hasArgument()) {
-            if (p.longName().equals("file")) siardPackage = option.getValue(p.valueIfSet());
+        if (p.hasArgument()) {
+          if (p.longName().equals("file"))
+            siardPackage = option.getValue(p.valueIfSet());
+          validateModuleArguments.put(p, option.getValue(p.valueIfSet()));
+        } else {
           validateModuleArguments.put(p, option.getValue(p.valueIfSet()));
         }
       } else {

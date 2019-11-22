@@ -38,7 +38,7 @@ public interface ValidatorComponent {
 
   void setAllowedUTD( List<String> allowedUDTs);
 
-  void setup() throws ModuleException;
+  void setup(boolean skipAdditionalChekcs) throws ModuleException;
 
   void setObserver(ValidationObserver observer);
 }

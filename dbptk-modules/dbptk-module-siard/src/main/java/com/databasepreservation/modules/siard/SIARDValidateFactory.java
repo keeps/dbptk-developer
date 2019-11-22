@@ -7,7 +7,6 @@
  */
 package com.databasepreservation.modules.siard;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -35,6 +34,7 @@ public class SIARDValidateFactory implements ValidateModuleFactory {
   public static final String PARAMETER_FILE = "file";
   public static final String PARAMETER_ALLOWED = "allowed";
   public static final String PARAMETER_REPORT = "report";
+  public static final String PARAMETER_SKIP_ADDITIONAL_CHECKS = "skip-additional-checks";
 
   private static final Parameter file = new Parameter().shortName("f").longName(PARAMETER_FILE)
     .description("Path to SIARD2 archive file.").hasArgument(true).setOptionalArgument(false).required(true);
@@ -48,6 +48,12 @@ public class SIARDValidateFactory implements ValidateModuleFactory {
     .description("Path to the configuration file with all the allowed types for the user-defined or distinct categories. "
       + "The file should have a line for each allowed type.")
     .hasArgument(true).setOptionalArgument(false).required(false);
+
+  private static final Parameter skipAdditionalChecks = new Parameter().shortName("sac")
+    .longName(PARAMETER_SKIP_ADDITIONAL_CHECKS)
+    .description("Run the SIARD validation without the additional checks. "
+      + " The additional checks can be found at: https://github.com/keeps/db-preservation-toolkit/wiki/Validation#additional-checks ")
+    .hasArgument(false).valueIfSet("true").valueIfNotSet("false").required(false);
 
   @Override
   public String getModuleName() {
@@ -66,7 +72,7 @@ public class SIARDValidateFactory implements ValidateModuleFactory {
 
   @Override
   public Parameters getSingleParameters() {
-    return new Parameters(Arrays.asList(allowed, report), null);
+    return new Parameters(Arrays.asList(allowed, report, skipAdditionalChecks), null);
   }
 
   @Override
@@ -75,6 +81,7 @@ public class SIARDValidateFactory implements ValidateModuleFactory {
     parameterHashMap.put(file.longName(), file);
     parameterHashMap.put(report.longName(), report);
     parameterHashMap.put(allowed.longName(), allowed);
+    parameterHashMap.put(skipAdditionalChecks.longName(), skipAdditionalChecks);
 
     return parameterHashMap;
   }
@@ -98,7 +105,9 @@ public class SIARDValidateFactory implements ValidateModuleFactory {
       pAllowUDTs = Paths.get(parameters.get(allowed));
     }
 
-    if (Files.notExists(pFile)) {
+    boolean pSkipAdditionalChecks = Boolean.parseBoolean(parameters.get(skipAdditionalChecks));
+
+    if (!pFile.toFile().exists()) {
       throw new SiardNotFoundException().withPath(pFile.toAbsolutePath().toString())
           .withMessage("The path to the SIARD file appears to be incorrect");
     }
@@ -107,11 +116,11 @@ public class SIARDValidateFactory implements ValidateModuleFactory {
       reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString(),
           PARAMETER_ALLOWED, pAllowUDTs.normalize().toAbsolutePath().toString(), PARAMETER_REPORT,
         pReport.normalize().toAbsolutePath().toString());
-      return new SIARDValidateModule(pFile, pReport, pAllowUDTs);
+      return new SIARDValidateModule(pFile, pReport, pAllowUDTs, pSkipAdditionalChecks);
     } else {
       reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString(),
         PARAMETER_REPORT, pReport.normalize().toAbsolutePath().toString());
-      return new SIARDValidateModule(pFile, pReport);
+      return new SIARDValidateModule(pFile, pReport, pSkipAdditionalChecks);
     }
   }
 }

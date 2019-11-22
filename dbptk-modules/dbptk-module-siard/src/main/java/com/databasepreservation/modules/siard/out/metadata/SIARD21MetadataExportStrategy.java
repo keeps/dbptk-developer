@@ -457,7 +457,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
       SchemasType schemasType = new SchemasType();
       for (SchemaStructure schema : schemas) {
         if (schema.getTables().isEmpty()) {
-          LOGGER.warn("Schema " + schema.getName() + " was not exported because it does not contain tables.");
+          LOGGER.warn("Schema {} was not exported because it does not contain tables.", schema.getName());
         } else {
           schemasType.getSchema().add(jaxbSchemaType(schema));
         }

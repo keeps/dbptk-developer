@@ -9,11 +9,7 @@ package com.databasepreservation.modules.siard.validate.component.metadata;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
@@ -102,10 +98,17 @@ public class MetadataTriggerValidator extends MetadataValidator {
 
     if (validateTriggerName(nodes)) {
       validationOk(MODULE_NAME, M_513_1_1);
-      validationOk(MODULE_NAME, A_M_513_1_1);
+      if (this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_513_1_1, ValidationReporterStatus.SKIPPED);
+        getValidationReporter().skipValidation(A_M_513_1_1, ADDITIONAL_CHECKS_SKIP_REASON);
+      } else {
+        validationOk(MODULE_NAME, A_M_513_1_1);
+      }
     } else {
       observer.notifyValidationStep(MODULE_NAME, M_513_1_1, ValidationReporterStatus.ERROR);
-      observer.notifyValidationStep(MODULE_NAME, A_M_513_1_1, ValidationReporterStatus.ERROR);
+      if (!this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_513_1_1, ValidationReporterStatus.ERROR);
+      }
     }
 
     if (validateTriggerActionTime(nodes)) {
@@ -126,8 +129,13 @@ public class MetadataTriggerValidator extends MetadataValidator {
       observer.notifyValidationStep(MODULE_NAME, M_513_1_5, ValidationReporterStatus.ERROR);
     }
 
-    validateTriggerDescription(nodes);
-    validationOk(MODULE_NAME, A_M_513_1_6);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_513_1_6, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_513_1_6, ADDITIONAL_CHECKS_SKIP_REASON);
+    } else {
+      validateTriggerDescription(nodes);
+      validationOk(MODULE_NAME, A_M_513_1_6);
+    }
 
     return reportValidations(MODULE_NAME);
   }

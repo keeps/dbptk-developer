@@ -99,8 +99,13 @@ public class MetadataTypeValidator extends MetadataValidator {
       observer.notifyValidationStep(MODULE_NAME, M_531_6, ValidationReporterStatus.ERROR);
     }
 
-    validateTypeDescription(nodes);
-    validationOk(MODULE_NAME, A_M_531_10);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_531_10, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_531_10, ADDITIONAL_CHECKS_SKIP_REASON);
+    } else {
+      validateTypeDescription(nodes);
+      validationOk(MODULE_NAME, A_M_531_10);
+    }
 
     return reportValidations(MODULE_NAME);
   }

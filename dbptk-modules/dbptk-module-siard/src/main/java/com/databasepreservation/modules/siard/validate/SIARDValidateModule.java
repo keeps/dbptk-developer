@@ -16,6 +16,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.databasepreservation.modules.siard.validate.component.metadata.MetadataCandidateKeyValidator;
+import com.databasepreservation.modules.siard.validate.component.metadata.MetadataCheckConstraintValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +52,7 @@ public class SIARDValidateModule implements ValidateModule {
   private final List<String> allowedUDTs;
   private final ValidatorPathStrategy validatorPathStrategy;
   private final ZipFileManagerStrategy zipFileManager;
+  private final boolean skipAdditionalChecks;
 
   /**
    * Constructor used to initialize required objects to get an validate module for
@@ -58,13 +61,14 @@ public class SIARDValidateModule implements ValidateModule {
    * @param SIARDPackagePath
    *          Path to the main SIARD file (file with extension .siard)
    */
-  public SIARDValidateModule(Path SIARDPackagePath, Path validationReporterPath) {
+  public SIARDValidateModule(Path SIARDPackagePath, Path validationReporterPath, boolean skipAdditionalChecks) {
     siardPackageNormalizedPath = SIARDPackagePath.toAbsolutePath().normalize();
     validationReporter = new ValidationReporter(validationReporterPath.toAbsolutePath().normalize(),
       siardPackageNormalizedPath);
     allowedUDTs = Collections.emptyList();
     validatorPathStrategy = new ValidatorPathStrategyImpl();
     zipFileManager = new ZipFileManager();
+    this.skipAdditionalChecks = skipAdditionalChecks;
   }
 
   /**
@@ -74,7 +78,7 @@ public class SIARDValidateModule implements ValidateModule {
    * @param SIARDPackagePath
    *          Path to the main SIARD file (file with extension .siard)
    */
-  public SIARDValidateModule(Path SIARDPackagePath, Path validationReporterPath, Path allowedUDTs)
+  public SIARDValidateModule(Path SIARDPackagePath, Path validationReporterPath, Path allowedUDTs, boolean skipAdditionalChecks)
     throws ModuleException {
     siardPackageNormalizedPath = SIARDPackagePath.toAbsolutePath().normalize();
     validationReporter = new ValidationReporter(validationReporterPath.toAbsolutePath().normalize(),
@@ -82,6 +86,7 @@ public class SIARDValidateModule implements ValidateModule {
     this.allowedUDTs = parseAllowUDTs(allowedUDTs);
     validatorPathStrategy = new ValidatorPathStrategyImpl();
     zipFileManager = new ZipFileManager();
+    this.skipAdditionalChecks = skipAdditionalChecks;
   }
 
   /**
@@ -123,7 +128,7 @@ public class SIARDValidateModule implements ValidateModule {
       component.setValidationReporter(validationReporter);
       component.setValidatorPathStrategy(validatorPathStrategy);
       component.setAllowedUTD(allowedUDTs);
-      component.setup();
+      component.setup(skipAdditionalChecks);
       final boolean validate = component.validate();
       if (!validate) {
         counter++;
@@ -133,7 +138,8 @@ public class SIARDValidateModule implements ValidateModule {
     }
 
     boolean result = counter == 0;
-    observer.notifyIndicators(validationReporter.getNumberOfPassed(), validationReporter.getNumberOfErrors(),
+    observer.notifyIndicators(validationReporter.getNumberRequirementsPassed(), validationReporter.getNumberOfPassed(),
+      validationReporter.getNumberOfRequirementsFailed(), validationReporter.getNumberOfErrors(),
       validationReporter.getNumberOfWarnings(), validationReporter.getNumberOfSkipped());
     observer.notifyValidationProcessFinish(result);
 

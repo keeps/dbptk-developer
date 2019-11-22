@@ -128,10 +128,15 @@ public class MetadataReferenceValidator extends MetadataValidator {
     }
 
     // A_M_510_1_1
-    if (!additionalCheckError) {
-      validationOk(MODULE_NAME, A_M_510_1_1);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_510_1_1, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_510_1_1, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_510_1_1, ValidationReporterStatus.ERROR);
+      if (!additionalCheckError) {
+        validationOk(MODULE_NAME, A_M_510_1_1);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_510_1_1, ValidationReporterStatus.ERROR);
+      }
     }
 
     if (validateReferencedColumn(nodes)) {
@@ -141,10 +146,15 @@ public class MetadataReferenceValidator extends MetadataValidator {
     }
 
     // A_M_510_1_2
-    if (!additionalCheckError) {
-      validationOk(MODULE_NAME, A_M_510_1_2);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_510_1_2, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_510_1_2, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_510_1_2, ValidationReporterStatus.ERROR);
+      if (!additionalCheckError) {
+        validationOk(MODULE_NAME, A_M_510_1_2);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_510_1_2, ValidationReporterStatus.ERROR);
+      }
     }
 
     return reportValidations(MODULE_NAME);
@@ -223,7 +233,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
       String column = XMLUtils.getChildTextContext(reference, Constants.COLUMN);
 
       if (validateXMLField(M_510_1_1, column, Constants.COLUMN, true, false, path)) {
-        if (tableColumnsList.get(table).get(column) == null) {
+        if (tableColumnsList.get(table).get(column) == null && !this.skipAdditionalChecks) {
           setError(A_M_510_1_1,
             String.format("referenced column name %s does not exist on referenced table %s", column, table));
           additionalCheckError = true;
@@ -231,8 +241,10 @@ public class MetadataReferenceValidator extends MetadataValidator {
         }
         continue;
       }
-      setError(A_M_510_1_1, String.format("Aborted because referenced column name is mandatory (%s)", path));
-      additionalCheckError = true;
+      if (!this.skipAdditionalChecks) {
+        setError(A_M_510_1_1, String.format("Aborted because referenced column name is mandatory (%s)", path));
+        additionalCheckError = true;
+      }
       hasErrors = true;
     }
 
@@ -273,17 +285,21 @@ public class MetadataReferenceValidator extends MetadataValidator {
 
           if (column == null || column.isEmpty()) {
             setError(M_510_1_2, String.format("Unable to validate, column does not exist (%s)", path));
-            setError(A_M_510_1_2, String.format("Unable to validate, column does not exist (%s)", path));
+            if (!this.skipAdditionalChecks) {
+              setError(A_M_510_1_2, String.format("Unable to validate, column does not exist (%s)", path));
+              additionalCheckError = true;
+            }
             hasErrors = true;
-            additionalCheckError = true;
             continue;
           }
 
           if (tableColumnsList.get(table).get(column) == null) {
             setError(M_510_1_2, String.format("Unable to validate, column does not exist (%s)", path));
-            setError(A_M_510_1_2, String.format("Unable to validate, column does not exist (%s)", path));
+            if (!this.skipAdditionalChecks) {
+              setError(A_M_510_1_2, String.format("Unable to validate, column does not exist (%s)", path));
+              additionalCheckError = true;
+            }
             hasErrors = true;
-            additionalCheckError = true;
             continue;
           }
 
@@ -300,54 +316,56 @@ public class MetadataReferenceValidator extends MetadataValidator {
             continue;
           }
 
-          if (referencedTable == null || tableColumnsList.get(referencedTable) == null) {
-            setError(A_M_510_1_2, String.format("Unable to validate, referenced table does not exist (%s)", path));
-            additionalCheckError = true;
-            continue;
-          }
+          if (!this.skipAdditionalChecks) {
+            if (referencedTable == null || tableColumnsList.get(referencedTable) == null) {
+              setError(A_M_510_1_2, String.format("Unable to validate, referenced table does not exist (%s)", path));
+              additionalCheckError = true;
+              continue;
+            }
 
-          if (foreignKeyTable == null || tableColumnsList.get(foreignKeyTable) == null) {
-            setError(A_M_510_1_2, String.format("Unable to validate, foreign key table does not exist (%s)", path));
-            additionalCheckError = true;
-            continue;
-          }
+            if (foreignKeyTable == null || tableColumnsList.get(foreignKeyTable) == null) {
+              setError(A_M_510_1_2, String.format("Unable to validate, foreign key table does not exist (%s)", path));
+              additionalCheckError = true;
+              continue;
+            }
 
-          referencedColumnTable = tableColumnsList.get(referencedTable);
-          foreignKeyColumnTable = tableColumnsList.get(foreignKeyTable);
-          primaryKeyColumns = primaryKeyList.get(referencedTable);
-          candidateKeyColumns = candidateKeyList.get(referencedTable);
+            referencedColumnTable = tableColumnsList.get(referencedTable);
+            foreignKeyColumnTable = tableColumnsList.get(foreignKeyTable);
+            primaryKeyColumns = primaryKeyList.get(referencedTable);
+            candidateKeyColumns = candidateKeyList.get(referencedTable);
 
-          // M_5.10-1-2
-          if (referencedColumnTable.get(referencedColumn) == null) {
-            setError(A_M_510_1_2,
-              String.format("referenced column name %s of table %s does not exist on referenced table %s",
-                referencedColumn, foreignKeyTable, referencedTable));
-            additionalCheckError = true;
-            continue;
-          }
+            // M_5.10-1-2
+            if (referencedColumnTable.get(referencedColumn) == null) {
+              setError(A_M_510_1_2,
+                String.format("referenced column name %s of table %s does not exist on referenced table %s",
+                  referencedColumn, foreignKeyTable, referencedTable));
+              additionalCheckError = true;
+              continue;
+            }
 
-          // Additional check
-          String foreignKeyType = foreignKeyColumnTable.get(column);
-          if (primaryKeyColumns != null && primaryKeyColumns.contains(referencedColumn)) {
-            for (String primaryKey : primaryKeyColumns) {
-              if (!primaryKey.equals(referencedColumn))
-                continue;
-              String primaryKeyType = referencedColumnTable.get(primaryKey);
+            // Additional check
+            String foreignKeyType = foreignKeyColumnTable.get(column);
+            if (primaryKeyColumns != null && primaryKeyColumns.contains(referencedColumn)) {
+              for (String primaryKey : primaryKeyColumns) {
+                if (!primaryKey.equals(referencedColumn))
+                  continue;
+                String primaryKeyType = referencedColumnTable.get(primaryKey);
 
-              if (primaryKeyType == null) {
-                setError(A_M_510_1_2,
-                  String.format("Unable to find primary key type referencedTable:%s/primaryKey:%s in %s",
-                    referencedTable, primaryKey, path));
-                additionalCheckError = true;
-                break;
-              }
+                if (primaryKeyType == null) {
+                  setError(A_M_510_1_2,
+                    String.format("Unable to find primary key type referencedTable:%s/primaryKey:%s in %s",
+                      referencedTable, primaryKey, path));
+                  additionalCheckError = true;
+                  break;
+                }
 
-              if (!checkType(foreignKeyType, primaryKeyType)) {
-                setError(A_M_510_1_2,
-                  String.format("Foreign Key %s.%s type %s does not match with type %s of Primary Key %s.%s",
-                    foreignKeyTable, foreignKey, foreignKeyType, primaryKeyType, referencedTable, primaryKey));
-                additionalCheckError = true;
-                break;
+                if (!checkType(foreignKeyType, primaryKeyType)) {
+                  setError(A_M_510_1_2,
+                    String.format("Foreign Key %s.%s type %s does not match with type %s of Primary Key %s.%s",
+                      foreignKeyTable, foreignKey, foreignKeyType, primaryKeyType, referencedTable, primaryKey));
+                  additionalCheckError = true;
+                  break;
+                }
               }
             }
           }

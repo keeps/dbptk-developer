@@ -29,6 +29,8 @@ import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.oracle.in.Oracle12cJDBCImportModule;
 import com.databasepreservation.modules.oracle.out.Oracle12cJDBCExportModule;
 
+import static com.databasepreservation.model.Reporter.MESSAGE_FILTERED;
+
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
@@ -193,14 +195,14 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
     if (pSSH) {
       RemoteConnectionManager.getInstance().setup(pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
       reporter.importModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_INSTANCE,
-        pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
+        pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
         Integer.toString(pPortNumber), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser,
-        PARAMETER_SSH_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
+        PARAMETER_SSH_PASSWORD, MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
       return new Oracle12cJDBCImportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword, true, pSSHHost,
         pSSHUser, pSSHPassword, pSSHPortNumber, pCustomViews);
     } else {
       reporter.importModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_INSTANCE,
-        pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
+        pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
         Integer.toString(pPortNumber));
       return new Oracle12cJDBCImportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword, pCustomViews);
     }
@@ -236,13 +238,13 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
 
     if (pSSH) {
       reporter.exportModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_INSTANCE, pDatabase,
-          PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
+          PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
           pPortNumber.toString(), PARAMETER_SOURCE_SCHEMA, pSourceSchema, PARAMETER_SSH_HOST, PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser,
-          PARAMETER_SSH_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
+          PARAMETER_SSH_PASSWORD, MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
       return new Oracle12cJDBCExportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword, pSourceSchema, pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
     } else {
       reporter.exportModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_INSTANCE, pDatabase,
-          PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
+          PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
           pPortNumber.toString(), PARAMETER_SOURCE_SCHEMA, pSourceSchema);
       return new Oracle12cJDBCExportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword, pSourceSchema);
     }

@@ -85,11 +85,15 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
     } else {
       observer.notifyValidationStep(MODULE_NAME, M_512_1_1, ValidationReporterStatus.ERROR);
     }
-
-    if (!additionalCheckError) {
-      validationOk(MODULE_NAME, A_M_512_1_1);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_512_1_1, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_512_1_1, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_512_1_1, ValidationReporterStatus.ERROR);
+      if (!additionalCheckError) {
+        validationOk(MODULE_NAME, A_M_512_1_1);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_512_1_1, ValidationReporterStatus.ERROR);
+      }
     }
 
     if (validateCheckConstraintCondition(nodes)) {
@@ -98,8 +102,13 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
       observer.notifyValidationStep(MODULE_NAME, M_512_1_1, ValidationReporterStatus.ERROR);
     }
 
-    validateAttributeDescription(nodes);
-    validationOk(MODULE_NAME, A_M_512_1_3);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_512_1_3, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_512_1_3, ADDITIONAL_CHECKS_SKIP_REASON);
+    } else {
+      validateAttributeDescription(nodes);
+      validationOk(MODULE_NAME, A_M_512_1_3);
+    }
 
     return reportValidations(MODULE_NAME);
   }
@@ -119,15 +128,17 @@ public class MetadataCheckConstraintValidator extends MetadataValidator {
       String name = XMLUtils.getChildTextContext(checkConstraint, Constants.NAME);
 
       if (validateXMLField(M_512_1_1, name, Constants.NAME, true, false, path)) {
-        if (!checkDuplicates.add(table + name)) {
+        if (!checkDuplicates.add(table + name) && !this.skipAdditionalChecks) {
           setError(A_M_512_1_1, String.format("Check Constraint name %s must be unique per table(%s)", name, path));
           additionalCheckError = true;
           hasErrors = true;
         }
         continue;
       }
-      setError(A_M_512_1_1, String.format("Aborted because check constraint name is mandatory (%s)", path));
-      additionalCheckError = true;
+      if (!this.skipAdditionalChecks) {
+        setError(A_M_512_1_1, String.format("Aborted because check constraint name is mandatory (%s)", path));
+        additionalCheckError = true;
+      }
       hasErrors = true;
     }
 

@@ -25,7 +25,7 @@ public interface ValidationObserver {
 
   void notifyElementValidating(String ID, String path);
 
-  void notifyIndicators(int passed, int errors, int warnings, int skipped);
+  void notifyIndicators(int passed, int ok, int failed, int errors, int warnings, int skipped);
 
   void notifyValidationProcessFinish(boolean value);
 

@@ -96,10 +96,15 @@ public class MetadataColumnsValidator extends MetadataValidator {
       observer.notifyValidationStep(MODULE_NAME, M_561_1, ValidationReporterStatus.ERROR);
     }
 
-    if (validateColumnLobFolders(tables)) {
-      validationOk(MODULE_NAME, A_M_561_2);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_561_2, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_561_2, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_561_2, ValidationReporterStatus.ERROR);
+      if (validateColumnLobFolders(tables)) {
+        validationOk(MODULE_NAME, A_M_561_2);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_561_2, ValidationReporterStatus.ERROR);
+      }
     }
 
     if (validateColumnTypes(columns)) {
@@ -108,10 +113,20 @@ public class MetadataColumnsValidator extends MetadataValidator {
       observer.notifyValidationStep(MODULE_NAME, M_561_3, ValidationReporterStatus.ERROR);
     }
 
-    noticeTypeOriginalUsed(columns);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_561_5, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_561_5, ADDITIONAL_CHECKS_SKIP_REASON);
+    } else {
+      noticeTypeOriginalUsed(columns);
+    }
 
-    validateColumnDescription(columns);
-    validationOk(MODULE_NAME, A_M_561_12);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_561_12, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_561_12, ADDITIONAL_CHECKS_SKIP_REASON);
+    } else {
+      validateColumnDescription(columns);
+      validationOk(MODULE_NAME, A_M_561_12);
+    }
 
     return reportValidations(MODULE_NAME);
   }

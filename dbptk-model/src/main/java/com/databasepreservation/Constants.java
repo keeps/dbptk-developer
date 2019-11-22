@@ -71,7 +71,6 @@ public class Constants {
   public static final String COMPONENT_ZIP_CONSTRUCTION = "Construction of the SIARD archive file";
   public static final String COMPONENT_SIARD_STRUCTURE = "Structure of the SIARD archive file";
   public static final String COMPONENT_METADATA_AND_TABLE_DATA = "Correspondence between metadata and table data";
-  public static final String COMPONENT_ADDITIONAL_CHECKS = "Additional Checks";
   public static final String COMPONENT_DATE_AND_TIMESTAMP_DATA = "Date and timestamp data cells";
   public static final String COMPONENT_REQUIREMENTS_FOR_TABLE_DATA = "Requirements for table data";
   public static final String COMPONENT_TABLE_DATA = "Table data";

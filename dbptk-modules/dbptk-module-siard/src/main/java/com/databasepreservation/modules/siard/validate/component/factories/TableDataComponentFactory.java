@@ -47,7 +47,7 @@ public class TableDataComponentFactory implements ValidatorComponentFactory {
 
   @Override
   public String next() {
-    return Constants.COMPONENT_ADDITIONAL_CHECKS;
+    return Constants.COMPONENT_END_TAG;
   }
 
   @Override

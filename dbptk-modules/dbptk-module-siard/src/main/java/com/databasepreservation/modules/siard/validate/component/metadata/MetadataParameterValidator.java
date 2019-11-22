@@ -90,10 +90,15 @@ public class MetadataParameterValidator extends MetadataValidator {
       observer.notifyValidationStep(MODULE_NAME, M_516_1_1, ValidationReporterStatus.ERROR);
     }
 
-    if (!additionalCheckError) {
-      validationOk(MODULE_NAME, A_M_516_1_1);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_516_1_1, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_516_1_1, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_516_1_1, ValidationReporterStatus.ERROR);
+      if (!additionalCheckError) {
+        validationOk(MODULE_NAME, A_M_516_1_1);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_516_1_1, ValidationReporterStatus.ERROR);
+      }
     }
 
     if (validateParameterMode(nodes)) {
@@ -102,8 +107,13 @@ public class MetadataParameterValidator extends MetadataValidator {
       observer.notifyValidationStep(MODULE_NAME, M_516_1_2, ValidationReporterStatus.ERROR);
     }
 
-    validateParameterDescription(nodes);
-    validationOk(MODULE_NAME, A_M_516_1_8);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_516_1_8, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_516_1_8, ADDITIONAL_CHECKS_SKIP_REASON);
+    } else {
+      validateParameterDescription(nodes);
+      validationOk(MODULE_NAME, A_M_516_1_8);
+    }
 
     return reportValidations(MODULE_NAME);
   }
@@ -124,13 +134,15 @@ public class MetadataParameterValidator extends MetadataValidator {
       String name = XMLUtils.getChildTextContext(parameter, Constants.NAME);
 
       if (validateXMLField(M_516_1_1, name, Constants.NAME, true, false, path)) {
-        if (!checkDuplicates.add(name)) {
+        if (!checkDuplicates.add(name) && !this.skipAdditionalChecks) {
           addWarning(A_M_516_1_1, String.format("Parameter name %s should be unique", name), path);
         }
         continue;
       }
-      setError(A_M_516_1_1, String.format("Aborted because parameter name is mandatory (%s)", path));
-      additionalCheckError = true;
+      if (!this.skipAdditionalChecks) {
+        setError(A_M_516_1_1, String.format("Aborted because parameter name is mandatory (%s)", path));
+        additionalCheckError = true;
+      }
       hasErrors = true;
     }
 

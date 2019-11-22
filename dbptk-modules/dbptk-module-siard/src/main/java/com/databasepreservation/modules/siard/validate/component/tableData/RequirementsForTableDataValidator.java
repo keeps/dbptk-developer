@@ -209,18 +209,28 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
       return false;
     }
 
-    numberOfNullValuesForForeignKey();
-    observer.notifyValidationStep(MODULE_NAME, A_T_6011, ValidationReporterStatus.OK);
-    getValidationReporter().validationStatus(A_T_6011, ValidationReporterStatus.OK);
-
-    if (!validateTableDataType()) {
-      observer.notifyValidationStep(MODULE_NAME, A_T_6012, ValidationReporterStatus.OK);
-      getValidationReporter().validationStatus(A_T_6012, ValidationReporterStatus.OK);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_T_6011, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_T_6011, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_T_6012, ValidationReporterStatus.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
-      validationFailed(A_T_6012, MODULE_NAME);
-      return false;
+      numberOfNullValuesForForeignKey();
+      observer.notifyValidationStep(MODULE_NAME, A_T_6011, ValidationReporterStatus.OK);
+      getValidationReporter().validationStatus(A_T_6011, ValidationReporterStatus.OK);
+    }
+
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_T_6012, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_T_6012, ADDITIONAL_CHECKS_SKIP_REASON);
+    } else {
+      if (!validateTableDataType()) {
+        observer.notifyValidationStep(MODULE_NAME, A_T_6012, ValidationReporterStatus.OK);
+        getValidationReporter().validationStatus(A_T_6012, ValidationReporterStatus.OK);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_T_6012, ValidationReporterStatus.ERROR);
+        observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+        validationFailed(A_T_6012, MODULE_NAME);
+        return false;
+      }
     }
 
     observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.PASSED);
@@ -302,9 +312,9 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
             boolean r = validatePrimaryKeyConstraint(schemaFolder, tableFolder);
             if (!r) {
               primaryKeyValid = false;
-              observer.notifyElementValidationFinish(A_T_6012, validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder), ValidationReporterStatus.ERROR);
+              observer.notifyElementValidationFinish(T_601, validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder), ValidationReporterStatus.ERROR);
             } else {
-              observer.notifyElementValidationFinish(A_T_6012, validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder), ValidationReporterStatus.OK);
+              observer.notifyElementValidationFinish(T_601, validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder), ValidationReporterStatus.OK);
             }
           }
         }
@@ -337,9 +347,9 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
             boolean r = validateForeignKeyConstraint(schemaFolder, tableFolder);
             if (!r) {
               foreignKeyValid = false;
-              observer.notifyElementValidationFinish(A_T_6012, validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder), ValidationReporterStatus.ERROR);
+              observer.notifyElementValidationFinish(T_601, validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder), ValidationReporterStatus.ERROR);
             } else {
-              observer.notifyElementValidationFinish(A_T_6012, validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder), ValidationReporterStatus.OK);
+              observer.notifyElementValidationFinish(T_601, validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder), ValidationReporterStatus.OK);
             }
           }
         }

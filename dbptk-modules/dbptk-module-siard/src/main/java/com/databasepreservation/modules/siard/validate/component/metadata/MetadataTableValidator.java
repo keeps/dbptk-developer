@@ -70,10 +70,17 @@ public class MetadataTableValidator extends MetadataValidator {
 
     if (validateTableNames(nodes)) {
       validationOk(MODULE_NAME, M_551_1);
-      validationOk(MODULE_NAME, A_M_551_1);
+      if (this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_551_1, ValidationReporterStatus.SKIPPED);
+        getValidationReporter().skipValidation(A_M_551_1, ADDITIONAL_CHECKS_SKIP_REASON);
+      } else {
+        validationOk(MODULE_NAME, A_M_551_1);
+      }
     } else {
       observer.notifyValidationStep(MODULE_NAME, M_551_1, ValidationReporterStatus.ERROR);
-      observer.notifyValidationStep(MODULE_NAME, A_M_551_1, ValidationReporterStatus.ERROR);
+      if (!this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_551_1, ValidationReporterStatus.ERROR);
+      }
     }
 
     if (validateTableFolders(nodes)) {
@@ -82,8 +89,13 @@ public class MetadataTableValidator extends MetadataValidator {
       observer.notifyValidationStep(MODULE_NAME, M_551_2, ValidationReporterStatus.ERROR);
     }
 
-    validateTableDescriptions(nodes);
-    validationOk(MODULE_NAME, A_M_551_3);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_551_3, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_551_3, ADDITIONAL_CHECKS_SKIP_REASON);
+    } else {
+      validateTableDescriptions(nodes);
+      validationOk(MODULE_NAME, A_M_551_3);
+    }
 
     if (validateTableColumns(nodes)) {
       validationOk(MODULE_NAME, M_551_4);
@@ -113,7 +125,9 @@ public class MetadataTableValidator extends MetadataValidator {
       String name = XMLUtils.getChildTextContext(table, Constants.NAME);
 
       if (validateXMLField(M_551_1, name, Constants.NAME, true, false, path)) {
-        validateXMLField(A_M_551_1, name, Constants.NAME, false, true, path);
+        if (!this.skipAdditionalChecks) {
+          validateXMLField(A_M_551_1, name, Constants.NAME, false, true, path);
+        }
         continue;
       }
       hasErrors = true;

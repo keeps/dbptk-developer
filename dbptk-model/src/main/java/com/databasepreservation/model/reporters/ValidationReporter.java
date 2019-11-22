@@ -32,6 +32,8 @@ public class ValidationReporter implements AutoCloseable {
   private int numberOfErrors;
   private int numberOfWarnings;
   private int numberOfSkipped;
+  private int numberOfRequirementsFailed;
+  private int numberRequirementsPassed;
 
   public enum Indent {
     TAB, TAB_2, TAB_4
@@ -178,8 +180,21 @@ public class ValidationReporter implements AutoCloseable {
     return numberOfSkipped;
   }
 
+  public int getNumberOfRequirementsFailed() { return numberOfRequirementsFailed; }
+
+
+  public int getNumberRequirementsPassed() {
+    return numberRequirementsPassed;
+  }
+
   private String buildStatus(ValidationReporterStatus status) {
     switch (status) {
+      case FAILED:
+        numberOfRequirementsFailed++;
+        break;
+      case PASSED:
+        numberRequirementsPassed++;
+        break;
       case ERROR:
         numberOfErrors++;
         break;

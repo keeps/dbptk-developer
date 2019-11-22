@@ -91,10 +91,17 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
 
     if (validatePrimaryKeyName(keys)) {
       validationOk(MODULE_NAME, M_581_1);
-      validationOk(MODULE_NAME, A_M_581_1);
+      if (this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_581_1, ValidationReporterStatus.SKIPPED);
+        getValidationReporter().skipValidation(A_M_581_1, ADDITIONAL_CHECKS_SKIP_REASON);
+      } else {
+        validationOk(MODULE_NAME, A_M_581_1);
+      }
     } else {
       observer.notifyValidationStep(MODULE_NAME, M_581_1, ValidationReporterStatus.ERROR);
-      observer.notifyValidationStep(MODULE_NAME, A_M_581_1, ValidationReporterStatus.ERROR);
+      if (!this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_581_1, ValidationReporterStatus.ERROR);
+      }
     }
 
     if (validatePrimaryKeyColumn(tables, keys)) {
@@ -103,14 +110,24 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
       observer.notifyValidationStep(MODULE_NAME, M_581_2, ValidationReporterStatus.ERROR);
     }
 
-    if (!additionalCheckError) {
-      validationOk(MODULE_NAME, A_M_581_2);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_581_2, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_581_2, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_581_2, ValidationReporterStatus.ERROR);
+      if (!additionalCheckError) {
+        validationOk(MODULE_NAME, A_M_581_2);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_581_2, ValidationReporterStatus.ERROR);
+      }
     }
 
-    validatePrimaryKeyDescription(keys);
-    validationOk(MODULE_NAME, A_M_581_3);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_581_3, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_581_3, ADDITIONAL_CHECKS_SKIP_REASON);
+    } else {
+      validatePrimaryKeyDescription(keys);
+      validationOk(MODULE_NAME, A_M_581_3);
+    }
 
     return reportValidations(MODULE_NAME);
   }
@@ -131,12 +148,14 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
       String name = XMLUtils.getChildTextContext(candidateKey, Constants.NAME);
 
       if (validateXMLField(M_581_1, name, Constants.CANDIDATE_KEY, true, false, path)) {
-        if (name.contains(BLANK)) {
+        if (name.contains(BLANK) && !this.skipAdditionalChecks) {
           addWarning(A_M_581_1, "Primary key " + name + " contain blanks in name", path);
         }
         continue;
       }
-      setError(A_M_581_1, String.format("Aborted because primary key name is mandatory (%s)", path));
+      if (!this.skipAdditionalChecks) {
+        setError(A_M_581_1, String.format("Aborted because primary key name is mandatory (%s)", path));
+      }
       hasErrors = true;
     }
 
@@ -183,8 +202,10 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
 
       if (columnList.isEmpty()) {
         setError(M_581_2, String.format("Primary key must have at least one column on %s.%s", schema, table));
-        setError(A_M_581_2, String.format("Aborted because primary key column is mandatory on %s.%s", schema, table));
-        additionalCheckError = true;
+        if (!this.skipAdditionalChecks) {
+          setError(A_M_581_2, String.format("Aborted because primary key column is mandatory on %s.%s", schema, table));
+          additionalCheckError = true;
+        }
         hasErrors = true;
         continue;
       }
@@ -192,10 +213,13 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
       for (String column : columnList) {
         if (column.isEmpty()) {
           setError(M_581_2, String.format("Primary key must have at least one column on %s.%s", schema, table));
-          setError(A_M_581_2, String.format("Aborted because primary key column is mandatory on %s.%s", schema, table));
+          if (!this.skipAdditionalChecks) {
+            setError(A_M_581_2,
+              String.format("Aborted because primary key column is mandatory on %s.%s", schema, table));
+            additionalCheckError = true;
+          }
           hasErrors = true;
-          additionalCheckError = true;
-        } else if (!tableColumnsList.get(table).contains(column)) {
+        } else if (!tableColumnsList.get(table).contains(column) && !this.skipAdditionalChecks) {
           setError(A_M_581_2,
             String.format("Primary key column reference %s not found on %s.%s", column, schema, table));
           additionalCheckError = true;

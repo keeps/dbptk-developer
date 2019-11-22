@@ -100,10 +100,15 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
     }
 
     // A_M_591_1
-    if (!additionalCheckError) {
-      validationOk(MODULE_NAME, A_M_591_1);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_591_1, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_591_1, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_591_1, ValidationReporterStatus.ERROR);
+      if (!additionalCheckError) {
+        validationOk(MODULE_NAME, A_M_591_1);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_591_1, ValidationReporterStatus.ERROR);
+      }
     }
 
     if (validateForeignKeyReferencedSchema(nodes)) {
@@ -113,10 +118,15 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
     }
 
     // A_M_591_2
-    if (!additionalCheckError) {
-      validationOk(MODULE_NAME, A_M_591_2);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_591_2, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_591_2, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_591_2, ValidationReporterStatus.ERROR);
+      if (!additionalCheckError) {
+        validationOk(MODULE_NAME, A_M_591_2);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_591_2, ValidationReporterStatus.ERROR);
+      }
     }
 
     if (validateForeignKeyReferencedTable(nodes)) {
@@ -126,10 +136,15 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
     }
 
     // A_M_591_3
-    if (!additionalCheckError) {
-      validationOk(MODULE_NAME, A_M_591_3);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_591_3, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_591_3, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_591_3, ValidationReporterStatus.ERROR);
+      if (!additionalCheckError) {
+        validationOk(MODULE_NAME, A_M_591_3);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_591_3, ValidationReporterStatus.ERROR);
+      }
     }
 
     if (validateForeignKeyReference(nodes)) {
@@ -138,8 +153,13 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
       observer.notifyValidationStep(MODULE_NAME, M_591_4, ValidationReporterStatus.ERROR);
     }
 
-    validateForeignKeyDescription(nodes);
-    validationOk(MODULE_NAME, A_M_591_8);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_591_8, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_591_8, ADDITIONAL_CHECKS_SKIP_REASON);
+    } else {
+      validateForeignKeyDescription(nodes);
+      validationOk(MODULE_NAME, A_M_591_8);
+    }
 
     return reportValidations(MODULE_NAME);
   }
@@ -197,15 +217,17 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
       String name = XMLUtils.getChildTextContext(foreignKey, Constants.NAME);
 
       if (validateXMLField(M_591_1, name, Constants.NAME, true, false, path)) {
-        if (!checkDuplicates.add(table + name)) {
+        if (!checkDuplicates.add(table + name) && !this.skipAdditionalChecks) {
           setError(A_M_591_1, String.format("Foreign key name %s must be unique per table (%s)", name, path));
           additionalCheckError = true;
           hasErrors = true;
         }
         continue;
       }
-      setError(A_M_591_1, String.format("Aborted because Foreign key name is mandatory (%s)", path));
-      additionalCheckError = true;
+      if (!this.skipAdditionalChecks) {
+        setError(A_M_591_1, String.format("Aborted because Foreign key name is mandatory (%s)", path));
+        additionalCheckError = true;
+      }
       hasErrors = true;
     }
 
@@ -230,7 +252,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
 
       String referencedSchema = XMLUtils.getChildTextContext(foreignKey, Constants.FOREIGN_KEY_REFERENCED_SCHEMA);
       if (validateXMLField(M_591_2, referencedSchema, Constants.FOREIGN_KEY_REFERENCED_SCHEMA, true, false, path)) {
-        if (!schemaList.contains(referencedSchema)) {
+        if (!schemaList.contains(referencedSchema) && !this.skipAdditionalChecks) {
           setError(A_M_591_2,
             String.format("ReferencedSchema %s does not exist on database (%s)", referencedSchema, path));
           additionalCheckError = true;
@@ -238,8 +260,10 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
         }
         continue;
       }
-      setError(A_M_591_2, String.format("Aborted because referencedSchema is mandatory (%s)", path));
-      additionalCheckError = true;
+      if (!this.skipAdditionalChecks) {
+        setError(A_M_591_2, String.format("Aborted because referencedSchema is mandatory (%s)", path));
+        additionalCheckError = true;
+      }
       hasErrors = true;
     }
 
@@ -263,7 +287,7 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
 
       String referencedTable = XMLUtils.getChildTextContext(foreignKey, Constants.FOREIGN_KEY_REFERENCED_TABLE);
       if (validateXMLField(M_591_3, referencedTable, Constants.FOREIGN_KEY_REFERENCED_TABLE, true, false, path)) {
-        if (!tableList.contains(referencedTable)) {
+        if (!tableList.contains(referencedTable) && !this.skipAdditionalChecks) {
           setError(A_M_591_3,
             String.format("ReferencedTable %s does not exist on database (%s)", referencedTable, path));
           additionalCheckError = true;
@@ -271,8 +295,10 @@ public class MetadataForeignKeyValidator extends MetadataValidator {
         }
         continue;
       }
-      setError(A_M_591_3, String.format("Aborted because referencedTable is mandatory (%s)", path));
-      additionalCheckError = true;
+      if (!this.skipAdditionalChecks) {
+        setError(A_M_591_3, String.format("Aborted because referencedTable is mandatory (%s)", path));
+        additionalCheckError = true;
+      }
       hasErrors = true;
     }
 

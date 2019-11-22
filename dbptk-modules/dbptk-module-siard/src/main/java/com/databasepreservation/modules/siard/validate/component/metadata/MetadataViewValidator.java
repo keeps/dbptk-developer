@@ -88,20 +88,31 @@ public class MetadataViewValidator extends MetadataValidator {
       observer.notifyValidationStep(MODULE_NAME, M_514_1_1, ValidationReporterStatus.ERROR);
     }
 
-    if (!additionalCheckError) {
-      validationOk(MODULE_NAME, A_M_514_1_1);
-    } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_514_1_1, ValidationReporterStatus.ERROR);
-    }
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_514_1_1, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_514_1_1, ADDITIONAL_CHECKS_SKIP_REASON);
 
-    if (validateViewColumn(nodes)) {
-      validationOk(MODULE_NAME, A_M_514_1_2);
-    } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_514_1_2, ValidationReporterStatus.ERROR);
-    }
+      observer.notifyValidationStep(MODULE_NAME, A_M_514_1_2, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_514_1_2, ADDITIONAL_CHECKS_SKIP_REASON);
 
-    validateAttributeDescription(nodes);
-    validationOk(MODULE_NAME, A_M_514_1_5);
+      observer.notifyValidationStep(MODULE_NAME, A_M_514_1_5, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_514_1_5, ADDITIONAL_CHECKS_SKIP_REASON);
+    } else {
+      if (!additionalCheckError) {
+        validationOk(MODULE_NAME, A_M_514_1_1);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_514_1_1, ValidationReporterStatus.ERROR);
+      }
+
+      if (validateViewColumn(nodes)) {
+        validationOk(MODULE_NAME, A_M_514_1_2);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_514_1_2, ValidationReporterStatus.ERROR);
+      }
+
+      validateAttributeDescription(nodes);
+      validationOk(MODULE_NAME, A_M_514_1_5);
+    }
 
     return reportValidations(MODULE_NAME);
   }
@@ -122,15 +133,17 @@ public class MetadataViewValidator extends MetadataValidator {
       String name = XMLUtils.getChildTextContext(view, Constants.NAME);
 
       if (validateXMLField(M_514_1_1, name, Constants.NAME, true, false, path)) {
-        if (!checkDuplicates.add(name)) {
+        if (!checkDuplicates.add(name) && !this.skipAdditionalChecks) {
           setError(A_M_514_1_1, String.format("View name %s must be unique (%s)", name, path));
           hasErrors = true;
           additionalCheckError = true;
         }
         continue;
       }
-      setError(A_M_514_1_1, String.format("Aborted because view name is mandatory (%s)", path));
-      additionalCheckError = true;
+      if (!this.skipAdditionalChecks) {
+        setError(A_M_514_1_1, String.format("Aborted because view name is mandatory (%s)", path));
+        additionalCheckError = true;
+      }
       hasErrors = true;
     }
 

@@ -12,16 +12,12 @@ import static com.databasepreservation.model.reporters.ValidationReporter.Indent
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -45,6 +41,8 @@ import com.databasepreservation.utils.XMLUtils;
 public abstract class ValidatorComponentImpl implements ValidatorComponent {
   private static final Logger LOGGER = LoggerFactory.getLogger(ValidatorComponentImpl.class);
 
+  protected static final String ADDITIONAL_CHECKS_SKIP_REASON = "Additional checks where opt out to be skipped";
+
   protected Path path = null;
   private Reporter reporter = null;
   protected ValidationObserver observer = null;
@@ -52,6 +50,7 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
   protected ZipFileManagerStrategy zipFileManagerStrategy = null;
   protected ValidatorPathStrategy validatorPathStrategy = null;
   protected List<String> allowedUDTs = null;
+  protected boolean skipAdditionalChecks;
 
   protected Path getSIARDPackagePath() {
     return path;
@@ -152,7 +151,9 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
    * nullPointerException
    *
    */
-  public void setup() throws ModuleException {
+  public void setup(boolean skipAdditionalChecks) throws ModuleException {
+    this.skipAdditionalChecks = skipAdditionalChecks;
+
     if (!validatorPathStrategy.isReady()) {
       registerSchemaAndTables();
     }

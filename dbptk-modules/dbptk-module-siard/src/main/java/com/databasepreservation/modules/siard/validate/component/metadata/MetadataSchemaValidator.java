@@ -68,22 +68,41 @@ public class MetadataSchemaValidator extends MetadataValidator {
 
     if (validateSchemaNames(nodes)) {
       validationOk(MODULE_NAME, M_521_1);
-      validationOk(MODULE_NAME, A_M_521_1);
+      if (this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_521_1, ValidationReporterStatus.SKIPPED);
+        getValidationReporter().skipValidation(A_M_521_1, ADDITIONAL_CHECKS_SKIP_REASON);
+      } else {
+        validationOk(MODULE_NAME, A_M_521_1);
+      }
     } else {
       observer.notifyValidationStep(MODULE_NAME, M_521_1, ValidationReporterStatus.ERROR);
-      observer.notifyValidationStep(MODULE_NAME, A_M_521_1, ValidationReporterStatus.ERROR);
+      if (!this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_521_1, ValidationReporterStatus.ERROR);
+      }
     }
 
     if (validateSchemaFolders(nodes)) {
       validationOk(MODULE_NAME, M_521_2);
-      validationOk(MODULE_NAME, A_M_521_2);
+      if (this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_521_2, ValidationReporterStatus.SKIPPED);
+        getValidationReporter().skipValidation(A_M_521_2, ADDITIONAL_CHECKS_SKIP_REASON);
+      } else {
+        validationOk(MODULE_NAME, A_M_521_2);
+      }
     } else {
       observer.notifyValidationStep(MODULE_NAME, M_521_2, ValidationReporterStatus.ERROR);
-      observer.notifyValidationStep(MODULE_NAME, A_M_521_2, ValidationReporterStatus.ERROR);
+      if (!this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_521_2, ValidationReporterStatus.ERROR);
+      }
     }
 
-    validateSchemaDescriptions(nodes);
-    validationOk(MODULE_NAME, A_M_521_4);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_521_4, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_521_4, ADDITIONAL_CHECKS_SKIP_REASON);
+    } else {
+      validateSchemaDescriptions(nodes);
+      validationOk(MODULE_NAME, A_M_521_4);
+    }
 
     return reportValidations(MODULE_NAME);
   }

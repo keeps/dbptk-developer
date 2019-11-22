@@ -103,7 +103,6 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     P_436_ERRORS.clear();
     P_4310_ERRORS.clear();
     A_P_4310_ERRORS.clear();
-    SQL2008TypeMatchXMLType = null;
     sql2008Type.clear();
     arrayType.clear();
     advancedOrStructuredDataType.clear();
@@ -267,14 +266,19 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       return false;
     }
 
-    if (validateNumberOfRows()) {
-      observer.notifyValidationStep(MODULE_NAME, A_P_4310, ValidationReporterStatus.OK);
-      getValidationReporter().validationStatus(A_P_4310, ValidationReporterStatus.OK);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_P_4310, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_P_4310, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_P_4310, ValidationReporterStatus.ERROR);
-      observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
-      validationFailed(A_P_4310, ValidationReporterStatus.ERROR, "", P_4310_ERRORS, MODULE_NAME);
-      return false;
+      if (validateNumberOfRows()) {
+        observer.notifyValidationStep(MODULE_NAME, A_P_4310, ValidationReporterStatus.OK);
+        getValidationReporter().validationStatus(A_P_4310, ValidationReporterStatus.OK);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_P_4310, ValidationReporterStatus.ERROR);
+        observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
+        validationFailed(A_P_4310, ValidationReporterStatus.ERROR, "", P_4310_ERRORS, MODULE_NAME);
+        return false;
+      }
     }
 
     observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.PASSED);

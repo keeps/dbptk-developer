@@ -78,8 +78,13 @@ public class MetadataAttributeValidator extends MetadataValidator {
       observer.notifyValidationStep(MODULE_NAME, M_541_1, ValidationReporterStatus.ERROR);
     }
 
-    validateAttributeDescription(nodes);
-    validationOk(MODULE_NAME, A_M_541_8);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_541_8, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_541_8, ADDITIONAL_CHECKS_SKIP_REASON);
+    } else {
+      validateAttributeDescription(nodes);
+      validationOk(MODULE_NAME, A_M_541_8);
+    }
 
     return reportValidations(MODULE_NAME);
   }

@@ -92,7 +92,12 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
 
     if (validateCandidateKeyName(keys)) {
       validationOk(MODULE_NAME, M_511_1_1);
-      validationOk(MODULE_NAME, A_M_511_1_1);
+      if (this.skipAdditionalChecks) {
+        observer.notifyValidationStep(MODULE_NAME, A_M_511_1_1, ValidationReporterStatus.SKIPPED);
+        getValidationReporter().skipValidation(A_M_511_1_1, ADDITIONAL_CHECKS_SKIP_REASON);
+      } else {
+        validationOk(MODULE_NAME, A_M_511_1_1);
+      }
     } else {
       observer.notifyValidationStep(MODULE_NAME, M_511_1_1, ValidationReporterStatus.ERROR);
       observer.notifyValidationStep(MODULE_NAME, A_M_511_1_1, ValidationReporterStatus.ERROR);
@@ -104,14 +109,24 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
       observer.notifyValidationStep(MODULE_NAME, M_511_1_2, ValidationReporterStatus.ERROR);
     }
 
-    if (!additionalCheckError) {
-      validationOk(MODULE_NAME, A_M_511_1_2);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_511_1_2, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_511_1_2, ADDITIONAL_CHECKS_SKIP_REASON);
     } else {
-      observer.notifyValidationStep(MODULE_NAME, A_M_511_1_2, ValidationReporterStatus.ERROR);
+      if (!additionalCheckError) {
+        validationOk(MODULE_NAME, A_M_511_1_2);
+      } else {
+        observer.notifyValidationStep(MODULE_NAME, A_M_511_1_2, ValidationReporterStatus.ERROR);
+      }
     }
 
-    validateCandidateKeyDescription(keys);
-    validationOk(MODULE_NAME, A_M_511_1_3);
+    if (this.skipAdditionalChecks) {
+      observer.notifyValidationStep(MODULE_NAME, A_M_511_1_3, ValidationReporterStatus.SKIPPED);
+      getValidationReporter().skipValidation(A_M_511_1_3, ADDITIONAL_CHECKS_SKIP_REASON);
+    } else {
+      validateCandidateKeyDescription(keys);
+      validationOk(MODULE_NAME, A_M_511_1_3);
+    }
 
     return reportValidations(MODULE_NAME);
   }
@@ -126,19 +141,25 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
     for (int i = 0; i < nodes.getLength(); i++) {
       Element candidateKey = (Element) nodes.item(i);
       String path = buildPath(Constants.SCHEMA, XMLUtils.getParentNameByTagName(candidateKey, Constants.SCHEMA),
-        Constants.TABLE, XMLUtils.getParentNameByTagName(candidateKey, Constants.TABLE), Constants.CANDIDATE_KEY,
-        Integer.toString(i));
-
+          Constants.TABLE, XMLUtils.getParentNameByTagName(candidateKey, Constants.TABLE), Constants.CANDIDATE_KEY,
+          Integer.toString(i));
+      // if (this.skipAdditionalChecks) {
+      //  observer.notifyValidationStep(MODULE_NAME, A_P_4310, ValidationReporterStatus.SKIPPED);
+      //  getValidationReporter().skipValidation(A_P_4310, ADDITIONAL_CHECKS_SKIP_REASON);
+      // } else {
       String name = XMLUtils.getChildTextContext(candidateKey, Constants.NAME);
 
-      if (validateXMLField(M_511_1_1, name, Constants.CANDIDATE_KEY, true, false, path)) {
-        if (name.contains(BLANK)) {
-          addWarning(A_M_511_1_1, "Candidate key " + name + " contain blanks in name", path);
+      boolean result = validateXMLField(M_511_1_1, name, Constants.CANDIDATE_KEY, true, false, path);
+      if (!this.skipAdditionalChecks) {
+        if (result) {
+          if (name.contains(BLANK)) {
+            addWarning(A_M_511_1_1, "Candidate key " + name + " contain blanks in name", path);
+          }
+          continue;
         }
-        continue;
+        setError(A_M_511_1_1, String.format("Aborted because candidate key name is mandatory (%s)", path));
+        hasErrors = true;
       }
-      setError(A_M_511_1_1, String.format("Aborted because candidate key name is mandatory (%s)", path));
-      hasErrors = true;
     }
 
     return !hasErrors;
@@ -184,9 +205,11 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
 
       if (columnList.isEmpty()) {
         setError(M_511_1_2, String.format("Candidate key must have at least one column on %s.%s", schema, table));
-        setError(A_M_511_1_2,
-          String.format("Aborted because candidate key column is mandatory on %s.%s", schema, table));
-        additionalCheckError = true;
+        if (!this.skipAdditionalChecks) {
+          setError(A_M_511_1_2,
+            String.format("Aborted because candidate key column is mandatory on %s.%s", schema, table));
+          additionalCheckError = true;
+        }
         hasErrors = true;
         continue;
       }
@@ -194,11 +217,13 @@ public class MetadataCandidateKeyValidator extends MetadataValidator {
       for (String column : columnList) {
         if (column.isEmpty()) {
           setError(M_511_1_2, String.format("Primary key must have at least one column on %s.%s", schema, table));
-          setError(A_M_511_1_2,
-            String.format("Aborted because primary key column is mandatory on %s.%s", schema, table));
+          if (!this.skipAdditionalChecks) {
+            setError(A_M_511_1_2,
+              String.format("Aborted because primary key column is mandatory on %s.%s", schema, table));
+            additionalCheckError = true;
+          }
           hasErrors = true;
-          additionalCheckError = true;
-        } else if (!tableColumnsList.get(table).contains(column)) {
+        } else if (!tableColumnsList.get(table).contains(column) && !this.skipAdditionalChecks) {
           setError(A_M_511_1_2,
             String.format("Candidate key column reference %s not found on %s.%s", column, schema, table));
           additionalCheckError = true;
