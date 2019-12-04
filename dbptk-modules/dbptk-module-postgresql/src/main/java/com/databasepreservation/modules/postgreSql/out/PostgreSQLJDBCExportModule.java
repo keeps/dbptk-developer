@@ -12,10 +12,11 @@ import java.sql.Array;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
+import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Set;
 import java.util.TreeSet;
 
 import org.slf4j.Logger;
@@ -225,7 +226,15 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
           LOGGER.debug("time with timezone after: " + time.toString() + "; timezone: " + cal.getTimeZone().getID());
           ps.setTime(index, time, cal);
         } else {
-          ps.setNull(index, Types_TIME_WITH_TIMEZONE);
+          ps.setNull(index, Types.TIME);
+        }
+      } else if ("TIMESTAMP".equalsIgnoreCase(type.getSql99TypeName())
+        || "TIMESTAMP WITH TIME ZONE".equalsIgnoreCase(type.getSql99TypeName())) {
+        if (data != null) {
+          Instant instant = Instant.parse(data);
+          ps.setTimestamp(index, Timestamp.from(instant));
+        } else {
+          ps.setNull(index, Types.TIMESTAMP);
         }
       } else {
         super.handleSimpleTypeDateTimeDataCell(data, ps, index, cell, column);
@@ -241,9 +250,9 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
     if (data != null) {
       LOGGER.debug("set approx: " + data);
       if ("FLOAT".equalsIgnoreCase(column.getType().getSql99TypeName())) {
-        ps.setFloat(index, Float.valueOf(data));
+        ps.setFloat(index, Float.parseFloat(data));
       } else {
-        ps.setDouble(index, Double.valueOf(data));
+        ps.setDouble(index, Double.parseDouble(data));
       }
     } else {
       ps.setNull(index, Types.FLOAT);

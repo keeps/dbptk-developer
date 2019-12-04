@@ -195,10 +195,14 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
     } else if (cellType.getOriginalTypeName().equals("BFILE")) {
         if (rawData instanceof OracleResultSet) {
           final OracleBfile bfile = ((OracleResultSet) rawData).getBfile(columnName);
-          bfile.openFile();
-          final InputStream binaryStream = bfile.getBinaryStream();
-          cell = new BinaryCell(id, binaryStream);
-          bfile.closeFile();
+          if (bfile == null) {
+            cell = new NullCell(id);
+          } else {
+            bfile.openFile();
+            final InputStream binaryStream = bfile.getBinaryStream();
+            cell = new BinaryCell(id, binaryStream);
+            bfile.closeFile();
+          }
         } else {
           cell = new NullCell(id);
         }

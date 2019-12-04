@@ -22,6 +22,9 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -473,6 +476,13 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
         } else if (time_string.matches("^\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[+-]\\d{2}:\\d{2}$")) {
           cell = new SimpleCell(id, time_string);
           LOGGER.trace("rawToCellSimpleTypeDateTime cell: " + (((SimpleCell) cell).getSimpleData()));
+        } else {
+          cell = super.rawToCellSimpleTypeDateTime(id, columnName, cellType, rawData);
+        }
+      } else if ("TIMESTAMP WITH TIME ZONE".equalsIgnoreCase(cellType.getSql99TypeName())) {
+        final Timestamp timestamp = rawData.getTimestamp(columnName);
+        if (timestamp != null) {
+          cell = new SimpleCell(id, timestamp.toInstant().toString());
         } else {
           cell = super.rawToCellSimpleTypeDateTime(id, columnName, cellType, rawData);
         }
