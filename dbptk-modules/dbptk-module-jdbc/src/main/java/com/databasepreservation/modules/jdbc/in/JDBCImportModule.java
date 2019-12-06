@@ -299,6 +299,11 @@ public class JDBCImportModule implements DatabaseImportModule {
       public boolean shouldCountRows() {
         return shouldCountRows;
       }
+
+      @Override
+      public boolean fetchMetadataInformation() {
+        return false;
+      }
     };
     DatabaseStructure databaseStructure = getDatabaseStructure();
     closeConnection();
@@ -821,22 +826,18 @@ public class JDBCImportModule implements DatabaseImportModule {
     table.setDescription(description);
 
     List<ColumnStructure> columns = getColumns(schema.getName(), tableName);
-    Iterator<ColumnStructure> columnsIterator = columns.iterator();
-    while (columnsIterator.hasNext()) {
-      ColumnStructure column = columnsIterator.next();
-      if (!moduleSettings.isSelectedColumn(schema.getName(), tableName, column.getName())) {
-        columnsIterator.remove();
-      }
-    }
+    columns.removeIf(column -> !moduleSettings.isSelectedColumn(schema.getName(), tableName, column.getName()));
 
     table.setColumns(columns);
 
     if (!view) {
-      table.setPrimaryKey(getPrimaryKey(schema.getName(), tableName));
       table.setForeignKeys(getForeignKeys(schema.getName(), tableName));
-      table.setCandidateKeys(getCandidateKeys(schema.getName(), tableName));
-      table.setCheckConstraints(getCheckConstraints(schema.getName(), tableName));
-      table.setTriggers(getTriggers(schema.getName(), tableName));
+      if (moduleSettings.fetchMetadataInformation()) {
+        table.setPrimaryKey(getPrimaryKey(schema.getName(), tableName));
+        table.setCandidateKeys(getCandidateKeys(schema.getName(), tableName));
+        table.setCheckConstraints(getCheckConstraints(schema.getName(), tableName));
+        table.setTriggers(getTriggers(schema.getName(), tableName));
+      }
     }
 
     if (moduleSettings.shouldCountRows()) {
@@ -858,7 +859,7 @@ public class JDBCImportModule implements DatabaseImportModule {
   protected TableStructure getCustomViewStructureAsTable(SchemaStructure schema, String viewName, int tableIndex,
     String description, String query) throws SQLException, ModuleException {
     TableStructure view = new TableStructure();
-    view.setId(schema.getName() + "." + viewName);
+    view.setId(schema.getName() + "." + CUSTOM_VIEW_NAME_PREFIX + viewName);
     view.setName(CUSTOM_VIEW_NAME_PREFIX + viewName);
     view.setSchema(schema);
     view.setIndex(tableIndex);

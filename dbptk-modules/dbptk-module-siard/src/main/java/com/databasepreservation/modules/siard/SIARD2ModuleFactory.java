@@ -209,7 +209,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
         metaDataOriginTimespan.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
         metaClientMachine.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
         gmlDirectory.inputType(INPUT_TYPE.DEFAULT),
-        validate.inputType(INPUT_TYPE.CHECKBOX).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS)),
+        validate.inputType(INPUT_TYPE.NONE).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS)),
       Collections.<ParameterGroup> emptyList());
   }
 

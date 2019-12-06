@@ -161,7 +161,7 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
         metaDataOwner.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
         metaDataOriginTimespan.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
         metaClientMachine.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
-        validate.inputType(INPUT_TYPE.CHECKBOX).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS)),
+        validate.inputType(INPUT_TYPE.NONE).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS)),
       null);
   }
 

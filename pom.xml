@@ -154,8 +154,8 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>2.4</version>
                     <configuration>
-                        <source>${version.java}</source>
-                        <target>${version.java}</target>
+                        <source>1.8</source>
+                        <target>1.8</target>
                         <encoding>UTF-8</encoding>
                     </configuration>
                 </plugin>
