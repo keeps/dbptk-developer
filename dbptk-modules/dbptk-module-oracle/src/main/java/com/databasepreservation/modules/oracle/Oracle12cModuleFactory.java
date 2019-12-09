@@ -56,7 +56,7 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
     .required(true);
 
   private static final Parameter portNumber = new Parameter().shortName("pn").longName(PARAMETER_PORT_NUMBER)
-    .description("the server port number").hasArgument(true).setOptionalArgument(false).required(true);
+    .description("the server port number").valueIfNotSet("1521").hasArgument(true).setOptionalArgument(false).required(true);
 
   private static final Parameter instance = new Parameter().shortName("i").longName(PARAMETER_INSTANCE)
     .description("the name of the instance to use in the connection").hasArgument(true).setOptionalArgument(false)
