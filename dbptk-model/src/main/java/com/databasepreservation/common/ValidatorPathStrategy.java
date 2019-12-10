@@ -41,5 +41,7 @@ public interface ValidatorPathStrategy {
 
   boolean isReady();
 
+  boolean pathExists(String schemaName, String tableName);
+
   String getSIARDVersionPath();
 }

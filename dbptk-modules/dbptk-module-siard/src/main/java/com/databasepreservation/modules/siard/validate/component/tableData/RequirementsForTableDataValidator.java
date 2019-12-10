@@ -138,7 +138,8 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     this.MODULE_NAME = moduleName;
     populateSQL2008Validations();
     factory = XMLInputFactory.newInstance();
-    saxParserFactory = SAXParserFactory.newInstance(SAXParserFactoryImpl.class.getName(), SAXParserFactoryImpl.class.getClassLoader());
+    saxParserFactory = SAXParserFactory.newInstance(SAXParserFactoryImpl.class.getName(),
+      SAXParserFactoryImpl.class.getClassLoader());
     saxParserFactory.setValidating(true);
     saxParserFactory.setNamespaceAware(true);
     preCompileRegexPatterns();
@@ -312,9 +313,13 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
             boolean r = validatePrimaryKeyConstraint(schemaFolder, tableFolder);
             if (!r) {
               primaryKeyValid = false;
-              observer.notifyElementValidationFinish(T_601, validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder), ValidationReporterStatus.ERROR);
+              observer.notifyElementValidationFinish(T_601,
+                validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder),
+                ValidationReporterStatus.ERROR);
             } else {
-              observer.notifyElementValidationFinish(T_601, validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder), ValidationReporterStatus.OK);
+              observer.notifyElementValidationFinish(T_601,
+                validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder),
+                ValidationReporterStatus.OK);
             }
           }
         }
@@ -347,9 +352,13 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
             boolean r = validateForeignKeyConstraint(schemaFolder, tableFolder);
             if (!r) {
               foreignKeyValid = false;
-              observer.notifyElementValidationFinish(T_601, validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder), ValidationReporterStatus.ERROR);
+              observer.notifyElementValidationFinish(T_601,
+                validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder),
+                ValidationReporterStatus.ERROR);
             } else {
-              observer.notifyElementValidationFinish(T_601, validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder), ValidationReporterStatus.OK);
+              observer.notifyElementValidationFinish(T_601,
+                validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder),
+                ValidationReporterStatus.OK);
             }
           }
         }
@@ -1002,12 +1011,14 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   private void getPrimaryKeyData(final String schemaName, final String tableName, final String columnName)
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
     String key = schemaName + "." + tableName + "." + columnName;
-    String path = validatorPathStrategy.getXMLTablePathFromName(schemaName, tableName);
-    LOGGER.debug("Obtaining primary key data for {}", path);
-    if (primaryKeyData.get(key) == null) {
-      primaryKeyData.put(key, getColumnDataByIndex(path, getColumnIndexByName(schemaName, tableName, columnName)));
+    if (validatorPathStrategy.pathExists(schemaName, tableName)) {
+      String path = validatorPathStrategy.getXMLTablePathFromName(schemaName, tableName);
+      LOGGER.debug("Obtaining primary key data for {}", path);
+      if (primaryKeyData.get(key) == null) {
+        primaryKeyData.put(key, getColumnDataByIndex(path, getColumnIndexByName(schemaName, tableName, columnName)));
+      }
+      LOGGER.debug("Finish obtaining primary key data for {}", path);
     }
-    LOGGER.debug("Finish obtaining primary key data for {}", path);
   }
 
   private boolean validateForeignKeyConstraint(String schemaFolder, String tableFolder)
@@ -1036,17 +1047,26 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         getColumnIndexFromMetadataXML(schemaFolder, tableFolder, columnName, foreignKeyColumns);
 
         getPrimaryKeyData(referencedSchema, referencedTable, referenced);
-        final Set<String> data = getColumnDataByIndex(path,
-          getColumnIndexByFolder(schemaFolder, tableFolder, columnName));
         String key = referencedSchema + "." + referencedTable + "." + referenced;
-        for (String value : data) {
-          if (!primaryKeyData.get(key).contains(value)) {
-            getValidationReporter().validationStatus(T_601, ValidationReporterStatus.ERROR,
-              "All the table data (primary data) must meet the consistency requirements of SQL:2008.", "The value ("
-                + value + ") for foreign key '" + foreignKeyName + "' is not present in '" + referencedTable + "' on "
-                + validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder));
-            valid = false;
+        if (primaryKeyData.containsKey(key)) {
+          final Set<String> data = getColumnDataByIndex(path,
+            getColumnIndexByFolder(schemaFolder, tableFolder, columnName));
+          for (String value : data) {
+            if (!primaryKeyData.get(key).contains(value)) {
+              getValidationReporter().validationStatus(T_601, ValidationReporterStatus.ERROR,
+                "All the table data (primary data) must meet the consistency requirements of SQL:2008.",
+                "The value (" + value + ") for foreign key '" + foreignKeyName + "' is not present in '"
+                  + referencedTable + "' on "
+                  + validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder));
+              valid = false;
+            }
           }
+        } else {
+          getValidationReporter().validationStatus(T_601, ValidationReporterStatus.WARNING,
+            "All the table data (primary data) must meet the consistency requirements of SQL:2008.",
+            "No primary key data for foreign key '" + foreignKeyName + " on "
+              + validatorPathStrategy.getXMLTablePathFromFolder(schemaFolder, tableFolder));
+          valid = true;
         }
       }
 

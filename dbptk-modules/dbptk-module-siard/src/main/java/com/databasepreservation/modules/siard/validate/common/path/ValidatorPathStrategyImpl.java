@@ -121,6 +121,11 @@ public class ValidatorPathStrategyImpl implements ValidatorPathStrategy {
   }
 
   @Override
+  public boolean pathExists(String schemaName, String tableName) {
+    return schemas.get(schemaName) != null && getTableFolder(schemaName, tableName) != null;
+  }
+
+  @Override
   public String getSIARDVersionPath() {
     return Constants.SIARD_HEADER_FOLDER + Constants.RESOURCE_FILE_SEPARATOR + Constants.SIARD_VERSION_FOLDER + Constants.RESOURCE_FILE_SEPARATOR;
   }
