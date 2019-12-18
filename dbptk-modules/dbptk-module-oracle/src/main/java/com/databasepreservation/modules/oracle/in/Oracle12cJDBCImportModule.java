@@ -7,8 +7,6 @@
  */
 package com.databasepreservation.modules.oracle.in;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.sql.Array;
@@ -20,10 +18,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.databasepreservation.model.data.BinaryCell;
-import com.databasepreservation.model.structure.type.SimpleTypeBinary;
-import oracle.jdbc.OracleBfile;
-import oracle.sql.BFILE;
+import org.apache.commons.lang3.StringUtils;
 import org.geotools.data.oracle.sdo.GeometryConverter;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.gml2.GMLWriter;
@@ -31,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.data.ArrayCell;
+import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
@@ -40,12 +36,14 @@ import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.RoutineStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.oracle.OracleExceptionNormalizer;
 import com.databasepreservation.modules.oracle.OracleHelper;
 
 import oracle.jdbc.OracleArray;
+import oracle.jdbc.OracleBfile;
 import oracle.jdbc.OracleResultSet;
 import oracle.sql.STRUCT;
 
@@ -148,7 +146,12 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
 
       try (ResultSet rs = statement.getResultSet()) {
         if (rs.next()) {
-          tableStructure.setDescription(rs.getString(1));
+          String comment = rs.getString(1);
+          if (StringUtils.isBlank(comment)) {
+            tableStructure.setDescription("");
+          } else {
+            tableStructure.setDescription(comment);
+          }
         }
       }
     } catch (SQLException e) {
