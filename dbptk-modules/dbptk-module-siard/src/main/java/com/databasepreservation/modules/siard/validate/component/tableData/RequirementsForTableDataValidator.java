@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -150,9 +151,9 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     Path fileDBPath;
     if (FILE_DIRECTORY_LOCATION.equals(Constants.PROPERTY_UNSET)) {
       fileDBPath = Paths.get(ConfigUtils.getMapDBHomeDirectory().normalize().toAbsolutePath().toString(),
-        MAPDB_FILENAME);
+          UUID.randomUUID().toString());
     } else {
-      fileDBPath = Paths.get(FILE_DIRECTORY_LOCATION, MAPDB_FILENAME);
+      fileDBPath = Paths.get(FILE_DIRECTORY_LOCATION, UUID.randomUUID().toString());
     }
     return DBMaker.fileDB(fileDBPath.toFile()).fileDeleteAfterClose().fileMmapEnable().fileMmapEnableIfSupported()
       .fileMmapPreclearDisable().closeOnJvmShutdown().make();
