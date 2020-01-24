@@ -359,9 +359,9 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
     if (routineType != null) {
       RoutineStructure result = new RoutineStructure();
 
-      metadataCurrentTableName = routineType.getName();
+      metadataCurrentTableName = XMLUtils.decode(routineType.getName());
       result.setName(metadataCurrentTableName);
-      result.setDescription(routineType.getDescription());
+      result.setDescription(XMLUtils.decode(routineType.getDescription()));
       result.setSource(routineType.getSource());
       result.setBody(routineType.getBody());
       result.setCharacteristic(routineType.getCharacteristic());
@@ -397,7 +397,7 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
       result.setType(sqlStandardDatatypeImporter.getCheckedType(metadataCurrentDatabaseName, metadataCurrentSchemaName,
         metadataCurrentTableName + " (routine)", parameterType.getName() + " (parameter)", parameterType.getType(),
         parameterType.getTypeOriginal()));
-      result.setDescription(parameterType.getDescription());
+      result.setDescription(XMLUtils.decode(parameterType.getDescription()));
 
       // todo: deal with these fields (related to complex types)
 
@@ -434,9 +434,9 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
       ViewStructure result = new ViewStructure();
 
       result.setName(viewType.getName());
-      result.setQuery(viewType.getQuery());
-      result.setQueryOriginal(viewType.getQueryOriginal());
-      result.setDescription(viewType.getDescription());
+      result.setQuery(XMLUtils.decode(viewType.getQuery()));
+      result.setQueryOriginal(XMLUtils.decode(viewType.getQueryOriginal()));
+      result.setDescription(XMLUtils.decode(viewType.getDescription()));
       result.setColumns(getColumns(viewType.getColumns(), "")); // TODO: decide
                                                                 // what to put
                                                                 // here as table
@@ -512,9 +512,9 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
       result.setName(XMLUtils.decode(triggerType.getName()));
       result.setActionTime(triggerType.getActionTime().value());
       result.setTriggerEvent(XMLUtils.decode(triggerType.getTriggerEvent()));
-      result.setAliasList(triggerType.getAliasList());
+      result.setAliasList(XMLUtils.decode(triggerType.getAliasList()));
       result.setTriggeredAction(XMLUtils.decode(triggerType.getTriggeredAction()));
-      result.setDescription(triggerType.getDescription());
+      result.setDescription(XMLUtils.decode(triggerType.getDescription()));
 
       return result;
     } else {
@@ -540,7 +540,7 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
 
       result.setName(checkConstraintType.getName());
       result.setCondition(checkConstraintType.getCondition());
-      result.setDescription(checkConstraintType.getDescription());
+      result.setDescription(XMLUtils.decode(checkConstraintType.getDescription()));
 
       return result;
     } else {
@@ -565,7 +565,7 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
       CandidateKey result = new CandidateKey();
 
       result.setName(candidateKeyType.getName());
-      result.setDescription(candidateKeyType.getDescription());
+      result.setDescription(XMLUtils.decode(candidateKeyType.getDescription()));
       result.setColumns(candidateKeyType.getColumn());
 
       return result;
@@ -599,7 +599,7 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
       }
       result.setDeleteAction(foreignKey.getDeleteAction() != null ? foreignKey.getDeleteAction().value() : null);
       result.setUpdateAction(foreignKey.getUpdateAction() != null ? foreignKey.getUpdateAction().value() : null);
-      result.setDescription(foreignKey.getDescription());
+      result.setDescription(XMLUtils.decode(foreignKey.getDescription()));
 
       result.setReferences(getReferences(foreignKey.getReference()));
 
@@ -650,7 +650,7 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
     if (column != null) {
       ColumnStructure result = new ColumnStructure();
 
-      result.setName(column.getName());
+      result.setName(XMLUtils.decode(column.getName()));
       result.setId(tableId + "." + result.getName());
 
       String lobFolder = column.getLobFolder();
@@ -665,7 +665,7 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
 
       result.setNillable(column.isNullable());
       result.setDefaultValue(column.getDefaultValue());
-      result.setDescription(column.getDescription());
+      result.setDescription(XMLUtils.decode(column.getDescription()));
 
       // todo: deal with these fields
       // column.getLobFolder();

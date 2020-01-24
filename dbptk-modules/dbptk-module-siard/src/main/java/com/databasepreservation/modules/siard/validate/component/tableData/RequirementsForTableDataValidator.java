@@ -7,7 +7,6 @@
  */
 package com.databasepreservation.modules.siard.validate.component.tableData;
 
-import static com.databasepreservation.Constants.MAPDB_FILENAME;
 import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
@@ -57,6 +56,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 
@@ -139,8 +140,18 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     this.MODULE_NAME = moduleName;
     populateSQL2008Validations();
     factory = XMLInputFactory.newInstance();
+    factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, Boolean.FALSE);
     saxParserFactory = SAXParserFactory.newInstance(SAXParserFactoryImpl.class.getName(),
       SAXParserFactoryImpl.class.getClassLoader());
+    try {
+      saxParserFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+    } catch (ParserConfigurationException e) {
+      LOGGER.debug("Parser could not be created", e);
+    } catch (SAXNotRecognizedException e) {
+      LOGGER.debug("Property name not recognized", e);
+    } catch (SAXNotSupportedException e) {
+      LOGGER.debug("Property name recognized but not supported", e);
+    }
     saxParserFactory.setValidating(true);
     saxParserFactory.setNamespaceAware(true);
     preCompileRegexPatterns();
@@ -151,7 +162,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     Path fileDBPath;
     if (FILE_DIRECTORY_LOCATION.equals(Constants.PROPERTY_UNSET)) {
       fileDBPath = Paths.get(ConfigUtils.getMapDBHomeDirectory().normalize().toAbsolutePath().toString(),
-          UUID.randomUUID().toString());
+        UUID.randomUUID().toString());
     } else {
       fileDBPath = Paths.get(FILE_DIRECTORY_LOCATION, UUID.randomUUID().toString());
     }
@@ -415,6 +426,8 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         try {
           schema = schemaFactory.newSchema(schemaFile);
           Validator validator = schema.newValidator();
+          validator.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+          validator.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
           try {
             validator.validate(xmlFile);
           } catch (SAXException e) {

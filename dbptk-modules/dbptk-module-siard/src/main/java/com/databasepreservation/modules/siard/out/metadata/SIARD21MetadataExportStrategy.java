@@ -586,14 +586,14 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     RoutineType routineType = new RoutineType();
 
     if (StringUtils.isNotBlank(routine.getName())) {
-      routineType.setName(routine.getName());
-      routineType.setSpecificName(schemaName + "." + routine.getName());
+      routineType.setName(XMLUtils.encode(routine.getName()));
+      routineType.setSpecificName((XMLUtils.encode(schemaName + "." + routine.getName())));
     } else {
       throw new ModuleException().withMessage("Error while exporting routine: routine name cannot be blank");
     }
 
     if (StringUtils.isNotBlank(routine.getDescription())) {
-      routineType.setDescription(routine.getDescription());
+      routineType.setDescription(XMLUtils.encode(routine.getDescription()));
     }
 
     if (StringUtils.isNotBlank(routine.getSource())) {
@@ -655,7 +655,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (StringUtils.isNotBlank(parameter.getDescription())) {
-      parameterType.setDescription(parameter.getDescription());
+      parameterType.setDescription(XMLUtils.encode(parameter.getDescription()));
     }
 
     // todo: set these for complex types
@@ -688,15 +688,15 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (StringUtils.isNotBlank(view.getQuery())) {
-      viewType.setQuery(view.getQuery());
+      viewType.setQuery(XMLUtils.encode(view.getQuery()));
     }
 
     if (StringUtils.isNotBlank(view.getQueryOriginal())) {
-      viewType.setQueryOriginal(view.getQueryOriginal());
+      viewType.setQueryOriginal(XMLUtils.encode(view.getQueryOriginal()));
     }
 
     if (StringUtils.isNotBlank(view.getDescription())) {
-      viewType.setDescription(view.getDescription());
+      viewType.setDescription(XMLUtils.encode(view.getDescription()));
     }
 
     viewType.setColumns(jaxbColumnsType(view.getColumns()));
@@ -722,7 +722,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     ColumnType columnType = new ColumnType();
 
     if (StringUtils.isNotBlank(column.getName())) {
-      columnType.setName(column.getName());
+      columnType.setName(XMLUtils.encode(column.getName()));
     } else {
       throw new ModuleException().withMessage("Error while exporting table structure: column name cannot be null");
     }
@@ -749,7 +749,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (StringUtils.isNotBlank(column.getDescription())) {
-      columnType.setDescription(column.getDescription());
+      columnType.setDescription(XMLUtils.encode(column.getDescription()));
     }
 
     // TODO: set fields related to lob and complex types
@@ -890,7 +890,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (StringUtils.isNotBlank(trigger.getAliasList())) {
-      triggerType.setAliasList(trigger.getAliasList());
+      triggerType.setAliasList(XMLUtils.encode(trigger.getAliasList()));
     }
 
     if (StringUtils.isNotBlank(trigger.getTriggeredAction())) {
@@ -900,7 +900,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (StringUtils.isNotBlank(trigger.getDescription())) {
-      triggerType.setDescription(trigger.getDescription());
+      triggerType.setDescription(XMLUtils.encode(trigger.getDescription()));
     }
 
     return triggerType;
@@ -936,7 +936,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (StringUtils.isNotBlank(checkConstraint.getDescription())) {
-      checkConstraintType.setDescription(checkConstraint.getDescription());
+      checkConstraintType.setDescription(XMLUtils.encode(checkConstraint.getDescription()));
     }
 
     return checkConstraintType;
@@ -964,7 +964,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (StringUtils.isNotBlank(candidateKey.getDescription())) {
-      candidateKeyType.setDescription(candidateKey.getDescription());
+      candidateKeyType.setDescription(XMLUtils.encode(candidateKey.getDescription()));
     }
 
     if (candidateKey.getColumns() != null && candidateKey.getColumns().size() > 0) {
@@ -1031,7 +1031,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (StringUtils.isNotBlank(foreignKey.getDescription())) {
-      foreignKeyType.setDescription(foreignKey.getDescription());
+      foreignKeyType.setDescription(XMLUtils.encode(foreignKey.getDescription()));
     }
 
     return foreignKeyType;

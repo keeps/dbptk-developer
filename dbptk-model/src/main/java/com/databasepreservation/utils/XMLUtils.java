@@ -9,7 +9,6 @@ package com.databasepreservation.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Iterator;
@@ -25,16 +24,15 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.translate.AggregateTranslator;
-import org.apache.commons.lang3.text.translate.CharSequenceTranslator;
-import org.apache.commons.lang3.text.translate.EntityArrays;
-import org.apache.commons.lang3.text.translate.LookupTranslator;
-import org.apache.commons.lang3.text.translate.UnicodeEscaper;
-import org.apache.commons.lang3.text.translate.UnicodeUnescaper;
+import org.apache.commons.text.translate.AggregateTranslator;
+import org.apache.commons.text.translate.CharSequenceTranslator;
+import org.apache.commons.text.translate.EntityArrays;
+import org.apache.commons.text.translate.LookupTranslator;
+import org.apache.commons.text.translate.UnicodeEscaper;
+import org.apache.commons.text.translate.UnicodeUnescaper;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.Constants;
@@ -46,19 +44,14 @@ public class XMLUtils {
   /**
    * Translator to escape characters according to the SIARD specification
    */
-  private static final CharSequenceTranslator SIARD_ESCAPE = new AggregateTranslator(
-
-    new SIARDUnicodeEscaper(),
-
-    new LookupTranslator(EntityArrays.BASIC_ESCAPE()), new LookupTranslator(EntityArrays.APOS_ESCAPE()));
+  private static final CharSequenceTranslator SIARD_ESCAPE = new AggregateTranslator(new SIARDUnicodeEscaper(),
+    new LookupTranslator(EntityArrays.BASIC_ESCAPE), new LookupTranslator(EntityArrays.APOS_ESCAPE));
 
   /**
    * Translator to convert escaped text in a SIARD file back to unescaped text
    */
   private static final CharSequenceTranslator SIARD_UNESCAPE = new AggregateTranslator(
-
-    new LookupTranslator(EntityArrays.APOS_UNESCAPE()), new LookupTranslator(EntityArrays.BASIC_UNESCAPE()),
-
+    new LookupTranslator(EntityArrays.APOS_UNESCAPE), new LookupTranslator(EntityArrays.BASIC_UNESCAPE),
     new UnicodeUnescaper());
 
   /**
@@ -198,7 +191,7 @@ public class XMLUtils {
   }
 
   private static Document getDocument(InputStream inputStream)
-      throws IOException, SAXException, ParserConfigurationException {
+    throws IOException, SAXException, ParserConfigurationException {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     factory.setNamespaceAware(true);
     DocumentBuilder builder = factory.newDocumentBuilder();
