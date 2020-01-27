@@ -49,10 +49,10 @@ public class SybaseHelper extends SQLHelper {
 
   @Override
   public String getTriggersSQL(String schemaName, String tableName) {
-    return "select c.trigger_name as TRIGGER_NAME, " + "c.trigger_time as ACTION_TIME, " + "c.event as TRIGGER_EVENT, "
+    return "select c.trigger_name as TRIGGER_NAME, c.trigger_time as ACTION_TIME, c.event as TRIGGER_EVENT, "
       + "c.trigger_defn as TRIGGERED_ACTION, " + "c.remarks as REMARKS " + "FROM systrigger c, systab t, sysuser u "
       + "wHERE c.table_id = t.table_id and t.table_name = '" + tableName
-      + "' and u.user_id = t.creator and u.user_name='" + schemaName + "'";
+      + "' and u.user_id = t.creator and u.user_name='" + schemaName + "' and c.trigger_name is not null";
   }
 
   @Override
@@ -69,14 +69,14 @@ public class SybaseHelper extends SQLHelper {
   }
 
   public String getViewSQL(String viewName) {
-    return "SELECT u.name as SCHEMA_NAME, o.name AS VIEW_NAME, c.text as TEXT " +
-        "FROM sysusers u, syscomments c, sysobjects o " +
-        "WHERE o.type = 'V' AND o.id = c.id AND o.uid = u.uid AND o.name = '" + viewName + "'";
+    return "SELECT u.name as SCHEMA_NAME, o.name AS VIEW_NAME, c.text as TEXT "
+      + "FROM sysusers u, syscomments c, sysobjects o "
+      + "WHERE o.type = 'V' AND o.id = c.id AND o.uid = u.uid AND o.name = '" + viewName + "'";
   }
 
   public String getProcedureSQL(String procName) {
-    return "SELECT u.name as SCHEMA_NAME, o.name AS PROC_NAME, c.text as TEXT " +
-        "FROM sysusers u, syscomments c, sysobjects o " +
-        "WHERE o.type = 'P' AND o.id = c.id AND o.uid = u.uid AND o.name = '" + procName + "'";
+    return "SELECT u.name as SCHEMA_NAME, o.name AS PROC_NAME, c.text as TEXT "
+      + "FROM sysusers u, syscomments c, sysobjects o "
+      + "WHERE o.type = 'P' AND o.id = c.id AND o.uid = u.uid AND o.name = '" + procName + "'";
   }
 }
