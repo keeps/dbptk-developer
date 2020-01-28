@@ -125,7 +125,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     } catch (ParserConfigurationException | SAXException | XPathExpressionException | IOException e) {
       LOGGER.debug("Failed to fetch data for validation component {}", MODULE_NAME, e);
       getValidationReporter().validationStatus(P_43, ValidationReporterStatus.ERROR,
-              "Failed to fetch data for validation component " + MODULE_NAME, "Please check the log file for more information");
+        "Failed to fetch data for validation component " + MODULE_NAME,
+        "Please check the log file for more information");
       return false;
     }
 
@@ -138,8 +139,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       observer.notifyValidationStep(MODULE_NAME, P_431, ValidationReporterStatus.ERROR);
       observer.notifyFinishValidationModule(MODULE_NAME, ValidationReporterStatus.FAILED);
       validationFailed(P_431, ValidationReporterStatus.ERROR,
-        "The metadata.xml must be identical to that in the content/", P_431_ERRORS,
-        MODULE_NAME);
+        "The metadata.xml must be identical to that in the content/", P_431_ERRORS, MODULE_NAME);
       return false;
     }
 
@@ -299,8 +299,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     InputStream is = null;
     try {
       is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath());
-      final NodeList nodeList = (NodeList) XMLUtils.getXPathResult(is,
-        "/ns:siardArchive/ns:schemas/ns:schema", XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+      final NodeList nodeList = (NodeList) XMLUtils.getXPathResult(is, "/ns:siardArchive/ns:schemas/ns:schema",
+        XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
       is.close();
       for (int i = 0; i < nodeList.getLength(); i++) {
         Element schema = (Element) nodeList.item(i);
@@ -318,7 +318,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     } catch (IOException | XPathExpressionException | SAXException | ParserConfigurationException e) {
       LOGGER.debug("Failed to validate {}", P_431, e);
       getValidationReporter().validationStatus(P_431, ValidationReporterStatus.ERROR,
-              "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
+        "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
       return false;
     } finally {
       if (is != null) {
@@ -348,8 +348,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     InputStream anotherIs = null;
     try {
       is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath());
-      NodeList nodes = (NodeList) XMLUtils.getXPathResult(is,
-        "/ns:siardArchive/ns:schemas/ns:schema",
+      NodeList nodes = (NodeList) XMLUtils.getXPathResult(is, "/ns:siardArchive/ns:schemas/ns:schema",
         XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
       is.close();
 
@@ -385,7 +384,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
       LOGGER.debug("Failed to validate {}", P_432, e);
       getValidationReporter().validationStatus(P_432, ValidationReporterStatus.ERROR,
-              "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
+        "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
       return false;
     } finally {
       if (is != null) {
@@ -423,7 +422,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       } catch (SAXException | ParserConfigurationException | IOException | XPathExpressionException e) {
         LOGGER.debug("Failed to validate {}", P_433, e);
         getValidationReporter().validationStatus(P_433, ValidationReporterStatus.ERROR,
-                "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
+          "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
         return false;
       }
     }
@@ -481,7 +480,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     } catch (SAXException | ParserConfigurationException | IOException | XPathExpressionException e) {
       LOGGER.debug("Failed to validate {}", P_434, e);
       getValidationReporter().validationStatus(P_434, ValidationReporterStatus.ERROR,
-              "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
+        "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
       return false;
     }
 
@@ -505,7 +504,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     }
 
     for (Map.Entry<SIARDContent, HashMap<String, String>> entry : arrayType.entrySet()) {
-      final String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(entry.getKey().getSchema(), entry.getKey().getTable());
+      final String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(entry.getKey().getSchema(),
+        entry.getKey().getTable());
       for (Map.Entry<String, String> column : entry.getValue().entrySet()) {
         try (InputStream zipInputStream = zipFileManagerStrategy.getZipInputStream(path, XSDPath)) {
           final NodeList nodeList = (NodeList) XMLUtils.getXPathResult(zipInputStream,
@@ -524,7 +524,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         } catch (IOException | XPathExpressionException | SAXException | ParserConfigurationException e) {
           LOGGER.debug("Failed to validate {}", P_435, e);
           getValidationReporter().validationStatus(P_435, ValidationReporterStatus.ERROR,
-                  "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
+            "Failed to validate due to an exception on " + MODULE_NAME,
+            "Please check the log file for more information");
           return false;
         }
       }
@@ -588,7 +589,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
             } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
               LOGGER.debug("Failed to validate {}", P_436, e);
               getValidationReporter().validationStatus(P_436, ValidationReporterStatus.ERROR,
-                      "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
+                "Failed to validate due to an exception on " + MODULE_NAME,
+                "Please check the log file for more information");
               return false;
             }
           }
@@ -655,7 +657,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
 
       } catch (IOException | XMLStreamException e) {
         getValidationReporter().validationStatus(P_437, ValidationReporterStatus.ERROR,
-                "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
+          "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
         LOGGER.debug("Failed to validate {}", P_437, e);
         return false;
       }
@@ -692,7 +694,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
       .entrySet()) {
       for (Map.Entry<String, AdvancedOrStructuredColumn> advancedOrStructuredColumnEntry : entry.getValue()
         .entrySet()) {
-        String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(entry.getKey().getSchema(), entry.getKey().getTable());
+        String XSDPath = validatorPathStrategy.getXSDTablePathFromFolder(entry.getKey().getSchema(),
+          entry.getKey().getTable());
         String xpathExpression = "count(/xs:schema/xs:complexType[@name='recordType']/xs:sequence/xs:element[@name='$1']/xs:complexType/xs:sequence/xs:element)";
         xpathExpression = xpathExpression.replace("$1", advancedOrStructuredColumnEntry.getKey());
 
@@ -707,7 +710,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
           LOGGER.debug("Failed to validate {}", P_439, e);
           getValidationReporter().validationStatus(P_439, ValidationReporterStatus.ERROR,
-                  "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
+            "Failed to validate due to an exception on " + MODULE_NAME,
+            "Please check the log file for more information");
           return false;
         }
       }
@@ -790,7 +794,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         | XMLStreamException e) {
         LOGGER.debug("Failed to validate {}", P_4310, e);
         getValidationReporter().validationStatus(P_4310, ValidationReporterStatus.ERROR,
-                "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
+          "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
         return false;
       }
     }
@@ -845,7 +849,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
 
       } catch (XMLStreamException | IOException e) {
         getValidationReporter().validationStatus(A_P_4310, ValidationReporterStatus.ERROR,
-                "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
+          "Failed to validate due to an exception on " + MODULE_NAME, "Please check the log file for more information");
         LOGGER.debug("Failed to validate {}", "number of rows", e);
         return false;
       }
@@ -854,12 +858,13 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     return A_P_4310_ERRORS.isEmpty();
   }
 
-  private void outputDifferentBlobsTypes() throws IOException, XPathExpressionException, SAXException, ParserConfigurationException {
+  private void outputDifferentBlobsTypes()
+    throws IOException, XPathExpressionException, SAXException, ParserConfigurationException {
     NodeList result;
     try (InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath())) {
       result = (NodeList) XMLUtils.getXPathResult(is,
-              "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column/ns:mimeType/text()",
-              XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
+        "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column/ns:mimeType/text()",
+        XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
       for (int i = 0; i < result.getLength(); i++) {
         final String nodeValue = result.item(i).getNodeValue();
@@ -1066,7 +1071,7 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
         numberOfNullable.put(content, nullableMap);
         numberOfRows.put(content, Integer.parseInt(rows));
       }
-      }
+    }
   }
 
   private String calculateKey(int number) {
@@ -1137,7 +1142,8 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     }
   }
 
-  private List<String> compareSQL2008DataTypeWithXMLType(SIARDContent content, String column, HashMap<String, String> map)
+  private List<String> compareSQL2008DataTypeWithXMLType(SIARDContent content, String column,
+    HashMap<String, String> map)
     throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
     List<String> errors = new ArrayList<>();
     String xsdPath = validatorPathStrategy.getXSDTablePathFromFolder(content.getSchema(), content.getTable());
@@ -1253,10 +1259,11 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
 
   private boolean validateSQL2008TypeWithXMLType(final String SQL2008Type, final String XMLType) {
     for (Map.Entry<String, List<String>> entry : SQL2008TypeMatchXMLType.entrySet()) {
-      if (XMLType == null) continue;
-      if (SQL2008Type.matches(entry.getKey())) {
-        final List<String> XMLTypeMatches = entry.getValue();
-        return XMLTypeMatches.contains(XMLType);
+      if (XMLType != null) {
+        if (SQL2008Type.matches(entry.getKey())) {
+          final List<String> XMLTypeMatches = entry.getValue();
+          return XMLTypeMatches.contains(XMLType);
+        }
       }
     }
 
@@ -1285,8 +1292,9 @@ public class MetadataAndTableDataValidator extends ValidatorComponentImpl {
     SQL2008TypeMatchXMLType.put("^BLOB(\\s*\\(\\s*[1-9]\\d*(\\s*(K|M|G))?\\s*\\))?$",
       Collections.singletonList("blobType"));
     SQL2008TypeMatchXMLType.put("^BLOB", Collections.singletonList("blobType"));
-    SQL2008TypeMatchXMLType.put("^BINARY VARYING\\(\\d+\\)$", Arrays.asList("clobType", "xs:hexBinary"));
-    SQL2008TypeMatchXMLType.put("^BINARY\\s+VARYING(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$",
+    SQL2008TypeMatchXMLType.put("^(?:BINARY\\s+VARYING|VARBINARY)(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$",
+      Arrays.asList("clobType", "xs:hexBinary"));
+    SQL2008TypeMatchXMLType.put("^BINARY\\s*(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$",
       Arrays.asList("blobType", "xs:hexBinary"));
     SQL2008TypeMatchXMLType.put("^VARBINARY(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$", Arrays.asList("blobType", "xs:hexBinary"));
     SQL2008TypeMatchXMLType.put("^BOOLEAN$", Collections.singletonList("xs:boolean"));

@@ -123,6 +123,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
   private Pattern patternFloatRegex;
   private Pattern patternDoublePrecisionRegex;
   private Pattern patternBinaryRegex;
+  private Pattern patternVarBinaryRegex;
   private Pattern patternVarcharRegex;
   private Pattern patternStringRegex;
   private Pattern patternNCharRegex;
@@ -749,7 +750,7 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
           }
         }
         decodeString = null;
-      } else if (patternBinaryRegex.matcher(type).matches()) {
+      } else if (patternBinaryRegex.matcher(type).matches() || patternVarBinaryRegex.matcher(type).matches()) {
         byte[] bytes = DatatypeConverter.parseHexBinary(content);
         final int size = getDataTypeLength(type);
         if (size != -1) {
@@ -1256,7 +1257,8 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     SQL2008Types.add("^BINARY\\s+LARGE\\s+OBJECT(\\s*\\(\\s*[1-9]\\d*(\\s*(K|M|G))?\\s*\\))?$");
     SQL2008Types.add("^BLOB(\\s*\\(\\s*[1-9]\\d*(\\s*(K|M|G))?\\s*\\))?$");
     SQL2008Types.add("^BLOB");
-    SQL2008Types.add("^BINARY VARYING\\(\\d+\\)$");
+    SQL2008Types.add("^BINARY(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    SQL2008Types.add("^BINARY\\s+VARYING\\(\\d+\\)$");
     SQL2008Types.add("^BINARY\\s+VARYING(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
     SQL2008Types.add("^VARBINARY(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
     SQL2008Types.add("^BOOLEAN$");
@@ -1305,7 +1307,8 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
     patternRealRegex = Pattern.compile("^REAL$");
     patternFloatRegex = Pattern.compile("^FLOAT(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
     patternDoublePrecisionRegex = Pattern.compile("^DOUBLE PRECISION$");
-    patternBinaryRegex = Pattern.compile("^(?:BINARY\\s+VARYING|VARBINARY)(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    patternBinaryRegex = Pattern.compile("^BINARY\\s*(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
+    patternVarBinaryRegex = Pattern.compile("^(?:BINARY\\s+VARYING|VARBINARY)(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
     patternVarcharRegex = Pattern.compile("^VARCHAR\\s*(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");
     patternStringRegex = Pattern
       .compile("^(?:NATIONAL\\s+)?(?:CHARACTER|CHAR)(?:\\s+VARYING)?(\\s*\\(\\s*[1-9]\\d*\\s*\\))?$");

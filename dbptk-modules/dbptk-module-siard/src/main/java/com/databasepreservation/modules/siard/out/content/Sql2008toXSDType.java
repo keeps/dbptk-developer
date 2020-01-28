@@ -49,7 +49,7 @@ public class Sql2008toXSDType {
 
     // direct mapping
     sql2008toXSDConstant.put("BINARY LARGE OBJECT", "blobType");
-    sql2008toXSDConstant.put("BINARY VARYING", "blobType");
+    sql2008toXSDConstant.put("BINARY VARYING", "clobType");
     sql2008toXSDConstant.put("BINARY", "blobType");
     sql2008toXSDConstant.put("BIT VARYING", "blobType");
     sql2008toXSDConstant.put("BIT", "blobType");
@@ -80,7 +80,7 @@ public class Sql2008toXSDType {
     sql2008toXSDRegex.put("^BIT VARYING\\(\\d+\\)$", "blobType");
     sql2008toXSDRegex.put("^BIT\\(\\d+\\)$", "blobType");
     sql2008toXSDRegex.put("^BINARY\\(\\d+\\)$", "blobType");
-    sql2008toXSDRegex.put("^BINARY VARYING\\(\\d+\\)$", "blobType");
+    sql2008toXSDRegex.put("^BINARY VARYING\\(\\d+\\)$", "clobType");
     sql2008toXSDRegex.put("^CHARACTER VARYING\\(\\d+\\)$", "xs:string");
     sql2008toXSDRegex.put("^CHARACTER\\(\\d+\\)$", "xs:string");
     sql2008toXSDRegex.put("^NATIONAL CHARACTER VARYING\\(\\d+\\)$", "xs:string");
