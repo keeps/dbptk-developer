@@ -13,6 +13,8 @@ import com.databasepreservation.model.reporters.ValidationReporterStatus;
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 public interface ValidationObserver {
+  void notifyValidationStart();
+
   void notifyStartValidationModule(String moduleName, String ID);
 
   void notifyValidationStep(String moduleName, String step, ValidationReporterStatus status);

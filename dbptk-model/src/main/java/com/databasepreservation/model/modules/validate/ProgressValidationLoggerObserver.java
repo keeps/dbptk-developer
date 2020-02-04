@@ -20,6 +20,11 @@ public class ProgressValidationLoggerObserver implements ValidationObserver {
   private static final Logger LOGGER = LoggerFactory.getLogger(ProgressValidationLoggerObserver.class);
 
   @Override
+  public void notifyValidationStart() {
+    LOGGER.info("Start validation");
+  }
+
+  @Override
   public void notifyStartValidationModule(String moduleName, String ID) {
     LOGGER.info("Start validation of: {} - {}", ID, moduleName);
   }

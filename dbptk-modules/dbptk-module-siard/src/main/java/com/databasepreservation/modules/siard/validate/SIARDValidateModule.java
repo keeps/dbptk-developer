@@ -120,6 +120,8 @@ public class SIARDValidateModule implements ValidateModule {
     List<ValidatorComponent> components = getValidationComponents();
     int counter = 0;
 
+    observer.notifyValidationStart();
+
     for (ValidatorComponent component : components) {
       component.setReporter(reporter);
       component.setObserver(observer);
