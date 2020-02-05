@@ -427,8 +427,6 @@ public class RequirementsForTableDataValidator extends ValidatorComponentImpl {
         try {
           schema = schemaFactory.newSchema(schemaFile);
           Validator validator = schema.newValidator();
-          validator.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-          validator.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
           try {
             validator.validate(xmlFile);
           } catch (SAXException e) {
