@@ -50,9 +50,9 @@ public class MySQLDatatypeImporter extends JDBCDatatypeImporter {
   @Override
   protected Type getBinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeBinary(columnSize);
-    type.setSql99TypeName("BINARY", columnSize);
-    type.setSql2008TypeName("BINARY", columnSize);
-    type.setOriginalTypeName(typeName, columnSize);
+    type.setSql99TypeName("BINARY LARGE OBJECT");
+    type.setSql2008TypeName("BINARY LARGE OBJECT");
+
     return type;
   }
 
@@ -60,7 +60,7 @@ public class MySQLDatatypeImporter extends JDBCDatatypeImporter {
   protected Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeBinary(columnSize);
     type.setSql99TypeName("BIT VARYING", columnSize * 8);
-    type.setSql2008TypeName("BINARY VARYING", columnSize * 8);
+    type.setSql2008TypeName("BIT VARYING", columnSize * 8);
     return type;
   }
 
