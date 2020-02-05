@@ -6,11 +6,11 @@
     <name>dbptk-module-ms-access</name>
     <groupId>com.databasepreservation</groupId>
     <artifactId>dbptk-module-ms-access</artifactId>
-    <version>2.6.5-RC</version>
+    <version>2.6.5</version>
     <parent>
         <groupId>com.databasepreservation</groupId>
         <artifactId>dbptk-modules</artifactId>
-        <version>2.6.5-RC</version>
+        <version>2.6.5</version>
         <relativePath>..</relativePath>
     </parent>
 
