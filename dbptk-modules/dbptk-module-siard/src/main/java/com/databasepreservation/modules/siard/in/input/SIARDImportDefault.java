@@ -10,32 +10,36 @@ package com.databasepreservation.modules.siard.in.input;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.Constants;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
-import com.databasepreservation.model.modules.ModuleSettings;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.modules.DefaultExceptionNormalizer;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.in.content.ContentImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
+import com.databasepreservation.utils.MapUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARDImportDefault implements DatabaseImportModule {
+  private final String moduleName;
+  private final ModuleConfiguration moduleConfiguration;
   private final ReadStrategy readStrategy;
   private final SIARDArchiveContainer mainContainer;
   private final ContentImportStrategy contentStrategy;
   private final MetadataImportStrategy metadataStrategy;
-  private ModuleSettings moduleSettings;
-  private Reporter reporter;
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARDImportDefault.class);
 
-  public SIARDImportDefault(ContentImportStrategy contentStrategy, SIARDArchiveContainer mainContainer,
-    ReadStrategy readStrategy, MetadataImportStrategy metadataStrategy) {
+  public SIARDImportDefault(String moduleName, ModuleConfiguration moduleConfiguration, ContentImportStrategy contentStrategy,
+    SIARDArchiveContainer mainContainer, ReadStrategy readStrategy, MetadataImportStrategy metadataStrategy) {
+    this.moduleName = moduleName;
+    this.moduleConfiguration = moduleConfiguration;
     this.readStrategy = readStrategy;
     this.mainContainer = mainContainer;
     this.contentStrategy = contentStrategy;
@@ -44,12 +48,12 @@ public class SIARDImportDefault implements DatabaseImportModule {
 
   @Override
   public DatabaseExportModule migrateDatabaseTo(DatabaseExportModule handler) throws ModuleException {
-    moduleSettings = handler.getModuleSettings();
+    // ModuleConfiguration moduleConfiguration = handler.getModuleConfiguration();
     readStrategy.setup(mainContainer);
     LOGGER.info("Importing SIARD version {}", mainContainer.getVersion().getDisplayName());
     handler.initDatabase();
     try {
-      metadataStrategy.loadMetadata(readStrategy, mainContainer, moduleSettings);
+      metadataStrategy.loadMetadata(readStrategy, mainContainer, moduleConfiguration);
 
       DatabaseStructure dbStructure = metadataStrategy.getDatabaseStructure();
 
@@ -57,7 +61,10 @@ public class SIARDImportDefault implements DatabaseImportModule {
 
       handler.handleStructure(dbStructure);
 
-      contentStrategy.importContent(handler, mainContainer, dbStructure, moduleSettings);
+      contentStrategy.importContent(handler, mainContainer, dbStructure, moduleConfiguration);
+
+      handler.updateModuleConfiguration(moduleName, MapUtils.buildMapFromObjects(Constants.DB_FILE,
+        mainContainer.getPath().normalize().toAbsolutePath().toString()), null);
 
       handler.finishDatabase();
     } finally {
@@ -76,7 +83,6 @@ public class SIARDImportDefault implements DatabaseImportModule {
    */
   @Override
   public void setOnceReporter(Reporter reporter) {
-    this.reporter = reporter;
     metadataStrategy.setOnceReporter(reporter);
   }
 

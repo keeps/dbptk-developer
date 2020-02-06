@@ -12,16 +12,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.databasepreservation.model.Reporter;
-import com.databasepreservation.model.exception.LicenseNotAcceptedException;
-import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.jdbc.out.JDBCExportModule;
+import com.databasepreservation.utils.ModuleConfigurationUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -29,21 +29,15 @@ import com.databasepreservation.modules.jdbc.out.JDBCExportModule;
 public class JDBCModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_DRIVER = "driver";
   public static final String PARAMETER_CONNECTION = "connection";
-  public static final String PARAMETER_PARAMETER = "parameter";
   private static final String PARAMETER_DRIVER_CLASS = "class";
 
   private static final Parameter driver = new Parameter().shortName("d").longName(PARAMETER_DRIVER)
-    .description(
-      "the name of the JDBC driver class. For more info about this refer to the website or the README file")
+    .description("the name of the JDBC driver class. For more info about this refer to the website or the README file")
     .hasArgument(true).setOptionalArgument(false).required(true);
 
   private static final Parameter connection = new Parameter().shortName("c").longName(PARAMETER_CONNECTION)
     .description("the connection url to use in the connection").hasArgument(true).setOptionalArgument(false)
     .required(true);
-
-  // additional parameters. unused
-  private static final Parameter params = new Parameter().shortName("p").longName(PARAMETER_PARAMETER).required(false)
-    .valueIfNotSet(null).hasArgument(true).setOptionalArgument(false);
 
   @Override
   public boolean producesImportModules() {
@@ -67,10 +61,10 @@ public class JDBCModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Map<String, Parameter> getAllParameters() {
-    HashMap<String, Parameter> parameterHashMap = new HashMap<String, Parameter>();
+    HashMap<String, Parameter> parameterHashMap = new HashMap<>();
     parameterHashMap.put(driver.longName(), driver);
     parameterHashMap.put(connection.longName(), connection);
-    // parameterHashMap.put(params.longName(), params);
+
     return parameterHashMap;
   }
 
@@ -80,37 +74,38 @@ public class JDBCModuleFactory implements DatabaseModuleFactory {
       .description("the location of the JDBC driver").hasArgument(true).setOptionalArgument(false).required(true)
       .inputType(INPUT_TYPE.DRIVER);
     return new Parameters(Arrays.asList(driverJAR, driver.longName(PARAMETER_DRIVER_CLASS).inputType(INPUT_TYPE.TEXT),
-      connection.inputType(INPUT_TYPE.TEXT)),
-      null);
+      connection.inputType(INPUT_TYPE.TEXT)), null);
   }
 
   @Override
-  public Parameters getImportModuleParameters() throws UnsupportedModuleException {
+  public Parameters getImportModuleParameters() {
     return new Parameters(Arrays.asList(driver, connection), null);
   }
 
   @Override
-  public Parameters getExportModuleParameters() throws UnsupportedModuleException {
+  public Parameters getExportModuleParameters() {
     return new Parameters(Arrays.asList(driver, connection), null);
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws UnsupportedModuleException, LicenseNotAcceptedException {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) {
+    return buildImportModule(parameters, ModuleConfigurationUtils.getDefaultModuleConfiguration(), reporter);
+  }
+
+  @Override
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters,
+    ModuleConfiguration moduleConfiguration, Reporter reporter) {
     String pDriver = parameters.get(driver);
     String pConnection = parameters.get(connection);
-    // String pParams = parameters.get(params);
 
     reporter.importModuleParameters(this.getModuleName(), PARAMETER_DRIVER, pDriver, PARAMETER_CONNECTION, pConnection);
-    return new JDBCImportModule(pDriver, pConnection);
+    return new JDBCImportModule(pDriver, pConnection, moduleConfiguration);
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws UnsupportedModuleException, LicenseNotAcceptedException {
+  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter) {
     String pDriver = parameters.get(driver);
     String pConnection = parameters.get(connection);
-    // String pParams = parameters.get(params);
 
     reporter.exportModuleParameters(this.getModuleName(), PARAMETER_DRIVER, pDriver, PARAMETER_CONNECTION, pConnection);
     return new JDBCExportModule(pDriver, pConnection);

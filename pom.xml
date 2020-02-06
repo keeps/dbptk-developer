@@ -123,7 +123,9 @@
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <version>3.0.0-M2</version>
                 <configuration>
-                    <rules><dependencyConvergence/></rules>
+                    <rules>
+                        <dependencyConvergence/>
+                    </rules>
                 </configuration>
             </plugin>
             <plugin>
@@ -233,7 +235,7 @@
 
             <dependency>
                 <groupId>com.databasepreservation</groupId>
-                <artifactId>dbptk-module-list-tables</artifactId>
+                <artifactId>dbptk-module-import-config</artifactId>
                 <version>2.6.5</version>
             </dependency>
 

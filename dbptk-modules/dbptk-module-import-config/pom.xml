@@ -3,9 +3,9 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>dbptk-module-list-tables</name>
+    <name>dbptk-module-import-config</name>
     <groupId>com.databasepreservation</groupId>
-    <artifactId>dbptk-module-list-tables</artifactId>
+    <artifactId>dbptk-module-import-config</artifactId>
     <version>2.6.5</version>
     <parent>
         <groupId>com.databasepreservation</groupId>
@@ -19,6 +19,16 @@
         <dependency>
             <groupId>com.databasepreservation</groupId>
             <artifactId>dbptk-model</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <version>2.10.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.10.2</version>
         </dependency>
     </dependencies>
 </project>

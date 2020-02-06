@@ -8,16 +8,19 @@
 package com.databasepreservation.modules.oracle.in;
 
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.sql.Array;
 import java.sql.Blob;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
+import com.databasepreservation.utils.ConfigUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.geotools.data.oracle.sdo.GeometryConverter;
 import org.locationtech.jts.geom.Geometry;
@@ -25,6 +28,7 @@ import org.locationtech.jts.io.gml2.GMLWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.Constants;
 import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
@@ -32,6 +36,7 @@ import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.RoutineStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
@@ -39,12 +44,17 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
+import com.databasepreservation.modules.oracle.Oracle12cModuleFactory;
 import com.databasepreservation.modules.oracle.OracleExceptionNormalizer;
 import com.databasepreservation.modules.oracle.OracleHelper;
+import com.databasepreservation.utils.MapUtils;
+import com.databasepreservation.utils.RemoteConnectionUtils;
 
 import oracle.jdbc.OracleArray;
 import oracle.jdbc.OracleBfile;
+import oracle.jdbc.OracleConnection;
 import oracle.jdbc.OracleResultSet;
+import oracle.jdbc.OracleStatement;
 import oracle.sql.STRUCT;
 
 /**
@@ -54,6 +64,9 @@ import oracle.sql.STRUCT;
  */
 public class Oracle12cJDBCImportModule extends JDBCImportModule {
   private static final Logger LOGGER = LoggerFactory.getLogger(Oracle12cJDBCImportModule.class);
+
+  private static final Integer DEFAULT_LOB_PREFETCH_SIZE = ConfigUtils.getProperty(4000,
+      "dbptk.jdbc.oracle.lobPrefetchSize");
 
   /**
    * Create a new Oracle12c import module
@@ -67,32 +80,85 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
    * @param password
    *          the password of the user to use in the connection
    */
-  public Oracle12cJDBCImportModule(String serverName, int port, String instance, String username, String password, Path customViews) throws ModuleException {
+  public Oracle12cJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String serverName,
+    int port, String instance, String username, String password) throws ModuleException {
 
     super("oracle.jdbc.driver.OracleDriver",
       "jdbc:oracle:thin:" + username + "/" + password + "@//" + serverName + ":" + port + "/" + instance,
-      new OracleHelper(), new Oracle12cJDBCDatatypeImporter(), customViews);
+      new OracleHelper(), new Oracle12cJDBCDatatypeImporter(), moduleConfiguration, moduleName,
+      MapUtils.buildMapFromObjects(Oracle12cModuleFactory.PARAMETER_SERVER_NAME, serverName,
+        Oracle12cModuleFactory.PARAMETER_PORT_NUMBER, port, Oracle12cModuleFactory.PARAMETER_INSTANCE, instance,
+        Oracle12cModuleFactory.PARAMETER_USERNAME, username, Oracle12cModuleFactory.PARAMETER_PASSWORD, password,
+        Oracle12cModuleFactory.PARAMETER_ACCEPT_LICENSE, true));
 
     LOGGER.debug("jdbc:oracle:thin:<username>/<password>@//" + serverName + ":" + port + "/" + instance);
   }
 
-  public Oracle12cJDBCImportModule(String serverName, int port, String instance, String username, String password,
-    boolean ssh, String sshHost, String sshUser, String sshPassword, String sshPortNumber, Path customViews)
-    throws ModuleException {
+  public Oracle12cJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String serverName,
+    int port, String instance, String username, String password, String sshHost, String sshUser, String sshPassword,
+    String sshPortNumber) throws ModuleException {
 
     super("oracle.jdbc.driver.OracleDriver",
       "jdbc:oracle:thin:" + username + "/" + password + "@//" + serverName + ":" + port + "/" + instance,
-      new OracleHelper(), new Oracle12cJDBCDatatypeImporter(), ssh, sshHost, sshUser, sshPassword, sshPortNumber, customViews);
+      new OracleHelper(), new Oracle12cJDBCDatatypeImporter(), moduleConfiguration, moduleName,
+      MapUtils.buildMapFromObjects(Oracle12cModuleFactory.PARAMETER_SERVER_NAME, serverName,
+        Oracle12cModuleFactory.PARAMETER_PORT_NUMBER, port, Oracle12cModuleFactory.PARAMETER_INSTANCE, instance,
+        Oracle12cModuleFactory.PARAMETER_USERNAME, username, Oracle12cModuleFactory.PARAMETER_PASSWORD, password,
+        Oracle12cModuleFactory.PARAMETER_ACCEPT_LICENSE, true),
+      MapUtils.buildMapFromObjects(Constants.DB_SSH_HOST, sshHost, Constants.DB_SSH_PORT, sshPortNumber,
+        Constants.DB_SSH_USER, sshUser, Constants.DB_SSH_PASSWORD, sshPassword));
 
     LOGGER.debug("jdbc:oracle:thin:<username>/<password>@//" + serverName + ":" + port + "/" + instance);
   }
+
+//  /**
+//   * Connect to the server using the properties defined in the constructor
+//   *
+//   * @return the new connection
+//   * @throws ModuleException
+//   */
+//  @Override
+//  protected Connection createConnection() throws ModuleException {
+//    Connection connection;
+//    try {
+//      if (ssh) {
+//        connectionURL = RemoteConnectionUtils.replaceHostAndPort(connectionURL);
+//      }
+//      connection = DriverManager.getConnection(connectionURL);
+//      connection.setAutoCommit(false);
+//    } catch (SQLException e) {
+//      closeConnection();
+//      throw normalizeException(e, null);
+//    }
+//
+//    if (connection instanceof OracleConnection) {
+//      try {
+//        ((OracleConnection) connection).setImplicitCachingEnabled(false);
+//        ((OracleConnection) connection).setExplicitCachingEnabled(false);
+//        ((OracleConnection) connection).setStatementCacheSize(10);
+//        ((OracleConnection) connection).commit(EnumSet.of(OracleConnection.CommitOption.NOWAIT));
+//        connection.setReadOnly(true);
+//      } catch (SQLException e) {
+//        closeConnection();
+//        throw normalizeException(e, null);
+//      }
+//    }
+//
+//    LOGGER.debug("Connected");
+//
+//    return connection;
+//  }
 
   @Override
   protected Statement getStatement() throws SQLException, ModuleException {
     if (statement == null) {
       statement = getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY,
         ResultSet.HOLD_CURSORS_OVER_COMMIT);
+      if (statement instanceof OracleStatement) {
+        ((OracleStatement) statement).setLobPrefetchSize(DEFAULT_LOB_PREFETCH_SIZE);
+      }
     }
+
     return statement;
   }
 
@@ -190,25 +256,26 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
-  protected Cell rawToCellSimpleTypeBinary(String id, String columnName, Type cellType, ResultSet rawData) throws SQLException, ModuleException {
+  protected Cell rawToCellSimpleTypeBinary(String id, String columnName, Type cellType, ResultSet rawData)
+    throws SQLException, ModuleException {
     Cell cell;
 
     if (cellType instanceof SimpleTypeBinary && ((SimpleTypeBinary) cellType).isOutsideDatabase()) {
       cell = new SimpleCell(id, rawData.getString(columnName));
     } else if (cellType.getOriginalTypeName().equals("BFILE")) {
-        if (rawData instanceof OracleResultSet) {
-          final OracleBfile bfile = ((OracleResultSet) rawData).getBfile(columnName);
-          if (bfile == null) {
-            cell = new NullCell(id);
-          } else {
-            bfile.openFile();
-            final InputStream binaryStream = bfile.getBinaryStream();
-            cell = new BinaryCell(id, binaryStream);
-            bfile.closeFile();
-          }
-        } else {
+      if (rawData instanceof OracleResultSet) {
+        final OracleBfile bfile = ((OracleResultSet) rawData).getBfile(columnName);
+        if (bfile == null) {
           cell = new NullCell(id);
+        } else {
+          bfile.openFile();
+          final InputStream binaryStream = bfile.getBinaryStream();
+          cell = new BinaryCell(id, binaryStream);
+          bfile.closeFile();
         }
+      } else {
+        cell = new NullCell(id);
+      }
     } else {
       Blob blob = rawData.getBlob(columnName);
       if (blob != null && !rawData.wasNull()) {
@@ -233,7 +300,7 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
         Geometry geometry = geometryConverter.asGeometry(asStruct);
         GMLWriter gmlWriter = new GMLWriter();
         if (geometry == null) {
-         return new NullCell(id);
+          return new NullCell(id);
         }
         return new SimpleCell(id, gmlWriter.write(geometry));
       } catch (Exception e) {
@@ -271,21 +338,21 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
   protected List<RoutineStructure> getRoutines(String schemaName) throws SQLException, ModuleException {
     List<RoutineStructure> routines = new ArrayList<RoutineStructure>();
 
-    try(ResultSet resultSet = getStatement()
-            .executeQuery("SELECT UNIQUE name FROM user_source WHERE type='PROCEDURE' or type='FUNCTION'")) {
+    try (ResultSet resultSet = getStatement()
+      .executeQuery("SELECT UNIQUE name FROM user_source WHERE type='PROCEDURE' or type='FUNCTION'")) {
       List<String> routineNames = new ArrayList<>();
       while (resultSet.next()) {
         routineNames.add(resultSet.getString(1));
       }
 
       for (String routineName : routineNames) {
-        //String routineName = resultSet.getString(1);
+        // String routineName = resultSet.getString(1);
         RoutineStructure routine = new RoutineStructure();
         LOGGER.info("Obtaining routine {}", routineName);
         routine.setName(routineName);
 
-        try(ResultSet rsetCode = getStatement()
-                .executeQuery("SELECT text FROM user_source WHERE name='" + routineName + "' ORDER BY line")) {
+        try (ResultSet rsetCode = getStatement()
+          .executeQuery("SELECT text FROM user_source WHERE name='" + routineName + "' ORDER BY line")) {
           StringBuilder sb = new StringBuilder();
           while (rsetCode.next()) {
             sb.append(rsetCode.getString("TEXT"));
@@ -304,6 +371,6 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
 
   @Override
   public String escapeObjectName(String objectName) {
-    return "\""+objectName+"\"";
+    return "\"" + objectName + "\"";
   }
 }

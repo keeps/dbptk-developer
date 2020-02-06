@@ -7,7 +7,6 @@
  */
 package com.databasepreservation.modules.sqlServer.in;
 
-import java.nio.file.Path;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,7 +20,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.RoutineStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
@@ -31,6 +32,7 @@ import com.databasepreservation.modules.CloseableUtils;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.sqlServer.SQLServerExceptionNormalizer;
 import com.databasepreservation.modules.sqlServer.SQLServerHelper;
+import com.databasepreservation.utils.MapUtils;
 import com.microsoft.sqlserver.jdbc.SQLServerConnection;
 import com.microsoft.sqlserver.jdbc.SQLServerResultSet;
 import com.microsoft.sqlserver.jdbc.SQLServerStatement;
@@ -42,32 +44,6 @@ import com.microsoft.sqlserver.jdbc.SQLServerStatement;
  */
 public class SQLServerJDBCImportModule extends JDBCImportModule {
   private static final Logger LOGGER = LoggerFactory.getLogger(SQLServerJDBCImportModule.class);
-
-  /**
-   * Create a new Microsoft SQL Server import module using the default instance.
-   *
-   * @param serverName
-   *          the name (host name) of the server
-   * @param database
-   *          the name of the database we'll be accessing
-   * @param username
-   *          the name of the user to use in the connection
-   * @param password
-   *          the password of the user to use in the connection
-   * @param integratedSecurity
-   *          true to use windows login, false to use SQL Server login
-   * @param encrypt
-   *          true to use encryption in the connection
-   */
-  public SQLServerJDBCImportModule(String serverName, String database, String username, String password,
-    boolean integratedSecurity, boolean encrypt, boolean ssh, String sshHost, String sshUser, String sshPassword,
-    String sshPort, Path customViews) throws ModuleException {
-    super("com.microsoft.sqlserver.jdbc.SQLServerDriver",
-      new StringBuilder("jdbc:sqlserver://").append(serverName).append(";database=").append(database).append(";user=")
-        .append(username).append(";password=").append(password).append(";integratedSecurity=")
-        .append(integratedSecurity).append(";encrypt=").append(encrypt).toString(),
-      new SQLServerHelper(), new SQLServerDatatypeImporter(), ssh, sshHost, sshUser, sshPassword, sshPort, customViews);
-  }
 
   /**
    * Create a new Microsoft SQL Server import module using the instance name. The
@@ -89,14 +65,22 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
    * @param encrypt
    *          true to use encryption in the connection
    */
-  public SQLServerJDBCImportModule(String serverName, int portNumber, String instanceName, String database, String username,
-    String password, boolean integratedSecurity, boolean encrypt, boolean ssh, String sshHost, String sshUser,
-    String sshPassword, String sshPort, Path customViews) throws ModuleException {
+  public SQLServerJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String serverName,
+    int portNumber, String instanceName, String database, String username, String password, boolean integratedSecurity,
+    boolean encrypt, boolean ssh, String sshHost, String sshUser, String sshPassword, String sshPortNumber)
+    throws ModuleException {
     super("com.microsoft.sqlserver.jdbc.SQLServerDriver",
-      new StringBuilder("jdbc:sqlserver://").append(serverName).append("\\").append(instanceName).append(":").append(portNumber).append(";database=")
+      new StringBuilder("jdbc:sqlserver://")
+        .append(serverName).append("\\").append(instanceName).append(":").append(portNumber).append(";database=")
         .append(database).append(";user=").append(username).append(";password=").append(password)
         .append(";integratedSecurity=").append(integratedSecurity).append(";encrypt=").append(encrypt).toString(),
-      new SQLServerHelper(), new SQLServerDatatypeImporter(), ssh, sshHost, sshUser, sshPassword, sshPort, customViews);
+      new SQLServerHelper(), new SQLServerDatatypeImporter(), moduleConfiguration, moduleName,
+      MapUtils.buildMapFromObjects(Constants.DB_SERVER_NAME, serverName, Constants.DB_PORT, portNumber,
+        Constants.DB_INSTANCE_NAME, instanceName, Constants.DB_INTEGRATED_LOGIN, integratedSecurity, Constants.DB_USER,
+        username, Constants.DB_PASSWORD, password, Constants.DB_DATABASE, database, Constants.DB_DISABLE_ENCRYPTION,
+        encrypt),
+      MapUtils.buildMapFromObjectsIf(ssh, Constants.DB_SSH_HOST, sshHost, Constants.DB_SSH_PORT, sshPortNumber,
+        Constants.DB_SSH_USER, sshUser, Constants.DB_SSH_PASSWORD, sshPassword));
   }
 
   /**
@@ -117,14 +101,19 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
    * @param encrypt
    *          true to use encryption in the connection
    */
-  public SQLServerJDBCImportModule(String serverName, int portNumber, String database, String username, String password,
-    boolean integratedSecurity, boolean encrypt, boolean ssh, String sshHost, String sshUser, String sshPassword,
-    String sshPort, Path customViews) throws ModuleException {
+  public SQLServerJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String serverName,
+    int portNumber, String database, String username, String password, boolean integratedSecurity, boolean encrypt,
+    boolean ssh, String sshHost, String sshUser, String sshPassword, String sshPortNumber) throws ModuleException {
     super("com.microsoft.sqlserver.jdbc.SQLServerDriver",
       new StringBuilder("jdbc:sqlserver://").append(serverName).append(":").append(portNumber).append(";database=")
         .append(database).append(";user=").append(username).append(";password=").append(password)
         .append(";integratedSecurity=").append(integratedSecurity).append(";encrypt=").append(encrypt).toString(),
-      new SQLServerHelper(), new SQLServerDatatypeImporter(), ssh, sshHost, sshUser, sshPassword, sshPort, customViews);
+      new SQLServerHelper(), new SQLServerDatatypeImporter(), moduleConfiguration, moduleName,
+      MapUtils.buildMapFromObjects(Constants.DB_SERVER_NAME, serverName, Constants.DB_PORT, portNumber,
+        Constants.DB_INTEGRATED_LOGIN, integratedSecurity, Constants.DB_USER, username, Constants.DB_PASSWORD, password,
+        Constants.DB_DATABASE, database, Constants.DB_DISABLE_ENCRYPTION, encrypt),
+      MapUtils.buildMapFromObjectsIf(ssh, Constants.DB_SSH_HOST, sshHost, Constants.DB_SSH_PORT, sshPortNumber,
+        Constants.DB_SSH_USER, sshUser, Constants.DB_SSH_PASSWORD, sshPassword));
   }
 
   @Override
@@ -143,7 +132,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 
   @Override
   protected Set<String> getIgnoredImportedSchemas() {
-    Set<String> ignored = new HashSet<String>();
+    Set<String> ignored = new HashSet<>();
     ignored.add("db_.*");
     ignored.add("sys");
     ignored.add("INFORMATION_SCHEMA");
@@ -379,7 +368,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
         }
 
         try {
-          routineName = routineName.replaceAll(";[0-9]+$","");
+          routineName = routineName.replaceAll(";[0-9]+$", "");
           ResultSet rsetCode = getStatement().executeQuery("SELECT ROUTINE_DEFINITION FROM " + getDatabaseName()
             + ".information_schema.routines WHERE specific_name='" + routineName + "'");
           if (rsetCode.next()) {

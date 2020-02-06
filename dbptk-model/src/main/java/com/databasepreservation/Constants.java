@@ -150,4 +150,27 @@ public class Constants {
   public static final String TRUE = "true";
   public static final String FALSE = "false";
 
+  /* MODULE CONFIGURATION */
+  public static final String EMPTY = "";
+
+  /* CONNECTION PARAMETERS */
+  public static final String DB_HOST = "hostname";
+  public static final String DB_PORT = "port-number";
+  public static final String DB_USER = "username";
+  public static final String DB_DATABASE = "database";
+  public static final String DB_DISABLE_ENCRYPTION = "disable-encryption";
+  public static final String DB_ACCEPT_LICENSE = "accept-license";
+  public static final String DB_SERVER_NAME = "server-name";
+  public static final String DB_INSTANCE_NAME = "instance-name";
+  public static final String DB_INTEGRATED_LOGIN = "use-integrated-login";
+  public static final String DB_FILE = "file";
+  public static final String DB_SSH = "ssh";
+  public static final String DB_PASSWORD = "password";
+  public static final String DB_SSH_HOST = "ssh-host";
+  public static final String DB_SSH_PORT = "ssh-port";
+  public static final String DB_SSH_USER = "ssh-user";
+  public static final String DB_SSH_PASSWORD = "ssh-password";
+  public static final String DB_DRIVER = "driver";
+  public static final String DB_CONNECTION = "connection";
+
 }

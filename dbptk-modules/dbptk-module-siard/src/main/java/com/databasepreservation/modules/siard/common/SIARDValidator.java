@@ -25,7 +25,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.modules.ModuleSettings;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
@@ -47,6 +47,7 @@ import com.databasepreservation.modules.siard.in.read.ZipReadStrategy;
 import com.databasepreservation.modules.siard.out.write.FolderWriteStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.modules.siard.out.write.ZipWithExternalLobsWriteStrategy;
+import com.databasepreservation.utils.ModuleConfigurationUtils;
 
 public class SIARDValidator {
   private final SIARDArchiveContainer container;
@@ -106,8 +107,8 @@ public class SIARDValidator {
 
     LOGGER.info("Validating content");
 
-    ModuleSettings moduleSettings = new ModuleSettings();
-    metadataImportStrategy.loadMetadata(readStrategy, container, moduleSettings);
+    ModuleConfiguration moduleConfiguration = ModuleConfigurationUtils.getDefaultModuleConfiguration();
+    metadataImportStrategy.loadMetadata(readStrategy, container, moduleConfiguration);
     DatabaseStructure dbStructure = metadataImportStrategy.getDatabaseStructure();
 
     validateContent(dbStructure);

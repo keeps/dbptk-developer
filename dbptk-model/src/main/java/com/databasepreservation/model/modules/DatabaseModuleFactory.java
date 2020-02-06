@@ -13,6 +13,7 @@ import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
 
@@ -40,8 +41,10 @@ public interface DatabaseModuleFactory {
 
   Parameters getExportModuleParameters() throws UnsupportedModuleException;
 
-  DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws ModuleException;
+  DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException;
+
+  DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, ModuleConfiguration moduleConfiguration,
+    Reporter reporter) throws ModuleException;
 
   DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
     throws UnsupportedModuleException, LicenseNotAcceptedException, ModuleException;

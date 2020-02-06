@@ -249,12 +249,12 @@ public class MySQLHelper extends SQLHelper {
   }
 
   @Override
-  protected String escapePrimaryKeyName(String pkey_name) {
-    if ("PRIMARY".equals(pkey_name)) {
+  protected String escapePrimaryKeyName(String primaryKeyName) {
+    if ("PRIMARY".equals(primaryKeyName)) {
       logger.debug("Cannot set primary key name to reserved name PRIMARY, renaming it");
-      pkey_name += "_pkey";
+      primaryKeyName += "_pkey";
     }
 
-    return super.escapePrimaryKeyName(pkey_name);
+    return super.escapePrimaryKeyName(primaryKeyName);
   }
 }

@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
+import com.databasepreservation.Constants;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;
@@ -58,7 +59,8 @@ import com.databasepreservation.model.exception.TableNotFoundException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatatypeImporter;
-import com.databasepreservation.model.modules.ModuleSettings;
+import com.databasepreservation.model.modules.configuration.CustomViewConfiguration;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -87,7 +89,9 @@ import com.databasepreservation.modules.DefaultExceptionNormalizer;
 import com.databasepreservation.modules.SQLHelper;
 import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.JodaUtils;
+import com.databasepreservation.utils.MapUtils;
 import com.databasepreservation.utils.MiscUtils;
+import com.databasepreservation.utils.ModuleConfigurationUtils;
 import com.databasepreservation.utils.PortUtils;
 import com.databasepreservation.utils.RemoteConnectionUtils;
 import com.jcraft.jsch.Session;
@@ -118,30 +122,20 @@ public class JDBCImportModule implements DatabaseImportModule {
   private static final Logger LOGGER = LoggerFactory.getLogger(JDBCImportModule.class);
   protected Connection connection;
   protected Session session = null;
-
   protected Statement statement;
-
   protected DatabaseMetaData dbMetadata;
-
   protected DatabaseStructure dbStructure;
-
   // the schema object being built
   protected SchemaStructure actualSchema;
-
   protected SQLHelper sqlHelper;
-
   protected DatatypeImporter datatypeImporter;
-
-  private ModuleSettings moduleSettings;
-
+  private ModuleConfiguration moduleConfiguration;
   protected Reporter reporter;
-
-  private Map<String, Map<String, Map<String, String>>> customViews = new HashMap<>();
-
-  private String customViewsPath;
-
+  private String moduleName;
+  private Map<String, String> connectionProperties;
+  private Map<String, String> remoteConnectionProperties;
   // SSH Connection Parameters
-  protected final boolean ssh;
+  protected boolean ssh;
 
   /**
    * Create a new JDBC import module
@@ -151,12 +145,28 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @param connectionURL
    *          the connection url to use in the connection
    */
-  public JDBCImportModule(String driverClassName, String connectionURL) {
-    this(driverClassName, connectionURL, new SQLHelper(), new JDBCDatatypeImporter());
+  public JDBCImportModule(String driverClassName, String connectionURL, ModuleConfiguration moduleConfiguration) {
+    this(driverClassName, connectionURL, new SQLHelper(), new JDBCDatatypeImporter(), moduleConfiguration);
   }
 
   protected JDBCImportModule(String driverClassName, String connectionURL, SQLHelper sqlHelper,
-    DatatypeImporter datatypeImporter) {
+    DatatypeImporter datatypeImporter, ModuleConfiguration moduleConfiguration) {
+    this.driverClassName = driverClassName;
+    this.connectionURL = connectionURL;
+    this.sqlHelper = sqlHelper;
+    this.datatypeImporter = datatypeImporter;
+    this.moduleConfiguration = moduleConfiguration;
+    connection = null;
+    dbMetadata = null;
+    dbStructure = null;
+    ssh = false;
+    this.connectionProperties = MapUtils.buildMapFromObjects(Constants.DB_DRIVER, driverClassName,
+      Constants.DB_CONNECTION, connectionURL);
+  }
+
+  protected JDBCImportModule(String driverClassName, String connectionURL, SQLHelper sqlHelper,
+    DatatypeImporter datatypeImporter, ModuleConfiguration moduleConfiguration, String moduleName,
+    Map<String, String> connectionParameters) {
     this.driverClassName = driverClassName;
     this.connectionURL = connectionURL;
     this.sqlHelper = sqlHelper;
@@ -165,10 +175,15 @@ public class JDBCImportModule implements DatabaseImportModule {
     dbMetadata = null;
     dbStructure = null;
     ssh = false;
+    this.moduleConfiguration = moduleConfiguration;
+    this.moduleName = moduleName;
+    this.connectionProperties = connectionParameters;
+    this.remoteConnectionProperties = null;
   }
 
   protected JDBCImportModule(String driverClassName, String connectionURL, SQLHelper sqlHelper,
-    DatatypeImporter datatypeImporter, Path queryList) throws ModuleException {
+    DatatypeImporter datatypeImporter, ModuleConfiguration moduleConfiguration, String moduleName,
+    Map<String, String> connectionParameters, Map<String, String> remoteConnectionParameters) throws ModuleException {
     this.driverClassName = driverClassName;
     this.connectionURL = connectionURL;
     this.sqlHelper = sqlHelper;
@@ -177,32 +192,19 @@ public class JDBCImportModule implements DatabaseImportModule {
     dbMetadata = null;
     dbStructure = null;
     ssh = false;
-    if (queryList != null) {
-      customViews = parseCustomViewsList(queryList);
-      customViewsPath = queryList.toAbsolutePath().toString();
-    }
-  }
-
-  protected JDBCImportModule(String driverClassName, String connectionURL, SQLHelper sqlHelper,
-    DatatypeImporter datatypeImporter, boolean ssh, String sshHost, String sshUser, String sshPassword,
-    String sshPortNumber, Path queryList) throws ModuleException {
-    this.driverClassName = driverClassName;
-    this.connectionURL = connectionURL;
-    this.sqlHelper = sqlHelper;
-    this.datatypeImporter = datatypeImporter;
-    connection = null;
-    dbMetadata = null;
-    dbStructure = null;
-    this.ssh = ssh;
-    if (queryList != null) {
-      customViews = parseCustomViewsList(queryList);
-      customViewsPath = queryList.toAbsolutePath().toString();
-    }
-    if (ssh) {
-      session = RemoteConnectionUtils.createRemoteSession(sshHost, sshUser, sshPassword, sshPortNumber, connectionURL,
-        PortUtils.findFreePort());
+    if (remoteConnectionParameters != null && !remoteConnectionParameters.isEmpty()) {
+      ssh = true;
+      session = RemoteConnectionUtils.createRemoteSession(remoteConnectionParameters.get(Constants.DB_SSH_HOST),
+        remoteConnectionParameters.get(Constants.DB_SSH_USER),
+        remoteConnectionParameters.get(Constants.DB_SSH_PASSWORD),
+        remoteConnectionParameters.get(Constants.DB_SSH_PORT), connectionURL, PortUtils.findFreePort());
       LOGGER.debug("Local port: {} used for establishing the SSH connection", RemoteConnectionUtils.getLocalPort());
     }
+
+    this.moduleName = moduleName;
+    this.moduleConfiguration = moduleConfiguration;
+    this.connectionProperties = connectionParameters;
+    this.remoteConnectionProperties = remoteConnectionParameters;
   }
 
   /**
@@ -282,28 +284,9 @@ public class JDBCImportModule implements DatabaseImportModule {
     }
   }
 
-  public DatabaseStructure getSchemaInformation(final boolean shouldCountRows) throws ModuleException {
-    moduleSettings = new ModuleSettings() {
-      @Override
-      public boolean fetchWithViewAsTable() {
-        return false;
-      }
-
-      @Override
-      public boolean shouldFetchRows() {
-        return false;
-      }
-
-      @Override
-      public boolean shouldCountRows() {
-        return shouldCountRows;
-      }
-
-      @Override
-      public boolean fetchMetadataInformation() {
-        return false;
-      }
-    };
+  public DatabaseStructure getSchemaInformation() throws ModuleException {
+    moduleConfiguration = ModuleConfigurationUtils.getDefaultModuleConfiguration();
+    moduleConfiguration.setFetchRows(false);
 
     DatabaseStructure databaseStructure = getDatabaseStructure();
     closeConnection();
@@ -360,8 +343,6 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
     }
 
-    // Connection connection = null;
-    // connection = getConnection();
     if (connection != null) {
       try {
         connection.close();
@@ -421,9 +402,17 @@ public class JDBCImportModule implements DatabaseImportModule {
         dbStructure.setSchemas(getSchemas());
         actualSchema = null;
 
-        if (getModuleSettings().fetchMetadataInformation()) {
+        if (getModuleConfiguration().ignoreUsers()) {
+          dbStructure.setUsers(new ArrayList<>());
+        } else {
           dbStructure.setUsers(getUsers(dbStructure.getName()));
+        }
+
+        if (!getModuleConfiguration().ignoreRoles()) {
           dbStructure.setRoles(getRoles());
+        }
+
+        if (!getModuleConfiguration().ignorePrivileges()) {
           dbStructure.setPrivileges(getPrivileges());
         }
 
@@ -474,8 +463,11 @@ public class JDBCImportModule implements DatabaseImportModule {
         if (isIgnoredImportedSchema(schemaName)) {
           continue;
         }
-        schemas.add(getSchemaStructure(schemaName, schemaIndex));
-        schemaIndex++;
+
+        if (getModuleConfiguration().isSelectedSchema(schemaName)) {
+          schemas.add(getSchemaStructure(schemaName, schemaIndex));
+          schemaIndex++;
+        }
       }
     }
     return schemas;
@@ -508,10 +500,11 @@ public class JDBCImportModule implements DatabaseImportModule {
     actualSchema.setName(schemaName);
     actualSchema.setIndex(schemaIndex);
     // actualSchema.setUserDefinedTypes(getUDTs(actualSchema));
-    actualSchema.setUserDefinedTypesComposed(new ArrayList<ComposedTypeStructure>());
+    actualSchema.setUserDefinedTypesComposed(new ArrayList<>());
     actualSchema.setTables(getTables(actualSchema));
     actualSchema.setViews(getViews(schemaName));
-    if (getModuleSettings().fetchMetadataInformation()) {
+
+    if (!getModuleConfiguration().ignoreRoutines()) {
       actualSchema.setRoutines(getRoutines(schemaName));
     }
 
@@ -632,45 +625,84 @@ public class JDBCImportModule implements DatabaseImportModule {
     // Get custom views first so if there is any error in the queries there is no
     // wasted time
 
-    if (!customViews.isEmpty()) {
-      Map<String, Map<String, String>> schemaCustomViews = customViews.get(schema.getName());
-      if (schemaCustomViews != null) {
-        for (Map.Entry<String, Map<String, String>> entry : schemaCustomViews.entrySet()) {
-          String viewDescription = entry.getValue().get("description");
-          String query = entry.getValue().get("query");
-          LOGGER.info("Obtaining table structure for custom view {}", entry.getKey());
-          try {
-            TableStructure customViewStructureAsTable = getCustomViewStructureAsTable(schema, entry.getKey(),
-              tableIndex, viewDescription, query);
-            tables.add(customViewStructureAsTable);
-            tableIndex++;
-          } catch (SQLException e) {
-            if (e.getSQLState().equals("42S02")) {
-              throw new TableNotFoundException()
-                .withMessage(e.getMessage() + "\nPlease check if the query in the YAML file is correct");
-            } else if (e.getSQLState().equals("42000")) {
-              throw new SQLParseException()
-                .withMessage("The query has parsing errors\nPlease test the query for custom view '" + entry.getKey()
-                  + "' in a DBMS");
-            } else {
-              throw new ModuleException()
-                .withMessage("Error getting custom view structure for " + schema.getName() + "." + entry.getKey())
-                .withCause(e);
-            }
+    List<CustomViewConfiguration> customViewConfigurations = getModuleConfiguration().getCustomViews(schema.getName());
+
+    if (!customViewConfigurations.isEmpty()) {
+      for (CustomViewConfiguration custom : customViewConfigurations) {
+        String description = custom.getDescription();
+        String query = custom.getQuery();
+        String name = custom.getName();
+        LOGGER.info("Obtaining table structure for custom view {}", name);
+
+        try {
+          TableStructure customViewStructureAsTable = getCustomViewStructureAsTable(schema, name, tableIndex,
+            description, query);
+          tables.add(customViewStructureAsTable);
+          tableIndex++;
+        } catch (SQLException e) {
+          if (e.getSQLState().equals("42S02")) {
+            throw new TableNotFoundException()
+              .withMessage(e.getMessage() + "\nPlease check if the query for the custom view " + name + " on schema "
+                + schema.getName() + "is correct");
+          } else if (e.getSQLState().equals("42000")) {
+            throw new SQLParseException().withMessage(
+              "The query has parsing errors, please test the query for custom view '" + name + "' in a DBMS");
+          } else {
+            throw new ModuleException()
+              .withMessage("Error getting custom view structure for " + name + " on schema " + schema.getName())
+              .withCause(e);
           }
         }
-      } else {
-        throw new ModuleException().withMessage("The schema '" + schema.getName() + "' was not found in "
-          + customViewsPath + "\nPlease check if the schema name in the YAML file is correct");
       }
     }
+
+    // if (!customViews.isEmpty()) {
+    // Map<String, Map<String, String>> schemaCustomViews =
+    // customViews.get(schema.getName());
+    // if (schemaCustomViews != null) {
+    // for (Map.Entry<String, Map<String, String>> entry :
+    // schemaCustomViews.entrySet()) {
+    // String viewDescription = entry.getValue().get("description");
+    // String query = entry.getValue().get("query");
+    // LOGGER.info("Obtaining table structure for custom view {}", entry.getKey());
+    // try {
+    // TableStructure customViewStructureAsTable =
+    // getCustomViewStructureAsTable(schema, entry.getKey(),
+    // tableIndex, viewDescription, query);
+    // tables.add(customViewStructureAsTable);
+    // tableIndex++;
+    // } catch (SQLException e) {
+    // if (e.getSQLState().equals("42S02")) {
+    // throw new TableNotFoundException()
+    // .withMessage(e.getMessage() + "\nPlease check if the query in the YAML file
+    // is correct");
+    // } else if (e.getSQLState().equals("42000")) {
+    // throw new SQLParseException()
+    // .withMessage("The query has parsing errors\nPlease test the query for custom
+    // view '" + entry.getKey()
+    // + "' in a DBMS");
+    // } else {
+    // throw new ModuleException()
+    // .withMessage("Error getting custom view structure for " + schema.getName() +
+    // "." + entry.getKey())
+    // .withCause(e);
+    // }
+    // }
+    // }
+    // } else {
+    // throw new ModuleException().withMessage("The schema '" + schema.getName() +
+    // "' was not found in "
+    // + customViewsPath + "\nPlease check if the schema name in the YAML file is
+    // correct");
+    // }
+    // }
     try (
       ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"TABLE"})) {
       while (rset.next()) {
         String tableName = rset.getString(3);
         String tableDescription = rset.getString(5);
 
-        if (getModuleSettings().isSelectedTable(schema.getName(), tableName)) {
+        if (getModuleConfiguration().isSelectedTable(schema.getName(), tableName)) {
           LOGGER.info("Obtaining table structure for {}.{}", schema.getName(), tableName);
           tables.add(getTableStructure(schema, tableName, tableIndex, tableDescription, false));
           tableIndex++;
@@ -680,20 +712,29 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
     }
 
-    if (getModuleSettings().fetchWithViewAsTable()) {
+    if (!getModuleConfiguration().ignoreViews()) {
       try (
         ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"VIEW"})) {
         while (rset.next()) {
           String viewName = rset.getString(3);
           String viewDescription = rset.getString(5);
 
-          if (getModuleSettings().isSelectedTable(schema.getName(), viewName)) {
+          if (getModuleConfiguration().isMaterializeView(schema.getName(), viewName)) {
             LOGGER.info("Obtaining table structure for view {}.{}", schema.getName(), viewName);
             tables.add(getViewStructure(schema, viewName, tableIndex, viewDescription));
             tableIndex++;
           } else {
             LOGGER.info("Ignoring view {}.{}", schema.getName(), viewName);
           }
+
+          // if (getModuleSettings().isSelectedTable(schema.getName(), viewName)) {
+          // LOGGER.info("Obtaining table structure for view {}.{}", schema.getName(),
+          // viewName);
+          // tables.add(getViewStructure(schema, viewName, tableIndex, viewDescription));
+          // tableIndex++;
+          // } else {
+          // LOGGER.info("Ignoring view {}.{}", schema.getName(), viewName);
+          // }
         }
       }
     }
@@ -709,25 +750,29 @@ public class JDBCImportModule implements DatabaseImportModule {
    */
   protected List<ViewStructure> getViews(String schemaName) throws SQLException, ModuleException {
     List<ViewStructure> views = new ArrayList<>();
-    try (ResultSet rset = getMetadata().getTables(dbStructure.getName(), schemaName, "%", new String[] {"VIEW"})) {
-      while (rset.next()) {
-        String viewName = rset.getString(3);
-        ViewStructure view = new ViewStructure();
-        view.setName(viewName);
-        view.setDescription(rset.getString(5));
-        try {
-          view.setColumns(getColumns(schemaName, viewName));
-        } catch (SQLException e) {
-          reporter.ignored("Columns from view " + viewName + " in schema " + schemaName,
-            "there was a problem retrieving them form the database");
+    if (!getModuleConfiguration().ignoreViews()) {
+      try (ResultSet rset = getMetadata().getTables(dbStructure.getName(), schemaName, "%", new String[] {"VIEW"})) {
+        while (rset.next()) {
+          String viewName = rset.getString(3);
+          if (getModuleConfiguration().isSelectedView(schemaName, viewName)) {
+            ViewStructure view = new ViewStructure();
+            view.setName(viewName);
+            view.setDescription(rset.getString(5));
+            try {
+              view.setColumns(getColumns(schemaName, viewName));
+            } catch (SQLException e) {
+              reporter.ignored("Columns from view " + viewName + " in schema " + schemaName,
+                "there was a problem retrieving them form the database");
+            }
+            if (view.getColumns().isEmpty()) {
+              reporter.ignored("View " + viewName + " in schema " + schemaName, "it contains no columns");
+            } else {
+              views.add(view);
+            }
+          }
         }
-        if (view.getColumns().isEmpty()) {
-          reporter.ignored("View " + viewName + " in schema " + schemaName, "it contains no columns");
-        } else {
-          views.add(view);
-        }
+        views.addAll(getCustomViews(schemaName));
       }
-      views.addAll(getCustomViews(schemaName));
     }
 
     return views;
@@ -735,28 +780,54 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   protected List<ViewStructure> getCustomViews(String schemaName) throws ModuleException {
     List<ViewStructure> views = new ArrayList<>();
-    Map<String, Map<String, String>> schemaCustomViews = customViews.get(schemaName);
 
-    if (schemaCustomViews != null) {
-      for (Map.Entry<String, Map<String, String>> entry : schemaCustomViews.entrySet()) {
+    List<CustomViewConfiguration> customViewConfigurations = getModuleConfiguration().getCustomViews(schemaName);
+
+    if (!customViewConfigurations.isEmpty()) {
+      for (CustomViewConfiguration custom : customViewConfigurations) {
         ViewStructure view = new ViewStructure();
-        view.setName(CUSTOM_VIEW_NAME_PREFIX + entry.getKey());
-        view.setDescription(entry.getValue().get("description"));
-        view.setQueryOriginal(entry.getValue().get("query"));
+        view.setName(CUSTOM_VIEW_NAME_PREFIX + custom.getName());
+        view.setDescription(custom.getDescription());
+        view.setQueryOriginal(custom.getQuery());
 
         try {
-          view.setColumns(getColumnsFromCustomView(entry.getKey(), entry.getValue().get("query")));
+          view.setColumns(getColumnsFromCustomView(custom.getName(), custom.getQuery()));
         } catch (SQLException e) {
-          reporter.ignored("Columns from custom view " + entry.getKey() + " in schema " + schemaName,
+          reporter.ignored("Columns from custom view " + custom.getName() + " in schema " + schemaName,
             "there was a problem retrieving them form the database");
         }
         if (view.getColumns().isEmpty()) {
-          reporter.ignored("Custom view " + entry.getKey() + " in schema " + schemaName, "it contains no columns");
+          reporter.ignored("Custom view " + custom.getName() + " in schema " + schemaName, "it contains no columns");
         } else {
           views.add(view);
         }
       }
     }
+
+    // if (schemaCustomViews != null) {
+    // for (Map.Entry<String, Map<String, String>> entry :
+    // schemaCustomViews.entrySet()) {
+    // ViewStructure view = new ViewStructure();
+    // view.setName(CUSTOM_VIEW_NAME_PREFIX + entry.getKey());
+    // view.setDescription(entry.getValue().get("description"));
+    // view.setQueryOriginal(entry.getValue().get("query"));
+    //
+    // try {
+    // view.setColumns(getColumnsFromCustomView(entry.getKey(),
+    // entry.getValue().get("query")));
+    // } catch (SQLException e) {
+    // reporter.ignored("Columns from custom view " + entry.getKey() + " in schema "
+    // + schemaName,
+    // "there was a problem retrieving them form the database");
+    // }
+    // if (view.getColumns().isEmpty()) {
+    // reporter.ignored("Custom view " + entry.getKey() + " in schema " +
+    // schemaName, "it contains no columns");
+    // } else {
+    // views.add(view);
+    // }
+    // }
+    // }
 
     return views;
   }
@@ -826,23 +897,37 @@ public class JDBCImportModule implements DatabaseImportModule {
     table.setDescription(description);
 
     List<ColumnStructure> columns = getColumns(schema.getName(), tableName);
-    columns.removeIf(column -> !moduleSettings.isSelectedColumn(schema.getName(), tableName, column.getName()));
+    columns
+      .removeIf(column -> !getModuleConfiguration().isSelectedColumn(schema.getName(), tableName, column.getName()));
 
     table.setColumns(columns);
 
     if (!view) {
-      table.setForeignKeys(getForeignKeys(schema.getName(), tableName));
-      if (moduleSettings.fetchMetadataInformation()) {
-        table.setPrimaryKey(getPrimaryKey(schema.getName(), tableName));
-        table.setCandidateKeys(getCandidateKeys(schema.getName(), tableName));
-        table.setCheckConstraints(getCheckConstraints(schema.getName(), tableName));
+      if (!getModuleConfiguration().ignoreTriggers()) {
         table.setTriggers(getTriggers(schema.getName(), tableName));
+      }
+
+      if (!getModuleConfiguration().ignorePrimaryKey()) {
+        table.setPrimaryKey(getPrimaryKey(schema.getName(), tableName));
+      }
+
+      if (!getModuleConfiguration().ignoreForeignKey()) {
+        table.setForeignKeys(getForeignKeys(schema.getName(), tableName));
+      }
+
+      if (!getModuleConfiguration().ignoreCandidateKey()) {
+        table.setCandidateKeys(getCandidateKeys(schema.getName(), tableName));
+      }
+
+      if (!getModuleConfiguration().ignoreCheckConstraints()) {
+        table.setCheckConstraints(getCheckConstraints(schema.getName(), tableName));
       }
     }
 
-    if (moduleSettings.shouldCountRows()) {
-      table.setRows(getRows(schema.getName(), tableName));
-    }
+    // no preemptive row counting when obtaining the structure.
+    // if (moduleSettings.shouldCountRows()) {
+    // table.setRows(getRows(schema.getName(), tableName));
+    // }
     return table;
   }
 
@@ -867,12 +952,12 @@ public class JDBCImportModule implements DatabaseImportModule {
 
     view.setColumns(getColumnsFromCustomView(viewName, query));
     view.setPrimaryKey(null);
-    view.setForeignKeys(new ArrayList<ForeignKey>());
-    view.setCandidateKeys(new ArrayList<CandidateKey>());
-    view.setCheckConstraints(new ArrayList<CheckConstraint>());
-    view.setTriggers(new ArrayList<Trigger>());
+    view.setForeignKeys(new ArrayList<>());
+    view.setCandidateKeys(new ArrayList<>());
+    view.setCheckConstraints(new ArrayList<>());
+    view.setTriggers(new ArrayList<>());
 
-    view.setRows(getCustomViewRows(query));
+    // view.setRows(getCustomViewRows(query));
     view.setFromCustomView(true);
 
     return view;
@@ -1872,6 +1957,10 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   protected ResultSet getTableRawData(TableStructure table) throws SQLException, ModuleException {
     String query = sqlHelper.selectTableSQL(table);
+    String whereClause = getModuleConfiguration().getWhereClause(table.getSchema(), table.getName());
+    if (whereClause != null) {
+      query = sqlHelper.appendWhereClause(query, whereClause);
+    }
     LOGGER.debug("query: " + query);
     return getTableRawData(query, table.getId());
   }
@@ -1974,7 +2063,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @return the schemas to be ignored at export
    */
   protected Set<String> getIgnoredExportedSchemas() {
-    HashSet ignore = new HashSet<String>();
+    Set<String> ignore = new HashSet<>();
     ignore.add("information_schema");
     ignore.add("pg_catalog");
     return ignore;
@@ -1983,7 +2072,10 @@ public class JDBCImportModule implements DatabaseImportModule {
   @Override
   public DatabaseExportModule migrateDatabaseTo(DatabaseExportModule exportModule) throws ModuleException {
     try {
-      moduleSettings = exportModule.getModuleSettings();
+      if (exportModule.getModuleConfiguration() != null) {
+        // override done due to the creation of import configuration file
+        moduleConfiguration = exportModule.getModuleConfiguration();
+      }
 
       exportModule.initDatabase();
 
@@ -1993,19 +2085,17 @@ public class JDBCImportModule implements DatabaseImportModule {
 
       for (SchemaStructure schema : getDatabaseStructure().getSchemas()) {
         exportModule.handleDataOpenSchema(schema.getName());
-        Map<String, Map<String, String>> schemaCustomViews = customViews.get(schema.getName());
+
         for (TableStructure table : schema.getTables()) {
           exportModule.handleDataOpenTable(table.getId());
 
           long nRows = 0;
-          long tableRows = table.getRows();
-          if (moduleSettings.shouldFetchRows()) {
-
+          if (getModuleConfiguration().isFetchRows()) {
             if (table.isFromCustomView()) {
-              if (schemaCustomViews != null) {
-                try (ResultSet tableRawData = getTableRawData(
-                  schemaCustomViews.get(table.getName().replace(CUSTOM_VIEW_NAME_PREFIX, "")).get("query"),
-                  table.getId())) {
+              CustomViewConfiguration customView = getModuleConfiguration().getCustomViewConfiguration(schema.getName(),
+                table.getName().replace(CUSTOM_VIEW_NAME_PREFIX, ""));
+              if (customView != null) {
+                try (ResultSet tableRawData = getTableRawData(customView.getQuery(), table.getId())) {
                   while (resultSetNext(tableRawData)) {
                     exportModule.handleDataRow(convertRawToRow(tableRawData, table));
                     nRows++;
@@ -2026,6 +2116,10 @@ public class JDBCImportModule implements DatabaseImportModule {
                   nRows++;
                 }
               } catch (SQLException | ModuleException e) {
+                if (e instanceof SQLException) {
+                  throw new SQLParseException()
+                    .withMessage(e.getMessage() + " at schema: " + table.getSchema() + " on table: " + table.getName());
+                }
                 if (e.getCause().getClass().equals(IOException.class)) {
                   LOGGER.error(e.getCause().getMessage());
                 }
@@ -2035,12 +2129,15 @@ public class JDBCImportModule implements DatabaseImportModule {
           }
           LOGGER.debug("Total of {} row(s) processed", nRows);
 
-          if (nRows < tableRows && moduleSettings.shouldFetchRows()) {
-            LOGGER.warn("The database reported a total of {} rows. Some data may have been lost.", tableRows);
-            reporter.customMessage(this.getClass().getName(),
-              "Only processed " + nRows + " out of " + tableRows + " rows contained in table '" + table.getName()
-                + "'. The log file may contain more information to help diagnose this problem.");
-          }
+          // if (nRows < tableRows && moduleSettings.shouldFetchRows()) {
+          // LOGGER.warn("The database reported a total of {} rows. Some data may have
+          // been lost.", tableRows);
+          // reporter.customMessage(this.getClass().getName(),
+          // "Only processed " + nRows + " out of " + tableRows + " rows contained in
+          // table '" + table.getName()
+          // + "'. The log file may contain more information to help diagnose this
+          // problem.");
+          // }
 
           getDatabaseStructure().getTableById(table.getId()).setRows(nRows);
 
@@ -2048,6 +2145,10 @@ public class JDBCImportModule implements DatabaseImportModule {
         }
         exportModule.handleDataCloseSchema(schema.getName());
       }
+
+      exportModule.updateModuleConfiguration(this.moduleName, this.connectionProperties,
+        this.remoteConnectionProperties);
+
       LOGGER.debug("Freeing resources");
       exportModule.finishDatabase();
     } finally {
@@ -2072,8 +2173,8 @@ public class JDBCImportModule implements DatabaseImportModule {
     datatypeImporter.setOnceReporter(reporter);
   }
 
-  public ModuleSettings getModuleSettings() {
-    return moduleSettings;
+  public ModuleConfiguration getModuleConfiguration() {
+    return moduleConfiguration;
   }
 
   @Override

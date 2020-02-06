@@ -35,7 +35,7 @@ import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.externalLobs.CellHandlers.ExternalLOBSCellHandlerFileSystem;
-import com.databasepreservation.modules.listTables.ListTables;
+import com.databasepreservation.modules.config.ImportConfiguration;
 
 public class ExternalLOBSFilterFactory implements DatabaseFilterFactory {
   public final Pattern LINE_PATTERN = Pattern
@@ -133,7 +133,7 @@ public class ExternalLOBSFilterFactory implements DatabaseFilterFactory {
           if (StringUtils.isNotBlank(line)) {
             content.append(line).append(Constants.NEW_LINE);
 
-            Matcher lineMatcher = ListTables.LINE_PATTERN.matcher(line);
+            Matcher lineMatcher = ImportConfiguration.LINE_PATTERN.matcher(line);
             if (!lineMatcher.matches()) {
               throw new ModuleException().withMessage("Malformed entry in column list: " + line);
             }
@@ -142,7 +142,7 @@ public class ExternalLOBSFilterFactory implements DatabaseFilterFactory {
             String tablePart = lineMatcher.group(2);
             tablePart = tablePart.substring(1);
             String columnPart = lineMatcher.group(3);
-            String[] columns = columnPart.split(ListTables.COLUMNS_SEPARATOR);
+            String[] columns = columnPart.split(ImportConfiguration.COLUMNS_SEPARATOR);
 
             if (colList.containsKey(schemaPart)) {
               if (colList.get(schemaPart).containsKey(tablePart)) {

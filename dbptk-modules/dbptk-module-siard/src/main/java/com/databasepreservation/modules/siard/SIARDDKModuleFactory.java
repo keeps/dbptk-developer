@@ -7,7 +7,6 @@
  */
 package com.databasepreservation.modules.siard;
 
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,6 +22,7 @@ import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameter.CATEGORY_TYPE;
 import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
@@ -30,6 +30,7 @@ import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.in.input.SIARDDKImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
+import com.databasepreservation.utils.ModuleConfigurationUtils;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
@@ -38,7 +39,6 @@ import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
  */
 public class SIARDDKModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_FOLDER = "folder";
-  public static final String PARAMETER_TABLE_FILTER = "table-filter";
   public static final String PARAMETER_ARCHIVE_INDEX = "archiveIndex";
   public static final String PARAMETER_CONTEXT_DOCUMENTATION_INDEX = "contextDocumentationIndex";
   public static final String PARAMETER_CONTEXT_DOCUMENTATION_FOLDER = SIARDDKConstants.CONTEXT_DOCUMENTATION_FOLDER;
@@ -52,11 +52,6 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
   private static final Parameter folder = new Parameter().shortName("f").longName(PARAMETER_FOLDER).description(
     "Path to (the first) SIARDDK archive folder. Archive folder name must match the expression AVID.[A-ZÆØÅ]{2,4}.[1-9][0-9]*.1 Any additional parts of the archive (eg. with suffixes .2 .3 etc) referenced in the tableIndex.xml will also be processed.")
     .hasArgument(true).setOptionalArgument(false).required(true);
-
-  private static final Parameter tableFilter = new Parameter().shortName("tf").longName(PARAMETER_TABLE_FILTER)
-    .description(
-      "file with the list of tables that should be exported (this file can be created by the list-tables export module).")
-    .required(false).hasArgument(true).setOptionalArgument(false);
 
   private static final Parameter archiveIndex = new Parameter().shortName("ai").longName(PARAMETER_ARCHIVE_INDEX)
     .description("Path to archiveIndex.xml input file").hasArgument(true).setOptionalArgument(false).required(false);
@@ -122,7 +117,6 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     HashMap<String, Parameter> parameterMap = new HashMap<String, Parameter>();
 
     parameterMap.put(folder.longName(), folder);
-    parameterMap.put(tableFilter.longName(), tableFilter);
     parameterMap.put(archiveIndex.longName(), archiveIndex);
     parameterMap.put(contextDocumentationIndex.longName(), contextDocumentationIndex);
     parameterMap.put(contextDocumentationFolder.longName(), contextDocumentationFolder);
@@ -138,7 +132,8 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Parameters getConnectionParameters() {
-    return new Parameters(Arrays.asList(folder.inputType(INPUT_TYPE.FOLDER), PARAM_IMPORT_AS_SCHEMA.inputType(INPUT_TYPE.TEXT)), null);
+    return new Parameters(
+      Arrays.asList(folder.inputType(INPUT_TYPE.FOLDER), PARAM_IMPORT_AS_SCHEMA.inputType(INPUT_TYPE.TEXT)), null);
   }
 
   @Override
@@ -154,9 +149,10 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
 
     return new Parameters(
       Arrays.asList(folder.inputType(INPUT_TYPE.FOLDER).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
-        tableFilter.inputType(INPUT_TYPE.NONE),
-        archiveIndex.inputType(INPUT_TYPE.FILE_OPEN).fileFilter(Parameter.FILE_FILTER_TYPE.XML_EXTENSION).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
-        contextDocumentationIndex.inputType(INPUT_TYPE.FILE_OPEN).fileFilter(Parameter.FILE_FILTER_TYPE.XML_EXTENSION).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+        archiveIndex.inputType(INPUT_TYPE.FILE_OPEN).fileFilter(Parameter.FILE_FILTER_TYPE.XML_EXTENSION)
+          .exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+        contextDocumentationIndex.inputType(INPUT_TYPE.FILE_OPEN).fileFilter(Parameter.FILE_FILTER_TYPE.XML_EXTENSION)
+          .exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
         contextDocumentationFolder.inputType(INPUT_TYPE.FOLDER).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
         lobsPerFolder.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS),
         lobsFolderSize.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS)),
@@ -165,12 +161,17 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws UnsupportedModuleException, LicenseNotAcceptedException {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) {
+    return buildImportModule(parameters, ModuleConfigurationUtils.getDefaultModuleConfiguration(), reporter);
+  }
+
+  @Override
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters,
+    ModuleConfiguration moduleConfiguration, Reporter reporter) {
     reporter.importModuleParameters(getModuleName(), "file",
       Paths.get(parameters.get(folder)).normalize().toAbsolutePath().toString(), PARAM_IMPORT_AS_SCHEMA.longName(),
       parameters.get(PARAM_IMPORT_AS_SCHEMA));
-    return new SIARDDKImportModule(Paths.get(parameters.get(folder)), parameters.get(PARAM_IMPORT_AS_SCHEMA))
+    return new SIARDDKImportModule(moduleConfiguration, Paths.get(parameters.get(folder)), parameters.get(PARAM_IMPORT_AS_SCHEMA))
       .getDatabaseImportModule();
   }
 
@@ -184,12 +185,6 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     String pArchiveIndex = parameters.get(archiveIndex);
     String pContextDocumentationIndex = parameters.get(contextDocumentationIndex);
     String pContextDocumentationFolder = parameters.get(contextDocumentationFolder);
-
-    // optional
-    Path pTableFilter = null;
-    if (StringUtils.isNotBlank(parameters.get(tableFilter))) {
-      pTableFilter = Paths.get(parameters.get(tableFilter));
-    }
 
     // optional
     String pLobsPerFolder = lobsPerFolder.valueIfNotSet();
@@ -229,10 +224,6 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     exportModuleParameters.add(pContextDocumentationIndex);
     exportModuleParameters.add(contextDocumentationFolder.longName());
     exportModuleParameters.add(pContextDocumentationFolder);
-    if (pTableFilter != null) {
-      exportModuleParameters.add(tableFilter.longName());
-      exportModuleParameters.add(pTableFilter.normalize().toAbsolutePath().toString());
-    }
     if (!pLobsPerFolder.equals(lobsPerFolder.valueIfNotSet())) {
       exportModuleParameters.add(lobsPerFolder.longName());
       exportModuleParameters.add(pLobsPerFolder);
@@ -241,9 +232,8 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
       exportModuleParameters.add(lobsFolderSize.longName());
       exportModuleParameters.add(pLobsFolderSize);
     }
-    reporter.exportModuleParameters(getModuleName(),
-      exportModuleParameters.toArray(new String[exportModuleParameters.size()]));
+    reporter.exportModuleParameters(getModuleName(), exportModuleParameters.toArray(new String[0]));
 
-    return new SIARDDKExportModule(exportModuleArgs, pTableFilter).getDatabaseExportModule();
+    return new SIARDDKExportModule(exportModuleArgs).getDatabaseExportModule();
   }
 }

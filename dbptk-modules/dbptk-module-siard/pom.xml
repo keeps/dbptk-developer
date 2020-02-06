@@ -22,7 +22,7 @@
         </dependency>
         <dependency>
             <groupId>com.databasepreservation</groupId>
-            <artifactId>dbptk-module-list-tables</artifactId>
+            <artifactId>dbptk-module-import-config</artifactId>
         </dependency>
         <dependency>
             <groupId>com.databasepreservation</groupId>

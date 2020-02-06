@@ -121,9 +121,8 @@ public class SQLHelper {
    * @param table
    *          the table structure
    * @return the SQL
-   * @throws UnknownTypeException
    */
-  public String createTableSQL(TableStructure table) throws UnknownTypeException, ModuleException {
+  public String createTableSQL(TableStructure table) throws ModuleException {
     return new StringBuilder().append("CREATE TABLE ").append(escapeTableId(table.getId())).append(" (")
       .append(createColumnsSQL(table.getColumns(), table.getPrimaryKey(), table.getForeignKeys())).append(")")
       .toString();
@@ -131,7 +130,7 @@ public class SQLHelper {
 
   protected String createColumnsSQL(List<ColumnStructure> columns, PrimaryKey pkey, List<ForeignKey> fkeys)
     throws UnknownTypeException {
-    String ret = "";
+    StringBuilder ret = new StringBuilder();
     int index = 0;
     for (ColumnStructure column : columns) {
       boolean isPkey = pkey != null && pkey.getColumnNames().contains(column.getName());
@@ -140,11 +139,11 @@ public class SQLHelper {
         isFkey |= fkey.getName().equals(column.getName());
       }
       String columnTypeSQL = createColumnSQL(column, isPkey, isFkey);
-      ret += (index > 0 ? ", " : "") + columnTypeSQL;
+      ret.append(index > 0 ? ", " : "").append(columnTypeSQL);
 
       index++;
     }
-    return ret;
+    return ret.toString();
   }
 
   protected String createColumnSQL(ColumnStructure column, boolean isPrimaryKey, boolean isForeignKey)
@@ -317,27 +316,27 @@ public class SQLHelper {
    * @throws ModuleException
    */
   public String createForeignKeySQL(TableStructure table, ForeignKey fkey) throws ModuleException {
-    String ret = "ALTER TABLE " + escapeTableId(table.getId()) + " ADD FOREIGN KEY (";
+    StringBuilder ret = new StringBuilder("ALTER TABLE " + escapeTableId(table.getId()) + " ADD FOREIGN KEY (");
 
     for (int i = 0; i < fkey.getReferences().size(); i++) {
       if (i > 0) {
-        ret += ", ";
+        ret.append(", ");
       }
-      ret += escapeColumnName(fkey.getReferences().get(i).getColumn());
+      ret.append(escapeColumnName(fkey.getReferences().get(i).getColumn()));
     }
 
-    ret += ") REFERENCES " + escapeSchemaName(fkey.getReferencedSchema()) + "."
-      + escapeTableName(fkey.getReferencedTable()) + " (";
+    ret.append(") REFERENCES ").append(escapeSchemaName(fkey.getReferencedSchema())).append(".")
+      .append(escapeTableName(fkey.getReferencedTable())).append(" (");
 
     for (int i = 0; i < fkey.getReferences().size(); i++) {
       if (i > 0) {
-        ret += ", ";
+        ret.append(", ");
       }
-      ret += escapeColumnName(fkey.getReferences().get(i).getReferenced());
+      ret.append(escapeColumnName(fkey.getReferences().get(i).getReferenced()));
     }
 
-    ret += ")";
-    return ret;
+    ret.append(")");
+    return ret.toString();
   }
 
   /**
@@ -353,8 +352,7 @@ public class SQLHelper {
    * @throws ModuleException
    * @throws InvalidDataException
    */
-  public byte[] createRowSQL(TableStructure table, Row row, CellSQLHandler cellSQLHandler)
-    throws InvalidDataException, ModuleException {
+  public byte[] createRowSQL(TableStructure table, Row row, CellSQLHandler cellSQLHandler) throws ModuleException {
     ByteArrayOutputStream sqlOut = new ByteArrayOutputStream();
     try {
       sqlOut.write(("INSERT INTO " + escapeTableName(table.getName()) + " VALUES (").getBytes());
@@ -383,16 +381,16 @@ public class SQLHelper {
    * @throws ModuleException
    */
   public String createRowSQL(TableStructure table) throws ModuleException {
-    String ret = "INSERT INTO " + escapeTableId(table.getId()) + " VALUES (";
+    StringBuilder ret = new StringBuilder("INSERT INTO " + escapeTableId(table.getId()) + " VALUES (");
     for (int i = 0; i < table.getColumns().size(); i++) {
       if (i > 0) {
-        ret += ", ";
+        ret.append(", ");
       }
-      ret += "?";
+      ret.append("?");
     }
-    ret += ")";
+    ret.append(")");
 
-    return ret;
+    return ret.toString();
   }
 
   protected String escapeDatabaseName(String database) {
@@ -412,7 +410,6 @@ public class SQLHelper {
 
   protected String getEscapedTableNameFromId(String tableId) throws ModuleException {
     String[] parts = splitTableId(tableId);
-    // String schema = parts[0];
     String table = parts[1];
     return escapeTableName(table);
   }
@@ -433,12 +430,12 @@ public class SQLHelper {
     return getStartQuote() + column + getEndQuote();
   }
 
-  protected String escapePrimaryKeyName(String pkey_name) {
-    return getStartQuote() + pkey_name + getEndQuote();
+  protected String escapePrimaryKeyName(String primaryKeyName) {
+    return getStartQuote() + primaryKeyName + getEndQuote();
   }
 
   protected String[] splitTableId(String tableId) throws ModuleException {
-    String[] parts = tableId.split("\\.",2);
+    String[] parts = tableId.split("\\.", 2);
     if (parts.length != 2) {
       throw new ModuleException().withMessage("An error occurred while splitting table id: tableId is malformed");
     }
@@ -514,6 +511,10 @@ public class SQLHelper {
     return null;
   }
 
+  public String appendWhereClause(String query, String where) {
+    return query + " WHERE " + where.trim();
+  }
+
   /**
    * Interface of handlers that will transform a cell in SQL
    */
@@ -527,10 +528,9 @@ public class SQLHelper {
      *          the column to which this cell belongs to
      * @return the SQL in a byte array. The byte array is to allow having binary
      *         directly on the SQL.
-     * @throws InvalidDataException
      * @throws ModuleException
      */
-    public byte[] createCellSQL(Cell cell, ColumnStructure column) throws InvalidDataException, ModuleException;
+    public byte[] createCellSQL(Cell cell, ColumnStructure column) throws ModuleException;
   }
 
   public void setOnceReporter(Reporter reporter) {

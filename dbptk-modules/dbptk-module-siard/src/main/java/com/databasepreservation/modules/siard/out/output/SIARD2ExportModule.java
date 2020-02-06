@@ -38,17 +38,13 @@ public class SIARD2ExportModule {
   private final SIARDArchiveContainer mainContainer;
   private final WriteStrategy writeStrategy;
 
-  private final Path tableFilter;
-
   private MetadataExportStrategy metadataStrategy;
   private ContentExportStrategy contentStrategy;
 
   private HashMap<String, String> descriptiveMetadata;
 
-  private boolean validate = false;
-
   public SIARD2ExportModule(SIARDConstants.SiardVersion version, Path siardPackage, boolean compressZip,
-    boolean prettyXML, Path tableFilter, HashMap<String, String> descriptiveMetadata) {
+    boolean prettyXML, HashMap<String, String> descriptiveMetadata) {
     this.descriptiveMetadata = descriptiveMetadata;
     contentPathStrategy = new SIARD2ContentPathExportStrategy();
     metadataPathStrategy = new SIARD2MetadataPathStrategy();
@@ -69,12 +65,10 @@ public class SIARD2ExportModule {
     }
 
     contentStrategy = new SIARD2ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer, prettyXML);
-
-    this.tableFilter = tableFilter;
   }
 
   public SIARD2ExportModule(SIARDConstants.SiardVersion version, Path siardPackage, boolean compressZip,
-    boolean prettyXML, Path tableFilter, int externalLobsPerFolder, long externalLobsFolderSize,
+    boolean prettyXML, int externalLobsPerFolder, long externalLobsFolderSize,
     HashMap<String, String> descriptiveMetadata) {
     this.descriptiveMetadata = descriptiveMetadata;
     contentPathStrategy = new SIARD2ContentWithExternalLobsPathExportStrategy();
@@ -102,16 +96,9 @@ public class SIARD2ExportModule {
 
     contentStrategy = new SIARD2ContentWithExternalLobsExportStrategy(contentPathStrategy, writeStrategy, mainContainer,
       prettyXML, externalLobsPerFolder, externalLobsFolderSize);
-
-    this.tableFilter = tableFilter;
   }
 
   public DatabaseExportModule getDatabaseHandler() {
-    return new SIARDExportDefault(contentStrategy, mainContainer, writeStrategy, metadataStrategy, tableFilter,
-      descriptiveMetadata, validate);
-  }
-
-  public void setValidate(boolean validate) {
-    this.validate = validate;
+    return new SIARDExportDefault(contentStrategy, mainContainer, writeStrategy, metadataStrategy, descriptiveMetadata);
   }
 }

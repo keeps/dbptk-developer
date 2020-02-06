@@ -9,7 +9,6 @@ package com.databasepreservation.modules.msAccess.in;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -17,17 +16,20 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.Constants;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.PrivilegeStructure;
 import com.databasepreservation.model.structure.RoutineStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
@@ -35,6 +37,7 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.msAccess.MsAccessHelper;
+import com.databasepreservation.utils.MapUtils;
 import com.healthmarketscience.jackcess.Database;
 
 import net.ucanaccess.complex.SingleValue;
@@ -50,23 +53,29 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
   private static String INVALID_CHARACTERS_IN_TABLE_NAME = "\'";
   private String password = null;
 
-  public MsAccessUCanAccessImportModule(File msAccessFile, Path customViews) throws ModuleException {
+  public MsAccessUCanAccessImportModule(String moduleName, ModuleConfiguration moduleConfiguration, File msAccessFile,
+    Map<String, String> properties) throws ModuleException {
     super("net.ucanaccess.jdbc.UcanaccessDriver",
       "jdbc:ucanaccess://" + msAccessFile.getAbsolutePath() + ";showSchema=true;", new MsAccessHelper(),
-      new MsAccessUCanAccessDatatypeImporter(), customViews);
+      new MsAccessUCanAccessDatatypeImporter(), moduleConfiguration, moduleName, properties);
   }
 
-  public MsAccessUCanAccessImportModule(File msAccessFile, String password, Path customViews) throws ModuleException {
-    this(msAccessFile, customViews);
+  public MsAccessUCanAccessImportModule(String moduleName, ModuleConfiguration moduleConfiguration, File msAccessFile,
+    String password) throws ModuleException {
+    this(moduleName, moduleConfiguration, msAccessFile,
+      MapUtils.buildMapFromObjects(Constants.DB_SERVER_NAME, msAccessFile, Constants.DB_PASSWORD, password));
     this.password = password;
   }
 
-  public MsAccessUCanAccessImportModule(String accessFilePath, Path customViews) throws ModuleException {
-    this(new File(accessFilePath), customViews);
+  public MsAccessUCanAccessImportModule(String moduleName, ModuleConfiguration moduleConfiguration,
+    String accessFilePath) throws ModuleException {
+    this(moduleName, moduleConfiguration, new File(accessFilePath),
+      MapUtils.buildMapFromObjects(Constants.DB_SERVER_NAME, accessFilePath));
   }
 
-  public MsAccessUCanAccessImportModule(String accessFilePath, String password, Path customViews) throws ModuleException {
-    this(new File(accessFilePath), password, customViews);
+  public MsAccessUCanAccessImportModule(String moduleName, ModuleConfiguration moduleConfiguration,
+    String accessFilePath, String password) throws ModuleException {
+    this(moduleName, moduleConfiguration, new File(accessFilePath), password);
   }
 
   @Override
@@ -219,7 +228,7 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
           + " because it contains one of these non-supported characters: " + INVALID_CHARACTERS_IN_TABLE_NAME);
         reporter.ignored("table " + tableName + " in schema " + schema.getName(),
           "it contains one of these non-supported characters: " + INVALID_CHARACTERS_IN_TABLE_NAME);
-      } else if (getModuleSettings().isSelectedTable(schema.getName(), tableName)) {
+      } else if (getModuleConfiguration().isSelectedTable(schema.getName(), tableName)) {
         LOGGER.info("Obtaining table structure for " + schema.getName() + "." + tableName);
         tables.add(getTableStructure(schema, tableName, tableIndex, tableDescription, false));
         tableIndex++;

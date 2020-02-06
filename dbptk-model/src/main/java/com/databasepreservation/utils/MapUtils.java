@@ -8,10 +8,35 @@
 package com.databasepreservation.utils;
 
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class MapUtils {
   private MapUtils() {
+  }
+
+  public static Map<String, String> buildMapFromObjectsIf(boolean build, Object... values) {
+    if (build) {
+      return buildMapFromObjects(values);
+    } else {
+      return new LinkedHashMap<>();
+    }
+  }
+
+  public static Map<String, String> buildMapFromObjects(Object... values) {
+    Map<String, String> properties = new LinkedHashMap<>();
+
+    if (values != null && values.length > 0) {
+      if ((values.length % 2) == 0) {
+        for (int i = 0; i < values.length; i += 2) {
+          Object key = values[i];
+          Object value = values[i + 1];
+
+          properties.put(key.toString(), value.toString());
+        }
+      }
+    }
+    return properties;
   }
 
   public static boolean mapEquals(Map<?, ?> fst, Map<?, ?> snd) {
@@ -31,4 +56,6 @@ public final class MapUtils {
     }
     return false;
   }
+
+
 }

@@ -425,15 +425,13 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
   }
 
   private UsersType jaxbUsersType(List<UserStructure> users) throws ModuleException {
+    UsersType usersType = new UsersType();
     if (users != null && !users.isEmpty()) {
-      UsersType usersType = new UsersType();
       for (UserStructure user : users) {
         usersType.getUser().add(jaxbUserType(user));
       }
-      return usersType;
-    } else {
-      return null;
     }
+    return usersType;
   }
 
   private UserType jaxbUserType(UserStructure user) throws ModuleException {

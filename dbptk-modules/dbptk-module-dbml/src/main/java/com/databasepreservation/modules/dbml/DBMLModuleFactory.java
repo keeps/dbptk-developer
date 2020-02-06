@@ -15,12 +15,15 @@ import java.util.Map;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
+import com.databasepreservation.utils.ModuleConfigurationUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -64,7 +67,7 @@ public class DBMLModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public Parameters getImportModuleParameters() throws UnsupportedModuleException {
+  public Parameters getImportModuleParameters() {
     return new Parameters(Collections.singletonList(file), null);
   }
 
@@ -74,8 +77,13 @@ public class DBMLModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws UnsupportedModuleException, LicenseNotAcceptedException {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) {
+    return buildImportModule(parameters, ModuleConfigurationUtils.getDefaultModuleConfiguration(), reporter);
+  }
+
+  @Override
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters,
+    ModuleConfiguration moduleConfiguration, Reporter reporter) {
     Path pFile = Paths.get(parameters.get(file));
 
     reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString());
@@ -84,7 +92,7 @@ public class DBMLModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws UnsupportedModuleException, LicenseNotAcceptedException {
+    throws UnsupportedModuleException {
     throw DatabaseModuleFactory.ExceptionBuilder.UnsupportedModuleExceptionForExportModule();
   }
 }

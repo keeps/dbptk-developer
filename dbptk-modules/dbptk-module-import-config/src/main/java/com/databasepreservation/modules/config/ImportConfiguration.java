@@ -5,15 +5,12 @@
  *
  * https://github.com/keeps/db-preservation-toolkit
  */
-package com.databasepreservation.modules.listTables;
+package com.databasepreservation.modules.config;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -23,13 +20,15 @@ import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
-import com.databasepreservation.model.modules.ModuleSettings;
-import com.databasepreservation.model.structure.ColumnStructure;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
-import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.modules.DefaultExceptionNormalizer;
+import com.databasepreservation.utils.ModuleConfigurationUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 
 /**
  * Export module that produces a list of tables contained in the database. This
@@ -38,10 +37,7 @@ import com.databasepreservation.modules.DefaultExceptionNormalizer;
  * 
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class ListTables implements DatabaseExportModule {
-  public static final String SCHEMA_TABLE_SEPARATOR = ".";
-  public static final String COLUMNS_START = "{";
-  public static final String COLUMNS_END = "}";
+public class ImportConfiguration implements DatabaseExportModule {
   public static final String COLUMNS_SEPARATOR = ";";
 
   /**
@@ -58,18 +54,16 @@ public class ListTables implements DatabaseExportModule {
    *     schema.table{col1;;col3;;}
    * </code>
    */
-  public static final Pattern LINE_PATTERN = Pattern
-    .compile("^([^\\.\\{\\}\\;]+)((?:\\.(?:[^\\.\\{\\}\\;]+))+)\\{((?:[^\\s][^\\.\\{\\}\\;]*\\;)*[^\\s\\.\\{\\}\\;]*)\\}$");
+  public static final Pattern LINE_PATTERN = Pattern.compile(
+    "^([^\\.\\{\\}\\;]+)((?:\\.(?:[^\\.\\{\\}\\;]+))+)\\{((?:[^\\s][^\\.\\{\\}\\;]*\\;)*[^\\s\\.\\{\\}\\;]*)\\}$");
 
   private DatabaseStructure dbStructure;
   private SchemaStructure currentSchema;
-  private TableStructure currentTable;
+  private ModuleConfiguration moduleConfiguration;
   private Path outputFile;
-  private OutputStream outStream;
-  private Writer out;
-  private Reporter reporter;
+  private ObjectMapper mapper;
 
-  public ListTables(Path outputFile) {
+  public ImportConfiguration(Path outputFile) {
     this.outputFile = outputFile;
   }
 
@@ -80,26 +74,11 @@ public class ListTables implements DatabaseExportModule {
    * @throws ModuleException
    */
   @Override
-  public ModuleSettings getModuleSettings() throws ModuleException {
-    return new ModuleSettings() {
-      @Override
-      public boolean shouldFetchRows() {
-        return false;
-      }
-
-      @Override
-      public boolean shouldCountRows() {
-        return false;
-      }
-
-      @Override
-      public boolean fetchMetadataInformation() {
-        return false;
-      }
-
-      @Override
-      public boolean fetchWithViewAsTable() { return false; }
-    };
+  public ModuleConfiguration getModuleConfiguration() throws ModuleException {
+    final ModuleConfiguration defaultModuleConfiguration = ModuleConfigurationUtils.getDefaultModuleConfiguration();
+    defaultModuleConfiguration.setFetchRows(false);
+    defaultModuleConfiguration.setIgnore(ModuleConfigurationUtils.createIgnoreList(true));
+    return defaultModuleConfiguration;
   }
 
   /**
@@ -109,14 +88,8 @@ public class ListTables implements DatabaseExportModule {
    */
   @Override
   public void initDatabase() throws ModuleException {
-    try {
-      outStream = Files.newOutputStream(outputFile);
-      out = new OutputStreamWriter(outStream, StandardCharsets.UTF_8);
-
-    } catch (IOException e) {
-      throw new ModuleException().withMessage("Could not create file " + outputFile.toAbsolutePath().toString())
-        .withCause(e);
-    }
+    mapper = new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
+    moduleConfiguration = ModuleConfigurationUtils.getDefaultModuleConfiguration();
   }
 
   /**
@@ -179,24 +152,12 @@ public class ListTables implements DatabaseExportModule {
    */
   @Override
   public void handleDataOpenTable(String tableId) throws ModuleException {
-    try {
-      currentTable = dbStructure.getTableById(tableId);
-      if (currentTable == null) {
-        throw new ModuleException().withMessage("Couldn't find table with id: " + tableId);
-      }
-
-      out.append(currentSchema.getName()).append(SCHEMA_TABLE_SEPARATOR).append(currentTable.getName())
-        .append(COLUMNS_START);
-
-      for (ColumnStructure column : currentTable.getColumns()) {
-        out.append(column.getName()).append(COLUMNS_SEPARATOR);
-      }
-
-      out.append(COLUMNS_END).append("\n");
-    } catch (IOException e) {
-      throw new ModuleException()
-        .withMessage("Could not write to file (" + outputFile.toAbsolutePath().toString() + ")").withCause(e);
+    TableStructure currentTable = dbStructure.getTableById(tableId);
+    if (currentTable == null) {
+      throw new ModuleException().withMessage("Couldn't find table with id: " + tableId);
     }
+
+    ModuleConfigurationUtils.addTableConfiguration(moduleConfiguration, currentTable);
   }
 
   /**
@@ -236,26 +197,8 @@ public class ListTables implements DatabaseExportModule {
    */
   @Override
   public void handleDataCloseSchema(String schemaName) throws ModuleException {
-    // nothing to do
-    // Add the views for this schema
-    try {
-      if (currentSchema == null) {
-        throw new ModuleException().withMessage("Couldn't find schema with name: " + schemaName);
-      }
-
-      for (ViewStructure view : currentSchema.getViews()) {
-        out.append(currentSchema.getName()).append(SCHEMA_TABLE_SEPARATOR).append(view.getName()).append(COLUMNS_START);
-
-        for (ColumnStructure column : view.getColumns()) {
-          out.append(column.getName()).append(COLUMNS_SEPARATOR);
-        }
-
-        out.append(COLUMNS_END).append("\n");
-      }
-    } catch (IOException e) {
-      throw new ModuleException()
-          .withMessage("Could not write to file (" + outputFile.toAbsolutePath().toString() + ")").withCause(e);
-    }
+    currentSchema.getViews().forEach(
+      view -> ModuleConfigurationUtils.addViewConfiguration(moduleConfiguration, view, currentSchema.getName()));
   }
 
   /**
@@ -267,19 +210,17 @@ public class ListTables implements DatabaseExportModule {
   @Override
   public void finishDatabase() throws ModuleException {
     try {
-      out.close();
+      mapper.writeValue(new File(outputFile.toAbsolutePath().toString()), moduleConfiguration);
     } catch (IOException e) {
       throw new ModuleException()
         .withMessage("Could not close file writer stream (file: " + outputFile.toAbsolutePath().toString() + ")")
         .withCause(e);
     }
+  }
 
-    try {
-      outStream.close();
-    } catch (IOException e) {
-      throw new ModuleException()
-        .withMessage("Could not close file stream (file: " + outputFile.toAbsolutePath().toString() + ")").withCause(e);
-    }
+  @Override
+  public void updateModuleConfiguration(String moduleName, Map<String, String> properties, Map<String, String> remoteProperties) {
+    ModuleConfigurationUtils.addImportParameters(moduleConfiguration, moduleName, properties, remoteProperties);
   }
 
   /**
@@ -292,7 +233,7 @@ public class ListTables implements DatabaseExportModule {
    */
   @Override
   public void setOnceReporter(Reporter reporter) {
-    this.reporter = reporter;
+    // do nothing
   }
 
   @Override

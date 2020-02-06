@@ -19,11 +19,11 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.Reporter;
-import com.databasepreservation.model.exception.LicenseNotAcceptedException;
-import com.databasepreservation.model.exception.UnsupportedModuleException;
+import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameter.CATEGORY_TYPE;
 import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
@@ -31,6 +31,7 @@ import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.in.input.SIARD1ImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD1ExportModule;
+import com.databasepreservation.utils.ModuleConfigurationUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -39,14 +40,12 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_FILE = "file";
   public static final String PARAMETER_COMPRESS = "compress";
   public static final String PARAMETER_PRETTY_XML = "pretty-xml";
-  public static final String PARAMETER_TABLE_FILTER = "table-filter";
   public static final String PARAMETER_META_DESCRIPTION = "meta-description";
   public static final String PARAMETER_META_ARCHIVER = "meta-archiver";
   public static final String PARAMETER_META_ARCHIVER_CONTACT = "meta-archiver-contact";
   public static final String PARAMETER_META_DATA_OWNER = "meta-data-owner";
   public static final String PARAMETER_META_DATA_ORIGIN_TIMESPAN = "meta-data-origin-timespan";
   public static final String PARAMETER_META_CLIENT_MACHINE = "meta-client-machine";
-  public static final String PARAMETER_VALIDATE = "validate";
 
   private static final Parameter file = new Parameter().shortName("f").longName(PARAMETER_FILE)
     .description("Path to SIARD1 archive file").hasArgument(true).setOptionalArgument(false).required(true);
@@ -58,11 +57,6 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
   private static final Parameter prettyPrintXML = new Parameter().shortName("p").longName(PARAMETER_PRETTY_XML)
     .description("write human-readable XML").hasArgument(false).required(false).valueIfNotSet("false")
     .valueIfSet("true");
-
-  private static final Parameter tableFilter = new Parameter().shortName("tf").longName(PARAMETER_TABLE_FILTER)
-    .description(
-      "file with the list of tables that should be exported (this file can be created by the list-tables export module).")
-    .required(false).hasArgument(true).setOptionalArgument(false);
 
   private static final Parameter metaDescription = new Parameter().shortName("md").longName(PARAMETER_META_DESCRIPTION)
     .description("SIARD descriptive metadata field: Description of database meaning and content as a whole.")
@@ -96,10 +90,6 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
     .required(false).hasArgument(true).setOptionalArgument(true)
     .valueIfNotSet(SIARDHelper.getMachineHostname() + " (fetched automatically)");
 
-  private static final Parameter validate = new Parameter().shortName("v").longName(PARAMETER_VALIDATE)
-    .description("use to validate the SIARD1 archive file after exporting").hasArgument(false).required(false)
-    .valueIfNotSet("false").valueIfSet("true");
-
   @Override
   public boolean producesImportModules() {
     return true;
@@ -126,14 +116,12 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(file.longName(), file);
     parameterHashMap.put(compress.longName(), compress);
     parameterHashMap.put(prettyPrintXML.longName(), prettyPrintXML);
-    parameterHashMap.put(tableFilter.longName(), tableFilter);
     parameterHashMap.put(metaDescription.longName(), metaDescription);
     parameterHashMap.put(metaArchiver.longName(), metaArchiver);
     parameterHashMap.put(metaArchiverContact.longName(), metaArchiverContact);
     parameterHashMap.put(metaDataOwner.longName(), metaDataOwner);
     parameterHashMap.put(metaDataOriginTimespan.longName(), metaDataOriginTimespan);
     parameterHashMap.put(metaClientMachine.longName(), metaClientMachine);
-    parameterHashMap.put(validate.longName(), validate);
     return parameterHashMap;
   }
 
@@ -143,40 +131,42 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public Parameters getImportModuleParameters() throws UnsupportedModuleException {
-    return new Parameters(Arrays.asList(file), null);
+  public Parameters getImportModuleParameters() {
+    return new Parameters(Collections.singletonList(file), null);
   }
 
   @Override
-  public Parameters getExportModuleParameters() throws UnsupportedModuleException {
-    return new Parameters(
-      Arrays.asList(
-        file.inputType(INPUT_TYPE.FILE_SAVE).fileFilter(Parameter.FILE_FILTER_TYPE.SIARD_EXTENSION)
-          .exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
-        compress.inputType(INPUT_TYPE.CHECKBOX).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
-        prettyPrintXML.inputType(INPUT_TYPE.DEFAULT), tableFilter.inputType(INPUT_TYPE.NONE),
-        metaDescription.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
-        metaArchiver.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
-        metaArchiverContact.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
-        metaDataOwner.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
-        metaDataOriginTimespan.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
-        metaClientMachine.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
-        validate.inputType(INPUT_TYPE.NONE).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS)),
-      null);
+  public Parameters getExportModuleParameters() {
+    return new Parameters(Arrays.asList(
+      file.inputType(INPUT_TYPE.FILE_SAVE).fileFilter(Parameter.FILE_FILTER_TYPE.SIARD_EXTENSION)
+        .exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+      compress.inputType(INPUT_TYPE.CHECKBOX).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+      prettyPrintXML.inputType(INPUT_TYPE.DEFAULT),
+      metaDescription.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
+      metaArchiver.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
+      metaArchiverContact.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
+      metaDataOwner.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
+      metaDataOriginTimespan.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
+      metaClientMachine.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS)), null);
   }
 
   @Override
   public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws UnsupportedModuleException, LicenseNotAcceptedException {
-    Path pFile = Paths.get(parameters.get(file));
-
-    reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString());
-    return new SIARD1ImportModule(pFile).getDatabaseImportModule();
+    throws ModuleException {
+    return buildImportModule(parameters, ModuleConfigurationUtils.getDefaultModuleConfiguration(), reporter);
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws UnsupportedModuleException, LicenseNotAcceptedException {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters,
+    ModuleConfiguration moduleConfiguration, Reporter reporter) throws ModuleException {
+    Path pFile = Paths.get(parameters.get(file));
+
+    reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString());
+    return new SIARD1ImportModule(moduleConfiguration, pFile).getDatabaseImportModule();
+  }
+
+  @Override
+  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter) {
     Path pFile = Paths.get(parameters.get(file));
 
     // optional
@@ -188,11 +178,6 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
     boolean pPrettyPrintXML = Boolean.parseBoolean(prettyPrintXML.valueIfNotSet());
     if (StringUtils.isNotBlank(parameters.get(prettyPrintXML))) {
       pPrettyPrintXML = Boolean.parseBoolean(prettyPrintXML.valueIfSet());
-    }
-
-    Path pTableFilter = null;
-    if (StringUtils.isNotBlank(parameters.get(tableFilter))) {
-      pTableFilter = Paths.get(parameters.get(tableFilter));
     }
 
     // build descriptive metadata
@@ -210,21 +195,8 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
     addDescriptiveMetadataParameterValue(parameters, descriptiveMetadataParameterValues,
       SIARDConstants.DESCRIPTIVE_METADATA_CLIENT_MACHINE, metaClientMachine);
 
-    if (pTableFilter == null) {
-      reporter.exportModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString(),
-        PARAMETER_COMPRESS, String.valueOf(pCompress), PARAMETER_PRETTY_XML, String.valueOf(pPrettyPrintXML));
-    } else {
-      reporter.exportModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString(),
-        PARAMETER_COMPRESS, String.valueOf(pCompress), PARAMETER_PRETTY_XML, String.valueOf(pPrettyPrintXML),
-        PARAMETER_TABLE_FILTER, pTableFilter.normalize().toAbsolutePath().toString());
-    }
-
-    SIARD1ExportModule exportModule = new SIARD1ExportModule(pFile, pCompress, pPrettyPrintXML, pTableFilter,
+    SIARD1ExportModule exportModule = new SIARD1ExportModule(pFile, pCompress, pPrettyPrintXML,
       descriptiveMetadataParameterValues);
-
-    if (StringUtils.isNotBlank(parameters.get(validate))) {
-      exportModule.setValidate(Boolean.parseBoolean(validate.valueIfSet()));
-    }
 
     return exportModule.getDatabaseHandler();
   }

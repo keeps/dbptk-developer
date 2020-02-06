@@ -45,7 +45,7 @@ import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
-import com.databasepreservation.model.modules.ModuleSettings;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
@@ -100,7 +100,7 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
 
   @Override
   public void importContent(DatabaseExportModule dbExportHandler, SIARDArchiveContainer mainFolder,
-    DatabaseStructure databaseStructure, ModuleSettings moduleSettings) throws ModuleException {
+    DatabaseStructure databaseStructure, ModuleConfiguration moduleConfiguration) throws ModuleException {
     this.databaseStructure = databaseStructure;
     pathStrategy.parseFileIndexMetadata();
     this.dbExportHandler = dbExportHandler;

@@ -7,13 +7,14 @@
  */
 package com.databasepreservation.model.modules.filters;
 
+import java.util.Map;
 import java.util.Set;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
-import com.databasepreservation.model.modules.ModuleSettings;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.modules.DefaultExceptionNormalizer;
 
@@ -57,9 +58,15 @@ public class IdentityFilter implements DatabaseFilterModule {
     return this.reporter;
   }
 
+  /**
+   * Gets custom settings set by the export module that modify behaviour of the
+   * import module.
+   *
+   * @throws ModuleException
+   */
   @Override
-  public ModuleSettings getModuleSettings() throws ModuleException {
-    return this.exportModule.getModuleSettings();
+  public ModuleConfiguration getModuleConfiguration() throws ModuleException {
+    return this.exportModule.getModuleConfiguration();
   }
 
   @Override
@@ -105,6 +112,11 @@ public class IdentityFilter implements DatabaseFilterModule {
   @Override
   public void finishDatabase() throws ModuleException {
     this.exportModule.finishDatabase();
+  }
+
+  @Override
+  public void updateModuleConfiguration(String moduleName, Map<String, String> properties, Map<String, String> remoteProperties) {
+    this.exportModule.updateModuleConfiguration(moduleName, properties, remoteProperties);
   }
 
   @Override

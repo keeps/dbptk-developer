@@ -7,15 +7,13 @@
  */
 package com.databasepreservation.modules.postgreSql;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.databasepreservation.RemoteConnectionManager;
 import org.apache.commons.lang3.StringUtils;
 
+import com.databasepreservation.RemoteConnectionManager;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.ModuleException;
@@ -23,11 +21,13 @@ import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.postgreSql.in.PostgreSQLJDBCImportModule;
 import com.databasepreservation.modules.postgreSql.out.PostgreSQLJDBCExportModule;
+import com.databasepreservation.utils.ModuleConfigurationUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -39,7 +39,6 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_PASSWORD = "password";
   public static final String PARAMETER_DISABLE_ENCRYPTION = "disable-encryption";
   public static final String PARAMETER_PORT_NUMBER = "port-number";
-  public static final String PARAMETER_CUSTOM_VIEWS = "custom-views";
   public static final String PARAMETER_SSH = "ssh";
   public static final String PARAMETER_SSH_HOST = "ssh-host";
   public static final String PARAMETER_SSH_USER = "ssh-user";
@@ -68,10 +67,6 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
   private static final Parameter portNumber = new Parameter().shortName("pn").longName(PARAMETER_PORT_NUMBER)
     .description("the PostgreSQL server port number, default is 5432").hasArgument(true).setOptionalArgument(false)
     .required(false).valueIfNotSet("5432");
-
-  private static final Parameter customViews = new Parameter().shortName("cv").longName(PARAMETER_CUSTOM_VIEWS)
-          .description("the path to a custom view query list file").hasArgument(true).setOptionalArgument(false)
-          .required(false);
 
   private static final Parameter ssh = new Parameter().shortName("ssh").longName(PARAMETER_SSH)
     .description("use to perform a SSH remote connection").hasArgument(false).required(false).valueIfNotSet("false")
@@ -121,7 +116,6 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(password.longName(), password);
     parameterHashMap.put(disableEncryption.longName(), disableEncryption);
     parameterHashMap.put(portNumber.longName(), portNumber);
-    parameterHashMap.put(customViews.longName(), customViews);
     parameterHashMap.put(ssh.longName(), ssh);
     parameterHashMap.put(sshHost.longName(), sshHost);
     parameterHashMap.put(sshUser.longName(), sshUser);
@@ -140,7 +134,7 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
   @Override
   public Parameters getImportModuleParameters() throws UnsupportedModuleException {
     return new Parameters(Arrays.asList(hostname, database, username, password, disableEncryption, portNumber, ssh,
-      sshHost, sshUser, sshPassword, sshPort, customViews), null);
+      sshHost, sshUser, sshPassword, sshPort), null);
   }
 
   @Override
@@ -151,7 +145,13 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
-          throws ModuleException {
+    throws ModuleException {
+    return buildImportModule(parameters, ModuleConfigurationUtils.getDefaultModuleConfiguration(), reporter);
+  }
+
+  @Override
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters,
+    ModuleConfiguration moduleConfiguration, Reporter reporter) throws ModuleException {
     String pHostname = parameters.get(hostname);
     String pDatabase = parameters.get(database);
     String pUsername = parameters.get(username);
@@ -168,11 +168,6 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
       pPortNumber = Integer.parseInt(portNumber.valueIfNotSet());
     }
 
-    Path pCustomViews = null;
-    if (StringUtils.isNotBlank(parameters.get(customViews))) {
-      pCustomViews = Paths.get(parameters.get(customViews));
-    }
-
     // boolean
     boolean pSSH = Boolean.parseBoolean(parameters.get(ssh));
     final String pSSHHost = parameters.get(sshHost);
@@ -186,17 +181,18 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
 
     if (pSSH) {
       reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
-        PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
-        pPortNumber.toString(), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD,
-        reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
-      return new PostgreSQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt, true,
-        pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber, pCustomViews);
+        PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
+        pPortNumber.toString(), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost,
+        PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT,
+        pSSHPortNumber);
+      return new PostgreSQLJDBCImportModule(moduleConfiguration, getModuleName(), pHostname, pPortNumber, pDatabase, pUsername, pPassword,
+        pEncrypt, pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
     } else {
       reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
-        PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
+        PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
         pPortNumber.toString(), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt));
-      return new PostgreSQLJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt,
-        pCustomViews);
+      return new PostgreSQLJDBCImportModule(moduleConfiguration, getModuleName(), pHostname, pPortNumber, pDatabase, pUsername, pPassword,
+        pEncrypt);
     }
   }
 
@@ -233,13 +229,14 @@ public class PostgreSQLModuleFactory implements DatabaseModuleFactory {
     if (pSSH) {
       RemoteConnectionManager.getInstance().setup(pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
       reporter.exportModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
-        PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
+        PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
         pPortNumber.toString(), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt));
     } else {
       reporter.exportModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
-        PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
-        pPortNumber.toString(), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD,
-        reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
+        PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
+        pPortNumber.toString(), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost,
+        PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT,
+        pSSHPortNumber);
     }
 
     return new PostgreSQLJDBCExportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pEncrypt, pSSH,

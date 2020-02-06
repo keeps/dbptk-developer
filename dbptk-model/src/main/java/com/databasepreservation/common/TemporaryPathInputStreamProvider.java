@@ -11,6 +11,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import javax.xml.bind.DatatypeConverter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +40,7 @@ import com.databasepreservation.model.exception.ModuleException;
 public class TemporaryPathInputStreamProvider extends PathInputStreamProvider {
   private static final Logger LOGGER = LoggerFactory.getLogger(TemporaryPathInputStreamProvider.class);
 
+  private String digest;
   private Thread removeTemporaryFileHook;
 
   /**
@@ -59,9 +65,13 @@ public class TemporaryPathInputStreamProvider extends PathInputStreamProvider {
     }
 
     try {
-      Files.copy(inputStream, path, StandardCopyOption.REPLACE_EXISTING);
+      DigestInputStream digestInputStream = new DigestInputStream(inputStream, MessageDigest.getInstance("MD5"));
+      Files.copy(digestInputStream, path, StandardCopyOption.REPLACE_EXISTING);
+      digest = DatatypeConverter.printHexBinary(digestInputStream.getMessageDigest().digest()).toUpperCase();
     } catch (IOException e) {
       throw new ModuleException().withMessage("Error copying stream to temp file").withCause(e);
+    } catch (NoSuchAlgorithmException e) {
+      throw new ModuleException().withMessage("Error trying to digest the stream").withCause(e);
     } finally {
       try {
         inputStream.close();
@@ -103,5 +113,9 @@ public class TemporaryPathInputStreamProvider extends PathInputStreamProvider {
         Runtime.getRuntime().removeShutdownHook(removeTemporaryFileHook);
       }
     }
+  }
+
+  public String getDigest() {
+    return this.digest;
   }
 }

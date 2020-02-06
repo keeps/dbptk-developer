@@ -10,6 +10,7 @@ package com.databasepreservation.modules.siard.in.input;
 import java.nio.file.Path;
 
 import com.databasepreservation.model.modules.DatabaseImportModule;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARDDKMetadataPathStrategy;
@@ -27,13 +28,15 @@ import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
  *
  */
 public class SIARDDKImportModule {
-
+  private static final String moduleName = "siard-dk";
+  private final ModuleConfiguration moduleConfiguration;
   protected final FolderReadStrategyMD5Sum readStrategy;
   protected final SIARDArchiveContainer mainContainer;
   protected final MetadataImportStrategy metadataStrategy;
   protected final ContentImportStrategy contentStrategy;
 
-  public SIARDDKImportModule(Path siardPackage, String paramImportAsSchema) {
+  public SIARDDKImportModule(ModuleConfiguration moduleConfiguration, Path siardPackage, String paramImportAsSchema) {
+    this.moduleConfiguration = moduleConfiguration;
     mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.DK, siardPackage.toAbsolutePath().normalize(),
       SIARDArchiveContainer.OutputContainerType.MAIN);
     readStrategy = new FolderReadStrategyMD5Sum(mainContainer);
@@ -54,7 +57,7 @@ public class SIARDDKImportModule {
   }
 
   public DatabaseImportModule getDatabaseImportModule() {
-    return new SIARDImportDefault(contentStrategy, mainContainer, readStrategy, metadataStrategy);
+    return new SIARDImportDefault(moduleName, moduleConfiguration, contentStrategy, mainContainer, readStrategy, metadataStrategy);
   }
 
 }

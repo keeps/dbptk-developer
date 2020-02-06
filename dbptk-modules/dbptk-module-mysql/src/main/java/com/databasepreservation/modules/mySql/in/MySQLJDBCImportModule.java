@@ -10,7 +10,6 @@
  */
 package com.databasepreservation.modules.mySql.in;
 
-import java.nio.file.Path;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -21,10 +20,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.Constants;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.RoutineStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
@@ -36,6 +37,7 @@ import com.databasepreservation.modules.CloseableUtils;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.mySql.MySQLExceptionNormalizer;
 import com.databasepreservation.modules.mySql.MySQLHelper;
+import com.databasepreservation.utils.MapUtils;
 
 /**
  * @author Luis Faria <lfaria@keep.pt>
@@ -44,29 +46,6 @@ import com.databasepreservation.modules.mySql.MySQLHelper;
 public class MySQLJDBCImportModule extends JDBCImportModule {
   private static final Logger LOGGER = LoggerFactory.getLogger(MySQLJDBCImportModule.class);
   private final String username;
-
-  /**
-   * MySQL JDBC import module constructor
-   *
-   * @param hostname
-   *          the hostname of the MySQL server
-   * @param database
-   *          the name of the database to import from
-   * @param username
-   *          the name of the user to use in connection
-   * @param password
-   *          the password of the user to use in connection
-   * @param encrypt
-   *          encrypt connection
-   * @param customViewsFile
-   *          path to the custom views file
-   */
-  public MySQLJDBCImportModule(String hostname, String database, String username, String password, boolean encrypt, Path customViewsFile) throws ModuleException {
-    super("com.mysql.jdbc.Driver",
-        "jdbc:mysql://" + hostname + "/" + database + "?" + "user=" + username + "&password=" + password + "&useSSL="+ encrypt,
-        new MySQLHelper(), new MySQLDatatypeImporter(), customViewsFile);
-    this.username = username;
-  }
 
   /**
    * MySQL JDBC import module constructor
@@ -83,25 +62,29 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    *          the password of the user to use in connection
    * @param encrypt
    *          encrypt connection
-   * @param customViewsFile
-   *          path to the custom views file
    */
-  public MySQLJDBCImportModule(String hostname, int port, String database, String username, String password, boolean encrypt, Path customViewsFile) throws ModuleException {
+  public MySQLJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String hostname, int port,
+    String database, String username, String password, boolean encrypt) throws ModuleException {
     super("com.mysql.jdbc.Driver",
       "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?" + "user=" + username + "&password=" + password
         + "&useSSL=" + encrypt,
-        new MySQLHelper(), new MySQLDatatypeImporter(), customViewsFile);
+      new MySQLHelper(), new MySQLDatatypeImporter(), moduleConfiguration, moduleName,
+      MapUtils.buildMapFromObjects(Constants.DB_HOST, hostname, Constants.DB_PORT, port, Constants.DB_USER, username,
+        Constants.DB_PASSWORD, password, Constants.DB_DATABASE, database));
     this.username = username;
   }
 
-  public MySQLJDBCImportModule(String hostname, int port, String database, String username, String password,
-    boolean encrypt, boolean ssh, String sshHost, String sshUser, String sshPassword, String sshPortNumber,
-    Path customViewsFile) throws ModuleException {
+  public MySQLJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String hostname, int port,
+    String database, String username, String password, boolean encrypt, String sshHost, String sshUser,
+    String sshPassword, String sshPortNumber) throws ModuleException {
     super("com.mysql.jdbc.Driver",
       "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?" + "user=" + username + "&password=" + password
         + "&useSSL=" + encrypt,
-      new MySQLHelper(), new MySQLDatatypeImporter(), ssh, sshHost, sshUser, sshPassword, sshPortNumber,
-      customViewsFile);
+      new MySQLHelper(), new MySQLDatatypeImporter(), moduleConfiguration, moduleName,
+      MapUtils.buildMapFromObjects(Constants.DB_HOST, hostname, Constants.DB_PORT, port, Constants.DB_USER, username,
+        Constants.DB_PASSWORD, password, Constants.DB_DATABASE, database),
+      MapUtils.buildMapFromObjects(Constants.DB_SSH, true, Constants.DB_SSH_HOST, sshHost, Constants.DB_SSH_PORT, sshPortNumber,
+        Constants.DB_SSH_USER, sshUser, Constants.DB_SSH_PASSWORD, sshPassword));
     this.username = username;
   }
 
@@ -204,7 +187,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   protected ResultSet getTableRawData(String query, String tableId) throws SQLException, ModuleException {
     Statement st = getStatement();
     st.setFetchSize(Integer.MIN_VALUE);
-    return st.executeQuery(query.toString());
+    return st.executeQuery(query);
   }
 
   @Override
@@ -234,7 +217,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
     for (ViewStructure v : views) {
       Statement statement = null;
       ResultSet rset = null;
-      if(v.getQueryOriginal()==null || v.getQueryOriginal().isEmpty()) {
+      if (v.getQueryOriginal() == null || v.getQueryOriginal().isEmpty()) {
         try {
           statement = getConnection().createStatement();
           String query = "SHOW CREATE VIEW " + sqlHelper.escapeViewName(v.getName());

@@ -7,8 +7,6 @@
  */
 package com.databasepreservation.modules.sqlServer;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,12 +21,14 @@ import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.ParameterGroup;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.sqlServer.in.SQLServerJDBCImportModule;
 import com.databasepreservation.modules.sqlServer.out.SQLServerJDBCExportModule;
+import com.databasepreservation.utils.ModuleConfigurationUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -47,7 +47,6 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_SSH_USER = "ssh-user";
   public static final String PARAMETER_SSH_PASSWORD = "ssh-password";
   public static final String PARAMETER_SSH_PORT = "ssh-port";
-  public static final String PARAMETER_CUSTOM_VIEWS = "custom-views";
 
   private static final Parameter serverName = new Parameter().shortName("s").longName(PARAMETER_SERVER_NAME)
     .description("the name (host name) of the server").hasArgument(true).setOptionalArgument(false).required(true);
@@ -78,10 +77,6 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
   private static final Parameter portNumber = new Parameter().shortName("pn").longName(PARAMETER_PORT_NUMBER)
     .description("the server port number").hasArgument(true).setOptionalArgument(false).required(false)
     .valueIfNotSet("1433");
-
-  private static final Parameter customViews = new Parameter().shortName("cv").longName(PARAMETER_CUSTOM_VIEWS)
-          .description("the path to a custom view query list file").hasArgument(true).setOptionalArgument(false)
-          .required(false);
 
   private static final Parameter ssh = new Parameter().shortName("ssh").longName(PARAMETER_SSH)
     .description("use to perform a SSH remote connection").hasArgument(false).required(false).valueIfNotSet("false")
@@ -140,7 +135,6 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(sshUser.longName(), sshUser);
     parameterHashMap.put(sshPassword.longName(), sshPassword);
     parameterHashMap.put(sshPort.longName(), sshPort);
-    parameterHashMap.put(customViews.longName(), customViews);
     return parameterHashMap;
   }
 
@@ -154,23 +148,25 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Parameters getImportModuleParameters() throws UnsupportedModuleException {
-    return new Parameters(
-      Arrays.asList(serverName, database, username, password, useIntegratedLogin, disableEncryption, ssh, sshHost,
-        sshUser, sshPassword, sshPort, customViews),
-      Collections.singletonList(instanceName_portNumber));
+    return new Parameters(Arrays.asList(serverName, database, username, password, useIntegratedLogin, disableEncryption,
+      ssh, sshHost, sshUser, sshPassword, sshPort), Collections.singletonList(instanceName_portNumber));
   }
 
   @Override
   public Parameters getExportModuleParameters() throws UnsupportedModuleException {
-    return new Parameters(
-      Arrays.asList(serverName, database, username, password, useIntegratedLogin, disableEncryption, ssh, sshHost,
-        sshUser, sshPassword, sshPort),
-      Collections.singletonList(instanceName_portNumber));
+    return new Parameters(Arrays.asList(serverName, database, username, password, useIntegratedLogin, disableEncryption,
+      ssh, sshHost, sshUser, sshPassword, sshPort), Collections.singletonList(instanceName_portNumber));
   }
 
   @Override
   public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
-          throws ModuleException {
+    throws ModuleException {
+    return buildImportModule(parameters, ModuleConfigurationUtils.getDefaultModuleConfiguration(), reporter);
+  }
+
+  @Override
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters,
+    ModuleConfiguration moduleConfiguration, Reporter reporter) throws ModuleException {
     // String values
     String pServerName = parameters.get(serverName);
     String pDatabase = parameters.get(database);
@@ -194,11 +190,6 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
       pInstanceName = parameters.get(instanceName);
     }
 
-    Path pCustomViews = null;
-    if (StringUtils.isNotBlank(parameters.get(customViews))) {
-      pCustomViews = Paths.get(parameters.get(customViews));
-    }
-
     // boolean
     boolean pSSH = Boolean.parseBoolean(parameters.get(ssh));
     final String pSSHHost = parameters.get(sshHost);
@@ -216,22 +207,20 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
 
     if (pInstanceName != null) {
       reporter.importModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_DATABASE,
-        pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED,
+        pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, Reporter.MESSAGE_FILTERED,
         PARAMETER_USE_INTEGRATED_LOGIN, String.valueOf(pUseIntegratedLogin), PARAMETER_INSTANCE_NAME, pInstanceName,
-        PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt),
-        PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD, reporter.MESSAGE_FILTERED,
-        PARAMETER_SSH_PORT, pSSHPortNumber);
-      return new SQLServerJDBCImportModule(pServerName, pPortNumber, pInstanceName, pDatabase, pUsername, pPassword,
-        pUseIntegratedLogin, pEncrypt, pSSH, pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber, pCustomViews);
+        PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER,
+        pSSHUser, PARAMETER_SSH_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
+      return new SQLServerJDBCImportModule(moduleConfiguration, getModuleName(), pServerName, pPortNumber, pInstanceName, pDatabase,
+        pUsername, pPassword, pUseIntegratedLogin, pEncrypt, pSSH, pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
     } else {
       reporter.importModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_DATABASE,
-        pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED,
+        pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, Reporter.MESSAGE_FILTERED,
         PARAMETER_USE_INTEGRATED_LOGIN, String.valueOf(pUseIntegratedLogin), PARAMETER_DISABLE_ENCRYPTION,
-        String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost,
-        PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT,
-        pSSHPortNumber);
-      return new SQLServerJDBCImportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword,
-        pUseIntegratedLogin, pEncrypt, pSSH, pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber, pCustomViews);
+        String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD,
+        Reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
+      return new SQLServerJDBCImportModule(moduleConfiguration, getModuleName(), pServerName, pPortNumber, pDatabase, pUsername, pPassword,
+        pUseIntegratedLogin, pEncrypt, pSSH, pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
     }
   }
 
@@ -274,21 +263,18 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
 
     if (pInstanceName != null) {
       reporter.exportModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_DATABASE,
-        pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED,
+        pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, Reporter.MESSAGE_FILTERED,
         PARAMETER_USE_INTEGRATED_LOGIN, String.valueOf(pUseIntegratedLogin), PARAMETER_INSTANCE_NAME, pInstanceName,
-        PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt),
-        PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD, reporter.MESSAGE_FILTERED,
-        PARAMETER_SSH_PORT, pSSHPortNumber);
+        PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER,
+        pSSHUser, PARAMETER_SSH_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
       return new SQLServerJDBCExportModule(pServerName, pInstanceName, pDatabase, pUsername, pPassword,
         pUseIntegratedLogin, pEncrypt, pSSH, pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
     } else {
       reporter.exportModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_PORT_NUMBER,
-        Integer.toString(pPortNumber), PARAMETER_DATABASE,
-        pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED,
-        PARAMETER_USE_INTEGRATED_LOGIN, String.valueOf(pUseIntegratedLogin), PARAMETER_DISABLE_ENCRYPTION,
-        String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost,
-        PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT,
-        pSSHPortNumber);
+        Integer.toString(pPortNumber), PARAMETER_DATABASE, pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD,
+        Reporter.MESSAGE_FILTERED, PARAMETER_USE_INTEGRATED_LOGIN, String.valueOf(pUseIntegratedLogin),
+        PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER,
+        pSSHUser, PARAMETER_SSH_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
       return new SQLServerJDBCExportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword,
         pUseIntegratedLogin, pEncrypt, pSSH, pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
     }

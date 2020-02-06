@@ -34,8 +34,6 @@ public class SIARD1ExportModule {
   private final SIARDArchiveContainer mainContainer;
   private final WriteStrategy writeStrategy;
 
-  private final Path tableFilter;
-
   private MetadataExportStrategy metadataStrategy;
   private ContentExportStrategy contentStrategy;
 
@@ -43,8 +41,7 @@ public class SIARD1ExportModule {
 
   private boolean validate = false;
 
-  public SIARD1ExportModule(Path siardPackage, boolean compressZip, boolean prettyXML, Path tableFilter,
-    Map<String, String> descriptiveMetadata) {
+  public SIARD1ExportModule(Path siardPackage, boolean compressZip, boolean prettyXML, Map<String, String> descriptiveMetadata) {
     this.descriptiveMetadata = descriptiveMetadata;
     contentPathStrategy = new SIARD1ContentPathExportStrategy();
     metadataPathStrategy = new SIARD1MetadataPathStrategy();
@@ -58,13 +55,10 @@ public class SIARD1ExportModule {
 
     metadataStrategy = new SIARD1MetadataExportStrategy(metadataPathStrategy, contentPathStrategy);
     contentStrategy = new SIARD1ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer, prettyXML);
-
-    this.tableFilter = tableFilter;
   }
 
   public DatabaseExportModule getDatabaseHandler() {
-    return new SIARDExportDefault(contentStrategy, mainContainer, writeStrategy, metadataStrategy, tableFilter,
-      descriptiveMetadata, validate);
+    return new SIARDExportDefault(contentStrategy, mainContainer, writeStrategy, metadataStrategy, descriptiveMetadata, validate);
   }
 
   public void setValidate(boolean validate) {

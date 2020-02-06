@@ -18,6 +18,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.databasepreservation.Constants;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
+import com.databasepreservation.utils.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,24 +49,6 @@ public class OpenEdgeJDBCImportModule extends JDBCImportModule {
 
   /**
    * Creates a new Progress OpenEdge import module using the default instance.
-   * 
-   * @param hostname
-   *          the name of the Progress OpenEdge server host (e.g. localhost)
-   * @param database
-   *          the name of the database we'll be accessing
-   * @param username
-   *          the name of the user to use in the connection
-   * @param password
-   *          the password of the user to use in the connection
-   */
-  public OpenEdgeJDBCImportModule(String hostname, String database, String username, String password, Path customViews) throws ModuleException {
-    super("com.ddtek.jdbc.openedge.OpenEdgeDriver",
-        "jdbc:datadirect:openedge://" + hostname + ";user=" + username + ";password=" + password + ";DatabaseName=" + database,
-        new OpenEdgeHelper(), new OpenEdgeDataTypeImporter(), customViews);
-  }
-
-  /**
-   * Creates a new Progress OpenEdge import module using the default instance.
    *
    * @param hostname
    *          the name of the Progress OpenEdge server host (e.g. localhost)
@@ -76,29 +61,24 @@ public class OpenEdgeJDBCImportModule extends JDBCImportModule {
    * @param password
    *          the password of the user to use in the connection
    */
-  public OpenEdgeJDBCImportModule(String hostname, int port, String database, String username, String password, Path customViews) throws ModuleException {
+  public OpenEdgeJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String hostname, int port, String database, String username, String password) throws ModuleException {
     super("com.ddtek.jdbc.openedge.OpenEdgeDriver",
         "jdbc:datadirect:openedge://" + hostname + ":" + port + ";user=" + username + ";password=" + password + ";DatabaseName=" + database,
-        new OpenEdgeHelper(), new OpenEdgeDataTypeImporter(), customViews);
+        new OpenEdgeHelper(), new OpenEdgeDataTypeImporter(), moduleConfiguration, moduleName, MapUtils.buildMapFromObjects(Constants.DB_HOST, hostname,
+            Constants.DB_PORT, port, Constants.DB_USER, username, Constants.DB_PASSWORD, password,
+            Constants.DB_DATABASE, database));
   }
 
-  public OpenEdgeJDBCImportModule(String hostname, String database, String username, String password, boolean ssh,
-    String sshHost, String sshUser, String sshPassword, String sshPortNumber, Path customViews) throws ModuleException {
+  public OpenEdgeJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String hostname, int port, String database, String username, String password,
+    String sshHost, String sshUser, String sshPassword, String sshPortNumber) throws ModuleException {
     super("com.ddtek.jdbc.openedge.OpenEdgeDriver",
       "jdbc:datadirect:openedge://" + hostname + ";user=" + username + ";password=" + password + ";DatabaseName="
         + database,
-      new OpenEdgeHelper(), new OpenEdgeDataTypeImporter(), ssh, sshHost, sshUser, sshPassword, sshPortNumber,
-      customViews);
-  }
-
-  public OpenEdgeJDBCImportModule(String hostname, int port, String database, String username, String password,
-    boolean ssh, String sshHost, String sshUser, String sshPassword, String sshPortNumber, Path customViews)
-    throws ModuleException {
-    super("com.ddtek.jdbc.openedge.OpenEdgeDriver",
-      "jdbc:datadirect:openedge://" + hostname + ":" + port + ";user=" + username + ";password=" + password
-        + ";DatabaseName=" + database,
-      new OpenEdgeHelper(), new OpenEdgeDataTypeImporter(), ssh, sshHost, sshUser, sshPassword, sshPortNumber,
-      customViews);
+      new OpenEdgeHelper(), new OpenEdgeDataTypeImporter(), moduleConfiguration, moduleName, MapUtils.buildMapFromObjects(Constants.DB_HOST, hostname,
+            Constants.DB_PORT, port, Constants.DB_USER, username, Constants.DB_PASSWORD, password,
+            Constants.DB_DATABASE, database), MapUtils.buildMapFromObjects(Constants.DB_SSH_HOST, sshHost,
+            Constants.DB_SSH_PORT, sshPortNumber, Constants.DB_SSH_USER, sshUser,
+            Constants.DB_SSH_PASSWORD, sshPassword));
   }
 
   /**

@@ -39,7 +39,7 @@ import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
-import com.databasepreservation.model.modules.ModuleSettings;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
@@ -93,7 +93,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
 
   @Override
   public void importContent(DatabaseExportModule handler, SIARDArchiveContainer container,
-    DatabaseStructure databaseStructure, ModuleSettings moduleSettings) throws ModuleException {
+    DatabaseStructure databaseStructure, ModuleConfiguration moduleConfiguration) throws ModuleException {
     // set instance state
     this.databaseExportModule = handler;
     this.contentContainer = container;
@@ -134,7 +134,7 @@ public class SIARD1ContentImportStrategy extends DefaultHandler implements Conte
           }
           this.currentTableTotalRows = currentTable.getRows();
 
-          if (tableHandled && moduleSettings.shouldFetchRows()) {
+          if (tableHandled && moduleConfiguration.isFetchRows()) {
             try {
 
               // setup a new validating parser

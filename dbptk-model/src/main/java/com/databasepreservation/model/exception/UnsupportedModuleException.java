@@ -15,9 +15,9 @@ public class UnsupportedModuleException extends ModuleException {
     super();
   }
 
-  public UnsupportedModuleException(String mesg) {
+  public UnsupportedModuleException(String msg) {
     this();
-    withMessage(mesg);
+    withMessage(msg);
   }
 
   public UnsupportedModuleException(Exception cause) {

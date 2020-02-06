@@ -27,10 +27,10 @@ public class RemoteConnectionManager {
   private static RemoteConnectionManager instance = null;
   private ChannelSftp channelSftp = null;
 
-  private RemoteConnectionManager(){}
+  private RemoteConnectionManager() {}
 
-  public static RemoteConnectionManager getInstance(){
-    if(instance == null){
+  public static RemoteConnectionManager getInstance() {
+    if (instance == null) {
       instance = new RemoteConnectionManager();
     }
     return instance;

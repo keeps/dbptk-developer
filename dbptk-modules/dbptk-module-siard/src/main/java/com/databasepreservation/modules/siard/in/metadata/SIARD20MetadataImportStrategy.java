@@ -27,7 +27,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.modules.ModuleSettings;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -93,7 +93,7 @@ public class SIARD20MetadataImportStrategy implements MetadataImportStrategy {
   private DatabaseStructure databaseStructure;
   private final MetadataPathStrategy metadataPathStrategy;
   private final ContentPathImportStrategy contentPathStrategy;
-  private ModuleSettings moduleSettings;
+  private ModuleConfiguration moduleConfiguration;
 
   private SQLStandardDatatypeImporter sqlStandardDatatypeImporter;
 
@@ -114,9 +114,9 @@ public class SIARD20MetadataImportStrategy implements MetadataImportStrategy {
   }
 
   @Override
-  public void loadMetadata(ReadStrategy readStrategy, SIARDArchiveContainer container, ModuleSettings moduleSettings)
-    throws ModuleException {
-    this.moduleSettings = moduleSettings;
+  public void loadMetadata(ReadStrategy readStrategy, SIARDArchiveContainer container,
+    ModuleConfiguration moduleConfiguration) throws ModuleException {
+    this.moduleConfiguration = moduleConfiguration;
     JAXBContext context;
     try {
       context = JAXBContext.newInstance(SiardArchive.class.getPackage().getName(), SiardArchive.class.getClassLoader());
@@ -456,7 +456,7 @@ public class SIARD20MetadataImportStrategy implements MetadataImportStrategy {
     if (tables != null && !tables.getTable().isEmpty()) {
       for (TableType table : tables.getTable()) {
         TableStructure obtainedTableStructure = getTableStructure(table, schemaName);
-        if (moduleSettings.isSelectedTable(schemaName, obtainedTableStructure.getName())) {
+        if (moduleConfiguration.isSelectedTable(schemaName, obtainedTableStructure.getName())) {
           result.add(obtainedTableStructure);
           currentTableIndex++;
         }

@@ -9,12 +9,14 @@ package com.databasepreservation.common;
 
 import java.io.InputStream;
 
+import org.apache.commons.compress.parallel.InputStreamSupplier;
+
 import com.databasepreservation.model.exception.ModuleException;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public interface InputStreamProvider {
+public interface InputStreamProvider extends InputStreamSupplier {
   /**
    * Create a new input stream to read data
    *
@@ -26,6 +28,15 @@ public interface InputStreamProvider {
    *           if the input stream could not be created
    */
   InputStream createInputStream() throws ModuleException;
+
+  @Override
+  default InputStream get() {
+    try {
+      return createInputStream();
+    } catch (ModuleException e) {
+      throw new RuntimeException(e.getMessage(), e);
+    }
+  }
 
   /**
    * Free all underlying resources, except for the stream itself.

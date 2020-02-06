@@ -10,12 +10,14 @@
  */
 package com.databasepreservation.model.modules;
 
+import java.util.Map;
 import java.util.Set;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.DatabaseStructure;
 
 /**
@@ -29,10 +31,10 @@ public interface DatabaseExportModule extends ExceptionNormalizer {
   /**
    * Gets custom settings set by the export module that modify behaviour of the
    * import module.
-   * 
+   *
    * @throws ModuleException
    */
-  ModuleSettings getModuleSettings() throws ModuleException;
+  ModuleConfiguration getModuleConfiguration() throws ModuleException;
 
   /**
    * Initialize the database, this will be the first method called
@@ -121,6 +123,8 @@ public interface DatabaseExportModule extends ExceptionNormalizer {
    * @throws ModuleException
    */
   void finishDatabase() throws ModuleException;
+
+  void updateModuleConfiguration(String moduleName, Map<String, String> properties, Map<String, String> remoteProperties);
 
   /**
    * Provide a reporter through which potential conversion problems should be

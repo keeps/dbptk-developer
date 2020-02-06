@@ -14,26 +14,25 @@
 */
 package com.databasepreservation.modules.sybase;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.databasepreservation.RemoteConnectionManager;
 import org.apache.commons.lang3.StringUtils;
 
+import com.databasepreservation.RemoteConnectionManager;
 import com.databasepreservation.model.Reporter;
-import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.sybase.in.SybaseJDBCImportModule;
+import com.databasepreservation.utils.ModuleConfigurationUtils;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -44,7 +43,6 @@ public class SybaseModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_HOSTNAME = "hostname";
   public static final String PARAMETER_DATABASE = "database";
   public static final String PARAMETER_PORT_NUMBER = "port-number";
-  public static final String PARAMETER_CUSTOM_VIEWS = "custom-views";
   public static final String PARAMETER_DRIVER = "driver";
   public static final String PARAMETER_SSH = "ssh";
   public static final String PARAMETER_SSH_HOST = "ssh-host";
@@ -70,10 +68,6 @@ public class SybaseModuleFactory implements DatabaseModuleFactory {
 
   private static final Parameter hostname = new Parameter().shortName("h").longName(PARAMETER_HOSTNAME)
     .description("the name (host name) of the server").hasArgument(true).setOptionalArgument(false).required(true);
-
-  private static final Parameter customViews = new Parameter().shortName("cv").longName(PARAMETER_CUSTOM_VIEWS)
-    .description("the path to a custom view query list file").hasArgument(true).setOptionalArgument(false)
-    .required(false);
 
   private static final Parameter ssh = new Parameter().shortName("ssh").longName(PARAMETER_SSH)
     .description("use to perform a SSH remote connection").hasArgument(false).required(false).valueIfNotSet("false")
@@ -127,7 +121,6 @@ public class SybaseModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(sshUser.longName(), sshUser);
     parameterHashMap.put(sshPassword.longName(), sshPassword);
     parameterHashMap.put(sshPort.longName(), sshPort);
-    parameterHashMap.put(customViews.longName(), customViews);
 
     return parameterHashMap;
   }
@@ -135,17 +128,18 @@ public class SybaseModuleFactory implements DatabaseModuleFactory {
   @Override
   public Parameters getConnectionParameters() {
     final Parameter driver = new Parameter().shortName("d").longName(PARAMETER_DRIVER)
-        .description("the location of the JDBC driver").hasArgument(true).setOptionalArgument(false).required(true)
-        .inputType(INPUT_TYPE.DRIVER);
-    return new Parameters(Arrays.asList(driver, hostname.inputType(INPUT_TYPE.TEXT), portNumber.inputType(INPUT_TYPE.NUMBER),
-      username.inputType(INPUT_TYPE.TEXT), password.inputType(INPUT_TYPE.PASSWORD),
-      database.inputType(INPUT_TYPE.TEXT)), null);
+      .description("the location of the JDBC driver").hasArgument(true).setOptionalArgument(false).required(true)
+      .inputType(INPUT_TYPE.DRIVER);
+    return new Parameters(Arrays.asList(driver, hostname.inputType(INPUT_TYPE.TEXT),
+      portNumber.inputType(INPUT_TYPE.NUMBER), username.inputType(INPUT_TYPE.TEXT),
+      password.inputType(INPUT_TYPE.PASSWORD), database.inputType(INPUT_TYPE.TEXT)), null);
   }
 
   @Override
   public Parameters getImportModuleParameters() throws UnsupportedModuleException {
-    return new Parameters(Arrays.asList(hostname, database, username, password, portNumber, ssh, sshHost, sshUser,
-      sshPassword, sshPort, customViews), null);
+    return new Parameters(
+      Arrays.asList(hostname, database, username, password, portNumber, ssh, sshHost, sshUser, sshPassword, sshPort),
+      null);
   }
 
   @Override
@@ -156,21 +150,23 @@ public class SybaseModuleFactory implements DatabaseModuleFactory {
   @Override
   public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
     throws ModuleException {
+    return buildImportModule(parameters, ModuleConfigurationUtils.getDefaultModuleConfiguration(), reporter);
+  }
+
+  @Override
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters,
+    ModuleConfiguration moduleConfiguration, Reporter reporter) throws ModuleException {
     String pUsername = parameters.get(username);
     String pPassword = parameters.get(password);
     String pHostname = parameters.get(hostname);
     String pDatabase = parameters.get(database);
 
     // optional
-    Integer pPortNumber;
+    int pPortNumber;
     if (StringUtils.isNotBlank(parameters.get(portNumber))) {
       pPortNumber = Integer.parseInt(parameters.get(portNumber));
     } else {
       pPortNumber = Integer.parseInt(portNumber.valueIfNotSet());
-    }
-    Path pCustomViews = null;
-    if (StringUtils.isNotBlank(parameters.get(customViews))) {
-      pCustomViews = Paths.get(parameters.get(customViews));
     }
 
     // boolean
@@ -187,22 +183,22 @@ public class SybaseModuleFactory implements DatabaseModuleFactory {
     if (pSSH) {
       RemoteConnectionManager.getInstance().setup(pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
       reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
-        PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
-        pPortNumber.toString(), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD,
-        reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
-      return new SybaseJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, true, pSSHHost,
-        pSSHUser, pSSHPassword, pSSHPortNumber, pCustomViews);
+        PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
+        Integer.toString(pPortNumber), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser,
+        PARAMETER_SSH_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
+      return new SybaseJDBCImportModule(moduleConfiguration, getModuleName(), pHostname, pPortNumber, pDatabase, pUsername, pPassword,
+        pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
     } else {
       reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
-        PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
-        pPortNumber.toString());
-      return new SybaseJDBCImportModule(pHostname, pPortNumber, pDatabase, pUsername, pPassword, pCustomViews);
+        PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
+        Integer.toString(pPortNumber));
+      return new SybaseJDBCImportModule(moduleConfiguration, getModuleName(), pHostname, pPortNumber, pDatabase, pUsername, pPassword);
     }
   }
 
   @Override
   public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws UnsupportedModuleException, LicenseNotAcceptedException {
-    return null;
+    throws UnsupportedModuleException {
+    throw DatabaseModuleFactory.ExceptionBuilder.UnsupportedModuleExceptionForImportModule();
   }
 }

@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
+import com.databasepreservation.model.exception.RequiredParameterException;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +53,7 @@ public class Main {
   public static final int EXIT_CODE_CONNECTION_ERROR = 4;
   public static final int EXIT_CODE_NOT_USING_UTF8 = 5;
   public static final int EXIT_CODE_FILE_NOT_FOUND = 6;
+  public static final int EXIT_CODE_REQUIRED_PARAMETER_MISSING = 7;
 
   private static final String execID = UUID.randomUUID().toString();
 
@@ -120,14 +122,13 @@ public class Main {
             if (isMigrate) {
               // LOGGER.info("Migrate option selected.");
               exitStatus = runMigration(cli.getCLIMigrate());
-            }
-            if (isEdit) {
+            } else if (isEdit) {
               // LOGGER.info("Edit option selected.");
               exitStatus = runEdition(cli.getCLIEdit(), cli.getCLIHelp());
-            }
-            if (isValidation) {
+            } else if (isValidation) {
               exitStatus = runValidation(cli.getCLIValidate(), cli.getCLIHelp());
             }
+
             if (exitStatus == EXIT_CODE_CONNECTION_ERROR) {
               LOGGER.info("Disabling connection encryption (for modules that support it) and trying again.");
               cli.disableEncryption();
@@ -307,6 +308,9 @@ public class Main {
       LOGGER.info("==================================================");
       logProgramFinish(EXIT_CODE_LICENSE_NOT_ACCEPTED);
       return EXIT_CODE_LICENSE_NOT_ACCEPTED;
+    } catch (RequiredParameterException e) {
+      LOGGER.error("Parameter {} is required", e.getParameter());
+      return EXIT_CODE_REQUIRED_PARAMETER_MISSING;
     } catch (ModuleException e) {
       if (!e.getClass().equals(ModuleException.class)) {
         LOGGER.error(e.getMessage(), e);

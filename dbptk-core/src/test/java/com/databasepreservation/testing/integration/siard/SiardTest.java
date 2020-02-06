@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
+import com.databasepreservation.utils.ModuleConfigurationUtils;
 import org.joda.time.DateTime;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -47,7 +49,6 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
-import com.databasepreservation.model.modules.ModuleSettings;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -566,18 +567,18 @@ public class SiardTest {
 
     switch (version) {
       case V1_0:
-        exporter = new SIARD1ExportModule(tmpFile, true, false, null, null).getDatabaseHandler();
+        exporter = new SIARD1ExportModule(tmpFile, true, false, null).getDatabaseHandler();
         break;
       case V2_0:
       case V2_1:
-        exporter = new SIARD2ExportModule(version, tmpFile, true, false, null, null).getDatabaseHandler();
+        exporter = new SIARD2ExportModule(version, tmpFile, true, false, null).getDatabaseHandler();
         break;
       case DK:
         Map<String, String> exportModuleArgs = new HashMap<String, String>();
         exportModuleArgs.put(SIARDDKModuleFactory.PARAMETER_FOLDER, tmpFile.toString());
         exportModuleArgs.put(SIARDDKModuleFactory.PARAMETER_LOBS_PER_FOLDER, "10000");
         exportModuleArgs.put(SIARDDKModuleFactory.PARAMETER_LOBS_FOLDER_SIZE, "1000");
-        exporter = new SIARDDKExportModule(exportModuleArgs, null).getDatabaseExportModule();
+        exporter = new SIARDDKExportModule(exportModuleArgs).getDatabaseExportModule();
         break;
     }
 
@@ -618,16 +619,16 @@ public class SiardTest {
     LOGGER.debug("SIARD file: " + tmpFile.toUri().toString());
     DatabaseExportModule mocked = Mockito.mock(DatabaseExportModule.class);
 
-    Mockito.when(mocked.getModuleSettings()).thenReturn(new ModuleSettings());
+    Mockito.when(mocked.getModuleConfiguration()).thenReturn(ModuleConfigurationUtils.getDefaultModuleConfiguration());
 
     DatabaseImportModule importer = null;
     switch (version) {
       case V1_0:
-        importer = new SIARD1ImportModule(tmpFile).getDatabaseImportModule();
+        importer = new SIARD1ImportModule(ModuleConfigurationUtils.getDefaultModuleConfiguration(), tmpFile).getDatabaseImportModule();
         break;
       case V2_0:
       case V2_1:
-        importer = new SIARD2ImportModule(tmpFile).getDatabaseImportModule();
+        importer = new SIARD2ImportModule(ModuleConfigurationUtils.getDefaultModuleConfiguration(), tmpFile).getDatabaseImportModule();
         break;
 
       case DK:
@@ -635,7 +636,7 @@ public class SiardTest {
         // Therefore it uses a special 'importAsSchema' parameter, to make it
         // compatible with the format of the dptkl internal database structure
         // representation.
-        importer = new SIARDDKImportModule(tmpFile, dbStructure.getSchemas().get(0).getName())
+        importer = new SIARDDKImportModule(ModuleConfigurationUtils.getDefaultModuleConfiguration(), tmpFile, dbStructure.getSchemas().get(0).getName())
           .getDatabaseImportModule();
         break;
     }

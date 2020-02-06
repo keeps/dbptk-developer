@@ -29,7 +29,7 @@ import org.xml.sax.SAXException;
 
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.modules.ModuleSettings;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.ForeignKey;
@@ -67,7 +67,7 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
 
   protected final SIARDDKPathImportStrategy pathStrategy;
   protected DatabaseStructure databaseStructure;
-  protected final String importAsSchameName;
+  protected final String importAsSchemaName;
   private int currentTableIndex = 1;
 
   private SQLStandardDatatypeImporter sqlStandardDatatypeImporter;
@@ -75,13 +75,13 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
 
   public SIARDDKMetadataImportStrategy(SIARDDKPathImportStrategy pathStrategy, String importAsSchameName) {
     this.pathStrategy = pathStrategy;
-    this.importAsSchameName = importAsSchameName;
+    this.importAsSchemaName = importAsSchameName;
     sqlStandardDatatypeImporter = new SQL99StandardDatatypeImporter();
   }
 
   @Override
-  public void loadMetadata(ReadStrategy readStrategy, SIARDArchiveContainer container, ModuleSettings moduleSettings)
-    throws ModuleException {
+  public void loadMetadata(ReadStrategy readStrategy, SIARDArchiveContainer container,
+    ModuleConfiguration moduleConfiguration) throws ModuleException {
     FolderReadStrategyMD5Sum readStrategyMD5Sum = null;
     if (!(readStrategy instanceof FolderReadStrategyMD5Sum)) {
       throw new IllegalArgumentException(
@@ -162,7 +162,7 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
 
   protected List<SchemaStructure> getSchemas(SiardDiark siardArchive) throws ModuleException {
     SchemaStructure schemaImportAs = new SchemaStructure();
-    schemaImportAs.setName(getImportAsSchameName());
+    schemaImportAs.setName(getImportAsSchemaName());
     schemaImportAs.setTables(getTables(siardArchive));
     schemaImportAs.setViews(getViews(siardArchive));
     List<SchemaStructure> list = new LinkedList<SchemaStructure>();
@@ -200,7 +200,7 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
       for (TableType tblXml : siardArchive.getTables().getTable()) {
         TableStructure tblDptkl = new TableStructure();
         tblDptkl.setIndex(currentTableIndex++);
-        tblDptkl.setSchema(getImportAsSchameName());
+        tblDptkl.setSchema(getImportAsSchemaName());
         tblDptkl.setName(tblXml.getName());
         tblDptkl.setId(String.format("%s.%s", tblDptkl.getSchema(), tblDptkl.getName()));
         tblDptkl.setDescription(tblXml.getDescription());
@@ -264,7 +264,7 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
     if (foreignKeysXml != null) {
       for (ForeignKeyType foreignKeyXml : foreignKeysXml.getForeignKey()) {
         ForeignKey foreignKeyDptkl = new ForeignKey();
-        foreignKeyDptkl.setReferencedSchema(getImportAsSchameName());
+        foreignKeyDptkl.setReferencedSchema(getImportAsSchemaName());
         foreignKeyDptkl.setName(foreignKeyXml.getName());
         foreignKeyDptkl.setReferencedTable(foreignKeyXml.getReferencedTable());
         foreignKeyDptkl.setReferences(getReferences(foreignKeyXml.getReference()));
@@ -288,8 +288,8 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
     return refsDptkld;
   }
 
-  public String getImportAsSchameName() {
-    return importAsSchameName;
+  public String getImportAsSchemaName() {
+    return importAsSchemaName;
   }
 
 }

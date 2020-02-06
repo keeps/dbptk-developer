@@ -86,10 +86,10 @@ public class DatabaseStructure {
     archivalDate = DateTime.now();
     productName = null;
     productVersion = null;
-    schemas = new ArrayList<SchemaStructure>();
-    users = new ArrayList<UserStructure>();
-    roles = new ArrayList<RoleStructure>();
-    privileges = new ArrayList<PrivilegeStructure>();
+    schemas = new ArrayList<>();
+    users = new ArrayList<>();
+    roles = new ArrayList<>();
+    privileges = new ArrayList<>();
   }
 
   /**
@@ -542,16 +542,15 @@ public class DatabaseStructure {
   public PrivilegeStructure getPrivilege(PrivilegeStructure privilege) {
     for (PrivilegeStructure privilegeStructure : getPrivileges()) {
       if (privilegeStructure.getType().equals(privilege.getType())
-      && privilegeStructure.getObject().equals(privilege.getObject())
-      && privilegeStructure.getGrantor().equals(privilege.getGrantor())
-      && privilegeStructure.getGrantee().equals(privilege.getGrantee())) {
+        && privilegeStructure.getObject().equals(privilege.getObject())
+        && privilegeStructure.getGrantor().equals(privilege.getGrantor())
+        && privilegeStructure.getGrantee().equals(privilege.getGrantee())) {
         return privilegeStructure;
       }
     }
 
     return null;
   }
-
 
   public void setPrivileges(List<PrivilegeStructure> privileges) {
     this.privileges = privileges;
@@ -719,10 +718,8 @@ public class DatabaseStructure {
 
   public void updatePrivilegeDescription(PrivilegeStructure privilege, String description) {
     for (PrivilegeStructure p : getPrivileges()) {
-      if (p.getType().equals(privilege.getType())
-          && p.getObject().equals(privilege.getObject())
-          && p.getGrantor().equals(privilege.getGrantor())
-          && p.getGrantee().equals(privilege.getGrantee())) {
+      if (p.getType().equals(privilege.getType()) && p.getObject().equals(privilege.getObject())
+        && p.getGrantor().equals(privilege.getGrantor()) && p.getGrantee().equals(privilege.getGrantee())) {
         p.setDescription(description);
       }
     }

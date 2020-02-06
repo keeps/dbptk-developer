@@ -51,6 +51,4 @@ public interface WriteStrategy {
    * @throws ModuleException
    */
   void setup(SIARDArchiveContainer container) throws ModuleException;
-
-  DigestAlgorithm getDigestAlgorithm();
 }

@@ -10,6 +10,7 @@ package com.databasepreservation.modules.siard.in.input;
 import java.nio.file.Path;
 
 import com.databasepreservation.model.modules.DatabaseImportModule;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD1MetadataPathStrategy;
@@ -27,13 +28,16 @@ import com.databasepreservation.modules.siard.in.read.ZipReadStrategy;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARD1ImportModule {
+  private static final String moduleName = "siard-1";
+  private final ModuleConfiguration moduleConfiguration;
   private final ReadStrategy readStrategy;
   private final SIARDArchiveContainer mainContainer;
   private final MetadataImportStrategy metadataStrategy;
   private final ContentImportStrategy contentStrategy;
 
-  public SIARD1ImportModule(Path siardPackagePath) {
+  public SIARD1ImportModule(ModuleConfiguration moduleConfiguration, Path siardPackagePath) {
     Path siardPackageNormalizedPath = siardPackagePath.toAbsolutePath().normalize();
+    this.moduleConfiguration = moduleConfiguration;
     readStrategy = new ZipReadStrategy();
     mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.V1_0, siardPackageNormalizedPath,
       SIARDArchiveContainer.OutputContainerType.MAIN);
@@ -46,6 +50,6 @@ public class SIARD1ImportModule {
   }
 
   public DatabaseImportModule getDatabaseImportModule() {
-    return new SIARDImportDefault(contentStrategy, mainContainer, readStrategy, metadataStrategy);
+    return new SIARDImportDefault(moduleName, moduleConfiguration, contentStrategy, mainContainer, readStrategy, metadataStrategy);
   }
 }

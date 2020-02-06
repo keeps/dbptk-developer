@@ -8,7 +8,6 @@
 package com.databasepreservation.modules.sybase.in;
 
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -25,16 +24,19 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.Constants;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.RoutineStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.CloseableUtils;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.sybase.SybaseHelper;
+import com.databasepreservation.utils.MapUtils;
 import com.databasepreservation.utils.RemoteConnectionUtils;
 
 /**
@@ -51,6 +53,7 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
 
   /**
    * Creates a new Sybase import module using the default instance.
+   * 
    * @param hostname
    *          the name of the Sybase server host (e.g. localhost)
    * @param port
@@ -63,18 +66,25 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
    *          the password of the user to use in the connection
    *
    */
-  public SybaseJDBCImportModule(String hostname, int port, String database, String username, String password, Path customViews) throws ModuleException {
-    super(DRIVER_CLASS_NAME, URL_CONNECTION_PREFIX + hostname + ":" + port + "/" + database,
-        new SybaseHelper(), new SybaseDataTypeImporter(), customViews);
+  public SybaseJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String hostname, int port,
+    String database, String username, String password) throws ModuleException {
+    super(DRIVER_CLASS_NAME, URL_CONNECTION_PREFIX + hostname + ":" + port + "/" + database, new SybaseHelper(),
+      new SybaseDataTypeImporter(), moduleConfiguration, moduleName,
+      MapUtils.buildMapFromObjects(Constants.DB_HOST, hostname, Constants.DB_PORT, port, Constants.DB_USER, username,
+        Constants.DB_PASSWORD, password, Constants.DB_DATABASE, database));
     this.username = username;
     this.password = password;
   }
 
-  public SybaseJDBCImportModule(String hostname, int port, String database, String username, String password,
-    boolean ssh, String sshHost, String sshUser, String sshPassword, String sshPortNumber, Path customViews)
-    throws ModuleException {
-    super(DRIVER_CLASS_NAME, URL_CONNECTION_PREFIX + hostname + ":" + port + "/" + database,
-      new SybaseHelper(), new SybaseDataTypeImporter(), ssh, sshHost, sshUser, sshPassword, sshPortNumber, customViews);
+  public SybaseJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String hostname, int port,
+    String database, String username, String password, String sshHost, String sshUser, String sshPassword,
+    String sshPortNumber) throws ModuleException {
+    super(DRIVER_CLASS_NAME, URL_CONNECTION_PREFIX + hostname + ":" + port + "/" + database, new SybaseHelper(),
+      new SybaseDataTypeImporter(), moduleConfiguration, moduleName,
+      MapUtils.buildMapFromObjects(Constants.DB_HOST, hostname, Constants.DB_PORT, port, Constants.DB_USER, username,
+        Constants.DB_PASSWORD, password, Constants.DB_DATABASE, database),
+      MapUtils.buildMapFromObjects(Constants.DB_SSH_HOST, sshHost, Constants.DB_SSH_PORT, sshPortNumber,
+        Constants.DB_SSH_USER, sshUser, Constants.DB_SSH_PASSWORD, sshPassword));
     this.username = username;
     this.password = password;
   }
@@ -144,7 +154,7 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
 
   @Override
   protected Cell rawToCellSimpleTypeBinary(String id, String columnName, Type cellType, ResultSet rawData)
-      throws SQLException, ModuleException {
+    throws SQLException, ModuleException {
     Cell cell;
 
     InputStream binaryStream = rawData.getBinaryStream(columnName);
@@ -258,33 +268,29 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
    */
   @Override
   protected List<ViewStructure> getViews(String schemaName) throws SQLException, ModuleException {
-    if (getModuleSettings().fetchMetadataInformation()) {
-      List<ViewStructure> views = super.getViews(schemaName);
-      for (ViewStructure v : views) {
+    List<ViewStructure> views = super.getViews(schemaName);
+    for (ViewStructure v : views) {
 
-        String queryForViewSQL = ((SybaseHelper) sqlHelper).getViewSQL(v.getName());
-        ResultSet rset = null;
-        PreparedStatement statement = null;
-        statement = getConnection().prepareStatement(queryForViewSQL);
-        try {
-          rset = statement.executeQuery();
-          StringBuilder b = new StringBuilder();
-          while (rset.next()) {
-            b.append(rset.getString("TEXT"));
-          }
-
-          v.setQueryOriginal(b.toString());
-        } catch (SQLException e) {
-          LOGGER.debug("Exception trying to get view SQL in Sybase", e);
-        } finally {
-          CloseableUtils.closeQuietly(rset);
-          CloseableUtils.closeQuietly(statement);
+      String queryForViewSQL = ((SybaseHelper) sqlHelper).getViewSQL(v.getName());
+      ResultSet rset = null;
+      PreparedStatement statement = null;
+      statement = getConnection().prepareStatement(queryForViewSQL);
+      try {
+        rset = statement.executeQuery();
+        StringBuilder b = new StringBuilder();
+        while (rset.next()) {
+          b.append(rset.getString("TEXT"));
         }
-      }
-      return views;
-    }
 
-    return new ArrayList<>();
+        v.setQueryOriginal(b.toString());
+      } catch (SQLException e) {
+        LOGGER.debug("Exception trying to get view SQL in Sybase", e);
+      } finally {
+        CloseableUtils.closeQuietly(rset);
+        CloseableUtils.closeQuietly(statement);
+      }
+    }
+    return views;
   }
 
   /**
@@ -300,41 +306,36 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
   @Override
   protected List<RoutineStructure> getRoutines(String schemaName) throws SQLException, ModuleException {
     List<RoutineStructure> routines = new ArrayList<>();
-    if (getModuleSettings().isSelectedSchema(schemaName)) {
-      try (ResultSet rset = getMetadata().getProcedures(dbStructure.getName(), schemaName, "%")) {
-        while (rset.next()) {
-          String routineName = rset.getString(3);
-          LOGGER.info("Obtaining routine {}", routineName);
-          RoutineStructure routine = new RoutineStructure();
-          routine.setName(routineName);
-          if (rset.getString(7) != null) {
-            routine.setDescription(rset.getString(7));
-          } else {
-            if (rset.getShort(8) == 1) {
-              routine.setDescription("Routine does not " + "return a result");
-            } else if (rset.getShort(8) == 2) {
-              routine.setDescription("Routine returns a result");
-            }
+    try (ResultSet rset = getMetadata().getProcedures(dbStructure.getName(), schemaName, "%")) {
+      while (rset.next()) {
+        String routineName = rset.getString(3);
+        LOGGER.info("Obtaining routine {}", routineName);
+        RoutineStructure routine = new RoutineStructure();
+        routine.setName(routineName);
+        if (rset.getString(7) != null) {
+          routine.setDescription(rset.getString(7));
+        } else {
+          if (rset.getShort(8) == 1) {
+            routine.setDescription("Routine does not " + "return a result");
+          } else if (rset.getShort(8) == 2) {
+            routine.setDescription("Routine returns a result");
           }
-
-          String queryForProcedureSQL = ((SybaseHelper) sqlHelper).getProcedureSQL(routine.getName());
-          try (ResultSet res = getStatement().executeQuery(queryForProcedureSQL)) {
-            StringBuilder b = new StringBuilder();
-            while (res.next()) {
-              b.append(res.getString("TEXT"));
-            }
-            routine.setBody(b.toString());
-          } catch (SQLException e) {
-            LOGGER.debug("Could not retrieve routine code (as routine) for " + routine.getName(), e);
-            routine.setBody("");
-          }
-
-
-          routines.add(routine);
         }
+
+        String queryForProcedureSQL = ((SybaseHelper) sqlHelper).getProcedureSQL(routine.getName());
+        try (ResultSet res = getStatement().executeQuery(queryForProcedureSQL)) {
+          StringBuilder b = new StringBuilder();
+          while (res.next()) {
+            b.append(res.getString("TEXT"));
+          }
+          routine.setBody(b.toString());
+        } catch (SQLException e) {
+          LOGGER.debug("Could not retrieve routine code (as routine) for " + routine.getName(), e);
+          routine.setBody("");
+        }
+
+        routines.add(routine);
       }
-    } else {
-      LOGGER.info("Ignoring routines for schema {}", schemaName);
     }
 
     return routines;

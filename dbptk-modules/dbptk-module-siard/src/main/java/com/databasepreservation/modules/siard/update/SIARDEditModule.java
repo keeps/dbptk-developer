@@ -24,7 +24,6 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import com.databasepreservation.modules.siard.out.path.SIARD1ContentPathExportStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -35,7 +34,7 @@ import org.xml.sax.SAXException;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.metadata.SIARDDatabaseMetadata;
-import com.databasepreservation.model.modules.ModuleSettings;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.modules.edits.EditModule;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.PrivilegeStructure;
@@ -58,9 +57,11 @@ import com.databasepreservation.modules.siard.in.read.ZipReadStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARD1MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARD20MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARD21MetadataExportStrategy;
+import com.databasepreservation.modules.siard.out.path.SIARD1ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.update.MetadataUpdateStrategy;
 import com.databasepreservation.modules.siard.out.update.UpdateStrategy;
+import com.databasepreservation.utils.ModuleConfigurationUtils;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -127,13 +128,13 @@ public class SIARDEditModule implements EditModule {
    */
   @Override
   public DatabaseStructure getMetadata() throws ModuleException {
-    ModuleSettings moduleSettings = new ModuleSettings();
+    ModuleConfiguration moduleConfiguration = ModuleConfigurationUtils.getDefaultModuleConfiguration();
 
     LOGGER.info("Importing SIARD version {}", mainContainer.getVersion().getDisplayName());
     DatabaseStructure dbStructure;
 
     try {
-      metadataImportStrategy.loadMetadata(readStrategy, mainContainer, moduleSettings);
+      metadataImportStrategy.loadMetadata(readStrategy, mainContainer, moduleConfiguration);
 
       dbStructure = metadataImportStrategy.getDatabaseStructure();
     } catch (NullPointerException e) {

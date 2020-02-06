@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseImportModule;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD2MetadataPathStrategy;
@@ -32,6 +33,8 @@ import com.databasepreservation.modules.siard.in.read.ZipReadStrategy;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARD2ImportModule {
+  private static final String moduleName = "siard-2";
+  private final ModuleConfiguration moduleConfiguration;
   private final ReadStrategy readStrategy;
   private final SIARDArchiveContainer mainContainer;
   private final SIARDArchiveContainer lobContainer;
@@ -39,8 +42,8 @@ public class SIARD2ImportModule {
   private final ContentImportStrategy contentStrategy;
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2ImportModule.class);
 
-  public SIARD2ImportModule(Path siardPackage) {
-    this(siardPackage, false);
+  public SIARD2ImportModule(ModuleConfiguration moduleConfiguration, Path siardPackage) {
+    this(moduleConfiguration, siardPackage, false);
   }
 
   /**
@@ -55,9 +58,10 @@ public class SIARD2ImportModule {
    *          saved to folders. When reading those LOBs it's important to know if
    *          they are inside a simple folder or a zip container.
    */
-  public SIARD2ImportModule(Path siardPackagePath, boolean auxiliaryContainersInZipFormat) {
+  public SIARD2ImportModule(ModuleConfiguration moduleConfiguration, Path siardPackagePath,
+    boolean auxiliaryContainersInZipFormat) {
     Path siardPackageNormalizedPath = siardPackagePath.toAbsolutePath().normalize();
-
+    this.moduleConfiguration = moduleConfiguration;
     mainContainer = new SIARDArchiveContainer(siardPackageNormalizedPath,
       SIARDArchiveContainer.OutputContainerType.MAIN);
     lobContainer = new SIARDArchiveContainer(siardPackageNormalizedPath.getParent(),
@@ -92,6 +96,7 @@ public class SIARD2ImportModule {
   }
 
   public DatabaseImportModule getDatabaseImportModule() {
-    return new SIARDImportDefault(contentStrategy, mainContainer, readStrategy, metadataStrategy);
+    return new SIARDImportDefault(moduleName, moduleConfiguration, contentStrategy, mainContainer, readStrategy,
+      metadataStrategy);
   }
 }

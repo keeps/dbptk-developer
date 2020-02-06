@@ -7,21 +7,10 @@
  */
 package com.databasepreservation.modules.siard.out.output;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,12 +19,11 @@ import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
-import com.databasepreservation.model.modules.ModuleSettings;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.modules.DefaultExceptionNormalizer;
-import com.databasepreservation.modules.listTables.ListTables;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.SIARDValidator;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
@@ -51,9 +39,6 @@ public class SIARDExportDefault implements DatabaseExportModule {
   private final WriteStrategy writeStrategy;
   private final MetadataExportStrategy metadataStrategy;
   private final ContentExportStrategy contentStrategy;
-  private final Path tableFilter;
-
-  private ModuleSettings moduleSettings = null;
 
   private DatabaseStructure dbStructure;
   private SchemaStructure currentSchema;
@@ -61,30 +46,28 @@ public class SIARDExportDefault implements DatabaseExportModule {
   private Map<String, String> descriptiveMetadata;
   private Reporter reporter;
 
+  private ModuleConfiguration moduleConfiguration = null;
   private boolean validate = false;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARDExportDefault.class);
 
   public SIARDExportDefault(ContentExportStrategy contentStrategy, SIARDArchiveContainer mainContainer,
-    WriteStrategy writeStrategy, MetadataExportStrategy metadataStrategy, Path tableFilter,
-    Map<String, String> descriptiveMetadata) {
+    WriteStrategy writeStrategy, MetadataExportStrategy metadataStrategy, Map<String, String> descriptiveMetadata) {
     this.descriptiveMetadata = descriptiveMetadata;
     this.contentStrategy = contentStrategy;
     this.mainContainer = mainContainer;
     this.writeStrategy = writeStrategy;
     this.metadataStrategy = metadataStrategy;
-    this.tableFilter = tableFilter;
   }
 
   public SIARDExportDefault(ContentExportStrategy contentStrategy, SIARDArchiveContainer mainContainer,
-    WriteStrategy writeStrategy, MetadataExportStrategy metadataStrategy, Path tableFilter,
-    Map<String, String> descriptiveMetadata, boolean validate) {
+    WriteStrategy writeStrategy, MetadataExportStrategy metadataStrategy, Map<String, String> descriptiveMetadata,
+    boolean validate) {
     this.descriptiveMetadata = descriptiveMetadata;
     this.contentStrategy = contentStrategy;
     this.mainContainer = mainContainer;
     this.writeStrategy = writeStrategy;
     this.metadataStrategy = metadataStrategy;
-    this.tableFilter = tableFilter;
     this.validate = validate;
   }
 
@@ -95,63 +78,8 @@ public class SIARDExportDefault implements DatabaseExportModule {
    * @throws ModuleException
    */
   @Override
-  public ModuleSettings getModuleSettings() throws ModuleException {
-    if (moduleSettings != null) {
-      return moduleSettings;
-    }
-
-    if (tableFilter == null) {
-      moduleSettings = new ModuleSettings();
-    } else {
-      InputStream inputStream = null;
-      try {
-        // attempt to get a table list from the file at tableFilter and use that
-        // list as selectedTables in the ModuleSettings
-        inputStream = Files.newInputStream(tableFilter);
-        InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-        BufferedReader reader = new BufferedReader(inputStreamReader);
-
-        final HashSet<Triple<String, String, String>> selectedTables = new HashSet<>();
-        String line;
-        while ((line = reader.readLine()) != null) {
-          if (StringUtils.isNotBlank(line)) {
-
-            Matcher lineMatcher = ListTables.LINE_PATTERN.matcher(line);
-            if (!lineMatcher.matches()) {
-              throw new ModuleException().withMessage("Malformed entry in table list: " + line);
-            }
-
-            String schemaPart = lineMatcher.group(1);
-            String tablePart = lineMatcher.group(2);
-            tablePart = tablePart.substring(1);
-            String columnPart = lineMatcher.group(3);
-            String[] columns = columnPart.split(ListTables.COLUMNS_SEPARATOR);
-
-            selectedTables.add(Triple.of(schemaPart, (String) null, (String) null));
-            selectedTables.add(Triple.of(schemaPart, tablePart, (String) null));
-
-            for (String column : columns) {
-              if (StringUtils.isNotBlank(column)) {
-                selectedTables.add(Triple.of(schemaPart, tablePart, column));
-              }
-            }
-          }
-        }
-
-        moduleSettings = new ModuleSettings() {
-          @Override
-          public Set<Triple<String, String, String>> selectedTables() {
-            return selectedTables;
-          }
-        };
-      } catch (IOException e) {
-        throw new ModuleException()
-          .withMessage("Could not read table list from file " + tableFilter.toAbsolutePath().toString()).withCause(e);
-      } finally {
-        IOUtils.closeQuietly(inputStream);
-      }
-    }
-    return moduleSettings;
+  public ModuleConfiguration getModuleConfiguration() throws ModuleException {
+    return null;
   }
 
   @Override
@@ -250,6 +178,12 @@ public class SIARDExportDefault implements DatabaseExportModule {
       validator.setReporter(reporter);
       validator.validateSIARD();
     }
+  }
+
+  @Override
+  public void updateModuleConfiguration(String moduleName, Map<String, String> properties,
+    Map<String, String> remoteProperties) {
+    // do nothing
   }
 
   /**

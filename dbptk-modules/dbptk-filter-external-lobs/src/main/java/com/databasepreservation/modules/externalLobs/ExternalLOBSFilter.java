@@ -22,7 +22,7 @@ import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
-import com.databasepreservation.model.modules.ModuleSettings;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
@@ -60,9 +60,15 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
     this.reporter = reporter;
   }
 
+  /**
+   * Gets custom settings set by the export module that modify behaviour of the
+   * import module.
+   *
+   * @throws ModuleException
+   */
   @Override
-  public ModuleSettings getModuleSettings() throws ModuleException {
-    return this.exportModule.getModuleSettings();
+  public ModuleConfiguration getModuleConfiguration() throws ModuleException {
+    return this.exportModule.getModuleConfiguration();
   }
 
   @Override
@@ -147,7 +153,7 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
       for (int index : externalLOBIndexes) {
         Cell cell = rowCells.get(index);
 
-        if(cell instanceof SimpleCell){
+        if (cell instanceof SimpleCell) {
           String reference = ((SimpleCell) cell).getSimpleData();
           if (reference != null && !reference.isEmpty()) {
             Cell newCell = cellHandler.handleCell(cell.getId(), ((SimpleCell) cell).getSimpleData());
@@ -182,6 +188,11 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
   @Override
   public void finishDatabase() throws ModuleException {
     this.exportModule.finishDatabase();
+  }
+
+  @Override
+  public void updateModuleConfiguration(String moduleName, Map<String, String> properties, Map<String, String> remoteProperties) {
+    // do nothing
   }
 
   @Override

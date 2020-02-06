@@ -50,7 +50,7 @@ import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
-import com.databasepreservation.model.modules.ModuleSettings;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.ForeignKey;
@@ -66,6 +66,7 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
 import com.databasepreservation.modules.DefaultExceptionNormalizer;
 import com.databasepreservation.modules.SQLHelper;
+import com.databasepreservation.utils.ModuleConfigurationUtils;
 import com.databasepreservation.utils.PortUtils;
 import com.databasepreservation.utils.RemoteConnectionUtils;
 import com.jcraft.jsch.Session;
@@ -184,7 +185,8 @@ public class JDBCExportModule implements DatabaseExportModule {
     currentIsIgnoredSchema = false;
     this.ssh = ssh;
     if (ssh) {
-      RemoteConnectionUtils.createRemoteSession(sshHost, sshUser, sshPassword, sshPort, connectionURL, PortUtils.findFreePort());
+      RemoteConnectionUtils.createRemoteSession(sshHost, sshUser, sshPassword, sshPort, connectionURL,
+        PortUtils.findFreePort());
     }
   }
 
@@ -319,8 +321,8 @@ public class JDBCExportModule implements DatabaseExportModule {
    * @throws ModuleException
    */
   @Override
-  public ModuleSettings getModuleSettings() throws ModuleException {
-    return new ModuleSettings();
+  public ModuleConfiguration getModuleConfiguration() throws ModuleException {
+    return null;
   }
 
   @Override
@@ -731,13 +733,12 @@ public class JDBCExportModule implements DatabaseExportModule {
         || "TIMESTAMP WITH TIME ZONE".equalsIgnoreCase(type.getSql99TypeName())) {
         if (data != null) {
           // LOGGER.debug("timestamp before: " + data);
-//          Calendar cal = javax.xml.bind.DatatypeConverter.parseDateTime(data);
-//          Timestamp sqlTimestamp = new Timestamp(cal.getTimeInMillis());
-//          LOGGER.trace("timestamp after: " + sqlTimestamp.toString());
-//          ps.setTimestamp(index, sqlTimestamp);
-          DateTimeFormatter formatter = DateTimeFormatter
-              .ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")
-              .withZone(ZoneOffset.UTC);
+          // Calendar cal = javax.xml.bind.DatatypeConverter.parseDateTime(data);
+          // Timestamp sqlTimestamp = new Timestamp(cal.getTimeInMillis());
+          // LOGGER.trace("timestamp after: " + sqlTimestamp.toString());
+          // ps.setTimestamp(index, sqlTimestamp);
+          DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")
+            .withZone(ZoneOffset.UTC);
           Instant instant = Instant.parse(data);
           ps.setString(index, formatter.format(instant));
         } else {
@@ -797,6 +798,11 @@ public class JDBCExportModule implements DatabaseExportModule {
       handleForeignKeys();
     }
     closeConnections();
+  }
+
+  @Override
+  public void updateModuleConfiguration(String moduleName, Map<String, String> properties, Map<String, String> remoteProperties) {
+    // do nothing
   }
 
   /**

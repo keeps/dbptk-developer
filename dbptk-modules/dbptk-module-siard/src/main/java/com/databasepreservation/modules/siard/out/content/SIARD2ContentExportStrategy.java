@@ -19,7 +19,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -44,7 +43,6 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.common.LargeObject;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
-import com.databasepreservation.modules.siard.out.write.DigestAlgorithm;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.XMLUtils;
 
@@ -79,18 +77,18 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     this.writeStrategy = writeStrategy;
     this.baseContainer = baseContainer;
 
-    this.LOBsToExport = new ArrayList<LargeObject>();
+    this.LOBsToExport = new ArrayList<>();
     currentRowIndex = -1;
     this.prettyXMLOutput = prettyXMLOutput;
   }
 
   @Override
-  public void openSchema(SchemaStructure schema) throws ModuleException {
+  public void openSchema(SchemaStructure schema) {
     currentSchema = schema;
   }
 
   @Override
-  public void closeSchema(SchemaStructure schema) throws ModuleException {
+  public void closeSchema(SchemaStructure schema) {
     // do nothing
   }
 
@@ -362,16 +360,18 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     if (cell instanceof BinaryCell) {
       final BinaryCell binCell = (BinaryCell) cell;
 
-      lob = new LargeObject(binCell, contentPathStrategy.getBlobFilePath(currentSchema.getIndex(),
-        currentTable.getIndex(), columnIndex, currentRowIndex + 1));
+      final TemporaryPathInputStreamProvider temporaryPathInputStreamProvider = new TemporaryPathInputStreamProvider(
+        binCell.createInputStream());
+
+      lob = new LargeObject(temporaryPathInputStreamProvider, contentPathStrategy
+        .getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
 
       currentWriter.beginOpenTag(cellPrefix + columnIndex, 2).space().append("file=\"")
         .append(contentPathStrategy.getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
           currentRowIndex + 1))
-        .append('"').space().append("length=\"")
-        .append(String.valueOf(binCell.getSize())).append("\"").space().append("digest=\"")
-        .append(digestInputStream(binCell.createInputStream())).append("\"").space().append("digestType=\"")
-          .append(writeStrategy.getDigestAlgorithm().name()).append("\"");
+        .append('"').space().append("length=\"").append(String.valueOf(binCell.getSize())).append("\"").space()
+        .append("digest=\"").append(temporaryPathInputStreamProvider.getDigest()).append("\"").space()
+        .append("digestType=\"").append("MD5").append("\"");
 
     } else if (cell instanceof SimpleCell) {
       SimpleCell txtCell = (SimpleCell) cell;
@@ -386,16 +386,17 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       }
 
       ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
-      lob = new LargeObject(new TemporaryPathInputStreamProvider(inputStream), contentPathStrategy
+      final TemporaryPathInputStreamProvider temporaryPathInputStreamProvider = new TemporaryPathInputStreamProvider(
+        inputStream);
+      lob = new LargeObject(temporaryPathInputStreamProvider, contentPathStrategy
         .getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
 
       currentWriter.beginOpenTag(cellPrefix + columnIndex, 2).space().append("file=\"")
         .append(contentPathStrategy.getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
           currentRowIndex + 1))
-        .append('"').space().append("length=\"")
-        .append(String.valueOf(txtCell.getBytesSize())).append("\"").space().append("digest=\"")
-        .append(digestInputStream(inputStream)).append("\"").space().append("digestType=\"")
-          .append(writeStrategy.getDigestAlgorithm().name()).append("\"");
+        .append('"').space().append("length=\"").append(String.valueOf(txtCell.getBytesSize())).append("\"").space()
+        .append("digest=\"").append(temporaryPathInputStreamProvider.getDigest()).append("\"").space()
+        .append("digestType=\"").append("MD5").append("\"");
     }
 
     // decide to whether write the LOB right away or later
@@ -447,30 +448,6 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     } finally {
       lob.getInputStreamProvider().cleanResources();
     }
-  }
-
-  private String digestInputStream(InputStream inputStream) throws IOException {
-    final DigestAlgorithm digestAlgorithm = writeStrategy.getDigestAlgorithm();
-
-    String messageDigest;
-
-    switch (digestAlgorithm) {
-      case SHA1:
-        messageDigest = DigestUtils.sha1Hex(inputStream);
-        inputStream.close();
-        break;
-      case SHA256:
-        messageDigest = DigestUtils.sha256Hex(inputStream);
-        inputStream.close();
-        break;
-      case MD5:
-      default:
-        messageDigest = DigestUtils.md5Hex(inputStream);
-        inputStream.close();
-        break;
-    }
-
-    return messageDigest;
   }
 
   private void writeXsd() throws IOException, ModuleException {

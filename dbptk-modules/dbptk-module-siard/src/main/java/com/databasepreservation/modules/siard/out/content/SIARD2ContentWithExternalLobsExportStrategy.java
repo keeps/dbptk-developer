@@ -24,7 +24,7 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.common.TemporaryPathInputStreamProvider;
+import com.databasepreservation.common.InputStreamProviderImpl;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
@@ -36,6 +36,7 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentWithExternalLobsPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
+import com.databasepreservation.modules.siard.out.write.ZipWithExternalLobsWriteStrategy;
 
 /**
  * SIARD 2 external LOBs export strategy, that exports LOBs according to the
@@ -160,7 +161,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
       SimpleCell txtCell = (SimpleCell) cell;
       String data = txtCell.getSimpleData();
       ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8));
-      lob = new LargeObject(new TemporaryPathInputStreamProvider(inputStream), lobFileParameter);
+      lob = new LargeObject(new InputStreamProviderImpl(inputStream, data.getBytes().length), lobFileParameter);
     }
 
     // decide to whether write the LOB right away or later
@@ -182,7 +183,8 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
       String.valueOf(lobSizeParameter));
 
     if (lobDigestChecksum != null) {
-      currentWriter.appendAttribute("digestType", writeStrategy.getDigestAlgorithm().name());
+
+      currentWriter.appendAttribute("digestType", ZipWithExternalLobsWriteStrategy.DIGEST_ALGORITHM);
       currentWriter.appendAttribute("digest", lobDigestChecksum);
       lobDigestChecksum = null; // reset it to the default value
     }

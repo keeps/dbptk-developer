@@ -14,7 +14,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -23,8 +22,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -39,6 +36,7 @@ import org.postgresql.largeobject.LargeObjectManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.Constants;
 import com.databasepreservation.common.InputStreamProvider;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
@@ -48,6 +46,7 @@ import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.ForeignKey;
@@ -63,6 +62,7 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.postgreSql.PostgreSQLExceptionNormalizer;
 import com.databasepreservation.modules.postgreSql.PostgreSQLHelper;
+import com.databasepreservation.utils.MapUtils;
 import com.databasepreservation.utils.RemoteConnectionUtils;
 
 /**
@@ -97,26 +97,6 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
    *
    * @param hostname
    *          the name of the PostgreSQL server host (e.g. localhost)
-   * @param database
-   *          the name of the database to connect to
-   * @param username
-   *          the name of the user to use in connection
-   * @param password
-   *          the password of the user to use in connection
-   * @param encrypt
-   *          encrypt connection
-   */
-  public PostgreSQLJDBCImportModule(String hostname, String database, String username, String password,
-    boolean encrypt, Path customViews) throws ModuleException {
-    super("org.postgresql.Driver", "jdbc:postgresql://" + hostname + "/" + database + "?user=" + username + "&password="
-      + password + (encrypt ? "&ssl=true" : ""), new PostgreSQLHelper(), new PostgreSQLJDBCDatatypeImporter(), customViews);
-  }
-
-  /**
-   * Create a new PostgreSQL JDBC import module
-   *
-   * @param hostname
-   *          the name of the PostgreSQL server host (e.g. localhost)
    * @param port
    *          the port of where the PostgreSQL server is listening, default is
    *          5432
@@ -129,21 +109,27 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
    * @param encrypt
    *          encrypt connection
    */
-  public PostgreSQLJDBCImportModule(String hostname, int port, String database, String username, String password,
-    boolean encrypt, Path customViews) throws ModuleException {
-    super(
-      "org.postgresql.Driver", "jdbc:postgresql://" + hostname + ":" + port + "/" + database + "?user=" + username
-        + "&password=" + password + (encrypt ? "&ssl=true" : ""),
-      new PostgreSQLHelper(), new PostgreSQLJDBCDatatypeImporter(), customViews);
+  public PostgreSQLJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String hostname,
+    int port, String database, String username, String password, boolean encrypt) throws ModuleException {
+    super("org.postgresql.Driver",
+      "jdbc:postgresql://" + hostname + ":" + port + "/" + database + "?user=" + username + "&password=" + password
+        + (encrypt ? "&ssl=true" : ""),
+      new PostgreSQLHelper(), new PostgreSQLJDBCDatatypeImporter(), moduleConfiguration, moduleName,
+      MapUtils.buildMapFromObjects(Constants.DB_HOST, hostname, Constants.DB_PORT, port, Constants.DB_USER, username,
+        Constants.DB_PASSWORD, password, Constants.DB_DATABASE, database, Constants.DB_DISABLE_ENCRYPTION, encrypt));
   }
 
-  public PostgreSQLJDBCImportModule(String hostname, int port, String database, String username, String password,
-    boolean encrypt, boolean ssh, String sshHost, String sshUser, String sshPassword, String sshPortNumber,
-    Path customViews) throws ModuleException {
-    super(
-      "org.postgresql.Driver", "jdbc:postgresql://" + hostname + ":" + port + "/" + database + "?user=" + username
-        + "&password=" + password + (encrypt ? "&ssl=true" : ""),
-      new PostgreSQLHelper(), new PostgreSQLJDBCDatatypeImporter(), ssh, sshHost, sshUser, sshPassword, sshPortNumber, customViews);
+  public PostgreSQLJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String hostname,
+    int port, String database, String username, String password, boolean encrypt, String sshHost, String sshUser,
+    String sshPassword, String sshPortNumber) throws ModuleException {
+    super("org.postgresql.Driver",
+      "jdbc:postgresql://" + hostname + ":" + port + "/" + database + "?user=" + username + "&password=" + password
+        + (encrypt ? "&ssl=true" : ""),
+      new PostgreSQLHelper(), new PostgreSQLJDBCDatatypeImporter(), moduleConfiguration, moduleName,
+      MapUtils.buildMapFromObjects(Constants.DB_HOST, hostname, Constants.DB_PORT, port, Constants.DB_USER, username,
+        Constants.DB_PASSWORD, password, Constants.DB_DATABASE, database, Constants.DB_DISABLE_ENCRYPTION, encrypt),
+      MapUtils.buildMapFromObjects(Constants.DB_SSH_HOST, sshHost, Constants.DB_SSH_PORT, sshPortNumber,
+        Constants.DB_SSH_USER, sshUser, Constants.DB_SSH_PASSWORD, sshPassword));
   }
 
   @Override

@@ -29,11 +29,9 @@ public class ZipWriteStrategy implements WriteStrategy {
 
   private final CompressionMethod compressionMethod;
   private ProtectedZipArchiveOutputStream zipOut;
-  private DigestAlgorithm digestAlgorithm;
 
   public ZipWriteStrategy(CompressionMethod compressionMethod) {
     this.compressionMethod = compressionMethod;
-    this.digestAlgorithm = DigestAlgorithm.MD5;
   }
 
   @Override
@@ -94,10 +92,6 @@ public class ZipWriteStrategy implements WriteStrategy {
 
   public enum CompressionMethod {
     DEFLATE, STORE
-  }
-
-  public DigestAlgorithm getDigestAlgorithm() {
-    return this.digestAlgorithm;
   }
 
   private class ProtectedZipArchiveOutputStream extends ZipArchiveOutputStream {

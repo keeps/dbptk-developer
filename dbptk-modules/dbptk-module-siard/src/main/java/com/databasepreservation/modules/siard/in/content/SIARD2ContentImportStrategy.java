@@ -48,7 +48,7 @@ import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
-import com.databasepreservation.model.modules.ModuleSettings;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
@@ -97,8 +97,6 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
   private int currentColumnIndex;
   private Row row;
   private long rowIndex;
-  private long currentTableTotalRows;
-  private DatabaseStructure databaseStructure;
 
   public SIARD2ContentImportStrategy(ReadStrategy readStrategy, ContentPathImportStrategy contentPathStrategy,
     SIARDArchiveContainer lobContainer) {
@@ -109,11 +107,10 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
 
   @Override
   public void importContent(DatabaseExportModule handler, SIARDArchiveContainer container,
-    DatabaseStructure databaseStructure, ModuleSettings moduleSettings) throws ModuleException {
+    DatabaseStructure databaseStructure, ModuleConfiguration moduleSettings) throws ModuleException {
     // set instance state
     this.databaseExportModule = handler;
     this.contentContainer = container;
-    this.databaseStructure = databaseStructure;
 
     // pre-setup parser and validation
     SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -148,9 +145,9 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
           } catch (ModuleException e) {
             LOGGER.error("An error occurred while handling data open table", e);
           }
-          this.currentTableTotalRows = currentTable.getRows();
+          long currentTableTotalRows = currentTable.getRows();
 
-          if (tableHandled && moduleSettings.shouldFetchRows()) {
+          if (tableHandled && moduleSettings.isFetchRows()) {
             InputStream xsdStream = null;
             try {
               // setup a new validating parser
@@ -281,10 +278,11 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
         String lobPath = contentPathStrategy.getLobPath(null, currentSchema.getName(), currentTable.getId(),
           currentTable.getColumns().get(currentColumnIndex - 1).getId(), "");
 
-        if (lobDir.contains(lobPath)) lobPath = lobDir;
+        if (lobDir.contains(lobPath))
+          lobPath = lobDir;
         else {
           lobPath = contentPathStrategy.getLobPath(null, currentSchema.getName(), currentTable.getId(),
-              currentTable.getColumns().get(currentColumnIndex - 1).getId(), lobDir);
+            currentTable.getColumns().get(currentColumnIndex - 1).getId(), lobDir);
         }
 
         SIARDArchiveContainer container;
