@@ -10,8 +10,12 @@ package com.databasepreservation.modules.siard.out.write;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.concurrent.ExecutionException;
+import java.util.zip.ZipEntry;
 
+import com.databasepreservation.common.InputStreamProvider;
 import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ParallelScatterZipCreator;
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
@@ -29,6 +33,7 @@ public class ZipWriteStrategy implements WriteStrategy {
 
   private final CompressionMethod compressionMethod;
   private ProtectedZipArchiveOutputStream zipOut;
+  private ParallelScatterZipCreator scatterZipCreator = new ParallelScatterZipCreator();
 
   public ZipWriteStrategy(CompressionMethod compressionMethod) {
     this.compressionMethod = compressionMethod;
@@ -46,8 +51,15 @@ public class ZipWriteStrategy implements WriteStrategy {
   }
 
   @Override
+  public void writeTo(InputStreamProvider provider, String path) {
+    ZipArchiveEntry entry = new ZipArchiveEntry(path);
+    entry.setMethod(ZipEntry.DEFLATED);
+    scatterZipCreator.addArchiveEntry(entry, provider);
+  }
+
+  @Override
   public boolean isSimultaneousWritingSupported() {
-    return false;
+    return true;
   }
 
   @Override
@@ -58,6 +70,13 @@ public class ZipWriteStrategy implements WriteStrategy {
       if (!"No current entry to close".equals(e.getMessage())) {
         LOGGER.debug("the ArchiveEntry is already closed or the ZipArchiveOutputStream is already finished", e);
       }
+    }
+
+
+    try {
+      scatterZipCreator.writeTo(zipOut);
+    } catch (IOException | InterruptedException | ExecutionException e) {
+      e.printStackTrace();
     }
 
     try {

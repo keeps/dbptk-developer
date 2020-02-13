@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import com.databasepreservation.common.InputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 
@@ -39,6 +40,11 @@ public class FolderWriteStrategy implements WriteStrategy {
     } catch (IOException e) {
       throw new ModuleException().withMessage("Error while getting the file: " + filepath.toString()).withCause(e);
     }
+  }
+
+  @Override
+  public void writeTo(InputStreamProvider provider, String path) {
+
   }
 
   @Override

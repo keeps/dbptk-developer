@@ -7,10 +7,14 @@
  */
 package com.databasepreservation.modules.siard.out.content;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
@@ -18,8 +22,12 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.databasepreservation.common.InputStreamProviderImpl;
+import com.databasepreservation.common.WaitingInputStream;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.MessageDigestCalculatingInputStream;
+import org.apache.commons.io.input.ObservableInputStream;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +53,8 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.XMLUtils;
+
+import javax.xml.bind.DatatypeConverter;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -360,19 +370,30 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     if (cell instanceof BinaryCell) {
       final BinaryCell binCell = (BinaryCell) cell;
 
-      final TemporaryPathInputStreamProvider temporaryPathInputStreamProvider = new TemporaryPathInputStreamProvider(
-        binCell.createInputStream());
+      InputStream inputStream = null;
+      try {
 
-      lob = new LargeObject(temporaryPathInputStreamProvider, contentPathStrategy
-        .getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
+        MessageDigestCalculatingInputStream digest = new MessageDigestCalculatingInputStream(binCell.createInputStream(), MessageDigest.getInstance("MD5"));
+        final WaitingInputStream waitingInputStream = new WaitingInputStream(digest);
+        inputStream = new BufferedInputStream(waitingInputStream);
 
-      currentWriter.beginOpenTag(cellPrefix + columnIndex, 2).space().append("file=\"")
-        .append(contentPathStrategy.getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
-          currentRowIndex + 1))
-        .append('"').space().append("length=\"").append(String.valueOf(binCell.getSize())).append("\"").space()
-        .append("digest=\"").append(temporaryPathInputStreamProvider.getDigest()).append("\"").space()
-        .append("digestType=\"").append("MD5").append("\"");
+        lob = new LargeObject(new InputStreamProviderImpl(inputStream), contentPathStrategy
+            .getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
 
+        writeLOB(lob);
+
+        // wait for lob to be consumed so digest is calculated
+        waitingInputStream.waitForClose();
+
+        currentWriter.beginOpenTag(cellPrefix + columnIndex, 2).space().append("file=\"")
+            .append(contentPathStrategy.getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
+                currentRowIndex + 1))
+            .append('"').space().append("length=\"").append(String.valueOf(binCell.getSize())).append("\"").space()
+            .append("digest=\"").append(DatatypeConverter.printHexBinary(digest.getMessageDigest().digest()).toUpperCase()).append("\"").space()
+            .append("digestType=\"").append("MD5").append("\"");
+      } catch (NoSuchAlgorithmException e) {
+        e.printStackTrace();
+      }
     } else if (cell instanceof SimpleCell) {
       SimpleCell txtCell = (SimpleCell) cell;
 
@@ -385,26 +406,37 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
         return;
       }
 
-      ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
-      final TemporaryPathInputStreamProvider temporaryPathInputStreamProvider = new TemporaryPathInputStreamProvider(
-        inputStream);
-      lob = new LargeObject(temporaryPathInputStreamProvider, contentPathStrategy
-        .getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
+      ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data.getBytes());
+      try {
+        MessageDigestCalculatingInputStream digest = new MessageDigestCalculatingInputStream(byteArrayInputStream, MessageDigest.getInstance("MD5"));
+        final WaitingInputStream waitingInputStream = new WaitingInputStream(digest);
+        InputStream inputStream = new BufferedInputStream(waitingInputStream);
 
-      currentWriter.beginOpenTag(cellPrefix + columnIndex, 2).space().append("file=\"")
-        .append(contentPathStrategy.getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
-          currentRowIndex + 1))
-        .append('"').space().append("length=\"").append(String.valueOf(txtCell.getBytesSize())).append("\"").space()
-        .append("digest=\"").append(temporaryPathInputStreamProvider.getDigest()).append("\"").space()
-        .append("digestType=\"").append("MD5").append("\"");
+        lob = new LargeObject(new InputStreamProviderImpl(inputStream), contentPathStrategy
+            .getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
+
+        writeLOB(lob);
+
+        // wait for lob to be consumed so digest is calculated
+        waitingInputStream.waitForClose();
+
+        currentWriter.beginOpenTag(cellPrefix + columnIndex, 2).space().append("file=\"")
+            .append(contentPathStrategy.getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
+                currentRowIndex + 1))
+            .append('"').space().append("length=\"").append(String.valueOf(txtCell.getBytesSize())).append("\"").space()
+            .append("digest=\"").append(DatatypeConverter.printHexBinary(digest.getMessageDigest().digest()).toUpperCase()).append("\"").space()
+            .append("digestType=\"").append("MD5").append("\"");
+      } catch (NoSuchAlgorithmException e) {
+        e.printStackTrace();
+      }
     }
 
     // decide to whether write the LOB right away or later
-    if (writeStrategy.isSimultaneousWritingSupported()) {
-      writeLOB(lob);
-    } else {
-      LOBsToExport.add(lob);
-    }
+    //if (writeStrategy.isSimultaneousWritingSupported()) {
+    //  writeLOB(lob);
+    //} else {
+    //  LOBsToExport.add(lob);
+    //}
 
     currentWriter.endShorthandTag();
   }
@@ -439,15 +471,18 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
     InputStream in = null;
     // copy lob to output
-    try (OutputStream out = writeStrategy.createOutputStream(baseContainer, lob.getOutputPath())) {
-      in = lob.getInputStreamProvider().createInputStream();
-      IOUtils.copy(in, out);
-      in.close();
-    } catch (IOException e) {
-      throw new ModuleException().withMessage("Could not write lob").withCause(e);
-    } finally {
-      lob.getInputStreamProvider().cleanResources();
-    }
+
+    writeStrategy.writeTo(lob.getInputStreamProvider(), lob.getOutputPath());
+
+//    try (OutputStream out = writeStrategy.createOutputStream(baseContainer, lob.getOutputPath())) {
+//      in = lob.getInputStreamProvider().createInputStream();
+//      IOUtils.copy(in, out);
+//      in.close();
+//    } catch (IOException e) {
+//      throw new ModuleException().withMessage("Could not write lob").withCause(e);
+//    } finally {
+//      lob.getInputStreamProvider().cleanResources();
+//    }
   }
 
   private void writeXsd() throws IOException, ModuleException {

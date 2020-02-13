@@ -9,6 +9,7 @@ package com.databasepreservation.modules.siard.out.write;
 
 import java.io.OutputStream;
 
+import com.databasepreservation.common.InputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 
@@ -31,6 +32,8 @@ public interface WriteStrategy {
    *         use by calling the close() method
    */
   OutputStream createOutputStream(SIARDArchiveContainer container, String path) throws ModuleException;
+
+  void writeTo(InputStreamProvider provider, String path);
 
   /**
    * @return true if the WriteStrategy supports writing a to a new file before

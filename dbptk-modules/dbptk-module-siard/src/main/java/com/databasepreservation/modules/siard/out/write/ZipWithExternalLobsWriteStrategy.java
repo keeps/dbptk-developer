@@ -12,6 +12,7 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import com.databasepreservation.common.InputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 
@@ -62,6 +63,11 @@ public class ZipWithExternalLobsWriteStrategy implements WriteStrategy {
     } else {
       throw createUnsupportedOutputContainerType(container);
     }
+  }
+
+  @Override
+  public void writeTo(InputStreamProvider provider, String path) {
+
   }
 
   /**
