@@ -12,7 +12,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -22,17 +21,15 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.databasepreservation.common.InputStreamProviderImpl;
-import com.databasepreservation.common.WaitingInputStream;
+import com.databasepreservation.common.providers.InputStreamProviderImpl;
+import com.databasepreservation.common.io.WaitingInputStream;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.MessageDigestCalculatingInputStream;
-import org.apache.commons.io.input.ObservableInputStream;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.common.TemporaryPathInputStreamProvider;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;

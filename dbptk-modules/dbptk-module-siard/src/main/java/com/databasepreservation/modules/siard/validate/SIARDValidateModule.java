@@ -16,14 +16,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import com.databasepreservation.modules.siard.validate.component.metadata.MetadataCandidateKeyValidator;
-import com.databasepreservation.modules.siard.validate.component.metadata.MetadataCheckConstraintValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.common.ValidationObserver;
-import com.databasepreservation.common.ValidatorPathStrategy;
-import com.databasepreservation.common.ZipFileManagerStrategy;
+import com.databasepreservation.common.observer.ValidationObserver;
+import com.databasepreservation.common.validation.ValidatorPathStrategy;
+import com.databasepreservation.common.validation.ZipFileManagerStrategy;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.SIARDVersionNotSupportedException;

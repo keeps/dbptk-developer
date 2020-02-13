@@ -10,6 +10,7 @@ package com.databasepreservation.modules.siard.out.output;
 import java.nio.file.Path;
 import java.util.HashMap;
 
+import com.databasepreservation.common.compression.CompressionMethod;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
@@ -24,6 +25,7 @@ import com.databasepreservation.modules.siard.out.metadata.SIARD21MetadataExport
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentWithExternalLobsPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.FolderWriteStrategy;
+import com.databasepreservation.modules.siard.out.write.ParallelZipWriteStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.modules.siard.out.write.ZipWithExternalLobsWriteStrategy;
 import com.databasepreservation.modules.siard.out.write.ZipWriteStrategy;
@@ -49,9 +51,9 @@ public class SIARD2ExportModule {
     contentPathStrategy = new SIARD2ContentPathExportStrategy();
     metadataPathStrategy = new SIARD2MetadataPathStrategy();
     if (compressZip) {
-      writeStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.DEFLATE);
+      writeStrategy = new ParallelZipWriteStrategy(CompressionMethod.DEFLATE);
     } else {
-      writeStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.STORE);
+      writeStrategy = new ParallelZipWriteStrategy(CompressionMethod.STORE);
     }
     mainContainer = new SIARDArchiveContainer(version, siardPackage, SIARDArchiveContainer.OutputContainerType.MAIN);
 
@@ -77,9 +79,9 @@ public class SIARD2ExportModule {
     FolderWriteStrategy folderWriteStrategy = new FolderWriteStrategy();
     ZipWriteStrategy zipWriteStrategy;
     if (compressZip) {
-      zipWriteStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.DEFLATE);
+      zipWriteStrategy = new ZipWriteStrategy(CompressionMethod.DEFLATE);
     } else {
-      zipWriteStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.STORE);
+      zipWriteStrategy = new ZipWriteStrategy(CompressionMethod.STORE);
     }
     writeStrategy = new ZipWithExternalLobsWriteStrategy(zipWriteStrategy, folderWriteStrategy);
 

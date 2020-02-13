@@ -7,14 +7,10 @@
  */
 package com.databasepreservation.model.modules.validate;
 
-import com.databasepreservation.common.ValidationObserver;
+import com.databasepreservation.common.observer.ValidationObserver;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.metadata.SIARDDatabaseMetadata;
 import com.databasepreservation.model.modules.ExceptionNormalizer;
-import com.databasepreservation.model.structure.DatabaseStructure;
-
-import java.util.List;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>

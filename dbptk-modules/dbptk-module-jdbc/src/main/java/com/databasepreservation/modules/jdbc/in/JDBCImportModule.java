@@ -7,6 +7,9 @@
  */
 package com.databasepreservation.modules.jdbc.in;
 
+import static com.databasepreservation.Constants.CUSTOM_VIEW_NAME_PREFIX;
+import static com.databasepreservation.Constants.VIEW_NAME_PREFIX;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -95,9 +98,6 @@ import com.databasepreservation.utils.ModuleConfigurationUtils;
 import com.databasepreservation.utils.PortUtils;
 import com.databasepreservation.utils.RemoteConnectionUtils;
 import com.jcraft.jsch.Session;
-
-import static com.databasepreservation.Constants.CUSTOM_VIEW_NAME_PREFIX;
-import static com.databasepreservation.Constants.VIEW_NAME_PREFIX;
 
 /**
  * @author Luis Faria <lfaria@keep.pt>

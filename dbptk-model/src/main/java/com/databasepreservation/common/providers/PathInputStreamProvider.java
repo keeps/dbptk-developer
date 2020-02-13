@@ -5,13 +5,14 @@
  *
  * https://github.com/keeps/db-preservation-toolkit
  */
-package com.databasepreservation.common;
+package com.databasepreservation.common.providers;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import com.databasepreservation.common.providers.InputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 
 /**

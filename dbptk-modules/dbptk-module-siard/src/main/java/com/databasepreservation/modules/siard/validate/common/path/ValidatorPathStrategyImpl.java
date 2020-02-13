@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.databasepreservation.Constants;
-import com.databasepreservation.common.ValidatorPathStrategy;
+import com.databasepreservation.common.validation.ValidatorPathStrategy;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>

@@ -5,7 +5,7 @@
  *
  * https://github.com/keeps/db-preservation-toolkit
  */
-package com.databasepreservation.common;
+package com.databasepreservation.common.validation;
 
 import java.io.IOException;
 import java.io.InputStream;

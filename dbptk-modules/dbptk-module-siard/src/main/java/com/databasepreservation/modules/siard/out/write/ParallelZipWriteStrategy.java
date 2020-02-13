@@ -1,20 +1,9 @@
-/**
- * The contents of this file are subject to the license and copyright
- * detailed in the LICENSE file at the root of the source
- * tree and available online at
- *
- * https://github.com/keeps/db-preservation-toolkit
- */
 package com.databasepreservation.modules.siard.out.write;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.concurrent.ExecutionException;
-import java.util.zip.ZipEntry;
 
 import com.databasepreservation.common.compression.CompressionMethod;
 import com.databasepreservation.common.providers.InputStreamProvider;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ParallelScatterZipCreator;
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
@@ -23,19 +12,23 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.concurrent.ExecutionException;
+import java.util.zip.ZipEntry;
 
 /**
- * @author Bruno Ferreira <bferreira@keep.pt>
+ * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
-public class ZipWriteStrategy implements WriteStrategy {
+public class ParallelZipWriteStrategy implements WriteStrategy {
   private static final Logger LOGGER = LoggerFactory.getLogger(ZipWriteStrategy.class);
 
   private final CompressionMethod compressionMethod;
   private ProtectedZipArchiveOutputStream zipOut;
+  private ParallelScatterZipCreator scatterZipCreator = new ParallelScatterZipCreator();
 
-  public ZipWriteStrategy(CompressionMethod compressionMethod) {
+  public ParallelZipWriteStrategy(CompressionMethod compressionMethod) {
     this.compressionMethod = compressionMethod;
   }
 
@@ -52,12 +45,14 @@ public class ZipWriteStrategy implements WriteStrategy {
 
   @Override
   public void writeTo(InputStreamProvider provider, String path) {
-
+    ZipArchiveEntry entry = new ZipArchiveEntry(path);
+    entry.setMethod(ZipEntry.DEFLATED);
+    scatterZipCreator.addArchiveEntry(entry, provider);
   }
 
   @Override
   public boolean isSimultaneousWritingSupported() {
-    return false;
+    return true;
   }
 
   @Override
@@ -68,6 +63,13 @@ public class ZipWriteStrategy implements WriteStrategy {
       if (!"No current entry to close".equals(e.getMessage())) {
         LOGGER.debug("the ArchiveEntry is already closed or the ZipArchiveOutputStream is already finished", e);
       }
+    }
+
+
+    try {
+      scatterZipCreator.writeTo(zipOut);
+    } catch (IOException | InterruptedException | ExecutionException e) {
+      e.printStackTrace();
     }
 
     try {

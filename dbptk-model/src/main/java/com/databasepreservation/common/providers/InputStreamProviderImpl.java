@@ -1,4 +1,4 @@
-package com.databasepreservation.common;
+package com.databasepreservation.common.providers;
 
 import java.io.IOException;
 import java.io.InputStream;

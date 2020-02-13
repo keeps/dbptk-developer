@@ -19,7 +19,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.common.TemporaryPathInputStreamProvider;
+import com.databasepreservation.common.providers.TemporaryPathInputStreamProvider;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;

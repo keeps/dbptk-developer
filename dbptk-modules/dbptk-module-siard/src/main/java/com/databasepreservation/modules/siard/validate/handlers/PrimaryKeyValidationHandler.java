@@ -14,7 +14,7 @@ import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import com.databasepreservation.common.ValidationObserver;
+import com.databasepreservation.common.observer.ValidationObserver;
 import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.model.reporters.ValidationReporterStatus;
 

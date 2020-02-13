@@ -48,7 +48,7 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_SSH_PASSWORD = "ssh-password";
   public static final String PARAMETER_SSH_PORT = "ssh-port";
 
-  private static final String licenseURL = "http://www.oracle.com/technetwork/licenses/distribution-license-152002.html";
+  private static final String LICENSE_URL = "http://www.oracle.com/technetwork/licenses/distribution-license-152002.html";
 
   private static final Parameter serverName = new Parameter().shortName("s").longName(PARAMETER_SERVER_NAME)
     .description("the name (or IP address) of the Oracle server").hasArgument(true).setOptionalArgument(false)
@@ -119,7 +119,7 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Map<String, Parameter> getAllParameters() {
-    HashMap<String, Parameter> parameterHashMap = new HashMap<String, Parameter>();
+    HashMap<String, Parameter> parameterHashMap = new HashMap<>();
     parameterHashMap.put(serverName.longName(), serverName);
     parameterHashMap.put(instance.longName(), instance);
     parameterHashMap.put(username.longName(), username);
@@ -199,13 +199,14 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
         pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
         Integer.toString(pPortNumber), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser,
         PARAMETER_SSH_PASSWORD, MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
-      return new Oracle12cJDBCImportModule(moduleConfiguration, getModuleName(), pServerName, pPortNumber, pDatabase, pUsername, pPassword,
-        pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
+      return new Oracle12cJDBCImportModule(moduleConfiguration, getModuleName(), pServerName, pPortNumber, pDatabase,
+        pUsername, pPassword, pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
     } else {
       reporter.importModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_INSTANCE,
         pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
         Integer.toString(pPortNumber));
-      return new Oracle12cJDBCImportModule(moduleConfiguration, getModuleName(), pServerName, pPortNumber, pDatabase, pUsername, pPassword);
+      return new Oracle12cJDBCImportModule(moduleConfiguration, getModuleName(), pServerName, pPortNumber, pDatabase,
+        pUsername, pPassword);
     }
   }
 
@@ -235,12 +236,12 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
       pSSHPortNumber = parameters.get(sshPort);
     }
 
-    Integer pPortNumber = Integer.parseInt(parameters.get(portNumber));
+    int pPortNumber = Integer.parseInt(parameters.get(portNumber));
 
     if (pSSH) {
       reporter.exportModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_INSTANCE,
         pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
-        pPortNumber.toString(), PARAMETER_SOURCE_SCHEMA, pSourceSchema, PARAMETER_SSH_HOST, PARAMETER_SSH_HOST,
+        Integer.toString(pPortNumber), PARAMETER_SOURCE_SCHEMA, pSourceSchema, PARAMETER_SSH_HOST, PARAMETER_SSH_HOST,
         pSSHHost, PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD, MESSAGE_FILTERED, PARAMETER_SSH_PORT,
         pSSHPortNumber);
       return new Oracle12cJDBCExportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword, pSourceSchema,
@@ -248,14 +249,14 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
     } else {
       reporter.exportModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_INSTANCE,
         pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
-        pPortNumber.toString(), PARAMETER_SOURCE_SCHEMA, pSourceSchema);
+        Integer.toString(pPortNumber), PARAMETER_SOURCE_SCHEMA, pSourceSchema);
       return new Oracle12cJDBCExportModule(pServerName, pPortNumber, pDatabase, pUsername, pPassword, pSourceSchema);
     }
   }
 
   private String getLicenseText(String parameter) {
     return "Please agree to the Oracle Technology Network Development and Distribution License Terms before using this module.\n"
-      + "The Oracle Technology Network Development and Distribution License Terms are available at\n" + licenseURL
+      + "The Oracle Technology Network Development and Distribution License Terms are available at\n" + LICENSE_URL
       + "\nTo agree you must specify the additional parameter " + parameter + " in your command.";
   }
 }

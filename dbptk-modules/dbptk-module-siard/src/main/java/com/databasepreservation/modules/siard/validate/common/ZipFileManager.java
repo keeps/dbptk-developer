@@ -19,7 +19,7 @@ import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.common.ZipFileManagerStrategy;
+import com.databasepreservation.common.validation.ZipFileManagerStrategy;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>

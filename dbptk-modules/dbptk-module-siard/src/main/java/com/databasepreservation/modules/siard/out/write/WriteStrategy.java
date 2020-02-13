@@ -9,7 +9,7 @@ package com.databasepreservation.modules.siard.out.write;
 
 import java.io.OutputStream;
 
-import com.databasepreservation.common.InputStreamProvider;
+import com.databasepreservation.common.providers.InputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 

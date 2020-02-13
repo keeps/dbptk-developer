@@ -1,4 +1,4 @@
-package com.databasepreservation.common;
+package com.databasepreservation.common.io;
 
 import java.io.FilterInputStream;
 import java.io.IOException;

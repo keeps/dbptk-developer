@@ -5,7 +5,7 @@
  *
  * https://github.com/keeps/db-preservation-toolkit
  */
-package com.databasepreservation.common;
+package com.databasepreservation.common.validation;
 
 import java.util.HashMap;
 import java.util.Map;

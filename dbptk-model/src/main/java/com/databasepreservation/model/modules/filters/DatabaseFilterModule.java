@@ -11,6 +11,7 @@ import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
+import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 
 /**
  * A Database Filter Module stands in between an import module, an export module

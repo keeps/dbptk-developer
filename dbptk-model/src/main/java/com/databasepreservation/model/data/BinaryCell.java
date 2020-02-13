@@ -13,9 +13,9 @@ package com.databasepreservation.model.data;
 import java.io.InputStream;
 import java.sql.Blob;
 
-import com.databasepreservation.common.BlobInputStreamProvider;
-import com.databasepreservation.common.InputStreamProvider;
-import com.databasepreservation.common.TemporaryPathInputStreamProvider;
+import com.databasepreservation.common.providers.BlobInputStreamProvider;
+import com.databasepreservation.common.providers.InputStreamProvider;
+import com.databasepreservation.common.providers.TemporaryPathInputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 
 /**

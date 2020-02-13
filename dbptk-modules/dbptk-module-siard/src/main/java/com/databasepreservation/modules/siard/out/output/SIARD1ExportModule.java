@@ -10,6 +10,7 @@ package com.databasepreservation.modules.siard.out.output;
 import java.nio.file.Path;
 import java.util.Map;
 
+import com.databasepreservation.common.compression.CompressionMethod;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
@@ -46,9 +47,9 @@ public class SIARD1ExportModule {
     contentPathStrategy = new SIARD1ContentPathExportStrategy();
     metadataPathStrategy = new SIARD1MetadataPathStrategy();
     if (compressZip) {
-      writeStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.DEFLATE);
+      writeStrategy = new ZipWriteStrategy(CompressionMethod.DEFLATE);
     } else {
-      writeStrategy = new ZipWriteStrategy(ZipWriteStrategy.CompressionMethod.STORE);
+      writeStrategy = new ZipWriteStrategy(CompressionMethod.STORE);
     }
     mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.V1_0, siardPackage,
       SIARDArchiveContainer.OutputContainerType.MAIN);

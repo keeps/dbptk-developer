@@ -11,7 +11,7 @@ import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.common.ValidationObserver;
+import com.databasepreservation.common.observer.ValidationObserver;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
