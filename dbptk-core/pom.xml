@@ -97,10 +97,10 @@
         </dependency>
 
         <!-- modules (also internal) -->
-<!--        <dependency>-->
-<!--            <groupId>com.databasepreservation</groupId>-->
-<!--            <artifactId>dbptk-module-dbml</artifactId>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-module-dbml</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>com.databasepreservation</groupId>
@@ -112,10 +112,10 @@
             <artifactId>dbptk-module-import-config</artifactId>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>com.databasepreservation</groupId>-->
-<!--            <artifactId>dbptk-module-ms-access</artifactId>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-module-ms-access</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>com.databasepreservation</groupId>
@@ -127,35 +127,35 @@
             <artifactId>dbptk-module-oracle</artifactId>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>com.databasepreservation</groupId>-->
-<!--            <artifactId>dbptk-module-postgresql</artifactId>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-module-postgresql</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>com.databasepreservation</groupId>
             <artifactId>dbptk-module-siard</artifactId>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>com.databasepreservation</groupId>-->
-<!--            <artifactId>dbptk-module-sql-server</artifactId>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-module-sql-server</artifactId>
+        </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>com.databasepreservation</groupId>-->
-<!--            <artifactId>dbptk-module-sybase</artifactId>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-module-sybase</artifactId>
+        </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>com.databasepreservation</groupId>-->
-<!--            <artifactId>dbptk-module-openedge</artifactId>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-module-openedge</artifactId>
+        </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>com.databasepreservation</groupId>-->
-<!--            <artifactId>dbptk-filter-external-lobs</artifactId>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-filter-external-lobs</artifactId>
+        </dependency>
 
         <!-- common -->
         <dependency>

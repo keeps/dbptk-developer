@@ -1,5 +1,7 @@
 package com.databasepreservation.model.modules.configuration;
 
+import static com.databasepreservation.Constants.CUSTOM_VIEW_NAME_PREFIX;
+import static com.databasepreservation.Constants.VIEW_NAME_PREFIX;
 import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.CANDIDATE_KEYS;
 import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.CHECK_CONSTRAINTS;
 import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.FOREIGN_KEYS;
@@ -71,13 +73,23 @@ public class ModuleConfiguration {
   }
 
   @JsonIgnore
-  public boolean isSelectedColumn(String schemaName, String tableName, String columnName) {
+  public boolean isSelectedColumnFromTable(String schemaName, String tableName, String columnName) {
     if (schemaConfigurations.isEmpty()) {
       return true;
     }
 
     return schemaConfigurations.get(schemaName) != null
-      && schemaConfigurations.get(schemaName).isSelectedColumn(tableName, columnName);
+      && schemaConfigurations.get(schemaName).isSelectedColumnFromTable(tableName, columnName);
+  }
+
+  @JsonIgnore
+  public boolean isSelectedColumnFromView(String schemaName, String viewName, String columnName) {
+    if (schemaConfigurations.isEmpty()) {
+      return true;
+    }
+
+    return schemaConfigurations.get(schemaName) != null
+      && schemaConfigurations.get(schemaName).isSelectedColumnFromView(viewName, columnName);
   }
 
   @JsonIgnore
@@ -184,22 +196,77 @@ public class ModuleConfiguration {
   }
 
   @JsonIgnore
-  private boolean isWhereDefined(String schemaName, String tableName) {
+  private boolean isWhereDefinedForTable(String schemaName, String tableName) {
     if (schemaConfigurations.isEmpty()) {
       return false;
     }
 
     return schemaConfigurations.get(schemaName) != null
-      && !schemaConfigurations.get(schemaName).getTableConfiguration(tableName).getWhere().equals("");
+      && schemaConfigurations.get(schemaName).getTableConfiguration(tableName) != null
+      && !schemaConfigurations.get(schemaName).getTableConfiguration(tableName).getWhere().equals(Constants.EMPTY);
   }
 
   @JsonIgnore
-  public String getWhereClause(String schemaName, String tableName) {
-    if (isWhereDefined(schemaName, tableName)) {
-      return schemaConfigurations.get(schemaName).getTableConfiguration(tableName).getWhere();
-    } else {
-      return null;
+  private boolean isWhereDefinedForView(String schemaName, String viewName) {
+    if (schemaConfigurations.isEmpty()) {
+      return false;
     }
+
+    return schemaConfigurations.get(schemaName) != null
+      && schemaConfigurations.get(schemaName).getViewConfiguration(viewName) != null
+      && !schemaConfigurations.get(schemaName).getTableConfiguration(viewName).getWhere().equals(Constants.EMPTY);
+  }
+
+  @JsonIgnore
+  public String getWhere(String schemaName, String tableName, boolean isTable) {
+    if (isTable) {
+      if (isWhereDefinedForTable(schemaName, tableName)) {
+        return schemaConfigurations.get(schemaName).getTableConfiguration(tableName).getWhere();
+      }
+    } else {
+      if (isWhereDefinedForView(schemaName, tableName)) {
+        return schemaConfigurations.get(schemaName).getViewConfiguration(tableName).getWhere();
+      }
+    }
+
+    return null;
+  }
+
+  @JsonIgnore
+  private boolean isOrderByDefinedForTable(String schemaName, String tableName) {
+    if (schemaConfigurations.isEmpty()) {
+      return false;
+    }
+
+    return schemaConfigurations.get(schemaName) != null
+      && schemaConfigurations.get(schemaName).getTableConfiguration(tableName) != null
+      && !schemaConfigurations.get(schemaName).getTableConfiguration(tableName).getOrderBy().equals(Constants.EMPTY);
+  }
+
+  @JsonIgnore
+  private boolean isOrderByDefinedForView(String schemaName, String viewName) {
+    if (schemaConfigurations.isEmpty()) {
+      return false;
+    }
+
+    return schemaConfigurations.get(schemaName) != null
+      && schemaConfigurations.get(schemaName).getViewConfiguration(viewName) != null
+      && !schemaConfigurations.get(schemaName).getViewConfiguration(viewName).getOrderBy().equals(Constants.EMPTY);
+  }
+
+  public String getOrderBy(String schemaName, String tableName, boolean isTable) {
+    if (isTable) {
+      if (isOrderByDefinedForTable(schemaName, tableName)) {
+        return schemaConfigurations.get(schemaName).getTableConfiguration(tableName).getOrderBy();
+      }
+    } else {
+      String viewNameWithoutPrefix = tableName.replace(VIEW_NAME_PREFIX, "");
+      if (isOrderByDefinedForView(schemaName, viewNameWithoutPrefix)) {
+        return schemaConfigurations.get(schemaName).getViewConfiguration(viewNameWithoutPrefix).getOrderBy();
+      }
+    }
+
+    return null;
   }
 
   @JsonProperty("import")

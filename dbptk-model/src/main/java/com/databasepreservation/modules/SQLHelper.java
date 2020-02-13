@@ -515,6 +515,10 @@ public class SQLHelper {
     return query + " WHERE " + where.trim();
   }
 
+  public String appendOrderByClause(String query, String orderBy) {
+    return query + " ORDER BY " + orderBy.trim();
+  }
+
   /**
    * Interface of handlers that will transform a cell in SQL
    */

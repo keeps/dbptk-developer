@@ -10,16 +10,18 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
-@JsonPropertyOrder({"name", "columns", "where"})
+@JsonPropertyOrder({"name", "columns", "where", "orderBy"})
 public class TableConfiguration {
 
   private String name;
   private List<ColumnConfiguration> columns;
   private String where;
+  private String orderBy;
 
   public TableConfiguration() {
     columns = new ArrayList<>();
     where = Constants.EMPTY;
+    orderBy = Constants.EMPTY;
   }
 
   public String getName() {
@@ -46,6 +48,14 @@ public class TableConfiguration {
     this.where = where;
   }
 
+  public String getOrderBy() {
+    return orderBy;
+  }
+
+  public void setOrderBy(String orderBy) {
+    this.orderBy = orderBy;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o)
@@ -54,11 +64,11 @@ public class TableConfiguration {
       return false;
     TableConfiguration that = (TableConfiguration) o;
     return Objects.equals(getName(), that.getName()) && Objects.equals(getColumns(), that.getColumns())
-      && Objects.equals(getWhere(), that.getWhere());
+      && Objects.equals(getWhere(), that.getWhere()) && Objects.equals(getOrderBy(), that.getOrderBy());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getName(), getColumns(), getWhere());
+    return Objects.hash(getName(), getColumns(), getWhere(), getOrderBy());
   }
 }

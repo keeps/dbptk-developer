@@ -9,17 +9,19 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
-@JsonPropertyOrder({"name", "materialized", "columns", "where"})
+@JsonPropertyOrder({"name", "materialized", "columns", "where", "orderBy"})
 public class ViewConfiguration {
 
   private String name;
   private boolean materialized;
   private List<String> columns;
   private String where;
+  private String orderBy;
 
   public ViewConfiguration() {
     columns = new ArrayList<>();
     where = Constants.EMPTY;
+    orderBy = Constants.EMPTY;
   }
 
   public String getName() {
@@ -52,5 +54,13 @@ public class ViewConfiguration {
 
   public void setWhere(String where) {
     this.where = where;
+  }
+
+  public String getOrderBy() {
+    return orderBy;
+  }
+
+  public void setOrderBy(String orderBy) {
+    this.orderBy = orderBy;
   }
 }

@@ -21,6 +21,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
+import com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
@@ -77,7 +78,7 @@ public class ImportConfiguration implements DatabaseExportModule {
   public ModuleConfiguration getModuleConfiguration() throws ModuleException {
     final ModuleConfiguration defaultModuleConfiguration = ModuleConfigurationUtils.getDefaultModuleConfiguration();
     defaultModuleConfiguration.setFetchRows(false);
-    defaultModuleConfiguration.setIgnore(ModuleConfigurationUtils.createIgnoreList(true));
+    defaultModuleConfiguration.setIgnore(ModuleConfigurationUtils.createIgnoreListExcept(true, DatabaseMetadata.VIEWS));
     return defaultModuleConfiguration;
   }
 
@@ -197,8 +198,10 @@ public class ImportConfiguration implements DatabaseExportModule {
    */
   @Override
   public void handleDataCloseSchema(String schemaName) throws ModuleException {
-    currentSchema.getViews().forEach(
-      view -> ModuleConfigurationUtils.addViewConfiguration(moduleConfiguration, view, currentSchema.getName()));
+    if (!currentSchema.getViews().isEmpty()) {
+      currentSchema.getViews().forEach(
+        view -> ModuleConfigurationUtils.addViewConfiguration(moduleConfiguration, view, currentSchema.getName()));
+    }
   }
 
   /**
@@ -219,7 +222,8 @@ public class ImportConfiguration implements DatabaseExportModule {
   }
 
   @Override
-  public void updateModuleConfiguration(String moduleName, Map<String, String> properties, Map<String, String> remoteProperties) {
+  public void updateModuleConfiguration(String moduleName, Map<String, String> properties,
+    Map<String, String> remoteProperties) {
     ModuleConfigurationUtils.addImportParameters(moduleConfiguration, moduleName, properties, remoteProperties);
   }
 

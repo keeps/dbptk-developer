@@ -43,6 +43,10 @@ public class Constants {
   public static final String DBPTK_OPTION_VALIDATE = "validate";
   public static final String DBPTK_OPTION_HELP_SMALL = "-h";
 
+  /* PREFIXES */
+  public static final String VIEW_NAME_PREFIX = "VIEW_";
+  public static final String CUSTOM_VIEW_NAME_PREFIX = "CUSTOM_VIEW_";
+
   /* SIARD FILE */
   public static final String SIARD_HEADER_FOLDER = "header";
   public static final String SIARD_CONTENT_FOLDER = "content";

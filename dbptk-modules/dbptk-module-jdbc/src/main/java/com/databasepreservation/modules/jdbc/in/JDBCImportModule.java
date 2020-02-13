@@ -96,14 +96,15 @@ import com.databasepreservation.utils.PortUtils;
 import com.databasepreservation.utils.RemoteConnectionUtils;
 import com.jcraft.jsch.Session;
 
+import static com.databasepreservation.Constants.CUSTOM_VIEW_NAME_PREFIX;
+import static com.databasepreservation.Constants.VIEW_NAME_PREFIX;
+
 /**
  * @author Luis Faria <lfaria@keep.pt>
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class JDBCImportModule implements DatabaseImportModule {
 
-  private static final String VIEW_NAME_PREFIX = "VIEW_";
-  private static final String CUSTOM_VIEW_NAME_PREFIX = "CUSTOM_VIEW_";
   // if fetch size is zero, then the driver decides the best fetch size
   private static final Integer CUSTOM_VIEW_FETCH_BLOCK_SIZE = 1;
   private static final Integer CUSTOM_VIEW_FETCH_LIMIT_SIZE = 5;
@@ -897,8 +898,14 @@ public class JDBCImportModule implements DatabaseImportModule {
     table.setDescription(description);
 
     List<ColumnStructure> columns = getColumns(schema.getName(), tableName);
-    columns
-      .removeIf(column -> !getModuleConfiguration().isSelectedColumn(schema.getName(), tableName, column.getName()));
+
+    if (view) {
+      columns.removeIf(
+        column -> !getModuleConfiguration().isSelectedColumnFromView(schema.getName(), tableName, column.getName()));
+    } else {
+      columns.removeIf(
+        column -> !getModuleConfiguration().isSelectedColumnFromTable(schema.getName(), tableName, column.getName()));
+    }
 
     table.setColumns(columns);
 
@@ -1957,10 +1964,16 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   protected ResultSet getTableRawData(TableStructure table) throws SQLException, ModuleException {
     String query = sqlHelper.selectTableSQL(table);
-    String whereClause = getModuleConfiguration().getWhereClause(table.getSchema(), table.getName());
+    String whereClause = getModuleConfiguration().getWhere(table.getSchema(), table.getName(), !table.isFromView());
+    String orderByClause = getModuleConfiguration().getOrderBy(table.getSchema(), table.getName(), !table.isFromView());
     if (whereClause != null) {
       query = sqlHelper.appendWhereClause(query, whereClause);
     }
+
+    if (orderByClause != null) {
+      query = sqlHelper.appendOrderByClause(query, orderByClause);
+    }
+
     LOGGER.debug("query: " + query);
     return getTableRawData(query, table.getId());
   }

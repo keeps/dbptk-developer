@@ -11,7 +11,10 @@ import static com.databasepreservation.model.modules.configuration.enums.Databas
 import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.USERS;
 import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.VIEWS;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.databasepreservation.Constants;
@@ -26,6 +29,8 @@ import com.databasepreservation.model.modules.configuration.enums.DatabaseMetada
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.ViewStructure;
+
+import javax.xml.crypto.Data;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -101,6 +106,17 @@ public class ModuleConfigurationUtils {
     view.getColumns().forEach(column -> viewConfiguration.getColumns().add(column.getName()));
 
     return viewConfiguration;
+  }
+
+  public static Map<DatabaseMetadata, Boolean> createIgnoreListExcept(boolean value, DatabaseMetadata... whitelist) {
+    final Map<DatabaseMetadata, Boolean> ignoreList = createIgnoreList(value);
+    List<DatabaseMetadata> databaseMetadataList = Arrays.asList(whitelist);
+
+    databaseMetadataList.forEach(m -> {
+      ignoreList.put(m, !value);
+    });
+
+    return ignoreList;
   }
 
   public static Map<DatabaseMetadata, Boolean> createIgnoreList(boolean value) {

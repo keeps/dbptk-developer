@@ -16,14 +16,14 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({"custom", "tables", "views"})
 public class SchemaConfiguration {
 
-  private List<CustomViewConfiguration> customViewConfiguration;
-  private List<TableConfiguration> tableConfiguration;
-  private List<ViewConfiguration> viewConfiguration;
+  private List<CustomViewConfiguration> customViewConfigurations;
+  private List<TableConfiguration> tableConfigurations;
+  private List<ViewConfiguration> viewConfigurations;
 
   public SchemaConfiguration() {
-    customViewConfiguration = new ArrayList<>();
-    tableConfiguration = new ArrayList<>();
-    viewConfiguration = new ArrayList<>();
+    customViewConfigurations = new ArrayList<>();
+    tableConfigurations = new ArrayList<>();
+    viewConfigurations = new ArrayList<>();
   }
 
   /*
@@ -31,55 +31,65 @@ public class SchemaConfiguration {
    */
   @JsonIgnore
   public boolean isSelectedTable(String tableName) {
-    return tableConfiguration.stream().anyMatch(table -> table.getName().equals(tableName));
+    return tableConfigurations.stream().anyMatch(table -> table.getName().equals(tableName));
   }
 
   @JsonIgnore
   public boolean isSelectedView(String viewName) {
-    return viewConfiguration.stream().anyMatch(view -> view.getName().equals(viewName));
+    return viewConfigurations.stream().anyMatch(view -> view.getName().equals(viewName));
   }
 
   @JsonIgnore
-  public boolean isSelectedColumn(String tableName, String columnName) {
-    return tableConfiguration.stream().anyMatch(table -> table.getName().equals(tableName)
+  public boolean isSelectedColumnFromTable(String tableName, String columnName) {
+    return tableConfigurations.stream().anyMatch(table -> table.getName().equals(tableName)
       && table.getColumns().stream().anyMatch(column -> column.getName().equals(columnName)));
   }
 
   @JsonIgnore
+  public boolean isSelectedColumnFromView(String viewName, String columnName) {
+    return viewConfigurations.stream().anyMatch(view -> view.getName().equals(viewName)
+      && view.getColumns().stream().anyMatch(column -> column.equals(columnName)));
+  }
+
+  @JsonIgnore
   public boolean isMaterializedView(String viewName) {
-    return viewConfiguration.stream().anyMatch(view -> view.getName().equals(viewName) && view.isMaterialized());
+    return viewConfigurations.stream().anyMatch(view -> view.getName().equals(viewName) && view.isMaterialized());
   }
 
   @JsonIgnore
   public TableConfiguration getTableConfiguration(String tableName) {
-    return tableConfiguration.stream().filter(p -> p.getName().equals(tableName)).findFirst().orElse(null);
+    return tableConfigurations.stream().filter(p -> p.getName().equals(tableName)).findFirst().orElse(null);
+  }
+
+  public ViewConfiguration getViewConfiguration(String viewName) {
+    return viewConfigurations.stream().filter(p -> p.getName().equals(viewName)).findFirst().orElse(null);
   }
 
   @JsonProperty("tables")
   public List<TableConfiguration> getTableConfigurations() {
-    return tableConfiguration;
+    return tableConfigurations;
   }
 
   public void setTableConfigurations(List<TableConfiguration> tableConfiguration) {
-    this.tableConfiguration = tableConfiguration;
+    this.tableConfigurations = tableConfiguration;
   }
 
   @JsonProperty("views")
   public List<ViewConfiguration> getViewConfigurations() {
-    return viewConfiguration;
+    return viewConfigurations;
   }
 
   public void setViewConfigurations(List<ViewConfiguration> viewConfiguration) {
-    this.viewConfiguration = viewConfiguration;
+    this.viewConfigurations = viewConfiguration;
   }
 
   @JsonProperty("custom")
   public List<CustomViewConfiguration> getCustomViewConfigurations() {
-    return customViewConfiguration;
+    return customViewConfigurations;
   }
 
   public void setCustomViewConfigurations(List<CustomViewConfiguration> customViewConfiguration) {
-    this.customViewConfiguration = customViewConfiguration;
+    this.customViewConfigurations = customViewConfiguration;
   }
 
   @Override
