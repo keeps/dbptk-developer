@@ -63,24 +63,24 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    * @param encrypt
    *          encrypt connection
    */
-  public MySQLJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String hostname, int port,
+  public MySQLJDBCImportModule(String moduleName, String hostname, int port,
     String database, String username, String password, boolean encrypt) throws ModuleException {
     super("com.mysql.jdbc.Driver",
       "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?" + "user=" + username + "&password=" + password
         + "&useSSL=" + encrypt,
-      new MySQLHelper(), new MySQLDatatypeImporter(), moduleConfiguration, moduleName,
+      new MySQLHelper(), new MySQLDatatypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(Constants.DB_HOST, hostname, Constants.DB_PORT, port, Constants.DB_USER, username,
         Constants.DB_PASSWORD, password, Constants.DB_DATABASE, database));
     this.username = username;
   }
 
-  public MySQLJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String hostname, int port,
+  public MySQLJDBCImportModule(String moduleName, String hostname, int port,
     String database, String username, String password, boolean encrypt, String sshHost, String sshUser,
     String sshPassword, String sshPortNumber) throws ModuleException {
     super("com.mysql.jdbc.Driver",
       "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?" + "user=" + username + "&password=" + password
         + "&useSSL=" + encrypt,
-      new MySQLHelper(), new MySQLDatatypeImporter(), moduleConfiguration, moduleName,
+      new MySQLHelper(), new MySQLDatatypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(Constants.DB_HOST, hostname, Constants.DB_PORT, port, Constants.DB_USER, username,
         Constants.DB_PASSWORD, password, Constants.DB_DATABASE, database),
       MapUtils.buildMapFromObjects(Constants.DB_SSH, true, Constants.DB_SSH_HOST, sshHost, Constants.DB_SSH_PORT, sshPortNumber,

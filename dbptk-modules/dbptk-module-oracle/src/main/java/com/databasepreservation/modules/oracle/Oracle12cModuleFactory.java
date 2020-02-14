@@ -155,14 +155,7 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws ModuleException {
-    return buildImportModule(parameters, ModuleConfigurationUtils.getDefaultModuleConfiguration(), reporter);
-  }
-
-  @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters,
-    ModuleConfiguration moduleConfiguration, Reporter reporter) throws ModuleException {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException {
     String pServerName = parameters.get(serverName);
     String pDatabase = parameters.get(instance);
     String pUsername = parameters.get(username);
@@ -199,13 +192,13 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
         pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
         Integer.toString(pPortNumber), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser,
         PARAMETER_SSH_PASSWORD, MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
-      return new Oracle12cJDBCImportModule(moduleConfiguration, getModuleName(), pServerName, pPortNumber, pDatabase,
+      return new Oracle12cJDBCImportModule(getModuleName(), pServerName, pPortNumber, pDatabase,
         pUsername, pPassword, pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
     } else {
       reporter.importModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_INSTANCE,
         pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
         Integer.toString(pPortNumber));
-      return new Oracle12cJDBCImportModule(moduleConfiguration, getModuleName(), pServerName, pPortNumber, pDatabase,
+      return new Oracle12cJDBCImportModule(getModuleName(), pServerName, pPortNumber, pDatabase,
         pUsername, pPassword);
     }
   }

@@ -29,14 +29,6 @@ import com.databasepreservation.model.structure.DatabaseStructure;
  */
 public interface DatabaseExportModule extends ExceptionNormalizer {
   /**
-   * Gets custom settings set by the export module that modify behaviour of the
-   * import module.
-   *
-   * @throws ModuleException
-   */
-  ModuleConfiguration getModuleConfiguration() throws ModuleException;
-
-  /**
    * Initialize the database, this will be the first method called
    *
    * @throws ModuleException

@@ -142,14 +142,7 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws ModuleException {
-    return buildImportModule(parameters, ModuleConfigurationUtils.getDefaultModuleConfiguration(), reporter);
-  }
-
-  @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters,
-    ModuleConfiguration moduleConfiguration, Reporter reporter) throws ModuleException {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException {
     String pHostname = parameters.get(hostname);
     String pDatabase = parameters.get(database);
     String pUsername = parameters.get(username);
@@ -184,13 +177,13 @@ public class MySQLModuleFactory implements DatabaseModuleFactory {
         String.valueOf(pPortNumber), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt), PARAMETER_SSH_HOST,
         pSSHHost, PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT,
         pSSHPortNumber);
-      return new MySQLJDBCImportModule(moduleConfiguration, getModuleName(), pHostname, pPortNumber, pDatabase,
+      return new MySQLJDBCImportModule(getModuleName(), pHostname, pPortNumber, pDatabase,
         pUsername, pPassword, pEncrypt, pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
     } else {
       reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
         PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
         String.valueOf(pPortNumber), PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt));
-      return new MySQLJDBCImportModule(moduleConfiguration, getModuleName(), pHostname, pPortNumber, pDatabase,
+      return new MySQLJDBCImportModule(getModuleName(), pHostname, pPortNumber, pDatabase,
         pUsername, pPassword, pEncrypt);
     }
   }

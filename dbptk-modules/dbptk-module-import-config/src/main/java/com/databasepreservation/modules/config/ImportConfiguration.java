@@ -21,7 +21,6 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
-import com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
@@ -39,25 +38,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class ImportConfiguration implements DatabaseExportModule {
-  public static final String COLUMNS_SEPARATOR = ";";
-
-  /**
-   * Pattern that should be followed by all lines in the table list file. DEV
-   * NOTE: Depends on the separators declared above, keep them in sync.
-   *
-   * Examples:
-   * 
-   * <code>
-   *     schema.table{col1}
-   *     schema.table{col1;col2}
-   *     schema.table{col1;col2;col3}
-   *     schema.table{col1;;col3}
-   *     schema.table{col1;;col3;;}
-   * </code>
-   */
-  public static final Pattern LINE_PATTERN = Pattern.compile(
-    "^([^\\.\\{\\}\\;]+)((?:\\.(?:[^\\.\\{\\}\\;]+))+)\\{((?:[^\\s][^\\.\\{\\}\\;]*\\;)*[^\\s\\.\\{\\}\\;]*)\\}$");
-
   private DatabaseStructure dbStructure;
   private SchemaStructure currentSchema;
   private ModuleConfiguration moduleConfiguration;
@@ -69,26 +49,12 @@ public class ImportConfiguration implements DatabaseExportModule {
   }
 
   /**
-   * Gets custom settings set by the export module that modify behaviour of the
-   * import module.
-   *
-   * @throws ModuleException
-   */
-  @Override
-  public ModuleConfiguration getModuleConfiguration() throws ModuleException {
-    final ModuleConfiguration defaultModuleConfiguration = ModuleConfigurationUtils.getDefaultModuleConfiguration();
-    defaultModuleConfiguration.setFetchRows(false);
-    defaultModuleConfiguration.setIgnore(ModuleConfigurationUtils.createIgnoreListExcept(true, DatabaseMetadata.VIEWS));
-    return defaultModuleConfiguration;
-  }
-
-  /**
    * Initialize the database, this will be the first method called
    *
    * @throws ModuleException
    */
   @Override
-  public void initDatabase() throws ModuleException {
+  public void initDatabase() {
     mapper = new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
     moduleConfiguration = ModuleConfigurationUtils.getDefaultModuleConfiguration();
   }

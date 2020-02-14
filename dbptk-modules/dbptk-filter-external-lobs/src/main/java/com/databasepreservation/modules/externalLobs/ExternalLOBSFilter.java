@@ -7,7 +7,9 @@
  */
 package com.databasepreservation.modules.externalLobs;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,6 +17,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.ModuleConfigurationManager;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
@@ -22,7 +25,8 @@ import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
-import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
+import com.databasepreservation.model.modules.configuration.ExternalLobsConfiguration;
+import com.databasepreservation.model.modules.configuration.enums.ExternalLobsAccessMethod;
 import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
@@ -30,23 +34,21 @@ import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.modules.externalLobs.CellHandlers.ExternalLOBSCellHandlerFileSystem;
+import com.databasepreservation.modules.externalLobs.CellHandlers.ExternalLOBSCellHandlerRemoteFileSystem;
 
 public class ExternalLOBSFilter implements DatabaseFilterModule {
   private static final Logger LOGGER = LoggerFactory.getLogger(ExternalLOBSFilter.class);
 
   private DatabaseExportModule exportModule;
   private Reporter reporter;
-  private Map<String, Map<String, List<String>>> externalLOBS;
-  private Map<String, List<String>> currentSchema;
-  private ExternalLOBSCellHandler cellHandler;
-
+  private Map<String, ExternalLobsConfiguration> externalLobsConfigurations = new HashMap<>();
   private DatabaseStructure databaseStructure;
+  private TableStructure currentTable = null;
   private boolean hasExternalLOBS = false;
   private List<Integer> externalLOBIndexes = new ArrayList<>();
 
-  public ExternalLOBSFilter(Map<String, Map<String, List<String>>> externalLOBS, ExternalLOBSCellHandler cellHandler) {
-    this.externalLOBS = externalLOBS;
-    this.cellHandler = cellHandler;
+  public ExternalLOBSFilter() {
   }
 
   @Override
@@ -58,17 +60,6 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
   @Override
   public void setOnceReporter(Reporter reporter) {
     this.reporter = reporter;
-  }
-
-  /**
-   * Gets custom settings set by the export module that modify behaviour of the
-   * import module.
-   *
-   * @throws ModuleException
-   */
-  @Override
-  public ModuleConfiguration getModuleConfiguration() throws ModuleException {
-    return this.exportModule.getModuleConfiguration();
   }
 
   @Override
@@ -83,36 +74,36 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
 
   @Override
   public void handleStructure(DatabaseStructure structure) throws ModuleException {
-    for (String schema : externalLOBS.keySet()) {
-      SchemaStructure schemaStructure = structure.getSchemaByName(schema);
-      if (schemaStructure != null) {
-        for (String table : externalLOBS.get(schema).keySet()) {
-          List<String> columns = externalLOBS.get(schema).get(table);
-          try {
-            TableStructure tableStructure = schemaStructure.getTableById(schema + "." + table);
-            if (tableStructure != null) {
-              for (ColumnStructure column : tableStructure.getColumns()) {
-                if (columns.contains(column.getName())) {
-                  Type original = column.getType();
-                  Type newType = new SimpleTypeBinary();
-                  newType.setDescription(cellHandler.handleTypeDescription(original.getDescription()));
-                  newType.setSql99TypeName("BINARY VARYING", 1);
-                  newType.setSql2008TypeName("BINARY VARYING", 1);
-                  newType.setOriginalTypeName(original.getOriginalTypeName());
-                  ((SimpleTypeBinary) newType).setOutsideDatabase(true);
-
-                  column.setType(newType);
-                }
-              }
+    for (SchemaStructure schema : structure.getSchemas()) {
+      for (TableStructure table : schema.getTables()) {
+        for (ColumnStructure column : table.getColumns()) {
+          if (ModuleConfigurationManager.getInstance().getModuleConfiguration().isExternalLobColumn(schema.getName(),
+            table.getName(), column.getName())) {
+            StringBuilder description = new StringBuilder("Converted to LOB referenced by");
+            final ExternalLobsConfiguration externalLobsConfiguration = ModuleConfigurationManager.getInstance()
+              .getModuleConfiguration()
+              .getExternalLobsConfiguration(schema.getName(), table.getName(), column.getName());
+            if (externalLobsConfiguration.getAccessModule().equals(ExternalLobsAccessMethod.FILE_SYSTEM)) {
+              description.append(" file system path");
+            } else if (externalLobsConfiguration.getAccessModule().equals(ExternalLobsAccessMethod.REMOTE)) {
+              description.append(" remote file system path");
             } else {
-              LOGGER.warn("Table {}, referenced in column list file, was not found in schema {}", table, schema);
+              throw new ModuleException()
+                .withMessage("Unrecognized reference type " + externalLobsConfiguration.getAccessModule().getValue());
             }
-          } catch (Exception e) {
-            throw new ModuleException().withMessage("Error setting column type in structure").withCause(e);
+
+            Type original = column.getType();
+            description.append("original description: '").append(original.getDescription()).append("')");
+            SimpleTypeBinary newType = new SimpleTypeBinary();
+            newType.setDescription(description.toString());
+            newType.setSql99TypeName("BINARY VARYING", 1);
+            newType.setSql2008TypeName("BINARY VARYING", 1);
+            newType.setOriginalTypeName(original.getOriginalTypeName());
+            newType.setOutsideDatabase(true);
+
+            column.setType(newType);
           }
         }
-      } else {
-        LOGGER.warn("Schema {}, referenced in column list file, was not found in the database", schema);
       }
     }
 
@@ -122,27 +113,28 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
 
   @Override
   public void handleDataOpenSchema(String schemaName) throws ModuleException {
-    currentSchema = externalLOBS.get(schemaName);
     this.exportModule.handleDataOpenSchema(schemaName);
   }
 
   @Override
   public void handleDataOpenTable(String tableId) throws ModuleException {
-    List<ColumnStructure> columns = databaseStructure.getTableById(tableId).getColumns();
-    String tableName = databaseStructure.getTableById(tableId).getName();
-    if (currentSchema != null && currentSchema.containsKey(tableName)) {
+    currentTable = databaseStructure.getTableById(tableId);
+    final boolean hasExternalLobDefined = ModuleConfigurationManager.getInstance().getModuleConfiguration()
+      .hasExternalLobDefined(currentTable.getSchema(), currentTable.getName());
+    if (hasExternalLobDefined) {
       hasExternalLOBS = true;
-      List<String> cellList = currentSchema.get(tableName);
+      final List<ColumnStructure> columns = currentTable.getColumns();
 
-      // check which column indexes are paths to external lobs
       for (int i = 0; i < columns.size(); i++) {
-        if (cellList.contains(columns.get(i).getName())) {
+        if (ModuleConfigurationManager.getInstance().getModuleConfiguration()
+          .isExternalLobColumn(currentTable.getSchema(), currentTable.getName(), columns.get(i).getName())) {
           externalLOBIndexes.add(i);
+          externalLobsConfigurations.put(tableId + i, ModuleConfigurationManager.getInstance().getModuleConfiguration()
+            .getExternalLobsConfiguration(currentTable.getSchema(), currentTable.getName(), columns.get(i).getName()));
         }
       }
-    } else {
-      hasExternalLOBS = false;
     }
+
     this.exportModule.handleDataOpenTable(tableId);
   }
 
@@ -156,7 +148,10 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
         if (cell instanceof SimpleCell) {
           String reference = ((SimpleCell) cell).getSimpleData();
           if (reference != null && !reference.isEmpty()) {
-            Cell newCell = cellHandler.handleCell(cell.getId(), ((SimpleCell) cell).getSimpleData());
+            final ExternalLobsConfiguration externalLobsConfiguration = externalLobsConfigurations
+              .get(currentTable.getId() + index);
+            Cell newCell = getExternalLOBSCellHandler(externalLobsConfiguration).handleCell(cell.getId(),
+              ((SimpleCell) cell).getSimpleData());
             rowCells.set(index, newCell);
           } else {
             reporter.ignored("Cell " + cell.getId(), "reference to external LOB is null");
@@ -177,6 +172,8 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
   public void handleDataCloseTable(String tableId) throws ModuleException {
     hasExternalLOBS = false;
     externalLOBIndexes = new ArrayList<>();
+    currentTable = null;
+    externalLobsConfigurations = new HashMap<>();
     this.exportModule.handleDataCloseTable(tableId);
   }
 
@@ -191,12 +188,26 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
   }
 
   @Override
-  public void updateModuleConfiguration(String moduleName, Map<String, String> properties, Map<String, String> remoteProperties) {
+  public void updateModuleConfiguration(String moduleName, Map<String, String> properties,
+    Map<String, String> remoteProperties) {
     // do nothing
   }
 
   @Override
   public ModuleException normalizeException(Exception exception, String contextMessage) {
     return null;
+  }
+
+  private ExternalLOBSCellHandler getExternalLOBSCellHandler(ExternalLobsConfiguration configuration)
+    throws ModuleException {
+    switch (configuration.getAccessModule()) {
+      case FILE_SYSTEM:
+        return new ExternalLOBSCellHandlerFileSystem(Paths.get(configuration.getBasePath()), reporter);
+      case REMOTE:
+        return new ExternalLOBSCellHandlerRemoteFileSystem(Paths.get(configuration.getBasePath()), reporter);
+      default:
+        throw new ModuleException()
+          .withMessage("Unrecognized reference type " + configuration.getAccessModule().getValue());
+    }
   }
 }

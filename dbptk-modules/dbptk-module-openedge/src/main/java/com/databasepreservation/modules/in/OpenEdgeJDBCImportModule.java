@@ -61,20 +61,20 @@ public class OpenEdgeJDBCImportModule extends JDBCImportModule {
    * @param password
    *          the password of the user to use in the connection
    */
-  public OpenEdgeJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String hostname, int port, String database, String username, String password) throws ModuleException {
+  public OpenEdgeJDBCImportModule(String moduleName, String hostname, int port, String database, String username, String password) throws ModuleException {
     super("com.ddtek.jdbc.openedge.OpenEdgeDriver",
         "jdbc:datadirect:openedge://" + hostname + ":" + port + ";user=" + username + ";password=" + password + ";DatabaseName=" + database,
-        new OpenEdgeHelper(), new OpenEdgeDataTypeImporter(), moduleConfiguration, moduleName, MapUtils.buildMapFromObjects(Constants.DB_HOST, hostname,
+        new OpenEdgeHelper(), new OpenEdgeDataTypeImporter(), moduleName, MapUtils.buildMapFromObjects(Constants.DB_HOST, hostname,
             Constants.DB_PORT, port, Constants.DB_USER, username, Constants.DB_PASSWORD, password,
             Constants.DB_DATABASE, database));
   }
 
-  public OpenEdgeJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String hostname, int port, String database, String username, String password,
+  public OpenEdgeJDBCImportModule(String moduleName, String hostname, int port, String database, String username, String password,
     String sshHost, String sshUser, String sshPassword, String sshPortNumber) throws ModuleException {
     super("com.ddtek.jdbc.openedge.OpenEdgeDriver",
       "jdbc:datadirect:openedge://" + hostname + ";user=" + username + ";password=" + password + ";DatabaseName="
         + database,
-      new OpenEdgeHelper(), new OpenEdgeDataTypeImporter(), moduleConfiguration, moduleName, MapUtils.buildMapFromObjects(Constants.DB_HOST, hostname,
+      new OpenEdgeHelper(), new OpenEdgeDataTypeImporter(), moduleName, MapUtils.buildMapFromObjects(Constants.DB_HOST, hostname,
             Constants.DB_PORT, port, Constants.DB_USER, username, Constants.DB_PASSWORD, password,
             Constants.DB_DATABASE, database), MapUtils.buildMapFromObjects(Constants.DB_SSH_HOST, sshHost,
             Constants.DB_SSH_PORT, sshPortNumber, Constants.DB_SSH_USER, sshUser,

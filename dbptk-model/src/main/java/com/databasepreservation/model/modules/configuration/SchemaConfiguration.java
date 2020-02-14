@@ -61,6 +61,7 @@ public class SchemaConfiguration {
     return tableConfigurations.stream().filter(p -> p.getName().equals(tableName)).findFirst().orElse(null);
   }
 
+  @JsonIgnore
   public ViewConfiguration getViewConfiguration(String viewName) {
     return viewConfigurations.stream().filter(p -> p.getName().equals(viewName)).findFirst().orElse(null);
   }

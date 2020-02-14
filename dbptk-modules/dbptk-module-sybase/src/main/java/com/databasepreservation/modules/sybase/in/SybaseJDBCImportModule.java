@@ -29,7 +29,6 @@ import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.RoutineStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.Type;
@@ -66,21 +65,20 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
    *          the password of the user to use in the connection
    *
    */
-  public SybaseJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String hostname, int port,
-    String database, String username, String password) throws ModuleException {
+  public SybaseJDBCImportModule(String moduleName, String hostname, int port, String database, String username,
+    String password) throws ModuleException {
     super(DRIVER_CLASS_NAME, URL_CONNECTION_PREFIX + hostname + ":" + port + "/" + database, new SybaseHelper(),
-      new SybaseDataTypeImporter(), moduleConfiguration, moduleName,
+      new SybaseDataTypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(Constants.DB_HOST, hostname, Constants.DB_PORT, port, Constants.DB_USER, username,
         Constants.DB_PASSWORD, password, Constants.DB_DATABASE, database));
     this.username = username;
     this.password = password;
   }
 
-  public SybaseJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String hostname, int port,
-    String database, String username, String password, String sshHost, String sshUser, String sshPassword,
-    String sshPortNumber) throws ModuleException {
+  public SybaseJDBCImportModule(String moduleName, String hostname, int port, String database, String username,
+    String password, String sshHost, String sshUser, String sshPassword, String sshPortNumber) throws ModuleException {
     super(DRIVER_CLASS_NAME, URL_CONNECTION_PREFIX + hostname + ":" + port + "/" + database, new SybaseHelper(),
-      new SybaseDataTypeImporter(), moduleConfiguration, moduleName,
+      new SybaseDataTypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(Constants.DB_HOST, hostname, Constants.DB_PORT, port, Constants.DB_USER, username,
         Constants.DB_PASSWORD, password, Constants.DB_DATABASE, database),
       MapUtils.buildMapFromObjects(Constants.DB_SSH_HOST, sshHost, Constants.DB_SSH_PORT, sshPortNumber,

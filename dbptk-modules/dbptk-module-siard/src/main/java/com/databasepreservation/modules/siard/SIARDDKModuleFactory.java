@@ -162,16 +162,10 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) {
-    return buildImportModule(parameters, ModuleConfigurationUtils.getDefaultModuleConfiguration(), reporter);
-  }
-
-  @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters,
-    ModuleConfiguration moduleConfiguration, Reporter reporter) {
     reporter.importModuleParameters(getModuleName(), "file",
       Paths.get(parameters.get(folder)).normalize().toAbsolutePath().toString(), PARAM_IMPORT_AS_SCHEMA.longName(),
       parameters.get(PARAM_IMPORT_AS_SCHEMA));
-    return new SIARDDKImportModule(moduleConfiguration, Paths.get(parameters.get(folder)), parameters.get(PARAM_IMPORT_AS_SCHEMA))
+    return new SIARDDKImportModule(Paths.get(parameters.get(folder)), parameters.get(PARAM_IMPORT_AS_SCHEMA))
       .getDatabaseImportModule();
   }
 

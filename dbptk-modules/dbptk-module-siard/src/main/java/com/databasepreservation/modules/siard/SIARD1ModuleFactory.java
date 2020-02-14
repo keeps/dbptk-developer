@@ -151,18 +151,11 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws ModuleException {
-    return buildImportModule(parameters, ModuleConfigurationUtils.getDefaultModuleConfiguration(), reporter);
-  }
-
-  @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters,
-    ModuleConfiguration moduleConfiguration, Reporter reporter) throws ModuleException {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException {
     Path pFile = Paths.get(parameters.get(file));
 
     reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString());
-    return new SIARD1ImportModule(moduleConfiguration, pFile).getDatabaseImportModule();
+    return new SIARD1ImportModule(pFile).getDatabaseImportModule();
   }
 
   @Override

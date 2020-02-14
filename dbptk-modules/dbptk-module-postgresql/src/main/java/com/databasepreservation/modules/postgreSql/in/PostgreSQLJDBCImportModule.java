@@ -109,23 +109,23 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
    * @param encrypt
    *          encrypt connection
    */
-  public PostgreSQLJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String hostname,
+  public PostgreSQLJDBCImportModule(String moduleName, String hostname,
     int port, String database, String username, String password, boolean encrypt) throws ModuleException {
     super("org.postgresql.Driver",
       "jdbc:postgresql://" + hostname + ":" + port + "/" + database + "?user=" + username + "&password=" + password
         + (encrypt ? "&ssl=true" : ""),
-      new PostgreSQLHelper(), new PostgreSQLJDBCDatatypeImporter(), moduleConfiguration, moduleName,
+      new PostgreSQLHelper(), new PostgreSQLJDBCDatatypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(Constants.DB_HOST, hostname, Constants.DB_PORT, port, Constants.DB_USER, username,
         Constants.DB_PASSWORD, password, Constants.DB_DATABASE, database, Constants.DB_DISABLE_ENCRYPTION, encrypt));
   }
 
-  public PostgreSQLJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String hostname,
+  public PostgreSQLJDBCImportModule(String moduleName, String hostname,
     int port, String database, String username, String password, boolean encrypt, String sshHost, String sshUser,
     String sshPassword, String sshPortNumber) throws ModuleException {
     super("org.postgresql.Driver",
       "jdbc:postgresql://" + hostname + ":" + port + "/" + database + "?user=" + username + "&password=" + password
         + (encrypt ? "&ssl=true" : ""),
-      new PostgreSQLHelper(), new PostgreSQLJDBCDatatypeImporter(), moduleConfiguration, moduleName,
+      new PostgreSQLHelper(), new PostgreSQLJDBCDatatypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(Constants.DB_HOST, hostname, Constants.DB_PORT, port, Constants.DB_USER, username,
         Constants.DB_PASSWORD, password, Constants.DB_DATABASE, database, Constants.DB_DISABLE_ENCRYPTION, encrypt),
       MapUtils.buildMapFromObjects(Constants.DB_SSH_HOST, sshHost, Constants.DB_SSH_PORT, sshPortNumber,

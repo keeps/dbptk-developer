@@ -78,12 +78,6 @@ public class DBMLModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) {
-    return buildImportModule(parameters, ModuleConfigurationUtils.getDefaultModuleConfiguration(), reporter);
-  }
-
-  @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters,
-    ModuleConfiguration moduleConfiguration, Reporter reporter) {
     Path pFile = Paths.get(parameters.get(file));
 
     reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString());

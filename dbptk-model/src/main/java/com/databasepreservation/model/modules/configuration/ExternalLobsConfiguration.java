@@ -2,7 +2,7 @@ package com.databasepreservation.model.modules.configuration;
 
 import java.util.Objects;
 
-import com.databasepreservation.model.modules.configuration.enums.AccessModules;
+import com.databasepreservation.model.modules.configuration.enums.ExternalLobsAccessMethod;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({"basePath", "accessMethod"})
 public class ExternalLobsConfiguration {
   private String basePath;
-  private AccessModules accessModule;
+  private ExternalLobsAccessMethod accessModule;
 
   public ExternalLobsConfiguration() {
   }
@@ -26,11 +26,11 @@ public class ExternalLobsConfiguration {
   }
 
   @JsonProperty("accessMethod")
-  public AccessModules getAccessModule() {
+  public ExternalLobsAccessMethod getAccessModule() {
     return accessModule;
   }
 
-  public void setAccessModule(AccessModules accessModule) {
+  public void setAccessModule(ExternalLobsAccessMethod accessModule) {
     this.accessModule = accessModule;
   }
 

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Objects;
 
 import com.databasepreservation.Constants;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /**
@@ -22,6 +23,11 @@ public class TableConfiguration {
     columns = new ArrayList<>();
     where = Constants.EMPTY;
     orderBy = Constants.EMPTY;
+  }
+
+  @JsonIgnore
+  public ColumnConfiguration getColumnConfiguration(String columnName) {
+    return getColumns().stream().filter(p -> p.getName().equals(columnName)).findFirst().orElse(null);
   }
 
   public String getName() {

@@ -27,12 +27,10 @@ import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
-import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.sybase.in.SybaseJDBCImportModule;
-import com.databasepreservation.utils.ModuleConfigurationUtils;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -150,12 +148,6 @@ public class SybaseModuleFactory implements DatabaseModuleFactory {
   @Override
   public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
     throws ModuleException {
-    return buildImportModule(parameters, ModuleConfigurationUtils.getDefaultModuleConfiguration(), reporter);
-  }
-
-  @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters,
-    ModuleConfiguration moduleConfiguration, Reporter reporter) throws ModuleException {
     String pUsername = parameters.get(username);
     String pPassword = parameters.get(password);
     String pHostname = parameters.get(hostname);
@@ -186,13 +178,13 @@ public class SybaseModuleFactory implements DatabaseModuleFactory {
         PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
         Integer.toString(pPortNumber), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser,
         PARAMETER_SSH_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
-      return new SybaseJDBCImportModule(moduleConfiguration, getModuleName(), pHostname, pPortNumber, pDatabase, pUsername, pPassword,
+      return new SybaseJDBCImportModule(getModuleName(), pHostname, pPortNumber, pDatabase, pUsername, pPassword,
         pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
     } else {
       reporter.importModuleParameters(getModuleName(), PARAMETER_HOSTNAME, pHostname, PARAMETER_DATABASE, pDatabase,
         PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_PORT_NUMBER,
         Integer.toString(pPortNumber));
-      return new SybaseJDBCImportModule(moduleConfiguration, getModuleName(), pHostname, pPortNumber, pDatabase, pUsername, pPassword);
+      return new SybaseJDBCImportModule(getModuleName(), pHostname, pPortNumber, pDatabase, pUsername, pPassword);
     }
   }
 

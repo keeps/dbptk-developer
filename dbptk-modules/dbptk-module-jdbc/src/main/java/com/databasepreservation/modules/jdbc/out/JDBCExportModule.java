@@ -153,7 +153,7 @@ public class JDBCExportModule implements DatabaseExportModule {
     this.driverClassName = driverClassName;
     this.connectionURL = connectionURL;
     this.sqlHelper = sqlHelper;
-    this.connections = new HashMap<String, Connection>();
+    this.connections = new HashMap<>();
     this.canDropDatabase = DEFAULT_CAN_DROP_DATABASE;
     connection = null;
     statement = null;
@@ -161,7 +161,7 @@ public class JDBCExportModule implements DatabaseExportModule {
     currentTableStructure = null;
     batch_index = 0;
     currentRowBatchInsertStatement = null;
-    ignoredSchemas = new HashSet<String>();
+    ignoredSchemas = new HashSet<>();
     existingSchemas = null;
     currentIsIgnoredSchema = false;
   }
@@ -172,7 +172,7 @@ public class JDBCExportModule implements DatabaseExportModule {
     this.driverClassName = driverClassName;
     this.connectionURL = connectionURL;
     this.sqlHelper = sqlHelper;
-    this.connections = new HashMap<String, Connection>();
+    this.connections = new HashMap<>();
     this.canDropDatabase = DEFAULT_CAN_DROP_DATABASE;
     connection = null;
     statement = null;
@@ -312,17 +312,6 @@ public class JDBCExportModule implements DatabaseExportModule {
       }
     }
     return statement;
-  }
-
-  /**
-   * Gets custom settings set by the export module that modify behaviour of the
-   * import module.
-   *
-   * @throws ModuleException
-   */
-  @Override
-  public ModuleConfiguration getModuleConfiguration() throws ModuleException {
-    return null;
   }
 
   @Override

@@ -7,6 +7,7 @@
  */
 package com.databasepreservation.modules.siard.in.input;
 
+import com.databasepreservation.ModuleConfigurationManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,17 +30,15 @@ import com.databasepreservation.utils.MapUtils;
  */
 public class SIARDImportDefault implements DatabaseImportModule {
   private final String moduleName;
-  private final ModuleConfiguration moduleConfiguration;
   private final ReadStrategy readStrategy;
   private final SIARDArchiveContainer mainContainer;
   private final ContentImportStrategy contentStrategy;
   private final MetadataImportStrategy metadataStrategy;
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARDImportDefault.class);
 
-  public SIARDImportDefault(String moduleName, ModuleConfiguration moduleConfiguration, ContentImportStrategy contentStrategy,
+  public SIARDImportDefault(String moduleName, ContentImportStrategy contentStrategy,
     SIARDArchiveContainer mainContainer, ReadStrategy readStrategy, MetadataImportStrategy metadataStrategy) {
     this.moduleName = moduleName;
-    this.moduleConfiguration = moduleConfiguration;
     this.readStrategy = readStrategy;
     this.mainContainer = mainContainer;
     this.contentStrategy = contentStrategy;
@@ -49,6 +48,7 @@ public class SIARDImportDefault implements DatabaseImportModule {
   @Override
   public DatabaseExportModule migrateDatabaseTo(DatabaseExportModule handler) throws ModuleException {
     // ModuleConfiguration moduleConfiguration = handler.getModuleConfiguration();
+    final ModuleConfiguration moduleConfiguration = ModuleConfigurationManager.getInstance().getModuleConfiguration();
     readStrategy.setup(mainContainer);
     LOGGER.info("Importing SIARD version {}", mainContainer.getVersion().getDisplayName());
     handler.initDatabase();

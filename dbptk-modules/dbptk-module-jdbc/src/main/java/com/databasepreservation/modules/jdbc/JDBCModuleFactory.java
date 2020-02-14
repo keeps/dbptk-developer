@@ -15,13 +15,11 @@ import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
-import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.jdbc.out.JDBCExportModule;
-import com.databasepreservation.utils.ModuleConfigurationUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -89,17 +87,11 @@ public class JDBCModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) {
-    return buildImportModule(parameters, ModuleConfigurationUtils.getDefaultModuleConfiguration(), reporter);
-  }
-
-  @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters,
-    ModuleConfiguration moduleConfiguration, Reporter reporter) {
     String pDriver = parameters.get(driver);
     String pConnection = parameters.get(connection);
 
     reporter.importModuleParameters(this.getModuleName(), PARAMETER_DRIVER, pDriver, PARAMETER_CONNECTION, pConnection);
-    return new JDBCImportModule(pDriver, pConnection, moduleConfiguration);
+    return new JDBCImportModule(pDriver, pConnection);
   }
 
   @Override

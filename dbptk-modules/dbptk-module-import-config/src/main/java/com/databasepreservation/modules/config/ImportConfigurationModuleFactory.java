@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import com.databasepreservation.ModuleConfigurationManager;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.RequiredParameterException;
@@ -23,8 +24,10 @@ import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
+import com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
+import com.databasepreservation.utils.ModuleConfigurationUtils;
 import com.databasepreservation.utils.ReflectionUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -127,7 +130,9 @@ public class ImportConfigurationModuleFactory implements DatabaseModuleFactory {
           }
         }
 
-        return actualFactory.buildImportModule(importParameters, moduleConfiguration, reporter);
+        ModuleConfigurationManager.getInstance().setup(moduleConfiguration);
+
+        return actualFactory.buildImportModule(importParameters, reporter);
       }
     } catch (IOException e) {
       throw new ModuleException()
@@ -137,16 +142,18 @@ public class ImportConfigurationModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, ModuleConfiguration moduleConfiguration, Reporter reporter) throws ModuleException {
-    return buildImportModule(parameters, reporter);
-  }
-
-  @Override
   public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter) {
     Path pFile = Paths.get(parameters.get(file));
 
     reporter.exportModuleParameters(this.getModuleName(), PARAMETER_FILE,
       pFile.normalize().toAbsolutePath().toString());
+
+    final ModuleConfiguration defaultModuleConfiguration = ModuleConfigurationUtils.getDefaultModuleConfiguration();
+    defaultModuleConfiguration.setFetchRows(false);
+    defaultModuleConfiguration.setIgnore(ModuleConfigurationUtils.createIgnoreListExcept(true, DatabaseTechnicalFeatures.VIEWS));
+
+    ModuleConfigurationManager.getInstance().setup(defaultModuleConfiguration);
+
     return new ImportConfiguration(pFile);
   }
 }

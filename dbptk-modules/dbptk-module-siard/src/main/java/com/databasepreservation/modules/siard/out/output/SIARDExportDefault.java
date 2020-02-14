@@ -71,17 +71,6 @@ public class SIARDExportDefault implements DatabaseExportModule {
     this.validate = validate;
   }
 
-  /**
-   * Gets custom settings set by the export module that modify behaviour of the
-   * import module.
-   *
-   * @throws ModuleException
-   */
-  @Override
-  public ModuleConfiguration getModuleConfiguration() throws ModuleException {
-    return null;
-  }
-
   @Override
   public void initDatabase() throws ModuleException {
     writeStrategy.setup(mainContainer);

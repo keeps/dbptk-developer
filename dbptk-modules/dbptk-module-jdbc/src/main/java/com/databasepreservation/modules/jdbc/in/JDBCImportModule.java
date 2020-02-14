@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
 import com.databasepreservation.Constants;
+import com.databasepreservation.ModuleConfigurationManager;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;
@@ -94,7 +95,6 @@ import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.MapUtils;
 import com.databasepreservation.utils.MiscUtils;
-import com.databasepreservation.utils.ModuleConfigurationUtils;
 import com.databasepreservation.utils.PortUtils;
 import com.databasepreservation.utils.RemoteConnectionUtils;
 import com.jcraft.jsch.Session;
@@ -130,7 +130,6 @@ public class JDBCImportModule implements DatabaseImportModule {
   protected SchemaStructure actualSchema;
   protected SQLHelper sqlHelper;
   protected DatatypeImporter datatypeImporter;
-  private ModuleConfiguration moduleConfiguration;
   protected Reporter reporter;
   private String moduleName;
   private Map<String, String> connectionProperties;
@@ -146,17 +145,16 @@ public class JDBCImportModule implements DatabaseImportModule {
    * @param connectionURL
    *          the connection url to use in the connection
    */
-  public JDBCImportModule(String driverClassName, String connectionURL, ModuleConfiguration moduleConfiguration) {
-    this(driverClassName, connectionURL, new SQLHelper(), new JDBCDatatypeImporter(), moduleConfiguration);
+  public JDBCImportModule(String driverClassName, String connectionURL) {
+    this(driverClassName, connectionURL, new SQLHelper(), new JDBCDatatypeImporter());
   }
 
   protected JDBCImportModule(String driverClassName, String connectionURL, SQLHelper sqlHelper,
-    DatatypeImporter datatypeImporter, ModuleConfiguration moduleConfiguration) {
+    DatatypeImporter datatypeImporter) {
     this.driverClassName = driverClassName;
     this.connectionURL = connectionURL;
     this.sqlHelper = sqlHelper;
     this.datatypeImporter = datatypeImporter;
-    this.moduleConfiguration = moduleConfiguration;
     connection = null;
     dbMetadata = null;
     dbStructure = null;
@@ -166,8 +164,7 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   protected JDBCImportModule(String driverClassName, String connectionURL, SQLHelper sqlHelper,
-    DatatypeImporter datatypeImporter, ModuleConfiguration moduleConfiguration, String moduleName,
-    Map<String, String> connectionParameters) {
+    DatatypeImporter datatypeImporter, String moduleName, Map<String, String> connectionParameters) {
     this.driverClassName = driverClassName;
     this.connectionURL = connectionURL;
     this.sqlHelper = sqlHelper;
@@ -176,15 +173,14 @@ public class JDBCImportModule implements DatabaseImportModule {
     dbMetadata = null;
     dbStructure = null;
     ssh = false;
-    this.moduleConfiguration = moduleConfiguration;
     this.moduleName = moduleName;
     this.connectionProperties = connectionParameters;
     this.remoteConnectionProperties = null;
   }
 
   protected JDBCImportModule(String driverClassName, String connectionURL, SQLHelper sqlHelper,
-    DatatypeImporter datatypeImporter, ModuleConfiguration moduleConfiguration, String moduleName,
-    Map<String, String> connectionParameters, Map<String, String> remoteConnectionParameters) throws ModuleException {
+    DatatypeImporter datatypeImporter, String moduleName, Map<String, String> connectionParameters,
+    Map<String, String> remoteConnectionParameters) throws ModuleException {
     this.driverClassName = driverClassName;
     this.connectionURL = connectionURL;
     this.sqlHelper = sqlHelper;
@@ -203,7 +199,6 @@ public class JDBCImportModule implements DatabaseImportModule {
     }
 
     this.moduleName = moduleName;
-    this.moduleConfiguration = moduleConfiguration;
     this.connectionProperties = connectionParameters;
     this.remoteConnectionProperties = remoteConnectionParameters;
   }
@@ -286,8 +281,9 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   public DatabaseStructure getSchemaInformation() throws ModuleException {
-    moduleConfiguration = ModuleConfigurationUtils.getDefaultModuleConfiguration();
-    moduleConfiguration.setFetchRows(false);
+    // moduleConfiguration =
+    // ModuleConfigurationUtils.getDefaultModuleConfiguration();
+    // moduleConfiguration.setFetchRows(false);
 
     DatabaseStructure databaseStructure = getDatabaseStructure();
     closeConnection();
@@ -2085,11 +2081,6 @@ public class JDBCImportModule implements DatabaseImportModule {
   @Override
   public DatabaseExportModule migrateDatabaseTo(DatabaseExportModule exportModule) throws ModuleException {
     try {
-      if (exportModule.getModuleConfiguration() != null) {
-        // override done due to the creation of import configuration file
-        moduleConfiguration = exportModule.getModuleConfiguration();
-      }
-
       exportModule.initDatabase();
 
       exportModule.setIgnoredSchemas(getIgnoredExportedSchemas());
@@ -2128,11 +2119,10 @@ public class JDBCImportModule implements DatabaseImportModule {
                   exportModule.handleDataRow(convertRawToRow(tableRawData, table));
                   nRows++;
                 }
-              } catch (SQLException | ModuleException e) {
-                if (e instanceof SQLException) {
-                  throw new SQLParseException()
-                    .withMessage(e.getMessage() + " at schema: " + table.getSchema() + " on table: " + table.getName());
-                }
+              } catch (SQLException e) {
+                throw new SQLParseException()
+                  .withMessage(e.getMessage() + " at schema: " + table.getSchema() + " on table: " + table.getName());
+              } catch (ModuleException e) {
                 if (e.getCause().getClass().equals(IOException.class)) {
                   LOGGER.error(e.getCause().getMessage());
                 }
@@ -2187,7 +2177,7 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   public ModuleConfiguration getModuleConfiguration() {
-    return moduleConfiguration;
+    return ModuleConfigurationManager.getInstance().getModuleConfiguration();
   }
 
   @Override

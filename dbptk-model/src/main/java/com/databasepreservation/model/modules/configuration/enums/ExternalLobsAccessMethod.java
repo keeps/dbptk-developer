@@ -7,14 +7,12 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
-public enum DatabaseMetadata {
-  ROUTINES("routines"), TRIGGERS("triggers"), USERS("users"), ROLES("roles"), PRIVILEGES("privileges"),
-  PRIMARY_KEYS("primaryKeys"), CANDIDATE_KEYS("candidateKeys"), FOREIGN_KEYS("foreignKeys"),
-  CHECK_CONSTRAINTS("checkConstraints"), VIEWS("views");
+public enum ExternalLobsAccessMethod {
+  FILE_SYSTEM("file-system"), REMOTE("remote-ssh");
 
   private final String value;
 
-  DatabaseMetadata(String value) {
+  ExternalLobsAccessMethod(String value) {
     this.value = value;
   }
 

@@ -65,7 +65,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
    * @param encrypt
    *          true to use encryption in the connection
    */
-  public SQLServerJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String serverName,
+  public SQLServerJDBCImportModule(String moduleName, String serverName,
     int portNumber, String instanceName, String database, String username, String password, boolean integratedSecurity,
     boolean encrypt, boolean ssh, String sshHost, String sshUser, String sshPassword, String sshPortNumber)
     throws ModuleException {
@@ -74,7 +74,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
         .append(serverName).append("\\").append(instanceName).append(":").append(portNumber).append(";database=")
         .append(database).append(";user=").append(username).append(";password=").append(password)
         .append(";integratedSecurity=").append(integratedSecurity).append(";encrypt=").append(encrypt).toString(),
-      new SQLServerHelper(), new SQLServerDatatypeImporter(), moduleConfiguration, moduleName,
+      new SQLServerHelper(), new SQLServerDatatypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(Constants.DB_SERVER_NAME, serverName, Constants.DB_PORT, portNumber,
         Constants.DB_INSTANCE_NAME, instanceName, Constants.DB_INTEGRATED_LOGIN, integratedSecurity, Constants.DB_USER,
         username, Constants.DB_PASSWORD, password, Constants.DB_DATABASE, database, Constants.DB_DISABLE_ENCRYPTION,
@@ -101,14 +101,14 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
    * @param encrypt
    *          true to use encryption in the connection
    */
-  public SQLServerJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String serverName,
+  public SQLServerJDBCImportModule(String moduleName, String serverName,
     int portNumber, String database, String username, String password, boolean integratedSecurity, boolean encrypt,
     boolean ssh, String sshHost, String sshUser, String sshPassword, String sshPortNumber) throws ModuleException {
     super("com.microsoft.sqlserver.jdbc.SQLServerDriver",
       new StringBuilder("jdbc:sqlserver://").append(serverName).append(":").append(portNumber).append(";database=")
         .append(database).append(";user=").append(username).append(";password=").append(password)
         .append(";integratedSecurity=").append(integratedSecurity).append(";encrypt=").append(encrypt).toString(),
-      new SQLServerHelper(), new SQLServerDatatypeImporter(), moduleConfiguration, moduleName,
+      new SQLServerHelper(), new SQLServerDatatypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(Constants.DB_SERVER_NAME, serverName, Constants.DB_PORT, portNumber,
         Constants.DB_INTEGRATED_LOGIN, integratedSecurity, Constants.DB_USER, username, Constants.DB_PASSWORD, password,
         Constants.DB_DATABASE, database, Constants.DB_DISABLE_ENCRYPTION, encrypt),

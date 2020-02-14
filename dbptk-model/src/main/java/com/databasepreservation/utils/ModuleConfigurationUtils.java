@@ -1,17 +1,16 @@
 package com.databasepreservation.utils;
 
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.CANDIDATE_KEYS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.CHECK_CONSTRAINTS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.FOREIGN_KEYS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.PRIMARY_KEYS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.PRIVILEGES;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.ROLES;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.ROUTINES;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.TRIGGERS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.USERS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.VIEWS;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.CANDIDATE_KEYS;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.CHECK_CONSTRAINTS;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.FOREIGN_KEYS;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.PRIMARY_KEYS;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.PRIVILEGES;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.ROLES;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.ROUTINES;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.TRIGGERS;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.USERS;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.VIEWS;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,12 +24,10 @@ import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.modules.configuration.SchemaConfiguration;
 import com.databasepreservation.model.modules.configuration.TableConfiguration;
 import com.databasepreservation.model.modules.configuration.ViewConfiguration;
-import com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata;
+import com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.ViewStructure;
-
-import javax.xml.crypto.Data;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -108,23 +105,23 @@ public class ModuleConfigurationUtils {
     return viewConfiguration;
   }
 
-  public static Map<DatabaseMetadata, Boolean> createIgnoreListExcept(boolean value, DatabaseMetadata... whitelist) {
-    final Map<DatabaseMetadata, Boolean> ignoreList = createIgnoreList(value);
-    List<DatabaseMetadata> databaseMetadataList = Arrays.asList(whitelist);
+  public static Map<DatabaseTechnicalFeatures, Boolean> createIgnoreListExcept(boolean value, DatabaseTechnicalFeatures... whitelist) {
+    final Map<DatabaseTechnicalFeatures, Boolean> ignoreList = createIgnoreList(value);
+    List<DatabaseTechnicalFeatures> databaseTechnicalFeaturesList = Arrays.asList(whitelist);
 
-    databaseMetadataList.forEach(m -> {
+    databaseTechnicalFeaturesList.forEach(m -> {
       ignoreList.put(m, !value);
     });
 
     return ignoreList;
   }
 
-  public static Map<DatabaseMetadata, Boolean> createIgnoreList(boolean value) {
+  public static Map<DatabaseTechnicalFeatures, Boolean> createIgnoreList(boolean value) {
     return createDefaultIgnoreList(value);
   }
 
-  private static Map<DatabaseMetadata, Boolean> createDefaultIgnoreList(boolean value) {
-    Map<DatabaseMetadata, Boolean> ignores = new LinkedHashMap<>();
+  private static Map<DatabaseTechnicalFeatures, Boolean> createDefaultIgnoreList(boolean value) {
+    Map<DatabaseTechnicalFeatures, Boolean> ignores = new LinkedHashMap<>();
 
     ignores.put(USERS, value);
     ignores.put(ROLES, value);

@@ -43,9 +43,6 @@ public interface DatabaseModuleFactory {
 
   DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException;
 
-  DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, ModuleConfiguration moduleConfiguration,
-    Reporter reporter) throws ModuleException;
-
   DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
     throws UnsupportedModuleException, LicenseNotAcceptedException, ModuleException;
 

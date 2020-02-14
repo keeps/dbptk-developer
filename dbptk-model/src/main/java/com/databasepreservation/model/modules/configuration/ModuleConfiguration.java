@@ -1,25 +1,25 @@
 package com.databasepreservation.model.modules.configuration;
 
-import static com.databasepreservation.Constants.CUSTOM_VIEW_NAME_PREFIX;
 import static com.databasepreservation.Constants.VIEW_NAME_PREFIX;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.CANDIDATE_KEYS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.CHECK_CONSTRAINTS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.FOREIGN_KEYS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.PRIMARY_KEYS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.PRIVILEGES;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.ROLES;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.ROUTINES;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.TRIGGERS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.USERS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata.VIEWS;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.CANDIDATE_KEYS;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.CHECK_CONSTRAINTS;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.FOREIGN_KEYS;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.PRIMARY_KEYS;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.PRIVILEGES;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.ROLES;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.ROUTINES;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.TRIGGERS;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.USERS;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.VIEWS;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.databasepreservation.Constants;
-import com.databasepreservation.model.modules.configuration.enums.DatabaseMetadata;
+import com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -34,7 +34,7 @@ public class ModuleConfiguration {
 
   private ImportModuleConfiguration importModuleConfiguration;
   private Map<String, SchemaConfiguration> schemaConfigurations;
-  private Map<DatabaseMetadata, Boolean> ignore;
+  private Map<DatabaseTechnicalFeatures, Boolean> ignore;
   private boolean fetchRows;
 
   public ModuleConfiguration() {
@@ -117,6 +117,15 @@ public class ModuleConfiguration {
   }
 
   @JsonIgnore
+  public TableConfiguration getTableConfiguration(String schemaName, String name) {
+    if (schemaConfigurations.get(schemaName) == null) {
+      return null;
+    }
+
+    return schemaConfigurations.get(schemaName).getTableConfiguration(name);
+  }
+
+  @JsonIgnore
   public CustomViewConfiguration getCustomViewConfiguration(String schemaName, String name) {
     if (schemaConfigurations.get(schemaName) == null) {
       return null;
@@ -182,12 +191,12 @@ public class ModuleConfiguration {
     return isIgnored(VIEWS);
   }
 
-  private boolean isIgnored(DatabaseMetadata databaseMetadata) {
-    if (ignore.get(databaseMetadata) == null) {
+  private boolean isIgnored(DatabaseTechnicalFeatures databaseTechnicalFeatures) {
+    if (ignore.get(databaseTechnicalFeatures) == null) {
       return false;
     }
 
-    return ignore.get(databaseMetadata);
+    return ignore.get(databaseTechnicalFeatures);
   }
 
   @JsonIgnore
@@ -269,6 +278,56 @@ public class ModuleConfiguration {
     return null;
   }
 
+  @JsonIgnore
+  public boolean hasExternalLobDefined(String schemaName, String tableName) {
+    if (schemaConfigurations.isEmpty()) {
+      return false;
+    }
+
+    if (schemaConfigurations.get(schemaName) != null
+      && schemaConfigurations.get(schemaName).getTableConfiguration(tableName) != null) {
+      return schemaConfigurations.get(schemaName).getTableConfiguration(tableName).getColumns().stream()
+        .anyMatch(p -> p.getExternalLob() != null);
+    }
+
+    return false;
+  }
+
+  @JsonIgnore
+  public boolean isExternalLobColumn(String schema, String table, String column) {
+    if (schemaConfigurations.isEmpty()) {
+      return false;
+    }
+
+    return schemaConfigurations.get(schema) != null
+      && schemaConfigurations.get(schema).getTableConfiguration(table) != null
+      && schemaConfigurations.get(schema).getTableConfiguration(table).getColumnConfiguration(column) != null
+      && schemaConfigurations.get(schema).getTableConfiguration(table).getColumnConfiguration(column)
+        .getExternalLob() != null;
+  }
+
+  @JsonIgnore
+  public ExternalLobsConfiguration getExternalLobsConfiguration(String schemaName, String tableName,
+    String columnName) {
+    if (isExternalLobColumn(schemaName, tableName, columnName)) {
+      return schemaConfigurations.get(schemaName).getTableConfiguration(tableName).getColumnConfiguration(columnName)
+        .getExternalLob();
+    }
+
+    return null;
+  }
+
+  @JsonIgnore
+  public List<ExternalLobsConfiguration> getExternalLobsConfigurations(String schemaName, String tableName) {
+    List<ExternalLobsConfiguration> externalLobsConfigurations = new ArrayList<>();
+    if (hasExternalLobDefined(schemaName, tableName)) {
+      externalLobsConfigurations = schemaConfigurations.get(schemaName).getTableConfiguration(tableName).getColumns()
+        .stream().map(ColumnConfiguration::getExternalLob).collect(Collectors.toList());
+    }
+
+    return externalLobsConfigurations;
+  }
+
   @JsonProperty("import")
   public ImportModuleConfiguration getImportModuleConfiguration() {
     return importModuleConfiguration;
@@ -288,11 +347,11 @@ public class ModuleConfiguration {
   }
 
   @JsonProperty("ignore")
-  public Map<DatabaseMetadata, Boolean> getIgnore() {
+  public Map<DatabaseTechnicalFeatures, Boolean> getIgnore() {
     return ignore;
   }
 
-  public void setIgnore(Map<DatabaseMetadata, Boolean> ignore) {
+  public void setIgnore(Map<DatabaseTechnicalFeatures, Boolean> ignore) {
     this.ignore = ignore;
   }
 

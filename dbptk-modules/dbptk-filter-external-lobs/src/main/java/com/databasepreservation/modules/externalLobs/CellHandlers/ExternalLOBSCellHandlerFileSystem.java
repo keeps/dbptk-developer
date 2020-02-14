@@ -7,14 +7,13 @@
  */
 package com.databasepreservation.modules.externalLobs.CellHandlers;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.common.providers.PathInputStreamProvider;
 import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
@@ -43,23 +42,15 @@ public class ExternalLOBSCellHandlerFileSystem implements ExternalLOBSCellHandle
 
     if (Files.exists(blobPath)) {
       if (Files.isRegularFile(blobPath)) {
-        try (InputStream stream = Files.newInputStream(blobPath)) {
-          newCell = new BinaryCell(cellId, stream);
-        } catch (IOException e) {
-          reporter.ignored("Cell " + cellId, "there was an error accessing the file " + blobPath.toString() + "; Base path: " + this.basePath + " Cell Value: " + cellValue);
-          LOGGER.debug("Could not open stream to file", e);
-        }
+        newCell = new BinaryCell(cellId, new PathInputStreamProvider(blobPath));
       } else {
-        reporter.ignored("Cell " + cellId, blobPath.toString() + " is not a file; Base path: " + this.basePath + " Cell Value: " + cellValue);
+        reporter.ignored("Cell " + cellId,
+          blobPath.toString() + " is not a file; Base path: " + this.basePath + " Cell Value: " + cellValue);
       }
     } else {
-      reporter.ignored("Cell " + cellId, "Path: " + blobPath.toString() + " could not be found; Base path: " + this.basePath + " Cell Value: " + cellValue);
+      reporter.ignored("Cell " + cellId, "Path: " + blobPath.toString() + " could not be found; Base path: "
+        + this.basePath + " Cell Value: " + cellValue);
     }
     return newCell;
-  }
-
-  @Override
-  public String handleTypeDescription(String originalTypeDescription) {
-    return "Converted to LOB referenced by file system path (original description: '"+originalTypeDescription+"')";
   }
 }

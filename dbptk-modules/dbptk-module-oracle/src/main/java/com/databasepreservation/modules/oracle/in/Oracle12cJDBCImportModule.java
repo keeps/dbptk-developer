@@ -76,12 +76,12 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
    * @param password
    *          the password of the user to use in the connection
    */
-  public Oracle12cJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String serverName,
+  public Oracle12cJDBCImportModule(String moduleName, String serverName,
     int port, String instance, String username, String password) {
 
     super("oracle.jdbc.driver.OracleDriver",
       "jdbc:oracle:thin:" + username + "/" + password + "@//" + serverName + ":" + port + "/" + instance,
-      new OracleHelper(), new Oracle12cJDBCDatatypeImporter(), moduleConfiguration, moduleName,
+      new OracleHelper(), new Oracle12cJDBCDatatypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(Oracle12cModuleFactory.PARAMETER_SERVER_NAME, serverName,
         Oracle12cModuleFactory.PARAMETER_PORT_NUMBER, port, Oracle12cModuleFactory.PARAMETER_INSTANCE, instance,
         Oracle12cModuleFactory.PARAMETER_USERNAME, username, Oracle12cModuleFactory.PARAMETER_PASSWORD, password,
@@ -90,13 +90,13 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
     LOGGER.debug("jdbc:oracle:thin:<username>/<password>@//{}:{}/{}", serverName, port, instance);
   }
 
-  public Oracle12cJDBCImportModule(ModuleConfiguration moduleConfiguration, String moduleName, String serverName,
+  public Oracle12cJDBCImportModule(String moduleName, String serverName,
     int port, String instance, String username, String password, String sshHost, String sshUser, String sshPassword,
     String sshPortNumber) throws ModuleException {
 
     super("oracle.jdbc.driver.OracleDriver",
       "jdbc:oracle:thin:" + username + "/" + password + "@//" + serverName + ":" + port + "/" + instance,
-      new OracleHelper(), new Oracle12cJDBCDatatypeImporter(), moduleConfiguration, moduleName,
+      new OracleHelper(), new Oracle12cJDBCDatatypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(Oracle12cModuleFactory.PARAMETER_SERVER_NAME, serverName,
         Oracle12cModuleFactory.PARAMETER_PORT_NUMBER, port, Oracle12cModuleFactory.PARAMETER_INSTANCE, instance,
         Oracle12cModuleFactory.PARAMETER_USERNAME, username, Oracle12cModuleFactory.PARAMETER_PASSWORD, password,

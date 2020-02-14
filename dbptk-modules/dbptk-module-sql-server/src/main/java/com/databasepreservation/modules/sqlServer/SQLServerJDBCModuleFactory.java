@@ -159,14 +159,7 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws ModuleException {
-    return buildImportModule(parameters, ModuleConfigurationUtils.getDefaultModuleConfiguration(), reporter);
-  }
-
-  @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters,
-    ModuleConfiguration moduleConfiguration, Reporter reporter) throws ModuleException {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException {
     // String values
     String pServerName = parameters.get(serverName);
     String pDatabase = parameters.get(database);
@@ -211,7 +204,7 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
         PARAMETER_USE_INTEGRATED_LOGIN, String.valueOf(pUseIntegratedLogin), PARAMETER_INSTANCE_NAME, pInstanceName,
         PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER,
         pSSHUser, PARAMETER_SSH_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
-      return new SQLServerJDBCImportModule(moduleConfiguration, getModuleName(), pServerName, pPortNumber, pInstanceName, pDatabase,
+      return new SQLServerJDBCImportModule(getModuleName(), pServerName, pPortNumber, pInstanceName, pDatabase,
         pUsername, pPassword, pUseIntegratedLogin, pEncrypt, pSSH, pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
     } else {
       reporter.importModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_DATABASE,
@@ -219,7 +212,7 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
         PARAMETER_USE_INTEGRATED_LOGIN, String.valueOf(pUseIntegratedLogin), PARAMETER_DISABLE_ENCRYPTION,
         String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD,
         Reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
-      return new SQLServerJDBCImportModule(moduleConfiguration, getModuleName(), pServerName, pPortNumber, pDatabase, pUsername, pPassword,
+      return new SQLServerJDBCImportModule(getModuleName(), pServerName, pPortNumber, pDatabase, pUsername, pPassword,
         pUseIntegratedLogin, pEncrypt, pSSH, pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
     }
   }

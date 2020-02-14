@@ -29,14 +29,12 @@ import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
  */
 public class SIARDDKImportModule {
   private static final String moduleName = "siard-dk";
-  private final ModuleConfiguration moduleConfiguration;
   protected final FolderReadStrategyMD5Sum readStrategy;
   protected final SIARDArchiveContainer mainContainer;
   protected final MetadataImportStrategy metadataStrategy;
   protected final ContentImportStrategy contentStrategy;
 
-  public SIARDDKImportModule(ModuleConfiguration moduleConfiguration, Path siardPackage, String paramImportAsSchema) {
-    this.moduleConfiguration = moduleConfiguration;
+  public SIARDDKImportModule(Path siardPackage, String paramImportAsSchema) {
     mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.DK, siardPackage.toAbsolutePath().normalize(),
       SIARDArchiveContainer.OutputContainerType.MAIN);
     readStrategy = new FolderReadStrategyMD5Sum(mainContainer);
@@ -57,7 +55,7 @@ public class SIARDDKImportModule {
   }
 
   public DatabaseImportModule getDatabaseImportModule() {
-    return new SIARDImportDefault(moduleName, moduleConfiguration, contentStrategy, mainContainer, readStrategy, metadataStrategy);
+    return new SIARDImportDefault(moduleName, contentStrategy, mainContainer, readStrategy, metadataStrategy);
   }
 
 }

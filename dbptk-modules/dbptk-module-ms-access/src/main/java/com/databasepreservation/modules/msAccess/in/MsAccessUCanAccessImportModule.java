@@ -29,7 +29,6 @@ import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.PrivilegeStructure;
 import com.databasepreservation.model.structure.RoutineStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
@@ -53,29 +52,26 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
   private static String INVALID_CHARACTERS_IN_TABLE_NAME = "\'";
   private String password = null;
 
-  public MsAccessUCanAccessImportModule(String moduleName, ModuleConfiguration moduleConfiguration, File msAccessFile,
-    Map<String, String> properties) throws ModuleException {
+  public MsAccessUCanAccessImportModule(String moduleName, File msAccessFile, Map<String, String> properties)
+    throws ModuleException {
     super("net.ucanaccess.jdbc.UcanaccessDriver",
       "jdbc:ucanaccess://" + msAccessFile.getAbsolutePath() + ";showSchema=true;", new MsAccessHelper(),
-      new MsAccessUCanAccessDatatypeImporter(), moduleConfiguration, moduleName, properties);
+      new MsAccessUCanAccessDatatypeImporter(), moduleName, properties);
   }
 
-  public MsAccessUCanAccessImportModule(String moduleName, ModuleConfiguration moduleConfiguration, File msAccessFile,
-    String password) throws ModuleException {
-    this(moduleName, moduleConfiguration, msAccessFile,
+  public MsAccessUCanAccessImportModule(String moduleName, File msAccessFile, String password) throws ModuleException {
+    this(moduleName, msAccessFile,
       MapUtils.buildMapFromObjects(Constants.DB_SERVER_NAME, msAccessFile, Constants.DB_PASSWORD, password));
     this.password = password;
   }
 
-  public MsAccessUCanAccessImportModule(String moduleName, ModuleConfiguration moduleConfiguration,
-    String accessFilePath) throws ModuleException {
-    this(moduleName, moduleConfiguration, new File(accessFilePath),
-      MapUtils.buildMapFromObjects(Constants.DB_SERVER_NAME, accessFilePath));
+  public MsAccessUCanAccessImportModule(String moduleName, String accessFilePath) throws ModuleException {
+    this(moduleName, new File(accessFilePath), MapUtils.buildMapFromObjects(Constants.DB_SERVER_NAME, accessFilePath));
   }
 
-  public MsAccessUCanAccessImportModule(String moduleName, ModuleConfiguration moduleConfiguration,
-    String accessFilePath, String password) throws ModuleException {
-    this(moduleName, moduleConfiguration, new File(accessFilePath), password);
+  public MsAccessUCanAccessImportModule(String moduleName, String accessFilePath, String password)
+    throws ModuleException {
+    this(moduleName, new File(accessFilePath), password);
   }
 
   @Override

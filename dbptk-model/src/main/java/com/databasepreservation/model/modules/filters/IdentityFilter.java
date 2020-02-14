@@ -58,17 +58,6 @@ public class IdentityFilter implements DatabaseFilterModule {
     return this.reporter;
   }
 
-  /**
-   * Gets custom settings set by the export module that modify behaviour of the
-   * import module.
-   *
-   * @throws ModuleException
-   */
-  @Override
-  public ModuleConfiguration getModuleConfiguration() throws ModuleException {
-    return this.exportModule.getModuleConfiguration();
-  }
-
   @Override
   public void initDatabase() throws ModuleException {
     this.exportModule.initDatabase();

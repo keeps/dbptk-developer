@@ -12,6 +12,4 @@ import com.databasepreservation.model.exception.ModuleException;
 
 public interface ExternalLOBSCellHandler {
   Cell handleCell(String cellId, String cellValue) throws ModuleException;
-
-  String handleTypeDescription(String originalTypeDescription);
 }

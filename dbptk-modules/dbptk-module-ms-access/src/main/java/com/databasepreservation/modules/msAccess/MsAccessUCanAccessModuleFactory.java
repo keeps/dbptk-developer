@@ -84,14 +84,7 @@ public class MsAccessUCanAccessModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws ModuleException {
-    return buildImportModule(parameters, ModuleConfigurationUtils.getDefaultModuleConfiguration(), reporter);
-  }
-
-  @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters,
-    ModuleConfiguration moduleConfiguration, Reporter reporter) throws ModuleException {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException {
     String pAccessFilePath = parameters.get(accessFilePath);
 
     String pAccessPassword = null;
@@ -101,9 +94,9 @@ public class MsAccessUCanAccessModuleFactory implements DatabaseModuleFactory {
 
     reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pAccessFilePath);
     if (pAccessPassword != null) {
-      return new MsAccessUCanAccessImportModule(getModuleName(), moduleConfiguration, pAccessFilePath, pAccessPassword);
+      return new MsAccessUCanAccessImportModule(getModuleName(), pAccessFilePath, pAccessPassword);
     } else {
-      return new MsAccessUCanAccessImportModule(getModuleName(), moduleConfiguration, pAccessFilePath);
+      return new MsAccessUCanAccessImportModule(getModuleName(), pAccessFilePath);
     }
   }
 

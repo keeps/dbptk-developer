@@ -53,9 +53,4 @@ public class ExternalLOBSCellHandlerRemoteFileSystem implements ExternalLOBSCell
 
     return newCell;
   }
-
-  @Override
-  public String handleTypeDescription(String originalTypeDescription) {
-    return "Converted to LOB referenced by remote file system path (original description: '"+originalTypeDescription+"')";
-  }
 }

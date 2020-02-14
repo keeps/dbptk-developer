@@ -70,7 +70,11 @@ public class DatabaseMigration {
 
     List<DatabaseFilterModule> userDefinedFilterModules = new ArrayList<>();
     for(int i=0; i<filterFactories.size(); i++) {
-      Map<Parameter, String> filterParameters = buildParametersFromStringParameters(filterFactories.get(i), filterFactoriesStringParameters.get(i));
+      Map<Parameter, String> filterParameters = new HashMap<>();
+      if (!filterFactoriesStringParameters.isEmpty()) {
+        filterParameters = buildParametersFromStringParameters(filterFactories.get(i), filterFactoriesStringParameters.get(i));
+        userDefinedFilterModules.add(filterFactories.get(i).buildFilterModule(filterParameters, reporter));
+      }
       userDefinedFilterModules.add(filterFactories.get(i).buildFilterModule(filterParameters, reporter));
     }
 
