@@ -619,16 +619,16 @@ public class SiardTest {
     LOGGER.debug("SIARD file: " + tmpFile.toUri().toString());
     DatabaseExportModule mocked = Mockito.mock(DatabaseExportModule.class);
 
-    Mockito.when(mocked.getModuleConfiguration()).thenReturn(ModuleConfigurationUtils.getDefaultModuleConfiguration());
+//    Mockito.when(mocked.getModuleConfiguration()).thenReturn(ModuleConfigurationUtils.getDefaultModuleConfiguration());
 
     DatabaseImportModule importer = null;
     switch (version) {
       case V1_0:
-        importer = new SIARD1ImportModule(ModuleConfigurationUtils.getDefaultModuleConfiguration(), tmpFile).getDatabaseImportModule();
+        importer = new SIARD1ImportModule(tmpFile).getDatabaseImportModule();
         break;
       case V2_0:
       case V2_1:
-        importer = new SIARD2ImportModule(ModuleConfigurationUtils.getDefaultModuleConfiguration(), tmpFile).getDatabaseImportModule();
+        importer = new SIARD2ImportModule(tmpFile).getDatabaseImportModule();
         break;
 
       case DK:
@@ -636,7 +636,7 @@ public class SiardTest {
         // Therefore it uses a special 'importAsSchema' parameter, to make it
         // compatible with the format of the dptkl internal database structure
         // representation.
-        importer = new SIARDDKImportModule(ModuleConfigurationUtils.getDefaultModuleConfiguration(), tmpFile, dbStructure.getSchemas().get(0).getName())
+        importer = new SIARDDKImportModule(tmpFile, dbStructure.getSchemas().get(0).getName())
           .getDatabaseImportModule();
         break;
     }
