@@ -47,18 +47,16 @@ public class ValidationReporter implements AutoCloseable {
   private static final String COLON = ":";
   private static final String SINGLE_SPACE = " ";
   private static final String OPEN_BRACKET = "[";
-  private static final String OPEN_PARENTHESES = "(";
   private static final String CLOSED_BRACKET = "]";
-  private static final String CLOSED_PARENTHESES = ")";
   private static final String HYPHEN = "-";
 
-  public ValidationReporter(Path path, Path SIARDPackagePath) {
-    init(path, SIARDPackagePath);
+  public ValidationReporter(Path path, Path siardPackagePath) {
+    init(path, siardPackagePath);
   }
 
-  private void init(Path path, Path SIARDPackagePath) {
+  private void init(Path path, Path siardPackagePath) {
     this.outputFile = path;
-    if (Files.notExists(outputFile)) {
+    if (outputFile.toFile().exists()) {
       try {
         Files.createFile(outputFile);
       } catch (IOException e) {
@@ -85,7 +83,7 @@ public class ValidationReporter implements AutoCloseable {
         writeLine("The specification to the SIARD can be found at: " + Constants.LINK_TO_SPECIFICATION);
         writeLine("Additional checks specification can be found at: " + Constants.LINK_TO_WIKI_ADDITIONAL_CHECKS);
         writeLine("Date: " + new org.joda.time.DateTime());
-        writeLine("SIARD file: " + SIARDPackagePath.toAbsolutePath().normalize().toString());
+        writeLine("SIARD file: " + siardPackagePath.toAbsolutePath().normalize().toString());
         writeLine(NEWLINE);
       } catch (IOException e) {
         LOGGER.error("Could not get a writer for the report file.", e);
@@ -97,8 +95,8 @@ public class ValidationReporter implements AutoCloseable {
     writeLine(text);
   }
 
-  public void moduleValidatorHeader(String ID, String text) {
-    writeLine(ID + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + text);
+  public void moduleValidatorHeader(String id, String text) {
+    writeLine(id + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + text);
   }
 
   public void validationStatus(String text, ValidationReporterStatus status) {
@@ -144,18 +142,18 @@ public class ValidationReporter implements AutoCloseable {
     writeLine(EMPTY_MESSAGE_LINE);
   }
 
-  public void warning(String ID, String text, String object) {
-    writeLine(TAB + ID + COLON + SINGLE_SPACE + buildStatus(ValidationReporterStatus.WARNING) + SINGLE_SPACE + HYPHEN
+  public void warning(String id, String text, String object) {
+    writeLine(TAB + id + COLON + SINGLE_SPACE + buildStatus(ValidationReporterStatus.WARNING) + SINGLE_SPACE + HYPHEN
       + SINGLE_SPACE + text + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + object);
   }
 
-  public void skipValidation(String ID, String reasonToSkip) {
-    writeLine(TAB + ID + COLON + SINGLE_SPACE + buildStatus(ValidationReporterStatus.SKIPPED) + SINGLE_SPACE + HYPHEN
+  public void skipValidation(String id, String reasonToSkip) {
+    writeLine(TAB + id + COLON + SINGLE_SPACE + buildStatus(ValidationReporterStatus.SKIPPED) + SINGLE_SPACE + HYPHEN
       + SINGLE_SPACE + reasonToSkip);
   }
 
-  public void notice(String ID, Object nodeValue, String noticeMessage) {
-    writeLine(TAB + ID + COLON + SINGLE_SPACE + buildStatus(ValidationReporterStatus.NOTICE) + SINGLE_SPACE + HYPHEN
+  public void notice(String id, Object nodeValue, String noticeMessage) {
+    writeLine(TAB + id + COLON + SINGLE_SPACE + buildStatus(ValidationReporterStatus.NOTICE) + SINGLE_SPACE + HYPHEN
       + SINGLE_SPACE + noticeMessage + SINGLE_SPACE + HYPHEN + SINGLE_SPACE + nodeValue);
   }
 
@@ -180,8 +178,9 @@ public class ValidationReporter implements AutoCloseable {
     return numberOfSkipped;
   }
 
-  public int getNumberOfRequirementsFailed() { return numberOfRequirementsFailed; }
-
+  public int getNumberOfRequirementsFailed() {
+    return numberOfRequirementsFailed;
+  }
 
   public int getNumberRequirementsPassed() {
     return numberRequirementsPassed;
@@ -206,6 +205,8 @@ public class ValidationReporter implements AutoCloseable {
         break;
       case SKIPPED:
         numberOfSkipped++;
+        break;
+      default:
         break;
     }
     return OPEN_BRACKET + status.name() + CLOSED_BRACKET;

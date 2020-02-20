@@ -15,11 +15,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.Row;
@@ -41,7 +42,7 @@ public class GMLExtractorFilter extends IdentityFilter {
   private BufferedWriter writer;
   private Path outputDirectory;
 
-  private DatabaseExportModule exportModule;
+  private DatabaseFilterModule exportModule;
 
   public GMLExtractorFilter(Path outputDirectory) {
     super();
@@ -49,7 +50,7 @@ public class GMLExtractorFilter extends IdentityFilter {
   }
 
   @Override
-  public DatabaseExportModule migrateDatabaseTo(DatabaseExportModule exportModule) throws ModuleException {
+  public DatabaseFilterModule migrateDatabaseTo(DatabaseFilterModule exportModule) throws ModuleException {
     this.exportModule = exportModule;
     return super.migrateDatabaseTo(exportModule);
   }

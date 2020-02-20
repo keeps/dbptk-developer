@@ -14,15 +14,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import org.apache.commons.lang3.StringUtils;
 
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
-import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
-import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameter.CATEGORY_TYPE;
 import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
@@ -30,7 +29,6 @@ import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.in.input.SIARDDKImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
-import com.databasepreservation.utils.ModuleConfigurationUtils;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
@@ -65,7 +63,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     .description("Path to contextDocumentation folder which should contain the context documentation for the archive")
     .hasArgument(true).setOptionalArgument(false).required(false);
 
-  private static final Parameter PARAM_IMPORT_AS_SCHEMA = new Parameter().shortName("as").longName(PARAMETER_AS_SCHEMA)
+  private static final Parameter importAsSchema = new Parameter().shortName("as").longName(PARAMETER_AS_SCHEMA)
     .description(
       "Name of the database schema to use when importing the SIARDDK archive. Suggested values: PostgreSQL:'public', MySQL:'<name of database>', MSSQL:'dbo'")
     .required(true).hasArgument(true);
@@ -114,13 +112,13 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Map<String, Parameter> getAllParameters() {
-    HashMap<String, Parameter> parameterMap = new HashMap<String, Parameter>();
+    HashMap<String, Parameter> parameterMap = new HashMap<>();
 
     parameterMap.put(folder.longName(), folder);
     parameterMap.put(archiveIndex.longName(), archiveIndex);
     parameterMap.put(contextDocumentationIndex.longName(), contextDocumentationIndex);
     parameterMap.put(contextDocumentationFolder.longName(), contextDocumentationFolder);
-    parameterMap.put(PARAM_IMPORT_AS_SCHEMA.longName(), PARAM_IMPORT_AS_SCHEMA);
+    parameterMap.put(importAsSchema.longName(), importAsSchema);
     parameterMap.put(lobsPerFolder.longName(), lobsPerFolder);
     parameterMap.put(lobsFolderSize.longName(), lobsFolderSize);
     // to be used later...
@@ -133,12 +131,12 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
   @Override
   public Parameters getConnectionParameters() {
     return new Parameters(
-      Arrays.asList(folder.inputType(INPUT_TYPE.FOLDER), PARAM_IMPORT_AS_SCHEMA.inputType(INPUT_TYPE.TEXT)), null);
+      Arrays.asList(folder.inputType(INPUT_TYPE.FOLDER), importAsSchema.inputType(INPUT_TYPE.TEXT)), null);
   }
 
   @Override
   public Parameters getImportModuleParameters() throws UnsupportedModuleException {
-    return new Parameters(Arrays.asList(folder, PARAM_IMPORT_AS_SCHEMA), null);
+    return new Parameters(Arrays.asList(folder, importAsSchema), null);
   }
 
   @Override
@@ -163,14 +161,14 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
   @Override
   public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) {
     reporter.importModuleParameters(getModuleName(), "file",
-      Paths.get(parameters.get(folder)).normalize().toAbsolutePath().toString(), PARAM_IMPORT_AS_SCHEMA.longName(),
-      parameters.get(PARAM_IMPORT_AS_SCHEMA));
-    return new SIARDDKImportModule(Paths.get(parameters.get(folder)), parameters.get(PARAM_IMPORT_AS_SCHEMA))
+      Paths.get(parameters.get(folder)).normalize().toAbsolutePath().toString(), importAsSchema.longName(),
+      parameters.get(importAsSchema));
+    return new SIARDDKImportModule(Paths.get(parameters.get(folder)), parameters.get(importAsSchema))
       .getDatabaseImportModule();
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
+  public DatabaseFilterModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
     throws UnsupportedModuleException, LicenseNotAcceptedException {
 
     // Get the values passed to the parameter flags from the command line
@@ -196,7 +194,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     // String pClobType = parameters.get(clobType);
     // String pClobLength = parameters.get(clobLength);
 
-    Map<String, String> exportModuleArgs = new HashMap<String, String>();
+    Map<String, String> exportModuleArgs = new HashMap<>();
     exportModuleArgs.put(folder.longName(), pFolder);
     // exportModuleArgs.put(tableFilter.longName(), pTableFilter.toString());
     exportModuleArgs.put(archiveIndex.longName(), pArchiveIndex);
@@ -209,7 +207,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     // exportModuleArgs.put(clobType.longName(), pClobType);
     // exportModuleArgs.put(clobLength.longName(), pClobLength);
 
-    List<String> exportModuleParameters = new ArrayList<String>();
+    List<String> exportModuleParameters = new ArrayList<>();
     exportModuleParameters.add(folder.longName());
     exportModuleParameters.add(pFolder);
     exportModuleParameters.add(archiveIndex.longName());

@@ -8,9 +8,10 @@
 package com.databasepreservation.modules.siard.in.input;
 
 import java.nio.file.Path;
+import java.util.Map;
 
 import com.databasepreservation.model.modules.DatabaseImportModule;
-import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
+import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARDDKMetadataPathStrategy;
@@ -22,6 +23,7 @@ import com.databasepreservation.modules.siard.in.metadata.SIARDDKMetadataImportS
 import com.databasepreservation.modules.siard.in.path.ResourceFileIndexInputStreamStrategy;
 import com.databasepreservation.modules.siard.in.path.SIARDDKPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
+import com.databasepreservation.utils.MapUtils;
 
 /**
  * @author Thomas Kristensen <tk@bithuset.dk>
@@ -34,7 +36,10 @@ public class SIARDDKImportModule {
   protected final MetadataImportStrategy metadataStrategy;
   protected final ContentImportStrategy contentStrategy;
 
+  private final String paramImportAsSchema;
+
   public SIARDDKImportModule(Path siardPackage, String paramImportAsSchema) {
+    this.paramImportAsSchema = paramImportAsSchema;
     mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.DK, siardPackage.toAbsolutePath().normalize(),
       SIARDArchiveContainer.OutputContainerType.MAIN);
     readStrategy = new FolderReadStrategyMD5Sum(mainContainer);
@@ -55,7 +60,11 @@ public class SIARDDKImportModule {
   }
 
   public DatabaseImportModule getDatabaseImportModule() {
-    return new SIARDImportDefault(moduleName, contentStrategy, mainContainer, readStrategy, metadataStrategy);
+    final Map<String, String> properties = MapUtils.buildMapFromObjects(SIARDDKModuleFactory.PARAMETER_FOLDER,
+      mainContainer.getPath().normalize().toAbsolutePath().toString(), SIARDDKModuleFactory.PARAMETER_AS_SCHEMA,
+      paramImportAsSchema);
+    return new SIARDImportDefault(moduleName, contentStrategy, mainContainer, readStrategy, metadataStrategy,
+      properties);
   }
 
 }

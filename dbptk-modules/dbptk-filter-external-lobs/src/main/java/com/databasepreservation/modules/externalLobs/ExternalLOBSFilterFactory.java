@@ -11,11 +11,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
 import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
+import com.databasepreservation.model.reporters.Reporter;
 
 public class ExternalLOBSFilterFactory implements DatabaseFilterFactory {
 
@@ -25,13 +25,17 @@ public class ExternalLOBSFilterFactory implements DatabaseFilterFactory {
   }
 
   @Override
+  public String getExecutionOrder() {
+    return "before";
+  }
+
+  @Override
   public boolean isEnabled() {
     return true;
   }
 
   @Override
   public Parameters getParameters() {
-
     return new Parameters(Collections.emptyList(), null);
   }
 

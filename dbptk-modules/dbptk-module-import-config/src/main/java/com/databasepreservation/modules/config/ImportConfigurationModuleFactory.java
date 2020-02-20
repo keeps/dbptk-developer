@@ -15,12 +15,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import com.databasepreservation.ModuleConfigurationManager;
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.managers.ModuleConfigurationManager;
+import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.RequiredParameterException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
-import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
@@ -142,7 +142,7 @@ public class ImportConfigurationModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter) {
+  public DatabaseFilterModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter) {
     Path pFile = Paths.get(parameters.get(file));
 
     reporter.exportModuleParameters(this.getModuleName(), PARAMETER_FILE,
@@ -153,6 +153,8 @@ public class ImportConfigurationModuleFactory implements DatabaseModuleFactory {
     defaultModuleConfiguration.setIgnore(ModuleConfigurationUtils.createIgnoreListExcept(true, DatabaseTechnicalFeatures.VIEWS));
 
     ModuleConfigurationManager.getInstance().setup(defaultModuleConfiguration);
+
+    reporter.exportModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString());
 
     return new ImportConfiguration(pFile);
   }

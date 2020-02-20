@@ -12,30 +12,31 @@ import static com.databasepreservation.Constants.UNSPECIFIED_METADATA_VALUE;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.databasepreservation.utils.ModuleConfigurationUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.SiardNotFoundException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
-import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
-import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
+import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameter.CATEGORY_TYPE;
 import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.Parameters;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.in.input.SIARD2ImportModule;
 import com.databasepreservation.modules.siard.out.output.GMLExtractorFilter;
 import com.databasepreservation.modules.siard.out.output.SIARD2ExportModule;
+import com.databasepreservation.utils.ModuleUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -57,6 +58,8 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_META_DATA_ORIGIN_TIMESPAN = "meta-data-origin-timespan";
   public static final String PARAMETER_META_CLIENT_MACHINE = "meta-client-machine";
   public static final String PARAMETER_GML_DIRECTORY = "gml-directory";
+  public static final String PARAMETER_MESSAGE_DIGEST_ALGORITHM = "digest";
+  public static final String PARAMETER_FONT_CASE = "font-case";
 
   // humanized list of supported SIARD 2 versions
   private static final String versionsString = PARAMETER_VERSION_2_0 + " or " + PARAMETER_VERSION_2_1;
@@ -127,6 +130,15 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     .description("directory in which to create .gml files from tables with geometry data").required(false)
     .hasArgument(true).setOptionalArgument(false);
 
+  private static final Parameter messageDigestAlgorithm = new Parameter().shortName("d")
+    .longName(PARAMETER_MESSAGE_DIGEST_ALGORITHM)
+    .description("The message digest algorithm to be used to construct the merkle tree. (Default: SHA-256)")
+    .hasArgument(true).setOptionalArgument(false).required(false).valueIfNotSet("SHA-256");
+
+  private static final Parameter fontCase = new Parameter().shortName("fc").longName(PARAMETER_FONT_CASE).description(
+    "Define the type of font case for the message digest. Supported font case are: upper case and lower case. (Default: lowercase)")
+    .hasArgument(true).required(false).valueIfNotSet("lowercase");
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -164,6 +176,8 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(metaDataOriginTimespan.longName(), metaDataOriginTimespan);
     parameterHashMap.put(metaClientMachine.longName(), metaClientMachine);
     parameterHashMap.put(gmlDirectory.longName(), gmlDirectory);
+    parameterHashMap.put(messageDigestAlgorithm.longName(), messageDigestAlgorithm);
+    parameterHashMap.put(fontCase.longName(), fontCase);
 
     return parameterHashMap;
   }
@@ -194,16 +208,17 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
       metaDataOwner.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
       metaDataOriginTimespan.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
       metaClientMachine.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
-      gmlDirectory.inputType(INPUT_TYPE.DEFAULT)), Collections.emptyList());
+      gmlDirectory.inputType(INPUT_TYPE.DEFAULT), messageDigestAlgorithm, fontCase), Collections.emptyList());
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
+    throws ModuleException {
     Path pFile = Paths.get(parameters.get(file));
 
     if (Files.notExists(pFile)) {
       throw new SiardNotFoundException().withPath(pFile.toAbsolutePath().toString())
-          .withMessage("The path to the siard file appears to be incorrect");
+        .withMessage("The path to the siard file appears to be incorrect");
     }
 
     reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString());
@@ -218,8 +233,8 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
-    throws UnsupportedModuleException {
+  public DatabaseFilterModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
+    throws ModuleException {
     Path pFile = Paths.get(parameters.get(file));
 
     // optional group, defaulting to latest version
@@ -274,6 +289,27 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
       pGMLDirectory = Paths.get(parameters.get(gmlDirectory));
     }
 
+    // digest algorithm
+    String pDigestAlgorithm;
+    if (StringUtils.isNotBlank(parameters.get(messageDigestAlgorithm))) {
+      pDigestAlgorithm = parameters.get(messageDigestAlgorithm);
+      try {
+        MessageDigest.getInstance(pDigestAlgorithm);
+      } catch (NoSuchAlgorithmException e) {
+        throw new ModuleException()
+          .withMessage("The message digest algorithm '" + pDigestAlgorithm + "' does not exits").withCause(e);
+      }
+    } else {
+      pDigestAlgorithm = messageDigestAlgorithm.valueIfNotSet();
+    }
+
+    // font case
+    String pFontCase = fontCase.valueIfNotSet();
+    if (StringUtils.isNotBlank(parameters.get(fontCase))) {
+      pFontCase = parameters.get(fontCase);
+    }
+    ModuleUtils.validateFontCase(pFontCase);
+
     // build descriptive metadata
     HashMap<String, String> descriptiveMetadataParameterValues = new HashMap<>();
     addDescriptiveMetadataParameterValue(parameters, descriptiveMetadataParameterValues,
@@ -289,21 +325,19 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     addDescriptiveMetadataParameterValue(parameters, descriptiveMetadataParameterValues,
       SIARDConstants.DESCRIPTIVE_METADATA_CLIENT_MACHINE, metaClientMachine);
 
-    report(reporter, getModuleName(), PARAMETER_VERSION, String.valueOf(pVersion), PARAMETER_FILE, pFile,
-      PARAMETER_COMPRESS, String.valueOf(pCompress), PARAMETER_PRETTY_XML, String.valueOf(pPrettyPrintXML),
-      PARAMETER_EXTERNAL_LOBS, String.valueOf(pExternalLobs), PARAMETER_EXTERNAL_LOBS_PER_FOLDER,
-      String.valueOf(pExternalLobsPerFolder), PARAMETER_EXTERNAL_LOBS_FOLDER_SIZE,
-      String.valueOf(pExternalLobsFolderSize));
+    report(reporter, getModuleName(), String.valueOf(pVersion), pFile, String.valueOf(pCompress),
+      String.valueOf(pPrettyPrintXML), String.valueOf(pExternalLobs), String.valueOf(pExternalLobsPerFolder),
+      String.valueOf(pExternalLobsFolderSize), pDigestAlgorithm, pFontCase);
 
     SIARD2ExportModule exportModule;
-    DatabaseExportModule handler;
+    DatabaseFilterModule handler;
 
     if (pExternalLobs) {
       exportModule = new SIARD2ExportModule(pVersion, pFile, pCompress, pPrettyPrintXML, pExternalLobsPerFolder,
-        pExternalLobsFolderSize, descriptiveMetadataParameterValues);
+        pExternalLobsFolderSize, descriptiveMetadataParameterValues, pDigestAlgorithm, pFontCase);
     } else {
       exportModule = new SIARD2ExportModule(pVersion, pFile, pCompress, pPrettyPrintXML,
-        descriptiveMetadataParameterValues);
+        descriptiveMetadataParameterValues, pDigestAlgorithm, pFontCase);
     }
 
     handler = exportModule.getDatabaseHandler();
@@ -327,20 +361,21 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     }
   }
 
-  private void report(Reporter reporter, String moduleName, String parameterVersion, String parameterVersionValue,
-    String parameterFile, Path parameterFileValue, String parameterCompress, String parameterCompressValue,
-    String parameterPrettyXml, String parameterExternalLobs, String parameterExternalLobsValue,
-    String parameterPrettyXmlValue, String parameterExternalLobsPerFolder, String parameterExternalLobsPerFolderValue,
-    String parameterExternalLobsFolderSize, String parameterExternalLobsFolderSizeValue) {
+  private void report(Reporter reporter, String moduleName, String parameterVersionValue, Path parameterFileValue,
+    String parameterCompressValue, String parameterPrettyXmlValue, String parameterExternalLobsValue,
+    String parameterExternalLobsPerFolderValue, String parameterExternalLobsFolderSizeValue,
+    String parameterMessageDigestAlgorithmValue, String parameterFontCaseValue) {
 
     String parameterFileValueString = null;
     if (parameterFileValue != null) {
       parameterFileValueString = parameterFileValue.normalize().toAbsolutePath().toString();
     }
 
-    reporter.exportModuleParameters(moduleName, parameterVersion, parameterVersionValue, parameterFile,
-      parameterFileValueString, parameterCompress, parameterCompressValue, parameterPrettyXml, parameterExternalLobs,
-      parameterExternalLobsValue, parameterPrettyXmlValue, parameterExternalLobsPerFolder,
-      parameterExternalLobsPerFolderValue, parameterExternalLobsFolderSize, parameterExternalLobsFolderSizeValue);
+    reporter.exportModuleParameters(moduleName, PARAMETER_VERSION, parameterVersionValue, PARAMETER_FILE,
+      parameterFileValueString, PARAMETER_COMPRESS, parameterCompressValue, PARAMETER_PRETTY_XML,
+      parameterPrettyXmlValue, PARAMETER_EXTERNAL_LOBS, parameterExternalLobsValue, PARAMETER_EXTERNAL_LOBS_PER_FOLDER,
+      parameterExternalLobsPerFolderValue, PARAMETER_EXTERNAL_LOBS_FOLDER_SIZE, parameterExternalLobsFolderSizeValue,
+      PARAMETER_MESSAGE_DIGEST_ALGORITHM, parameterMessageDigestAlgorithmValue, PARAMETER_FONT_CASE,
+      parameterFontCaseValue);
   }
 }

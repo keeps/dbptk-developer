@@ -10,7 +10,7 @@ package com.databasepreservation.model.modules.filters;
 import java.util.Map;
 import java.util.Set;
 
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
@@ -22,7 +22,7 @@ import com.databasepreservation.modules.DefaultExceptionNormalizer;
  * A filter that does not change anything. Its purpose is to provide a sane base
  * class for other filters, so they can change specific parts of the database
  * and leave the remaining parts of the database unchanged.
- * 
+ *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class IdentityFilter implements DatabaseFilterModule {
@@ -38,7 +38,7 @@ public class IdentityFilter implements DatabaseFilterModule {
   }
 
   @Override
-  public DatabaseExportModule migrateDatabaseTo(DatabaseExportModule exportModule) throws ModuleException {
+  public DatabaseFilterModule migrateDatabaseTo(DatabaseFilterModule exportModule) throws ModuleException {
     this.exportModule = exportModule;
     return this;
   }

@@ -19,7 +19,7 @@ import org.apache.commons.cli.OptionGroup;
 public class ParameterGroup {
   private final boolean required;
   private final List<Parameter> parameters;
-  private HashMap<String, OptionGroup> optionGroups = new HashMap<String, OptionGroup>();
+  private HashMap<String, OptionGroup> optionGroups = new HashMap<>();
 
   public ParameterGroup(boolean required, Parameter... parameters) {
     this.required = required;

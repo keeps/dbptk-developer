@@ -17,13 +17,15 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({"name", "externalLOB"})
+@JsonPropertyOrder({"name", "merkle", "externalLOB"})
 public class ColumnConfiguration {
   private String name;
+  @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+  private boolean merkle;
   private ExternalLobsConfiguration externalLob;
 
   public ColumnConfiguration() {
-    externalLob = null;
+    this.merkle = true;
   }
 
   public String getName() {
@@ -43,6 +45,14 @@ public class ColumnConfiguration {
     this.externalLob = externalLob;
   }
 
+  public boolean isMerkle() {
+    return merkle;
+  }
+
+  public void setMerkle(boolean merkle) {
+    this.merkle = merkle;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o)
@@ -50,11 +60,12 @@ public class ColumnConfiguration {
     if (o == null || getClass() != o.getClass())
       return false;
     ColumnConfiguration that = (ColumnConfiguration) o;
-    return Objects.equals(getName(), that.getName()) && Objects.equals(getExternalLob(), that.getExternalLob());
+    return isMerkle() == that.isMerkle() && Objects.equals(getName(), that.getName())
+      && Objects.equals(getExternalLob(), that.getExternalLob());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getName(), getExternalLob());
+    return Objects.hash(getName(), isMerkle(), getExternalLob());
   }
 }

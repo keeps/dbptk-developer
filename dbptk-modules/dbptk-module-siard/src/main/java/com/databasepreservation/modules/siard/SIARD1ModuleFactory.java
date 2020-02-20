@@ -16,9 +16,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import org.apache.commons.lang3.StringUtils;
 
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
@@ -159,7 +160,7 @@ public class SIARD1ModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter) {
+  public DatabaseFilterModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter) {
     Path pFile = Paths.get(parameters.get(file));
 
     // optional

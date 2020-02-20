@@ -13,6 +13,9 @@ package com.databasepreservation;
  */
 
 public class Constants {
+  private Constants() {
+  }
+
   public static final String VERSION_INFO_FILE = "dbptk-version.json";
   public static final String PROPERTY_KEY_HOME = "dbptk.home";
   public static final String PROPERTY_KEY_HIDDEN_HOME = "dbptk.hidden.home";
@@ -22,8 +25,7 @@ public class Constants {
   public static final String LINK_TO_SPECIFICATION = "https://dilcis.eu/content-types/siard";
   public static final String LINK_TO_WIKI_ADDITIONAL_CHECKS = "https://github.com/keeps/db-preservation-toolkit/wiki/Validation";
   public static final String PROPERTY_UNSET = "property_unset";
-  public static final String MAPDB_FOLDER = "mapdb";
-  public static final String MAPDB_FILENAME = "mapdb.bin";
+  public static final String MAP_DB_FOLDER = "mapdb";
 
   /* STYLE */
   public static final String SMALL_SPACE = "      ";
@@ -102,7 +104,6 @@ public class Constants {
   public static final String COMPONENT_END_TAG = "end";
 
   /* SIARD STRUCTURE */
-  public static final String VERSION = "version";
   public static final String DB_NAME = "dbname";
   public static final String ARCHIVER = "archiver";
   public static final String ARCHIVER_CONTACT = "archiverContact";
@@ -113,7 +114,6 @@ public class Constants {
   public static final String ROUTINE = "routine";
   public static final String VIEW = "view";
   public static final String USER = "user";
-  public static final String TABLES = "tables";
   public static final String TABLE = "table";
   public static final String ROWS = "rows";
   public static final String COLUMN = "column";
@@ -157,24 +157,9 @@ public class Constants {
   /* MODULE CONFIGURATION */
   public static final String EMPTY = "";
 
-  /* CONNECTION PARAMETERS */
-  public static final String DB_HOST = "hostname";
-  public static final String DB_PORT = "port-number";
-  public static final String DB_USER = "username";
-  public static final String DB_DATABASE = "database";
-  public static final String DB_DISABLE_ENCRYPTION = "disable-encryption";
-  public static final String DB_ACCEPT_LICENSE = "accept-license";
-  public static final String DB_SERVER_NAME = "server-name";
-  public static final String DB_INSTANCE_NAME = "instance-name";
-  public static final String DB_INTEGRATED_LOGIN = "use-integrated-login";
-  public static final String DB_FILE = "file";
-  public static final String DB_SSH = "ssh";
-  public static final String DB_PASSWORD = "password";
   public static final String DB_SSH_HOST = "ssh-host";
   public static final String DB_SSH_PORT = "ssh-port";
   public static final String DB_SSH_USER = "ssh-user";
   public static final String DB_SSH_PASSWORD = "ssh-password";
-  public static final String DB_DRIVER = "driver";
-  public static final String DB_CONNECTION = "connection";
 
 }

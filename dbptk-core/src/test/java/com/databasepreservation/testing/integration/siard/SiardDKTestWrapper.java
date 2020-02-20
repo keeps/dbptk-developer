@@ -43,7 +43,7 @@ public class SiardDKTestWrapper {
   public void SIARD_Roundtrip(SiardVersion siardVersion, int schemaIndex)
     throws ModuleException, IOException, UnknownTypeException, InvalidDataException {
     SiardDKTest siardDKTest = new SiardDKTest(schemaIndex);
-    siardDKTest.SIARD_Roundtrip(siardVersion);
+    siardDKTest.SIARD_RoundTrip(siardVersion);
   }
 
 }

@@ -8,7 +8,7 @@
 package com.databasepreservation.modules.siard.out.write;
 
 import com.databasepreservation.common.compression.CompressionMethod;
-import com.databasepreservation.common.providers.InputStreamProvider;
+import com.databasepreservation.common.io.providers.InputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import org.apache.commons.compress.archivers.ArchiveEntry;

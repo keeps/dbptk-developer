@@ -39,7 +39,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
-import com.databasepreservation.common.providers.PathInputStreamProvider;
+import com.databasepreservation.common.io.providers.PathInputStreamProvider;
 import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;

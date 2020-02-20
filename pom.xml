@@ -281,6 +281,12 @@
                 <version>2.7.0</version>
             </dependency>
 
+			<dependency>
+				<groupId>com.databasepreservation</groupId>
+				<artifactId>dbptk-filter-merkle-tree</artifactId>
+				<version>2.7.0</version>
+			</dependency>
+
             <dependency>
                 <groupId>com.databasepreservation</groupId>
                 <artifactId>dbptk-module-sybase</artifactId>

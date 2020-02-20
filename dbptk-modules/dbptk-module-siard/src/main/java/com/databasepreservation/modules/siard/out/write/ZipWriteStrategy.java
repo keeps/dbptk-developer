@@ -10,13 +10,10 @@ package com.databasepreservation.modules.siard.out.write;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.concurrent.ExecutionException;
-import java.util.zip.ZipEntry;
 
 import com.databasepreservation.common.compression.CompressionMethod;
-import com.databasepreservation.common.providers.InputStreamProvider;
+import com.databasepreservation.common.io.providers.InputStreamProvider;
 import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ParallelScatterZipCreator;
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;

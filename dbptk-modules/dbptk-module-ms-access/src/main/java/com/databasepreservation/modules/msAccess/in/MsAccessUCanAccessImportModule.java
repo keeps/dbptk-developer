@@ -23,7 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.Constants;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
@@ -36,6 +35,7 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.msAccess.MsAccessHelper;
+import com.databasepreservation.modules.msAccess.MsAccessUCanAccessModuleFactory;
 import com.databasepreservation.utils.MapUtils;
 import com.healthmarketscience.jackcess.Database;
 
@@ -60,13 +60,14 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
   }
 
   public MsAccessUCanAccessImportModule(String moduleName, File msAccessFile, String password) throws ModuleException {
-    this(moduleName, msAccessFile,
-      MapUtils.buildMapFromObjects(Constants.DB_SERVER_NAME, msAccessFile, Constants.DB_PASSWORD, password));
+    this(moduleName, msAccessFile, MapUtils.buildMapFromObjects(MsAccessUCanAccessModuleFactory.PARAMETER_FILE,
+      msAccessFile, MsAccessUCanAccessModuleFactory.PARAMETER_PASSWORD, password));
     this.password = password;
   }
 
   public MsAccessUCanAccessImportModule(String moduleName, String accessFilePath) throws ModuleException {
-    this(moduleName, new File(accessFilePath), MapUtils.buildMapFromObjects(Constants.DB_SERVER_NAME, accessFilePath));
+    this(moduleName, new File(accessFilePath),
+      MapUtils.buildMapFromObjects(MsAccessUCanAccessModuleFactory.PARAMETER_FILE, accessFilePath));
   }
 
   public MsAccessUCanAccessImportModule(String moduleName, String accessFilePath, String password)

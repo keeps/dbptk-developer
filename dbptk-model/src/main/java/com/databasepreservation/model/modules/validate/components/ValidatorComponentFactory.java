@@ -7,8 +7,8 @@
  */
 package com.databasepreservation.model.modules.validate.components;
 
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.Reporter;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>

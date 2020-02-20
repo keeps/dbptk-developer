@@ -57,7 +57,7 @@ public class ObservableFilter extends IdentityFilter {
   }
 
   @Override
-  public DatabaseExportModule migrateDatabaseTo(DatabaseExportModule exportModule) throws ModuleException {
+  public DatabaseFilterModule migrateDatabaseTo(DatabaseFilterModule exportModule) throws ModuleException {
     for (ModuleObserver observer : observers) {
       observer.notifyOpenDatabase();
     }

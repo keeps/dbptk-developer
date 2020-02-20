@@ -9,7 +9,7 @@ package com.databasepreservation.model.modules.filters;
 
 import java.util.Map;
 
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
@@ -22,6 +22,8 @@ import com.databasepreservation.model.parameters.Parameters;
  */
 public interface DatabaseFilterFactory {
   String getFilterName();
+
+  String getExecutionOrder();
 
   boolean isEnabled();
 

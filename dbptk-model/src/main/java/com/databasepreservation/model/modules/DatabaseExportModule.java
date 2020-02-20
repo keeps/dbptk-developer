@@ -13,11 +13,10 @@ package com.databasepreservation.model.modules;
 import java.util.Map;
 import java.util.Set;
 
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
-import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.structure.DatabaseStructure;
 
 /**
@@ -116,13 +115,14 @@ public interface DatabaseExportModule extends ExceptionNormalizer {
    */
   void finishDatabase() throws ModuleException;
 
-  void updateModuleConfiguration(String moduleName, Map<String, String> properties, Map<String, String> remoteProperties);
+  void updateModuleConfiguration(String moduleName, Map<String, String> properties,
+    Map<String, String> remoteProperties);
 
   /**
    * Provide a reporter through which potential conversion problems should be
    * reported. This reporter should be provided only once for the export module
    * instance.
-   * 
+   *
    * @param reporter
    *          The initialized reporter instance.
    */

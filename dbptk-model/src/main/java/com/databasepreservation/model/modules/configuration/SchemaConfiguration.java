@@ -59,6 +59,12 @@ public class SchemaConfiguration {
   }
 
   @JsonIgnore
+  public boolean isMerkleColumn(String tableName, String columnName) {
+    return tableConfigurations.stream().anyMatch(table -> table.getName().equals(tableName)
+      && table.getColumns().stream().anyMatch(column -> column.getName().equals(columnName) && column.isMerkle()));
+  }
+
+  @JsonIgnore
   public boolean isMaterializedView(String viewName) {
     return viewConfigurations.stream().anyMatch(view -> view.getName().equals(viewName) && view.isMaterialized());
   }

@@ -28,8 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
-import com.databasepreservation.utils.ModuleConfigurationUtils;
 import org.joda.time.DateTime;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -38,8 +36,6 @@ import org.slf4j.LoggerFactory;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.databasepreservation.model.NoOpReporter;
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.Row;
@@ -47,8 +43,11 @@ import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
-import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
+import com.databasepreservation.model.modules.SinkModule;
+import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
+import com.databasepreservation.model.reporters.NoOpReporter;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -116,7 +115,7 @@ public class SiardTest {
    * @throws InvalidDataException
    */
   @Test(dataProvider = "siardVersionsProvider")
-  public void SIARD_Roundtrip(SiardVersion version)
+  public void SIARD_RoundTrip(SiardVersion version)
     throws ModuleException, IOException, UnknownTypeException, InvalidDataException {
     Path tmpFile = Files.createTempFile("roundtripSIARD_", ".zip");
     // Path tmpFile = Files.createTempDirectory("roundtripSIARD_");
@@ -128,7 +127,7 @@ public class SiardTest {
     // solution: clone the database structure before passing it to the roundtrip
     // test
 
-    DatabaseStructure other = roundtrip(original, tmpFile, version);
+    DatabaseStructure other = roundTrip(original, tmpFile, version);
 
     // debug
     TextDiff diff = new TextDiff();
@@ -355,14 +354,14 @@ public class SiardTest {
     TableStructure table02 = new TableStructure("schema01.table02", "table02", "the second table", columns_table12,
       Arrays.asList(
         new ForeignKey("schema01.table02.fk01", "fk01", "schema01", "table01",
-          Arrays.asList(new Reference("col122", "col111"), new Reference("col_122", "col_111")), "FULL",
-          "CASCADE", "NO ACTION", "1st description"),
+          Arrays.asList(new Reference("col122", "col111"), new Reference("col_122", "col_111")), "FULL", "CASCADE",
+          "NO ACTION", "1st description"),
         new ForeignKey("schema01.table02.fk02", "fk02", "schema01", "table01",
-          Arrays.asList(new Reference("col122", "col111"), new Reference("col_122", "col_111")), "PARTIAL",
-          "SET NULL", "SET DEFAULT", "1st description"),
+          Arrays.asList(new Reference("col122", "col111"), new Reference("col_122", "col_111")), "PARTIAL", "SET NULL",
+          "SET DEFAULT", "1st description"),
         new ForeignKey("schema01.table02.fk03", "fk03", "schema01", "table01",
-          Arrays.asList(new Reference("col122", "col111"), new Reference("col_122", "col_111")), "SIMPLE",
-          "RESTRICT", "CASCADE", "1st description")),
+          Arrays.asList(new Reference("col122", "col111"), new Reference("col_122", "col_111")), "SIMPLE", "RESTRICT",
+          "CASCADE", "1st description")),
       null, new ArrayList<CandidateKey>(), new ArrayList<CheckConstraint>(), new ArrayList<Trigger>(), 3);
     table02.setIndex(2);
     table02.setCurrentRow(1);
@@ -561,9 +560,9 @@ public class SiardTest {
    * @throws UnknownTypeException
    * @throws InvalidDataException
    */
-  protected DatabaseStructure roundtrip(DatabaseStructure dbStructure, Path tmpFile, SiardVersion version)
+  protected DatabaseStructure roundTrip(DatabaseStructure dbStructure, Path tmpFile, SiardVersion version)
     throws FileNotFoundException, ModuleException, UnknownTypeException, InvalidDataException {
-    DatabaseExportModule exporter = null;
+    DatabaseFilterModule exporter = null;
 
     switch (version) {
       case V1_0:
@@ -571,10 +570,10 @@ public class SiardTest {
         break;
       case V2_0:
       case V2_1:
-        exporter = new SIARD2ExportModule(version, tmpFile, true, false, null).getDatabaseHandler();
+        exporter = new SIARD2ExportModule(version, tmpFile, true, false, null, "md5", "lowercase").getDatabaseHandler();
         break;
       case DK:
-        Map<String, String> exportModuleArgs = new HashMap<String, String>();
+        Map<String, String> exportModuleArgs = new HashMap<>();
         exportModuleArgs.put(SIARDDKModuleFactory.PARAMETER_FOLDER, tmpFile.toString());
         exportModuleArgs.put(SIARDDKModuleFactory.PARAMETER_LOBS_PER_FOLDER, "10000");
         exportModuleArgs.put(SIARDDKModuleFactory.PARAMETER_LOBS_FOLDER_SIZE, "1000");
@@ -583,43 +582,47 @@ public class SiardTest {
     }
 
     Reporter mockReporter = new NoOpReporter();
+
+    DatabaseFilterModule sink = new SinkModule();
+    sink.setOnceReporter(mockReporter);
+    sink = exporter.migrateDatabaseTo(sink);
+
     exporter.setOnceReporter(mockReporter);
 
     // behaviour
     LOGGER.debug("initializing database");
-    exporter.initDatabase();
-    exporter.setIgnoredSchemas(new HashSet<String>());
+    sink.initDatabase();
+    sink.setIgnoredSchemas(new HashSet<>());
     LOGGER.info("STARTED: Getting the database structure.");
-    exporter.handleStructure(dbStructure);
+    sink.handleStructure(dbStructure);
     LOGGER.info("FINISHED: Getting the database structure.");
-    for (SchemaStructure thisschema : dbStructure.getSchemas()) {
-      exporter.handleDataOpenSchema(thisschema.getName());
-      for (TableStructure thistable : thisschema.getTables()) {
-        LOGGER.info("STARTED: Getting data of table: " + thistable.getId());
-        thistable.setSchema(thisschema);
-        exporter.handleDataOpenTable(thistable.getId());
+    for (SchemaStructure thisSchema : dbStructure.getSchemas()) {
+      sink.handleDataOpenSchema(thisSchema.getName());
+      for (TableStructure thisTable : thisSchema.getTables()) {
+        LOGGER.info("STARTED: Getting data of table: " + thisTable.getId());
+        thisTable.setSchema(thisSchema);
+        sink.handleDataOpenTable(thisTable.getId());
         int nRows = 0;
-        Iterator<Row> rowsIterator = tableRows.get(thistable.getId()).iterator();
-        while (rowsIterator.hasNext()) {
-          exporter.handleDataRow(rowsIterator.next());
+        for (Row row : tableRows.get(thisTable.getId())) {
+          sink.handleDataRow(row);
           nRows++;
         }
         LOGGER.info("Total of " + nRows + " row(s) processed");
-        exporter.handleDataCloseTable(thistable.getId());
-        LOGGER.info("FINISHED: Getting data of table: " + thistable.getId());
+        sink.handleDataCloseTable(thisTable.getId());
+        LOGGER.info("FINISHED: Getting data of table: " + thisTable.getId());
       }
-      exporter.handleDataCloseSchema(thisschema.getName());
+      sink.handleDataCloseSchema(thisSchema.getName());
     }
     LOGGER.debug("finishing database");
-    exporter.finishDatabase();
+    sink.finishDatabase();
 
     LOGGER.debug("done");
     LOGGER.debug("getting the data back from SIARD");
 
     LOGGER.debug("SIARD file: " + tmpFile.toUri().toString());
-    DatabaseExportModule mocked = Mockito.mock(DatabaseExportModule.class);
+    DatabaseFilterModule mocked = Mockito.mock(DatabaseFilterModule.class);
 
-//    Mockito.when(mocked.getModuleConfiguration()).thenReturn(ModuleConfigurationUtils.getDefaultModuleConfiguration());
+    // Mockito.when(mocked.getModuleConfiguration()).thenReturn(ModuleConfigurationUtils.getDefaultModuleConfiguration());
 
     DatabaseImportModule importer = null;
     switch (version) {

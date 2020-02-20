@@ -7,7 +7,7 @@
  */
 package com.databasepreservation.modules.siard.out.content;
 
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.SchemaStructure;
@@ -25,7 +25,7 @@ public interface ContentExportStrategy {
 
   void closeTable(TableStructure table) throws ModuleException;
 
-  void tableRow(Row row) throws ModuleException;
+  Row tableRow(Row row) throws ModuleException;
 
   void setOnceReporter(Reporter reporter);
 }

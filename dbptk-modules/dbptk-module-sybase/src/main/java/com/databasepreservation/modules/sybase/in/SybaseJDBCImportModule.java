@@ -24,7 +24,6 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.Constants;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
@@ -35,6 +34,7 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.CloseableUtils;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.sybase.SybaseHelper;
+import com.databasepreservation.modules.sybase.SybaseModuleFactory;
 import com.databasepreservation.utils.MapUtils;
 import com.databasepreservation.utils.RemoteConnectionUtils;
 
@@ -66,11 +66,12 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
    *
    */
   public SybaseJDBCImportModule(String moduleName, String hostname, int port, String database, String username,
-    String password) throws ModuleException {
+    String password) {
     super(DRIVER_CLASS_NAME, URL_CONNECTION_PREFIX + hostname + ":" + port + "/" + database, new SybaseHelper(),
       new SybaseDataTypeImporter(), moduleName,
-      MapUtils.buildMapFromObjects(Constants.DB_HOST, hostname, Constants.DB_PORT, port, Constants.DB_USER, username,
-        Constants.DB_PASSWORD, password, Constants.DB_DATABASE, database));
+      MapUtils.buildMapFromObjects(SybaseModuleFactory.PARAMETER_HOSTNAME, hostname,
+        SybaseModuleFactory.PARAMETER_PORT_NUMBER, port, SybaseModuleFactory.PARAMETER_USERNAME, username,
+        SybaseModuleFactory.PARAMETER_PASSWORD, password, SybaseModuleFactory.PARAMETER_DATABASE, database));
     this.username = username;
     this.password = password;
   }
@@ -79,10 +80,12 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
     String password, String sshHost, String sshUser, String sshPassword, String sshPortNumber) throws ModuleException {
     super(DRIVER_CLASS_NAME, URL_CONNECTION_PREFIX + hostname + ":" + port + "/" + database, new SybaseHelper(),
       new SybaseDataTypeImporter(), moduleName,
-      MapUtils.buildMapFromObjects(Constants.DB_HOST, hostname, Constants.DB_PORT, port, Constants.DB_USER, username,
-        Constants.DB_PASSWORD, password, Constants.DB_DATABASE, database),
-      MapUtils.buildMapFromObjects(Constants.DB_SSH_HOST, sshHost, Constants.DB_SSH_PORT, sshPortNumber,
-        Constants.DB_SSH_USER, sshUser, Constants.DB_SSH_PASSWORD, sshPassword));
+      MapUtils.buildMapFromObjects(SybaseModuleFactory.PARAMETER_HOSTNAME, hostname,
+        SybaseModuleFactory.PARAMETER_PORT_NUMBER, port, SybaseModuleFactory.PARAMETER_USERNAME, username,
+        SybaseModuleFactory.PARAMETER_PASSWORD, password, SybaseModuleFactory.PARAMETER_DATABASE, database),
+      MapUtils.buildMapFromObjects(SybaseModuleFactory.PARAMETER_SSH, true, SybaseModuleFactory.PARAMETER_SSH_HOST,
+        sshHost, SybaseModuleFactory.PARAMETER_SSH_PORT, sshPortNumber, SybaseModuleFactory.PARAMETER_SSH_USER, sshUser,
+        SybaseModuleFactory.PARAMETER_SSH_PASSWORD, sshPassword));
     this.username = username;
     this.password = password;
   }

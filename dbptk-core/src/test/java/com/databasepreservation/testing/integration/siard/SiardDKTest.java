@@ -127,8 +127,8 @@ public class SiardDKTest extends SiardTest {
   }
 
   @Override
-  protected DatabaseStructure roundtrip(DatabaseStructure orgDbStructure, Path tmpFile,
-    SIARDConstants.SiardVersion version)
+  protected DatabaseStructure roundTrip(DatabaseStructure orgDbStructure, Path tmpFile,
+                                        SIARDConstants.SiardVersion version)
     throws FileNotFoundException, ModuleException, UnknownTypeException, InvalidDataException {
 
     Path archiveFolderPath = FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"),
@@ -142,7 +142,7 @@ public class SiardDKTest extends SiardTest {
       }
     }
 
-    DatabaseStructure databaseStructure = super.roundtrip(orgDbStructure, archiveFolderPath, version);
+    DatabaseStructure databaseStructure = super.roundTrip(orgDbStructure, archiveFolderPath, version);
 
     databaseStructure.setArchivalDate(null); // In siard-dk Archival Date is
                                              // located in archiveIndex.xml

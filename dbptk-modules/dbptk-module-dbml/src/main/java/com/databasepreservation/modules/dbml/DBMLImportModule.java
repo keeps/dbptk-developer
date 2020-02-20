@@ -6,7 +6,7 @@
  * https://github.com/keeps/db-preservation-toolkit
  */
 /**
- * 
+ *
  */
 package com.databasepreservation.modules.dbml;
 
@@ -26,6 +26,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +35,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -44,6 +44,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.ForeignKey;
@@ -96,13 +97,13 @@ public class DBMLImportModule implements DatabaseImportModule {
 
   /**
    * Interface to build the binary inputstream lookup
-   * 
+   *
    * @author Luis Faria
    */
   public interface DBMLBinaryLookup {
     /**
      * Lookup a binary inputstream
-     * 
+     *
      * @param id
      *          the binary id
      * @return the binary inputstream
@@ -117,7 +118,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 
   /**
    * DBML import module constructor using the DBML filename
-   * 
+   *
    * @param dbmlFilePath
    *          path to the DBML file
    * @throws ModuleException
@@ -127,7 +128,7 @@ public class DBMLImportModule implements DatabaseImportModule {
     this.dbmlFilePath = dbmlFilePath;
   }
 
-  public DatabaseExportModule migrateDatabaseTo(DatabaseExportModule databaseExportModule) throws ModuleException {
+  public DatabaseFilterModule migrateDatabaseTo(DatabaseFilterModule databaseExportModule) throws ModuleException {
     this.binLookup = new DBMLBinaryLookup() {
       @Override
       public InputStream getBinary(final String id) throws ModuleException {
@@ -185,7 +186,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 
   /**
    * The SAX handler for DBML files
-   * 
+   *
    * @author Luis Faria
    */
   public class DBMLSAXHandler extends DefaultHandler {
@@ -234,7 +235,7 @@ public class DBMLImportModule implements DatabaseImportModule {
 
     /**
      * The DBML Sax handler constructor
-     * 
+     *
      * @param binLookup
      *          the interface to lookup binary inputstreams referenced by the DBML
      * @param databaseExportModule
@@ -276,7 +277,7 @@ public class DBMLImportModule implements DatabaseImportModule {
     /**
      * Get all the errors that occured while parsing the DBML file and sending to
      * the database handler
-     * 
+     *
      * @return A map of errors, where the key is the errors message and the value is
      *         the exception or null if there was no exception
      */

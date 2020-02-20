@@ -157,6 +157,11 @@
             <artifactId>dbptk-filter-external-lobs</artifactId>
         </dependency>
 
+		<dependency>
+			<groupId>com.databasepreservation</groupId>
+			<artifactId>dbptk-filter-merkle-tree</artifactId>
+		</dependency>
+
         <!-- common -->
         <dependency>
             <groupId>commons-codec</groupId>

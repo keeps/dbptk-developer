@@ -11,16 +11,13 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.common.providers.TemporaryPathInputStreamProvider;
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.common.io.providers.InputStreamProviderImpl;
 import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
@@ -29,6 +26,7 @@ import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
@@ -56,7 +54,6 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
   SchemaStructure currentSchema;
   TableStructure currentTable;
   int currentRowIndex;
-  private List<LargeObject> LOBsToExport;
   boolean warnedAboutUDT = false;
 
   private Reporter reporter;
@@ -67,7 +64,6 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     this.writeStrategy = writeStrategy;
     this.baseContainer = baseContainer;
 
-    this.LOBsToExport = new ArrayList<LargeObject>();
     currentRowIndex = -1;
     this.prettyXMLOutput = prettyXMLOutput;
   }
@@ -89,7 +85,6 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     currentWriter = new XMLBufferedWriter(currentStream, prettyXMLOutput);
     currentTable = table;
     currentRowIndex = 0;
-    LOBsToExport = new ArrayList<LargeObject>();
 
     try {
       writeXmlOpenTable();
@@ -108,12 +103,12 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
       throw new ModuleException().withMessage("Error handling close table " + table.getId()).withCause(e);
     }
 
-    // write lobs if they have not been written yet
-    if (!writeStrategy.isSimultaneousWritingSupported()) {
-      for (LargeObject largeObject : LOBsToExport) {
-        writeLOB(largeObject);
-      }
-    }
+    // // write lobs if they have not been written yet
+    // if (!writeStrategy.isSimultaneousWritingSupported()) {
+    // for (LargeObject largeObject : LOBsToExport) {
+    // writeLOB(largeObject);
+    // }
+    // }
 
     // export table XSD
     try {
@@ -128,7 +123,7 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
   }
 
   @Override
-  public void tableRow(Row row) throws ModuleException {
+  public Row tableRow(Row row) throws ModuleException {
     try {
       currentWriter.openTag("row", 1);
 
@@ -159,6 +154,8 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
     } catch (IOException e) {
       throw new ModuleException().withMessage("Could not write row" + row.toString()).withCause(e);
     }
+
+    return row;
   }
 
   @Override
@@ -232,7 +229,9 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
       String path = contentPathStrategy.getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
         currentRowIndex + 1);
 
-      lob = new LargeObject(binCell, path);
+      lob = new LargeObject(new InputStreamProviderImpl(binCell.createInputStream()), path);
+
+      writeLOB(lob);
 
       currentWriter.beginOpenTag("c" + columnIndex, 2).space().append("file=\"").append(path).append('"').space()
         .append("length=\"").append(String.valueOf(binCell.getSize())).append("\"");
@@ -256,17 +255,12 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
       }
 
       ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
-      lob = new LargeObject(new TemporaryPathInputStreamProvider(inputStream), path);
+      lob = new LargeObject(new InputStreamProviderImpl(inputStream), path);
+
+      writeLOB(lob);
 
       currentWriter.beginOpenTag("c" + columnIndex, 2).space().append("file=\"").append(path).append('"').space()
         .append("length=\"").append(String.valueOf(txtCell.getBytesSize())).append("\"");
-    }
-
-    // decide to whether write the LOB right away or later
-    if (writeStrategy.isSimultaneousWritingSupported()) {
-      writeLOB(lob);
-    } else {
-      LOBsToExport.add(lob);
     }
 
     currentWriter.endShorthandTag();
@@ -298,20 +292,24 @@ public class SIARD1ContentExportStrategy implements ContentExportStrategy {
   }
 
   private void writeLOB(LargeObject lob) throws ModuleException {
-    OutputStream out = writeStrategy.createOutputStream(baseContainer, lob.getOutputPath());
-    InputStream in = lob.getInputStreamProvider().createInputStream();
+    LOGGER.debug("Writing lob to {}", lob.getOutputPath());
+    writeStrategy.writeTo(lob.getInputStreamProvider(), lob.getOutputPath());
 
-    // copy lob to output
-    try {
-      IOUtils.copy(in, out);
-    } catch (IOException e) {
-      throw new ModuleException().withMessage("Could not write lob").withCause(e);
-    } finally {
-      // close resources
-      IOUtils.closeQuietly(in);
-      IOUtils.closeQuietly(out);
-      lob.getInputStreamProvider().cleanResources();
-    }
+    // OutputStream out = writeStrategy.createOutputStream(baseContainer,
+    // lob.getOutputPath());
+    // InputStream in = lob.getInputStreamProvider().createInputStream();
+    //
+    // // copy lob to output
+    // try {
+    // IOUtils.copy(in, out);
+    // } catch (IOException e) {
+    // throw new ModuleException().withMessage("Could not write lob").withCause(e);
+    // } finally {
+    // // close resources
+    // IOUtils.closeQuietly(in);
+    // IOUtils.closeQuietly(out);
+    // lob.getInputStreamProvider().cleanResources();
+    // }
   }
 
   private void writeXsd() throws IOException, ModuleException {

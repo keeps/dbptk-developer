@@ -7,11 +7,11 @@
  */
 package com.databasepreservation.model.modules.validate;
 
-import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.common.observer.ValidationObserver;
+import com.databasepreservation.model.reporters.ValidationReporterStatus;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -80,7 +80,10 @@ public class ProgressValidationLoggerObserver implements ValidationObserver {
   }
 
   private String transformValidationStatus(boolean value) {
-    if (value) return "valid";
-    else return "not valid";
+    if (value) {
+      return "valid";
+    } else {
+      return "not valid";
+    }
   }
 }

@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.util.Map;
 
 import com.databasepreservation.model.modules.DatabaseExportModule;
+import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARDDKMetadataPathStrategy;
@@ -75,7 +76,7 @@ public class SIARDDKExportModule {
     contentExportStrategy = new SIARDDKContentExportStrategy(this);
   }
 
-  public DatabaseExportModule getDatabaseExportModule() {
+  public DatabaseFilterModule getDatabaseExportModule() {
     return new SIARDDKDatabaseExportModule(this);
   }
 

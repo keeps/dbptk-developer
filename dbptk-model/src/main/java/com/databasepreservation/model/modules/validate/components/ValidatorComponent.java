@@ -13,8 +13,8 @@ import java.util.List;
 import com.databasepreservation.common.observer.ValidationObserver;
 import com.databasepreservation.common.validation.ValidatorPathStrategy;
 import com.databasepreservation.common.validation.ZipFileManagerStrategy;
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.reporters.ValidationReporter;
 
 /**
@@ -36,9 +36,9 @@ public interface ValidatorComponent {
 
   void setValidatorPathStrategy(ValidatorPathStrategy validatorPathStrategy);
 
-  void setAllowedUTD( List<String> allowedUDTs);
+  void setAllowedUTD(List<String> allowedUDTs);
 
-  void setup(boolean skipAdditionalChekcs) throws ModuleException;
+  void setup(boolean skipAdditionalChecks) throws ModuleException;
 
   void setObserver(ValidationObserver observer);
 }

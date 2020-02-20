@@ -24,8 +24,7 @@ import org.locationtech.jts.io.gml2.GMLWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.Constants;
-import com.databasepreservation.common.providers.InputStreamProviderImpl;
+import com.databasepreservation.common.io.providers.InputStreamProviderImpl;
 import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
@@ -33,7 +32,6 @@ import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.RoutineStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
@@ -76,8 +74,8 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
    * @param password
    *          the password of the user to use in the connection
    */
-  public Oracle12cJDBCImportModule(String moduleName, String serverName,
-    int port, String instance, String username, String password) {
+  public Oracle12cJDBCImportModule(String moduleName, String serverName, int port, String instance, String username,
+    String password) {
 
     super("oracle.jdbc.driver.OracleDriver",
       "jdbc:oracle:thin:" + username + "/" + password + "@//" + serverName + ":" + port + "/" + instance,
@@ -90,9 +88,8 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
     LOGGER.debug("jdbc:oracle:thin:<username>/<password>@//{}:{}/{}", serverName, port, instance);
   }
 
-  public Oracle12cJDBCImportModule(String moduleName, String serverName,
-    int port, String instance, String username, String password, String sshHost, String sshUser, String sshPassword,
-    String sshPortNumber) throws ModuleException {
+  public Oracle12cJDBCImportModule(String moduleName, String serverName, int port, String instance, String username,
+    String password, String sshHost, String sshUser, String sshPassword, String sshPortNumber) throws ModuleException {
 
     super("oracle.jdbc.driver.OracleDriver",
       "jdbc:oracle:thin:" + username + "/" + password + "@//" + serverName + ":" + port + "/" + instance,
@@ -101,8 +98,10 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
         Oracle12cModuleFactory.PARAMETER_PORT_NUMBER, port, Oracle12cModuleFactory.PARAMETER_INSTANCE, instance,
         Oracle12cModuleFactory.PARAMETER_USERNAME, username, Oracle12cModuleFactory.PARAMETER_PASSWORD, password,
         Oracle12cModuleFactory.PARAMETER_ACCEPT_LICENSE, true),
-      MapUtils.buildMapFromObjects(Constants.DB_SSH_HOST, sshHost, Constants.DB_SSH_PORT, sshPortNumber,
-        Constants.DB_SSH_USER, sshUser, Constants.DB_SSH_PASSWORD, sshPassword));
+      MapUtils.buildMapFromObjects(Oracle12cModuleFactory.PARAMETER_SSH, true,
+        Oracle12cModuleFactory.PARAMETER_SSH_HOST, sshHost, Oracle12cModuleFactory.PARAMETER_SSH_PORT, sshPortNumber,
+        Oracle12cModuleFactory.PARAMETER_SSH_USER, sshUser, Oracle12cModuleFactory.PARAMETER_SSH_PASSWORD,
+        sshPassword));
 
     LOGGER.debug("jdbc:oracle:thin:<username>/<password>@//{}:{}/{}", serverName, port, instance);
   }

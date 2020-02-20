@@ -7,7 +7,7 @@
  */
 package com.databasepreservation.model.modules.filters;
 
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
@@ -30,17 +30,17 @@ import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
  * <pre>
  * mySQLImportModule.getDatabase( // gets data from mysql, sends it to
  *                                // loggingFilter
- * 
+ *
  *   progressLoggingFilter.getDatabase( // gets data from mysql, outputs some
  *                                      // logging information without changing the
  *                                      // data (this is the filter action), sends
  *                                      // data to anonymizationFilter
- * 
+ *
  *     anonymizationFilter.getDatabase( // gets data from the loggingFilter,
  *                                      // anonymizes the database structure and
  *                                      // data, and sends it to the
  *                                      // siardExportModule
- * 
+ *
  *       siardExportModule // siard module receives the anonymized data from the
  *                         // anonymization filter and saves it to siard. Since
  *                         // filters act as import modules (which send data to
@@ -51,11 +51,11 @@ import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
  *
  * In the original code, which did not support filters, the conversion would go
  * like
- * 
+ *
  * <pre>
  * mySQLImportModule -&gt; siardExportModule
  * </pre>
- * 
+ *
  * So to have the same functionality as described above, one of the modules (or
  * both) would have to do the progress logging, and one of them would need to be
  * responsible for anonymizing the database.
@@ -78,7 +78,7 @@ public interface DatabaseFilterModule extends DatabaseImportModule, DatabaseExpo
   /**
    * The reporter is set specifically for each module/filter, so this call does
    * not need to be chained to the next DatabaseFilterModule
-   * 
+   *
    * @param reporter
    *          The reporter that should be used by this DatabaseFilterModule
    */
@@ -95,5 +95,5 @@ public interface DatabaseFilterModule extends DatabaseImportModule, DatabaseExpo
    *           generic module exception
    */
   @Override
-  DatabaseExportModule migrateDatabaseTo(DatabaseExportModule databaseExportModule) throws ModuleException;
+  DatabaseFilterModule migrateDatabaseTo(DatabaseFilterModule databaseExportModule) throws ModuleException;
 }

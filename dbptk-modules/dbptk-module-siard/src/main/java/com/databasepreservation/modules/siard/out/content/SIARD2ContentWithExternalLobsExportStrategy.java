@@ -16,15 +16,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.security.DigestOutputStream;
 
-import javax.xml.bind.DatatypeConverter;
-
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.common.providers.InputStreamProviderImpl;
+import com.databasepreservation.common.io.providers.InputStreamProviderImpl;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
@@ -36,7 +34,7 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentWithExternalLobsPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
-import com.databasepreservation.modules.siard.out.write.ZipWithExternalLobsWriteStrategy;
+import com.databasepreservation.utils.MessageDigestUtils;
 
 /**
  * SIARD 2 external LOBs export strategy, that exports LOBs according to the
@@ -46,7 +44,7 @@ import com.databasepreservation.modules.siard.out.write.ZipWithExternalLobsWrite
  * >locally</a> or <a href=
  * "https://github.com/keeps/db-preservation-toolkit/raw/master/doc/SIARD2.0_Recommendation_for_external_LOB_folder_structure.pdf"
  * >on github</a>.
- * 
+ *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentExportStrategy {
@@ -63,12 +61,12 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
   private final int maximumLobsPerFolder;
   private int currentLobsInFolder = 0;
 
-  private String lobDigestChecksum = null;
+  private byte[] lobDigestChecksum = null;
 
   public SIARD2ContentWithExternalLobsExportStrategy(SIARD2ContentPathExportStrategy contentPathStrategy,
     WriteStrategy writeStrategy, SIARDArchiveContainer baseContainer, boolean prettyXMLOutput,
-    int externalLobsPerFolder, long maximumLobsFolderSize) {
-    super(contentPathStrategy, writeStrategy, baseContainer, prettyXMLOutput);
+    int externalLobsPerFolder, long maximumLobsFolderSize, String messageDigestAlgorithm, String fontCase) {
+    super(contentPathStrategy, writeStrategy, baseContainer, prettyXMLOutput, messageDigestAlgorithm, fontCase);
     this.maximumLobsFolderSize = maximumLobsFolderSize * MB_TO_BYTE_RATIO;
     this.maximumLobsPerFolder = externalLobsPerFolder;
 
@@ -183,9 +181,11 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
       String.valueOf(lobSizeParameter));
 
     if (lobDigestChecksum != null) {
+      cell.setMessageDigest(lobDigestChecksum);
+      cell.setDigestAlgorithm(messageDigestAlgorithm);
 
-      currentWriter.appendAttribute("digestType", ZipWithExternalLobsWriteStrategy.DIGEST_ALGORITHM);
-      currentWriter.appendAttribute("digest", lobDigestChecksum);
+      currentWriter.appendAttribute("digestType", messageDigestAlgorithm.toUpperCase());
+      currentWriter.appendAttribute("digest", MessageDigestUtils.getHexFromMessageDigest(lobDigestChecksum, lowerCase));
       lobDigestChecksum = null; // reset it to the default value
     }
 
@@ -199,28 +199,16 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
   protected void writeLOB(LargeObject lob) throws ModuleException {
     String lobRelativePath = lob.getOutputPath();
     // copy lob to output and save digest checksum if possible
-    OutputStream out = null;
-    InputStream in = null;
-    try {
-      out = writeStrategy.createOutputStream(currentExternalContainer, lobRelativePath);
-      in = lob.getInputStreamProvider().createInputStream();
-
+    try (OutputStream out = writeStrategy.createOutputStream(currentExternalContainer, lobRelativePath);
+      InputStream in = lob.getInputStreamProvider().createInputStream()) {
       LOGGER.debug("Writing lob to {}", lobRelativePath);
-
       IOUtils.copy(in, out);
+      if (out instanceof DigestOutputStream) {
+        DigestOutputStream digestOutputStream = (DigestOutputStream) out;
+        lobDigestChecksum = digestOutputStream.getMessageDigest().digest();
+      }
     } catch (IOException e) {
       throw new ModuleException().withMessage("Could not write lob").withCause(e);
-    } finally {
-      // close resources
-      IOUtils.closeQuietly(in);
-      IOUtils.closeQuietly(out);
-      lob.getInputStreamProvider().cleanResources();
-    }
-
-    if (out instanceof DigestOutputStream) {
-      DigestOutputStream digestOutputStream = (DigestOutputStream) out;
-      lobDigestChecksum = DatatypeConverter.printHexBinary(digestOutputStream.getMessageDigest().digest())
-        .toUpperCase();
     }
   }
 

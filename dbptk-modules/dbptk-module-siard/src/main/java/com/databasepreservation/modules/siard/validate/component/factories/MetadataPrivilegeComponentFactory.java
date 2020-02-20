@@ -8,7 +8,7 @@
 package com.databasepreservation.modules.siard.validate.component.factories;
 
 import com.databasepreservation.Constants;
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.modules.validate.components.ValidatorComponent;
 import com.databasepreservation.model.modules.validate.components.ValidatorComponentFactory;
 import com.databasepreservation.model.exception.ModuleException;

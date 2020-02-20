@@ -15,14 +15,14 @@ import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
 import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
 import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
+import com.databasepreservation.model.modules.SinkModule;
 import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.reporters.Reporter;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -66,14 +66,14 @@ public class DatabaseMigration {
       exportModuleFactoryStringParameters);
 
     DatabaseImportModule importModule = importModuleFactory.buildImportModule(importParameters, reporter);
-    DatabaseExportModule exportModule = exportModuleFactory.buildExportModule(exportParameters, reporter);
+    DatabaseFilterModule exportModule = exportModuleFactory.buildExportModule(exportParameters, reporter);
 
     List<DatabaseFilterModule> userDefinedFilterModules = new ArrayList<>();
-    for(int i=0; i<filterFactories.size(); i++) {
+    for (int i = 0; i < filterFactories.size(); i++) {
       Map<Parameter, String> filterParameters = new HashMap<>();
       if (!filterFactoriesStringParameters.isEmpty()) {
-        filterParameters = buildParametersFromStringParameters(filterFactories.get(i), filterFactoriesStringParameters.get(i));
-        userDefinedFilterModules.add(filterFactories.get(i).buildFilterModule(filterParameters, reporter));
+        filterParameters = buildParametersFromStringParameters(filterFactories.get(i),
+          filterFactoriesStringParameters.get(i));
       }
       userDefinedFilterModules.add(filterFactories.get(i).buildFilterModule(filterParameters, reporter));
     }
@@ -92,18 +92,26 @@ public class DatabaseMigration {
     Collections.reverse(filterModules);
     Collections.reverse(userDefinedFilterModules);
 
-    DatabaseExportModule moduleChain = exportModule;
+    DatabaseFilterModule target = new SinkModule();
+
     for (DatabaseFilterModule userDefinedFilterModule : userDefinedFilterModules) {
-      moduleChain = userDefinedFilterModule.migrateDatabaseTo(moduleChain);
-    }
-    for (DatabaseFilterModule filterModule : filterModules) {
-      moduleChain = filterModule.migrateDatabaseTo(moduleChain);
+      target = userDefinedFilterModule.migrateDatabaseTo(target);
     }
 
-    // passing the chain to the import module starts the conversion.
-    // because the import module starts obtaining the database info and sending
-    // it through the module chain
-    importModule.migrateDatabaseTo(moduleChain);
+    target = exportModule.migrateDatabaseTo(target);
+
+    // target = userDefinedFilterModules.get(0).migrateDatabaseTo(target);
+
+
+    // for (DatabaseFilterModule userDefinedFilterModule : userDefinedFilterModules)
+    // {
+    // moduleChain = userDefinedFilterModule.migrateDatabaseTo(moduleChain);
+    // }
+    for (DatabaseFilterModule filterModule : filterModules) {
+      target = filterModule.migrateDatabaseTo(target);
+    }
+
+    importModule.migrateDatabaseTo(target);
   }
 
   /**
@@ -187,7 +195,8 @@ public class DatabaseMigration {
   }
 
   /**
-   * Sets the filter factories that will be used to produce the user specified filters
+   * Sets the filter factories that will be used to produce the user specified
+   * filters
    */
   public DatabaseMigration filterFactories(List<DatabaseFilterFactory> filterFactories) {
     this.filterFactories = filterFactories;
@@ -201,9 +210,9 @@ public class DatabaseMigration {
    */
   public DatabaseMigration filterParameter(String parameterLongName, String parameterValue, int filterIndex) {
     if (filterFactoriesStringParameters.isEmpty()) {
-      filterFactoriesStringParameters.add(new HashMap<String, String>());
+      filterFactoriesStringParameters.add(new HashMap<>());
     } else if (filterFactoriesStringParameters.size() - 1 < filterIndex) {
-      filterFactoriesStringParameters.add(filterIndex, new HashMap<String, String>());
+      filterFactoriesStringParameters.add(filterIndex, new HashMap<>());
     }
     filterFactoriesStringParameters.get(filterIndex).put(parameterLongName, parameterValue);
     return this;
@@ -214,7 +223,7 @@ public class DatabaseMigration {
    * migration
    */
   public DatabaseMigration filterParameters(List<Map<Parameter, String>> parameters) {
-    for(int i=0;i<parameters.size();i++) {
+    for (int i = 0; i < parameters.size(); i++) {
       for (Map.Entry<Parameter, String> entry : parameters.get(i).entrySet()) {
         filterParameter(entry.getKey().longName(), entry.getValue(), i);
       }

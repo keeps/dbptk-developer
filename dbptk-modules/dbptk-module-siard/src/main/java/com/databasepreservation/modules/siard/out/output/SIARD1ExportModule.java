@@ -12,6 +12,7 @@ import java.util.Map;
 
 import com.databasepreservation.common.compression.CompressionMethod;
 import com.databasepreservation.model.modules.DatabaseExportModule;
+import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD1MetadataPathStrategy;
@@ -22,6 +23,7 @@ import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrateg
 import com.databasepreservation.modules.siard.out.metadata.SIARD1MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.path.SIARD1ContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.write.ParallelZipWriteStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.modules.siard.out.write.ZipWriteStrategy;
 
@@ -29,8 +31,6 @@ import com.databasepreservation.modules.siard.out.write.ZipWriteStrategy;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARD1ExportModule {
-  private final ContentPathExportStrategy contentPathStrategy;
-  private final MetadataPathStrategy metadataPathStrategy;
 
   private final SIARDArchiveContainer mainContainer;
   private final WriteStrategy writeStrategy;
@@ -44,12 +44,12 @@ public class SIARD1ExportModule {
 
   public SIARD1ExportModule(Path siardPackage, boolean compressZip, boolean prettyXML, Map<String, String> descriptiveMetadata) {
     this.descriptiveMetadata = descriptiveMetadata;
-    contentPathStrategy = new SIARD1ContentPathExportStrategy();
-    metadataPathStrategy = new SIARD1MetadataPathStrategy();
+    ContentPathExportStrategy contentPathStrategy = new SIARD1ContentPathExportStrategy();
+    MetadataPathStrategy metadataPathStrategy = new SIARD1MetadataPathStrategy();
     if (compressZip) {
-      writeStrategy = new ZipWriteStrategy(CompressionMethod.DEFLATE);
+      writeStrategy = new ParallelZipWriteStrategy(CompressionMethod.DEFLATE);
     } else {
-      writeStrategy = new ZipWriteStrategy(CompressionMethod.STORE);
+      writeStrategy = new ParallelZipWriteStrategy(CompressionMethod.STORE);
     }
     mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.V1_0, siardPackage,
       SIARDArchiveContainer.OutputContainerType.MAIN);
@@ -58,7 +58,7 @@ public class SIARD1ExportModule {
     contentStrategy = new SIARD1ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer, prettyXML);
   }
 
-  public DatabaseExportModule getDatabaseHandler() {
+  public DatabaseFilterModule getDatabaseHandler() {
     return new SIARDExportDefault(contentStrategy, mainContainer, writeStrategy, metadataStrategy, descriptiveMetadata, validate);
   }
 

@@ -13,19 +13,17 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.databasepreservation.RemoteConnectionManager;
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.managers.RemoteConnectionManager;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
-import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
-import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
+import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.Parameters;
-import com.databasepreservation.modules.in.OpenEdgeJDBCImportModule;
-import com.databasepreservation.utils.ModuleConfigurationUtils;
+import com.databasepreservation.model.reporters.Reporter;
+import com.databasepreservation.modules.openedge.in.OpenEdgeJDBCImportModule;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -142,7 +140,8 @@ public class OpenEdgeModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
+    throws ModuleException {
     String pUsername = parameters.get(username);
     String pPassword = parameters.get(password);
     String pHostname = parameters.get(hostname);
@@ -184,7 +183,7 @@ public class OpenEdgeModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
+  public DatabaseFilterModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
     throws UnsupportedModuleException {
     throw DatabaseModuleFactory.ExceptionBuilder.UnsupportedModuleExceptionForImportModule();
   }

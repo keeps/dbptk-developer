@@ -15,11 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.Constants;
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.modules.DatabaseExportModule;
-import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
+import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
@@ -34,7 +33,9 @@ import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SIARDExportDefault implements DatabaseExportModule {
+public class SIARDExportDefault implements DatabaseFilterModule {
+  private DatabaseFilterModule exportModule;
+
   private final SIARDArchiveContainer mainContainer;
   private final WriteStrategy writeStrategy;
   private final MetadataExportStrategy metadataStrategy;
@@ -46,7 +47,6 @@ public class SIARDExportDefault implements DatabaseExportModule {
   private Map<String, String> descriptiveMetadata;
   private Reporter reporter;
 
-  private ModuleConfiguration moduleConfiguration = null;
   private boolean validate = false;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARDExportDefault.class);
@@ -75,11 +75,14 @@ public class SIARDExportDefault implements DatabaseExportModule {
   public void initDatabase() throws ModuleException {
     writeStrategy.setup(mainContainer);
     LOGGER.info("Exporting SIARD version {}", mainContainer.getVersion().getDisplayName());
+
+    this.exportModule.initDatabase();
   }
 
   @Override
   public void setIgnoredSchemas(Set<String> ignoredSchemas) {
     // nothing to do
+    this.exportModule.setIgnoredSchemas(ignoredSchemas);
   }
 
   @Override
@@ -105,6 +108,8 @@ public class SIARDExportDefault implements DatabaseExportModule {
         .setDataOriginTimespan(descriptiveMetadata.get(SIARDConstants.DESCRIPTIVE_METADATA_DATA_ORIGIN_TIMESPAN));
       dbStructure.setClientMachine(descriptiveMetadata.get(SIARDConstants.DESCRIPTIVE_METADATA_CLIENT_MACHINE));
     }
+
+    this.exportModule.handleStructure(structure);
   }
 
   @Override
@@ -116,6 +121,8 @@ public class SIARDExportDefault implements DatabaseExportModule {
     }
 
     contentStrategy.openSchema(currentSchema);
+
+    this.exportModule.handleDataOpenSchema(schemaName);
   }
 
   @Override
@@ -127,6 +134,8 @@ public class SIARDExportDefault implements DatabaseExportModule {
     }
 
     contentStrategy.openTable(currentTable);
+
+    this.exportModule.handleDataOpenTable(tableId);
   }
 
   @Override
@@ -138,6 +147,8 @@ public class SIARDExportDefault implements DatabaseExportModule {
     }
 
     contentStrategy.closeTable(currentTable);
+
+    this.exportModule.handleDataCloseTable(tableId);
   }
 
   @Override
@@ -149,11 +160,14 @@ public class SIARDExportDefault implements DatabaseExportModule {
     }
 
     contentStrategy.closeSchema(currentSchema);
+
+    this.exportModule.handleDataCloseSchema(schemaName);
   }
 
   @Override
   public void handleDataRow(Row row) throws ModuleException {
-    contentStrategy.tableRow(row);
+    row = contentStrategy.tableRow(row);
+    this.exportModule.handleDataRow(row);
   }
 
   @Override
@@ -167,12 +181,14 @@ public class SIARDExportDefault implements DatabaseExportModule {
       validator.setReporter(reporter);
       validator.validateSIARD();
     }
+
+    this.exportModule.finishDatabase();
   }
 
   @Override
   public void updateModuleConfiguration(String moduleName, Map<String, String> properties,
     Map<String, String> remoteProperties) {
-    // do nothing
+    this.exportModule.updateModuleConfiguration(moduleName, properties, remoteProperties);
   }
 
   /**
@@ -188,6 +204,21 @@ public class SIARDExportDefault implements DatabaseExportModule {
     this.reporter = reporter;
     contentStrategy.setOnceReporter(reporter);
     metadataStrategy.setOnceReporter(reporter);
+  }
+
+  /**
+   * Import the database model.
+   *
+   * @param databaseExportModule
+   *          The database model handler to be called when importing the database.
+   * @return Return itself, to allow chaining multiple getDatabase methods
+   * @throws ModuleException
+   *           generic module exception
+   */
+  @Override
+  public DatabaseFilterModule migrateDatabaseTo(DatabaseFilterModule databaseExportModule) throws ModuleException {
+    this.exportModule = databaseExportModule;
+    return this;
   }
 
   @Override

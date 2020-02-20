@@ -8,13 +8,14 @@
 package com.databasepreservation.modules.siard.in.input;
 
 import java.nio.file.Path;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseImportModule;
-import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
+import com.databasepreservation.modules.siard.SIARD2ModuleFactory;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD2MetadataPathStrategy;
@@ -28,6 +29,7 @@ import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStr
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.modules.siard.in.read.ZipAndFolderReadStrategy;
 import com.databasepreservation.modules.siard.in.read.ZipReadStrategy;
+import com.databasepreservation.utils.MapUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -57,8 +59,7 @@ public class SIARD2ImportModule {
    *          saved to folders. When reading those LOBs it's important to know if
    *          they are inside a simple folder or a zip container.
    */
-  public SIARD2ImportModule(Path siardPackagePath,
-    boolean auxiliaryContainersInZipFormat) {
+  public SIARD2ImportModule(Path siardPackagePath, boolean auxiliaryContainersInZipFormat) {
     Path siardPackageNormalizedPath = siardPackagePath.toAbsolutePath().normalize();
     mainContainer = new SIARDArchiveContainer(siardPackageNormalizedPath,
       SIARDArchiveContainer.OutputContainerType.MAIN);
@@ -94,7 +95,9 @@ public class SIARD2ImportModule {
   }
 
   public DatabaseImportModule getDatabaseImportModule() {
-    return new SIARDImportDefault(moduleName, contentStrategy, mainContainer, readStrategy,
-      metadataStrategy);
+    final Map<String, String> properties = MapUtils.buildMapFromObjects(SIARD2ModuleFactory.PARAMETER_FILE,
+      mainContainer.getPath().normalize().toAbsolutePath().toString());
+    return new SIARDImportDefault(moduleName, contentStrategy, mainContainer, readStrategy, metadataStrategy,
+      properties);
   }
 }

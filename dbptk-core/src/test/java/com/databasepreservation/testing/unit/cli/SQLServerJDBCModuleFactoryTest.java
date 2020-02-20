@@ -15,9 +15,9 @@ import org.testng.annotations.Test;
 
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
-import com.databasepreservation.modules.sqlServer.SQLServerJDBCModuleFactory;
-import com.databasepreservation.modules.sqlServer.in.SQLServerJDBCImportModule;
-import com.databasepreservation.modules.sqlServer.out.SQLServerJDBCExportModule;
+import com.databasepreservation.modules.sqlserver.SQLServerJDBCModuleFactory;
+import com.databasepreservation.modules.sqlserver.in.SQLServerJDBCImportModule;
+import com.databasepreservation.modules.sqlserver.out.SQLServerJDBCExportModule;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>

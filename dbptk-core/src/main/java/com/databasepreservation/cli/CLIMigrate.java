@@ -7,23 +7,6 @@
  */
 package com.databasepreservation.cli;
 
-import com.databasepreservation.model.exception.LicenseNotAcceptedException;
-import com.databasepreservation.model.exception.UnsupportedModuleException;
-import com.databasepreservation.model.modules.DatabaseModuleFactory;
-import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
-import com.databasepreservation.model.parameters.Parameter;
-import com.databasepreservation.model.parameters.ParameterGroup;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.MissingOptionException;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionGroup;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,10 +18,30 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionGroup;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+
+import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.UnsupportedModuleException;
+import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
+import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.parameters.ParameterGroup;
+
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 public class CLIMigrate extends CLIHandler {
+  private static final String IMPORT_PREFIX = "import";
+  private static final String EXPORT_PREFIX = "export";
+  private static final String FILTER_PREFIX = "filter";
 
   private final ArrayList<DatabaseModuleFactory> allModuleFactories;
   private final ArrayList<DatabaseFilterFactory> allFilterFactories;
@@ -67,17 +70,17 @@ public class CLIMigrate extends CLIHandler {
    */
   public CLIMigrate(List<String> commandLineArguments, Collection<DatabaseModuleFactory> databaseModuleFactories) {
     super(commandLineArguments);
-    allModuleFactories        = new ArrayList<>(databaseModuleFactories);
-    allFilterFactories        = new ArrayList<>();
-    filterNames               = new ArrayList<>();
+    allModuleFactories = new ArrayList<>(databaseModuleFactories);
+    allFilterFactories = new ArrayList<>();
+    filterNames = new ArrayList<>();
   }
 
   public CLIMigrate(List<String> commandLineArguments, Collection<DatabaseModuleFactory> databaseModuleFactories,
-             Collection<DatabaseFilterFactory> databaseFilterFactories) {
+    Collection<DatabaseFilterFactory> databaseFilterFactories) {
     super(commandLineArguments);
-    allModuleFactories        = new ArrayList<>(databaseModuleFactories);
-    allFilterFactories        = new ArrayList<>(databaseFilterFactories);
-    filterNames               = new ArrayList<>();
+    allModuleFactories = new ArrayList<>(databaseModuleFactories);
+    allFilterFactories = new ArrayList<>(databaseFilterFactories);
+    filterNames = new ArrayList<>();
   }
 
   /**
@@ -180,9 +183,13 @@ public class CLIMigrate extends CLIHandler {
    * @return The import module name. null if the command line parameters have not
    *         been parsed yet
    */
-  public String getImportModuleName() { return importModuleName; }
+  public String getImportModuleName() {
+    return importModuleName;
+  }
 
-  public List<String> getFilterNames() { return filterNames; }
+  public List<String> getFilterNames() {
+    return filterNames;
+  }
 
   public List<DatabaseFilterFactory> getFilterFactories() {
     return filterFactories;
@@ -226,8 +233,8 @@ public class CLIMigrate extends CLIHandler {
         filterNames.add(factory.getFilterName());
       }
 
-      DatabaseModuleFactoriesArguments databaseModuleFactoriesArguments = getModuleArguments(
-          databaseModuleFactories, args);
+      DatabaseModuleFactoriesArguments databaseModuleFactoriesArguments = getModuleArguments(databaseModuleFactories,
+        args);
 
       if (forceDisableEncryption) {
         // inject disable encryption for import module
@@ -274,8 +281,8 @@ public class CLIMigrate extends CLIHandler {
    */
   private DatabaseModuleFactories getModuleFactories(List<String> args) throws ParseException {
     // check if args contains exactly one import and one export module
-    String importModuleName = null;
-    String exportModuleName = null;
+    String pImportModuleName = null;
+    String pExportModuleName = null;
     List<String> filterModuleNames = new ArrayList<>();
 
     int importModulesFound = 0;
@@ -286,22 +293,22 @@ public class CLIMigrate extends CLIHandler {
       while (argsIterator.hasNext()) {
         String arg = argsIterator.next();
         if ("-i".equals(arg) || "--import".equals(arg)) {
-          importModuleName = argsIterator.next();
+          pImportModuleName = argsIterator.next();
           importModulesFound++;
         } else if ("-e".equals(arg) || "--export".equals(arg)) {
-          exportModuleName = argsIterator.next();
+          pExportModuleName = argsIterator.next();
           exportModulesFound++;
         } else if (StringUtils.startsWith(arg, "--import=")) {
           // 9 is the size of the string "--import="
-          importModuleName = arg.substring(9);
+          pImportModuleName = arg.substring(9);
           importModulesFound++;
         } else if (StringUtils.startsWith(arg, "--export=")) {
           // 9 is the size of the string "--export="
-          exportModuleName = arg.substring(9);
+          pExportModuleName = arg.substring(9);
           exportModulesFound++;
         } else if ("-f".equals(arg) || "--filter".equals(arg) || "--filters".equals(arg)) {
-          String filterNames = argsIterator.next();
-          filterModuleNames = Arrays.asList(filterNames.split(","));
+          String pFilterNames = argsIterator.next();
+          filterModuleNames = Arrays.asList(pFilterNames.split(","));
         } else if (StringUtils.startsWith(arg, "--filter=")) {
           filterModuleNames = Arrays.asList(arg.substring(9).split(","));
         } else if (StringUtils.startsWith(arg, "--filters=")) {
@@ -318,16 +325,16 @@ public class CLIMigrate extends CLIHandler {
     }
 
     // check if both module names correspond to real module names
-    DatabaseModuleFactory importModuleFactory = null;
-    DatabaseModuleFactory exportModuleFactory = null;
+    DatabaseModuleFactory pImportModuleFactory = null;
+    DatabaseModuleFactory pExportModuleFactory = null;
     List<DatabaseFilterFactory> filterModuleFactories = new ArrayList<>();
     for (DatabaseModuleFactory factory : allModuleFactories) {
       String moduleName = factory.getModuleName();
-      if (moduleName.equalsIgnoreCase(importModuleName) && factory.producesImportModules()) {
-        importModuleFactory = factory;
+      if (moduleName.equalsIgnoreCase(pImportModuleName) && factory.producesImportModules()) {
+        pImportModuleFactory = factory;
       }
-      if (moduleName.equalsIgnoreCase(exportModuleName) && factory.producesExportModules()) {
-        exportModuleFactory = factory;
+      if (moduleName.equalsIgnoreCase(pExportModuleName) && factory.producesExportModules()) {
+        pExportModuleFactory = factory;
       }
     }
 
@@ -347,12 +354,12 @@ public class CLIMigrate extends CLIHandler {
       }
     }
 
-    if (importModuleFactory == null) {
+    if (pImportModuleFactory == null) {
       throw new ParseException("Invalid import module.");
-    } else if (exportModuleFactory == null) {
+    } else if (pExportModuleFactory == null) {
       throw new ParseException("Invalid export module.");
     }
-    return new DatabaseModuleFactories(importModuleFactory, exportModuleFactory, filterModuleFactories);
+    return new DatabaseModuleFactories(pImportModuleFactory, pExportModuleFactory, filterModuleFactories);
   }
 
   /**
@@ -369,74 +376,72 @@ public class CLIMigrate extends CLIHandler {
    *           If the arguments could not be parsed or are invalid
    */
   private DatabaseModuleFactoriesArguments getModuleArguments(DatabaseModuleFactories factories, List<String> args)
-      throws ParseException, UnsupportedModuleException {
-    DatabaseModuleFactory importModuleFactory = factories.getImportModuleFactory();
-    DatabaseModuleFactory exportModuleFactory = factories.getExportModuleFactory();
-    List<DatabaseFilterFactory> filterFactories = factories.getFilterFactories();
+    throws ParseException, UnsupportedModuleException {
+    DatabaseModuleFactory pImportModuleFactory = factories.getImportModuleFactory();
+    DatabaseModuleFactory pExportModuleFactory = factories.getExportModuleFactory();
+    List<DatabaseFilterFactory> pFilterFactories = factories.getFilterFactories();
 
     // get appropriate command line options
     CommandLineParser commandLineParser = new DefaultParser();
     CommandLine commandLine;
     Options options = new Options();
 
-    HashMap<String, Parameter> mapOptionToParameter = new HashMap<String, Parameter>();
+    Map<String, Parameter> mapOptionToParameter = new HashMap<>();
 
-    for (Parameter parameter : importModuleFactory.getImportModuleParameters().getParameters()) {
-      Option option = parameter.toOption("i", "import");
+    for (Parameter parameter : pImportModuleFactory.getImportModuleParameters().getParameters()) {
+      Option option = parameter.toOption("i", IMPORT_PREFIX);
       options.addOption(option);
       mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
     }
 
-    for (ParameterGroup parameterGroup : importModuleFactory.getImportModuleParameters().getGroups()) {
-      OptionGroup optionGroup = parameterGroup.toOptionGroup("i", "import");
+    for (ParameterGroup parameterGroup : pImportModuleFactory.getImportModuleParameters().getGroups()) {
+      OptionGroup optionGroup = parameterGroup.toOptionGroup("i", IMPORT_PREFIX);
       options.addOptionGroup(optionGroup);
 
       for (Parameter parameter : parameterGroup.getParameters()) {
-        mapOptionToParameter.put(getUniqueOptionIdentifier(parameter.toOption("i", "import")), parameter);
+        mapOptionToParameter.put(getUniqueOptionIdentifier(parameter.toOption("i", IMPORT_PREFIX)), parameter);
       }
     }
 
-    for (Parameter parameter : exportModuleFactory.getExportModuleParameters().getParameters()) {
-      Option option = parameter.toOption("e", "export");
+    for (Parameter parameter : pExportModuleFactory.getExportModuleParameters().getParameters()) {
+      Option option = parameter.toOption("e", EXPORT_PREFIX);
       options.addOption(option);
       mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
     }
 
-    for (ParameterGroup parameterGroup : exportModuleFactory.getExportModuleParameters().getGroups()) {
-      OptionGroup optionGroup = parameterGroup.toOptionGroup("e", "export");
+    for (ParameterGroup parameterGroup : pExportModuleFactory.getExportModuleParameters().getGroups()) {
+      OptionGroup optionGroup = parameterGroup.toOptionGroup("e", EXPORT_PREFIX);
       options.addOptionGroup(optionGroup);
 
       for (Parameter parameter : parameterGroup.getParameters()) {
-        mapOptionToParameter.put(getUniqueOptionIdentifier(parameter.toOption("e", "export")), parameter);
+        mapOptionToParameter.put(getUniqueOptionIdentifier(parameter.toOption("e", EXPORT_PREFIX)), parameter);
       }
     }
 
-    for (int i = 0; i < filterFactories.size(); i++) {
-      for (Parameter parameter : filterFactories.get(i).getParameters().getParameters()) {
-        Option option = parameter.toOption("f" + (i+1), "filter" + (i+1));
+    for (int i = 0; i < pFilterFactories.size(); i++) {
+      for (Parameter parameter : pFilterFactories.get(i).getParameters().getParameters()) {
+        Option option = parameter.toOption("f" + (i + 1), FILTER_PREFIX + (i + 1));
         options.addOption(option);
         mapOptionToParameter.put(getUniqueOptionIdentifier(option), parameter);
       }
     }
 
-    Option importOption = Option.builder("i").longOpt("import").hasArg().optionalArg(false).build();
-    Option exportOption = Option.builder("e").longOpt("export").hasArg().optionalArg(false).build();
-    Option filtersOption = Option.builder("f").longOpt("filter").hasArg().optionalArg(false).required(false).build();
+    Option importOption = Option.builder("i").longOpt(IMPORT_PREFIX).hasArg().optionalArg(false).build();
+    Option exportOption = Option.builder("e").longOpt(EXPORT_PREFIX).hasArg().optionalArg(false).build();
+    Option filtersOption = Option.builder("f").longOpt(FILTER_PREFIX).hasArg().optionalArg(false).required(false)
+      .build();
     options.addOption(importOption);
     options.addOption(exportOption);
     options.addOption(filtersOption);
 
-    // new HelpFormatter().printHelp(80, "dbptk", "\nModule Options:", options,
-    // null, true);
-
     commandLine = commandLineParse(commandLineParser, options, args);
 
     // create arguments to pass to factory
-    HashMap<Parameter, String> importModuleArguments = new HashMap<>();
-    HashMap<Parameter, String> exportModuleArguments = new HashMap<>();
+    Map<Parameter, String> importModuleArguments = new HashMap<>();
+    Map<Parameter, String> exportModuleArguments = new HashMap<>();
     List<Map<Parameter, String>> filterModuleArguments = new ArrayList<>();
-    for (int i = 0; i < filterFactories.size(); i++) {
-      filterModuleArguments.add(new HashMap<Parameter, String>());
+    for (int i = 0; i < pFilterFactories.size(); i++) {
+      filterModuleArguments.add(new HashMap<>());
     }
 
     for (Option option : commandLine.getOptions()) {
@@ -456,16 +461,18 @@ public class CLIMigrate extends CLIHandler {
           }
         } else if (isFilterModuleOption(option)) {
           // find out which filter the option refers to
-          int filterIndex = new Scanner(option.getOpt()).useDelimiter("\\D+").nextInt();
+          try (Scanner scanner = new Scanner(option.getOpt())) {
+            int filterIndex = scanner.useDelimiter("\\D+").nextInt();
 
-          if (filterIndex > filterModuleArguments.size()) {
-            throw new ParseException(
+            if (filterIndex > filterModuleArguments.size()) {
+              throw new ParseException(
                 "No filter matching index given '" + filterIndex + "' in parameter '" + option.getOpt() + "'.");
-          } else {
-            if (p.hasArgument()) {
-              filterModuleArguments.get(filterIndex - 1).put(p, option.getValue(p.valueIfNotSet()));
             } else {
-              filterModuleArguments.get(filterIndex - 1).put(p, p.valueIfSet());
+              if (p.hasArgument()) {
+                filterModuleArguments.get(filterIndex - 1).put(p, option.getValue(p.valueIfNotSet()));
+              } else {
+                filterModuleArguments.get(filterIndex - 1).put(p, p.valueIfSet());
+              }
             }
           }
         } else {
@@ -527,6 +534,7 @@ public class CLIMigrate extends CLIHandler {
     // left: import, right: export
     private final ImmutablePair<DatabaseModuleFactory, DatabaseModuleFactory> factories;
     private final List<DatabaseFilterFactory> filterFactories;
+
     /**
      * Create a new pair with an import module factory and an export module factory
      *
@@ -536,13 +544,13 @@ public class CLIMigrate extends CLIHandler {
      *          the export module factory
      */
     public DatabaseModuleFactories(DatabaseModuleFactory importModuleFactory,
-                                   DatabaseModuleFactory exportModuleFactory) {
+      DatabaseModuleFactory exportModuleFactory) {
       factories = new ImmutablePair<>(importModuleFactory, exportModuleFactory);
       filterFactories = new ArrayList<>();
     }
 
     public DatabaseModuleFactories(DatabaseModuleFactory importModuleFactory, DatabaseModuleFactory exportModuleFactory,
-                                   List<DatabaseFilterFactory> filterFactories) {
+      List<DatabaseFilterFactory> filterFactories) {
       factories = new ImmutablePair<>(importModuleFactory, exportModuleFactory);
       this.filterFactories = filterFactories;
     }
@@ -573,6 +581,7 @@ public class CLIMigrate extends CLIHandler {
     // left: import, right: export
     private final ImmutablePair<Map<Parameter, String>, Map<Parameter, String>> factories;
     private final List<Map<Parameter, String>> filterFactories;
+
     /**
      * Create a new pair with the import module arguments and the export module
      * arguments
@@ -585,13 +594,13 @@ public class CLIMigrate extends CLIHandler {
      *          the command line>
      */
     public DatabaseModuleFactoriesArguments(Map<Parameter, String> importModuleArguments,
-                                            Map<Parameter, String> exportModuleArguments) {
+      Map<Parameter, String> exportModuleArguments) {
       factories = new ImmutablePair<>(importModuleArguments, exportModuleArguments);
       filterFactories = new ArrayList<>();
     }
 
     public DatabaseModuleFactoriesArguments(Map<Parameter, String> importModuleArguments,
-                                            Map<Parameter, String> exportModuleArguments, List<Map<Parameter, String>> filterModulesArguments) {
+      Map<Parameter, String> exportModuleArguments, List<Map<Parameter, String>> filterModulesArguments) {
       factories = new ImmutablePair<>(importModuleArguments, exportModuleArguments);
       filterFactories = filterModulesArguments;
     }

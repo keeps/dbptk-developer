@@ -12,7 +12,7 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import com.databasepreservation.common.providers.InputStreamProvider;
+import com.databasepreservation.common.io.providers.InputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 
@@ -21,24 +21,23 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
  * write contents of the SIARD archive, and a FolderWriteStrategy to write LOBs
  * to external LOB folders. The streams to write LOBs to folder also calculate
  * the md5sum of the file.
- * 
+ *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class ZipWithExternalLobsWriteStrategy implements WriteStrategy {
-  public static final String DIGEST_ALGORITHM = "MD5";
   private final MessageDigest digest;
 
   private final ZipWriteStrategy zipWriter;
   private final FolderWriteStrategy folderWriter;
 
-  public ZipWithExternalLobsWriteStrategy(ZipWriteStrategy zipWriteStrategy, FolderWriteStrategy folderWriteStrategy) {
+  public ZipWithExternalLobsWriteStrategy(ZipWriteStrategy zipWriteStrategy, FolderWriteStrategy folderWriteStrategy, String messageDigestAlgorithm) {
     zipWriter = zipWriteStrategy;
     folderWriter = folderWriteStrategy;
 
     try {
-      digest = MessageDigest.getInstance(DIGEST_ALGORITHM);
+      digest = MessageDigest.getInstance(messageDigestAlgorithm);
     } catch (NoSuchAlgorithmException e) {
-      throw new IllegalArgumentException("Unknown digest algorithm: " + DIGEST_ALGORITHM, e);
+      throw new IllegalArgumentException("Unknown digest algorithm: " + messageDigestAlgorithm, e);
     }
   }
 

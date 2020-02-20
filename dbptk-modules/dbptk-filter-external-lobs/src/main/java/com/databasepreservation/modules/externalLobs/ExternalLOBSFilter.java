@@ -17,17 +17,16 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.ModuleConfigurationManager;
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.managers.ModuleConfigurationManager;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.configuration.ExternalLobsConfiguration;
 import com.databasepreservation.model.modules.configuration.enums.ExternalLobsAccessMethod;
 import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
@@ -40,7 +39,7 @@ import com.databasepreservation.modules.externalLobs.CellHandlers.ExternalLOBSCe
 public class ExternalLOBSFilter implements DatabaseFilterModule {
   private static final Logger LOGGER = LoggerFactory.getLogger(ExternalLOBSFilter.class);
 
-  private DatabaseExportModule exportModule;
+  private DatabaseFilterModule exportModule;
   private Reporter reporter;
   private Map<String, ExternalLobsConfiguration> externalLobsConfigurations = new HashMap<>();
   private DatabaseStructure databaseStructure;
@@ -52,7 +51,7 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
   }
 
   @Override
-  public DatabaseExportModule migrateDatabaseTo(DatabaseExportModule exportModule) throws ModuleException {
+  public DatabaseFilterModule migrateDatabaseTo(DatabaseFilterModule exportModule) throws ModuleException {
     this.exportModule = exportModule;
     return this;
   }

@@ -99,6 +99,7 @@ public class ModuleConfigurationUtils {
   private static ColumnConfiguration getColumnConfiguration(ColumnStructure column) {
     ColumnConfiguration columnConfiguration = new ColumnConfiguration();
     columnConfiguration.setName(column.getName());
+    columnConfiguration.setMerkle(false);
 
     return columnConfiguration;
   }
@@ -150,7 +151,6 @@ public class ModuleConfigurationUtils {
     importModuleConfiguration.setModuleName(moduleName);
 
     if (remoteProperties != null && !remoteProperties.isEmpty()) {
-      properties.put(Constants.DB_SSH, "true");
       properties.putAll(remoteProperties);
     }
 

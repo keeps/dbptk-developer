@@ -9,13 +9,13 @@ package com.databasepreservation.model.modules;
 
 import java.util.Map;
 
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
-import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
+import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
+import com.databasepreservation.model.reporters.Reporter;
 
 /**
  * Defines a factory used to create Import and Export Modules. This factory
@@ -43,7 +43,7 @@ public interface DatabaseModuleFactory {
 
   DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException;
 
-  DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
+  DatabaseFilterModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
     throws UnsupportedModuleException, LicenseNotAcceptedException, ModuleException;
 
   class ExceptionBuilder {

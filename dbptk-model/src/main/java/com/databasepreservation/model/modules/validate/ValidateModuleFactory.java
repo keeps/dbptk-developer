@@ -7,17 +7,16 @@
  */
 package com.databasepreservation.model.modules.validate;
 
-import com.databasepreservation.model.Reporter;
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.modules.edits.EditModule;
-import com.databasepreservation.model.parameters.Parameter;
-import com.databasepreservation.model.parameters.Parameters;
-
 import java.util.Map;
 
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.parameters.Parameters;
+import com.databasepreservation.model.reporters.Reporter;
+
 /**
- *  Defines a factory used to create Validate Modules. This factory
- *  should also be able to inform the parameters needed to create a new validate module.
+ * Defines a factory used to create Validate Modules. This factory should also
+ * be able to inform the parameters needed to create a new validate module.
  *
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
@@ -54,7 +53,8 @@ public interface ValidateModuleFactory {
   Map<String, Parameter> getAllParameters();
 
   /**
-   * Builds the specific <code>ValidateModule</code> according the input parameters
+   * Builds the specific <code>ValidateModule</code> according the input
+   * parameters
    *
    * @param parameters
    *          A Map with the input parameters
@@ -62,7 +62,7 @@ public interface ValidateModuleFactory {
    *          The reporter that should be used by the <code>EditModule</code>
    * @return Returns a specific {@link ValidateModule}
    * @throws ModuleException
-   *          Generic module exception
+   *           Generic module exception
    */
   ValidateModule buildModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException;
 }

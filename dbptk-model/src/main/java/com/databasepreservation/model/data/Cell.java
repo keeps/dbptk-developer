@@ -17,6 +17,8 @@ package com.databasepreservation.model.data;
  */
 public abstract class Cell {
   private String id;
+  private byte[] messageDigest;
+  private String digestAlgorithm;
 
   /**
    * Abstract Cell constructor
@@ -41,6 +43,22 @@ public abstract class Cell {
    */
   public void setId(String id) {
     this.id = id;
+  }
+
+  public byte[] getMessageDigest() {
+    return messageDigest;
+  }
+
+  public void setMessageDigest(byte[] messageDigest) {
+    this.messageDigest = messageDigest;
+  }
+
+  public String getDigestAlgorithm() {
+    return digestAlgorithm;
+  }
+
+  public void setDigestAlgorithm(String digestAlgorithm) {
+    this.digestAlgorithm = digestAlgorithm;
   }
 
   @Override

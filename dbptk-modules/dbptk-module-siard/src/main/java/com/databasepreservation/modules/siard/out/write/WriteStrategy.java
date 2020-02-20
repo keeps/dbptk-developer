@@ -9,7 +9,7 @@ package com.databasepreservation.modules.siard.out.write;
 
 import java.io.OutputStream;
 
-import com.databasepreservation.common.providers.InputStreamProvider;
+import com.databasepreservation.common.io.providers.InputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 
@@ -26,7 +26,7 @@ public interface WriteStrategy {
    *          The container where the data will be written
    * @param path
    *          The path (relative to the container) to the file where the data from
-   *          the stream should be written to
+   *          the stream should be written to, String digestAlgorithm, String fontCase
    * @return an OutputStream that is able to write to the specified location in a
    *         way specific to the WriteStrategy, this stream should be closed after
    *         use by calling the close() method

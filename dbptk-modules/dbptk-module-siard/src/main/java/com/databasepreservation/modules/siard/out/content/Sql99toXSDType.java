@@ -15,7 +15,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.type.ComposedTypeArray;
@@ -90,7 +90,7 @@ public class Sql99toXSDType {
 
   /**
    * Gets the XML type that corresponds to the provided Type
-   * 
+   *
    * @param type
    *          the type
    * @return the XML type string

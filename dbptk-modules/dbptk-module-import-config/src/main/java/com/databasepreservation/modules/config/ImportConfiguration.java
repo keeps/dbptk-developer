@@ -12,9 +12,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
@@ -34,10 +34,10 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
  * Export module that produces a list of tables contained in the database. This
  * list can then be used by other modules (e.g. the SIARD2 export module) to
  * specify the tables that should be processed.
- * 
+ *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class ImportConfiguration implements DatabaseExportModule {
+public class ImportConfiguration implements DatabaseFilterModule {
   private DatabaseStructure dbStructure;
   private SchemaStructure currentSchema;
   private ModuleConfiguration moduleConfiguration;
@@ -204,6 +204,18 @@ public class ImportConfiguration implements DatabaseExportModule {
   @Override
   public void setOnceReporter(Reporter reporter) {
     // do nothing
+  }
+
+  /**
+   * Import the database model.
+   *
+   * @param databaseExportModule The database model handler to be called when importing the database.
+   * @return Return itself, to allow chaining multiple getDatabase methods
+   * @throws ModuleException generic module exception
+   */
+  @Override
+  public DatabaseFilterModule migrateDatabaseTo(DatabaseFilterModule databaseExportModule) throws ModuleException {
+    return this;
   }
 
   @Override

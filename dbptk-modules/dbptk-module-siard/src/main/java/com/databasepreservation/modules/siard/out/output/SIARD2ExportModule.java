@@ -11,7 +11,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 
 import com.databasepreservation.common.compression.CompressionMethod;
-import com.databasepreservation.model.modules.DatabaseExportModule;
+import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD2MetadataPathStrategy;
@@ -46,7 +46,7 @@ public class SIARD2ExportModule {
   private HashMap<String, String> descriptiveMetadata;
 
   public SIARD2ExportModule(SIARDConstants.SiardVersion version, Path siardPackage, boolean compressZip,
-    boolean prettyXML, HashMap<String, String> descriptiveMetadata) {
+    boolean prettyXML, HashMap<String, String> descriptiveMetadata, String digestAlgorithm, String fontCase) {
     this.descriptiveMetadata = descriptiveMetadata;
     contentPathStrategy = new SIARD2ContentPathExportStrategy();
     metadataPathStrategy = new SIARD2MetadataPathStrategy();
@@ -66,12 +66,12 @@ public class SIARD2ExportModule {
         break;
     }
 
-    contentStrategy = new SIARD2ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer, prettyXML);
+    contentStrategy = new SIARD2ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer, prettyXML, digestAlgorithm, fontCase);
   }
 
   public SIARD2ExportModule(SIARDConstants.SiardVersion version, Path siardPackage, boolean compressZip,
     boolean prettyXML, int externalLobsPerFolder, long externalLobsFolderSize,
-    HashMap<String, String> descriptiveMetadata) {
+    HashMap<String, String> descriptiveMetadata, String digestAlgorithm, String fontCase) {
     this.descriptiveMetadata = descriptiveMetadata;
     contentPathStrategy = new SIARD2ContentWithExternalLobsPathExportStrategy();
     metadataPathStrategy = new SIARD2MetadataPathStrategy();
@@ -83,7 +83,7 @@ public class SIARD2ExportModule {
     } else {
       zipWriteStrategy = new ZipWriteStrategy(CompressionMethod.STORE);
     }
-    writeStrategy = new ZipWithExternalLobsWriteStrategy(zipWriteStrategy, folderWriteStrategy);
+    writeStrategy = new ZipWithExternalLobsWriteStrategy(zipWriteStrategy, folderWriteStrategy, digestAlgorithm);
 
     mainContainer = new SIARDArchiveContainer(version, siardPackage, SIARDArchiveContainer.OutputContainerType.MAIN);
 
@@ -97,10 +97,10 @@ public class SIARD2ExportModule {
     }
 
     contentStrategy = new SIARD2ContentWithExternalLobsExportStrategy(contentPathStrategy, writeStrategy, mainContainer,
-      prettyXML, externalLobsPerFolder, externalLobsFolderSize);
+      prettyXML, externalLobsPerFolder, externalLobsFolderSize, digestAlgorithm, fontCase);
   }
 
-  public DatabaseExportModule getDatabaseHandler() {
+  public DatabaseFilterModule getDatabaseHandler() {
     return new SIARDExportDefault(contentStrategy, mainContainer, writeStrategy, metadataStrategy, descriptiveMetadata);
   }
 }

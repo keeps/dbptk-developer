@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
-import com.databasepreservation.model.exception.RequiredParameterException;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,16 +21,17 @@ import com.databasepreservation.cli.CLIEdit;
 import com.databasepreservation.cli.CLIHelp;
 import com.databasepreservation.cli.CLIMigrate;
 import com.databasepreservation.cli.CLIValidate;
-import com.databasepreservation.model.NoOpReporter;
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.EditDatabaseMetadataParserException;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.exception.RequiredParameterException;
 import com.databasepreservation.model.exception.SIARDVersionNotSupportedException;
 import com.databasepreservation.model.exception.SiardNotFoundException;
 import com.databasepreservation.model.modules.filters.ObservableFilter;
 import com.databasepreservation.model.modules.filters.ProgressLoggerObserver;
 import com.databasepreservation.model.modules.validate.ProgressValidationLoggerObserver;
+import com.databasepreservation.model.reporters.NoOpReporter;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.MiscUtils;
 import com.databasepreservation.utils.ReflectionUtils;
@@ -74,7 +74,8 @@ public class Main {
    */
   public static void main(String[] args) {
     CLI cli = new CLI(Arrays.asList(args), ReflectionUtils.collectDatabaseModuleFactories(),
-        ReflectionUtils.collectDatabaseFilterFactory(), ReflectionUtils.collectEditModuleFactories(), ReflectionUtils.collectValidateModuleFactories());
+      ReflectionUtils.collectDatabaseFilterFactory(), ReflectionUtils.collectEditModuleFactories(),
+      ReflectionUtils.collectValidateModuleFactories());
     System.exit(internalMain(cli));
   }
 
@@ -85,7 +86,8 @@ public class Main {
       reporter = new NoOpReporter();
     }
     CLI cli = new CLI(Arrays.asList(args), ReflectionUtils.collectDatabaseModuleFactories(),
-        ReflectionUtils.collectDatabaseFilterFactory(), ReflectionUtils.collectEditModuleFactories(), ReflectionUtils.collectValidateModuleFactories());
+      ReflectionUtils.collectDatabaseFilterFactory(), ReflectionUtils.collectEditModuleFactories(),
+      ReflectionUtils.collectValidateModuleFactories());
     return internalMain(cli);
   }
 
@@ -106,24 +108,20 @@ public class Main {
     boolean isValidation = cli.isValidation();
 
     if (!cli.getRecognizedCommand()) {
-      LOGGER.error("Command '" + cli.getArgCommand() + "' not a valid command.");
+      LOGGER.error("Command '{}' not a valid command.", cli.getArgCommand());
       cli.printUsage();
       exitStatus = EXIT_CODE_OK;
     } else {
       if (cli.usingUTF8()) {
         if (isGUI) {
-          // NOT IMPLEMENTED YET
-          // getReporter().notYetSupported("GUI", "DBPTK");
           exitStatus = runHelp(cli.getCLIHelp());
         } else {
           if (isHelp) {
             exitStatus = runHelp(cli.getCLIHelp());
           } else {
             if (isMigrate) {
-              // LOGGER.info("Migrate option selected.");
               exitStatus = runMigration(cli.getCLIMigrate());
             } else if (isEdit) {
-              // LOGGER.info("Edit option selected.");
               exitStatus = runEdition(cli.getCLIEdit(), cli.getCLIHelp());
             } else if (isValidation) {
               exitStatus = runValidation(cli.getCLIValidate(), cli.getCLIHelp());
@@ -174,10 +172,8 @@ public class Main {
       exitStatus = EXIT_CODE_OK;
     } else {
       try {
-        siardValidation = SIARDValidation.newInstance()
-            .validateModule(cli.getValidateModuleFactory())
-            .validateModuleParameters(cli.getValidateModuleParameters())
-            .reporter(getReporter());
+        siardValidation = SIARDValidation.newInstance().validateModule(cli.getValidateModuleFactory())
+          .validateModuleParameters(cli.getValidateModuleParameters()).reporter(getReporter());
       } catch (ParseException e) {
         LOGGER.error(e.getMessage(), e);
         logProgramFinish(EXIT_CODE_COMMAND_PARSE_ERROR);
@@ -245,7 +241,6 @@ public class Main {
             LOGGER.info("Edit SIARD metadata took {}m {}s to complete.", duration / 60000, duration % 60000 / 1000);
             break;
           default:
-            ;
         }
 
         exitStatus = EXIT_CODE_OK;
@@ -254,10 +249,11 @@ public class Main {
 
         return EXIT_CODE_COMMAND_PARSE_ERROR;
       } catch (SiardNotFoundException e) {
-        LOGGER.error(e.getMessage() + ": " + e.getPath());
+        LOGGER.error("{}: {}", e.getMessage(), e.getPath());
         return EXIT_CODE_FILE_NOT_FOUND;
       } catch (ModuleException e) {
-        if (e.getCause().getClass().equals(NullPointerException.class)) LOGGER.error(e.getMessage());
+        if (e.getCause().getClass().equals(NullPointerException.class))
+          LOGGER.error(e.getMessage());
         if (!e.getClass().equals(ModuleException.class)) {
           LOGGER.error(e.getMessage(), e);
         }
@@ -298,7 +294,7 @@ public class Main {
       LOGGER.info("Database migration took {}m {}s to complete.", duration / 60000, duration % 60000 / 1000);
       exitStatus = EXIT_CODE_OK;
     } catch (SiardNotFoundException e) {
-      LOGGER.error(e.getMessage() + ": " + e.getPath());
+      LOGGER.error("{}: {}", e.getMessage(), e.getPath());
       return EXIT_CODE_FILE_NOT_FOUND;
     } catch (LicenseNotAcceptedException e) {
       LOGGER.trace("LicenseNotAcceptedException", e);

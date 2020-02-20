@@ -5,7 +5,7 @@
  *
  * https://github.com/keeps/db-preservation-toolkit
  */
-// TODO: this class needs some cleaning up 
+// TODO: this class needs some cleaning up
 
 package com.databasepreservation.modules.siard.out.content;
 
@@ -27,7 +27,7 @@ import org.jdom2.output.XMLOutputter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -257,7 +257,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   }
 
   @Override
-  public void tableRow(Row row) throws ModuleException {
+  public Row tableRow(Row row) throws ModuleException {
     try {
 
       tableXmlWriter.append(TAB).append("<row>\n");
@@ -391,6 +391,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     } catch (IOException e) {
       throw new ModuleException().withMessage("Could not write row " + row.toString()).withCause(e);
     }
+
+    return row;
   }
 
   @Override

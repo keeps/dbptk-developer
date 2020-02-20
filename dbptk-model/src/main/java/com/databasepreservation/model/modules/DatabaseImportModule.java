@@ -10,10 +10,11 @@
  */
 package com.databasepreservation.model.modules;
 
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
+import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
+import com.databasepreservation.model.reporters.Reporter;
 
 /**
  * @author Luis Faria <lfaria@keep.pt>
@@ -35,7 +36,7 @@ public interface DatabaseImportModule extends ExceptionNormalizer {
    * @throws ModuleException
    *           generic module exception
    */
-  DatabaseExportModule migrateDatabaseTo(DatabaseExportModule databaseExportModule) throws ModuleException;
+  DatabaseFilterModule migrateDatabaseTo(DatabaseFilterModule databaseExportModule) throws ModuleException;
 
   /**
    * Provide a reporter through which potential conversion problems should be

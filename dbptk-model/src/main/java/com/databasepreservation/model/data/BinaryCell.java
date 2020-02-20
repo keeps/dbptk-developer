@@ -13,9 +13,9 @@ package com.databasepreservation.model.data;
 import java.io.InputStream;
 import java.sql.Blob;
 
-import com.databasepreservation.common.providers.BlobInputStreamProvider;
-import com.databasepreservation.common.providers.InputStreamProvider;
-import com.databasepreservation.common.providers.TemporaryPathInputStreamProvider;
+import com.databasepreservation.common.io.providers.BlobInputStreamProvider;
+import com.databasepreservation.common.io.providers.InputStreamProvider;
+import com.databasepreservation.common.io.providers.TemporaryPathInputStreamProvider;
 import com.databasepreservation.model.exception.ModuleException;
 
 /**
@@ -46,7 +46,7 @@ public class BinaryCell extends Cell implements InputStreamProvider {
    * file, so they can be read later without keeping an open InputStreams.
    *
    * The inputStream is closed after use.
-   * 
+   *
    * @param id
    *          the cell id
    * @param inputStream

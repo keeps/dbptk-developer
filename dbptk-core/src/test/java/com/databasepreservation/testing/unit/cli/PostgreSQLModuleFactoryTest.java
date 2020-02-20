@@ -15,9 +15,9 @@ import org.testng.annotations.Test;
 
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
-import com.databasepreservation.modules.postgreSql.PostgreSQLModuleFactory;
-import com.databasepreservation.modules.postgreSql.in.PostgreSQLJDBCImportModule;
-import com.databasepreservation.modules.postgreSql.out.PostgreSQLJDBCExportModule;
+import com.databasepreservation.modules.postgresql.PostgreSQLModuleFactory;
+import com.databasepreservation.modules.postgresql.in.PostgreSQLJDBCImportModule;
+import com.databasepreservation.modules.postgresql.out.PostgreSQLJDBCExportModule;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>

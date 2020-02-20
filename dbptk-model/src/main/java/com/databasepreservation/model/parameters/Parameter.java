@@ -234,11 +234,13 @@ public class Parameter {
    *
    * @return the number of arguments for this parameter.
    */
-  public Integer numberOfArgs() { return numberOfArgs; }
+  public Integer numberOfArgs() {
+    return numberOfArgs;
+  }
 
   /**
-   * If the parameter has more than one argument, then this should be the value associated
-   * with the number of arguments of the parameter
+   * If the parameter has more than one argument, then this should be the value
+   * associated with the number of arguments of the parameter
    *
    * @param numberOfArgs
    *          value of the parameter when it is present
@@ -270,7 +272,8 @@ public class Parameter {
   }
 
   /**
-   * Gets the export option type for this parameter; Helper to automatize the DVBTK
+   * Gets the export option type for this parameter; Helper to automatize the
+   * DVBTK
    *
    * @return The category type {@link CATEGORY_TYPE} enum.
    */
@@ -294,7 +297,9 @@ public class Parameter {
     return this;
   }
 
-  public FILE_FILTER_TYPE getFileFilter() { return fileFilter; }
+  public FILE_FILTER_TYPE getFileFilter() {
+    return fileFilter;
+  }
 
   /**
    * Convert this parameter into a command line option (used internally by
@@ -364,11 +369,11 @@ public class Parameter {
     }
 
     if (numberOfArgs == null) {
-      option = optionBuilder.longOpt(longName).desc(description).hasArg(hasArgument)
-          .required(required).optionalArg(optionalArgument).build();
+      option = optionBuilder.longOpt(longName).desc(description).hasArg(hasArgument).required(required)
+        .optionalArg(optionalArgument).build();
     } else {
-      option = optionBuilder.longOpt(longName).desc(description).hasArg(hasArgument)
-          .required(required).optionalArg(optionalArgument).build();
+      option = optionBuilder.longOpt(longName).desc(description).hasArg(hasArgument).required(required)
+        .optionalArg(optionalArgument).build();
 
       option.setArgs(Option.UNLIMITED_VALUES);
     }

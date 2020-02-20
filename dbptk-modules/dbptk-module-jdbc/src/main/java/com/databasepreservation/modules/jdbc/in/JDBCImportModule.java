@@ -48,8 +48,7 @@ import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
 import com.databasepreservation.Constants;
-import com.databasepreservation.ModuleConfigurationManager;
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.managers.ModuleConfigurationManager;
 import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
@@ -60,11 +59,12 @@ import com.databasepreservation.model.exception.InvalidDataException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.SQLParseException;
 import com.databasepreservation.model.exception.TableNotFoundException;
-import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatatypeImporter;
 import com.databasepreservation.model.modules.configuration.CustomViewConfiguration;
 import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
+import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -91,6 +91,7 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.model.structure.type.UnsupportedDataType;
 import com.databasepreservation.modules.DefaultExceptionNormalizer;
 import com.databasepreservation.modules.SQLHelper;
+import com.databasepreservation.modules.jdbc.JDBCModuleFactory;
 import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.MapUtils;
@@ -159,8 +160,8 @@ public class JDBCImportModule implements DatabaseImportModule {
     dbMetadata = null;
     dbStructure = null;
     ssh = false;
-    this.connectionProperties = MapUtils.buildMapFromObjects(Constants.DB_DRIVER, driverClassName,
-      Constants.DB_CONNECTION, connectionURL);
+    this.connectionProperties = MapUtils.buildMapFromObjects(JDBCModuleFactory.PARAMETER_DRIVER, driverClassName,
+      JDBCModuleFactory.PARAMETER_CONNECTION, connectionURL);
   }
 
   protected JDBCImportModule(String driverClassName, String connectionURL, SQLHelper sqlHelper,
@@ -229,7 +230,7 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   /**
    * Connect to the server using the properties defined in the constructor
-   * 
+   *
    * @return the new connection
    * @throws ModuleException
    */
@@ -2079,7 +2080,7 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   @Override
-  public DatabaseExportModule migrateDatabaseTo(DatabaseExportModule exportModule) throws ModuleException {
+  public DatabaseFilterModule migrateDatabaseTo(DatabaseFilterModule exportModule) throws ModuleException {
     try {
       exportModule.initDatabase();
 

@@ -60,7 +60,7 @@ public class Oracle12cJDBCExportModule extends JDBCExportModule {
 
   @Override
   public void initDatabase() throws ModuleException {
-    super.initDatabase();
+   getConnection();
 
     try (Statement statement = getConnection().createStatement()) {
       statement.execute("select sys_context('USERENV', 'CURRENT_SCHEMA') from dual");
@@ -74,6 +74,8 @@ public class Oracle12cJDBCExportModule extends JDBCExportModule {
     } catch (SQLException e) {
       LOGGER.error("Could not get user default schema", e);
     }
+
+    this.exportModule.initDatabase();
   }
 
   @Override

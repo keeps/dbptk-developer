@@ -21,8 +21,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.databasepreservation.common.providers.InputStreamProviderImpl;
-import com.databasepreservation.common.io.WaitingInputStream;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.MessageDigestCalculatingInputStream;
@@ -30,7 +28,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.common.io.WaitingInputStream;
+import com.databasepreservation.common.io.providers.InputStreamProviderImpl;
 import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
@@ -39,54 +38,72 @@ import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.ComposedTypeArray;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure;
-import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.common.LargeObject;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
+import com.databasepreservation.utils.MessageDigestUtils;
 import com.databasepreservation.utils.XMLUtils;
-
-import javax.xml.bind.DatatypeConverter;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARD2ContentExportStrategy implements ContentExportStrategy {
-  private final static String ENCODING = "UTF-8";
-  private final static int THRESHOLD_TREAT_STRING_AS_CLOB = 4000;
-  private final static int THRESHOLD_TREAT_BINARY_AS_BLOB = 2000;
-  private final static String CELL_PREFIX_DEFAULT = "c";
-  private final static String CELL_PREFIX_ARRAY = "a";
-  private final static String CELL_PREFIX_UDT = "u";
-
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2ContentExportStrategy.class);
+
+  private static final String ENCODING = "UTF-8";
+  private static final int THRESHOLD_TREAT_STRING_AS_CLOB = 4000;
+  private static final int THRESHOLD_TREAT_BINARY_AS_BLOB = 2000;
+  private static final String CELL_PREFIX_DEFAULT = "c";
+  private static final String CELL_PREFIX_ARRAY = "a";
+  private static final String CELL_PREFIX_UDT = "u";
+
+  private static final String XS_ENUMERATION = "xs:enumeration";
+  private static final String XS_PATTERN = "xs:pattern";
+  private static final String VALUE = "value";
+  private static final String XS_RESTRICTION = "xs:restriction";
+  private static final String XS_SIMPLE_TYPE = "xs:simpleType";
+  private static final String DIGEST_TYPE_TYPE = "digestTypeType";
+  private static final String XS_ATTRIBUTE = "xs:attribute";
+  private static final String XS_STRING = "xs:string";
+  private static final String XS_EXTENSION = "xs:extension";
+  private static final String XS_SIMPLE_CONTENT = "xs:simpleContent";
+  private static final String XS_DOCUMENTATION = "xs:documentation";
+  private static final String XS_ANNOTATION = "xs:annotation";
+  private static final String MIN_OCCURS = "minOccurs";
+  private static final String XS_SEQUENCE = "xs:sequence";
+  private static final String XS_COMPLEX_TYPE = "xs:complexType";
+  private static final String XS_ELEMENT = "xs:element";
+  private static final String XMLNS_SIARD = "http://www.admin.ch/xmlns/siard/";
+  private static final String TABLE = "table";
   protected final SIARD2ContentPathExportStrategy contentPathStrategy;
   protected final WriteStrategy writeStrategy;
   protected final SIARDArchiveContainer baseContainer;
   private final boolean prettyXMLOutput;
-  XMLBufferedWriter currentWriter;
-  OutputStream currentStream;
-  SchemaStructure currentSchema;
-  TableStructure currentTable;
-  int currentRowIndex;
-  private List<LargeObject> LOBsToExport;
+  protected XMLBufferedWriter currentWriter;
+  protected final boolean lowerCase;
+  protected final String messageDigestAlgorithm;
+  protected SchemaStructure currentSchema;
+  protected TableStructure currentTable;
+  protected int currentRowIndex;
 
   protected Reporter reporter;
 
   public SIARD2ContentExportStrategy(SIARD2ContentPathExportStrategy contentPathStrategy, WriteStrategy writeStrategy,
-    SIARDArchiveContainer baseContainer, boolean prettyXMLOutput) {
+    SIARDArchiveContainer baseContainer, boolean prettyXMLOutput, String digestAlgorithm, String fontCase) {
     this.contentPathStrategy = contentPathStrategy;
     this.writeStrategy = writeStrategy;
     this.baseContainer = baseContainer;
-
-    this.LOBsToExport = new ArrayList<>();
-    currentRowIndex = -1;
+    this.currentRowIndex = -1;
     this.prettyXMLOutput = prettyXMLOutput;
+    this.messageDigestAlgorithm = digestAlgorithm;
+    this.lowerCase = fontCase.equalsIgnoreCase("lowercase");
   }
 
   @Override
@@ -101,12 +118,11 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
   @Override
   public void openTable(TableStructure table) throws ModuleException {
-    currentStream = writeStrategy.createOutputStream(baseContainer,
+    OutputStream currentStream = writeStrategy.createOutputStream(baseContainer,
       contentPathStrategy.getTableXmlFilePath(currentSchema.getIndex(), table.getIndex()));
     currentWriter = new XMLBufferedWriter(currentStream, prettyXMLOutput);
     currentTable = table;
     currentRowIndex = 0;
-    LOBsToExport = new ArrayList<>();
 
     try {
       writeXmlOpenTable();
@@ -125,17 +141,6 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       throw new ModuleException().withMessage("Error handling close table " + table.getId()).withCause(e);
     }
 
-    // write lobs if they have not been written yet
-    try {
-      if (!writeStrategy.isSimultaneousWritingSupported()) {
-        for (LargeObject largeObject : LOBsToExport) {
-          writeLOB(largeObject);
-        }
-      }
-    } catch (IOException e) {
-      throw new ModuleException().withMessage("Error writing LOBs").withCause(e);
-    }
-
     // export table XSD
     try {
       writeXsd();
@@ -149,7 +154,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   }
 
   @Override
-  public void tableRow(Row row) throws ModuleException {
+  public Row tableRow(Row row) throws ModuleException {
     try {
       currentWriter.openTag("row", 1);
 
@@ -179,6 +184,8 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     } catch (IOException e) {
       throw new ModuleException().withMessage("Could not write row" + row.toString()).withCause(e);
     }
+
+    return row;
   }
 
   @Override
@@ -265,7 +272,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   }
 
   private void writeComposedCell(String cellPrefix, Cell cell, ColumnStructure column, int columnIndex)
-    throws ModuleException, IOException {
+    throws IOException {
 
     ComposedCell composedCell = (ComposedCell) cell;
 
@@ -308,7 +315,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   }
 
   protected void writeNullCell(String cellPrefix, Cell cell, ColumnStructure column, int columnIndex)
-    throws ModuleException, IOException {
+    throws IOException {
     NullCell nullCell = (NullCell) cell;
     writeNullCellData(cellPrefix, nullCell, columnIndex);
   }
@@ -338,12 +345,11 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       writeLargeObjectData(cellPrefix, cell, columnIndex);
     } else {
       // inline binary data
-      InputStream inputStream = binaryCell.createInputStream();
-      byte[] bytes = IOUtils.toByteArray(inputStream);
-      IOUtils.closeQuietly(inputStream);
-      binaryCell.cleanResources();
-      SimpleCell simpleCell = new SimpleCell(binaryCell.getId(), Hex.encodeHexString(bytes));
-      writeSimpleCellData(cellPrefix, simpleCell, columnIndex);
+      try (InputStream inputStream = binaryCell.createInputStream()) {
+        byte[] bytes = IOUtils.toByteArray(inputStream);
+        SimpleCell simpleCell = new SimpleCell(binaryCell.getId(), Hex.encodeHexString(bytes));
+        writeSimpleCellData(cellPrefix, simpleCell, columnIndex);
+      }
     }
   }
 
@@ -361,35 +367,37 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
   protected void writeLargeObjectData(String cellPrefix, Cell cell, int columnIndex)
     throws IOException, ModuleException {
-
-    LargeObject lob = null;
+    LargeObject lob;
 
     if (cell instanceof BinaryCell) {
       final BinaryCell binCell = (BinaryCell) cell;
 
-      InputStream inputStream = null;
-      try {
-
-        MessageDigestCalculatingInputStream digest = new MessageDigestCalculatingInputStream(binCell.createInputStream(), MessageDigest.getInstance("MD5"));
-        final WaitingInputStream waitingInputStream = new WaitingInputStream(digest);
-        inputStream = new BufferedInputStream(waitingInputStream);
+      try (MessageDigestCalculatingInputStream digest = new MessageDigestCalculatingInputStream(
+        binCell.createInputStream(), MessageDigest.getInstance(messageDigestAlgorithm))) {
+        WaitingInputStream waitingInputStream = new WaitingInputStream(digest);
+        InputStream inputStream = new BufferedInputStream(waitingInputStream);
 
         lob = new LargeObject(new InputStreamProviderImpl(inputStream), contentPathStrategy
-            .getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
+          .getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
 
         writeLOB(lob);
 
         // wait for lob to be consumed so digest is calculated
         waitingInputStream.waitForClose();
 
+        byte[] messageDigest = digest.getMessageDigest().digest();
+
         currentWriter.beginOpenTag(cellPrefix + columnIndex, 2).space().append("file=\"")
-            .append(contentPathStrategy.getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
-                currentRowIndex + 1))
-            .append('"').space().append("length=\"").append(String.valueOf(binCell.getSize())).append("\"").space()
-            .append("digest=\"").append(DatatypeConverter.printHexBinary(digest.getMessageDigest().digest()).toUpperCase()).append("\"").space()
-            .append("digestType=\"").append("MD5").append("\"");
+          .append(contentPathStrategy.getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
+            currentRowIndex + 1))
+          .append('"').space().append("length=\"").append(String.valueOf(binCell.getSize())).append("\"").space()
+          .append("digest=\"").append(MessageDigestUtils.getHexFromMessageDigest(messageDigest, lowerCase)).append("\"")
+          .space().append("digestType=\"").append(messageDigestAlgorithm.toUpperCase()).append("\"");
+
+        cell.setMessageDigest(messageDigest);
+        cell.setDigestAlgorithm(messageDigestAlgorithm);
       } catch (NoSuchAlgorithmException e) {
-        e.printStackTrace();
+        throw new ModuleException().withMessage("The message digest algorithm does not exits").withCause(e);
       }
     } else if (cell instanceof SimpleCell) {
       SimpleCell txtCell = (SimpleCell) cell;
@@ -405,35 +413,34 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
       ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data.getBytes());
       try {
-        MessageDigestCalculatingInputStream digest = new MessageDigestCalculatingInputStream(byteArrayInputStream, MessageDigest.getInstance("MD5"));
+        MessageDigestCalculatingInputStream digest = new MessageDigestCalculatingInputStream(byteArrayInputStream,
+          MessageDigest.getInstance(messageDigestAlgorithm));
         final WaitingInputStream waitingInputStream = new WaitingInputStream(digest);
         InputStream inputStream = new BufferedInputStream(waitingInputStream);
 
         lob = new LargeObject(new InputStreamProviderImpl(inputStream), contentPathStrategy
-            .getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
+          .getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
 
         writeLOB(lob);
 
         // wait for lob to be consumed so digest is calculated
         waitingInputStream.waitForClose();
 
+        byte[] messageDigest = digest.getMessageDigest().digest();
+
         currentWriter.beginOpenTag(cellPrefix + columnIndex, 2).space().append("file=\"")
-            .append(contentPathStrategy.getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
-                currentRowIndex + 1))
-            .append('"').space().append("length=\"").append(String.valueOf(txtCell.getBytesSize())).append("\"").space()
-            .append("digest=\"").append(DatatypeConverter.printHexBinary(digest.getMessageDigest().digest()).toUpperCase()).append("\"").space()
-            .append("digestType=\"").append("MD5").append("\"");
+          .append(contentPathStrategy.getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
+            currentRowIndex + 1))
+          .append('"').space().append("length=\"").append(String.valueOf(txtCell.getBytesSize())).append("\"").space()
+          .append("digest=\"").append(MessageDigestUtils.getHexFromMessageDigest(messageDigest, lowerCase)).append("\"")
+          .space().append("digestType=\"").append(messageDigestAlgorithm.toUpperCase()).append("\"");
+
+        cell.setMessageDigest(messageDigest);
+        cell.setDigestAlgorithm(messageDigestAlgorithm);
       } catch (NoSuchAlgorithmException e) {
-        e.printStackTrace();
+        throw new ModuleException().withMessage("The message digest algorithm does not exits").withCause(e);
       }
     }
-
-    // decide to whether write the LOB right away or later
-    //if (writeStrategy.isSimultaneousWritingSupported()) {
-    //  writeLOB(lob);
-    //} else {
-    //  LOBsToExport.add(lob);
-    //}
 
     currentWriter.endShorthandTag();
   }
@@ -441,17 +448,15 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   private void writeXmlOpenTable() throws IOException {
     currentWriter.append("<?xml version=\"1.0\" encoding=\"").append(ENCODING).append("\"?>").newline()
 
-      .beginOpenTag("table", 0)
+      .beginOpenTag(TABLE, 0)
 
       .appendAttribute("xsi:schemaLocation",
-        contentPathStrategy.getTableXsdNamespace(
-          "http://www.admin.ch/xmlns/siard/" + baseContainer.getVersion().getNamespace() + "/",
+        contentPathStrategy.getTableXsdNamespace(XMLNS_SIARD + baseContainer.getVersion().getNamespace() + "/",
           currentSchema.getIndex(), currentTable.getIndex()) + " "
           + contentPathStrategy.getTableXsdFileName(currentTable.getIndex()))
 
       .appendAttribute("xmlns",
-        contentPathStrategy.getTableXsdNamespace(
-          "http://www.admin.ch/xmlns/siard/" + baseContainer.getVersion().getNamespace() + "/",
+        contentPathStrategy.getTableXsdNamespace(XMLNS_SIARD + baseContainer.getVersion().getNamespace() + "/",
           currentSchema.getIndex(), currentTable.getIndex()))
 
       .appendAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
@@ -460,31 +465,18 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   }
 
   private void writeXmlCloseTable() throws IOException {
-    currentWriter.closeTag("table", 0);
+    currentWriter.closeTag(TABLE, 0);
   }
 
-  protected void writeLOB(LargeObject lob) throws ModuleException, IOException {
+  protected void writeLOB(LargeObject lob) throws ModuleException {
     LOGGER.debug("Writing lob to {}", lob.getOutputPath());
-
-    InputStream in = null;
-    // copy lob to output
-
     writeStrategy.writeTo(lob.getInputStreamProvider(), lob.getOutputPath());
-
-//    try (OutputStream out = writeStrategy.createOutputStream(baseContainer, lob.getOutputPath())) {
-//      in = lob.getInputStreamProvider().createInputStream();
-//      IOUtils.copy(in, out);
-//      in.close();
-//    } catch (IOException e) {
-//      throw new ModuleException().withMessage("Could not write lob").withCause(e);
-//    } finally {
-//      lob.getInputStreamProvider().cleanResources();
-//    }
   }
 
   private void writeXsd() throws IOException, ModuleException {
     OutputStream xsdStream = writeStrategy.createOutputStream(baseContainer,
       contentPathStrategy.getTableXsdFilePath(currentSchema.getIndex(), currentTable.getIndex()));
+
     XMLBufferedWriter xsdWriter = new XMLBufferedWriter(xsdStream, prettyXMLOutput);
 
     xsdWriter
@@ -495,8 +487,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       .beginOpenTag("xs:schema", 0).appendAttribute("xmlns:xs", "http://www.w3.org/2001/XMLSchema")
 
       .appendAttribute("xmlns",
-        contentPathStrategy.getTableXsdNamespace(
-          "http://www.admin.ch/xmlns/siard/" + baseContainer.getVersion().getNamespace() + "/",
+        contentPathStrategy.getTableXsdNamespace(XMLNS_SIARD + baseContainer.getVersion().getNamespace() + "/",
           currentSchema.getIndex(), currentTable.getIndex()))
 
       .appendAttribute("attributeFormDefault", "unqualified")
@@ -504,77 +495,72 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
       .appendAttribute("elementFormDefault", "qualified")
 
       .appendAttribute("targetNamespace",
-        contentPathStrategy.getTableXsdNamespace(
-          "http://www.admin.ch/xmlns/siard/" + baseContainer.getVersion().getNamespace() + "/",
+        contentPathStrategy.getTableXsdNamespace(XMLNS_SIARD + baseContainer.getVersion().getNamespace() + "/",
           currentSchema.getIndex(), currentTable.getIndex()))
 
       .endOpenTag()
 
       // xs:element name="table"
-      .beginOpenTag("xs:element", 1).appendAttribute("name", "table").endOpenTag()
+      .beginOpenTag(XS_ELEMENT, 1).appendAttribute("name", TABLE).endOpenTag()
 
-      .openTag("xs:complexType", 2)
+      .openTag(XS_COMPLEX_TYPE, 2)
 
-      .openTag("xs:sequence", 3)
+      .openTag(XS_SEQUENCE, 3)
 
-      .beginOpenTag("xs:element", 4).appendAttribute("maxOccurs", "unbounded").appendAttribute("minOccurs", "0")
+      .beginOpenTag(XS_ELEMENT, 4).appendAttribute("maxOccurs", "unbounded").appendAttribute(MIN_OCCURS, "0")
       .appendAttribute("name", "row").appendAttribute("type", "recordType").endShorthandTag()
 
-      .closeTag("xs:sequence", 3)
+      .closeTag(XS_SEQUENCE, 3)
 
-      .closeTag("xs:complexType", 2)
+      .closeTag(XS_COMPLEX_TYPE, 2)
 
-      .closeTag("xs:element", 1)
+      .closeTag(XS_ELEMENT, 1)
 
       // xs:complexType name="rowType"
-      .beginOpenTag("xs:complexType", 1).appendAttribute("name", "recordType").endOpenTag()
+      .beginOpenTag(XS_COMPLEX_TYPE, 1).appendAttribute("name", "recordType").endOpenTag()
 
-      .openTag("xs:sequence", 2);
+      .openTag(XS_SEQUENCE, 2);
 
     // insert all <xs:element> in <xs:complexType name="rowType">
     int columnIndex = 1;
     for (ColumnStructure col : currentTable.getColumns()) {
       if (col.getType() instanceof ComposedTypeStructure) {
-        Type composedType = (ComposedTypeStructure) col.getType();
-
         // FIXME: if the same table contains two columns of different UDTs which
         // subtypes differ then there would exist conflicting definitions for
         // elements u1, u2, u3, etc
         LOGGER.warn("XSD validation of tables containing UDT is not yet supported.");
       } else if (col.getType() instanceof ComposedTypeArray) {
-        ComposedTypeArray arrayType = (ComposedTypeArray) col.getType();
-
         // <xs:element minOccurs="0" name="c4">
-        xsdWriter.beginOpenTag("xs:element", 4);
+        xsdWriter.beginOpenTag(XS_ELEMENT, 4);
         if (col.isNillable()) {
-          xsdWriter.appendAttribute("minOccurs", "0");
+          xsdWriter.appendAttribute(MIN_OCCURS, "0");
         }
         xsdWriter.appendAttribute("name", "c" + columnIndex).endOpenTag();
 
         // <xs:complexType>
-        xsdWriter.openTag("xs:complexType", 5);
+        xsdWriter.openTag(XS_COMPLEX_TYPE, 5);
 
         // <xs:sequence>
-        xsdWriter.openTag("xs:sequence", 6);
+        xsdWriter.openTag(XS_SEQUENCE, 6);
 
-        xsdWriter.beginOpenTag("xs:any", 7).appendAttribute("minOccurs", "0").appendAttribute("maxOccurs", "unbounded")
+        xsdWriter.beginOpenTag("xs:any", 7).appendAttribute(MIN_OCCURS, "0").appendAttribute("maxOccurs", "unbounded")
           .appendAttribute("processContents", "skip").endShorthandTag();
 
         // </xs:sequence>
-        xsdWriter.closeTag("xs:sequence", 6);
+        xsdWriter.closeTag(XS_SEQUENCE, 6);
 
         // </xs:complexType>
-        xsdWriter.closeTag("xs:complexType", 5);
+        xsdWriter.closeTag(XS_COMPLEX_TYPE, 5);
 
-        xsdWriter.closeTag("xs:element", 4);
+        xsdWriter.closeTag(XS_ELEMENT, 4);
       } else {
         try {
           String xsdType = Sql2008toXSDType.convert(col.getType(), reporter);
 
-          xsdWriter.beginOpenTag("xs:element", 4);
+          xsdWriter.beginOpenTag(XS_ELEMENT, 4);
 
           if (col.isNillable()) {
-            xsdWriter.appendAttribute("minOccurs", "0");
+            xsdWriter.appendAttribute(MIN_OCCURS, "0");
           }
 
           xsdWriter.appendAttribute("name", "c" + columnIndex).appendAttribute("type", xsdType).endShorthandTag();
@@ -587,156 +573,156 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
     xsdWriter
       // close tags for xs:sequence and xs:complexType
-      .closeTag("xs:sequence", 2)
+      .closeTag(XS_SEQUENCE, 2)
 
-      .closeTag("xs:complexType", 1);
+      .closeTag(XS_COMPLEX_TYPE, 1);
 
     // xs:complexType name="clobType"
-    xsdWriter.beginOpenTag("xs:complexType", 1).appendAttribute("name", "clobType").endOpenTag()
+    xsdWriter.beginOpenTag(XS_COMPLEX_TYPE, 1).appendAttribute("name", "clobType").endOpenTag()
 
-      .openTag("xs:annotation", 2)
+      .openTag(XS_ANNOTATION, 2)
 
-      .inlineOpenTag("xs:documentation", 3).append("Type to refer CLOB types. Either inline or in a separate file.")
-      .closeTag("xs:documentation")
+      .inlineOpenTag(XS_DOCUMENTATION, 3).append("Type to refer CLOB types. Either inline or in a separate file.")
+      .closeTag(XS_DOCUMENTATION)
 
-      .closeTag("xs:annotation", 2)
+      .closeTag(XS_ANNOTATION, 2)
 
-      .openTag("xs:simpleContent", 2)
+      .openTag(XS_SIMPLE_CONTENT, 2)
 
-      .beginOpenTag("xs:extension", 3).appendAttribute("base", "xs:string").endOpenTag()
+      .beginOpenTag(XS_EXTENSION, 3).appendAttribute("base", XS_STRING).endOpenTag()
 
-      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "file").appendAttribute("type", "xs:anyURI")
+      .beginOpenTag(XS_ATTRIBUTE, 4).appendAttribute("name", "file").appendAttribute("type", "xs:anyURI")
       .endShorthandTag()
 
-      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "length").appendAttribute("type", "xs:integer")
+      .beginOpenTag(XS_ATTRIBUTE, 4).appendAttribute("name", "length").appendAttribute("type", "xs:integer")
       .endShorthandTag()
 
-      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "digestType").appendAttribute("type", "digestTypeType")
+      .beginOpenTag(XS_ATTRIBUTE, 4).appendAttribute("name", "digestType").appendAttribute("type", DIGEST_TYPE_TYPE)
       .endShorthandTag()
 
-      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "digest").appendAttribute("type", "xs:string")
+      .beginOpenTag(XS_ATTRIBUTE, 4).appendAttribute("name", "digest").appendAttribute("type", XS_STRING)
       .endShorthandTag()
 
-      .closeTag("xs:extension", 3)
+      .closeTag(XS_EXTENSION, 3)
 
-      .closeTag("xs:simpleContent", 2)
+      .closeTag(XS_SIMPLE_CONTENT, 2)
 
-      .closeTag("xs:complexType", 1);
+      .closeTag(XS_COMPLEX_TYPE, 1);
 
     // xs:complexType name="blobType"
-    xsdWriter.beginOpenTag("xs:complexType", 1).appendAttribute("name", "blobType").endOpenTag()
+    xsdWriter.beginOpenTag(XS_COMPLEX_TYPE, 1).appendAttribute("name", "blobType").endOpenTag()
 
-      .openTag("xs:annotation", 2)
+      .openTag(XS_ANNOTATION, 2)
 
-      .inlineOpenTag("xs:documentation", 3).append("Type to refer BLOB types. Either inline or in a separate file.")
-      .closeTag("xs:documentation")
+      .inlineOpenTag(XS_DOCUMENTATION, 3).append("Type to refer BLOB types. Either inline or in a separate file.")
+      .closeTag(XS_DOCUMENTATION)
 
-      .closeTag("xs:annotation", 2)
+      .closeTag(XS_ANNOTATION, 2)
 
-      .openTag("xs:simpleContent", 2)
+      .openTag(XS_SIMPLE_CONTENT, 2)
 
-      .beginOpenTag("xs:extension", 3).appendAttribute("base", "xs:hexBinary").endOpenTag()
+      .beginOpenTag(XS_EXTENSION, 3).appendAttribute("base", "xs:hexBinary").endOpenTag()
 
-      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "file").appendAttribute("type", "xs:anyURI")
+      .beginOpenTag(XS_ATTRIBUTE, 4).appendAttribute("name", "file").appendAttribute("type", "xs:anyURI")
       .endShorthandTag()
 
-      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "length").appendAttribute("type", "xs:integer")
+      .beginOpenTag(XS_ATTRIBUTE, 4).appendAttribute("name", "length").appendAttribute("type", "xs:integer")
       .endShorthandTag()
 
-      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "digestType").appendAttribute("type", "digestTypeType")
+      .beginOpenTag(XS_ATTRIBUTE, 4).appendAttribute("name", "digestType").appendAttribute("type", DIGEST_TYPE_TYPE)
       .endShorthandTag()
 
-      .beginOpenTag("xs:attribute", 4).appendAttribute("name", "digest").appendAttribute("type", "xs:string")
+      .beginOpenTag(XS_ATTRIBUTE, 4).appendAttribute("name", "digest").appendAttribute("type", XS_STRING)
       .endShorthandTag()
 
-      .closeTag("xs:extension", 3)
+      .closeTag(XS_EXTENSION, 3)
 
-      .closeTag("xs:simpleContent", 2)
+      .closeTag(XS_SIMPLE_CONTENT, 2)
 
-      .closeTag("xs:complexType", 1);
+      .closeTag(XS_COMPLEX_TYPE, 1);
 
     // xs:simpleType name="dateType"
-    xsdWriter.beginOpenTag("xs:simpleType", 1).appendAttribute("name", "dateType").endOpenTag()
+    xsdWriter.beginOpenTag(XS_SIMPLE_TYPE, 1).appendAttribute("name", "dateType").endOpenTag()
 
-      .openTag("xs:annotation", 2)
+      .openTag(XS_ANNOTATION, 2)
 
-      .inlineOpenTag("xs:documentation", 3)
+      .inlineOpenTag(XS_DOCUMENTATION, 3)
       .append("dateType restricts xs:date to dates between 0001 and 9999 and is in UTC (no +/- but an optional Z)")
-      .closeTag("xs:documentation")
+      .closeTag(XS_DOCUMENTATION)
 
-      .closeTag("xs:annotation", 2)
+      .closeTag(XS_ANNOTATION, 2)
 
-      .beginOpenTag("xs:restriction", 2).appendAttribute("base", "xs:date").endOpenTag()
+      .beginOpenTag(XS_RESTRICTION, 2).appendAttribute("base", "xs:date").endOpenTag()
 
-      .beginOpenTag("xs:minInclusive", 3).appendAttribute("value", "0001-01-01Z").endShorthandTag()
+      .beginOpenTag("xs:minInclusive", 3).appendAttribute(VALUE, "0001-01-01Z").endShorthandTag()
 
-      .beginOpenTag("xs:maxExclusive", 3).appendAttribute("value", "10000-01-01Z").endShorthandTag()
+      .beginOpenTag("xs:maxExclusive", 3).appendAttribute(VALUE, "10000-01-01Z").endShorthandTag()
 
-      .beginOpenTag("xs:pattern", 3).appendAttribute("value", "\\d{4}-\\d{2}-\\d{2}Z?").endShorthandTag()
+      .beginOpenTag(XS_PATTERN, 3).appendAttribute(VALUE, "\\d{4}-\\d{2}-\\d{2}Z?").endShorthandTag()
 
-      .closeTag("xs:restriction", 2)
+      .closeTag(XS_RESTRICTION, 2)
 
-      .closeTag("xs:simpleType", 1);
+      .closeTag(XS_SIMPLE_TYPE, 1);
 
     // xs:simpleType name="timeType"
-    xsdWriter.beginOpenTag("xs:simpleType", 1).appendAttribute("name", "timeType").endOpenTag()
+    xsdWriter.beginOpenTag(XS_SIMPLE_TYPE, 1).appendAttribute("name", "timeType").endOpenTag()
 
-      .openTag("xs:annotation", 2)
+      .openTag(XS_ANNOTATION, 2)
 
-      .inlineOpenTag("xs:documentation", 3)
+      .inlineOpenTag(XS_DOCUMENTATION, 3)
       .append("timeType restricts xs:date to dates between 0001 and 9999 and is in UTC (no +/- but an optional Z)")
-      .closeTag("xs:documentation")
+      .closeTag(XS_DOCUMENTATION)
 
-      .closeTag("xs:annotation", 2)
+      .closeTag(XS_ANNOTATION, 2)
 
-      .beginOpenTag("xs:restriction", 2).appendAttribute("base", "xs:time").endOpenTag()
+      .beginOpenTag(XS_RESTRICTION, 2).appendAttribute("base", "xs:time").endOpenTag()
 
-      .beginOpenTag("xs:pattern", 3).appendAttribute("value", "\\d{2}:\\d{2}:\\d{2}Z?").endShorthandTag()
+      .beginOpenTag(XS_PATTERN, 3).appendAttribute(VALUE, "\\d{2}:\\d{2}:\\d{2}Z?").endShorthandTag()
 
-      .closeTag("xs:restriction", 2)
+      .closeTag(XS_RESTRICTION, 2)
 
-      .closeTag("xs:simpleType", 1);
+      .closeTag(XS_SIMPLE_TYPE, 1);
 
     // xs:simpleType name="dateTimeType"
-    xsdWriter.beginOpenTag("xs:simpleType", 1).appendAttribute("name", "dateTimeType").endOpenTag()
+    xsdWriter.beginOpenTag(XS_SIMPLE_TYPE, 1).appendAttribute("name", "dateTimeType").endOpenTag()
 
-      .openTag("xs:annotation", 2)
+      .openTag(XS_ANNOTATION, 2)
 
-      .inlineOpenTag("xs:documentation", 3)
+      .inlineOpenTag(XS_DOCUMENTATION, 3)
       .append(
         "dateTimeType restricts xs:dateTime to dates between 0001 and 9999 and is in UTC (no +/- after the T but an optional Z)")
-      .closeTag("xs:documentation")
+      .closeTag(XS_DOCUMENTATION)
 
-      .closeTag("xs:annotation", 2)
+      .closeTag(XS_ANNOTATION, 2)
 
-      .beginOpenTag("xs:restriction", 2).appendAttribute("base", "xs:dateTime").endOpenTag()
+      .beginOpenTag(XS_RESTRICTION, 2).appendAttribute("base", "xs:dateTime").endOpenTag()
 
-      .beginOpenTag("xs:minInclusive", 3).appendAttribute("value", "0001-01-01T00:00:00.000000000Z").endShorthandTag()
+      .beginOpenTag("xs:minInclusive", 3).appendAttribute(VALUE, "0001-01-01T00:00:00.000000000Z").endShorthandTag()
 
-      .beginOpenTag("xs:maxExclusive", 3).appendAttribute("value", "10000-01-01T00:00:00.000000000Z").endShorthandTag()
+      .beginOpenTag("xs:maxExclusive", 3).appendAttribute(VALUE, "10000-01-01T00:00:00.000000000Z").endShorthandTag()
 
-      .beginOpenTag("xs:pattern", 3).appendAttribute("value", "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d*)Z?")
+      .beginOpenTag(XS_PATTERN, 3).appendAttribute(VALUE, "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d*)Z?")
       .endShorthandTag()
 
-      .closeTag("xs:restriction", 2)
+      .closeTag(XS_RESTRICTION, 2)
 
-      .closeTag("xs:simpleType", 1);
+      .closeTag(XS_SIMPLE_TYPE, 1);
 
-    xsdWriter.beginOpenTag("xs:simpleType", 1).appendAttribute("name", "digestTypeType").endOpenTag()
+    xsdWriter.beginOpenTag(XS_SIMPLE_TYPE, 1).appendAttribute("name", DIGEST_TYPE_TYPE).endOpenTag()
 
-      .beginOpenTag("xs:restriction", 2).appendAttribute("base", "xs:string").endOpenTag()
+      .beginOpenTag(XS_RESTRICTION, 2).appendAttribute("base", XS_STRING).endOpenTag()
 
-      .beginOpenTag("xs:whiteSpace", 3).appendAttribute("value", "collapse").endShorthandTag()
+      .beginOpenTag("xs:whiteSpace", 3).appendAttribute(VALUE, "collapse").endShorthandTag()
 
-      .beginOpenTag("xs:enumeration", 3).appendAttribute("value", "MD5").endShorthandTag()
+      .beginOpenTag(XS_ENUMERATION, 3).appendAttribute(VALUE, "MD5").endShorthandTag()
 
-      .beginOpenTag("xs:enumeration", 3).appendAttribute("value", "SHA-1").endShorthandTag()
+      .beginOpenTag(XS_ENUMERATION, 3).appendAttribute(VALUE, "SHA-1").endShorthandTag()
 
-      .beginOpenTag("xs:enumeration", 3).appendAttribute("value", "SHA-256").endShorthandTag()
+      .beginOpenTag(XS_ENUMERATION, 3).appendAttribute(VALUE, "SHA-256").endShorthandTag()
 
-      .closeTag("xs:restriction", 2)
+      .closeTag(XS_RESTRICTION, 2)
 
-      .closeTag("xs:simpleType", 1);
+      .closeTag(XS_SIMPLE_TYPE, 1);
 
     // close schema
     xsdWriter.closeTag("xs:schema");

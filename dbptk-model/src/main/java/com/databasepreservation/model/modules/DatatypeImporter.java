@@ -14,8 +14,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.UnknownTypeException;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
@@ -23,11 +23,11 @@ import com.databasepreservation.model.structure.type.Type;
 
 /**
  * Converts a datatype from a source database to a Type object
- * 
+ *
  * Code using this class or any of its subclasses should create a new instance
  * and use the getCheckedType method, to convert a type and Report any potential
  * problems.
- * 
+ *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public abstract class DatatypeImporter {

@@ -8,7 +8,7 @@
 package com.databasepreservation;
 
 import com.databasepreservation.common.observer.ValidationObserver;
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.validate.ValidateModule;
 import com.databasepreservation.model.modules.validate.ValidateModuleFactory;

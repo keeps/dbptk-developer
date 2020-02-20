@@ -100,6 +100,16 @@ public class ModuleConfiguration {
   }
 
   @JsonIgnore
+  public boolean isMerkleColumn(String schemaName, String tableName, String columnName) {
+    if (schemaConfigurations.isEmpty()) {
+      return true;
+    }
+
+    return schemaConfigurations.get(schemaName) != null
+      && schemaConfigurations.get(schemaName).isMerkleColumn(tableName, columnName);
+  }
+
+  @JsonIgnore
   public boolean isMaterializeView(String schemaName, String viewName) {
     if (ignoreViews()) {
       return false;

@@ -7,7 +7,7 @@
  */
 package com.databasepreservation.modules.siard.common;
 
-import com.databasepreservation.common.providers.InputStreamProvider;
+import com.databasepreservation.common.io.providers.InputStreamProvider;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>

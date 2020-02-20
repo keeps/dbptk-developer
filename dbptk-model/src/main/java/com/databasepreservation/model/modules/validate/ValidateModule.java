@@ -8,9 +8,9 @@
 package com.databasepreservation.model.modules.validate;
 
 import com.databasepreservation.common.observer.ValidationObserver;
-import com.databasepreservation.model.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.ExceptionNormalizer;
+import com.databasepreservation.model.reporters.Reporter;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -31,7 +31,7 @@ public interface ValidateModule extends ExceptionNormalizer {
    *
    *
    * @throws ModuleException
-   *          Generic module exception
+   *           Generic module exception
    */
   boolean validate() throws ModuleException;
 }

@@ -7,29 +7,27 @@
  */
 package com.databasepreservation.modules.oracle;
 
-import static com.databasepreservation.model.Reporter.MESSAGE_FILTERED;
+import static com.databasepreservation.model.reporters.Reporter.MESSAGE_FILTERED;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import org.apache.commons.lang3.StringUtils;
 
-import com.databasepreservation.RemoteConnectionManager;
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.managers.RemoteConnectionManager;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
-import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
-import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.oracle.in.Oracle12cJDBCImportModule;
 import com.databasepreservation.modules.oracle.out.Oracle12cJDBCExportModule;
-import com.databasepreservation.utils.ModuleConfigurationUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -204,7 +202,7 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseExportModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
+  public DatabaseFilterModule buildExportModule(Map<Parameter, String> parameters, Reporter reporter)
     throws ModuleException {
     String pServerName = parameters.get(serverName);
     String pDatabase = parameters.get(instance);

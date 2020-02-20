@@ -69,7 +69,7 @@ public class ConfigUtils {
       hiddenHomeDirectory = hiddenHome;
       System.setProperty(Constants.PROPERTY_KEY_HIDDEN_HOME, hiddenHomeDirectory.toAbsolutePath().toString());
 
-      mapDBHomeDirectory = Paths.get(hiddenHome.toAbsolutePath().toString(), Constants.MAPDB_FOLDER);
+      mapDBHomeDirectory = Paths.get(hiddenHome.toAbsolutePath().toString(), Constants.MAP_DB_FOLDER);
 
       instantiateEssentialDirectories(homeDirectory, hiddenHomeDirectory, mapDBHomeDirectory);
 

@@ -14,8 +14,8 @@ import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.databasepreservation.RemoteConnectionManager;
-import com.databasepreservation.model.Reporter;
+import com.databasepreservation.managers.RemoteConnectionManager;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
