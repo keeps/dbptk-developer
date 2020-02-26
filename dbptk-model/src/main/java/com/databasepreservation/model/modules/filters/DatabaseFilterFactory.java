@@ -23,7 +23,7 @@ import com.databasepreservation.model.parameters.Parameters;
 public interface DatabaseFilterFactory {
   String getFilterName();
 
-  String getExecutionOrder();
+  ExecutionOrder getExecutionOrder();
 
   boolean isEnabled();
 

@@ -18,9 +18,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.SinkModule;
 import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
 import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
-import com.databasepreservation.model.modules.SinkModule;
+import com.databasepreservation.model.modules.filters.ExecutionOrder;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.reporters.Reporter;
 
@@ -68,20 +69,30 @@ public class DatabaseMigration {
     DatabaseImportModule importModule = importModuleFactory.buildImportModule(importParameters, reporter);
     DatabaseFilterModule exportModule = exportModuleFactory.buildExportModule(exportParameters, reporter);
 
-    List<DatabaseFilterModule> userDefinedFilterModules = new ArrayList<>();
+    List<DatabaseFilterModule> beforeFilterModules = new ArrayList<>();
+    List<DatabaseFilterModule> afterFilterModules = new ArrayList<>();
     for (int i = 0; i < filterFactories.size(); i++) {
       Map<Parameter, String> filterParameters = new HashMap<>();
       if (!filterFactoriesStringParameters.isEmpty()) {
         filterParameters = buildParametersFromStringParameters(filterFactories.get(i),
           filterFactoriesStringParameters.get(i));
       }
-      userDefinedFilterModules.add(filterFactories.get(i).buildFilterModule(filterParameters, reporter));
+
+      if (filterFactories.get(i).getExecutionOrder().equals(ExecutionOrder.AFTER)) {
+        afterFilterModules.add(filterFactories.get(i).buildFilterModule(filterParameters, reporter));
+      } else {
+        beforeFilterModules.add(filterFactories.get(i).buildFilterModule(filterParameters, reporter));
+      }
     }
 
     // set reporters
     importModule.setOnceReporter(reporter);
-    for (DatabaseFilterModule userDefinedFilterModule : userDefinedFilterModules) {
-      userDefinedFilterModule.setOnceReporter(reporter);
+    for (DatabaseFilterModule filterModule : beforeFilterModules) {
+      filterModule.setOnceReporter(reporter);
+    }
+
+    for (DatabaseFilterModule filterModule : afterFilterModules) {
+      filterModule.setOnceReporter(reporter);
     }
     for (DatabaseFilterModule filterModule : filterModules) {
       filterModule.setOnceReporter(reporter);
@@ -90,28 +101,26 @@ public class DatabaseMigration {
 
     // create module chain with filters in the middle
     Collections.reverse(filterModules);
-    Collections.reverse(userDefinedFilterModules);
+    Collections.reverse(beforeFilterModules);
+    Collections.reverse(afterFilterModules);
 
-    DatabaseFilterModule target = new SinkModule();
+    DatabaseFilterModule sinkModule = new SinkModule();
 
-    for (DatabaseFilterModule userDefinedFilterModule : userDefinedFilterModules) {
-      target = userDefinedFilterModule.migrateDatabaseTo(target);
+    for (DatabaseFilterModule filterModule : afterFilterModules) {
+      sinkModule = filterModule.migrateDatabaseTo(sinkModule);
     }
 
-    target = exportModule.migrateDatabaseTo(target);
+    sinkModule = exportModule.migrateDatabaseTo(sinkModule);
 
-    // target = userDefinedFilterModules.get(0).migrateDatabaseTo(target);
+    for (DatabaseFilterModule filterModule : beforeFilterModules) {
+      sinkModule = filterModule.migrateDatabaseTo(sinkModule);
+    }
 
-
-    // for (DatabaseFilterModule userDefinedFilterModule : userDefinedFilterModules)
-    // {
-    // moduleChain = userDefinedFilterModule.migrateDatabaseTo(moduleChain);
-    // }
     for (DatabaseFilterModule filterModule : filterModules) {
-      target = filterModule.migrateDatabaseTo(target);
+      sinkModule = filterModule.migrateDatabaseTo(sinkModule);
     }
 
-    importModule.migrateDatabaseTo(target);
+    importModule.migrateDatabaseTo(sinkModule);
   }
 
   /**

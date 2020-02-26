@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.databasepreservation.model.modules.filters.ExecutionOrder;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.exception.ModuleException;
@@ -47,8 +48,8 @@ public class MerkleTreeFilterFactory implements DatabaseFilterFactory {
   }
 
   @Override
-  public String getExecutionOrder() {
-    return "after";
+  public ExecutionOrder getExecutionOrder() {
+    return ExecutionOrder.AFTER;
   }
 
   @Override
