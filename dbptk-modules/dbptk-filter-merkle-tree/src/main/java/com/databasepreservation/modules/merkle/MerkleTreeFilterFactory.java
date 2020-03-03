@@ -39,7 +39,7 @@ public class MerkleTreeFilterFactory implements DatabaseFilterFactory {
     .hasArgument(false).required(false).valueIfSet("true").valueIfNotSet("false");
 
   private static final Parameter fontCase = new Parameter().shortName("fc").longName(PARAMETER_FONT_CASE).description(
-    "Define the type of font case for the message digest. Supported font case are: upper case and lower case. (Default: lowercase)")
+    "Define the type of font case for the message digest. Supported font case are: upper case (uppercase) and lower case (lowercase). (Default: lowercase)")
     .hasArgument(true).required(false).valueIfNotSet("lowercase");
 
   @Override

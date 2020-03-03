@@ -66,12 +66,12 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
     String password, boolean encrypt) {
     super("com.mysql.jdbc.Driver",
       "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?" + "user=" + username + "&password=" + password
-        + "&useSSL=" + encrypt,
+        + (encrypt ? "&useSSL=true" : ""),
       new MySQLHelper(), new MySQLDatatypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(MySQLModuleFactory.PARAMETER_HOSTNAME, hostname,
         MySQLModuleFactory.PARAMETER_PORT_NUMBER, port, MySQLModuleFactory.PARAMETER_USERNAME, username,
         MySQLModuleFactory.PARAMETER_PASSWORD, password, MySQLModuleFactory.PARAMETER_DATABASE, database,
-        MySQLModuleFactory.PARAMETER_DISABLE_ENCRYPTION, encrypt));
+        MySQLModuleFactory.PARAMETER_DISABLE_ENCRYPTION, !encrypt));
     this.username = username;
   }
 
@@ -80,12 +80,12 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
     throws ModuleException {
     super("com.mysql.jdbc.Driver",
       "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?" + "user=" + username + "&password=" + password
-        + "&useSSL=" + encrypt,
+        + (encrypt ? "&useSSL=true" : ""),
       new MySQLHelper(), new MySQLDatatypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(MySQLModuleFactory.PARAMETER_HOSTNAME, hostname,
         MySQLModuleFactory.PARAMETER_PORT_NUMBER, port, MySQLModuleFactory.PARAMETER_USERNAME, username,
         MySQLModuleFactory.PARAMETER_PASSWORD, password, MySQLModuleFactory.PARAMETER_DATABASE, database,
-        MySQLModuleFactory.PARAMETER_DISABLE_ENCRYPTION, encrypt),
+        MySQLModuleFactory.PARAMETER_DISABLE_ENCRYPTION, !encrypt),
       MapUtils.buildMapFromObjects(MySQLModuleFactory.PARAMETER_SSH, true, MySQLModuleFactory.PARAMETER_SSH_HOST,
         sshHost, MySQLModuleFactory.PARAMETER_SSH_PORT, sshPortNumber, MySQLModuleFactory.PARAMETER_SSH_USER, sshUser,
         MySQLModuleFactory.PARAMETER_SSH_PASSWORD, sshPassword));

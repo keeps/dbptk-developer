@@ -117,7 +117,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       MapUtils.buildMapFromObjects(PostgreSQLModuleFactory.PARAMETER_HOSTNAME, hostname,
         PostgreSQLModuleFactory.PARAMETER_PORT_NUMBER, port, PostgreSQLModuleFactory.PARAMETER_USERNAME, username,
         PostgreSQLModuleFactory.PARAMETER_PASSWORD, password, PostgreSQLModuleFactory.PARAMETER_DATABASE, database,
-        PostgreSQLModuleFactory.PARAMETER_DISABLE_ENCRYPTION, encrypt));
+        PostgreSQLModuleFactory.PARAMETER_DISABLE_ENCRYPTION, !encrypt));
   }
 
   public PostgreSQLJDBCImportModule(String moduleName, String hostname, int port, String database, String username,
@@ -130,7 +130,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       MapUtils.buildMapFromObjects(PostgreSQLModuleFactory.PARAMETER_HOSTNAME, hostname,
         PostgreSQLModuleFactory.PARAMETER_PORT_NUMBER, port, PostgreSQLModuleFactory.PARAMETER_USERNAME, username,
         PostgreSQLModuleFactory.PARAMETER_PASSWORD, password, PostgreSQLModuleFactory.PARAMETER_DATABASE, database,
-        PostgreSQLModuleFactory.PARAMETER_DISABLE_ENCRYPTION, encrypt),
+        PostgreSQLModuleFactory.PARAMETER_DISABLE_ENCRYPTION, !encrypt),
       MapUtils.buildMapFromObjects(PostgreSQLModuleFactory.PARAMETER_SSH, true,
         PostgreSQLModuleFactory.PARAMETER_SSH_HOST, sshHost, PostgreSQLModuleFactory.PARAMETER_SSH_PORT, sshPortNumber,
         PostgreSQLModuleFactory.PARAMETER_SSH_USER, sshUser, PostgreSQLModuleFactory.PARAMETER_SSH_PASSWORD,

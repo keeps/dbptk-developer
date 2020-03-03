@@ -78,7 +78,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
         SQLServerJDBCModuleFactory.PARAMETER_USE_INTEGRATED_LOGIN, integratedSecurity,
         SQLServerJDBCModuleFactory.PARAMETER_USERNAME, username, SQLServerJDBCModuleFactory.PARAMETER_PASSWORD,
         password, SQLServerJDBCModuleFactory.PARAMETER_DATABASE, database,
-        SQLServerJDBCModuleFactory.PARAMETER_DISABLE_ENCRYPTION, encrypt),
+        SQLServerJDBCModuleFactory.PARAMETER_DISABLE_ENCRYPTION, !encrypt),
       MapUtils.buildMapFromObjectsIf(ssh, SQLServerJDBCModuleFactory.PARAMETER_SSH_HOST, sshHost,
         SQLServerJDBCModuleFactory.PARAMETER_SSH_PORT, sshPortNumber, SQLServerJDBCModuleFactory.PARAMETER_SSH_USER,
         sshUser, SQLServerJDBCModuleFactory.PARAMETER_SSH_PASSWORD, sshPassword));
@@ -114,7 +114,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
         SQLServerJDBCModuleFactory.PARAMETER_USE_INTEGRATED_LOGIN, integratedSecurity,
         SQLServerJDBCModuleFactory.PARAMETER_USERNAME, username, SQLServerJDBCModuleFactory.PARAMETER_PASSWORD,
         password, SQLServerJDBCModuleFactory.PARAMETER_DATABASE, database,
-        SQLServerJDBCModuleFactory.PARAMETER_DISABLE_ENCRYPTION, encrypt),
+        SQLServerJDBCModuleFactory.PARAMETER_DISABLE_ENCRYPTION, !encrypt),
       MapUtils.buildMapFromObjectsIf(ssh, SQLServerJDBCModuleFactory.PARAMETER_SSH_HOST, sshHost,
         SQLServerJDBCModuleFactory.PARAMETER_SSH_PORT, sshPortNumber, SQLServerJDBCModuleFactory.PARAMETER_SSH_USER,
         sshUser, SQLServerJDBCModuleFactory.PARAMETER_SSH_PASSWORD, sshPassword));
