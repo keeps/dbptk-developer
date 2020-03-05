@@ -136,7 +136,7 @@ public class MerkleTreeFilter implements DatabaseFilterModule {
     List<String> columns = new ArrayList<>();
 
     for (ColumnStructure column : currentTable.getColumns()) {
-      if (ModuleConfigurationManager.getInstance().getModuleConfiguration().isMerkleColumn(currentTable.getSchema(),
+      if (currentTable.isFromCustomView() || ModuleConfigurationManager.getInstance().getModuleConfiguration().isMerkleColumn(currentTable.getSchema(),
         currentTable.getName(), column.getName())) {
         merkleColumnsIndexes.add(index);
         columns.add(column.getName());
