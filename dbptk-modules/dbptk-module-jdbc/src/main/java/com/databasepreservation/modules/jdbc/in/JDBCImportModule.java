@@ -940,7 +940,13 @@ public class JDBCImportModule implements DatabaseImportModule {
     TableStructure view = getTableStructure(schema, tableName, tableIndex, description, true);
     view.setFromView(true);
     view.setName(VIEW_NAME_PREFIX + view.getName());
-    view.setDescription("Table materialized from view.\n" + view.getDescription());
+
+    StringBuilder materializedDescription = new StringBuilder("Table materialized from view.");
+
+    if (StringUtils.isNotBlank(view.getDescription())) {
+      materializedDescription.append("\n").append(view.getDescription());
+    }
+    view.setDescription(materializedDescription.toString());
 
     return view;
   }

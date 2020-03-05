@@ -92,11 +92,11 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
       writeLargeObjectData(cellPrefix, cell, columnIndex);
     } else {
       // inline non-BLOB binary data
-      InputStream inputStream = binaryCell.createInputStream();
-      byte[] bytes = IOUtils.toByteArray(inputStream);
-      IOUtils.closeQuietly(inputStream);
-      SimpleCell simpleCell = new SimpleCell(binaryCell.getId(), Hex.encodeHexString(bytes));
-      writeSimpleCellData(cellPrefix, simpleCell, columnIndex);
+      try (InputStream inputStream = binaryCell.createInputStream()) {
+        byte[] bytes = IOUtils.toByteArray(inputStream);
+        SimpleCell simpleCell = new SimpleCell(binaryCell.getId(), Hex.encodeHexString(bytes));
+        writeSimpleCellData(cellPrefix, simpleCell, columnIndex);
+      }
     }
   }
 
@@ -134,9 +134,8 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
     }
 
     if (maximumLobsFolderSize > 0 && lobSizeParameter >= maximumLobsFolderSize) {
-      LOGGER.warn("LOB size is " + lobSizeParameter / MB_TO_BYTE_RATIO
-        + "MB, which is more or equal to the maximum LOB size per folder of " + maximumLobsFolderSize / MB_TO_BYTE_RATIO
-        + "MB");
+      LOGGER.warn("LOB size is {} MB, which is more or equal to the maximum LOB size per folder of {} MB",
+        lobSizeParameter / MB_TO_BYTE_RATIO, maximumLobsFolderSize / MB_TO_BYTE_RATIO);
     }
 
     // IF the LOB would exceed current folder size limit,
