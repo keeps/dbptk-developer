@@ -250,8 +250,9 @@ public class ModuleConfiguration {
         return schemaConfigurations.get(schemaName).getTableConfiguration(tableName).getWhere();
       }
     } else {
-      if (isWhereDefinedForView(schemaName, tableName)) {
-        return schemaConfigurations.get(schemaName).getViewConfiguration(tableName).getWhere();
+      String viewNameWithoutPrefix = tableName.replace(VIEW_NAME_PREFIX, "");
+      if (isWhereDefinedForView(schemaName, viewNameWithoutPrefix)) {
+        return schemaConfigurations.get(schemaName).getViewConfiguration(viewNameWithoutPrefix).getWhere();
       }
     }
 

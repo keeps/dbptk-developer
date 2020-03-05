@@ -21,7 +21,7 @@ public class ViewConfiguration {
 
   private String name;
   private boolean materialized;
-  private List<String> columns;
+  private List<ColumnConfiguration> columns;
   private String where;
   private String orderBy;
 
@@ -47,11 +47,11 @@ public class ViewConfiguration {
     this.materialized = materialized;
   }
 
-  public List<String> getColumns() {
+  public List<ColumnConfiguration> getColumns() {
     return columns;
   }
 
-  public void setColumns(List<String> columns) {
+  public void setColumns(List<ColumnConfiguration> columns) {
     this.columns = columns;
   }
 

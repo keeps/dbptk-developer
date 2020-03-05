@@ -108,7 +108,7 @@ public class ModuleConfigurationUtils {
     ViewConfiguration viewConfiguration = new ViewConfiguration();
     viewConfiguration.setName(view.getName());
     viewConfiguration.setMaterialized(false);
-    view.getColumns().forEach(column -> viewConfiguration.getColumns().add(column.getName()));
+    view.getColumns().forEach(column -> viewConfiguration.getColumns().add(getColumnConfiguration(column)));
 
     return viewConfiguration;
   }

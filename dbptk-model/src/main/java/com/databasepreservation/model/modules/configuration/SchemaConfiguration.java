@@ -2,7 +2,7 @@
  * The contents of this file are subject to the license and copyright
  * detailed in the LICENSE file at the root of the source
  * tree and available online at
- *
+ * <p>
  * https://github.com/keeps/db-preservation-toolkit
  */
 package com.databasepreservation.model.modules.configuration;
@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.databasepreservation.Constants;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -55,12 +56,16 @@ public class SchemaConfiguration {
   @JsonIgnore
   public boolean isSelectedColumnFromView(String viewName, String columnName) {
     return viewConfigurations.stream().anyMatch(view -> view.getName().equals(viewName)
-      && view.getColumns().stream().anyMatch(column -> column.equals(columnName)));
+      && view.getColumns().stream().anyMatch(column -> column.getName().equals(columnName)));
   }
 
   @JsonIgnore
   public boolean isMerkleColumn(String tableName, String columnName) {
-    return tableConfigurations.stream().anyMatch(table -> table.getName().equals(tableName)
+    final boolean viewMerkleColumn = viewConfigurations.stream().anyMatch(
+      view -> view.getName().equals(tableName.replace(Constants.VIEW_NAME_PREFIX, "")) && view.isMaterialized()
+        && view.getColumns().stream().anyMatch(column -> column.getName().equals(columnName) && column.isMerkle()));
+
+    return viewMerkleColumn || tableConfigurations.stream().anyMatch(table -> table.getName().equals(tableName)
       && table.getColumns().stream().anyMatch(column -> column.getName().equals(columnName) && column.isMerkle()));
   }
 
