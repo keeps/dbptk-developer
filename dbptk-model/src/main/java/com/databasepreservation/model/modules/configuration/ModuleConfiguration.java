@@ -240,7 +240,7 @@ public class ModuleConfiguration {
 
     return schemaConfigurations.get(schemaName) != null
       && schemaConfigurations.get(schemaName).getViewConfiguration(viewName) != null
-      && !schemaConfigurations.get(schemaName).getTableConfiguration(viewName).getWhere().equals(Constants.EMPTY);
+      && !schemaConfigurations.get(schemaName).getViewConfiguration(viewName).getWhere().equals(Constants.EMPTY);
   }
 
   @JsonIgnore

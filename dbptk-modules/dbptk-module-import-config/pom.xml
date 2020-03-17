@@ -30,5 +30,11 @@
             <artifactId>jackson-databind</artifactId>
             <version>2.10.2</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.github.jknack/handlebars -->
+        <dependency>
+            <groupId>com.github.jknack</groupId>
+            <artifactId>handlebars</artifactId>
+            <version>4.1.2</version>
+        </dependency>
     </dependencies>
 </project>

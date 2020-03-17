@@ -8,12 +8,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.databasepreservation.model.modules.filters.ExecutionOrder;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.filters.DatabaseFilterFactory;
 import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
+import com.databasepreservation.model.modules.filters.ExecutionOrder;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.model.reporters.Reporter;

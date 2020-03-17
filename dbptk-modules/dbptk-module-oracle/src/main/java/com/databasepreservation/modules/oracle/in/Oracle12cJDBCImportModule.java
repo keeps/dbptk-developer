@@ -10,6 +10,8 @@ package com.databasepreservation.modules.oracle.in;
 import java.io.InputStream;
 import java.sql.Array;
 import java.sql.Blob;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,6 +19,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.databasepreservation.utils.RemoteConnectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.geotools.data.oracle.sdo.GeometryConverter;
 import org.locationtech.jts.geom.Geometry;
@@ -107,10 +110,27 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
   }
 
   @Override
+  protected Connection createConnection() throws ModuleException {
+    Connection connection;
+    try {
+      if (ssh) {
+        connectionURL = RemoteConnectionUtils.replaceHostAndPort(connectionURL);
+      }
+      connection = DriverManager.getConnection(connectionURL);
+      connection.setAutoCommit(false);
+      connection.setReadOnly(true);
+    } catch (SQLException e) {
+      closeConnection();
+      throw normalizeException(e, null);
+    }
+    LOGGER.debug("Connected");
+    return connection;
+  }
+
+  @Override
   protected Statement getStatement() throws SQLException, ModuleException {
     if (statement == null) {
-      statement = getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY,
-        ResultSet.HOLD_CURSORS_OVER_COMMIT);
+      statement = getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
       if (statement instanceof OracleStatement) {
         ((OracleStatement) statement).setLobPrefetchSize(DEFAULT_LOB_PREFETCH_SIZE);
       }

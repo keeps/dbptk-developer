@@ -21,7 +21,9 @@ public class CustomViewConfiguration {
   private String description;
   private String query;
 
-  public CustomViewConfiguration() {}
+  public CustomViewConfiguration() {
+    super();
+  }
 
   public String getName() {
     return name;
