@@ -76,11 +76,14 @@ public final class JodaUtils {
       StringBuilder dateTimeWithMicros = new StringBuilder();
       String substring = dateTimeNoMillis.substring(0, dateTimeNoMillis.length() - 1);
 
+      String nanos;
+
       if (timestamp.getNanos() == 0) {
-        return dateTime.toString();
+        nanos = "000000";
+      } else {
+        nanos = String.format("%06d", timestamp.getNanos()/1000);
       }
 
-      String nanos = String.format("%06d", timestamp.getNanos()/1000);
       return dateTimeWithMicros.append(substring).append(".").append(nanos).append(dateTimeNoMillis.charAt(dateTimeNoMillis.length()-1)).toString();
   }
 
