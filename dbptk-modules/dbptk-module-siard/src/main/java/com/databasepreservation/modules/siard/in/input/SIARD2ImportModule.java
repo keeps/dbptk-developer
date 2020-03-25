@@ -44,7 +44,11 @@ public class SIARD2ImportModule {
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2ImportModule.class);
 
   public SIARD2ImportModule(Path siardPackage) {
-    this(siardPackage, false);
+    this(siardPackage, false, false);
+  }
+
+  public SIARD2ImportModule(Path siardPackage, boolean ignoreLobs) {
+    this(siardPackage, false, ignoreLobs);
   }
 
   /**
@@ -59,7 +63,7 @@ public class SIARD2ImportModule {
    *          saved to folders. When reading those LOBs it's important to know if
    *          they are inside a simple folder or a zip container.
    */
-  public SIARD2ImportModule(Path siardPackagePath, boolean auxiliaryContainersInZipFormat) {
+  public SIARD2ImportModule(Path siardPackagePath, boolean auxiliaryContainersInZipFormat, boolean ignoreLobs) {
     Path siardPackageNormalizedPath = siardPackagePath.toAbsolutePath().normalize();
     mainContainer = new SIARDArchiveContainer(siardPackageNormalizedPath,
       SIARDArchiveContainer.OutputContainerType.MAIN);
@@ -79,7 +83,7 @@ public class SIARD2ImportModule {
     }
 
     ContentPathImportStrategy contentPathStrategy = new SIARD2ContentPathImportStrategy();
-    contentStrategy = new SIARD2ContentImportStrategy(readStrategy, contentPathStrategy, lobContainer);
+    contentStrategy = new SIARD2ContentImportStrategy(readStrategy, contentPathStrategy, lobContainer, ignoreLobs);
 
     MetadataPathStrategy metadataPathStrategy = new SIARD2MetadataPathStrategy();
     switch (mainContainer.getVersion()) {

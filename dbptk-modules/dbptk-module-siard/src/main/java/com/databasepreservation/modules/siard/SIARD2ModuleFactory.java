@@ -60,6 +60,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_GML_DIRECTORY = "gml-directory";
   public static final String PARAMETER_MESSAGE_DIGEST_ALGORITHM = "digest";
   public static final String PARAMETER_FONT_CASE = "font-case";
+  public static final String PARAMETER_IGNORE_LOBS = "ignore-lobs";
 
   // humanized list of supported SIARD 2 versions
   private static final String versionsString = PARAMETER_VERSION_2_0 + " or " + PARAMETER_VERSION_2_1;
@@ -139,6 +140,12 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     "Define the type of font case for the message digest. Supported font case are: upper case and lower case. (Default: lowercase)")
     .hasArgument(true).required(false).valueIfNotSet("lowercase");
 
+  // For DBPTK Enterprise use; please don't use this parameter very dangerous
+  private static final Parameter ignoreLobs = new Parameter().shortName("ignl").longName(PARAMETER_IGNORE_LOBS)
+    .description(
+      "Ignores the LOBs by not reading them from the SIARD and ultimately not being available when importing a SIARD")
+    .hasArgument(false).required(false).valueIfNotSet("false").valueIfSet("true").publicArgument(false);
+
   @Override
   public boolean producesImportModules() {
     return true;
@@ -178,6 +185,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(gmlDirectory.longName(), gmlDirectory);
     parameterHashMap.put(messageDigestAlgorithm.longName(), messageDigestAlgorithm);
     parameterHashMap.put(fontCase.longName(), fontCase);
+    parameterHashMap.put(ignoreLobs.longName(), ignoreLobs);
 
     return parameterHashMap;
   }
@@ -189,7 +197,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public Parameters getImportModuleParameters() {
-    return new Parameters(Collections.singletonList(file), null);
+    return new Parameters(Arrays.asList(file, ignoreLobs), null);
   }
 
   @Override
@@ -216,20 +224,16 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     throws ModuleException {
     Path pFile = Paths.get(parameters.get(file));
 
+    boolean pIgnoreLobs = Boolean.parseBoolean(parameters.get(ignoreLobs));
+
     if (Files.notExists(pFile)) {
       throw new SiardNotFoundException().withPath(pFile.toAbsolutePath().toString())
         .withMessage("The path to the siard file appears to be incorrect");
     }
 
-    reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString());
-    return new SIARD2ImportModule(pFile).getDatabaseImportModule();
-  }
-
-  public SIARD2ImportModule buildSiardModule(Map<Parameter, String> parameters, Reporter reporter) {
-    Path pFile = Paths.get(parameters.get(file));
-
-    reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString());
-    return new SIARD2ImportModule(pFile);
+    reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString(),
+      PARAMETER_IGNORE_LOBS, Boolean.toString(pIgnoreLobs));
+    return new SIARD2ImportModule(pFile, pIgnoreLobs).getDatabaseImportModule();
   }
 
   @Override

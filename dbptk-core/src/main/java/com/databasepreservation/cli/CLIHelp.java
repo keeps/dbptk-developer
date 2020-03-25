@@ -160,11 +160,15 @@ public class CLIHelp extends CLIHandler {
     EditModuleFactory editModuleFactory = allEditModuleFactories.get(0);
 
     for (Parameter parameter : editModuleFactory.getImportParameters().getParameters()) {
-      out.append(printParameterHelp(Constants.SMALL_SPACE, "i", "import", parameter));
+      if (parameter.publicArgument()) {
+        out.append(printParameterHelp(Constants.SMALL_SPACE, "i", "import", parameter));
+      }
     }
 
     for (Parameter parameter : editModuleFactory.getParameters().getParameters()) {
-      out.append(printParameterHelp(Constants.SMALL_SPACE, parameter));
+      if (parameter.publicArgument()) {
+        out.append(printParameterHelp(Constants.SMALL_SPACE, parameter));
+      }
     }
 
     out.append("\n\n");
@@ -191,11 +195,15 @@ public class CLIHelp extends CLIHandler {
     ValidateModuleFactory factory = allValidateModuleFactories.get(0);
 
     for (Parameter parameter : factory.getImportParameters().getParameters()) {
-      out.append(printParameterHelp(Constants.SMALL_SPACE, "i", "import", parameter));
+      if (parameter.publicArgument()) {
+        out.append(printParameterHelp(Constants.SMALL_SPACE, "i", "import", parameter));
+      }
     }
 
     for (Parameter parameter : factory.getSingleParameters().getParameters()) {
-      out.append(printParameterHelp(Constants.SMALL_SPACE, parameter));
+      if (parameter.publicArgument()) {
+        out.append(printParameterHelp(Constants.SMALL_SPACE, parameter));
+      }
     }
     out.append("\n\n");
 
@@ -238,10 +246,10 @@ public class CLIHelp extends CLIHandler {
     Set<String> visibleModules = new HashSet<>(commandLineArguments);
 
     ArrayList<DatabaseModuleFactory> modulesList = new ArrayList<>(allModuleFactories);
-    Collections.sort(modulesList, new CLIMigrate.DatabaseModuleFactoryNameComparator());
+    modulesList.sort(new CLIMigrate.DatabaseModuleFactoryNameComparator());
 
     ArrayList<DatabaseFilterFactory> filterModulesList = new ArrayList<>(allFilterFactories);
-    Collections.sort(modulesList, new CLIMigrate.DatabaseModuleFactoryNameComparator());
+    modulesList.sort(new CLIMigrate.DatabaseModuleFactoryNameComparator());
 
     try {
       for (DatabaseModuleFactory factory : modulesList) {
@@ -330,12 +338,16 @@ public class CLIHelp extends CLIHandler {
     out.append("\n").append(Constants.SMALL_SPACE).append(moduleDesignation);
 
     for (Parameter parameter : moduleParameters.getParameters()) {
-      out.append(printParameterHelp(Constants.SMALL_SPACE, shortParameterPrefix, longParameterPrefix, parameter));
+      if (parameter.publicArgument()) {
+        out.append(printParameterHelp(Constants.SMALL_SPACE, shortParameterPrefix, longParameterPrefix, parameter));
+      }
     }
 
     for (ParameterGroup parameterGroup : moduleParameters.getGroups()) {
       for (Parameter parameter : parameterGroup.getParameters()) {
-        out.append(printParameterHelp(Constants.SMALL_SPACE, shortParameterPrefix, longParameterPrefix, parameter));
+        if (parameter.publicArgument()) {
+          out.append(printParameterHelp(Constants.SMALL_SPACE, shortParameterPrefix, longParameterPrefix, parameter));
+        }
       }
     }
     out.append("\n");

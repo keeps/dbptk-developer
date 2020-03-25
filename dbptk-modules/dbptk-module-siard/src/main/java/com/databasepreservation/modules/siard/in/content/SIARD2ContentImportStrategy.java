@@ -39,6 +39,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.databasepreservation.common.io.providers.DummyInputStreamProvider;
 import com.databasepreservation.common.io.providers.PathInputStreamProvider;
 import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;
@@ -81,6 +82,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
   // ImportStrategy
   private final ContentPathImportStrategy contentPathStrategy;
   private final ReadStrategy readStrategy;
+  private final boolean ignoreLobs;
   private final Deque<String> tagsStack = new LinkedList<>();
   private final StringBuilder tempVal = new StringBuilder();
   private SIARDArchiveContainer contentContainer;
@@ -99,10 +101,11 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
   private long rowIndex;
 
   public SIARD2ContentImportStrategy(ReadStrategy readStrategy, ContentPathImportStrategy contentPathStrategy,
-    SIARDArchiveContainer lobContainer) {
+    SIARDArchiveContainer lobContainer, boolean ignoreLobs) {
     this.contentPathStrategy = contentPathStrategy;
     this.readStrategy = readStrategy;
     this.lobContainer = lobContainer;
+    this.ignoreLobs = ignoreLobs;
   }
 
   @Override
@@ -304,9 +307,15 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
                 currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex,
                 new PathInputStreamProvider(container.getPath().resolve(Paths.get(lobPath))));
             } else {
-              currentBlobCell = new BinaryCell(
-                currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex,
-                readStrategy.createInputStream(container, lobPath));
+              if (ignoreLobs) {
+                currentBlobCell = new BinaryCell(
+                  currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex,
+                  new DummyInputStreamProvider());
+              } else {
+                currentBlobCell = new BinaryCell(
+                  currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex,
+                  readStrategy.createInputStream(container, lobPath));
+              }
             }
 
             LOGGER.debug(

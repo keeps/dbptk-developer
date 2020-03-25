@@ -9,11 +9,9 @@ package com.databasepreservation.modules.siard.in.read;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
@@ -29,7 +27,7 @@ public class ZipReadStrategy implements ReadStrategy {
   private final HashMap<SIARDArchiveContainer, ZipFile> zipFiles;
 
   public ZipReadStrategy() {
-    zipFiles = new HashMap<SIARDArchiveContainer, ZipFile>();
+    zipFiles = new HashMap<>();
   }
 
   @Override
@@ -102,7 +100,6 @@ public class ZipReadStrategy implements ReadStrategy {
     }
 
     final Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
-    List<String> list = new ArrayList<String>();
 
     return new CloseableIterable<String>() {
       @Override

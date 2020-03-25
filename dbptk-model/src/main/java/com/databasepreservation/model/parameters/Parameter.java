@@ -41,11 +41,12 @@ public class Parameter {
   private String valueIfSet = null; // for parameters without argument
   private String valueIfNotSet = null; // for optional parameters that were not set
   private Integer numberOfArgs = null; // for parameters that receive more than one argument
+  private boolean publicArgument = true; // by default every argument is public
   private INPUT_TYPE inputType = null;
   private CATEGORY_TYPE exportOptions = null;
   private FILE_FILTER_TYPE fileFilter = null;
 
-  private HashMap<String, Option> options = new HashMap<String, Option>();
+  private HashMap<String, Option> options = new HashMap<>();
 
   public Parameter() {
   }
@@ -248,6 +249,25 @@ public class Parameter {
    */
   public Parameter numberOfArgs(Integer numberOfArgs) {
     this.numberOfArgs = numberOfArgs;
+    return this;
+  }
+
+  /**
+   * Gets the value associated its visibility.
+   *
+   * @return the public aspect of arguments for this parameter.
+   */
+  public boolean publicArgument() { return publicArgument; }
+
+  /**
+   * If the parameter should show on help menu
+   *
+   * @param value
+   *          value of the parameter when it is present
+   * @return This parameter, for method chaining.
+   */
+  public Parameter publicArgument(boolean value) {
+    this.publicArgument = value;
     return this;
   }
 
