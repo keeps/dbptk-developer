@@ -10,7 +10,6 @@
  */
 package com.databasepreservation.modules.jdbc.out;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
@@ -34,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -636,16 +636,20 @@ public class JDBCExportModule implements DatabaseFilterModule {
         final BinaryCell bin = (BinaryCell) cell;
 
         if (type instanceof SimpleTypeBinary) {
-          try (InputStream inputStream = bin.createInputStream()) {
-            ps.setBinaryStream(index, inputStream, bin.getSize());
-            ret = bin::cleanResources;
-          }
+          final InputStream inputStream = bin.createInputStream();
+          ps.setBinaryStream(index, inputStream, bin.getSize());
+          ret = () -> {
+            IOUtils.closeQuietly(inputStream);
+            bin.cleanResources();
+          };
         } else if (type instanceof SimpleTypeString) {
-          try (InputStream inputStream = handleSimpleTypeString(ps, index, bin, column)) {
-            ret = bin::cleanResources;
-          }
+          final InputStream inputStream = handleSimpleTypeString(ps, index, bin, column);
+          ret = () -> {
+            IOUtils.closeQuietly(inputStream);
+            bin.cleanResources();
+          };
         } else {
-          LOGGER.error("Binary cell found when column type is {}", type.getClass().getSimpleName());
+          LOGGER.error("Binary cell found when column type is " + type.getClass().getSimpleName());
         }
 
       } else if (cell instanceof ArrayCell) {
@@ -658,7 +662,7 @@ public class JDBCExportModule implements DatabaseFilterModule {
       } else {
         throw new ModuleException().withMessage("Unsuported cell type " + cell.getClass().getName());
       }
-    } catch (SQLException | IOException e) {
+    } catch (SQLException e) {
       throw normalizeException(e, "SQL error while handling cell " + cell.getId());
     }
     return ret;
