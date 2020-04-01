@@ -85,4 +85,8 @@ public class PathInputStreamProvider implements InputStreamProvider {
       throw new ModuleException().withMessage("Could not get file size").withCause(e);
     }
   }
+
+  public Path getPath() {
+    return path;
+  }
 }

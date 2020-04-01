@@ -87,4 +87,8 @@ public class BinaryCell extends Cell implements InputStreamProvider {
   public long getSize() throws ModuleException {
     return inputStreamProvider.getSize();
   }
+
+  public InputStreamProvider getInputStreamProvider() {
+    return inputStreamProvider;
+  }
 }

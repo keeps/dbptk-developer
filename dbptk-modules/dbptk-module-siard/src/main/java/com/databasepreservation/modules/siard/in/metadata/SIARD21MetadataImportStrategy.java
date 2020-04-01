@@ -25,9 +25,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
-import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -114,8 +114,7 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
 
   @Override
   public void loadMetadata(ReadStrategy readStrategy, SIARDArchiveContainer container,
-    ModuleConfiguration moduleConfiguration)
-    throws ModuleException {
+    ModuleConfiguration moduleConfiguration) throws ModuleException {
     this.moduleConfiguration = moduleConfiguration;
     JAXBContext context;
     try {
