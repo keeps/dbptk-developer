@@ -160,13 +160,13 @@ public class CLIHelp extends CLIHandler {
     EditModuleFactory editModuleFactory = allEditModuleFactories.get(0);
 
     for (Parameter parameter : editModuleFactory.getImportParameters().getParameters()) {
-      if (parameter.publicArgument()) {
+      if (parameter.showOnHelpMenu()) {
         out.append(printParameterHelp(Constants.SMALL_SPACE, "i", "import", parameter));
       }
     }
 
     for (Parameter parameter : editModuleFactory.getParameters().getParameters()) {
-      if (parameter.publicArgument()) {
+      if (parameter.showOnHelpMenu()) {
         out.append(printParameterHelp(Constants.SMALL_SPACE, parameter));
       }
     }
@@ -195,13 +195,13 @@ public class CLIHelp extends CLIHandler {
     ValidateModuleFactory factory = allValidateModuleFactories.get(0);
 
     for (Parameter parameter : factory.getImportParameters().getParameters()) {
-      if (parameter.publicArgument()) {
+      if (parameter.showOnHelpMenu()) {
         out.append(printParameterHelp(Constants.SMALL_SPACE, "i", "import", parameter));
       }
     }
 
     for (Parameter parameter : factory.getSingleParameters().getParameters()) {
-      if (parameter.publicArgument()) {
+      if (parameter.showOnHelpMenu()) {
         out.append(printParameterHelp(Constants.SMALL_SPACE, parameter));
       }
     }
@@ -338,14 +338,14 @@ public class CLIHelp extends CLIHandler {
     out.append("\n").append(Constants.SMALL_SPACE).append(moduleDesignation);
 
     for (Parameter parameter : moduleParameters.getParameters()) {
-      if (parameter.publicArgument()) {
+      if (parameter.showOnHelpMenu()) {
         out.append(printParameterHelp(Constants.SMALL_SPACE, shortParameterPrefix, longParameterPrefix, parameter));
       }
     }
 
     for (ParameterGroup parameterGroup : moduleParameters.getGroups()) {
       for (Parameter parameter : parameterGroup.getParameters()) {
-        if (parameter.publicArgument()) {
+        if (parameter.showOnHelpMenu()) {
           out.append(printParameterHelp(Constants.SMALL_SPACE, shortParameterPrefix, longParameterPrefix, parameter));
         }
       }

@@ -133,7 +133,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
 
   private static final Parameter messageDigestAlgorithm = new Parameter().shortName("d")
     .longName(PARAMETER_MESSAGE_DIGEST_ALGORITHM)
-    .description("The message digest algorithm to be used to construct the merkle tree. (Default: SHA-256)")
+    .description("The message digest algorithm for the type of integrity information (Default: SHA-256)")
     .hasArgument(true).setOptionalArgument(false).required(false).valueIfNotSet("SHA-256");
 
   private static final Parameter fontCase = new Parameter().shortName("fc").longName(PARAMETER_FONT_CASE).description(
@@ -144,7 +144,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
   private static final Parameter ignoreLobs = new Parameter().shortName("ignl").longName(PARAMETER_IGNORE_LOBS)
     .description(
       "Ignores the LOBs by not reading them from the SIARD and ultimately not being available when importing a SIARD")
-    .hasArgument(false).required(false).valueIfNotSet("false").valueIfSet("true").publicArgument(false);
+    .hasArgument(false).required(false).valueIfNotSet("false").valueIfSet("true").showOnHelpMenu(false);
 
   @Override
   public boolean producesImportModules() {
@@ -216,7 +216,12 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
       metaDataOwner.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
       metaDataOriginTimespan.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
       metaClientMachine.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
-      gmlDirectory.inputType(INPUT_TYPE.DEFAULT), messageDigestAlgorithm, fontCase), Collections.emptyList());
+      gmlDirectory.inputType(INPUT_TYPE.DEFAULT),
+      messageDigestAlgorithm.inputType(INPUT_TYPE.COMBOBOX).possibleValues("MD5", "SHA-1", "SHA-256").defaultSelectedIndex(2)
+        .exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+      fontCase.inputType(INPUT_TYPE.COMBOBOX).possibleValues("uppercase", "lowercase").defaultSelectedIndex(1)
+        .exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS)),
+      Collections.emptyList());
   }
 
   @Override

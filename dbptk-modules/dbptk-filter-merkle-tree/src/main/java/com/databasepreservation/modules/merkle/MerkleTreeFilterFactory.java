@@ -27,7 +27,6 @@ import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.utils.ModuleUtils;
 
 public class MerkleTreeFilterFactory implements DatabaseFilterFactory {
-
   public static final String PARAMETER_FILE = "file";
   public static final String PARAMETER_MESSAGE_DIGEST_ALGORITHM = "digest";
   public static final String PARAMETER_EXPLAIN = "explain";
@@ -66,7 +65,12 @@ public class MerkleTreeFilterFactory implements DatabaseFilterFactory {
 
   @Override
   public Parameters getParameters() {
-    return new Parameters(Arrays.asList(file, messageDigestAlgorithm, explain, fontCase), null);
+    return new Parameters(Arrays.asList(file.inputType(Parameter.INPUT_TYPE.FILE_SAVE).fileFilter(Parameter.FILE_FILTER_TYPE.JSON_EXTENSION),
+      messageDigestAlgorithm.inputType(Parameter.INPUT_TYPE.COMBOBOX).possibleValues("MD5", "SHA-1", "SHA-256")
+        .defaultSelectedIndex(2),
+      explain.inputType(Parameter.INPUT_TYPE.CHECKBOX),
+      fontCase.inputType(Parameter.INPUT_TYPE.COMBOBOX).defaultSelectedIndex(1).possibleValues("uppercase", "lowercase")),
+      null);
   }
 
   @Override

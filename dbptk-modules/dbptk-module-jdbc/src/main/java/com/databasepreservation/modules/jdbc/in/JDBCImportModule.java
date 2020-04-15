@@ -41,6 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.databasepreservation.managers.RemoteConnectionManager;
+import com.databasepreservation.utils.ModuleConfigurationUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -282,12 +284,10 @@ public class JDBCImportModule implements DatabaseImportModule {
   }
 
   public DatabaseStructure getSchemaInformation() throws ModuleException {
-    // moduleConfiguration =
-    // ModuleConfigurationUtils.getDefaultModuleConfiguration();
-    // moduleConfiguration.setFetchRows(false);
-
     DatabaseStructure databaseStructure = getDatabaseStructure();
     closeConnection();
+
+    ModuleConfigurationManager.destroy();
 
     return databaseStructure;
   }
@@ -332,7 +332,7 @@ public class JDBCImportModule implements DatabaseImportModule {
    *
    * @throws SQLException
    */
-  public void closeConnection() throws ModuleException {
+  public void closeConnection() {
     if (statement != null) {
       try {
         statement.close();
@@ -357,6 +357,9 @@ public class JDBCImportModule implements DatabaseImportModule {
     this.connection = null;
     dbMetadata = null;
     dbStructure = null;
+
+    ModuleConfigurationManager.destroy();
+    RemoteConnectionManager.destroy();
   }
 
   /**

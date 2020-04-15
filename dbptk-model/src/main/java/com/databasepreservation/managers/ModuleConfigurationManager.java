@@ -28,10 +28,8 @@ public class ModuleConfigurationManager {
   }
 
   public void setup(ModuleConfiguration configuration) {
-    if (!isInitialized()) {
-      moduleConfiguration = configuration;
-      initialized = true;
-    }
+    moduleConfiguration = configuration;
+    initialized = true;
   }
 
   public ModuleConfiguration getModuleConfiguration() {
@@ -44,5 +42,9 @@ public class ModuleConfigurationManager {
 
   public boolean isInitialized() {
     return initialized;
+  }
+
+  public static void destroy() {
+    instance = null;
   }
 }

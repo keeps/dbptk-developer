@@ -7,7 +7,10 @@
  */
 package com.databasepreservation.model.parameters;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.commons.cli.Option;
 
@@ -20,7 +23,7 @@ public class Parameter {
 
   /* GUI Helper */
   public enum INPUT_TYPE {
-    DRIVER, FILE_SAVE, FILE_OPEN, FOLDER, TEXT, PASSWORD, CHECKBOX, NUMBER, DEFAULT, NONE
+    COMBOBOX, DRIVER, FILE_SAVE, FILE_OPEN, FOLDER, TEXT, PASSWORD, CHECKBOX, NUMBER, DEFAULT, NONE
   }
 
   /* GUI Helper for SIARD Export Module */
@@ -29,7 +32,7 @@ public class Parameter {
   }
 
   public enum FILE_FILTER_TYPE {
-    XML_EXTENSION, SIARD_EXTENSION
+    XML_EXTENSION, SIARD_EXTENSION, JSON_EXTENSION
   }
 
   private String shortName = null;
@@ -41,10 +44,12 @@ public class Parameter {
   private String valueIfSet = null; // for parameters without argument
   private String valueIfNotSet = null; // for optional parameters that were not set
   private Integer numberOfArgs = null; // for parameters that receive more than one argument
-  private boolean publicArgument = true; // by default every argument is public
+  private boolean showOnHelpMenu = true; // by default every argument is public
   private INPUT_TYPE inputType = null;
   private CATEGORY_TYPE exportOptions = null;
   private FILE_FILTER_TYPE fileFilter = null;
+  private List<String> possibleValues = new ArrayList<>();
+  private Integer defaultSelectedIndex = 0;
 
   private HashMap<String, Option> options = new HashMap<>();
 
@@ -257,7 +262,9 @@ public class Parameter {
    *
    * @return the public aspect of arguments for this parameter.
    */
-  public boolean publicArgument() { return publicArgument; }
+  public boolean showOnHelpMenu() {
+    return showOnHelpMenu;
+  }
 
   /**
    * If the parameter should show on help menu
@@ -266,8 +273,8 @@ public class Parameter {
    *          value of the parameter when it is present
    * @return This parameter, for method chaining.
    */
-  public Parameter publicArgument(boolean value) {
-    this.publicArgument = value;
+  public Parameter showOnHelpMenu(boolean value) {
+    this.showOnHelpMenu = value;
     return this;
   }
 
@@ -290,6 +297,22 @@ public class Parameter {
     this.inputType = type;
     return this;
   }
+
+  public Parameter possibleValues(String... values) {
+    this.possibleValues = new ArrayList<>(Arrays.asList(values));
+    return this;
+  }
+
+  public List<String> getPossibleValues() {
+    return possibleValues;
+  }
+
+  public Parameter defaultSelectedIndex(Integer index) {
+    this.defaultSelectedIndex = index;
+    return this;
+  }
+
+  public Integer getDefaultSelectedIndex() { return defaultSelectedIndex; }
 
   /**
    * Gets the export option type for this parameter; Helper to automatize the

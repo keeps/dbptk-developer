@@ -70,4 +70,8 @@ public class RemoteConnectionManager {
 
     return channelSftp.get(blobPath.normalize().toString());
   }
+
+  public static void destroy() {
+    instance = null;
+  }
 }

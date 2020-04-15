@@ -233,8 +233,12 @@ public class DatabaseMigration {
    */
   public DatabaseMigration filterParameters(List<Map<Parameter, String>> parameters) {
     for (int i = 0; i < parameters.size(); i++) {
-      for (Map.Entry<Parameter, String> entry : parameters.get(i).entrySet()) {
-        filterParameter(entry.getKey().longName(), entry.getValue(), i);
+      if (parameters.get(i).isEmpty()) {
+        filterParameter("", "", i);
+      } else {
+        for (Map.Entry<Parameter, String> entry : parameters.get(i).entrySet()) {
+          filterParameter(entry.getKey().longName(), entry.getValue(), i);
+        }
       }
     }
     return this;
