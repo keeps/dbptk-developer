@@ -73,10 +73,12 @@ public class Main {
    *          the console arguments
    */
   public static void main(String[] args) {
-    CLI cli = new CLI(Arrays.asList(args), ReflectionUtils.collectDatabaseModuleFactories(),
-      ReflectionUtils.collectDatabaseFilterFactory(), ReflectionUtils.collectEditModuleFactories(),
-      ReflectionUtils.collectValidateModuleFactories());
-    System.exit(internalMain(cli));
+    CLI cli = new CLI(Arrays.asList(args),
+            ReflectionUtils.collectDatabaseModuleFactories(),
+            ReflectionUtils.collectDatabaseFilterFactory(),
+            ReflectionUtils.collectEditModuleFactories(),
+            ReflectionUtils.collectValidateModuleFactories());
+            System.exit(internalMain(cli));
   }
 
   public static int internalMainUsedOnlyByTestClasses(String... args) {
