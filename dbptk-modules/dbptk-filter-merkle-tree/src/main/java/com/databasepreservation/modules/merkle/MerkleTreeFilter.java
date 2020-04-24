@@ -143,8 +143,7 @@ public class MerkleTreeFilter implements DatabaseFilterModule {
     List<String> columns = new ArrayList<>();
 
     for (ColumnStructure column : currentTable.getColumns()) {
-      if (currentTable.isFromCustomView() || ModuleConfigurationManager.getInstance().getModuleConfiguration().isMerkleColumn(currentTable.getSchema(),
-        currentTable.getName(), column.getName())) {
+      if (currentTable.isFromCustomView() || ModuleConfigurationManager.getInstance().getModuleConfiguration().isMerkleColumn(currentTable.getSchema(), currentTable.getName(), column.getName())) {
         merkleColumnsIndexes.add(index);
         columns.add(column.getName());
         index++;
@@ -183,7 +182,7 @@ public class MerkleTreeFilter implements DatabaseFilterModule {
       }
 
       for (int i = 0; i < merkleColumnsIndexes.size(); i++) {
-        Cell cell = row.getCells().get(i);
+        Cell cell = row.getCells().get(merkleColumnsIndexes.get(i));
         byte[] digest;
         MessageDigest cellDigest = getMessageDigest();
 
@@ -240,6 +239,7 @@ public class MerkleTreeFilter implements DatabaseFilterModule {
 
       jsonGenerator.writeEndObject();
       jsonGenerator.writeEndObject();
+
     } catch (IOException e) {
       throw new ModuleException().withMessage(UNABLE_TO_WRITE_TO_THE_OUTPUT_FILE).withCause(e);
     }

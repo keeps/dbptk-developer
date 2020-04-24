@@ -105,8 +105,7 @@ public class ModuleConfiguration {
       return true;
     }
 
-    return schemaConfigurations.get(schemaName) != null
-      && schemaConfigurations.get(schemaName).isMerkleColumn(tableName, columnName);
+    return schemaConfigurations.get(schemaName) != null && schemaConfigurations.get(schemaName).isMerkleColumn(tableName, columnName);
   }
 
   @JsonIgnore

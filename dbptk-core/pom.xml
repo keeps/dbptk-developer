@@ -162,6 +162,11 @@
 			<artifactId>dbptk-filter-merkle-tree</artifactId>
 		</dependency>
 
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-filter-csv-file</artifactId>
+        </dependency>
+
         <!-- common -->
         <dependency>
             <groupId>commons-codec</groupId>

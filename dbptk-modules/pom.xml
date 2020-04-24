@@ -18,6 +18,7 @@
         <version.java>1.7</version.java>
     </properties>
     <modules>
+        <module>dbptk-filter-csv-file</module>
 		<module>dbptk-filter-external-lobs</module>
 		<module>dbptk-filter-merkle-tree</module>
 		<module>dbptk-module-dbml</module>

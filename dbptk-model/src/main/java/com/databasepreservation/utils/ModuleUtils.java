@@ -19,4 +19,11 @@ public class ModuleUtils {
       throw new ModuleException().withMessage("Unsupported font case type: '" + pFontCase + "'");
     }
   }
+
+  public static void validateSeparator(String pSeparator) throws ModuleException {
+    if (!pSeparator.matches(",") && !pSeparator.matches(";")) {
+      throw new ModuleException().withMessage("Unsupported separator type: '" + pSeparator + "'");
+    }
+  }
+
 }
