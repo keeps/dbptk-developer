@@ -108,6 +108,14 @@ public class ModuleConfiguration {
     return schemaConfigurations.get(schemaName) != null && schemaConfigurations.get(schemaName).isMerkleColumn(tableName, columnName);
   }
 
+  public boolean isInventoryColumn(String schemaName, String tableName, String columnName) {
+    if (schemaConfigurations.isEmpty()) {
+      return true;
+    }
+
+    return schemaConfigurations.get(schemaName) != null && schemaConfigurations.get(schemaName).isInventoryColumn(tableName, columnName);
+  }
+
   @JsonIgnore
   public boolean isMaterializeView(String schemaName, String viewName) {
     if (ignoreViews()) {

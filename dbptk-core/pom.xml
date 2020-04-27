@@ -164,7 +164,7 @@
 
         <dependency>
             <groupId>com.databasepreservation</groupId>
-            <artifactId>dbptk-filter-csv-file</artifactId>
+            <artifactId>dbptk-filter-inventory</artifactId>
         </dependency>
 
         <!-- common -->
