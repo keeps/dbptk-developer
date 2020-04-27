@@ -70,6 +70,16 @@ public class SchemaConfiguration {
   }
 
   @JsonIgnore
+  public boolean isInventoryColumn(String tableName, String columnName) {
+    final boolean viewInventoryColumn = viewConfigurations.stream().anyMatch(
+            view -> view.getName().equals(tableName.replace(Constants.VIEW_NAME_PREFIX, "")) && view.isMaterialized()
+                    && view.getColumns().stream().anyMatch(column -> column.getName().equals(columnName) && column.isInventory()));
+
+    return viewInventoryColumn || tableConfigurations.stream().anyMatch(table -> table.getName().equals(tableName)
+            && table.getColumns().stream().anyMatch(column -> column.getName().equals(columnName) && column.isInventory()));
+  }
+
+  @JsonIgnore
   public boolean isMaterializedView(String viewName) {
     return viewConfigurations.stream().anyMatch(view -> view.getName().equals(viewName) && view.isMaterialized());
   }

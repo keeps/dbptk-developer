@@ -20,10 +20,5 @@ public class ModuleUtils {
     }
   }
 
-  public static void validateSeparator(String pSeparator) throws ModuleException {
-    if (!pSeparator.matches(",") && !pSeparator.matches(";")) {
-      throw new ModuleException().withMessage("Unsupported separator type: '" + pSeparator + "'");
-    }
-  }
 
 }
