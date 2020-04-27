@@ -99,7 +99,7 @@ public class InventoryFilter implements DatabaseFilterModule {
       this.listOfHeaders = new HashMap<>();
       this.listOfData = new ArrayList<>();
 
-      int index = 1;
+      int index = 0;
 
       for (ColumnStructure column : currentTable.getColumns()) {
         if (currentTable.isFromCustomView() || ModuleConfigurationManager.getInstance().getModuleConfiguration().isInventoryColumn(currentTable.getSchema(),
