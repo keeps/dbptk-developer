@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +19,6 @@ import java.util.Set;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.managers.ModuleConfigurationManager;
 import com.databasepreservation.model.data.Cell;
@@ -39,16 +39,16 @@ public class InventoryFilter implements DatabaseFilterModule {
   private List<Integer> indexOfHeaders;
 
   private String prefixPath;
-  private String dirPath;
+  private Path dirPath;
   private final boolean printHeader;
   private String separator;
 
   private File csv_file;
-  private File csv_dir;
   private OutputStreamWriter outStreamWriter;
   private CSVPrinter csv_printer;
+  private boolean do_export;
 
-  public InventoryFilter(String prefix, String dirPath, boolean pPrintHeader, String separator) {
+  public InventoryFilter(String prefix, Path dirPath, boolean pPrintHeader, String separator) {
     this.prefixPath = prefix;
     this.dirPath = dirPath;
     this.printHeader = pPrintHeader;
@@ -73,48 +73,43 @@ public class InventoryFilter implements DatabaseFilterModule {
 
   @Override
   public void handleDataOpenSchema(String schemaName) throws ModuleException {
-    if (StringUtils.isNotBlank(dirPath)) {
-      csv_dir = new File(dirPath);
-      csv_dir.mkdirs();
-    }
-
     this.exportModule.handleDataOpenSchema(schemaName);
   }
 
   @Override
   public void handleDataOpenTable(String tableId) throws ModuleException {
+    do_export = false;
     TableStructure currentTable = databaseStructure.getTableById(tableId);
     String currentTableName = currentTable.getId();
 
-    createCsvFile(currentTableName);
+    indexOfHeaders = new ArrayList<>();
+    List<String> listOfHeaders = new ArrayList<>();
 
     try {
-      csv_file.createNewFile();
-
-      outStreamWriter = new FileWriter(csv_file);
-
-      csv_printer = CSVFormat.newFormat(separator.charAt(0)).withRecordSeparator("\n").print(outStreamWriter);
-
-      indexOfHeaders = new ArrayList<>();
-
       int index = 0;
 
       for (ColumnStructure column : currentTable.getColumns()) {
         if (currentTable.isFromCustomView() || ModuleConfigurationManager.getInstance().getModuleConfiguration()
           .isInventoryColumn(currentTable.getSchema(), currentTable.getName(), column.getName())) {
           String header = currentTableName + "." + column.getName();
+          do_export = true;
           indexOfHeaders.add(index);
-          index++;
-          if (printHeader) {
+          listOfHeaders.add(header);
+        }
+        index++;
+      }
+
+      if (do_export) {
+        csv_file = dirPath.resolve(prefixPath + currentTableName).toFile();
+        outStreamWriter = new FileWriter(csv_file);
+        csv_printer = CSVFormat.newFormat(separator.charAt(0)).withRecordSeparator("\n").print(outStreamWriter);
+        if (printHeader) {
+          for (String header : listOfHeaders) {
             csv_printer.print(header);
           }
+          csv_printer.println();
         }
       }
-
-      if (printHeader) {
-        csv_printer.println();
-      }
-
     } catch (IOException e) {
       throw new ModuleException()
         .withMessage("Could not create an output stream for file '" + csv_file.toString() + "'").withCause(e);
@@ -125,9 +120,7 @@ public class InventoryFilter implements DatabaseFilterModule {
 
   @Override
   public void handleDataRow(Row row) throws ModuleException {
-    if (indexOfHeaders.size() == 0) {
-      csv_file.delete();
-    } else {
+    if (do_export) {
       try {
         for (Integer index : indexOfHeaders) {
           Cell cell = row.getCells().get(index);
@@ -146,21 +139,20 @@ public class InventoryFilter implements DatabaseFilterModule {
         throw new ModuleException().withMessage("Could not write to file '" + csv_file.toString() + "'").withCause(e);
       }
     }
-
     this.exportModule.handleDataRow(row);
   }
 
   @Override
   public void handleDataCloseTable(String tableId) throws ModuleException {
-
-    try {
-      outStreamWriter.flush();
-      outStreamWriter.close();
-    } catch (IOException e) {
-      throw new ModuleException()
-        .withMessage("Could not close the output stream for file '" + csv_file.toString() + "'").withCause(e);
+    if (do_export) {
+      try {
+        outStreamWriter.flush();
+        outStreamWriter.close();
+      } catch (IOException e) {
+        throw new ModuleException()
+          .withMessage("Could not close the output stream for file '" + csv_file.toString() + "'").withCause(e);
+      }
     }
-
     this.exportModule.handleDataCloseTable(tableId);
   }
 
@@ -194,18 +186,6 @@ public class InventoryFilter implements DatabaseFilterModule {
   @Override
   public ModuleException normalizeException(Exception exception, String contextMessage) {
     return null;
-  }
-
-  public void createCsvFile(String currentTableName) {
-    if (StringUtils.isNotBlank(dirPath) && StringUtils.isNotBlank(prefixPath)) {
-      csv_file = new File(csv_dir, prefixPath + "-" + currentTableName + ".csv");
-    } else if (StringUtils.isNotBlank(dirPath) && StringUtils.isAllBlank(prefixPath)) {
-      csv_file = new File(csv_dir, currentTableName + ".csv");
-    } else if (StringUtils.isAllBlank(dirPath) && StringUtils.isNotBlank(prefixPath)) {
-      csv_file = new File(prefixPath + "-" + currentTableName + ".csv");
-    } else {
-      csv_file = new File(currentTableName + ".csv");
-    }
   }
 
 }
