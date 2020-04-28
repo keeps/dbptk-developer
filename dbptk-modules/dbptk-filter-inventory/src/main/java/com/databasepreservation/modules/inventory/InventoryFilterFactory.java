@@ -7,6 +7,8 @@
  */
 package com.databasepreservation.modules.inventory;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,6 +22,7 @@ import com.databasepreservation.model.modules.filters.ExecutionOrder;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.model.reporters.Reporter;
+import com.databasepreservation.utils.ConfigUtils;
 
 public class InventoryFilterFactory implements DatabaseFilterFactory {
   public static final String PARAMETER_PREFIX = "prefix";
@@ -87,11 +90,18 @@ public class InventoryFilterFactory implements DatabaseFilterFactory {
     }
 
     // dir path to save inventory
-    String pDir = "";
+    Path pDir = ConfigUtils.getHomeDirectory();
     if (StringUtils.isNotBlank(parameters.get(dir))) {
-      pDir = parameters.get(dir);
+      pDir = Paths.get(parameters.get(dir));
     }
 
+    if (!pDir.toFile().exists()) {
+      if (!pDir.toFile().mkdirs()) {
+        throw new ModuleException().withMessage("Can not create dirs to path: '" + pDir.toString() + "'");
+      }
+    }
+
+    // value to print header
     boolean pPrintHeader = Boolean.parseBoolean(printHeader.valueIfNotSet());
     if (StringUtils.isNotBlank(parameters.get(printHeader))) {
       pPrintHeader = Boolean.parseBoolean(printHeader.valueIfSet());
@@ -108,8 +118,8 @@ public class InventoryFilterFactory implements DatabaseFilterFactory {
         .withMessage("Separator: '" + pSeparator + "' is not supported type for Csv delimiter");
     }
 
-    reporter.filterParameters(getFilterName(), PARAMETER_PREFIX, pPrefix, PARAMETER_DIR, pDir,
-      PARAMETER_DISABLE_PRINT_HEADER, Boolean.toString(pPrintHeader), PARAMETER_SEPARATOR, String.valueOf(pSeparator));
+    reporter.filterParameters(getFilterName(), PARAMETER_PREFIX, pPrefix, PARAMETER_DIR, pDir.toString(),
+      PARAMETER_DISABLE_PRINT_HEADER, Boolean.toString(pPrintHeader), PARAMETER_SEPARATOR, pSeparator);
 
     return new InventoryFilter(pPrefix, pDir, pPrintHeader, pSeparator);
   }

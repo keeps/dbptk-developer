@@ -146,8 +146,8 @@ public class MerkleTreeFilter implements DatabaseFilterModule {
       if (currentTable.isFromCustomView() || ModuleConfigurationManager.getInstance().getModuleConfiguration().isMerkleColumn(currentTable.getSchema(), currentTable.getName(), column.getName())) {
         merkleColumnsIndexes.add(index);
         columns.add(column.getName());
-        index++;
       }
+      index++;
     }
 
     try {
