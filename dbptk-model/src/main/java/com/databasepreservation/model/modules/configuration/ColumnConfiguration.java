@@ -22,12 +22,13 @@ public class ColumnConfiguration {
   private String name;
   @JsonInclude(JsonInclude.Include.NON_DEFAULT)
   private boolean merkle;
+  @JsonInclude(JsonInclude.Include.NON_DEFAULT)
   private boolean inventory;
   private ExternalLobsConfiguration externalLob;
 
   public ColumnConfiguration() {
     this.merkle = true;
-    this.inventory = true;
+    this.inventory = false;
   }
 
   public String getName() {
