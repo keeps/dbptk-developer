@@ -20,30 +20,26 @@ import com.databasepreservation.model.modules.filters.ExecutionOrder;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.model.reporters.Reporter;
-import com.databasepreservation.utils.ModuleUtils;
 
 public class InventoryFilterFactory implements DatabaseFilterFactory {
   public static final String PARAMETER_PREFIX = "prefix";
-  public static final String PARAMETER_DIR_PATH = "dir-path";
-  public static final String PARAMETER_PRINT_HEADER = "print-header";
+  public static final String PARAMETER_DIR = "dir";
+  public static final String PARAMETER_DISABLE_PRINT_HEADER = "disable-print-header";
   public static final String PARAMETER_SEPARATOR = "separator";
-
 
   private static final Parameter prefix = new Parameter().shortName("pr").longName(PARAMETER_PREFIX)
     .description("Prefix to append to inventory files").hasArgument(true).setOptionalArgument(false).required(false);
 
-  private static final Parameter dirPath = new Parameter().shortName("dp").longName(PARAMETER_DIR_PATH)
-          .description("Dir path to save inventory files").hasArgument(true).setOptionalArgument(false).required(false);
+  private static final Parameter dir = new Parameter().shortName("dp").longName(PARAMETER_DIR)
+    .description("Dir path to save inventory files").hasArgument(true).setOptionalArgument(false).required(false);
 
-  private static final Parameter printHeader = new Parameter().shortName("ph")
-          .longName(PARAMETER_PRINT_HEADER)
-          .description("The message to indicate if the header should be printed or not (Default: true)")
-          .hasArgument(false).setOptionalArgument(false).required(false).valueIfSet("false").valueIfNotSet("true");
+  private static final Parameter printHeader = new Parameter().shortName("ph").longName(PARAMETER_DISABLE_PRINT_HEADER)
+    .description("Value to indicate if the header should be printed or not (Default: true)").hasArgument(false)
+    .setOptionalArgument(false).required(false).valueIfSet("false").valueIfNotSet("true");
 
-  private static final Parameter separator = new Parameter().shortName("sp")
-          .longName(PARAMETER_SEPARATOR)
-          .description("Character that indicates the table separator of the inventory file")
-          .hasArgument(false).setOptionalArgument(false).required(false).valueIfNotSet(",").valueIfSet(";");
+  private static final Parameter separator = new Parameter().shortName("sp").longName(PARAMETER_SEPARATOR)
+    .description("Character that indicates the table separator of the inventory file").hasArgument(true)
+    .setOptionalArgument(false).required(false).valueIfNotSet(",");
 
   @Override
   public String getFilterName() {
@@ -62,9 +58,10 @@ public class InventoryFilterFactory implements DatabaseFilterFactory {
 
   @Override
   public Parameters getParameters() {
-    return new Parameters(Arrays.asList(prefix.inputType(Parameter.INPUT_TYPE.TEXT), dirPath.inputType(Parameter.INPUT_TYPE.TEXT),
-      printHeader.inputType(Parameter.INPUT_TYPE.COMBOBOX).possibleValues("true","false").defaultSelectedIndex(0),
-      separator.inputType(Parameter.INPUT_TYPE.TEXT)),
+    return new Parameters(
+      Arrays.asList(prefix.inputType(Parameter.INPUT_TYPE.TEXT), dir.inputType(Parameter.INPUT_TYPE.TEXT),
+        printHeader.inputType(Parameter.INPUT_TYPE.COMBOBOX).possibleValues("true", "false").defaultSelectedIndex(0),
+        separator.inputType(Parameter.INPUT_TYPE.TEXT)),
       null);
   }
 
@@ -72,7 +69,7 @@ public class InventoryFilterFactory implements DatabaseFilterFactory {
   public Map<String, Parameter> getAllParameters() {
     HashMap<String, Parameter> parameterHashMap = new HashMap<>();
     parameterHashMap.put(prefix.longName(), prefix);
-    parameterHashMap.put(dirPath.longName(), dirPath);
+    parameterHashMap.put(dir.longName(), dir);
     parameterHashMap.put(printHeader.longName(), printHeader);
     parameterHashMap.put(separator.longName(), separator);
 
@@ -90,29 +87,30 @@ public class InventoryFilterFactory implements DatabaseFilterFactory {
     }
 
     // dir path to save inventory
-    String pDirPath = "";
-    if (StringUtils.isNotBlank(parameters.get(dirPath))) {
-      pDirPath = parameters.get(dirPath);
+    String pDir = "";
+    if (StringUtils.isNotBlank(parameters.get(dir))) {
+      pDir = parameters.get(dir);
     }
 
-    boolean pPrintHeader= Boolean.parseBoolean(this.printHeader.valueIfNotSet());
-    if (StringUtils.isNotBlank(parameters.get(this.printHeader))) {
-      pPrintHeader = Boolean.parseBoolean(this.printHeader.valueIfSet());
+    boolean pPrintHeader = Boolean.parseBoolean(printHeader.valueIfNotSet());
+    if (StringUtils.isNotBlank(parameters.get(printHeader))) {
+      pPrintHeader = Boolean.parseBoolean(printHeader.valueIfSet());
     }
-
 
     // separator
-    char pSeparator = separator.valueIfNotSet().charAt(0);
+    String pSeparator = separator.valueIfNotSet();
     if (StringUtils.isNotBlank(parameters.get(separator))) {
-      pSeparator = parameters.get(separator).charAt(0);
+      pSeparator = parameters.get(separator);
     }
 
+    if (pSeparator.length() > 1) {
+      throw new ModuleException()
+        .withMessage("Separator: '" + pSeparator + "' is not supported type for Csv delimiter");
+    }
 
-    reporter.filterParameters(getFilterName(), PARAMETER_PREFIX, pPrefix,
-            PARAMETER_DIR_PATH, pDirPath,
-            PARAMETER_PRINT_HEADER, Boolean.toString(pPrintHeader),
-            PARAMETER_SEPARATOR, String.valueOf(pSeparator));
+    reporter.filterParameters(getFilterName(), PARAMETER_PREFIX, pPrefix, PARAMETER_DIR, pDir,
+      PARAMETER_DISABLE_PRINT_HEADER, Boolean.toString(pPrintHeader), PARAMETER_SEPARATOR, String.valueOf(pSeparator));
 
-    return new InventoryFilter(pPrefix,pDirPath,pPrintHeader,pSeparator);
+    return new InventoryFilter(pPrefix, pDir, pPrintHeader, pSeparator);
   }
 }
