@@ -91,7 +91,7 @@ public class InventoryFilter implements DatabaseFilterModule {
       for (ColumnStructure column : currentTable.getColumns()) {
         if (currentTable.isFromCustomView() || ModuleConfigurationManager.getInstance().getModuleConfiguration()
           .isInventoryColumn(currentTable.getSchema(), currentTable.getName(), column.getName())) {
-          String header = currentTableName + "." + column.getName();
+          String header = column.getName();
           do_export = true;
           indexOfHeaders.add(index);
           listOfHeaders.add(header);
@@ -100,7 +100,7 @@ public class InventoryFilter implements DatabaseFilterModule {
       }
 
       if (do_export) {
-        csv_file = dirPath.resolve(prefixPath + currentTableName).toFile();
+        csv_file = dirPath.resolve(prefixPath + currentTableName + ".csv").toFile();
         outStreamWriter = new FileWriter(csv_file);
         csv_printer = CSVFormat.newFormat(separator.charAt(0)).withRecordSeparator("\n").print(outStreamWriter);
         if (printHeader) {
