@@ -33,12 +33,13 @@ public class InventoryFilterFactory implements DatabaseFilterFactory {
   private static final Parameter prefix = new Parameter().shortName("pr").longName(PARAMETER_PREFIX)
     .description("Prefix to append to inventory files").hasArgument(true).setOptionalArgument(false).required(false);
 
-  private static final Parameter dir = new Parameter().shortName("dp").longName(PARAMETER_DIR)
-    .description("Dir path to save inventory files").hasArgument(true).setOptionalArgument(false).required(false);
+  private static final Parameter dir = new Parameter().shortName("dir").longName(PARAMETER_DIR)
+    .description("Directory path where the inventory files show be saved").hasArgument(true).setOptionalArgument(false)
+    .required(false);
 
-  private static final Parameter printHeader = new Parameter().shortName("ph").longName(PARAMETER_DISABLE_PRINT_HEADER)
-    .description("Value to indicate if the header should be printed or not (Default: true)").hasArgument(false)
-    .setOptionalArgument(false).required(false).valueIfSet("false").valueIfNotSet("true");
+  private static final Parameter disablePrintHeader = new Parameter().shortName("dh")
+    .longName(PARAMETER_DISABLE_PRINT_HEADER).description("use to disable the header for each CSV file generated")
+    .hasArgument(false).setOptionalArgument(false).required(false).valueIfSet("false").valueIfNotSet("true");
 
   private static final Parameter separator = new Parameter().shortName("sp").longName(PARAMETER_SEPARATOR)
     .description("Character that indicates the table separator of the inventory file").hasArgument(true)
@@ -61,11 +62,10 @@ public class InventoryFilterFactory implements DatabaseFilterFactory {
 
   @Override
   public Parameters getParameters() {
-    return new Parameters(
-      Arrays.asList(prefix.inputType(Parameter.INPUT_TYPE.TEXT), dir.inputType(Parameter.INPUT_TYPE.TEXT),
-        printHeader.inputType(Parameter.INPUT_TYPE.COMBOBOX).possibleValues("true", "false").defaultSelectedIndex(0),
-        separator.inputType(Parameter.INPUT_TYPE.TEXT)),
-      null);
+    return new Parameters(Arrays.asList(prefix.inputType(Parameter.INPUT_TYPE.TEXT),
+      dir.inputType(Parameter.INPUT_TYPE.TEXT), disablePrintHeader.inputType(Parameter.INPUT_TYPE.COMBOBOX)
+        .possibleValues("true", "false").defaultSelectedIndex(0),
+      separator.inputType(Parameter.INPUT_TYPE.TEXT)), null);
   }
 
   @Override
@@ -73,7 +73,7 @@ public class InventoryFilterFactory implements DatabaseFilterFactory {
     HashMap<String, Parameter> parameterHashMap = new HashMap<>();
     parameterHashMap.put(prefix.longName(), prefix);
     parameterHashMap.put(dir.longName(), dir);
-    parameterHashMap.put(printHeader.longName(), printHeader);
+    parameterHashMap.put(disablePrintHeader.longName(), disablePrintHeader);
     parameterHashMap.put(separator.longName(), separator);
 
     return parameterHashMap;
@@ -102,9 +102,9 @@ public class InventoryFilterFactory implements DatabaseFilterFactory {
     }
 
     // value to print header
-    boolean pPrintHeader = Boolean.parseBoolean(printHeader.valueIfNotSet());
-    if (StringUtils.isNotBlank(parameters.get(printHeader))) {
-      pPrintHeader = Boolean.parseBoolean(printHeader.valueIfSet());
+    boolean pPrintHeader = Boolean.parseBoolean(disablePrintHeader.valueIfNotSet());
+    if (StringUtils.isNotBlank(parameters.get(disablePrintHeader))) {
+      pPrintHeader = Boolean.parseBoolean(disablePrintHeader.valueIfSet());
     }
 
     // separator
@@ -118,8 +118,9 @@ public class InventoryFilterFactory implements DatabaseFilterFactory {
         .withMessage("Separator: '" + pSeparator + "' is not supported type for Csv delimiter");
     }
 
-    reporter.filterParameters(getFilterName(), PARAMETER_PREFIX, pPrefix, PARAMETER_DIR, pDir.toString(),
-      PARAMETER_DISABLE_PRINT_HEADER, Boolean.toString(pPrintHeader), PARAMETER_SEPARATOR, pSeparator);
+    reporter.filterParameters(getFilterName(), PARAMETER_PREFIX, pPrefix, PARAMETER_DIR,
+      pDir.toAbsolutePath().normalize().toString(), PARAMETER_DISABLE_PRINT_HEADER, Boolean.toString(pPrintHeader),
+      PARAMETER_SEPARATOR, pSeparator);
 
     return new InventoryFilter(pPrefix, pDir, pPrintHeader, pSeparator);
   }
