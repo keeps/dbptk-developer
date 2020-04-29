@@ -7,8 +7,11 @@
  */
 package com.databasepreservation.model.modules.configuration;
 
+import com.databasepreservation.Constants;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -20,9 +23,13 @@ public class CustomViewConfiguration {
   private String name;
   private String description;
   private String query;
+  private List<ColumnConfiguration> columns;
 
   public CustomViewConfiguration() {
-    super();
+    name = Constants.EMPTY;
+    columns = new ArrayList<>();
+    description = Constants.EMPTY;
+    query = Constants.EMPTY;
   }
 
   public String getName() {
@@ -49,14 +56,23 @@ public class CustomViewConfiguration {
     this.query = query;
   }
 
+  public List<ColumnConfiguration> getColumns() {
+    return columns;
+  }
+
+  public void setColumns(List<ColumnConfiguration> columns) {
+    this.columns = columns;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     CustomViewConfiguration that = (CustomViewConfiguration) o;
-    return Objects.equals(getName(), that.getName()) &&
-        Objects.equals(getDescription(), that.getDescription()) &&
-        Objects.equals(getQuery(), that.getQuery());
+    return Objects.equals(name, that.name) &&
+            Objects.equals(description, that.description) &&
+            Objects.equals(query, that.query) &&
+            Objects.equals(columns, that.columns);
   }
 
   @Override
