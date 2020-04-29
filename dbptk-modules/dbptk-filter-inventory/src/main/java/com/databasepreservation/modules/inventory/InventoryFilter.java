@@ -89,7 +89,7 @@ public class InventoryFilter implements DatabaseFilterModule {
       int index = 0;
 
       for (ColumnStructure column : currentTable.getColumns()) {
-        if (currentTable.isFromCustomView() || ModuleConfigurationManager.getInstance().getModuleConfiguration()
+        if (ModuleConfigurationManager.getInstance().getModuleConfiguration()
           .isInventoryColumn(currentTable.getSchema(), currentTable.getName(), column.getName())) {
           String header = column.getName();
           do_export = true;
