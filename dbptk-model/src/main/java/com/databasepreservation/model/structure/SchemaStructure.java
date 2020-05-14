@@ -25,6 +25,8 @@ public class SchemaStructure {
 
   private String description;
 
+  private String folder;
+
   private int index;
 
   private List<TableStructure> tables;
@@ -96,6 +98,14 @@ public class SchemaStructure {
    */
   public void setDescription(String description) {
     this.description = description;
+  }
+
+  public String getFolder() {
+    return folder;
+  }
+
+  public void setFolder(String folder) {
+    this.folder = folder;
   }
 
   /**

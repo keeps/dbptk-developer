@@ -471,7 +471,11 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
 
     if (StringUtils.isNotBlank(schema.getName())) {
       schemaType.setName(schema.getName());
-      schemaType.setFolder(contentPathStrategy.getSchemaFolderName(schema.getIndex()));
+      if (StringUtils.isNotBlank(schema.getFolder())) {
+        schemaType.setFolder(schema.getFolder());
+      } else {
+        schemaType.setFolder(contentPathStrategy.getSchemaFolderName(schema.getIndex()));
+      }
     } else {
       throw new ModuleException().withMessage("Error while exporting schema structure: schema name cannot be blank");
     }

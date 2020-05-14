@@ -327,6 +327,7 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
       metadataCurrentSchemaName = schema.getName();
       result.setName(metadataCurrentSchemaName);
       result.setDescription(schema.getDescription());
+      result.setFolder(schema.getFolder());
       result.setIndex(currentSchemaIndex++);
       contentPathStrategy.associateSchemaWithFolder(schema.getName(), schema.getFolder());
 
