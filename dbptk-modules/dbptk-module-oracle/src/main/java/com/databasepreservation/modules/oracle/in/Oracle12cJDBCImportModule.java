@@ -19,6 +19,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.databasepreservation.model.structure.ViewStructure;
+import com.databasepreservation.modules.CloseableUtils;
 import com.databasepreservation.utils.RemoteConnectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.geotools.data.oracle.sdo.GeometryConverter;
@@ -352,6 +354,34 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
     } catch (SQLException e) {
       LOGGER.debug("Could not retrieve routine code (as routine).", e);
     }
+  }
+
+  @Override
+  protected List<ViewStructure> getViews(String schemaName) throws SQLException, ModuleException {
+    final List<ViewStructure> views = super.getViews(schemaName);
+
+    for (ViewStructure view : views) {
+
+      String queryForViewSQL = ((OracleHelper) sqlHelper).getViewSQL(view.getName(), schemaName);
+      ResultSet rset = null;
+      PreparedStatement statement = getConnection().prepareStatement(queryForViewSQL);
+      try {
+        rset = statement.executeQuery();
+        StringBuilder b = new StringBuilder();
+        while (rset.next()) {
+          b.append(rset.getString("TEXT"));
+        }
+
+        view.setQueryOriginal(b.toString());
+      } catch (SQLException e) {
+        LOGGER.debug("Exception trying to get view SQL in Sybase", e);
+      } finally {
+        CloseableUtils.closeQuietly(rset);
+        CloseableUtils.closeQuietly(statement);
+      }
+    }
+
+    return views;
   }
 
   @Override

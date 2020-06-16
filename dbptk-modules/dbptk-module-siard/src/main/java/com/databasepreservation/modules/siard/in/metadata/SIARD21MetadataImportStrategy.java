@@ -193,7 +193,7 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
   private DatabaseStructure getDatabaseStructure(SiardArchive siardArchive) throws ModuleException {
     DatabaseStructure databaseStructure = new DatabaseStructure();
 
-    databaseStructure.setDescription(siardArchive.getDescription());
+    databaseStructure.setDescription(XMLUtils.decode(siardArchive.getDescription()));
     databaseStructure.setArchiver(siardArchive.getArchiver());
     databaseStructure.setArchiverContact(siardArchive.getArchiverContact());
     databaseStructure.setDataOwner(siardArchive.getDataOwner());
@@ -249,7 +249,7 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
       if (privilegeType.getOption() != null) {
         result.setOption(privilegeType.getOption().value());
       }
-      result.setDescription(privilegeType.getDescription());
+      result.setDescription(XMLUtils.decode(privilegeType.getDescription()));
 
       return result;
     } else {
@@ -275,7 +275,7 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
 
       result.setName(roleType.getName());
       result.setAdmin(roleType.getAdmin());
-      result.setDescription(roleType.getDescription());
+      result.setDescription(XMLUtils.decode(roleType.getDescription()));
 
       return result;
     } else {
@@ -300,7 +300,7 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
       UserStructure result = new UserStructure();
 
       result.setName(userType.getName());
-      result.setDescription(userType.getDescription());
+      result.setDescription(XMLUtils.decode(userType.getDescription()));
 
       return result;
     } else {
@@ -326,7 +326,7 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
 
       metadataCurrentSchemaName = schema.getName();
       result.setName(metadataCurrentSchemaName);
-      result.setDescription(schema.getDescription());
+      result.setDescription(XMLUtils.decode(schema.getDescription()));
       result.setFolder(schema.getFolder());
       result.setIndex(currentSchemaIndex++);
       contentPathStrategy.associateSchemaWithFolder(schema.getName(), schema.getFolder());
@@ -364,7 +364,7 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
       result.setName(metadataCurrentTableName);
       result.setDescription(XMLUtils.decode(routineType.getDescription()));
       result.setSource(routineType.getSource());
-      result.setBody(routineType.getBody());
+      result.setBody(XMLUtils.decode(routineType.getBody()));
       result.setCharacteristic(routineType.getCharacteristic());
       result.setReturnType(routineType.getReturnType());
       // TODO: XSD has name attributes but has type ParametersType, find out if
@@ -434,7 +434,7 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
     if (viewType != null) {
       ViewStructure result = new ViewStructure();
 
-      result.setName(viewType.getName());
+      result.setName(XMLUtils.decode(viewType.getName()));
       result.setQuery(XMLUtils.decode(viewType.getQuery()));
       result.setQueryOriginal(XMLUtils.decode(viewType.getQueryOriginal()));
       result.setDescription(XMLUtils.decode(viewType.getDescription()));
@@ -474,7 +474,7 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
       metadataCurrentTableName = table.getName();
       result.setName(metadataCurrentTableName);
       result.setSchema(schemaName);
-      result.setDescription(table.getDescription());
+      result.setDescription(XMLUtils.decode(table.getDescription()));
       result.setId(String.format("%s.%s", result.getSchema(), result.getName()));
 
       contentPathStrategy.associateTableWithFolder(result.getId(), table.getFolder());
@@ -686,7 +686,7 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
       PrimaryKey result = new PrimaryKey();
 
       result.setName(primaryKey.getName());
-      result.setDescription(primaryKey.getDescription());
+      result.setDescription(XMLUtils.decode(primaryKey.getDescription()));
       result.setColumnNames(primaryKey.getColumn());
 
       return result;

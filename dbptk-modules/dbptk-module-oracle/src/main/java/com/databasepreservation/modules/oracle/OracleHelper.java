@@ -113,6 +113,10 @@ public class OracleHelper extends SQLHelper {
     return ret;
   }
 
+  public String getViewSQL(String viewName, String owner) {
+    return "SELECT TEXT FROM ALL_VIEWS WHERE OWNER = '" + owner + "' AND VIEW_NAME = '" + viewName + "'";
+  }
+
   @Override
   public String escapeSchemaName(String schema) {
     if (schema.equalsIgnoreCase(sourceSchema) && targetSchema != null) {

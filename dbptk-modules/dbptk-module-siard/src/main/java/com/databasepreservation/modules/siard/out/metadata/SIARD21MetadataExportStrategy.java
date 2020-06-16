@@ -267,7 +267,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (StringUtils.isNotBlank(dbStructure.getDescription())) {
-      siardArchive.setDescription(dbStructure.getDescription());
+      siardArchive.setDescription(XMLUtils.encode(dbStructure.getDescription()));
     }
 
     if (StringUtils.isNotBlank(dbStructure.getArchiver())) {
@@ -383,7 +383,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (StringUtils.isNotBlank(privilege.getDescription())) {
-      privilegeType.setDescription(privilege.getDescription());
+      privilegeType.setDescription(XMLUtils.encode(privilege.getDescription()));
     }
 
     return privilegeType;
@@ -418,7 +418,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (StringUtils.isNotBlank(role.getDescription())) {
-      roleType.setDescription(role.getDescription());
+      roleType.setDescription(XMLUtils.encode(role.getDescription()));
     }
 
     return roleType;
@@ -444,7 +444,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (StringUtils.isNotBlank(user.getDescription())) {
-      userType.setDescription(user.getDescription());
+      userType.setDescription(XMLUtils.encode(user.getDescription()));
     }
 
     return userType;
@@ -481,7 +481,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (StringUtils.isNotBlank(schema.getDescription())) {
-      schemaType.setDescription(schema.getDescription());
+      schemaType.setDescription(XMLUtils.encode(schema.getDescription()));
     }
 
     schemaType.setTables(jaxbTablesType(schema, schema.getTables()));
@@ -603,7 +603,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (StringUtils.isNotBlank(routine.getBody())) {
-      routineType.setBody(routine.getBody());
+      routineType.setBody(XMLUtils.encode(routine.getBody()));
     }
 
     if (StringUtils.isNotBlank(routine.getCharacteristic())) {
@@ -684,7 +684,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     ViewType viewType = new ViewType();
 
     if (StringUtils.isNotBlank(view.getName())) {
-      viewType.setName(view.getName());
+      viewType.setName(XMLUtils.encode(view.getName()));
     } else {
       throw new ModuleException().withMessage("Error while exporting view: view name cannot be null");
     }
@@ -801,7 +801,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     if (StringUtils.isNotBlank(table.getDescription())) {
-      tableType.setDescription(table.getDescription());
+      tableType.setDescription(XMLUtils.encode(table.getDescription()));
     }
 
     tableType.setColumns(jaxbColumnsType(table.getColumns()));
@@ -836,7 +836,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
       }
 
       if (StringUtils.isNotBlank(primaryKey.getDescription())) {
-        primaryKeyType.setDescription(primaryKey.getDescription());
+        primaryKeyType.setDescription(XMLUtils.encode(primaryKey.getDescription()));
       }
 
       if (primaryKey.getColumnNames() != null && primaryKey.getColumnNames().size() > 0) {
