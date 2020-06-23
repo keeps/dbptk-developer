@@ -58,8 +58,6 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2ContentExportStrategy.class);
 
   private static final String ENCODING = "UTF-8";
-  private static final int THRESHOLD_TREAT_STRING_AS_CLOB = 4000;
-  private static final int THRESHOLD_TREAT_BINARY_AS_BLOB = 2000;
   private static final String CELL_PREFIX_DEFAULT = "c";
   private static final String CELL_PREFIX_ARRAY = "a";
   private static final String CELL_PREFIX_UDT = "u";
@@ -92,6 +90,8 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   protected SchemaStructure currentSchema;
   protected TableStructure currentTable;
   protected int currentRowIndex;
+  private int THRESHOLD_TREAT_STRING_AS_CLOB = 4000;
+  private int THRESHOLD_TREAT_BINARY_AS_BLOB = 2000;
 
   protected Reporter reporter;
 
@@ -104,6 +104,16 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
     this.prettyXMLOutput = prettyXMLOutput;
     this.messageDigestAlgorithm = digestAlgorithm;
     this.lowerCase = fontCase.equalsIgnoreCase("lowercase");
+
+    String thresholdTreatBinaryAsBlob = System.getenv("DBPTK_EXPORT_SIARD2_THRESHOLD_TREAT_BINARY_AS_BLOB");
+    if(thresholdTreatBinaryAsBlob != null && !thresholdTreatBinaryAsBlob.isEmpty()){
+      THRESHOLD_TREAT_BINARY_AS_BLOB = Integer.parseInt(thresholdTreatBinaryAsBlob);
+    }
+
+    String thresholdTreatStringAsClob = System.getenv("DBPTK_EXPORT_SIARD2_THRESHOLD_TREAT_STRING_AS_CLOB");
+    if(thresholdTreatStringAsClob != null && !thresholdTreatStringAsClob.isEmpty()){
+      THRESHOLD_TREAT_STRING_AS_CLOB = Integer.parseInt(thresholdTreatStringAsClob);
+    }
   }
 
   @Override
