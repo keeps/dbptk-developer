@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({"name", "merkle","inventory", "externalLOB"})
 public class ColumnConfiguration {
   private String name;
-  @JsonInclude(JsonInclude.Include.NON_DEFAULT)
   private boolean merkle;
   @JsonInclude(JsonInclude.Include.NON_DEFAULT)
   private boolean inventory;
