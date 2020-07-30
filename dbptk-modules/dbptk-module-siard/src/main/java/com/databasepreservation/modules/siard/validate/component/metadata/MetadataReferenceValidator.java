@@ -49,7 +49,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
 
   private List<Element> foreignKeyList = new ArrayList<>();
   private List<String> tableList = new ArrayList<>();
-  private static List<SQLType> SQLTypeList = null;
+  private List<SQLType> SQLTypeList = null;
   private Map<String, HashMap<String, String>> tableColumnsList = new HashMap<>();
   private Map<String, List<String>> primaryKeyList = new HashMap<>();
   private Map<String, List<String>> candidateKeyList = new HashMap<>();
