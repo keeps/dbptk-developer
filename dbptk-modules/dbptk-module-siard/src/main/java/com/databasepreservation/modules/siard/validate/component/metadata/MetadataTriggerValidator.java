@@ -54,6 +54,7 @@ public class MetadataTriggerValidator extends MetadataValidator {
   private List<String> actionTimeList = new ArrayList<>();
   private List<String> eventList = new ArrayList<>();
   private Set<String> checkDuplicates = new HashSet<>();
+  private boolean additionalCheckError = false;
 
   public MetadataTriggerValidator(String moduleName) {
     this.MODULE_NAME = moduleName;
@@ -102,7 +103,11 @@ public class MetadataTriggerValidator extends MetadataValidator {
         observer.notifyValidationStep(MODULE_NAME, A_M_513_1_1, ValidationReporterStatus.SKIPPED);
         getValidationReporter().skipValidation(A_M_513_1_1, ADDITIONAL_CHECKS_SKIP_REASON);
       } else {
-        validationOk(MODULE_NAME, A_M_513_1_1);
+        if (!additionalCheckError) {
+          validationOk(MODULE_NAME, A_M_513_1_1);
+        } else {
+          observer.notifyValidationStep(MODULE_NAME, A_M_513_1_1, ValidationReporterStatus.ERROR);
+        }
       }
     } else {
       observer.notifyValidationStep(MODULE_NAME, M_513_1_1, ValidationReporterStatus.ERROR);
@@ -156,8 +161,9 @@ public class MetadataTriggerValidator extends MetadataValidator {
       String name = XMLUtils.getChildTextContext(trigger, Constants.NAME);
 
       if (validateXMLField(M_513_1_1, name, Constants.NAME, true, false, path)) {
-        if (!checkDuplicates.add(table + name)) {
+        if (!checkDuplicates.add(table + name) && !this.skipAdditionalChecks) {
           setError(A_M_513_1_1, String.format("Trigger name %s must be unique per table (%s)", name, path));
+          additionalCheckError = true;
         }
         continue;
       }
