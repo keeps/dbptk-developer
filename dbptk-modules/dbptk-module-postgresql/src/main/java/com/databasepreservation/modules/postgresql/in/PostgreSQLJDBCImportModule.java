@@ -185,12 +185,24 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
 
     query.append(" FROM ").append(sqlHelper.escapeTableId(table.getId()));
 
-    LOGGER.debug("query: " + query.toString());
+    String resultQuery = query.toString();
+
+    String whereClause = getModuleConfiguration().getWhere(table.getSchema(), table.getName(), !table.isFromView());
+    String orderByClause = getModuleConfiguration().getOrderBy(table.getSchema(), table.getName(), !table.isFromView());
+    if (whereClause != null) {
+      resultQuery = sqlHelper.appendWhereClause(resultQuery, whereClause);
+    }
+
+    if (orderByClause != null) {
+      resultQuery = sqlHelper.appendOrderByClause(resultQuery, orderByClause);
+    }
+
+    LOGGER.debug("query: " + resultQuery);
 
     // use a high fetchSize, reducing it if it proves to be too high
     // since you are reading this, you might as well check if this related pull
     // request https://github.com/pgjdbc/pgjdbc/pull/675 has already been merged
-    return getTableRawData(query.toString(), table.getId());
+    return getTableRawData(resultQuery, table.getId());
   }
 
   /**
