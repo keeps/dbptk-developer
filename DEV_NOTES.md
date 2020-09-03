@@ -4,7 +4,7 @@ Hey devs, here are some notes that may be of use to you!
 
 Besides these notes, the [contributions guide](https://github.com/keeps/db-preservation-toolkit/blob/master/.github/contributing.md) also has information that might be useful.
 
-[![Build Status](https://travis-ci.org/keeps/db-preservation-toolkit.png?branch=master)](https://travis-ci.org/keeps/db-preservation-toolkit)
+[![Build Status](https://travis-ci.org/keeps/db-preservation-toolkit.png?branch=master)](https://travis-ci.org/keeps/dbptk-developer)
 
 ## How to build from source
 
