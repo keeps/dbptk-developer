@@ -182,4 +182,9 @@ public class PostgreSQLHelper extends SQLHelper {
   public String dropDatabase(String database) {
     return "DROP DATABASE IF EXISTS " + database;
   }
+
+  public String getViewQueryOriginal(String schemaName, String viewName) {
+    return "SELECT definition FROM pg_views WHERE schemaname='" + schemaName + "'AND viewname='" + viewName
+        + "'";
+  }
 }

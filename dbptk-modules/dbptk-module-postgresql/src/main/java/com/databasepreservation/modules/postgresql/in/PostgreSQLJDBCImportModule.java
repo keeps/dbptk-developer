@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.postgresql.PGConnection;
 import org.postgresql.core.Oid;
 import org.postgresql.jdbc.PgResultSet;
@@ -53,10 +54,12 @@ import com.databasepreservation.model.structure.RoutineStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.Trigger;
+import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure.SubType;
 import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
 import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.modules.CloseableUtils;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.postgresql.PostgreSQLExceptionNormalizer;
 import com.databasepreservation.modules.postgresql.PostgreSQLHelper;
@@ -159,6 +162,40 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       statement = getConnection().createStatement();
     }
     return statement;
+  }
+
+  @Override
+  protected List<ViewStructure> getViews(String schemaName) throws SQLException, ModuleException {
+    List<ViewStructure> views = super.getViews(schemaName);
+    for (ViewStructure v : views) {
+      Statement statement = null;
+      ResultSet rset = null;
+      String viewQueryOriginal = "";
+      if (v.getQueryOriginal() == null || v.getQueryOriginal().isEmpty()) {
+        try {
+          statement = getConnection().createStatement();
+          String query = ((PostgreSQLHelper) sqlHelper).getViewQueryOriginal(schemaName, v.getName());
+
+          rset = statement.executeQuery(query);
+          rset.next(); // Returns only one tuple
+
+          viewQueryOriginal = rset.getString(1);
+        } catch (Exception e) {
+          LOGGER.debug("Exception trying to get view SQL in PostgreSQL", e);
+        } finally {
+          CloseableUtils.closeQuietly(rset);
+          CloseableUtils.closeQuietly(statement);
+        }
+
+        if (StringUtils.isBlank(viewQueryOriginal)) {
+          reporter.customMessage("PostgreSQLJDBCImportModule",
+            "Could not obtain SQL statement for view " + sqlHelper.escapeViewName(schemaName, v.getName()));
+        } else {
+          v.setQueryOriginal(viewQueryOriginal);
+        }
+      }
+    }
+    return views;
   }
 
   @Override

@@ -51,7 +51,7 @@ public class ImportConfigurationModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_PARAMETERS = "parameters";
 
   private static final Parameter file = new Parameter().shortName("f").longName(PARAMETER_FILE)
-    .description("Path to the import configuration file to be read by the SIARD export module").hasArgument(true)
+    .description("Path to the import configuration file").hasArgument(true)
     .setOptionalArgument(false).required(true);
 
   private static final Parameter templatingValues = new Parameter().shortName("p").longName(PARAMETER_PARAMETERS)
