@@ -14,7 +14,7 @@
         <repository>
             <id>KEEPS-Artifacts</id>
             <name>KEEP Artifacts-releases</name>
-            <url>http://artifactory.keep.pt/keep</url>
+            <url>https://artifactory.keep.pt/keep</url>
         </repository>
     </repositories>
     <build>
