@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.security.DigestOutputStream;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
@@ -170,10 +171,10 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
     }
 
     // something like "../filename.siard2/"
-    String lobURI = Paths
+    String lobURI = FilenameUtils.separatorsToUnix(Paths
       .get(".." + File.separator + currentExternalContainer.getPath().getFileName().toString() + File.separator,
         lobFileParameter)
-      .toString();
+      .toString());
 
     // write the LOB XML element
     currentWriter.beginOpenTag("c" + columnIndex, 2).appendAttribute("file", lobURI).appendAttribute("length",
