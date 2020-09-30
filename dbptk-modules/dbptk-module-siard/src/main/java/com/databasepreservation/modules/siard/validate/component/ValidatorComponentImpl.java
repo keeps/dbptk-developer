@@ -18,6 +18,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -28,9 +29,9 @@ import com.databasepreservation.Constants;
 import com.databasepreservation.common.observer.ValidationObserver;
 import com.databasepreservation.common.validation.ValidatorPathStrategy;
 import com.databasepreservation.common.validation.ZipFileManagerStrategy;
-import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.validate.components.ValidatorComponent;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.model.reporters.ValidationReporterStatus;
 import com.databasepreservation.utils.XMLUtils;
@@ -166,7 +167,7 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
     }
   }
 
-  private boolean registerSchemaAndTables() throws ModuleException {
+  private void registerSchemaAndTables() throws ModuleException {
     InputStream zipInputStream = null;
     try {
       zipInputStream = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath());
@@ -178,6 +179,14 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
         Element element = (Element) result.item(i);
         String schemaName = element.getElementsByTagName("name").item(0).getTextContent();
         String schemaFolder = element.getElementsByTagName("folder").item(0).getTextContent();
+
+        if (StringUtils.isBlank(schemaName) || StringUtils.isBlank(schemaFolder)) {
+          LOGGER.error("Missing mandatory strings in the metadata.xml file (schemaName: {}, schemaFolder: {}",
+            schemaName, schemaFolder);
+          throw new ModuleException().withMessage(
+            "Schema name or schema folder attributes have a blank value. Please check the metadata.xml file for more information");
+        }
+
         validatorPathStrategy.registerSchema(schemaName, schemaFolder);
         InputStream is = zipFileManagerStrategy.getZipInputStream(path, validatorPathStrategy.getMetadataXMLPath());
         NodeList tables = (NodeList) XMLUtils.getXPathResult(is,
@@ -188,6 +197,14 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
           Element table = (Element) tables.item(j);
           final String tableName = table.getElementsByTagName("name").item(0).getTextContent();
           final String tableFolder = table.getElementsByTagName("folder").item(0).getTextContent();
+
+          if (StringUtils.isBlank(tableName) || StringUtils.isBlank(tableFolder)) {
+            LOGGER.error("Missing mandatory strings in the metadata.xml file (tableName: {}, tableFolder: {}",
+                tableName, tableFolder);
+            throw new ModuleException().withMessage(
+                "Table name or table folder attributes have a blank value. Please check the metadata.xml file for more information");
+          }
+
           validatorPathStrategy.registerTable(schemaName, tableName, tableFolder);
         }
 
@@ -204,7 +221,5 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
         LOGGER.debug("Could not close the stream after an error occurred", e);
       }
     }
-
-    return true;
   }
 }
