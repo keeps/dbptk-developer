@@ -200,9 +200,9 @@ public abstract class ValidatorComponentImpl implements ValidatorComponent {
 
           if (StringUtils.isBlank(tableName) || StringUtils.isBlank(tableFolder)) {
             LOGGER.error("Missing mandatory strings in the metadata.xml file (tableName: {}, tableFolder: {}",
-                tableName, tableFolder);
+              tableName, tableFolder);
             throw new ModuleException().withMessage(
-                "Table name or table folder attributes have a blank value. Please check the metadata.xml file for more information");
+              "Table name or table folder attributes have a blank value. Please check the metadata.xml file for more information");
           }
 
           validatorPathStrategy.registerTable(schemaName, tableName, tableFolder);

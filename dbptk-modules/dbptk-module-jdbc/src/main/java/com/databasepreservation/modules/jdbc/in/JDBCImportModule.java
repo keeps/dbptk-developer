@@ -41,8 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.databasepreservation.managers.RemoteConnectionManager;
-import com.databasepreservation.utils.ModuleConfigurationUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -51,6 +49,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.managers.ModuleConfigurationManager;
+import com.databasepreservation.managers.RemoteConnectionManager;
 import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
@@ -1597,6 +1596,11 @@ public class JDBCImportModule implements DatabaseImportModule {
           } catch (SQLException e) {
             LOGGER.debug("handled SQLException", e);
             triggeredAction = "";
+          }
+
+          if (triggeredAction == null) {
+            reporter.triggerInformationMissing(this.getClass().getName(), triggerName);
+            triggeredAction = "-- failed to obtain triggered action please check SIARD migration report for more information";
           }
           trigger.setTriggeredAction(triggeredAction);
 

@@ -332,6 +332,14 @@ public class Reporter implements AutoCloseable {
     LOGGER.debug("customMessage, invoker: " + invokerNameForDebug + "; message: " + message.toString());
   }
 
+  public void triggerInformationMissing(String invokerNameForDebug, String triggerName) {
+    StringBuilder message = new StringBuilder("Trigger information for ");
+    message.append(triggerName).append("is missing; could not retrieve triggered action");
+    report(message);
+
+    LOGGER.debug("triggerInformationMissing, invoker: " + invokerNameForDebug + "; message: " + message);
+  }
+
   public void customMessage(String invokerNameForDebug, String customMessage) {
     customMessage(invokerNameForDebug, customMessage, null);
   }
