@@ -28,9 +28,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
-import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -858,7 +858,18 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     if (triggers != null && !triggers.isEmpty()) {
       TriggersType triggersType = new TriggersType();
       for (Trigger trigger : triggers) {
-        triggersType.getTrigger().add(jaxbTriggerType(trigger));
+        try {
+          ActionTimeType.fromValue(trigger.getActionTime());
+          triggersType.getTrigger().add(jaxbTriggerType(trigger));
+        } catch (IllegalArgumentException e) {
+          // report the migration data loss
+          reporter.triggerDataLoss(this.getClass().getName(), trigger.getName());
+          LOGGER.warn("Trigger {} ignored see migration report for more information", trigger.getName());
+        }
+      }
+
+      if (triggersType.getTrigger().isEmpty()) {
+        return null;
       }
       return triggersType;
     } else {

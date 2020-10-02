@@ -332,6 +332,14 @@ public class Reporter implements AutoCloseable {
     LOGGER.debug("customMessage, invoker: " + invokerNameForDebug + "; message: " + message.toString());
   }
 
+  public void triggerDataLoss(String invokerNameForDebug, String triggerName) {
+    StringBuilder message = new StringBuilder("Trigger migration data loss for ");
+    message.append(triggerName).append("; actionTime identifier not conformed with SIARD 2.1 specification; trigger was not migrated");
+    report(message);
+
+    LOGGER.debug("triggerDataLoss, invoker: " + invokerNameForDebug + "; message: " + message);
+  }
+
   public void triggerInformationMissing(String invokerNameForDebug, String triggerName) {
     StringBuilder message = new StringBuilder("Trigger information for ");
     message.append(triggerName).append("is missing; could not retrieve triggered action");
