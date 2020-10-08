@@ -7,7 +7,9 @@
  */
 package com.databasepreservation.utils;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -22,19 +24,15 @@ public class MiscUtils {
   private static final Logger LOGGER = LoggerFactory.getLogger(MiscUtils.class);
 
   public static final String APP_VERSION = getProgramVersion();
-  public static final String APP_NAME = "Database Preservation Toolkit";
+  public static final String APP_NAME = "DBPTK Developer";
   public static final String APP_NAME_AND_VERSION = APP_NAME + " (version " + APP_VERSION + ")";
 
   private static String getProgramVersion() {
-    InputStream resourceAsStream = null;
-    try {
-      resourceAsStream = MiscUtils.class.getResourceAsStream("/dbptk-common.version");
-      return IOUtils.toString(resourceAsStream).trim();
-    } catch (Exception e) {
+    try (InputStream resourceAsStream = MiscUtils.class.getResourceAsStream("/dbptk-common.version")) {
+      return IOUtils.toString(resourceAsStream, StandardCharsets.UTF_8.name()).trim();
+    } catch (IOException e) {
       LOGGER.debug("Problem getting program version using dbptk-common.version", e);
       return null;
-    } finally {
-      IOUtils.closeQuietly(resourceAsStream);
     }
   }
 }

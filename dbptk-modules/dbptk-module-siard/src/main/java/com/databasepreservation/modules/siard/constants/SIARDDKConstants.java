@@ -55,7 +55,7 @@ public class SIARDDKConstants {
   public static final String DEFAULT_CLOB_TYPE = "NATIONAL CHARACTER VARYING";
 
   // Namespaces
-  public static final String DBPTK_NS = "http://www.databasepreservation.com/xmlns/1.0";
+  public static final String DBPTK_NS = "https://www.database-preservation.com/xmlns/1.0";
 
   // Digest algorithms
   public static final String DIGEST_ALGORITHM = "MD5";

@@ -151,8 +151,8 @@ public class Main {
     }
 
     LOGGER.info("Log files and migration reports were saved in {}", ConfigUtils.getHomeDirectory());
-    LOGGER.info("Troubleshooting information can be found at http://www.database-preservation.com/#troubleshooting");
-    LOGGER.info("Please report any problems at https://github.com/keeps/db-preservation-toolkit/issues/new");
+    LOGGER.info("Troubleshooting information can be found at https://github.com/keeps/dbptk-developer/wiki/Troubleshooting");
+    LOGGER.info("Please report any problems at https://github.com/keeps/dbptk-developer/issues/new");
     logProgramFinish(exitStatus);
 
     return exitStatus;

@@ -107,9 +107,9 @@ public class CLIHelp extends CLIHandler {
   private void printHeader(PrintStream printStream) {
     StringBuilder out = new StringBuilder();
 
-    out.append("Database Preservation Toolkit").append(MiscUtils.APP_NAME_AND_VERSION)
+    out.append(MiscUtils.APP_NAME_AND_VERSION)
         .append("\n")
-        .append("More info: http://www.database-preservation.com")
+        .append("More info: https://www.database-preservation.com")
         .append("\n");
 
     out.append("\n");
