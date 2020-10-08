@@ -248,7 +248,6 @@ public class CLI {
 
   private static String getDefaultCharSet() {
     OutputStreamWriter dummyWriter = new OutputStreamWriter(new ByteArrayOutputStream());
-    String encoding = dummyWriter.getEncoding();
-    return encoding;
+    return dummyWriter.getEncoding();
   }
 }

@@ -409,10 +409,10 @@ public class Reporter implements AutoCloseable {
   public void metadataParameters(String moduleName, List<SIARDDatabaseMetadata> parameters) {
     StringBuilder message;
 
-    message = new StringBuilder("## Set").append(NEWLINE);
+    message = new StringBuilder("## Set arguments").append(NEWLINE);
 
     for (SIARDDatabaseMetadata metadata : parameters) {
-      message.append(NEWLINE).append("- ").append(metadata.toString()).append(", with value: '")
+      message.append(NEWLINE).append("- ").append(metadata.toString()).append("with value: '")
         .append(metadata.getValue()).append("'");
     }
 
