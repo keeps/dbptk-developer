@@ -64,18 +64,20 @@ public class OpenEdgeJDBCImportModule extends JDBCImportModule {
     String password) throws ModuleException {
     super("com.ddtek.jdbc.openedge.OpenEdgeDriver",
       "jdbc:datadirect:openedge://"
-        + hostname + ":" + port + ";user=" + username + ";password=" + password + ";DatabaseName=" + database,
+        + hostname + ":" + port + ";DatabaseName=" + database,
       new OpenEdgeHelper(), new OpenEdgeDataTypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(OpenEdgeModuleFactory.PARAMETER_HOSTNAME, hostname,
         OpenEdgeModuleFactory.PARAMETER_PORT_NUMBER, port, OpenEdgeModuleFactory.PARAMETER_USERNAME, username,
         OpenEdgeModuleFactory.PARAMETER_PASSWORD, password, OpenEdgeModuleFactory.PARAMETER_DATABASE, database));
+
+    createCredentialsProperty(username, password);
   }
 
   public OpenEdgeJDBCImportModule(String moduleName, String hostname, int port, String database, String username,
     String password, String sshHost, String sshUser, String sshPassword, String sshPortNumber) throws ModuleException {
     super("com.ddtek.jdbc.openedge.OpenEdgeDriver",
       "jdbc:datadirect:openedge://"
-        + hostname + ";user=" + username + ";password=" + password + ";DatabaseName=" + database,
+        + hostname + ";DatabaseName=" + database,
       new OpenEdgeHelper(), new OpenEdgeDataTypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(OpenEdgeModuleFactory.PARAMETER_HOSTNAME, hostname,
         OpenEdgeModuleFactory.PARAMETER_PORT_NUMBER, port, OpenEdgeModuleFactory.PARAMETER_USERNAME, username,
@@ -83,6 +85,8 @@ public class OpenEdgeJDBCImportModule extends JDBCImportModule {
       MapUtils.buildMapFromObjects(OpenEdgeModuleFactory.PARAMETER_SSH, true, OpenEdgeModuleFactory.PARAMETER_SSH_HOST,
         sshHost, OpenEdgeModuleFactory.PARAMETER_SSH_PORT, sshPortNumber, OpenEdgeModuleFactory.PARAMETER_SSH_USER,
         sshUser, OpenEdgeModuleFactory.PARAMETER_SSH_PASSWORD, sshPassword));
+
+    createCredentialsProperty(username, password);
   }
 
   /**

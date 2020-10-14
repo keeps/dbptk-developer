@@ -65,23 +65,23 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   public MySQLJDBCImportModule(String moduleName, String hostname, int port, String database, String username,
     String password, boolean encrypt) {
     super("com.mysql.jdbc.Driver",
-      "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?" + "user=" + username + "&password=" + password
-        + (encrypt ? "&useSSL=true" : ""),
-      new MySQLHelper(), new MySQLDatatypeImporter(), moduleName,
+      "jdbc:mysql://" + hostname + ":" + port + "/" + database + (encrypt ? "?useSSL=true" : ""), new MySQLHelper(),
+      new MySQLDatatypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(MySQLModuleFactory.PARAMETER_HOSTNAME, hostname,
         MySQLModuleFactory.PARAMETER_PORT_NUMBER, port, MySQLModuleFactory.PARAMETER_USERNAME, username,
         MySQLModuleFactory.PARAMETER_PASSWORD, password, MySQLModuleFactory.PARAMETER_DATABASE, database,
         MySQLModuleFactory.PARAMETER_DISABLE_ENCRYPTION, !encrypt));
     this.username = username;
+
+    createCredentialsProperty(username, password);
   }
 
   public MySQLJDBCImportModule(String moduleName, String hostname, int port, String database, String username,
     String password, boolean encrypt, String sshHost, String sshUser, String sshPassword, String sshPortNumber)
     throws ModuleException {
     super("com.mysql.jdbc.Driver",
-      "jdbc:mysql://" + hostname + ":" + port + "/" + database + "?" + "user=" + username + "&password=" + password
-        + (encrypt ? "&useSSL=true" : ""),
-      new MySQLHelper(), new MySQLDatatypeImporter(), moduleName,
+      "jdbc:mysql://" + hostname + ":" + port + "/" + database + (encrypt ? "?useSSL=true" : ""), new MySQLHelper(),
+      new MySQLDatatypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(MySQLModuleFactory.PARAMETER_HOSTNAME, hostname,
         MySQLModuleFactory.PARAMETER_PORT_NUMBER, port, MySQLModuleFactory.PARAMETER_USERNAME, username,
         MySQLModuleFactory.PARAMETER_PASSWORD, password, MySQLModuleFactory.PARAMETER_DATABASE, database,
@@ -90,6 +90,8 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
         sshHost, MySQLModuleFactory.PARAMETER_SSH_PORT, sshPortNumber, MySQLModuleFactory.PARAMETER_SSH_USER, sshUser,
         MySQLModuleFactory.PARAMETER_SSH_PASSWORD, sshPassword));
     this.username = username;
+
+    createCredentialsProperty(username, password);
   }
 
   @Override
@@ -296,12 +298,14 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
         }
       }
 
-      try (ResultSet resultSet = getStatement().executeQuery("SHOW CREATE PROCEDURE " + sqlHelper.escapeTableName(routineName))) {
+      try (ResultSet resultSet = getStatement()
+        .executeQuery("SHOW CREATE PROCEDURE " + sqlHelper.escapeTableName(routineName))) {
         if (resultSet.next()) {
           routine.setBody(resultSet.getString("Create Procedure"));
         }
       } catch (SQLException e) {
-        try (ResultSet resultSet = getStatement().executeQuery("SHOW CREATE FUNCTION " + sqlHelper.escapeTableName(routineName))) {
+        try (ResultSet resultSet = getStatement()
+          .executeQuery("SHOW CREATE FUNCTION " + sqlHelper.escapeTableName(routineName))) {
           if (resultSet.next()) {
             routine.setBody(resultSet.getString("Create Function"));
           }

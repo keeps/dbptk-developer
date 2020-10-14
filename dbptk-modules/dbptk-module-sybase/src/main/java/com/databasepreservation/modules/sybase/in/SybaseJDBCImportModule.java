@@ -46,9 +46,8 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
   private static final Logger LOGGER = LoggerFactory.getLogger(SybaseJDBCImportModule.class);
   private static final String DRIVER_CLASS_NAME = "com.sybase.jdbc4.jdbc.SybDriver";
   private static final String URL_CONNECTION_PREFIX = "jdbc:sybase:Tds:";
-  private String username;
-  private String password;
-  private Pattern pattern = Pattern.compile("create trigger ([^\\s]+)", Pattern.CASE_INSENSITIVE);
+
+  private final Pattern pattern = Pattern.compile("create trigger ([^\\s]+)", Pattern.CASE_INSENSITIVE);
 
   /**
    * Creates a new Sybase import module using the default instance.
@@ -72,8 +71,8 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
       MapUtils.buildMapFromObjects(SybaseModuleFactory.PARAMETER_HOSTNAME, hostname,
         SybaseModuleFactory.PARAMETER_PORT_NUMBER, port, SybaseModuleFactory.PARAMETER_USERNAME, username,
         SybaseModuleFactory.PARAMETER_PASSWORD, password, SybaseModuleFactory.PARAMETER_DATABASE, database));
-    this.username = username;
-    this.password = password;
+
+    createCredentialsProperty(username, password);
   }
 
   public SybaseJDBCImportModule(String moduleName, String hostname, int port, String database, String username,
@@ -86,8 +85,8 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
       MapUtils.buildMapFromObjects(SybaseModuleFactory.PARAMETER_SSH, true, SybaseModuleFactory.PARAMETER_SSH_HOST,
         sshHost, SybaseModuleFactory.PARAMETER_SSH_PORT, sshPortNumber, SybaseModuleFactory.PARAMETER_SSH_USER, sshUser,
         SybaseModuleFactory.PARAMETER_SSH_PASSWORD, sshPassword));
-    this.username = username;
-    this.password = password;
+
+    createCredentialsProperty(username, password);
   }
 
   /**
@@ -103,7 +102,7 @@ public class SybaseJDBCImportModule extends JDBCImportModule {
       if (ssh) {
         connectionURL = RemoteConnectionUtils.replaceHostAndPort(connectionURL);
       }
-      connection = DriverManager.getConnection(connectionURL, this.username, this.password);
+      connection = DriverManager.getConnection(connectionURL, getCredentials());
       connection.setAutoCommit(false);
     } catch (SQLException e) {
       throw normalizeException(e, null);

@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -134,10 +135,11 @@ public class JDBCImportModule implements DatabaseImportModule {
   protected DatatypeImporter datatypeImporter;
   protected Reporter reporter;
   private String moduleName;
-  private Map<String, String> connectionProperties;
-  private Map<String, String> remoteConnectionProperties;
+  private Properties credentials = new Properties();
   // SSH Connection Parameters
   protected boolean ssh;
+  private Map<String, String> connectionProperties;
+  private Map<String, String> remoteConnectionProperties;
 
   /**
    * Create a new JDBC import module
@@ -205,6 +207,11 @@ public class JDBCImportModule implements DatabaseImportModule {
     this.remoteConnectionProperties = remoteConnectionParameters;
   }
 
+  protected void createCredentialsProperty(String username, String password) {
+    credentials.put("user", username);
+    credentials.put("password", password);
+  }
+
   /**
    * Connect to the server using the properties defined in the constructor, or
    * return the existing connection
@@ -241,7 +248,7 @@ public class JDBCImportModule implements DatabaseImportModule {
       if (ssh) {
         connectionURL = RemoteConnectionUtils.replaceHostAndPort(connectionURL);
       }
-      connection = DriverManager.getConnection(connectionURL);
+      connection = DriverManager.getConnection(connectionURL, credentials);
     } catch (SQLException e) {
       closeConnection();
       throw normalizeException(e, null);
@@ -2201,5 +2208,9 @@ public class JDBCImportModule implements DatabaseImportModule {
 
   public String escapeObjectName(String objectName) {
     return objectName;
+  }
+
+  public Properties getCredentials() {
+    return this.credentials;
   }
 }

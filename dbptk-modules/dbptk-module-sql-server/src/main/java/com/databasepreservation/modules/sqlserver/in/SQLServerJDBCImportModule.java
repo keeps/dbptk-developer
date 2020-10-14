@@ -69,8 +69,8 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
     String database, String username, String password, boolean integratedSecurity, boolean encrypt, boolean ssh,
     String sshHost, String sshUser, String sshPassword, String sshPortNumber) throws ModuleException {
     super("com.microsoft.sqlserver.jdbc.SQLServerDriver",
-      "jdbc:sqlserver://" + serverName + "\\" + instanceName + ":" + portNumber + ";database=" + database + ";user="
-        + username + ";password=" + password + ";integratedSecurity=" + integratedSecurity + ";encrypt=" + encrypt,
+      "jdbc:sqlserver://" + serverName + "\\" + instanceName + ":" + portNumber + ";database=" + database
+        + ";integratedSecurity=" + integratedSecurity + ";encrypt=" + encrypt,
       new SQLServerHelper(), new SQLServerDatatypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(SQLServerJDBCModuleFactory.PARAMETER_SERVER_NAME, serverName,
         SQLServerJDBCModuleFactory.PARAMETER_PORT_NUMBER, portNumber,
@@ -82,6 +82,8 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
       MapUtils.buildMapFromObjectsIf(ssh, SQLServerJDBCModuleFactory.PARAMETER_SSH_HOST, sshHost,
         SQLServerJDBCModuleFactory.PARAMETER_SSH_PORT, sshPortNumber, SQLServerJDBCModuleFactory.PARAMETER_SSH_USER,
         sshUser, SQLServerJDBCModuleFactory.PARAMETER_SSH_PASSWORD, sshPassword));
+
+    createCredentialsProperty(username, password);
   }
 
   /**
@@ -106,8 +108,8 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
     String username, String password, boolean integratedSecurity, boolean encrypt, boolean ssh, String sshHost,
     String sshUser, String sshPassword, String sshPortNumber) throws ModuleException {
     super("com.microsoft.sqlserver.jdbc.SQLServerDriver",
-      "jdbc:sqlserver://" + serverName + ":" + portNumber + ";database=" + database + ";user=" + username + ";password="
-        + password + ";integratedSecurity=" + integratedSecurity + ";encrypt=" + encrypt,
+      "jdbc:sqlserver://" + serverName + ":" + portNumber + ";database=" + database + ";integratedSecurity="
+        + integratedSecurity + ";encrypt=" + encrypt,
       new SQLServerHelper(), new SQLServerDatatypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(SQLServerJDBCModuleFactory.PARAMETER_SERVER_NAME, serverName,
         SQLServerJDBCModuleFactory.PARAMETER_PORT_NUMBER, portNumber,
@@ -118,6 +120,8 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
       MapUtils.buildMapFromObjectsIf(ssh, SQLServerJDBCModuleFactory.PARAMETER_SSH_HOST, sshHost,
         SQLServerJDBCModuleFactory.PARAMETER_SSH_PORT, sshPortNumber, SQLServerJDBCModuleFactory.PARAMETER_SSH_USER,
         sshUser, SQLServerJDBCModuleFactory.PARAMETER_SSH_PASSWORD, sshPassword));
+
+    createCredentialsProperty(username, password);
   }
 
   @Override

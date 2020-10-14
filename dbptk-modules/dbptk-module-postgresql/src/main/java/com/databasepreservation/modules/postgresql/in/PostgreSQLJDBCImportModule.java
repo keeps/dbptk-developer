@@ -113,22 +113,22 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
    */
   public PostgreSQLJDBCImportModule(String moduleName, String hostname, int port, String database, String username,
     String password, boolean encrypt) {
-    super(
-      "org.postgresql.Driver", "jdbc:postgresql://" + hostname + ":" + port + "/" + database + "?user=" + username
-        + "&password=" + password + (encrypt ? "&ssl=true" : ""),
+    super("org.postgresql.Driver",
+      "jdbc:postgresql://" + hostname + ":" + port + "/" + database + (encrypt ? "?ssl=true" : ""),
       new PostgreSQLHelper(), new PostgreSQLJDBCDatatypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(PostgreSQLModuleFactory.PARAMETER_HOSTNAME, hostname,
         PostgreSQLModuleFactory.PARAMETER_PORT_NUMBER, port, PostgreSQLModuleFactory.PARAMETER_USERNAME, username,
         PostgreSQLModuleFactory.PARAMETER_PASSWORD, password, PostgreSQLModuleFactory.PARAMETER_DATABASE, database,
         PostgreSQLModuleFactory.PARAMETER_DISABLE_ENCRYPTION, !encrypt));
+
+    createCredentialsProperty(username, password);
   }
 
   public PostgreSQLJDBCImportModule(String moduleName, String hostname, int port, String database, String username,
     String password, boolean encrypt, String sshHost, String sshUser, String sshPassword, String sshPortNumber)
     throws ModuleException {
-    super(
-      "org.postgresql.Driver", "jdbc:postgresql://" + hostname + ":" + port + "/" + database + "?user=" + username
-        + "&password=" + password + (encrypt ? "&ssl=true" : ""),
+    super("org.postgresql.Driver",
+      "jdbc:postgresql://" + hostname + ":" + port + "/" + database + (encrypt ? "?ssl=true" : ""),
       new PostgreSQLHelper(), new PostgreSQLJDBCDatatypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(PostgreSQLModuleFactory.PARAMETER_HOSTNAME, hostname,
         PostgreSQLModuleFactory.PARAMETER_PORT_NUMBER, port, PostgreSQLModuleFactory.PARAMETER_USERNAME, username,
@@ -138,6 +138,8 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
         PostgreSQLModuleFactory.PARAMETER_SSH_HOST, sshHost, PostgreSQLModuleFactory.PARAMETER_SSH_PORT, sshPortNumber,
         PostgreSQLModuleFactory.PARAMETER_SSH_USER, sshUser, PostgreSQLModuleFactory.PARAMETER_SSH_PASSWORD,
         sshPassword));
+
+    createCredentialsProperty(username, password);
   }
 
   @Override
@@ -147,7 +149,7 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       if (ssh) {
         connectionURL = RemoteConnectionUtils.replaceHostAndPort(connectionURL);
       }
-      connection = DriverManager.getConnection(connectionURL);
+      connection = DriverManager.getConnection(connectionURL, getCredentials());
       connection.setAutoCommit(false);
     } catch (SQLException e) {
       throw normalizeException(e, null);
