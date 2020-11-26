@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.databasepreservation.model.exception.SQLParseException;
+import com.databasepreservation.model.exception.TableNotFoundException;
+import com.databasepreservation.model.modules.configuration.CustomViewConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -199,6 +202,40 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
   @Override
   protected List<TableStructure> getTables(SchemaStructure schema) throws SQLException, ModuleException {
     List<TableStructure> tables = new ArrayList<>();
+    int tableIndex = 1;
+
+    // Get custom views first so if there is any error in the queries there is no
+    // wasted time
+    List<CustomViewConfiguration> customViewConfigurations = getModuleConfiguration().getCustomViews(schema.getName());
+
+    if (!customViewConfigurations.isEmpty()) {
+      for (CustomViewConfiguration custom : customViewConfigurations) {
+        String description = custom.getDescription();
+        String query = custom.getQuery();
+        String name = custom.getName();
+        LOGGER.info("Obtaining table structure for custom view {}", name);
+
+        try {
+          TableStructure customViewStructureAsTable = getCustomViewStructureAsTable(schema, name, tableIndex,
+              description, query);
+          tables.add(customViewStructureAsTable);
+          tableIndex++;
+        } catch (SQLException e) {
+          if (e.getSQLState().equals("42S02")) {
+            throw new TableNotFoundException()
+                .withMessage(e.getMessage() + "\nPlease check if the query for the custom view " + name + " on schema "
+                    + schema.getName() + "is correct");
+          } else if (e.getSQLState().equals("42000")) {
+            throw new SQLParseException().withMessage(
+                "The query has parsing errors, please test the query for custom view '" + name + "' in a DBMS");
+          } else {
+            throw new ModuleException()
+                .withMessage("Error getting custom view structure for " + name + " on schema " + schema.getName())
+                .withCause(e);
+          }
+        }
+      }
+    }
 
     Set<String> tableNames = null;
     try {
@@ -209,7 +246,6 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
     }
 
     ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"TABLE"});
-    int tableIndex = 1;
     while (rset.next()) {
       String tableName = rset.getString(3);
 
@@ -233,6 +269,25 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
         LOGGER.info("Ignoring table " + schema.getName() + "." + tableName);
       }
     }
+
+    if (!getModuleConfiguration().ignoreViews()) {
+      try (
+          ResultSet resultSet = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"VIEW"})) {
+        while (resultSet.next()) {
+          String viewName = resultSet.getString(3);
+          String viewDescription = resultSet.getString(5);
+
+          if (getModuleConfiguration().isMaterializeView(schema.getName(), viewName)) {
+            LOGGER.info("Obtaining table structure for view {}.{}", schema.getName(), viewName);
+            tables.add(getViewStructure(schema, viewName, tableIndex, viewDescription));
+            tableIndex++;
+          } else {
+            LOGGER.info("Ignoring view {}.{}", schema.getName(), viewName);
+          }
+        }
+      }
+    }
+
     return tables;
   }
 

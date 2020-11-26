@@ -20,6 +20,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import com.databasepreservation.managers.ModuleConfigurationManager;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -335,7 +336,7 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
 
       currentTableIndex = 1;
       result.setTables(getTablesStructure(schema.getTables(), schema.getName()));
-      result.setViews(getViews(schema.getViews()));
+      result.setViews(getViews(schema.getViews(), schema.getName()));
       result.setRoutines(getRoutines(schema.getRoutines()));
 
       return result;
@@ -418,12 +419,17 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
     }
   }
 
-  private List<ViewStructure> getViews(ViewsType views) throws ModuleException {
-    List<ViewStructure> result = new ArrayList<ViewStructure>();
+  private List<ViewStructure> getViews(ViewsType views, String schemaName) throws ModuleException {
+    List<ViewStructure> result = new ArrayList<>();
 
-    if (views != null && !views.getView().isEmpty()) {
-      for (ViewType viewType : views.getView()) {
-        result.add(getViewStructure(viewType));
+    if (!moduleConfiguration.ignoreViews()) {
+      if (views != null && !views.getView().isEmpty()) {
+        for (ViewType viewType : views.getView()) {
+          ViewStructure viewStructure = getViewStructure(viewType);
+          if (moduleConfiguration.isSelectedView(viewStructure.getName(), schemaName)) {
+            result.add(viewStructure);
+          }
+        }
       }
     }
 
