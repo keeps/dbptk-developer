@@ -33,6 +33,9 @@ import java.sql.SQLException;
 public class PostgreSQLJDBCDatatypeImporter extends JDBCDatatypeImporter {
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgreSQLJDBCDatatypeImporter.class);
 
+  private static final int NUMERIC_MAX_SCALE_NUMBER = 1000;
+  private static final int NUMERIC_MAX_PRECISION_NUMBER = 1000;
+
   @Override
   protected Type getBinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeBinary(columnSize);
@@ -152,8 +155,9 @@ public class PostgreSQLJDBCDatatypeImporter extends JDBCDatatypeImporter {
     // declaration is 1000, so if we find more than that it means that this type was
     // declared without precision nor scale
     if (columnSize > 1000) {
-      type.setSql99TypeName("NUMERIC");
-      type.setSql2008TypeName("NUMERIC");
+      type.setSql99TypeName("NUMERIC", NUMERIC_MAX_PRECISION_NUMBER, NUMERIC_MAX_SCALE_NUMBER);
+      type.setSql2008TypeName("NUMERIC", NUMERIC_MAX_PRECISION_NUMBER, NUMERIC_MAX_SCALE_NUMBER);
+      reporter.customMessage(this.getClass().getName(), "Could not find any precision nor scale on the data type. This will be converted from NUMERIC to NUMERIC(1000,1000).");
     } else if (decimalDigits > 0) {
       type.setSql99TypeName("NUMERIC", columnSize, decimalDigits);
       type.setSql2008TypeName("NUMERIC", columnSize, decimalDigits);
