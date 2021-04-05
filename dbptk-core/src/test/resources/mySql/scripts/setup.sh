@@ -20,7 +20,7 @@ pass="$DPT_MYSQL_PASS"
 
 function sql() {
   #mysql -s --user="$user" --password="$password" --database="mysql" --execute="$1"
-  mysql -s --user="$user" --password="$pass" --host="127.0.0.1" --execute="$1"
+  mysql -s --user="$user" --password="$pass" --host="127.0.0.1" --port="$DPT_MYSQL_PORT" --execute="$1"
 }
 
 # Create test databases
