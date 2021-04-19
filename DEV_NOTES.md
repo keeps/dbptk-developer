@@ -4,7 +4,7 @@ Hey devs, here are some notes that may be of use to you!
 
 Besides these notes, the [contributions guide](https://github.com/keeps/db-preservation-toolkit/blob/master/.github/contributing.md) also has information that might be useful.
 
-[![CI](https://github.com/keeps/dbptk-developer/actions/workflows/CI.yml/badge.svg)](https://github.com/keeps/dbptk-developer/actions/workflows/CI.yml) [![Release](https://github.com/keeps/dbptk-developer/actions/workflows/release.yml/badge.svg)](https://github.com/keeps/dbptk-developer/actions/workflows/release.yml)
+[![CI](https://github.com/keeps/dbptk-developer/actions/workflows/CI.yml/badge.svg)](https://github.com/keeps/dbptk-developer/actions/workflows/CI.yml) [![Release](https://github.com/keeps/dbptk-developer/actions/workflows/release.yml/badge.svg)](https://github.com/keeps/dbptk-developer/actions/workflows/release.yml) [![CodeQL](https://github.com/keeps/dbptk-developer/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/keeps/dbptk-developer/actions/workflows/codeql-analysis.yml)
 
 ## How to build from source
 
