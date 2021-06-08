@@ -204,10 +204,9 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
     for (ViewStructure v : views) {
       String originalQuery = null;
       ResultSet rset = null;
-      PreparedStatement statement = null;
-      statement = getConnection().prepareStatement("SELECT OBJECT_DEFINITION (OBJECT_ID('"
-        + sqlHelper.escapeViewName(schemaName, v.getName()) + "')) AS objdefinition");
-
+      String query = "SELECT OBJECT_DEFINITION (OBJECT_ID(?)) AS objdefinition";
+      PreparedStatement statement = getConnection().prepareStatement(query);
+      statement.setString(1, sqlHelper.escapeViewName(schemaName, v.getName()));
       try {
         // https://technet.microsoft.com/en-us/library/ms175067.aspx
         rset = statement.executeQuery();
@@ -223,8 +222,8 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
       try {
         // https://technet.microsoft.com/en-us/library/ms175067.aspx
         statement = getConnection()
-          .prepareStatement("SELECT definition AS objdefinition FROM sys.sql_modules WHERE object_id = OBJECT_ID('"
-            + sqlHelper.escapeViewName(schemaName, v.getName()) + "')");
+          .prepareStatement("SELECT definition AS objdefinition FROM sys.sql_modules WHERE object_id = OBJECT_ID(?)");
+        statement.setString(1, sqlHelper.escapeViewName(schemaName, v.getName()));
         rset = statement.executeQuery();
         rset.next();
         originalQuery = rset.getString(fieldName);
@@ -362,6 +361,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
     try (ResultSet rset = getMetadata().getProcedures(dbStructure.getName(), schemaName, "%")) {
       while (rset.next()) {
         String routineName = rset.getString(3);
+        routineName = routineName.replaceAll(";[0-9]+$", "");
         LOGGER.info("Obtaining routine {}", routineName);
         RoutineStructure routine = new RoutineStructure();
         routine.setName(routineName);
@@ -376,9 +376,12 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
         }
 
         try {
-          routineName = routineName.replaceAll(";[0-9]+$", "");
-          try (ResultSet resultSet = getStatement().executeQuery("SELECT ROUTINE_DEFINITION FROM " + getDatabaseName()
-            + ".information_schema.routines WHERE specific_name='" + routineName + "'")) {
+          String query = "SELECT ROUTINE_DEFINITION FROM {{placeholder}} WHERE specific_name=?";
+          query = query.replace("{{placeholder}}",
+            sqlHelper.escapeTableName(getDatabaseName()) + ".information_schema.routines");
+          PreparedStatement preparedStatement = getConnection().prepareStatement(query);
+          preparedStatement.setString(1, routineName);
+          try (ResultSet resultSet = preparedStatement.executeQuery()) {
             if (resultSet.next()) {
               routine.setBody(resultSet.getString("ROUTINE_DEFINITION"));
             }

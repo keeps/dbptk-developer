@@ -10,6 +10,7 @@
  */
 package com.databasepreservation.modules.mysql.in;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -166,12 +167,14 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
     // obtain mysql remarks/comments (unsupported by the mysql driver up to
     // 5.1.38)
     if (StringUtils.isBlank(tableStructure.getDescription())) {
-      String query = "SELECT TABLE_COMMENT FROM information_schema.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = '"
-        + schema.getName() + "' AND TABLE_NAME = '" + tableName + "'";
+      String query = "SELECT TABLE_COMMENT FROM information_schema.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = '?' AND TABLE_NAME = '?'";
+      PreparedStatement preparedStatement = getConnection().prepareStatement(query);
+      preparedStatement.setString(1, schema.getName());
+      preparedStatement.setString(2, tableName);
       try {
-        boolean gotResultSet = getStatement().execute(query);
+        boolean gotResultSet = preparedStatement.execute();
         if (gotResultSet) {
-          try (ResultSet rs = getStatement().getResultSet()) {
+          try (ResultSet rs = preparedStatement.getResultSet()) {
             if (rs.next()) {
               String tableComment = rs.getString(1);
               tableStructure.setDescription(tableComment);

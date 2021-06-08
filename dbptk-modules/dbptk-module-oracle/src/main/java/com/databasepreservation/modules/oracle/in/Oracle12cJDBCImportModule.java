@@ -18,11 +18,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
-import com.databasepreservation.model.structure.ViewStructure;
-import com.databasepreservation.modules.CloseableUtils;
-import com.databasepreservation.utils.RemoteConnectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.geotools.data.oracle.sdo.GeometryConverter;
 import org.locationtech.jts.geom.Geometry;
@@ -42,14 +38,17 @@ import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.RoutineStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.modules.CloseableUtils;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.oracle.Oracle12cModuleFactory;
 import com.databasepreservation.modules.oracle.OracleExceptionNormalizer;
 import com.databasepreservation.modules.oracle.OracleHelper;
 import com.databasepreservation.utils.ConfigUtils;
 import com.databasepreservation.utils.MapUtils;
+import com.databasepreservation.utils.RemoteConnectionUtils;
 
 import oracle.jdbc.OracleArray;
 import oracle.jdbc.OracleBfile;
@@ -83,8 +82,7 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
   public Oracle12cJDBCImportModule(String moduleName, String serverName, int port, String instance, String username,
     String password) {
 
-    super("oracle.jdbc.driver.OracleDriver",
-      "jdbc:oracle:thin:@//" + serverName + ":" + port + "/" + instance,
+    super("oracle.jdbc.driver.OracleDriver", "jdbc:oracle:thin:@//" + serverName + ":" + port + "/" + instance,
       new OracleHelper(), new Oracle12cJDBCDatatypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(Oracle12cModuleFactory.PARAMETER_SERVER_NAME, serverName,
         Oracle12cModuleFactory.PARAMETER_PORT_NUMBER, port, Oracle12cModuleFactory.PARAMETER_INSTANCE, instance,
@@ -99,8 +97,7 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
   public Oracle12cJDBCImportModule(String moduleName, String serverName, int port, String instance, String username,
     String password, String sshHost, String sshUser, String sshPassword, String sshPortNumber) throws ModuleException {
 
-    super("oracle.jdbc.driver.OracleDriver",
-      "jdbc:oracle:thin:@//" + serverName + ":" + port + "/" + instance,
+    super("oracle.jdbc.driver.OracleDriver", "jdbc:oracle:thin:@//" + serverName + ":" + port + "/" + instance,
       new OracleHelper(), new Oracle12cJDBCDatatypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(Oracle12cModuleFactory.PARAMETER_SERVER_NAME, serverName,
         Oracle12cModuleFactory.PARAMETER_PORT_NUMBER, port, Oracle12cModuleFactory.PARAMETER_INSTANCE, instance,
@@ -350,13 +347,18 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
   }
 
   private void getRoutineBody(String routineName, RoutineStructure routine) throws ModuleException {
-    try (ResultSet rsetCode = getStatement()
-      .executeQuery("SELECT text FROM user_source WHERE name='" + routineName + "' ORDER BY line")) {
-      StringBuilder sb = new StringBuilder();
-      while (rsetCode.next()) {
-        sb.append(rsetCode.getString("TEXT"));
+    try {
+      String query = "SELECT text FROM user_source WHERE name='?' ORDER BY line";
+      PreparedStatement preparedStatement = getConnection().prepareStatement(query);
+      preparedStatement.setString(1, routineName);
+
+      try (ResultSet rsetCode = preparedStatement.executeQuery()) {
+        StringBuilder sb = new StringBuilder();
+        while (rsetCode.next()) {
+          sb.append(rsetCode.getString("TEXT"));
+        }
+        routine.setBody(sb.toString());
       }
-      routine.setBody(sb.toString());
     } catch (SQLException e) {
       LOGGER.debug("Could not retrieve routine code (as routine).", e);
     }
