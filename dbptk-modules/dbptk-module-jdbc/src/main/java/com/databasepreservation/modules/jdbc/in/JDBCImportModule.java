@@ -663,46 +663,6 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
     }
 
-    // if (!customViews.isEmpty()) {
-    // Map<String, Map<String, String>> schemaCustomViews =
-    // customViews.get(schema.getName());
-    // if (schemaCustomViews != null) {
-    // for (Map.Entry<String, Map<String, String>> entry :
-    // schemaCustomViews.entrySet()) {
-    // String viewDescription = entry.getValue().get("description");
-    // String query = entry.getValue().get("query");
-    // LOGGER.info("Obtaining table structure for custom view {}", entry.getKey());
-    // try {
-    // TableStructure customViewStructureAsTable =
-    // getCustomViewStructureAsTable(schema, entry.getKey(),
-    // tableIndex, viewDescription, query);
-    // tables.add(customViewStructureAsTable);
-    // tableIndex++;
-    // } catch (SQLException e) {
-    // if (e.getSQLState().equals("42S02")) {
-    // throw new TableNotFoundException()
-    // .withMessage(e.getMessage() + "\nPlease check if the query in the YAML file
-    // is correct");
-    // } else if (e.getSQLState().equals("42000")) {
-    // throw new SQLParseException()
-    // .withMessage("The query has parsing errors\nPlease test the query for custom
-    // view '" + entry.getKey()
-    // + "' in a DBMS");
-    // } else {
-    // throw new ModuleException()
-    // .withMessage("Error getting custom view structure for " + schema.getName() +
-    // "." + entry.getKey())
-    // .withCause(e);
-    // }
-    // }
-    // }
-    // } else {
-    // throw new ModuleException().withMessage("The schema '" + schema.getName() +
-    // "' was not found in "
-    // + customViewsPath + "\nPlease check if the schema name in the YAML file is
-    // correct");
-    // }
-    // }
     try (
       ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"TABLE"})) {
       while (rset.next()) {
@@ -719,9 +679,24 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
     }
 
+/*    try (ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"MATERIALIZED VIEW"})) {
+      while (rset.next()) {
+        String materializedViewName = rset.getString(3);
+        String materializedViewDescription = rset.getString(5);
+
+        if (getModuleConfiguration().isMaterializeView(schema.getName(), materializedViewName)) {
+          LOGGER.info("Obtaining table structure for view {}.{}", schema.getName(), materializedViewName);
+          tables.add(getViewStructure(schema, materializedViewName, tableIndex, materializedViewDescription));
+          tableIndex++;
+        } else {
+          LOGGER.info("Ignoring view {}.{}", schema.getName(), materializedViewName);
+        }
+      }
+    }*/
+
     if (!getModuleConfiguration().ignoreViews()) {
       try (
-        ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"VIEW"})) {
+        ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"VIEW", "MATERIALIZED VIEW"})) {
         while (rset.next()) {
           String viewName = rset.getString(3);
           String viewDescription = rset.getString(5);
@@ -733,15 +708,6 @@ public class JDBCImportModule implements DatabaseImportModule {
           } else {
             LOGGER.info("Ignoring view {}.{}", schema.getName(), viewName);
           }
-
-          // if (getModuleSettings().isSelectedTable(schema.getName(), viewName)) {
-          // LOGGER.info("Obtaining table structure for view {}.{}", schema.getName(),
-          // viewName);
-          // tables.add(getViewStructure(schema, viewName, tableIndex, viewDescription));
-          // tableIndex++;
-          // } else {
-          // LOGGER.info("Ignoring view {}.{}", schema.getName(), viewName);
-          // }
         }
       }
     }
@@ -758,7 +724,7 @@ public class JDBCImportModule implements DatabaseImportModule {
   protected List<ViewStructure> getViews(String schemaName) throws SQLException, ModuleException {
     List<ViewStructure> views = new ArrayList<>();
     if (!getModuleConfiguration().ignoreViews()) {
-      try (ResultSet rset = getMetadata().getTables(dbStructure.getName(), schemaName, "%", new String[] {"VIEW"})) {
+      try (ResultSet rset = getMetadata().getTables(dbStructure.getName(), schemaName, "%", new String[] {"VIEW", "MATERIALIZED VIEW"})) {
         while (rset.next()) {
           String viewName = rset.getString(3);
           if (getModuleConfiguration().isSelectedView(schemaName, viewName)) {

@@ -35,7 +35,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
  * list can then be used by other modules (e.g. the SIARD2 export module) to
  * specify the tables that should be processed.
  *
- * @author Bruno Ferreira <bferreira@keep.pt>
+ * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 public class ImportConfiguration implements DatabaseFilterModule {
   private DatabaseStructure dbStructure;

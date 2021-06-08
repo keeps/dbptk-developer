@@ -167,7 +167,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
     // obtain mysql remarks/comments (unsupported by the mysql driver up to
     // 5.1.38)
     if (StringUtils.isBlank(tableStructure.getDescription())) {
-      String query = "SELECT TABLE_COMMENT FROM information_schema.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = '?' AND TABLE_NAME = '?'";
+      String query = "SELECT TABLE_COMMENT FROM information_schema.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = ? AND TABLE_NAME = ?";
       PreparedStatement preparedStatement = getConnection().prepareStatement(query);
       preparedStatement.setString(1, schema.getName());
       preparedStatement.setString(2, tableName);

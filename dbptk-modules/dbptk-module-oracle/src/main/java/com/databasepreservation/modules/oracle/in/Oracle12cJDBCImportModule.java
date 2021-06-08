@@ -348,7 +348,7 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
 
   private void getRoutineBody(String routineName, RoutineStructure routine) throws ModuleException {
     try {
-      String query = "SELECT text FROM user_source WHERE name='?' ORDER BY line";
+      String query = "SELECT text FROM user_source WHERE name=? ORDER BY line";
       PreparedStatement preparedStatement = getConnection().prepareStatement(query);
       preparedStatement.setString(1, routineName);
 
