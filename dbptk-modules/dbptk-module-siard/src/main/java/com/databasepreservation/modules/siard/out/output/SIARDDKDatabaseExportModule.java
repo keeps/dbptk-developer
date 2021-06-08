@@ -69,9 +69,11 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
         // Get the creation time of the old archive folder
         BasicFileAttributes basicFileAttributes = Files.readAttributes(pathToArchive, BasicFileAttributes.class);
         String creationTimeStamp = basicFileAttributes.creationTime().toString();
+        
+        String name = pathToArchive.toString() + "_backup_" + creationTimeStamp;
 
         // Rename the old folder
-        File oldArchiveDir = new File(pathToArchive.toString() + "_backup_" + creationTimeStamp);
+        File oldArchiveDir = new File(name.replaceAll("[:\\\\/*?|<>]", "_"));
         FileUtils.moveDirectory(outputFolder, oldArchiveDir);
 
         logger.info("Backed up an already existing archive folder to: " + oldArchiveDir);
