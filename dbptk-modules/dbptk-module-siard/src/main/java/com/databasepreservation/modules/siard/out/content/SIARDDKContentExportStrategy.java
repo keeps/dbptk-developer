@@ -64,16 +64,16 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   private boolean foundClob;
   private boolean foundUnknownMimetype;
 
-  private ContentPathExportStrategy contentPathExportStrategy;
-  private FileIndexFileStrategy fileIndexFileStrategy;
-  private DocIndexFileStrategy docIndexFileStrategy;
-  private SIARDArchiveContainer baseContainer;
+  private final ContentPathExportStrategy contentPathExportStrategy;
+  private final FileIndexFileStrategy fileIndexFileStrategy;
+  private final DocIndexFileStrategy docIndexFileStrategy;
+  private final SIARDArchiveContainer baseContainer;
   private OutputStream tableXmlOutputStream;
   private OutputStream tableXsdOutputStream;
   private BufferedWriter tableXmlWriter;
-  private WriteStrategy writeStrategy;
-  private LOBsTracker lobsTracker;
-  private MimetypeHandler mimetypeHandler;
+  private final WriteStrategy writeStrategy;
+  private final LOBsTracker lobsTracker;
+  private final MimetypeHandler mimetypeHandler;
 
   private Reporter reporter;
 
@@ -180,12 +180,12 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     List<ColumnStructure> columns = tableStructure.getColumns();
     for (ColumnStructure columnStructure : columns) {
       Element c = new Element("element", xs);
-      c.setAttribute("name", "c" + Integer.toString(columnIndex));
+      c.setAttribute("name", "c" + columnIndex);
       String sql99Type = columnStructure.getType().getSql99TypeName();
 
       // Register LOB in the LOBsTracker
-      if (sql99Type.equals(SIARDDKConstants.BINARY_LARGE_OBJECT)
-        || sql99Type.equals(SIARDDKConstants.CHARACTER_LARGE_OBJECT)) {
+      if (SIARDDKConstants.BINARY_LARGE_OBJECT.equals(sql99Type)
+        || SIARDDKConstants.CHARACTER_LARGE_OBJECT.equals(sql99Type)) {
         lobsTracker.addLOBLocationAndType(tableCounter, columnIndex, sql99Type);
       }
 

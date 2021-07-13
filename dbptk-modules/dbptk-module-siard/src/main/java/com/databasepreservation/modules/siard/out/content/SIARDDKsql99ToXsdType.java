@@ -17,6 +17,8 @@ public class SIARDDKsql99ToXsdType {
 
   public static String convert(String sql99Type) {
 
+    if (sql99Type == null) return null;
+
     if (sql99Type.startsWith("NUMERIC") || sql99Type.startsWith("DECIMAL") || sql99Type.startsWith("DOUBLE PRECISION")
       || sql99Type.startsWith("FLOAT") || sql99Type.startsWith("REAL")) {
       return "xs:decimal";
@@ -41,7 +43,5 @@ public class SIARDDKsql99ToXsdType {
     }
 
     return null;
-
   }
-
 }
