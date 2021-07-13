@@ -52,6 +52,71 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
    *
    * @param serverName
    *          the name (host name) of the server
+   * @param database
+   *          the name of the database we'll be accessing
+   * @param integratedSecurity
+   *          true to use windows login, false to use SQL Server login
+   * @param encrypt
+   *          true to use encryption in the connection
+   */
+  public SQLServerJDBCImportModule(String moduleName, String serverName, int portNumber, String database,
+    boolean integratedSecurity, boolean encrypt, boolean ssh, String sshHost, String sshUser, String sshPassword,
+    String sshPortNumber) throws ModuleException {
+    super("com.microsoft.sqlserver.jdbc.SQLServerDriver",
+      "jdbc:sqlserver://" + serverName + ":" + portNumber + ";database=" + database + ";integratedSecurity="
+        + integratedSecurity + ";                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               encrypt=" + encrypt,
+      new SQLServerHelper(), new SQLServerDatatypeImporter(), moduleName,
+      MapUtils.buildMapFromObjects(SQLServerJDBCModuleFactory.PARAMETER_SERVER_NAME, serverName,
+        SQLServerJDBCModuleFactory.PARAMETER_PORT_NUMBER, portNumber,
+        SQLServerJDBCModuleFactory.PARAMETER_USE_INTEGRATED_LOGIN, integratedSecurity,
+        SQLServerJDBCModuleFactory.PARAMETER_DATABASE, database,
+        SQLServerJDBCModuleFactory.PARAMETER_DISABLE_ENCRYPTION, !encrypt),
+      MapUtils.buildMapFromObjectsIf(ssh, SQLServerJDBCModuleFactory.PARAMETER_SSH_HOST, sshHost,
+        SQLServerJDBCModuleFactory.PARAMETER_SSH_PORT, sshPortNumber, SQLServerJDBCModuleFactory.PARAMETER_SSH_USER,
+        sshUser, SQLServerJDBCModuleFactory.PARAMETER_SSH_PASSWORD, sshPassword));
+  }
+
+  /**
+   * Create a new Microsoft SQL Server import module using the instance name. The
+   * constructor using the port number is preferred over this to avoid a
+   * round-trip to the server to discover the instance port number.
+   *
+   * @param serverName
+   *          the name (host name) of the server
+   * @param instanceName
+   *          the name of the instance
+   * @param database
+   *          the name of the database we'll be accessing
+   * @param integratedSecurity
+   *          true to use windows login, false to use SQL Server login
+   * @param encrypt
+   *          true to use encryption in the connection
+   */
+  public SQLServerJDBCImportModule(String moduleName, String serverName, int portNumber, String instanceName,
+    String database, boolean integratedSecurity, boolean encrypt, boolean ssh, String sshHost, String sshUser,
+    String sshPassword, String sshPortNumber) throws ModuleException {
+    super("com.microsoft.sqlserver.jdbc.SQLServerDriver",
+      "jdbc:sqlserver://" + serverName + "\\" + instanceName + ":" + portNumber + ";database=" + database
+        + ";integratedSecurity=" + integratedSecurity + ";encrypt=" + encrypt,
+      new SQLServerHelper(), new SQLServerDatatypeImporter(), moduleName,
+      MapUtils.buildMapFromObjects(SQLServerJDBCModuleFactory.PARAMETER_SERVER_NAME, serverName,
+        SQLServerJDBCModuleFactory.PARAMETER_PORT_NUMBER, portNumber,
+        SQLServerJDBCModuleFactory.PARAMETER_INSTANCE_NAME, instanceName,
+        SQLServerJDBCModuleFactory.PARAMETER_USE_INTEGRATED_LOGIN, integratedSecurity,
+        SQLServerJDBCModuleFactory.PARAMETER_DATABASE, database,
+        SQLServerJDBCModuleFactory.PARAMETER_DISABLE_ENCRYPTION, !encrypt),
+      MapUtils.buildMapFromObjectsIf(ssh, SQLServerJDBCModuleFactory.PARAMETER_SSH_HOST, sshHost,
+        SQLServerJDBCModuleFactory.PARAMETER_SSH_PORT, sshPortNumber, SQLServerJDBCModuleFactory.PARAMETER_SSH_USER,
+        sshUser, SQLServerJDBCModuleFactory.PARAMETER_SSH_PASSWORD, sshPassword));
+  }
+
+  /**
+   * Create a new Microsoft SQL Server import module using the instance name. The
+   * constructor using the port number is preferred over this to avoid a
+   * round-trip to the server to discover the instance port number.
+   *
+   * @param serverName
+   *          the name (host name) of the server
    * @param instanceName
    *          the name of the instance
    * @param database

@@ -12,19 +12,19 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.managers.RemoteConnectionManager;
-import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.ParameterGroup;
 import com.databasepreservation.model.parameters.Parameters;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.modules.sqlserver.in.SQLServerJDBCImportModule;
 import com.databasepreservation.modules.sqlserver.out.SQLServerJDBCExportModule;
 
@@ -54,12 +54,12 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
     .required(true);
 
   private static final Parameter username = new Parameter().shortName("u").longName(PARAMETER_USERNAME)
-    .description("the name of the user to use in the connection").hasArgument(true).setOptionalArgument(false)
-    .required(true);
+    .description("the name of the user to use in the connection").hasArgument(true).setOptionalArgument(true)
+    .required(false);
 
   private static final Parameter password = new Parameter().shortName("p").longName(PARAMETER_PASSWORD)
-    .description("the password of the user to use in the connection").hasArgument(true).setOptionalArgument(false)
-    .required(true);
+    .description("the password of the user to use in the connection").hasArgument(true).setOptionalArgument(true)
+    .required(false);
 
   private static final Parameter useIntegratedLogin = new Parameter().shortName("l")
     .longName(PARAMETER_USE_INTEGRATED_LOGIN).description("use windows login; by default the SQL Server login is used")
@@ -157,7 +157,8 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
+    throws ModuleException {
     // String values
     String pServerName = parameters.get(serverName);
     String pDatabase = parameters.get(database);
@@ -167,6 +168,14 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
     // boolean
     boolean pUseIntegratedLogin = Boolean.parseBoolean(parameters.get(useIntegratedLogin));
     boolean pEncrypt = !Boolean.parseBoolean(parameters.get(disableEncryption));
+
+    // Validate authentication method
+    if (!pUseIntegratedLogin) {
+      if (StringUtils.isBlank(pUsername) || StringUtils.isBlank(pPassword)) {
+        throw new ModuleException().withMessage(
+          "Provide a valid authentication method. Use integrated login or username and password combination");
+      }
+    }
 
     // optional
     int pPortNumber;
@@ -197,21 +206,40 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
     }
 
     if (pInstanceName != null) {
-      reporter.importModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_DATABASE,
-        pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, Reporter.MESSAGE_FILTERED,
-        PARAMETER_USE_INTEGRATED_LOGIN, String.valueOf(pUseIntegratedLogin), PARAMETER_INSTANCE_NAME, pInstanceName,
-        PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER,
-        pSSHUser, PARAMETER_SSH_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
-      return new SQLServerJDBCImportModule(getModuleName(), pServerName, pPortNumber, pInstanceName, pDatabase,
-        pUsername, pPassword, pUseIntegratedLogin, pEncrypt, pSSH, pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
+      if (pUseIntegratedLogin) {
+        reporter.importModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_DATABASE,
+          pDatabase, PARAMETER_USE_INTEGRATED_LOGIN, String.valueOf(pUseIntegratedLogin), PARAMETER_INSTANCE_NAME,
+          pInstanceName, PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost,
+          PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT,
+          pSSHPortNumber);
+        return new SQLServerJDBCImportModule(getModuleName(), pServerName, pPortNumber, pInstanceName, pDatabase,
+          pUseIntegratedLogin, pEncrypt, pSSH, pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
+      } else {
+        reporter.importModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_DATABASE,
+          pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, Reporter.MESSAGE_FILTERED,
+          PARAMETER_USE_INTEGRATED_LOGIN, String.valueOf(pUseIntegratedLogin), PARAMETER_INSTANCE_NAME, pInstanceName,
+          PARAMETER_DISABLE_ENCRYPTION, String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER,
+          pSSHUser, PARAMETER_SSH_PASSWORD, Reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
+        return new SQLServerJDBCImportModule(getModuleName(), pServerName, pPortNumber, pInstanceName, pDatabase,
+          pUsername, pPassword, pUseIntegratedLogin, pEncrypt, pSSH, pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
+      }
     } else {
-      reporter.importModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_DATABASE,
-        pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, Reporter.MESSAGE_FILTERED,
-        PARAMETER_USE_INTEGRATED_LOGIN, String.valueOf(pUseIntegratedLogin), PARAMETER_DISABLE_ENCRYPTION,
-        String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD,
-        Reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
-      return new SQLServerJDBCImportModule(getModuleName(), pServerName, pPortNumber, pDatabase, pUsername, pPassword,
-        pUseIntegratedLogin, pEncrypt, pSSH, pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
+      if (pUseIntegratedLogin) {
+        reporter.importModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_DATABASE,
+          pDatabase, PARAMETER_USE_INTEGRATED_LOGIN, String.valueOf(pUseIntegratedLogin), PARAMETER_DISABLE_ENCRYPTION,
+          String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD,
+          Reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
+        return new SQLServerJDBCImportModule(getModuleName(), pServerName, pPortNumber, pDatabase, pUseIntegratedLogin,
+          pEncrypt, pSSH, pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
+      } else {
+        reporter.importModuleParameters(getModuleName(), PARAMETER_SERVER_NAME, pServerName, PARAMETER_DATABASE,
+          pDatabase, PARAMETER_USERNAME, pUsername, PARAMETER_PASSWORD, Reporter.MESSAGE_FILTERED,
+          PARAMETER_USE_INTEGRATED_LOGIN, String.valueOf(pUseIntegratedLogin), PARAMETER_DISABLE_ENCRYPTION,
+          String.valueOf(!pEncrypt), PARAMETER_SSH_HOST, pSSHHost, PARAMETER_SSH_USER, pSSHUser, PARAMETER_SSH_PASSWORD,
+          Reporter.MESSAGE_FILTERED, PARAMETER_SSH_PORT, pSSHPortNumber);
+        return new SQLServerJDBCImportModule(getModuleName(), pServerName, pPortNumber, pDatabase, pUsername, pPassword,
+          pUseIntegratedLogin, pEncrypt, pSSH, pSSHHost, pSSHUser, pSSHPassword, pSSHPortNumber);
+      }
     }
   }
 
