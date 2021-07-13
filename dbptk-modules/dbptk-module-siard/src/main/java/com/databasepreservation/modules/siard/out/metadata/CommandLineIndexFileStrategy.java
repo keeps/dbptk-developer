@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.xml.transform.stream.StreamSource;
 
@@ -70,6 +71,9 @@ public class CommandLineIndexFileStrategy implements IndexFileStrategy {
     try {
 
       // Create SAXBuilder from schema factory with relevant xsd-file as schema
+
+      Properties props = System.getProperties();
+      props.setProperty("javax.xml.parsers.SAXParserFactory", "com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl");
 
       InputStream in = this.getClass().getResourceAsStream(metadataPathStrategy.getXsdResourcePath(fileTypeFlag));
       XMLReaderJDOMFactory schemaFactory = new XMLReaderXSDFactory(new StreamSource(in));
