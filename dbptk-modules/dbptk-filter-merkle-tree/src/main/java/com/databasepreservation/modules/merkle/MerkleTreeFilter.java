@@ -22,6 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.databasepreservation.managers.ModuleConfigurationManager;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
@@ -55,6 +58,8 @@ public class MerkleTreeFilter implements DatabaseFilterModule {
   private static final String ROW_HASH_FIELD_NAME = "rowHash";
   private static final String CELL_HASH_FIELD_NAME = "cellHash";
   public static final String UNABLE_TO_WRITE_TO_THE_OUTPUT_FILE = "Unable to write to the output file";
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(MerkleTreeFilter.class);
 
   private DatabaseFilterModule exportModule;
   private DatabaseStructure databaseStructure;
@@ -143,7 +148,8 @@ public class MerkleTreeFilter implements DatabaseFilterModule {
     List<String> columns = new ArrayList<>();
 
     for (ColumnStructure column : currentTable.getColumns()) {
-      if (currentTable.isFromCustomView() || ModuleConfigurationManager.getInstance().getModuleConfiguration().isMerkleColumn(currentTable.getSchema(), currentTable.getName(), column.getName())) {
+      if (currentTable.isFromCustomView() || ModuleConfigurationManager.getInstance().getModuleConfiguration()
+        .isMerkleColumn(currentTable.getSchema(), currentTable.getName(), column.getName())) {
         merkleColumnsIndexes.add(index);
         columns.add(column.getName());
       }
@@ -164,6 +170,7 @@ public class MerkleTreeFilter implements DatabaseFilterModule {
       }
 
     } catch (IOException e) {
+      LOGGER.error("Unable to write to the output file due to: {}", e.getMessage(), e);
       throw new ModuleException().withMessage(UNABLE_TO_WRITE_TO_THE_OUTPUT_FILE).withCause(e);
     }
 
@@ -258,6 +265,7 @@ public class MerkleTreeFilter implements DatabaseFilterModule {
         jsonGenerator.writeObjectField(SCHEMA_HASH_FIELD_NAME, schemaDigestHex);
       }
       jsonGenerator.writeEndObject();
+      jsonGenerator.writeEndObject();
     } catch (IOException e) {
       throw new ModuleException().withMessage(UNABLE_TO_WRITE_TO_THE_OUTPUT_FILE).withCause(e);
     }
@@ -269,9 +277,8 @@ public class MerkleTreeFilter implements DatabaseFilterModule {
   public void finishDatabase() throws ModuleException {
     final String databaseDigestHex = MessageDigestUtils.getHexFromMessageDigest(databaseDigest.digest(), lowerCase);
     try {
-      jsonGenerator.writeEndObject();
-      jsonGenerator.writeEndArray();
 
+      jsonGenerator.writeEndArray();
       jsonGenerator.writeObjectField(TOP_HASH_FIELD_NAME, databaseDigestHex);
 
       jsonGenerator.writeEndObject();
@@ -320,7 +327,8 @@ public class MerkleTreeFilter implements DatabaseFilterModule {
   private byte[] handleBinaryCell(Cell cell, MessageDigest cellDigest) throws ModuleException {
     BinaryCell binaryCell = (BinaryCell) cell;
 
-    if (binaryCell.getMessageDigest() != null && binaryCell.getDigestAlgorithm().equalsIgnoreCase(messageDigestAlgorithm)) {
+    if (binaryCell.getMessageDigest() != null
+      && binaryCell.getDigestAlgorithm().equalsIgnoreCase(messageDigestAlgorithm)) {
       return binaryCell.getMessageDigest();
     } else {
       if (binaryCell.getSize() <= 0) {
