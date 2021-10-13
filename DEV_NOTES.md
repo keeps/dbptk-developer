@@ -14,12 +14,9 @@ Besides these notes, the [contributions guide](https://github.com/keeps/db-prese
 
 Binaries will be on the `target` folder.
 
-### Configure access to Oracle Maven repository
+## How to import DBPTK-Developer as a library
 
-The Oracle module uses JDBC Drivers from Oracle's Maven repository.
-This repository requires an account, which must be created and configured in order to be used by your maven client.
 
-For more info visit the [registration page](http://www.oracle.com/webapps/maven/register/license.html) and [maven configuration page](https://maven.oracle.com/doc.html).
 
 ## Development environment
 

@@ -6,11 +6,11 @@
     <name>dbptk-module-siard</name>
     <groupId>com.databasepreservation</groupId>
     <artifactId>dbptk-module-siard</artifactId>
-    <version>2.9.10</version>
+    <version>2.9.11-SNAPSHOT</version>
     <parent>
         <groupId>com.databasepreservation</groupId>
         <artifactId>dbptk-modules</artifactId>
-        <version>2.9.10</version>
+        <version>2.9.11-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
 
