@@ -16,7 +16,7 @@ Binaries will be on the `target` folder.
 
 ## How to import DBPTK-Developer as a library
 
-
+DBPTK-Developer migrate its packages to GitHub packages. Please follow the [Documentation](https://docs.github.com/en/enterprise-server@2.22/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry#authenticating-to-github-packages) provided by GitHub on how to install a package.
 
 ## Development environment
 
