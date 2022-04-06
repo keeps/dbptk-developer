@@ -51,6 +51,8 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_EXTERNAL_LOBS = "external-lobs";
   public static final String PARAMETER_EXTERNAL_LOBS_PER_FOLDER = "external-lobs-per-folder";
   public static final String PARAMETER_EXTERNAL_LOBS_FOLDER_SIZE = "external-lobs-folder-size";
+  public static final String PARAMETER_EXTERNAL_LOBS_BLOB_THRESHOLD_LIMIT = "external-lobs-blob-threshold-limit";
+  public static final String PARAMETER_EXTERNAL_LOBS_CLOB_THRESHOLD_LIMIT = "external-lobs-clob-threshold-limit";
   public static final String PARAMETER_META_DESCRIPTION = "meta-description";
   public static final String PARAMETER_META_ARCHIVER = "meta-archiver";
   public static final String PARAMETER_META_ARCHIVER_CONTACT = "meta-archiver-contact";
@@ -81,7 +83,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     .valueIfSet("true");
 
   private static final Parameter externalLobs = new Parameter().shortName("el").longName(PARAMETER_EXTERNAL_LOBS)
-    .description("Saves any LOBs outside the siard file.").required(false).hasArgument(false).valueIfSet("true")
+    .description("Saves any LOBs outside the SIARD file.").required(false).hasArgument(false).valueIfSet("true")
     .valueIfNotSet("false");
 
   private static final Parameter externalLobsPerFolder = new Parameter().shortName("elpf")
@@ -94,6 +96,18 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     .description(
       "Divide LOBs across multiple external folders with (approximately) the specified maximum size (in Megabytes). Default: do not divide.")
     .required(false).hasArgument(true).setOptionalArgument(false).valueIfNotSet("0");
+
+  private static final Parameter externalLobsBLOBThresholdLimit = new Parameter().shortName("elblobtl")
+    .longName(PARAMETER_EXTERNAL_LOBS_BLOB_THRESHOLD_LIMIT)
+    .description(
+      "Keep BLOBs stored inside the SIARD file if the threshold is not exceeded (in bytes). Default: 2000 bytes.")
+    .required(false).hasArgument(true).setOptionalArgument(false).valueIfNotSet("2000");
+
+  private static final Parameter externalLobsCLOBThresholdLimit = new Parameter().shortName("elclobtl")
+    .longName(PARAMETER_EXTERNAL_LOBS_CLOB_THRESHOLD_LIMIT)
+    .description(
+      "Keep CLOBs stored inside the SIARD file if the threshold is not exceeded (in bytes). Default: 4000 bytes.")
+    .required(false).hasArgument(true).setOptionalArgument(false).valueIfNotSet("4000");
 
   private static final Parameter metaDescription = new Parameter().shortName("md").longName(PARAMETER_META_DESCRIPTION)
     .description("SIARD descriptive metadata field: Description of database meaning and content as a whole.")
@@ -176,6 +190,8 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(externalLobs.longName(), externalLobs);
     parameterHashMap.put(externalLobsPerFolder.longName(), externalLobsPerFolder);
     parameterHashMap.put(externalLobsFolderSize.longName(), externalLobsFolderSize);
+    parameterHashMap.put(externalLobsBLOBThresholdLimit.longName(), externalLobsBLOBThresholdLimit);
+    parameterHashMap.put(externalLobsCLOBThresholdLimit.longName(), externalLobsCLOBThresholdLimit);
     parameterHashMap.put(metaDescription.longName(), metaDescription);
     parameterHashMap.put(metaArchiver.longName(), metaArchiver);
     parameterHashMap.put(metaArchiverContact.longName(), metaArchiverContact);
@@ -210,6 +226,8 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
       externalLobs.inputType(INPUT_TYPE.CHECKBOX).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS),
       externalLobsPerFolder.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS),
       externalLobsFolderSize.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS),
+      externalLobsBLOBThresholdLimit.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS),
+      externalLobsCLOBThresholdLimit.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS),
       metaDescription.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
       metaArchiver.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
       metaArchiverContact.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
@@ -217,8 +235,8 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
       metaDataOriginTimespan.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
       metaClientMachine.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
       gmlDirectory.inputType(INPUT_TYPE.DEFAULT),
-      messageDigestAlgorithm.inputType(INPUT_TYPE.COMBOBOX).possibleValues("MD5", "SHA-1", "SHA-256").defaultSelectedIndex(2)
-        .exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+      messageDigestAlgorithm.inputType(INPUT_TYPE.COMBOBOX).possibleValues("MD5", "SHA-1", "SHA-256")
+        .defaultSelectedIndex(2).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
       fontCase.inputType(INPUT_TYPE.COMBOBOX).possibleValues("uppercase", "lowercase").defaultSelectedIndex(1)
         .exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS)),
       Collections.emptyList());
@@ -293,6 +311,24 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     }
 
     // optional
+    long pExternalLobsBLOBThresholdLimit = Long.parseLong(externalLobsBLOBThresholdLimit.valueIfNotSet());
+    if (StringUtils.isNotBlank(parameters.get(externalLobsBLOBThresholdLimit))) {
+      pExternalLobsBLOBThresholdLimit = Long.parseLong(parameters.get(externalLobsBLOBThresholdLimit));
+      if (pExternalLobsBLOBThresholdLimit < 0) {
+        pExternalLobsBLOBThresholdLimit = Long.parseLong(externalLobsBLOBThresholdLimit.valueIfNotSet());
+      }
+    }
+
+    // optional
+    long pExternalLobsCLOBThresholdLimit = Long.parseLong(externalLobsCLOBThresholdLimit.valueIfNotSet());
+    if (StringUtils.isNotBlank(parameters.get(externalLobsCLOBThresholdLimit))) {
+      pExternalLobsCLOBThresholdLimit = Long.parseLong(parameters.get(externalLobsCLOBThresholdLimit));
+      if (pExternalLobsCLOBThresholdLimit < 0) {
+        pExternalLobsCLOBThresholdLimit = Long.parseLong(externalLobsCLOBThresholdLimit.valueIfNotSet());
+      }
+    }
+
+    // optional
     Path pGMLDirectory = null;
     if (StringUtils.isNotBlank(parameters.get(gmlDirectory))) {
       pGMLDirectory = Paths.get(parameters.get(gmlDirectory));
@@ -336,14 +372,16 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
 
     report(reporter, getModuleName(), String.valueOf(pVersion), pFile, String.valueOf(pCompress),
       String.valueOf(pPrettyPrintXML), String.valueOf(pExternalLobs), String.valueOf(pExternalLobsPerFolder),
-      String.valueOf(pExternalLobsFolderSize), pDigestAlgorithm, pFontCase);
+      String.valueOf(pExternalLobsFolderSize), String.valueOf(pExternalLobsBLOBThresholdLimit),
+      String.valueOf(pExternalLobsCLOBThresholdLimit), pDigestAlgorithm, pFontCase);
 
     SIARD2ExportModule exportModule;
     DatabaseFilterModule handler;
 
     if (pExternalLobs) {
       exportModule = new SIARD2ExportModule(pVersion, pFile, pCompress, pPrettyPrintXML, pExternalLobsPerFolder,
-        pExternalLobsFolderSize, descriptiveMetadataParameterValues, pDigestAlgorithm, pFontCase);
+        pExternalLobsFolderSize, pExternalLobsBLOBThresholdLimit, pExternalLobsCLOBThresholdLimit,
+        descriptiveMetadataParameterValues, pDigestAlgorithm, pFontCase);
     } else {
       exportModule = new SIARD2ExportModule(pVersion, pFile, pCompress, pPrettyPrintXML,
         descriptiveMetadataParameterValues, pDigestAlgorithm, pFontCase);
@@ -373,6 +411,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
   private void report(Reporter reporter, String moduleName, String parameterVersionValue, Path parameterFileValue,
     String parameterCompressValue, String parameterPrettyXmlValue, String parameterExternalLobsValue,
     String parameterExternalLobsPerFolderValue, String parameterExternalLobsFolderSizeValue,
+    String parameterExternalLobsBLOBThresholdLimit, String parameterExternalLobsCLOBThresholdLimit,
     String parameterMessageDigestAlgorithmValue, String parameterFontCaseValue) {
 
     String parameterFileValueString = null;
@@ -384,6 +423,8 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
       parameterFileValueString, PARAMETER_COMPRESS, parameterCompressValue, PARAMETER_PRETTY_XML,
       parameterPrettyXmlValue, PARAMETER_EXTERNAL_LOBS, parameterExternalLobsValue, PARAMETER_EXTERNAL_LOBS_PER_FOLDER,
       parameterExternalLobsPerFolderValue, PARAMETER_EXTERNAL_LOBS_FOLDER_SIZE, parameterExternalLobsFolderSizeValue,
+      parameterExternalLobsBLOBThresholdLimit, PARAMETER_EXTERNAL_LOBS_BLOB_THRESHOLD_LIMIT,
+      parameterExternalLobsCLOBThresholdLimit, PARAMETER_EXTERNAL_LOBS_CLOB_THRESHOLD_LIMIT,
       PARAMETER_MESSAGE_DIGEST_ALGORITHM, parameterMessageDigestAlgorithmValue, PARAMETER_FONT_CASE,
       parameterFontCaseValue);
   }

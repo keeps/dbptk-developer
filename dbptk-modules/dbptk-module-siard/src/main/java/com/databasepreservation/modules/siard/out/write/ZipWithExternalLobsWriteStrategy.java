@@ -27,10 +27,10 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 public class ZipWithExternalLobsWriteStrategy implements WriteStrategy {
   private final MessageDigest digest;
 
-  private final ZipWriteStrategy zipWriter;
+  private final ParallelZipWriteStrategy zipWriter;
   private final FolderWriteStrategy folderWriter;
 
-  public ZipWithExternalLobsWriteStrategy(ZipWriteStrategy zipWriteStrategy, FolderWriteStrategy folderWriteStrategy, String messageDigestAlgorithm) {
+  public ZipWithExternalLobsWriteStrategy(ParallelZipWriteStrategy zipWriteStrategy, FolderWriteStrategy folderWriteStrategy, String messageDigestAlgorithm) {
     zipWriter = zipWriteStrategy;
     folderWriter = folderWriteStrategy;
 
@@ -66,7 +66,7 @@ public class ZipWithExternalLobsWriteStrategy implements WriteStrategy {
 
   @Override
   public void writeTo(InputStreamProvider provider, String path) {
-
+    zipWriter.writeTo(provider, path);
   }
 
   /**

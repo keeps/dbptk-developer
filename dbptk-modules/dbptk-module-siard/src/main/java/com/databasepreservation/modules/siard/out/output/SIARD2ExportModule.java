@@ -28,7 +28,6 @@ import com.databasepreservation.modules.siard.out.write.FolderWriteStrategy;
 import com.databasepreservation.modules.siard.out.write.ParallelZipWriteStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.modules.siard.out.write.ZipWithExternalLobsWriteStrategy;
-import com.databasepreservation.modules.siard.out.write.ZipWriteStrategy;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -66,22 +65,24 @@ public class SIARD2ExportModule {
         break;
     }
 
-    contentStrategy = new SIARD2ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer, prettyXML, digestAlgorithm, fontCase);
+    contentStrategy = new SIARD2ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer, prettyXML,
+      digestAlgorithm, fontCase);
   }
 
   public SIARD2ExportModule(SIARDConstants.SiardVersion version, Path siardPackage, boolean compressZip,
-    boolean prettyXML, int externalLobsPerFolder, long externalLobsFolderSize,
-    HashMap<String, String> descriptiveMetadata, String digestAlgorithm, String fontCase) {
+    boolean prettyXML, int externalLobsPerFolder, long externalLobsFolderSize, long externalLobsBLOBThresholdLimit,
+    long externalLobsCLOBThresholdLimit, HashMap<String, String> descriptiveMetadata, String digestAlgorithm,
+    String fontCase) {
     this.descriptiveMetadata = descriptiveMetadata;
     contentPathStrategy = new SIARD2ContentWithExternalLobsPathExportStrategy();
     metadataPathStrategy = new SIARD2MetadataPathStrategy();
 
     FolderWriteStrategy folderWriteStrategy = new FolderWriteStrategy();
-    ZipWriteStrategy zipWriteStrategy;
+    ParallelZipWriteStrategy zipWriteStrategy;
     if (compressZip) {
-      zipWriteStrategy = new ZipWriteStrategy(CompressionMethod.DEFLATE);
+      zipWriteStrategy = new ParallelZipWriteStrategy(CompressionMethod.DEFLATE);
     } else {
-      zipWriteStrategy = new ZipWriteStrategy(CompressionMethod.STORE);
+      zipWriteStrategy = new ParallelZipWriteStrategy(CompressionMethod.STORE);
     }
     writeStrategy = new ZipWithExternalLobsWriteStrategy(zipWriteStrategy, folderWriteStrategy, digestAlgorithm);
 
@@ -97,7 +98,8 @@ public class SIARD2ExportModule {
     }
 
     contentStrategy = new SIARD2ContentWithExternalLobsExportStrategy(contentPathStrategy, writeStrategy, mainContainer,
-      prettyXML, externalLobsPerFolder, externalLobsFolderSize, digestAlgorithm, fontCase);
+      prettyXML, externalLobsPerFolder, externalLobsFolderSize, externalLobsBLOBThresholdLimit,
+      externalLobsCLOBThresholdLimit, digestAlgorithm, fontCase);
   }
 
   public DatabaseFilterModule getDatabaseHandler() {

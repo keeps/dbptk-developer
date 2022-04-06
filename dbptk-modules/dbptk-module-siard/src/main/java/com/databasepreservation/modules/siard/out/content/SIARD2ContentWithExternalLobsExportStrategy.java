@@ -52,33 +52,36 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
   private static final long MB_TO_BYTE_RATIO = 1024L * 1024L;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2ContentWithExternalLobsExportStrategy.class);
-
-  private SIARDArchiveContainer currentExternalContainer;
-
   // measured in Bytes
   private final long maximumLobsFolderSize;
-  private long currentLobsFolderSize = 0;
-
   private final int maximumLobsPerFolder;
+  private SIARDArchiveContainer currentExternalContainer;
+  private long currentLobsFolderSize = 0;
   private int currentLobsInFolder = 0;
+  private final long blobThresholdLimit;
+  private final long clobThresholdLimit;
 
   private byte[] lobDigestChecksum = null;
 
   public SIARD2ContentWithExternalLobsExportStrategy(SIARD2ContentPathExportStrategy contentPathStrategy,
     WriteStrategy writeStrategy, SIARDArchiveContainer baseContainer, boolean prettyXMLOutput,
-    int externalLobsPerFolder, long maximumLobsFolderSize, String messageDigestAlgorithm, String fontCase) {
+    int externalLobsPerFolder, long maximumLobsFolderSize, long blobThresholdLimit, long clobThresholdLimit,
+    String messageDigestAlgorithm, String fontCase) {
     super(contentPathStrategy, writeStrategy, baseContainer, prettyXMLOutput, messageDigestAlgorithm, fontCase);
     this.maximumLobsFolderSize = maximumLobsFolderSize * MB_TO_BYTE_RATIO;
     this.maximumLobsPerFolder = externalLobsPerFolder;
-
+    this.blobThresholdLimit = blobThresholdLimit;
+    this.clobThresholdLimit = clobThresholdLimit;
     this.currentExternalContainer = null;
   }
 
   @Override
   protected void writeSimpleCell(String cellPrefix, Cell cell, ColumnStructure column, int columnIndex)
     throws ModuleException, IOException {
-    if (Sql2008toXSDType.isLargeType(column.getType(), reporter)) {
-      writeLargeObjectData(cellPrefix, cell, columnIndex);
+    SimpleCell simpleCell = (SimpleCell) cell;
+    long length = simpleCell.getBytesSize();
+    if (Sql2008toXSDType.isLargeType(column.getType(), reporter) && length > clobThresholdLimit) {
+      writeLargeObjectDataOutside(cellPrefix, cell, columnIndex);
     } else {
       writeSimpleCellData(cellPrefix, (SimpleCell) cell, columnIndex);
     }
@@ -88,9 +91,14 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
   protected void writeBinaryCell(String cellPrefix, Cell cell, ColumnStructure column, int columnIndex)
     throws ModuleException, IOException {
     BinaryCell binaryCell = (BinaryCell) cell;
+    long length = binaryCell.getSize();
 
     if (Sql2008toXSDType.isLargeType(column.getType(), reporter)) {
-      writeLargeObjectData(cellPrefix, cell, columnIndex);
+      if (length > blobThresholdLimit) {
+        writeLargeObjectDataOutside(cellPrefix, cell, columnIndex);
+      } else {
+        writeLargeObjectData(cellPrefix, cell, columnIndex);
+      }
     } else {
       // inline non-BLOB binary data
       try (InputStream inputStream = binaryCell.createInputStream()) {
@@ -101,8 +109,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
     }
   }
 
-  @Override
-  protected void writeLargeObjectData(String cellPrefix, Cell cell, int columnIndex)
+  private void writeLargeObjectDataOutside(String cellPrefix, Cell cell, int columnIndex)
     throws IOException, ModuleException {
     String lobFileParameter = null;
     long lobSizeParameter = 0;
@@ -164,17 +171,16 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
 
     // decide to whether write the LOB right away or later
     if (writeStrategy.isSimultaneousWritingSupported()) {
-      writeLOB(lob);
+      writeLOBOutside(lob);
     } else {
       throw new NotImplementedException(SIARD2ContentWithExternalLobsExportStrategy.class.getName()
         + " is not ready to be used with write strategies that don't support simultaneous writing.");
     }
 
     // something like "../filename.siard2/"
-    String lobURI = FilenameUtils.separatorsToUnix(Paths
-      .get(".." + File.separator + currentExternalContainer.getPath().getFileName().toString() + File.separator,
-        lobFileParameter)
-      .toString());
+    String lobURI = FilenameUtils.separatorsToUnix(
+      Paths.get(".." + File.separator + currentExternalContainer.getPath().getFileName().toString() + File.separator,
+        lobFileParameter).toString());
 
     // write the LOB XML element
     currentWriter.beginOpenTag("c" + columnIndex, 2).appendAttribute("file", lobURI).appendAttribute("length",
@@ -195,8 +201,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
     currentLobsInFolder++;
   }
 
-  @Override
-  protected void writeLOB(LargeObject lob) throws ModuleException {
+  private void writeLOBOutside(LargeObject lob) throws ModuleException {
     String lobRelativePath = lob.getOutputPath();
     // copy lob to output and save digest checksum if possible
     try (OutputStream out = writeStrategy.createOutputStream(currentExternalContainer, lobRelativePath);
