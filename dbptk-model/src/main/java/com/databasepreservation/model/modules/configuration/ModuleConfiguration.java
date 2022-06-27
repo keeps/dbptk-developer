@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures;
@@ -105,7 +104,8 @@ public class ModuleConfiguration {
       return true;
     }
 
-    return schemaConfigurations.get(schemaName) != null && schemaConfigurations.get(schemaName).isMerkleColumn(tableName, columnName);
+    return schemaConfigurations.get(schemaName) != null
+      && schemaConfigurations.get(schemaName).isMerkleColumn(tableName, columnName);
   }
 
   public boolean isInventoryColumn(String schemaName, String tableName, String columnName) {
@@ -113,7 +113,8 @@ public class ModuleConfiguration {
       return true;
     }
 
-    return schemaConfigurations.get(schemaName) != null && schemaConfigurations.get(schemaName).isInventoryColumn(tableName, columnName);
+    return schemaConfigurations.get(schemaName) != null
+      && schemaConfigurations.get(schemaName).isInventoryColumn(tableName, columnName);
   }
 
   @JsonIgnore
@@ -304,53 +305,66 @@ public class ModuleConfiguration {
   }
 
   @JsonIgnore
-  public boolean hasExternalLobDefined(String schemaName, String tableName) {
+  public boolean hasExternalLobDefined(String schemaName, String tableName, boolean isFromView) {
     if (schemaConfigurations.isEmpty()) {
       return false;
     }
 
-    if (schemaConfigurations.get(schemaName) != null
-      && schemaConfigurations.get(schemaName).getTableConfiguration(tableName) != null) {
-      return schemaConfigurations.get(schemaName).getTableConfiguration(tableName).getColumns().stream()
-        .anyMatch(p -> p.getExternalLob() != null);
+    if (!isFromView) {
+      if (schemaConfigurations.get(schemaName) != null
+        && schemaConfigurations.get(schemaName).getTableConfiguration(tableName) != null) {
+        return schemaConfigurations.get(schemaName).getTableConfiguration(tableName).getColumns().stream()
+          .anyMatch(p -> p.getExternalLob() != null);
+      }
+    } else {
+      String viewNameWithoutPrefix = tableName.replace(VIEW_NAME_PREFIX, "");
+      if (schemaConfigurations.get(schemaName) != null
+        && schemaConfigurations.get(schemaName).getViewConfiguration(viewNameWithoutPrefix) != null) {
+        return schemaConfigurations.get(schemaName).getViewConfiguration(viewNameWithoutPrefix).getColumns().stream()
+          .anyMatch(p -> p.getExternalLob() != null);
+      }
     }
-
     return false;
   }
 
   @JsonIgnore
-  public boolean isExternalLobColumn(String schema, String table, String column) {
+  public boolean isExternalLobColumn(String schema, String table, String column, boolean isFromView) {
     if (schemaConfigurations.isEmpty()) {
       return false;
     }
 
-    return schemaConfigurations.get(schema) != null
-      && schemaConfigurations.get(schema).getTableConfiguration(table) != null
-      && schemaConfigurations.get(schema).getTableConfiguration(table).getColumnConfiguration(column) != null
-      && schemaConfigurations.get(schema).getTableConfiguration(table).getColumnConfiguration(column)
-        .getExternalLob() != null;
+    if (!isFromView) {
+      return schemaConfigurations.get(schema) != null
+        && schemaConfigurations.get(schema).getTableConfiguration(table) != null
+        && schemaConfigurations.get(schema).getTableConfiguration(table).getColumnConfiguration(column) != null
+        && schemaConfigurations.get(schema).getTableConfiguration(table).getColumnConfiguration(column)
+          .getExternalLob() != null;
+    } else {
+      String viewNameWithoutPrefix = table.replace(VIEW_NAME_PREFIX, "");
+      return schemaConfigurations.get(schema) != null
+        && schemaConfigurations.get(schema).getViewConfiguration(viewNameWithoutPrefix) != null
+        && schemaConfigurations.get(schema).getViewConfiguration(viewNameWithoutPrefix)
+          .getColumnConfiguration(column) != null
+        && schemaConfigurations.get(schema).getViewConfiguration(viewNameWithoutPrefix).getColumnConfiguration(column)
+          .getExternalLob() != null;
+    }
   }
 
   @JsonIgnore
-  public ExternalLobsConfiguration getExternalLobsConfiguration(String schemaName, String tableName,
-    String columnName) {
-    if (isExternalLobColumn(schemaName, tableName, columnName)) {
-      return schemaConfigurations.get(schemaName).getTableConfiguration(tableName).getColumnConfiguration(columnName)
-        .getExternalLob();
+  public ExternalLobsConfiguration getExternalLobsConfiguration(String schemaName, String tableName, String columnName,
+    boolean isFromView) {
+    if (isExternalLobColumn(schemaName, tableName, columnName, isFromView)) {
+      if (!isFromView) {
+        return schemaConfigurations.get(schemaName).getTableConfiguration(tableName).getColumnConfiguration(columnName)
+          .getExternalLob();
+      } else {
+        String viewNameWithoutPrefix = tableName.replace(VIEW_NAME_PREFIX, "");
+        return schemaConfigurations.get(schemaName).getViewConfiguration(viewNameWithoutPrefix)
+          .getColumnConfiguration(columnName).getExternalLob();
+      }
     }
 
     return null;
-  }
-
-  @JsonIgnore
-  public List<ExternalLobsConfiguration> getExternalLobsConfigurations(String schemaName, String tableName) {
-    List<ExternalLobsConfiguration> externalLobsConfigurations = new ArrayList<>();
-    if (hasExternalLobDefined(schemaName, tableName)) {
-      externalLobsConfigurations = schemaConfigurations.get(schemaName).getTableConfiguration(tableName).getColumns()
-        .stream().map(ColumnConfiguration::getExternalLob).collect(Collectors.toList());
-    }
-
-    return externalLobsConfigurations;
   }
 
   @JsonProperty("import")

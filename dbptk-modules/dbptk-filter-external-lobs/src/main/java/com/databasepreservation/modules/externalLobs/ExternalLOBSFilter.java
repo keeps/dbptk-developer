@@ -77,11 +77,12 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
       for (TableStructure table : schema.getTables()) {
         for (ColumnStructure column : table.getColumns()) {
           if (ModuleConfigurationManager.getInstance().getModuleConfiguration().isExternalLobColumn(schema.getName(),
-            table.getName(), column.getName())) {
+            table.getName(), column.getName(), table.isFromView())) {
             StringBuilder description = new StringBuilder("Converted to LOB referenced by");
             final ExternalLobsConfiguration externalLobsConfiguration = ModuleConfigurationManager.getInstance()
               .getModuleConfiguration()
-              .getExternalLobsConfiguration(schema.getName(), table.getName(), column.getName());
+              .getExternalLobsConfiguration(schema.getName(), table.getName(), column.getName(),
+                  table.isFromView());
             if (externalLobsConfiguration.getAccessModule().equals(ExternalLobsAccessMethod.FILE_SYSTEM)) {
               description.append(" file system path");
             } else if (externalLobsConfiguration.getAccessModule().equals(ExternalLobsAccessMethod.REMOTE)) {
@@ -119,17 +120,19 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
   public void handleDataOpenTable(String tableId) throws ModuleException {
     currentTable = databaseStructure.getTableById(tableId);
     final boolean hasExternalLobDefined = ModuleConfigurationManager.getInstance().getModuleConfiguration()
-      .hasExternalLobDefined(currentTable.getSchema(), currentTable.getName());
+      .hasExternalLobDefined(currentTable.getSchema(), currentTable.getName(), currentTable.isFromView());
     if (hasExternalLobDefined) {
       hasExternalLOBS = true;
       final List<ColumnStructure> columns = currentTable.getColumns();
 
       for (int i = 0; i < columns.size(); i++) {
         if (ModuleConfigurationManager.getInstance().getModuleConfiguration()
-          .isExternalLobColumn(currentTable.getSchema(), currentTable.getName(), columns.get(i).getName())) {
+          .isExternalLobColumn(currentTable.getSchema(), currentTable.getName(), columns.get(i).getName(),
+              currentTable.isFromView())) {
           externalLOBIndexes.add(i);
           externalLobsConfigurations.put(tableId + i, ModuleConfigurationManager.getInstance().getModuleConfiguration()
-            .getExternalLobsConfiguration(currentTable.getSchema(), currentTable.getName(), columns.get(i).getName()));
+            .getExternalLobsConfiguration(currentTable.getSchema(), currentTable.getName(), columns.get(i).getName(),
+                currentTable.isFromView()));
         }
       }
     }

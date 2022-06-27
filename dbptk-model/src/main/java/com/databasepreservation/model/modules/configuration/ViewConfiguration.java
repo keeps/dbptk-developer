@@ -7,6 +7,7 @@
  */
 package com.databasepreservation.model.modules.configuration;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,5 +70,10 @@ public class ViewConfiguration {
 
   public void setOrderBy(String orderBy) {
     this.orderBy = orderBy;
+  }
+
+  @JsonIgnore
+  public ColumnConfiguration getColumnConfiguration(String columnName) {
+    return getColumns().stream().filter(p -> p.getName().equals(columnName)).findFirst().orElse(null);
   }
 }
