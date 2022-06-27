@@ -59,8 +59,7 @@ public class ProgressLoggerObserver implements ModuleObserver {
   public void notifyTableProgressSparse(DatabaseStructure structure, TableStructure table, long completedRows,
     long totalRows) {
     if (LOGGER.isInfoEnabled() && completedRows > 0) {
-      long percent = totalRows > 0 ? completedRows * 100 / totalRows : 0;
-      String message = String.format("Progress: %d rows of table '%s' (%d%%)", completedRows, table.getName(), percent);
+      String message = String.format("Progress: %d rows of table '%s'", completedRows, table.getName());
       LOGGER.info(message);
       showCompletedProgress = true;
     }
