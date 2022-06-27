@@ -40,28 +40,29 @@ jobs:
           --health-retries 5
   
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Set up JDK 1.8
-        uses: actions/setup-java@v1
-        with:
-          java-version: 1.8
-      - name: Cache
-        uses: actions/cache@v1.0.0
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
-      - name: Run Tests
-        run: mvn $MAVEN_CLI_OPTS -Dtestng.groups="travis-ci" test
-        env:
-          DPT_MYSQL_USER: "root"
-          DPT_MYSQL_PASS: "123456"
-          DPT_MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
-          DPT_POSTGRESQL_USER: "postgres"
-          DPT_POSTGRESQL_PASS: "123456"
-          DPT_POSTGRESQL_PORT: ${{ job.services.postgres.ports[5432] }}
-          PGPASSWORD: '123456'
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Set up JDK 8
+      uses: actions/setup-java@v3
+      with:
+        java-version: 8
+        distribution: 'adopt'
+    - name: Cache
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-maven-
+    - name: Run Tests
+      run: mvn $MAVEN_CLI_OPTS -Dtestng.groups="travis-ci" test
+      env:
+        DPT_MYSQL_USER: "root"
+        DPT_MYSQL_PASS: "123456"
+        DPT_MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
+        DPT_POSTGRESQL_USER: "postgres"
+        DPT_POSTGRESQL_PASS: "123456"
+        DPT_POSTGRESQL_PORT: ${{ job.services.postgres.ports[5432] }}
+        PGPASSWORD: '123456'
     
   deploy:
     needs: build
@@ -70,13 +71,14 @@ jobs:
       MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Set up JDK 1.8
-        uses: actions/setup-java@v1
+        uses: actions/checkout@v3
+      - name: Set up JDK 8
+        uses: actions/setup-java@v3
         with:
-          java-version: 1.8
+          java-version: 8
+          distribution: 'adopt'
       - name: Cache
-        uses: actions/cache@v1.0.0
+        uses: actions/cache@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -95,4 +97,4 @@ jobs:
           file: dbptk-core/target/dbptk-app-${{ steps.get_version.outputs.VERSION }}.jar
           asset_name: dbptk-app-${{ steps.get_version.outputs.VERSION }}.jar
           tag: ${{ github.ref }}
-          release_name: Version ${{ steps.get_version.outputs.VERSION }}     
+          release_name: Version ${{ steps.get_version.outputs.VERSION }}
