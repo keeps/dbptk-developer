@@ -1,422 +1,476 @@
 # Changelog
 
-## v2.4.0-BETA (13/05/2019)
-#### New features:
+## Version 2.10.1 (28/06/2022)
+#### Bug Fixes
 
-- Materialised views (as tables) [#348](https://github.com/keeps/db-preservation-toolkit/issues/348)
--  Add enhanced support for Sybase ASA DBMS [#349](https://github.com/keeps/db-preservation-toolkit/issues/349)
-- Add support for Progress OpenEdge RDBMS [#350](https://github.com/keeps/db-preservation-toolkit/issues/350))
+* Materialized option doesn't handle the structure as a table #513
 
-#### Bug Fixes:
+#### Enhancements
+* Remove percentage indicator from table progress #514
+* Add folder property to table structure #515
+---
 
--  SIARD table data is not validated against XSD [#113](https://github.com/keeps/db-preservation-toolkit/issues/113)
+## Version 2.10.0 (28/04/2022)
+#### New Features
+
+* Add a threshold for LOBs saved outside the SIARD file (#504) For more information access our [wiki](https://github.com/keeps/dbptk-developer/wiki/Store-lobs-outside-SIARD).
+
+#### Security
+
+* Security fixes (Upgrade dependencies)
+---
+
+## Version 2.9.10 (13/10/2021)
+#### Bug Fixes
+
+* Merkle Tree filter malfunction with multi-schema databases #494 
+---
+
+## Version 2.9.9 (13/07/2021)
+#### Bug Fixes
+
+* This parser does not support specification "dbptk-core" version "2.9.8" #486
+* ST_GEOMETRY gives Null Pointer Exception error #487
+
+#### Enhancements
+* Improved support for Microsoft SQL Server use integrated login on Windows #488
+---
+
+## Version 2.9.8 (08/06/2021)
+#### Bug Fixes
+
+* creating a siard do not take Postgresql own materialized views #485 
+* Problem with overwriting existing folder when exporting to SIARD-DK #480 
+
+#### Dependencies update
+
+* Bump UCanAccess Driver #481
+---
+
+## Version 2.9.7 (06/04/2021)
+#### Bug Fixes
+
+* Oracle connection fails if password has special characters #471
+* SIARD to SIARD migration ignoring some import-config properties #472
+* 'numeric' column type without any precision or scale is assumed to be integer #477
+---
+
+## Version 2.9.6 (02/10/2020)
+#### Bug Fixes
+* Missing a dependency when handling Oracle XMLType #465 
+* NPE during validation if mandatory fields are not filled #466
+* Fallback message when certain queries return unexpected results #467
+* Add strategy to ignore and report triggers that not comply with SIARD 2.1 specification #469
+---
+
+## Version 2.9.5 (25/09/2020)
+#### Bug Fixes
+* Add queryOriginal metadata field to PostgreSQL DBMS #451
+* PostgreSQL module not appending where and order by clauses #462
+* Normalize file path inside the table content when LOBs outside SIARD file #464 
+
+---
+
+## Version 2.9.4 (28/08/2020)
+#### Bug Fixes
+* Command line output differs from the file of validation reporter #461
+---
+
+## Version 2.9.3 (04/08/2020)
+#### Bug Fixes
+* Validation fails when the validator runs in parallel #458
+---
+
+## Version 2.9.2 (04/08/2020)
+#### Bug Fixes
+* Fix number column in Oracle with no length specified gives error in extraction of table definition (#454)
+* Fix columnConfiguration to include NON_DEFAULT values for merkle tree property
+
+---
+
+## Version 2.9.1 (23/06/2020)
+#### Bug Fixes
+* Fix #455 Added support to choose threshold lob size 
+---
+
+## Version 2.9.0 (15/05/2020)
+#### New Features
+
+* Inventory filter module (#444) For more information access our [wiki](https://github.com/keeps/db-preservation-toolkit/wiki/Inventory-Filter-Module).
+
+#### Bug Fixes
+* Fix #450 Siard metadata edition
+---
+
+## Version 2.8.2 (15/04/2020)
+### DBPTK Developer Integrations
+
+* Add new input type parameters
+* Add more information to module parameters
+---
+
+## Version 2.8.1 (01/04/2020)
+### DBPTK Enterprise Integrations
+
+* Improve DBPTK Enterprise integration when dealing with LOB
+---
+
+## Version 2.8.0 (25/03/2020)
+#### New Features
+
+* Allow set variables in YAML import-config  (#439) For more information access our [wiki](https://github.com/keeps/db-preservation-toolkit/wiki/Import-Config-Module#variables).
+* Database archive content validation using Merkle Tree. (#433) For more information access our [wiki](https://github.com/keeps/db-preservation-toolkit/wiki/Merkle-Tree-Filter-Module).
+
+#### Enhancements
+* Timestamp output normalization (#440)
+
+#### Improvements
+* Bump Jackson version from 2.10.2 to 2.10.3
+* Oracle maven dependency is now retrieved from the maven central (eliminates the need to have an Oracle account and configure the maven security to download the dependency)
+---
+
+## Version 2.7.0 (18/02/2020)
+#### New Features
+
+* Added a new module: __import-config__.This module is used to control which schemas, tables and columns are read from the import module to the export module. It also allows to add options for custom views, views materialization, table or view filtering and database related information such as users, roles, privileges, routines or table oriented like triggers and much more. More information can be found at our [wiki](https://github.com/keeps/db-preservation-toolkit/wiki/Import-Config-Module).
+* Added the capability to filter content from a table (#435)
+* Added the capability to sort content from a table (#436)
+* Added a Java property to change the prefetch size for Oracle LOB (#437)
+* Added a strategy to write LOB data in a parallel fashion (#438)
+
+#### Deprecated
+
+* list-tables module has been replace by the import-config module. More information can be found at our [wiki](https://github.com/keeps/db-preservation-toolkit/wiki/Import-Config-Module).
+---
+
+## Version 2.6.5 (18/02/2020)
+__Bug fixes:__
+
+* Fix #422 - Error with package from MS Access (timestamp)
+* Fix #423 - NPE when validating a SIARD file foreign keys
+* Fix #426 - Description shows "null" when table comment is empty
+* Fix #427 - SIARD validation - error when starting two validations at same time
+* Fix #428 - Missing encoding on metadata.xml
+
+__Improvements:__
+
+* Add default port number to Oracle connections
+---
+
+## Version 2.6.5-RC (27/01/2020)
+__Bug fixes:__
+
+* Fix #422 - Error with package from MS Access (timestamp)
+* Fix #423 - NPE when validating a SIARD file foreign keys
+* Fix #426 - Description shows "null" when table comment is empty
+* Fix #427 - SIARD validation - error when starting two validations at same time
+* Fix #428 - Missing encoding on metadata.xml
+
+__Improvements:__
+
+* Add default port number to Oracle connections
+---
+
+## Version 2.6.4 (26/11/2019)
+Bug fixes
+
+* Fix #411 log file and -ide (disable encryption) parameter
+* Fix #412 Sybase - Fatal error - NPE
+* Fix #414 Opt out which views should be materialized
+* Fix #415 List tables missing views
+* Fix #418 Problem recreating database from SIARD file (MSSQL Server decimal max precision)
+
+Improvements
+
+* Improve validation reporting - related to #416 
+---
+
+## Version 2.6.3 (06/11/2019)
+#### Bug fixes
+
+* Fix #409 DBPTK migration - microseconds should not be rounded
+---
+
+## Version 2.6.2 (04/11/2019)
+#### Bug fixes
+
+* Fix #338 MSSQL conversion, error on small decimal values, being set to 0
+* Fix #406 Validation SIARD error on requirement 5.10
+* Fix #407 validation - DBPTK memory issues (heap size java)
+
+#### Improvements
+
+To solve #407 it was used an external library to remove certain objects from the heap. A new property was added to define the path where to storage the off-heap file. More information can be found at our [wiki](https://github.com/keeps/db-preservation-toolkit/wiki/Application-usage#mapdb-options).
+---
+
+## Version 2.6.1 (11/10/2019)
+#### Bug fixes
+
+* Fix #403 Change T_6.4-5 requirement validation
+* Fix #404 Improve SQL role metadata information fetching 
+* Fix #405 SIARD Validation fails on additional checks - foreign keys, triggers and check constraints
+
 
 
 ---
 
-## v2.3.0 (13/05/2019)
+## Version 2.6.0 (02/10/2019)
+#### New Features
 
-#### New features:
+* SIARD Validator #353 
 
--  Handle LOBs that exist outside the database [#346](https://github.com/keeps/db-preservation-toolkit/issues/346)
-- Option to add Filter Modules when using dbptk (implemented to support [#346](https://github.com/keeps/db-preservation-toolkit/issues/346))
+Validates a SIARD against its specification and also a set of additional checks.
+___
 
-#### Enhancements: 
+#### Bug fixes
 
--  Enhance support for import of stored procedures and triggers [#347](https://github.com/keeps/db-preservation-toolkit/issues/347)
+* Fix  #392 DBPTK wrongly notices that a schema exists, but it does not
+* Fix #395 SIARD can't validate - possibly due to empty table 
+* Fix  #397 LOB options: Schema referenced in column list file, was not found in the database
+* Fix #400 Malformed entry in table list
 
-#### Bug Fixes:
+#### Enhancements
 
--  SIARD 2.1 version folder (P_4.2-4) [#376](https://github.com/keeps/db-preservation-toolkit/issues/376)
-
------
+* #393 Validating error too generic - "validator expects SIARD2.1"
 
 #### Using the new features:
 
-##### To use one or more Filter Modules
+``dbptk validate --import-file <path-to-siard> [-r <path_to_report> -a <path_to_allowed_types>]``
 
-* Use `-h` or `--help` to see available filter modules;
-* Use `-h <filter name>` or `--help <filter name>` to see the list of parameters accepted by that filter;
-* Use `-f <filter name list>` or `--filter <filter name list>` ( filter names should be separated by ',' without spaces) to inject these filters (in the same order they are written in) into dbptk workflow;
-* Use `-f<n><param short name>` or `--filter<n>-<param long name>` (where 'n' is the position of the filter in the list [starting at 1]) to specify parameters for each filter declared before (even if the list only contains one filter it should be referenced using n=1).
+| Option             | Description   |
+| :------------- | :------------- |
+| --import-file value     | SIARD file to be validated |
+| --report  value   | File where the validation report will be saved |
+| --allowed value    | File with allowed data types for the categories UDT or distinct, one per line. |
 
-
-##### To declare columns that reference LOBs external to the database
-
-* Use `-f external-lobs` or `--filter external-lobs` to inject this filter into the workflow;
-* Use the parameter `-f<n>cl <path to file>` or `--filter<n>-column-list <path to file>` to point to the file containing the list of columns in the database that reference external LOBs (this file should follow the same syntax as the one exported from the 'list-tables' module;
-* Use the parameter `-f<n>t <reference type>` or `--filter<n>-reference-type <reference type>` to define the strategy to use when fetching external lobs (the help page for this module should list all supported strategies; in this version only 'file-system' is supported);
-* **Usage example:**
-    ```
-    -f external-lobs --filter1-reference-type file-system --filter1-column-list /path/to/file.txt
-    ```
-
-
-
+More information can be found at: https://github.com/keeps/db-preservation-toolkit/wiki/Validation
 
 ---
 
-## v2.2.0 (22/04/2019)
+## Version 2.6.0-RC (09/09/2019)
+#### New Features
 
-#### New features:
+* SIARD Validator #353 
 
--  Oracle: Convert SDO_geometry column content to GML [#343](https://github.com/keeps/db-preservation-toolkit/issues/343)
--  Skip the import/export of specific columns [#342](https://github.com/keeps/db-preservation-toolkit/issues/342)
--  Support the new SIARD 2.1 [#329](https://github.com/keeps/db-preservation-toolkit/issues/329)
--  Add support for arrays [#129](https://github.com/keeps/db-preservation-toolkit/issues/129)
-
-#### Enhancements:
-
--  Inversion of control in module loading [#361](https://github.com/keeps/db-preservation-toolkit/issues/361)
-
-#### Bug Fixes:
-
--  Undefined datatypes error when migrating view from another DBMS [#345](https://github.com/keeps/db-preservation-toolkit/issues/345)
--  Error converting SQL Server timestamp field [#322](https://github.com/keeps/db-preservation-toolkit/issues/322)
-
------
+Validates a SIARD against its specification and also a set of additional checks.
+___
 
 #### Using the new features:
 
-##### To extract GML files from `SDO_GEOMETRY` cells in Oracle DBMS
+``dbptk validate --import-file <path-to-siard> [-r <path_to_report> -a <path_to_allowed_types>]``
 
-* Use the parameter `-egml <directory>` or `--export-gml-directory=<directory>` to specify the directory in which the GML files should be created;
-* The GML directory parameter can be used when exporting to SIARD 2 (version 2.0 and 2.1);
-* One GML file is created per table (and only for tables containing SDO_GEOMETRY data).
+| Option             | Description   |
+| :------------- | :------------- |
+| --import-file value     | SIARD file to be validated |
+| --report  value   | File where the validation report will be saved |
+| --allowed value    | File with allowed data types for the categories UDT or distinct, one per line. |
 
-##### To skip the import/export of specific columns
-
-Documentation about this feature is available at [project-wiki/List-Tables-Module](https://github.com/keeps/db-preservation-toolkit/wiki/List-Tables-Module)
-
-##### To use the new SIARD 2.1
-
-* **In the import module**
-    No action needed. DBPTK will auto-detect the SIARD 2 version.
-* **In the export module**
-    Defaults to version 2.1;
-    2.0 can still be used by using the `-v 2.0` or `--siard-version 2.0` parameter.
-* **Extra functionality**
-    When using any SIARD modules, the versions are logged before the migration starts like:
-    ```
-    Importing SIARD version 1.0
-    Exporting SIARD version 2.1
-    ```
-
+More information can be found at: https://github.com/keeps/db-preservation-toolkit/wiki/Validation
 
 ---
 
-## v2.1.0 (12/03/2019)
+## Version 2.5.0 (06/09/2019)
+#### New Features
 
-#### New features:
+* Support connecting to DBMSs via an SSH tunnel with password authentication #370
+___
 
--  Support exporting database, schema, table and column descriptions [#174](https://github.com/keeps/db-preservation-toolkit/issues/174)
+### Bug Fixes
 
-#### Enhancements:
+* Fix SSH connection problems with PostgreSQL #391 
+* Create SIARD of postgres fails, schema name error #387
+___
+### DBVTK Improved Integrations
 
--  Oracle schema/tablespace error. [#215](https://github.com/keeps/db-preservation-toolkit/issues/215)
+* Improve database metadata fetching strategy
+* Add an option to test if a custom view query is a valid one #390 
+___
 
-#### Bug Fixes:
+#### Using the new features:
+##### SSH Connection:
+To see the help menu use: ``dbptk help migrate``. To check a specific module, ``dbptk help migrate <module>``
+* ``--import-ssh`` or ``--export-ssh`` to enable SSH tunnel
+* ``--import-ssh-host``, ``--import-ssh-user``, ``--import-ssh-password``, ``--import-ssh-port`` or ``--export-ssh-host``, ``--export-ssh-user``, ``--export-ssh-password``, ``--export-ssh-port`` 
 
--  NPE when migrating schema without tables [#369](https://github.com/keeps/db-preservation-toolkit/issues/369)
--  Possible bug in sql-server module, failing to get SQL for views [#327](https://github.com/keeps/db-preservation-toolkit/issues/327)
--  Using -ede still tries to use encryption in postgresql export module [#286](https://github.com/keeps/db-preservation-toolkit/issues/286)
--  Exporting to mysql error: Packet for query is too large [#251](https://github.com/keeps/db-preservation-toolkit/issues/251)
-
+###### Example:
+dbptk migrate --import mysql --import-host localhost --import-user root --import-password 123456 --import-database sakila --import-ssh --import-ssh-host IP Address --import-ssh-user USER --import-ssh-password PASSWORD --import-ssh-port <BY_DEFAULT_IS_22> --export siard-2 --export-file /path/to/siard
 ---
 
-## v2.0.1 (17/01/2019)
+## 2.5.0-RC (05/08/2019)
+#### New Features
 
-#### Enhancements:
+* Support connecting to DBMSs via an SSH tunnel with password authentication #370
+___
 
--  Core and module improvements [#366](https://github.com/keeps/db-preservation-toolkit/issues/366)
--  Use Oracle maven repositories [#364](https://github.com/keeps/db-preservation-toolkit/issues/364)
--  Configure continuous integration and deployment [#362](https://github.com/keeps/db-preservation-toolkit/issues/362)
+#### Using the new features:
+##### SSH Connection:
+To see the help menu use: ``dbptk help migrate``. To check a specific module, ``dbptk help migrate <module>``
+* ``--import-ssh`` or ``--export-ssh`` to enable SSH tunnel
+* ``--import-ssh-host``, ``--import-ssh-user``, ``--import-ssh-password``, ``--import-ssh-port`` or ``--export-ssh-host``, ``--export-ssh-user``, ``--export-ssh-password``, ``--export-ssh-port`` 
 
-#### Bug Fixes:
-
--  Possible bug in sql-server module, failing to import triggers. [#325](https://github.com/keeps/db-preservation-toolkit/issues/325)
--  ORA-01000: maximum open cursors exceeded [#315](https://github.com/keeps/db-preservation-toolkit/issues/315)
-
+###### Example:
+dbptk migrate --import mysql --import-host localhost --import-user root --import-password 123456 --import-database sakila --import-ssh --import-ssh-host IP Address --import-ssh-user USER --import-ssh-password PASSWORD --import-ssh-port <BY_DEFAULT_IS_22> --export siard-2 --export-file /path/to/siard
 ---
 
-## v2.0.0 (22/06/2017)
+## Version 2.4.0 (01/08/2019)
+#### New Features
 
-#### Enhancements:
+* Materialised views (as tables) #348
+* Add enhanced support for Sybase ASA DBMS #349
+* Add support for Progress OpenEdge RDBMS #350
+* Denormalize some/all table using foreign keys #351
+* SIARD metadata editing #352
 
-- Improved reporting
+Regarding the denormalize some/all table using foreign keys (#351) issue, the option discussed was creating custom views from a SQL query. Check custom views section. 
+___
 
+#### Using the new features:
+##### Edit:
+
+Use `dbptk edit --import-file=<path> [OPTIONS]`
+
+###### Options:
+
+`--set`, updates a certain attribute to a new value.
+`--list`, lists all the possible changes in a SIARD archive.
+
+###### Examples:
+
+* `--set dbname '<value>'`. Updates the dbname attribute to the new value;
+* `--set 'schema:<schemaName>' 'table:<tableName>' 'column:<columnName>' description '<description>'` . Updates the description of a certain column in a certain table from a given schema;
+* `--set 'schema:<schemaName>' description '<description>'`. Updates the description of a given schema.
+
+##### Custom views:
+
+When using a JDBC supported import module:
+- `-icv <path>` or  `--import-custom-views=<path>` with a path to the query list file;
+
+###### Example:
+
+* `dbptk migrate --import mysql --import-hostname=<hostname> --import-database=<database> --import-username=<user> --import-password=<password> ---import-custom-views=<path> --export siard-2 --export-file=<archive>`
+
+This file should follow the YAML syntax as follows:
+
+```
+<schema_name>:
+    <view_name>: |
+        query line 1
+        query line 2
+        (...)
+    <description>: <example-description>
+    <another_view_name>: |
+        query line 1
+        query line 2
+        (...)
+    <description>: <example-description>
+```
+
+#### Using old features:
+##### Migrate:
+
+Use `dbptk migrate <importModule> [import module options] <exportModule> [export module options] [<filterModule(s)> [filter module options]]`
 ---
 
-## v2.0.0-rc2 (04/05/2017)
+## Version 2.4.0-RC-4 (17/07/2019)
+#### Improvements
 
-#### Enhancements:
+* Add description option to custom view
 
-- Improvements related to the [Database Visualization Toolkit](https://github.com/keeps/db-visualization-toolkit)
+Regarding the Denormalize some/all table using foreign keys (#351) issue, the option discussed was creating custom views from a SQL query. Check custom views section. 
+___
 
-#### Bug Fixes:
+##### Custom views:
 
-- See [commit messages](https://github.com/keeps/db-preservation-toolkit/compare/2.0.0-rc1...2.0.0-rc2)
+When using a JDBC supported import module:
+- `-icv <path>` or  `--import-custom-views=<path>` with a path to the query list file;
 
+###### Example:
+
+* `dbptk migrate --import mysql --import-hostname=<hostname> --import-database=<database> --import-username=<user> --import-password=<password> ---import-custom-views=<path> --export siard-2 --export-file=<archive>`
+
+This file should follow the YAML syntax as follows:
+
+```
+<schema_name>:
+    <view_name>: |
+        query line 1
+        query line 2
+        (...)
+    <description>: <example-description>
+    <another_view_name>: |
+        query line 1
+        query line 2
+        (...)
+    <description>: <example-description>
+```
+
+#### Using old features:
+##### Migrate:
+
+Use `dbptk migrate <importModule> [import module options] <exportModule> [export module options] [<filterModule(s)> [filter module options]]`
 ---
 
-## v2.0.0-rc1 (02/05/2017)
-#### New features:
+## Version 2.4.0-RC-3 (18/06/2019)
+#### Bug Fixes
 
-* Stores files in folders inside the dbptk home directory:
-  * a folder for reports (`reports`)
-  * a folder for logs (`log`)
-  * a folder for module data (`modules`) 
-    * currently only the solr export module uses this folder, but it may be used in the future to store temporary and other module-related files
-* The dbptk home directory is:
-  * a folder `dbptk` inside the current directory (by default)
-  * the value defined in the `dbptk.home` java system property
+* Fix bug #380
+* Fix bug #381
 
-#### Enhancements:
+#### Improvements
 
-- Improvements related to the [Database Visualization Toolkit](https://github.com/keeps/db-visualization-toolkit)
+* Improve the error handling for custom views feature
 
-#### Bug Fixes:
+#### New Features
 
-- See [commit messages](https://github.com/keeps/db-preservation-toolkit/compare/2.0.0-beta7.2...2.0.0-rc1)
+* Materialised views (as tables) #348
+* Add enhanced support for Sybase ASA DBMS #349
+* Add support for Progress OpenEdge RDBMS #350
+* Denormalize some/all table using foreign keys #351
+* SIARD metadata editing (#352)
 
----
+Regarding the Denormalize some/all table using foreign keys (#351) issue, the option discussed was creating custom views from a SQL query. Check custom views section. 
+___
 
-## v2.0.0-beta7.2 (24/02/2017)
+#### Using the new features:
+##### Edit:
 
-#### Enhancements:
+Use `dbptk edit --import-file=<path> [OPTIONS]`
 
-- Improvements in Solr module
-- Improvements in MS Access module.
+###### Options:
 
-#### Bug Fixes:
+`--set`, updates a certain attribute to a new value.
+`--list`, lists all the possible changes in a SIARD archive.
 
-- See [commit messages](https://github.com/keeps/db-preservation-toolkit/compare/2.0.0-beta7.1...2.0.0-beta7.2)
+###### Examples:
 
----
+* `--set dbname '<value>'`. Updates the dbname attribute to the new value;
+* `--set 'schema:<schemaName>' 'table:<tableName>' 'column:<columnName>' description '<description>'` . Updates the description of a certain column in a certain table from a given schema;
+* `--set 'schema:<schemaName>' description '<description>'`. Updates the description of a given schema.
 
-## v2.0.0-beta7.1 (26/01/2017)
+##### Custom views:
 
-#### Enhancements:
+When using a JDBC supported import module:
+- `-icv <path>` or  `--import-custom-views=<path>` with a path to the query list file;
 
-- Improved Solr module
+###### Example:
 
-#### Bug Fixes:
+* `dbptk migrate --import mysql --import-hostname=<hostname> --import-database=<database> --import-username=<user> --import-password=<password> ---import-custom-views=<path> --export siard-2 --export-file=<archive>`
 
-- See [commit messages](https://github.com/keeps/db-preservation-toolkit/compare/2.0.0-beta6...2.0.0-beta7.1)
+This file should follow the YAML syntax as follows:
 
----
+```
+schema_name:
+    view_name: |
+        query line 1
+        query line 2
+        ...
+    another_view_name: |
+        query line 1
+        query line 2
+        ...
+```
 
-## v2.0.0-beta6 (16/11/2016)
+#### Using old features:
+##### Migrate:
 
-#### Enhancements:
-
-- All modules: Better use of computing resources;
-- SIARD modules: Better handling of temporary files;
-
-#### Bug Fixes:
-
-- See [commit messages](https://github.com/keeps/db-preservation-toolkit/compare/2.0.0-beta5...4c14c37e57a8dd4df2b9f455373b97a759d55827)
-
----
-
-## v2.0.0-beta5 (05/07/2016)
-
-#### New features:
-
-- Solr: includes Solr export module used by Database Visualization Toolkit
-
-#### Enhancements:
-
-- All modules: Better use of computing resources
-
-#### Bug Fixes:
-
-- All modules: Better handling of NULL values
-- Multi-schema DBMS: Better handling of multiple schemas
-- MS SQL Server: fixes connection issue in export module
-- MS SQL Server: attempts to obtain SQL statement used to create views
-- Oracle: fixes exporting of tables with primary keys
-
----
-
-## v2.0.0-beta4.3 (30/05/2016)
-
-#### Enhancements:
-
-- All modules: Better output, log and report
-- All modules: Performance improvements when converting lots of big strings
-- SIARD modules: Fixed problems, improved stability and improved performance of XML escaping [#196](https://github.com/keeps/db-preservation-toolkit/issues/196)
-- JDBC Export modules: better error handling when creating foreign keys
-
-#### Bug Fixes:
-
-- SIARD-DK: Fixes blank characters [#191](https://github.com/keeps/db-preservation-toolkit/issues/191)
-- SIARD-DK: Fixes table namespaces [#195](https://github.com/keeps/db-preservation-toolkit/issues/195)
-- Microsoft SQL Server: Fixed some `DECIMAL` values;
-- Microsoft SQL Server: Fixed `VARBINARY(MAX)` type;
-- Microsoft SQL Server: Better support for schemas other than `dbo` [#199](https://github.com/keeps/db-preservation-toolkit/issues/199)
-- JDBC Import modules: Increased permissiveness [#182](https://github.com/keeps/db-preservation-toolkit/issues/182)
-- JDBC Import modules: allows importing of timestamps as old as '0001-01-01 00:00:00.0';
-- PostgreSQL export module: fixes exporting to different schema than the original one.
-
----
-
-## v2.0.0-beta4.2 (11/05/2016)
-
-#### New features:
-
-- Permissive approach, failing less often and trying to recover from errors, even if that means some data loss;
-- Produce a separate report file with conversion warnings (possible data loss, data type changes, etc);
-- Added parameters to SIARD 1 and 2 that allow the specification of database descriptive metadata (database description, data owner, and more).
-
-#### Enhancements:
-
-- All modules: Change normal output to be more user-friendly (most warnings go to the report file and debug information goes to the `dbptk-app.log.txt` file);
-- All modules: better data type conversion from DBMS datatypes to SQL standard (99 and 2008) ones;
-- All modules: remove dependency that had a security vulnerability (CVE-2012-5783);
-- SIARD 1 and 2, MySQL, PostgreSQL: Better support for database descriptive metadata (comment, remarks, etc. see [#174](https://github.com/keeps/db-preservation-toolkit/issues/174) for more information);
-- MySQL: Uses existing database or creates one if it does not exist yet.
-
-#### Bug Fixes:
-
-- SIARD-DK: Fixed the automated tests;
-- SIARD 1 and 2: Fixed BLOBs and CLOBs;
-- MS SQL Server: Fix problems related to NULL values.
-
----
-
-## v2.0.0-beta4.1 (19/04/2016)
-
-#### Bug Fixes:
-
-- JDBC: logs any structure creation errors without exiting (previously they were fatal errors)
-
----
-
-## v2.0.0-beta4.0 (16/03/2016)
-
-#### New features:
-
-- SIARD 2: import and export module supports external LOBs, with parameters to distribute LOB based on the number of files in a folder and size of a folder
-- SIARD DK: added import module for SIARD DK
-- List tables: added a new export module that writes a list of database tables to a file
-- SIARD 1 and 2: allows using a file (produced by the List tables module) to select the tables that should be exported to SIARD file
-
-#### Bug Fixes:
-
-- All: ensure that UTF-8 is default
-- JDBC: fixed a problem related to LOBs
-- SIARD DK: fixed Windows problems
-
----
-
-## v2.0.0-beta3.2.5 (24/02/2016)
-
-#### Enhancements:
-
-- SIARD-2: Exports some basic user defined types that may exist in oracle and postgresql databases;
-
-#### Bug Fixes:
-
-- SIARD 1, 2 and DK: Fixed reported issues and documentation errors;
-- Windows: Fixed more problems specific to windows operative system;
-
----
-
-## v2.0.0-beta3.2.4 (30/11/2015)
-
-#### New features:
-
-- Access: Added experimental support for Microsoft Access;
-
-#### Enhancements:
-
-- CLI: Better error reporting;
-
-#### Bug Fixes:
-
-- All: Fixed some bugs in application core.
-- Windows, SIARD: Fixed creation of SIARD archives on Microsoft Windows;
-
----
-
-## v2.0.0-beta3.2.0 (17/11/2015)
-
-#### New features:
-
-- JDBC: Added generic JDBC import and export modules;
-- Oracle: Added support for Oracle (tested on Oracle Database 11g Release 2);
-
-#### Enhancements:
-
-- SIARD-2: Supports storing LOBs inside the SIARD archive;
-- SIARD-2: Uses SQL2003 standard instead of SQL99;
-- CLI: Better output and error reporting.
-
----
-
-## v2.0.0-alpha3.1.0 (03/11/2015)
-
-#### New features:
-
-- SIARD-DK: partial export support (missing LOBs and UDTs)
-
-#### Enhancements:
-
-- SIARD2: better import and export support (still missing LOBs and UDTs)
-
----
-
-## v2.0.0-alpha2.1.1 (29/09/2015)
-
-#### New features:
-
-- Adds partial support for SIARD2 (missing LOBs and UDTs)
-- Adds a new command line interface
-- Adds a plugin system
-
-#### Enhancements:
-
-- Uses composition model for SIARD
-
-#### Bug Fixes:
-
-- Fixes some problems with MySQL and PostgreSQL
-
----
-
-## v2.0.0-alpha2 (03/12/2014)
-
-#### Bug Fixes:
-
-- Fixed log4j configuration
-- Fixed (remaining) unclosed streams
-- Added proper declaration, in table's schema files, for clobs and blobs types
-
----
-
-## v2.0.0-alpha1 (03/12/2014)
-
-#### New features:
-
-- Added SIARD input and output modules
-
-#### Bug Fixes:
-
-- Fixed null pointer exception when blobs are missing
-- Fixed file descriptor leak
-
----
-
-## v1.0.1 (19/11/2014)
-
-#### Bug Fixes:
-
-- The DBML generated by the db-preservation-toolkit (xml file) is not semantically valid [#2](https://github.com/keeps/db-preservation-toolkit/issues/2)
-- java.lang.NullPointerException when exporting database [#4](https://github.com/keeps/db-preservation-toolkit/issues/4)
-
----
-
-## v1.0.0 (01/11/2013)
-
-Initial version, ported from the [RODA project](https://github.com/keeps/roda).
+Use `dbptk migrate <importModule> [import module options] <exportModule> [export module options] [<filterModule(s)> [filter module options]]`
