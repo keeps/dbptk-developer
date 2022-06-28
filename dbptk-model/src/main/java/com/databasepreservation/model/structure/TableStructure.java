@@ -30,6 +30,8 @@ public class TableStructure {
 
   private String description;
 
+  private String folder;
+
   private List<ColumnStructure> columns;
 
   private PrimaryKey primaryKey;
@@ -64,16 +66,16 @@ public class TableStructure {
     id = null;
     name = null;
     description = null;
-    columns = new ArrayList<ColumnStructure>();
-    foreignKeys = new ArrayList<ForeignKey>();
+    folder = null;
+    columns = new ArrayList<>();
+    foreignKeys = new ArrayList<>();
     primaryKey = null;
-    candidateKeys = new ArrayList<CandidateKey>();
-    checkConstraints = new ArrayList<CheckConstraint>();
-    triggers = new ArrayList<Trigger>();
+    candidateKeys = new ArrayList<>();
+    checkConstraints = new ArrayList<>();
+    triggers = new ArrayList<>();
     rows = -1;
     schema = null;
     udtAlias = new HashMap<>();
-
     currentRow = 1;
   }
 
@@ -101,13 +103,14 @@ public class TableStructure {
    * @param rows
    *          number of table rows
    */
-  public TableStructure(String id, String name, String description, List<ColumnStructure> columns,
+  public TableStructure(String id, String name, String description, String folder, List<ColumnStructure> columns,
     List<ForeignKey> foreignKeys, PrimaryKey primaryKey, List<CandidateKey> candidateKeys,
     List<CheckConstraint> checkConstraints, List<Trigger> triggers, long rows) {
     isValidId(id);
     this.id = id;
     this.name = name;
     this.description = description;
+    this.folder = folder;
     this.columns = columns;
     this.foreignKeys = foreignKeys;
     this.primaryKey = primaryKey;
@@ -146,6 +149,21 @@ public class TableStructure {
    */
   public void setDescription(String description) {
     this.description = description;
+  }
+
+  /**
+   * @return the table folder, null when not defined
+   */
+  public String getFolder() {
+    return folder;
+  }
+
+  /**
+   * @param folder
+   *          the table folder, null when not defined
+   */
+  public void setFolder(String folder) {
+    this.folder = folder;
   }
 
   /**
@@ -293,7 +311,8 @@ public class TableStructure {
 
   public ColumnStructure getColumnByName(String columnName) {
     for (ColumnStructure column : columns) {
-      if (column.getName().equalsIgnoreCase(columnName)) return column;
+      if (column.getName().equalsIgnoreCase(columnName))
+        return column;
     }
 
     return null;
@@ -301,7 +320,8 @@ public class TableStructure {
 
   public Trigger getTriggerByName(String triggerName) {
     for (Trigger trigger : triggers) {
-      if (trigger.getName().equalsIgnoreCase(triggerName)) return trigger;
+      if (trigger.getName().equalsIgnoreCase(triggerName))
+        return trigger;
     }
 
     return null;
@@ -309,7 +329,8 @@ public class TableStructure {
 
   public ForeignKey getForeignKeyByName(String foreignKeyName) {
     for (ForeignKey fk : foreignKeys) {
-      if (fk.getName().equalsIgnoreCase(foreignKeyName)) return fk;
+      if (fk.getName().equalsIgnoreCase(foreignKeyName))
+        return fk;
     }
 
     return null;
@@ -317,7 +338,8 @@ public class TableStructure {
 
   public CandidateKey getCandidateKeyByName(String candidateKeyName) {
     for (CandidateKey candidateKey : candidateKeys) {
-      if (candidateKey.getName().equalsIgnoreCase(candidateKeyName)) return candidateKey;
+      if (candidateKey.getName().equalsIgnoreCase(candidateKeyName))
+        return candidateKey;
     }
 
     return null;
@@ -325,7 +347,8 @@ public class TableStructure {
 
   public CheckConstraint getCheckConstraintByName(String checkConstraintName) {
     for (CheckConstraint ck : checkConstraints) {
-      if (ck.getName().equalsIgnoreCase(checkConstraintName)) return ck;
+      if (ck.getName().equalsIgnoreCase(checkConstraintName))
+        return ck;
     }
 
     return null;
@@ -466,13 +489,9 @@ public class TableStructure {
       return false;
     }
     if (triggers == null) {
-      if (other.triggers != null) {
-        return false;
-      }
-    } else if (!ListUtils.listEqualsWithoutOrder(triggers, other.triggers)) {
-      return false;
-    }
-    return true;
+      return other.triggers == null;
+    } else
+      return ListUtils.listEqualsWithoutOrder(triggers, other.triggers);
   }
 
   @Override

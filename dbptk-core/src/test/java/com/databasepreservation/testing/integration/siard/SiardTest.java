@@ -335,8 +335,9 @@ public class SiardTest {
     }
 
     // create first table
-    TableStructure table01 = new TableStructure("schema01.table01", "table01", "the first table", columns_table11,
-      new ArrayList<ForeignKey>(), new PrimaryKey("pk1", Arrays.asList("col111"), "PK for the first table"),
+    TableStructure table01 = new TableStructure("schema01.table01", "table01", "the first table", "table1",
+      columns_table11, new ArrayList<ForeignKey>(),
+      new PrimaryKey("pk1", Arrays.asList("col111"), "PK for the first table"),
       Arrays.asList(
         new CandidateKey("candidate01", "1st candidate key for first table", Arrays.asList("col111", "col113")),
         new CandidateKey("candidate02", "2st candidate key for first table", Arrays.asList("col111", "col112"))),
@@ -351,7 +352,8 @@ public class SiardTest {
     tables.add(table01);
 
     // create second table
-    TableStructure table02 = new TableStructure("schema01.table02", "table02", "the second table", columns_table12,
+    TableStructure table02 = new TableStructure("schema01.table02", "table02", "the second table", "table2",
+      columns_table12,
       Arrays.asList(
         new ForeignKey("schema01.table02.fk01", "fk01", "schema01", "table01",
           Arrays.asList(new Reference("col122", "col111"), new Reference("col_122", "col_111")), "FULL", "CASCADE",
@@ -368,17 +370,17 @@ public class SiardTest {
     tables.add(table02);
 
     // create first table
-    TableStructure table03 = new TableStructure("schema02.table01", "table01", "the third table", columns_table21,
-      new ArrayList<ForeignKey>(), null, new ArrayList<CandidateKey>(), new ArrayList<CheckConstraint>(),
-      new ArrayList<Trigger>(), 0);
+    TableStructure table03 = new TableStructure("schema02.table01", "table01", "the third table", "table3",
+      columns_table21, new ArrayList<ForeignKey>(), null, new ArrayList<CandidateKey>(),
+      new ArrayList<CheckConstraint>(), new ArrayList<Trigger>(), 0);
     table03.setIndex(1);
     table03.setCurrentRow(1);
     tables.add(table03);
 
     // create first table
-    TableStructure table04 = new TableStructure("schema02.table02", "table02", "the forth table", columns_table22,
-      new ArrayList<ForeignKey>(), null, new ArrayList<CandidateKey>(), new ArrayList<CheckConstraint>(),
-      new ArrayList<Trigger>(), 0);
+    TableStructure table04 = new TableStructure("schema02.table02", "table02", "the forth table", "table4",
+      columns_table22, new ArrayList<ForeignKey>(), null, new ArrayList<CandidateKey>(),
+      new ArrayList<CheckConstraint>(), new ArrayList<Trigger>(), 0);
     table04.setIndex(2);
     table04.setCurrentRow(1);
     tables.add(table04);

@@ -481,6 +481,7 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
       result.setName(metadataCurrentTableName);
       result.setSchema(schemaName);
       result.setDescription(XMLUtils.decode(table.getDescription()));
+      result.setFolder(table.getFolder());
       result.setId(String.format("%s.%s", result.getSchema(), result.getName()));
 
       contentPathStrategy.associateTableWithFolder(result.getId(), table.getFolder());
