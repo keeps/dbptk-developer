@@ -26,6 +26,8 @@ import com.databasepreservation.model.exception.ModuleException;
  */
 public class BinaryCell extends Cell implements InputStreamProvider {
   private InputStreamProvider inputStreamProvider;
+  private String file;
+  private long length;
 
   /**
    * Creates a binary cell. This binary cell will mostly just be a wrapper around
@@ -73,6 +75,33 @@ public class BinaryCell extends Cell implements InputStreamProvider {
     this.inputStreamProvider = inputStreamProvider;
   }
 
+  /**
+   * Creates a binary cell. This binary cell is a wrapper around a
+   * ProvidesInputStream object (whilst also providing Cell functionality).
+   *
+   * @param id
+   *          the cell id
+   * @param inputStreamProvider
+   *          the inputStream provider used to read BLOB data
+   * @param file
+   *          the BLOB file name extract from table.xml
+   * @param length
+   *          the BLOB length extract from table.xml
+   * @param digest
+   *          the BLOB digest extract from table.xml
+   * @param digestType
+   *          the BLOB digestType extract from table.xml
+   */
+  public BinaryCell(String id, InputStreamProvider inputStreamProvider, String file, long length, String digest,
+    String digestType) {
+    super(id);
+    this.inputStreamProvider = inputStreamProvider;
+    this.file = file;
+    this.length = length;
+    setMessageDigest(digest.getBytes());
+    setDigestAlgorithm(digestType);
+  }
+
   @Override
   public InputStream createInputStream() throws ModuleException {
     return inputStreamProvider.createInputStream();
@@ -90,5 +119,13 @@ public class BinaryCell extends Cell implements InputStreamProvider {
 
   public InputStreamProvider getInputStreamProvider() {
     return inputStreamProvider;
+  }
+
+  public String getFile() {
+    return file;
+  }
+
+  public long getLength() {
+    return length;
   }
 }

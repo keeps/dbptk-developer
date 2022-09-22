@@ -19,6 +19,7 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
@@ -78,6 +79,9 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
   private static final String ARRAY_KEYWORD = "a";
   private static final String ROW_KEYWORD = "row";
   private static final String FILE_KEYWORD = "file";
+  private static final String LENGTH_KEYWORD = "length";
+  private static final String DIGEST_KEYWORD = "digest";
+  private static final String DIGEST_TYPE_KEYWORD = "digestType";
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2ContentImportStrategy.class);
   // ImportStrategy
   private final ContentPathImportStrategy contentPathStrategy;
@@ -308,9 +312,14 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
                 new PathInputStreamProvider(container.getPath().resolve(Paths.get(lobPath))));
             } else {
               if (ignoreLobs) {
+                Optional<Long> optionalLength = extractLengthFromBinaryColumn(attr);
+                Optional<String> optionalDigest = extractDigestFromBinaryColumn(attr);
+                Optional<String> optionalDigestType = extractDigestTypeFromBinaryColumn(attr);
+
                 currentBlobCell = new BinaryCell(
                   currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex,
-                  new DummyInputStreamProvider());
+                  new DummyInputStreamProvider(), lobPath, optionalLength.orElse(0L), optionalDigest.orElse(null),
+                  optionalDigestType.orElse(null));
               } else {
                 currentBlobCell = new BinaryCell(
                   currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex,
@@ -482,5 +491,37 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
     positions.add(current);
 
     return positions;
+  }
+
+  private Optional<Long> extractLengthFromBinaryColumn(Attributes attr) {
+    String value = attr.getValue(LENGTH_KEYWORD);
+    try {
+      if (value != null) {
+        return Optional.of(Long.parseLong(value));
+      }
+    } catch (NumberFormatException e) {
+      return Optional.empty();
+    }
+    return Optional.empty();
+  }
+
+  private Optional<String> extractDigestFromBinaryColumn(Attributes attr) {
+    String value = attr.getValue(DIGEST_KEYWORD);
+
+    if (value != null) {
+      return Optional.of(value);
+    }
+
+    return Optional.empty();
+  }
+
+  private Optional<String> extractDigestTypeFromBinaryColumn(Attributes attr) {
+    String value = attr.getValue(DIGEST_TYPE_KEYWORD);
+
+    if (value != null) {
+      return Optional.of(value);
+    }
+
+    return Optional.empty();
   }
 }
