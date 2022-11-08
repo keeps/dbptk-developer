@@ -100,6 +100,10 @@ public class SIARDExportDefault implements DatabaseFilterModule {
         || !descriptionFromMetadata.equals(Constants.UNSPECIFIED_METADATA_VALUE)) {
         dbStructure.setDescription(descriptionFromMetadata);
       }
+      String dbNameFromMetadata = descriptiveMetadata.get(SIARDConstants.DESCRIPTIVE_METADATA_DBNAME);
+      if (StringUtils.isBlank(dbStructure.getName()) || !dbNameFromMetadata.equals(Constants.UNSPECIFIED_METADATA_VALUE)) {
+        dbStructure.setName(dbNameFromMetadata);
+      }
 
       dbStructure.setArchiver(descriptiveMetadata.get(SIARDConstants.DESCRIPTIVE_METADATA_ARCHIVER));
       dbStructure.setArchiverContact(descriptiveMetadata.get(SIARDConstants.DESCRIPTIVE_METADATA_ARCHIVER_CONTACT));

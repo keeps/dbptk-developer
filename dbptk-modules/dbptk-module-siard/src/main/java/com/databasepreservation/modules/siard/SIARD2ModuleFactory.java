@@ -53,6 +53,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_EXTERNAL_LOBS_FOLDER_SIZE = "external-lobs-folder-size";
   public static final String PARAMETER_EXTERNAL_LOBS_BLOB_THRESHOLD_LIMIT = "external-lobs-blob-threshold-limit";
   public static final String PARAMETER_EXTERNAL_LOBS_CLOB_THRESHOLD_LIMIT = "external-lobs-clob-threshold-limit";
+  public static final String PARAMETER_META_DBNAME = "meta-dbname";
   public static final String PARAMETER_META_DESCRIPTION = "meta-description";
   public static final String PARAMETER_META_ARCHIVER = "meta-archiver";
   public static final String PARAMETER_META_ARCHIVER_CONTACT = "meta-archiver-contact";
@@ -108,6 +109,10 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     .description(
       "Keep CLOBs stored inside the SIARD file if the threshold is not exceeded (in bytes). Default: 4000 bytes.")
     .required(false).hasArgument(true).setOptionalArgument(false).valueIfNotSet("4000");
+
+  private static final Parameter metaDbname = new Parameter().shortName("mdb").longName(PARAMETER_META_DBNAME)
+      .description("SIARD descriptive metadata field: Short database identifier").required(false).hasArgument(true)
+      .setOptionalArgument(true).valueIfNotSet(UNSPECIFIED_METADATA_VALUE);
 
   private static final Parameter metaDescription = new Parameter().shortName("md").longName(PARAMETER_META_DESCRIPTION)
     .description("SIARD descriptive metadata field: Description of database meaning and content as a whole.")
@@ -192,6 +197,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     parameterHashMap.put(externalLobsFolderSize.longName(), externalLobsFolderSize);
     parameterHashMap.put(externalLobsBLOBThresholdLimit.longName(), externalLobsBLOBThresholdLimit);
     parameterHashMap.put(externalLobsCLOBThresholdLimit.longName(), externalLobsCLOBThresholdLimit);
+    parameterHashMap.put(metaDbname.longName(), metaDbname);
     parameterHashMap.put(metaDescription.longName(), metaDescription);
     parameterHashMap.put(metaArchiver.longName(), metaArchiver);
     parameterHashMap.put(metaArchiverContact.longName(), metaArchiverContact);
@@ -228,6 +234,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
       externalLobsFolderSize.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS),
       externalLobsBLOBThresholdLimit.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS),
       externalLobsCLOBThresholdLimit.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS),
+      metaDbname.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
       metaDescription.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
       metaArchiver.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
       metaArchiverContact.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.METADATA_EXPORT_OPTIONS),
@@ -357,6 +364,8 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
 
     // build descriptive metadata
     HashMap<String, String> descriptiveMetadataParameterValues = new HashMap<>();
+    addDescriptiveMetadataParameterValue(parameters, descriptiveMetadataParameterValues,
+        SIARDConstants.DESCRIPTIVE_METADATA_DBNAME, metaDbname);
     addDescriptiveMetadataParameterValue(parameters, descriptiveMetadataParameterValues,
       SIARDConstants.DESCRIPTIVE_METADATA_DESCRIPTION, metaDescription);
     addDescriptiveMetadataParameterValue(parameters, descriptiveMetadataParameterValues,

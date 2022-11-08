@@ -17,6 +17,7 @@ import com.google.common.collect.Lists;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARDConstants {
+  public static final String DESCRIPTIVE_METADATA_DBNAME = "Dbname";
   public static final String DESCRIPTIVE_METADATA_DESCRIPTION = "Description";
   public static final String DESCRIPTIVE_METADATA_ARCHIVER = "Archiver";
   public static final String DESCRIPTIVE_METADATA_ARCHIVER_CONTACT = "ArchiverContact";
