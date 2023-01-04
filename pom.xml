@@ -116,14 +116,12 @@
                 <artifactId>license-maven-plugin</artifactId>
                 <version>3.0</version>
                 <configuration>
-                    <!--<header>com/mycila/maven/plugin/license/templates/LGPL-3.txt</header> -->
                     <header>LICENSE_HEADER.txt</header>
                     <keywords>
                         <keyword>license</keyword>
                         <keyword>copyright</keyword>
                     </keywords>
                     <properties>
-                        <!--<project.name>Database Preservation Toolkit</project.name> -->
                         <project.license.url>https://github.com/keeps/db-preservation-toolkit</project.license.url>
                     </properties>
                     <includes>
@@ -161,8 +159,13 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.3.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>2.4</version>
+                    <version>3.4.2</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>

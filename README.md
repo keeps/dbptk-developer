@@ -64,9 +64,18 @@ To use the program, Java JRE 7 or higher needs to be installed. Instructions on 
 
 To use the program, open a command-line and try out the following command (replace x.y.z accordingly to the version of the binary in use):
 
+If using Java 8 to 15:
+
 ```text
 java -jar "-Dfile.encoding=UTF-8" dbptk-app-X.Y.Z.jar
 ```
+
+If using Java 17:
+```text
+java --add-opens java.xml/com.sun.org.apache.xerces.internal.jaxp=ALL-UNNAMED -jar "-Dfile.encoding=UTF-8" dbptk-app-X.Y.Z.jar
+```
+
+NOTE: Getting `WARN could not get type for name javax.xml.bind.annotation.adapters.XmlAdapter from any class loader` issue? See [workaround](https://github.com/keeps/dbptk-developer/issues/531#issuecomment-1370810614).
 
 Using this command you will be presented with the application usage, describing all supported modules and their parameters.
 This information is also available in the [application usage page](https://github.com/keeps/db-preservation-toolkit/wiki/Application-usage).
