@@ -343,7 +343,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
 
   private String getDescriptionForTable(String schema, String table) throws ModuleException {
     try {
-      return getDescription(SCHEMA, schema, "Table", table, null, null);
+        return getDescription(SCHEMA, schema, "Table", table, null, null);
     } catch (SQLException e) {
       reporter.failedToGetDescription(e, "table", schema, table);
     }
@@ -368,7 +368,7 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
     // 'dbo', 'Table', 'spt_monitor', NULL, NULL)
 
     try (PreparedStatement statement = getConnection().prepareStatement(
-      "SELECT CONVERT(varchar, value) As 'description' FROM ::fn_listextendedproperty ('MS_Description', ?, ?, ?, ?, ?, ?)")) {
+      "SELECT value As 'description' FROM fn_listextendedproperty (null, ?, ?, ?, ?, ?, ?)")) {
 
       statement.setString(1, scope1);
       statement.setString(2, value1);
