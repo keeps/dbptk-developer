@@ -1,5 +1,21 @@
 # Changelog
 
+## Version 2.10.4 (26/04/2023)
+#### Bug Fixes
+
+Description are being trimmed of to 30 characters in Microsoft SQL Server #553
+---
+
+## Version 2.10.3 (08/11/2022)
+#### Enhancements
+* Set dbname as command line argument #541
+---
+
+## Version 2.10.2 (27/09/2022)
+#### Enhancements
+* Add missing data to LOB cells #533 
+---
+
 ## Version 2.10.1 (28/06/2022)
 #### Bug Fixes
 
@@ -310,167 +326,3 @@ To see the help menu use: ``dbptk help migrate``. To check a specific module, ``
 
 ###### Example:
 dbptk migrate --import mysql --import-host localhost --import-user root --import-password 123456 --import-database sakila --import-ssh --import-ssh-host IP Address --import-ssh-user USER --import-ssh-password PASSWORD --import-ssh-port <BY_DEFAULT_IS_22> --export siard-2 --export-file /path/to/siard
----
-
-## Version 2.4.0 (01/08/2019)
-#### New Features
-
-* Materialised views (as tables) #348
-* Add enhanced support for Sybase ASA DBMS #349
-* Add support for Progress OpenEdge RDBMS #350
-* Denormalize some/all table using foreign keys #351
-* SIARD metadata editing #352
-
-Regarding the denormalize some/all table using foreign keys (#351) issue, the option discussed was creating custom views from a SQL query. Check custom views section. 
-___
-
-#### Using the new features:
-##### Edit:
-
-Use `dbptk edit --import-file=<path> [OPTIONS]`
-
-###### Options:
-
-`--set`, updates a certain attribute to a new value.
-`--list`, lists all the possible changes in a SIARD archive.
-
-###### Examples:
-
-* `--set dbname '<value>'`. Updates the dbname attribute to the new value;
-* `--set 'schema:<schemaName>' 'table:<tableName>' 'column:<columnName>' description '<description>'` . Updates the description of a certain column in a certain table from a given schema;
-* `--set 'schema:<schemaName>' description '<description>'`. Updates the description of a given schema.
-
-##### Custom views:
-
-When using a JDBC supported import module:
-- `-icv <path>` or  `--import-custom-views=<path>` with a path to the query list file;
-
-###### Example:
-
-* `dbptk migrate --import mysql --import-hostname=<hostname> --import-database=<database> --import-username=<user> --import-password=<password> ---import-custom-views=<path> --export siard-2 --export-file=<archive>`
-
-This file should follow the YAML syntax as follows:
-
-```
-<schema_name>:
-    <view_name>: |
-        query line 1
-        query line 2
-        (...)
-    <description>: <example-description>
-    <another_view_name>: |
-        query line 1
-        query line 2
-        (...)
-    <description>: <example-description>
-```
-
-#### Using old features:
-##### Migrate:
-
-Use `dbptk migrate <importModule> [import module options] <exportModule> [export module options] [<filterModule(s)> [filter module options]]`
----
-
-## Version 2.4.0-RC-4 (17/07/2019)
-#### Improvements
-
-* Add description option to custom view
-
-Regarding the Denormalize some/all table using foreign keys (#351) issue, the option discussed was creating custom views from a SQL query. Check custom views section. 
-___
-
-##### Custom views:
-
-When using a JDBC supported import module:
-- `-icv <path>` or  `--import-custom-views=<path>` with a path to the query list file;
-
-###### Example:
-
-* `dbptk migrate --import mysql --import-hostname=<hostname> --import-database=<database> --import-username=<user> --import-password=<password> ---import-custom-views=<path> --export siard-2 --export-file=<archive>`
-
-This file should follow the YAML syntax as follows:
-
-```
-<schema_name>:
-    <view_name>: |
-        query line 1
-        query line 2
-        (...)
-    <description>: <example-description>
-    <another_view_name>: |
-        query line 1
-        query line 2
-        (...)
-    <description>: <example-description>
-```
-
-#### Using old features:
-##### Migrate:
-
-Use `dbptk migrate <importModule> [import module options] <exportModule> [export module options] [<filterModule(s)> [filter module options]]`
----
-
-## Version 2.4.0-RC-3 (18/06/2019)
-#### Bug Fixes
-
-* Fix bug #380
-* Fix bug #381
-
-#### Improvements
-
-* Improve the error handling for custom views feature
-
-#### New Features
-
-* Materialised views (as tables) #348
-* Add enhanced support for Sybase ASA DBMS #349
-* Add support for Progress OpenEdge RDBMS #350
-* Denormalize some/all table using foreign keys #351
-* SIARD metadata editing (#352)
-
-Regarding the Denormalize some/all table using foreign keys (#351) issue, the option discussed was creating custom views from a SQL query. Check custom views section. 
-___
-
-#### Using the new features:
-##### Edit:
-
-Use `dbptk edit --import-file=<path> [OPTIONS]`
-
-###### Options:
-
-`--set`, updates a certain attribute to a new value.
-`--list`, lists all the possible changes in a SIARD archive.
-
-###### Examples:
-
-* `--set dbname '<value>'`. Updates the dbname attribute to the new value;
-* `--set 'schema:<schemaName>' 'table:<tableName>' 'column:<columnName>' description '<description>'` . Updates the description of a certain column in a certain table from a given schema;
-* `--set 'schema:<schemaName>' description '<description>'`. Updates the description of a given schema.
-
-##### Custom views:
-
-When using a JDBC supported import module:
-- `-icv <path>` or  `--import-custom-views=<path>` with a path to the query list file;
-
-###### Example:
-
-* `dbptk migrate --import mysql --import-hostname=<hostname> --import-database=<database> --import-username=<user> --import-password=<password> ---import-custom-views=<path> --export siard-2 --export-file=<archive>`
-
-This file should follow the YAML syntax as follows:
-
-```
-schema_name:
-    view_name: |
-        query line 1
-        query line 2
-        ...
-    another_view_name: |
-        query line 1
-        query line 2
-        ...
-```
-
-#### Using old features:
-##### Migrate:
-
-Use `dbptk migrate <importModule> [import module options] <exportModule> [export module options] [<filterModule(s)> [filter module options]]`
