@@ -97,7 +97,7 @@ public class Main {
     logProgramStart();
     cli.logOperatingSystemInfo();
 
-    int exitStatus = EXIT_CODE_GENERIC_ERROR;
+    int exitStatus = EXIT_CODE_OK;
 
     // avoid SAX processing limit of 50 million elements
     System.setProperty("totalEntitySizeLimit", "0");
@@ -112,7 +112,7 @@ public class Main {
     if (!cli.getRecognizedCommand()) {
       LOGGER.error("Command '{}' not a valid command.", cli.getArgCommand());
       cli.printUsage();
-      exitStatus = EXIT_CODE_OK;
+      exitStatus = EXIT_CODE_GENERIC_ERROR;
     } else {
       if (cli.usingUTF8()) {
         if (isGUI) {
@@ -190,6 +190,7 @@ public class Main {
         LOGGER.info("Validate SIARD at '{}'", cli.getSIARDPackage());
         siardValidation.validate();
         duration = System.currentTimeMillis() - startTime;
+        exitStatus = EXIT_CODE_OK;
         LOGGER.info("Validate SIARD took {}m {}s to complete.", duration / 60000, duration % 60000 / 1000);
       } catch (SiardNotFoundException e) {
         LOGGER.error("{}: {}", e.getMessage(), e.getPath());
