@@ -61,8 +61,11 @@ public class SIARDValidateModule implements ValidateModule {
    */
   public SIARDValidateModule(Path SIARDPackagePath, Path validationReporterPath, boolean skipAdditionalChecks) {
     siardPackageNormalizedPath = SIARDPackagePath.toAbsolutePath().normalize();
-    validationReporter = new ValidationReporter(validationReporterPath.toAbsolutePath().normalize(),
-      siardPackageNormalizedPath);
+
+    validationReporter = new ValidationReporter(
+      validationReporterPath != null ? validationReporterPath.toAbsolutePath().normalize() : null,
+      siardPackageNormalizedPath
+    );
     allowedUDTs = Collections.emptyList();
     validatorPathStrategy = new ValidatorPathStrategyImpl();
     zipFileManager = new ZipFileManager();

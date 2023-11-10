@@ -35,6 +35,7 @@ public class SIARDValidateFactory implements ValidateModuleFactory {
   public static final String PARAMETER_ALLOWED = "allowed";
   public static final String PARAMETER_REPORT = "report";
   public static final String PARAMETER_SKIP_ADDITIONAL_CHECKS = "skip-additional-checks";
+  public static final String PARAMETER_NO_REPORT_FILE = "no-report-file";
 
   private static final Parameter file = new Parameter().shortName("f").longName(PARAMETER_FILE)
     .description("Path to SIARD2 archive file.").hasArgument(true).setOptionalArgument(false).required(true);
@@ -55,6 +56,11 @@ public class SIARDValidateFactory implements ValidateModuleFactory {
       + " The additional checks can be found at: https://github.com/keeps/db-preservation-toolkit/wiki/Validation#additional-checks ")
     .hasArgument(false).valueIfSet("true").valueIfNotSet("false").required(false);
 
+  private static final Parameter noReportFile = new Parameter().shortName("nrf")
+    .longName(PARAMETER_NO_REPORT_FILE)
+    .description("The validation report file will not be generated.")
+    .hasArgument(false).valueIfSet("true").valueIfNotSet("false").required(false);
+
   @Override
   public String getModuleName() {
     return "validate-siard";
@@ -72,7 +78,7 @@ public class SIARDValidateFactory implements ValidateModuleFactory {
 
   @Override
   public Parameters getSingleParameters() {
-    return new Parameters(Arrays.asList(allowed, report, skipAdditionalChecks), null);
+    return new Parameters(Arrays.asList(allowed, report, skipAdditionalChecks, noReportFile), null);
   }
 
   @Override
@@ -82,6 +88,7 @@ public class SIARDValidateFactory implements ValidateModuleFactory {
     parameterHashMap.put(report.longName(), report);
     parameterHashMap.put(allowed.longName(), allowed);
     parameterHashMap.put(skipAdditionalChecks.longName(), skipAdditionalChecks);
+    parameterHashMap.put(noReportFile.longName(), noReportFile);
 
     return parameterHashMap;
   }
@@ -92,13 +99,19 @@ public class SIARDValidateFactory implements ValidateModuleFactory {
     Path pReport;
     Path pAllowUDTs = null;
 
-    if (parameters.get(report) != null) {
-      pReport = Paths.get(parameters.get(report));
+    boolean pNoReportFile = Boolean.parseBoolean(parameters.get(noReportFile));
+
+    if (!pNoReportFile) {
+      if (parameters.get(report) != null) {
+        pReport = Paths.get(parameters.get(report));
+      } else {
+        String name = Constants.DBPTK_VALIDATION_REPORTER_PREFIX + "-"
+          + pFile.getFileName().toString().replaceFirst("[.][^.]+$", "") + "-"
+          + new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date()) + ".txt";
+        pReport = ConfigUtils.getReportsDirectory().resolve(name);
+      }
     } else {
-      String name = Constants.DBPTK_VALIDATION_REPORTER_PREFIX + "-"
-        + pFile.getFileName().toString().replaceFirst("[.][^.]+$", "") + "-"
-        + new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date()) + ".txt";
-      pReport = ConfigUtils.getReportsDirectory().resolve(name);
+      pReport = null;
     }
 
     if (parameters.get(allowed) != null) {
@@ -113,13 +126,14 @@ public class SIARDValidateFactory implements ValidateModuleFactory {
     }
 
     if (pAllowUDTs != null) {
+      String reportParam = pReport != null ? pReport.normalize().toAbsolutePath().toString() : null;
       reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString(),
-          PARAMETER_ALLOWED, pAllowUDTs.normalize().toAbsolutePath().toString(), PARAMETER_REPORT,
-        pReport.normalize().toAbsolutePath().toString());
+        PARAMETER_ALLOWED, pAllowUDTs.normalize().toAbsolutePath().toString(), PARAMETER_REPORT, reportParam);
       return new SIARDValidateModule(pFile, pReport, pAllowUDTs, pSkipAdditionalChecks);
     } else {
+      String reportParam = pReport != null ? pReport.normalize().toAbsolutePath().toString() : null;
       reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString(),
-        PARAMETER_REPORT, pReport.normalize().toAbsolutePath().toString());
+        PARAMETER_REPORT, reportParam);
       return new SIARDValidateModule(pFile, pReport, pSkipAdditionalChecks);
     }
   }
