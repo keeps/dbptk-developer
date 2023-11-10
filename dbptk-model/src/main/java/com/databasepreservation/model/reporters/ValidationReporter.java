@@ -56,7 +56,7 @@ public class ValidationReporter implements AutoCloseable {
 
   private void init(Path path, Path siardPackagePath) {
     this.outputFile = path;
-    if (outputFile.toFile().exists()) {
+    if (outputFile != null && outputFile.toFile().exists()) {
       try {
         Files.createFile(outputFile);
       } catch (IOException e) {
