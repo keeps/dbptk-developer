@@ -295,6 +295,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
         SIARDArchiveContainer container;
         if (lobDir.startsWith("..")) {
           container = lobContainer;
+          lobPath = lobContainer.getPath().toString() + '/' + lobPath.replace("../", "");
         } else {
           container = contentContainer;
         }
