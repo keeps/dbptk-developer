@@ -78,6 +78,8 @@ public class SIARD2ContentPathImportStrategy implements ContentPathImportStrateg
 
     if (".".equals(basePath) && ".".equals(columnPart) && lobFileName.startsWith("..")) {
       return lobFileName.substring(3);
+    } else if (".".equals(columnPart)) {
+      return lobFileName;
     } else {
       return new StringBuilder().append(basePath).append(RESOURCE_FILE_SEPARATOR).append(schemaPart)
         .append(RESOURCE_FILE_SEPARATOR).append(tablePart).append(RESOURCE_FILE_SEPARATOR).append(columnPart)
