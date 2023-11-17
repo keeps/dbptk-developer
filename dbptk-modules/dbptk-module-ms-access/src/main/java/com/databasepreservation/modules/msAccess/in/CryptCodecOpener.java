@@ -10,7 +10,7 @@ package com.databasepreservation.modules.msAccess.in;
 import java.io.File;
 import java.io.IOException;
 
-import com.healthmarketscience.jackcess.CryptCodecProvider;
+import com.healthmarketscience.jackcess.crypt.CryptCodecProvider;
 import com.healthmarketscience.jackcess.Database;
 import com.healthmarketscience.jackcess.DatabaseBuilder;
 
