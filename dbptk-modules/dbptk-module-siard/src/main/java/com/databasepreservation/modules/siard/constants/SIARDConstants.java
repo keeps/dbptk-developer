@@ -32,6 +32,8 @@ public class SIARDConstants {
     // eCH-0165 v2.1: most recent version
     V2_1("2", "2.1", "v2.1"),
 
+    V2_2("2", "2.2", "v2.2"),
+
     // danish v1.0 fork
     DK("1.0", "dk"),
 

@@ -93,6 +93,9 @@ public class SIARD2ImportModule {
       case V2_1:
         metadataStrategy = new SIARD21MetadataImportStrategy(metadataPathStrategy, contentPathStrategy);
         break;
+      case V2_2:
+        metadataStrategy = new SIARD21MetadataImportStrategy(metadataPathStrategy, contentPathStrategy);
+        break;
       default:
         metadataStrategy = null;
     }
