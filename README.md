@@ -122,7 +122,7 @@ More examples containing only required parameters:
 **Oracle to SIARD 2**
 
 ```text
-java -jar "-Dfile.encoding=UTF-8" dbptk-app-x.y.z.jar migrate --import oracle --import-server-name=127.0.0.1 --import-database="example_db" --import-username=username --import-password="p4ssw0rd" --import-accept-license --export siard-2 --export-file=example.siard
+java -jar "-Dfile.encoding=UTF-8" dbptk-app-x.y.z.jar migrate --import oracle --import-server-name=127.0.0.1 --import-instance="instance" --import-username=username --import-password="p4ssw0rd" --import-port-number=1521 --import-accept-license --export siard-2 --export-file=example.siard
 ```
 
 **MySQL to SIARD 2**
