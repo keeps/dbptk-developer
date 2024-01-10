@@ -7,24 +7,20 @@
  */
 package com.databasepreservation.modules.postgresql.in;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
-import com.databasepreservation.model.structure.type.SimpleTypeBinary;
-import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
-import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
-import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
-import com.databasepreservation.model.structure.type.SimpleTypeString;
-import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.model.structure.type.*;
 import com.databasepreservation.modules.jdbc.in.JDBCDatatypeImporter;
 import com.databasepreservation.modules.postgresql.PostgreSQLExceptionNormalizer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -99,7 +95,7 @@ public class PostgreSQLJDBCDatatypeImporter extends JDBCDatatypeImporter {
   @Override
   protected Type getVarcharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     Type type = new SimpleTypeString(columnSize, true);
-    if ("text".equalsIgnoreCase(typeName)) {
+    if ("text".equalsIgnoreCase(typeName) || "json".equalsIgnoreCase(typeName) || "jsonb".equalsIgnoreCase(typeName)) {
       type.setSql99TypeName("CHARACTER LARGE OBJECT");
       type.setSql2008TypeName("CHARACTER LARGE OBJECT");
     } else {
@@ -142,6 +138,10 @@ public class PostgreSQLJDBCDatatypeImporter extends JDBCDatatypeImporter {
       return getBinaryType(typeName, columnSize, decimalDigits, numPrecRadix);
     } else if ("tsvector".equals(typeName)) {
       return getVarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
+    } else if ("uuid".equals(typeName)) {
+      return getVarcharType(typeName, 36, decimalDigits, numPrecRadix);
+    } else if ("json".equals(typeName) || "jsonb".equals(typeName)) {
+      return getVarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
     } else {
       return super.getOtherType(dataType, typeName, columnSize, decimalDigits, numPrecRadix);
     }
@@ -181,7 +181,8 @@ public class PostgreSQLJDBCDatatypeImporter extends JDBCDatatypeImporter {
         try (PreparedStatement ps = connection.prepareStatement(arraySubtypeQuery); ResultSet rs = ps.executeQuery()) {
           rs.next();
           int sqlSubType = rs.getArray(1).getBaseType();
-          subtype = getType(null, null, null, null, sqlSubType, typeName, columnSize, decimalDigits, numPrecRadix);
+          String subTypeName = typeName.substring(1);
+          subtype = getType(null, null, null, null, sqlSubType, subTypeName, columnSize, decimalDigits, numPrecRadix);
         } catch (SQLException | ClassNotFoundException e) {
           throw PostgreSQLExceptionNormalizer.getInstance().normalizeException(e, "Error obtaining array subtype");
         }
