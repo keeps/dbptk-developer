@@ -7,17 +7,13 @@
  */
 package com.databasepreservation.testing.integration.roundtrip;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
@@ -142,8 +138,7 @@ public class Roundtrip {
       sql.environment().put(entry.getKey(), entry.getValue());
     }
     Process p = sql.start();
-    printTmpFileOnError(processSTDERR, p.waitFor());
-    printTmpFileOnError(processSTDOUT, p.waitFor());
+    waitAndPrintTmpFileOnError(p, 600, processSTDERR, processSTDOUT);
 
     // We won't continue, if the process setting up the particular round trip
     // database didn't succeed.
@@ -166,7 +161,7 @@ public class Roundtrip {
       dump.environment().put(entry.getKey(), entry.getValue());
     }
     p = dump.start();
-    printTmpFileOnError(processSTDERR, p.waitFor());
+    waitAndPrintTmpFileOnError(p, 600, processSTDERR);
 
     // convert from the database to siard
     if (Main.internalMainUsedOnlyByTestClasses(reviewArguments(forward_conversion_arguments)) == 0) {
@@ -180,7 +175,7 @@ public class Roundtrip {
           dump.environment().put(entry.getKey(), entry.getValue());
         }
         p = dump.start();
-        printTmpFileOnError(processSTDERR, p.waitFor());
+        waitAndPrintTmpFileOnError(p, 600, processSTDERR);
 
         // this asserts that both dumps represent the same information
         try {
@@ -208,8 +203,7 @@ public class Roundtrip {
     teardown.redirectOutput(processSTDOUT);
     teardown.redirectError(processSTDERR);
     Process p = teardown.start();
-    printTmpFileOnError(processSTDERR, p.waitFor());
-    printTmpFileOnError(processSTDOUT, p.waitFor());
+    waitAndPrintTmpFileOnError(p, 30, processSTDERR, processSTDOUT);
 
     // create a temporary folder with a siard file inside
     tmpFolderSIARD = Files.createTempDirectory("dpttest_siard");
@@ -222,8 +216,7 @@ public class Roundtrip {
     setup.redirectError(processSTDERR);
     p = setup.start();
 
-    printTmpFileOnError(processSTDERR, p.waitFor());
-    printTmpFileOnError(processSTDOUT, p.waitFor());
+    waitAndPrintTmpFileOnError(p, 30, processSTDERR, processSTDOUT);
     return p.waitFor();
   }
 
@@ -237,8 +230,7 @@ public class Roundtrip {
     teardown.redirectError(processSTDERR);
 
     Process p = teardown.start();
-    printTmpFileOnError(processSTDERR, p.waitFor());
-    printTmpFileOnError(processSTDOUT, p.waitFor());
+    waitAndPrintTmpFileOnError(p, 30, processSTDERR, processSTDOUT);
     return p.waitFor();
   }
 
@@ -254,32 +246,48 @@ public class Roundtrip {
     return copy;
   }
 
-  private void printTmpFileOnError(File file_to_print, int status_code) throws IOException {
-    if (status_code != 0) {
-      LOGGER.error("non-zero exit code, printing process output from " + file_to_print.getName());
+  private void waitAndPrintTmpFileOnError(Process p, long timeoutSeconds, File... files_to_print)
+    throws IOException, InterruptedException {
 
-      if (file_to_print.length() > 0L) {
-        FileReader fr;
-        try {
-          fr = new FileReader(file_to_print);
-          try {
-            BufferedReader br = new BufferedReader(fr);
-            String line;
-            while ((line = br.readLine()) != null) {
-              System.out.println(line);
-            }
-            br.close();
-          } catch (IOException e) {
-            LOGGER.error("Could not read file", e);
-          } finally {
-            fr.close();
-          }
-        } catch (FileNotFoundException e) {
-          LOGGER.error("File not found", e);
-        }
+    boolean completed = p.waitFor(timeoutSeconds, TimeUnit.SECONDS);
+    if (!completed || p.exitValue() != 0) {
+      if (!completed) {
+        LOGGER.error("process timed out after {} seconds", timeoutSeconds);
+        p.destroyForcibly().waitFor(30, TimeUnit.SECONDS);
       } else {
-        LOGGER.warn("output file is empty.");
+        LOGGER.error("non-zero exit code {}", p.exitValue());
       }
+
+      for (File file_to_print : files_to_print) {
+        printTmpFile(file_to_print);
+      }
+    }
+  }
+
+  private void printTmpFile(File file_to_print) throws IOException {
+    LOGGER.error("printing process output from " + file_to_print.getName());
+
+    if (file_to_print.length() > 0L) {
+      FileReader fr;
+      try {
+        fr = new FileReader(file_to_print);
+        try {
+          BufferedReader br = new BufferedReader(fr);
+          String line;
+          while ((line = br.readLine()) != null) {
+            System.out.println(line);
+          }
+          br.close();
+        } catch (IOException e) {
+          LOGGER.error("Could not read file", e);
+        } finally {
+          fr.close();
+        }
+      } catch (FileNotFoundException e) {
+        LOGGER.error("File not found", e);
+      }
+    } else {
+      LOGGER.warn("output file is empty.");
     }
   }
 }
