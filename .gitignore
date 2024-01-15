@@ -17,6 +17,7 @@ dbptk-model/src/main/resources/dbptk-version.json
 **/pom.xml.versionsBackup
 
 test-output/
+_tmp_*
 
 *.iml
 .idea
