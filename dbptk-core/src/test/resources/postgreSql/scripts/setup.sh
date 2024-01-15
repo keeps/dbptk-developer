@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #ARGS:
 # source database name
@@ -7,8 +7,8 @@
 # temporary user password
 
 #ENVIRONMENT VARS:
-# DPT_POSTGRESQL_USER - postgres username for a user with permission to create a new user (defaults to "root")
-# DPT_POSTGRESQL_PASS - postgres password for the DPT_MYSQL_USER user (defaults to empty)
+# DPT_POSTGRESQL_USER - postgres username for a user with permission to create a new user (defaults to "postgres")
+# DPT_POSTGRESQL_PASS - postgres password for the DPT_POSTGRESQL_USER user (defaults to empty)
 
 TEST_DB_SOURCE="$1"
 TEST_DB_TARGET="$2"
@@ -24,7 +24,7 @@ fi
 export PGPASSWORD="$DPT_POSTGRESQL_PASS"
 
 function sql() {
-  psql -q -h 127.0.0.1 -U postgres -d postgres --command="$1"
+  psql -q -h 127.0.0.1 -d postgres --command="$1"
 }
 
 # Create test databases

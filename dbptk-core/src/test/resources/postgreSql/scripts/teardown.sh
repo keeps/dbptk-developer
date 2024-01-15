@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #ARGS:
 # source database name
@@ -6,8 +6,8 @@
 # temporary user username
 
 #ENVIRONMENT VARS:
-# DPT_MYSQL_USER - mysql username for a user with permission to create a new user (defaults to "root")
-# DPT_MYSQL_PASS - mysql password for the DPT_MYSQL_USER user (defaults to empty)
+# DPT_POSTGRESQL_USER - mysql username for a user with permission to create a new user (defaults to "postgres")
+# DPT_POSTGRESQL_PASS - mysql password for the DPT_POSTGRESQL_USER user (defaults to empty)
 
 TEST_DB_SOURCE="$1"
 TEST_DB_TARGET="$2"
@@ -22,7 +22,7 @@ fi
 export PGPASSWORD="$DPT_POSTGRESQL_PASS"
 
 function sql() {
-  psql -q -h 127.0.0.1 -U postgres -d postgres --command="$1"
+  psql -q -h 127.0.0.1 -d postgres --command="$1"
 }
 
 sql "DROP DATABASE IF EXISTS \"$TEST_DB_SOURCE\";"
