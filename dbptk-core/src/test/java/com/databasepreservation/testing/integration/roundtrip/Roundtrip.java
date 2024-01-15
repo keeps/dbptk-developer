@@ -130,7 +130,7 @@ public class Roundtrip {
   private boolean roundtrip(Path populate_file) throws IOException, InterruptedException {
     boolean returnValue = false;
 
-    ProcessBuilder sql = new ProcessBuilder("bash", "-c", populate_command);
+    ProcessBuilder sql = bashCommandProcessBuilder(populate_command);
     sql.redirectOutput(processSTDOUT);
     sql.redirectError(processSTDERR);
     sql.redirectInput(populate_file.toFile());
@@ -154,7 +154,7 @@ public class Roundtrip {
     LOGGER.trace("SQL src dump: " + dump_source.toString());
     LOGGER.trace("SQL tgt dump: " + dump_target.toString());
 
-    ProcessBuilder dump = new ProcessBuilder("bash", "-c", dump_source_command);
+    ProcessBuilder dump = bashCommandProcessBuilder(dump_source_command);
     dump.redirectOutput(dump_source.toFile());
     dump.redirectError(processSTDERR);
     for (Entry<String, String> entry : environment_variables_source.entrySet()) {
@@ -168,7 +168,7 @@ public class Roundtrip {
       // and if that succeeded, convert back to the database
       if (Main.internalMainUsedOnlyByTestClasses(reviewArguments(backward_conversion_arguments)) == 0) {
         // both conversions succeeded. going to compare the database dumps
-        dump = new ProcessBuilder("bash", "-c", dump_target_command);
+        dump = bashCommandProcessBuilder(dump_target_command);
         dump.redirectOutput(dump_target.toFile());
         dump.redirectError(processSTDERR);
         for (Entry<String, String> entry : environment_variables_target.entrySet()) {
@@ -199,7 +199,7 @@ public class Roundtrip {
 
   private int setup() throws IOException, InterruptedException {
     // clean up before setting up
-    ProcessBuilder teardown = new ProcessBuilder("bash", "-c", teardown_command);
+    ProcessBuilder teardown = bashCommandProcessBuilder(teardown_command);
     teardown.redirectOutput(processSTDOUT);
     teardown.redirectError(processSTDERR);
     Process p = teardown.start();
@@ -211,7 +211,7 @@ public class Roundtrip {
     LOGGER.trace("SIARD file: " + tmpFileSIARD.toString());
 
     // create user, database and give permissions to the user
-    ProcessBuilder setup = new ProcessBuilder("bash", "-c", setup_command);
+    ProcessBuilder setup = bashCommandProcessBuilder(setup_command);
     setup.redirectOutput(processSTDOUT);
     setup.redirectError(processSTDERR);
     p = setup.start();
@@ -225,7 +225,7 @@ public class Roundtrip {
     Files.deleteIfExists(tmpFileSIARD);
 
     // clean up script
-    ProcessBuilder teardown = new ProcessBuilder("bash", "-c", teardown_command);
+    ProcessBuilder teardown = bashCommandProcessBuilder(teardown_command);
     teardown.redirectOutput(processSTDOUT);
     teardown.redirectError(processSTDERR);
 
@@ -244,6 +244,11 @@ public class Roundtrip {
       }
     }
     return copy;
+  }
+
+  private ProcessBuilder bashCommandProcessBuilder(String command) {
+    LOGGER.debug("Command: {}", command);
+    return new ProcessBuilder("bash", "-c", command);
   }
 
   private void waitAndPrintTmpFileOnError(Process p, long timeoutSeconds, File... files_to_print)
