@@ -7,29 +7,35 @@
  */
 package com.databasepreservation.model.modules.configuration;
 
-import com.databasepreservation.Constants;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.databasepreservation.Constants;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
-@JsonPropertyOrder({"name", "description", "query"})
+@JsonPropertyOrder({"name", "simulateTable", "description", "query", "columns", "primaryKey", "foreignKeys"})
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CustomViewConfiguration {
 
   private String name;
+  private boolean simulateTable = false;
   private String description;
   private String query;
-  private List<ColumnConfiguration> columns;
+  private List<CustomColumnConfiguration> columns;
+  private PrimaryKeyConfiguration primaryKey;
+  private List<ForeignKeyConfiguration> foreignKeys;
 
   public CustomViewConfiguration() {
     name = Constants.EMPTY;
     columns = new ArrayList<>();
     description = Constants.EMPTY;
     query = Constants.EMPTY;
+    foreignKeys = new ArrayList<>();
   }
 
   public String getName() {
@@ -38,6 +44,22 @@ public class CustomViewConfiguration {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  /**
+   * Should the custom view simulate a table in the archive?
+   * <p>
+   * This will remove the prefix from the name. The view will still be included in
+   * the archive with the prefix to document the archive.
+   * 
+   * @return Boolean
+   */
+  public boolean isSimulateTable() {
+    return simulateTable;
+  }
+
+  public void setSimulateTable(boolean simulateTable) {
+    this.simulateTable = simulateTable;
   }
 
   public String getDescription() {
@@ -56,12 +78,28 @@ public class CustomViewConfiguration {
     this.query = query;
   }
 
-  public List<ColumnConfiguration> getColumns() {
+  public List<CustomColumnConfiguration> getColumns() {
     return columns;
   }
 
-  public void setColumns(List<ColumnConfiguration> columns) {
+  public void setColumns(List<CustomColumnConfiguration> columns) {
     this.columns = columns;
+  }
+
+  public PrimaryKeyConfiguration getPrimaryKey() {
+    return primaryKey;
+  }
+
+  public void setPrimaryKey(PrimaryKeyConfiguration primaryKey) {
+    this.primaryKey = primaryKey;
+  }
+
+  public List<ForeignKeyConfiguration> getForeignKeys() {
+    return foreignKeys;
+  }
+
+  public void setForeignKeys(List<ForeignKeyConfiguration> foreignKeys) {
+    this.foreignKeys = foreignKeys;
   }
 
   @Override
@@ -72,7 +110,8 @@ public class CustomViewConfiguration {
     return Objects.equals(name, that.name) &&
             Objects.equals(description, that.description) &&
             Objects.equals(query, that.query) &&
-            Objects.equals(columns, that.columns);
+      Objects.equals(columns, that.columns) && Objects.equals(primaryKey, that.primaryKey)
+      && Objects.equals(foreignKeys, that.foreignKeys);
   }
 
   @Override
