@@ -19,13 +19,18 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import com.databasepreservation.model.exception.ModuleException;
 
 public class StandardSIARDMarshaller implements SIARDMarshaller {
 
   private static final String ENCODING = "UTF-8";
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(StandardSIARDMarshaller.class);
 
   @Override
   public void marshal(String contextStr, String localeSchemaLocation, String JAXBSchemaLocation, OutputStream writer,
@@ -67,6 +72,9 @@ public class StandardSIARDMarshaller implements SIARDMarshaller {
       m.marshal(jaxbElement, writer);
 
     } catch (JAXBException e) {
+      if (e.getCause() instanceof SAXParseException) {
+        LOGGER.error(e.getCause().getMessage());
+      }
       throw new ModuleException().withMessage("Error while Marshalling JAXB").withCause(e);
     }
   }
