@@ -231,7 +231,11 @@ public class MetadataColumnsValidator extends MetadataValidator {
             rowNumber++;
           if (streamReader.getLocalName().equalsIgnoreCase(column)) {
             if (streamReader.getAttributeCount() > 0) {
-              String fileName = streamReader.getAttributeValue(null, "file");
+              String fileName = Constants.SIARD_CONTENT_FOLDER + "/" + folder
+                + streamReader.getAttributeValue(null, "file");
+              if (!zipFileManagerStrategy.getZipArchiveEntriesPath(this.path).contains(fileName)) {
+                fileName = streamReader.getAttributeValue(null, "file");
+              }
               if (!fileName.isEmpty()) {
                 if (Paths.get(fileName).getName(0).toString().equals(Constants.SIARD_CONTENT_FOLDER)) {
                   // Internal LOB
