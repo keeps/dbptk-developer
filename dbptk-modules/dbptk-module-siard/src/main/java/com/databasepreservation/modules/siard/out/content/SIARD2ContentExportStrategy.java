@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.MessageDigestCalculatingInputStream;
 import org.apache.commons.lang3.tuple.Pair;
@@ -398,8 +399,8 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
         byte[] messageDigest = digest.getMessageDigest().digest();
 
         currentWriter.beginOpenTag(cellPrefix + columnIndex, 2).space().append("file=\"")
-          .append(contentPathStrategy.getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
-            currentRowIndex + 1))
+          .append(FilenameUtils.separatorsToUnix(contentPathStrategy.getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
+            currentRowIndex + 1)))
           .append('"').space().append("length=\"").append(String.valueOf(binCell.getSize())).append("\"").space()
           .append("digest=\"").append(MessageDigestUtils.getHexFromMessageDigest(messageDigest, lowerCase)).append("\"")
           .space().append("digestType=\"").append(messageDigestAlgorithm.toUpperCase()).append("\"");
