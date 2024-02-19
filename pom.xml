@@ -21,13 +21,6 @@
         <version.java>1.8</version.java>
         <projectLocalRepository>${project.basedir}/vendor-libs/repository</projectLocalRepository>
     </properties>
-    <repositories>
-        <repository>
-            <id>KEEPS-Artifacts</id>
-            <name>KEEP Artifacts-releases</name>
-            <url>https://artifactory.keep.pt/keep</url>
-        </repository>
-    </repositories>
     <distributionManagement>
         <repository>
             <id>github</id>
