@@ -18,7 +18,12 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.UnknownTypeException;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
-import com.databasepreservation.model.structure.type.*;
+import com.databasepreservation.model.structure.type.SimpleTypeBinary;
+import com.databasepreservation.model.structure.type.SimpleTypeDateTime;
+import com.databasepreservation.model.structure.type.SimpleTypeNumericApproximate;
+import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
+import com.databasepreservation.model.structure.type.SimpleTypeString;
+import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.jdbc.in.JDBCDatatypeImporter;
 import com.databasepreservation.modules.postgresql.PostgreSQLExceptionNormalizer;
 
@@ -157,7 +162,8 @@ public class PostgreSQLJDBCDatatypeImporter extends JDBCDatatypeImporter {
     if (columnSize > 1000) {
       type.setSql99TypeName("NUMERIC", NUMERIC_MAX_PRECISION_NUMBER, NUMERIC_MAX_SCALE_NUMBER);
       type.setSql2008TypeName("NUMERIC", NUMERIC_MAX_PRECISION_NUMBER, NUMERIC_MAX_SCALE_NUMBER);
-      reporter.customMessage(this.getClass().getName(), "Could not find any precision nor scale on the data type. This will be converted from NUMERIC to NUMERIC(1000,1000).");
+      reporter.customMessage(this.getClass().getName(),
+        "Could not find any precision nor scale on the data type. This will be converted from NUMERIC to NUMERIC(1000,1000).");
     } else if (decimalDigits > 0) {
       type.setSql99TypeName("NUMERIC", columnSize, decimalDigits);
       type.setSql2008TypeName("NUMERIC", columnSize, decimalDigits);
