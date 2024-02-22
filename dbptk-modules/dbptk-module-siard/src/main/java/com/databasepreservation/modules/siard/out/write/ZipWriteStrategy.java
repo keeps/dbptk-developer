@@ -38,7 +38,7 @@ public class ZipWriteStrategy implements WriteStrategy {
 
   @Override
   public OutputStream createOutputStream(SIARDArchiveContainer container, String path) throws ModuleException {
-    ArchiveEntry archiveEntry = new ZipArchiveEntry(path);
+    ZipArchiveEntry archiveEntry = new ZipArchiveEntry(path);
     try {
       zipOut.putArchiveEntry(archiveEntry);
     } catch (IOException e) {

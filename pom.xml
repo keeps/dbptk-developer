@@ -38,7 +38,6 @@
                 <module>dbptk-model</module>
                 <module>dbptk-bindings</module>
                 <module>dbptk-core</module>
-                <module>dbptk-bindings</module>
                 <module>dbptk-modules</module>
             </modules>
         </profile>
@@ -321,7 +320,7 @@
             <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
-                <version>2.7</version>
+                <version>2.15.1</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>

@@ -41,7 +41,7 @@ public class ParallelZipWriteStrategy implements WriteStrategy {
 
   @Override
   public OutputStream createOutputStream(SIARDArchiveContainer container, String path) throws ModuleException {
-    ArchiveEntry archiveEntry = new ZipArchiveEntry(path);
+    ZipArchiveEntry archiveEntry = new ZipArchiveEntry(path);
     try {
       zipOut.putArchiveEntry(archiveEntry);
     } catch (IOException e) {
@@ -71,7 +71,6 @@ public class ParallelZipWriteStrategy implements WriteStrategy {
         LOGGER.debug("the ArchiveEntry is already closed or the ZipArchiveOutputStream is already finished", e);
       }
     }
-
 
     try {
       scatterZipCreator.writeTo(zipOut);
