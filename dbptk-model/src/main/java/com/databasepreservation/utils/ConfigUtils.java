@@ -14,16 +14,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.core.joran.spi.JoranException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.Constants;
-
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.joran.JoranConfigurator;
-import ch.qos.logback.core.joran.spi.JoranException;
 
 /**
  * Obtain values from system environment variables or properties.
@@ -86,9 +85,13 @@ public class ConfigUtils {
     return homeDirectory;
   }
 
-  public static Path getHiddenHomeDirectory() { return hiddenHomeDirectory; }
+  public static Path getHiddenHomeDirectory() {
+    return hiddenHomeDirectory;
+  }
 
-  public static Path getMapDBHomeDirectory() { return mapDBHomeDirectory; }
+  public static Path getMapDBHomeDirectory() {
+    return mapDBHomeDirectory;
+  }
 
   private static void instantiateEssentialDirectories(Path... directories) {
     for (Path path : directories) {
