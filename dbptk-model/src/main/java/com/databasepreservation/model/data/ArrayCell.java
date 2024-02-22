@@ -38,6 +38,14 @@ public class ArrayCell extends Cell implements Iterable<Pair<List<Integer>, Cell
     super(id);
   }
 
+  private static <T> void toArraySetValue(Object array, T value, Integer... indexes) {
+    if (indexes.length == 1) {
+      ((T[]) array)[indexes[0] - 1] = value;
+    } else {
+      toArraySetValue(Array.get(array, indexes[0] - 1), value, Arrays.copyOfRange(indexes, 1, indexes.length));
+    }
+  }
+
   public void put(Cell value, Collection<Integer> position) {
     // ensure all arraylists are similar so they can be compared
     ComparableIntegerList standardPosition = new ComparableIntegerList();
@@ -59,7 +67,7 @@ public class ArrayCell extends Cell implements Iterable<Pair<List<Integer>, Cell
    *
    * Example: for [[A][B,C]] this iterator would return: (1,1:A), then (2,1:B) and
    * finally (2,2:C).
-   * 
+   *
    * @return ordered list of cells in a n-dimensional array, paired with their
    *         position in the array.
    */
@@ -72,34 +80,6 @@ public class ArrayCell extends Cell implements Iterable<Pair<List<Integer>, Cell
           return Pair.of((List<Integer>) new ArrayList<>(input.getKey()), input.getValue());
         }
       });
-  }
-
-  private static class ComparableIntegerList extends ArrayList<Integer> implements Comparable<ComparableIntegerList> {
-    public ComparableIntegerList() {
-      super();
-    }
-
-    /**
-     * The first different number between the lists (checked in order) defines the
-     * result of the comparison (null is considered less than any number). In a
-     * draw, the smaller list is "less than" the other.
-     */
-    @Override
-    public int compareTo(ComparableIntegerList other) {
-      int minSize = this.size() < other.size() ? this.size() : other.size();
-      for (int i = 0; i < minSize; i++) {
-        if (this.get(i) != other.get(i)) {
-          if (this.get(i) == null) {
-            return -1;
-          }
-          if (other.get(i) == null) {
-            return 1;
-          }
-          return this.get(i).compareTo(other.get(i));
-        }
-      }
-      return Integer.compare(this.size(), other.size());
-    }
   }
 
   public boolean isEmpty() {
@@ -140,14 +120,6 @@ public class ArrayCell extends Cell implements Iterable<Pair<List<Integer>, Cell
     }
   }
 
-  private static <T> void toArraySetValue(Object array, T value, Integer... indexes) {
-    if (indexes.length == 1) {
-      ((T[]) array)[indexes[0] - 1] = value;
-    } else {
-      toArraySetValue(Array.get(array, indexes[0] - 1), value, Arrays.copyOfRange(indexes, 1, indexes.length));
-    }
-  }
-
   public <T> Object[] toArray(Function<Cell, T> cellToObject, Class<T> objectClass) throws InvalidDataException {
     if (arrayData.isEmpty()) {
       return new Object[] {};
@@ -183,5 +155,33 @@ public class ArrayCell extends Cell implements Iterable<Pair<List<Integer>, Cell
     }
 
     return (Object[]) multidimensionalArray;
+  }
+
+  private static class ComparableIntegerList extends ArrayList<Integer> implements Comparable<ComparableIntegerList> {
+    public ComparableIntegerList() {
+      super();
+    }
+
+    /**
+     * The first different number between the lists (checked in order) defines the
+     * result of the comparison (null is considered less than any number). In a
+     * draw, the smaller list is "less than" the other.
+     */
+    @Override
+    public int compareTo(ComparableIntegerList other) {
+      int minSize = this.size() < other.size() ? this.size() : other.size();
+      for (int i = 0; i < minSize; i++) {
+        if (this.get(i) != other.get(i)) {
+          if (this.get(i) == null) {
+            return -1;
+          }
+          if (other.get(i) == null) {
+            return 1;
+          }
+          return this.get(i).compareTo(other.get(i));
+        }
+      }
+      return Integer.compare(this.size(), other.size());
+    }
   }
 }
