@@ -37,6 +37,7 @@
             <modules>
                 <module>dbptk-model</module>
                 <module>dbptk-core</module>
+                <module>dbptk-bindings</module>
                 <module>dbptk-modules</module>
             </modules>
         </profile>
