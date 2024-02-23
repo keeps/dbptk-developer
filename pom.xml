@@ -42,6 +42,14 @@
             </modules>
         </profile>
         <profile>
+            <id>deploy</id>
+            <modules>
+                <module>dbptk-model</module>
+                <module>dbptk-core</module>
+                <module>dbptk-modules</module>
+            </modules>
+        </profile>
+        <profile>
             <id>common</id>
             <modules>
                 <module>dbptk-model</module>
@@ -261,11 +269,11 @@
                 <version>2.11.0-SNAPSHOT</version>
             </dependency>
 
-			<dependency>
-				<groupId>com.databasepreservation</groupId>
-				<artifactId>dbptk-filter-merkle-tree</artifactId>
-				<version>2.11.0-SNAPSHOT</version>
-			</dependency>
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-filter-merkle-tree</artifactId>
+                <version>2.11.0-SNAPSHOT</version>
+            </dependency>
 
             <dependency>
                 <groupId>com.databasepreservation</groupId>

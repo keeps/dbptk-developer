@@ -84,17 +84,17 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
       - name: Deploy to GitHub packages
-        run: mvn $MAVEN_CLI_OPTS clean package deploy -Dmaven.test.skip=true -Pdefault
+        run: mvn $MAVEN_CLI_OPTS clean package deploy -Dmaven.test.skip=true -Pdeploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Get the version
-        id: get_version
-        run: echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3 | cut -c2-)
+        run: echo "release_version=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
       - name: Upload DBPTK Developer to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dbptk-core/target/dbptk-app-${{ steps.get_version.outputs.VERSION }}.jar
-          asset_name: dbptk-app-${{ steps.get_version.outputs.VERSION }}.jar
+          file: dbptk-core/target/dbptk-app-${{ env.release_version }}.jar
+          asset_name: dbptk-app-${{ env.release_version }}.jar
           tag: ${{ github.ref }}
-          release_name: Version ${{ steps.get_version.outputs.VERSION }}
+          release_name: Version ${{ env.release_version }}
+          draft: true
