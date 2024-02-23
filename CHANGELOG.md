@@ -1,9 +1,33 @@
 # Changelog
 
+## Version 2.11.0 (23/02/2024)
+#### New features
+
+
+- Add flag option not to generate a validation report when performing a validation #546
+
+#### Enhancements
+
+- Improve tests
+
+#### Bug fixes
+
+- Fix PostgreSQL import types
+- Fix compatibility with UNIX exit codes
+- Fix compatibility with Windows file path separator 
+- Fix SIARD path mapping when LobFolder attribute is missing
+- Fix compatibility with Java 8
+
+#### Security
+- Several dependency major upgrades to fix security vulnerabilities
+
+Special thanks to @daniel-skovenborg for his contributions to this release
+---
+
 ## Version 2.10.4 (26/04/2023)
 #### Bug Fixes
 
-Description are being trimmed of to 30 characters in Microsoft SQL Server #553
+- Description are being trimmed of to 30 characters in Microsoft SQL Server #553
 ---
 
 ## Version 2.10.3 (08/11/2022)
@@ -300,22 +324,6 @@ ___
 
 * Improve database metadata fetching strategy
 * Add an option to test if a custom view query is a valid one #390 
-___
-
-#### Using the new features:
-##### SSH Connection:
-To see the help menu use: ``dbptk help migrate``. To check a specific module, ``dbptk help migrate <module>``
-* ``--import-ssh`` or ``--export-ssh`` to enable SSH tunnel
-* ``--import-ssh-host``, ``--import-ssh-user``, ``--import-ssh-password``, ``--import-ssh-port`` or ``--export-ssh-host``, ``--export-ssh-user``, ``--export-ssh-password``, ``--export-ssh-port`` 
-
-###### Example:
-dbptk migrate --import mysql --import-host localhost --import-user root --import-password 123456 --import-database sakila --import-ssh --import-ssh-host IP Address --import-ssh-user USER --import-ssh-password PASSWORD --import-ssh-port <BY_DEFAULT_IS_22> --export siard-2 --export-file /path/to/siard
----
-
-## 2.5.0-RC (05/08/2019)
-#### New Features
-
-* Support connecting to DBMSs via an SSH tunnel with password authentication #370
 ___
 
 #### Using the new features:
