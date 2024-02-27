@@ -151,9 +151,9 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     writeSchemaFile(outputContainer, SIARDDKConstants.TABLE_INDEX, writeStrategy);
     writeSchemaFile(outputContainer, SIARDDKConstants.ARCHIVE_INDEX, writeStrategy);
     writeSchemaFile(outputContainer, SIARDDKConstants.CONTEXT_DOCUMENTATION_INDEX, writeStrategy);
-    writeSchemaFile(outputContainer, SIARDDKConstants.FILE_INDEX + "_original", writeStrategy);
+    writeSchemaFile(outputContainer, SIARDDKConstants.FILE_INDEX, writeStrategy);
     if (lobsTracker.getLOBsCount() > 0) {
-      writeSchemaFile(outputContainer, SIARDDKConstants.DOC_INDEX + "_original", writeStrategy);
+      writeSchemaFile(outputContainer, SIARDDKConstants.DOC_INDEX, writeStrategy);
     }
   }
 
@@ -182,9 +182,11 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     OutputStream outputStream = fileIndexFileStrategy.getWriter(container, path, writeStrategy);
 
     try {
-      IOUtils.copy(inputStream, outputStream);
-      inputStream.close();
-      outputStream.close();
+      if (inputStream != null) {
+        IOUtils.copy(inputStream, outputStream);
+        inputStream.close();
+        outputStream.close();
+      }
 
       fileIndexFileStrategy.addFile(path);
 

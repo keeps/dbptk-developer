@@ -14,9 +14,9 @@ import java.math.BigInteger;
 import java.util.List;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -88,7 +88,7 @@ import com.databasepreservation.modules.siard.out.update.UpdateStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.XMLUtils;
-
+import jakarta.xml.bind.JAXBContext;
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */

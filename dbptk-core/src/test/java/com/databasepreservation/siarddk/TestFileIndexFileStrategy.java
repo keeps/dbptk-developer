@@ -16,7 +16,7 @@ import java.io.OutputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
-import javax.xml.bind.DatatypeConverter;
+import jakarta.xml.bind.DatatypeConverter;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;

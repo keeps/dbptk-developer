@@ -15,7 +15,7 @@
     <packaging>pom</packaging>
     <properties>
         <projectLocalRepository>${project.basedir}/../../vendor-libs/repository</projectLocalRepository>
-        <version.java>1.7</version.java>
+        <version.java>21</version.java>
     </properties>
     <modules>
         <module>dbptk-bindings-siard1</module>
@@ -27,43 +27,63 @@
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <groupId>org.jvnet.jaxb2.maven2</groupId>
-                    <artifactId>maven-jaxb2-plugin</artifactId>
-                    <version>0.12.3</version>
+                    <groupId>org.jvnet.jaxb</groupId>
+                    <artifactId>jaxb-maven-plugin</artifactId>
+                    <version>4.0.0</version>
                     <executions>
                         <execution>
-                            <id>generate-jaxb-siard</id>
-                            <phase>generate-sources</phase>
                             <goals>
                                 <goal>generate</goal>
                             </goals>
+                            <configuration>
+                                <strict>false</strict>
+
+                                <!-- specify the schema to convert -->
+                                <schemaDirectory>${basedir}/src/main/resources/schema</schemaDirectory>
+                                <schemaIncludes>
+                                    <include>archiveIndex.xsd</include>
+                                    <include>docIndex.xsd</include>
+<!--                                    <include>contextDocumentationIndex.xsd</include>-->
+                                    <include>fileIndex.xsd</include>
+                                    <include>XMLSchema.xsd</include>
+                                    <include>tableIndex.xsd</include>
+                                    <include>siard2-1-metadata.xsd</include>
+                                    <include>siard2-0-metadata.xsd</include>
+                                    <include>siard1-metadata.xsd</include>
+                                </schemaIncludes>
+
+                                <!-- specifically specify each binding to use in conversion -->
+                                <bindingDirectory>${basedir}/src/main/resources/config/jaxb</bindingDirectory>
+                                <bindingIncludes>
+                                    <include>*.xjb</include>
+                                </bindingIncludes>
+                                <!--generate java classes-->
+                                <generateDirectory>${project.build.directory}/generated-sources/xjc</generateDirectory>
+
+                                <!-- The package of your generated sources -->
+                                <generatePackage>com.databasepreservation.modules.siard.bindings.${packagename}</generatePackage>
+                            </configuration>
                         </execution>
                     </executions>
                     <configuration>
-                        <strict>false</strict>
-
-                        <!-- specify the schema to convert -->
-                        <schemaDirectory>${basedir}/src/main/resources/schema</schemaDirectory>
-                        <schemaIncludes>
-                            <include>*.xsd</include>
-                        </schemaIncludes>
-
-                        <!-- specifically specify each binding to use in conversion -->
-                        <bindingDirectory>${basedir}/src/main/resources/config/jaxb</bindingDirectory>
-                        <bindingIncludes>
-                            <include>*.xjb</include>
-                        </bindingIncludes>
-                        <!--generate java classes-->
-                        <generateDirectory>${project.build.directory}/generated-sources/xjc</generateDirectory>
-
-                        <!-- The package of your generated sources -->
-                        <generatePackage>com.databasepreservation.modules.siard.bindings.${packagename}</generatePackage>
+                        <extension>true</extension>
+                        <args>
+                            <arg>-Xsimplify</arg>
+                            <arg>-Xnamespace-prefix</arg>
+                        </args>
+                        <plugins>
+                            <plugin>
+                                <groupId>org.jvnet.jaxb</groupId>
+                                <artifactId>jaxb-plugins</artifactId>
+                                <version>3.0.0</version>
+                            </plugin>
+                        </plugins>
                     </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-install-plugin</artifactId>
-                    <version>2.5.2</version>
+                    <version>3.1.1</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -71,14 +91,14 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.jvnet.jaxb2.maven2</groupId>
-                <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>0.12.3</version>
+                <groupId>org.jvnet.jaxb</groupId>
+                <artifactId>jaxb-maven-plugin</artifactId>
+                <version>4.0.0</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>
-                <version>2.5.2</version>
+                <version>3.1.1</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -226,7 +226,7 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
     if (type.getTimeDefined()) {
       if ("TIME WITH TIME ZONE".equalsIgnoreCase(type.getSql99TypeName())) {
         if (data != null) {
-          Calendar cal = javax.xml.bind.DatatypeConverter.parseTime(data);
+          Calendar cal = jakarta.xml.bind.DatatypeConverter.parseTime(data);
           Time time = new Time(cal.getTimeInMillis());
           LOGGER.debug("time with timezone after: " + time.toString() + "; timezone: " + cal.getTimeZone().getID());
           ps.setTime(index, time, cal);

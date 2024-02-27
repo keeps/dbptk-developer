@@ -194,7 +194,7 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
   /**
    * M_5.1-1-1: Version is mandatory in SIARD 2.1 specification
    *
-   * A_M_511_1: Additional check, Version can be dk, 1.0, 2.0, 2.1., WARNING if it
+   * A_M_511_1: Additional check, Version can be dk, 1.0, 2.0, 2.1, 2.2., WARNING if it
    * is invalid
    *
    */
