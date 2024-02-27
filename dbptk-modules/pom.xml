@@ -15,7 +15,7 @@
     <packaging>pom</packaging>
     <properties>
         <projectLocalRepository>${project.basedir}/../../vendor-libs/repository</projectLocalRepository>
-        <version.java>1.7</version.java>
+        <version.java>21</version.java>
     </properties>
     <modules>
         <module>dbptk-filter-inventory</module>

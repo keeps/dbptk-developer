@@ -15,7 +15,7 @@
     <packaging>pom</packaging>
     <properties>
         <projectLocalRepository>${project.basedir}/../../vendor-libs/repository</projectLocalRepository>
-        <version.java>1.7</version.java>
+        <version.java>21</version.java>
     </properties>
     <modules>
         <module>dbptk-bindings-siard1</module>
@@ -27,13 +27,11 @@
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <groupId>org.jvnet.jaxb2.maven2</groupId>
-                    <artifactId>maven-jaxb2-plugin</artifactId>
-                    <version>0.12.3</version>
+                    <groupId>org.jvnet.jaxb</groupId>
+                    <artifactId>jaxb-maven-plugin</artifactId>
+                    <version>4.0.0</version>
                     <executions>
                         <execution>
-                            <id>generate-jaxb-siard</id>
-                            <phase>generate-sources</phase>
                             <goals>
                                 <goal>generate</goal>
                             </goals>
@@ -63,7 +61,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-install-plugin</artifactId>
-                    <version>2.5.2</version>
+                    <version>3.1.1</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -71,14 +69,14 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.jvnet.jaxb2.maven2</groupId>
-                <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>0.12.3</version>
+                <groupId>org.jvnet.jaxb</groupId>
+                <artifactId>jaxb-maven-plugin</artifactId>
+                <version>4.0.0</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>
-                <version>2.5.2</version>
+                <version>3.1.1</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

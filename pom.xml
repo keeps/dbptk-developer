@@ -18,7 +18,7 @@
         <url>https://www.keep.pt</url>
     </organization>
     <properties>
-        <version.java>1.8</version.java>
+        <version.java>21</version.java>
         <projectLocalRepository>${project.basedir}/vendor-libs/repository</projectLocalRepository>
     </properties>
     <distributionManagement>
@@ -137,10 +137,14 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>2.4</version>
+                    <version>3.12.1</version>
                     <configuration>
-                        <source>1.8</source>
-                        <target>1.8</target>
+                        <compilerArgs>
+                            <arg>--add-exports</arg>
+                            <arg>java.xml/com.sun.org.apache.xerces.internal.jaxp=ALL-UNNAMED</arg>
+                        </compilerArgs>
+                        <source>21</source>
+                        <target>21</target>
                         <encoding>UTF-8</encoding>
                     </configuration>
                 </plugin>

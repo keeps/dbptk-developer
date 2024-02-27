@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jxb:bindings xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+<jxb:bindings xmlns:jxb="https://jakarta.ee/xml/ns/jaxb"
               xmlns:xs="http://www.w3.org/2001/XMLSchema"
-              version="2.1">
+              version="3.0">
     <jxb:globalBindings>
         <!-- use JODA-Time DateTime for xs:date -->
         <jxb:javaType name="java.lang.String" xmlType="xs:date"
