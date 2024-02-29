@@ -18,9 +18,9 @@
         <version.java>21</version.java>
     </properties>
     <modules>
-        <module>dbptk-bindings-siard1</module>
+        <!---module>dbptk-bindings-siard1</module>
         <module>dbptk-bindings-siard2-0</module>
-        <module>dbptk-bindings-siard2-1</module>
+        <module>dbptk-bindings-siard2-1</module-->
         <module>dbptk-bindings-siarddk</module>
     </modules>
     <build>
