@@ -94,8 +94,8 @@ public class MySQLExceptionNormalizer implements ExceptionNormalizer {
     // these are also SQLExceptions, but prefer using the codes above since they are
     // more specific and then check if it is a "connection problem"
 
-    if (exception instanceof com.mysql.jdbc.CommunicationsException
-      || exception instanceof com.mysql.jdbc.exceptions.jdbc4.CommunicationsException) {
+    if (exception instanceof com.mysql.cj.jdbc.exceptions.CommunicationsException
+      || exception instanceof com.mysql.cj.exceptions.CJCommunicationsException) {
       return new ConnectionException().withCause(exception);
     }
 

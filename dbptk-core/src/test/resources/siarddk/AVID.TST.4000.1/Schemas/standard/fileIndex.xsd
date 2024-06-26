@@ -68,6 +68,7 @@
 			<xs:pattern value="[1-9][0-9]{0,11}\.(gml|GML)"/>
 			<xs:pattern value="[1-9][0-9]{0,11}\.(xsd|XSD)"/>
 			<xs:pattern value="[1-9][0-9]{0,11}\.(wav|WAV)"/>
+			<xs:pattern value="[1-9][0-9]{0,11}\.(bin)"/>
 			<xs:pattern value="localSchema[1-9][0-9]{0,11}\.(xsd|XSD)"/>
 		</xs:restriction>
 	</xs:simpleType>

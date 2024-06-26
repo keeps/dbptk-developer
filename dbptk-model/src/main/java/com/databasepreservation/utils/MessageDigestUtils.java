@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 
-import javax.xml.bind.DatatypeConverter;
+import jakarta.xml.bind.DatatypeConverter;
 
 import org.apache.commons.codec.digest.DigestUtils;
 

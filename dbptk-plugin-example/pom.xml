@@ -8,7 +8,7 @@
     <version>2.0.0-rc3.1.0</version>
     <packaging>jar</packaging>
     <properties>
-        <version.java>1.7</version.java>
+        <version.java>21</version.java>
     </properties>
     <repositories>
         <repository>
@@ -22,7 +22,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.4</version>
+                <version>3.12.1</version>
                 <configuration>
                     <source>${version.java}</source>
                     <target>${version.java}</target>
