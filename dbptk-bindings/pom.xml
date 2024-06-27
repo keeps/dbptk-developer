@@ -22,6 +22,7 @@
         <module>dbptk-bindings-siard2-0</module>
         <module>dbptk-bindings-siard2-1</module>
         <module>dbptk-bindings-siarddk</module>
+        <module>dbptk-bindings-siarddk-2020</module>
     </modules>
     <build>
         <pluginManagement>

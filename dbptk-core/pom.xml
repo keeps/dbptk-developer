@@ -106,6 +106,10 @@
             <groupId>com.databasepreservation</groupId>
             <artifactId>dbptk-bindings-siarddk</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-bindings-siarddk-2020</artifactId>
+        </dependency>
 
         <!-- modules (also internal) -->
         <dependency>
