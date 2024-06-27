@@ -22,7 +22,7 @@
         <relativePath>..</relativePath>
     </parent>
     <properties>
-        <packagename>siard_dk</packagename>
+        <packagename>siard_dk_2010</packagename>
     </properties>
     <build>
         <plugins>
