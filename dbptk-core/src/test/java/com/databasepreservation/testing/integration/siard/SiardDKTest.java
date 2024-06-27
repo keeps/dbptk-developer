@@ -146,9 +146,14 @@ public class SiardDKTest extends SiardTest {
 
     databaseStructure.setArchivalDate(null); // In siard-dk Archival Date is
                                              // located in archiveIndex.xml
-
+    int virtualTableCounter = 0;
     for (SchemaStructure orgSchema : orgDbStructure.getSchemas()) {
-      assert orgSchema.getTables().size() == databaseStructure.getSchemas().get(0).getTables().size();
+      for (TableStructure tableStructure : databaseStructure.getSchemas().get(0).getTables()) {
+        if (tableStructure.getName().equals("virtual_table")) {
+          virtualTableCounter++;
+        }
+      }
+      assert orgSchema.getTables().size() == databaseStructure.getSchemas().get(0).getTables().size()-virtualTableCounter;
       for (int tblIndex = 0; tblIndex < orgSchema.getTables().size(); tblIndex++) {
         TableStructure orgTable = orgSchema.getTables().get(tblIndex);
         assert orgTable.getColumns().size() == databaseStructure.getSchemas().get(0).getTables().get(tblIndex)

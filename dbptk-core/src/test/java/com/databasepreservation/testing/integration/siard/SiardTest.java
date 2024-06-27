@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.databasepreservation.modules.siard.in.input.SIARDDK1007ImportModule;
 import org.joda.time.DateTime;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -70,13 +72,12 @@ import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
-import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
+import com.databasepreservation.modules.siard.SIARDDK1007ModuleFactory;
 import com.databasepreservation.modules.siard.in.input.SIARD1ImportModule;
 import com.databasepreservation.modules.siard.in.input.SIARD2ImportModule;
-import com.databasepreservation.modules.siard.in.input.SIARDDKImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD1ExportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD2ExportModule;
-import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
+import com.databasepreservation.modules.siard.out.output.SIARDDK1007ExportModule;
 import com.databasepreservation.testing.integration.roundtrip.differences.TextDiff;
 import com.databasepreservation.utils.JodaUtils;
 
@@ -153,7 +154,21 @@ public class SiardTest {
         }
       }
     }
-
+    for (SchemaStructure orgSchema : other.getSchemas()) {
+      for (TableStructure tableStructure : other.getSchemas().get(0).getTables()) {
+        if (tableStructure.getName().equals("virtual_table")) {
+          other.getSchemas().get(0).getTables().remove(tableStructure);
+        }
+      }
+    }
+    for (SchemaStructure schemaStructure : other.getSchemas()) {
+      for (TableStructure tableStructure : schemaStructure.getTables()) {
+        List<ForeignKey> foreignKeys = tableStructure.getForeignKeys();
+        if (foreignKeys != null) {
+          foreignKeys.removeIf(fk -> fk.getName().equals("FK_virtual_table"));
+        }
+      }
+    }
     assert original.equals(other) : "The final structure (from SIARD) differs from the original structure";
   }
 
@@ -576,10 +591,10 @@ public class SiardTest {
         break;
       case DK:
         Map<String, String> exportModuleArgs = new HashMap<>();
-        exportModuleArgs.put(SIARDDKModuleFactory.PARAMETER_FOLDER, tmpFile.toString());
-        exportModuleArgs.put(SIARDDKModuleFactory.PARAMETER_LOBS_PER_FOLDER, "10000");
-        exportModuleArgs.put(SIARDDKModuleFactory.PARAMETER_LOBS_FOLDER_SIZE, "1000");
-        exporter = new SIARDDKExportModule(exportModuleArgs).getDatabaseExportModule();
+        exportModuleArgs.put(SIARDDK1007ModuleFactory.PARAMETER_FOLDER, tmpFile.toString());
+        exportModuleArgs.put(SIARDDK1007ModuleFactory.PARAMETER_LOBS_PER_FOLDER, "10000");
+        exportModuleArgs.put(SIARDDK1007ModuleFactory.PARAMETER_LOBS_FOLDER_SIZE, "1000");
+        exporter = new SIARDDK1007ExportModule(exportModuleArgs).getDatabaseExportModule();
         break;
     }
 
@@ -641,7 +656,7 @@ public class SiardTest {
         // Therefore it uses a special 'importAsSchema' parameter, to make it
         // compatible with the format of the dptkl internal database structure
         // representation.
-        importer = new SIARDDKImportModule(tmpFile, dbStructure.getSchemas().get(0).getName())
+        importer = new SIARDDK1007ImportModule(tmpFile, dbStructure.getSchemas().get(0).getName())
           .getDatabaseImportModule();
         break;
     }

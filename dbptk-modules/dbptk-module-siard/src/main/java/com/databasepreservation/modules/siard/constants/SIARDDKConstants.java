@@ -36,6 +36,8 @@ public class SIARDDKConstants {
   public static final String JAXB_CONTEXT_FILEINDEX = "dk.sa.xmlns.diark._1_0.fileindex";
   public static final String JAXB_CONTEXT_DOCINDEX = "dk.sa.xmlns.diark._1_0.docindex";
 
+  public static final String JAXB_CONTEXT_128 = "com.databasepreservation.modules.siard.bindings.siard_dk_128";
+
   // Key for context documentation folder (given on command line)
   public static final String CONTEXT_DOCUMENTATION_FOLDER = "contextDocumentationFolder";
 
