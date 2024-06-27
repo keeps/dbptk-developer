@@ -27,6 +27,8 @@ public class DatabaseStructure {
 
   private String name;
 
+  private String dbOriginalName;
+
   private String description;
 
   private String archiver;
@@ -502,6 +504,14 @@ public class DatabaseStructure {
 
   public void setDatabaseUser(String databaseUser) {
     this.databaseUser = databaseUser;
+  }
+
+  public String getDbOriginalName() {
+    return dbOriginalName;
+  }
+
+  public void setDbOriginalName(String dbOriginalName) {
+    this.dbOriginalName = dbOriginalName;
   }
 
   /**

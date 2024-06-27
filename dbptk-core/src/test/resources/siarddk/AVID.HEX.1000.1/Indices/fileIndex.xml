@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<fileIndex xmlns="http://www.sa.dk/xmlns/diark/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/fileIndex.xsd">
+<fileIndex xmlns="http://www.sa.dk/xmlns/diark/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/fileIndex.xsd">
     <f>
         <foN>AVID.HEX.1000.1\Tables\table1</foN>
         <fiN>table1.xml</fiN>

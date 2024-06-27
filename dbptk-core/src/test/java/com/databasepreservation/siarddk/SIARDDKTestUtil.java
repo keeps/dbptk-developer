@@ -37,8 +37,8 @@ public class SIARDDKTestUtil {
       FileUtils.deleteDirectory(archFile);
     }
 
-    String[] argumentsToMain = new String[] {"migrate", "--import=siard-dk", "--import-as-schema=public", "--import-folder",
-      archiveFldToProcessPath.toString(), "--export", "siard-dk", "--export-folder",
+    String[] argumentsToMain = new String[] {"migrate", "--import=siard-dk-1007", "--import-as-schema=public", "--import-folder",
+      archiveFldToProcessPath.toString(), "--export", "siard-dk-1007", "--export-folder",
       archFile.getAbsolutePath().toString()};
 
     assert Main.internalMainUsedOnlyByTestClasses(argumentsToMain) == 0 : "Expected import of siard-dk archive ["
