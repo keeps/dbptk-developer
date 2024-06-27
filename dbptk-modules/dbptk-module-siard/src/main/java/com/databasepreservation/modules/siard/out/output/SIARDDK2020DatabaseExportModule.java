@@ -7,6 +7,17 @@
  */
 package com.databasepreservation.modules.siard.out.output;
 
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.out.metadata.SIARDDK2010ContextDocumentationWriter;
+import com.databasepreservation.modules.siard.out.metadata.SIARDDK2020ContextDocumentationWriter;
+import com.databasepreservation.modules.siard.out.metadata.SIARDDK2020FileIndexFileStrategy;
+import com.databasepreservation.modules.siard.out.metadata.SIARDMarshaller;
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -15,31 +26,20 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
-import com.databasepreservation.modules.siard.out.metadata.ContextDocumentationWriter;
-import com.databasepreservation.modules.siard.out.metadata.FileIndexFileStrategy;
-import com.databasepreservation.modules.siard.out.metadata.SIARDMarshaller;
-
 /**
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
+public class SIARDDK2020DatabaseExportModule extends SIARDExportDefault {
 
-  private SIARDDKExportModule siarddkExportModule;
-  private static final Logger logger = LoggerFactory.getLogger(SIARDDKDatabaseExportModule.class);
+  private SIARDDK2020ExportModule siarddk2020ExportModule;
+  private static final Logger logger = LoggerFactory.getLogger(SIARDDK2020DatabaseExportModule.class);
 
-  public SIARDDKDatabaseExportModule(SIARDDKExportModule siarddkExportModule) {
-    super(siarddkExportModule.getContentExportStrategy(), siarddkExportModule.getMainContainer(),
-      siarddkExportModule.getWriteStrategy(), siarddkExportModule.getMetadataExportStrategy(), null);
+  public SIARDDK2020DatabaseExportModule(SIARDDK2020ExportModule siarddk2020ExportModule) {
+    super(siarddk2020ExportModule.getContentExportStrategy(), siarddk2020ExportModule.getMainContainer(),
+      siarddk2020ExportModule.getWriteStrategy(), siarddk2020ExportModule.getMetadataExportStrategy(), null);
 
-    this.siarddkExportModule = siarddkExportModule;
+    this.siarddk2020ExportModule = siarddk2020ExportModule;
   }
 
   @Override
@@ -48,7 +48,7 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
 
     // Get docID info from the command line and add these to the LOBsTracker
 
-    Path pathToArchive = siarddkExportModule.getMainContainer().getPath();
+    Path pathToArchive = siarddk2020ExportModule.getMainContainer().getPath();
 
     // Check if the archive folder name is correct (must match
     // AVID.[A-ZÆØÅ]{2,4}.[1-9][0-9]*)
@@ -89,18 +89,18 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
 
     // Write ContextDocumentation to archive
 
-    Map<String, String> exportModuleArgs = siarddkExportModule.getExportModuleArgs();
-    FileIndexFileStrategy fileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
-    MetadataPathStrategy metadataPathStrategy = siarddkExportModule.getMetadataPathStrategy();
-    SIARDMarshaller siardMarshaller = siarddkExportModule.getSiardMarshaller();
+    Map<String, String> exportModuleArgs = siarddk2020ExportModule.getExportModuleArgs();
+    SIARDDK2020FileIndexFileStrategy SIARDDK2020FileIndexFileStrategy = siarddk2020ExportModule.getFileIndexFileStrategy();
+    MetadataPathStrategy metadataPathStrategy = siarddk2020ExportModule.getMetadataPathStrategy();
+    SIARDMarshaller siardMarshaller = siarddk2020ExportModule.getSiardMarshaller();
 
     if (exportModuleArgs.get(SIARDDKConstants.CONTEXT_DOCUMENTATION_FOLDER) != null) {
 
-      ContextDocumentationWriter contextDocumentationWriter = new ContextDocumentationWriter(
-        siarddkExportModule.getMainContainer(), siarddkExportModule.getWriteStrategy(), fileIndexFileStrategy,
-        siarddkExportModule.getExportModuleArgs());
+      SIARDDK2020ContextDocumentationWriter SIARDDK2020ContextDocumentationWriter = new SIARDDK2020ContextDocumentationWriter(
+        siarddk2020ExportModule.getMainContainer(), siarddk2020ExportModule.getWriteStrategy(), SIARDDK2020FileIndexFileStrategy,
+        siarddk2020ExportModule.getExportModuleArgs());
 
-      contextDocumentationWriter.writeContextDocumentation();
+      SIARDDK2020ContextDocumentationWriter.writeContextDocumentation();
     }
 
     // Create fileIndex.xml
@@ -109,20 +109,20 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
     // the MetadataExportStrategy)
 
     try {
-      fileIndexFileStrategy.generateXML(null);
+      SIARDDK2020FileIndexFileStrategy.generateXML(null);
     } catch (ModuleException e) {
       throw new ModuleException().withMessage("Error writing fileIndex.xml").withCause(e);
     }
 
     try {
       String path = metadataPathStrategy.getXmlFilePath(SIARDDKConstants.FILE_INDEX);
-      OutputStream writer = fileIndexFileStrategy.getWriter(siarddkExportModule.getMainContainer(), path,
-        siarddkExportModule.getWriteStrategy());
+      OutputStream writer = SIARDDK2020FileIndexFileStrategy.getWriter(siarddk2020ExportModule.getMainContainer(), path,
+        siarddk2020ExportModule.getWriteStrategy());
 
-      siardMarshaller.marshal(SIARDDKConstants.JAXB_CONTEXT_FILEINDEX,
+      siardMarshaller.marshal(SIARDDKConstants.JAXB_CONTEXT_2020,
         metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.FILE_INDEX),
         "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/fileIndex.xsd", writer,
-        fileIndexFileStrategy.generateXML(null));
+        SIARDDK2020FileIndexFileStrategy.generateXML(null));
 
       writer.close();
     } catch (IOException e) {

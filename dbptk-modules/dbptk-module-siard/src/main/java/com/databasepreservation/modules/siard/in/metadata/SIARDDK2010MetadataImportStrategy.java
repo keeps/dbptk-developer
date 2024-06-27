@@ -15,6 +15,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.xml.XMLConstants;
+
+import com.databasepreservation.model.structure.type.SimpleTypeBinary;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.FunctionalDescriptionType;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
@@ -43,7 +46,7 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQL99StandardDatatypeImporter;
 import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQLStandardDatatypeImporter;
-import com.databasepreservation.modules.siard.in.path.SIARDDKPathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARDDK2010PathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 
@@ -61,11 +64,11 @@ import dk.sa.xmlns.diark._1_0.tableindex.ViewType;
  * @author Thomas Kristensen <tk@bithuset.dk>
  *
  */
-public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
+public class SIARDDK2010MetadataImportStrategy implements MetadataImportStrategy {
 
-  protected final Logger logger = LoggerFactory.getLogger(SIARDDKMetadataImportStrategy.class);
+  protected final Logger logger = LoggerFactory.getLogger(SIARDDK2010MetadataImportStrategy.class);
 
-  protected final SIARDDKPathImportStrategy pathStrategy;
+  protected final SIARDDK2010PathImportStrategy pathStrategy;
   protected DatabaseStructure databaseStructure;
   protected final String importAsSchemaName;
   private int currentTableIndex = 1;
@@ -73,7 +76,7 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
   private SQLStandardDatatypeImporter sqlStandardDatatypeImporter;
   private Reporter reporter;
 
-  public SIARDDKMetadataImportStrategy(SIARDDKPathImportStrategy pathStrategy, String importAsSchameName) {
+  public SIARDDK2010MetadataImportStrategy(SIARDDK2010PathImportStrategy pathStrategy, String importAsSchameName) {
     this.pathStrategy = pathStrategy;
     this.importAsSchemaName = importAsSchameName;
     sqlStandardDatatypeImporter = new SQL99StandardDatatypeImporter();
@@ -223,9 +226,16 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
         columnDptkl.setName(columnXml.getName());
         columnDptkl.setId(String.format("%s.%s", tableId, columnDptkl.getName()));
         String typeOriginal = StringUtils.isNotBlank(columnXml.getTypeOriginal()) ? columnXml.getTypeOriginal() : null;
-        columnDptkl
-          .setType(sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
-            "<information unavailable>", "<information unavailable>", columnXml.getType(), typeOriginal));
+        if (columnXml.getFunctionalDescription() != null && columnXml.getFunctionalDescription().contains(FunctionalDescriptionType.DOKUMENTIDENTIFIKATION)) {
+          SimpleTypeBinary type = new SimpleTypeBinary();
+          type.setSql99TypeName("BINARY LARGE OBJECT");
+          type.setSql2008TypeName("BINARY LARGE OBJECT");
+          columnDptkl.setType(type);
+        } else {
+          columnDptkl
+            .setType(sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
+              "<information unavailable>", "<information unavailable>", columnXml.getType(), typeOriginal));
+        }
         columnDptkl.setDescription(columnXml.getDescription());
         String defaultValue = StringUtils.isNotBlank(columnXml.getDefaultValue()) ? columnXml.getDefaultValue() : null;
         columnDptkl.setDefaultValue(defaultValue);

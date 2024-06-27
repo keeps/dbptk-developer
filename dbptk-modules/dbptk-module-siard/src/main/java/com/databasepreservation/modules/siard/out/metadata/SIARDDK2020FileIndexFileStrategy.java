@@ -16,7 +16,15 @@
  */
 package com.databasepreservation.modules.siard.out.metadata;
 
-import java.io.IOException;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.out.write.WriteStrategy;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.FileIndexType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.security.DigestOutputStream;
@@ -28,23 +36,12 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.structure.DatabaseStructure;
-import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
-import com.databasepreservation.modules.siard.out.write.WriteStrategy;
-
-import dk.sa.xmlns.diark._1_0.fileindex.FileIndexType;
-
 /**
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public class FileIndexFileStrategy implements IndexFileStrategy {
-  private static final Logger LOGGER = LoggerFactory.getLogger(FileIndexFileStrategy.class);
+public class SIARDDK2020FileIndexFileStrategy implements IndexFileStrategy {
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARDDK2020FileIndexFileStrategy.class);
 
   // This is determined by the fileIndex schema
   private static final String SIARDDK_FILE_SEPERATOR = "\\";
@@ -55,7 +52,7 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
   private SortedMap<String, byte[]> md5sums;
   private SIARDArchiveContainer outputContainer;
 
-  public FileIndexFileStrategy() {
+  public SIARDDK2020FileIndexFileStrategy() {
     md5sums = new TreeMap<String, byte[]>();
     outputContainer = null;
     currentlyDigestingLOB = false;

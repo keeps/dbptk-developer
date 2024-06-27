@@ -7,6 +7,21 @@
  */
 package com.databasepreservation.modules.siard;
 
+import com.databasepreservation.model.exception.LicenseNotAcceptedException;
+import com.databasepreservation.model.exception.UnsupportedModuleException;
+import com.databasepreservation.model.modules.DatabaseImportModule;
+import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
+import com.databasepreservation.model.parameters.Parameter;
+import com.databasepreservation.model.parameters.Parameter.CATEGORY_TYPE;
+import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
+import com.databasepreservation.model.parameters.Parameters;
+import com.databasepreservation.model.reporters.Reporter;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.in.input.SIARDDK2020ImportModule;
+import com.databasepreservation.modules.siard.out.output.SIARDDK2020ExportModule;
+import org.apache.commons.lang3.StringUtils;
+
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,28 +29,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
-import org.apache.commons.lang3.StringUtils;
-
-import com.databasepreservation.model.reporters.Reporter;
-import com.databasepreservation.model.exception.LicenseNotAcceptedException;
-import com.databasepreservation.model.exception.UnsupportedModuleException;
-import com.databasepreservation.model.modules.DatabaseImportModule;
-import com.databasepreservation.model.modules.DatabaseModuleFactory;
-import com.databasepreservation.model.parameters.Parameter;
-import com.databasepreservation.model.parameters.Parameter.CATEGORY_TYPE;
-import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
-import com.databasepreservation.model.parameters.Parameters;
-import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
-import com.databasepreservation.modules.siard.in.input.SIARDDKImportModule;
-import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
-
 /**
  * @author Andreas Kring <andreas@magenta.dk>
  * @author Thomas Kristensen <tk@bithuset.dk>
  *
  */
-public class SIARDDKModuleFactory implements DatabaseModuleFactory {
+public class SIARDDK2020ModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_FOLDER = "folder";
   public static final String PARAMETER_ARCHIVE_INDEX = "archiveIndex";
   public static final String PARAMETER_CONTEXT_DOCUMENTATION_INDEX = "contextDocumentationIndex";
@@ -102,7 +101,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public String getModuleName() {
-    return "siard-dk";
+    return "siard-dk-2020";
   }
 
   @Override
@@ -163,7 +162,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     reporter.importModuleParameters(getModuleName(), "file",
       Paths.get(parameters.get(folder)).normalize().toAbsolutePath().toString(), importAsSchema.longName(),
       parameters.get(importAsSchema));
-    return new SIARDDKImportModule(Paths.get(parameters.get(folder)), parameters.get(importAsSchema))
+    return new SIARDDK2020ImportModule(Paths.get(parameters.get(folder)), parameters.get(importAsSchema))
       .getDatabaseImportModule();
   }
 
@@ -226,6 +225,6 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     }
     reporter.exportModuleParameters(getModuleName(), exportModuleParameters.toArray(new String[0]));
 
-    return new SIARDDKExportModule(exportModuleArgs).getDatabaseExportModule();
+    return new SIARDDK2020ExportModule(exportModuleArgs).getDatabaseExportModule();
   }
 }

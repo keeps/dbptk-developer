@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.databasepreservation.modules.siard.in.input.SIARDDK2010ImportModule;
 import org.joda.time.DateTime;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -70,13 +71,12 @@ import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
-import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
+import com.databasepreservation.modules.siard.SIARDDK2010ModuleFactory;
 import com.databasepreservation.modules.siard.in.input.SIARD1ImportModule;
 import com.databasepreservation.modules.siard.in.input.SIARD2ImportModule;
-import com.databasepreservation.modules.siard.in.input.SIARDDKImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD1ExportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD2ExportModule;
-import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
+import com.databasepreservation.modules.siard.out.output.SIARDDK2010ExportModule;
 import com.databasepreservation.testing.integration.roundtrip.differences.TextDiff;
 import com.databasepreservation.utils.JodaUtils;
 
@@ -576,10 +576,10 @@ public class SiardTest {
         break;
       case DK:
         Map<String, String> exportModuleArgs = new HashMap<>();
-        exportModuleArgs.put(SIARDDKModuleFactory.PARAMETER_FOLDER, tmpFile.toString());
-        exportModuleArgs.put(SIARDDKModuleFactory.PARAMETER_LOBS_PER_FOLDER, "10000");
-        exportModuleArgs.put(SIARDDKModuleFactory.PARAMETER_LOBS_FOLDER_SIZE, "1000");
-        exporter = new SIARDDKExportModule(exportModuleArgs).getDatabaseExportModule();
+        exportModuleArgs.put(SIARDDK2010ModuleFactory.PARAMETER_FOLDER, tmpFile.toString());
+        exportModuleArgs.put(SIARDDK2010ModuleFactory.PARAMETER_LOBS_PER_FOLDER, "10000");
+        exportModuleArgs.put(SIARDDK2010ModuleFactory.PARAMETER_LOBS_FOLDER_SIZE, "1000");
+        exporter = new SIARDDK2010ExportModule(exportModuleArgs).getDatabaseExportModule();
         break;
     }
 
@@ -641,7 +641,7 @@ public class SiardTest {
         // Therefore it uses a special 'importAsSchema' parameter, to make it
         // compatible with the format of the dptkl internal database structure
         // representation.
-        importer = new SIARDDKImportModule(tmpFile, dbStructure.getSchemas().get(0).getName())
+        importer = new SIARDDK2010ImportModule(tmpFile, dbStructure.getSchemas().get(0).getName())
           .getDatabaseImportModule();
         break;
     }

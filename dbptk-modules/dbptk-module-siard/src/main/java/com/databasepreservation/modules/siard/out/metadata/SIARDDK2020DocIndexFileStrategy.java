@@ -7,23 +7,22 @@
  */
 package com.databasepreservation.modules.siard.out.metadata;
 
-import java.math.BigInteger;
-
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.DocIndexType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.DocumentType;
 
-import dk.sa.xmlns.diark._1_0.docindex.DocIndexType;
-import dk.sa.xmlns.diark._1_0.docindex.DocumentType;
+import java.math.BigInteger;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public class DocIndexFileStrategy implements IndexFileStrategy {
+public class SIARDDK2020DocIndexFileStrategy implements IndexFileStrategy {
 
   private DocIndexType docIndex;
 
-  public DocIndexFileStrategy() {
+  public SIARDDK2020DocIndexFileStrategy() {
     docIndex = new DocIndexType();
   }
 

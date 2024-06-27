@@ -11,13 +11,13 @@ import org.apache.commons.lang3.NotImplementedException;
 
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.out.content.LOBsTracker;
-import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
+import com.databasepreservation.modules.siard.out.output.SIARDDK2010ExportModule;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public class SIARDDKContentPathExportStrategy implements ContentPathExportStrategy {
+public class SIARDDK2010ContentPathExportStrategy implements ContentPathExportStrategy {
 
   private static final String CONTENT_DIR = "Tables";
   private static final String TABLE_DIR = "table";
@@ -29,8 +29,8 @@ public class SIARDDKContentPathExportStrategy implements ContentPathExportStrate
 
   private LOBsTracker lobsTracker;
 
-  public SIARDDKContentPathExportStrategy(SIARDDKExportModule siarddkExportModule) {
-    lobsTracker = siarddkExportModule.getLobsTracker();
+  public SIARDDK2010ContentPathExportStrategy(SIARDDK2010ExportModule siarddk2010ExportModule) {
+    lobsTracker = siarddk2010ExportModule.getLobsTracker();
   }
 
   @Override

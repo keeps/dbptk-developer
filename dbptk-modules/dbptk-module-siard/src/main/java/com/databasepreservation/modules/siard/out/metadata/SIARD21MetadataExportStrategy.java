@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -183,6 +184,7 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
         .withCause(e);
     }
 
+    removeViewsWithoutColumns(dbStructure);
     SiardArchive xmlroot = jaxbSiardArchive(dbStructure);
     Marshaller m;
     try {
@@ -331,6 +333,20 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     return siardArchive;
+  }
+
+  private void removeViewsWithoutColumns(DatabaseStructure databaseStructure) {
+    for (SchemaStructure s : databaseStructure.getSchemas()) {
+      List<ViewStructure> list = new ArrayList<>();
+      for (ViewStructure v : s.getViews()) {
+        if (v.getColumns() != null) {
+          list.add(v);
+        } else {
+          reporter.viewWithNullColumns(v.getName(), s.getName());
+        }
+      }
+      s.setViews(list);
+    }
   }
 
   private PrivilegesType jaxbPrivilegesType(List<PrivilegeStructure> privileges) throws ModuleException {
