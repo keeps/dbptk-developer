@@ -163,8 +163,13 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
   @Override
   protected Type getCharType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
     SimpleTypeString type = new SimpleTypeString(columnSize, false);
-    type.setSql99TypeName("CHARACTER", columnSize);
-    type.setSql2008TypeName("CHARACTER", columnSize);
+    if (columnSize == 0) {
+      type.setSql99TypeName("CHARACTER");
+      type.setSql2008TypeName("CHARACTER");
+    } else {
+      type.setSql99TypeName("CHARACTER", columnSize);
+      type.setSql2008TypeName("CHARACTER", columnSize);
+    }
     return type;
   }
 

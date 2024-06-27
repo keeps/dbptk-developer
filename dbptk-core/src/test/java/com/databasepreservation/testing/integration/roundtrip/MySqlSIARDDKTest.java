@@ -63,10 +63,10 @@ public class MySqlSIARDDKTest {
         db_target),
 
       new String[] {"migrate", "--import=mysql", "--import-hostname=127.0.0.1", "--import-database", db_source,
-        "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--export=siard-dk",
+        "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--export=siard-dk-1007",
         "--export-folder", archiveFullPath},
 
-      new String[] {"migrate", "--import=siard-dk", "--import-as-schema=dpttest", "--import-folder", archiveFullPath,
+      new String[] {"migrate", "--import=siard-dk-1007", "--import-as-schema=dpttest", "--import-folder", archiveFullPath,
         "--export=mysql", "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username",
         db_tmp_username, "--export-password", db_tmp_password},
 

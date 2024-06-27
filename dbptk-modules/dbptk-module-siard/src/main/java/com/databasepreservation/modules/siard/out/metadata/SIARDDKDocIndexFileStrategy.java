@@ -1,35 +1,26 @@
-/**
- * The contents of this file are subject to the license and copyright
- * detailed in the LICENSE file at the root of the source
- * tree and available online at
- *
- * https://github.com/keeps/db-preservation-toolkit
- */
 package com.databasepreservation.modules.siard.out.metadata;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.DatabaseStructure;
-
-import dk.sa.xmlns.diark._1_0.docindex.DocIndexType;
-import dk.sa.xmlns.diark._1_0.docindex.DocumentType;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public class DocIndexFileStrategy implements IndexFileStrategy {
+public abstract class SIARDDKDocIndexFileStrategy<T, D> implements IndexFileStrategy {
 
-  private DocIndexType docIndex;
+  private T docIndex;
 
-  public DocIndexFileStrategy() {
-    docIndex = new DocIndexType();
+  public SIARDDKDocIndexFileStrategy() {
+    docIndex = createDocIndexTypeInstance();
   }
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see com.databasepreservation.modules.siard.out.metadata.IndexFileStrategy#
    * generateXML(com.databasepreservation.model.structure.DatabaseStructure)
    */
@@ -40,7 +31,7 @@ public class DocIndexFileStrategy implements IndexFileStrategy {
 
   /**
    * Adds a doc element to the docIndex
-   * 
+   *
    * @param dID
    *          value of the dID
    * @param pID
@@ -57,25 +48,42 @@ public class DocIndexFileStrategy implements IndexFileStrategy {
    *          ...
    * @return the doc element containing the given data
    */
-  public DocumentType addDoc(int dID, int pID, int mID, int docCollectionNumber, String oFn, String aFt,
-    String gmlXsd) {
-    DocumentType doc = new DocumentType();
+  public D addDoc(int dID, int pID, int mID, int docCollectionNumber, String oFn, String aFt, String gmlXsd) {
+    D doc = createDocumentTypeInstance();
 
-    doc.setDID(BigInteger.valueOf(dID));
+    setDID(doc, BigInteger.valueOf(dID));
     if (pID > 0) {
       // TO-DO: set pID
     }
-    doc.setMID(BigInteger.valueOf(mID));
-    doc.setDCf("docCollection" + docCollectionNumber);
-    doc.setOFn(oFn);
-    doc.setAFt(aFt);
+    setMID(doc, BigInteger.valueOf(mID));
+    setDCf(doc, "docCollection" + docCollectionNumber);
+    setOFn(doc, oFn);
+    setAFt(doc, aFt);
     if (gmlXsd != null) {
-      doc.setGmlXsd(gmlXsd);
+      setGmlXsd(doc, gmlXsd);
     }
 
-    docIndex.getDoc().add(doc);
+    getDoc(docIndex).add(doc);
 
     return doc;
   }
 
+  abstract T createDocIndexTypeInstance();
+
+  abstract D createDocumentTypeInstance();
+
+  abstract void setDID(D doc, BigInteger value);
+
+  abstract void setMID(D doc, BigInteger value);
+
+  abstract void setDCf(D doc, String dCf);
+
+  abstract void setOFn(D doc, String oFn);
+
+  abstract void setAFt(D doc, String aFt);
+
+  abstract void setGmlXsd(D doc, String gmlXsd);
+
+  abstract List<D> getDoc(T docIndex);
 }
+
