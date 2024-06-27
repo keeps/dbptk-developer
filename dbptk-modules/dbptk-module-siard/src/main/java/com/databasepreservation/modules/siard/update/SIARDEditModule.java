@@ -7,35 +7,11 @@
  */
 package com.databasepreservation.modules.siard.update;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.xml.namespace.NamespaceContext;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
-import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.metadata.SIARDDatabaseMetadata;
 import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.modules.edits.EditModule;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.PrivilegeStructure;
 import com.databasepreservation.modules.DefaultExceptionNormalizer;
@@ -43,14 +19,22 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD1MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD2MetadataPathStrategy;
+import com.databasepreservation.modules.siard.common.path.SIARDDK1007MetadataPathStrategy;
+import com.databasepreservation.modules.siard.common.path.SIARDDK128MetadataPathStrategy;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.in.metadata.MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.SIARD1MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.SIARD20MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.SIARD21MetadataImportStrategy;
+import com.databasepreservation.modules.siard.in.metadata.SIARDDK1007MetadataImportStrategy;
+import com.databasepreservation.modules.siard.in.metadata.SIARDDK128MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.ResourceFileIndexInputStreamStrategy;
 import com.databasepreservation.modules.siard.in.path.SIARD1ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARDDK1007PathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARDDK128PathImportStrategy;
+import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.modules.siard.in.read.ZipAndFolderReadStrategy;
 import com.databasepreservation.modules.siard.in.read.ZipReadStrategy;
@@ -62,6 +46,28 @@ import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportSt
 import com.databasepreservation.modules.siard.out.update.MetadataUpdateStrategy;
 import com.databasepreservation.modules.siard.out.update.UpdateStrategy;
 import com.databasepreservation.utils.ModuleConfigurationUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import javax.xml.namespace.NamespaceContext;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -83,36 +89,59 @@ public class SIARDEditModule implements EditModule {
    * @param siardPackagePath
    *          Path to the main SIARD file (file with extension .siard)
    */
-  public SIARDEditModule(Path siardPackagePath) {
+  public SIARDEditModule(Path siardPackagePath, SIARDConstants.SiardVersion version) {
     Path siardPackageNormalizedPath = siardPackagePath.toAbsolutePath().normalize();
-    mainContainer = new SIARDArchiveContainer(siardPackageNormalizedPath,
-      SIARDArchiveContainer.OutputContainerType.MAIN);
-    readStrategy = new ZipAndFolderReadStrategy(mainContainer);
+    String paramImportAsSchema = "public";
+    if (version.equals(SIARDConstants.SiardVersion.DK_1007)) {
+      mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.DK_1007, siardPackageNormalizedPath,
+        SIARDArchiveContainer.OutputContainerType.MAIN);
+      readStrategy = new FolderReadStrategyMD5Sum(mainContainer);
 
-    // identify version before creating metadata import strategy instance
-    try {
-      readStrategy.setup(mainContainer);
-    } catch (ModuleException e) {
-      LOGGER.debug("Problem setting up container", e);
-    }
+      MetadataPathStrategy metadataPathStrategy = new SIARDDK1007MetadataPathStrategy();
+      SIARDDK1007PathImportStrategy pathStrategy = new SIARDDK1007PathImportStrategy(mainContainer, readStrategy,
+        metadataPathStrategy, paramImportAsSchema, new ResourceFileIndexInputStreamStrategy());
 
-    MetadataPathStrategy metadataPathStrategy = new SIARD2MetadataPathStrategy();
-    ContentPathImportStrategy contentPathStrategy = new SIARD2ContentPathImportStrategy();
+      metadataImportStrategy = new SIARDDK1007MetadataImportStrategy(pathStrategy, paramImportAsSchema);
+    } else if (version.equals(SIARDConstants.SiardVersion.DK_128)) {
+      mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.DK_128, siardPackageNormalizedPath,
+        SIARDArchiveContainer.OutputContainerType.MAIN);
+      readStrategy = new FolderReadStrategyMD5Sum(mainContainer);
 
-    switch (mainContainer.getVersion()) {
-      case V2_0:
-        metadataImportStrategy = new SIARD20MetadataImportStrategy(metadataPathStrategy, contentPathStrategy);
-        break;
-      case V2_1:
-        metadataImportStrategy = new SIARD21MetadataImportStrategy(metadataPathStrategy, contentPathStrategy);
-        break;
-      case V1_0:
-        metadataImportStrategy = new SIARD1MetadataImportStrategy(new SIARD1MetadataPathStrategy(),
-          new SIARD1ContentPathImportStrategy());
-        break;
-      case DK:
-      default:
-        metadataImportStrategy = null;
+      MetadataPathStrategy metadataPathStrategy = new SIARDDK128MetadataPathStrategy();
+      SIARDDK128PathImportStrategy pathStrategy = new SIARDDK128PathImportStrategy(mainContainer, readStrategy,
+        metadataPathStrategy, paramImportAsSchema, new ResourceFileIndexInputStreamStrategy());
+
+      metadataImportStrategy = new SIARDDK128MetadataImportStrategy(pathStrategy, paramImportAsSchema);
+    } else {
+      mainContainer = new SIARDArchiveContainer(siardPackageNormalizedPath,
+        SIARDArchiveContainer.OutputContainerType.MAIN);
+      readStrategy = new ZipAndFolderReadStrategy(mainContainer);
+
+      // identify version before creating metadata import strategy instance
+      try {
+        readStrategy.setup(mainContainer);
+      } catch (ModuleException e) {
+        LOGGER.debug("Problem setting up container", e);
+      }
+
+      MetadataPathStrategy metadataPathStrategy = new SIARD2MetadataPathStrategy();
+      ContentPathImportStrategy contentPathStrategy = new SIARD2ContentPathImportStrategy();
+
+      switch (mainContainer.getVersion()) {
+        case V2_0:
+          metadataImportStrategy = new SIARD20MetadataImportStrategy(metadataPathStrategy, contentPathStrategy);
+          break;
+        case V2_1:
+          metadataImportStrategy = new SIARD21MetadataImportStrategy(metadataPathStrategy, contentPathStrategy);
+          break;
+        case V1_0:
+          metadataImportStrategy = new SIARD1MetadataImportStrategy(new SIARD1MetadataPathStrategy(),
+            new SIARD1ContentPathImportStrategy());
+          break;
+        default:
+          metadataImportStrategy = null;
+      }
+
     }
   }
 

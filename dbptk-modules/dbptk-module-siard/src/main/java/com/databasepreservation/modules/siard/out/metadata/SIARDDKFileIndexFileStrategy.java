@@ -1,22 +1,13 @@
-/**
- * The contents of this file are subject to the license and copyright
- * detailed in the LICENSE file at the root of the source
- * tree and available online at
- *
- * https://github.com/keeps/db-preservation-toolkit
- */
-/**
- * The methods should be called in this order from the SIARDDKMetadataExportStrategy
- * 1) getWriter
- * 2) addFile (should not be called until writer obtained from getWriter is closed)
- * 3) generateXML
- * 
- *  TO-DO:
- *  NOTE: this class should be rewritten: the getLOBwriter part should be made smarter (more generic)
- */
 package com.databasepreservation.modules.siard.out.metadata;
 
-import java.io.IOException;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.out.write.WriteStrategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.security.DigestOutputStream;
@@ -28,23 +19,12 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.structure.DatabaseStructure;
-import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
-import com.databasepreservation.modules.siard.out.write.WriteStrategy;
-
-import dk.sa.xmlns.diark._1_0.fileindex.FileIndexType;
-
 /**
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public class FileIndexFileStrategy implements IndexFileStrategy {
-  private static final Logger LOGGER = LoggerFactory.getLogger(FileIndexFileStrategy.class);
+public abstract class SIARDDKFileIndexFileStrategy<T, D> implements IndexFileStrategy {
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARDDK1007FileIndexFileStrategy.class);
 
   // This is determined by the fileIndex schema
   private static final String SIARDDK_FILE_SEPERATOR = "\\";
@@ -55,7 +35,7 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
   private SortedMap<String, byte[]> md5sums;
   private SIARDArchiveContainer outputContainer;
 
-  public FileIndexFileStrategy() {
+  public SIARDDKFileIndexFileStrategy() {
     md5sums = new TreeMap<String, byte[]>();
     outputContainer = null;
     currentlyDigestingLOB = false;
@@ -67,10 +47,10 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
     Path baseContainer = outputContainer.getPath();
     int count = baseContainer.getNameCount();
     String foNbase = baseContainer.getName(count - 1).toString(); // e.g.
-                                                                  // AVID.SA.19000.1
+    // AVID.SA.19000.1
 
-    FileIndexType fileIndexType = new FileIndexType();
-    List<FileIndexType.F> fList = fileIndexType.getF();
+    T fileIndexType = createFileIndexTypeInstance();
+    List<D> fList = getF(fileIndexType);
 
     for (Map.Entry<String, byte[]> entry : md5sums.entrySet()) {
 
@@ -90,10 +70,10 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
       String foN = pathBuilder.toString();
       // System.out.println(foN);
 
-      FileIndexType.F f = new FileIndexType.F();
-      f.setFoN(foN);
-      f.setFiN(fiN);
-      f.setMd5(entry.getValue());
+      D f = createFileIndexTypeFInstance();
+      setFoN(f, foN);
+      setFiN(f, fiN);
+      setMd5(f, entry.getValue());
 
       fList.add(f);
     }
@@ -126,7 +106,7 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
 
   /**
    * Writer to be used when not writing LOBs
-   * 
+   *
    * @param outputContainer
    * @param path
    * @param writeStrategy
@@ -140,7 +120,7 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
 
   /**
    * Write to be used when writing LOBs
-   * 
+   *
    * @param outputContainer
    * @param path
    * @param writeStrategy
@@ -154,7 +134,7 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
 
   /**
    * Adds file to archive.
-   * 
+   *
    * @param path
    *          The path in the outputContainer (already has the correct format,
    *          since this method gets it from the MetadataPathStrategy)
@@ -180,4 +160,17 @@ public class FileIndexFileStrategy implements IndexFileStrategy {
 
     return digest;
   }
+
+  abstract T createFileIndexTypeInstance();
+
+  abstract D createFileIndexTypeFInstance();
+
+  abstract List<D> getF(T fileIndexType);
+
+  abstract void setFoN(D file, String foN);
+
+  abstract void setFiN(D file, String fiN);
+
+  abstract void setMd5(D file, byte[] value);
+
 }

@@ -78,7 +78,7 @@ public class PostgreSqlSIARDDKTest {
         "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--import-disable-encryption",
         "--export=siard-dk", "--export-folder", archiveFullPath},
 
-      new String[] {"migrate", "--import=siard-dk", "--import-as-schema=public", "--import-folder", archiveFullPath,
+      new String[] {"migrate", "--import=siard-dk-1007", "--import-as-schema=public", "--import-folder", archiveFullPath,
         "--export=postgresql", "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username",
         db_tmp_username, "--export-password", db_tmp_password, "--export-disable-encryption"},
       sqlDumpDiffExpectationsPrepQueue, env_var_source, env_var_target);

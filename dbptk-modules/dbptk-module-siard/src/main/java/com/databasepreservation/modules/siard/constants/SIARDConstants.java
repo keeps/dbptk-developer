@@ -35,6 +35,10 @@ public class SIARDConstants {
     // danish v1.0 fork
     DK("1.0", "dk"),
 
+    DK_1007("1007", "dk-1007"),
+
+    DK_128("128", "dk-128"),
+
     // eCH-0165 v1.0: replaced by 2.0
     V1_0("1.0", "1.0", "v1.0");
 
