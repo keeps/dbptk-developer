@@ -54,7 +54,7 @@ jobs:
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-maven-
     - name: Run Tests
-      run: mvn $MAVEN_CLI_OPTS -Dtestng.groups="travis-ci" test
+      run: mvn $MAVEN_CLI_OPTS -Dtestng.groups="travis-ci" test install
       env:
         DPT_MYSQL_USER: "root"
         DPT_MYSQL_PASS: "123456"
