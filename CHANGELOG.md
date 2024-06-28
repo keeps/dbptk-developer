@@ -1,5 +1,16 @@
 # Changelog
 
+## Version 3.0.0 (28/06/2024)
+#### Changes
+- Upgraded from Java 8 to Java 21
+
+#### Security:
+
+- [CVE-2024-1597](https://www.cve.org/CVERecord?id=CVE-2024-1597): upgraded postgresql dependency to version 42.7.3
+- [CVE-2022-24818](https://www.cve.org/CVERecord?id=CVE-2022-24818): upgraded gt-jdbc-oracle dependency to version 28.5
+- Several dependency upgrades to fix other security vulnerabilities.
+---
+
 ## Version 2.11.0 (23/02/2024)
 #### New features
 

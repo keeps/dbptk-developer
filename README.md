@@ -58,19 +58,12 @@ For more information please visit [http://visualization.database-preservation.co
 
 ## Requirements
 
-To use the program, Java JRE 7 or higher needs to be installed. Instructions on how to do this are available at [http://docs.oracle.com/javase/7/docs/webnotes/install/](http://docs.oracle.com/javase/7/docs/webnotes/install/).
+To use the program, Java 21 or higher needs to be installed. Instructions on how to do this are available at [https://docs.oracle.com/en/java/javase/21/install/overview-jdk-installation.html](https://docs.oracle.com/en/java/javase/21/install/overview-jdk-installation.html).
 
 ## How to use
 
 To use the program, open a command-line and try out the following command (replace x.y.z accordingly to the version of the binary in use):
 
-If using Java 8 to 15:
-
-```text
-java -jar "-Dfile.encoding=UTF-8" dbptk-app-X.Y.Z.jar
-```
-
-If using Java 17:
 ```text
 java --add-opens java.xml/com.sun.org.apache.xerces.internal.jaxp=ALL-UNNAMED -jar "-Dfile.encoding=UTF-8" dbptk-app-X.Y.Z.jar
 ```
