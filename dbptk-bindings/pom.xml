@@ -46,6 +46,7 @@
                                     <include>docIndex.xsd</include>
 <!--                                    <include>contextDocumentationIndex.xsd</include>-->
                                     <include>fileIndex.xsd</include>
+                                    <include>researchIndex.xsd</include>
                                     <include>XMLSchema.xsd</include>
                                     <include>tableIndex.xsd</include>
                                     <include>siard2-1-metadata.xsd</include>

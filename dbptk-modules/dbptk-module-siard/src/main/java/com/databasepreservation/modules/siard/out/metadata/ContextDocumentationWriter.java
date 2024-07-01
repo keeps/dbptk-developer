@@ -31,17 +31,17 @@ public class ContextDocumentationWriter {
 
   private Map<String, String> exportModuleArgs;
   private SIARDArchiveContainer mainContainer;
-  private FileIndexFileStrategy fileIndexFileStrategy;
+  private SIARDDK2010FileIndexFileStrategy SIARDDK2010FileIndexFileStrategy;
   private WriteStrategy writeStrategy;
 
   private Path mainContainerPath;
 
   public ContextDocumentationWriter(SIARDArchiveContainer mainContainer, WriteStrategy writeStrategy,
-    FileIndexFileStrategy fileIndexFileStrategy, Map<String, String> exportModuleArgs) {
+                                    SIARDDK2010FileIndexFileStrategy SIARDDK2010FileIndexFileStrategy, Map<String, String> exportModuleArgs) {
 
     this.mainContainer = mainContainer;
     this.writeStrategy = writeStrategy;
-    this.fileIndexFileStrategy = fileIndexFileStrategy;
+    this.SIARDDK2010FileIndexFileStrategy = SIARDDK2010FileIndexFileStrategy;
     this.exportModuleArgs = exportModuleArgs;
   }
 
@@ -84,12 +84,12 @@ public class ContextDocumentationWriter {
         try {
 
           fis = new FileInputStream(file);
-          fos = fileIndexFileStrategy.getWriter(mainContainer, pathRelativeToMainContainerPath.toString(),
+          fos = SIARDDK2010FileIndexFileStrategy.getWriter(mainContainer, pathRelativeToMainContainerPath.toString(),
             writeStrategy);
 
           try {
             IOUtils.copy(fis, fos);
-            fileIndexFileStrategy.addFile(pathRelativeToMainContainerPath.toString());
+            SIARDDK2010FileIndexFileStrategy.addFile(pathRelativeToMainContainerPath.toString());
           } catch (IOException e) {
             throw new ModuleException().withMessage("There was an error writing " + path).withCause(e);
           }

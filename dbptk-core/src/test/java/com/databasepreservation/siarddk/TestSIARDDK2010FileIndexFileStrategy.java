@@ -25,7 +25,7 @@ import org.testng.annotations.Test;
 
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
-import com.databasepreservation.modules.siard.out.metadata.FileIndexFileStrategy;
+import com.databasepreservation.modules.siard.out.metadata.SIARDDK2010FileIndexFileStrategy;
 import com.databasepreservation.modules.siard.out.write.FolderWriteStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
@@ -33,10 +33,10 @@ import com.databasepreservation.modules.siard.out.write.WriteStrategy;
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public class TestFileIndexFileStrategy {
+public class TestSIARDDK2010FileIndexFileStrategy {
 
   private SIARDArchiveContainer mainContainer;
-  private FileIndexFileStrategy fileIndexFileStrategy;
+  private SIARDDK2010FileIndexFileStrategy SIARDDK2010FileIndexFileStrategy;
   private WriteStrategy writeStrategy;
 
   @BeforeMethod
@@ -50,18 +50,18 @@ public class TestFileIndexFileStrategy {
     mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.DK, rootPath,
       SIARDArchiveContainer.OutputContainerType.MAIN);
     writeStrategy = new FolderWriteStrategy();
-    fileIndexFileStrategy = new FileIndexFileStrategy();
+    SIARDDK2010FileIndexFileStrategy = new SIARDDK2010FileIndexFileStrategy();
   }
 
   @Test
   public void shouldCalculateCorrectMd5sumForSingleFile() throws Exception {
-    OutputStream out = fileIndexFileStrategy.getWriter(mainContainer, "md5sums", writeStrategy);
+    OutputStream out = SIARDDK2010FileIndexFileStrategy.getWriter(mainContainer, "md5sums", writeStrategy);
     InputStream in = getClass().getResourceAsStream("/siarddk/text.tif");
     IOUtils.copy(in, out);
     in.close();
     out.close();
 
-    byte[] digest = fileIndexFileStrategy.addFile("doesNotMatter");
+    byte[] digest = SIARDDK2010FileIndexFileStrategy.addFile("doesNotMatter");
     String md5sum = DatatypeConverter.printHexBinary(digest).toLowerCase();
     assertEquals("a953767181ab088ee22ec3c4d1c45c87", md5sum);
   }

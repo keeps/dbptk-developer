@@ -18,6 +18,7 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
+import com.databasepreservation.modules.siard.out.metadata.SIARDDK2010FileIndexFileStrategy;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.jdom2.Document;
@@ -42,8 +43,7 @@ import com.databasepreservation.modules.siard.common.LargeObject;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
-import com.databasepreservation.modules.siard.out.metadata.DocIndexFileStrategy;
-import com.databasepreservation.modules.siard.out.metadata.FileIndexFileStrategy;
+import com.databasepreservation.modules.siard.out.metadata.SIARDDK2010DocIndexFileStrategy;
 import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
@@ -65,8 +65,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   private boolean foundUnknownMimetype;
 
   private final ContentPathExportStrategy contentPathExportStrategy;
-  private final FileIndexFileStrategy fileIndexFileStrategy;
-  private final DocIndexFileStrategy docIndexFileStrategy;
+  private final SIARDDK2010FileIndexFileStrategy SIARDDK2010FileIndexFileStrategy;
+  private final SIARDDK2010DocIndexFileStrategy SIARDDK2010DocIndexFileStrategy;
   private final SIARDArchiveContainer baseContainer;
   private OutputStream tableXmlOutputStream;
   private OutputStream tableXsdOutputStream;
@@ -86,8 +86,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     mimetypeHandler = new SIARDDKMimetypeHandler();
 
     contentPathExportStrategy = siarddkExportModule.getContentPathExportStrategy();
-    fileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
-    docIndexFileStrategy = siarddkExportModule.getDocIndexFileStrategy();
+    SIARDDK2010FileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
+    SIARDDK2010DocIndexFileStrategy = siarddkExportModule.getDocIndexFileStrategy();
     baseContainer = siarddkExportModule.getMainContainer();
     writeStrategy = siarddkExportModule.getWriteStrategy();
     lobsTracker = siarddkExportModule.getLobsTracker();
@@ -108,7 +108,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   @Override
   public void openTable(TableStructure tableStructure) throws ModuleException {
 
-    tableXmlOutputStream = fileIndexFileStrategy.getWriter(baseContainer,
+    tableXmlOutputStream = SIARDDK2010FileIndexFileStrategy.getWriter(baseContainer,
       contentPathExportStrategy.getTableXmlFilePath(0, tableCounter), writeStrategy);
 
     try {
@@ -212,7 +212,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
     // TO-DO: unfortunate name below: getLOBWriter (change the
     // FileIndexFileStrategy)
-    tableXsdOutputStream = fileIndexFileStrategy.getLOBWriter(baseContainer,
+    tableXsdOutputStream = SIARDDK2010FileIndexFileStrategy.getLOBWriter(baseContainer,
       contentPathExportStrategy.getTableXsdFilePath(0, tableCounter), writeStrategy);
     BufferedWriter xsdWriter = new BufferedWriter(new OutputStreamWriter(tableXsdOutputStream));
 
@@ -223,7 +223,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
       outputter.output(d, xsdWriter);
       xsdWriter.close();
 
-      fileIndexFileStrategy.addFile(contentPathExportStrategy.getTableXsdFilePath(0, tableCounter));
+      SIARDDK2010FileIndexFileStrategy.addFile(contentPathExportStrategy.getTableXsdFilePath(0, tableCounter));
 
     } catch (IOException e) {
       throw new ModuleException().withMessage("Could not write table" + tableCounter + " to disk").withCause(e);
@@ -237,7 +237,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
       tableXmlWriter.write("</table>");
       tableXmlWriter.close();
 
-      fileIndexFileStrategy.addFile(contentPathExportStrategy.getTableXmlFilePath(0, tableCounter));
+      SIARDDK2010FileIndexFileStrategy.addFile(contentPathExportStrategy.getTableXmlFilePath(0, tableCounter));
 
       if (foundClob) {
         logger.info("CLOB(s) found in table " + tableCounter + ". Archived as string");
@@ -363,7 +363,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
             // Create new FileIndexFileStrategy
 
             // Write the BLOB
-            OutputStream out = fileIndexFileStrategy.getLOBWriter(baseContainer, blob.getOutputPath(), writeStrategy);
+            OutputStream out = SIARDDK2010FileIndexFileStrategy.getLOBWriter(baseContainer, blob.getOutputPath(), writeStrategy);
             InputStream in = blob.getInputStreamProvider().createInputStream();
             IOUtils.copy(in, out);
             IOUtils.closeQuietly(in);
@@ -374,11 +374,11 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
             // are dealing with metadata)
 
             // TO-DO: obtain (how?) hardcoded values
-            docIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1, lobsTracker.getDocCollectionCount(),
+            SIARDDK2010DocIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1, lobsTracker.getDocCollectionCount(),
               "originalFilename", fileExtension, null);
 
             // Add file to fileIndex
-            fileIndexFileStrategy.addFile(blob.getOutputPath());
+            SIARDDK2010FileIndexFileStrategy.addFile(blob.getOutputPath());
 
           } else {
             // never happens

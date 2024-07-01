@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.databasepreservation.modules.siard.in.input.SIARDDK2010ImportModule;
 import org.joda.time.DateTime;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -73,7 +74,6 @@ import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
 import com.databasepreservation.modules.siard.in.input.SIARD1ImportModule;
 import com.databasepreservation.modules.siard.in.input.SIARD2ImportModule;
-import com.databasepreservation.modules.siard.in.input.SIARDDKImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD1ExportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD2ExportModule;
 import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
@@ -641,7 +641,7 @@ public class SiardTest {
         // Therefore it uses a special 'importAsSchema' parameter, to make it
         // compatible with the format of the dptkl internal database structure
         // representation.
-        importer = new SIARDDKImportModule(tmpFile, dbStructure.getSchemas().get(0).getName())
+        importer = new SIARDDK2010ImportModule(tmpFile, dbStructure.getSchemas().get(0).getName())
           .getDatabaseImportModule();
         break;
     }

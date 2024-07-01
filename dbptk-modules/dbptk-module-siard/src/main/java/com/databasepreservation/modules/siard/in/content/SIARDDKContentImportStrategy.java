@@ -55,14 +55,14 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer.OutputContainerType;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
-import com.databasepreservation.modules.siard.in.path.SIARDDKPathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARDDK2010PathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
 import com.databasepreservation.utils.XMLUtils;
 
 public class SIARDDKContentImportStrategy extends DefaultHandler implements ContentImportStrategy {
   private static final Logger logger = LoggerFactory.getLogger(SIARDDKContentImportStrategy.class);
   protected final FolderReadStrategyMD5Sum readStrategy;
-  protected final SIARDDKPathImportStrategy pathStrategy;
+  protected final SIARDDK2010PathImportStrategy pathStrategy;
   protected final String importAsSchema;
   protected static final String XML_TBL_TAG_LOCALNAME = "table";
   protected static final String XML_ROW_TAG_LOCALNAME = "row";
@@ -90,7 +90,7 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
    * @author Thomas Kristensen <tk@bithuset.dk>
    *
    */
-  public SIARDDKContentImportStrategy(FolderReadStrategyMD5Sum readStrategy, SIARDDKPathImportStrategy pathStrategy,
+  public SIARDDKContentImportStrategy(FolderReadStrategyMD5Sum readStrategy, SIARDDK2010PathImportStrategy pathStrategy,
     String importAsSchema) {
     this.readStrategy = readStrategy;
     this.pathStrategy = pathStrategy;

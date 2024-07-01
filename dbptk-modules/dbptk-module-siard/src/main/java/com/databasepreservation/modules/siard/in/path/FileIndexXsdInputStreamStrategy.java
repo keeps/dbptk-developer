@@ -17,5 +17,7 @@ import com.databasepreservation.model.exception.ModuleException;
  */
 interface FileIndexXsdInputStreamStrategy {
 
-  InputStream getInputStream(SIARDDKPathImportStrategy siarddkPathImportStrategy) throws ModuleException;
+  InputStream getInputStream(SIARDDK2010PathImportStrategy siarddk2010PathImportStrategy) throws ModuleException;
+
+  InputStream getInputStream(SIARDDK2020PathImportStrategy siarddk2020PathImportStrategy) throws ModuleException;
 }

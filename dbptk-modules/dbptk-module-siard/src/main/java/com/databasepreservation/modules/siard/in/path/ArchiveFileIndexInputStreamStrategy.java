@@ -29,10 +29,19 @@ class ArchiveFileIndexInputStreamStrategy implements FileIndexXsdInputStreamStra
    * SIARDDKPathImportStrategy)
    */
   @Override
-  public InputStream getInputStream(SIARDDKPathImportStrategy siarddkPathImportStrategy) throws ModuleException {
-    ReadStrategy readStrategy = siarddkPathImportStrategy.getReadStrategy();
-    SIARDArchiveContainer mainFolder = siarddkPathImportStrategy.getMainFolder();
-    String xsdFilePath = siarddkPathImportStrategy.getXsdFilePath(SIARDDKConstants.FILE_INDEX);
+  public InputStream getInputStream(SIARDDK2010PathImportStrategy siarddk2010PathImportStrategy) throws ModuleException {
+    ReadStrategy readStrategy = siarddk2010PathImportStrategy.getReadStrategy();
+    SIARDArchiveContainer mainFolder = siarddk2010PathImportStrategy.getMainFolder();
+    String xsdFilePath = siarddk2010PathImportStrategy.getXsdFilePath(SIARDDKConstants.FILE_INDEX);
+
+    return readStrategy.createInputStream(mainFolder, xsdFilePath);
+  }
+
+  @Override
+  public InputStream getInputStream(SIARDDK2020PathImportStrategy siarddk2020PathImportStrategy) throws ModuleException {
+    ReadStrategy readStrategy = siarddk2020PathImportStrategy.getReadStrategy();
+    SIARDArchiveContainer mainFolder = siarddk2020PathImportStrategy.getMainFolder();
+    String xsdFilePath = siarddk2020PathImportStrategy.getXsdFilePath(SIARDDKConstants.FILE_INDEX);
 
     return readStrategy.createInputStream(mainFolder, xsdFilePath);
   }

@@ -7,29 +7,9 @@
  */
 package com.databasepreservation.modules.siard.in.metadata;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigInteger;
-import java.security.DigestInputStream;
-import java.util.LinkedList;
-import java.util.List;
-
-import javax.xml.XMLConstants;
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBException;
-import jakarta.xml.bind.Unmarshaller;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
-
-import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.ForeignKey;
@@ -43,29 +23,46 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQL99StandardDatatypeImporter;
 import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQLStandardDatatypeImporter;
-import com.databasepreservation.modules.siard.in.path.SIARDDKPathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARDDK2010PathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.ColumnType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.ColumnsType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.ForeignKeyType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.ForeignKeysType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.PrimaryKeyType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.ReferenceType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.SiardDiark;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.TableType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.ViewType;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
-import dk.sa.xmlns.diark._1_0.tableindex.ColumnType;
-import dk.sa.xmlns.diark._1_0.tableindex.ColumnsType;
-import dk.sa.xmlns.diark._1_0.tableindex.ForeignKeyType;
-import dk.sa.xmlns.diark._1_0.tableindex.ForeignKeysType;
-import dk.sa.xmlns.diark._1_0.tableindex.PrimaryKeyType;
-import dk.sa.xmlns.diark._1_0.tableindex.ReferenceType;
-import dk.sa.xmlns.diark._1_0.tableindex.SiardDiark;
-import dk.sa.xmlns.diark._1_0.tableindex.TableType;
-import dk.sa.xmlns.diark._1_0.tableindex.ViewType;
+import javax.xml.XMLConstants;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
+import java.security.DigestInputStream;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author Thomas Kristensen <tk@bithuset.dk>
  *
  */
-public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
+public class SIARDDK2020MetadataImportStrategy implements MetadataImportStrategy {
 
-  protected final Logger logger = LoggerFactory.getLogger(SIARDDKMetadataImportStrategy.class);
+  protected final Logger logger = LoggerFactory.getLogger(SIARDDK2020MetadataImportStrategy.class);
 
-  protected final SIARDDKPathImportStrategy pathStrategy;
+  protected final SIARDDK2010PathImportStrategy pathStrategy;
   protected DatabaseStructure databaseStructure;
   protected final String importAsSchemaName;
   private int currentTableIndex = 1;
@@ -73,7 +70,7 @@ public class SIARDDKMetadataImportStrategy implements MetadataImportStrategy {
   private SQLStandardDatatypeImporter sqlStandardDatatypeImporter;
   private Reporter reporter;
 
-  public SIARDDKMetadataImportStrategy(SIARDDKPathImportStrategy pathStrategy, String importAsSchameName) {
+  public SIARDDK2020MetadataImportStrategy(SIARDDK2010PathImportStrategy pathStrategy, String importAsSchameName) {
     this.pathStrategy = pathStrategy;
     this.importAsSchemaName = importAsSchameName;
     sqlStandardDatatypeImporter = new SQL99StandardDatatypeImporter();

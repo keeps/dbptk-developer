@@ -48,7 +48,7 @@ import dk.sa.xmlns.diark._1_0.fileindex.FileIndexType.F;
  *         to retrieve md5sums.(The impl. of retrieval of md5sums for the meta
  *         data files are only implemented to the extend that it is needed. )
  */
-public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, MetadataPathStrategy {
+public class SIARDDK2010PathImportStrategy implements ContentPathImportStrategy, MetadataPathStrategy {
   protected final Logger logger = LoggerFactory.getLogger(ContentPathImportStrategy.class);
   protected final String importAsSchema;
   protected final SIARDArchiveContainer mainFolder;
@@ -67,9 +67,9 @@ public class SIARDDKPathImportStrategy implements ContentPathImportStrategy, Met
   protected byte[] tabelIndexExpectedMD5Sum;
   protected boolean fileIndexIsParsed;
 
-  public SIARDDKPathImportStrategy(SIARDArchiveContainer mainFolder, ReadStrategy readStrategy,
-    MetadataPathStrategy metadataPathStrategy, String importAsSchema,
-    FileIndexXsdInputStreamStrategy fileIndexXsdInputStreamStrategy) {
+  public SIARDDK2010PathImportStrategy(SIARDArchiveContainer mainFolder, ReadStrategy readStrategy,
+                                       MetadataPathStrategy metadataPathStrategy, String importAsSchema,
+                                       FileIndexXsdInputStreamStrategy fileIndexXsdInputStreamStrategy) {
     super();
     this.mainFolder = mainFolder;
     this.readStrategy = readStrategy;

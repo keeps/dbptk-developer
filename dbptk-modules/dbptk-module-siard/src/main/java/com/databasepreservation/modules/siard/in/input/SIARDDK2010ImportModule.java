@@ -19,9 +19,9 @@ import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.in.content.ContentImportStrategy;
 import com.databasepreservation.modules.siard.in.content.SIARDDKContentImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.MetadataImportStrategy;
-import com.databasepreservation.modules.siard.in.metadata.SIARDDKMetadataImportStrategy;
+import com.databasepreservation.modules.siard.in.metadata.SIARDDK2010MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.path.ResourceFileIndexInputStreamStrategy;
-import com.databasepreservation.modules.siard.in.path.SIARDDKPathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARDDK2010PathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
 import com.databasepreservation.utils.MapUtils;
 
@@ -29,7 +29,7 @@ import com.databasepreservation.utils.MapUtils;
  * @author Thomas Kristensen <tk@bithuset.dk>
  *
  */
-public class SIARDDKImportModule {
+public class SIARDDK2010ImportModule {
   private static final String moduleName = "siard-dk";
   protected final FolderReadStrategyMD5Sum readStrategy;
   protected final SIARDArchiveContainer mainContainer;
@@ -38,7 +38,7 @@ public class SIARDDKImportModule {
 
   private final String paramImportAsSchema;
 
-  public SIARDDKImportModule(Path siardPackage, String paramImportAsSchema) {
+  public SIARDDK2010ImportModule(Path siardPackage, String paramImportAsSchema) {
     this.paramImportAsSchema = paramImportAsSchema;
     mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.DK, siardPackage.toAbsolutePath().normalize(),
       SIARDArchiveContainer.OutputContainerType.MAIN);
@@ -51,10 +51,10 @@ public class SIARDDKImportModule {
     // NOTE: if we need to use the fileIndex.xsd from a given
     // "arkiverings version" then change
     // the FileIndexInputStreamStrategy to ArchiveFileIndexInputStreamStrategy
-    SIARDDKPathImportStrategy pathStrategy = new SIARDDKPathImportStrategy(mainContainer, readStrategy,
+    SIARDDK2010PathImportStrategy pathStrategy = new SIARDDK2010PathImportStrategy(mainContainer, readStrategy,
       metadataPathStrategy, paramImportAsSchema, new ResourceFileIndexInputStreamStrategy());
 
-    metadataStrategy = new SIARDDKMetadataImportStrategy(pathStrategy, paramImportAsSchema);
+    metadataStrategy = new SIARDDK2010MetadataImportStrategy(pathStrategy, paramImportAsSchema);
     contentStrategy = new SIARDDKContentImportStrategy(readStrategy, pathStrategy, paramImportAsSchema);
 
   }

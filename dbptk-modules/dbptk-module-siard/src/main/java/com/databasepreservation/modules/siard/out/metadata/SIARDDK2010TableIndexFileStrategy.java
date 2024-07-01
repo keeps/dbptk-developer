@@ -45,18 +45,18 @@ import dk.sa.xmlns.diark._1_0.tableindex.ViewsType;
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public class TableIndexFileStrategy implements IndexFileStrategy {
+public class SIARDDK2010TableIndexFileStrategy implements IndexFileStrategy {
 
   // LOBsTracker used to get the locations of functionalDescriptions
   private LOBsTracker lobsTracker;
   private String regex;
 
-  public TableIndexFileStrategy(LOBsTracker lobsTracker) {
+  public SIARDDK2010TableIndexFileStrategy(LOBsTracker lobsTracker) {
     this.lobsTracker = lobsTracker;
     regex = "(\\p{L}(_|\\w)*)|(\".*\")";
   }
 
-  private static final Logger logger = LoggerFactory.getLogger(TableIndexFileStrategy.class);
+  private static final Logger logger = LoggerFactory.getLogger(SIARDDK2010TableIndexFileStrategy.class);
 
   @Override
   public Object generateXML(DatabaseStructure dbStructure) throws ModuleException {

@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
+import com.databasepreservation.modules.siard.in.input.SIARDDK2010ImportModule;
 import org.apache.commons.lang3.StringUtils;
 
 import com.databasepreservation.model.reporters.Reporter;
@@ -27,7 +28,6 @@ import com.databasepreservation.model.parameters.Parameter.CATEGORY_TYPE;
 import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.Parameters;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
-import com.databasepreservation.modules.siard.in.input.SIARDDKImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
 
 /**
@@ -163,7 +163,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     reporter.importModuleParameters(getModuleName(), "file",
       Paths.get(parameters.get(folder)).normalize().toAbsolutePath().toString(), importAsSchema.longName(),
       parameters.get(importAsSchema));
-    return new SIARDDKImportModule(Paths.get(parameters.get(folder)), parameters.get(importAsSchema))
+    return new SIARDDK2010ImportModule(Paths.get(parameters.get(folder)), parameters.get(importAsSchema))
       .getDatabaseImportModule();
   }
 
