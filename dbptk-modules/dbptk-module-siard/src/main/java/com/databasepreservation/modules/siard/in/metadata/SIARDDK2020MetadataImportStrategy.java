@@ -23,7 +23,7 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQL99StandardDatatypeImporter;
 import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQLStandardDatatypeImporter;
-import com.databasepreservation.modules.siard.in.path.SIARDDK2010PathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARDDK2020PathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.modules.siard.bindings.siard_dk_2020.ColumnType;
@@ -62,7 +62,7 @@ public class SIARDDK2020MetadataImportStrategy implements MetadataImportStrategy
 
   protected final Logger logger = LoggerFactory.getLogger(SIARDDK2020MetadataImportStrategy.class);
 
-  protected final SIARDDK2010PathImportStrategy pathStrategy;
+  protected final SIARDDK2020PathImportStrategy pathStrategy;
   protected DatabaseStructure databaseStructure;
   protected final String importAsSchemaName;
   private int currentTableIndex = 1;
@@ -70,7 +70,7 @@ public class SIARDDK2020MetadataImportStrategy implements MetadataImportStrategy
   private SQLStandardDatatypeImporter sqlStandardDatatypeImporter;
   private Reporter reporter;
 
-  public SIARDDK2020MetadataImportStrategy(SIARDDK2010PathImportStrategy pathStrategy, String importAsSchameName) {
+  public SIARDDK2020MetadataImportStrategy(SIARDDK2020PathImportStrategy pathStrategy, String importAsSchameName) {
     this.pathStrategy = pathStrategy;
     this.importAsSchemaName = importAsSchameName;
     sqlStandardDatatypeImporter = new SQL99StandardDatatypeImporter();

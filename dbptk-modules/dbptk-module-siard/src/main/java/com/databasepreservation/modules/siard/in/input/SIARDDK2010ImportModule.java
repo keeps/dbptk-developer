@@ -11,13 +11,13 @@ import java.nio.file.Path;
 import java.util.Map;
 
 import com.databasepreservation.model.modules.DatabaseImportModule;
-import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
+import com.databasepreservation.modules.siard.SIARDDK2010ModuleFactory;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARDDKMetadataPathStrategy;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.in.content.ContentImportStrategy;
-import com.databasepreservation.modules.siard.in.content.SIARDDKContentImportStrategy;
+import com.databasepreservation.modules.siard.in.content.SIARDDK2010ContentImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.SIARDDK2010MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.path.ResourceFileIndexInputStreamStrategy;
@@ -30,7 +30,7 @@ import com.databasepreservation.utils.MapUtils;
  *
  */
 public class SIARDDK2010ImportModule {
-  private static final String moduleName = "siard-dk";
+  private static final String moduleName = "siard-dk-2010";
   protected final FolderReadStrategyMD5Sum readStrategy;
   protected final SIARDArchiveContainer mainContainer;
   protected final MetadataImportStrategy metadataStrategy;
@@ -55,13 +55,13 @@ public class SIARDDK2010ImportModule {
       metadataPathStrategy, paramImportAsSchema, new ResourceFileIndexInputStreamStrategy());
 
     metadataStrategy = new SIARDDK2010MetadataImportStrategy(pathStrategy, paramImportAsSchema);
-    contentStrategy = new SIARDDKContentImportStrategy(readStrategy, pathStrategy, paramImportAsSchema);
+    contentStrategy = new SIARDDK2010ContentImportStrategy(readStrategy, pathStrategy, paramImportAsSchema);
 
   }
 
   public DatabaseImportModule getDatabaseImportModule() {
-    final Map<String, String> properties = MapUtils.buildMapFromObjects(SIARDDKModuleFactory.PARAMETER_FOLDER,
-      mainContainer.getPath().normalize().toAbsolutePath().toString(), SIARDDKModuleFactory.PARAMETER_AS_SCHEMA,
+    final Map<String, String> properties = MapUtils.buildMapFromObjects(SIARDDK2010ModuleFactory.PARAMETER_FOLDER,
+      mainContainer.getPath().normalize().toAbsolutePath().toString(), SIARDDK2010ModuleFactory.PARAMETER_AS_SCHEMA,
       paramImportAsSchema);
     return new SIARDImportDefault(moduleName, contentStrategy, mainContainer, readStrategy, metadataStrategy,
       properties);

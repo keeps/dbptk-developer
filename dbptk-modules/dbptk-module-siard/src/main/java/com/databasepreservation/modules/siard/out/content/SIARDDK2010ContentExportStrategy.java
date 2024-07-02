@@ -44,7 +44,7 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.out.metadata.SIARDDK2010DocIndexFileStrategy;
-import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
+import com.databasepreservation.modules.siard.out.output.SIARDDK2010ExportModule;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
@@ -52,13 +52,13 @@ import com.databasepreservation.modules.siard.out.write.WriteStrategy;
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public class SIARDDKContentExportStrategy implements ContentExportStrategy {
+public class SIARDDK2010ContentExportStrategy implements ContentExportStrategy {
 
   private static final String ENCODING = "utf-8";
   private static final String TAB = "  ";
   private static final String namespaceBase = "http://www.sa.dk/xmlns/siard/"
     + SIARDConstants.SiardVersion.DK.getNamespace() + "/";
-  private static final Logger logger = LoggerFactory.getLogger(SIARDDKContentExportStrategy.class);
+  private static final Logger logger = LoggerFactory.getLogger(SIARDDK2010ContentExportStrategy.class);
 
   private int tableCounter;
   private boolean foundClob;
@@ -77,7 +77,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
   private Reporter reporter;
 
-  public SIARDDKContentExportStrategy(SIARDDKExportModule siarddkExportModule) {
+  public SIARDDK2010ContentExportStrategy(SIARDDK2010ExportModule siarddk2010ExportModule) {
 
     tableCounter = 1;
     foundClob = false;
@@ -85,12 +85,12 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
     mimetypeHandler = new SIARDDKMimetypeHandler();
 
-    contentPathExportStrategy = siarddkExportModule.getContentPathExportStrategy();
-    SIARDDK2010FileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
-    SIARDDK2010DocIndexFileStrategy = siarddkExportModule.getDocIndexFileStrategy();
-    baseContainer = siarddkExportModule.getMainContainer();
-    writeStrategy = siarddkExportModule.getWriteStrategy();
-    lobsTracker = siarddkExportModule.getLobsTracker();
+    contentPathExportStrategy = siarddk2010ExportModule.getContentPathExportStrategy();
+    SIARDDK2010FileIndexFileStrategy = siarddk2010ExportModule.getFileIndexFileStrategy();
+    SIARDDK2010DocIndexFileStrategy = siarddk2010ExportModule.getDocIndexFileStrategy();
+    baseContainer = siarddk2010ExportModule.getMainContainer();
+    writeStrategy = siarddk2010ExportModule.getWriteStrategy();
+    lobsTracker = siarddk2010ExportModule.getLobsTracker();
   }
 
   @Override

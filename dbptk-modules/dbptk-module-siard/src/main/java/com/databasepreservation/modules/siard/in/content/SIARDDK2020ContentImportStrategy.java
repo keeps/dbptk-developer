@@ -7,37 +7,6 @@
  */
 package com.databasepreservation.modules.siard.in.content;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.security.DigestInputStream;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.xml.XMLConstants;
-import jakarta.xml.bind.DatatypeConverter;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.TypeInfoProvider;
-import javax.xml.validation.ValidatorHandler;
-
-import org.apache.commons.codec.Charsets;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.TypeInfo;
-import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.DefaultHandler;
-
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
@@ -55,14 +24,43 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer.OutputContainerType;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
-import com.databasepreservation.modules.siard.in.path.SIARDDK2010PathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARDDK2020PathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
 import com.databasepreservation.utils.XMLUtils;
+import jakarta.xml.bind.DatatypeConverter;
+import org.apache.commons.codec.Charsets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.TypeInfo;
+import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.DefaultHandler;
 
-public class SIARDDKContentImportStrategy extends DefaultHandler implements ContentImportStrategy {
-  private static final Logger logger = LoggerFactory.getLogger(SIARDDKContentImportStrategy.class);
+import javax.xml.XMLConstants;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.TypeInfoProvider;
+import javax.xml.validation.ValidatorHandler;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.security.DigestInputStream;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class SIARDDK2020ContentImportStrategy extends DefaultHandler implements ContentImportStrategy {
+  private static final Logger logger = LoggerFactory.getLogger(SIARDDK2020ContentImportStrategy.class);
   protected final FolderReadStrategyMD5Sum readStrategy;
-  protected final SIARDDK2010PathImportStrategy pathStrategy;
+  protected final SIARDDK2020PathImportStrategy pathStrategy;
   protected final String importAsSchema;
   protected static final String XML_TBL_TAG_LOCALNAME = "table";
   protected static final String XML_ROW_TAG_LOCALNAME = "row";
@@ -90,8 +88,8 @@ public class SIARDDKContentImportStrategy extends DefaultHandler implements Cont
    * @author Thomas Kristensen <tk@bithuset.dk>
    *
    */
-  public SIARDDKContentImportStrategy(FolderReadStrategyMD5Sum readStrategy, SIARDDK2010PathImportStrategy pathStrategy,
-    String importAsSchema) {
+  public SIARDDK2020ContentImportStrategy(FolderReadStrategyMD5Sum readStrategy, SIARDDK2020PathImportStrategy pathStrategy,
+                                          String importAsSchema) {
     this.readStrategy = readStrategy;
     this.pathStrategy = pathStrategy;
     this.importAsSchema = importAsSchema;

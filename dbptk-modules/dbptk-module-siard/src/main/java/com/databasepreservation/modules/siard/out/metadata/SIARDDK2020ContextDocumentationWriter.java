@@ -7,6 +7,12 @@
  */
 package com.databasepreservation.modules.siard.out.metadata;
 
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.out.write.WriteStrategy;
+import org.apache.commons.io.IOUtils;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -16,32 +22,25 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
-
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
-import com.databasepreservation.modules.siard.out.write.WriteStrategy;
-
 /**
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public class ContextDocumentationWriter {
+public class SIARDDK2020ContextDocumentationWriter {
 
   private Map<String, String> exportModuleArgs;
   private SIARDArchiveContainer mainContainer;
-  private SIARDDK2010FileIndexFileStrategy SIARDDK2010FileIndexFileStrategy;
+  private SIARDDK2020FileIndexFileStrategy SIARDDK2020FileIndexFileStrategy;
   private WriteStrategy writeStrategy;
 
   private Path mainContainerPath;
 
-  public ContextDocumentationWriter(SIARDArchiveContainer mainContainer, WriteStrategy writeStrategy,
-                                    SIARDDK2010FileIndexFileStrategy SIARDDK2010FileIndexFileStrategy, Map<String, String> exportModuleArgs) {
+  public SIARDDK2020ContextDocumentationWriter(SIARDArchiveContainer mainContainer, WriteStrategy writeStrategy,
+                                               SIARDDK2020FileIndexFileStrategy SIARDDK2020FileIndexFileStrategy, Map<String, String> exportModuleArgs) {
 
     this.mainContainer = mainContainer;
     this.writeStrategy = writeStrategy;
-    this.SIARDDK2010FileIndexFileStrategy = SIARDDK2010FileIndexFileStrategy;
+    this.SIARDDK2020FileIndexFileStrategy = SIARDDK2020FileIndexFileStrategy;
     this.exportModuleArgs = exportModuleArgs;
   }
 
@@ -84,12 +83,12 @@ public class ContextDocumentationWriter {
         try {
 
           fis = new FileInputStream(file);
-          fos = SIARDDK2010FileIndexFileStrategy.getWriter(mainContainer, pathRelativeToMainContainerPath.toString(),
+          fos = SIARDDK2020FileIndexFileStrategy.getWriter(mainContainer, pathRelativeToMainContainerPath.toString(),
             writeStrategy);
 
           try {
             IOUtils.copy(fis, fos);
-            SIARDDK2010FileIndexFileStrategy.addFile(pathRelativeToMainContainerPath.toString());
+            SIARDDK2020FileIndexFileStrategy.addFile(pathRelativeToMainContainerPath.toString());
           } catch (IOException e) {
             throw new ModuleException().withMessage("There was an error writing " + path).withCause(e);
           }

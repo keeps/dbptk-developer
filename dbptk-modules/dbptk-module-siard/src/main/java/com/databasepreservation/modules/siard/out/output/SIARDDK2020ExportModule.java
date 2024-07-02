@@ -14,10 +14,6 @@
 
 package com.databasepreservation.modules.siard.out.output;
 
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.util.Map;
-
 import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
@@ -25,23 +21,27 @@ import com.databasepreservation.modules.siard.common.path.SIARDDKMetadataPathStr
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.out.content.ContentExportStrategy;
 import com.databasepreservation.modules.siard.out.content.LOBsTracker;
-import com.databasepreservation.modules.siard.out.content.SIARDDKContentExportStrategy;
-import com.databasepreservation.modules.siard.out.metadata.SIARDDK2010DocIndexFileStrategy;
-import com.databasepreservation.modules.siard.out.metadata.SIARDDK2010FileIndexFileStrategy;
+import com.databasepreservation.modules.siard.out.content.SIARDDK2020ContentExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
-import com.databasepreservation.modules.siard.out.metadata.SIARDDKMetadataExportStrategy;
+import com.databasepreservation.modules.siard.out.metadata.SIARDDK2020DocIndexFileStrategy;
+import com.databasepreservation.modules.siard.out.metadata.SIARDDK2020FileIndexFileStrategy;
+import com.databasepreservation.modules.siard.out.metadata.SIARDDK2020MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARDMarshaller;
 import com.databasepreservation.modules.siard.out.metadata.StandardSIARDMarshaller;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
-import com.databasepreservation.modules.siard.out.path.SIARDDKContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.path.SIARDDK2020ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.FolderWriteStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
+
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.util.Map;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public class SIARDDKExportModule {
+public class SIARDDK2020ExportModule {
 
   private MetadataExportStrategy metadataExportStrategy;
   private SIARDArchiveContainer mainContainer;
@@ -53,10 +53,10 @@ public class SIARDDKExportModule {
   private LOBsTracker lobsTracker;
 
   private Map<String, String> exportModuleArgs;
-  private SIARDDK2010FileIndexFileStrategy SIARDDK2010FileIndexFileStrategy;
-  private SIARDDK2010DocIndexFileStrategy SIARDDK2010DocIndexFileStrategy;
+  private SIARDDK2020FileIndexFileStrategy SIARDDK2020FileIndexFileStrategy;
+  private SIARDDK2020DocIndexFileStrategy SIARDDK2020DocIndexFileStrategy;
 
-  public SIARDDKExportModule(Map<String, String> exportModuleArgs) {
+  public SIARDDK2020ExportModule(Map<String, String> exportModuleArgs) {
     this.exportModuleArgs = exportModuleArgs;
 
     Path rootPath = FileSystems.getDefault().getPath(exportModuleArgs.get("folder"));
@@ -65,18 +65,18 @@ public class SIARDDKExportModule {
       SIARDArchiveContainer.OutputContainerType.MAIN);
     writeStrategy = new FolderWriteStrategy();
     siardMarshaller = new StandardSIARDMarshaller();
-    SIARDDK2010FileIndexFileStrategy = new SIARDDK2010FileIndexFileStrategy();
-    SIARDDK2010DocIndexFileStrategy = new SIARDDK2010DocIndexFileStrategy();
+    SIARDDK2020FileIndexFileStrategy = new SIARDDK2020FileIndexFileStrategy();
+    SIARDDK2020DocIndexFileStrategy = new SIARDDK2020DocIndexFileStrategy();
     lobsTracker = new LOBsTracker(Integer.parseInt(exportModuleArgs.get("lobs-per-folder")),
       Integer.parseInt(exportModuleArgs.get("lobs-folder-size")));
-    contentPathExportStrategy = new SIARDDKContentPathExportStrategy(this);
+    contentPathExportStrategy = new SIARDDK2020ContentPathExportStrategy(this);
     metadataPathStrategy = new SIARDDKMetadataPathStrategy();
-    metadataExportStrategy = new SIARDDKMetadataExportStrategy(this);
-    contentExportStrategy = new SIARDDKContentExportStrategy(this);
+    metadataExportStrategy = new SIARDDK2020MetadataExportStrategy(this);
+    contentExportStrategy = new SIARDDK2020ContentExportStrategy(this);
   }
 
   public DatabaseFilterModule getDatabaseExportModule() {
-    return new SIARDDKDatabaseExportModule(this);
+    return new SIARDDK2020DatabaseExportModule(this);
   }
 
   public Map<String, String> getExportModuleArgs() {
@@ -87,15 +87,15 @@ public class SIARDDKExportModule {
     return writeStrategy;
   }
 
-  public SIARDDK2010FileIndexFileStrategy getFileIndexFileStrategy() {
-    return SIARDDK2010FileIndexFileStrategy;
+  public SIARDDK2020FileIndexFileStrategy getFileIndexFileStrategy() {
+    return SIARDDK2020FileIndexFileStrategy;
   }
 
   /**
    * @return the docIndexFileStrategy
    */
-  public SIARDDK2010DocIndexFileStrategy getDocIndexFileStrategy() {
-    return SIARDDK2010DocIndexFileStrategy;
+  public SIARDDK2020DocIndexFileStrategy getDocIndexFileStrategy() {
+    return SIARDDK2020DocIndexFileStrategy;
   }
 
   public SIARDMarshaller getSiardMarshaller() {
