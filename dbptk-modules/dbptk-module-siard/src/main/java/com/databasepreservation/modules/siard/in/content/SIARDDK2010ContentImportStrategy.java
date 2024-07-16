@@ -268,7 +268,6 @@ public class SIARDDK2010ContentImportStrategy extends DefaultHandler implements 
           Cell cell;
           String preparedCellVal = currentTagContentStrBld.toString().trim();
           if (currentCellType instanceof SimpleTypeBinary) {
-            //TODO get the file here using the dk logic to get its location
             ModuleException ex = new ModuleException()
               .withMessage("Siard-dk does not support import of binary values into the db");
             logger.error("Siard-dk does not support the import of binary values into the db", ex);
