@@ -100,6 +100,6 @@ public class SIARDEditFactory implements EditModuleFactory {
 
     reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString());
 
-    return new SIARDEditModule(pFile);
+    return new SIARDEditModule(pFile, null);
   }
 }

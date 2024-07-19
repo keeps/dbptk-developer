@@ -75,7 +75,6 @@ public class SIARDDK2020MetadataImportStrategy implements MetadataImportStrategy
 
   protected final SIARDDK2020PathImportStrategy pathStrategy;
   protected DatabaseStructure databaseStructure;
-  protected DocIndexType docIndex;
   protected final String importAsSchemaName;
   private int currentTableIndex = 1;
 
@@ -141,11 +140,6 @@ public class SIARDDK2020MetadataImportStrategy implements MetadataImportStrategy
     }
 
     databaseStructure = getDatabaseStructure(xmlRoot);
-    try {
-      docIndex = loadVirtualTableMetadata();
-    } catch (FileNotFoundException e) {
-      throw new ModuleException().withMessage("Error while Unmarshalling JAXB").withCause(e);
-    }
   }
 
   @Override
@@ -219,13 +213,19 @@ public class SIARDDK2020MetadataImportStrategy implements MetadataImportStrategy
         tblDptkl.setDescription(tblXml.getDescription());
         tblDptkl.setPrimaryKey(getPrimaryKey(tblXml.getPrimaryKey()));
         tblDptkl.setForeignKeys(getForeignKeys(tblXml.getForeignKeys(), tblDptkl.getId()));
-        List<ForeignKey> virtualForeignKeys = getVirtualForeignKeys(tblXml.getColumns(), tblDptkl.getId());
+        tblDptkl.setRows(getNumberOfTblRows(tblXml.getRows(), tblXml.getName()));
+        tblDptkl.setColumns(getTblColumns(tblXml.getColumns(), tblDptkl.getId()));
+        List<ForeignKey> virtualForeignKeys = getVirtualForeignKeys(tblXml.getColumns(), tblDptkl.getId(), tblDptkl.getPrimaryKey());
         if (!virtualForeignKeys.isEmpty()) {
           tblDptkl.getForeignKeys().addAll(virtualForeignKeys);
           needsVirtualTable = true;
+//          Type typeInt = sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
+//            "<information unavailable>", "<information unavailable>", "INTEGER", "INTEGER");
+//          ColumnStructure columnVirtualTableID = new ColumnStructure("dID", "dID", typeInt, true, "dID", "1", true);
+//          List<ColumnStructure> columns = getTblColumns(tblXml.getColumns(), tblDptkl.getId());
+//          columns.add(columnVirtualTableID);
+//          tblDptkl.setColumns(columns);
         }
-        tblDptkl.setRows(getNumberOfTblRows(tblXml.getRows(), tblXml.getName()));
-        tblDptkl.setColumns(getTblColumns(tblXml.getColumns(), tblDptkl.getId()));
         pathStrategy.associateTableWithFolder(tblDptkl.getId(), tblXml.getFolder());
         lstTblsDptkl.add(tblDptkl);
       }
@@ -280,7 +280,7 @@ public class SIARDDK2020MetadataImportStrategy implements MetadataImportStrategy
     }
   }
 
-  private List<ForeignKey> getVirtualForeignKeys(ColumnsType columns, String tableId) {
+  private List<ForeignKey> getVirtualForeignKeys(ColumnsType columns, String tableId, PrimaryKey primaryKey) {
     List<ForeignKey> virtualForeignKeys = new ArrayList<>();
     for (ColumnType column : columns.getColumn()) {
       if (column.getFunctionalDescription() != null && column.getFunctionalDescription().contains(FunctionalDescriptionType.DOKUMENTIDENTIFIKATION)) {
@@ -288,7 +288,7 @@ public class SIARDDK2020MetadataImportStrategy implements MetadataImportStrategy
         virtualForeignKey.setReferencedSchema(getImportAsSchemaName());
         virtualForeignKey.setName("FK_virtual_table");
         virtualForeignKey.setReferencedTable("virtual_table");
-        Reference reference = new Reference("dID", "dID");
+        Reference reference = new Reference(column.getName(), "dID");
         List<Reference> referenceList = new ArrayList<>();
         referenceList.add(reference);
         virtualForeignKey.setReferences(referenceList);
@@ -300,27 +300,42 @@ public class SIARDDK2020MetadataImportStrategy implements MetadataImportStrategy
     return virtualForeignKeys;
   }
 
-  private TableStructure createVirtualTable() {
+  private TableStructure createVirtualTable() throws ModuleException {
+    try {
+      DocIndexType docIndexType = loadVirtualTableMetadata();
       TableStructure virtualTable = new TableStructure();
       virtualTable.setIndex(currentTableIndex++);
       virtualTable.setSchema(getImportAsSchemaName());
       virtualTable.setId(String.format("%s.%s", virtualTable.getSchema(), "virtual_table"));
       virtualTable.setName("virtual_table");
       virtualTable.setDescription("A virtual table");
-      virtualTable.setRows(3L);
-      List<ColumnStructure> columnStructureList = new ArrayList<>();
-      Type type = sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
-              "<information unavailable>", "<information unavailable>", "INTEGER", "INTEGER");
-      ColumnStructure column = new ColumnStructure("dID", "dID", type, true, "dID", "1", true);
-      columnStructureList.add(column);
-      virtualTable.setColumns(columnStructureList);
-      virtualTable.setPrimaryKey(createVirtualPrimaryKey());
+      virtualTable.setRows(docIndexType.getDoc().size());
+      virtualTable.setColumns(createVirtualTableColumns());
+      virtualTable.setPrimaryKey(createVirtualPrimaryKey("dID"));
       return virtualTable;
+    } catch (FileNotFoundException e) {
+      throw new ModuleException()
+        .withMessage("Error reading metadata XSD file: " + pathStrategy.getXsdFilePath(SIARDDKConstants.DOC_INDEX))
+        .withCause(e);
+    }
   }
 
-  private PrimaryKey createVirtualPrimaryKey() {
+  private List<ColumnStructure> createVirtualTableColumns() {
+    List<ColumnStructure> columnStructureList = new ArrayList<>();
+    Type typeInt = sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
+      "<information unavailable>", "<information unavailable>", "INTEGER", "INTEGER");
+    ColumnStructure columnID = new ColumnStructure("dID", "dID", typeInt, true, "dID", "1", true);
+    Type type = sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
+      "<information unavailable>", "<information unavailable>", "BINARY LARGE OBJECT", "BINARY LARGE OBJECT");
+    ColumnStructure columnLOB = new ColumnStructure("blob", "blob", type, true, "blob", "1", true);
+    columnStructureList.add(columnID);
+    columnStructureList.add(columnLOB);
+    return columnStructureList;
+  }
+
+  private PrimaryKey createVirtualPrimaryKey(String columnName) {
     List<String> columnList = new ArrayList<>();
-    columnList.add("dID");
+    columnList.add(columnName);
     return new PrimaryKey("PK_virtual_table", columnList, "virtual table primary key");
   }
 

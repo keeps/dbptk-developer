@@ -7,6 +7,7 @@
  */
 package com.databasepreservation.modules.siard.in.content;
 
+import com.databasepreservation.common.io.providers.DummyInputStreamProvider;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
@@ -22,17 +23,25 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
 import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.DocIndexType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.DocumentType;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer.OutputContainerType;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.in.path.SIARDDK2020PathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
 import com.databasepreservation.utils.XMLUtils;
 import jakarta.xml.bind.DatatypeConverter;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import org.apache.commons.codec.Charsets;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
 import org.w3c.dom.TypeInfo;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -41,8 +50,6 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -198,12 +205,95 @@ public class SIARDDK2020ContentImportStrategy extends DefaultHandler implements 
 
           completedTablesInSchema++;
           this.dbExportHandler.handleDataCloseTable(table.getId());
+        } else {
+          try {
+            DocIndexType docIndex = loadVirtualTableContent();
+            populateVirtualTable(docIndex, table);
+          } catch (FileNotFoundException e) {
+            throw new ModuleException()
+              .withMessage("Error reading metadata XSD file: " + pathStrategy.getXsdFilePath(SIARDDKConstants.DOC_INDEX))
+              .withCause(e);
+          }
         }
       }
       completedSchemas++;
       this.dbExportHandler.handleDataCloseSchema(importAsSchema);
     }
 
+  }
+
+  private void populateVirtualTable(DocIndexType docIndex, TableStructure table) throws ModuleException {
+    currentTable = table;
+    this.dbExportHandler.handleDataOpenTable(table.getId());
+    Cell[] cells = new Cell[table.getColumns().size()];
+    for (DocumentType doc : docIndex.getDoc()) {
+      int rowCounter = 0;
+      int cellCounter = 0;
+      Row row = new Row();
+      row.setIndex(rowCounter);
+      Cell dIDCell = new SimpleCell("dID." + rowCounter, doc.getDID().toString());
+      cells[cellCounter] = dIDCell;
+      cellCounter++;
+      String binPath = pathStrategy.getMainFolder().getPath().toString() + "/Documents/" + doc.getDCf() + "/" + doc.getDID() + "/"
+        + doc.getMID() + "." + doc.getAFt();
+      try {
+        Cell blobCell = new BinaryCell("blob." + rowCounter, new DummyInputStreamProvider(), binPath, 0L, DigestUtils.sha1Hex(FileUtils.readFileToByteArray(Paths.get(binPath).toFile())), DigestUtils.getSha1Digest().toString());
+        cells[cellCounter] = blobCell;
+        cellCounter++;
+        rowCounter++;
+        List<Cell> lstCells = Arrays.asList(cells);
+        assert !lstCells.contains(null);
+        row.setCells(lstCells);
+        this.dbExportHandler.handleDataRow(row);
+      } catch (ModuleException | IOException e) {
+        throw new ModuleException().withMessage("Error handling data row index:" + rowCounter).withCause(e);
+      }
+    }
+    this.dbExportHandler.handleDataCloseTable(table.getId());
+  }
+
+  private DocIndexType loadVirtualTableContent() throws ModuleException, FileNotFoundException {
+    JAXBContext context;
+    try {
+      context = JAXBContext.newInstance(DocIndexType.class.getPackage().getName());
+    } catch (JAXBException e) {
+      throw new ModuleException().withMessage("Error loading JAXBContext").withCause(e);
+    }
+
+    SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+    Schema xsdSchema = null;
+    InputStream xsdInputStream = new FileInputStream(pathStrategy.getMainFolder().getPath().toString() + "/"
+      + pathStrategy.getXsdFilePath(SIARDDKConstants.DOC_INDEX));
+
+    try {
+      xsdSchema = schemaFactory.newSchema(new StreamSource(xsdInputStream));
+    } catch (SAXException e) {
+      throw new ModuleException()
+        .withMessage("Error reading metadata XSD file: " + pathStrategy.getXsdFilePath(SIARDDKConstants.DOC_INDEX))
+        .withCause(e);
+    }
+    InputStream inputStreamXml = null;
+    Unmarshaller unmarshaller;
+    try {
+      unmarshaller = context.createUnmarshaller();
+      unmarshaller.setSchema(xsdSchema);
+      inputStreamXml = new FileInputStream(pathStrategy.getMainFolder().getPath().toString() + "/" +
+        pathStrategy.getXmlFilePath(SIARDDKConstants.DOC_INDEX));
+      JAXBElement<DocIndexType> jaxbElement = (JAXBElement<DocIndexType>) unmarshaller.unmarshal(inputStreamXml);
+      return jaxbElement.getValue();
+    } catch (JAXBException e) {
+      throw new ModuleException().withMessage("Error while Unmarshalling JAXB").withCause(e);
+    } finally {
+      try {
+        xsdInputStream.close();
+        if (inputStreamXml != null) {
+          inputStreamXml.close();
+          xsdInputStream.close();
+        }
+      } catch (IOException e) {
+        logger.debug("Could not close xsdStream", e);
+      }
+    }
   }
 
   @Override
