@@ -62,6 +62,7 @@ public class SIARDDK2020PathImportStrategy implements ContentPathImportStrategy,
   // protected byte[] fileIndexExpectedMD5Sum; --For some reason, no md5sum is
   // required for fileIndex.xml in the standard
   protected byte[] tabelIndexExpectedMD5Sum;
+  protected byte[] archiveIndexExpectedMD5Sum;
   protected boolean fileIndexIsParsed;
 
   public SIARDDK2020PathImportStrategy(SIARDArchiveContainer mainFolder, ReadStrategy readStrategy,
@@ -153,7 +154,11 @@ public class SIARDDK2020PathImportStrategy implements ContentPathImportStrategy,
             // considering the files relevant for the SIARDDK import module.
             if (fileInfo.getFiN().equals(SIARDDKConstants.TABLE_INDEX + "." + SIARDDKConstants.XML_EXTENSION)) {
               tabelIndexExpectedMD5Sum = fileInfo.getMd5();
-            } /*
+            } else if (fileInfo.getFiN().equals(SIARDDKConstants.ARCHIVE_INDEX + "." +
+              SIARDDKConstants.XML_EXTENSION)) {
+              archiveIndexExpectedMD5Sum = fileInfo.getMd5();
+            }
+            /*
                * else { if (fileInfo.getFiN().equals(SIARDDKConstants.FILE_INDEX + "." +
                * SIARDDKConstants.XML_EXTENSION)) { fileIndexExpectedMD5Sum =
                * fileInfo.getMd5(); }
@@ -294,6 +299,15 @@ public class SIARDDK2020PathImportStrategy implements ContentPathImportStrategy,
           + " did not provide a md5sum for " + SIARDDKConstants.TABLE_INDEX + "." + SIARDDKConstants.XML_EXTENSION);
     }
     return tabelIndexExpectedMD5Sum;
+  }
+
+  public byte[] getArchiveIndexExpectedMD5Sum() throws ModuleException {
+    if (archiveIndexExpectedMD5Sum == null && fileIndexIsParsed) {
+      throw new ModuleException()
+        .withMessage("Parsing of " + SIARDDKConstants.FILE_INDEX + "." + SIARDDKConstants.XML_EXTENSION
+          + " did not provide a md5sum for " + SIARDDKConstants.ARCHIVE_INDEX + "." + SIARDDKConstants.XML_EXTENSION);
+    }
+    return archiveIndexExpectedMD5Sum;
   }
 
   /**
