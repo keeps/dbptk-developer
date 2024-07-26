@@ -20,8 +20,17 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.bindings.siard_dk_2020.ArchiveIndex;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.ColumnType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.ColumnsType;
 import com.databasepreservation.modules.siard.bindings.siard_dk_2020.DocIndexType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.ForeignKeyType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.ForeignKeysType;
 import com.databasepreservation.modules.siard.bindings.siard_dk_2020.FunctionalDescriptionType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.PrimaryKeyType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.ReferenceType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.SiardDiark;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.TableType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.ViewType;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQL99StandardDatatypeImporter;
@@ -29,15 +38,6 @@ import com.databasepreservation.modules.siard.in.metadata.typeConverter.SQLStand
 import com.databasepreservation.modules.siard.in.path.SIARDDK2020PathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
-import com.databasepreservation.modules.siard.bindings.siard_dk_2020.ColumnType;
-import com.databasepreservation.modules.siard.bindings.siard_dk_2020.ColumnsType;
-import com.databasepreservation.modules.siard.bindings.siard_dk_2020.ForeignKeyType;
-import com.databasepreservation.modules.siard.bindings.siard_dk_2020.ForeignKeysType;
-import com.databasepreservation.modules.siard.bindings.siard_dk_2020.PrimaryKeyType;
-import com.databasepreservation.modules.siard.bindings.siard_dk_2020.ReferenceType;
-import com.databasepreservation.modules.siard.bindings.siard_dk_2020.SiardDiark;
-import com.databasepreservation.modules.siard.bindings.siard_dk_2020.TableType;
-import com.databasepreservation.modules.siard.bindings.siard_dk_2020.ViewType;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
@@ -258,16 +258,10 @@ public class SIARDDK2020MetadataImportStrategy implements MetadataImportStrategy
         tblDptkl.setForeignKeys(getForeignKeys(tblXml.getForeignKeys(), tblDptkl.getId()));
         tblDptkl.setRows(getNumberOfTblRows(tblXml.getRows(), tblXml.getName()));
         tblDptkl.setColumns(getTblColumns(tblXml.getColumns(), tblDptkl.getId()));
-        List<ForeignKey> virtualForeignKeys = getVirtualForeignKeys(tblXml.getColumns(), tblDptkl.getId(), tblDptkl.getPrimaryKey());
+        List<ForeignKey> virtualForeignKeys = getVirtualForeignKeys(tblXml.getColumns(), tblDptkl.getId());
         if (!virtualForeignKeys.isEmpty()) {
           tblDptkl.getForeignKeys().addAll(virtualForeignKeys);
           needsVirtualTable = true;
-//          Type typeInt = sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
-//            "<information unavailable>", "<information unavailable>", "INTEGER", "INTEGER");
-//          ColumnStructure columnVirtualTableID = new ColumnStructure("dID", "dID", typeInt, true, "dID", "1", true);
-//          List<ColumnStructure> columns = getTblColumns(tblXml.getColumns(), tblDptkl.getId());
-//          columns.add(columnVirtualTableID);
-//          tblDptkl.setColumns(columns);
         }
         pathStrategy.associateTableWithFolder(tblDptkl.getId(), tblXml.getFolder());
         lstTblsDptkl.add(tblDptkl);
@@ -323,7 +317,7 @@ public class SIARDDK2020MetadataImportStrategy implements MetadataImportStrategy
     }
   }
 
-  private List<ForeignKey> getVirtualForeignKeys(ColumnsType columns, String tableId, PrimaryKey primaryKey) {
+  private List<ForeignKey> getVirtualForeignKeys(ColumnsType columns, String tableId) {
     List<ForeignKey> virtualForeignKeys = new ArrayList<>();
     for (ColumnType column : columns.getColumn()) {
       if (column.getFunctionalDescription() != null && column.getFunctionalDescription().contains(FunctionalDescriptionType.DOKUMENTIDENTIFIKATION)) {
