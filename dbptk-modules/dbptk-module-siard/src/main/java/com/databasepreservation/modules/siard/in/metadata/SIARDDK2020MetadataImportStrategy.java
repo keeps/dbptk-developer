@@ -201,11 +201,21 @@ public class SIARDDK2020MetadataImportStrategy implements MetadataImportStrategy
       JAXBElement<String> element = creatorListElements.get(i);
       if (element.getName().getLocalPart().equals("creatorName")) {
         creatorsList.append(element.getValue());
-        if (i < creatorListElements.size() - 1 && creatorListElements.get(i + 1).getName().getLocalPart().equals("creatorName")) {
+
+        boolean isLastCreatorName = true;
+        for (int j = i + 1; j < creatorListElements.size(); j++) {
+          if (creatorListElements.get(j).getName().getLocalPart().equals("creatorName")) {
+            isLastCreatorName = false;
+            break;
+          }
+        }
+
+        if (!isLastCreatorName) {
           creatorsList.append("; ");
         }
       }
     }
+
     databaseStructure.setDataOwner(creatorsList.toString());
     databaseStructure.setDescription(archiveIndex.getSystemPurpose());
   }
