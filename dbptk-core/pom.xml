@@ -145,6 +145,11 @@
 
         <dependency>
             <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-module-normalize-1nf-config</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
             <artifactId>dbptk-module-siard</artifactId>
         </dependency>
 

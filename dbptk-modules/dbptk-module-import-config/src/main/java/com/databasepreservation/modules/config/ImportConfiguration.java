@@ -38,9 +38,10 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 public class ImportConfiguration implements DatabaseFilterModule {
-  private DatabaseStructure dbStructure;
-  private SchemaStructure currentSchema;
-  private ModuleConfiguration moduleConfiguration;
+  protected DatabaseStructure dbStructure;
+  protected SchemaStructure currentSchema;
+  protected TableStructure currentTable;
+  protected ModuleConfiguration moduleConfiguration;
   private Path outputFile;
   private ObjectMapper mapper;
 
@@ -119,7 +120,7 @@ public class ImportConfiguration implements DatabaseFilterModule {
    */
   @Override
   public void handleDataOpenTable(String tableId) throws ModuleException {
-    TableStructure currentTable = dbStructure.getTableById(tableId);
+    currentTable = dbStructure.getTableById(tableId);
     if (currentTable == null) {
       throw new ModuleException().withMessage("Couldn't find table with id: " + tableId);
     }
