@@ -75,27 +75,21 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
   private static final Parameter portNumber = new Parameter().shortName("pn").longName(PARAMETER_PORT_NUMBER)
     .description("the server port number").hasArgument(true).setOptionalArgument(false).required(false)
     .valueIfNotSet("1433");
-
+  private static final ParameterGroup instanceName_portNumber = new ParameterGroup(false, instanceName, portNumber);
   private static final Parameter ssh = new Parameter().shortName("ssh").longName(PARAMETER_SSH)
     .description("use to perform a SSH remote connection").hasArgument(false).required(false).valueIfNotSet("false")
     .valueIfSet("true");
-
   private static final Parameter sshHost = new Parameter().shortName("sh").longName(PARAMETER_SSH_HOST)
     .description("the hostname of the remote server").hasArgument(true).setOptionalArgument(false).required(false);
-
   private static final Parameter sshUser = new Parameter().shortName("su").longName(PARAMETER_SSH_USER)
     .description("the name of the remote user to use in the SSH connection").hasArgument(true)
     .setOptionalArgument(false).required(false);
-
   private static final Parameter sshPassword = new Parameter().shortName("spw").longName(PARAMETER_SSH_PASSWORD)
     .description("the password of the remote user to use in the SSH connection").hasArgument(true)
     .setOptionalArgument(false).required(false);
-
   private static final Parameter sshPort = new Parameter().shortName("spn").longName(PARAMETER_SSH_PORT)
     .description("the port number remote server is listening").hasArgument(true).setOptionalArgument(false)
     .required(false);
-
-  private static final ParameterGroup instanceName_portNumber = new ParameterGroup(false, instanceName, portNumber);
 
   @Override
   public boolean producesImportModules() {
@@ -145,15 +139,17 @@ public class SQLServerJDBCModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public Parameters getImportModuleParameters() throws UnsupportedModuleException {
+  public Parameters getImportModuleParameters() {
     return new Parameters(Arrays.asList(serverName, database, username, password, useIntegratedLogin, disableEncryption,
-      ssh, sshHost, sshUser, sshPassword, sshPort), Collections.singletonList(instanceName_portNumber));
+      portNumber, instanceName, ssh, sshHost, sshUser, sshPassword, sshPort),
+      Collections.singletonList(instanceName_portNumber));
   }
 
   @Override
-  public Parameters getExportModuleParameters() throws UnsupportedModuleException {
+  public Parameters getExportModuleParameters() {
     return new Parameters(Arrays.asList(serverName, database, username, password, useIntegratedLogin, disableEncryption,
-      ssh, sshHost, sshUser, sshPassword, sshPort), Collections.singletonList(instanceName_portNumber));
+      portNumber, instanceName, ssh, sshHost, sshUser, sshPassword, sshPort),
+      Collections.singletonList(instanceName_portNumber));
   }
 
   @Override
