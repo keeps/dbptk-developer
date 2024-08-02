@@ -1,6 +1,24 @@
 # Changelog
 
+## v3.0.1 (02/08/2024)
+#### Bug Fixes:
+
+-  Microsoft SQL Server port configuration is being ignored when using via import config module  (#549)
+
+#### Enhancements
+
+- Add log information when an error occurs during the XML creation #615
+
+#### Security
+- Fix security vulnerabilities
+
+Special thanks to @daniel-skovenborg for his contributions to this release
+---
+
 ## Version 3.0.0 (28/06/2024)
+### :warning: Breaking Changes
+- Java 21 is now required to use the new dbptk-developer. Applications that utilize dbptk-developer as a library must also be migrated to Java 21.
+
 #### Changes
 - Upgraded from Java 8 to Java 21
 
@@ -295,53 +313,3 @@ ___
 | --allowed value    | File with allowed data types for the categories UDT or distinct, one per line. |
 
 More information can be found at: https://github.com/keeps/db-preservation-toolkit/wiki/Validation
-
----
-
-## Version 2.6.0-RC (09/09/2019)
-#### New Features
-
-* SIARD Validator #353 
-
-Validates a SIARD against its specification and also a set of additional checks.
-___
-
-#### Using the new features:
-
-``dbptk validate --import-file <path-to-siard> [-r <path_to_report> -a <path_to_allowed_types>]``
-
-| Option             | Description   |
-| :------------- | :------------- |
-| --import-file value     | SIARD file to be validated |
-| --report  value   | File where the validation report will be saved |
-| --allowed value    | File with allowed data types for the categories UDT or distinct, one per line. |
-
-More information can be found at: https://github.com/keeps/db-preservation-toolkit/wiki/Validation
-
----
-
-## Version 2.5.0 (06/09/2019)
-#### New Features
-
-* Support connecting to DBMSs via an SSH tunnel with password authentication #370
-___
-
-### Bug Fixes
-
-* Fix SSH connection problems with PostgreSQL #391 
-* Create SIARD of postgres fails, schema name error #387
-___
-### DBVTK Improved Integrations
-
-* Improve database metadata fetching strategy
-* Add an option to test if a custom view query is a valid one #390 
-___
-
-#### Using the new features:
-##### SSH Connection:
-To see the help menu use: ``dbptk help migrate``. To check a specific module, ``dbptk help migrate <module>``
-* ``--import-ssh`` or ``--export-ssh`` to enable SSH tunnel
-* ``--import-ssh-host``, ``--import-ssh-user``, ``--import-ssh-password``, ``--import-ssh-port`` or ``--export-ssh-host``, ``--export-ssh-user``, ``--export-ssh-password``, ``--export-ssh-port`` 
-
-###### Example:
-dbptk migrate --import mysql --import-host localhost --import-user root --import-password 123456 --import-database sakila --import-ssh --import-ssh-host IP Address --import-ssh-user USER --import-ssh-password PASSWORD --import-ssh-port <BY_DEFAULT_IS_22> --export siard-2 --export-file /path/to/siard
