@@ -102,7 +102,7 @@ public class InventoryFilter implements DatabaseFilterModule {
       if (do_export) {
         csv_file = dirPath.resolve(prefixPath + currentTableName + ".csv").toFile();
         outStreamWriter = new FileWriter(csv_file);
-        csv_printer = CSVFormat.newFormat(separator.charAt(0)).withRecordSeparator("\n").print(outStreamWriter);
+        csv_printer = CSVFormat.newFormat(separator.charAt(0)).builder().setRecordSeparator("\n").build().print(outStreamWriter);
         if (printHeader) {
           for (String header : listOfHeaders) {
             csv_printer.print(header);
