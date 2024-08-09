@@ -21,8 +21,6 @@ import com.databasepreservation.modules.siard.common.path.SIARD1MetadataPathStra
 import com.databasepreservation.modules.siard.common.path.SIARD2MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARDDKMetadataPathStrategy;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
-import com.databasepreservation.modules.siard.in.content.SIARDDK2010ContentImportStrategy;
-import com.databasepreservation.modules.siard.in.content.SIARDDK2020ContentImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.SIARD1MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.SIARD20MetadataImportStrategy;
@@ -92,9 +90,20 @@ public class SIARDEditModule implements EditModule {
    */
   public SIARDEditModule(Path siardPackagePath, SIARDConstants.SiardVersion version) {
     Path siardPackageNormalizedPath = siardPackagePath.toAbsolutePath().normalize();
-    if (version.equals(SIARDConstants.SiardVersion.DK)) {
+    if (version.equals(SIARDConstants.SiardVersion.DK_2010)) {
       String paramImportAsSchema = "public";
-      mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.DK, siardPackageNormalizedPath,
+      mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.DK_2010, siardPackageNormalizedPath,
+        SIARDArchiveContainer.OutputContainerType.MAIN);
+      readStrategy = new FolderReadStrategyMD5Sum(mainContainer);
+
+      MetadataPathStrategy metadataPathStrategy = new SIARDDKMetadataPathStrategy();
+      SIARDDK2010PathImportStrategy pathStrategy = new SIARDDK2010PathImportStrategy(mainContainer, readStrategy,
+        metadataPathStrategy, paramImportAsSchema, new ResourceFileIndexInputStreamStrategy());
+
+      metadataImportStrategy = new SIARDDK2010MetadataImportStrategy(pathStrategy, paramImportAsSchema);
+    } else if (version.equals(SIARDConstants.SiardVersion.DK_2020)) {
+      String paramImportAsSchema = "public";
+      mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.DK_2020, siardPackageNormalizedPath,
         SIARDArchiveContainer.OutputContainerType.MAIN);
       readStrategy = new FolderReadStrategyMD5Sum(mainContainer);
 
@@ -129,7 +138,6 @@ public class SIARDEditModule implements EditModule {
           metadataImportStrategy = new SIARD1MetadataImportStrategy(new SIARD1MetadataPathStrategy(),
             new SIARD1ContentPathImportStrategy());
           break;
-        case DK:
         default:
           metadataImportStrategy = null;
       }

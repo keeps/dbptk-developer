@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
-public class SIARDDKEditFactory implements EditModuleFactory {
+public class SIARDDK2020EditFactory implements EditModuleFactory {
 
   public static final String PARAMETER_FOLDER = "folder";
   // public static final String PARAMETER_SET_REGEX = "regex"; -- IDEA
@@ -43,7 +43,7 @@ public class SIARDDKEditFactory implements EditModuleFactory {
 
   @Override
   public String getModuleName() {
-    return "edit-siard-dk";
+    return "edit-siard-dk-2020";
   }
 
   @Override
@@ -85,6 +85,6 @@ public class SIARDDKEditFactory implements EditModuleFactory {
 
     reporter.importModuleParameters(getModuleName(), PARAMETER_FOLDER, pFolder.normalize().toAbsolutePath().toString());
 
-    return new SIARDEditModule(pFolder, SIARDConstants.SiardVersion.DK);
+    return new SIARDEditModule(pFolder, SIARDConstants.SiardVersion.DK_2020);
   }
 }

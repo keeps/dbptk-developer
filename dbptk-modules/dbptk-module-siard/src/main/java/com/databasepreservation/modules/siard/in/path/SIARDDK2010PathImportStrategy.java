@@ -18,6 +18,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.XMLConstants;
+
+import com.databasepreservation.modules.siard.bindings.siard_dk_2010.FileIndexType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2010.FileIndexType.F;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
@@ -36,9 +39,6 @@ import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 
-import dk.sa.xmlns.diark._1_0.fileindex.FileIndexType;
-import dk.sa.xmlns.diark._1_0.fileindex.FileIndexType.F;
-
 /**
  * @author Thomas Kristensen <tk@bithuset.dk>
  * 
@@ -54,8 +54,8 @@ public class SIARDDK2010PathImportStrategy implements ContentPathImportStrategy,
   protected final SIARDArchiveContainer mainFolder;
   protected final ReadStrategy readStrategy;
   protected final MetadataPathStrategy metadataPathStrategy;
-  protected final Map<String, F> xmlFilePathLookupByFolderName = new HashMap<String, F>();
-  protected final Map<String, F> xsdFilePathLookupByFolderName = new HashMap<String, F>();
+  protected final Map<String, FileIndexType.F> xmlFilePathLookupByFolderName = new HashMap<String, FileIndexType.F>();
+  protected final Map<String, FileIndexType.F> xsdFilePathLookupByFolderName = new HashMap<String, FileIndexType.F>();
   protected final Map<String, String> folderNameLookupByTableId = new HashMap<String, String>();
   protected final Map<String, Path> archiveFolderLookupByFolderName = new HashMap<String, Path>();
 
@@ -65,6 +65,7 @@ public class SIARDDK2010PathImportStrategy implements ContentPathImportStrategy,
   // protected byte[] fileIndexExpectedMD5Sum; --For some reason, no md5sum is
   // required for fileIndex.xml in the standard
   protected byte[] tabelIndexExpectedMD5Sum;
+  protected byte[] archiveIndexExpectedMD5Sum;
   protected boolean fileIndexIsParsed;
 
   public SIARDDK2010PathImportStrategy(SIARDArchiveContainer mainFolder, ReadStrategy readStrategy,
@@ -156,7 +157,11 @@ public class SIARDDK2010PathImportStrategy implements ContentPathImportStrategy,
             // considering the files relevant for the SIARDDK import module.
             if (fileInfo.getFiN().equals(SIARDDKConstants.TABLE_INDEX + "." + SIARDDKConstants.XML_EXTENSION)) {
               tabelIndexExpectedMD5Sum = fileInfo.getMd5();
-            } /*
+            } else if (fileInfo.getFiN().equals(SIARDDKConstants.ARCHIVE_INDEX + "." +
+              SIARDDKConstants.XML_EXTENSION)) {
+              archiveIndexExpectedMD5Sum = fileInfo.getMd5();
+            }
+            /*
                * else { if (fileInfo.getFiN().equals(SIARDDKConstants.FILE_INDEX + "." +
                * SIARDDKConstants.XML_EXTENSION)) { fileIndexExpectedMD5Sum =
                * fileInfo.getMd5(); }
@@ -218,6 +223,15 @@ public class SIARDDK2010PathImportStrategy implements ContentPathImportStrategy,
 
   public byte[] getTableXMLFileMD5(String schemaName, String tableId) throws ModuleException {
     return getTableXMLFileInfo(schemaName, tableId).getMd5();
+  }
+
+  public byte[] getArchiveIndexExpectedMD5Sum() throws ModuleException {
+    if (archiveIndexExpectedMD5Sum == null && fileIndexIsParsed) {
+      throw new ModuleException()
+        .withMessage("Parsing of " + SIARDDKConstants.FILE_INDEX + "." + SIARDDKConstants.XML_EXTENSION
+          + " did not provide a md5sum for " + SIARDDKConstants.ARCHIVE_INDEX + "." + SIARDDKConstants.XML_EXTENSION);
+    }
+    return archiveIndexExpectedMD5Sum;
   }
 
   protected void canLookupXSDFilePath(String folderName) throws ModuleException {

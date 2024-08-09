@@ -8,12 +8,12 @@
 package com.databasepreservation.modules.siard.in.path;
 
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.FileIndexType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_2020.FileIndexType.F;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
-import com.databasepreservation.modules.siard.bindings.siard_dk_2020.FileIndexType;
-import com.databasepreservation.modules.siard.bindings.siard_dk_2020.FileIndexType.F;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;

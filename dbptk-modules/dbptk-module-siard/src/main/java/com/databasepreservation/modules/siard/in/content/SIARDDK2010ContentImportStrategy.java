@@ -7,8 +7,12 @@
  */
 package com.databasepreservation.modules.siard.in.content;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.DigestInputStream;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -18,6 +22,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.XMLConstants;
+
+import com.databasepreservation.common.io.providers.DummyInputStreamProvider;
+import com.databasepreservation.model.data.BinaryCell;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import dk.sa.xmlns.diark._1_0.docindex.DocIndexType;
+import dk.sa.xmlns.diark._1_0.docindex.DocumentType;
 import jakarta.xml.bind.DatatypeConverter;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -28,7 +38,13 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.TypeInfoProvider;
 import javax.xml.validation.ValidatorHandler;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import org.apache.commons.codec.Charsets;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.TypeInfo;
@@ -100,7 +116,7 @@ public class SIARDDK2010ContentImportStrategy extends DefaultHandler implements 
 
   @Override
   public void importContent(DatabaseExportModule dbExportHandler, SIARDArchiveContainer mainFolder,
-    DatabaseStructure databaseStructure, ModuleConfiguration moduleConfiguration) throws ModuleException {
+                            DatabaseStructure databaseStructure, ModuleConfiguration moduleConfiguration) throws ModuleException {
     this.databaseStructure = databaseStructure;
     pathStrategy.parseFileIndexMetadata();
     this.dbExportHandler = dbExportHandler;
@@ -108,7 +124,7 @@ public class SIARDDK2010ContentImportStrategy extends DefaultHandler implements 
     archiveContainerByAbsPath.put(mainFolder.getPath(), mainFolder);
     SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
     saxParserFactory.setValidating(false); // validation is done using the
-                                           // validatorHandler
+    // validatorHandler
     saxParserFactory.setNamespaceAware(true);
     SAXParser saxParser = null;
     DigestInputStream xsdInputStream = null;
@@ -121,81 +137,166 @@ public class SIARDDK2010ContentImportStrategy extends DefaultHandler implements 
       completedTablesInSchema = 0;
       assert (schema.getName().equals(importAsSchema));
       for (TableStructure table : schema.getTables()) {
-        currentTable = table;
-        this.dbExportHandler.handleDataOpenTable(table.getId());
-        rowIndex = 0;
-        String xsdFileName = pathStrategy.getTableXSDFilePath(schema.getName(), table.getId());
-        String xmlFileName = pathStrategy.getTableXMLFilePath(schema.getName(), table.getId());
-        Path archiveFolderLogicalPath = pathStrategy.getArchiveFolderPath(importAsSchema, table.getId());
+        if (!table.getId().split("\\.")[1].equals("virtual_table")) {
+          currentTable = table;
+          this.dbExportHandler.handleDataOpenTable(table.getId());
+          rowIndex = 0;
+          String xsdFileName = pathStrategy.getTableXSDFilePath(schema.getName(), table.getId());
+          String xmlFileName = pathStrategy.getTableXMLFilePath(schema.getName(), table.getId());
+          Path archiveFolderLogicalPath = pathStrategy.getArchiveFolderPath(importAsSchema, table.getId());
 
-        Path archiveFolderActualPath = mainFolder.getPath().resolveSibling(archiveFolderLogicalPath);
-        if (!archiveContainerByAbsPath.containsKey(archiveFolderActualPath)) {
-          archiveContainerByAbsPath.put(archiveFolderActualPath, new SIARDArchiveContainer(
-            SIARDConstants.SiardVersion.DK, archiveFolderActualPath, OutputContainerType.MAIN));
+          Path archiveFolderActualPath = mainFolder.getPath().resolveSibling(archiveFolderLogicalPath);
+          if (!archiveContainerByAbsPath.containsKey(archiveFolderActualPath)) {
+            archiveContainerByAbsPath.put(archiveFolderActualPath, new SIARDArchiveContainer(
+              SIARDConstants.SiardVersion.DK, archiveFolderActualPath, OutputContainerType.MAIN));
+          }
+          currentFolder = archiveContainerByAbsPath.get(archiveFolderActualPath);
+          ValidatorHandler validatorHandler = null;
+          try {
+            xsdInputStream = readStrategy.createInputStream(currentFolder, xsdFileName,
+              pathStrategy.getTableXSDFileMD5(schema.getName(), table.getId()));
+
+            SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            Schema xmlSchema = factory.newSchema(new StreamSource(xsdInputStream));
+            validatorHandler = xmlSchema.newValidatorHandler();
+            typeInfoProvider = validatorHandler.getTypeInfoProvider();
+            validatorHandler.setContentHandler(this);
+
+            // saxParser.setProperty(JAXP_SCHEMA_LANGUAGE,
+            // XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            // saxParser.setProperty(JAXP_SCHEMA_SOURCE, xsdInputStream);
+          } catch (SAXException e) {
+            logger.error("Error validating schema", e);
+            throw new ModuleException().withMessage("Error reading XSD file: "
+                + pathStrategy.getTableXSDFilePath(schema.getName(), table.getId()) + " for table:" + table.getId())
+              .withCause(e);
+          }
+          DigestInputStream currentTableInputStream = readStrategy.createInputStream(currentFolder, xmlFileName,
+            pathStrategy.getTableXMLFileMD5(schema.getName(), table.getId()));
+
+          SAXErrorHandler saxErrorHandler = new SAXErrorHandler();
+
+          try {
+            saxParser = saxParserFactory.newSAXParser();
+            XMLReader xmlReader = saxParser.getXMLReader();
+            xmlReader.setContentHandler(validatorHandler);
+            // xmlReader.setErrorHandler(saxErrorHandler);
+            validatorHandler.setErrorHandler(saxErrorHandler);
+            logger.debug("begin parse of xml-file:[" + xmlFileName + "], using xsd [" + xsdFileName + "]");
+            xmlReader.parse(new InputSource(currentTableInputStream));
+
+          } catch (SAXException e) {
+            throw new ModuleException()
+              .withMessage("A SAX error occurred during processing of XML table file for table:" + table.getId())
+              .withCause(e);
+          } catch (IOException e) {
+            throw new ModuleException().withMessage("Error while reading XML table file for table:" + table.getId())
+              .withCause(e);
+          } catch (ParserConfigurationException e) {
+            logger.error("Error creating XML SAXparser", e);
+            throw new ModuleException().withCause(e);
+          }
+
+          if (saxErrorHandler.hasError()) {
+            throw new ModuleException().withMessage(
+              "Parsing or validation error occurred while reading XML table file for table:" + table.getId());
+
+          }
+
+          readStrategy.closeAndVerifyMD5Sum(currentTableInputStream);
+          readStrategy.closeAndVerifyMD5Sum(xsdInputStream);
+
+          completedTablesInSchema++;
+          this.dbExportHandler.handleDataCloseTable(table.getId());
+        } else {
+          try {
+            DocIndexType docIndex = loadVirtualTableContent();
+            populateVirtualTable(docIndex, table);
+          } catch (FileNotFoundException e) {
+            throw new ModuleException()
+              .withMessage("Error reading metadata XSD file: " + pathStrategy.getXsdFilePath(SIARDDKConstants.DOC_INDEX))
+              .withCause(e);
+          }
         }
-        currentFolder = archiveContainerByAbsPath.get(archiveFolderActualPath);
-        ValidatorHandler validatorHandler = null;
-        try {
-          xsdInputStream = readStrategy.createInputStream(currentFolder, xsdFileName,
-            pathStrategy.getTableXSDFileMD5(schema.getName(), table.getId()));
-
-          SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-          Schema xmlSchema = factory.newSchema(new StreamSource(xsdInputStream));
-          validatorHandler = xmlSchema.newValidatorHandler();
-          typeInfoProvider = validatorHandler.getTypeInfoProvider();
-          validatorHandler.setContentHandler(this);
-
-          // saxParser.setProperty(JAXP_SCHEMA_LANGUAGE,
-          // XMLConstants.W3C_XML_SCHEMA_NS_URI);
-          // saxParser.setProperty(JAXP_SCHEMA_SOURCE, xsdInputStream);
-        } catch (SAXException e) {
-          logger.error("Error validating schema", e);
-          throw new ModuleException().withMessage("Error reading XSD file: "
-            + pathStrategy.getTableXSDFilePath(schema.getName(), table.getId()) + " for table:" + table.getId())
-            .withCause(e);
-        }
-        DigestInputStream currentTableInputStream = readStrategy.createInputStream(currentFolder, xmlFileName,
-          pathStrategy.getTableXMLFileMD5(schema.getName(), table.getId()));
-
-        SAXErrorHandler saxErrorHandler = new SAXErrorHandler();
-
-        try {
-          saxParser = saxParserFactory.newSAXParser();
-          XMLReader xmlReader = saxParser.getXMLReader();
-          xmlReader.setContentHandler(validatorHandler);
-          // xmlReader.setErrorHandler(saxErrorHandler);
-          validatorHandler.setErrorHandler(saxErrorHandler);
-          logger.debug("begin parse of xml-file:[" + xmlFileName + "], using xsd [" + xsdFileName + "]");
-          xmlReader.parse(new InputSource(currentTableInputStream));
-
-        } catch (SAXException e) {
-          throw new ModuleException()
-            .withMessage("A SAX error occurred during processing of XML table file for table:" + table.getId())
-            .withCause(e);
-        } catch (IOException e) {
-          throw new ModuleException().withMessage("Error while reading XML table file for table:" + table.getId())
-            .withCause(e);
-        } catch (ParserConfigurationException e) {
-          logger.error("Error creating XML SAXparser", e);
-          throw new ModuleException().withCause(e);
-        }
-
-        if (saxErrorHandler.hasError()) {
-          throw new ModuleException().withMessage(
-            "Parsing or validation error occurred while reading XML table file for table:" + table.getId());
-
-        }
-
-        readStrategy.closeAndVerifyMD5Sum(currentTableInputStream);
-        readStrategy.closeAndVerifyMD5Sum(xsdInputStream);
-
-        completedTablesInSchema++;
-        this.dbExportHandler.handleDataCloseTable(table.getId());
       }
       completedSchemas++;
       this.dbExportHandler.handleDataCloseSchema(importAsSchema);
     }
 
+  }
+
+  private void populateVirtualTable(DocIndexType docIndex, TableStructure table) throws ModuleException {
+    currentTable = table;
+    this.dbExportHandler.handleDataOpenTable(table.getId());
+    Cell[] cells = new Cell[table.getColumns().size()];
+    for (DocumentType doc : docIndex.getDoc()) {
+      int rowCounter = 0;
+      int cellCounter = 0;
+      Row row = new Row();
+      row.setIndex(rowCounter);
+      Cell dIDCell = new SimpleCell("dID." + rowCounter, doc.getDID().toString());
+      cells[cellCounter] = dIDCell;
+      cellCounter++;
+      String binPath = pathStrategy.getMainFolder().getPath().toString() + "/Documents/" + doc.getDCf() + "/" + doc.getDID() + "/"
+        + doc.getMID() + "." + doc.getAFt();
+      try {
+        Cell blobCell = new BinaryCell("blob." + rowCounter, new DummyInputStreamProvider(), binPath, 0L, DigestUtils.sha1Hex(FileUtils.readFileToByteArray(Paths.get(binPath).toFile())), DigestUtils.getSha1Digest().toString());
+        cells[cellCounter] = blobCell;
+        cellCounter++;
+        rowCounter++;
+        List<Cell> lstCells = Arrays.asList(cells);
+        assert !lstCells.contains(null);
+        row.setCells(lstCells);
+        this.dbExportHandler.handleDataRow(row);
+      } catch (ModuleException | IOException e) {
+        throw new ModuleException().withMessage("Error handling data row index:" + rowCounter).withCause(e);
+      }
+    }
+    this.dbExportHandler.handleDataCloseTable(table.getId());
+  }
+
+  private DocIndexType loadVirtualTableContent() throws ModuleException, FileNotFoundException {
+    JAXBContext context;
+    try {
+      context = JAXBContext.newInstance(DocIndexType.class.getPackage().getName());
+    } catch (JAXBException e) {
+      throw new ModuleException().withMessage("Error loading JAXBContext").withCause(e);
+    }
+
+    SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+    Schema xsdSchema = null;
+    InputStream xsdInputStream = new FileInputStream(pathStrategy.getMainFolder().getPath().toString() + "/"
+      + pathStrategy.getXsdFilePath(SIARDDKConstants.DOC_INDEX));
+
+    try {
+      xsdSchema = schemaFactory.newSchema(new StreamSource(xsdInputStream));
+    } catch (SAXException e) {
+      throw new ModuleException()
+        .withMessage("Error reading metadata XSD file: " + pathStrategy.getXsdFilePath(SIARDDKConstants.DOC_INDEX))
+        .withCause(e);
+    }
+    InputStream inputStreamXml = null;
+    Unmarshaller unmarshaller;
+    try {
+      unmarshaller = context.createUnmarshaller();
+      unmarshaller.setSchema(xsdSchema);
+      inputStreamXml = new FileInputStream(pathStrategy.getMainFolder().getPath().toString() + "/" +
+        pathStrategy.getXmlFilePath(SIARDDKConstants.DOC_INDEX));
+      JAXBElement<DocIndexType> jaxbElement = (JAXBElement<DocIndexType>) unmarshaller.unmarshal(inputStreamXml);
+      return jaxbElement.getValue();
+    } catch (JAXBException e) {
+      throw new ModuleException().withMessage("Error while Unmarshalling JAXB").withCause(e);
+    } finally {
+      try {
+        xsdInputStream.close();
+        if (inputStreamXml != null) {
+          inputStreamXml.close();
+          xsdInputStream.close();
+        }
+      } catch (IOException e) {
+        logger.debug("Could not close xsdStream", e);
+      }
+    }
   }
 
   @Override

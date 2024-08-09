@@ -366,20 +366,6 @@ public class SIARDDK2020ContentImportStrategy extends DefaultHandler implements 
           Cell cell;
           String preparedCellVal = currentTagContentStrBld.toString().trim();
           if (currentCellType instanceof SimpleTypeBinary) {
-//            try {
-//              String docIndexPath = pathStrategy.getMainFolder().getPath().toString() + "/" + pathStrategy.getXmlFilePath("docIndex");
-//              String dId = XMLUtils.getDocIndexTagValue(docIndexPath, "dID", rowIndex);
-//              String dCf = XMLUtils.getDocIndexTagValue(docIndexPath, "dCf", rowIndex);
-//              String aFt = XMLUtils.getDocIndexTagValue(docIndexPath, "aFt", rowIndex);
-//              String mId = XMLUtils.getDocIndexTagValue(docIndexPath, "mID", rowIndex);
-//              String oFn = XMLUtils.getDocIndexTagValue(docIndexPath, "oFn", rowIndex);
-//              String binPath = pathStrategy.getMainFolder().getPath().toString() + "/Documents/" + dCf + "/" + dId + "/"
-//                      + mId + "." + aFt;
-//              InputStream is = new FileInputStream(binPath);
-//              cell = new BinaryCell(oFn, is);
-//            } catch (FileNotFoundException | ModuleException e) {
-//              throw new RuntimeException(e);
-//            }
             ModuleException ex = new ModuleException()
               .withMessage("Siard-dk does not support import of binary values into the db");
             logger.error("Siard-dk does not support the import of binary values into the db", ex);
