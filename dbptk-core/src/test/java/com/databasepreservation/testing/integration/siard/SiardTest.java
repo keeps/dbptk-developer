@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.databasepreservation.model.structure.virtual.VirtualForeignKey;
+import com.databasepreservation.model.structure.virtual.VirtualTableStructure;
 import com.databasepreservation.modules.siard.in.input.SIARDDK1007ImportModule;
 import org.joda.time.DateTime;
 import org.mockito.ArgumentCaptor;
@@ -156,7 +158,7 @@ public class SiardTest {
     }
     for (SchemaStructure orgSchema : other.getSchemas()) {
       for (TableStructure tableStructure : other.getSchemas().get(0).getTables()) {
-        if (tableStructure.getName().equals("virtual_table")) {
+        if (tableStructure instanceof VirtualTableStructure) {
           other.getSchemas().get(0).getTables().remove(tableStructure);
         }
       }
@@ -165,7 +167,7 @@ public class SiardTest {
       for (TableStructure tableStructure : schemaStructure.getTables()) {
         List<ForeignKey> foreignKeys = tableStructure.getForeignKeys();
         if (foreignKeys != null) {
-          foreignKeys.removeIf(fk -> fk.getName().equals("FK_virtual_table"));
+          foreignKeys.removeIf(fk -> fk instanceof VirtualForeignKey);
         }
       }
     }

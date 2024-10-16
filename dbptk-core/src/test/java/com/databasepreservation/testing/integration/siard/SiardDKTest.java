@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.databasepreservation.model.structure.virtual.VirtualTableStructure;
 import org.apache.commons.io.FileUtils;
 import org.testng.collections.Lists;
 
@@ -149,7 +150,7 @@ public class SiardDKTest extends SiardTest {
     int virtualTableCounter = 0;
     for (SchemaStructure orgSchema : orgDbStructure.getSchemas()) {
       for (TableStructure tableStructure : databaseStructure.getSchemas().get(0).getTables()) {
-        if (tableStructure.getName().equals("virtual_table")) {
+        if (tableStructure instanceof VirtualTableStructure) {
           virtualTableCounter++;
         }
       }

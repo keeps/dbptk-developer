@@ -15,6 +15,10 @@ import java.io.File;
  */
 public class SIARDDKConstants {
 
+  // siardk versions
+  public static final String SIARDDK_128 = "128";
+  public static final String SIARDDK_1007= "1007";
+
   // System dependent file seperator etc. ("/" on Linux and "\" on Windows)
   public static final String FILE_SEPARATOR = File.separator;
   public static final String RESOURCE_FILE_SEPARATOR = "/";
@@ -49,6 +53,17 @@ public class SIARDDKConstants {
   public static final String DOC_INDEX = "docIndex";
   public static final String DOCUMENT_IDENTIFICATION = "documentIdentification";
   public static final String XML_SCHEMA = "XMLSchema";
+
+  // Virtual Table
+  public static final String VIRTUAL_TABLE_NAME = "virtual_table";
+  public static final String VIRTUAL_TABLE_DESCRIPTION = "A virtual table";
+  public static final String VIRTUAL_TABLE_FOREIGN_KEY_NAME = "FK_virtual_table";
+  public static final String VIRTUAL_TABLE_PRIMARY_KEY_NAME = "PK_virtual_table";
+  public static final String VIRTUAL_TABLE_PRIMARY_KEY_DESCRIPTION = "virtual table primary key";
+
+  // DocIndex constants
+  public static final String DID = "dID";
+  public static final String DOCUMENT_IDENTIFIER = "Document identifier";
 
   // Constants for LOBs
   public static final String BINARY_LARGE_OBJECT = "BINARY LARGE OBJECT";

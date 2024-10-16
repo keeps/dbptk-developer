@@ -19,7 +19,6 @@ import com.databasepreservation.modules.siard.in.read.ReadStrategy;
  *
  */
 class ArchiveFileIndexInputStreamStrategy implements FileIndexXsdInputStreamStrategy {
-
   /*
    * (non-Javadoc)
    * 
@@ -29,19 +28,10 @@ class ArchiveFileIndexInputStreamStrategy implements FileIndexXsdInputStreamStra
    * SIARDDKPathImportStrategy)
    */
   @Override
-  public InputStream getInputStream(SIARDDK1007PathImportStrategy siarddk1007PathImportStrategy) throws ModuleException {
-    ReadStrategy readStrategy = siarddk1007PathImportStrategy.getReadStrategy();
-    SIARDArchiveContainer mainFolder = siarddk1007PathImportStrategy.getMainFolder();
-    String xsdFilePath = siarddk1007PathImportStrategy.getXsdFilePath(SIARDDKConstants.FILE_INDEX);
-
-    return readStrategy.createInputStream(mainFolder, xsdFilePath);
-  }
-
-  @Override
-  public InputStream getInputStream(SIARDDK128PathImportStrategy siarddk128PathImportStrategy) throws ModuleException {
-    ReadStrategy readStrategy = siarddk128PathImportStrategy.getReadStrategy();
-    SIARDArchiveContainer mainFolder = siarddk128PathImportStrategy.getMainFolder();
-    String xsdFilePath = siarddk128PathImportStrategy.getXsdFilePath(SIARDDKConstants.FILE_INDEX);
+  public InputStream getInputStream(SIARDDKPathImportStrategy<?, ?> strategy) throws ModuleException {
+    ReadStrategy readStrategy = strategy.getReadStrategy();
+    SIARDArchiveContainer mainFolder = strategy.getMainFolder();
+    String xsdFilePath = strategy.getXsdFilePath(SIARDDKConstants.FILE_INDEX);
 
     return readStrategy.createInputStream(mainFolder, xsdFilePath);
   }
