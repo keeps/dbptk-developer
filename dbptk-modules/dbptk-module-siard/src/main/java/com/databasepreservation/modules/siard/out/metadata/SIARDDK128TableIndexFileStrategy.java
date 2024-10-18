@@ -43,257 +43,240 @@ import java.util.List;
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public class SIARDDK128TableIndexFileStrategy implements IndexFileStrategy {
-
-  // LOBsTracker used to get the locations of functionalDescriptions
-  private LOBsTracker lobsTracker;
-  private String regex;
+public class SIARDDK128TableIndexFileStrategy extends
+  SIARDDKTableIndexFileStrategy<SiardDiark, TablesType, TableType, ColumnType, ColumnsType, PrimaryKeyType, ForeignKeysType, ForeignKeyType, ReferenceType, ViewType, ViewsType, FunctionalDescriptionType> {
 
   public SIARDDK128TableIndexFileStrategy(LOBsTracker lobsTracker) {
-    this.lobsTracker = lobsTracker;
-    regex = "(\\p{L}(_|\\w)*)|(\".*\")";
+    super(lobsTracker);
   }
-
-  private static final Logger logger = LoggerFactory.getLogger(SIARDDK128TableIndexFileStrategy.class);
 
   @Override
-  public Object generateXML(DatabaseStructure dbStructure) throws ModuleException {
-
-    // Set version - mandatory
-    SiardDiark siardDiark = new SiardDiark();
-    siardDiark.setVersion("1.0");
-
-    // Set dbName - mandatory
-    siardDiark.setDbName(dbStructure.getDbOriginalName());
-
-    // Set databaseProduct
-    if (StringUtils.isNotBlank(dbStructure.getProductName())) {
-      siardDiark.setDatabaseProduct(dbStructure.getProductName());
-    }
-
-    // Set tables - mandatory
-    int tableCounter = 1;
-    TablesType tablesType = new TablesType();
-
-    List<SchemaStructure> schemas = dbStructure.getSchemas();
-    // System.out.println(schemas.get(0));
-
-    // Check that all tables have primary keys
-    List<String> tablesWithNoPrimaryKeys = new ArrayList<String>();
-    StringBuilder tableListBuilder = new StringBuilder();
-    for (SchemaStructure schemaStructure : schemas) {
-      if (!schemaStructure.getTables().isEmpty()) {
-        for (TableStructure tableStructure : schemaStructure.getTables()) {
-          PrimaryKey primaryKey = tableStructure.getPrimaryKey();
-          if (primaryKey == null) {
-            tablesWithNoPrimaryKeys.add(tableStructure.getName());
-            tableListBuilder.append(schemaStructure.getName()).append(".").append(tableStructure.getName())
-              .append(", ");
-          }
-        }
-      }
-    }
-    if (!tablesWithNoPrimaryKeys.isEmpty()) {
-      logger.warn(
-        "No primary keys in the following table(s): " + tableListBuilder.substring(0, tableListBuilder.length() - 2));
-    }
-
-    for (SchemaStructure schemaStructure : schemas) {
-      if (schemaStructure.getTables().isEmpty()) {
-        logger.info("No tables found in this schema: " + schemaStructure.getName());
-        continue;
-      } else {
-        for (TableStructure tableStructure : schemaStructure.getTables()) {
-
-          // Set table - mandatory
-
-          TableType tableType = new TableType();
-
-          // Set name - mandatory
-          tableType.setName(escapeString(tableStructure.getName()));
-
-          // Set folder - mandatory
-          tableType.setFolder("table" + Integer.toString(tableCounter));
-
-          // Set description
-          if (tableStructure.getDescription() != null && !tableStructure.getDescription().trim().isEmpty()) {
-            tableType.setDescription(tableStructure.getDescription().trim());
-          } else {
-            tableType.setDescription("Description should be entered manually");
-          }
-
-          // Set columns - mandatory
-          int columnCounter = 1;
-          ColumnsType columns = new ColumnsType();
-          for (ColumnStructure columnStructure : tableStructure.getColumns()) {
-
-            // Set column - mandatory
-
-            ColumnType column = new ColumnType();
-            Type type = columnStructure.getType();
-
-            // Set column name - mandatory
-            column.setName(escapeString(columnStructure.getName()));
-
-            // Set columnID - mandatory
-            column.setColumnID("c" + Integer.toString(columnCounter));
-
-            // Set type - mandatory
-            String sql99DataType = type.getSql99TypeName();
-            if (sql99DataType.equals(SIARDDKConstants.BINARY_LARGE_OBJECT)) {
-              column.setType("INTEGER");
-            } else if (sql99DataType.equals(SIARDDKConstants.CHARACTER_LARGE_OBJECT)) {
-
-              if (lobsTracker.getMaxClobLength(tableCounter, columnCounter) > 0) {
-                column.setType(SIARDDKConstants.DEFAULT_CLOB_TYPE + "("
-                  + lobsTracker.getMaxClobLength(tableCounter, columnCounter) + ")");
-              } else {
-                column.setType(SIARDDKConstants.DEFAULT_CLOB_TYPE + "(1)");
-              }
-            } else if (sql99DataType.startsWith("BIT VARYING") || sql99DataType.startsWith("BINARY VARYING")) {
-
-              // Convert BIT VARYING/BINARY VARYING TO CHARACTER VARYING
-
-              String length = sql99DataType.split("\\(")[1].trim();
-              length = length.substring(0, length.length() - 1);
-              column.setType("CHARACTER VARYING(" + length + ")");
-
-            } else {
-              column.setType(type.getSql99TypeName());
-            }
-
-            // Set typeOriginal
-            if (StringUtils.isNotBlank(type.getOriginalTypeName())) {
-              column.setTypeOriginal(type.getOriginalTypeName());
-            }
-
-            // Set defaultValue
-            if (StringUtils.isNotBlank(columnStructure.getDefaultValue())) {
-              column.setDefaultValue(columnStructure.getDefaultValue());
-            }
-
-            // Set nullable
-            column.setNullable(columnStructure.isNillable());
-
-            // Set description
-            if (columnStructure.getDescription() != null && !columnStructure.getDescription().trim().isEmpty()) {
-              column.setDescription(columnStructure.getDescription().trim());
-            } else {
-              column.setDescription("Description should be set");
-            }
-
-            // Set functionalDescription
-            String lobType = lobsTracker.getLOBsType(tableCounter, columnCounter);
-            if (lobType != null) {
-              if (lobType.equals(SIARDDKConstants.BINARY_LARGE_OBJECT)) {
-                FunctionalDescriptionType functionalDescriptionType = FunctionalDescriptionType.DOKUMENTIDENTIFIKATION;
-                column.getFunctionalDescription().add(functionalDescriptionType);
-              }
-            }
-
-            columns.getColumn().add(column);
-            columnCounter += 1;
-
-          }
-          tableType.setColumns(columns);
-
-          // Set primary key - mandatory
-          PrimaryKeyType primaryKeyType = new PrimaryKeyType(); // JAXB
-          PrimaryKey primaryKey = tableStructure.getPrimaryKey();
-          if (primaryKey == null) {
-            primaryKeyType.setName("MISSING");
-            primaryKeyType.getColumn().add("MISSING");
-          } else {
-            primaryKeyType.setName(escapeString(primaryKey.getName()));
-            List<String> columnNames = primaryKey.getColumnNames();
-            for (String columnName : columnNames) {
-              // Set column names for primary key
-
-              primaryKeyType.getColumn().add(escapeString(columnName));
-            }
-          }
-          tableType.setPrimaryKey(primaryKeyType);
-
-          // Set foreignKeys
-          ForeignKeysType foreignKeysType = new ForeignKeysType();
-          List<ForeignKey> foreignKeys = tableStructure.getForeignKeys();
-          if (foreignKeys != null && foreignKeys.size() > 0) {
-            for (ForeignKey key : foreignKeys) {
-              ForeignKeyType foreignKeyType = new ForeignKeyType();
-
-              // Set key name - mandatory
-              foreignKeyType.setName(escapeString(key.getName()));
-
-              // Set referenced table - mandatory
-              foreignKeyType.setReferencedTable(escapeString(key.getReferencedTable()));
-
-              // Set reference - mandatory
-              for (Reference ref : key.getReferences()) {
-                ReferenceType referenceType = new ReferenceType();
-                referenceType.setColumn(escapeString(ref.getColumn()));
-                referenceType.setReferenced(escapeString(ref.getReferenced()));
-                foreignKeyType.getReference().add(referenceType);
-              }
-              foreignKeysType.getForeignKey().add(foreignKeyType);
-            }
-            tableType.setForeignKeys(foreignKeysType);
-          }
-
-          // Set rows
-          if (tableStructure.getRows() >= 0) {
-            tableType.setRows(BigInteger.valueOf(tableStructure.getRows()));
-          } else {
-            throw new ModuleException()
-              .withMessage("Error while exporting table structure: number of table rows not set");
-          }
-
-          tablesType.getTable().add(tableType);
-
-          tableCounter += 1;
-        }
-
-        // Set views
-        List<ViewStructure> viewStructures = schemaStructure.getViews();
-
-        if (viewStructures != null && viewStructures.size() > 0) {
-          ViewsType viewsType = new ViewsType();
-          for (ViewStructure viewStructure : viewStructures) {
-
-            // Set view - mandatory
-            ViewType viewType = new ViewType();
-
-            // Set view name - mandatory
-            viewType.setName(escapeString(viewStructure.getName()));
-
-            // Set queryOriginal - mandatory
-            if (StringUtils.isNotBlank(viewStructure.getQueryOriginal())) {
-              viewType.setQueryOriginal(viewStructure.getQueryOriginal());
-            } else {
-              viewType.setQueryOriginal("unknown");
-            }
-
-            // Set description
-            if (StringUtils.isNotBlank(viewStructure.getDescription())) {
-              viewType.setDescription(viewStructure.getDescription());
-            }
-
-            viewsType.getView().add(viewType);
-          }
-          siardDiark.setViews(viewsType);
-        }
-      }
-    }
-    siardDiark.setTables(tablesType);
-
-    return siardDiark;
+  SiardDiark createSiardDiarkInstance() {
+    return new SiardDiark();
   }
 
-  String escapeString(String s) {
-    if (s.matches(regex)) {
-      return s;
-    } else {
-      s = new StringBuilder().append("\"").append(s).append("\"").toString();
-    }
-    return s;
+  @Override
+  TableType createTableTypeInstance() {
+    return new TableType();
+  }
+
+  @Override
+  TablesType createTablesTypeInstance() {
+    return new TablesType();
+  }
+
+  @Override
+  ColumnType createColumnTypeInstance() {
+    return new ColumnType();
+  }
+
+  @Override
+  ColumnsType createColumnsTypeInstance() {
+    return new ColumnsType();
+  }
+
+  @Override
+  PrimaryKeyType createPrimaryKeyTypeInstance() {
+    return new PrimaryKeyType();
+  }
+
+  @Override
+  ForeignKeysType createForeignKeysTypeInstance() {
+    return new ForeignKeysType();
+  }
+
+  @Override
+  ForeignKeyType createForeignKeyTypeInstance() {
+    return new ForeignKeyType();
+  }
+
+  @Override
+  ReferenceType createReferenceTypeInstance() {
+    return new ReferenceType();
+  }
+
+  @Override
+  ViewType createViewTypeInstance() {
+    return new ViewType();
+  }
+
+  @Override
+  ViewsType createViewsTypeInstance() {
+    return new ViewsType();
+  }
+
+  @Override
+  void setDbName(SiardDiark siardDiark, String dbName) {
+    siardDiark.setDbName(dbName);
+  }
+
+  @Override
+  void setVersion(SiardDiark siardDiark, String version) {
+    siardDiark.setVersion(version);
+  }
+
+  @Override
+  void setDatabaseProduct(SiardDiark siardDiark, String databaseProduct) {
+    siardDiark.setDatabaseProduct(databaseProduct);
+  }
+
+  @Override
+  void setColumnName(ColumnType columnType, String name) {
+    columnType.setName(name);
+  }
+
+  @Override
+  void setColumnID(ColumnType columnType, String id) {
+    columnType.setColumnID(id);
+  }
+
+  @Override
+  void setType(ColumnType columnType, String type) {
+    columnType.setType(type);
+  }
+
+  @Override
+  void setTypeOriginal(ColumnType columnType, String typeOriginal) {
+    columnType.setTypeOriginal(typeOriginal);
+  }
+
+  @Override
+  void setDefaultValue(ColumnType columnType, String defaultValue) {
+    columnType.setDefaultValue(defaultValue);
+  }
+
+  @Override
+  void setNullable(ColumnType columnType, boolean nullable) {
+    columnType.setNullable(nullable);
+  }
+
+  @Override
+  List<FunctionalDescriptionType> getFunctionalDescription(ColumnType columnType) {
+    return columnType.getFunctionalDescription();
+  }
+
+  @Override
+  void setColumnDescription(ColumnType columnType, String description) {
+    columnType.setDescription(description);
+  }
+
+  @Override
+  void setTableName(TableType tableType, String name) {
+    tableType.setName(name);
+  }
+
+  @Override
+  void setFolder(TableType tableType, String folder) {
+    tableType.setFolder(folder);
+  }
+
+  @Override
+  void setTableDescription(TableType tableType, String description) {
+    tableType.setDescription(description);
+  }
+
+  @Override
+  void setColumns(TableType tableType, ColumnsType columns) {
+    tableType.setColumns(columns);
+  }
+
+  @Override
+  void setForeignKeys(TableType tableType, ForeignKeysType foreignKeysType) {
+    tableType.setForeignKeys(foreignKeysType);
+  }
+
+  @Override
+  void setRows(TableType tableType, BigInteger rows) {
+    tableType.setRows(rows);
+  }
+
+  @Override
+  void setPrimaryKey(TableType tableType, PrimaryKeyType primaryKeyType) {
+    tableType.setPrimaryKey(primaryKeyType);
+  }
+
+  @Override
+  List<TableType> getTable(TablesType tablesType) {
+    return tablesType.getTable();
+  }
+
+  @Override
+  List<ColumnType> getColumn(ColumnsType columns) {
+    return columns.getColumn();
+  }
+
+  @Override
+  FunctionalDescriptionType createDOKUMENTIDENTIFIKATION() {
+    return FunctionalDescriptionType.DOKUMENTIDENTIFIKATION;
+  }
+
+  @Override
+  void setPrimaryKeyName(PrimaryKeyType primaryKeyType, String name) {
+    primaryKeyType.setName(name);
+  }
+
+  @Override
+  List<String> getPrimaryKeyTypeColumn(PrimaryKeyType primaryKeyType) {
+    return primaryKeyType.getColumn();
+  }
+
+  @Override
+  void setForeignKeyName(ForeignKeyType foreignKeyType, String name) {
+    foreignKeyType.setName(name);
+  }
+
+  @Override
+  List<ReferenceType> getReference(ForeignKeyType foreignKeyType) {
+    return foreignKeyType.getReference();
+  }
+
+  @Override
+  List<ForeignKeyType> getForeignKey(ForeignKeysType foreignKeysType) {
+    return foreignKeysType.getForeignKey();
+  }
+
+  @Override
+  void setReferencedTable(ForeignKeyType foreignKeyType, String referencedTable) {
+    foreignKeyType.setReferencedTable(referencedTable);
+  }
+
+  @Override
+  void setReferencedColumn(ReferenceType referenceType, String referencedColumn) {
+    referenceType.setColumn(referencedColumn);
+  }
+
+  @Override
+  void setReferenced(ReferenceType referenceType, String referenced) {
+    referenceType.setReferenced(referenced);
+  }
+
+  @Override
+  void setViewName(ViewType viewType, String name) {
+    viewType.setName(name);
+  }
+
+  @Override
+  void setQueryOriginal(ViewType viewType, String query) {
+    viewType.setQueryOriginal(query);
+  }
+
+  @Override
+  void setViewDescription(ViewType viewType, String description) {
+    viewType.setDescription(description);
+  }
+
+  @Override
+  List<ViewType> getView(ViewsType viewsType) {
+    return viewsType.getView();
+  }
+
+  @Override
+  void setViews(SiardDiark siardDiark, ViewsType viewsType) {
+    siardDiark.setViews(viewsType);
+  }
+
+  @Override
+  void setTables(SiardDiark siardDiark, TablesType tablesType) {
+    siardDiark.setTables(tablesType);
   }
 }

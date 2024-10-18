@@ -8,74 +8,64 @@
 package com.databasepreservation.modules.siard.out.metadata;
 
 import java.math.BigInteger;
-
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.structure.DatabaseStructure;
+import java.util.List;
 
 import dk.sa.xmlns.diark._1_0.docindex.DocIndexType;
 import dk.sa.xmlns.diark._1_0.docindex.DocumentType;
 
 /**
- * @author Andreas Kring <andreas@magenta.dk>
+ * @author António Lindo <alindo@keep.pt>
  *
  */
-public class SIARDDK1007DocIndexFileStrategy implements IndexFileStrategy {
-
-  private DocIndexType docIndex;
+public class SIARDDK1007DocIndexFileStrategy extends SIARDDKDocIndexFileStrategy<DocIndexType, DocumentType> {
 
   public SIARDDK1007DocIndexFileStrategy() {
-    docIndex = new DocIndexType();
+    super();
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.databasepreservation.modules.siard.out.metadata.IndexFileStrategy#
-   * generateXML(com.databasepreservation.model.structure.DatabaseStructure)
-   */
   @Override
-  public Object generateXML(DatabaseStructure dbStructure) throws ModuleException {
-    return docIndex;
+  DocIndexType createDocIndexTypeInstance() {
+    return new DocIndexType();
   }
 
-  /**
-   * Adds a doc element to the docIndex
-   * 
-   * @param dID
-   *          value of the dID
-   * @param pID
-   *          value of the pID (only set if pID > 0)
-   * @param mID
-   *          value of the mID
-   * @param docCollectionNumber
-   *          value to append to "docCollection"
-   * @param oFn
-   *          original filename
-   * @param aFt
-   *          the filename extension
-   * @param gmlXsd
-   *          ...
-   * @return the doc element containing the given data
-   */
-  public DocumentType addDoc(int dID, int pID, int mID, int docCollectionNumber, String oFn, String aFt,
-    String gmlXsd) {
-    DocumentType doc = new DocumentType();
+  @Override
+  DocumentType createDocumentTypeInstance() {
+    return new DocumentType();
+  }
 
-    doc.setDID(BigInteger.valueOf(dID));
-    if (pID > 0) {
-      // TO-DO: set pID
-    }
-    doc.setMID(BigInteger.valueOf(mID));
-    doc.setDCf("docCollection" + docCollectionNumber);
+  @Override
+  void setDID(DocumentType doc, BigInteger value) {
+    doc.setDID(value);
+  }
+
+  @Override
+  void setMID(DocumentType doc, BigInteger value) {
+    doc.setMID(value);
+  }
+
+  @Override
+  void setDCf(DocumentType doc, String dCf) {
+    doc.setDCf(dCf);
+  }
+
+  @Override
+  void setOFn(DocumentType doc, String oFn) {
     doc.setOFn(oFn);
+  }
+
+  @Override
+  void setAFt(DocumentType doc, String aFt) {
     doc.setAFt(aFt);
-    if (gmlXsd != null) {
-      doc.setGmlXsd(gmlXsd);
-    }
+  }
 
-    docIndex.getDoc().add(doc);
+  @Override
+  void setGmlXsd(DocumentType doc, String gmlXsd) {
+    doc.setGmlXsd(gmlXsd);
+  }
 
-    return doc;
+  @Override
+  List<DocumentType> getDoc(DocIndexType docIndex) {
+    return docIndex.getDoc();
   }
 
 }
