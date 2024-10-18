@@ -12,7 +12,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
-import com.databasepreservation.modules.siard.out.path.SIARDDKContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.path.SIARDDK1007ContentPathExportStrategy;
 
 public class TestSIARDDKContentExportPathStrategy {
 
@@ -20,7 +20,7 @@ public class TestSIARDDKContentExportPathStrategy {
 
   @BeforeMethod
   public void setUp() {
-    c = new SIARDDKContentPathExportStrategy(null);
+    c = new SIARDDK1007ContentPathExportStrategy(null);
   }
 
   @Test
