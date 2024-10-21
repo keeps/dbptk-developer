@@ -1,13 +1,33 @@
-/**
- * The contents of this file are subject to the license and copyright
- * detailed in the LICENSE file at the root of the source
- * tree and available online at
- *
- * https://github.com/keeps/db-preservation-toolkit
- */
-// TODO: this class needs some cleaning up
-
 package com.databasepreservation.modules.siard.out.content;
+
+import com.databasepreservation.model.data.BinaryCell;
+import com.databasepreservation.model.data.Cell;
+import com.databasepreservation.model.data.ComposedCell;
+import com.databasepreservation.model.data.NullCell;
+import com.databasepreservation.model.data.Row;
+import com.databasepreservation.model.data.SimpleCell;
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.Reporter;
+import com.databasepreservation.model.structure.ColumnStructure;
+import com.databasepreservation.model.structure.SchemaStructure;
+import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.modules.siard.common.LargeObject;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.constants.SIARDConstants;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.out.metadata.SIARDDKDocIndexFileStrategy;
+import com.databasepreservation.modules.siard.out.metadata.SIARDDKFileIndexFileStrategy;
+import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
+import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.write.WriteStrategy;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.IOUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.Namespace;
+import org.jdom2.output.XMLOutputter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
@@ -18,55 +38,21 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
-import com.databasepreservation.modules.siard.out.metadata.SIARDDK1007FileIndexFileStrategy;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.IOUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.Namespace;
-import org.jdom2.output.XMLOutputter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.databasepreservation.model.reporters.Reporter;
-import com.databasepreservation.model.data.BinaryCell;
-import com.databasepreservation.model.data.Cell;
-import com.databasepreservation.model.data.ComposedCell;
-import com.databasepreservation.model.data.NullCell;
-import com.databasepreservation.model.data.Row;
-import com.databasepreservation.model.data.SimpleCell;
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.structure.ColumnStructure;
-import com.databasepreservation.model.structure.SchemaStructure;
-import com.databasepreservation.model.structure.TableStructure;
-import com.databasepreservation.modules.siard.common.LargeObject;
-import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.databasepreservation.modules.siard.constants.SIARDConstants;
-import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
-import com.databasepreservation.modules.siard.out.metadata.SIARDDK1007DocIndexFileStrategy;
-import com.databasepreservation.modules.siard.out.output.SIARDDK1007ExportModule;
-import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
-import com.databasepreservation.modules.siard.out.write.WriteStrategy;
-
-/**
- * @author Andreas Kring <andreas@magenta.dk>
- *
- */
-public class SIARDDK1007ContentExportStrategy implements ContentExportStrategy {
+public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
   private static final String ENCODING = "utf-8";
   private static final String TAB = "  ";
   private static final String namespaceBase = "http://www.sa.dk/xmlns/siard/"
-    + SIARDConstants.SiardVersion.DK.getNamespace() + "/";
-  private static final Logger logger = LoggerFactory.getLogger(SIARDDK1007ContentExportStrategy.class);
+          + SIARDConstants.SiardVersion.DK.getNamespace() + "/";
+  private static final Logger logger = LoggerFactory.getLogger(SIARDDKContentExportStrategy.class);
 
   private int tableCounter;
   private boolean foundClob;
   private boolean foundUnknownMimetype;
 
   private final ContentPathExportStrategy contentPathExportStrategy;
-  private final SIARDDK1007FileIndexFileStrategy SIARDDK1007FileIndexFileStrategy;
-  private final SIARDDK1007DocIndexFileStrategy SIARDDK1007DocIndexFileStrategy;
+  private final SIARDDKFileIndexFileStrategy SIARDDKFileIndexFileStrategy;
+  private final SIARDDKDocIndexFileStrategy SIARDDKDocIndexFileStrategy;
   private final SIARDArchiveContainer baseContainer;
   private OutputStream tableXmlOutputStream;
   private OutputStream tableXsdOutputStream;
@@ -77,7 +63,7 @@ public class SIARDDK1007ContentExportStrategy implements ContentExportStrategy {
 
   private Reporter reporter;
 
-  public SIARDDK1007ContentExportStrategy(SIARDDK1007ExportModule siarddk1007ExportModule) {
+  public SIARDDKContentExportStrategy(SIARDDKExportModule siarddkExportModule) {
 
     tableCounter = 1;
     foundClob = false;
@@ -85,12 +71,12 @@ public class SIARDDK1007ContentExportStrategy implements ContentExportStrategy {
 
     mimetypeHandler = new SIARDDKMimetypeHandler();
 
-    contentPathExportStrategy = siarddk1007ExportModule.getContentPathExportStrategy();
-    SIARDDK1007FileIndexFileStrategy = siarddk1007ExportModule.getFileIndexFileStrategy();
-    SIARDDK1007DocIndexFileStrategy = siarddk1007ExportModule.getDocIndexFileStrategy();
-    baseContainer = siarddk1007ExportModule.getMainContainer();
-    writeStrategy = siarddk1007ExportModule.getWriteStrategy();
-    lobsTracker = siarddk1007ExportModule.getLobsTracker();
+    contentPathExportStrategy = siarddkExportModule.getContentPathExportStrategy();
+    SIARDDKFileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
+    SIARDDKDocIndexFileStrategy = siarddkExportModule.getDocIndexFileStrategy();
+    baseContainer = siarddkExportModule.getMainContainer();
+    writeStrategy = siarddkExportModule.getWriteStrategy();
+    lobsTracker = siarddkExportModule.getLobsTracker();
   }
 
   @Override
@@ -108,8 +94,8 @@ public class SIARDDK1007ContentExportStrategy implements ContentExportStrategy {
   @Override
   public void openTable(TableStructure tableStructure) throws ModuleException {
 
-    tableXmlOutputStream = SIARDDK1007FileIndexFileStrategy.getWriter(baseContainer,
-      contentPathExportStrategy.getTableXmlFilePath(0, tableCounter), writeStrategy);
+    tableXmlOutputStream = SIARDDKFileIndexFileStrategy.getWriter(baseContainer,
+            contentPathExportStrategy.getTableXmlFilePath(0, tableCounter), writeStrategy);
 
     try {
       tableXmlWriter = new BufferedWriter(new OutputStreamWriter(tableXmlOutputStream, ENCODING));
@@ -123,11 +109,11 @@ public class SIARDDK1007ContentExportStrategy implements ContentExportStrategy {
     StringBuilder builder = new StringBuilder();
     builder.append("<?xml version=\"1.0\" encoding=\"").append(ENCODING).append("\"?>\n")
 
-      .append("<table xsi:schemaLocation=\"")
-      .append(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableCounter)).append(" ")
-      .append(contentPathExportStrategy.getTableXsdFileName(tableCounter)).append("\" ").append("xmlns=\"")
-      .append(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableCounter)).append("\" ")
-      .append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"").append(">").append("\n");
+            .append("<table xsi:schemaLocation=\"")
+            .append(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableCounter)).append(" ")
+            .append(contentPathExportStrategy.getTableXsdFileName(tableCounter)).append("\" ").append("xmlns=\"")
+            .append(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableCounter)).append("\" ")
+            .append("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"").append(">").append("\n");
 
     try {
       tableXmlWriter.write(builder.toString());
@@ -140,14 +126,14 @@ public class SIARDDK1007ContentExportStrategy implements ContentExportStrategy {
 
     // Set namespaces for schema
     Namespace defaultNamespace = Namespace
-      .getNamespace(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableCounter));
+            .getNamespace(contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableCounter));
     Namespace xs = Namespace.getNamespace("xs", "http://www.w3.org/2001/XMLSchema");
 
     // Create root element
     Element schema = new Element("schema", xs);
     schema.addNamespaceDeclaration(defaultNamespace);
     schema.setAttribute("targetNamespace",
-      contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableCounter));
+            contentPathExportStrategy.getTableXsdNamespace(namespaceBase, 0, tableCounter));
     schema.setAttribute("elementFormDefault", "qualified");
     schema.setAttribute("attributeFormDefault", "unqualified");
 
@@ -185,15 +171,15 @@ public class SIARDDK1007ContentExportStrategy implements ContentExportStrategy {
 
       // Register LOB in the LOBsTracker
       if (SIARDDKConstants.BINARY_LARGE_OBJECT.equals(sql99Type)
-        || SIARDDKConstants.CHARACTER_LARGE_OBJECT.equals(sql99Type)) {
+              || SIARDDKConstants.CHARACTER_LARGE_OBJECT.equals(sql99Type)) {
         lobsTracker.addLOBLocationAndType(tableCounter, columnIndex, sql99Type);
       }
 
       String xsdType = SIARDDKsql99ToXsdType.convert(sql99Type);
       if (xsdType == null) {
         throw new ModuleException().withMessage(
-          "Unable to export column [" + columnStructure.getName() + "] in table [" + tableStructure.getName()
-            + "], as siard-dk doesn't support the normalized SQL data type of the column: [" + sql99Type + "] ");
+                "Unable to export column [" + columnStructure.getName() + "] in table [" + tableStructure.getName()
+                        + "], as siard-dk doesn't support the normalized SQL data type of the column: [" + sql99Type + "] ");
       }
 
       c.setAttribute("type", xsdType);
@@ -212,8 +198,8 @@ public class SIARDDK1007ContentExportStrategy implements ContentExportStrategy {
 
     // TO-DO: unfortunate name below: getLOBWriter (change the
     // FileIndexFileStrategy)
-    tableXsdOutputStream = SIARDDK1007FileIndexFileStrategy.getLOBWriter(baseContainer,
-      contentPathExportStrategy.getTableXsdFilePath(0, tableCounter), writeStrategy);
+    tableXsdOutputStream = SIARDDKFileIndexFileStrategy.getLOBWriter(baseContainer,
+            contentPathExportStrategy.getTableXsdFilePath(0, tableCounter), writeStrategy);
     BufferedWriter xsdWriter = new BufferedWriter(new OutputStreamWriter(tableXsdOutputStream));
 
     Document d = new Document(schema);
@@ -223,7 +209,7 @@ public class SIARDDK1007ContentExportStrategy implements ContentExportStrategy {
       outputter.output(d, xsdWriter);
       xsdWriter.close();
 
-      SIARDDK1007FileIndexFileStrategy.addFile(contentPathExportStrategy.getTableXsdFilePath(0, tableCounter));
+      SIARDDKFileIndexFileStrategy.addFile(contentPathExportStrategy.getTableXsdFilePath(0, tableCounter));
 
     } catch (IOException e) {
       throw new ModuleException().withMessage("Could not write table" + tableCounter + " to disk").withCause(e);
@@ -237,7 +223,7 @@ public class SIARDDK1007ContentExportStrategy implements ContentExportStrategy {
       tableXmlWriter.write("</table>");
       tableXmlWriter.close();
 
-      SIARDDK1007FileIndexFileStrategy.addFile(contentPathExportStrategy.getTableXmlFilePath(0, tableCounter));
+      SIARDDKFileIndexFileStrategy.addFile(contentPathExportStrategy.getTableXmlFilePath(0, tableCounter));
 
       if (foundClob) {
         logger.info("CLOB(s) found in table " + tableCounter + ". Archived as string");
@@ -251,7 +237,7 @@ public class SIARDDK1007ContentExportStrategy implements ContentExportStrategy {
 
     if (foundUnknownMimetype) {
       String warning = new StringBuilder().append("Found BLOB(s) with unknown mimetype(s) in table '")
-        .append(tableStructure.getName()).append("'. ").append("File(s) archived with extension '.bin'").toString();
+              .append(tableStructure.getName()).append("'. ").append("File(s) archived with extension '.bin'").toString();
       logger.warn(warning);
     }
   }
@@ -280,21 +266,21 @@ public class SIARDDK1007ContentExportStrategy implements ContentExportStrategy {
               // System.out.println("SimpleData = " +
               // simpleCell.getSimpleData());
               tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-                .append(encodeText(simpleCell.getSimpleData())).append("</c").append(String.valueOf(columnIndex))
-                .append(">\n");
+                      .append(encodeText(simpleCell.getSimpleData())).append("</c").append(String.valueOf(columnIndex))
+                      .append(">\n");
             } else if (cell instanceof BinaryCell) {
               BinaryCell binaryCell = (BinaryCell) cell;
               InputStream in = binaryCell.createInputStream();
 
               tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-                .append(Hex.encodeHexString(IOUtils.toByteArray(in))).append("</c").append(String.valueOf(columnIndex))
-                .append(">\n");
+                      .append(Hex.encodeHexString(IOUtils.toByteArray(in))).append("</c").append(String.valueOf(columnIndex))
+                      .append(">\n");
               in.close();
               binaryCell.cleanResources();
             }
           } else {
             tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
-              .append(" xsi:nil=\"true\"/>").append("\n");
+                    .append(" xsi:nil=\"true\"/>").append("\n");
           }
 
         } else {
@@ -302,7 +288,7 @@ public class SIARDDK1007ContentExportStrategy implements ContentExportStrategy {
 
           if (cell instanceof NullCell) {
             tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
-              .append(" xsi:nil=\"true\"/>").append("\n");
+                    .append(" xsi:nil=\"true\"/>").append("\n");
           } else if (cell instanceof SimpleCell) {
 
             // CLOB is not NULL
@@ -318,7 +304,7 @@ public class SIARDDK1007ContentExportStrategy implements ContentExportStrategy {
 
             // lobsTracker.addLOB(); // Only if LOB not NULL
             tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-              .append(encodeText(clobsData)).append("</c").append(String.valueOf(columnIndex)).append(">\n");
+                    .append(encodeText(clobsData)).append("</c").append(String.valueOf(columnIndex)).append(">\n");
 
           } else if (cell instanceof BinaryCell) {
 
@@ -344,8 +330,8 @@ public class SIARDDK1007ContentExportStrategy implements ContentExportStrategy {
             // SIARDDK
 
             tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-              .append(Integer.toString(lobsTracker.getLOBsCount())).append("</c").append(String.valueOf(columnIndex))
-              .append(">\n");
+                    .append(Integer.toString(lobsTracker.getLOBsCount())).append("</c").append(String.valueOf(columnIndex))
+                    .append(">\n");
 
             String path = contentPathExportStrategy.getBlobFilePath(-1, -1, -1, -1);
             String fileExtension;
@@ -363,7 +349,7 @@ public class SIARDDK1007ContentExportStrategy implements ContentExportStrategy {
             // Create new FileIndexFileStrategy
 
             // Write the BLOB
-            OutputStream out = SIARDDK1007FileIndexFileStrategy.getLOBWriter(baseContainer, blob.getOutputPath(), writeStrategy);
+            OutputStream out = SIARDDKFileIndexFileStrategy.getLOBWriter(baseContainer, blob.getOutputPath(), writeStrategy);
             InputStream in = blob.getInputStreamProvider().createInputStream();
             IOUtils.copy(in, out);
             IOUtils.closeQuietly(in);
@@ -374,11 +360,11 @@ public class SIARDDK1007ContentExportStrategy implements ContentExportStrategy {
             // are dealing with metadata)
 
             // TO-DO: obtain (how?) hardcoded values
-            SIARDDK1007DocIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1, lobsTracker.getDocCollectionCount(),
-              "originalFilename", fileExtension, null);
+            SIARDDKDocIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1, lobsTracker.getDocCollectionCount(),
+                    "originalFilename", fileExtension, null);
 
             // Add file to fileIndex
-            SIARDDK1007FileIndexFileStrategy.addFile(blob.getOutputPath());
+            SIARDDKFileIndexFileStrategy.addFile(blob.getOutputPath());
 
           } else {
             // never happens

@@ -1012,8 +1012,7 @@ public class DatabaseStructure {
       if (other.url != null) {
         return false;
       }
-    }
-    else if (!url.equals(other.url)) {
+    } else if (!url.equals(other.url)) {
       return false;
     }
     if (users == null) {

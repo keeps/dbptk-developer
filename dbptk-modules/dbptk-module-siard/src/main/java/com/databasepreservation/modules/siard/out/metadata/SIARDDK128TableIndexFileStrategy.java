@@ -7,17 +7,6 @@
  */
 package com.databasepreservation.modules.siard.out.metadata;
 
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.structure.ColumnStructure;
-import com.databasepreservation.model.structure.DatabaseStructure;
-import com.databasepreservation.model.structure.ForeignKey;
-import com.databasepreservation.model.structure.PrimaryKey;
-import com.databasepreservation.model.structure.Reference;
-import com.databasepreservation.model.structure.SchemaStructure;
-import com.databasepreservation.model.structure.TableStructure;
-import com.databasepreservation.model.structure.ViewStructure;
-import com.databasepreservation.model.structure.type.Type;
-import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.out.content.LOBsTracker;
 import com.databasepreservation.modules.siard.bindings.siard_dk_128.ColumnType;
 import com.databasepreservation.modules.siard.bindings.siard_dk_128.ColumnsType;
@@ -31,16 +20,12 @@ import com.databasepreservation.modules.siard.bindings.siard_dk_128.TableType;
 import com.databasepreservation.modules.siard.bindings.siard_dk_128.TablesType;
 import com.databasepreservation.modules.siard.bindings.siard_dk_128.ViewType;
 import com.databasepreservation.modules.siard.bindings.siard_dk_128.ViewsType;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Andreas Kring <andreas@magenta.dk>
+ * @author António Lindo <alindo@keep.pt>
  *
  */
 public class SIARDDK128TableIndexFileStrategy extends
