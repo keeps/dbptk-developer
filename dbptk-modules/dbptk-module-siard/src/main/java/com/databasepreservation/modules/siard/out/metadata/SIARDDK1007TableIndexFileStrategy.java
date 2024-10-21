@@ -12,7 +12,7 @@ import com.databasepreservation.modules.siard.common.adapters.SIARDDKAdapter;
 import com.databasepreservation.modules.siard.out.content.LOBsTracker;
 
 /**
- * @author Andreas Kring <andreas@magenta.dk>
+ * @author António Lindo <alindo@keep.pt>
  *
  */
 public class SIARDDK1007TableIndexFileStrategy extends SIARDDKTableIndexFileStrategy {

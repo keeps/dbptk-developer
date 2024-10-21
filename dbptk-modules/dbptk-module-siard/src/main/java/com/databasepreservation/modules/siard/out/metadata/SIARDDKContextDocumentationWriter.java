@@ -1,10 +1,3 @@
-/**
- * The contents of this file are subject to the license and copyright
- * detailed in the LICENSE file at the root of the source
- * tree and available online at
- *
- * https://github.com/keeps/db-preservation-toolkit
- */
 package com.databasepreservation.modules.siard.out.metadata;
 
 import com.databasepreservation.model.exception.ModuleException;
@@ -26,21 +19,20 @@ import java.util.Map;
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public class SIARDDK128ContextDocumentationWriter {
-
+public class SIARDDKContextDocumentationWriter {
   private Map<String, String> exportModuleArgs;
   private SIARDArchiveContainer mainContainer;
-  private SIARDDK128FileIndexFileStrategy SIARDDK128FileIndexFileStrategy;
+  private SIARDDKFileIndexFileStrategy SIARDDKFileIndexFileStrategy;
   private WriteStrategy writeStrategy;
 
   private Path mainContainerPath;
 
-  public SIARDDK128ContextDocumentationWriter(SIARDArchiveContainer mainContainer, WriteStrategy writeStrategy,
-                                              SIARDDK128FileIndexFileStrategy SIARDDK128FileIndexFileStrategy, Map<String, String> exportModuleArgs) {
+  public SIARDDKContextDocumentationWriter(SIARDArchiveContainer mainContainer, WriteStrategy writeStrategy,
+    SIARDDKFileIndexFileStrategy SIARDDKFileIndexFileStrategy, Map<String, String> exportModuleArgs) {
 
     this.mainContainer = mainContainer;
     this.writeStrategy = writeStrategy;
-    this.SIARDDK128FileIndexFileStrategy = SIARDDK128FileIndexFileStrategy;
+    this.SIARDDKFileIndexFileStrategy = SIARDDKFileIndexFileStrategy;
     this.exportModuleArgs = exportModuleArgs;
   }
 
@@ -60,7 +52,7 @@ public class SIARDDK128ContextDocumentationWriter {
   }
 
   /**
-   * 
+   *
    * @param files
    *          List context documentation files to write to the archive
    * @param path
@@ -83,12 +75,12 @@ public class SIARDDK128ContextDocumentationWriter {
         try {
 
           fis = new FileInputStream(file);
-          fos = SIARDDK128FileIndexFileStrategy.getWriter(mainContainer, pathRelativeToMainContainerPath.toString(),
+          fos = SIARDDKFileIndexFileStrategy.getWriter(mainContainer, pathRelativeToMainContainerPath.toString(),
             writeStrategy);
 
           try {
             IOUtils.copy(fis, fos);
-            SIARDDK128FileIndexFileStrategy.addFile(pathRelativeToMainContainerPath.toString());
+            SIARDDKFileIndexFileStrategy.addFile(pathRelativeToMainContainerPath.toString());
           } catch (IOException e) {
             throw new ModuleException().withMessage("There was an error writing " + path).withCause(e);
           }
