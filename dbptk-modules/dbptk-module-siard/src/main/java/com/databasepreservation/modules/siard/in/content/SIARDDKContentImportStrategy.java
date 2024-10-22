@@ -32,6 +32,7 @@ import javax.xml.validation.ValidatorHandler;
 
 import com.databasepreservation.common.io.providers.DummyInputStreamProvider;
 import com.databasepreservation.model.data.BinaryCell;
+import com.databasepreservation.model.structure.virtual.VirtualTableStructure;
 import com.databasepreservation.modules.siard.in.path.SIARDDKPathImportStrategy;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -136,7 +137,7 @@ public abstract class SIARDDKContentImportStrategy<T, D> extends DefaultHandler 
       assert (schema.getName().equals(importAsSchema));
       for (TableStructure table : schema.getTables()) {
 
-        if (!table.getId().split("\\.")[1].equals("virtual_table")) {
+        if (!(table instanceof VirtualTableStructure)){
           currentTable = table;
           this.dbExportHandler.handleDataOpenTable(table.getId());
           rowIndex = 0;

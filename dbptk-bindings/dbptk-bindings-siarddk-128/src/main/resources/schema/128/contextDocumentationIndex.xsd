@@ -12,25 +12,25 @@
 				<xs:element name="document" maxOccurs="unbounded">
 					<xs:complexType>
 						<xs:sequence>
-							<xs:element name="documentID" type="documentIDType">
+							<xs:element name="documentID" type="docdocumentIDType">
 								<xs:annotation>
 									<xs:documentation xml:lang="da">DokumentID. Unikt ID på op til 12 cifre</xs:documentation>
 									<xs:documentation xml:lang="en">DocumentID. Unique ID with up to 12 digits in total</xs:documentation>
 								</xs:annotation>
 							</xs:element>
-							<xs:element name="documentTitle" type="nonEmptyTextType">
+							<xs:element name="documentTitle" type="docnonEmptyTextType">
 								<xs:annotation>
 									<xs:documentation xml:lang="da">Dokumenttitel. Fri tekst</xs:documentation>
 									<xs:documentation xml:lang="en">Document title. Free text</xs:documentation>
 								</xs:annotation>
 							</xs:element>
-							<xs:element name="documentDescription" type="nonEmptyTextType" minOccurs="0">
+							<xs:element name="documentDescription" type="docnonEmptyTextType" minOccurs="0">
 								<xs:annotation>
 									<xs:documentation xml:lang="da">Dokumentbeskrivelse. Fri tekst</xs:documentation>
 									<xs:documentation xml:lang="en">Document description. Free text</xs:documentation>
 								</xs:annotation>
 							</xs:element>
-							<xs:element name="documentDate" type="y_ym_ymdDatoType" minOccurs="0">
+							<xs:element name="documentDate" type="docy_ym_ymdDatoType" minOccurs="0">
 								<xs:annotation>
 									<xs:documentation xml:lang="da">Dato. År, år-måned, år-måned-dag</xs:documentation>
 									<xs:documentation xml:lang="en">Date. Year, year-month, year-month-day</xs:documentation>
@@ -39,13 +39,13 @@
 							<xs:element name="documentAuthor" minOccurs="0" maxOccurs="unbounded">
 								<xs:complexType>
 									<xs:sequence>
-										<xs:element name="authorName" type="nonEmptyTextType" minOccurs="0">
+										<xs:element name="authorName" type="docnonEmptyTextType" minOccurs="0">
 											<xs:annotation>
 												<xs:documentation xml:lang="da">Forfatternavn. Fri tekst</xs:documentation>
 												<xs:documentation xml:lang="en">Author name. Free text</xs:documentation>
 											</xs:annotation>
 										</xs:element>
-										<xs:element name="authorInstitution" type="nonEmptyTextType" minOccurs="0">
+										<xs:element name="authorInstitution" type="docnonEmptyTextType" minOccurs="0">
 											<xs:annotation>
 												<xs:documentation xml:lang="da">Forfatterinstitution. Fri tekst</xs:documentation>
 												<xs:documentation xml:lang="en">Author institution. Free text</xs:documentation>
@@ -330,7 +330,7 @@
 			</xs:element>
 		</xs:sequence>
 	</xs:complexType>
-	<xs:simpleType name="documentIDType">
+	<xs:simpleType name="docdocumentIDType">
 		<xs:annotation>
 			<xs:documentation xml:lang="da">type for et dokumentID for et dokument i generel dokumentation</xs:documentation>
 			<xs:documentation xml:lang="en">A type for a document ID for a document i generel documentation</xs:documentation>
@@ -339,14 +339,14 @@
 			<xs:pattern value="[1-9][0-9]{0,11}"/>
 		</xs:restriction>
 	</xs:simpleType>
-	<xs:simpleType name="y_ym_ymdDatoType">
+	<xs:simpleType name="docy_ym_ymdDatoType">
 		<xs:annotation>
 			<xs:documentation xml:lang="da">datotype for et dokument i kontekstinformation</xs:documentation>
 			<xs:documentation xml:lang="en">date type for a document in context information</xs:documentation>
 		</xs:annotation>
-		<xs:union memberTypes="arcgYearType arcgYearMonthType arcDateType"/>
+		<xs:union memberTypes="docarcgYearType docarcgYearMonthType docarcDateType"/>
 	</xs:simpleType>
-	<xs:simpleType name="arcgYearType">
+	<xs:simpleType name="docarcgYearType">
 		<xs:annotation>
 			<xs:documentation xml:lang="da">dato fra 1700 til 2100</xs:documentation>
 			<xs:documentation xml:lang="en">date from 1700 to 2100</xs:documentation>
@@ -356,7 +356,7 @@
 			<xs:maxInclusive value="2100"/>
 		</xs:restriction>
 	</xs:simpleType>
-	<xs:simpleType name="arcgYearMonthType">
+	<xs:simpleType name="docarcgYearMonthType">
 		<xs:annotation>
 			<xs:documentation xml:lang="da">dato og måned fra 1700-01 til 2100-12</xs:documentation>
 			<xs:documentation xml:lang="en">date and month from 1700-01 to 2100-12</xs:documentation>
@@ -366,7 +366,7 @@
 			<xs:maxInclusive value="2100-12"/>
 		</xs:restriction>
 	</xs:simpleType>
-	<xs:simpleType name="arcDateType">
+	<xs:simpleType name="docarcDateType">
 		<xs:annotation>
 			<xs:documentation xml:lang="da">dato fra 1700-01-01 til 2100-12-31</xs:documentation>
 			<xs:documentation xml:lang="en">date from 1700-01-01 to 2100-12-31</xs:documentation>
@@ -376,7 +376,7 @@
 			<xs:maxInclusive value="2100-12-31"/>
 		</xs:restriction>
 	</xs:simpleType>
-	<xs:simpleType name="nonEmptyTextType">
+	<xs:simpleType name="docnonEmptyTextType">
 		<xs:annotation>
 			<xs:documentation xml:lang="da">type for tekst med en mindstelængde på 1 tegn</xs:documentation>
 			<xs:documentation xml:lang="en">type for text with a minimum lenght of 1 character</xs:documentation>

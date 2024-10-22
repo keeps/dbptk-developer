@@ -27,6 +27,8 @@ import com.databasepreservation.model.structure.virtual.VirtualForeignKey;
 import com.databasepreservation.model.structure.virtual.VirtualPrimaryKey;
 import com.databasepreservation.model.structure.virtual.VirtualTableStructure;
 import com.databasepreservation.modules.siard.bindings.siard_dk_1007.ArchiveIndex;
+import com.databasepreservation.modules.siard.bindings.siard_dk_1007.DocumentType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_128.ContextDocumentationIndex;
 import dk.sa.xmlns.diark._1_0.docindex.DocIndexType;
 import dk.sa.xmlns.diark._1_0.tableindex.FunctionalDescriptionType;
 import jakarta.xml.bind.JAXBContext;
@@ -396,8 +398,10 @@ public class SIARDDK1007MetadataImportStrategy implements MetadataImportStrategy
     VirtualColumnStructure columnID = new VirtualColumnStructure(SIARDDKConstants.DID, SIARDDKConstants.DID, typeInt,
       true, SIARDDKConstants.DOCUMENT_IDENTIFIER, "1", true);
     Type type = sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
-      "<information unavailable>", "<information unavailable>", Constants.BINARY_LARGE_OBJECT, Constants.BINARY_LARGE_OBJECT);
-    VirtualColumnStructure columnLOB = new VirtualColumnStructure(Constants.BLOB, Constants.BLOB, type, true, Constants.BLOB, "1", true);
+      "<information unavailable>", "<information unavailable>", Constants.BINARY_LARGE_OBJECT,
+      Constants.BINARY_LARGE_OBJECT);
+    VirtualColumnStructure columnLOB = new VirtualColumnStructure(Constants.BLOB, Constants.BLOB, type, true,
+      Constants.BLOB, "1", true);
     columnStructureList.add(columnID);
     columnStructureList.add(columnLOB);
     return columnStructureList;

@@ -7,6 +7,7 @@
  */
 package com.databasepreservation.modules.siard.in.metadata;
 
+import com.databasepreservation.Constants;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
 import com.databasepreservation.model.reporters.Reporter;
@@ -19,9 +20,15 @@ import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.model.structure.virtual.VirtualColumnStructure;
+import com.databasepreservation.model.structure.virtual.VirtualForeignKey;
+import com.databasepreservation.model.structure.virtual.VirtualPrimaryKey;
+import com.databasepreservation.model.structure.virtual.VirtualTableStructure;
+import com.databasepreservation.modules.siard.bindings.siard_dk_1007.DocumentType;
 import com.databasepreservation.modules.siard.bindings.siard_dk_128.ArchiveIndex;
 import com.databasepreservation.modules.siard.bindings.siard_dk_128.ColumnType;
 import com.databasepreservation.modules.siard.bindings.siard_dk_128.ColumnsType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_128.ContextDocumentationIndex;
 import com.databasepreservation.modules.siard.bindings.siard_dk_128.DocIndexType;
 import com.databasepreservation.modules.siard.bindings.siard_dk_128.ForeignKeyType;
 import com.databasepreservation.modules.siard.bindings.siard_dk_128.ForeignKeysType;
@@ -89,11 +96,11 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
 
   @Override
   public void loadMetadata(ReadStrategy readStrategy, SIARDArchiveContainer container,
-                           ModuleConfiguration moduleConfiguration) throws ModuleException {
+    ModuleConfiguration moduleConfiguration) throws ModuleException {
     FolderReadStrategyMD5Sum readStrategyMD5Sum = null;
     if (!(readStrategy instanceof FolderReadStrategyMD5Sum)) {
       throw new IllegalArgumentException(
-              "The current implemenation of SIARDDKMetadataImportStrategy requires relies on the FolderReadStrategyMD5Sum (should be passed to loadMetadata ).");
+        "The current implemenation of SIARDDKMetadataImportStrategy requires relies on the FolderReadStrategyMD5Sum (should be passed to loadMetadata ).");
     }
     readStrategyMD5Sum = (FolderReadStrategyMD5Sum) readStrategy;
     pathStrategy.parseFileIndexMetadata();
@@ -111,16 +118,16 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
     Schema tableIndexXsdSchema = null;
     Schema archiveIndexXsdSchema = null;
     InputStream tableIndexXsdInputStream = readStrategyMD5Sum.createInputStream(container,
-            pathStrategy.getXsdFilePath(SIARDDKConstants.TABLE_INDEX));
+      pathStrategy.getXsdFilePath(SIARDDKConstants.TABLE_INDEX));
     InputStream archiveIndexXsdInputStream = readStrategyMD5Sum.createInputStream(container,
-            pathStrategy.getXsdFilePath(SIARDDKConstants.ARCHIVE_INDEX));
+      pathStrategy.getXsdFilePath(SIARDDKConstants.ARCHIVE_INDEX));
     try {
       tableIndexXsdSchema = schemaFactory.newSchema(new StreamSource(tableIndexXsdInputStream));
       archiveIndexXsdSchema = schemaFactory.newSchema(new StreamSource(archiveIndexXsdInputStream));
     } catch (SAXException e) {
       throw new ModuleException()
-              .withMessage("Error reading metadata XSD file: " + pathStrategy.getXsdFilePath(SIARDDKConstants.TABLE_INDEX))
-              .withCause(e);
+        .withMessage("Error reading metadata XSD file: " + pathStrategy.getXsdFilePath(SIARDDKConstants.TABLE_INDEX))
+        .withCause(e);
     }
     DigestInputStream tableIndexInputStreamXml = null;
     DigestInputStream archiveIndexInputStreamXml = null;
@@ -133,14 +140,15 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
       tableIndexUnmarshaller = tableIndexContext.createUnmarshaller();
       tableIndexUnmarshaller.setSchema(tableIndexXsdSchema);
       tableIndexInputStreamXml = readStrategyMD5Sum.createInputStream(container,
-              pathStrategy.getXmlFilePath(SIARDDKConstants.TABLE_INDEX), pathStrategy.getTabelIndexExpectedMD5Sum());
+        pathStrategy.getXmlFilePath(SIARDDKConstants.TABLE_INDEX), pathStrategy.getTabelIndexExpectedMD5Sum());
       xmlRoot = (SiardDiark) tableIndexUnmarshaller.unmarshal(tableIndexInputStreamXml);
 
       archiveIndexUnmarshaller = archiveIndexContext.createUnmarshaller();
       archiveIndexUnmarshaller.setSchema(archiveIndexXsdSchema);
-      if (Files.exists(Paths.get(container.getPath().toString() + "/" + pathStrategy.getXmlFilePath(SIARDDKConstants.ARCHIVE_INDEX)))) {
+      if (Files.exists(Paths
+        .get(container.getPath().toString() + "/" + pathStrategy.getXmlFilePath(SIARDDKConstants.ARCHIVE_INDEX)))) {
         archiveIndexInputStreamXml = readStrategyMD5Sum.createInputStream(container,
-                pathStrategy.getXmlFilePath(SIARDDKConstants.ARCHIVE_INDEX), pathStrategy.getArchiveIndexExpectedMD5Sum());
+          pathStrategy.getXmlFilePath(SIARDDKConstants.ARCHIVE_INDEX), pathStrategy.getArchiveIndexExpectedMD5Sum());
         archiveIndex = (ArchiveIndex) archiveIndexUnmarshaller.unmarshal(archiveIndexInputStreamXml);
       }
     } catch (JAXBException e) {
@@ -180,7 +188,8 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
     sqlStandardDatatypeImporter.setOnceReporter(reporter);
   }
 
-  protected DatabaseStructure getDatabaseStructure(SiardDiark siardArchive, ArchiveIndex archiveIndex) throws ModuleException {
+  protected DatabaseStructure getDatabaseStructure(SiardDiark siardArchive, ArchiveIndex archiveIndex)
+    throws ModuleException {
     DatabaseStructure databaseStructure = new DatabaseStructure();
     databaseStructure.setProductName(siardArchive.getDatabaseProduct());
     databaseStructure.setSchemas(getSchemas(siardArchive));
@@ -192,7 +201,8 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
     return databaseStructure;
   }
 
-  protected void setDatabaseMetadata(SiardDiark siardArchive, DatabaseStructure databaseStructure, ArchiveIndex archiveIndex) {
+  protected void setDatabaseMetadata(SiardDiark siardArchive, DatabaseStructure databaseStructure,
+    ArchiveIndex archiveIndex) {
     databaseStructure.setDbOriginalName(siardArchive.getDbName());
     String[] informationPackageIdSPlit = archiveIndex.getArchiveInformationPackageID().split("\\.");
     String id = informationPackageIdSPlit[informationPackageIdSPlit.length - 1];
@@ -200,9 +210,11 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
     DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
     DateTime formattedDate = formatter.parseDateTime(archiveIndex.getArchivePeriodEnd());
     databaseStructure.setArchivalDate(formattedDate);
-    databaseStructure.setDataOriginTimespan(archiveIndex.getArchivePeriodStart() + "/" + archiveIndex.getArchivePeriodEnd());
+    databaseStructure
+      .setDataOriginTimespan(archiveIndex.getArchivePeriodStart() + "/" + archiveIndex.getArchivePeriodEnd());
     StringBuilder creatorsList = new StringBuilder();
-    List<JAXBElement<String>> creatorListElements = archiveIndex.getArchiveCreatorList().getCreatorNameAndCreationPeriodStartAndCreationPeriodEnd();
+    List<JAXBElement<String>> creatorListElements = archiveIndex.getArchiveCreatorList()
+      .getCreatorNameAndCreationPeriodStartAndCreationPeriodEnd();
     for (int i = 0; i < creatorListElements.size(); i++) {
       JAXBElement<String> element = creatorListElements.get(i);
       if (element.getName().getLocalPart().equals("creatorName")) {
@@ -285,8 +297,76 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
       if (needsVirtualTable) {
         lstTblsDptkl.add(createVirtualTable());
       }
+      //lstTblsDptkl.add(createContextDocumentationTable());
     }
     return lstTblsDptkl;
+  }
+
+  private TableStructure createContextDocumentationTable() throws ModuleException {
+    try {
+      ContextDocumentationIndex contextDocumentationIndex = loadContextDocumentationTableMetadata();
+      VirtualTableStructure virtualTable = new VirtualTableStructure();
+      virtualTable.setIndex(currentTableIndex++);
+      virtualTable.setSchema(getImportAsSchemaName());
+      virtualTable.setId(String.format("%s.%s", virtualTable.getSchema(), "context_doc"));
+      virtualTable.setName("context_documentation");
+      virtualTable.setDescription(SIARDDKConstants.VIRTUAL_TABLE_DESCRIPTION);
+      virtualTable.setRows(contextDocumentationIndex.getDocument().size());
+      virtualTable.setColumns(createVirtualTableColumns());
+      virtualTable.setPrimaryKey(createVirtualPrimaryKey("PK_context_doc", SIARDDKConstants.DID));
+      return virtualTable;
+    } catch (FileNotFoundException e) {
+      throw new ModuleException().withMessage(
+        "Error reading metadata XSD file: " + pathStrategy.getXsdFilePath(SIARDDKConstants.CONTEXT_DOCUMENTATION_INDEX))
+        .withCause(e);
+    }
+  }
+
+  private ContextDocumentationIndex loadContextDocumentationTableMetadata()
+    throws ModuleException, FileNotFoundException {
+    JAXBContext context;
+    try {
+      context = JAXBContext.newInstance(ContextDocumentationIndex.class.getPackage().getName());
+    } catch (JAXBException e) {
+      throw new ModuleException().withMessage("Error loading JAXBContext").withCause(e);
+    }
+
+    SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+    Schema xsdSchema = null;
+    InputStream xsdInputStream = new FileInputStream(pathStrategy.getMainFolder().getPath().toString() + "/"
+      + pathStrategy.getXsdFilePath(SIARDDKConstants.CONTEXT_DOCUMENTATION_INDEX));
+
+    try {
+      xsdSchema = schemaFactory.newSchema(new StreamSource(xsdInputStream));
+    } catch (SAXException e) {
+      throw new ModuleException().withMessage(
+        "Error reading metadata XSD file: " + pathStrategy.getXsdFilePath(SIARDDKConstants.CONTEXT_DOCUMENTATION_INDEX))
+        .withCause(e);
+    }
+    InputStream inputStreamXml = null;
+    Unmarshaller unmarshaller;
+    try {
+      unmarshaller = context.createUnmarshaller();
+      unmarshaller.setSchema(xsdSchema);
+      inputStreamXml = new FileInputStream(pathStrategy.getMainFolder().getPath().toString() + "/"
+        + pathStrategy.getXmlFilePath(SIARDDKConstants.CONTEXT_DOCUMENTATION_INDEX));
+      JAXBElement<ContextDocumentationIndex> jaxbElement = (JAXBElement<ContextDocumentationIndex>) unmarshaller
+        .unmarshal(inputStreamXml);
+      return jaxbElement.getValue();
+    } catch (JAXBException e) {
+      throw new ModuleException().withMessage("Error while Unmarshalling JAXB").withCause(e);
+    } finally {
+      try {
+        xsdInputStream.close();
+        if (inputStreamXml != null) {
+          inputStreamXml.close();
+          xsdInputStream.close();
+        }
+      } catch (IOException e) {
+        logger.debug("Could not close xsdStream", e);
+      }
+    }
+
   }
 
   private DocIndexType loadVirtualTableMetadata() throws ModuleException, FileNotFoundException {
@@ -300,22 +380,22 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
     SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
     Schema xsdSchema = null;
     InputStream xsdInputStream = new FileInputStream(pathStrategy.getMainFolder().getPath().toString() + "/"
-            + pathStrategy.getXsdFilePath(SIARDDKConstants.DOC_INDEX));
+      + pathStrategy.getXsdFilePath(SIARDDKConstants.DOC_INDEX));
 
     try {
       xsdSchema = schemaFactory.newSchema(new StreamSource(xsdInputStream));
     } catch (SAXException e) {
       throw new ModuleException()
-              .withMessage("Error reading metadata XSD file: " + pathStrategy.getXsdFilePath(SIARDDKConstants.DOC_INDEX))
-              .withCause(e);
+        .withMessage("Error reading metadata XSD file: " + pathStrategy.getXsdFilePath(SIARDDKConstants.DOC_INDEX))
+        .withCause(e);
     }
     InputStream inputStreamXml = null;
     Unmarshaller unmarshaller;
     try {
       unmarshaller = context.createUnmarshaller();
       unmarshaller.setSchema(xsdSchema);
-      inputStreamXml = new FileInputStream(pathStrategy.getMainFolder().getPath().toString() + "/" +
-              pathStrategy.getXmlFilePath(SIARDDKConstants.DOC_INDEX));
+      inputStreamXml = new FileInputStream(pathStrategy.getMainFolder().getPath().toString() + "/"
+        + pathStrategy.getXmlFilePath(SIARDDKConstants.DOC_INDEX));
       JAXBElement<DocIndexType> jaxbElement = (JAXBElement<DocIndexType>) unmarshaller.unmarshal(inputStreamXml);
       return jaxbElement.getValue();
     } catch (JAXBException e) {
@@ -336,16 +416,17 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
   private List<ForeignKey> getVirtualForeignKeys(ColumnsType columns, String tableId) {
     List<ForeignKey> virtualForeignKeys = new ArrayList<>();
     for (ColumnType column : columns.getColumn()) {
-      if (column.getFunctionalDescription() != null && column.getFunctionalDescription().contains(FunctionalDescriptionType.DOKUMENTIDENTIFIKATION)) {
-        ForeignKey virtualForeignKey = new ForeignKey();
+      if (column.getFunctionalDescription() != null
+        && column.getFunctionalDescription().contains(FunctionalDescriptionType.DOKUMENTIDENTIFIKATION)) {
+        VirtualForeignKey virtualForeignKey = new VirtualForeignKey();
         virtualForeignKey.setReferencedSchema(getImportAsSchemaName());
-        virtualForeignKey.setName("FK_virtual_table");
-        virtualForeignKey.setReferencedTable("virtual_table");
-        Reference reference = new Reference(column.getName(), "dID");
+        virtualForeignKey.setName(SIARDDKConstants.VIRTUAL_TABLE_FOREIGN_KEY_NAME);
+        virtualForeignKey.setReferencedTable(SIARDDKConstants.VIRTUAL_TABLE_NAME);
+        Reference reference = new Reference(column.getName(), SIARDDKConstants.DID);
         List<Reference> referenceList = new ArrayList<>();
         referenceList.add(reference);
         virtualForeignKey.setReferences(referenceList);
-        virtualForeignKey.setId(String.format("%s.%s", tableId, "FK_virtual_table"));
+        virtualForeignKey.setId(String.format("%s.%s", tableId, SIARDDKConstants.VIRTUAL_TABLE_FOREIGN_KEY_NAME));
         virtualForeignKeys.add(virtualForeignKey);
       }
     }
@@ -356,40 +437,44 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
   private TableStructure createVirtualTable() throws ModuleException {
     try {
       DocIndexType docIndexType = loadVirtualTableMetadata();
-      TableStructure virtualTable = new TableStructure();
+      VirtualTableStructure virtualTable = new VirtualTableStructure();
       virtualTable.setIndex(currentTableIndex++);
       virtualTable.setSchema(getImportAsSchemaName());
-      virtualTable.setId(String.format("%s.%s", virtualTable.getSchema(), "virtual_table"));
-      virtualTable.setName("virtual_table");
-      virtualTable.setDescription("A virtual table");
+      virtualTable.setId(String.format("%s.%s", virtualTable.getSchema(), SIARDDKConstants.VIRTUAL_TABLE_NAME));
+      virtualTable.setName(SIARDDKConstants.VIRTUAL_TABLE_NAME);
+      virtualTable.setDescription(SIARDDKConstants.VIRTUAL_TABLE_DESCRIPTION);
       virtualTable.setRows(docIndexType.getDoc().size());
       virtualTable.setColumns(createVirtualTableColumns());
-      virtualTable.setPrimaryKey(createVirtualPrimaryKey("dID"));
+      virtualTable
+        .setPrimaryKey(createVirtualPrimaryKey(SIARDDKConstants.VIRTUAL_TABLE_PRIMARY_KEY_NAME, SIARDDKConstants.DID));
       return virtualTable;
     } catch (FileNotFoundException e) {
       throw new ModuleException()
-              .withMessage("Error reading metadata XSD file: " + pathStrategy.getXsdFilePath(SIARDDKConstants.DOC_INDEX))
-              .withCause(e);
+        .withMessage("Error reading metadata XSD file: " + pathStrategy.getXsdFilePath(SIARDDKConstants.DOC_INDEX))
+        .withCause(e);
     }
   }
 
   private List<ColumnStructure> createVirtualTableColumns() {
     List<ColumnStructure> columnStructureList = new ArrayList<>();
     Type typeInt = sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
-            "<information unavailable>", "<information unavailable>", "INTEGER", "INTEGER");
-    ColumnStructure columnID = new ColumnStructure("dID", "dID", typeInt, true, "Document identifier", "1", true);
+      "<information unavailable>", "<information unavailable>", "INTEGER", "INTEGER");
+    VirtualColumnStructure columnID = new VirtualColumnStructure(SIARDDKConstants.DID, SIARDDKConstants.DID, typeInt,
+      true, SIARDDKConstants.DOCUMENT_IDENTIFIER, "1", true);
     Type type = sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
-            "<information unavailable>", "<information unavailable>", "BINARY LARGE OBJECT", "BINARY LARGE OBJECT");
-    ColumnStructure columnLOB = new ColumnStructure("blob", "blob", type, true, "blob", "1", true);
+      "<information unavailable>", "<information unavailable>", Constants.BINARY_LARGE_OBJECT,
+      Constants.BINARY_LARGE_OBJECT);
+    VirtualColumnStructure columnLOB = new VirtualColumnStructure(Constants.BLOB, Constants.BLOB, type, true,
+      Constants.BLOB, "1", true);
     columnStructureList.add(columnID);
     columnStructureList.add(columnLOB);
     return columnStructureList;
   }
 
-  private PrimaryKey createVirtualPrimaryKey(String columnName) {
+  private PrimaryKey createVirtualPrimaryKey(String name, String columnName) {
     List<String> columnList = new ArrayList<>();
     columnList.add(columnName);
-    return new PrimaryKey("PK_virtual_table", columnList, "virtual table primary key");
+    return new VirtualPrimaryKey(name, columnList, SIARDDKConstants.VIRTUAL_TABLE_DESCRIPTION);
   }
 
   protected List<ColumnStructure> getTblColumns(ColumnsType columnsXml, String tableId) throws ModuleException {
@@ -401,8 +486,8 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
         columnDptkl.setId(String.format("%s.%s", tableId, columnDptkl.getName()));
         String typeOriginal = StringUtils.isNotBlank(columnXml.getTypeOriginal()) ? columnXml.getTypeOriginal() : null;
         columnDptkl
-                .setType(sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
-                        "<information unavailable>", "<information unavailable>", columnXml.getType(), typeOriginal));
+          .setType(sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
+            "<information unavailable>", "<information unavailable>", columnXml.getType(), typeOriginal));
         columnDptkl.setDescription(columnXml.getDescription());
         String defaultValue = StringUtils.isNotBlank(columnXml.getDefaultValue()) ? columnXml.getDefaultValue() : null;
         columnDptkl.setDefaultValue(defaultValue);
@@ -423,9 +508,9 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
       return numRows.longValue();
     } catch (ArithmeticException e) {
       throw new ModuleException().withMessage("Unable to import table [" + tableName + "], as the number of rows ["
-                      + numRows
-                      + "] exceeds the max value of the long datatype used to store the number.(Consult the vendor/a programmer for a fix of this problem, if needed)")
-              .withCause(e);
+        + numRows
+        + "] exceeds the max value of the long datatype used to store the number.(Consult the vendor/a programmer for a fix of this problem, if needed)")
+        .withCause(e);
     }
   }
 
