@@ -1,11 +1,17 @@
-/**
- * The contents of this file are subject to the license and copyright
- * detailed in the LICENSE file at the root of the source
- * tree and available online at
- *
- * https://github.com/keeps/db-preservation-toolkit
- */
 package com.databasepreservation.modules.siard.out.metadata;
+
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.Reporter;
+import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.out.content.LOBsTracker;
+import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
+import com.databasepreservation.modules.siard.out.write.WriteStrategy;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,31 +21,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.databasepreservation.model.reporters.Reporter;
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.structure.DatabaseStructure;
-import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
-import com.databasepreservation.modules.siard.out.content.LOBsTracker;
-import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
-import com.databasepreservation.modules.siard.out.write.WriteStrategy;
-
 /**
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
+public abstract class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARDDKMetadataExportStrategy.class);
 
   private SIARDMarshaller siardMarshaller;
   private MetadataPathStrategy metadataPathStrategy;
-  private FileIndexFileStrategy fileIndexFileStrategy;
-  private DocIndexFileStrategy docIndexFileStrategy;
+  private SIARDDKFileIndexFileStrategy SIARDDKFileIndexFileStrategy;
+  private SIARDDKDocIndexFileStrategy SIARDDKDocIndexFileStrategy;
   private Map<String, String> exportModuleArgs;
   private LOBsTracker lobsTracker;
 
@@ -47,8 +39,8 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
   public SIARDDKMetadataExportStrategy(SIARDDKExportModule siarddkExportModule) {
     siardMarshaller = siarddkExportModule.getSiardMarshaller();
-    fileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
-    docIndexFileStrategy = siarddkExportModule.getDocIndexFileStrategy();
+    SIARDDKFileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
+    SIARDDKDocIndexFileStrategy = siarddkExportModule.getDocIndexFileStrategy();
     metadataPathStrategy = siarddkExportModule.getMetadataPathStrategy();
     exportModuleArgs = siarddkExportModule.getExportModuleArgs();
     lobsTracker = siarddkExportModule.getLobsTracker();
@@ -64,9 +56,9 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     // Generate tableIndex.xml
 
     try {
-      IndexFileStrategy tableIndexFileStrategy = new TableIndexFileStrategy(lobsTracker);
+      IndexFileStrategy tableIndexFileStrategy = createSIARDDKTableIndexFileStrategy(lobsTracker);
       String path = metadataPathStrategy.getXmlFilePath(SIARDDKConstants.TABLE_INDEX);
-      OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
+      OutputStream writer = SIARDDKFileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
 
       siardMarshaller.marshal(SIARDDKConstants.JAXB_CONTEXT_TABLEINDEX,
         metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.TABLE_INDEX),
@@ -75,7 +67,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
       writer.close();
 
-      fileIndexFileStrategy.addFile(path);
+      SIARDDKFileIndexFileStrategy.addFile(path);
 
     } catch (IOException e) {
       throw new ModuleException().withMessage("Error writing tableIndex.xml to the archive.").withCause(e);
@@ -86,13 +78,13 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     if (exportModuleArgs.get(SIARDDKConstants.ARCHIVE_INDEX) != null) {
       try {
         String path = metadataPathStrategy.getXmlFilePath(SIARDDKConstants.ARCHIVE_INDEX);
-        OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
+        OutputStream writer = SIARDDKFileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
         IndexFileStrategy archiveIndexFileStrategy = new CommandLineIndexFileStrategy(SIARDDKConstants.ARCHIVE_INDEX,
           exportModuleArgs, writer, metadataPathStrategy);
         archiveIndexFileStrategy.generateXML(null);
         writer.close();
 
-        fileIndexFileStrategy.addFile(path);
+        SIARDDKFileIndexFileStrategy.addFile(path);
 
       } catch (IOException e) {
         throw new ModuleException().withMessage("Error writing archiveIndex.xml to the archive").withCause(e);
@@ -105,13 +97,13 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
       try {
 
         String path = metadataPathStrategy.getXmlFilePath(SIARDDKConstants.CONTEXT_DOCUMENTATION_INDEX);
-        OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
+        OutputStream writer = SIARDDKFileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
         IndexFileStrategy contextDocumentationIndexFileStrategy = new CommandLineIndexFileStrategy(
           SIARDDKConstants.CONTEXT_DOCUMENTATION_INDEX, exportModuleArgs, writer, metadataPathStrategy);
         contextDocumentationIndexFileStrategy.generateXML(null);
         writer.close();
 
-        fileIndexFileStrategy.addFile(path);
+        SIARDDKFileIndexFileStrategy.addFile(path);
 
       } catch (IOException e) {
         throw new ModuleException().withMessage("Error writing contextDocumentationIndex.xml to the archive")
@@ -122,16 +114,16 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     if (lobsTracker.getLOBsCount() > 0) {
       try {
         String path = metadataPathStrategy.getXmlFilePath(SIARDDKConstants.DOC_INDEX);
-        OutputStream writer = fileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
+        OutputStream writer = SIARDDKFileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
 
         siardMarshaller.marshal(SIARDDKConstants.JAXB_CONTEXT_DOCINDEX,
           metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.DOC_INDEX),
           "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/docIndex.xsd", writer,
-          docIndexFileStrategy.generateXML(dbStructure));
+          SIARDDKDocIndexFileStrategy.generateXML(dbStructure));
 
         writer.close();
 
-        fileIndexFileStrategy.addFile(path);
+        SIARDDKFileIndexFileStrategy.addFile(path);
 
       } catch (IOException e) {
         throw new ModuleException().withMessage("Error writing docIndex.xml to the archive.").withCause(e);
@@ -179,7 +171,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
       // System.out.println(path);
     }
 
-    OutputStream outputStream = fileIndexFileStrategy.getWriter(container, path, writeStrategy);
+    OutputStream outputStream = SIARDDKFileIndexFileStrategy.getWriter(container, path, writeStrategy);
 
     try {
       if (inputStream != null) {
@@ -188,7 +180,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
         outputStream.close();
       }
 
-      fileIndexFileStrategy.addFile(path);
+      SIARDDKFileIndexFileStrategy.addFile(path);
 
     } catch (IOException e) {
       throw new ModuleException().withMessage("There was an error writing " + indexFile + ".xsd").withCause(e);
@@ -205,4 +197,6 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
       LOGGER.error("Could not create directories", e);
     }
   }
+
+  abstract IndexFileStrategy createSIARDDKTableIndexFileStrategy(LOBsTracker lobsTracker);
 }

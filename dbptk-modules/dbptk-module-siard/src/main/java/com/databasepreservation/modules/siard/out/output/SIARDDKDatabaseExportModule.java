@@ -1,11 +1,14 @@
-/**
- * The contents of this file are subject to the license and copyright
- * detailed in the LICENSE file at the root of the source
- * tree and available online at
- *
- * https://github.com/keeps/db-preservation-toolkit
- */
 package com.databasepreservation.modules.siard.out.output;
+
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.out.metadata.SIARDDKContextDocumentationWriter;
+import com.databasepreservation.modules.siard.out.metadata.SIARDDKFileIndexFileStrategy;
+import com.databasepreservation.modules.siard.out.metadata.SIARDMarshaller;
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,22 +18,11 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
-import com.databasepreservation.modules.siard.out.metadata.ContextDocumentationWriter;
-import com.databasepreservation.modules.siard.out.metadata.FileIndexFileStrategy;
-import com.databasepreservation.modules.siard.out.metadata.SIARDMarshaller;
-
 /**
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
+public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
 
   private SIARDDKExportModule siarddkExportModule;
   private static final Logger logger = LoggerFactory.getLogger(SIARDDKDatabaseExportModule.class);
@@ -69,7 +61,7 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
         // Get the creation time of the old archive folder
         BasicFileAttributes basicFileAttributes = Files.readAttributes(pathToArchive, BasicFileAttributes.class);
         String creationTimeStamp = basicFileAttributes.creationTime().toString();
-        
+
         String name = pathToArchive.toString() + "_backup_" + creationTimeStamp;
 
         // Rename the old folder
@@ -86,21 +78,20 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
   @Override
   public void finishDatabase() throws ModuleException {
     super.finishDatabase();
-
     // Write ContextDocumentation to archive
 
     Map<String, String> exportModuleArgs = siarddkExportModule.getExportModuleArgs();
-    FileIndexFileStrategy fileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
+    SIARDDKFileIndexFileStrategy SIARDDKFileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
     MetadataPathStrategy metadataPathStrategy = siarddkExportModule.getMetadataPathStrategy();
     SIARDMarshaller siardMarshaller = siarddkExportModule.getSiardMarshaller();
 
     if (exportModuleArgs.get(SIARDDKConstants.CONTEXT_DOCUMENTATION_FOLDER) != null) {
 
-      ContextDocumentationWriter contextDocumentationWriter = new ContextDocumentationWriter(
-        siarddkExportModule.getMainContainer(), siarddkExportModule.getWriteStrategy(), fileIndexFileStrategy,
+      SIARDDKContextDocumentationWriter SIARDDKContextDocumentationWriter = new SIARDDKContextDocumentationWriter(
+        siarddkExportModule.getMainContainer(), siarddkExportModule.getWriteStrategy(), SIARDDKFileIndexFileStrategy,
         siarddkExportModule.getExportModuleArgs());
 
-      contextDocumentationWriter.writeContextDocumentation();
+      SIARDDKContextDocumentationWriter.writeContextDocumentation();
     }
 
     // Create fileIndex.xml
@@ -109,20 +100,19 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
     // the MetadataExportStrategy)
 
     try {
-      fileIndexFileStrategy.generateXML(null);
+      SIARDDKFileIndexFileStrategy.generateXML(null);
     } catch (ModuleException e) {
       throw new ModuleException().withMessage("Error writing fileIndex.xml").withCause(e);
     }
 
     try {
       String path = metadataPathStrategy.getXmlFilePath(SIARDDKConstants.FILE_INDEX);
-      OutputStream writer = fileIndexFileStrategy.getWriter(siarddkExportModule.getMainContainer(), path,
+      OutputStream writer = SIARDDKFileIndexFileStrategy.getWriter(siarddkExportModule.getMainContainer(), path,
         siarddkExportModule.getWriteStrategy());
 
-      siardMarshaller.marshal(SIARDDKConstants.JAXB_CONTEXT_FILEINDEX,
-        metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.FILE_INDEX),
+      siardMarshaller.marshal(getJAXBContext(), metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.FILE_INDEX),
         "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/fileIndex.xsd", writer,
-        fileIndexFileStrategy.generateXML(null));
+        SIARDDKFileIndexFileStrategy.generateXML(null));
 
       writer.close();
     } catch (IOException e) {
@@ -130,4 +120,6 @@ public class SIARDDKDatabaseExportModule extends SIARDExportDefault {
     }
 
   }
+
+  abstract String getJAXBContext();
 }

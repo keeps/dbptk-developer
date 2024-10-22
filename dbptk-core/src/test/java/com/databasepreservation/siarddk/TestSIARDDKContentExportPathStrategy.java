@@ -7,12 +7,12 @@
  */
 package com.databasepreservation.siarddk;
 
+import com.databasepreservation.modules.siard.out.path.SIARDDKContentPathExportStrategy;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
-import com.databasepreservation.modules.siard.out.path.SIARDDKContentPathExportStrategy;
 
 public class TestSIARDDKContentExportPathStrategy {
 

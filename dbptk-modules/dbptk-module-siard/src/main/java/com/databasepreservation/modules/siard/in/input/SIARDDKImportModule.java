@@ -1,70 +1,56 @@
-/**
- * The contents of this file are subject to the license and copyright
- * detailed in the LICENSE file at the root of the source
- * tree and available online at
- *
- * https://github.com/keeps/db-preservation-toolkit
- */
 package com.databasepreservation.modules.siard.in.input;
 
-import java.nio.file.Path;
-import java.util.Map;
-
 import com.databasepreservation.model.modules.DatabaseImportModule;
-import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.common.path.SIARDDKMetadataPathStrategy;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.in.content.ContentImportStrategy;
-import com.databasepreservation.modules.siard.in.content.SIARDDKContentImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.MetadataImportStrategy;
-import com.databasepreservation.modules.siard.in.metadata.SIARDDKMetadataImportStrategy;
-import com.databasepreservation.modules.siard.in.path.ResourceFileIndexInputStreamStrategy;
 import com.databasepreservation.modules.siard.in.path.SIARDDKPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
 import com.databasepreservation.utils.MapUtils;
+
+import java.nio.file.Path;
+import java.util.Map;
 
 /**
  * @author Thomas Kristensen <tk@bithuset.dk>
  *
  */
-public class SIARDDKImportModule {
-  private static final String moduleName = "siard-dk";
+public abstract class SIARDDKImportModule {
   protected final FolderReadStrategyMD5Sum readStrategy;
   protected final SIARDArchiveContainer mainContainer;
   protected final MetadataImportStrategy metadataStrategy;
   protected final ContentImportStrategy contentStrategy;
+  protected final SIARDDKPathImportStrategy pathStrategy; // Adicionado ao construtor
+  public final String paramImportAsSchema;
+  private final String moduleName;
 
-  private final String paramImportAsSchema;
-
-  public SIARDDKImportModule(Path siardPackage, String paramImportAsSchema) {
+  public SIARDDKImportModule(String moduleName, Path siardPackage, String paramImportAsSchema,
+    SIARDDKPathImportStrategy pathStrategy) {
+    this.moduleName = moduleName;
     this.paramImportAsSchema = paramImportAsSchema;
-    mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.DK, siardPackage.toAbsolutePath().normalize(),
-      SIARDArchiveContainer.OutputContainerType.MAIN);
-    readStrategy = new FolderReadStrategyMD5Sum(mainContainer);
+    this.mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.DK,
+      siardPackage.toAbsolutePath().normalize(), SIARDArchiveContainer.OutputContainerType.MAIN);
+    this.readStrategy = new FolderReadStrategyMD5Sum(mainContainer);
+    this.pathStrategy = pathStrategy; // Inicializa o pathStrategy no construtor
 
-    MetadataPathStrategy metadataPathStrategy = new SIARDDKMetadataPathStrategy();
-    // Please notice, that the MetadataPathStrategy instance is wrapped into
-    // the SIARDDKPathImportStrategy below.
-
-    // NOTE: if we need to use the fileIndex.xsd from a given
-    // "arkiverings version" then change
-    // the FileIndexInputStreamStrategy to ArchiveFileIndexInputStreamStrategy
-    SIARDDKPathImportStrategy pathStrategy = new SIARDDKPathImportStrategy(mainContainer, readStrategy,
-      metadataPathStrategy, paramImportAsSchema, new ResourceFileIndexInputStreamStrategy());
-
-    metadataStrategy = new SIARDDKMetadataImportStrategy(pathStrategy, paramImportAsSchema);
-    contentStrategy = new SIARDDKContentImportStrategy(readStrategy, pathStrategy, paramImportAsSchema);
-
+    this.metadataStrategy = createMetadataImportStrategy();
+    this.contentStrategy = createContentImportStrategy();
   }
 
+  protected abstract MetadataImportStrategy createMetadataImportStrategy();
+
+  protected abstract ContentImportStrategy createContentImportStrategy();
+
   public DatabaseImportModule getDatabaseImportModule() {
-    final Map<String, String> properties = MapUtils.buildMapFromObjects(SIARDDKModuleFactory.PARAMETER_FOLDER,
-      mainContainer.getPath().normalize().toAbsolutePath().toString(), SIARDDKModuleFactory.PARAMETER_AS_SCHEMA,
+    final Map<String, String> properties = MapUtils.buildMapFromObjects(getModuleFactoryParameterFolder(),
+      mainContainer.getPath().normalize().toAbsolutePath().toString(), getModuleFactoryParameterAsSchema(),
       paramImportAsSchema);
     return new SIARDImportDefault(moduleName, contentStrategy, mainContainer, readStrategy, metadataStrategy,
       properties);
   }
 
+  protected abstract String getModuleFactoryParameterFolder();
+
+  protected abstract String getModuleFactoryParameterAsSchema();
 }

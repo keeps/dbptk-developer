@@ -22,6 +22,7 @@ import com.databasepreservation.model.modules.edits.EditModule;
 import com.databasepreservation.model.modules.edits.EditModuleFactory;
 import com.databasepreservation.model.parameters.Parameter;
 import com.databasepreservation.model.parameters.Parameters;
+import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.update.SIARDEditModule;
 
 /**
@@ -100,6 +101,6 @@ public class SIARDEditFactory implements EditModuleFactory {
 
     reporter.importModuleParameters(getModuleName(), PARAMETER_FILE, pFile.normalize().toAbsolutePath().toString());
 
-    return new SIARDEditModule(pFile);
+    return new SIARDEditModule(pFile, SIARDConstants.SiardVersion.V2_0);
   }
 }
