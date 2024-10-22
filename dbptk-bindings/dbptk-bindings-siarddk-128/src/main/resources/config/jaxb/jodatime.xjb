@@ -1,0 +1,47 @@
+<jaxb:bindings version="3.0"
+    xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <jaxb:bindings schemaLocation="../../schema/128/contextDocumentationIndex.xsd">
+        <jaxb:bindings node="//xsd:simpleType[@name='documentIDType']">
+            <jaxb:class name="documentIDTypeDoc"/>
+        </jaxb:bindings>
+    </jaxb:bindings>
+
+    <!-- Handle nonEmptyTextType -->
+    <jaxb:bindings schemaLocation="../../schema/128/contextDocumentationIndex.xsd">
+        <jaxb:bindings node="//xsd:simpleType[@name='nonEmptyTextType']">
+            <jaxb:class name="NonEmptyTextTypeDoc"/>
+        </jaxb:bindings>
+    </jaxb:bindings>
+
+
+    <!-- Handle arcDateType -->
+    <jaxb:bindings schemaLocation="../../schema/128/contextDocumentationIndex.xsd">
+        <jaxb:bindings node="//xsd:simpleType[@name='arcDateType']">
+            <jaxb:class name="ArcDateTypeDoc"/>
+        </jaxb:bindings>
+    </jaxb:bindings>
+
+    <!-- Handle arcgYearMonthType -->
+    <jaxb:bindings schemaLocation="../../schema/128/contextDocumentationIndex.xsd">
+        <jaxb:bindings node="//xsd:simpleType[@name='arcgYearMonthType']">
+            <jaxb:class name="ArcGYearMonthTypeDoc"/>
+        </jaxb:bindings>
+    </jaxb:bindings>
+
+    <!-- Handle arcgYearType -->
+    <jaxb:bindings schemaLocation="../../schema/128/contextDocumentationIndex.xsd">
+        <jaxb:bindings node="//xsd:simpleType[@name='arcgYearType']">
+            <jaxb:class name="ArcGYearTypeDoc"/>
+        </jaxb:bindings>
+    </jaxb:bindings>
+
+    <!-- Handle y_ym_ymdDatoType -->
+    <jaxb:bindings schemaLocation="../../schema/128/contextDocumentationIndex.xsd">
+        <jaxb:bindings node="//xsd:simpleType[@name='y_ym_ymdDatoType']">
+            <jaxb:class name="YymYmdDatoTypeDoc"/>
+        </jaxb:bindings>
+    </jaxb:bindings>
+
+</jaxb:bindings>

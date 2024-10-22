@@ -104,7 +104,7 @@
                                 <schemaIncludes>
                                     <include>archiveIndex.xsd</include>
                                     <include>docIndex.xsd</include>
-<!--                                    <include>contextDocumentationIndex.xsd</include>-->
+                                    <include>contextDocumentationIndex.xsd</include>
                                     <include>fileIndex.xsd</include>
                                     <include>researchIndex.xsd</include>
                                     <include>XMLSchema.xsd</include>
