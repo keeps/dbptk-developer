@@ -14,11 +14,11 @@
 
 package com.databasepreservation.modules.siard.out.output;
 
+import com.databasepreservation.modules.siard.common.adapters.SIARDDK128Adapter;
 import com.databasepreservation.modules.siard.common.path.SIARDDK128MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARDDKMetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARDDK128DocIndexFileStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARDDK128FileIndexFileStrategy;
-import com.databasepreservation.modules.siard.out.metadata.SIARDDK128MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARDDKDocIndexFileStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARDDKFileIndexFileStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARDDKMetadataExportStrategy;
@@ -51,7 +51,7 @@ public class SIARDDK128ExportModule extends SIARDDKExportModule {
 
   @Override
   SIARDDKMetadataExportStrategy createSIARDDKMetadataExportStrategyInstance() {
-    return new SIARDDK128MetadataExportStrategy(this);
+    return new SIARDDKMetadataExportStrategy(this, new SIARDDK128Adapter());
   }
 
   @Override

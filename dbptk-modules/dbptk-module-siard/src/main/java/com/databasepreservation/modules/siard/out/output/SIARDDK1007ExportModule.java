@@ -16,11 +16,11 @@ package com.databasepreservation.modules.siard.out.output;
 
 import java.util.Map;
 
+import com.databasepreservation.modules.siard.common.adapters.SIARDDK1007Adapter;
 import com.databasepreservation.modules.siard.common.path.SIARDDK1007MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARDDKMetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARDDK1007FileIndexFileStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARDDK1007DocIndexFileStrategy;
-import com.databasepreservation.modules.siard.out.metadata.SIARDDK1007MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARDDKDocIndexFileStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARDDKFileIndexFileStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARDDKMetadataExportStrategy;
@@ -52,7 +52,7 @@ public class SIARDDK1007ExportModule extends SIARDDKExportModule {
 
   @Override
   SIARDDKMetadataExportStrategy createSIARDDKMetadataExportStrategyInstance() {
-    return new SIARDDK1007MetadataExportStrategy(this);
+    return new SIARDDKMetadataExportStrategy(this, new SIARDDK1007Adapter());
   }
 
   @Override

@@ -1,9 +1,13 @@
 package com.databasepreservation.modules.siard.common.adapters;
 
 import java.math.BigInteger;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.model.structure.PrimaryKey;
+import com.databasepreservation.modules.siard.bindings.siard_dk_128.ArchiveIndex;
 import com.databasepreservation.modules.siard.bindings.siard_dk_128.ColumnType;
 import com.databasepreservation.modules.siard.bindings.siard_dk_128.ColumnsType;
 import com.databasepreservation.modules.siard.bindings.siard_dk_128.ForeignKeyType;
@@ -22,22 +26,42 @@ import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class SIARDDK128Adapter implements SIARDDKAdapter {
-  private final SiardDiark siardDiark;
+  private SiardDiark siardDiark;
+  private ArchiveIndex archiveIndex;
   private final TablesType tablesType;
-  private final ViewsType viewsType;
+  private TableType tableType;
+  private ViewsType viewsType;
 
   public SIARDDK128Adapter() {
     siardDiark = new SiardDiark();
     tablesType = new TablesType();
-    viewsType = new ViewsType();
 
     siardDiark.setTables(tablesType);
-    siardDiark.setViews(viewsType);
+  }
+
+  @Override
+  public void setSiardDiark(Object siardDiark) {
+    this.siardDiark = (SiardDiark) siardDiark;
+  }
+
+  @Override
+  public void setPrimaryKey(Object primaryKey) {
+    this.primaryKey = (PrimaryKey) primaryKey;
+  }
+
+  @Override
+  public void setArchiveIndex(Object archiveIndex) {
+    this.archiveIndex = (ArchiveIndex) archiveIndex;
   }
 
   @Override
   public void setVersion(String value) {
     siardDiark.setVersion(value);
+  }
+
+  @Override
+  public void setTableType(Object tableType) {
+    this.tableType = (TableType) tableType;
   }
 
   @Override
@@ -48,6 +72,70 @@ public class SIARDDK128Adapter implements SIARDDKAdapter {
   @Override
   public void setDatabaseProduct(String productName) {
     siardDiark.setDatabaseProduct(productName);
+  }
+
+  @Override
+  public String getDatabaseProduct() {
+    return siardDiark.getDatabaseProduct();
+  }
+
+  @Override
+  public String getDbName() {
+    return siardDiark.getDbName();
+  }
+
+  @Override
+  public Object getTables() {
+    return siardDiark.getTables();
+  }
+
+  @Override
+  public String getTableTypeName() {
+    return tableType.getName();
+  }
+
+  @Override
+  public String getTableTypeFolder() {
+    return tableType.getFolder();
+  }
+
+  @Override
+  public String getTableTypeDescription() {
+    return tableType.getDescription();
+  }
+
+  @Override
+  public Object getTableTypePrimaryKey() {
+    return tableType.getPrimaryKey();
+  }
+
+  @Override
+  public Object getTableTypeForeignKeys() {
+    return tableType.getForeignKeys();
+  }
+
+  @Override
+  public BigInteger getTableTypeRows() {
+    return tableType.getRows();
+  }
+
+  @Override
+  public Object getTableTypeColumns() {
+    return tableType.getColumns();
+  }
+
+  @Override
+  public PrimaryKey getPrimaryKey(Object primaryKeyXml) {
+    PrimaryKey keyDptkl = new PrimaryKey();
+    PrimaryKeyType primaryKeyType = (PrimaryKeyType) primaryKeyXml;
+    keyDptkl.setName(primaryKeyType.getName());
+    keyDptkl.setColumnNames(primaryKeyType.getColumn());
+    return keyDptkl;
+  }
+
+  @Override
+  public List<Object> getTable() {
+    return Collections.singletonList(siardDiark.getTables().getTable());
   }
 
   @Override
@@ -125,10 +213,25 @@ public class SIARDDK128Adapter implements SIARDDKAdapter {
 
   @Override
   public void addView(String viewName, String viewQueryOriginal, String viewDescription) {
+    if (viewsType == null) {
+      viewsType = new ViewsType();
+      siardDiark.setViews(viewsType);
+    }
     ViewType viewType = new ViewType();
     viewType.setName(viewName);
     viewType.setQueryOriginal(viewQueryOriginal);
     viewType.setDescription(viewDescription);
     viewsType.getView().add(viewType);
   }
+
+  @Override
+  public String getSiardDiarkPackageName() {
+    return SiardDiark.class.getPackage().getName();
+  }
+
+  @Override
+  public String getArchiveIndexPackageName() {
+    return "";
+  }
+
 }

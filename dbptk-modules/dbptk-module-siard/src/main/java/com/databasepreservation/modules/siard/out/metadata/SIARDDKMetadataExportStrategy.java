@@ -4,6 +4,7 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.common.adapters.SIARDDKAdapter;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.out.content.LOBsTracker;
@@ -25,7 +26,7 @@ import java.util.Map;
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public abstract class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
+public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARDDKMetadataExportStrategy.class);
 
   private SIARDMarshaller siardMarshaller;
@@ -34,16 +35,18 @@ public abstract class SIARDDKMetadataExportStrategy implements MetadataExportStr
   private SIARDDKDocIndexFileStrategy SIARDDKDocIndexFileStrategy;
   private Map<String, String> exportModuleArgs;
   private LOBsTracker lobsTracker;
+  private SIARDDKAdapter siarddkAdapter;
 
   private Reporter reporter;
 
-  public SIARDDKMetadataExportStrategy(SIARDDKExportModule siarddkExportModule) {
+  public SIARDDKMetadataExportStrategy(SIARDDKExportModule siarddkExportModule, SIARDDKAdapter siarddkAdapter) {
     siardMarshaller = siarddkExportModule.getSiardMarshaller();
     SIARDDKFileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
     SIARDDKDocIndexFileStrategy = siarddkExportModule.getDocIndexFileStrategy();
     metadataPathStrategy = siarddkExportModule.getMetadataPathStrategy();
     exportModuleArgs = siarddkExportModule.getExportModuleArgs();
     lobsTracker = siarddkExportModule.getLobsTracker();
+    this.siarddkAdapter = siarddkAdapter;
   }
 
   @Override
@@ -56,7 +59,7 @@ public abstract class SIARDDKMetadataExportStrategy implements MetadataExportStr
     // Generate tableIndex.xml
 
     try {
-      IndexFileStrategy tableIndexFileStrategy = createSIARDDKTableIndexFileStrategy(lobsTracker);
+      IndexFileStrategy tableIndexFileStrategy = new SIARDDKTableIndexFileStrategy(lobsTracker, siarddkAdapter);
       String path = metadataPathStrategy.getXmlFilePath(SIARDDKConstants.TABLE_INDEX);
       OutputStream writer = SIARDDKFileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
 
@@ -198,5 +201,4 @@ public abstract class SIARDDKMetadataExportStrategy implements MetadataExportStr
     }
   }
 
-  abstract IndexFileStrategy createSIARDDKTableIndexFileStrategy(LOBsTracker lobsTracker);
 }

@@ -35,26 +35,25 @@ import com.databasepreservation.modules.siard.out.content.LOBsTracker;
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public abstract class SIARDDKTableIndexFileStrategy implements IndexFileStrategy {
+public class SIARDDKTableIndexFileStrategy implements IndexFileStrategy {
 
   // LOBsTracker used to get the locations of functionalDescriptions
   private LOBsTracker lobsTracker;
   private String regex;
+  private SIARDDKAdapter siarddkBinding;
 
-  public SIARDDKTableIndexFileStrategy(LOBsTracker lobsTracker) {
+  public SIARDDKTableIndexFileStrategy(LOBsTracker lobsTracker, SIARDDKAdapter siarddkAdapter) {
     this.lobsTracker = lobsTracker;
+    this.siarddkBinding = siarddkAdapter;
     regex = "(\\p{L}(_|\\w)*)|(\".*\")";
   }
 
   private static final Logger logger = LoggerFactory.getLogger(SIARDDKTableIndexFileStrategy.class);
 
-  protected abstract SIARDDKAdapter getSIARDDKBinding();
-
   @Override
   public Object generateXML(DatabaseStructure dbStructure) throws ModuleException {
 
     // Set version - mandatory
-    SIARDDKAdapter siarddkBinding = getSIARDDKBinding();
     siarddkBinding.setVersion("1.0");
 
     // Set dbName - mandatory
