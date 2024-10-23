@@ -103,91 +103,6 @@ public class SIARDDK1007Adapter implements SIARDDKAdapter {
     return siardDiark.getTables();
   }
 
-  @Override
-  public String getTableTypeName() {
-    return tableType.getName();
-  }
-
-  @Override
-  public String getTableTypeFolder() {
-    return tableType.getFolder();
-  }
-
-  @Override
-  public String getTableTypeDescription() {
-    return tableType.getDescription();
-  }
-
-  @Override
-  public Object getTableTypePrimaryKey() {
-    return tableType.getPrimaryKey();
-  }
-
-  @Override
-  public List<ForeignKey> getForeignKeys(Object foreignKeysXml, String tableId, String importAsSchemaName) {
-    List<ForeignKey> lstForeignKeyDptkl = new LinkedList<ForeignKey>();
-    ForeignKeysType foreignKeysType = (ForeignKeysType) foreignKeysXml;
-    if (foreignKeysXml != null) {
-      for (ForeignKeyType foreignKeyXml : foreignKeysType.getForeignKey()) {
-        ForeignKey foreignKeyDptkl = new ForeignKey();
-        foreignKeyDptkl.setReferencedSchema(importAsSchemaName);
-        foreignKeyDptkl.setName(foreignKeyXml.getName());
-        foreignKeyDptkl.setReferencedTable(foreignKeyXml.getReferencedTable());
-        foreignKeyDptkl.setReferences(getReferences(foreignKeyXml.getReference()));
-        foreignKeyDptkl.setId(String.format("%s.%s", tableId, foreignKeyDptkl.getName()));
-        lstForeignKeyDptkl.add(foreignKeyDptkl);
-      }
-    }
-    return lstForeignKeyDptkl;
-  }
-
-  @Override
-  public List<ColumnStructure> getTblColumns(Object columnsXml, String tableId,
-    SQLStandardDatatypeImporter sqlStandardDatatypeImporter) {
-    List<ColumnStructure> lstColumnsDptkl = new LinkedList<ColumnStructure>();
-    ColumnsType columnsType = (ColumnsType) columnsXml;
-    if (columnsType != null && columnsType.getColumn() != null) {
-      for (ColumnType columnXml : columnsType.getColumn()) {
-        ColumnStructure columnDptkl = new ColumnStructure();
-        columnDptkl.setName(columnXml.getName());
-        columnDptkl.setId(String.format("%s.%s", tableId, columnDptkl.getName()));
-        String typeOriginal = StringUtils.isNotBlank(columnXml.getTypeOriginal()) ? columnXml.getTypeOriginal() : null;
-        columnDptkl
-          .setType(sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
-            "<information unavailable>", "<information unavailable>", columnXml.getType(), typeOriginal));
-        columnDptkl.setDescription(columnXml.getDescription());
-        String defaultValue = StringUtils.isNotBlank(columnXml.getDefaultValue()) ? columnXml.getDefaultValue() : null;
-        columnDptkl.setDefaultValue(defaultValue);
-        columnDptkl.setNillable(columnXml.isNullable());
-        lstColumnsDptkl.add(columnDptkl);
-      }
-    }
-    return lstColumnsDptkl;
-  }
-
-  @Override
-  public List<ForeignKey> getVirtualForeignKeys(Object columns, String tableId, String importAsSchemaName) {
-    List<ForeignKey> virtualForeignKeys = new ArrayList<>();
-    ColumnsType columnsType = (ColumnsType) columns;
-    for (ColumnType column : columnsType.getColumn()) {
-      if (column.getFunctionalDescription() != null
-              && column.getFunctionalDescription().contains(FunctionalDescriptionType.DOKUMENTIDENTIFIKATION)) {
-        ForeignKey virtualForeignKey = new ForeignKey();
-        virtualForeignKey.setReferencedSchema(importAsSchemaName);
-        virtualForeignKey.setName("FK_virtual_table");
-        virtualForeignKey.setReferencedTable("virtual_table");
-        Reference reference = new Reference(column.getName(), "dID");
-        List<Reference> referenceList = new ArrayList<>();
-        referenceList.add(reference);
-        virtualForeignKey.setReferences(referenceList);
-        virtualForeignKey.setId(String.format("%s.%s", tableId, "FK_virtual_table"));
-        virtualForeignKeys.add(virtualForeignKey);
-      }
-    }
-
-    return virtualForeignKeys;
-  }
-
   protected List<Reference> getReferences(List<ReferenceType> referencesXml) {
     List<Reference> refsDptkld = new LinkedList<Reference>();
     if (referencesXml != null) {
@@ -199,21 +114,6 @@ public class SIARDDK1007Adapter implements SIARDDKAdapter {
       }
     }
     return refsDptkld;
-  }
-
-  @Override
-  public Object getTableTypeForeignKeys() {
-    return tableType.getForeignKeys();
-  }
-
-  @Override
-  public BigInteger getTableTypeRows() {
-    return tableType.getRows();
-  }
-
-  @Override
-  public Object getTableTypeColumns() {
-    return tableType.getColumns();
   }
 
   @Override
@@ -305,21 +205,6 @@ public class SIARDDK1007Adapter implements SIARDDKAdapter {
     viewType.setQueryOriginal(viewQueryOriginal);
     viewType.setDescription(viewDescription);
     viewsType.getView().add(viewType);
-  }
-
-  @Override
-  public String getSiardDiarkPackageName() {
-    return SiardDiark.class.getPackage().getName();
-  }
-
-  @Override
-  public String getDocIndexTypePackageName() {
-    return DocIndexType.class.getPackage().getName();
-  }
-
-  @Override
-  public String getArchiveIndexPackageName() {
-    return ArchiveIndex.class.getPackage().getName();
   }
 
 }

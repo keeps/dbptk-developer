@@ -45,11 +45,6 @@ public class SIARDDK128Adapter implements SIARDDKAdapter {
   }
 
   @Override
-  public void setPrimaryKey(Object primaryKey) {
-    this.primaryKey = (PrimaryKey) primaryKey;
-  }
-
-  @Override
   public void setArchiveIndex(Object archiveIndex) {
     this.archiveIndex = (ArchiveIndex) archiveIndex;
   }
@@ -87,41 +82,6 @@ public class SIARDDK128Adapter implements SIARDDKAdapter {
   @Override
   public Object getTables() {
     return siardDiark.getTables();
-  }
-
-  @Override
-  public String getTableTypeName() {
-    return tableType.getName();
-  }
-
-  @Override
-  public String getTableTypeFolder() {
-    return tableType.getFolder();
-  }
-
-  @Override
-  public String getTableTypeDescription() {
-    return tableType.getDescription();
-  }
-
-  @Override
-  public Object getTableTypePrimaryKey() {
-    return tableType.getPrimaryKey();
-  }
-
-  @Override
-  public Object getTableTypeForeignKeys() {
-    return tableType.getForeignKeys();
-  }
-
-  @Override
-  public BigInteger getTableTypeRows() {
-    return tableType.getRows();
-  }
-
-  @Override
-  public Object getTableTypeColumns() {
-    return tableType.getColumns();
   }
 
   @Override
@@ -222,16 +182,6 @@ public class SIARDDK128Adapter implements SIARDDKAdapter {
     viewType.setQueryOriginal(viewQueryOriginal);
     viewType.setDescription(viewDescription);
     viewsType.getView().add(viewType);
-  }
-
-  @Override
-  public String getSiardDiarkPackageName() {
-    return SiardDiark.class.getPackage().getName();
-  }
-
-  @Override
-  public String getArchiveIndexPackageName() {
-    return "";
   }
 
 }

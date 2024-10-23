@@ -28,27 +28,6 @@ public interface SIARDDKAdapter {
 
   Object getTables();
 
-  String getTableTypeName();
-
-  String getTableTypeFolder();
-
-  String getTableTypeDescription();
-
-  Object getTableTypePrimaryKey();
-
-  List<ForeignKey> getForeignKeys(Object foreignKeysXml, String tableId, String importAsSchemaName);
-
-  List<ColumnStructure> getTblColumns(Object columnsXml, String tableId,
-    SQLStandardDatatypeImporter sqlStandardDatatypeImporter);
-
-  List<ForeignKey> getVirtualForeignKeys(Object columns, String tableId, String importAsSchemaName);
-
-  Object getTableTypeForeignKeys();
-
-  BigInteger getTableTypeRows();
-
-  Object getTableTypeColumns();
-
   void addTable(String tableName, String tableFolder, String tableDescription);
 
   void addColumnForTable(String tableName, String columnName, String columnID, String columType,
@@ -69,12 +48,6 @@ public interface SIARDDKAdapter {
   void setRowsForTable(String tableName, BigInteger bigInteger);
 
   void addView(String viewName, String viewQueryOriginal, String viewDescription);
-
-  String getSiardDiarkPackageName();
-
-  String getDocIndexTypePackageName();
-
-  String getArchiveIndexPackageName();
 
   void setSiardDiark(Object siardDiark);
 
