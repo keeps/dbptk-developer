@@ -19,7 +19,7 @@ import org.testng.annotations.Test;
  */
 
 @Test(groups = {"siarddk"})
-public class TestSIARDDKImportModule {
+public class TestSIARDDK1007ImportModule {
   private final String ARCHIVE_FLD_NAME_SPLIT_TEST = "AVID.TST.4000.1";
   private final String ARCHIVE_FLD_NAME_HEX_TEST = "AVID.HEX.2000.1";
 

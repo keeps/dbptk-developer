@@ -1,12 +1,6 @@
-/**
- * The contents of this file are subject to the license and copyright
- * detailed in the LICENSE file at the root of the source
- * tree and available online at
- *
- * https://github.com/keeps/db-preservation-toolkit
- */
 package com.databasepreservation.modules.siard;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,18 +8,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import org.apache.commons.lang3.StringUtils;
 
-import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.exception.LicenseNotAcceptedException;
 import com.databasepreservation.model.exception.UnsupportedModuleException;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
+import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import com.databasepreservation.model.parameters.Parameter;
-import com.databasepreservation.model.parameters.Parameter.CATEGORY_TYPE;
-import com.databasepreservation.model.parameters.Parameter.INPUT_TYPE;
 import com.databasepreservation.model.parameters.Parameters;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.in.input.SIARDDKImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
@@ -35,7 +27,7 @@ import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
  * @author Thomas Kristensen <tk@bithuset.dk>
  *
  */
-public class SIARDDKModuleFactory implements DatabaseModuleFactory {
+public abstract class SIARDDKModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_FOLDER = "folder";
   public static final String PARAMETER_ARCHIVE_INDEX = "archiveIndex";
   public static final String PARAMETER_CONTEXT_DOCUMENTATION_INDEX = "contextDocumentationIndex";
@@ -102,7 +94,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
 
   @Override
   public String getModuleName() {
-    return "siard-dk";
+    return getModuleFactoryName();
   }
 
   @Override
@@ -131,7 +123,8 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
   @Override
   public Parameters getConnectionParameters() {
     return new Parameters(
-      Arrays.asList(folder.inputType(INPUT_TYPE.FOLDER), importAsSchema.inputType(INPUT_TYPE.TEXT)), null);
+      Arrays.asList(folder.inputType(Parameter.INPUT_TYPE.FOLDER), importAsSchema.inputType(Parameter.INPUT_TYPE.TEXT)),
+      null);
   }
 
   @Override
@@ -146,14 +139,17 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     // clobType, clobLength), null);
 
     return new Parameters(
-      Arrays.asList(folder.inputType(INPUT_TYPE.FOLDER).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
-        archiveIndex.inputType(INPUT_TYPE.FILE_OPEN).fileFilter(Parameter.FILE_FILTER_TYPE.XML_EXTENSION)
-          .exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
-        contextDocumentationIndex.inputType(INPUT_TYPE.FILE_OPEN).fileFilter(Parameter.FILE_FILTER_TYPE.XML_EXTENSION)
-          .exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
-        contextDocumentationFolder.inputType(INPUT_TYPE.FOLDER).exportOptions(CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
-        lobsPerFolder.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS),
-        lobsFolderSize.inputType(INPUT_TYPE.TEXT).exportOptions(CATEGORY_TYPE.EXTERNAL_LOBS)),
+      Arrays.asList(
+        folder.inputType(Parameter.INPUT_TYPE.FOLDER).exportOptions(Parameter.CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+        archiveIndex.inputType(Parameter.INPUT_TYPE.FILE_OPEN).fileFilter(Parameter.FILE_FILTER_TYPE.XML_EXTENSION)
+          .exportOptions(Parameter.CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+        contextDocumentationIndex.inputType(Parameter.INPUT_TYPE.FILE_OPEN)
+          .fileFilter(Parameter.FILE_FILTER_TYPE.XML_EXTENSION)
+          .exportOptions(Parameter.CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+        contextDocumentationFolder.inputType(Parameter.INPUT_TYPE.FOLDER)
+          .exportOptions(Parameter.CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+        lobsPerFolder.inputType(Parameter.INPUT_TYPE.TEXT).exportOptions(Parameter.CATEGORY_TYPE.EXTERNAL_LOBS),
+        lobsFolderSize.inputType(Parameter.INPUT_TYPE.TEXT).exportOptions(Parameter.CATEGORY_TYPE.EXTERNAL_LOBS)),
       null);
 
   }
@@ -163,7 +159,7 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     reporter.importModuleParameters(getModuleName(), "file",
       Paths.get(parameters.get(folder)).normalize().toAbsolutePath().toString(), importAsSchema.longName(),
       parameters.get(importAsSchema));
-    return new SIARDDKImportModule(Paths.get(parameters.get(folder)), parameters.get(importAsSchema))
+    return createSIARDDKImportModuleInstance(Paths.get(parameters.get(folder)), parameters.get(importAsSchema))
       .getDatabaseImportModule();
   }
 
@@ -226,6 +222,12 @@ public class SIARDDKModuleFactory implements DatabaseModuleFactory {
     }
     reporter.exportModuleParameters(getModuleName(), exportModuleParameters.toArray(new String[0]));
 
-    return new SIARDDKExportModule(exportModuleArgs).getDatabaseExportModule();
+    return createSIARDDKExportModuleInstance(exportModuleArgs).getDatabaseExportModule();
   }
+
+  abstract String getModuleFactoryName();
+
+  abstract SIARDDKImportModule createSIARDDKImportModuleInstance(Path path, String schemaName);
+
+  abstract SIARDDKExportModule createSIARDDKExportModuleInstance(Map<String, String> exportModuleArgs);
 }

@@ -9,7 +9,9 @@ package com.databasepreservation.modules.siard.out.metadata;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -25,58 +27,49 @@ import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.model.structure.type.Type;
+import com.databasepreservation.modules.siard.common.adapters.SIARDDKAdapter;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.out.content.LOBsTracker;
-
-import dk.sa.xmlns.diark._1_0.tableindex.ColumnType;
-import dk.sa.xmlns.diark._1_0.tableindex.ColumnsType;
-import dk.sa.xmlns.diark._1_0.tableindex.ForeignKeyType;
-import dk.sa.xmlns.diark._1_0.tableindex.ForeignKeysType;
-import dk.sa.xmlns.diark._1_0.tableindex.FunctionalDescriptionType;
-import dk.sa.xmlns.diark._1_0.tableindex.PrimaryKeyType;
-import dk.sa.xmlns.diark._1_0.tableindex.ReferenceType;
-import dk.sa.xmlns.diark._1_0.tableindex.SiardDiark;
-import dk.sa.xmlns.diark._1_0.tableindex.TableType;
-import dk.sa.xmlns.diark._1_0.tableindex.TablesType;
-import dk.sa.xmlns.diark._1_0.tableindex.ViewType;
-import dk.sa.xmlns.diark._1_0.tableindex.ViewsType;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public class TableIndexFileStrategy implements IndexFileStrategy {
+public class SIARDDKTableIndexFileStrategy implements IndexFileStrategy {
 
   // LOBsTracker used to get the locations of functionalDescriptions
   private LOBsTracker lobsTracker;
   private String regex;
+  private SIARDDKAdapter siarddkBinding;
 
-  public TableIndexFileStrategy(LOBsTracker lobsTracker) {
+  public SIARDDKTableIndexFileStrategy(LOBsTracker lobsTracker, SIARDDKAdapter siarddkAdapter) {
     this.lobsTracker = lobsTracker;
+    this.siarddkBinding = siarddkAdapter;
     regex = "(\\p{L}(_|\\w)*)|(\".*\")";
   }
 
-  private static final Logger logger = LoggerFactory.getLogger(TableIndexFileStrategy.class);
+  private static final Logger logger = LoggerFactory.getLogger(SIARDDKTableIndexFileStrategy.class);
 
   @Override
   public Object generateXML(DatabaseStructure dbStructure) throws ModuleException {
 
     // Set version - mandatory
-    SiardDiark siardDiark = new SiardDiark();
-    siardDiark.setVersion("1.0");
+    siarddkBinding.setVersion("1.0");
 
     // Set dbName - mandatory
-    siardDiark.setDbName(dbStructure.getName());
+    if (dbStructure.getDbOriginalName() != null) {
+      siarddkBinding.setDbName(dbStructure.getDbOriginalName());
+    } else {
+      siarddkBinding.setDbName(dbStructure.getName());
+    }
 
     // Set databaseProduct
     if (StringUtils.isNotBlank(dbStructure.getProductName())) {
-      siardDiark.setDatabaseProduct(dbStructure.getProductName());
+      siarddkBinding.setDatabaseProduct(dbStructure.getProductName());
     }
 
     // Set tables - mandatory
     int tableCounter = 1;
-    TablesType tablesType = new TablesType();
-
     List<SchemaStructure> schemas = dbStructure.getSchemas();
     // System.out.println(schemas.get(0));
 
@@ -106,51 +99,44 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
         continue;
       } else {
         for (TableStructure tableStructure : schemaStructure.getTables()) {
-
-          // Set table - mandatory
-
-          TableType tableType = new TableType();
-
           // Set name - mandatory
-          tableType.setName(escapeString(tableStructure.getName()));
+          String tableName = escapeString(tableStructure.getName());
 
           // Set folder - mandatory
-          tableType.setFolder("table" + Integer.toString(tableCounter));
+          String tableFolder = "table" + Integer.toString(tableCounter);
 
           // Set description
+          String tableDescription = "Description should be entered manually";
           if (tableStructure.getDescription() != null && !tableStructure.getDescription().trim().isEmpty()) {
-            tableType.setDescription(tableStructure.getDescription().trim());
-          } else {
-            tableType.setDescription("Description should be entered manually");
+            tableDescription = tableStructure.getDescription().trim();
           }
+          siarddkBinding.addTable(tableName, tableFolder, tableDescription);
 
           // Set columns - mandatory
           int columnCounter = 1;
-          ColumnsType columns = new ColumnsType();
           for (ColumnStructure columnStructure : tableStructure.getColumns()) {
 
             // Set column - mandatory
-
-            ColumnType column = new ColumnType();
             Type type = columnStructure.getType();
 
             // Set column name - mandatory
-            column.setName(escapeString(columnStructure.getName()));
+            String columnName = escapeString(columnStructure.getName());
 
             // Set columnID - mandatory
-            column.setColumnID("c" + Integer.toString(columnCounter));
+            String columnID = "c" + Integer.toString(columnCounter);
 
             // Set type - mandatory
             String sql99DataType = type.getSql99TypeName();
+            String columType = type.getSql99TypeName();
             if (sql99DataType.equals(SIARDDKConstants.BINARY_LARGE_OBJECT)) {
-              column.setType("INTEGER");
+              columType = "INTEGER";
             } else if (sql99DataType.equals(SIARDDKConstants.CHARACTER_LARGE_OBJECT)) {
 
               if (lobsTracker.getMaxClobLength(tableCounter, columnCounter) > 0) {
-                column.setType(SIARDDKConstants.DEFAULT_CLOB_TYPE + "("
-                  + lobsTracker.getMaxClobLength(tableCounter, columnCounter) + ")");
+                columType = SIARDDKConstants.DEFAULT_CLOB_TYPE + "("
+                  + lobsTracker.getMaxClobLength(tableCounter, columnCounter) + ")";
               } else {
-                column.setType(SIARDDKConstants.DEFAULT_CLOB_TYPE + "(1)");
+                columType = SIARDDKConstants.DEFAULT_CLOB_TYPE + "(1)";
               }
             } else if (sql99DataType.startsWith("BIT VARYING") || sql99DataType.startsWith("BINARY VARYING")) {
 
@@ -158,98 +144,80 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
 
               String length = sql99DataType.split("\\(")[1].trim();
               length = length.substring(0, length.length() - 1);
-              column.setType("CHARACTER VARYING(" + length + ")");
+              columType = "CHARACTER VARYING(" + length + ")";
 
-            } else {
-              column.setType(type.getSql99TypeName());
             }
 
             // Set typeOriginal
-            if (StringUtils.isNotBlank(type.getOriginalTypeName())) {
-              column.setTypeOriginal(type.getOriginalTypeName());
-            }
+            String columnOriginalType = StringUtils.isNotBlank(type.getOriginalTypeName()) ? type.getOriginalTypeName()
+              : null;
 
             // Set defaultValue
-            if (StringUtils.isNotBlank(columnStructure.getDefaultValue())) {
-              column.setDefaultValue(columnStructure.getDefaultValue());
-            }
+            String columnDefaultValue = StringUtils.isNotBlank(columnStructure.getDefaultValue())
+              ? columnStructure.getDefaultValue()
+              : null;
 
             // Set nullable
-            column.setNullable(columnStructure.isNillable());
+            Boolean columnStructureNillable = columnStructure.isNillable();
 
             // Set description
+            String columnDescription = "Description should be set";
             if (columnStructure.getDescription() != null && !columnStructure.getDescription().trim().isEmpty()) {
-              column.setDescription(columnStructure.getDescription().trim());
-            } else {
-              column.setDescription("Description should be set");
+              columnDescription = columnStructure.getDescription().trim();
             }
 
             // Set functionalDescription
             String lobType = lobsTracker.getLOBsType(tableCounter, columnCounter);
-            if (lobType != null) {
-              if (lobType.equals(SIARDDKConstants.BINARY_LARGE_OBJECT)) {
-                FunctionalDescriptionType functionalDescriptionType = FunctionalDescriptionType.DOKUMENTIDENTIFIKATION;
-                column.getFunctionalDescription().add(functionalDescriptionType);
-              }
-            }
 
-            columns.getColumn().add(column);
+            siarddkBinding.addColumnForTable(tableName, columnName, columnID, columType, columnOriginalType,
+              columnDefaultValue, columnStructureNillable, columnDescription, lobType);
             columnCounter += 1;
 
           }
-          tableType.setColumns(columns);
 
           // Set primary key - mandatory
-          PrimaryKeyType primaryKeyType = new PrimaryKeyType(); // JAXB
           PrimaryKey primaryKey = tableStructure.getPrimaryKey();
           if (primaryKey == null) {
-            primaryKeyType.setName("MISSING");
-            primaryKeyType.getColumn().add("MISSING");
+            siarddkBinding.addPrimaryKeyForTable(tableName, "MISSING", List.of("MISSING"));
           } else {
-            primaryKeyType.setName(escapeString(primaryKey.getName()));
+            String primaryKeyName = escapeString(primaryKey.getName());
             List<String> columnNames = primaryKey.getColumnNames();
+            List<String> escapedColumnNames = new ArrayList<>();
             for (String columnName : columnNames) {
-              // Set column names for primary key
-
-              primaryKeyType.getColumn().add(escapeString(columnName));
+              escapedColumnNames.add(escapeString(columnName));
             }
+
+            siarddkBinding.addPrimaryKeyForTable(tableName, primaryKeyName, escapedColumnNames);
           }
-          tableType.setPrimaryKey(primaryKeyType);
 
           // Set foreignKeys
-          ForeignKeysType foreignKeysType = new ForeignKeysType();
           List<ForeignKey> foreignKeys = tableStructure.getForeignKeys();
           if (foreignKeys != null && foreignKeys.size() > 0) {
             for (ForeignKey key : foreignKeys) {
-              ForeignKeyType foreignKeyType = new ForeignKeyType();
-
               // Set key name - mandatory
-              foreignKeyType.setName(escapeString(key.getName()));
+              String foreignKeyName = escapeString(key.getName());
 
               // Set referenced table - mandatory
-              foreignKeyType.setReferencedTable(escapeString(key.getReferencedTable()));
+              String foreignKeyReferencedTable = escapeString(key.getReferencedTable());
 
               // Set reference - mandatory
+              Map<String, String> escapedReferencedColumns = new LinkedHashMap<>();
               for (Reference ref : key.getReferences()) {
-                ReferenceType referenceType = new ReferenceType();
-                referenceType.setColumn(escapeString(ref.getColumn()));
-                referenceType.setReferenced(escapeString(ref.getReferenced()));
-                foreignKeyType.getReference().add(referenceType);
+                escapedReferencedColumns.put(escapeString(ref.getColumn()), escapeString(ref.getReferenced()));
               }
-              foreignKeysType.getForeignKey().add(foreignKeyType);
+
+              siarddkBinding.addForeignKeyForTable(tableName, foreignKeyName, foreignKeyReferencedTable,
+                escapedReferencedColumns);
             }
-            tableType.setForeignKeys(foreignKeysType);
           }
 
           // Set rows
           if (tableStructure.getRows() >= 0) {
-            tableType.setRows(BigInteger.valueOf(tableStructure.getRows()));
+            siarddkBinding.setRowsForTable(tableName, BigInteger.valueOf(tableStructure.getRows()));
           } else {
             throw new ModuleException()
               .withMessage("Error while exporting table structure: number of table rows not set");
           }
-
-          tablesType.getTable().add(tableType);
 
           tableCounter += 1;
         }
@@ -258,36 +226,28 @@ public class TableIndexFileStrategy implements IndexFileStrategy {
         List<ViewStructure> viewStructures = schemaStructure.getViews();
 
         if (viewStructures != null && viewStructures.size() > 0) {
-          ViewsType viewsType = new ViewsType();
           for (ViewStructure viewStructure : viewStructures) {
-
-            // Set view - mandatory
-            ViewType viewType = new ViewType();
-
             // Set view name - mandatory
-            viewType.setName(escapeString(viewStructure.getName()));
+            String viewName = escapeString(viewStructure.getName());
 
             // Set queryOriginal - mandatory
+            String viewQueryOriginal = "unknown";
             if (StringUtils.isNotBlank(viewStructure.getQueryOriginal())) {
-              viewType.setQueryOriginal(viewStructure.getQueryOriginal());
-            } else {
-              viewType.setQueryOriginal("unknown");
+              viewQueryOriginal = viewStructure.getQueryOriginal();
             }
 
             // Set description
-            if (StringUtils.isNotBlank(viewStructure.getDescription())) {
-              viewType.setDescription(viewStructure.getDescription());
-            }
+            String viewDescription = StringUtils.isNotBlank(viewStructure.getDescription())
+              ? viewStructure.getDescription()
+              : null;
 
-            viewsType.getView().add(viewType);
+            siarddkBinding.addView(viewName, viewQueryOriginal, viewDescription);
           }
-          siardDiark.setViews(viewsType);
         }
       }
     }
-    siardDiark.setTables(tablesType);
 
-    return siardDiark;
+    return siarddkBinding.getSIARDDK();
   }
 
   String escapeString(String s) {
