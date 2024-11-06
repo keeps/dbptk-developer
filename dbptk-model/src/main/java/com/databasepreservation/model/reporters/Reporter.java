@@ -222,6 +222,16 @@ public class Reporter implements AutoCloseable {
     LOGGER.debug("cellProcessingUsedNull, message: " + message, exception);
   }
 
+  public void viewWithNullColumns(String viewName, String schemaName) {
+    conversionProblemsCounter++;
+    StringBuilder message = new StringBuilder(
+            "Can not process view ");
+    appendAsCode(message, viewName).append(" from schema ").append(schemaName).append(" because it has no columns.");
+
+    report(message);
+    LOGGER.debug("viewWithNullColumns, message: " + message);
+  }
+
   public void notYetSupported(String feature, String module) {
     conversionProblemsCounter++;
     StringBuilder message = new StringBuilder(MESSAGE_LINE_DEFAULT_PREFIX).append(feature)

@@ -177,6 +177,8 @@ public class SIARDEdition {
 
       if (key != null && key.longName().contentEquals("file")) {
         importParameters.put(key, entry.getValue().get(0));
+      } else if (key != null && key.longName().contentEquals("folder")) {
+        importParameters.put(key, entry.getValue().get(0));
       }
     }
 

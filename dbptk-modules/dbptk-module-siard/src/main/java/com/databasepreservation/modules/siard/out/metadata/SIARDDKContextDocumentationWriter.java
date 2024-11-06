@@ -1,11 +1,10 @@
-/**
- * The contents of this file are subject to the license and copyright
- * detailed in the LICENSE file at the root of the source
- * tree and available online at
- *
- * https://github.com/keeps/db-preservation-toolkit
- */
 package com.databasepreservation.modules.siard.out.metadata;
+
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.out.write.WriteStrategy;
+import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,32 +15,24 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
-
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
-import com.databasepreservation.modules.siard.out.write.WriteStrategy;
-
 /**
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public class ContextDocumentationWriter {
-
+public class SIARDDKContextDocumentationWriter {
   private Map<String, String> exportModuleArgs;
   private SIARDArchiveContainer mainContainer;
-  private FileIndexFileStrategy fileIndexFileStrategy;
+  private SIARDDKFileIndexFileStrategy SIARDDKFileIndexFileStrategy;
   private WriteStrategy writeStrategy;
 
   private Path mainContainerPath;
 
-  public ContextDocumentationWriter(SIARDArchiveContainer mainContainer, WriteStrategy writeStrategy,
-    FileIndexFileStrategy fileIndexFileStrategy, Map<String, String> exportModuleArgs) {
+  public SIARDDKContextDocumentationWriter(SIARDArchiveContainer mainContainer, WriteStrategy writeStrategy,
+    SIARDDKFileIndexFileStrategy SIARDDKFileIndexFileStrategy, Map<String, String> exportModuleArgs) {
 
     this.mainContainer = mainContainer;
     this.writeStrategy = writeStrategy;
-    this.fileIndexFileStrategy = fileIndexFileStrategy;
+    this.SIARDDKFileIndexFileStrategy = SIARDDKFileIndexFileStrategy;
     this.exportModuleArgs = exportModuleArgs;
   }
 
@@ -61,7 +52,7 @@ public class ContextDocumentationWriter {
   }
 
   /**
-   * 
+   *
    * @param files
    *          List context documentation files to write to the archive
    * @param path
@@ -84,12 +75,12 @@ public class ContextDocumentationWriter {
         try {
 
           fis = new FileInputStream(file);
-          fos = fileIndexFileStrategy.getWriter(mainContainer, pathRelativeToMainContainerPath.toString(),
+          fos = SIARDDKFileIndexFileStrategy.getWriter(mainContainer, pathRelativeToMainContainerPath.toString(),
             writeStrategy);
 
           try {
             IOUtils.copy(fis, fos);
-            fileIndexFileStrategy.addFile(pathRelativeToMainContainerPath.toString());
+            SIARDDKFileIndexFileStrategy.addFile(pathRelativeToMainContainerPath.toString());
           } catch (IOException e) {
             throw new ModuleException().withMessage("There was an error writing " + path).withCause(e);
           }
