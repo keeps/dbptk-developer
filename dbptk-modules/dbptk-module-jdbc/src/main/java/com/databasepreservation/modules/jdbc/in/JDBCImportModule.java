@@ -14,7 +14,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.InetAddress;
+import java.net.URLEncoder;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Array;
@@ -42,6 +44,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import com.databasepreservation.utils.SanitizeUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -863,8 +866,9 @@ public class JDBCImportModule implements DatabaseImportModule {
   protected TableStructure getTableStructure(SchemaStructure schema, String tableName, int tableIndex,
     String description, boolean view) throws SQLException, ModuleException {
     TableStructure table = new TableStructure();
-    table.setId(schema.getName() + "." + tableName);
-    table.setName(tableName);
+    String sanitizedTableName = SanitizeUtils.sanitizeName(tableName);
+    table.setId(schema.getName() + "." + sanitizedTableName);
+    table.setName(sanitizedTableName);
     table.setSchema(schema);
     table.setIndex(tableIndex);
     table.setDescription(description);

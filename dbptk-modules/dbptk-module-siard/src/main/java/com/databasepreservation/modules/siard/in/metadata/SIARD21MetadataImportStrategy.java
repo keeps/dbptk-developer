@@ -9,10 +9,14 @@ package com.databasepreservation.modules.siard.in.metadata;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.XMLConstants;
+
+import com.databasepreservation.utils.SanitizeUtils;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
@@ -477,7 +481,7 @@ public class SIARD21MetadataImportStrategy implements MetadataImportStrategy {
       TableStructure result = new TableStructure();
 
       result.setIndex(currentTableIndex);
-      metadataCurrentTableName = table.getName();
+      metadataCurrentTableName = SanitizeUtils.sanitizeName(table.getName());
       result.setName(metadataCurrentTableName);
       result.setSchema(schemaName);
       result.setDescription(XMLUtils.decode(table.getDescription()));

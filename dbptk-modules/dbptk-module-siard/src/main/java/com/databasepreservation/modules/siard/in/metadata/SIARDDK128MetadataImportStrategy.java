@@ -12,6 +12,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.DigestInputStream;
@@ -24,6 +26,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import com.databasepreservation.utils.SanitizeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -281,7 +284,7 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
         TableStructure tblDptkl = new TableStructure();
         tblDptkl.setIndex(currentTableIndex++);
         tblDptkl.setSchema(getImportAsSchemaName());
-        tblDptkl.setName(tblXml.getName());
+        tblDptkl.setName(SanitizeUtils.sanitizeName(tblXml.getName()));
         tblDptkl.setId(String.format("%s.%s", tblDptkl.getSchema(), tblDptkl.getName()));
         tblDptkl.setDescription(tblXml.getDescription());
         tblDptkl.setPrimaryKey(getPrimaryKey(tblXml.getPrimaryKey()));
@@ -484,7 +487,7 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
       SIARDDKConstants.DOCUMENT_TITLE, typeChar, true, SIARDDKConstants.DOCUMENT_TITLE_DESCRIPTION, "", true);
     VirtualColumnStructure columnDate = new VirtualColumnStructure(SIARDDKConstants.DOCUMENT_DATE,
       SIARDDKConstants.DOCUMENT_DATE, typeChar, true, SIARDDKConstants.DOCUMENT_DATE_DESCRIPTION, "", true);
-    VirtualColumnStructure columnLOB = new VirtualColumnStructure(Constants.BLOB, Constants.BLOB, typeBlob, true,
+    VirtualColumnStructure columnLOB = new VirtualColumnStructure(Constants.BLOB, Constants.BLOB_COLUMN_NAME, typeBlob, true,
       "", "1", true);
     columnStructureList.add(columnID);
     columnStructureList.add(columnTitle);
@@ -502,7 +505,7 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
     Type type = sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
       "<information unavailable>", "<information unavailable>", Constants.BINARY_LARGE_OBJECT,
       Constants.BINARY_LARGE_OBJECT);
-    VirtualColumnStructure columnLOB = new VirtualColumnStructure(Constants.BLOB, Constants.BLOB, type, true,
+    VirtualColumnStructure columnLOB = new VirtualColumnStructure(Constants.BLOB, Constants.BLOB_COLUMN_NAME, type, true,
       "", "1", true);
     columnStructureList.add(columnID);
     columnStructureList.add(columnLOB);
