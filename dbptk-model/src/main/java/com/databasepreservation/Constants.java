@@ -162,4 +162,6 @@ public class Constants {
   public static final String DB_SSH_USER = "ssh-user";
   public static final String DB_SSH_PASSWORD = "ssh-password";
 
+  /* Virtual Table */
+  public static final String BLOB_COLUMN_NAME = "Document";
 }
