@@ -485,7 +485,7 @@ public class SIARDDK1007MetadataImportStrategy implements MetadataImportStrategy
       true, SIARDDKConstants.DOCUMENT_TITLE_DESCRIPTION, "", true);
     VirtualColumnStructure columnDate = new VirtualColumnStructure(SIARDDKConstants.DOCUMENT_DATE, SIARDDKConstants.DOCUMENT_DATE, typeChar,
       true, SIARDDKConstants.DOCUMENT_DATE_DESCRIPTION, "", true);
-    VirtualColumnStructure columnLOB = new VirtualColumnStructure(Constants.BLOB, Constants.BLOB, typeBlob, true,
+    VirtualColumnStructure columnLOB = new VirtualColumnStructure(Constants.BLOB, Constants.BLOB_COLUMN_NAME, typeBlob, true,
       "", "1", true);
     columnStructureList.add(columnID);
     columnStructureList.add(columnTitle);
@@ -503,7 +503,7 @@ public class SIARDDK1007MetadataImportStrategy implements MetadataImportStrategy
     Type type = sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
       "<information unavailable>", "<information unavailable>", Constants.BINARY_LARGE_OBJECT,
       Constants.BINARY_LARGE_OBJECT);
-    VirtualColumnStructure columnLOB = new VirtualColumnStructure(Constants.BLOB, Constants.BLOB, type, true,
+    VirtualColumnStructure columnLOB = new VirtualColumnStructure(Constants.BLOB, Constants.BLOB_COLUMN_NAME, type, true,
       "", "1", true);
     columnStructureList.add(columnID);
     columnStructureList.add(columnLOB);
