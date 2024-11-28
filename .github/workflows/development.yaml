@@ -1,0 +1,89 @@
+name: "Development"
+
+on:
+  push:
+    branches:
+      - "development"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
+
+    services:
+      mysql:
+        image: mariadb:10.1
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: 123456
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=5s
+          --health-timeout=2s
+          --health-retries=3
+
+      postgres:
+        image: postgres:9.6
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: 123456
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: 21
+        distribution: 'adopt'
+    - name: Cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-maven-
+    - name: Run Tests
+      run: mvn $MAVEN_CLI_OPTS -Dtestng.groups="travis-ci" test install
+      env:
+        DPT_MYSQL_USER: "root"
+        DPT_MYSQL_PASS: "123456"
+        DPT_MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
+        DPT_POSTGRESQL_USER: "postgres"
+        DPT_POSTGRESQL_PASS: "123456"
+        DPT_POSTGRESQL_PORT: ${{ job.services.postgres.ports[5432] }}
+        PGPASSWORD: '123456'
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'adopt'
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+      - name: Install binding
+        run: mvn $MAVEN_CLI_OPTS clean install -Pdbptk-bindings
+      - name: Deploy to GitHub packages
+        run: mvn $MAVEN_CLI_OPTS clean package deploy -Dmaven.test.skip=true -Pdeploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
