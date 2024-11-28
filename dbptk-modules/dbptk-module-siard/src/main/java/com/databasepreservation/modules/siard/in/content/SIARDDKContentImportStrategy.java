@@ -11,9 +11,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.DigestInputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +35,6 @@ import javax.xml.validation.ValidatorHandler;
 
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.TypeInfo;
@@ -236,53 +237,60 @@ public abstract class SIARDDKContentImportStrategy<T, D, F, S> extends DefaultHa
 
   }
 
-  void populateContextDocumentationTable(TableStructure table)
-    throws ModuleException, FileNotFoundException {
+  void populateContextDocumentationTable(TableStructure table) throws ModuleException, FileNotFoundException {
     F contextDoc = loadContextDocTableContent();
     currentTable = table;
     this.dbExportHandler.handleDataOpenTable(table.getId());
-    Cell[] cells = new Cell[table.getColumns().size()];
+    int rowCounter = 0;
     for (S doc : getContextDocuments(contextDoc)) {
-      int rowCounter = 0;
-      int cellCounter = 0;
       Row row = new Row();
+      List<Cell> lstCells = new ArrayList<>();
       row.setIndex(rowCounter);
+
+      // document id
       Cell documentIDCell = new SimpleCell(
         SIARDDKConstants.DOCUMENT_ID + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + rowCounter, getDocumentID(doc));
-      cells[cellCounter] = documentIDCell;
-      cellCounter++;
+      lstCells.add(documentIDCell);
+
+      // document title
       Cell documentTitleCell = new SimpleCell(
         SIARDDKConstants.DOCUMENT_TITLE + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + rowCounter,
         getDocumentTitle(doc));
-      cells[cellCounter] = documentTitleCell;
-      cellCounter++;
+      lstCells.add(documentTitleCell);
+
+      // document date
       Cell documentDateCell = new SimpleCell(
         SIARDDKConstants.DOCUMENT_DATE + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + rowCounter, getDocumentDate(doc));
-      cells[cellCounter] = documentDateCell;
-      cellCounter++;
+      lstCells.add(documentDateCell);
+
       try {
-        String docPath = pathStrategy.getMainFolder().getPath().toString() + SIARDDKConstants.RESOURCE_FILE_SEPARATOR
-          + SIARDDKConstants.CONTEXT_DOCUMENTATION_FOLDER_NAME + SIARDDKConstants.RESOURCE_FILE_SEPARATOR
-          + SIARDDKConstants.DOC_COLLECTION_FOLDER_NAME + SIARDDKConstants.RESOURCE_FILE_SEPARATOR + getDocumentID(doc);
+        // document blob
+        Path docPath = pathStrategy.getMainFolder().getPath()
+          .resolve(Paths.get(SIARDDKConstants.CONTEXT_DOCUMENTATION_FOLDER_NAME,
+            SIARDDKConstants.DOC_COLLECTION_FOLDER_NAME, getDocumentID(doc)));
+
         String digest = "";
-        File docFolder = new File(docPath);
+        File docFolder = new File(docPath.toString());
         if (docFolder.exists() && docFolder.isDirectory()) {
           File[] fileList = docFolder.listFiles();
           if (fileList != null && fileList.length == 1) {
-            docPath = docPath + SIARDDKConstants.RESOURCE_FILE_SEPARATOR + fileList[0].getName();
-            digest = DigestUtils.sha1Hex(FileUtils.readFileToByteArray(Paths.get(docPath).toFile()));
+            docPath = docPath.resolve(Paths.get(fileList[0].getName()));
+            digest = DigestUtils.sha1Hex(Files.newInputStream(docPath));
           }
         }
+
         Cell blobCell = new BinaryCell(
           SIARDDKConstants.BLOB_EXTENSION + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + rowCounter,
-          new DummyInputStreamProvider(), docPath, 0L, digest, DigestUtils.getSha1Digest().toString());
-        cells[cellCounter] = blobCell;
-        cellCounter++;
-        rowCounter++;
-        List<Cell> lstCells = Arrays.asList(cells);
+          new DummyInputStreamProvider(), docPath.toString(), Files.size(docPath), digest,
+          DigestUtils.getSha1Digest().toString());
+        lstCells.add(blobCell);
+
+        // set and handle row
         assert !lstCells.contains(null);
         row.setCells(lstCells);
         this.dbExportHandler.handleDataRow(row);
+
+        rowCounter++;
       } catch (ModuleException | IOException e) {
         throw new ModuleException().withMessage("Error handling data row index:" + rowCounter).withCause(e);
       }
@@ -294,33 +302,34 @@ public abstract class SIARDDKContentImportStrategy<T, D, F, S> extends DefaultHa
     D docIndex = loadVirtualTableContent();
     currentTable = table;
     this.dbExportHandler.handleDataOpenTable(table.getId());
-    Cell[] cells = new Cell[table.getColumns().size()];
+    int rowCounter = 0;
     for (T doc : getDocuments(docIndex)) {
-      int rowCounter = 0;
-      int cellCounter = 0;
       Row row = new Row();
+      List<Cell> lstCells = new ArrayList<>();
       row.setIndex(rowCounter);
+
+      // document id
       Cell dIDCell = new SimpleCell(SIARDDKConstants.DID + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + rowCounter,
         getDID(doc).toString());
-      cells[cellCounter] = dIDCell;
-      cellCounter++;
-      String binPath = pathStrategy.getMainFolder().getPath().toString() + SIARDDKConstants.RESOURCE_FILE_SEPARATOR
-        + SIARDDKConstants.DOCUMENTS_FOLDER_NAME + SIARDDKConstants.RESOURCE_FILE_SEPARATOR + getDCf(doc)
-        + SIARDDKConstants.RESOURCE_FILE_SEPARATOR + getDID(doc) + SIARDDKConstants.RESOURCE_FILE_SEPARATOR
-        + getMID(doc) + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + getAFt(doc);
+      lstCells.add(dIDCell);
+
+      // document blob
+      Path binPath = pathStrategy.getMainFolder().getPath().resolve(Paths.get(SIARDDKConstants.DOCUMENTS_FOLDER_NAME,
+        getDCf(doc), getDID(doc).toString(), getMID(doc) + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + getAFt(doc)));
+
       try {
         Cell blobCell = new BinaryCell(
           SIARDDKConstants.BLOB_EXTENSION + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + rowCounter,
-          new DummyInputStreamProvider(), binPath, 0L,
-          DigestUtils.sha1Hex(FileUtils.readFileToByteArray(Paths.get(binPath).toFile())),
-          DigestUtils.getSha1Digest().toString());
-        cells[cellCounter] = blobCell;
-        cellCounter++;
-        rowCounter++;
-        List<Cell> lstCells = Arrays.asList(cells);
+          new DummyInputStreamProvider(), binPath.toString(), Files.size(binPath),
+          DigestUtils.sha1Hex(Files.newInputStream(binPath)), DigestUtils.getSha1Digest().toString());
+        lstCells.add(blobCell);
+
+        // set and handle row
         assert !lstCells.contains(null);
         row.setCells(lstCells);
         this.dbExportHandler.handleDataRow(row);
+
+        rowCounter++;
       } catch (ModuleException | IOException e) {
         throw new ModuleException().withMessage("Error handling data row index:" + rowCounter).withCause(e);
       }
