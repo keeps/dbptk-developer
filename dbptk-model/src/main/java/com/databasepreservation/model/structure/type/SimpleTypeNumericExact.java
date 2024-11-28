@@ -21,6 +21,9 @@ public class SimpleTypeNumericExact extends Type {
 
   private Integer scale;
 
+  private static final Integer SIMPLE_TYPE_NUMERIC_EXACT_DEFAULT_PRECISION = 53;
+  private static final Integer SIMPLE_TYPE_NUMERIC_EXACT_DEFAULT_SCALE = 10;
+
   /**
    * Exact numeric, like int or integer
    */
@@ -37,8 +40,13 @@ public class SimpleTypeNumericExact extends Type {
    *          the number of digits after the radix point (optional)
    */
   public SimpleTypeNumericExact(Integer precision, Integer scale) {
-    this.precision = precision;
-    this.scale = scale;
+    if (precision == 0 && scale == 0) {
+      this.precision = SIMPLE_TYPE_NUMERIC_EXACT_DEFAULT_PRECISION;
+      this.scale = SIMPLE_TYPE_NUMERIC_EXACT_DEFAULT_SCALE;
+    } else {
+      this.precision = precision;
+      this.scale = scale;
+    }
   }
 
   /**
