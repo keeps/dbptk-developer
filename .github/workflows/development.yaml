@@ -81,8 +81,10 @@ jobs:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
-      - name: Install binding
-        run: mvn $MAVEN_CLI_OPTS clean install -Pdbptk-bindings
+      - name: Deploy bindings to GitHub packages
+        run: mvn $MAVEN_CLI_OPTS clean package deploy -Pdbptk-bindings
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Deploy to GitHub packages
         run: mvn $MAVEN_CLI_OPTS clean package deploy -Dmaven.test.skip=true -Pdeploy
         env:
