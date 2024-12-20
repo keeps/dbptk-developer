@@ -423,6 +423,12 @@
                 <scope>test</scope>
             </dependency>
 
+            <dependency>
+                <groupId>xerces</groupId>
+                <artifactId>xercesImpl</artifactId>
+                <version>2.12.2</version>
+            </dependency>
+
             <!-- lfaria 2024-02-14: Fixing Java 8 compatibility issue -->
             <dependency>
                 <groupId>org.eclipse.collections</groupId>
