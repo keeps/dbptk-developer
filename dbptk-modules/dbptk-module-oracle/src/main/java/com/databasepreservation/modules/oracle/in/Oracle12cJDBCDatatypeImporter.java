@@ -31,6 +31,7 @@ public class Oracle12cJDBCDatatypeImporter extends JDBCDatatypeImporter {
   private static final Logger LOGGER = LoggerFactory.getLogger(Oracle12cJDBCDatatypeImporter.class.getName());
   private static final int CHAR_MIN_COLUMN_SIZE_VALUE = 1;
   private static final int NUMERIC_MAX_COLUMN_SIZE_VALUE = 38;
+  private static final int NUMERIC_MAX_COLUMN_DECIMAL_DIGITS_VALUE = 127;
 
   @Override
   protected Type getNumericType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
@@ -39,8 +40,8 @@ public class Oracle12cJDBCDatatypeImporter extends JDBCDatatypeImporter {
     if (columnSize == 0) {
       LOGGER.debug("Column data length is 0 replacing the length to the max data length {}",
         NUMERIC_MAX_COLUMN_SIZE_VALUE);
-      type.setSql99TypeName("NUMERIC", NUMERIC_MAX_COLUMN_SIZE_VALUE);
-      type.setSql2008TypeName("NUMERIC", NUMERIC_MAX_COLUMN_SIZE_VALUE);
+      type.setSql99TypeName("NUMERIC", NUMERIC_MAX_COLUMN_SIZE_VALUE, NUMERIC_MAX_COLUMN_DECIMAL_DIGITS_VALUE);
+      type.setSql2008TypeName("NUMERIC", NUMERIC_MAX_COLUMN_SIZE_VALUE, NUMERIC_MAX_COLUMN_DECIMAL_DIGITS_VALUE);
     } else {
       if (decimalDigits > 0) {
         type.setSql99TypeName("NUMERIC", columnSize, decimalDigits);
