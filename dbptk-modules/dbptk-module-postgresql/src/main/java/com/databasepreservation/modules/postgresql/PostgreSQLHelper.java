@@ -187,4 +187,9 @@ public class PostgreSQLHelper extends SQLHelper {
     return "SELECT definition FROM pg_views WHERE schemaname='" + schemaName + "'AND viewname='" + viewName
         + "'";
   }
+
+  public String getMaterializedViewQueryOriginal(String schemaName, String viewName) {
+    return "SELECT definition FROM pg_matviews WHERE schemaname='" + schemaName + "'AND matviewname='" + viewName
+            + "'";
+  }
 }

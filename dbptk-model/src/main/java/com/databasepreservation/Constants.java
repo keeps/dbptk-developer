@@ -164,4 +164,8 @@ public class Constants {
 
   /* Virtual Table */
   public static final String BLOB_COLUMN_NAME = "Document";
+
+  /* View Types */
+  public static final String TYPE_VIEW = "VIEW";
+  public static final String TYPE_MATERIALIZED_VIEW = "MATERIALIZED VIEW";
 }

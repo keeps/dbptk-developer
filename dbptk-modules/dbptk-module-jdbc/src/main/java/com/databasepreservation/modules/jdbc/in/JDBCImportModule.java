@@ -724,31 +724,39 @@ public class JDBCImportModule implements DatabaseImportModule {
   protected List<ViewStructure> getViews(String schemaName) throws SQLException, ModuleException {
     List<ViewStructure> views = new ArrayList<>();
     if (!getModuleConfiguration().ignoreViews()) {
-      try (ResultSet rset = getMetadata().getTables(dbStructure.getName(), schemaName, "%", new String[] {"VIEW", "MATERIALIZED VIEW"})) {
-        while (rset.next()) {
-          String viewName = rset.getString(3);
-          if (getModuleConfiguration().isSelectedView(schemaName, viewName)) {
-            ViewStructure view = new ViewStructure();
-            view.setName(viewName);
-            view.setDescription(rset.getString(5));
-            try {
-              view.setColumns(getColumns(schemaName, viewName));
-            } catch (SQLException e) {
-              reporter.ignored("Columns from view " + viewName + " in schema " + schemaName,
-                "there was a problem retrieving them form the database");
-            }
-            if (view.getColumns().isEmpty()) {
-              reporter.ignored("View " + viewName + " in schema " + schemaName, "it contains no columns");
-            } else {
-              views.add(view);
-            }
-          }
-        }
-        views.addAll(getCustomViews(schemaName));
-      }
+      getViewByType(schemaName, "%", Constants.TYPE_VIEW, views);
+      getViewByType(schemaName, "%", Constants.TYPE_MATERIALIZED_VIEW, views);
+      views.addAll(getCustomViews(schemaName));
     }
 
     return views;
+  }
+
+  protected void getViewByType(String schemaName, String tableNamePattern, String type, List<ViewStructure> views)
+    throws SQLException, ModuleException {
+    try (ResultSet rset = getMetadata().getTables(dbStructure.getName(), schemaName, tableNamePattern,
+      new String[] {type})) {
+      while (rset.next()) {
+        String viewName = rset.getString(3);
+        if (getModuleConfiguration().isSelectedView(schemaName, viewName)) {
+          ViewStructure view = new ViewStructure();
+          view.setName(viewName);
+          view.setDescription(rset.getString(5));
+          view.setViewType(type);
+          try {
+            view.setColumns(getColumns(schemaName, viewName));
+          } catch (SQLException e) {
+            reporter.ignored("Columns from view " + viewName + " in schema " + schemaName,
+              "there was a problem retrieving them form the database");
+          }
+          if (view.getColumns().isEmpty()) {
+            reporter.ignored("View " + viewName + " in schema " + schemaName, "it contains no columns");
+          } else {
+            views.add(view);
+          }
+        }
+      }
+    }
   }
 
   protected List<ViewStructure> getCustomViews(String schemaName) throws ModuleException {
