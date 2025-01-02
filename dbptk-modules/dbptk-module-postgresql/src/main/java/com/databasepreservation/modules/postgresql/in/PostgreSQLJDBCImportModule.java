@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.databasepreservation.Constants;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.postgresql.PGConnection;
@@ -176,7 +177,13 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       if (v.getQueryOriginal() == null || v.getQueryOriginal().isEmpty()) {
         try {
           statement = getConnection().createStatement();
-          String query = ((PostgreSQLHelper) sqlHelper).getViewQueryOriginal(schemaName, v.getName());
+          String query = "";
+
+          if (v.getViewType().equals(Constants.TYPE_MATERIALIZED_VIEW)) {
+            query = ((PostgreSQLHelper) sqlHelper).getMaterializedViewQueryOriginal(schemaName, v.getName());
+          } else if (v.getViewType().equals(Constants.TYPE_VIEW)) {
+            query = ((PostgreSQLHelper) sqlHelper).getViewQueryOriginal(schemaName, v.getName());
+          }
 
           rset = statement.executeQuery(query);
           rset.next(); // Returns only one tuple
