@@ -27,6 +27,9 @@ public class ViewStructure {
 
   private List<ColumnStructure> columns;
 
+  private String viewType;
+
+
   /**
          *
          */
@@ -130,6 +133,21 @@ public class ViewStructure {
     }
 
     return null;
+  }
+
+  /**
+   * @return the view type
+   */
+  public String getViewType() {
+    return viewType;
+  }
+
+  /**
+   * @param viewType
+   *          the view type to set
+   */
+  public void setViewType(String viewType) {
+    this.viewType = viewType;
   }
 
   @Override
