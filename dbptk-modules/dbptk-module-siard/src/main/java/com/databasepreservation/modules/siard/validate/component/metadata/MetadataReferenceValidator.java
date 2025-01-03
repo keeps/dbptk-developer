@@ -45,6 +45,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
 
   private static final String REFERENCE = "reference";
   private static final String REFERENCED_TABLE = "referencedTable";
+  private static final String REFERENCED_SCHEMA = "referencedSchema";
   private static final String REFERENCED_COLUMN = "referenced";
 
   private List<Element> foreignKeyList = new ArrayList<>();
@@ -166,6 +167,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
     for (int i = 0; i < tableNodes.getLength(); i++) {
       Element tableElement = (Element) tableNodes.item(i);
       String table = XMLUtils.getChildTextContext(tableElement, Constants.NAME);
+      String schema = XMLUtils.getParentNameByTagName(tableElement, Constants.SCHEMA);
 
       Element tableColumnsElement = XMLUtils.getChild(tableElement, Constants.COLUMNS);
       if (tableColumnsElement == null) {
@@ -180,7 +182,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
         String type = XMLUtils.getChildTextContext(columnElement, Constants.TYPE);
         columnsNameList.put(name, type);
       }
-      columnsTables.put(table, columnsNameList);
+      columnsTables.put(schema + table, columnsNameList);
     }
     return columnsTables;
   }
@@ -233,7 +235,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
       String column = XMLUtils.getChildTextContext(reference, Constants.COLUMN);
 
       if (validateXMLField(M_510_1_1, column, Constants.COLUMN, true, false, path)) {
-        if (tableColumnsList.get(table).get(column) == null && !this.skipAdditionalChecks) {
+        if (tableColumnsList.get(schema + table).get(column) == null && !this.skipAdditionalChecks) {
           setError(A_M_510_1_1,
             String.format("referenced column name %s does not exist on referenced table %s", column, table));
           additionalCheckError = true;
@@ -275,6 +277,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
         foreignKeyList.add(foreignKeyElement);
         String foreignKey = XMLUtils.getChildTextContext(foreignKeyElement, Constants.NAME);
         String referencedTable = XMLUtils.getChildTextContext(foreignKeyElement, REFERENCED_TABLE);
+        String referencedSchema = XMLUtils.getChildTextContext(foreignKeyElement, REFERENCED_SCHEMA);
         NodeList referenceNodes = foreignKeyElement.getElementsByTagName(REFERENCE);
         for (int k = 0; k < referenceNodes.getLength(); k++) {
           Element reference = (Element) referenceNodes.item(k);
@@ -293,7 +296,7 @@ public class MetadataReferenceValidator extends MetadataValidator {
             continue;
           }
 
-          if (tableColumnsList.get(table).get(column) == null) {
+          if (tableColumnsList.get(schema + table).get(column) == null) {
             setError(M_510_1_2, String.format("Unable to validate, column does not exist (%s)", path));
             if (!this.skipAdditionalChecks) {
               setError(A_M_510_1_2, String.format("Unable to validate, column does not exist (%s)", path));
@@ -317,20 +320,20 @@ public class MetadataReferenceValidator extends MetadataValidator {
           }
 
           if (!this.skipAdditionalChecks) {
-            if (referencedTable == null || tableColumnsList.get(referencedTable) == null) {
+            if (referencedTable == null || tableColumnsList.get(referencedSchema + referencedTable) == null) {
               setError(A_M_510_1_2, String.format("Unable to validate, referenced table does not exist (%s)", path));
               additionalCheckError = true;
               continue;
             }
 
-            if (foreignKeyTable == null || tableColumnsList.get(foreignKeyTable) == null) {
+            if (foreignKeyTable == null || tableColumnsList.get(schema + foreignKeyTable) == null) {
               setError(A_M_510_1_2, String.format("Unable to validate, foreign key table does not exist (%s)", path));
               additionalCheckError = true;
               continue;
             }
 
-            referencedColumnTable = tableColumnsList.get(referencedTable);
-            foreignKeyColumnTable = tableColumnsList.get(foreignKeyTable);
+            referencedColumnTable = tableColumnsList.get(referencedSchema + referencedTable);
+            foreignKeyColumnTable = tableColumnsList.get(schema + foreignKeyTable);
             primaryKeyColumns = primaryKeyList.get(referencedTable);
             candidateKeyColumns = candidateKeyList.get(referencedTable);
 
