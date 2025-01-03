@@ -174,6 +174,7 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
     for (int i = 0; i < tablesNodes.getLength(); i++) {
       Element tableElement = (Element) tablesNodes.item(i);
       String table = XMLUtils.getChildTextContext(tableElement, Constants.NAME);
+      String schema = XMLUtils.getParentNameByTagName(tableElement, Constants.SCHEMA);
 
       Element tableColumnsElement = XMLUtils.getChild(tableElement, Constants.COLUMNS);
       if (tableColumnsElement == null) {
@@ -185,7 +186,7 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
       for (int j = 0; j < tableColumns.getLength(); j++) {
         tableColumnName.add(XMLUtils.getChildTextContext((Element) tableColumns.item(j), Constants.NAME));
       }
-      tableColumnsList.put(table, tableColumnName);
+      tableColumnsList.put(schema + table, tableColumnName);
     }
 
     for (int i = 0; i < nodes.getLength(); i++) {
@@ -219,7 +220,7 @@ public class MetadataPrimaryKeyValidator extends MetadataValidator {
             additionalCheckError = true;
           }
           hasErrors = true;
-        } else if (!tableColumnsList.get(table).contains(column) && !this.skipAdditionalChecks) {
+        } else if (!tableColumnsList.get(schema + table).contains(column) && !this.skipAdditionalChecks) {
           setError(A_M_581_2,
             String.format("Primary key column reference %s not found on %s.%s", column, schema, table));
           additionalCheckError = true;
