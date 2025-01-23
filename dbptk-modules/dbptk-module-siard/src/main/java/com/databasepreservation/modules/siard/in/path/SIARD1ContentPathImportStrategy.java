@@ -49,6 +49,11 @@ public class SIARD1ContentPathImportStrategy implements ContentPathImportStrateg
   }
 
   @Override
+  public String getLobPathFallback(String basePath, String columnId, String lobFileName) {
+    throw new NotImplementedException("getLobPathFallback in ContentPathImportStrategy method is not needed for SIARD1");
+  }
+
+  @Override
   public void associateSchemaWithFolder(String schemaName, String schemaFolder) {
     schemaFolders.put(schemaName, schemaFolder);
   }

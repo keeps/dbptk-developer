@@ -103,6 +103,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
   private int currentColumnIndex;
   private Row row;
   private long rowIndex;
+  private boolean useLobPathFallback = false;
 
   public SIARD2ContentImportStrategy(ReadStrategy readStrategy, ContentPathImportStrategy contentPathStrategy,
     SIARDArchiveContainer lobContainer, boolean ignoreLobs) {
@@ -322,16 +323,16 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
                   new DummyInputStreamProvider(), lobPath, optionalLength.orElse(0L), optionalDigest.orElse(null),
                   optionalDigestType.orElse(null));
               } else {
+                inputStream = createInputStream(container, lobPath, lobDir);
                 currentBlobCell = new BinaryCell(
-                  currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex,
-                  readStrategy.createInputStream(container, lobPath));
+                  currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex, inputStream);
               }
             }
 
             LOGGER.debug(
               String.format("BLOB cell %s on row #%d with lob dir %s", currentBlobCell.getId(), rowIndex, lobDir));
           } else if (lobDir.endsWith(SIARD2ContentPathExportStrategy.CLOB_EXTENSION)) {
-            inputStream = readStrategy.createInputStream(container, lobPath);
+            inputStream = createInputStream(container, lobPath, lobDir);
             String data = IOUtils.toString(inputStream);
             currentClobCell = new SimpleCell(
               currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex, data);
@@ -472,6 +473,22 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
   @Override
   public void characters(char buf[], int offset, int len) {
     tempVal.append(buf, offset, len);
+  }
+
+  private InputStream createInputStream(SIARDArchiveContainer container, String lobPath, String lobDir) throws ModuleException {
+    String lobName = Paths.get(lobDir).getFileName().toString();
+    if (useLobPathFallback) {
+      lobPath = contentPathStrategy.getLobPathFallback(null,
+        currentTable.getColumns().get(currentColumnIndex - 1).getId(), lobName);
+    }
+    try {
+      return readStrategy.createInputStream(container, lobPath);
+    } catch (ModuleException e) {
+      useLobPathFallback = true;
+      lobPath = contentPathStrategy.getLobPathFallback(null,
+        currentTable.getColumns().get(currentColumnIndex - 1).getId(), lobName);
+      return readStrategy.createInputStream(container, lobPath);
+    }
   }
 
   private List<Integer> getArrayCellPositions(Integer current, Deque<String> parentTags) {

@@ -10,6 +10,7 @@ import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -166,6 +167,11 @@ public abstract class SIARDDKPathImportStrategy<T, D> implements ContentPathImpo
 
   @Override
   public String getLobPath(String basePath, String schemaName, String tableId, String columnId, String lobFileName) {
+    throw new UnsupportedOperationException("Invoking getLobPath(...) is not relevant for SIARDDK.");
+  }
+
+  @Override
+  public String getLobPathFallback(String basePath, String columnId, String lobFileName) {
     throw new UnsupportedOperationException("Invoking getLobPath(...) is not relevant for SIARDDK.");
   }
 

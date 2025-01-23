@@ -88,6 +88,27 @@ public class SIARD2ContentPathImportStrategy implements ContentPathImportStrateg
   }
 
   @Override
+  public String getLobPathFallback(String basePath, String columnId, String lobFileName) {
+    if (StringUtils.isBlank(basePath)) {
+      basePath = metadataLobFolder;
+    }
+
+    String columnPart = columnFolders.get(columnId);
+
+    if (columnPart == null) {
+      columnPart = ".";
+    }
+
+    if (".".equals(basePath) && ".".equals(columnPart) && lobFileName.startsWith("..")) {
+      return lobFileName.substring(3);
+    } else if (".".equals(columnPart)) {
+      return lobFileName;
+    } else {
+      return basePath + RESOURCE_FILE_SEPARATOR + columnPart + RESOURCE_FILE_SEPARATOR + lobFileName;
+    }
+  }
+
+  @Override
   public void associateSchemaWithFolder(String schemaName, String schemaFolder) {
     schemaFolders.put(schemaName, schemaFolder);
   }
