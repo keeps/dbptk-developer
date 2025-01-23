@@ -15,6 +15,8 @@ import com.databasepreservation.model.exception.ModuleException;
 public interface ContentPathImportStrategy {
   String getLobPath(String basePath, String schemaName, String tableId, String columnId, String lobFileName);
 
+  String getLobPathFallback(String basePath, String columnId, String lobFileName);
+
   /**
    * Stores the relationship between the schema and it's folder
    * 
