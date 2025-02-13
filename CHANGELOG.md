@@ -1,5 +1,16 @@
 # Changelog
 
+## Version 3.0.2 (13/02/2025)
+#### Bug Fixes:
+
+- Fix SIARD Validation when two tables in different schemas have the same name (#608)
+- Add SQL query for materialized views (#636)
+- Fix Oracle Number export (#496)
+
+#### Security
+- Fix security vulnerabilities
+---
+
 ## v3.0.1 (02/08/2024)
 #### Bug Fixes:
 
@@ -280,36 +291,3 @@ To solve #407 it was used an external library to remove certain objects from the
 * Fix #405 SIARD Validation fails on additional checks - foreign keys, triggers and check constraints
 
 
-
----
-
-## Version 2.6.0 (02/10/2019)
-#### New Features
-
-* SIARD Validator #353 
-
-Validates a SIARD against its specification and also a set of additional checks.
-___
-
-#### Bug fixes
-
-* Fix  #392 DBPTK wrongly notices that a schema exists, but it does not
-* Fix #395 SIARD can't validate - possibly due to empty table 
-* Fix  #397 LOB options: Schema referenced in column list file, was not found in the database
-* Fix #400 Malformed entry in table list
-
-#### Enhancements
-
-* #393 Validating error too generic - "validator expects SIARD2.1"
-
-#### Using the new features:
-
-``dbptk validate --import-file <path-to-siard> [-r <path_to_report> -a <path_to_allowed_types>]``
-
-| Option             | Description   |
-| :------------- | :------------- |
-| --import-file value     | SIARD file to be validated |
-| --report  value   | File where the validation report will be saved |
-| --allowed value    | File with allowed data types for the categories UDT or distinct, one per line. |
-
-More information can be found at: https://github.com/keeps/db-preservation-toolkit/wiki/Validation
