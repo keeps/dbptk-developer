@@ -7,30 +7,11 @@
  */
 package com.databasepreservation.utils;
 
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.CANDIDATE_KEYS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.CHECK_CONSTRAINTS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.FOREIGN_KEYS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.PRIMARY_KEYS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.PRIVILEGES;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.ROLES;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.ROUTINES;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.TRIGGERS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.USERS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.VIEWS;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.*;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import com.databasepreservation.Constants;
-import com.databasepreservation.model.modules.configuration.ColumnConfiguration;
-import com.databasepreservation.model.modules.configuration.CustomViewConfiguration;
-import com.databasepreservation.model.modules.configuration.ImportModuleConfiguration;
-import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
-import com.databasepreservation.model.modules.configuration.SchemaConfiguration;
-import com.databasepreservation.model.modules.configuration.TableConfiguration;
-import com.databasepreservation.model.modules.configuration.ViewConfiguration;
+import com.databasepreservation.model.modules.configuration.*;
 import com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.TableStructure;
@@ -55,7 +36,9 @@ public class ModuleConfigurationUtils {
   }
 
   public static void addCustomViewConfiguration(ModuleConfiguration moduleConfiguration, String schemaName, String name,
-                                                String description, String query) {
+    boolean simulateTable, String description, String query, List<CustomColumnConfiguration> columns,
+    PrimaryKeyConfiguration primaryKey, List<ForeignKeyConfiguration> foreignKeys) {
+
     SchemaConfiguration schemaConfiguration = moduleConfiguration.getSchemaConfigurations().get(schemaName);
     if (schemaConfiguration == null) {
       schemaConfiguration = new SchemaConfiguration();
@@ -63,8 +46,12 @@ public class ModuleConfigurationUtils {
 
     CustomViewConfiguration customViewConfiguration = new CustomViewConfiguration();
     customViewConfiguration.setName(name);
+    customViewConfiguration.setSimulateTable(simulateTable);
     customViewConfiguration.setDescription(description);
     customViewConfiguration.setQuery(query);
+    customViewConfiguration.setColumns(columns);
+    customViewConfiguration.setPrimaryKey(primaryKey);
+    customViewConfiguration.setForeignKeys(new ArrayList<>(foreignKeys)); // Ensure that items can be added.
 
     schemaConfiguration.getCustomViewConfigurations().add(customViewConfiguration);
     moduleConfiguration.getSchemaConfigurations().put(schemaName, schemaConfiguration);
