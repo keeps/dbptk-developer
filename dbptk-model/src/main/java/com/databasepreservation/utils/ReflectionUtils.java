@@ -51,8 +51,10 @@ public class ReflectionUtils {
         .getSubTypesOf(DatabaseModuleFactory.class);
       for (Class<? extends DatabaseModuleFactory> moduleFactoryClass : moduleFactoryClasses) {
         try {
-          Constructor<? extends DatabaseModuleFactory> constructor = moduleFactoryClass.getConstructor();
-          databaseModuleFactoryConstructors.add(constructor);
+            if (!java.lang.reflect.Modifier.isAbstract(moduleFactoryClass.getModifiers())) {
+              Constructor<? extends DatabaseModuleFactory> constructor = moduleFactoryClass.getConstructor();
+              databaseModuleFactoryConstructors.add(constructor);
+            }
         } catch (NoSuchMethodException e) {
           LOGGER.info("Module factory {} could not be loaded", moduleFactoryClass.getName(), e);
         }

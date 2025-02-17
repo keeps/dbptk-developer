@@ -28,8 +28,12 @@ public class SIARDDKContentPathExportStrategy implements ContentPathExportStrate
 
   private LOBsTracker lobsTracker;
 
+  public SIARDDKContentPathExportStrategy(LOBsTracker loBsTracker) {
+    this.lobsTracker = loBsTracker;
+  }
+  
   public SIARDDKContentPathExportStrategy(SIARDDKExportModule siarddkExportModule) {
-    lobsTracker = siarddkExportModule.getLobsTracker();
+    this.lobsTracker = siarddkExportModule.getLobsTracker();
   }
 
   @Override

@@ -12,6 +12,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.databasepreservation.modules.siard.out.content.LOBsTracker;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 
 public class TestSIARDDKContentExportPathStrategy {
@@ -20,7 +21,7 @@ public class TestSIARDDKContentExportPathStrategy {
 
   @BeforeMethod
   public void setUp() {
-    c = new SIARDDKContentPathExportStrategy(null);
+    c = new SIARDDKContentPathExportStrategy((LOBsTracker) null);
   }
 
   @Test

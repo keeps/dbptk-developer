@@ -40,10 +40,12 @@ import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
 import com.databasepreservation.modules.msAccess.MsAccessHelper;
 import com.databasepreservation.modules.msAccess.MsAccessUCanAccessModuleFactory;
 import com.databasepreservation.utils.MapUtils;
-import com.healthmarketscience.jackcess.Database;
 
+import io.github.spannm.jackcess.Database;
 import net.ucanaccess.complex.SingleValue;
+import net.ucanaccess.converters.Metadata.Property;
 import net.ucanaccess.jdbc.UcanaccessConnection;
+import net.ucanaccess.jdbc.UcanaccessConnectionBuilder;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -54,18 +56,20 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
 
   private static String INVALID_CHARACTERS_IN_TABLE_NAME = "\'";
   private String password = null;
+  private final File msAccessFile;
 
   public MsAccessUCanAccessImportModule(String moduleName, File msAccessFile, Map<String, String> properties)
     throws ModuleException {
     super("net.ucanaccess.jdbc.UcanaccessDriver",
       "jdbc:ucanaccess://" + msAccessFile.getAbsolutePath() + ";showSchema=true;", new MsAccessHelper(),
       new MsAccessUCanAccessDatatypeImporter(), moduleName, properties);
+      this.msAccessFile = msAccessFile;
   }
 
   public MsAccessUCanAccessImportModule(String moduleName, File msAccessFile, String password) throws ModuleException {
     this(moduleName, msAccessFile, MapUtils.buildMapFromObjects(MsAccessUCanAccessModuleFactory.PARAMETER_FILE,
       msAccessFile, MsAccessUCanAccessModuleFactory.PARAMETER_PASSWORD, password));
-    this.password = password;
+      this.password = password;
   }
 
   public MsAccessUCanAccessImportModule(String moduleName, String accessFilePath) throws ModuleException {
@@ -80,19 +84,11 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
 
   @Override
   protected Connection createConnection() throws ModuleException {
-    Connection connection;
-    try {
-      if (password == null) {
-        connection = DriverManager.getConnection(connectionURL);
-      } else {
-        connection = DriverManager.getConnection(connectionURL + "jackcessOpener=" + CryptCodecOpener.class.getName(),
-          null /* username is ignored */, password);
-      }
-    } catch (SQLException e) {
-      throw normalizeException(e, null);
-    }
-    LOGGER.debug("Connected");
-    return connection;
+     UcanaccessConnectionBuilder builder = new UcanaccessConnectionBuilder().withDbPath(msAccessFile).withProp(Property.showSchema, true);
+     if (StringUtils.isNotEmpty(password)) {
+       builder.withPassword(password);
+     } 
+    return builder.build();
   }
 
   private Database getInternalDatabase() throws ModuleException {
