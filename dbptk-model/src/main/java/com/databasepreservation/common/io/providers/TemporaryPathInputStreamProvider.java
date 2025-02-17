@@ -70,19 +70,11 @@ public class TemporaryPathInputStreamProvider extends PathInputStreamProvider {
       }
     }
 
-    StringBuilder stackTraceBuilder = new StringBuilder();
-    for (StackTraceElement stackTraceElement : Thread.currentThread().getStackTrace()) {
-      stackTraceBuilder.append(stackTraceElement.toString()).append(System.lineSeparator());
-    }
-    final String stackTrace = stackTraceBuilder.toString();
-
     removeTemporaryFileHook = new Thread() {
       @Override
       public void run() {
         TemporaryPathInputStreamProvider.this.removeTemporaryFileHook = null;
         TemporaryPathInputStreamProvider.this.cleanResources();
-        throw new IllegalStateException("A PathInputStreamProvider was cleaned by a shutdown hook. Path: "
-          + TemporaryPathInputStreamProvider.this.path.toAbsolutePath().toString() + ". Source: " + stackTrace);
       }
     };
 
