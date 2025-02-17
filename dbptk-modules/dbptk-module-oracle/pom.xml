@@ -52,7 +52,7 @@
         <dependency>
             <groupId>com.oracle.database.xml</groupId>
             <artifactId>xdb</artifactId>
-            <version>21.13.0.0</version>
+            <version>21.16.0.0</version>
         </dependency>
     </dependencies>
 </project>
