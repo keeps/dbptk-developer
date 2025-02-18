@@ -39,6 +39,8 @@ import com.databasepreservation.modules.mysql.MySQLHelper;
 import com.databasepreservation.modules.mysql.MySQLModuleFactory;
 import com.databasepreservation.utils.MapUtils;
 
+import static com.databasepreservation.modules.mysql.Constants.MYSQL_DRIVER_CLASS_NAME;
+
 /**
  * @author Luis Faria <lfaria@keep.pt>
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -65,7 +67,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
    */
   public MySQLJDBCImportModule(String moduleName, String hostname, int port, String database, String username,
     String password, boolean encrypt) {
-    super("com.mysql.jdbc.Driver",
+    super(MYSQL_DRIVER_CLASS_NAME,
       "jdbc:mysql://" + hostname + ":" + port + "/" + database + (encrypt ? "?useSSL=true" : ""), new MySQLHelper(),
       new MySQLDatatypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(MySQLModuleFactory.PARAMETER_HOSTNAME, hostname,
@@ -80,7 +82,7 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
   public MySQLJDBCImportModule(String moduleName, String hostname, int port, String database, String username,
     String password, boolean encrypt, String sshHost, String sshUser, String sshPassword, String sshPortNumber)
     throws ModuleException {
-    super("com.mysql.jdbc.Driver",
+    super(MYSQL_DRIVER_CLASS_NAME,
       "jdbc:mysql://" + hostname + ":" + port + "/" + database + (encrypt ? "?useSSL=true" : ""), new MySQLHelper(),
       new MySQLDatatypeImporter(), moduleName,
       MapUtils.buildMapFromObjects(MySQLModuleFactory.PARAMETER_HOSTNAME, hostname,
@@ -182,8 +184,8 @@ public class MySQLJDBCImportModule extends JDBCImportModule {
           }
         }
       } catch (Exception e) {
-        LOGGER.debug(
-          "Exception while trying to obtain MySQL table '" + tableIndex + "' description (comment). with query ", e);
+        LOGGER.debug("Exception while trying to obtain MySQL table '{}' description (comment). with query ", tableIndex,
+          e);
       }
     }
 
