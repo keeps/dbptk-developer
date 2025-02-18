@@ -317,6 +317,10 @@ public abstract class SIARDDKContentImportStrategy<T, D, F, S> extends DefaultHa
       Path binPath = pathStrategy.getMainFolder().getPath().resolve(Paths.get(SIARDDKConstants.DOCUMENTS_FOLDER_NAME,
         getDCf(doc), getDID(doc).toString(), getMID(doc) + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + getAFt(doc)));
 
+      if (!binPath.startsWith(pathStrategy.getMainFolder().getPath().resolve(Paths.get(SIARDDKConstants.DOCUMENTS_FOLDER_NAME)))) {
+        throw new ModuleException().withMessage("Invalid path for file: " + binPath);
+      }
+
       try {
         Cell blobCell = new BinaryCell(
           SIARDDKConstants.BLOB_EXTENSION + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + rowCounter,
