@@ -1,11 +1,33 @@
 # Changelog
 
+## Version 3.0.3 (18/02/2025)
+#### Enhancements
+
+- Upgrade MsAccess driver connector
+- Upgrade MySQL driver connector
+- Removing error on shutdown hook
+
+#### Security
+
+- Fix security vulnerabilities
+---
+
 ## Version 3.0.2 (13/02/2025)
+#### New features
+
+- Added support to SIARD-DK lobs (#625, #628, #629)
+- Added support to SIARD-DK version 128 (#625)
+
 #### Bug Fixes:
 
-- Fix SIARD Validation when two tables in different schemas have the same name (#608)
-- Add SQL query for materialized views (#636)
 - Fix Oracle Number export (#496)
+- Fix SIARD Validation when two tables in different schemas have the same name (#608)
+- Fix SIARD validation XML parser implementation (#631)
+- Add SQL query for materialized views (#636)
+- Fallback mechanism when building the Lob path (#649)
+
+#### Enhancements
+- Separated SIARD-DK versions 128 and 1007 and their respective support
 
 #### Security
 - Fix security vulnerabilities
@@ -281,13 +303,3 @@ Improvements
 #### Improvements
 
 To solve #407 it was used an external library to remove certain objects from the heap. A new property was added to define the path where to storage the off-heap file. More information can be found at our [wiki](https://github.com/keeps/db-preservation-toolkit/wiki/Application-usage#mapdb-options).
----
-
-## Version 2.6.1 (11/10/2019)
-#### Bug fixes
-
-* Fix #403 Change T_6.4-5 requirement validation
-* Fix #404 Improve SQL role metadata information fetching 
-* Fix #405 SIARD Validation fails on additional checks - foreign keys, triggers and check constraints
-
-
