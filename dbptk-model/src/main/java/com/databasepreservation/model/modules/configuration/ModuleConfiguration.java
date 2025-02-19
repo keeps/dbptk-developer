@@ -8,16 +8,7 @@
 package com.databasepreservation.model.modules.configuration;
 
 import static com.databasepreservation.Constants.VIEW_NAME_PREFIX;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.CANDIDATE_KEYS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.CHECK_CONSTRAINTS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.FOREIGN_KEYS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.PRIMARY_KEYS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.PRIVILEGES;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.ROLES;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.ROUTINES;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.TRIGGERS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.USERS;
-import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.VIEWS;
+import static com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures.*;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -26,19 +17,20 @@ import java.util.Map;
 
 import com.databasepreservation.Constants;
 import com.databasepreservation.model.modules.configuration.enums.DatabaseTechnicalFeatures;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.*;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 @JsonPropertyOrder({"import", "schemas", "ignore"})
 @JsonIgnoreProperties(value = {"fetchRows"})
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ModuleConfiguration {
 
   private ImportModuleConfiguration importModuleConfiguration;
+  // Statements to run before importing database, e.g. creating temporary tables for use in custom views exported as
+  // tables.
+  private List<String> setupStatements;
   private Map<String, SchemaConfiguration> schemaConfigurations;
   private Map<DatabaseTechnicalFeatures, Boolean> ignore;
   private boolean fetchRows;
@@ -370,6 +362,15 @@ public class ModuleConfiguration {
   @JsonProperty("import")
   public ImportModuleConfiguration getImportModuleConfiguration() {
     return importModuleConfiguration;
+  }
+
+  @JsonProperty("setupStatements")
+  public List<String> getSetupStatements() {
+    return setupStatements;
+  }
+
+  public void setSetupStatements(List<String> setupStatements) {
+    this.setupStatements = setupStatements;
   }
 
   public void setImportModuleConfiguration(ImportModuleConfiguration importModuleConfiguration) {
