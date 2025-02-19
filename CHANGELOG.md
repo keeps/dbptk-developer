@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 3.0.4 (01/01/1970)
+
+#### Security
+
+- Added a check to SIARD-DK lob paths to avoid path traversal #659 
+---
+
 ## Version 3.0.3 (18/02/2025)
 #### Enhancements
 
@@ -291,15 +298,3 @@ Improvements
 #### Bug fixes
 
 * Fix #409 DBPTK migration - microseconds should not be rounded
----
-
-## Version 2.6.2 (04/11/2019)
-#### Bug fixes
-
-* Fix #338 MSSQL conversion, error on small decimal values, being set to 0
-* Fix #406 Validation SIARD error on requirement 5.10
-* Fix #407 validation - DBPTK memory issues (heap size java)
-
-#### Improvements
-
-To solve #407 it was used an external library to remove certain objects from the heap. A new property was added to define the path where to storage the off-heap file. More information can be found at our [wiki](https://github.com/keeps/db-preservation-toolkit/wiki/Application-usage#mapdb-options).
