@@ -6,11 +6,11 @@
     <name>dbptk-module-postgresql</name>
     <groupId>com.databasepreservation</groupId>
     <artifactId>dbptk-module-postgresql</artifactId>
-    <version>3.0.4</version>
+    <version>3.1.0-SNAPSHOT</version>
     <parent>
         <groupId>com.databasepreservation</groupId>
         <artifactId>dbptk-modules</artifactId>
-        <version>3.0.4</version>
+        <version>3.1.0-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
 
