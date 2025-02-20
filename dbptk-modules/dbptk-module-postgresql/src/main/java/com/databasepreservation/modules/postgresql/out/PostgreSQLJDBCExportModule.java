@@ -310,4 +310,15 @@ public class PostgreSQLJDBCExportModule extends JDBCExportModule {
 
     ps.setArray(index, sqlArray);
   }
+
+@Override
+protected void handleSimpleTypeStringDataCell(String data, PreparedStatement ps, int index, Cell cell,
+  ColumnStructure column) throws SQLException {
+    if (data != null) {
+      data = data.replace("\u0000", "");
+      ps.setString(index, data);
+    } else {
+      ps.setNull(index, Types.VARCHAR);
+    }
+  }
 }
