@@ -206,14 +206,11 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
 
     if (!customViewConfigurations.isEmpty()) {
       for (CustomViewConfiguration custom : customViewConfigurations) {
-        String description = custom.getDescription();
-        String query = custom.getQuery();
         String name = custom.getName();
         LOGGER.info("Obtaining table structure for custom view {}", name);
 
         try {
-          TableStructure customViewStructureAsTable = getCustomViewStructureAsTable(schema, name, tableIndex,
-              description, query);
+          TableStructure customViewStructureAsTable = getCustomViewStructureAsTable(schema, tableIndex, custom);
           tables.add(customViewStructureAsTable);
           tableIndex++;
         } catch (SQLException e) {
