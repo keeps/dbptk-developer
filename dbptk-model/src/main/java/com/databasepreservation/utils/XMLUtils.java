@@ -30,6 +30,8 @@ import org.apache.commons.text.translate.EntityArrays;
 import org.apache.commons.text.translate.LookupTranslator;
 import org.apache.commons.text.translate.UnicodeEscaper;
 import org.apache.commons.text.translate.UnicodeUnescaper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -41,6 +43,7 @@ import com.databasepreservation.Constants;
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class XMLUtils {
+  private static final Logger LOGGER = LoggerFactory.getLogger(XMLUtils.class);
   /**
    * Translator to escape characters according to the SIARD specification
    */
@@ -87,8 +90,12 @@ public class XMLUtils {
     if (text == null) {
       return null;
     }
+    try {
+      text = SIARD_UNESCAPE.translate(text);
+    } catch (IllegalArgumentException e) {
+      LOGGER.warn("Illegal unicode on: " + text);
+    }
 
-    text = SIARD_UNESCAPE.translate(text);
     return text;
   }
 
