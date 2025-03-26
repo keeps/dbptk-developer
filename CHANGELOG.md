@@ -1,7 +1,13 @@
 # Changelog
 
-## Version 3.0.4 (01/01/1970)
+## Version 3.0.5 (26/03/2025)
+#### Enhancements
 
+-  Added warn when unicode is wrong #669
+
+---
+
+## Version 3.0.4 (19/02/2025)
 #### Security
 
 - Added a check to SIARD-DK lob paths to avoid path traversal #659 
@@ -292,9 +298,3 @@ Bug fixes
 Improvements
 
 * Improve validation reporting - related to #416 
----
-
-## Version 2.6.3 (06/11/2019)
-#### Bug fixes
-
-* Fix #409 DBPTK migration - microseconds should not be rounded
