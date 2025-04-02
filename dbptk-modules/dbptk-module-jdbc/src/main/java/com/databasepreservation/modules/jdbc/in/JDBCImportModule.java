@@ -679,24 +679,24 @@ public class JDBCImportModule implements DatabaseImportModule {
       }
     }
 
-/*    try (ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"MATERIALIZED VIEW"})) {
-      while (rset.next()) {
-        String materializedViewName = rset.getString(3);
-        String materializedViewDescription = rset.getString(5);
-
-        if (getModuleConfiguration().isMaterializeView(schema.getName(), materializedViewName)) {
-          LOGGER.info("Obtaining table structure for view {}.{}", schema.getName(), materializedViewName);
-          tables.add(getViewStructure(schema, materializedViewName, tableIndex, materializedViewDescription));
-          tableIndex++;
-        } else {
-          LOGGER.info("Ignoring view {}.{}", schema.getName(), materializedViewName);
-        }
-      }
-    }*/
+    /*
+     * try (ResultSet rset = getMetadata().getTables(dbStructure.getName(),
+     * schema.getName(), "%", new String[] {"MATERIALIZED VIEW"})) { while
+     * (rset.next()) { String materializedViewName = rset.getString(3); String
+     * materializedViewDescription = rset.getString(5);
+     * 
+     * if (getModuleConfiguration().isMaterializeView(schema.getName(),
+     * materializedViewName)) {
+     * LOGGER.info("Obtaining table structure for view {}.{}", schema.getName(),
+     * materializedViewName); tables.add(getViewStructure(schema,
+     * materializedViewName, tableIndex, materializedViewDescription));
+     * tableIndex++; } else { LOGGER.info("Ignoring view {}.{}", schema.getName(),
+     * materializedViewName); } } }
+     */
 
     if (!getModuleConfiguration().ignoreViews()) {
-      try (
-        ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%", new String[] {"VIEW", "MATERIALIZED VIEW"})) {
+      try (ResultSet rset = getMetadata().getTables(dbStructure.getName(), schema.getName(), "%",
+        new String[] {"VIEW", "MATERIALIZED VIEW"})) {
         while (rset.next()) {
           String viewName = rset.getString(3);
           String viewDescription = rset.getString(5);
@@ -2100,9 +2100,6 @@ public class JDBCImportModule implements DatabaseImportModule {
                     nRows++;
                   }
                 } catch (SQLException | ModuleException e) {
-                  if (e.getCause().getClass().equals(IOException.class)) {
-                    LOGGER.error(e.getCause().getMessage());
-                  }
                   LOGGER.error("Could not obtain all data from the custom view.", e);
                 }
               } else {
@@ -2118,9 +2115,6 @@ public class JDBCImportModule implements DatabaseImportModule {
                 throw new SQLParseException()
                   .withMessage(e.getMessage() + " at schema: " + table.getSchema() + " on table: " + table.getName());
               } catch (ModuleException e) {
-                if (e.getCause().getClass().equals(IOException.class)) {
-                  LOGGER.error(e.getCause().getMessage());
-                }
                 LOGGER.error("Could not obtain all data from the current table.", e);
               }
             }
