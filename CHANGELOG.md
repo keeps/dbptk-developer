@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 3.0.6 (02/04/2025)
+#### Bug fixes
+
+- NPE when logging more information about an exception cause #675
+
+#### Security
+- Several major dependency upgrades to fix security vulnerabilities
+---
+
 ## Version 3.0.5 (26/03/2025)
 #### Enhancements
 
@@ -284,17 +293,3 @@ __Bug fixes:__
 __Improvements:__
 
 * Add default port number to Oracle connections
----
-
-## Version 2.6.4 (26/11/2019)
-Bug fixes
-
-* Fix #411 log file and -ide (disable encryption) parameter
-* Fix #412 Sybase - Fatal error - NPE
-* Fix #414 Opt out which views should be materialized
-* Fix #415 List tables missing views
-* Fix #418 Problem recreating database from SIARD file (MSSQL Server decimal max precision)
-
-Improvements
-
-* Improve validation reporting - related to #416 
