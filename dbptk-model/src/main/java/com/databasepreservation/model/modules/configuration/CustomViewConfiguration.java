@@ -8,6 +8,7 @@
 package com.databasepreservation.model.modules.configuration;
 
 import com.databasepreservation.Constants;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import java.util.ArrayList;
@@ -78,5 +79,10 @@ public class CustomViewConfiguration {
   @Override
   public int hashCode() {
     return Objects.hash(getName(), getDescription(), getQuery());
+  }
+
+  @JsonIgnore
+  public ColumnConfiguration getColumnConfiguration(String columnName) {
+    return getColumns().stream().filter(p -> p.getName().equals(columnName)).findFirst().orElse(null);
   }
 }

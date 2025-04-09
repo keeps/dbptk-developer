@@ -100,6 +100,11 @@ public class SchemaConfiguration {
     return viewConfigurations.stream().filter(p -> p.getName().equals(viewName)).findFirst().orElse(null);
   }
 
+  @JsonIgnore
+  public CustomViewConfiguration getCustomViewConfiguration(String customViewName) {
+    return customViewConfigurations.stream().filter(p -> p.getName().equals(customViewName)).findAny().orElse(null);
+  }
+
   @JsonProperty("tables")
   public List<TableConfiguration> getTableConfigurations() {
     return tableConfigurations;
