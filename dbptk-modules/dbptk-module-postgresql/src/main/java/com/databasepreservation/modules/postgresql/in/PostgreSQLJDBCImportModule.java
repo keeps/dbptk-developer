@@ -427,8 +427,11 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
   @Override
   protected Cell rawToCellSimpleTypeNumericApproximate(String id, String columnName, Type cellType, ResultSet rawData)
     throws SQLException {
-    Cell cell = null;
-    if ("MONEY".equalsIgnoreCase(cellType.getOriginalTypeName())) {
+    Cell cell;
+    if (rawData.wasNull()) {
+      cell = new NullCell(id);
+
+    } else if ("MONEY".equalsIgnoreCase(cellType.getOriginalTypeName())) {
       String data = rawData.getString(columnName);
       if (data != null) {
         String parts[] = data.split(" ");
@@ -444,10 +447,10 @@ public class PostgreSQLJDBCImportModule extends JDBCImportModule {
       String value;
       if ("float4".equalsIgnoreCase(cellType.getOriginalTypeName())) {
         Float f = rawData.getFloat(columnName);
-        value = rawData.wasNull() ? null : f.toString();
+        value = f.toString();
       } else {
         Double d = rawData.getDouble(columnName);
-        value = rawData.wasNull() ? null : d.toString();
+        value = d.toString();
       }
       cell = new SimpleCell(id, value);
     }
