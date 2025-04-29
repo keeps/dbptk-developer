@@ -933,12 +933,16 @@ public class JDBCImportModule implements DatabaseImportModule {
       throw new IllegalArgumentException("Empty reference list in foreignKey configuration on " + tableName);
     }
 
+    // TODO: Will not be unique if multiple references with a shared first column are defined.
+    fk.setId(tableName + "." + configuration.getReferences().getFirst().getColumn());
+
     if (configuration.getName() != null) {
       fk.setName(configuration.getName());
     } else {
       fk.setName(getForeignKeyName(tableName, configuration.getReferences().getFirst().getColumn()));
     }
 
+    fk.setReferencedSchema(configuration.getReferencedSchema());
     fk.setReferencedTable(configuration.getReferencedTable());
     fk.setReferences(configuration.getReferences().stream().map(this::getReferenceConfigurationAsReference).toList());
     fk.setDescription(configuration.getDescription());

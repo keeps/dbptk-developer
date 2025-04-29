@@ -1,15 +1,16 @@
 package com.databasepreservation.model.modules.configuration;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
 import java.util.List;
 import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ForeignKeyConfiguration {
 
   private String name;
+  private String referencedSchema;
   private String referencedTable;
   private List<ReferenceConfiguration> references;
   private String description;
@@ -20,6 +21,14 @@ public class ForeignKeyConfiguration {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public String getReferencedSchema() {
+    return referencedSchema;
+  }
+
+  public void setReferencedSchema(String referencedSchema) {
+    this.referencedSchema = referencedSchema;
   }
 
   public String getReferencedTable() {
@@ -48,18 +57,16 @@ public class ForeignKeyConfiguration {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o)
-      return true;
     if (o == null || getClass() != o.getClass())
       return false;
     ForeignKeyConfiguration that = (ForeignKeyConfiguration) o;
-    return Objects.equals(name, that.name) && Objects.equals(referencedTable, that.referencedTable) && Objects.equals(
-      references, that.references) && Objects.equals(description, that.description);
+    return Objects.equals(name, that.name) && Objects.equals(referencedSchema, that.referencedSchema)
+      && Objects.equals(referencedTable, that.referencedTable) && Objects.equals(references, that.references)
+      && Objects.equals(description, that.description);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, referencedTable, references);
+    return Objects.hash(name, referencedSchema, referencedTable, references, description);
   }
-
 }
