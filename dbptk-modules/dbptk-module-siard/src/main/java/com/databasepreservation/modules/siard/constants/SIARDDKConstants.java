@@ -71,6 +71,7 @@ public class SIARDDKConstants {
   // DocIndex constants
   public static final String DID = "dID";
   public static final String DOCUMENT_IDENTIFIER = "Document identifier";
+  public static final String DEFAULT_DOCUMENT_NAME = "1";
 
   // ContexDocumentationIndexConstants
   public static final String DOCUMENT_ID = "documentID";

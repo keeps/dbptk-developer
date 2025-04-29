@@ -314,10 +314,14 @@ public abstract class SIARDDKContentImportStrategy<T, D, F, S> extends DefaultHa
       lstCells.add(dIDCell);
 
       // document blob
-      Path binPath = pathStrategy.getMainFolder().getPath().resolve(Paths.get(SIARDDKConstants.DOCUMENTS_FOLDER_NAME,
-        getDCf(doc), getDID(doc).toString(), getMID(doc) + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + getAFt(doc)));
+      String mainFolder = pathStrategy.getMainFolder().getPath().toString();
+      String siardFolderName = mainFolder.substring(0, mainFolder.length() - 1) + getMID(doc);
+      Path siardFolderPath = Paths.get(siardFolderName);
+      Path binPath = siardFolderPath
+        .resolve(Paths.get(SIARDDKConstants.DOCUMENTS_FOLDER_NAME, getDCf(doc), getDID(doc).toString(),
+          SIARDDKConstants.DEFAULT_DOCUMENT_NAME + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + getAFt(doc)));
 
-      if (!binPath.startsWith(pathStrategy.getMainFolder().getPath().resolve(Paths.get(SIARDDKConstants.DOCUMENTS_FOLDER_NAME)))) {
+      if (!binPath.startsWith(siardFolderPath.resolve(Paths.get(SIARDDKConstants.DOCUMENTS_FOLDER_NAME)))) {
         throw new ModuleException().withMessage("Invalid path for file: " + binPath);
       }
 
