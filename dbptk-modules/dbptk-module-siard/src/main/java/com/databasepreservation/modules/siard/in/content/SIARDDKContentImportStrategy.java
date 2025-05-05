@@ -313,23 +313,32 @@ public abstract class SIARDDKContentImportStrategy<T, D, F, S> extends DefaultHa
         getDID(doc).toString());
       lstCells.add(dIDCell);
 
-      // document blob
-      String mainFolder = pathStrategy.getMainFolder().getPath().toString();
-      String siardFolderName = mainFolder.substring(0, mainFolder.length() - 1) + getMID(doc);
-      Path siardFolderPath = Paths.get(siardFolderName);
-      Path binPath = siardFolderPath
-        .resolve(Paths.get(SIARDDKConstants.DOCUMENTS_FOLDER_NAME, getDCf(doc), getDID(doc).toString(),
-          SIARDDKConstants.DEFAULT_DOCUMENT_NAME + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + getAFt(doc)));
-
-      if (!binPath.startsWith(siardFolderPath.resolve(Paths.get(SIARDDKConstants.DOCUMENTS_FOLDER_NAME)))) {
-        throw new ModuleException().withMessage("Invalid path for file: " + binPath);
-      }
-
       try {
+        // document blob
+        String mainFolder = pathStrategy.getMainFolder().getPath().toString();
+        String siardFolderName = mainFolder.substring(0, mainFolder.length() - 1) + getMID(doc);
+        Path siardFolderPath = Paths.get(siardFolderName);
+        Path docPath = siardFolderPath
+          .resolve(Paths.get(SIARDDKConstants.DOCUMENTS_FOLDER_NAME, getDCf(doc), getDID(doc).toString()));
+
+        if (!docPath.startsWith(siardFolderPath.resolve(Paths.get(SIARDDKConstants.DOCUMENTS_FOLDER_NAME)))) {
+          throw new ModuleException().withMessage("Invalid path for folder: " + docPath);
+        }
+
+        String digest = "";
+        File docFolder = new File(docPath.toString());
+        if (docFolder.exists() && docFolder.isDirectory()) {
+          File[] fileList = docFolder.listFiles();
+          if (fileList != null && fileList.length == 1) {
+            docPath = docPath.resolve(Paths.get(fileList[0].getName()));
+            digest = DigestUtils.sha1Hex(Files.newInputStream(docPath));
+          }
+        }
+
         Cell blobCell = new BinaryCell(
           SIARDDKConstants.BLOB_EXTENSION + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + rowCounter,
-          new DummyInputStreamProvider(), binPath.toString(), Files.size(binPath),
-          DigestUtils.sha1Hex(Files.newInputStream(binPath)), DigestUtils.getSha1Digest().toString());
+          new DummyInputStreamProvider(), docPath.toString(), Files.size(docPath), digest,
+          DigestUtils.getSha1Digest().toString());
         lstCells.add(blobCell);
 
         // set and handle row
