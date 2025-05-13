@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 3.0.7 (13/05/2025)
+#### Bug fixes
+ 
+-  Remove null bytes from strings before insertion on postgreql. #660 
+-  Fixed crash on null approx. numerics in PostgreSQL #681 
+-  Virtual table correctly handling multiple documents #683
+-  Updated lob path when siard-dk has lobs in different media #682 
+---
+
 ## Version 3.0.6 (02/04/2025)
 #### Bug fixes
 
@@ -268,20 +277,6 @@ Special thanks to @daniel-skovenborg for his contributions to this release
 ---
 
 ## Version 2.6.5 (18/02/2020)
-__Bug fixes:__
-
-* Fix #422 - Error with package from MS Access (timestamp)
-* Fix #423 - NPE when validating a SIARD file foreign keys
-* Fix #426 - Description shows "null" when table comment is empty
-* Fix #427 - SIARD validation - error when starting two validations at same time
-* Fix #428 - Missing encoding on metadata.xml
-
-__Improvements:__
-
-* Add default port number to Oracle connections
----
-
-## Version 2.6.5-RC (27/01/2020)
 __Bug fixes:__
 
 * Fix #422 - Error with package from MS Access (timestamp)
