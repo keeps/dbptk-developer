@@ -29,6 +29,7 @@
 		<module>dbptk-module-openedge</module>
 		<module>dbptk-module-oracle</module>
 		<module>dbptk-module-postgresql</module>
+		<module>dbptk-module-normalize-1nf-config</module>
 		<module>dbptk-module-siard</module>
 		<module>dbptk-module-sql-server</module>
 		<module>dbptk-module-sybase</module>
