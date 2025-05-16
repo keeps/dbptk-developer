@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 3.0.8 (16/05/2025)
+#### Bug fixes
+ 
+- The external lobs filter can be applied in the custom view context #685
+---
+
 ## Version 3.0.7 (13/05/2025)
 #### Bug fixes
  
@@ -274,17 +280,3 @@ Special thanks to @daniel-skovenborg for his contributions to this release
 #### Deprecated
 
 * list-tables module has been replace by the import-config module. More information can be found at our [wiki](https://github.com/keeps/db-preservation-toolkit/wiki/Import-Config-Module).
----
-
-## Version 2.6.5 (18/02/2020)
-__Bug fixes:__
-
-* Fix #422 - Error with package from MS Access (timestamp)
-* Fix #423 - NPE when validating a SIARD file foreign keys
-* Fix #426 - Description shows "null" when table comment is empty
-* Fix #427 - SIARD validation - error when starting two validations at same time
-* Fix #428 - Missing encoding on metadata.xml
-
-__Improvements:__
-
-* Add default port number to Oracle connections
