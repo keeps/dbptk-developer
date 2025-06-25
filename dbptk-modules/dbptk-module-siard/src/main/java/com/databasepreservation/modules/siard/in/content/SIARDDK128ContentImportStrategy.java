@@ -65,8 +65,7 @@ public class SIARDDK128ContentImportStrategy extends
     SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
     Schema xsdSchema = null;
     InputStream xsdInputStream = new FileInputStream(pathStrategy.getMainFolder().getPath().toString()
-      + SIARDDKConstants.RESOURCE_FILE_SEPARATOR
-      + pathStrategy.getXsdFilePath(SIARDDKConstants.DOC_INDEX));
+      + SIARDDKConstants.RESOURCE_FILE_SEPARATOR + pathStrategy.getXsdFilePath(SIARDDKConstants.DOC_INDEX));
 
     try {
       xsdSchema = schemaFactory.newSchema(new StreamSource(xsdInputStream));
@@ -81,10 +80,17 @@ public class SIARDDK128ContentImportStrategy extends
       unmarshaller = context.createUnmarshaller();
       unmarshaller.setSchema(xsdSchema);
       inputStreamXml = new FileInputStream(pathStrategy.getMainFolder().getPath().toString()
-        + SIARDDKConstants.RESOURCE_FILE_SEPARATOR
-        + pathStrategy.getXmlFilePath(SIARDDKConstants.DOC_INDEX));
-      JAXBElement<DocIndexType> jaxbElement = (JAXBElement<DocIndexType>) unmarshaller.unmarshal(inputStreamXml);
-      return jaxbElement.getValue();
+        + SIARDDKConstants.RESOURCE_FILE_SEPARATOR + pathStrategy.getXmlFilePath(SIARDDKConstants.DOC_INDEX));
+      Object result = unmarshaller.unmarshal(inputStreamXml);
+      DocIndexType docIndex;
+      if (result instanceof JAXBElement) {
+        docIndex = ((JAXBElement<DocIndexType>) result).getValue();
+      } else if (result instanceof DocIndexType) {
+        docIndex = (DocIndexType) result;
+      } else {
+        throw new IllegalArgumentException("Unexpected object type: " + result.getClass().getName());
+      }
+      return docIndex;
     } catch (JAXBException e) {
       throw new ModuleException().withMessage("Error while Unmarshalling JAXB").withCause(e);
     } finally {
@@ -130,8 +136,7 @@ public class SIARDDK128ContentImportStrategy extends
       inputStreamXml = new FileInputStream(
         pathStrategy.getMainFolder().getPath().toString() + SIARDDKConstants.RESOURCE_FILE_SEPARATOR
           + pathStrategy.getXmlFilePath(SIARDDKConstants.CONTEXT_DOCUMENTATION_INDEX));
-      ContextDocumentationIndex jaxbElement = (ContextDocumentationIndex) unmarshaller
-        .unmarshal(inputStreamXml);
+      ContextDocumentationIndex jaxbElement = (ContextDocumentationIndex) unmarshaller.unmarshal(inputStreamXml);
       return jaxbElement;
     } catch (JAXBException e) {
       throw new ModuleException().withMessage("Error while Unmarshalling JAXB").withCause(e);

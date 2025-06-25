@@ -410,8 +410,16 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
       unmarshaller.setSchema(xsdSchema);
       inputStreamXml = new FileInputStream(pathStrategy.getMainFolder().getPath().toString()
         + SIARDDKConstants.RESOURCE_FILE_SEPARATOR + pathStrategy.getXmlFilePath(SIARDDKConstants.DOC_INDEX));
-      JAXBElement<DocIndexType> jaxbElement = (JAXBElement<DocIndexType>) unmarshaller.unmarshal(inputStreamXml);
-      return jaxbElement.getValue();
+      Object result = unmarshaller.unmarshal(inputStreamXml);
+      DocIndexType docIndex;
+      if (result instanceof JAXBElement) {
+        docIndex = ((JAXBElement<DocIndexType>) result).getValue();
+      } else if (result instanceof DocIndexType) {
+        docIndex = (DocIndexType) result;
+      } else {
+        throw new IllegalArgumentException("Unexpected object type: " + result.getClass().getName());
+      }
+      return docIndex;
     } catch (JAXBException e) {
       throw new ModuleException().withMessage("Error while Unmarshalling JAXB").withCause(e);
     } finally {
@@ -484,8 +492,8 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
       SIARDDKConstants.DOCUMENT_TITLE, typeChar, true, SIARDDKConstants.DOCUMENT_TITLE_DESCRIPTION, "", true);
     VirtualColumnStructure columnDate = new VirtualColumnStructure(SIARDDKConstants.DOCUMENT_DATE,
       SIARDDKConstants.DOCUMENT_DATE, typeChar, true, SIARDDKConstants.DOCUMENT_DATE_DESCRIPTION, "", true);
-    VirtualColumnStructure columnLOB = new VirtualColumnStructure(Constants.BLOB, Constants.BLOB_COLUMN_NAME, typeBlob, true,
-      "", "1", true);
+    VirtualColumnStructure columnLOB = new VirtualColumnStructure(Constants.BLOB, Constants.BLOB_COLUMN_NAME, typeBlob,
+      true, "", "1", true);
     columnStructureList.add(columnID);
     columnStructureList.add(columnTitle);
     columnStructureList.add(columnDate);
@@ -502,8 +510,8 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
     Type type = sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
       "<information unavailable>", "<information unavailable>", Constants.BINARY_LARGE_OBJECT,
       Constants.BINARY_LARGE_OBJECT);
-    VirtualColumnStructure columnLOB = new VirtualColumnStructure(Constants.BLOB, Constants.BLOB_COLUMN_NAME, type, true,
-      "", "1", true);
+    VirtualColumnStructure columnLOB = new VirtualColumnStructure(Constants.BLOB, Constants.BLOB_COLUMN_NAME, type,
+      true, "", "1", true);
     columnStructureList.add(columnID);
     columnStructureList.add(columnLOB);
     return columnStructureList;
