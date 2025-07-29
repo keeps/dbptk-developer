@@ -67,6 +67,8 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
   private static final Integer DEFAULT_LOB_PREFETCH_SIZE = ConfigUtils.getProperty(4000,
     "dbptk.jdbc.oracle.lobPrefetchSize");
 
+  private String sourceSchema = null;
+
   /**
    * Create a new Oracle12c import module
    *
@@ -80,7 +82,7 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
    *          the password of the user to use in the connection
    */
   public Oracle12cJDBCImportModule(String moduleName, String serverName, int port, String instance, String username,
-    String password) {
+    String password, String sourceSchema) {
 
     super("oracle.jdbc.driver.OracleDriver", "jdbc:oracle:thin:@//" + serverName + ":" + port + "/" + instance,
       new OracleHelper(), new Oracle12cJDBCDatatypeImporter(), moduleName,
@@ -89,13 +91,15 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
         Oracle12cModuleFactory.PARAMETER_USERNAME, username, Oracle12cModuleFactory.PARAMETER_PASSWORD, password,
         Oracle12cModuleFactory.PARAMETER_ACCEPT_LICENSE, true));
 
+    this.sourceSchema = sourceSchema.toUpperCase();
     createCredentialsProperty(username, password);
 
     LOGGER.debug("jdbc:oracle:thin:@//{}:{}/{}", serverName, port, instance);
   }
 
   public Oracle12cJDBCImportModule(String moduleName, String serverName, int port, String instance, String username,
-    String password, String sshHost, String sshUser, String sshPassword, String sshPortNumber) throws ModuleException {
+    String password, String sshHost, String sshUser, String sshPassword, String sshPortNumber, String sourceSchema)
+    throws ModuleException {
 
     super("oracle.jdbc.driver.OracleDriver", "jdbc:oracle:thin:@//" + serverName + ":" + port + "/" + instance,
       new OracleHelper(), new Oracle12cJDBCDatatypeImporter(), moduleName,
@@ -108,6 +112,7 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
         Oracle12cModuleFactory.PARAMETER_SSH_USER, sshUser, Oracle12cModuleFactory.PARAMETER_SSH_PASSWORD,
         sshPassword));
 
+    this.sourceSchema = sourceSchema.toUpperCase();
     createCredentialsProperty(username, password);
 
     LOGGER.debug("jdbc:oracle:thin:@//{}:{}/{}", serverName, port, instance);
@@ -152,7 +157,12 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
   @Override
   protected List<SchemaStructure> getSchemas() throws SQLException, ModuleException {
     List<SchemaStructure> schemas = new ArrayList<>();
-    String schemaName = getMetadata().getUserName();
+    String schemaName;
+    if (sourceSchema != null) {
+      schemaName = sourceSchema;
+    } else {
+      schemaName = getMetadata().getUserName();
+    }
     schemas.add(getSchemaStructure(schemaName, 1));
     return schemas;
   }
