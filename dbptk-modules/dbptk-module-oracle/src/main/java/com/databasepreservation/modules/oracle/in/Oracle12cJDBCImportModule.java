@@ -91,7 +91,7 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
         Oracle12cModuleFactory.PARAMETER_USERNAME, username, Oracle12cModuleFactory.PARAMETER_PASSWORD, password,
         Oracle12cModuleFactory.PARAMETER_ACCEPT_LICENSE, true));
 
-    this.sourceSchema = sourceSchema.toUpperCase();
+    this.sourceSchema = sourceSchema;
     createCredentialsProperty(username, password);
 
     LOGGER.debug("jdbc:oracle:thin:@//{}:{}/{}", serverName, port, instance);
@@ -112,7 +112,7 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
         Oracle12cModuleFactory.PARAMETER_SSH_USER, sshUser, Oracle12cModuleFactory.PARAMETER_SSH_PASSWORD,
         sshPassword));
 
-    this.sourceSchema = sourceSchema.toUpperCase();
+    this.sourceSchema = sourceSchema;
     createCredentialsProperty(username, password);
 
     LOGGER.debug("jdbc:oracle:thin:@//{}:{}/{}", serverName, port, instance);
@@ -159,7 +159,7 @@ public class Oracle12cJDBCImportModule extends JDBCImportModule {
     List<SchemaStructure> schemas = new ArrayList<>();
     String schemaName;
     if (sourceSchema != null) {
-      schemaName = sourceSchema;
+      schemaName = sourceSchema.toUpperCase();
     } else {
       schemaName = getMetadata().getUserName();
     }
