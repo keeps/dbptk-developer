@@ -9,50 +9,37 @@ package com.databasepreservation.model.modules.configuration;
 
 import java.util.Objects;
 
-import com.databasepreservation.model.modules.configuration.enums.ExternalLobsAccessMethod;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
-@JsonPropertyOrder({"basePath", "accessMethod"})
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "accessMethod", visible = true)
+@JsonSubTypes({@JsonSubTypes.Type(value = FileExternalLobsConfiguration.class, name = "file-system"),
+  @JsonSubTypes.Type(value = RemoteExternalLobsConfiguration.class, name = "remote-ssh"),
+  @JsonSubTypes.Type(value = S3MinIOExternalLobsConfiguration.class, name = "S3-MinIO"),
+  @JsonSubTypes.Type(value = S3MinIOExternalLobsConfiguration.class, name = "S3-AWS")})
+
 public class ExternalLobsConfiguration {
-  private String basePath;
-  private ExternalLobsAccessMethod accessModule;
+  @JsonProperty("accessMethod")
+  private String accessMethod;
 
   public ExternalLobsConfiguration() {
-  }
-
-  public String getBasePath() {
-    return basePath;
-  }
-
-  public void setBasePath(String basePath) {
-    this.basePath = basePath;
-  }
-
-  @JsonProperty("accessMethod")
-  public ExternalLobsAccessMethod getAccessModule() {
-    return accessModule;
-  }
-
-  public void setAccessModule(ExternalLobsAccessMethod accessModule) {
-    this.accessModule = accessModule;
+    // empty constructor
   }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o)
-      return true;
     if (o == null || getClass() != o.getClass())
       return false;
     ExternalLobsConfiguration that = (ExternalLobsConfiguration) o;
-    return Objects.equals(getBasePath(), that.getBasePath()) && getAccessModule() == that.getAccessModule();
+    return Objects.equals(accessMethod, that.accessMethod);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getBasePath(), getAccessModule());
+    return Objects.hashCode(accessMethod);
   }
 }

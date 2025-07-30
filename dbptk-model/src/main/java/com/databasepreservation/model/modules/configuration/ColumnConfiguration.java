@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({"name", "merkle","inventory", "externalLOB"})
+@JsonPropertyOrder({"name", "merkle", "inventory", "externalLOB"})
 public class ColumnConfiguration {
   private String name;
   private boolean merkle;
@@ -70,12 +70,12 @@ public class ColumnConfiguration {
     if (o == null || getClass() != o.getClass())
       return false;
     ColumnConfiguration that = (ColumnConfiguration) o;
-    return isMerkle() == that.isMerkle() && isInventory() == that.isInventory()  && Objects.equals(getName(), that.getName())
-      && Objects.equals(getExternalLob(), that.getExternalLob());
+    return isMerkle() == that.isMerkle() && isInventory() == that.isInventory()
+      && Objects.equals(getName(), that.getName()) && Objects.equals(getExternalLob(), that.getExternalLob());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getName(), isMerkle(), isInventory(),getExternalLob());
+    return Objects.hash(getName(), isMerkle(), isInventory(), getExternalLob());
   }
 }

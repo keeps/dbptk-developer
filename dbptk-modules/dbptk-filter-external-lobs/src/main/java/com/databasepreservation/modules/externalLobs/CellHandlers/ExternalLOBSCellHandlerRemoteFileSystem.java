@@ -11,22 +11,18 @@ package com.databasepreservation.modules.externalLobs.CellHandlers;
 import java.io.InputStream;
 import java.nio.file.Path;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.databasepreservation.managers.RemoteConnectionManager;
-import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.modules.externalLobs.ExternalLOBSCellHandler;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.SftpException;
 
 public class ExternalLOBSCellHandlerRemoteFileSystem implements ExternalLOBSCellHandler {
-  private static final Logger LOGGER = LoggerFactory.getLogger(ExternalLOBSCellHandlerRemoteFileSystem.class);
-  private Path basePath;
+  private final Path basePath;
   private Reporter reporter;
 
   public ExternalLOBSCellHandlerRemoteFileSystem() {
@@ -40,8 +36,14 @@ public class ExternalLOBSCellHandlerRemoteFileSystem implements ExternalLOBSCell
 
   @Override
   public Cell handleCell(String cellId, String cellValue) throws ModuleException {
-    Path blobPath = basePath.resolve(cellValue);
     Cell newCell = new NullCell(cellId);
+
+    if (basePath == null) {
+      reporter.failed("Cell " + cellId, "Base path is not set");
+      return newCell;
+    }
+
+    Path blobPath = basePath.resolve(cellValue);
 
     try {
       final InputStream stream = RemoteConnectionManager.getInstance().getInputStream(blobPath);

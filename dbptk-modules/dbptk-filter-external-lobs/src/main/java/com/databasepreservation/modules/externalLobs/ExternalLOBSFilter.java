@@ -24,7 +24,10 @@ import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.configuration.ExternalLobsConfiguration;
-import com.databasepreservation.model.modules.configuration.enums.ExternalLobsAccessMethod;
+import com.databasepreservation.model.modules.configuration.FileExternalLobsConfiguration;
+import com.databasepreservation.model.modules.configuration.RemoteExternalLobsConfiguration;
+import com.databasepreservation.model.modules.configuration.S3AWSExternalLobsConfiguration;
+import com.databasepreservation.model.modules.configuration.S3MinIOExternalLobsConfiguration;
 import com.databasepreservation.model.modules.filters.DatabaseFilterModule;
 import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -35,6 +38,8 @@ import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.externalLobs.CellHandlers.ExternalLOBSCellHandlerFileSystem;
 import com.databasepreservation.modules.externalLobs.CellHandlers.ExternalLOBSCellHandlerRemoteFileSystem;
+import com.databasepreservation.modules.externalLobs.CellHandlers.ExternalLOBSCellHandlerS3AWS;
+import com.databasepreservation.modules.externalLobs.CellHandlers.ExternalLOBSCellHandlerS3MinIO;
 
 public class ExternalLOBSFilter implements DatabaseFilterModule {
   private static final Logger LOGGER = LoggerFactory.getLogger(ExternalLOBSFilter.class);
@@ -83,25 +88,19 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
             final ExternalLobsConfiguration externalLobsConfiguration = ModuleConfigurationManager.getInstance()
               .getModuleConfiguration().getExternalLobsConfiguration(schema.getName(), table.getName(),
                 column.getName(), table.isFromView(), table.isFromCustomView());
-            if (externalLobsConfiguration.getAccessModule().equals(ExternalLobsAccessMethod.FILE_SYSTEM)) {
-              description.append(" file system path");
-            } else if (externalLobsConfiguration.getAccessModule().equals(ExternalLobsAccessMethod.REMOTE)) {
-              description.append(" remote file system path");
-            } else {
-              throw new ModuleException()
-                .withMessage("Unrecognized reference type " + externalLobsConfiguration.getAccessModule().getValue());
-            }
+
+            description.append(getTypeOfExternalLobsConfiguration(externalLobsConfiguration));
 
             Type original = column.getType();
-            description.append("original description: '").append(original.getDescription()).append("')");
+            description.append(". Original description: '").append(original.getDescription()).append("')");
             SimpleTypeBinary newType = new SimpleTypeBinary();
-            newType.setDescription(description.toString());
             newType.setSql99TypeName("BINARY VARYING", 1);
             newType.setSql2008TypeName("BINARY VARYING", 1);
             newType.setOriginalTypeName(original.getOriginalTypeName());
             newType.setOutsideDatabase(true);
 
             column.setType(newType);
+            column.setDescription(description.toString());
           }
         }
       }
@@ -204,11 +203,42 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
 
   private ExternalLOBSCellHandler getExternalLOBSCellHandler(ExternalLobsConfiguration configuration)
     throws ModuleException {
-    return switch (configuration.getAccessModule()) {
-      case FILE_SYSTEM -> new ExternalLOBSCellHandlerFileSystem(Paths.get(configuration.getBasePath()), reporter);
-      case REMOTE -> new ExternalLOBSCellHandlerRemoteFileSystem(Paths.get(configuration.getBasePath()), reporter);
-      default -> throw new ModuleException()
-        .withMessage("Unrecognized reference type " + configuration.getAccessModule().getValue());
-    };
+
+    if (configuration instanceof FileExternalLobsConfiguration fileConfiguration) {
+      return new ExternalLOBSCellHandlerFileSystem(Paths.get(fileConfiguration.getBasePath()), reporter);
+    }
+
+    if (configuration instanceof RemoteExternalLobsConfiguration remoteExternalLobsConfiguration) {
+      return new ExternalLOBSCellHandlerRemoteFileSystem(Paths.get(remoteExternalLobsConfiguration.getBasePath()),
+        reporter);
+    }
+
+    if (configuration instanceof S3AWSExternalLobsConfiguration s3AWSExternalLobsConfiguration) {
+      return new ExternalLOBSCellHandlerS3AWS(s3AWSExternalLobsConfiguration.getEndpoint(),
+        s3AWSExternalLobsConfiguration.getRegion(), s3AWSExternalLobsConfiguration.getBucketName(),
+        s3AWSExternalLobsConfiguration.getAccessKey(), s3AWSExternalLobsConfiguration.getSecretKey(), reporter);
+    }
+
+    if (configuration instanceof S3MinIOExternalLobsConfiguration s3MinIOExternalLobsConfiguration) {
+      return new ExternalLOBSCellHandlerS3MinIO(s3MinIOExternalLobsConfiguration.getEndpoint(),
+        s3MinIOExternalLobsConfiguration.getBucketName(), s3MinIOExternalLobsConfiguration.getAccessKey(),
+        s3MinIOExternalLobsConfiguration.getSecretKey(), reporter);
+    }
+
+    throw new ModuleException().withMessage("Unrecognized reference type");
+  }
+
+  private String getTypeOfExternalLobsConfiguration(ExternalLobsConfiguration configuration) throws ModuleException {
+    if (configuration instanceof FileExternalLobsConfiguration) {
+      return " file system path";
+    } else if (configuration instanceof RemoteExternalLobsConfiguration) {
+      return " remove file system path";
+    } else if (configuration instanceof S3AWSExternalLobsConfiguration) {
+      return " S3 AWS";
+    } else if (configuration instanceof S3MinIOExternalLobsConfiguration) {
+      return " S3 MinIO";
+    }
+
+    throw new ModuleException().withMessage("Unrecognized reference type");
   }
 }

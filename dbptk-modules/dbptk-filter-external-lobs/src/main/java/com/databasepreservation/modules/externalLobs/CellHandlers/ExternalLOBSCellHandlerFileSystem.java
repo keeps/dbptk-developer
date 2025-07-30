@@ -10,20 +10,16 @@ package com.databasepreservation.modules.externalLobs.CellHandlers;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.databasepreservation.common.io.providers.PathInputStreamProvider;
-import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.modules.externalLobs.ExternalLOBSCellHandler;
 
 public class ExternalLOBSCellHandlerFileSystem implements ExternalLOBSCellHandler {
-  private static final Logger LOGGER = LoggerFactory.getLogger(ExternalLOBSCellHandlerFileSystem.class);
-  private Path basePath;
+  private final Path basePath;
   private Reporter reporter;
 
   public ExternalLOBSCellHandlerFileSystem() {
@@ -37,8 +33,14 @@ public class ExternalLOBSCellHandlerFileSystem implements ExternalLOBSCellHandle
 
   @Override
   public Cell handleCell(String cellId, String cellValue) throws ModuleException {
-    Path blobPath = basePath.resolve(cellValue);
     Cell newCell = new NullCell(cellId);
+
+    if (basePath == null) {
+      reporter.failed("Cell " + cellId, "Base path is not set");
+      return newCell;
+    }
+
+    Path blobPath = basePath.resolve(cellValue);
 
     if (Files.exists(blobPath)) {
       if (Files.isRegularFile(blobPath)) {
