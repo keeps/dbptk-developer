@@ -136,7 +136,8 @@ public class Oracle12cModuleFactory implements DatabaseModuleFactory {
   @Override
   public Parameters getConnectionParameters() {
     return new Parameters(Arrays.asList(serverName.inputType(INPUT_TYPE.TEXT), portNumber.inputType(INPUT_TYPE.NUMBER),
-      username.inputType(INPUT_TYPE.TEXT), password.inputType(INPUT_TYPE.PASSWORD), instance.inputType(INPUT_TYPE.TEXT),
+      sourceSchema.inputType(INPUT_TYPE.TEXT), username.inputType(INPUT_TYPE.TEXT),
+      password.inputType(INPUT_TYPE.PASSWORD), instance.inputType(INPUT_TYPE.TEXT),
       acceptLicense.inputType(INPUT_TYPE.CHECKBOX)), null);
   }
 
