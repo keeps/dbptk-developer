@@ -482,7 +482,7 @@ public class SIARDDK1007MetadataImportStrategy implements MetadataImportStrategy
     Type typeInt = sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
       "<information unavailable>", "<information unavailable>", "INTEGER", "INTEGER");
     Type typeChar = sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
-      "<information unavailable>", "<information unavailable>", "CHARACTER", "CHARACTER");
+      "<information unavailable>", "<information unavailable>", "CHARACTER(255)", "CHARACTER(255)");
     Type typeBlob = sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
       "<information unavailable>", "<information unavailable>", Constants.BINARY_LARGE_OBJECT,
       Constants.BINARY_LARGE_OBJECT);
