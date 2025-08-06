@@ -1,7 +1,14 @@
 # Changelog
 
+## Version 3.1.1 (06/08/2025)
+#### Bug fixes
+
+- Fix a bug in ExternalLobsConfiguration types
+---
+
 ## Version 3.1.0 (06/08/2025)
 #### New Features
+ 
 - Added option to only import a specific oracle schema #704
 - Support for LOBs referenced in S3 providers (MinIO and AWS) #705
 
@@ -264,31 +271,3 @@ Special thanks to @daniel-skovenborg for his contributions to this release
 ### DBPTK Enterprise Integrations
 
 * Improve DBPTK Enterprise integration when dealing with LOB
----
-
-## Version 2.8.0 (25/03/2020)
-#### New Features
-
-* Allow set variables in YAML import-config  (#439) For more information access our [wiki](https://github.com/keeps/db-preservation-toolkit/wiki/Import-Config-Module#variables).
-* Database archive content validation using Merkle Tree. (#433) For more information access our [wiki](https://github.com/keeps/db-preservation-toolkit/wiki/Merkle-Tree-Filter-Module).
-
-#### Enhancements
-* Timestamp output normalization (#440)
-
-#### Improvements
-* Bump Jackson version from 2.10.2 to 2.10.3
-* Oracle maven dependency is now retrieved from the maven central (eliminates the need to have an Oracle account and configure the maven security to download the dependency)
----
-
-## Version 2.7.0 (18/02/2020)
-#### New Features
-
-* Added a new module: __import-config__.This module is used to control which schemas, tables and columns are read from the import module to the export module. It also allows to add options for custom views, views materialization, table or view filtering and database related information such as users, roles, privileges, routines or table oriented like triggers and much more. More information can be found at our [wiki](https://github.com/keeps/db-preservation-toolkit/wiki/Import-Config-Module).
-* Added the capability to filter content from a table (#435)
-* Added the capability to sort content from a table (#436)
-* Added a Java property to change the prefetch size for Oracle LOB (#437)
-* Added a strategy to write LOB data in a parallel fashion (#438)
-
-#### Deprecated
-
-* list-tables module has been replace by the import-config module. More information can be found at our [wiki](https://github.com/keeps/db-preservation-toolkit/wiki/Import-Config-Module).
