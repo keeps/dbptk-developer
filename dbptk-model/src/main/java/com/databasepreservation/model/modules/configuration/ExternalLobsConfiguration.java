@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonSubTypes({@JsonSubTypes.Type(value = FileExternalLobsConfiguration.class, name = "file-system"),
   @JsonSubTypes.Type(value = RemoteExternalLobsConfiguration.class, name = "remote-ssh"),
   @JsonSubTypes.Type(value = S3MinIOExternalLobsConfiguration.class, name = "S3-MinIO"),
-  @JsonSubTypes.Type(value = S3MinIOExternalLobsConfiguration.class, name = "S3-AWS")})
+  @JsonSubTypes.Type(value = S3AWSExternalLobsConfiguration.class, name = "S3-AWS")})
 
 public class ExternalLobsConfiguration {
   @JsonProperty("accessMethod")
