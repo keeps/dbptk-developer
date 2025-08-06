@@ -1,5 +1,17 @@
 # Changelog
 
+## Version 3.1.0 (06/08/2025)
+#### New Features
+- Added option to only import a specific oracle schema #704
+- Support for LOBs referenced in S3 providers (MinIO and AWS) #705
+
+#### Enhancements
+- Added object verification before unmarshall on virtual table load.
+
+#### Security
+- Several dependency upgrades.
+---
+
 ## Version 3.0.8 (16/05/2025)
 #### Bug fixes
  
