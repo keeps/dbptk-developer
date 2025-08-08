@@ -42,7 +42,7 @@ public class ExternalLOBSCellHandlerS3AWS implements ExternalLOBSCellHandler {
 
   public ExternalLOBSCellHandlerS3AWS(String endpoint, String region, String bucketName, String accessKey,
     String secretKey, Reporter reporter) {
-    this.s3Client = S3Client.builder().endpointOverride(URI.create(endpoint))
+    this.s3Client = S3Client.builder().endpointOverride(URI.create(endpoint)).forcePathStyle(true)
       .credentialsProvider(() -> AwsBasicCredentials.create(accessKey, secretKey)).region(getRegion(region)).build();
     this.bucketName = bucketName;
     this.reporter = reporter;
