@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jaxb:bindings xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
+              xmlns:xs="http://www.w3.org/2001/XMLSchema"
+              version="3.0">
+    <jaxb:globalBindings>
+        <!-- use JODA-Time DateTime for xs:date -->
+        <jaxb:javaType name="java.lang.String" xmlType="xs:date"
+                      parseMethod="java.lang.String.valueOf"
+                      printMethod="java.lang.String.valueOf"/>
+    </jaxb:globalBindings>
+</jaxb:bindings>

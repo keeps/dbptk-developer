@@ -16,9 +16,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.xml.XMLConstants;
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBException;
-import jakarta.xml.bind.Marshaller;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -91,11 +88,15 @@ import com.databasepreservation.modules.siard.bindings.siard_2_1.ViewsType;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.out.content.Sql2008toXSDType;
-import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.update.UpdateStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.XMLUtils;
+
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -105,13 +106,13 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
   private static final String METADATA_FILENAME = "metadata";
   private static final String METADATA_RESOURCE_FILENAME = "siard2-1-metadata";
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARD21MetadataExportStrategy.class);
-  private final SIARD2ContentPathExportStrategy contentPathStrategy;
+  private final ContentPathExportStrategy contentPathStrategy;
   private final MetadataPathStrategy metadataPathStrategy;
   private final boolean savingLobsExternally;
 
   private Reporter reporter;
 
-  public SIARD21MetadataExportStrategy(MetadataPathStrategy metadataPathStrategy, SIARD2ContentPathExportStrategy paths,
+  public SIARD21MetadataExportStrategy(MetadataPathStrategy metadataPathStrategy, ContentPathExportStrategy paths,
     boolean savingLobsExternally) {
     this.contentPathStrategy = paths;
     this.metadataPathStrategy = metadataPathStrategy;

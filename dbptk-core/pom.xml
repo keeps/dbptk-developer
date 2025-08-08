@@ -104,6 +104,10 @@
         </dependency>
         <dependency>
             <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-bindings-siard2-2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
             <artifactId>dbptk-bindings-siarddk-1007</artifactId>
         </dependency>
         <dependency>

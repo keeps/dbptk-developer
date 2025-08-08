@@ -10,6 +10,8 @@ package com.databasepreservation.modules.siard.in.input;
 import java.nio.file.Path;
 import java.util.Map;
 
+import com.databasepreservation.modules.siard.in.content.SIARD22ContentImportStrategy;
+import com.databasepreservation.modules.siard.in.metadata.SIARD22MetadataImportStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +22,7 @@ import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD2MetadataPathStrategy;
 import com.databasepreservation.modules.siard.in.content.ContentImportStrategy;
-import com.databasepreservation.modules.siard.in.content.SIARD2ContentImportStrategy;
+import com.databasepreservation.modules.siard.in.content.SIARD20ContentImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.SIARD20MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.SIARD21MetadataImportStrategy;
@@ -83,17 +85,24 @@ public class SIARD2ImportModule {
     }
 
     ContentPathImportStrategy contentPathStrategy = new SIARD2ContentPathImportStrategy();
-    contentStrategy = new SIARD2ContentImportStrategy(readStrategy, contentPathStrategy, lobContainer, ignoreLobs);
 
     MetadataPathStrategy metadataPathStrategy = new SIARD2MetadataPathStrategy();
     switch (mainContainer.getVersion()) {
       case V2_0:
+        contentStrategy = new SIARD20ContentImportStrategy(readStrategy, contentPathStrategy, lobContainer, ignoreLobs);
         metadataStrategy = new SIARD20MetadataImportStrategy(metadataPathStrategy, contentPathStrategy);
         break;
       case V2_1:
+        contentStrategy = new SIARD20ContentImportStrategy(readStrategy, contentPathStrategy, lobContainer, ignoreLobs);
         metadataStrategy = new SIARD21MetadataImportStrategy(metadataPathStrategy, contentPathStrategy);
         break;
+      case V2_2:
+        contentStrategy = new SIARD22ContentImportStrategy(readStrategy, contentPathStrategy, lobContainer, ignoreLobs);
+        metadataStrategy = new SIARD22MetadataImportStrategy(metadataPathStrategy, contentPathStrategy);
+        break;
+
       default:
+        contentStrategy = new SIARD20ContentImportStrategy(readStrategy, contentPathStrategy, lobContainer, ignoreLobs);
         metadataStrategy = null;
     }
   }

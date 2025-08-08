@@ -20,6 +20,9 @@ public class ColumnStructure {
 
   private String name;
 
+  //TODO implement missing lobFolder details
+  private String lobFolder;
+
   private Type type;
 
   private String defaultValue;
@@ -107,6 +110,21 @@ public class ColumnStructure {
    */
   public void setName(String name) {
     this.name = name;
+  }
+
+  /**
+   * @return the lob folder
+   */
+  public String getLobFolder() {
+    return lobFolder;
+  }
+
+  /**
+   * @param lobFolder
+   *          the lob folder to set
+   */
+  public void setLobFolder(String lobFolder) {
+    this.lobFolder = lobFolder;
   }
 
   /**

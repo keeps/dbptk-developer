@@ -21,6 +21,7 @@ public class SIARD2MetadataPathStrategy implements MetadataPathStrategy {
   private static final String METADATA_FILENAME = "metadata";
   private static final String METADATA_RESOURCE_FILENAME_SIARD_20 = "siard2-0-metadata";
   private static final String METADATA_RESOURCE_FILENAME_SIARD_21 = "siard2-1-metadata";
+  private static final String METADATA_RESOURCE_FILENAME_SIARD_22 = "siard2-2-metadata";
 
   // extensions for files
   private static final String XML_EXTENSION = "xml";
@@ -55,7 +56,7 @@ public class SIARD2MetadataPathStrategy implements MetadataPathStrategy {
 
   @Override
   public String getXsdResourcePath(String filename) throws InvalidParameterException {
-    if (filename.equals(METADATA_RESOURCE_FILENAME_SIARD_20) || filename.equals(METADATA_RESOURCE_FILENAME_SIARD_21)) {
+    if (filename.equals(METADATA_RESOURCE_FILENAME_SIARD_20) || filename.equals(METADATA_RESOURCE_FILENAME_SIARD_21) || filename.equals(METADATA_RESOURCE_FILENAME_SIARD_22)) {
       return new StringBuilder().append(RESOURCE_FILE_SEPARATOR).append(SCHEMA_RESOURCE_DIR)
         .append(RESOURCE_FILE_SEPARATOR).append(filename).append(FILE_EXTENSION_SEPARATOR).append(XSD_EXTENSION)
         .toString();

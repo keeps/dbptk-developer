@@ -47,7 +47,7 @@ import com.databasepreservation.model.structure.type.ComposedTypeArray;
 import com.databasepreservation.model.structure.type.ComposedTypeStructure;
 import com.databasepreservation.modules.siard.common.LargeObject;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.MessageDigestUtils;
 import com.databasepreservation.utils.XMLUtils;
@@ -55,8 +55,8 @@ import com.databasepreservation.utils.XMLUtils;
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SIARD2ContentExportStrategy implements ContentExportStrategy {
-  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2ContentExportStrategy.class);
+public class SIARD20ContentExportStrategy implements ContentExportStrategy {
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD20ContentExportStrategy.class);
 
   private static final String ENCODING = "UTF-8";
   private static final String CELL_PREFIX_DEFAULT = "c";
@@ -81,7 +81,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
   private static final String XS_ELEMENT = "xs:element";
   private static final String XMLNS_SIARD = "http://www.admin.ch/xmlns/siard/";
   private static final String TABLE = "table";
-  protected final SIARD2ContentPathExportStrategy contentPathStrategy;
+  protected final ContentPathExportStrategy contentPathStrategy;
   protected final WriteStrategy writeStrategy;
   protected final SIARDArchiveContainer baseContainer;
   private final boolean prettyXMLOutput;
@@ -96,7 +96,7 @@ public class SIARD2ContentExportStrategy implements ContentExportStrategy {
 
   protected Reporter reporter;
 
-  public SIARD2ContentExportStrategy(SIARD2ContentPathExportStrategy contentPathStrategy, WriteStrategy writeStrategy,
+  public SIARD20ContentExportStrategy(ContentPathExportStrategy contentPathStrategy, WriteStrategy writeStrategy,
     SIARDArchiveContainer baseContainer, boolean prettyXMLOutput, String digestAlgorithm, String fontCase) {
     this.contentPathStrategy = contentPathStrategy;
     this.writeStrategy = writeStrategy;

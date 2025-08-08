@@ -32,8 +32,8 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.modules.siard.common.LargeObject;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
-import com.databasepreservation.modules.siard.out.path.SIARD2ContentWithExternalLobsPathExportStrategy;
+import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.path.SIARD20ContentWithExternalLobsPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.databasepreservation.utils.MessageDigestUtils;
 
@@ -48,10 +48,10 @@ import com.databasepreservation.utils.MessageDigestUtils;
  *
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentExportStrategy {
+public class SIARD20ContentWithExternalLobsExportStrategy extends SIARD20ContentExportStrategy {
   private static final long MB_TO_BYTE_RATIO = 1024L * 1024L;
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2ContentWithExternalLobsExportStrategy.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD20ContentWithExternalLobsExportStrategy.class);
   // measured in Bytes
   private final long maximumLobsFolderSize;
   private final int maximumLobsPerFolder;
@@ -63,7 +63,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
 
   private byte[] lobDigestChecksum = null;
 
-  public SIARD2ContentWithExternalLobsExportStrategy(SIARD2ContentPathExportStrategy contentPathStrategy,
+  public SIARD20ContentWithExternalLobsExportStrategy(ContentPathExportStrategy contentPathStrategy,
     WriteStrategy writeStrategy, SIARDArchiveContainer baseContainer, boolean prettyXMLOutput,
     int externalLobsPerFolder, long maximumLobsFolderSize, long blobThresholdLimit, long clobThresholdLimit,
     String messageDigestAlgorithm, String fontCase) {
@@ -173,7 +173,7 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
     if (writeStrategy.isSimultaneousWritingSupported()) {
       writeLOBOutside(lob);
     } else {
-      throw new NotImplementedException(SIARD2ContentWithExternalLobsExportStrategy.class.getName()
+      throw new NotImplementedException(SIARD20ContentWithExternalLobsExportStrategy.class.getName()
         + " is not ready to be used with write strategies that don't support simultaneous writing.");
     }
 
@@ -218,9 +218,8 @@ public class SIARD2ContentWithExternalLobsExportStrategy extends SIARD2ContentEx
   }
 
   private SIARDArchiveContainer getAnotherExternalContainer() {
-    if (contentPathStrategy instanceof SIARD2ContentWithExternalLobsPathExportStrategy) {
-      SIARD2ContentWithExternalLobsPathExportStrategy paths = (SIARD2ContentWithExternalLobsPathExportStrategy) contentPathStrategy;
-      return new SIARDArchiveContainer(baseContainer.getVersion(), paths.nextContainerBasePath(baseContainer.getPath()),
+    if (contentPathStrategy instanceof SIARD20ContentWithExternalLobsPathExportStrategy paths) {
+        return new SIARDArchiveContainer(baseContainer.getVersion(), paths.nextContainerBasePath(baseContainer.getPath()),
         SIARDArchiveContainer.OutputContainerType.AUXILIARY);
     } else {
       throw new NotImplementedException("Unsupported ContentPathStrategy");

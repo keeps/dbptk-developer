@@ -14,7 +14,7 @@ import java.nio.file.Paths;
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SIARD2ContentWithExternalLobsPathExportStrategy extends SIARD2ContentPathExportStrategy {
+public class SIARD20ContentWithExternalLobsPathExportStrategy extends SIARD20ContentPathExportStrategy {
   public static final String FILE_SEPARATOR = File.separator;
   private long externalContainerId = 0L;
 

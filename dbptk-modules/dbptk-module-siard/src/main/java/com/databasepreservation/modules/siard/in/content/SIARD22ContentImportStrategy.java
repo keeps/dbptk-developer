@@ -61,13 +61,13 @@ import com.databasepreservation.model.structure.type.Type;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.in.path.ContentPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
-import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.path.SIARD22ContentPathExportStrategy;
 import com.databasepreservation.utils.XMLUtils;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SIARD2ContentImportStrategy extends DefaultHandler implements ContentImportStrategy {
+public class SIARD22ContentImportStrategy extends DefaultHandler implements ContentImportStrategy {
   // SAXHandler settings
   static final String JAXP_SCHEMA_LANGUAGE = "http://java.sun.com/xml/jaxp/properties/schemaLanguage";
   static final String W3C_XML_SCHEMA = "http://www.w3.org/2001/XMLSchema";
@@ -82,7 +82,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
   private static final String LENGTH_KEYWORD = "length";
   private static final String DIGEST_KEYWORD = "digest";
   private static final String DIGEST_TYPE_KEYWORD = "digestType";
-  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD2ContentImportStrategy.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SIARD22ContentImportStrategy.class);
   // ImportStrategy
   private final ContentPathImportStrategy contentPathStrategy;
   private final ReadStrategy readStrategy;
@@ -105,7 +105,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
   private long rowIndex;
   private boolean useLobPathFallback = false;
 
-  public SIARD2ContentImportStrategy(ReadStrategy readStrategy, ContentPathImportStrategy contentPathStrategy,
+  public SIARD22ContentImportStrategy(ReadStrategy readStrategy, ContentPathImportStrategy contentPathStrategy,
     SIARDArchiveContainer lobContainer, boolean ignoreLobs) {
     this.contentPathStrategy = contentPathStrategy;
     this.readStrategy = readStrategy;
@@ -304,7 +304,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
         InputStream inputStream = null;
 
         try {
-          if (lobDir.endsWith(SIARD2ContentPathExportStrategy.BLOB_EXTENSION)) {
+          if (lobDir.endsWith(SIARD22ContentPathExportStrategy.BLOB_EXTENSION)) {
             // assuming auxiliary containers are in a directory, use the
             // existing LOB file instead of copying it to a temporary directory
             if (container.getType().equals(SIARDArchiveContainer.OutputContainerType.AUXILIARY)) {
@@ -331,7 +331,7 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
 
             LOGGER.debug(
               String.format("BLOB cell %s on row #%d with lob dir %s", currentBlobCell.getId(), rowIndex, lobDir));
-          } else if (lobDir.endsWith(SIARD2ContentPathExportStrategy.CLOB_EXTENSION)) {
+          } else if (lobDir.endsWith(SIARD22ContentPathExportStrategy.CLOB_EXTENSION)) {
             inputStream = createInputStream(container, lobPath, lobDir);
             String data = IOUtils.toString(inputStream);
             currentClobCell = new SimpleCell(
@@ -475,7 +475,8 @@ public class SIARD2ContentImportStrategy extends DefaultHandler implements Conte
     tempVal.append(buf, offset, len);
   }
 
-  private InputStream createInputStream(SIARDArchiveContainer container, String lobPath, String lobDir) throws ModuleException {
+  private InputStream createInputStream(SIARDArchiveContainer container, String lobPath, String lobDir)
+    throws ModuleException {
     String lobName = Paths.get(lobDir).getFileName().toString();
     if (useLobPathFallback) {
       lobPath = contentPathStrategy.getLobPathFallback(null,

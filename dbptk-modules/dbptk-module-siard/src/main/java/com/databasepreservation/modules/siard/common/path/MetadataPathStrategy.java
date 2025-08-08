@@ -49,6 +49,8 @@ public interface MetadataPathStrategy {
     private static String[] paths2_0 = new String[] {"header/version/2.0/", "header/version/2.0"};
     private static String[] paths2_1 = new String[] {"header/siardversion/2.1/", "header/siardversion/2.1",
       "header/version/2.1/", "header/version/2.1"};
+    private static String[] paths2_2 = new String[] {"header/siardversion/2.2/", "header/siardversion/2.2",
+            "header/version/2.2/", "header/version/2.2"};
 
     /**
      * Identifies the SIARD 2 minor version
@@ -65,6 +67,11 @@ public interface MetadataPathStrategy {
           for (String p : paths2_1) {
             if (p.equalsIgnoreCase(path)) {
               return SIARDConstants.SiardVersion.V2_1;
+            }
+          }
+          for (String p : paths2_2) {
+            if (p.equalsIgnoreCase(path)) {
+              return SIARDConstants.SiardVersion.V2_2;
             }
           }
         }

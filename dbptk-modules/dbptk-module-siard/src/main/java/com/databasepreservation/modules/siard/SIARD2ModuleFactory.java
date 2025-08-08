@@ -45,6 +45,7 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_VERSION = "version";
   public static final String PARAMETER_VERSION_2_0 = SIARDConstants.SiardVersion.V2_0.getDisplayName();
   public static final String PARAMETER_VERSION_2_1 = SIARDConstants.SiardVersion.V2_1.getDisplayName();
+  public static final String PARAMETER_VERSION_2_2 = SIARDConstants.SiardVersion.V2_2.getDisplayName();
   public static final String PARAMETER_FILE = "file";
   public static final String PARAMETER_COMPRESS = "compress";
   public static final String PARAMETER_PRETTY_XML = "pretty-xml";
@@ -66,11 +67,12 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_IGNORE_LOBS = "ignore-lobs";
 
   // humanized list of supported SIARD 2 versions
-  private static final String versionsString = PARAMETER_VERSION_2_0 + " or " + PARAMETER_VERSION_2_1;
+  private static final String versionsString = PARAMETER_VERSION_2_0 + " or " + PARAMETER_VERSION_2_1 + " or "
+    + PARAMETER_VERSION_2_2;
 
   private static final Parameter version = new Parameter().shortName("v").longName(PARAMETER_VERSION)
-    .description("Choose SIARD version (" + versionsString + "). Default: latest (" + PARAMETER_VERSION_2_1 + ")")
-    .hasArgument(true).required(false).setOptionalArgument(false).valueIfNotSet(PARAMETER_VERSION_2_1);
+    .description("Choose SIARD version (" + versionsString + "). Default: latest (" + PARAMETER_VERSION_2_2 + ")")
+    .hasArgument(true).required(false).setOptionalArgument(false).valueIfNotSet(PARAMETER_VERSION_2_2);
 
   private static final Parameter file = new Parameter().shortName("f").longName(PARAMETER_FILE)
     .description("Path to SIARD2 archive file").hasArgument(true).setOptionalArgument(false).required(true);
@@ -111,8 +113,8 @@ public class SIARD2ModuleFactory implements DatabaseModuleFactory {
     .required(false).hasArgument(true).setOptionalArgument(false).valueIfNotSet("4000");
 
   private static final Parameter metaDbname = new Parameter().shortName("mdb").longName(PARAMETER_META_DBNAME)
-      .description("SIARD descriptive metadata field: Short database identifier").required(false).hasArgument(true)
-      .setOptionalArgument(true).valueIfNotSet(UNSPECIFIED_METADATA_VALUE);
+    .description("SIARD descriptive metadata field: Short database identifier").required(false).hasArgument(true)
+    .setOptionalArgument(true).valueIfNotSet(UNSPECIFIED_METADATA_VALUE);
 
   private static final Parameter metaDescription = new Parameter().shortName("md").longName(PARAMETER_META_DESCRIPTION)
     .description("SIARD descriptive metadata field: Description of database meaning and content as a whole.")
