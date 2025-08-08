@@ -42,7 +42,7 @@ import com.databasepreservation.modules.siard.out.metadata.SIARD1MetadataExportS
 import com.databasepreservation.modules.siard.out.metadata.SIARD20MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARD21MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.path.SIARD1ContentPathExportStrategy;
-import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.path.SIARD20ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.update.MetadataUpdateStrategy;
 import com.databasepreservation.modules.siard.out.update.UpdateStrategy;
 import com.databasepreservation.utils.ModuleConfigurationUtils;
@@ -189,7 +189,7 @@ public class SIARDEditModule implements EditModule {
 
     MetadataPathStrategy metadataPathStrategy = new SIARD2MetadataPathStrategy();
 
-    SIARD2ContentPathExportStrategy contentPathExportStrategy = new SIARD2ContentPathExportStrategy();
+    SIARD20ContentPathExportStrategy contentPathExportStrategy = new SIARD20ContentPathExportStrategy();
 
     UpdateStrategy updateStrategy = new MetadataUpdateStrategy();
 

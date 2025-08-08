@@ -7,10 +7,12 @@
  */
 package com.databasepreservation.modules.siard.out.path;
 
+import java.nio.file.Path;
+
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
-public class SIARD2ContentPathExportStrategy implements ContentPathExportStrategy {
+public class SIARD22ContentPathExportStrategy implements ContentPathExportStrategy {
   // names for directories
   protected static final String CONTENT_DIR = "content";
   protected static final String SCHEMA_DIR = "schema";
@@ -35,6 +37,8 @@ public class SIARD2ContentPathExportStrategy implements ContentPathExportStrateg
   public String getColumnFolderName(int columnIndex) {
     return new StringBuilder().append(LOB_DIR).append(columnIndex).toString();
   }
+
+  public String getContainerBasePath(int schemaIndex, int )
 
   public String getClobFileName(int rowIndex) {
     return new StringBuilder().append(LOB_FILENAME).append(rowIndex).append(FILE_EXTENSION_SEPARATOR)

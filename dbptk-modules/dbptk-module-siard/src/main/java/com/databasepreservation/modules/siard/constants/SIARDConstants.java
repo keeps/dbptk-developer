@@ -29,8 +29,11 @@ public class SIARDConstants {
     // eCH-0165 v2.0: abrogated. use 2.1 instead whenever possible
     V2_0("2.0", "2.0", "v2.0"),
 
-    // eCH-0165 v2.1: most recent version
+    // eCH-0165 v2.1
     V2_1("2", "2.1", "v2.1"),
+
+    // 2.2: most recent version
+    V2_2("2.2", "v2.2"),
 
     // danish v1.0 fork
     DK("1.0", "dk"),

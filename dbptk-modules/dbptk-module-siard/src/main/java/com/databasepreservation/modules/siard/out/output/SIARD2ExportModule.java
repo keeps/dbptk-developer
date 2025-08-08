@@ -17,13 +17,19 @@ import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARD2MetadataPathStrategy;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.out.content.ContentExportStrategy;
-import com.databasepreservation.modules.siard.out.content.SIARD2ContentExportStrategy;
-import com.databasepreservation.modules.siard.out.content.SIARD2ContentWithExternalLobsExportStrategy;
+import com.databasepreservation.modules.siard.out.content.SIARD20ContentExportStrategy;
+import com.databasepreservation.modules.siard.out.content.SIARD20ContentWithExternalLobsExportStrategy;
+import com.databasepreservation.modules.siard.out.content.SIARD22ContentExportStrategy;
+import com.databasepreservation.modules.siard.out.content.SIARD22ContentWithExternalLobsExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARD20MetadataExportStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARD21MetadataExportStrategy;
-import com.databasepreservation.modules.siard.out.path.SIARD2ContentPathExportStrategy;
-import com.databasepreservation.modules.siard.out.path.SIARD2ContentWithExternalLobsPathExportStrategy;
+import com.databasepreservation.modules.siard.out.metadata.SIARD22MetadataExportStrategy;
+import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.path.SIARD20ContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.path.SIARD20ContentWithExternalLobsPathExportStrategy;
+import com.databasepreservation.modules.siard.out.path.SIARD22ContentPathExportStrategy;
+import com.databasepreservation.modules.siard.out.path.SIARD22ContentWithExternalLobsPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.FolderWriteStrategy;
 import com.databasepreservation.modules.siard.out.write.ParallelZipWriteStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
@@ -33,7 +39,7 @@ import com.databasepreservation.modules.siard.out.write.ZipWithExternalLobsWrite
  * @author Bruno Ferreira <bferreira@keep.pt>
  */
 public class SIARD2ExportModule {
-  private final SIARD2ContentPathExportStrategy contentPathStrategy;
+  private ContentPathExportStrategy contentPathStrategy;
   private final MetadataPathStrategy metadataPathStrategy;
 
   private final SIARDArchiveContainer mainContainer;
@@ -47,7 +53,6 @@ public class SIARD2ExportModule {
   public SIARD2ExportModule(SIARDConstants.SiardVersion version, Path siardPackage, boolean compressZip,
     boolean prettyXML, HashMap<String, String> descriptiveMetadata, String digestAlgorithm, String fontCase) {
     this.descriptiveMetadata = descriptiveMetadata;
-    contentPathStrategy = new SIARD2ContentPathExportStrategy();
     metadataPathStrategy = new SIARD2MetadataPathStrategy();
     if (compressZip) {
       writeStrategy = new ParallelZipWriteStrategy(CompressionMethod.DEFLATE);
@@ -58,15 +63,24 @@ public class SIARD2ExportModule {
 
     switch (version) {
       case V2_0:
+        contentPathStrategy = new SIARD20ContentPathExportStrategy();
         metadataStrategy = new SIARD20MetadataExportStrategy(metadataPathStrategy, contentPathStrategy, false);
+        contentStrategy = new SIARD20ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer, prettyXML,
+          digestAlgorithm, fontCase);
         break;
       case V2_1:
+        contentPathStrategy = new SIARD20ContentPathExportStrategy();
         metadataStrategy = new SIARD21MetadataExportStrategy(metadataPathStrategy, contentPathStrategy, false);
+        contentStrategy = new SIARD20ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer, prettyXML,
+          digestAlgorithm, fontCase);
+        break;
+      case V2_2:
+        contentPathStrategy = new SIARD22ContentPathExportStrategy();
+        metadataStrategy = new SIARD22MetadataExportStrategy(metadataPathStrategy, contentPathStrategy, false);
+        contentStrategy = new SIARD22ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer, prettyXML,
+          digestAlgorithm, fontCase);
         break;
     }
-
-    contentStrategy = new SIARD2ContentExportStrategy(contentPathStrategy, writeStrategy, mainContainer, prettyXML,
-      digestAlgorithm, fontCase);
   }
 
   public SIARD2ExportModule(SIARDConstants.SiardVersion version, Path siardPackage, boolean compressZip,
@@ -74,7 +88,6 @@ public class SIARD2ExportModule {
     long externalLobsCLOBThresholdLimit, HashMap<String, String> descriptiveMetadata, String digestAlgorithm,
     String fontCase) {
     this.descriptiveMetadata = descriptiveMetadata;
-    contentPathStrategy = new SIARD2ContentWithExternalLobsPathExportStrategy();
     metadataPathStrategy = new SIARD2MetadataPathStrategy();
 
     FolderWriteStrategy folderWriteStrategy = new FolderWriteStrategy();
@@ -90,16 +103,27 @@ public class SIARD2ExportModule {
 
     switch (version) {
       case V2_0:
+        contentPathStrategy = new SIARD20ContentWithExternalLobsPathExportStrategy();
         metadataStrategy = new SIARD20MetadataExportStrategy(metadataPathStrategy, contentPathStrategy, true);
+        contentStrategy = new SIARD20ContentWithExternalLobsExportStrategy(contentPathStrategy, writeStrategy,
+          mainContainer, prettyXML, externalLobsPerFolder, externalLobsFolderSize, externalLobsBLOBThresholdLimit,
+          externalLobsCLOBThresholdLimit, digestAlgorithm, fontCase);
         break;
       case V2_1:
+        contentPathStrategy = new SIARD20ContentWithExternalLobsPathExportStrategy();
         metadataStrategy = new SIARD21MetadataExportStrategy(metadataPathStrategy, contentPathStrategy, true);
+        contentStrategy = new SIARD20ContentWithExternalLobsExportStrategy(contentPathStrategy, writeStrategy,
+          mainContainer, prettyXML, externalLobsPerFolder, externalLobsFolderSize, externalLobsBLOBThresholdLimit,
+          externalLobsCLOBThresholdLimit, digestAlgorithm, fontCase);
+        break;
+      case V2_2:
+        contentPathStrategy = new SIARD22ContentWithExternalLobsPathExportStrategy();
+        metadataStrategy = new SIARD22MetadataExportStrategy(metadataPathStrategy, contentPathStrategy, true);
+        contentStrategy = new SIARD22ContentWithExternalLobsExportStrategy(contentPathStrategy, writeStrategy,
+          mainContainer, prettyXML, externalLobsPerFolder, externalLobsFolderSize, externalLobsBLOBThresholdLimit,
+          externalLobsCLOBThresholdLimit, digestAlgorithm, fontCase);
         break;
     }
-
-    contentStrategy = new SIARD2ContentWithExternalLobsExportStrategy(contentPathStrategy, writeStrategy, mainContainer,
-      prettyXML, externalLobsPerFolder, externalLobsFolderSize, externalLobsBLOBThresholdLimit,
-      externalLobsCLOBThresholdLimit, digestAlgorithm, fontCase);
   }
 
   public DatabaseFilterModule getDatabaseHandler() {
