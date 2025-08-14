@@ -39,6 +39,8 @@ public class DatabaseStructure {
 
   private String dataOriginTimespan;
 
+  private String lobFolder;
+
   private String producerApplication;
 
   private DateTime archivalDate; // date of creation of archive on SIARD
@@ -133,11 +135,12 @@ public class DatabaseStructure {
 
   // TODO complete doc
   public DatabaseStructure(String name, String description, String archiver, String archiverContact, String dataOwner,
-    String dataOriginTimespan, String producerApplication, DateTime archivalDate, String clientMachine,
-    String productName, String productVersion, String databaseUser, Integer defaultTransactionIsolationLevel,
-    String extraNameCharacters, String stringFunctions, String systemFunctions, String timeDateFunctions, String url,
-    Boolean supportsANSI92EntryLevelSQL, Boolean supportsANSI92IntermediateSQL, Boolean supportsANSI92FullSQL,
-    Boolean supportsCoreSQLGrammar, List<SchemaStructure> schemas, List<UserStructure> users, List<RoleStructure> roles,
+    String dataOriginTimespan, String lobFolder, String producerApplication, DateTime archivalDate,
+    String clientMachine, String productName, String productVersion, String databaseUser,
+    Integer defaultTransactionIsolationLevel, String extraNameCharacters, String stringFunctions,
+    String systemFunctions, String timeDateFunctions, String url, Boolean supportsANSI92EntryLevelSQL,
+    Boolean supportsANSI92IntermediateSQL, Boolean supportsANSI92FullSQL, Boolean supportsCoreSQLGrammar,
+    List<SchemaStructure> schemas, List<UserStructure> users, List<RoleStructure> roles,
     List<PrivilegeStructure> privileges) {
     super();
     this.name = name;
@@ -147,6 +150,7 @@ public class DatabaseStructure {
     this.archiverContact = archiverContact;
     this.dataOwner = dataOwner;
     this.dataOriginTimespan = dataOriginTimespan;
+    this.lobFolder = lobFolder;
     this.producerApplication = producerApplication;
     this.clientMachine = clientMachine;
     this.productName = productName;
@@ -482,6 +486,14 @@ public class DatabaseStructure {
     this.dataOriginTimespan = dataOriginTimespan;
   }
 
+  public String getLobFolder() {
+    return lobFolder;
+  }
+
+  public void setLobFolder(String lobFolder) {
+    this.lobFolder = lobFolder;
+  }
+
   public String getProducerApplication() {
     return producerApplication;
   }
@@ -803,6 +815,7 @@ public class DatabaseStructure {
     result = prime * result + ((archiverContact == null) ? 0 : archiverContact.hashCode());
     result = prime * result + ((clientMachine == null) ? 0 : clientMachine.hashCode());
     result = prime * result + ((dataOriginTimespan == null) ? 0 : dataOriginTimespan.hashCode());
+    result = prime * result + ((lobFolder == null) ? 0 : lobFolder.hashCode());
     result = prime * result + ((dataOwner == null) ? 0 : dataOwner.hashCode());
     result = prime * result + ((databaseUser == null) ? 0 : databaseUser.hashCode());
     result = prime * result
@@ -873,6 +886,13 @@ public class DatabaseStructure {
         return false;
       }
     } else if (!dataOriginTimespan.equals(other.dataOriginTimespan)) {
+      return false;
+    }
+    if (lobFolder == null) {
+      if (other.lobFolder != null) {
+        return false;
+      }
+    } else if (!lobFolder.equals(other.lobFolder)) {
       return false;
     }
     if (dataOwner == null) {

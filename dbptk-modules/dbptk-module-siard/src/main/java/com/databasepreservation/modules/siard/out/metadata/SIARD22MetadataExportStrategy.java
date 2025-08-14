@@ -798,12 +798,6 @@ public class SIARD22MetadataExportStrategy implements MetadataExportStrategy {
       throw new ModuleException().withMessage("Could not get SQL2008 type").withCause(e);
     }
 
-    // don't set Folder if LOBs are being saved externally
-    if (!savingLobsExternally
-      && ("clobType".equals(xsdTypeFromColumnSql2008Type) || "blobType".equals(xsdTypeFromColumnSql2008Type))) {
-      columnType.setLobFolder(contentPathStrategy.getColumnFolderName(columnIndex));
-    }
-
     // columnType.setTypeSchema(null);
     // columnType.setTypeName(null);
     // columnType.setFields(null);
@@ -860,7 +854,7 @@ public class SIARD22MetadataExportStrategy implements MetadataExportStrategy {
     // don't set Folder if LOBs are being saved externally
     if ("clobType".equals(xsdTypeFromColumnSql2008Type) || "blobType".equals(xsdTypeFromColumnSql2008Type)) {
       if (!savingLobsExternally) {
-        columnType.setLobFolder(contentPathStrategy.getColumnFolderName(columnIndex));
+        columnType.setLobFolder(contentPathStrategy.getRelativeInternalLobDirPath(schemaIndex, tableIndex, columnIndex));
       } else {
         columnType.setLobFolder("s" + schemaIndex + "_t" + tableIndex + "_c" + columnIndex);
       }

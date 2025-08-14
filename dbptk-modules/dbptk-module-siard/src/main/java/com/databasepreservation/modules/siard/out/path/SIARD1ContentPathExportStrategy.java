@@ -34,6 +34,31 @@ public class SIARD1ContentPathExportStrategy implements ContentPathExportStrateg
   private static final String FILE_EXTENSION_SEPARATOR = ".";
 
   @Override
+  public String getInternalClobFileName(int rowIndex) {
+    return new StringBuilder().append(LOB_FILENAME).append(rowIndex).append(FILE_EXTENSION_SEPARATOR)
+      .append(CLOB_EXTENSION).toString();
+  }
+
+  @Override
+  public String getInternalBlobFileName(int rowIndex) {
+    return new StringBuilder().append(LOB_FILENAME).append(rowIndex).append(FILE_EXTENSION_SEPARATOR)
+      .append(BLOB_EXTENSION).toString();
+  }
+
+  @Override
+  public String getRelativeInternalLobDirPath(int schemaIndex, int tableIndex, int columnIndex) {
+    return new StringBuilder().append(SCHEMA_DIR).append(schemaIndex).append(RESOURCE_FILE_SEPARATOR).append(TABLE_DIR)
+      .append(tableIndex).append(RESOURCE_FILE_SEPARATOR).append(LOB_DIR).append(columnIndex).toString();
+  }
+
+  @Override
+  public String getAbsoluteInternalLobDirPath(int schemaIndex, int tableIndex, int columnIndex) {
+    return new StringBuilder().append(CONTENT_DIR).append(RESOURCE_FILE_SEPARATOR).append(SCHEMA_DIR)
+      .append(schemaIndex).append(RESOURCE_FILE_SEPARATOR).append(TABLE_DIR).append(tableIndex)
+      .append(RESOURCE_FILE_SEPARATOR).append(LOB_DIR).append(columnIndex).toString();
+  }
+
+  @Override
   public String getClobFilePath(int schemaIndex, int tableIndex, int columnIndex, int rowIndex) {
     return new StringBuilder().append(CONTENT_DIR).append(RESOURCE_FILE_SEPARATOR).append(SCHEMA_DIR)
       .append(schemaIndex).append(RESOURCE_FILE_SEPARATOR).append(TABLE_DIR).append(tableIndex)

@@ -19,6 +19,59 @@ package com.databasepreservation.modules.siard.out.path;
  */
 public interface ContentPathExportStrategy {
   /**
+   * Returns a LOB file's name
+   *
+   * @param schemaIndex
+   *          Schema index (begins at 1)
+   * @param tableIndex
+   *          Table index (begins at 1)
+   * @param columnIndex
+   *          Column index (begins at 1)
+   * @param rowIndex
+   *          Row index (begins at 0)
+   */
+  public String getInternalClobFileName(int rowIndex);
+
+  /**
+   * Returns a LOB file's name
+   *
+   * @param schemaIndex
+   *          Schema index (begins at 1)
+   * @param tableIndex
+   *          Table index (begins at 1)
+   * @param columnIndex
+   *          Column index (begins at 1)
+   * @param rowIndex
+   *          Row index (begins at 0)
+   */
+  public String getInternalBlobFileName(int rowIndex);
+
+  /**
+   * Returns the directory path where a column's LOB files are stored relative to
+   * the archive's lob folder
+   *
+   * @param schemaIndex
+   *          Schema index (begins at 1)
+   * @param tableIndex
+   *          Table index (begins at 1)
+   * @param columnIndex
+   *          Column index (begins at 1)
+   */
+  public String getRelativeInternalLobDirPath(int schemaIndex, int tableIndex, int columnIndex);
+
+  /**
+   * Returns the directory path where a column's LOB files are stored
+   * 
+   * @param schemaIndex
+   *          Schema index (begins at 1)
+   * @param tableIndex
+   *          Table index (begins at 1)
+   * @param columnIndex
+   *          Column index (begins at 1)
+   */
+  public String getAbsoluteInternalLobDirPath(int schemaIndex, int tableIndex, int columnIndex);
+
+  /**
    * Returns the path to a LOB file
    *
    * @param schemaIndex

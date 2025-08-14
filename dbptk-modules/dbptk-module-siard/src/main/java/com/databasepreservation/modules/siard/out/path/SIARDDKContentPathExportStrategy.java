@@ -37,6 +37,26 @@ public class SIARDDKContentPathExportStrategy implements ContentPathExportStrate
   }
 
   @Override
+  public String getInternalClobFileName(int rowIndex) {
+    return null;
+  }
+
+  @Override
+  public String getInternalBlobFileName(int rowIndex) {
+    return null;
+  }
+
+  @Override
+  public String getRelativeInternalLobDirPath(int schemaIndex, int tableIndex, int columnIndex) {
+    return null;
+  }
+
+  @Override
+  public String getAbsoluteInternalLobDirPath(int schemaIndex, int tableIndex, int columnIndex) {
+    return null;
+  }
+
+  @Override
   public String getClobFilePath(int schemaIndex, int tableIndex, int columnIndex, int rowIndex) {
     return null;
   }

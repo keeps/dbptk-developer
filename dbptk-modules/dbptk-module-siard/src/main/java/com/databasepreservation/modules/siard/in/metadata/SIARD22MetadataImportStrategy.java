@@ -199,6 +199,7 @@ public class SIARD22MetadataImportStrategy implements MetadataImportStrategy {
     databaseStructure.setArchiverContact(siardArchive.getArchiverContact());
     databaseStructure.setDataOwner(siardArchive.getDataOwner());
     databaseStructure.setDataOriginTimespan(siardArchive.getDataOriginTimespan());
+    databaseStructure.setLobFolder(siardArchive.getLobFolder());
     databaseStructure.setProducerApplication(siardArchive.getProducerApplication());
     databaseStructure.setClientMachine(siardArchive.getClientMachine());
     databaseStructure.setDatabaseUser(siardArchive.getDatabaseUser());
@@ -661,11 +662,6 @@ public class SIARD22MetadataImportStrategy implements MetadataImportStrategy {
       result.setName(XMLUtils.decode(column.getName()));
       result.setId(tableId + "." + result.getName());
 
-      String lobFolder = column.getLobFolder();
-      if (StringUtils.isBlank(lobFolder)) {
-        lobFolder = column.getLobFolder();
-      }
-
       contentPathStrategy.associateColumnWithFolder(result.getId(), column.getLobFolder());
 
       result.setType(sqlStandardDatatypeImporter.getCheckedType(metadataCurrentDatabaseName, metadataCurrentSchemaName,
@@ -674,6 +670,7 @@ public class SIARD22MetadataImportStrategy implements MetadataImportStrategy {
       result.setNillable(column.isNullable());
       result.setDefaultValue(column.getDefaultValue());
       result.setDescription(XMLUtils.decode(column.getDescription()));
+      result.setLobFolder(column.getLobFolder());
 
       // todo: deal with these fields
       // column.getLobFolder();

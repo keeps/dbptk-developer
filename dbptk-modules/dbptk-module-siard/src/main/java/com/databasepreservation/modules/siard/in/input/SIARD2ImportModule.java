@@ -12,6 +12,7 @@ import java.util.Map;
 
 import com.databasepreservation.modules.siard.in.content.SIARD22ContentImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.SIARD22MetadataImportStrategy;
+import com.databasepreservation.modules.siard.in.read.ZipAndFolderSegmentedReadStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

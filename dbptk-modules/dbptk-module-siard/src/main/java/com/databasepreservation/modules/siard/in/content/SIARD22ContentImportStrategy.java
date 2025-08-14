@@ -8,10 +8,14 @@
 package com.databasepreservation.modules.siard.in.content;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,6 +31,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.validation.SchemaFactory;
 
+import com.databasepreservation.common.io.providers.SegmentedPathInputStreamProvider;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
@@ -51,6 +56,7 @@ import com.databasepreservation.model.data.SimpleCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseExportModule;
 import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
+import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
@@ -96,6 +102,7 @@ public class SIARD22ContentImportStrategy extends DefaultHandler implements Cont
   // SAXHandler state
   private TableStructure currentTable;
   private SchemaStructure currentSchema;
+  private DatabaseStructure database;
   private InputStream currentTableStream;
   private BinaryCell currentBlobCell;
   private SimpleCell currentClobCell;
@@ -129,6 +136,7 @@ public class SIARD22ContentImportStrategy extends DefaultHandler implements Cont
     SAXParser saxParser = null;
 
     // process tables
+    this.database = databaseStructure;
     long completedSchemas = 0;
     long completedTablesInSchema;
     for (SchemaStructure schema : databaseStructure.getSchemas()) {
@@ -279,24 +287,32 @@ public class SIARD22ContentImportStrategy extends DefaultHandler implements Cont
       }
     } else if (qName.startsWith(COLUMN_KEYWORD)) {
       currentColumnIndex = Integer.parseInt(qName.substring(1));
+      ColumnStructure currentColumn = database.getSchemaByName(currentSchema.getName())
+        .getTableById(currentTable.getId()).getColumns().get(currentColumnIndex - 1);
 
       if (attr.getValue(FILE_KEYWORD) != null) {
-        String lobDir = attr.getValue(FILE_KEYWORD);
-
-        String lobPath = contentPathStrategy.getLobPath(null, currentSchema.getName(), currentTable.getId(),
-          currentTable.getColumns().get(currentColumnIndex - 1).getId(), "");
-
-        if (lobDir.contains(lobPath))
-          lobPath = lobDir;
-        else {
-          lobPath = contentPathStrategy.getLobPath(null, currentSchema.getName(), currentTable.getId(),
-            currentTable.getColumns().get(currentColumnIndex - 1).getId(), lobDir);
+        String lobsDir = database.getLobFolder();
+        if (lobsDir == null) {
+          lobsDir = "";
+        }
+        String columnLobsDir = currentColumn.getLobFolder();
+        if (columnLobsDir == null) {
+          columnLobsDir = "";
+        }
+        String lobFile = attr.getValue(FILE_KEYWORD);
+        String lobPath;
+        if (lobFile.startsWith(File.separator)) {
+          lobPath = lobFile;
+        } else if (columnLobsDir.startsWith(File.separator)) {
+          lobPath = Path.of(columnLobsDir, lobFile).toString();
+        } else {
+          lobPath = Path.of(lobsDir, columnLobsDir, lobFile).toString();
         }
 
         SIARDArchiveContainer container;
-        if (lobDir.startsWith("..")) {
+        if (lobPath.startsWith("../")) {
           container = lobContainer;
-          lobPath = lobContainer.getPath().toString() + '/' + lobPath.replace("../", "");
+          lobPath = lobPath.substring(3);
         } else {
           container = contentContainer;
         }
@@ -304,14 +320,14 @@ public class SIARD22ContentImportStrategy extends DefaultHandler implements Cont
         InputStream inputStream = null;
 
         try {
-          if (lobDir.endsWith(SIARD22ContentPathExportStrategy.BLOB_EXTENSION)) {
+          if (lobPath.endsWith(SIARD22ContentPathExportStrategy.BLOB_EXTENSION)) {
             // assuming auxiliary containers are in a directory, use the
             // existing LOB file instead of copying it to a temporary directory
             if (container.getType().equals(SIARDArchiveContainer.OutputContainerType.AUXILIARY)) {
               LOGGER.debug("lobContainer: {}\ncontentContainer: {}", lobContainer, contentContainer);
               currentBlobCell = new BinaryCell(
                 currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex,
-                new PathInputStreamProvider(container.getPath().resolve(Paths.get(lobPath))));
+                new SegmentedPathInputStreamProvider(container.getPath().resolve(Paths.get(lobPath))));
             } else {
               if (ignoreLobs) {
                 Optional<Long> optionalLength = extractLengthFromBinaryColumn(attr);
@@ -323,24 +339,32 @@ public class SIARD22ContentImportStrategy extends DefaultHandler implements Cont
                   new DummyInputStreamProvider(), lobPath, optionalLength.orElse(0L), optionalDigest.orElse(null),
                   optionalDigestType.orElse(null));
               } else {
-                inputStream = createInputStream(container, lobPath, lobDir);
+                if (lobPath.startsWith(File.separator)) {
+                  inputStream = Files.newInputStream(Paths.get(lobPath));
+                } else {
+                  inputStream = createInputStream(container, lobPath);
+                }
                 currentBlobCell = new BinaryCell(
                   currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex, inputStream);
               }
             }
 
             LOGGER.debug(
-              String.format("BLOB cell %s on row #%d with lob dir %s", currentBlobCell.getId(), rowIndex, lobDir));
-          } else if (lobDir.endsWith(SIARD22ContentPathExportStrategy.CLOB_EXTENSION)) {
-            inputStream = createInputStream(container, lobPath, lobDir);
+              String.format("BLOB cell %s on row #%d with lob dir %s", currentBlobCell.getId(), rowIndex, lobPath));
+          } else if (lobPath.endsWith(SIARD22ContentPathExportStrategy.CLOB_EXTENSION)) {
+            if (lobPath.startsWith(File.separator)) {
+              inputStream = Files.newInputStream(Paths.get(lobPath));
+            } else {
+              inputStream = createInputStream(container, lobPath);
+            }
             String data = IOUtils.toString(inputStream);
             currentClobCell = new SimpleCell(
               currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex, data);
 
-            LOGGER.debug("CLOB cell {} on row #{} with lob dir {}", currentClobCell.getId(), rowIndex, lobDir);
+            LOGGER.debug("CLOB cell {} on row #{} with lob path {}", currentClobCell.getId(), rowIndex, lobPath);
           }
         } catch (ModuleException | IOException e) {
-          LOGGER.error("Failed to open lob at {}", lobDir, e);
+          LOGGER.error("Failed to open lob at {}", lobPath, e);
         } finally {
           try {
             if (inputStream != null)
@@ -478,6 +502,22 @@ public class SIARD22ContentImportStrategy extends DefaultHandler implements Cont
   private InputStream createInputStream(SIARDArchiveContainer container, String lobPath, String lobDir)
     throws ModuleException {
     String lobName = Paths.get(lobDir).getFileName().toString();
+    if (useLobPathFallback) {
+      lobPath = contentPathStrategy.getLobPathFallback(null,
+        currentTable.getColumns().get(currentColumnIndex - 1).getId(), lobName);
+    }
+    try {
+      return readStrategy.createInputStream(container, lobPath);
+    } catch (ModuleException e) {
+      useLobPathFallback = true;
+      lobPath = contentPathStrategy.getLobPathFallback(null,
+        currentTable.getColumns().get(currentColumnIndex - 1).getId(), lobName);
+      return readStrategy.createInputStream(container, lobPath);
+    }
+  }
+
+  private InputStream createInputStream(SIARDArchiveContainer container, String lobPath) throws ModuleException {
+    String lobName = Paths.get(lobPath).getFileName().toString();
     if (useLobPathFallback) {
       lobPath = contentPathStrategy.getLobPathFallback(null,
         currentTable.getColumns().get(currentColumnIndex - 1).getId(), lobName);

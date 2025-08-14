@@ -12,6 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -388,10 +389,12 @@ public class SIARD22ContentExportStrategy implements ContentExportStrategy {
         WaitingInputStream waitingInputStream = new WaitingInputStream(digest);
         InputStream inputStream = new BufferedInputStream(waitingInputStream);
 
-        lob = new LargeObject(new InputStreamProviderImpl(inputStream), contentPathStrategy
-          .getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
+        String lobDir = contentPathStrategy.getAbsoluteInternalLobDirPath(currentSchema.getIndex(), currentTable.getIndex(),
+          columnIndex);
+        lob = new LargeObject(new InputStreamProviderImpl(inputStream),
+          contentPathStrategy.getInternalBlobFileName(currentRowIndex + 1));
 
-        writeLOB(lob);
+        writeLOB(lobDir, lob);
 
         // wait for lob to be consumed so digest is calculated
         waitingInputStream.waitForClose();
@@ -399,8 +402,7 @@ public class SIARD22ContentExportStrategy implements ContentExportStrategy {
         byte[] messageDigest = digest.getMessageDigest().digest();
 
         currentWriter.beginOpenTag(cellPrefix + columnIndex, 2).space().append("file=\"")
-          .append(FilenameUtils.separatorsToUnix(contentPathStrategy.getBlobFilePath(currentSchema.getIndex(),
-            currentTable.getIndex(), columnIndex, currentRowIndex + 1)))
+          .append(FilenameUtils.separatorsToUnix(contentPathStrategy.getInternalBlobFileName(currentRowIndex + 1)))
           .append('"').space().append("length=\"").append(String.valueOf(binCell.getSize())).append("\"").space()
           .append("digest=\"").append(MessageDigestUtils.getHexFromMessageDigest(messageDigest, lowerCase)).append("\"")
           .space().append("digestType=\"").append(messageDigestAlgorithm.toUpperCase()).append("\"");
@@ -429,10 +431,12 @@ public class SIARD22ContentExportStrategy implements ContentExportStrategy {
         final WaitingInputStream waitingInputStream = new WaitingInputStream(digest);
         InputStream inputStream = new BufferedInputStream(waitingInputStream);
 
-        lob = new LargeObject(new InputStreamProviderImpl(inputStream), contentPathStrategy
-          .getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1));
+        String lobDir = contentPathStrategy.getAbsoluteInternalLobDirPath(currentSchema.getIndex(), currentTable.getIndex(),
+          columnIndex);
+        lob = new LargeObject(new InputStreamProviderImpl(inputStream),
+          contentPathStrategy.getInternalClobFileName(currentRowIndex + 1));
 
-        writeLOB(lob);
+        writeLOB(lobDir, lob);
 
         // wait for lob to be consumed so digest is calculated
         waitingInputStream.waitForClose();
@@ -440,11 +444,10 @@ public class SIARD22ContentExportStrategy implements ContentExportStrategy {
         byte[] messageDigest = digest.getMessageDigest().digest();
 
         currentWriter.beginOpenTag(cellPrefix + columnIndex, 2).space().append("file=\"")
-          .append(contentPathStrategy.getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex,
-            currentRowIndex + 1))
-          .append('"').space().append("length=\"").append(String.valueOf(txtCell.getBytesSize())).append("\"").space()
-          .append("digest=\"").append(MessageDigestUtils.getHexFromMessageDigest(messageDigest, lowerCase)).append("\"")
-          .space().append("digestType=\"").append(messageDigestAlgorithm.toUpperCase()).append("\"");
+          .append(contentPathStrategy.getInternalClobFileName(currentRowIndex + 1)).append('"').space()
+          .append("length=\"").append(String.valueOf(txtCell.getBytesSize())).append("\"").space().append("digest=\"")
+          .append(MessageDigestUtils.getHexFromMessageDigest(messageDigest, lowerCase)).append("\"").space()
+          .append("digestType=\"").append(messageDigestAlgorithm.toUpperCase()).append("\"");
 
         cell.setMessageDigest(messageDigest);
         cell.setDigestAlgorithm(messageDigestAlgorithm);
@@ -479,9 +482,10 @@ public class SIARD22ContentExportStrategy implements ContentExportStrategy {
     currentWriter.closeTag(TABLE, 0);
   }
 
-  protected void writeLOB(LargeObject lob) throws ModuleException {
+  protected void writeLOB(String lobDir, LargeObject lob) throws ModuleException {
     LOGGER.debug("Writing lob to {}", lob.getOutputPath());
-    writeStrategy.writeTo(lob.getInputStreamProvider(), lob.getOutputPath());
+    String path = Paths.get(lobDir, lob.getOutputPath()).toString();
+    writeStrategy.writeTo(lob.getInputStreamProvider(), path);
   }
 
   private void writeXsd() throws IOException, ModuleException {

@@ -141,6 +141,7 @@ public class SIARD22ContentWithExternalLobsExportStrategy extends SIARD22Content
       currentLobsInFolder = 0;
     }
     currentExternalContainers.put(segmentKey, currentExternalContainer);
+    SIARDArchiveContainer firstExternalContainer = currentExternalContainer;
 
     // get file xml parameters
     if (contentPathStrategy instanceof SIARD22ContentWithExternalLobsPathExportStrategy paths) {
@@ -206,7 +207,7 @@ public class SIARD22ContentWithExternalLobsExportStrategy extends SIARD22Content
 
     // something like "seg_0/t2_c8_r2.bin"
     String lobURI = FilenameUtils.separatorsToUnix(Paths
-      .get(currentExternalContainer.getPath().getFileName().toString() + File.separator, lobFileParameter).toString());
+      .get(firstExternalContainer.getPath().getFileName().toString() + File.separator, lobFileParameter).toString());
 
     // write the LOB XML element
     currentWriter.beginOpenTag("c" + columnIndex, 2).appendAttribute("file", lobURI).appendAttribute("length",
