@@ -9,7 +9,6 @@ package com.databasepreservation.modules.siard.in.content;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -31,7 +30,6 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.validation.SchemaFactory;
 
-import com.databasepreservation.common.io.providers.SegmentedPathInputStreamProvider;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
@@ -46,7 +44,7 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 import com.databasepreservation.common.io.providers.DummyInputStreamProvider;
-import com.databasepreservation.common.io.providers.PathInputStreamProvider;
+import com.databasepreservation.common.io.providers.SegmentedPathInputStreamProvider;
 import com.databasepreservation.model.data.ArrayCell;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
@@ -352,11 +350,15 @@ public class SIARD22ContentImportStrategy extends DefaultHandler implements Cont
             LOGGER.debug(
               String.format("BLOB cell %s on row #%d with lob dir %s", currentBlobCell.getId(), rowIndex, lobPath));
           } else if (lobPath.endsWith(SIARD22ContentPathExportStrategy.CLOB_EXTENSION)) {
+            Path inputStreamPath;
             if (lobPath.startsWith(File.separator)) {
-              inputStream = Files.newInputStream(Paths.get(lobPath));
+              inputStreamPath = Paths.get(lobPath);
             } else {
-              inputStream = createInputStream(container, lobPath);
+              inputStreamPath = container.getPath().resolve(Paths.get(lobPath));
             }
+            SegmentedPathInputStreamProvider inputStreamProvider = new SegmentedPathInputStreamProvider(
+              inputStreamPath);
+            inputStream = inputStreamProvider.createInputStream();
             String data = IOUtils.toString(inputStream);
             currentClobCell = new SimpleCell(
               currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex, data);

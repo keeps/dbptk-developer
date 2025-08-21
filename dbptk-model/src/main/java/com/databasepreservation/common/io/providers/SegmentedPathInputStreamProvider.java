@@ -44,9 +44,9 @@ public class SegmentedPathInputStreamProvider extends PathInputStreamProvider {
     boolean canHaveNextPart = true;
     boolean foundPart = false;
     for (int segment = initialSegment; canHaveNextPart; segment++, foundPart = false) {
-      Path filePartPath = pathWithoutSegment.resolve("seg" + segment + File.separator + fileLocation.getFileName()
+      Path filePartPath = pathWithoutSegment.resolve("seg_" + segment + File.separator + fileLocation.getFileName()
         + "_part" + String.format("%03d", currentPart + 1));
-      for (int part = currentPart; Files.exists(filePartPath); part++, filePartPath = pathWithoutSegment.resolve("seg"
+      for (int part = currentPart; Files.exists(filePartPath); part++, filePartPath = pathWithoutSegment.resolve("seg_"
         + segment + File.separator + fileLocation.getFileName() + "_part" + String.format("%03d", currentPart + 1))) {
         foundPart = true;
         currentPart++;
@@ -78,6 +78,27 @@ public class SegmentedPathInputStreamProvider extends PathInputStreamProvider {
       }
     } catch (IOException e) {
       throw new ModuleException().withMessage("Could not create an input stream").withCause(e);
+    }
+  }
+
+  @Override
+  public long getSize() throws ModuleException {
+    try {
+      if (!isSplit) {
+        return Files.size(path);
+      } else {
+        long total = 0;
+        for (int i = 1; i < partPaths.size(); i++) {
+          if (!Files.exists(partPaths.get(i))) {
+            throw new ModuleException()
+              .withMessage("Part file " + partPaths.get(i).toAbsolutePath().toString() + " does not exist.");
+          }
+          total += Files.size(partPaths.get(i));
+        }
+        return total;
+      }
+    } catch (IOException e) {
+      throw new ModuleException().withMessage("Could not get file size").withCause(e);
     }
   }
 }
