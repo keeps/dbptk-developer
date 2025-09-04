@@ -33,7 +33,7 @@ public class ReflectionUtils {
 
   private static List<Constructor<? extends DatabaseModuleFactory>> databaseModuleFactoryConstructors = new ArrayList<>();
   private static List<Constructor<? extends DatabaseFilterFactory>> databaseFilterFactoryConstructors = new ArrayList<>();
-  private static List<Constructor<? extends EditModuleFactory>> editModuleFactoryConstructors         = new ArrayList<>();
+  private static List<Constructor<? extends EditModuleFactory>> editModuleFactoryConstructors = new ArrayList<>();
   private static List<Constructor<? extends ValidateModuleFactory>> validateModuleFactoryConstructors = new ArrayList<>();
   private static List<Constructor<? extends ValidatorComponentFactory>> validatorComponentFactoryConstructors = new ArrayList<>();
 
@@ -51,10 +51,10 @@ public class ReflectionUtils {
         .getSubTypesOf(DatabaseModuleFactory.class);
       for (Class<? extends DatabaseModuleFactory> moduleFactoryClass : moduleFactoryClasses) {
         try {
-            if (!java.lang.reflect.Modifier.isAbstract(moduleFactoryClass.getModifiers())) {
-              Constructor<? extends DatabaseModuleFactory> constructor = moduleFactoryClass.getConstructor();
-              databaseModuleFactoryConstructors.add(constructor);
-            }
+          if (!java.lang.reflect.Modifier.isAbstract(moduleFactoryClass.getModifiers())) {
+            Constructor<? extends DatabaseModuleFactory> constructor = moduleFactoryClass.getConstructor();
+            databaseModuleFactoryConstructors.add(constructor);
+          }
         } catch (NoSuchMethodException e) {
           LOGGER.info("Module factory {} could not be loaded", moduleFactoryClass.getName(), e);
         }
@@ -86,7 +86,7 @@ public class ReflectionUtils {
       Reflections reflections = new Reflections("com.databasepreservation.modules", new SubTypesScanner());
 
       Set<Class<? extends DatabaseFilterFactory>> filterFactoryClasses = reflections
-              .getSubTypesOf(DatabaseFilterFactory.class);
+        .getSubTypesOf(DatabaseFilterFactory.class);
 
       for (Class<? extends DatabaseFilterFactory> filterFactoryClass : filterFactoryClasses) {
         try {
@@ -158,7 +158,8 @@ public class ReflectionUtils {
     if (validateModuleFactoryConstructors.isEmpty()) {
       Reflections reflections = new Reflections("com.databasepreservation.modules", new SubTypesScanner());
 
-      Set<Class<? extends ValidateModuleFactory>> validateFactoryClasses = reflections.getSubTypesOf(ValidateModuleFactory.class);
+      Set<Class<? extends ValidateModuleFactory>> validateFactoryClasses = reflections
+        .getSubTypesOf(ValidateModuleFactory.class);
 
       for (Class<? extends ValidateModuleFactory> validateModuleClass : validateFactoryClasses) {
         try {
@@ -184,19 +185,23 @@ public class ReflectionUtils {
     return validateModuleFactories;
   }
 
-  public static Collection<ValidatorComponentFactory> collectValidatorComponentFactories() {
-    return collectValidatorComponentFactories(false);
-  }
-
-  public static Collection<ValidatorComponentFactory> collectValidatorComponentFactories(boolean includeDisabled) {
+  public static Collection<ValidatorComponentFactory> collectValidatorComponentFactories(boolean includeDisabled,
+    String validateVersionPackageSuffix) {
     Set<ValidatorComponentFactory> validatorComponentFactories = new HashSet<>();
 
     if (validatorComponentFactoryConstructors.isEmpty()) {
-      Reflections reflections = new Reflections("com.databasepreservation.modules.siard.validate",
-          new SubTypesScanner());
+      Reflections commonReflections = new Reflections(
+        "com.databasepreservation.modules.siard.validate.generic", new SubTypesScanner());
+      Set<Class<? extends ValidatorComponentFactory>> validatorComponentFactoryClasses = commonReflections
+        .getSubTypesOf(ValidatorComponentFactory.class);
 
-      Set<Class<? extends ValidatorComponentFactory>> validatorComponentFactoryClasses = reflections
-          .getSubTypesOf(ValidatorComponentFactory.class);
+      if (validateVersionPackageSuffix != null && !validateVersionPackageSuffix.isBlank()) {
+        Reflections versionSpecificReflections = new Reflections(
+          "com.databasepreservation.modules.siard.validate." + validateVersionPackageSuffix,
+          new SubTypesScanner());
+        validatorComponentFactoryClasses
+          .addAll(versionSpecificReflections.getSubTypesOf(ValidatorComponentFactory.class));
+      }
 
       for (Class<? extends ValidatorComponentFactory> aClass : validatorComponentFactoryClasses) {
         try {

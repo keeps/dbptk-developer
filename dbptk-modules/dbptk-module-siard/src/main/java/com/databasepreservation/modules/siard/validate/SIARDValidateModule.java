@@ -22,20 +22,20 @@ import org.slf4j.LoggerFactory;
 import com.databasepreservation.common.observer.ValidationObserver;
 import com.databasepreservation.common.validation.ValidatorPathStrategy;
 import com.databasepreservation.common.validation.ZipFileManagerStrategy;
-import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.exception.SIARDVersionNotSupportedException;
 import com.databasepreservation.model.modules.validate.ValidateModule;
 import com.databasepreservation.model.modules.validate.components.ValidatorComponent;
 import com.databasepreservation.model.modules.validate.components.ValidatorComponentFactory;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.reporters.ValidationReporter;
 import com.databasepreservation.modules.DefaultExceptionNormalizer;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.modules.siard.in.read.ZipAndFolderReadStrategy;
-import com.databasepreservation.modules.siard.validate.common.ZipFileManager;
-import com.databasepreservation.modules.siard.validate.common.path.ValidatorPathStrategyImpl;
+import com.databasepreservation.modules.siard.validate.generic.common.ZipFileManager;
+import com.databasepreservation.modules.siard.validate.generic.common.path.ValidatorPathStrategyImpl;
 import com.databasepreservation.utils.ReflectionUtils;
 
 /**
@@ -64,8 +64,7 @@ public class SIARDValidateModule implements ValidateModule {
 
     validationReporter = new ValidationReporter(
       validationReporterPath != null ? validationReporterPath.toAbsolutePath().normalize() : null,
-      siardPackageNormalizedPath
-    );
+      siardPackageNormalizedPath);
     allowedUDTs = Collections.emptyList();
     validatorPathStrategy = new ValidatorPathStrategyImpl();
     zipFileManager = new ZipFileManager();
@@ -79,8 +78,8 @@ public class SIARDValidateModule implements ValidateModule {
    * @param SIARDPackagePath
    *          Path to the main SIARD file (file with extension .siard)
    */
-  public SIARDValidateModule(Path SIARDPackagePath, Path validationReporterPath, Path allowedUDTs, boolean skipAdditionalChecks)
-    throws ModuleException {
+  public SIARDValidateModule(Path SIARDPackagePath, Path validationReporterPath, Path allowedUDTs,
+    boolean skipAdditionalChecks) throws ModuleException {
     siardPackageNormalizedPath = SIARDPackagePath.toAbsolutePath().normalize();
     validationReporter = new ValidationReporter(validationReporterPath.toAbsolutePath().normalize(),
       siardPackageNormalizedPath);
@@ -113,8 +112,8 @@ public class SIARDValidateModule implements ValidateModule {
   @Override
   public boolean validate() throws ModuleException {
 
-    if (!validateSIARDVersion()) {
-      throw new SIARDVersionNotSupportedException().withVersionInfo("SIARD 2.1 version")
+    if (!validateSIARDVersion(getSIARDVersion())) {
+      throw new SIARDVersionNotSupportedException().withVersionInfo("SIARD 2.1 or 2.2 versions")
         .withMessage("SIARD validator only supports");
     }
 
@@ -186,7 +185,7 @@ public class SIARDValidateModule implements ValidateModule {
     List<ValidatorComponent> components = new ArrayList<>();
 
     final Collection<ValidatorComponentFactory> validatorComponentFactories = ReflectionUtils
-      .collectValidatorComponentFactories(false);
+      .collectValidatorComponentFactories(false, getSIARDVersionValidationPackageSuffix(getSIARDVersion()));
 
     List<ValidatorComponentFactory> order = new ArrayList<>();
     ValidatorComponentFactory next = null;
@@ -220,16 +219,34 @@ public class SIARDValidateModule implements ValidateModule {
     return null;
   }
 
-  private boolean validateSIARDVersion() throws ModuleException {
+  private SIARDConstants.SiardVersion getSIARDVersion() throws ModuleException {
     SIARDArchiveContainer mainContainer = new SIARDArchiveContainer(siardPackageNormalizedPath,
       SIARDArchiveContainer.OutputContainerType.MAIN);
     ReadStrategy readStrategy = new ZipAndFolderReadStrategy(mainContainer);
 
     readStrategy.setup(mainContainer);
-
-    if (mainContainer.getVersion() == null)
-      return false;
+    SIARDConstants.SiardVersion version = mainContainer.getVersion();
     readStrategy.finish(mainContainer);
-    return mainContainer.getVersion().equals(SIARDConstants.SiardVersion.V2_1);
+    return version;
+  }
+
+  private boolean validateSIARDVersion(SIARDConstants.SiardVersion version) {
+    if (version == null)
+      return false;
+    return version.equals(SIARDConstants.SiardVersion.V2_1) || version.equals(SIARDConstants.SiardVersion.V2_2);
+  }
+
+  private String getSIARDVersionValidationPackageSuffix(SIARDConstants.SiardVersion version) {
+    switch (version) {
+      case V2_1 -> {
+        return "siard_21";
+      }
+      case V2_2 -> {
+        return "siard_22";
+      }
+      default -> {
+        return null;
+      }
+    }
   }
 }
