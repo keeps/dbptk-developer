@@ -489,6 +489,7 @@ public class SiardTest {
       "archiverContact", // String archiverContact
       "dataOwner", // String dataOwner
       "dataOriginTimespan", // String dataOriginTimespan
+      "lobFolder", // String lobFolder
       "db-preservation-toolkit - KEEP SOLUTIONS", // String producerApplication
       JodaUtils.xsDateRewrite(DateTime.now()), // DateTime archivalDate
       "clientMachine", // String clientMachine
