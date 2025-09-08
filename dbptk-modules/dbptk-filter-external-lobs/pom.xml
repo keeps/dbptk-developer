@@ -5,12 +5,12 @@
     <parent>
         <artifactId>dbptk-modules</artifactId>
         <groupId>com.databasepreservation</groupId>
-        <version>3.2.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>dbptk-filter-external-lobs</name>
     <artifactId>dbptk-filter-external-lobs</artifactId>
-    <version>3.2.0-SNAPSHOT</version>
+    <version>4.0.0-SNAPSHOT</version>
 
     <dependencies>
         <!-- internal dependencies -->
