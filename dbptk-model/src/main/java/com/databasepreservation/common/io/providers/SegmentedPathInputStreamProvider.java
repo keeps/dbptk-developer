@@ -88,7 +88,7 @@ public class SegmentedPathInputStreamProvider extends PathInputStreamProvider {
         return Files.size(path);
       } else {
         long total = 0;
-        for (int i = 1; i < partPaths.size(); i++) {
+        for (int i = 0; i < partPaths.size(); i++) {
           if (!Files.exists(partPaths.get(i))) {
             throw new ModuleException()
               .withMessage("Part file " + partPaths.get(i).toAbsolutePath().toString() + " does not exist.");

@@ -350,16 +350,22 @@ public class SIARD22ContentImportStrategy extends DefaultHandler implements Cont
             LOGGER.debug(
               String.format("BLOB cell %s on row #%d with lob dir %s", currentBlobCell.getId(), rowIndex, lobPath));
           } else if (lobPath.endsWith(SIARD22ContentPathExportStrategy.CLOB_EXTENSION)) {
-            Path inputStreamPath;
-            if (lobPath.startsWith(File.separator)) {
-              inputStreamPath = Paths.get(lobPath);
+            String data;
+            if (container.getType().equals(SIARDArchiveContainer.OutputContainerType.AUXILIARY)) {
+              Path inputStreamPath;
+              if (lobPath.startsWith(File.separator)) {
+                inputStreamPath = Paths.get(lobPath);
+              } else {
+                inputStreamPath = container.getPath().resolve(Paths.get(lobPath));
+              }
+              SegmentedPathInputStreamProvider inputStreamProvider = new SegmentedPathInputStreamProvider(
+                inputStreamPath);
+              inputStream = inputStreamProvider.createInputStream();
+              data = IOUtils.toString(inputStream);
             } else {
-              inputStreamPath = container.getPath().resolve(Paths.get(lobPath));
+              inputStream = createInputStream(container, lobPath);
+              data = IOUtils.toString(inputStream);
             }
-            SegmentedPathInputStreamProvider inputStreamProvider = new SegmentedPathInputStreamProvider(
-              inputStreamPath);
-            inputStream = inputStreamProvider.createInputStream();
-            String data = IOUtils.toString(inputStream);
             currentClobCell = new SimpleCell(
               currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex, data);
 

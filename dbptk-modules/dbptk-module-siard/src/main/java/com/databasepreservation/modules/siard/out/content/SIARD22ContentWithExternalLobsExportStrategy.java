@@ -180,7 +180,7 @@ public class SIARD22ContentWithExternalLobsExportStrategy extends SIARD22Content
         try (InputStream lobInputStream = lob.getInputStreamProvider().createInputStream()) {
           while (remainingLobSize > 0) {
             writeLOBPartOutside(lob, lobInputStream, currentExternalContainer, partSize, partIndex);
-            currentLobsFolderSize++;
+            currentLobsInFolder++;
             currentLobsFolderSize += partSize;
             partIndex++;
             remainingLobSize -= partSize;

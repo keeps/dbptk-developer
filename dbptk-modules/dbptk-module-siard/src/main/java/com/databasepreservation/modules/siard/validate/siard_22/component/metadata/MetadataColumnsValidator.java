@@ -85,9 +85,8 @@ public class MetadataColumnsValidator extends MetadataValidator {
         "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table/ns:columns/ns:column", XPathConstants.NODESET,
         Constants.NAMESPACE_FOR_METADATA);
 
-      tables = (NodeList) XMLUtils.getXPathResult(isTables,
-        "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table", XPathConstants.NODESET,
-        Constants.NAMESPACE_FOR_METADATA);
+      tables = (NodeList) XMLUtils.getXPathResult(isTables, "/ns:siardArchive/ns:schemas/ns:schema/ns:tables/ns:table",
+        XPathConstants.NODESET, Constants.NAMESPACE_FOR_METADATA);
 
       archiveLobFolder = (String) XMLUtils.getXPathResult(isArchive, "/ns:siardArchive/ns:lobFolder",
         XPathConstants.STRING, Constants.NAMESPACE_FOR_METADATA);
@@ -190,10 +189,10 @@ public class MetadataColumnsValidator extends MetadataValidator {
           || type.equals(Constants.BLOB) || type.equals(Constants.CLOB) || type.equals(Constants.XML_LARGE_OBJECT)) {
           String folder = XMLUtils.getChildTextContext(column, Constants.LOB_FOLDER);
           String columnNumber = "c" + (j + 1);
-          if (!validateLobFolder(schemaFolderName, tableFolderName, type, folder, columnNumber, path, archiveLobFolder)) {
+          if (!validateLobFolder(schemaFolderName, tableFolderName, type, folder, columnNumber, path,
+            archiveLobFolder)) {
             hasErrors = true;
           }
-          ;
         }
       }
     }
@@ -246,9 +245,27 @@ public class MetadataColumnsValidator extends MetadataValidator {
                 fileName = streamReader.getAttributeValue(null, "file");
               }
               if (!fileName.isEmpty()) {
-                if (Paths.get(fileName).getName(0).toString().equals(Constants.SIARD_CONTENT_FOLDER)) {
+                String fullLobPath;
+                boolean isInternal = false;
+                String lobsDir = archiveLobFolder;
+                if (lobsDir == null) {
+                  lobsDir = "";
+                }
+                String columnLobsDir = folder;
+                if (columnLobsDir == null) {
+                  columnLobsDir = "";
+                }
+                if (fileName.startsWith(File.separator)) {
+                  fullLobPath = fileName;
+                } else if (columnLobsDir.startsWith(File.separator)) {
+                  fullLobPath = Path.of(columnLobsDir, fileName).toString();
+                } else {
+                  fullLobPath = Path.of(lobsDir, columnLobsDir, fileName).toString();
+                  isInternal = Paths.get(fullLobPath).getName(0).toString().equals(Constants.SIARD_CONTENT_FOLDER);
+                }
+                if (isInternal) {
                   // Internal LOB
-                  if (zipFileManagerStrategy.getZipArchiveEntry(this.path, fileName) == null) {
+                  if (zipFileManagerStrategy.getZipArchiveEntry(this.path, fullLobPath) == null) {
                     setError(A_M_561_2, String.format("not found record '%s' required by '%s'", fileName, String
                       .format("%s [row: %s column: %s]", pathToTableColumn, Integer.toString(rowNumber), column)));
                     hasErrors = true;
@@ -260,7 +277,7 @@ public class MetadataColumnsValidator extends MetadataValidator {
                     folder = "";
                   }
                   // External LOB
-                  File SIARDFile = getSIARDPackagePath().resolve(archiveLobFolder).resolve(folder).resolve(fileName).toFile();
+                  File SIARDFile = getSIARDPackagePath().resolve(fullLobPath).toFile();
                   File lobFolderFile = SIARDFile.getCanonicalFile();
                   File lobFolderPartFile = Path.of(lobFolderFile.getPath().toString() + "_part001").toFile();
 
