@@ -186,6 +186,7 @@ public class SIARD22MetadataExportStrategy implements MetadataExportStrategy {
     }
 
     removeViewsWithoutColumns(dbStructure);
+    setLobFolder(dbStructure, container, savingLobsExternally);
     SiardArchive xmlroot = jaxbSiardArchive(dbStructure);
     Marshaller m;
     try {
@@ -255,6 +256,15 @@ public class SIARD22MetadataExportStrategy implements MetadataExportStrategy {
   @Override
   public void setOnceReporter(Reporter reporter) {
     this.reporter = reporter;
+  }
+
+  private void setLobFolder(DatabaseStructure dbStructure, SIARDArchiveContainer container,
+    boolean savingLobsExternally) {
+    if (!savingLobsExternally) {
+      dbStructure.setLobFolder("content");
+    } else {
+      dbStructure.setLobFolder("../" + container.getPath().toAbsolutePath().getFileName() + "_lobs");
+    }
   }
 
   private SiardArchive jaxbSiardArchive(DatabaseStructure dbStructure) throws ModuleException {
@@ -329,11 +339,7 @@ public class SIARD22MetadataExportStrategy implements MetadataExportStrategy {
     siardArchive.setRoles(jaxbRolesType(dbStructure.getRoles()));
     siardArchive.setPrivileges(jaxbPrivilegesType(dbStructure.getPrivileges()));
 
-    if (!savingLobsExternally) {
-      siardArchive.setLobFolder("content");
-    } else {
-      siardArchive.setLobFolder("../" + dbStructure.getName() + ".siard_lobsegs");
-    }
+    siardArchive.setLobFolder(dbStructure.getLobFolder());
 
     return siardArchive;
   }
@@ -854,7 +860,8 @@ public class SIARD22MetadataExportStrategy implements MetadataExportStrategy {
     // don't set Folder if LOBs are being saved externally
     if ("clobType".equals(xsdTypeFromColumnSql2008Type) || "blobType".equals(xsdTypeFromColumnSql2008Type)) {
       if (!savingLobsExternally) {
-        columnType.setLobFolder(contentPathStrategy.getRelativeInternalLobDirPath(schemaIndex, tableIndex, columnIndex));
+        columnType
+          .setLobFolder(contentPathStrategy.getRelativeInternalLobDirPath(schemaIndex, tableIndex, columnIndex));
       } else {
         columnType.setLobFolder("s" + schemaIndex + "_t" + tableIndex + "_c" + columnIndex);
       }

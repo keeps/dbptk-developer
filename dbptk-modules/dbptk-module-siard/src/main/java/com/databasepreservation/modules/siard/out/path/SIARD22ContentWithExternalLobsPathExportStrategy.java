@@ -38,7 +38,7 @@ public class SIARD22ContentWithExternalLobsPathExportStrategy extends SIARD22Con
     }
     currentDatabaseSegments.put(segmentKey, currentSegmentIndex);
     return Paths
-      .get(mainContainerBasePath.toAbsolutePath().toString() + "_lobsegs" + FILE_SEPARATOR + "s" + segmentKey.getLeft()
+      .get(mainContainerBasePath.toAbsolutePath().toString() + "_lobs" + FILE_SEPARATOR + "s" + segmentKey.getLeft()
         + "_t" + segmentKey.getMiddle() + "_c" + segmentKey.getRight() + FILE_SEPARATOR + "seg_" + currentSegmentIndex);
   }
 

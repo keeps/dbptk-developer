@@ -2,7 +2,7 @@
  * The contents of this file are subject to the license and copyright
  * detailed in the LICENSE file at the root of the source
  * tree and available online at
- * <p>
+ *
  * https://github.com/keeps/db-preservation-toolkit
  */
 package com.databasepreservation.modules.siard.out.content;
@@ -161,11 +161,9 @@ public class SIARD22ContentWithExternalLobsExportStrategy extends SIARD22Content
     }
 
     // get lob object
-    if (cell instanceof BinaryCell) {
-      final BinaryCell binCell = (BinaryCell) cell;
+    if (cell instanceof BinaryCell binCell) {
       lob = new LargeObject(binCell, lobFileParameter);
-    } else if (cell instanceof SimpleCell) {
-      SimpleCell txtCell = (SimpleCell) cell;
+    } else if (cell instanceof SimpleCell txtCell) {
       String data = txtCell.getSimpleData();
       ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8));
       lob = new LargeObject(new InputStreamProviderImpl(inputStream, data.getBytes().length), lobFileParameter);
@@ -232,8 +230,7 @@ public class SIARD22ContentWithExternalLobsExportStrategy extends SIARD22Content
       InputStream in = lob.getInputStreamProvider().createInputStream()) {
       LOGGER.debug("Writing lob to {}", lobRelativePath);
       IOUtils.copy(in, out);
-      if (out instanceof DigestOutputStream) {
-        DigestOutputStream digestOutputStream = (DigestOutputStream) out;
+      if (out instanceof DigestOutputStream digestOutputStream) {
         lobDigestChecksum = digestOutputStream.getMessageDigest().digest();
       }
     } catch (IOException e) {
@@ -246,14 +243,13 @@ public class SIARD22ContentWithExternalLobsExportStrategy extends SIARD22Content
     String lobRelativePath = lob.getOutputPath() + "_part" + String.format("%03d", partIndex);
     // copy lob to output and save digest checksum if possible
     try (OutputStream out = writeStrategy.createOutputStream(externalContainer, lobRelativePath)) {
-      LOGGER.debug("Writing part " + partIndex + " of lob to {}", lobRelativePath);
+      LOGGER.debug("Writing part {} of lob to {}", partIndex, lobRelativePath);
       final byte[] buffer = new byte[partSize];
       int bytesRead = in.read(buffer);
       if (bytesRead > 0) {
         out.write(buffer, 0, bytesRead);
       }
-      if (out instanceof DigestOutputStream) {
-        DigestOutputStream digestOutputStream = (DigestOutputStream) out;
+      if (out instanceof DigestOutputStream digestOutputStream) {
         lobDigestChecksum = digestOutputStream.getMessageDigest().digest();
       }
     } catch (IOException e) {
@@ -262,8 +258,7 @@ public class SIARD22ContentWithExternalLobsExportStrategy extends SIARD22Content
   }
 
   private SIARDArchiveContainer getAnotherExternalContainer(Triple<Integer, Integer, Integer> segmentKey) {
-    if (contentPathStrategy instanceof SIARD22ContentWithExternalLobsPathExportStrategy) {
-      SIARD22ContentWithExternalLobsPathExportStrategy paths = (SIARD22ContentWithExternalLobsPathExportStrategy) contentPathStrategy;
+    if (contentPathStrategy instanceof SIARD22ContentWithExternalLobsPathExportStrategy paths) {
       return new SIARDArchiveContainer(baseContainer.getVersion(),
         paths.nextContainerBasePath(baseContainer.getPath(), segmentKey),
         SIARDArchiveContainer.OutputContainerType.AUXILIARY);

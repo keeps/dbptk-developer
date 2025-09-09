@@ -34,15 +34,12 @@ public class PostgreSqlDumpDiffExpectationsPrepQueue extends PostgreSqlDumpDiffE
   }
 
   @Override
-  public void dumpsRepresentTheSameInformation(Path sourceDump, Path targetDump) throws IOException {
+  public void dumpsRepresentTheSameInformation(String sourceDump, String targetDump) throws IOException {
 
-    String source = new String(Files.readAllBytes(sourceDump), StandardCharsets.UTF_8);
-    String target = new String(Files.readAllBytes(targetDump), StandardCharsets.UTF_8);
-
-    String expectedTarget = expectedTargetDatabaseDump(source);
+    String expectedTarget = expectedTargetDatabaseDump(sourceDump);
 
     TextDiff textDiff = new TextDiff();
-    LinkedList<TextDiff.Diff> diffs = textDiff.diff_main(expectedTarget, target);
+    LinkedList<TextDiff.Diff> diffs = textDiff.diff_main(expectedTarget, targetDump);
 
     boolean foundUnexpectedDifferences = false;
     for (TextDiff.Diff diff : diffs) {
