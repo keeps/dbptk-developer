@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 4.0.0 Release Candidate 1 (09/09/2025)
+#### New Features
+- Added support for SIARD 2.2 (exporting, importing, and validating)
+  - Exporting to SIARD 2 now exports to SIARD 2.2 rather than SIARD 2.1
+  - Previously existing options to limit LOB folder size and file count now apply those limits in accordance with SIARD 2.2 specification
+----
+
 ## Version 3.1.1 (06/08/2025)
 #### Bug fixes
 
