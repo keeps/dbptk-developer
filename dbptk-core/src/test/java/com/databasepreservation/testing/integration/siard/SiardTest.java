@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,9 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import com.databasepreservation.model.structure.virtual.VirtualForeignKey;
-import com.databasepreservation.model.structure.virtual.VirtualTableStructure;
-import com.databasepreservation.modules.siard.in.input.SIARDDK1007ImportModule;
 import org.joda.time.DateTime;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -74,9 +70,12 @@ import com.databasepreservation.model.structure.type.SimpleTypeBinary;
 import com.databasepreservation.model.structure.type.SimpleTypeBoolean;
 import com.databasepreservation.model.structure.type.SimpleTypeNumericExact;
 import com.databasepreservation.model.structure.type.SimpleTypeString;
+import com.databasepreservation.model.structure.virtual.VirtualForeignKey;
+import com.databasepreservation.model.structure.virtual.VirtualTableStructure;
 import com.databasepreservation.modules.siard.SIARDDK1007ModuleFactory;
 import com.databasepreservation.modules.siard.in.input.SIARD1ImportModule;
 import com.databasepreservation.modules.siard.in.input.SIARD2ImportModule;
+import com.databasepreservation.modules.siard.in.input.SIARDDK1007ImportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD1ExportModule;
 import com.databasepreservation.modules.siard.out.output.SIARD2ExportModule;
 import com.databasepreservation.modules.siard.out.output.SIARDDK1007ExportModule;
@@ -123,7 +122,7 @@ public class SiardTest {
     Path tmpFile = Files.createTempFile("roundtripSIARD_", ".zip");
     // Path tmpFile = Files.createTempDirectory("roundtripSIARD_");
 
-    DatabaseStructure original = generateDatabaseStructure();
+    DatabaseStructure original = generateDatabaseStructure(version);
 
     // fixme: the original structure is passed to the roundtrip test, which
     // means SIARD module may still change the original structure
@@ -172,6 +171,14 @@ public class SiardTest {
       }
     }
     assert original.equals(other) : "The final structure (from SIARD) differs from the original structure";
+  }
+
+  protected DatabaseStructure generateDatabaseStructure(SiardVersion siardVersion) throws IOException, ModuleException {
+    DatabaseStructure databaseStructure = generateDatabaseStructure();
+    if (siardVersion.equals(V1_0)) {
+      databaseStructure.setLobFolder(null); // SIARD 1 does not use lobFolder in its structure
+    }
+    return databaseStructure;
   }
 
   /**
@@ -489,7 +496,7 @@ public class SiardTest {
       "archiverContact", // String archiverContact
       "dataOwner", // String dataOwner
       "dataOriginTimespan", // String dataOriginTimespan
-      "lobFolder", // String lobFolder
+      "content", // String lobFolder
       "db-preservation-toolkit - KEEP SOLUTIONS", // String producerApplication
       JodaUtils.xsDateRewrite(DateTime.now()), // DateTime archivalDate
       "clientMachine", // String clientMachine

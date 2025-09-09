@@ -15,7 +15,6 @@ import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.databasepreservation.model.structure.virtual.VirtualTableStructure;
 import org.apache.commons.io.FileUtils;
 import org.testng.collections.Lists;
 
@@ -33,6 +32,7 @@ import com.databasepreservation.model.structure.TableStructure;
 import com.databasepreservation.model.structure.Trigger;
 import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
+import com.databasepreservation.model.structure.virtual.VirtualTableStructure;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 
@@ -65,6 +65,7 @@ public class SiardDKTest extends SiardTest {
     databaseStructure.setDataOwner(null);
     databaseStructure.setDataOwner(null);
     databaseStructure.setDataOriginTimespan(null);
+    databaseStructure.setLobFolder(null);
     databaseStructure.setProducerApplication(null);
     databaseStructure.setClientMachine(null);
     databaseStructure.setProductName(null);
@@ -129,7 +130,7 @@ public class SiardDKTest extends SiardTest {
 
   @Override
   protected DatabaseStructure roundTrip(DatabaseStructure orgDbStructure, Path tmpFile,
-                                        SIARDConstants.SiardVersion version)
+    SIARDConstants.SiardVersion version)
     throws FileNotFoundException, ModuleException, UnknownTypeException, InvalidDataException {
 
     Path archiveFolderPath = FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"),
@@ -154,7 +155,8 @@ public class SiardDKTest extends SiardTest {
           virtualTableCounter++;
         }
       }
-      assert orgSchema.getTables().size() == databaseStructure.getSchemas().get(0).getTables().size()-virtualTableCounter;
+      assert orgSchema.getTables().size() == databaseStructure.getSchemas().get(0).getTables().size()
+        - virtualTableCounter;
       for (int tblIndex = 0; tblIndex < orgSchema.getTables().size(); tblIndex++) {
         TableStructure orgTable = orgSchema.getTables().get(tblIndex);
         assert orgTable.getColumns().size() == databaseStructure.getSchemas().get(0).getTables().get(tblIndex)

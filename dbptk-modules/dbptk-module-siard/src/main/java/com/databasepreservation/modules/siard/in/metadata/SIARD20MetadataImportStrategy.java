@@ -13,9 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.XMLConstants;
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBException;
-import jakarta.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -25,9 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
-import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.configuration.ModuleConfiguration;
+import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.structure.CandidateKey;
 import com.databasepreservation.model.structure.CheckConstraint;
 import com.databasepreservation.model.structure.ColumnStructure;
@@ -82,6 +79,10 @@ import com.databasepreservation.modules.siard.in.path.SIARD2ContentPathImportStr
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.utils.JodaUtils;
 import com.databasepreservation.utils.XMLUtils;
+
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 
 /**
  * @author Bruno Ferreira <bferreira@keep.pt>
@@ -199,6 +200,7 @@ public class SIARD20MetadataImportStrategy implements MetadataImportStrategy {
     databaseStructure.setArchiverContact(siardArchive.getArchiverContact());
     databaseStructure.setDataOwner(siardArchive.getDataOwner());
     databaseStructure.setDataOriginTimespan(siardArchive.getDataOriginTimespan());
+    databaseStructure.setLobFolder(siardArchive.getLobFolder());
     databaseStructure.setProducerApplication(siardArchive.getProducerApplication());
     databaseStructure.setClientMachine(siardArchive.getClientMachine());
     databaseStructure.setDatabaseUser(siardArchive.getDatabaseUser());
