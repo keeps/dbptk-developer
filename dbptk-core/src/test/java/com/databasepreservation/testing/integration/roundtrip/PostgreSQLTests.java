@@ -48,9 +48,11 @@ public class PostgreSQLTests {
   private Path siardPath;
 
   @BeforeClass
-  void startContainer() throws IOException {
+  void startContainer() throws SQLException {
     postgresSource.start();
     postgresTarget.start();
+
+    populateInitialData(postgresSource, postgresTarget);
   }
 
   @AfterClass
@@ -66,7 +68,9 @@ public class PostgreSQLTests {
   }
 
   @AfterMethod
-  void cleanUp() throws IOException {
+  void cleanUp() throws IOException, SQLException {
+    cleanTargetDatabase(postgresTarget);
+
     if (Files.notExists(tmpFolderSIARD)) {
       return; // Nothing to delete
     }
@@ -111,92 +115,171 @@ public class PostgreSQLTests {
   }
 
   @Test(dependsOnMethods = {"testConnections"})
-  public void testQueriesSIARD1() throws SQLException, IOException, InterruptedException {
-    try (
-      Connection conn = DriverManager.getConnection(postgresSource.getJdbcUrl(), postgresSource.getUsername(),
-        postgresSource.getPassword());
-      Statement stmt = conn.createStatement()) {
-      // Drop table if it exists
-      stmt.execute("DROP TABLE IF EXISTS dataTypes");
+  public void testQueriesSIARD1() throws IOException, InterruptedException {
+    Container.ExecResult sourceDump = postgresSource.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
+      postgresSource.getUsername(), "-d", postgresSource.getDatabaseName(), "--restrict-key", "12345", "--format",
+      "plain", "--no-owner", "--no-privileges", "--column-inserts", "--no-security-labels", "--no-tablespaces");
 
-      // Create table with all the listed data types
-      stmt.execute("""
-            CREATE TABLE dataTypes (
-                col_bit_varying BIT VARYING(5),
-                col_bit_fixed BIT(5),
-                col_char CHAR NOT NULL,
-                col_bigint BIGINT,
-                col_boolean BOOLEAN,
-                col_bytea1 BYTEA,
-                col_bytea2 BYTEA,
-                col_bytea3 BYTEA,
-                col_char1 CHARACTER(1),
-                col_varchar CHARACTER VARYING,
-                col_date DATE,
-                col_double DOUBLE PRECISION,
-                col_integer INTEGER,
-                col_name NAME,
-                col_numeric NUMERIC,
-                col_real REAL,
-                col_smallint SMALLINT,
-                col_text TEXT,
-                col_time_tz1 TIME WITH TIME ZONE,
-                col_time_tz2 TIME WITH TIME ZONE
-            )
-        """);
+    String[] forwardConversionArguments = new String[] {"migrate", "--import=postgresql",
+      "--import-hostname=" + postgresSource.getHost(), "--import-port-number=" + postgresSource.getFirstMappedPort(),
+      "--import-database", postgresSource.getDatabaseName(), "--import-username", postgresSource.getUsername(),
+      "--import-password", postgresSource.getPassword(), "--import-disable-encryption", "--export=siard-1",
+      "--export-file", siardPath.toString(), "--export-pretty-xml"};
 
-      // Insert values
-      stmt.execute("""
-            INSERT INTO dataTypes
-            (col_bit_varying, col_bit_fixed, col_char, col_bigint, col_boolean,
-             col_bytea1, col_bytea2, col_bytea3, col_char1, col_varchar,
-             col_date, col_double, col_integer, col_name, col_numeric,
-             col_real, col_smallint, col_text, col_time_tz1, col_time_tz2)
-            VALUES (
-                B'101', B'01010', 'a', 123, TRUE,
-                decode('013d7d16d7ad4fefb61bd95b765c8ceb','hex'),
-                decode('00000000000000000000000000000000','hex'),
-                NULL, 'a', 'abc',
-                '2015-01-01', 0.123456789012345, 2147483647, 'abc', 2147483647,
-                0.123456, 32767, 'abc',
-                '23:59:59.999 PST', '23:59:59.999+05:30'
-            )
-        """);
+    // convert from the database to SIARD
+    Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(forwardConversionArguments), 0);
 
-      Container.ExecResult sourceDump = postgresSource.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
-        postgresSource.getUsername(), "-d", postgresSource.getDatabaseName(), "--restrict-key", "12345", "--format",
-        "plain", "--no-owner", "--no-privileges", "--column-inserts", "--no-security-labels", "--no-tablespaces");
+    String[] backwardConversionArguments = new String[] {"migrate", "--import=siard-1", "--import-file",
+      siardPath.toString(), "--export=postgresql", "--export-hostname=" + postgresTarget.getHost(),
+      "--export-port-number=" + postgresTarget.getFirstMappedPort(), "--export-database",
+      postgresTarget.getDatabaseName(), "--export-username", postgresTarget.getUsername(), "--export-password",
+      postgresTarget.getPassword(), "--export-disable-encryption"};
 
-      String[] forwardConversionArguments = new String[] {"migrate", "--import=postgresql",
-        "--import-hostname=" + postgresSource.getHost(), "--import-port-number=" + postgresSource.getFirstMappedPort(),
-        "--import-database", postgresSource.getDatabaseName(), "--import-username", postgresSource.getUsername(),
-        "--import-password", postgresSource.getPassword(), "--import-disable-encryption", "--export=siard-1",
-        "--export-file", siardPath.toString(), "--export-pretty-xml"};
+    // and if that succeeded, convert back to the database
+    Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(backwardConversionArguments), 0);
 
-      // convert from the database to SIARD
-      Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(forwardConversionArguments), 0);
+    Container.ExecResult targetDump = postgresTarget.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
+      postgresTarget.getUsername(), "-d", postgresTarget.getDatabaseName(), "--restrict-key", "12345", "--format",
+      "plain", "--no-owner", "--no-privileges", "--column-inserts", "--no-security-labels", "--no-tablespaces");
 
-      String[] backwardConversionArguments = new String[] {"migrate", "--import=siard-1", "--import-file",
-        siardPath.toString(), "--export=postgresql", "--export-hostname=" + postgresTarget.getHost(),
-        "--export-port-number=" + postgresTarget.getFirstMappedPort(), "--export-database",
-        postgresTarget.getDatabaseName(), "--export-username", postgresTarget.getUsername(), "--export-password",
-        postgresTarget.getPassword(), "--export-disable-encryption"};
+    DumpDiffExpectations dumpDiffExpectations = new PostgreSqlDumpDiffExpectations();
+    dumpDiffExpectations.dumpsRepresentTheSameInformation(sourceDump.getStdout(), targetDump.getStdout());
 
-      // and if that succeeded, convert back to the database
-      Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(backwardConversionArguments), 0);
-
-      Container.ExecResult targetDump = postgresTarget.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
-        postgresTarget.getUsername(), "-d", postgresTarget.getDatabaseName(), "--restrict-key", "12345", "--format",
-        "plain", "--no-owner", "--no-privileges", "--column-inserts", "--no-security-labels", "--no-tablespaces");
-
-      DumpDiffExpectations dumpDiffExpectations = new PostgreSqlDumpDiffExpectations();
-      dumpDiffExpectations.dumpsRepresentTheSameInformation(sourceDump.getStdout(), targetDump.getStdout());
-    }
   }
 
   @Test(dependsOnMethods = {"testConnections"})
-  public void testQueriesSIARD21() throws SQLException, IOException, InterruptedException {
+  public void testQueriesSIARD21() throws IOException, InterruptedException {
+    Container.ExecResult sourceDump = postgresSource.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
+      postgresSource.getUsername(), "-d", postgresSource.getDatabaseName(), "--restrict-key", "12345", "--format",
+      "plain", "--no-owner", "--no-privileges", "--column-inserts", "--no-security-labels", "--no-tablespaces");
 
+    String[] forwardConversionArguments = new String[] {"migrate", "--import=postgresql",
+      "--import-hostname=" + postgresSource.getHost(), "--import-port-number=" + postgresSource.getFirstMappedPort(),
+      "--import-database", postgresSource.getDatabaseName(), "--import-username", postgresSource.getUsername(),
+      "--import-password", postgresSource.getPassword(), "--import-disable-encryption", "--export=siard-2",
+      "--export-version", "2.1", "--export-file", siardPath.toString(), "--export-pretty-xml"};
+
+    // convert from the database to SIARD
+    Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(forwardConversionArguments), 0);
+
+    String[] backwardConversionArguments = new String[] {"migrate", "--import=siard-2", "--import-file",
+      siardPath.toString(), "--export=postgresql", "--export-hostname=" + postgresTarget.getHost(),
+      "--export-port-number=" + postgresTarget.getFirstMappedPort(), "--export-database",
+      postgresTarget.getDatabaseName(), "--export-username", postgresTarget.getUsername(), "--export-password",
+      postgresTarget.getPassword(), "--export-disable-encryption"};
+
+    // and if that succeeded, convert back to the database
+    Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(backwardConversionArguments), 0);
+
+    Container.ExecResult targetDump = postgresTarget.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
+      postgresTarget.getUsername(), "-d", postgresTarget.getDatabaseName(), "--restrict-key", "12345", "--format",
+      "plain", "--no-owner", "--no-privileges", "--column-inserts", "--no-security-labels", "--no-tablespaces");
+
+    DumpDiffExpectations dumpDiffExpectations = new PostgreSqlDumpDiffExpectations();
+    dumpDiffExpectations.dumpsRepresentTheSameInformation(sourceDump.getStdout(), targetDump.getStdout());
+  }
+
+  @Test(dependsOnMethods = {"testConnections"})
+  public void testQueriesSIARD21ExternalLobs() throws IOException, InterruptedException {
+    Container.ExecResult sourceDump = postgresSource.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
+      postgresSource.getUsername(), "-d", postgresSource.getDatabaseName(), "--restrict-key", "12345", "--format",
+      "plain", "--no-owner", "--no-privileges", "--column-inserts", "--no-security-labels", "--no-tablespaces");
+
+    String[] forwardConversionArguments = new String[] {"migrate", "--import=postgresql",
+      "--import-hostname=" + postgresSource.getHost(), "--import-port-number=" + postgresSource.getFirstMappedPort(),
+      "--import-database", postgresSource.getDatabaseName(), "--import-username", postgresSource.getUsername(),
+      "--import-password", postgresSource.getPassword(), "--import-disable-encryption", "--export=siard-2",
+      "--export-version", "2.1", "--export-file", siardPath.toString(), "--export-pretty-xml", "--export-external-lobs",
+      "--export-external-lobs-blob-threshold-limit=0", "--export-external-lobs-clob-threshold-limit=0"};
+
+    // convert from the database to SIARD
+    Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(forwardConversionArguments), 0);
+
+    String[] backwardConversionArguments = new String[] {"migrate", "--import=siard-2", "--import-file",
+      siardPath.toString(), "--export=postgresql", "--export-hostname=" + postgresTarget.getHost(),
+      "--export-port-number=" + postgresTarget.getFirstMappedPort(), "--export-database",
+      postgresTarget.getDatabaseName(), "--export-username", postgresTarget.getUsername(), "--export-password",
+      postgresTarget.getPassword(), "--export-disable-encryption"};
+
+    // and if that succeeded, convert back to the database
+    Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(backwardConversionArguments), 0);
+
+    Container.ExecResult targetDump = postgresTarget.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
+      postgresTarget.getUsername(), "-d", postgresTarget.getDatabaseName(), "--restrict-key", "12345", "--format",
+      "plain", "--no-owner", "--no-privileges", "--column-inserts", "--no-security-labels", "--no-tablespaces");
+
+    DumpDiffExpectations dumpDiffExpectations = new PostgreSqlDumpDiffExpectations();
+    dumpDiffExpectations.dumpsRepresentTheSameInformation(sourceDump.getStdout(), targetDump.getStdout());
+
+  }
+
+  @Test(dependsOnMethods = {"testConnections"})
+  public void testQueriesSIARD22() throws IOException, InterruptedException {
+    Container.ExecResult sourceDump = postgresSource.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
+      postgresSource.getUsername(), "-d", postgresSource.getDatabaseName(), "--restrict-key", "12345", "--format",
+      "plain", "--no-owner", "--no-privileges", "--column-inserts", "--no-security-labels", "--no-tablespaces");
+
+    String[] forwardConversionArguments = new String[] {"migrate", "--import=postgresql",
+      "--import-hostname=" + postgresSource.getHost(), "--import-port-number=" + postgresSource.getFirstMappedPort(),
+      "--import-database", postgresSource.getDatabaseName(), "--import-username", postgresSource.getUsername(),
+      "--import-password", postgresSource.getPassword(), "--import-disable-encryption", "--export=siard-2",
+      "--export-version", "2.2", "--export-file", siardPath.toString(), "--export-pretty-xml"};
+
+    // convert from the database to SIARD
+    Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(forwardConversionArguments), 0);
+
+    String[] backwardConversionArguments = new String[] {"migrate", "--import=siard-2", "--import-file",
+      siardPath.toString(), "--export=postgresql", "--export-hostname=" + postgresTarget.getHost(),
+      "--export-port-number=" + postgresTarget.getFirstMappedPort(), "--export-database",
+      postgresTarget.getDatabaseName(), "--export-username", postgresTarget.getUsername(), "--export-password",
+      postgresTarget.getPassword(), "--export-disable-encryption"};
+
+    // and if that succeeded, convert back to the database
+    Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(backwardConversionArguments), 0);
+
+    Container.ExecResult targetDump = postgresTarget.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
+      postgresTarget.getUsername(), "-d", postgresTarget.getDatabaseName(), "--restrict-key", "12345", "--format",
+      "plain", "--no-owner", "--no-privileges", "--column-inserts", "--no-security-labels", "--no-tablespaces");
+
+    DumpDiffExpectations dumpDiffExpectations = new PostgreSqlDumpDiffExpectations();
+    dumpDiffExpectations.dumpsRepresentTheSameInformation(sourceDump.getStdout(), targetDump.getStdout());
+  }
+
+  @Test(dependsOnMethods = {"testConnections"})
+  public void testQueriesSIARD22ExternalLobs() throws IOException, InterruptedException {
+    Container.ExecResult sourceDump = postgresSource.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
+      postgresSource.getUsername(), "-d", postgresSource.getDatabaseName(), "--restrict-key", "12345", "--format",
+      "plain", "--no-owner", "--no-privileges", "--column-inserts", "--no-security-labels", "--no-tablespaces");
+
+    String[] forwardConversionArguments = new String[] {"migrate", "--import=postgresql",
+      "--import-hostname=" + postgresSource.getHost(), "--import-port-number=" + postgresSource.getFirstMappedPort(),
+      "--import-database", postgresSource.getDatabaseName(), "--import-username", postgresSource.getUsername(),
+      "--import-password", postgresSource.getPassword(), "--import-disable-encryption", "--export=siard-2",
+      "--export-version", "2.2", "--export-file", siardPath.toString(), "--export-pretty-xml", "--export-external-lobs",
+      "--export-external-lobs-blob-threshold-limit=0", "--export-external-lobs-clob-threshold-limit=0"};
+
+    // convert from the database to SIARD
+    Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(forwardConversionArguments), 0);
+
+    String[] backwardConversionArguments = new String[] {"migrate", "--import=siard-2", "--import-file",
+      siardPath.toString(), "--export=postgresql", "--export-hostname=" + postgresTarget.getHost(),
+      "--export-port-number=" + postgresTarget.getFirstMappedPort(), "--export-database",
+      postgresTarget.getDatabaseName(), "--export-username", postgresTarget.getUsername(), "--export-password",
+      postgresTarget.getPassword(), "--export-disable-encryption"};
+
+    // and if that succeeded, convert back to the database
+    Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(backwardConversionArguments), 0);
+
+    Container.ExecResult targetDump = postgresTarget.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
+      postgresTarget.getUsername(), "-d", postgresTarget.getDatabaseName(), "--restrict-key", "12345", "--format",
+      "plain", "--no-owner", "--no-privileges", "--column-inserts", "--no-security-labels", "--no-tablespaces");
+
+    DumpDiffExpectations dumpDiffExpectations = new PostgreSqlDumpDiffExpectations();
+    dumpDiffExpectations.dumpsRepresentTheSameInformation(sourceDump.getStdout(), targetDump.getStdout());
+  }
+
+  private void populateInitialData(PostgreSQLContainer<?> postgresSource, PostgreSQLContainer<?> postgresTarget)
+    throws SQLException {
     try (
       Connection conn = DriverManager.getConnection(postgresSource.getJdbcUrl(), postgresSource.getUsername(),
         postgresSource.getPassword());
@@ -254,315 +337,16 @@ public class PostgreSQLTests {
                 '23:59:59.999 PST', '23:59:59.999+05:30'
             )
         """);
-
-      Container.ExecResult sourceDump = postgresSource.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
-        postgresSource.getUsername(), "-d", postgresSource.getDatabaseName(), "--restrict-key", "12345", "--format",
-        "plain", "--no-owner", "--no-privileges", "--column-inserts", "--no-security-labels", "--no-tablespaces");
-
-      String[] forwardConversionArguments = new String[] {"migrate", "--import=postgresql",
-        "--import-hostname=" + postgresSource.getHost(), "--import-port-number=" + postgresSource.getFirstMappedPort(),
-        "--import-database", postgresSource.getDatabaseName(), "--import-username", postgresSource.getUsername(),
-        "--import-password", postgresSource.getPassword(), "--import-disable-encryption", "--export=siard-2",
-        "--export-version", "2.1", "--export-file", siardPath.toString(), "--export-pretty-xml"};
-
-      // convert from the database to SIARD
-      Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(forwardConversionArguments), 0);
-
-      String[] backwardConversionArguments = new String[] {"migrate", "--import=siard-2", "--import-file",
-        siardPath.toString(), "--export=postgresql", "--export-hostname=" + postgresTarget.getHost(),
-        "--export-port-number=" + postgresTarget.getFirstMappedPort(), "--export-database",
-        postgresTarget.getDatabaseName(), "--export-username", postgresTarget.getUsername(), "--export-password",
-        postgresTarget.getPassword(), "--export-disable-encryption"};
-
-      // and if that succeeded, convert back to the database
-      Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(backwardConversionArguments), 0);
-
-      Container.ExecResult targetDump = postgresTarget.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
-        postgresTarget.getUsername(), "-d", postgresTarget.getDatabaseName(), "--restrict-key", "12345", "--format",
-        "plain", "--no-owner", "--no-privileges", "--column-inserts", "--no-security-labels", "--no-tablespaces");
-
-      DumpDiffExpectations dumpDiffExpectations = new PostgreSqlDumpDiffExpectations();
-      dumpDiffExpectations.dumpsRepresentTheSameInformation(sourceDump.getStdout(), targetDump.getStdout());
     }
   }
 
-  @Test(dependsOnMethods = {"testConnections"})
-  public void testQueriesSIARD21ExternalLobs() throws SQLException, IOException, InterruptedException {
-
+  private void cleanTargetDatabase(PostgreSQLContainer<?> postgresTarget) throws SQLException {
     try (
-      Connection conn = DriverManager.getConnection(postgresSource.getJdbcUrl(), postgresSource.getUsername(),
-        postgresSource.getPassword());
-
       Connection connTarget = DriverManager.getConnection(postgresTarget.getJdbcUrl(), postgresTarget.getUsername(),
         postgresTarget.getPassword());
-
-      Statement stmtTarget = connTarget.createStatement();
-
-      Statement stmtSource = conn.createStatement()) {
+      Statement stmtTarget = connTarget.createStatement()) {
       // Drop table if it exists
-      stmtSource.execute("DROP TABLE IF EXISTS dataTypes");
       stmtTarget.execute("DROP TABLE IF EXISTS dataTypes");
-
-      // Create table with all the listed data types
-      stmtSource.execute("""
-            CREATE TABLE dataTypes (
-                col_bit_varying BIT VARYING(5),
-                col_bit_fixed BIT(5),
-                col_char CHAR NOT NULL,
-                col_bigint BIGINT,
-                col_boolean BOOLEAN,
-                col_bytea1 BYTEA,
-                col_bytea2 BYTEA,
-                col_bytea3 BYTEA,
-                col_char1 CHARACTER(1),
-                col_varchar CHARACTER VARYING,
-                col_date DATE,
-                col_double DOUBLE PRECISION,
-                col_integer INTEGER,
-                col_name NAME,
-                col_numeric NUMERIC,
-                col_real REAL,
-                col_smallint SMALLINT,
-                col_text TEXT,
-                col_time_tz1 TIME WITH TIME ZONE,
-                col_time_tz2 TIME WITH TIME ZONE
-            )
-        """);
-
-      // Insert values
-      stmtSource.execute("""
-            INSERT INTO dataTypes
-            (col_bit_varying, col_bit_fixed, col_char, col_bigint, col_boolean,
-             col_bytea1, col_bytea2, col_bytea3, col_char1, col_varchar,
-             col_date, col_double, col_integer, col_name, col_numeric,
-             col_real, col_smallint, col_text, col_time_tz1, col_time_tz2)
-            VALUES (
-                B'101', B'01010', 'a', 123, TRUE,
-                decode('013d7d16d7ad4fefb61bd95b765c8ceb','hex'),
-                decode('00000000000000000000000000000000','hex'),
-                NULL, 'a', 'abc',
-                '2015-01-01', 0.123456789012345, 2147483647, 'abc', 2147483647,
-                0.123456, 32767, 'abc',
-                '23:59:59.999 PST', '23:59:59.999+05:30'
-            )
-        """);
-
-      Container.ExecResult sourceDump = postgresSource.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
-        postgresSource.getUsername(), "-d", postgresSource.getDatabaseName(), "--restrict-key", "12345", "--format",
-        "plain", "--no-owner", "--no-privileges", "--column-inserts", "--no-security-labels", "--no-tablespaces");
-
-      String[] forwardConversionArguments = new String[] {"migrate", "--import=postgresql",
-        "--import-hostname=" + postgresSource.getHost(), "--import-port-number=" + postgresSource.getFirstMappedPort(),
-        "--import-database", postgresSource.getDatabaseName(), "--import-username", postgresSource.getUsername(),
-        "--import-password", postgresSource.getPassword(), "--import-disable-encryption", "--export=siard-2",
-        "--export-version", "2.1", "--export-file", siardPath.toString(), "--export-pretty-xml",
-        "--export-external-lobs", "--export-external-lobs-blob-threshold-limit=0",
-        "--export-external-lobs-clob-threshold-limit=0"};
-
-      // convert from the database to SIARD
-      Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(forwardConversionArguments), 0);
-
-      String[] backwardConversionArguments = new String[] {"migrate", "--import=siard-2", "--import-file",
-        siardPath.toString(), "--export=postgresql", "--export-hostname=" + postgresTarget.getHost(),
-        "--export-port-number=" + postgresTarget.getFirstMappedPort(), "--export-database",
-        postgresTarget.getDatabaseName(), "--export-username", postgresTarget.getUsername(), "--export-password",
-        postgresTarget.getPassword(), "--export-disable-encryption"};
-
-      // and if that succeeded, convert back to the database
-      Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(backwardConversionArguments), 0);
-
-      Container.ExecResult targetDump = postgresTarget.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
-        postgresTarget.getUsername(), "-d", postgresTarget.getDatabaseName(), "--restrict-key", "12345", "--format",
-        "plain", "--no-owner", "--no-privileges", "--column-inserts", "--no-security-labels", "--no-tablespaces");
-
-      DumpDiffExpectations dumpDiffExpectations = new PostgreSqlDumpDiffExpectations();
-      dumpDiffExpectations.dumpsRepresentTheSameInformation(sourceDump.getStdout(), targetDump.getStdout());
-    }
-  }
-
-  @Test(dependsOnMethods = {"testConnections"})
-  public void testQueriesSIARD22() throws SQLException, IOException, InterruptedException {
-
-    try (
-      Connection conn = DriverManager.getConnection(postgresSource.getJdbcUrl(), postgresSource.getUsername(),
-        postgresSource.getPassword());
-
-      Connection connTarget = DriverManager.getConnection(postgresTarget.getJdbcUrl(), postgresTarget.getUsername(),
-        postgresTarget.getPassword());
-
-      Statement stmtTarget = connTarget.createStatement();
-
-      Statement stmtSource = conn.createStatement()) {
-      // Drop table if it exists
-      stmtSource.execute("DROP TABLE IF EXISTS dataTypes");
-      stmtTarget.execute("DROP TABLE IF EXISTS dataTypes");
-
-      // Create table with all the listed data types
-      stmtSource.execute("""
-            CREATE TABLE dataTypes (
-                col_bit_varying BIT VARYING(5),
-                col_bit_fixed BIT(5),
-                col_char CHAR NOT NULL,
-                col_bigint BIGINT,
-                col_boolean BOOLEAN,
-                col_bytea1 BYTEA,
-                col_bytea2 BYTEA,
-                col_bytea3 BYTEA,
-                col_char1 CHARACTER(1),
-                col_varchar CHARACTER VARYING,
-                col_date DATE,
-                col_double DOUBLE PRECISION,
-                col_integer INTEGER,
-                col_name NAME,
-                col_numeric NUMERIC,
-                col_real REAL,
-                col_smallint SMALLINT,
-                col_text TEXT,
-                col_time_tz1 TIME WITH TIME ZONE,
-                col_time_tz2 TIME WITH TIME ZONE
-            )
-        """);
-
-      // Insert values
-      stmtSource.execute("""
-            INSERT INTO dataTypes
-            (col_bit_varying, col_bit_fixed, col_char, col_bigint, col_boolean,
-             col_bytea1, col_bytea2, col_bytea3, col_char1, col_varchar,
-             col_date, col_double, col_integer, col_name, col_numeric,
-             col_real, col_smallint, col_text, col_time_tz1, col_time_tz2)
-            VALUES (
-                B'101', B'01010', 'a', 123, TRUE,
-                decode('013d7d16d7ad4fefb61bd95b765c8ceb','hex'),
-                decode('00000000000000000000000000000000','hex'),
-                NULL, 'a', 'abc',
-                '2015-01-01', 0.123456789012345, 2147483647, 'abc', 2147483647,
-                0.123456, 32767, 'abc',
-                '23:59:59.999 PST', '23:59:59.999+05:30'
-            )
-        """);
-
-      Container.ExecResult sourceDump = postgresSource.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
-        postgresSource.getUsername(), "-d", postgresSource.getDatabaseName(), "--restrict-key", "12345", "--format",
-        "plain", "--no-owner", "--no-privileges", "--column-inserts", "--no-security-labels", "--no-tablespaces");
-
-      String[] forwardConversionArguments = new String[] {"migrate", "--import=postgresql",
-        "--import-hostname=" + postgresSource.getHost(), "--import-port-number=" + postgresSource.getFirstMappedPort(),
-        "--import-database", postgresSource.getDatabaseName(), "--import-username", postgresSource.getUsername(),
-        "--import-password", postgresSource.getPassword(), "--import-disable-encryption", "--export=siard-2",
-        "--export-version", "2.2", "--export-file", siardPath.toString(), "--export-pretty-xml"};
-
-      // convert from the database to SIARD
-      Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(forwardConversionArguments), 0);
-
-      String[] backwardConversionArguments = new String[] {"migrate", "--import=siard-2", "--import-file",
-        siardPath.toString(), "--export=postgresql", "--export-hostname=" + postgresTarget.getHost(),
-        "--export-port-number=" + postgresTarget.getFirstMappedPort(), "--export-database",
-        postgresTarget.getDatabaseName(), "--export-username", postgresTarget.getUsername(), "--export-password",
-        postgresTarget.getPassword(), "--export-disable-encryption"};
-
-      // and if that succeeded, convert back to the database
-      Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(backwardConversionArguments), 0);
-
-      Container.ExecResult targetDump = postgresTarget.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
-        postgresTarget.getUsername(), "-d", postgresTarget.getDatabaseName(), "--restrict-key", "12345", "--format",
-        "plain", "--no-owner", "--no-privileges", "--column-inserts", "--no-security-labels", "--no-tablespaces");
-
-      DumpDiffExpectations dumpDiffExpectations = new PostgreSqlDumpDiffExpectations();
-      dumpDiffExpectations.dumpsRepresentTheSameInformation(sourceDump.getStdout(), targetDump.getStdout());
-    }
-  }
-
-  @Test(dependsOnMethods = {"testConnections"})
-  public void testQueriesSIARD22ExternalLobs() throws SQLException, IOException, InterruptedException {
-
-    try (
-      Connection conn = DriverManager.getConnection(postgresSource.getJdbcUrl(), postgresSource.getUsername(),
-        postgresSource.getPassword());
-
-      Connection connTarget = DriverManager.getConnection(postgresTarget.getJdbcUrl(), postgresTarget.getUsername(),
-        postgresTarget.getPassword());
-
-      Statement stmtTarget = connTarget.createStatement();
-
-      Statement stmtSource = conn.createStatement()) {
-      // Drop table if it exists
-      stmtSource.execute("DROP TABLE IF EXISTS dataTypes");
-      stmtTarget.execute("DROP TABLE IF EXISTS dataTypes");
-
-      // Create table with all the listed data types
-      stmtSource.execute("""
-            CREATE TABLE dataTypes (
-                col_bit_varying BIT VARYING(5),
-                col_bit_fixed BIT(5),
-                col_char CHAR NOT NULL,
-                col_bigint BIGINT,
-                col_boolean BOOLEAN,
-                col_bytea1 BYTEA,
-                col_bytea2 BYTEA,
-                col_bytea3 BYTEA,
-                col_char1 CHARACTER(1),
-                col_varchar CHARACTER VARYING,
-                col_date DATE,
-                col_double DOUBLE PRECISION,
-                col_integer INTEGER,
-                col_name NAME,
-                col_numeric NUMERIC,
-                col_real REAL,
-                col_smallint SMALLINT,
-                col_text TEXT,
-                col_time_tz1 TIME WITH TIME ZONE,
-                col_time_tz2 TIME WITH TIME ZONE
-            )
-        """);
-
-      // Insert values
-      stmtSource.execute("""
-            INSERT INTO dataTypes
-            (col_bit_varying, col_bit_fixed, col_char, col_bigint, col_boolean,
-             col_bytea1, col_bytea2, col_bytea3, col_char1, col_varchar,
-             col_date, col_double, col_integer, col_name, col_numeric,
-             col_real, col_smallint, col_text, col_time_tz1, col_time_tz2)
-            VALUES (
-                B'101', B'01010', 'a', 123, TRUE,
-                decode('013d7d16d7ad4fefb61bd95b765c8ceb','hex'),
-                decode('00000000000000000000000000000000','hex'),
-                NULL, 'a', 'abc',
-                '2015-01-01', 0.123456789012345, 2147483647, 'abc', 2147483647,
-                0.123456, 32767, 'abc',
-                '23:59:59.999 PST', '23:59:59.999+05:30'
-            )
-        """);
-
-      Container.ExecResult sourceDump = postgresSource.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
-        postgresSource.getUsername(), "-d", postgresSource.getDatabaseName(), "--restrict-key", "12345", "--format",
-        "plain", "--no-owner", "--no-privileges", "--column-inserts", "--no-security-labels", "--no-tablespaces");
-
-      String[] forwardConversionArguments = new String[] {"migrate", "--import=postgresql",
-        "--import-hostname=" + postgresSource.getHost(), "--import-port-number=" + postgresSource.getFirstMappedPort(),
-        "--import-database", postgresSource.getDatabaseName(), "--import-username", postgresSource.getUsername(),
-        "--import-password", postgresSource.getPassword(), "--import-disable-encryption", "--export=siard-2",
-        "--export-version", "2.2", "--export-file", siardPath.toString(), "--export-pretty-xml",
-        "--export-external-lobs", "--export-external-lobs-blob-threshold-limit=0",
-        "--export-external-lobs-clob-threshold-limit=0"};
-
-      // convert from the database to SIARD
-      Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(forwardConversionArguments), 0);
-
-      String[] backwardConversionArguments = new String[] {"migrate", "--import=siard-2", "--import-file",
-        siardPath.toString(), "--export=postgresql", "--export-hostname=" + postgresTarget.getHost(),
-        "--export-port-number=" + postgresTarget.getFirstMappedPort(), "--export-database",
-        postgresTarget.getDatabaseName(), "--export-username", postgresTarget.getUsername(), "--export-password",
-        postgresTarget.getPassword(), "--export-disable-encryption"};
-
-      // and if that succeeded, convert back to the database
-      Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(backwardConversionArguments), 0);
-
-      Container.ExecResult targetDump = postgresTarget.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
-        postgresTarget.getUsername(), "-d", postgresTarget.getDatabaseName(), "--restrict-key", "12345", "--format",
-        "plain", "--no-owner", "--no-privileges", "--column-inserts", "--no-security-labels", "--no-tablespaces");
-
-      DumpDiffExpectations dumpDiffExpectations = new PostgreSqlDumpDiffExpectations();
-      dumpDiffExpectations.dumpsRepresentTheSameInformation(sourceDump.getStdout(), targetDump.getStdout());
     }
   }
 }
