@@ -10,18 +10,14 @@ package com.databasepreservation.testing.integration.roundtrip;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Set;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.testcontainers.containers.PostgreSQLContainer;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -42,34 +38,32 @@ public class PostgreSqlSIARDDKTest {
   private Roundtrip rt;
   protected PostgreSqlDumpDiffExpectationsPrepQueue sqlDumpDiffExpectationsPrepQueue;
 
+  static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
+
   @BeforeClass
   public void setup() throws IOException, InterruptedException, URISyntaxException {
+    postgres.start();
+
+    DBConnectionProvider connectionProvider = new DBConnectionProvider(postgres.getJdbcUrl(), postgres.getUsername(),
+      postgres.getPassword());
+
     HashMap<String, String> env_var_source = new HashMap<String, String>();
-    env_var_source.put("PGUSER", db_tmp_username);
-    env_var_source.put("PGPASSWORD", db_tmp_password);
+    env_var_source.put("PGUSER", postgres.getUsername());
+    env_var_source.put("PGPASSWORD", postgres.getPassword());
     env_var_source.put("PGDATABASE", db_source);
 
     HashMap<String, String> env_var_target = new HashMap<String, String>();
-    env_var_target.put("PGUSER", db_tmp_username);
-    env_var_target.put("PGPASSWORD", db_tmp_password);
+    env_var_target.put("PGUSER", postgres.getUsername());
+    env_var_target.put("PGPASSWORD", postgres.getPassword());
     env_var_target.put("PGDATABASE", db_target);
-
-    Set<PosixFilePermission> executablePermissions = PosixFilePermissions.fromString("rwxr-xr-x");
-    Files.setAttribute(Paths.get(getClass().getResource("/postgreSql/scripts/setup.sh").getPath()), "posix:permissions",
-      executablePermissions);
-    Files.setAttribute(Paths.get(getClass().getResource("/postgreSql/scripts/teardown.sh").getPath()),
-      "posix:permissions", executablePermissions);
 
     archiveFullPath = FileSystems.getDefault()
       .getPath(System.getProperty("java.io.tmpdir"), ROUND_TRIP_SIARD_ARCHIVE_FILENAME).toString();
 
     sqlDumpDiffExpectationsPrepQueue = new PostgreSqlDumpDiffExpectationsPrepQueue();
 
-    rt = new Roundtrip(
-      String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass().getResource("/postgreSql/scripts/setup.sh").getPath(),
-        db_source, db_target, db_tmp_username, db_tmp_password),
-      String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/postgreSql/scripts/teardown.sh").getPath(),
-        db_source, db_target, db_tmp_username),
+    rt = new Roundtrip(new String[] {"CREATE DATABASE " + db_source + ";", "CREATE DATABASE " + db_target + ";"},
+      new String[] {"DROP DATABASE IF EXISTS " + db_source + ";", "DROP DATABASE IF EXISTS " + db_target + ";"},
       "psql -h 127.0.0.1 --single-transaction -v ON_ERROR_STOP=1 ",
       "pg_dump -h 127.0.0.1 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces --exclude-table=tbl_datatypes_prikey_seq",
       "pg_dump -h 127.0.0.1 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces --exclude-table=tbl_datatypes_prikey_seq",
@@ -78,15 +72,10 @@ public class PostgreSqlSIARDDKTest {
         "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--import-disable-encryption",
         "--export=siard-dk", "--export-folder", archiveFullPath},
 
-      new String[] {"migrate", "--import=siard-dk-1007", "--import-as-schema=public", "--import-folder", archiveFullPath,
-        "--export=postgresql", "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username",
-        db_tmp_username, "--export-password", db_tmp_password, "--export-disable-encryption"},
-      sqlDumpDiffExpectationsPrepQueue, env_var_source, env_var_target);
-  }
-
-  @Test(description = "PostgreSql server is available and accessible")
-  public void testConnection() throws IOException, InterruptedException {
-    rt.checkConnection();
+      new String[] {"migrate", "--import=siard-dk-1007", "--import-as-schema=public", "--import-folder",
+        archiveFullPath, "--export=postgresql", "--export-hostname=127.0.0.1", "--export-database", db_target,
+        "--export-username", db_tmp_username, "--export-password", db_tmp_password, "--export-disable-encryption"},
+      sqlDumpDiffExpectationsPrepQueue, env_var_source, env_var_target, connectionProvider, postgres);
   }
 
   @DataProvider
@@ -120,7 +109,7 @@ public class PostgreSqlSIARDDKTest {
 
   @Test(description = "Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {
     "testConnection"})
-  public void testQueries(String... args) throws IOException, InterruptedException {
+  public void testQueries(String... args) throws IOException, InterruptedException, SQLException {
 
     String[] fields = new String[args.length - 1];
     System.arraycopy(args, 1, fields, 0, args.length - 1);
@@ -146,13 +135,13 @@ public class PostgreSqlSIARDDKTest {
   @SuppressWarnings("unchecked")
   @Test(description = "Tests small examples", dataProvider = "testQueriesWithDiffsProvider", dependsOnMethods = {
     "testConnection"})
-  public void testQueriesWithDiffs(Object... args) throws IOException, InterruptedException {
+  public void testQueriesWithDiffs(Object... args) throws IOException, InterruptedException, SQLException {
 
     String[] fields = new String[args.length - 1];
     System.arraycopy(args, 1, fields, 0, args.length - 2);
     sqlDumpDiffExpectationsPrepQueue.setExpectedDiffs((LinkedList<Diff>) args[args.length - 1]);
-    assert rt.testTypeAndValue((String) args[0], fields) : "Query failed: "
-      + String.format((String) args[0], (Object[]) fields);
+    assert rt.testTypeAndValue((String) args[0], fields)
+      : "Query failed: " + String.format((String) args[0], (Object[]) fields);
   }
 
   @DataProvider
@@ -169,9 +158,9 @@ public class PostgreSqlSIARDDKTest {
     return tests.iterator();
   }
 
-  @Test(description = "Tests PostgreSQL files", dataProvider = "testFilesProvider", dependsOnMethods = {
+  @Test(description = "Tests PostgreSQL files", dataProvider = "setup", dependsOnMethods = {
     "testConnection"})
-  public void testFiles(Path... file) throws IOException, InterruptedException, URISyntaxException {
+  public void testFiles(String... file) throws IOException, InterruptedException, URISyntaxException, SQLException {
     sqlDumpDiffExpectationsPrepQueue.setExpectedDiffs(null);
     assert rt.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
   }

@@ -7,17 +7,24 @@
  */
 package com.databasepreservation.testing.integration.roundtrip;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.Container;
+import org.testcontainers.containers.JdbcDatabaseContainer;
 
 import com.databasepreservation.Main;
 import com.databasepreservation.testing.integration.roundtrip.differences.DumpDiffExpectations;
@@ -38,8 +45,8 @@ public class Roundtrip {
   private final String db_tmp_username = "dpttest";
   private final String db_tmp_password = RandomStringUtils.randomAlphabetic(10);
   // set by constructor
-  private String setup_command;
-  private String teardown_command;
+  private String[] setup_queries;
+  private String[] teardown_queries;
   private String populate_command;
   private String dump_source_command;
   private String dump_target_command;
@@ -58,13 +65,19 @@ public class Roundtrip {
   private File processSTDERR;
   private File processSTDOUT;
 
-  public Roundtrip(String setup_command, String teardown_command, String populate_command, String dump_source_command,
-    String dump_target_command, String[] forward_conversion_arguments, String[] backward_conversion_arguments,
-    DumpDiffExpectations dumpDiffExpectations, HashMap<String, String> environment_variables_source,
-    HashMap<String, String> environment_variables_target) throws IOException {
-    this.setup_command = setup_command;
+  private DBConnectionProvider connectionProvider;
+  private DBConnectionProvider sourceConnectionProvider;
+  private DBConnectionProvider targetConnectionProvider;
+  private JdbcDatabaseContainer databaseContainer;
+
+  public Roundtrip(String[] setup_queries, String[] teardown_queries, String populate_command,
+    String dump_source_command, String dump_target_command, String[] forward_conversion_arguments,
+    String[] backward_conversion_arguments, DumpDiffExpectations dumpDiffExpectations,
+    HashMap<String, String> environment_variables_source, HashMap<String, String> environment_variables_target,
+    DBConnectionProvider connectionProvider, JdbcDatabaseContainer databaseContainer) throws IOException {
+    this.setup_queries = setup_queries;
     this.populate_command = populate_command;
-    this.teardown_command = teardown_command;
+    this.teardown_queries = teardown_queries;
     this.dump_source_command = dump_source_command;
     this.dump_target_command = dump_target_command;
     this.forward_conversion_arguments = forward_conversion_arguments;
@@ -79,6 +92,9 @@ public class Roundtrip {
     processSTDOUT = File.createTempFile("processSTDOUT_", ".tmp");
     processSTDERR.deleteOnExit();
     processSTDOUT.deleteOnExit();
+
+    this.connectionProvider = connectionProvider;
+    this.databaseContainer = databaseContainer;
   }
 
   /**
@@ -88,30 +104,24 @@ public class Roundtrip {
    * @throws IOException
    * @throws InterruptedException
    */
-  public void checkConnection() throws IOException, InterruptedException {
+  public void checkConnection() throws IOException, InterruptedException, SQLException {
     assert setup() == 0 : "Roundtrip setup exit status was not 0 (setup failed)";
     assert teardown() == 0 : "Roundtrip teardown exit status was not 0 (teardown failed)";
   }
 
-  public boolean testTypeAndValue(String template, String... args) throws IOException, InterruptedException {
+  public boolean testTypeAndValue(String template, String... args)
+    throws IOException, InterruptedException, SQLException {
     // File populate_file = File.createTempFile("roundtrip_populate", ".sql");
 
-    Path populate_file = Files.createTempFile("roundtrip_populate", ".sql");
-
-    BufferedWriter bw = Files.newBufferedWriter(populate_file, StandardCharsets.UTF_8);
-
-    bw.append(String.format(template, (Object[]) args));
-    bw.newLine();
-    bw.close();
+    String sqlFile = String.format(template, (Object[]) args);
 
     setup();
-    boolean result = roundtrip(populate_file);
+    boolean result = roundtrip(sqlFile);
     teardown();
-    Files.deleteIfExists(populate_file);
     return result;
   }
 
-  public boolean testFile(Path populate_file) throws IOException, InterruptedException {
+  public boolean testFile(String populate_file) throws IOException, InterruptedException, SQLException {
     assert setup() == 0 : "Roundtrip setup exit status was not 0";
     boolean result = roundtrip(populate_file);
     assert teardown() == 0 : "Roundtrip teardown exit status was not 0";
@@ -127,23 +137,13 @@ public class Roundtrip {
    * @throws IOException
    * @throws InterruptedException
    */
-  private boolean roundtrip(Path populate_file) throws IOException, InterruptedException {
+  private boolean roundtrip(String populate_file) throws IOException, InterruptedException, SQLException {
     boolean returnValue = false;
 
-    ProcessBuilder sql = bashCommandProcessBuilder(populate_command);
-    sql.redirectOutput(processSTDOUT);
-    sql.redirectError(processSTDERR);
-    sql.redirectInput(populate_file.toFile());
-    for (Entry<String, String> entry : environment_variables_source.entrySet()) {
-      sql.environment().put(entry.getKey(), entry.getValue());
-    }
-    Process p = sql.start();
-    waitAndPrintTmpFileOnError(p, 600, processSTDERR, processSTDOUT);
-
-    // We won't continue, if the process setting up the particular round trip
-    // database didn't succeed.
-    if (p.exitValue() != 0) {
-      return false;
+    // TODO: This should be executing on source, but it isn't
+    try (Connection connection = sourceConnectionProvider.getConnection()) {
+      PreparedStatement ps = connection.prepareStatement(populate_file);
+      ps.execute();
     }
 
     Path dumpsDir = Files.createTempDirectory("dpttest_dumps");
@@ -154,32 +154,22 @@ public class Roundtrip {
     LOGGER.trace("SQL src dump: " + dump_source.toString());
     LOGGER.trace("SQL tgt dump: " + dump_target.toString());
 
-    ProcessBuilder dump = bashCommandProcessBuilder(dump_source_command);
-    dump.redirectOutput(dump_source.toFile());
-    dump.redirectError(processSTDERR);
-    for (Entry<String, String> entry : environment_variables_source.entrySet()) {
-      dump.environment().put(entry.getKey(), entry.getValue());
-    }
-    p = dump.start();
-    waitAndPrintTmpFileOnError(p, 600, processSTDERR);
+    Container.ExecResult sourceDump = databaseContainer.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
+      databaseContainer.getUsername(), "--format", "plain", "--no-owner", "--no-privileges", "--column-inserts",
+      "--no-security-labels", "--no-tablespaces");
 
     // convert from the database to siard
     if (Main.internalMainUsedOnlyByTestClasses(reviewArguments(forward_conversion_arguments)) == 0) {
       // and if that succeeded, convert back to the database
       if (Main.internalMainUsedOnlyByTestClasses(reviewArguments(backward_conversion_arguments)) == 0) {
         // both conversions succeeded. going to compare the database dumps
-        dump = bashCommandProcessBuilder(dump_target_command);
-        dump.redirectOutput(dump_target.toFile());
-        dump.redirectError(processSTDERR);
-        for (Entry<String, String> entry : environment_variables_target.entrySet()) {
-          dump.environment().put(entry.getKey(), entry.getValue());
-        }
-        p = dump.start();
-        waitAndPrintTmpFileOnError(p, 600, processSTDERR);
+        Container.ExecResult targetDump = databaseContainer.execInContainer("pg_dump", "-h", "127.0.0.1", "-U",
+          databaseContainer.getUsername(), "--format", "plain", "--no-owner", "--no-privileges", "--column-inserts",
+          "--no-security-labels", "--no-tablespaces");
 
         // this asserts that both dumps represent the same information
         try {
-          dumpDiffExpectations.dumpsRepresentTheSameInformation(dump_source, dump_target);
+          dumpDiffExpectations.dumpsRepresentTheSameInformation(sourceDump.getStdout(), targetDump.getStdout());
         } catch (AssertionError e) {
           Files.deleteIfExists(dump_source);
           Files.deleteIfExists(dump_target);
@@ -197,41 +187,47 @@ public class Roundtrip {
     return returnValue;
   }
 
-  private int setup() throws IOException, InterruptedException {
+  private int setup() throws IOException, InterruptedException, SQLException {
     // clean up before setting up
-    ProcessBuilder teardown = bashCommandProcessBuilder(teardown_command);
-    teardown.redirectOutput(processSTDOUT);
-    teardown.redirectError(processSTDERR);
-    Process p = teardown.start();
-    waitAndPrintTmpFileOnError(p, 30, processSTDERR, processSTDOUT);
+    try (Connection connection = connectionProvider.getConnection()) {
+      for (String query : teardown_queries) {
+        PreparedStatement ps = connection.prepareStatement(query);
+        ps.execute();
+      }
+    }
 
     // create a temporary folder with a siard file inside
     tmpFolderSIARD = Files.createTempDirectory("dpttest_siard");
     tmpFileSIARD = tmpFolderSIARD.resolve("dbptk.siard");
     LOGGER.trace("SIARD file: " + tmpFileSIARD.toString());
 
-    // create user, database and give permissions to the user
-    ProcessBuilder setup = bashCommandProcessBuilder(setup_command);
-    setup.redirectOutput(processSTDOUT);
-    setup.redirectError(processSTDERR);
-    p = setup.start();
+    try (Connection connection = connectionProvider.getConnection()) {
+      for (String query : setup_queries) {
+        PreparedStatement ps = connection.prepareStatement(query);
+        ps.execute();
+      }
+    }
 
-    waitAndPrintTmpFileOnError(p, 30, processSTDERR, processSTDOUT);
-    return p.waitFor();
+    databaseContainer.withDatabaseName(db_source);
+    sourceConnectionProvider = new DBConnectionProvider(databaseContainer.getJdbcUrl(), databaseContainer.getUsername(),
+      databaseContainer.getPassword());
+    databaseContainer.withDatabaseName(db_target);
+    targetConnectionProvider = new DBConnectionProvider(databaseContainer.getJdbcUrl(), databaseContainer.getUsername(),
+      databaseContainer.getPassword());
+    return 0;
   }
 
-  private int teardown() throws IOException, InterruptedException {
+  private int teardown() throws IOException, InterruptedException, SQLException {
     FileUtils.deleteDirectoryRecursive(tmpFolderSIARD);
     Files.deleteIfExists(tmpFileSIARD);
 
-    // clean up script
-    ProcessBuilder teardown = bashCommandProcessBuilder(teardown_command);
-    teardown.redirectOutput(processSTDOUT);
-    teardown.redirectError(processSTDERR);
-
-    Process p = teardown.start();
-    waitAndPrintTmpFileOnError(p, 30, processSTDERR, processSTDOUT);
-    return p.waitFor();
+    try (Connection connection = connectionProvider.getConnection()) {
+      for (String query : teardown_queries) {
+        PreparedStatement ps = connection.prepareStatement(query);
+        ps.execute();
+      }
+    }
+    return 0;
   }
 
   private String[] reviewArguments(String[] args) {

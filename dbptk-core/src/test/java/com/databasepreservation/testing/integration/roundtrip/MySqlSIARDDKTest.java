@@ -11,18 +11,15 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.utility.DockerImageName;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -39,22 +36,20 @@ public class MySqlSIARDDKTest {
   private String archiveFullPath;
   private final String ROUND_TRIP_SIARD_ARCHIVE_FILENAME = "AVID.RND.2000.1";
 
+  static MySQLContainer<?> mysql = new MySQLContainer<>(DockerImageName.parse("mysql:5.7.34"));
+
   @BeforeClass
   public void setup() throws IOException, InterruptedException, URISyntaxException {
-    Set<PosixFilePermission> executablePermissions = PosixFilePermissions.fromString("rwxr-xr-x");
-    Files.setAttribute(Paths.get(getClass().getResource("/mySql/scripts/setup.sh").getPath()), "posix:permissions",
-      executablePermissions);
-    Files.setAttribute(Paths.get(getClass().getResource("/mySql/scripts/teardown.sh").getPath()), "posix:permissions",
-      executablePermissions);
+    mysql.start();
+
+    DBConnectionProvider connectionProvider = new DBConnectionProvider(mysql.getJdbcUrl(), mysql.getUsername(),
+      mysql.getPassword());
 
     archiveFullPath = FileSystems.getDefault()
       .getPath(System.getProperty("java.io.tmpdir"), ROUND_TRIP_SIARD_ARCHIVE_FILENAME).toString();
 
-    rt = new Roundtrip(
-      String.format("%s \"%s\" \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/setup.sh").getPath(),
-        db_source, db_target, db_tmp_username, db_tmp_password),
-      String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/mySql/scripts/teardown.sh").getPath(),
-        db_source, db_target, db_tmp_username),
+    rt = new Roundtrip(new String[] {"CREATE DATABASE " + db_source + ";", "CREATE DATABASE " + db_target + ";"},
+      new String[] {"DROP DATABASE IF EXISTS " + db_source + ";", "DROP DATABASE IF EXISTS " + db_target + ";"},
       String.format("mysql  --user=\"%s\" --password=\"%s\" --database=\"%s\"", db_tmp_username, db_tmp_password,
         db_source),
       String.format("mysqldump -v --user=\"%s\" --password=\"%s\" %s --compact ", db_tmp_username, db_tmp_password,
@@ -66,16 +61,11 @@ public class MySqlSIARDDKTest {
         "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--export=siard-dk-1007",
         "--export-folder", archiveFullPath},
 
-      new String[] {"migrate", "--import=siard-dk-1007", "--import-as-schema=dpttest", "--import-folder", archiveFullPath,
-        "--export=mysql", "--export-hostname=127.0.0.1", "--export-database", db_target, "--export-username",
-        db_tmp_username, "--export-password", db_tmp_password},
+      new String[] {"migrate", "--import=siard-dk-1007", "--import-as-schema=dpttest", "--import-folder",
+        archiveFullPath, "--export=mysql", "--export-hostname=127.0.0.1", "--export-database", db_target,
+        "--export-username", db_tmp_username, "--export-password", db_tmp_password},
 
-      new MySqlDumpDiffExpectations(), null, null);
-  }
-
-  @Test(description = "MySql server is available and accessible")
-  public void testConnection() throws IOException, InterruptedException {
-    rt.checkConnection();
+      new MySqlDumpDiffExpectations(), null, null, connectionProvider, mysql);
   }
 
   @DataProvider
@@ -231,7 +221,7 @@ public class MySqlSIARDDKTest {
 
   @Test(description = "Tests small examples", dataProvider = "testQueriesProvider", dependsOnMethods = {
     "testConnection"})
-  public void testQueries(String... args) throws IOException, InterruptedException {
+  public void testQueries(String... args) throws IOException, InterruptedException, SQLException {
     File archFile = new File(archiveFullPath);
     if (archFile.exists()) {
       FileUtils.deleteDirectory(archFile);
@@ -254,7 +244,7 @@ public class MySqlSIARDDKTest {
   }
 
   @Test(description = "Tests MySQL files", dataProvider = "testFilesProvider", dependsOnMethods = {"testConnection"})
-  public void testFiles(Path... file) throws IOException, InterruptedException, URISyntaxException {
+  public void testFiles(String... file) throws IOException, InterruptedException, URISyntaxException, SQLException {
     assert rt.testFile(file[0]) : "Roundtrip failed for file: " + file[0].toString();
   }
 }
