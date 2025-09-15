@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns="http://maven.apache.org/POM/4.0.0"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <name>dbptk-core</name>
     <groupId>com.databasepreservation</groupId>
@@ -101,6 +101,10 @@
         <dependency>
             <groupId>com.databasepreservation</groupId>
             <artifactId>dbptk-bindings-siard2-1</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.databasepreservation</groupId>
+            <artifactId>dbptk-bindings-siard2-2</artifactId>
         </dependency>
         <dependency>
             <groupId>com.databasepreservation</groupId>
@@ -222,6 +226,24 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mysql</artifactId>
+            <version>1.20.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>1.19.8</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mssqlserver</artifactId>
+            <version>1.21.3</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

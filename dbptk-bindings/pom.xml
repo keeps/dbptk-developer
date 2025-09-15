@@ -21,6 +21,7 @@
         <module>dbptk-bindings-siard1</module>
         <module>dbptk-bindings-siard2-0</module>
         <module>dbptk-bindings-siard2-1</module>
+        <module>dbptk-bindings-siard2-2</module>
         <module>dbptk-bindings-siarddk-1007</module>
         <module>dbptk-bindings-siarddk-128</module>
     </modules>
@@ -43,6 +44,7 @@
                                 <!-- specify the schema to convert -->
                                 <schemaDirectory>${basedir}/src/main/resources/schema</schemaDirectory>
                                 <schemaIncludes>
+                                    <include>siard2-2-metadata.xsd</include>
                                     <include>siard2-1-metadata.xsd</include>
                                     <include>siard2-0-metadata.xsd</include>
                                     <include>siard1-metadata.xsd</include>
