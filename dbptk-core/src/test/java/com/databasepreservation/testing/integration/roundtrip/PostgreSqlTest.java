@@ -70,8 +70,8 @@ public class PostgreSqlTest {
       String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/postgreSql/scripts/teardown.sh").getPath(),
         db_source, db_target, db_tmp_username),
       "psql -q -h 127.0.0.1",
-      "pg_dump -h 127.0.0.1 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
-      "pg_dump -h 127.0.0.1 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
+      "pg_dump -h 127.0.0.1 --restrict-key 12345 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
+      "pg_dump -h 127.0.0.1 --restrict-key 12345 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
 
       new String[] {"migrate", "--import=postgresql", "--import-hostname=127.0.0.1", "--import-database", db_source,
         "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--import-disable-encryption",
@@ -88,8 +88,8 @@ public class PostgreSqlTest {
       String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/postgreSql/scripts/teardown.sh").getPath(),
         db_source, db_target, db_tmp_username),
       "psql -q -h 127.0.0.1",
-      "pg_dump -h 127.0.0.1 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
-      "pg_dump -h 127.0.0.1 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
+      "pg_dump -h 127.0.0.1 --restrict-key 12345 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
+      "pg_dump -h 127.0.0.1 --restrict-key 12345 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
 
       new String[] {"migrate", "--import=postgresql", "--import-hostname=127.0.0.1", "--import-database", db_source,
         "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--import-disable-encryption",
@@ -106,8 +106,8 @@ public class PostgreSqlTest {
       String.format("%s \"%s\" \"%s\" \"%s\"", getClass().getResource("/postgreSql/scripts/teardown.sh").getPath(),
         db_source, db_target, db_tmp_username),
       "psql -q -h 127.0.0.1",
-      "pg_dump -h 127.0.0.1 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
-      "pg_dump -h 127.0.0.1 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
+      "pg_dump -h 127.0.0.1 --restrict-key 12345 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
+      "pg_dump -h 127.0.0.1 --restrict-key 12345 --format plain --no-owner --no-privileges --column-inserts --no-security-labels --no-tablespaces",
 
       new String[] {"migrate", "--import=postgresql", "--import-hostname=127.0.0.1", "--import-database", db_source,
         "--import-username", db_tmp_username, "--import-password", db_tmp_password, "--import-disable-encryption",
