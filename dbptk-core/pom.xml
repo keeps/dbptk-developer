@@ -70,7 +70,7 @@
                     <suiteXmlFiles>
                         <suiteXmlFile>${basedir}/testng.xml</suiteXmlFile>
                     </suiteXmlFiles>
-                    <groups>${testng.groups}</groups>
+                    <groups>all</groups>
                 </configuration>
                 <executions>
                     <execution>
