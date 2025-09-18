@@ -512,8 +512,11 @@ public class SIARDDK1007MetadataImportStrategy implements MetadataImportStrategy
       Constants.BINARY_LARGE_OBJECT);
     VirtualColumnStructure columnLOB = new VirtualColumnStructure(Constants.BLOB, Constants.BLOB_COLUMN_NAME, type,
       true, "", "1", true);
+    VirtualColumnStructure columnPID = new VirtualColumnStructure(SIARDDKConstants.PID, SIARDDKConstants.PID, typeInt,
+      true, SIARDDKConstants.PARENT_IDENTIFIER, "1", false);
     columnStructureList.add(columnID);
     columnStructureList.add(columnLOB);
+    columnStructureList.add(columnPID);
     return columnStructureList;
   }
 

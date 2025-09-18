@@ -168,6 +168,14 @@ public class SIARDDK1007ContentImportStrategy extends
   }
 
   @Override
+  BigInteger getPID(DocumentType doc) {
+    if (doc.getPID() == null) {
+      return null;
+    }
+    return doc.getPID().getValue();
+  }
+
+  @Override
   BigInteger getMID(DocumentType doc) {
     return doc.getMID();
   }
