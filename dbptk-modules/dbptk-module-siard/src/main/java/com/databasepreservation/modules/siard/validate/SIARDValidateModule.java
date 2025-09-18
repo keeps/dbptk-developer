@@ -46,6 +46,7 @@ public class SIARDValidateModule implements ValidateModule {
   private Reporter reporter;
   private ValidationObserver observer;
   private final Path siardPackageNormalizedPath;
+  private SIARDConstants.SiardVersion siardVersion;
   private ValidationReporter validationReporter;
   private final List<String> allowedUDTs;
   private final ValidatorPathStrategy validatorPathStrategy;
@@ -59,12 +60,14 @@ public class SIARDValidateModule implements ValidateModule {
    * @param SIARDPackagePath
    *          Path to the main SIARD file (file with extension .siard)
    */
-  public SIARDValidateModule(Path SIARDPackagePath, Path validationReporterPath, boolean skipAdditionalChecks) {
+  public SIARDValidateModule(Path SIARDPackagePath, Path validationReporterPath, boolean skipAdditionalChecks)
+    throws ModuleException {
     siardPackageNormalizedPath = SIARDPackagePath.toAbsolutePath().normalize();
+    siardVersion = getSIARDVersion();
 
     validationReporter = new ValidationReporter(
       validationReporterPath != null ? validationReporterPath.toAbsolutePath().normalize() : null,
-      siardPackageNormalizedPath);
+      siardPackageNormalizedPath, siardVersion.getDisplayName());
     allowedUDTs = Collections.emptyList();
     validatorPathStrategy = new ValidatorPathStrategyImpl();
     zipFileManager = new ZipFileManager();
@@ -81,8 +84,9 @@ public class SIARDValidateModule implements ValidateModule {
   public SIARDValidateModule(Path SIARDPackagePath, Path validationReporterPath, Path allowedUDTs,
     boolean skipAdditionalChecks) throws ModuleException {
     siardPackageNormalizedPath = SIARDPackagePath.toAbsolutePath().normalize();
+    siardVersion = getSIARDVersion();
     validationReporter = new ValidationReporter(validationReporterPath.toAbsolutePath().normalize(),
-      siardPackageNormalizedPath);
+      siardPackageNormalizedPath, siardVersion.getDisplayName());
     this.allowedUDTs = parseAllowUDTs(allowedUDTs);
     validatorPathStrategy = new ValidatorPathStrategyImpl();
     zipFileManager = new ZipFileManager();
@@ -112,7 +116,7 @@ public class SIARDValidateModule implements ValidateModule {
   @Override
   public boolean validate() throws ModuleException {
 
-    if (!validateSIARDVersion(getSIARDVersion())) {
+    if (!validateSIARDVersion(siardVersion)) {
       throw new SIARDVersionNotSupportedException().withVersionInfo("SIARD 2.1 or 2.2 versions")
         .withMessage("SIARD validator only supports");
     }
@@ -185,7 +189,7 @@ public class SIARDValidateModule implements ValidateModule {
     List<ValidatorComponent> components = new ArrayList<>();
 
     final Collection<ValidatorComponentFactory> validatorComponentFactories = ReflectionUtils
-      .collectValidatorComponentFactories(false, getSIARDVersionValidationPackageSuffix(getSIARDVersion()));
+      .collectValidatorComponentFactories(false, getSIARDVersionValidationPackageSuffix(siardVersion));
 
     List<ValidatorComponentFactory> order = new ArrayList<>();
     ValidatorComponentFactory next = null;

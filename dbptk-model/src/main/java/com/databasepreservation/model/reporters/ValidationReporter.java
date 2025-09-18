@@ -50,11 +50,11 @@ public class ValidationReporter implements AutoCloseable {
   private static final String CLOSED_BRACKET = "]";
   private static final String HYPHEN = "-";
 
-  public ValidationReporter(Path path, Path siardPackagePath) {
-    init(path, siardPackagePath);
+  public ValidationReporter(Path path, Path siardPackagePath, String versionString) {
+    init(path, siardPackagePath, versionString);
   }
 
-  private void init(Path path, Path siardPackagePath) {
+  private void init(Path path, Path siardPackagePath, String versionString) {
     this.outputFile = path;
     if (outputFile != null && outputFile.toFile().exists()) {
       try {
@@ -79,7 +79,7 @@ public class ValidationReporter implements AutoCloseable {
         writeLine(
           "######################################################################################################################################");
         writeLine("DBPTK Version: " + MiscUtils.APP_NAME_AND_VERSION);
-        writeLine("SIARD Version: " + Constants.SIARD_VERSION_21);
+        writeLine("SIARD Version: " + versionString);
         writeLine("The specification to the SIARD can be found at: " + Constants.LINK_TO_SPECIFICATION);
         writeLine("Additional checks specification can be found at: " + Constants.LINK_TO_WIKI_ADDITIONAL_CHECKS);
         writeLine("Date: " + new org.joda.time.DateTime());
