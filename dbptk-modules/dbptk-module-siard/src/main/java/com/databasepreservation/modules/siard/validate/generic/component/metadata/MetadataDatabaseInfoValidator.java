@@ -192,7 +192,7 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
   }
 
   /**
-   * M_5.1-1-1: Version is mandatory in SIARD 2.1 specification
+   * M_5.1-1-1: Version is mandatory in SIARD 2.1 and 2.2 specifications
    *
    * A_M_511_1: Additional check, Version can be dk, 1.0, 2.0, 2.1, 2.2., WARNING if it
    * is invalid
@@ -209,11 +209,12 @@ public class MetadataDatabaseInfoValidator extends MetadataValidator {
       switch (version) {
         case "2.0":
         case "2.1":
+        case "2.2":
         case "DK":
         case "1.0":
           break;
         default:
-          addWarning(A_M_511_1, "The version of SIARD should be 1.0, DK, 2.0 or 2.1. Found: " + version,
+          addWarning(A_M_511_1, "The version of SIARD should be 1.0, DK, 2.0, 2.1 or 2.2. Found: " + version,
             "siardArchive");
       }
     }
