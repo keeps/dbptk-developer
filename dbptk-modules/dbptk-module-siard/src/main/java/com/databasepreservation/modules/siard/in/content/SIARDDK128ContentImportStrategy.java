@@ -169,6 +169,14 @@ public class SIARDDK128ContentImportStrategy extends
   }
 
   @Override
+  BigInteger getPID(DocumentType doc) {
+    if (doc.getPID() == null) {
+        return null;
+    }
+    return doc.getPID().getValue();
+  }
+
+  @Override
   String getDCf(DocumentType doc) {
     return doc.getDCf();
   }

@@ -341,6 +341,14 @@ public abstract class SIARDDKContentImportStrategy<T, D, F, S> extends DefaultHa
           DigestUtils.getSha1Digest().toString());
         lstCells.add(blobCell);
 
+        // parent id
+        BigInteger pID = getPID(doc);
+        String pIDString = pID == null ? "" : pID.toString();
+
+        Cell pIDCell = new SimpleCell(SIARDDKConstants.PID + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + rowCounter,
+          pIDString);
+        lstCells.add(pIDCell);
+
         // set and handle row
         assert !lstCells.contains(null);
         row.setCells(lstCells);
@@ -467,6 +475,8 @@ public abstract class SIARDDKContentImportStrategy<T, D, F, S> extends DefaultHa
   abstract List<T> getDocuments(D docIndex);
 
   abstract BigInteger getDID(T doc);
+
+  abstract BigInteger getPID(T doc);
 
   abstract String getDCf(T doc);
 
