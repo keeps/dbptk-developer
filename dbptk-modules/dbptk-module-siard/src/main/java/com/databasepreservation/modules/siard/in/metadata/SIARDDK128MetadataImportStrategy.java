@@ -510,13 +510,13 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
     Type type = sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
       "<information unavailable>", "<information unavailable>", Constants.BINARY_LARGE_OBJECT,
       Constants.BINARY_LARGE_OBJECT);
-    VirtualColumnStructure columnLOB = new VirtualColumnStructure(Constants.BLOB, Constants.BLOB_COLUMN_NAME, type,
-      true, "", "1", true);
     VirtualColumnStructure columnPID = new VirtualColumnStructure(SIARDDKConstants.PID, SIARDDKConstants.PID, typeInt,
       true, SIARDDKConstants.PARENT_IDENTIFIER, "1", false);
+    VirtualColumnStructure columnLOB = new VirtualColumnStructure(Constants.BLOB, Constants.BLOB_COLUMN_NAME, type,
+      true, "", "1", true);
     columnStructureList.add(columnID);
-    columnStructureList.add(columnLOB);
     columnStructureList.add(columnPID);
+    columnStructureList.add(columnLOB);
     return columnStructureList;
   }
 

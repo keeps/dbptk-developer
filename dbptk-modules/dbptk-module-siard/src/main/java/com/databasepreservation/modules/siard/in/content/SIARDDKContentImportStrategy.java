@@ -313,6 +313,14 @@ public abstract class SIARDDKContentImportStrategy<T, D, F, S> extends DefaultHa
         getDID(doc).toString());
       lstCells.add(dIDCell);
 
+      // parent id
+      BigInteger pID = getPID(doc);
+      String pIDString = pID == null ? "" : pID.toString();
+
+      Cell pIDCell = new SimpleCell(SIARDDKConstants.PID + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + rowCounter,
+        pIDString);
+      lstCells.add(pIDCell);
+
       try {
         // document blob
         String mainFolder = pathStrategy.getMainFolder().getPath().toString();
@@ -340,14 +348,6 @@ public abstract class SIARDDKContentImportStrategy<T, D, F, S> extends DefaultHa
           new DummyInputStreamProvider(), docPath.toString(), Files.size(docPath), digest,
           DigestUtils.getSha1Digest().toString());
         lstCells.add(blobCell);
-
-        // parent id
-        BigInteger pID = getPID(doc);
-        String pIDString = pID == null ? "" : pID.toString();
-
-        Cell pIDCell = new SimpleCell(SIARDDKConstants.PID + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + rowCounter,
-          pIDString);
-        lstCells.add(pIDCell);
 
         // set and handle row
         assert !lstCells.contains(null);
