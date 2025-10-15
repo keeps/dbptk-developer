@@ -20,6 +20,7 @@
     <properties>
         <version.java>21</version.java>
         <projectLocalRepository>${project.basedir}/vendor-libs/repository</projectLocalRepository>
+        <dbptk.bindings.version>2.1.0</dbptk.bindings.version>
     </properties>
     <distributionManagement>
         <repository>
@@ -300,37 +301,37 @@
             <dependency>
                 <groupId>com.databasepreservation</groupId>
                 <artifactId>dbptk-bindings-siard1</artifactId>
-                <version>2.1.0-SNAPSHOT</version>
+                <version>${dbptk.bindings.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.databasepreservation</groupId>
                 <artifactId>dbptk-bindings-siard2-0</artifactId>
-                <version>2.1.0-SNAPSHOT</version>
+                <version>${dbptk.bindings.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.databasepreservation</groupId>
                 <artifactId>dbptk-bindings-siard2-1</artifactId>
-                <version>2.1.0-SNAPSHOT</version>
+                <version>${dbptk.bindings.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.databasepreservation</groupId>
                 <artifactId>dbptk-bindings-siard2-2</artifactId>
-                <version>2.1.0-SNAPSHOT</version>
+                <version>${dbptk.bindings.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.databasepreservation</groupId>
                 <artifactId>dbptk-bindings-siarddk-1007</artifactId>
-                <version>2.1.0-SNAPSHOT</version>
+                <version>${dbptk.bindings.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.databasepreservation</groupId>
                 <artifactId>dbptk-bindings-siarddk-128</artifactId>
-                <version>2.1.0-SNAPSHOT</version>
+                <version>${dbptk.bindings.version}</version>
             </dependency>
 
             <!-- external modules handling -->
