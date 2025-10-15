@@ -46,8 +46,11 @@ Note that this is not necessary unless you do not have access to KEEPS Artifacto
 
 After changing SIARD XML Schema files, maven must be used to compile a new artifact from the XML Schema (using JAXB). To do this, run ```mvn clean install -Pdbptk-bindings``` from project root folder.
 
-This will install the artifacts locally and they will be used in favour of the ones in KEEPS Artifactory.
+When finalize deploy to GitHub artifactory the new version of the bindings. For that follow the steps:
 
+1. Update the version on the `pom.xml` file in the `dbptk-bindings`
+2. Run `mvn clean deploy -Pdbptk-bindings`
+3. Update the version in the main `pom.xml` file the changes will be inherited by all modules.
 
 ## How to prepare and release a new version
 
