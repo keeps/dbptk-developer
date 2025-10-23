@@ -50,8 +50,12 @@ jobs:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
+      - name: Install DBPTK Bindings
+        run: mvn $MAVEN_CLI_OPTS install -Dmaven.test.skip=true -Pbindings
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Deploy to GitHub packages
-        run: mvn $MAVEN_CLI_OPTS clean package deploy -Dmaven.test.skip=true -Pdeploy
+        run: mvn $MAVEN_CLI_OPTS package deploy -Dmaven.test.skip=true -Pdeploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Get the version
