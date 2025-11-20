@@ -7,6 +7,7 @@
  */
 package com.databasepreservation.model.modules;
 
+import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -73,12 +74,13 @@ public abstract class DatatypeImporter {
    * @throws SQLException
    */
   public Type getCheckedType(DatabaseStructure database, SchemaStructure currentSchema, String tableName,
-    String columnName, int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+    String columnName, int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix,
+    BigInteger cardinality) {
 
     Type type = getFallbackType(typeName);
     try {
       type = getType(database, currentSchema, tableName, columnName, dataType, typeName, columnSize, decimalDigits,
-        numPrecRadix);
+        numPrecRadix, cardinality);
     } catch (UnknownTypeException e) {
       LOGGER.debug("Got an UnknownTypeException while getting the source database type", e);
     } catch (SQLException e) {
@@ -129,7 +131,8 @@ public abstract class DatatypeImporter {
   }
 
   protected abstract Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName,
-    String columnName, int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    String columnName, int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix,
+    BigInteger cardinality)
     throws UnknownTypeException, SQLException, ClassNotFoundException;
 
   protected abstract Type getArray(String typeName, int columnSize, int decimalDigits, int numPrecRadix, int dataType,

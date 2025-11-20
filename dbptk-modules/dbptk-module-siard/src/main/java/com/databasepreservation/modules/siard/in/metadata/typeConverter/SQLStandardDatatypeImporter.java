@@ -7,10 +7,12 @@
  */
 package com.databasepreservation.modules.siard.in.metadata.typeConverter;
 
+import java.math.BigInteger;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.databasepreservation.model.structure.type.ComposedTypeArray;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +82,7 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
    * getCheckedType method, simplified to use with SIARD import modules
    */
   public Type getCheckedType(String databaseName, String schemaName, String tableName, String columnName,
-    String sqlStandardType, String originalType) {
+    String sqlStandardType, String originalType, BigInteger cardinality) {
     // dummy objects with bare essentials to be compatible with the parent class
     DatabaseStructure database = new DatabaseStructure();
     database.setName(databaseName);
@@ -92,8 +94,9 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
     int numPrecRadix = DEFAULT_NUM_PREC_RADIX;
 
     Type type = getCheckedType(database, schema, tableName, columnName, 0, sqlStandardType, standardType.columnSize,
-      standardType.decimalDigits, numPrecRadix);
+      standardType.decimalDigits, numPrecRadix, cardinality);
     type.setOriginalTypeName(originalType);
+
     return type;
   }
 

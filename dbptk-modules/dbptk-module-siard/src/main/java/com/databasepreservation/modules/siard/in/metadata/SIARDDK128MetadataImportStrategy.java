@@ -480,12 +480,12 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
   private List<ColumnStructure> createContextDocumentsTableColumns() {
     List<ColumnStructure> columnStructureList = new ArrayList<>();
     Type typeInt = sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
-      "<information unavailable>", "<information unavailable>", "INTEGER", "INTEGER");
+      "<information unavailable>", "<information unavailable>", "INTEGER", "INTEGER", null);
     Type typeChar = sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
-      "<information unavailable>", "<information unavailable>", "CHARACTER(255)", "CHARACTER(255)");
+      "<information unavailable>", "<information unavailable>", "CHARACTER(255)", "CHARACTER(255)", null);
     Type typeBlob = sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
       "<information unavailable>", "<information unavailable>", Constants.BINARY_LARGE_OBJECT,
-      Constants.BINARY_LARGE_OBJECT);
+      Constants.BINARY_LARGE_OBJECT, null);
     VirtualColumnStructure columnID = new VirtualColumnStructure(SIARDDKConstants.DOCUMENT_ID,
       SIARDDKConstants.DOCUMENT_ID, typeInt, true, SIARDDKConstants.DOCUMENT_IDENTIFIER, "1", true);
     VirtualColumnStructure columnTitle = new VirtualColumnStructure(SIARDDKConstants.DOCUMENT_TITLE,
@@ -504,12 +504,12 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
   private List<ColumnStructure> createVirtualTableColumns() {
     List<ColumnStructure> columnStructureList = new ArrayList<>();
     Type typeInt = sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
-      "<information unavailable>", "<information unavailable>", "INTEGER", "INTEGER");
+      "<information unavailable>", "<information unavailable>", "INTEGER", "INTEGER", null);
     VirtualColumnStructure columnID = new VirtualColumnStructure(SIARDDKConstants.DID, SIARDDKConstants.DID, typeInt,
       true, SIARDDKConstants.DOCUMENT_IDENTIFIER, "1", true);
     Type type = sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
       "<information unavailable>", "<information unavailable>", Constants.BINARY_LARGE_OBJECT,
-      Constants.BINARY_LARGE_OBJECT);
+      Constants.BINARY_LARGE_OBJECT, null);
     VirtualColumnStructure columnPID = new VirtualColumnStructure(SIARDDKConstants.PID, SIARDDKConstants.PID, typeInt,
       true, SIARDDKConstants.PARENT_IDENTIFIER, "1", false);
     VirtualColumnStructure columnLOB = new VirtualColumnStructure(Constants.BLOB, Constants.BLOB_COLUMN_NAME, type,
@@ -536,7 +536,8 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
         String typeOriginal = StringUtils.isNotBlank(columnXml.getTypeOriginal()) ? columnXml.getTypeOriginal() : null;
         columnDptkl
           .setType(sqlStandardDatatypeImporter.getCheckedType("<information unavailable>", "<information unavailable>",
-            "<information unavailable>", "<information unavailable>", columnXml.getType(), typeOriginal));
+            "<information unavailable>", "<information unavailable>", columnXml.getType(), typeOriginal,
+            columnDptkl.getCardinality()));
         columnDptkl.setDescription(columnXml.getDescription());
         String defaultValue = StringUtils.isNotBlank(columnXml.getDefaultValue()) ? columnXml.getDefaultValue() : null;
         columnDptkl.setDefaultValue(defaultValue);
