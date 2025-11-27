@@ -44,7 +44,12 @@ public class ExternalLOBSCellHandlerFileSystem implements ExternalLOBSCellHandle
 
     if (Files.exists(blobPath)) {
       if (Files.isRegularFile(blobPath)) {
-        newCell = new BinaryCell(cellId, new PathInputStreamProvider(blobPath));
+          try {
+              newCell = new BinaryCell(cellId, new PathInputStreamProvider(blobPath));
+          } catch (ModuleException e) {
+              reporter.ignored("Cell " + cellId,
+                      blobPath.toString() + " ignore due to: " + e.getMessage() + "; Base path: " + this.basePath + " Cell Value: " + cellValue);
+          }
       } else {
         reporter.ignored("Cell " + cellId,
           blobPath.toString() + " is not a file; Base path: " + this.basePath + " Cell Value: " + cellValue);
