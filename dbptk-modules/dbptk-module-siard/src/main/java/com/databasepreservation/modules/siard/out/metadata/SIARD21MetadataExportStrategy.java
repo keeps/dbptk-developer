@@ -787,6 +787,10 @@ public class SIARD21MetadataExportStrategy implements MetadataExportStrategy {
       columnType.setLobFolder(contentPathStrategy.getColumnFolderName(columnIndex));
     }
 
+    if (column.getCardinality() != null) {
+      columnType.setCardinality(column.getCardinality());
+    }
+
     // columnType.setTypeSchema(null);
     // columnType.setTypeName(null);
     // columnType.setFields(null);

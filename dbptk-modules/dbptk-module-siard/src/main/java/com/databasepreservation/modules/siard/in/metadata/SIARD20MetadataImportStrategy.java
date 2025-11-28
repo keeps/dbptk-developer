@@ -399,7 +399,7 @@ public class SIARD20MetadataImportStrategy implements MetadataImportStrategy {
       result.setMode(parameterType.getMode());
       result.setType(sqlStandardDatatypeImporter.getCheckedType(metadataCurrentDatabaseName, metadataCurrentSchemaName,
         metadataCurrentTableName + " (routine)", parameterType.getName() + " (parameter)", parameterType.getType(),
-        parameterType.getTypeOriginal()));
+        parameterType.getTypeOriginal(), null));
       result.setDescription(parameterType.getDescription());
 
       // todo: deal with these fields (related to complex types)
@@ -664,7 +664,7 @@ public class SIARD20MetadataImportStrategy implements MetadataImportStrategy {
       contentPathStrategy.associateColumnWithFolder(result.getId(), column.getFolder());
 
       result.setType(sqlStandardDatatypeImporter.getCheckedType(metadataCurrentDatabaseName, metadataCurrentSchemaName,
-        metadataCurrentTableName, column.getName(), column.getType(), column.getTypeOriginal()));
+        metadataCurrentTableName, column.getName(), column.getType(), column.getTypeOriginal(), null));
 
       result.setNillable(column.isNullable());
       result.setDefaultValue(column.getDefaultValue());
