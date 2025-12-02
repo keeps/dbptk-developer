@@ -13,6 +13,7 @@ import static com.databasepreservation.Constants.VIEW_NAME_PREFIX;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
@@ -1642,6 +1643,22 @@ public class JDBCImportModule implements DatabaseImportModule {
     return string;
   }
 
+  private void updateMaxCardinalities(Row row, HashMap<String, Integer> cardinalities) {
+    for (Cell cell : row.getCells()) {
+      if (cell instanceof ArrayCell arrayCell) {
+        String[] cellIdParts = cell.getId().split("\\.");
+        String cellColumnName = cellIdParts[cellIdParts.length - 2];
+        int cellCardinality = 0;
+        try {
+          cellCardinality = arrayCell.toArray((c -> c), Cell.class).length;
+        } catch (InvalidDataException e) {
+          LOGGER.warn("Couldn't get array cell data for cell {}", cell);
+        }
+        cardinalities.put(cellColumnName, Math.max(cardinalities.getOrDefault(cellColumnName, 0), cellCardinality));
+      }
+    }
+  }
+
   protected Row convertRawToRow(ResultSet rawData, TableStructure tableStructure)
     throws InvalidDataException, SQLException, ModuleException {
     Row row = null;
@@ -2088,6 +2105,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         for (TableStructure table : schema.getTables()) {
           exportModule.handleDataOpenTable(table.getId());
 
+          HashMap<String, Integer> tableColumnsCardinality = new HashMap<>();
           long nRows = 0;
           if (getModuleConfiguration().isFetchRows()) {
             if (table.isFromCustomView()) {
@@ -2096,7 +2114,9 @@ public class JDBCImportModule implements DatabaseImportModule {
               if (customView != null) {
                 try (ResultSet tableRawData = getTableRawData(customView.getQuery(), table.getId())) {
                   while (resultSetNext(tableRawData)) {
-                    exportModule.handleDataRow(convertRawToRow(tableRawData, table));
+                    Row row = convertRawToRow(tableRawData, table);
+                    exportModule.handleDataRow(row);
+                    updateMaxCardinalities(row, tableColumnsCardinality);
                     nRows++;
                   }
                 } catch (SQLException | ModuleException e) {
@@ -2108,7 +2128,9 @@ public class JDBCImportModule implements DatabaseImportModule {
             } else {
               try (ResultSet tableRawData = getTableRawData(table)) {
                 while (resultSetNext(tableRawData)) {
-                  exportModule.handleDataRow(convertRawToRow(tableRawData, table));
+                  Row row = convertRawToRow(tableRawData, table);
+                  exportModule.handleDataRow(row);
+                  updateMaxCardinalities(row, tableColumnsCardinality);
                   nRows++;
                 }
               } catch (SQLException e) {
@@ -2131,6 +2153,12 @@ public class JDBCImportModule implements DatabaseImportModule {
           // problem.");
           // }
 
+          for (Map.Entry<String, Integer> arrayCellCardinalityPair : tableColumnsCardinality.entrySet()) {
+            ColumnStructure column = table.getColumnByName(arrayCellCardinalityPair.getKey());
+            if (column != null && column.getType() instanceof ComposedTypeArray) {
+              column.setCardinality(BigInteger.valueOf(arrayCellCardinalityPair.getValue()));
+            }
+          }
           getDatabaseStructure().getTableById(table.getId()).setRows(nRows);
 
           exportModule.handleDataCloseTable(table.getId());

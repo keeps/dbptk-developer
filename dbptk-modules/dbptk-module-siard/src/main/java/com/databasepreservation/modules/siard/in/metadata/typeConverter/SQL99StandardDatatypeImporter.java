@@ -7,6 +7,7 @@
  */
 package com.databasepreservation.modules.siard.in.metadata.typeConverter;
 
+import java.math.BigInteger;
 import java.sql.SQLException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -27,7 +28,15 @@ public class SQL99StandardDatatypeImporter extends SQLStandardDatatypeImporter {
 
   @Override
   protected Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName, String columnName,
-    int dataType, String sql99TypeName, int columnSize, int decimalDigits, int numPrecRadix)
+    int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException, SQLException, ClassNotFoundException {
+    return getType(database, currentSchema, tableName, columnName, dataType, typeName, columnSize, decimalDigits,
+      numPrecRadix, null);
+  }
+
+  @Override
+  protected Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName, String columnName,
+    int dataType, String sql99TypeName, int columnSize, int decimalDigits, int numPrecRadix, BigInteger cardinality)
     throws UnknownTypeException, SQLException, ClassNotFoundException {
 
     SqlStandardType standardType = new SqlStandardType(sql99TypeName);
@@ -178,7 +187,7 @@ public class SQL99StandardDatatypeImporter extends SQLStandardDatatypeImporter {
       type.setOriginalTypeName(standardType.original);
     }
 
-    if (standardType.isArray) {
+    if (cardinality != null) {
       Type subtype = type;
       type = new ComposedTypeArray(subtype);
       type.setOriginalTypeName(subtype.getOriginalTypeName());
@@ -186,7 +195,7 @@ public class SQL99StandardDatatypeImporter extends SQLStandardDatatypeImporter {
       type.setSql99TypeName(subtype.getSql99TypeName());
       type.setSql2008TypeName(subtype.getSql2008TypeName());
 
-      String typeNameWithoutArrayPart = standardType.normalized.substring(0, standardType.normalized.indexOf(" ARRAY"));
+      String typeNameWithoutArrayPart = standardType.normalized;
       subtype.setSql99TypeName(typeNameWithoutArrayPart);
       subtype.setSql2008TypeName(typeNameWithoutArrayPart);
     }

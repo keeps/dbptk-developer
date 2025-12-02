@@ -160,8 +160,10 @@ public class PostgreSQLJDBCDatatypeImporter extends JDBCDatatypeImporter {
     // declaration is 1000, so if we find more than that it means that this type was
     // declared without precision nor scale
 
-    //20240626 alindo: when upgrading the conector to version 42.7.3 it sets the data type
-    // scale and precision to 0 when they are not specified which is against SIARD specification
+    // 20240626 alindo: when upgrading the conector to version 42.7.3 it sets the
+    // data type
+    // scale and precision to 0 when they are not specified which is against SIARD
+    // specification
     // https://github.com/pgjdbc/pgjdbc/issues/2188
     if (columnSize == 0) {
       type.setSql99TypeName("NUMERIC", NUMERIC_MAX_PRECISION_NUMBER, NUMERIC_MAX_SCALE_NUMBER);

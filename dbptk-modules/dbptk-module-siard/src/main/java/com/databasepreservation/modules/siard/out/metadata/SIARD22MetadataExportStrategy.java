@@ -804,6 +804,10 @@ public class SIARD22MetadataExportStrategy implements MetadataExportStrategy {
       throw new ModuleException().withMessage("Could not get SQL2008 type").withCause(e);
     }
 
+    if (column.getCardinality() != null) {
+      columnType.setCardinality(column.getCardinality());
+    }
+
     // columnType.setTypeSchema(null);
     // columnType.setTypeName(null);
     // columnType.setFields(null);
@@ -865,6 +869,10 @@ public class SIARD22MetadataExportStrategy implements MetadataExportStrategy {
       } else {
         columnType.setLobFolder("s" + schemaIndex + "_t" + tableIndex + "_c" + columnIndex);
       }
+    }
+
+    if (column.getCardinality() != null) {
+      columnType.setCardinality(column.getCardinality());
     }
 
     return columnType;

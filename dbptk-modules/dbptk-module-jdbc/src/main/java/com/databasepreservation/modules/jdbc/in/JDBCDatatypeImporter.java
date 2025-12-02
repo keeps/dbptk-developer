@@ -7,6 +7,7 @@
  */
 package com.databasepreservation.modules.jdbc.in;
 
+import java.math.BigInteger;
 import java.sql.SQLException;
 import java.sql.Types;
 
@@ -38,6 +39,14 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   @Override
   protected Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName, String columnName,
     int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException, SQLException, ClassNotFoundException {
+    return getType(database, currentSchema, tableName, columnName, dataType, typeName, columnSize, decimalDigits,
+      numPrecRadix, null);
+  }
+
+  @Override
+  protected Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName, String columnName,
+    int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix, BigInteger cardinality)
     throws UnknownTypeException, SQLException, ClassNotFoundException {
     Type type;
 
@@ -159,8 +168,8 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
   protected Type getArray(String typeName, int columnSize, int decimalDigits, int numPrecRadix, int dataType,
     Type subType) {
     ComposedTypeArray type = new ComposedTypeArray(subType);
-    type.setSql99TypeName(subType.getSql99TypeName() + " ARRAY");
-    type.setSql2008TypeName(subType.getSql2008TypeName() + " ARRAY");
+    type.setSql99TypeName(subType.getSql99TypeName());
+    type.setSql2008TypeName(subType.getSql2008TypeName());
     return type;
   }
 

@@ -7,6 +7,7 @@
  */
 package com.databasepreservation.model.structure;
 
+import java.math.BigInteger;
 import java.util.Objects;
 
 import com.databasepreservation.model.structure.type.Type;
@@ -32,6 +33,8 @@ public class ColumnStructure {
   private String description;
 
   private Boolean isAutoIncrement;
+
+  private BigInteger cardinality;
 
   /**
    * ColumnStructure empty constructor
@@ -180,11 +183,19 @@ public class ColumnStructure {
     this.nillable = nillable;
   }
 
+  public BigInteger getCardinality() {
+    return cardinality;
+  }
+
+  public void setCardinality(BigInteger cardinality) {
+    this.cardinality = cardinality;
+  }
+
   @Override
   public String toString() {
     return "ColumnStructure{" + "id='" + id + '\'' + ", name='" + name + '\'' + ", type=" + type + ", defaultValue='"
       + defaultValue + '\'' + ", nillable=" + nillable + ", description='" + description + '\'' + ", isAutoIncrement="
-      + isAutoIncrement + '}';
+      + isAutoIncrement + ", cardinality=" + cardinality + "}";
   }
 
   @Override
@@ -251,6 +262,9 @@ public class ColumnStructure {
         return false;
       }
     } else if (!type.equals(other.type)) {
+      return false;
+    }
+    if (cardinality != other.cardinality) {
       return false;
     }
     return true;
