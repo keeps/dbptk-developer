@@ -38,6 +38,14 @@ public class JDBCDatatypeImporter extends DatatypeImporter {
 
   @Override
   protected Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName, String columnName,
+    int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException, SQLException, ClassNotFoundException {
+    return getType(database, currentSchema, tableName, columnName, dataType, typeName, columnSize, decimalDigits,
+      numPrecRadix, null);
+  }
+
+  @Override
+  protected Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName, String columnName,
     int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix, BigInteger cardinality)
     throws UnknownTypeException, SQLException, ClassNotFoundException {
     Type type;

@@ -140,6 +140,10 @@ public abstract class DatatypeImporter {
   }
 
   protected abstract Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName,
+    String columnName, int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
+    throws UnknownTypeException, SQLException, ClassNotFoundException;
+
+  protected abstract Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName,
     String columnName, int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix,
     BigInteger cardinality) throws UnknownTypeException, SQLException, ClassNotFoundException;
 
