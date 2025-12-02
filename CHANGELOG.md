@@ -1,5 +1,43 @@
 # Changelog
 
+## Version 4.0.1 (02/12/2025)
+#### Bug fixes
+
+- Fix an error when fetching external lobs and the file is not allowed to be opened
+---
+
+## Version 4.0.0 (24/10/2025)
+## Version 4.0.0 (15/10/2025)
+#### New Features
+- Added support for SIARD 2.2 (migrate, edit and validate modules updated for support)
+  - Exporting to SIARD 2 now exports to SIARD 2.2 rather than SIARD 2.1
+  - Previously existing options to limit LOB folder size and file count now apply those limits in accordance with SIARD 2.2 specification
+---
+
+## Version 4.0.0-RC3 (07/10/2025)
+#### New Features
+
+- Added support for SIARD 2.2 (exporting, importing, and validating)
+
+#### Enhancements
+
+- Reorder pID column in virtual table b78623c9e32c7db407fb4a369bf50893085ae31a
+---
+
+## Version 4.0.0-RC2 (30/09/2025)
+#### New Features
+
+- Added support for SIARD 2.2 (exporting, importing, and validating)
+
+- Added parent ID column in SIARD DK virtual table on import 9ec6d146cfd89f3331ffb307fc08c2303b9c58d9
+---
+
+## Version 4.0.0-RC1 (15/09/2025)
+#### New Features
+
+- Added support for SIARD 2.2 (exporting, importing, and validating)
+---
+
 ## Version 3.1.2 (15/09/2025)
 #### Bug fixes
 
@@ -239,36 +277,3 @@ Special thanks to @daniel-skovenborg for his contributions to this release
 ## Version 2.9.4 (28/08/2020)
 #### Bug Fixes
 * Command line output differs from the file of validation reporter #461
----
-
-## Version 2.9.3 (04/08/2020)
-#### Bug Fixes
-* Validation fails when the validator runs in parallel #458
----
-
-## Version 2.9.2 (04/08/2020)
-#### Bug Fixes
-* Fix number column in Oracle with no length specified gives error in extraction of table definition (#454)
-* Fix columnConfiguration to include NON_DEFAULT values for merkle tree property
-
----
-
-## Version 2.9.1 (23/06/2020)
-#### Bug Fixes
-* Fix #455 Added support to choose threshold lob size 
----
-
-## Version 2.9.0 (15/05/2020)
-#### New Features
-
-* Inventory filter module (#444) For more information access our [wiki](https://github.com/keeps/db-preservation-toolkit/wiki/Inventory-Filter-Module).
-
-#### Bug Fixes
-* Fix #450 Siard metadata edition
----
-
-## Version 2.8.2 (15/04/2020)
-### DBPTK Developer Integrations
-
-* Add new input type parameters
-* Add more information to module parameters
