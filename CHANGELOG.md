@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 4.1.0 (02/12/2025)
+#### New Features
+- Array datatypes are now indicated in SIARD by the subtype name and a cardinality attribute https://github.com/keeps/dbptk-developer/pull/745
+---
+
 ## Version 4.0.1 (02/12/2025)
 #### Bug fixes
 
@@ -271,9 +276,3 @@ Special thanks to @daniel-skovenborg for his contributions to this release
 * Add queryOriginal metadata field to PostgreSQL DBMS #451
 * PostgreSQL module not appending where and order by clauses #462
 * Normalize file path inside the table content when LOBs outside SIARD file #464 
-
----
-
-## Version 2.9.4 (28/08/2020)
-#### Bug Fixes
-* Command line output differs from the file of validation reporter #461
