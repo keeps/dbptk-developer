@@ -7,6 +7,7 @@
  */
 package com.databasepreservation.model.modules;
 
+import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -46,6 +47,13 @@ public abstract class DatatypeImporter {
     this.reporter = reporter;
   }
 
+  public Type getCheckedType(DatabaseStructure database, SchemaStructure currentSchema, String tableName,
+    String columnName, int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+
+    return getCheckedType(database, currentSchema, tableName, columnName, dataType, typeName, columnSize, decimalDigits,
+      numPrecRadix, null);
+  }
+
   /**
    * Map the original type to the normalized type model
    *
@@ -66,6 +74,8 @@ public abstract class DatatypeImporter {
    * @param numPrecRadix
    *          Indicates the numeric radix of this data type, which is usually 2 or
    *          10
+   * @param cardinality
+   *          Cardinality of this type (max number of elements if it's an array)
    * @return the normalized type
    * @throws UnknownTypeException
    *           the original type is unknown and cannot be mapped
@@ -73,12 +83,13 @@ public abstract class DatatypeImporter {
    * @throws SQLException
    */
   public Type getCheckedType(DatabaseStructure database, SchemaStructure currentSchema, String tableName,
-    String columnName, int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+    String columnName, int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix,
+    BigInteger cardinality) {
 
     Type type = getFallbackType(typeName);
     try {
       type = getType(database, currentSchema, tableName, columnName, dataType, typeName, columnSize, decimalDigits,
-        numPrecRadix);
+        numPrecRadix, cardinality);
     } catch (UnknownTypeException e) {
       LOGGER.debug("Got an UnknownTypeException while getting the source database type", e);
     } catch (SQLException e) {
@@ -129,8 +140,8 @@ public abstract class DatatypeImporter {
   }
 
   protected abstract Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName,
-    String columnName, int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix)
-    throws UnknownTypeException, SQLException, ClassNotFoundException;
+    String columnName, int dataType, String typeName, int columnSize, int decimalDigits, int numPrecRadix,
+    BigInteger cardinality) throws UnknownTypeException, SQLException, ClassNotFoundException;
 
   protected abstract Type getArray(String typeName, int columnSize, int decimalDigits, int numPrecRadix, int dataType,
     Type subType) throws UnknownTypeException;

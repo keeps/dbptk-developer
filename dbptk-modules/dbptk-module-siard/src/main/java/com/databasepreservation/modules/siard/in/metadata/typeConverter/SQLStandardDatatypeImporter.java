@@ -7,6 +7,7 @@
  */
 package com.databasepreservation.modules.siard.in.metadata.typeConverter;
 
+import java.math.BigInteger;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -76,11 +77,16 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
       + optionalSpacing + regexArrayOptional + "$", Pattern.CASE_INSENSITIVE);
   }
 
+  public Type getCheckedType(String databaseName, String schemaName, String tableName, String columnName,
+    String sqlStandardType, String originalType) {
+    return getCheckedType(databaseName, schemaName, tableName, columnName, sqlStandardType, originalType, null);
+  }
+
   /**
    * getCheckedType method, simplified to use with SIARD import modules
    */
   public Type getCheckedType(String databaseName, String schemaName, String tableName, String columnName,
-    String sqlStandardType, String originalType) {
+    String sqlStandardType, String originalType, BigInteger cardinality) {
     // dummy objects with bare essentials to be compatible with the parent class
     DatabaseStructure database = new DatabaseStructure();
     database.setName(databaseName);
@@ -92,8 +98,9 @@ public abstract class SQLStandardDatatypeImporter extends DatatypeImporter {
     int numPrecRadix = DEFAULT_NUM_PREC_RADIX;
 
     Type type = getCheckedType(database, schema, tableName, columnName, 0, sqlStandardType, standardType.columnSize,
-      standardType.decimalDigits, numPrecRadix);
+      standardType.decimalDigits, numPrecRadix, cardinality);
     type.setOriginalTypeName(originalType);
+
     return type;
   }
 

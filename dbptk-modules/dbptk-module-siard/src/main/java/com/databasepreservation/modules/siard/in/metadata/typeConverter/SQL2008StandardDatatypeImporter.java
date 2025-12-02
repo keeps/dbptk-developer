@@ -7,6 +7,7 @@
  */
 package com.databasepreservation.modules.siard.in.metadata.typeConverter;
 
+import java.math.BigInteger;
 import java.sql.SQLException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -27,7 +28,7 @@ public class SQL2008StandardDatatypeImporter extends SQLStandardDatatypeImporter
 
   @Override
   protected Type getType(DatabaseStructure database, SchemaStructure currentSchema, String tableName, String columnName,
-    int dataType, String sql2008TypeName, int columnSize, int decimalDigits, int numPrecRadix)
+    int dataType, String sql2008TypeName, int columnSize, int decimalDigits, int numPrecRadix, BigInteger cardinality)
     throws UnknownTypeException, SQLException, ClassNotFoundException {
 
     SqlStandardType standardType = new SqlStandardType(sql2008TypeName);
@@ -157,7 +158,7 @@ public class SQL2008StandardDatatypeImporter extends SQLStandardDatatypeImporter
       type.setOriginalTypeName(standardType.original);
     }
 
-    if (standardType.isArray) {
+    if (cardinality != null) {
       Type subtype = type;
       type = new ComposedTypeArray(subtype);
       type.setOriginalTypeName(subtype.getOriginalTypeName());
@@ -165,9 +166,8 @@ public class SQL2008StandardDatatypeImporter extends SQLStandardDatatypeImporter
       type.setSql99TypeName(subtype.getSql99TypeName());
       type.setSql2008TypeName(subtype.getSql2008TypeName());
 
-      String typeNameWithoutArrayPart = standardType.normalized.substring(0, standardType.normalized.indexOf(" ARRAY"));
-      subtype.setSql99TypeName(typeNameWithoutArrayPart);
-      subtype.setSql2008TypeName(typeNameWithoutArrayPart);
+      subtype.setSql99TypeName(standardType.normalized);
+      subtype.setSql2008TypeName(standardType.normalized);
     }
     return type;
   }

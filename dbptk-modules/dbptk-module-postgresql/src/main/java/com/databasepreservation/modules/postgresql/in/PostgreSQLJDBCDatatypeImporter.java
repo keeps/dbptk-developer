@@ -197,7 +197,8 @@ public class PostgreSQLJDBCDatatypeImporter extends JDBCDatatypeImporter {
           rs.next();
           int sqlSubType = rs.getArray(1).getBaseType();
           String subTypeName = typeName.substring(1);
-          subtype = getType(null, null, null, null, sqlSubType, subTypeName, columnSize, decimalDigits, numPrecRadix);
+          subtype = getType(null, null, null, null, sqlSubType, subTypeName, columnSize, decimalDigits, numPrecRadix,
+            null);
         } catch (SQLException | ClassNotFoundException e) {
           throw PostgreSQLExceptionNormalizer.getInstance().normalizeException(e, "Error obtaining array subtype");
         }
