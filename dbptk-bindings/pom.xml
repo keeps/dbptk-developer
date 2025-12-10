@@ -24,6 +24,7 @@
         <module>dbptk-bindings-siard2-2</module>
         <module>dbptk-bindings-siarddk-1007</module>
         <module>dbptk-bindings-siarddk-128</module>
+        <module>dbptk-bindings-siarddk-128-ext</module>
     </modules>
     <build>
         <pluginManagement>
@@ -146,6 +147,58 @@
 
                                 <!-- specify the schema to convert -->
                                 <schemaDirectory>${basedir}/src/main/resources/schema/128</schemaDirectory>
+                                <schemaIncludes>
+                                    <include>archiveIndex.xsd</include>
+                                    <include>docIndex.xsd</include>
+                                    <include>fileIndex.xsd</include>
+                                    <include>researchIndex.xsd</include>
+                                    <include>XMLSchema.xsd</include>
+                                    <include>tableIndex.xsd</include>
+                                </schemaIncludes>
+                                <forceRegenerate>true</forceRegenerate>
+
+                                <!--generate java classes-->
+                                <generateDirectory>${project.build.directory}/generated-sources/xjc-b
+                                </generateDirectory>
+
+                                <!-- The package of your generated sources -->
+                                <generatePackage>com.databasepreservation.modules.siard.bindings.${packagename}</generatePackage>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>generate-siard-128-ext-contextDocumentationIndex</id>
+                            <goals>
+                                <goal>generate</goal>
+                            </goals>
+                            <configuration>
+                                <strict>false</strict>
+
+                                <!-- specify the schema to convert -->
+                                <schemaDirectory>${basedir}/src/main/resources/schema/128-ext</schemaDirectory>
+                                <schemaIncludes>
+                                    <include>contextDocumentationIndex.xsd</include>
+                                </schemaIncludes>
+
+
+                                <generateDirectory>${project.build.directory}/generated-sources/xjc-a
+                                </generateDirectory>
+
+                                <!-- The package of your generated sources -->
+                                <generatePackage>
+                                    com.databasepreservation.modules.siard.bindings.${packagename}.context
+                                </generatePackage>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>generate-siardk-128-ext</id>
+                            <goals>
+                                <goal>generate</goal>
+                            </goals>
+                            <configuration>
+                                <strict>false</strict>
+
+                                <!-- specify the schema to convert -->
+                                <schemaDirectory>${basedir}/src/main/resources/schema/128-ext</schemaDirectory>
                                 <schemaIncludes>
                                     <include>archiveIndex.xsd</include>
                                     <include>docIndex.xsd</include>

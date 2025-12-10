@@ -334,6 +334,12 @@
                 <version>${dbptk.bindings.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-bindings-siarddk-128-ext</artifactId>
+                <version>${dbptk.bindings.version}</version>
+            </dependency>
+
             <!-- external modules handling -->
             <dependency>
                 <groupId>org.reflections</groupId>
