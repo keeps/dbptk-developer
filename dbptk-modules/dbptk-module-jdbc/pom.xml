@@ -6,11 +6,11 @@
     <name>dbptk-module-jdbc</name>
     <groupId>com.databasepreservation</groupId>
     <artifactId>dbptk-module-jdbc</artifactId>
-    <version>4.2.0-SNAPSHOT</version>
+    <version>4.1.1</version>
     <parent>
         <groupId>com.databasepreservation</groupId>
         <artifactId>dbptk-modules</artifactId>
-        <version>4.2.0-SNAPSHOT</version>
+        <version>4.1.1</version>
         <relativePath>..</relativePath>
     </parent>
 
