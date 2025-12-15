@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 4.1.1 (15/12/2025)
+#### Changes
+- Table XSD files now specify array elements with greater detail for better validation https://github.com/keeps/dbptk-developer/pull/748
+
+#### Bug fixes
+- Array simple cells now correctly exported using array indices (previously exporting as <c> elements instead of <a>) when exporting external lobs https://github.com/keeps/dbptk-developer/pull/748
+- External array simple cell lobs now use array indices for their filenames (previously using array index as if it was the column index) https://github.com/keeps/dbptk-developer/pull/748
+---
+
 ## Version 4.1.0 (02/12/2025)
 #### New Features
 - Array datatypes are now indicated in SIARD by the subtype name and a cardinality attribute https://github.com/keeps/dbptk-developer/pull/745
@@ -269,10 +278,3 @@ Special thanks to @daniel-skovenborg for his contributions to this release
 * NPE during validation if mandatory fields are not filled #466
 * Fallback message when certain queries return unexpected results #467
 * Add strategy to ignore and report triggers that not comply with SIARD 2.1 specification #469
----
-
-## Version 2.9.5 (25/09/2020)
-#### Bug Fixes
-* Add queryOriginal metadata field to PostgreSQL DBMS #451
-* PostgreSQL module not appending where and order by clauses #462
-* Normalize file path inside the table content when LOBs outside SIARD file #464 
