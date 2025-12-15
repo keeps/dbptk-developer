@@ -47,9 +47,21 @@ public class SIARD22ContentWithExternalLobsPathExportStrategy extends SIARD22Con
       .append(rowIndex).append(FILE_EXTENSION_SEPARATOR).append(CLOB_EXTENSION).toString();
   }
 
+  public String getClobOuterFilePath(int tableIndex, int columnIndex, int rowIndex, int arrayIndex) {
+    return new StringBuilder().append("t").append(tableIndex).append("_c").append(columnIndex).append("_r")
+      .append(rowIndex).append("_a").append(arrayIndex).append(FILE_EXTENSION_SEPARATOR).append(CLOB_EXTENSION)
+      .toString();
+  }
+
   public String getBlobOuterFilePath(int tableIndex, int columnIndex, int rowIndex) {
     return new StringBuilder().append("t").append(tableIndex).append("_c").append(columnIndex).append("_r")
       .append(rowIndex).append(FILE_EXTENSION_SEPARATOR).append(BLOB_EXTENSION).toString();
+  }
+
+  public String getBlobOuterFilePath(int tableIndex, int columnIndex, int rowIndex, int arrayIndex) {
+    return new StringBuilder().append("t").append(tableIndex).append("_c").append(columnIndex).append("_r")
+      .append(rowIndex).append("_a").append(arrayIndex).append(FILE_EXTENSION_SEPARATOR).append(BLOB_EXTENSION)
+      .toString();
   }
 
   @Override
