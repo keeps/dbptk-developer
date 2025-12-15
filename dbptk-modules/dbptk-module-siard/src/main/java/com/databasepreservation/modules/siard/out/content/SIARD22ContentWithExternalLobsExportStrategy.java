@@ -93,6 +93,18 @@ public class SIARD22ContentWithExternalLobsExportStrategy extends SIARD22Content
   }
 
   @Override
+  protected void writeSimpleCell(String cellPrefix, Cell cell, ColumnStructure column, int columnIndex, int arrayIndex)
+    throws ModuleException, IOException {
+    SimpleCell simpleCell = (SimpleCell) cell;
+    long length = simpleCell.getBytesSize();
+    if (Sql2008toXSDType.isLargeType(column.getType(), reporter) && length > clobThresholdLimit) {
+      writeLargeObjectDataOutside(cellPrefix, cell, columnIndex, arrayIndex);
+    } else {
+      writeSimpleCellData(cellPrefix, (SimpleCell) cell, arrayIndex);
+    }
+  }
+
+  @Override
   protected void writeBinaryCell(String cellPrefix, Cell cell, ColumnStructure column, int columnIndex)
     throws ModuleException, IOException {
     BinaryCell binaryCell = (BinaryCell) cell;
@@ -208,7 +220,123 @@ public class SIARD22ContentWithExternalLobsExportStrategy extends SIARD22Content
       .get(firstExternalContainer.getPath().getFileName().toString() + File.separator, lobFileParameter).toString());
 
     // write the LOB XML element
-    currentWriter.beginOpenTag("c" + columnIndex, 2).appendAttribute("file", lobURI).appendAttribute("length",
+    currentWriter.beginOpenTag(cellPrefix + columnIndex, 2).appendAttribute("file", lobURI).appendAttribute("length",
+      String.valueOf(lobSizeParameter));
+
+    if (lobDigestChecksum != null) {
+      cell.setMessageDigest(lobDigestChecksum);
+      cell.setDigestAlgorithm(messageDigestAlgorithm);
+
+      currentWriter.appendAttribute("digestType", messageDigestAlgorithm.toUpperCase());
+      currentWriter.appendAttribute("digest", MessageDigestUtils.getHexFromMessageDigest(lobDigestChecksum, lowerCase));
+      lobDigestChecksum = null; // reset it to the default value
+    }
+
+    currentWriter.endShorthandTag();
+  }
+
+  private void writeLargeObjectDataOutside(String cellPrefix, Cell cell, int columnIndex, int arrayIndex)
+    throws IOException, ModuleException {
+    String lobFileParameter = null;
+    long lobSizeParameter = 0;
+    LargeObject lob = null;
+
+    // get size
+    if (cell instanceof BinaryCell binCell) {
+      lobSizeParameter = binCell.getSize();
+    } else if (cell instanceof SimpleCell txtCell) {
+      lobSizeParameter = txtCell.getBytesSize();
+    }
+
+    // determine path
+    Triple<Integer, Integer, Integer> segmentKey = Triple.of(currentSchema.getIndex(), currentTable.getIndex(),
+      columnIndex);
+    SIARDArchiveContainer currentExternalContainer = currentExternalContainers.getOrDefault(segmentKey, null);
+    if (currentExternalContainer == null) {
+      currentExternalContainer = getAnotherExternalContainer(segmentKey);
+      writeStrategy.setup(currentExternalContainer);
+      currentLobsFolderSize = 0;
+      currentLobsInFolder = 0;
+    } else if ((maximumLobsFolderSize > 0 && lobSizeParameter + currentLobsFolderSize >= maximumLobsFolderSize
+      && (lobSizeParameter <= maximumLobsFolderSize || currentLobsFolderSize >= maximumLobsFolderSize))
+      || currentLobsInFolder >= maximumLobsPerFolder) {
+      writeStrategy.finish(currentExternalContainer);
+      currentExternalContainer = getAnotherExternalContainer(segmentKey);
+      writeStrategy.setup(currentExternalContainer);
+      currentLobsFolderSize = 0;
+      currentLobsInFolder = 0;
+    }
+    currentExternalContainers.put(segmentKey, currentExternalContainer);
+    SIARDArchiveContainer firstExternalContainer = currentExternalContainer;
+
+    // get file xml parameters
+    if (contentPathStrategy instanceof SIARD22ContentWithExternalLobsPathExportStrategy paths) {
+      if (cell instanceof BinaryCell) {
+        lobFileParameter = paths.getBlobOuterFilePath(currentTable.getIndex(), columnIndex, currentRowIndex + 1,
+          arrayIndex);
+      } else if (cell instanceof SimpleCell) {
+        lobFileParameter = paths.getClobOuterFilePath(currentTable.getIndex(), columnIndex, currentRowIndex + 1,
+          arrayIndex);
+      }
+    } else {
+      throw new NotImplementedException("Unsupported ContentPathStrategy");
+    }
+
+    if (lobSizeParameter < 0) {
+      // NULL content
+      writeNullCellData(cellPrefix, new NullCell(cell.getId()), columnIndex);
+      return;
+    }
+
+    // get lob object
+    if (cell instanceof BinaryCell binCell) {
+      lob = new LargeObject(binCell, lobFileParameter);
+    } else if (cell instanceof SimpleCell txtCell) {
+      String data = txtCell.getSimpleData();
+      ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8));
+      lob = new LargeObject(new InputStreamProviderImpl(inputStream, data.getBytes().length), lobFileParameter);
+    }
+
+    // write LOB
+    if (writeStrategy.isSimultaneousWritingSupported()) {
+      if (maximumLobsFolderSize > 0 && lobSizeParameter >= maximumLobsFolderSize) {
+        long remainingLobSize = lobSizeParameter;
+        int partSize = (int) (maximumLobsFolderSize - currentLobsFolderSize);
+        int partIndex = 1;
+        try (InputStream lobInputStream = lob.getInputStreamProvider().createInputStream()) {
+          while (remainingLobSize > 0) {
+            writeLOBPartOutside(lob, lobInputStream, currentExternalContainer, partSize, partIndex);
+            currentLobsInFolder++;
+            currentLobsFolderSize += partSize;
+            partIndex++;
+            remainingLobSize -= partSize;
+            partSize = (int) Math.min(maximumLobsFolderSize, remainingLobSize);
+            if (partSize > 0) {
+              writeStrategy.finish(currentExternalContainer);
+              currentExternalContainer = getAnotherExternalContainer(segmentKey);
+              writeStrategy.setup(currentExternalContainer);
+              currentLobsFolderSize = 0;
+              currentLobsInFolder = 0;
+            }
+          }
+        }
+        currentExternalContainers.put(segmentKey, currentExternalContainer);
+      } else {
+        writeLOBOutside(lob, currentExternalContainer);
+        currentLobsFolderSize += lobSizeParameter;
+        currentLobsInFolder++;
+      }
+    } else {
+      throw new NotImplementedException(SIARD22ContentWithExternalLobsExportStrategy.class.getName()
+        + " is not ready to be used with write strategies that don't support simultaneous writing.");
+    }
+
+    // something like "seg_0/t2_c8_r2.bin"
+    String lobURI = FilenameUtils.separatorsToUnix(Paths
+      .get(firstExternalContainer.getPath().getFileName().toString() + File.separator, lobFileParameter).toString());
+
+    // write the LOB XML element
+    currentWriter.beginOpenTag(cellPrefix + arrayIndex, 2).appendAttribute("file", lobURI).appendAttribute("length",
       String.valueOf(lobSizeParameter));
 
     if (lobDigestChecksum != null) {

@@ -12,6 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -263,7 +264,7 @@ public class SIARD22ContentExportStrategy implements ContentExportStrategy {
       if (subCell instanceof BinaryCell) {
         writeBinaryCell(CELL_PREFIX_ARRAY, subCell, column, cellTag);
       } else if (subCell instanceof SimpleCell) {
-        writeSimpleCell(CELL_PREFIX_ARRAY, subCell, column, cellTag);
+        writeSimpleCell(CELL_PREFIX_ARRAY, subCell, column, columnIndex, cellTag);
       } else if (subCell instanceof ComposedCell) {
         writeComposedCell(CELL_PREFIX_ARRAY, subCell, column, cellTag);
       } else if (subCell instanceof NullCell) {
@@ -344,6 +345,18 @@ public class SIARD22ContentExportStrategy implements ContentExportStrategy {
     }
   }
 
+  protected void writeSimpleCell(String cellPrefix, Cell cell, ColumnStructure column, int columnIndex, int arrayIndex)
+    throws ModuleException, IOException {
+    SimpleCell simpleCell = (SimpleCell) cell;
+
+    if (Sql2008toXSDType.isLargeType(column.getType(), reporter)
+      && simpleCell.getBytesSize() > THRESHOLD_TREAT_STRING_AS_CLOB) {
+      writeLargeObjectData(cellPrefix, cell, arrayIndex);
+    } else {
+      writeSimpleCellData(cellPrefix, simpleCell, arrayIndex);
+    }
+  }
+
   protected void writeBinaryCell(String cellPrefix, Cell cell, ColumnStructure column, int columnIndex)
     throws ModuleException, IOException {
     BinaryCell binaryCell = (BinaryCell) cell;
@@ -389,8 +402,8 @@ public class SIARD22ContentExportStrategy implements ContentExportStrategy {
         WaitingInputStream waitingInputStream = new WaitingInputStream(digest);
         InputStream inputStream = new BufferedInputStream(waitingInputStream);
 
-        String lobDir = contentPathStrategy.getAbsoluteInternalLobDirPath(currentSchema.getIndex(), currentTable.getIndex(),
-          columnIndex);
+        String lobDir = contentPathStrategy.getAbsoluteInternalLobDirPath(currentSchema.getIndex(),
+          currentTable.getIndex(), columnIndex);
         lob = new LargeObject(new InputStreamProviderImpl(inputStream),
           contentPathStrategy.getInternalBlobFileName(currentRowIndex + 1));
 
@@ -431,8 +444,8 @@ public class SIARD22ContentExportStrategy implements ContentExportStrategy {
         final WaitingInputStream waitingInputStream = new WaitingInputStream(digest);
         InputStream inputStream = new BufferedInputStream(waitingInputStream);
 
-        String lobDir = contentPathStrategy.getAbsoluteInternalLobDirPath(currentSchema.getIndex(), currentTable.getIndex(),
-          columnIndex);
+        String lobDir = contentPathStrategy.getAbsoluteInternalLobDirPath(currentSchema.getIndex(),
+          currentTable.getIndex(), columnIndex);
         lob = new LargeObject(new InputStreamProviderImpl(inputStream),
           contentPathStrategy.getInternalClobFileName(currentRowIndex + 1));
 
@@ -558,8 +571,12 @@ public class SIARD22ContentExportStrategy implements ContentExportStrategy {
         // <xs:sequence>
         xsdWriter.openTag(XS_SEQUENCE, 6);
 
-        xsdWriter.beginOpenTag("xs:any", 7).appendAttribute(MIN_OCCURS, "0").appendAttribute("maxOccurs", "unbounded")
-          .appendAttribute("processContents", "skip").endShorthandTag();
+        String xsdSubtype = Sql2008toXSDType.convert(col.getType().getSql2008TypeName());
+        for (BigInteger c = BigInteger.valueOf(0); c.compareTo(col.getCardinality()) < 0; c = c.add(BigInteger.ONE)) {
+          xsdWriter.beginOpenTag(XS_ELEMENT, 7).appendAttribute(MIN_OCCURS, "0");
+          xsdWriter.appendAttribute("name", "a" + c.add(BigInteger.ONE)).appendAttribute("type", xsdSubtype)
+            .endShorthandTag();
+        }
 
         // </xs:sequence>
         xsdWriter.closeTag(XS_SEQUENCE, 6);
