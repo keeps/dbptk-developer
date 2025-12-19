@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 4.2.0 (19/12/2025)
+#### New Features
+- Add SIARDDK128Ext modules to allow lobs of PDF file type on SIARD-DK https://github.com/keeps/dbptk-developer/commit/2a14d38e1390673171bde9a04af367779b9a944e
+---
+
 ## Version 4.1.1 (15/12/2025)
 #### Changes
 - Table XSD files now specify array elements with greater detail for better validation https://github.com/keeps/dbptk-developer/pull/748
@@ -270,11 +275,3 @@ Special thanks to @daniel-skovenborg for his contributions to this release
 * Oracle connection fails if password has special characters #471
 * SIARD to SIARD migration ignoring some import-config properties #472
 * 'numeric' column type without any precision or scale is assumed to be integer #477
----
-
-## Version 2.9.6 (02/10/2020)
-#### Bug Fixes
-* Missing a dependency when handling Oracle XMLType #465 
-* NPE during validation if mandatory fields are not filled #466
-* Fallback message when certain queries return unexpected results #467
-* Add strategy to ignore and report triggers that not comply with SIARD 2.1 specification #469
