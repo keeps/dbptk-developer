@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!-- researchIndex.xsd version 1.0.0 -->
+<!-- Rigsarkivet 2019 -->
+<xs:schema xmlns="http://www.sa.dk/xmlns/diark/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.sa.dk/xmlns/diark/1.0" elementFormDefault="qualified">
+	<xs:element name="researchIndex">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="mainTables"/>
+			</xs:sequence>
+			<!-- <xs:attribute name="xmlns" type="xs:string" use="required"/> -->
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="mainTables">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="table" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="table">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="tableID" type="xs:string"/>
+				<xs:element name="source" type="xs:string"/>
+				<xs:element name="specialNumeric" type="xs:string" minOccurs="0" />
+				<xs:element ref="columns" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="columns">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="column" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="column">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="columnID" type="xs:string"/>
+				<xs:element ref="missingValues" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="missingValues">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="value" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>
