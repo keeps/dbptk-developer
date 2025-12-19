@@ -12,7 +12,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,12 +27,13 @@ import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARDDK1007MetadataPathStrategy;
 import com.databasepreservation.modules.siard.common.path.SIARDDK128MetadataPathStrategy;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.in.metadata.MetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.SIARDDK1007MetadataImportStrategy;
-import com.databasepreservation.modules.siard.in.metadata.SIARDDK128MetadataImportStrategy;
+import com.databasepreservation.modules.siard.in.metadata.SIARDDK128ExtMetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.path.ResourceFileIndexInputStreamStrategy;
 import com.databasepreservation.modules.siard.in.path.SIARDDK1007PathImportStrategy;
-import com.databasepreservation.modules.siard.in.path.SIARDDK128PathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARDDK128ExtPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.utils.ModuleConfigurationUtils;
@@ -63,15 +63,16 @@ public class SIARDDKEditModule implements EditModule {
     String paramImportAsSchema = "public";
 
     if (Files.exists(Paths.get(siardPackagePath + SIARDDKConstants.SIARDDK_128_RESEARCH_INDEX_PATH))) {
-      mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.DK_128, siardPackageNormalizedPath,
+      mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.DK_128_EXT, siardPackageNormalizedPath,
         SIARDArchiveContainer.OutputContainerType.MAIN);
       readStrategy = new FolderReadStrategyMD5Sum(mainContainer);
 
       MetadataPathStrategy metadataPathStrategy = new SIARDDK128MetadataPathStrategy();
-      SIARDDK128PathImportStrategy pathStrategy = new SIARDDK128PathImportStrategy(mainContainer, readStrategy,
+      SIARDDK128ExtPathImportStrategy pathStrategy = new SIARDDK128ExtPathImportStrategy(mainContainer, readStrategy,
         metadataPathStrategy, paramImportAsSchema, new ResourceFileIndexInputStreamStrategy());
 
-      metadataImportStrategy = new SIARDDK128MetadataImportStrategy(pathStrategy, paramImportAsSchema);
+      metadataImportStrategy = new SIARDDK128ExtMetadataImportStrategy(pathStrategy, paramImportAsSchema);
+
     } else {
       mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.DK_1007, siardPackageNormalizedPath,
         SIARDArchiveContainer.OutputContainerType.MAIN);
@@ -91,9 +92,9 @@ public class SIARDDKEditModule implements EditModule {
    *
    * @return A <code>DatabaseStructure</code>
    * @throws NullPointerException
-   *          If the SIARD archive version were not 2.0 or 2.1
+   *           If the SIARD archive version were not 2.0 or 2.1
    * @throws ModuleException
-   *          Generic module exception
+   *           Generic module exception
    */
   @Override
   public DatabaseStructure getMetadata() throws ModuleException {
@@ -107,7 +108,8 @@ public class SIARDDKEditModule implements EditModule {
 
       dbStructure = metadataImportStrategy.getDatabaseStructure();
     } catch (NullPointerException e) {
-      throw new ModuleException().withMessage("Metadata editing only supports SIARD version 1, 2.0 and 2.1").withCause(e);
+      throw new ModuleException().withMessage("Metadata editing only supports SIARD version 1, 2.0 and 2.1")
+        .withCause(e);
     } finally {
       readStrategy.finish(mainContainer);
     }
@@ -120,20 +122,20 @@ public class SIARDDKEditModule implements EditModule {
   }
 
   /**
-   * @param dbStructure The {@link DatabaseStructure} with the updated values.
+   * @param dbStructure
+   *          The {@link DatabaseStructure} with the updated values.
    * @throws ModuleException
-   *          Generic module exception
+   *           Generic module exception
    */
   @Override
   public void updateMetadata(DatabaseStructure dbStructure) throws ModuleException {
     throw new ModuleException().withMessage("Metadata editing is not supported for SIARD version DK");
   }
 
-
   /**
    * @return A list of <code>SIARDDatabaseMetadata</code>
    * @throws ModuleException
-   *          Generic module exception
+   *           Generic module exception
    */
   @Override
   public List<SIARDDatabaseMetadata> getDescriptiveSIARDMetadataKeys() throws ModuleException {

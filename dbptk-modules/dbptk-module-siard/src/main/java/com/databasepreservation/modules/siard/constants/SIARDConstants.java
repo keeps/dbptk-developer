@@ -42,6 +42,8 @@ public class SIARDConstants {
 
     DK_128("128", "dk-128"),
 
+    DK_128_EXT("128_EXT", "dk-128-ext"),
+
     // eCH-0165 v1.0: replaced by 2.0
     V1_0("1.0", "1.0", "v1.0");
 
