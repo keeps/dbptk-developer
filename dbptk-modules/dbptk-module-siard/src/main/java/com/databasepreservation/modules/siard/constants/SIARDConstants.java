@@ -40,6 +40,8 @@ public class SIARDConstants {
 
     DK_1007("1007", "dk-1007"),
 
+    DK_1007_EXT("1007_EXT", "dk-1007-ext"),
+
     DK_128("128", "dk-128"),
 
     DK_128_EXT("128_EXT", "dk-128-ext"),

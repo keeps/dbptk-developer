@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- archiveIndex 0.9.5 -->
+<!-- SA 2010 -->
+<!-- Regarding the schema structure, the use of elements only and the intensive use of nested elements with multiple occurence elements is done to ease cooperation with various development tools -->
+<xs:schema xmlns="http://www.sa.dk/xmlns/diark/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.sa.dk/xmlns/diark/1.0" elementFormDefault="qualified" attributeFormDefault="unqualified" blockDefault="#all" finalDefault="extension restriction" version="0.9.5" id="archiveIndex" xml:lang="en">
+	<xs:element name="archiveIndex">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation xml:lang="da">Information om arkiveringsversionen</xs:documentation>
+				<xs:documentation xml:lang="en">Information about the information package</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="archiveInformationPackageID" type="archiveInformationPackageIDType">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">ArkiveringsversionsID</xs:documentation>
+						<xs:documentation xml:lang="da">Entydigt ID som tildeles arkiveringsversionen af Statens Arkiver</xs:documentation>
+						<xs:documentation xml:lang="da">ArkiveringsversionsID som defineret i denne bekendtgørelse</xs:documentation>
+						<xs:documentation xml:lang="en">Information package ID</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="archiveInformationPackageIDPrevious" type="archiveInformationPackageIDPreviousType" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Tidligere aflevering</xs:documentation>
+						<xs:documentation xml:lang="da">Entydigt ID på tidligere aflevering fra samme it-system</xs:documentation>
+						<xs:documentation xml:lang="da">ArkiveringsversionsID som defineret i denne eller tidligere bekendtgørelse</xs:documentation>
+						<xs:documentation xml:lang="en">Previous transfer</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="archivePeriodStart" type="y_ym_ymdDatoType">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Arkiveringsversions startdato</xs:documentation>
+						<xs:documentation xml:lang="da">Startdato for de aflevererede data</xs:documentation>
+						<xs:documentation xml:lang="da">År, år-måned, år-måned-dag</xs:documentation>
+						<xs:documentation xml:lang="en">Start date for the information package</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="archivePeriodEnd" type="y_ym_ymdDatoType">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Arkiveringsversions slutdato</xs:documentation>
+						<xs:documentation xml:lang="da">Slutdato for de aflevererede data</xs:documentation>
+						<xs:documentation xml:lang="da">År, år-måned, år-måned-dag</xs:documentation>
+						<xs:documentation xml:lang="en">End date for the information package</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="archiveInformationPacketType" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Slutaflevering</xs:documentation>
+						<xs:documentation xml:lang="da">Angivelse af, om arkiveringsversionen er en slutaflevering</xs:documentation>
+						<xs:documentation xml:lang="da">Boolsk værdi</xs:documentation>
+						<xs:documentation xml:lang="en">Final transfer</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="archiveCreatorList">
+					<xs:complexType>
+						<xs:sequence maxOccurs="unbounded">
+							<xs:element name="creatorName" type="nonEmptyTextType">
+								<xs:annotation>
+									<xs:documentation xml:lang="da">Arkivskaber</xs:documentation>
+									<xs:documentation xml:lang="da">Den eller de myndigheder, der har skabt arkivaliet. Kan også være organisatoriske enheder inden for en myndighed eller andre bidragydere til arkivaliet.</xs:documentation>
+									<xs:documentation xml:lang="da">Fritekst</xs:documentation>
+									<xs:documentation xml:lang="en">Archival creator</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="creationPeriodStart" type="y_ym_ymdDatoType">
+								<xs:annotation>
+									<xs:documentation xml:lang="da">Arkivskaber startdato</xs:documentation>
+									<xs:documentation xml:lang="da">For hver arkivskaber angives, hvornår arkivskaber er begyndt at taste data ind i it-systemet</xs:documentation>
+									<xs:documentation xml:lang="da">År, år-måned, år-måned-dag</xs:documentation>
+									<xs:documentation xml:lang="en">Start date for the archival creator</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="creationPeriodEnd" type="y_ym_ymdDatoType">
+								<xs:annotation>
+									<xs:documentation xml:lang="da">Arkivskaber slutdato</xs:documentation>
+									<xs:documentation xml:lang="da">For hver arkivskaber angives, hvornår arkivskaber er ophørt med at taste data ind i it-systemet</xs:documentation>
+									<xs:documentation xml:lang="da">År, år-måned, år-måned-dag</xs:documentation>
+									<xs:documentation xml:lang="en">End date for the archival creator</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="archiveType" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Arkiveringsversionsperiodetype</xs:documentation>
+						<xs:documentation xml:lang="da">Angivelse af, om der er tale om en afsluttet arkivperiode/årgang, eller om der er tale om et øjebliksbillede. True=afsluttet, false=øjebliksbillede</xs:documentation>
+						<xs:documentation xml:lang="da">Boolsk værdi</xs:documentation>
+						<xs:documentation xml:lang="en">information package period type</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="systemName" type="nonEmptyTextType">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Systemnavn</xs:documentation>
+						<xs:documentation xml:lang="da">Det officielle navn på it-systemet, hvor alle forkortelser er opløst</xs:documentation>
+						<xs:documentation xml:lang="da">Fritekst</xs:documentation>
+						<xs:documentation xml:lang="en">System name</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="alternativeName" type="nonEmptyTextType" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Alternativt systemnavn</xs:documentation>
+						<xs:documentation xml:lang="da">Alternative navne på systemet</xs:documentation>
+						<xs:documentation xml:lang="da">Fritekst</xs:documentation>
+						<xs:documentation xml:lang="en">Alternative system name</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="systemPurpose" type="nonEmptyTextType">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Systemformål</xs:documentation>
+						<xs:documentation xml:lang="da">Beskrivelse af formålet med at oprette og drive it-systemet</xs:documentation>
+						<xs:documentation xml:lang="da">Fritekst</xs:documentation>
+						<xs:documentation xml:lang="en">System purpose</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="systemContent" type="nonEmptyTextType">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Systemindhold</xs:documentation>
+						<xs:documentation xml:lang="da">It-systemets centrale population og centrale variabler</xs:documentation>
+						<xs:documentation xml:lang="da">Fritekst</xs:documentation>
+						<xs:documentation xml:lang="en">System content</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="regionNum" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Standardidentifikatorer. Angivelse af, om der i systematisk form er registreret regionsnumre</xs:documentation>
+						<xs:documentation xml:lang="en">Standard identifier. Defines if the information package contains regionsnumre</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="komNum" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Standardidentifikatorer. Angivelse af, om der systematisk form er registreret kommunenumre</xs:documentation>
+						<xs:documentation xml:lang="en">Standard identifier. Defines if the information package contains kommunenumre</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="cprNum" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Standardidentifikatorer. Angivelse af, om der i systematisk form er registreret CPR-nr.</xs:documentation>
+						<xs:documentation xml:lang="en">Standard identifier. Defines if the information package contains CPR-nr.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="cvrNum" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Standardidentifikatorer. Angivelse af, om der i systematisk form er registreret CVR-nr.</xs:documentation>
+						<xs:documentation xml:lang="en">Standard identifier. Defines if the information package contains CVR-nr.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="matrikNum" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Standardidentifikatorer. Angivelse af, om der i systematisk form er registreret Matrikelnumre</xs:documentation>
+						<xs:documentation xml:lang="en">Standard identifier. Defines if the information package contains Matrikelnumre</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="bbrNum" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Standardidentifikatorer. Angivelse af, om der i systematisk form er registreret BBR-nr.</xs:documentation>
+						<xs:documentation xml:lang="en">Standard identifier. Defines if the information package contains BBR-nr.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="whoSygKod" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Standardidentifikatorer. Angivelse af, om der i systematisk form er registreret WHOs sygdomskoder</xs:documentation>
+						<xs:documentation xml:lang="en">Standard identifier. Defines if the information package contains WHOs sygdomskoder</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="sourceName" type="nonEmptyTextType" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Datakilde</xs:documentation>
+						<xs:documentation xml:lang="da">Andre it-systemer som har leveret data til it-systemet (opslag, overførsel, samkøring osv.)</xs:documentation>
+						<xs:documentation xml:lang="da">Fritekst</xs:documentation>
+						<xs:documentation xml:lang="en">Data source</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="userName" type="nonEmptyTextType" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Databrugere</xs:documentation>
+						<xs:documentation xml:lang="da">Andre it-systemer som har brugt data fra it-systemet (opslag, overførsel, samkøring osv.)</xs:documentation>
+						<xs:documentation xml:lang="da">Fritekst</xs:documentation>
+						<xs:documentation xml:lang="en">Data users</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="predecessorName" type="nonEmptyTextType" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Forgængersystemer</xs:documentation>
+						<xs:documentation xml:lang="da">Systemer, der tidligere har varetaget samme funktion.</xs:documentation>
+						<xs:documentation xml:lang="da">Fritekst</xs:documentation>
+						<xs:documentation xml:lang="en">Predecessor systems</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="form" minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="formVersion" type="nonEmptyTextType">
+								<xs:annotation>
+									<xs:documentation xml:lang="da">FORM-version</xs:documentation>
+									<xs:documentation xml:lang="da">Angivelse af, hvilken version af FORM kategorisering er hentet fra</xs:documentation>
+									<xs:documentation xml:lang="da">Obligatorisk for it-systemer fra offentlige myndigheder. Gyldige FORM-versionsnumre</xs:documentation>
+									<xs:documentation xml:lang="en">FORM version</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="classList">
+								<xs:complexType>
+									<xs:sequence maxOccurs="unbounded">
+										<xs:element name="formClass" type="nonEmptyTextType">
+											<xs:annotation>
+												<xs:documentation xml:lang="da">FORM-klassifikation</xs:documentation>
+												<xs:documentation xml:lang="da">Kategorisering af arkiveringsversionen iht. den fællesoffentlige forretningsreferencemodel (FORM)</xs:documentation>
+												<xs:documentation xml:lang="da">Obligatorisk for it-systemer fra offentlige myndigheder.	Enhver gyldig FORM-reference iht. den angivne version af FORM</xs:documentation>
+												<xs:documentation xml:lang="en">FORM class</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="formClassText" type="nonEmptyTextType">
+											<xs:annotation>
+												<xs:documentation xml:lang="da">FORM-klassifikation klartekst</xs:documentation>
+												<xs:documentation xml:lang="da">FORM-klassifikation i klartekst</xs:documentation>
+												<xs:documentation xml:lang="da">Obligatorisk for it-systemer fra offentlige myndigheder.	Fritekst</xs:documentation>
+												<xs:documentation xml:lang="en">FORM Class text</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="containsDigitalDocuments" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Digitale dokumenter indeholdt</xs:documentation>
+						<xs:documentation xml:lang="da">Bruges til at angive, om der er digitale dokumenter i arkiveringsversionen, udover kontekstdokumentation</xs:documentation>
+						<xs:documentation xml:lang="da">Boolsk værdi</xs:documentation>
+						<xs:documentation xml:lang="en">Contains digital documents</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="searchRelatedOtherRecords" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Søgemiddel til andre sager eller dokumenter</xs:documentation>
+						<xs:documentation xml:lang="da">Bruges til at angive, om arkiveringsversionen er et nødvendigt søgemiddel til papirsager/dokumenter eller sager/dokumenter i et andet it-system</xs:documentation>
+						<xs:documentation xml:lang="da">Boolsk værdi</xs:documentation>
+						<xs:documentation xml:lang="en">Search tool to other files or documents</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="relatedRecordsName" type="nonEmptyTextType" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Adresserede arkivalier</xs:documentation>
+						<xs:documentation xml:lang="da">Henvisning til de arkivalier, som arkiveringsversionen er søgemiddel til</xs:documentation>
+						<xs:documentation xml:lang="da">Obligatorisk, hvis der er svaret ja på foregående spørgsmål. Fritekst</xs:documentation>
+						<xs:documentation xml:lang="en">Addressed records</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="systemFileConcept" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Eksistens af sagsbegreb i it-systemet</xs:documentation>
+						<xs:documentation xml:lang="da">Angivelse af, at it-systemet har et sagsbegreb, forstået som en registreret sammenhæng mellem sagligt sammenhørende dokumenter</xs:documentation>
+						<xs:documentation xml:lang="da">Kan kun være ja, hvis der er digitale dokumenter i it-systemet. Boolsk værdi </xs:documentation>
+						<xs:documentation xml:lang="en">Existence of a file concept in the IT-system</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="multipleDataCollection" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">SOA arkitektur</xs:documentation>
+						<xs:documentation xml:lang="da">Angivelse af, om it-systemet er sammensat af data og eventuelt dokumenter fra flere forskellige it-systemer i en serviceorienteret arkitektur</xs:documentation>
+						<xs:documentation xml:lang="da">Boolsk værdi</xs:documentation>
+						<xs:documentation xml:lang="en">SOA Architecture</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="personalDataRestrictedInfo" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Persondata</xs:documentation>
+						<xs:documentation xml:lang="da">Angivelse af, om der i arkiveringsversionen findes følsomme personoplysninger iht. Persondatalovenj</xs:documentation>
+						<xs:documentation xml:lang="da">Boolsk værdi</xs:documentation>
+						<xs:documentation xml:lang="en">Personal data included</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="otherAccessTypeRestrictions" type="xs:boolean">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Fristforlængende oplysninger</xs:documentation>
+						<xs:documentation xml:lang="da">Angivelse af, om der i arkiveringsversionen findes oplysninger, der kan betinge længere tilgængelighedsfrist i øvrigt</xs:documentation>
+						<xs:documentation xml:lang="da">Boolsk værdi</xs:documentation>
+						<xs:documentation xml:lang="en">Other access restrictions</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="archiveApproval" type="archiveIDType">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Godkendelsesarkiv</xs:documentation>
+						<xs:documentation xml:lang="da">Angivelse af, hvilket offentligt arkiv, der godkender arkiveringsversionen</xs:documentation>
+						<xs:documentation xml:lang="da">Identifikation af det pågældende arkiv (2-4 tegn)</xs:documentation>
+						<xs:documentation xml:lang="en">Approving archive</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="archiveRestrictions" type="xs:string" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation xml:lang="da">Tilgængelighedsbegrænsninger</xs:documentation>
+						<xs:documentation xml:lang="da">Angivelse af nærmere bestemmelser for adgang til materialet. Elementet kan anvendes efter det modtagende arkivs nærmere retningslinjer</xs:documentation>
+						<xs:documentation xml:lang="da">Fritekst</xs:documentation>
+						<xs:documentation xml:lang="en">Other access restrictions</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:simpleType name="nonEmptyTextType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">type for tekst med en mindstelængde på 1 tegn</xs:documentation>
+			<xs:documentation xml:lang="en">type for text with a minimum lenght of 1 character</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="y_ym_ymdDatoType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">datotype</xs:documentation>
+			<xs:documentation xml:lang="en">date type</xs:documentation>
+		</xs:annotation>
+		<xs:union memberTypes="arcgYearType arcgYearMonthType arcDateType"/>
+	</xs:simpleType>
+	<xs:simpleType name="arcgYearType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">dato fra 1700 til 2100</xs:documentation>
+			<xs:documentation xml:lang="en">date from 1700 to 2100</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:gYear">
+			<xs:minInclusive value="1700"/>
+			<xs:maxInclusive value="2100"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="arcgYearMonthType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">dato og måned fra 1700-01 til 2100-12</xs:documentation>
+			<xs:documentation xml:lang="en">date and month from 1700-01 to 2100-12</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:gYearMonth">
+			<xs:minInclusive value="1700-01"/>
+			<xs:maxInclusive value="2100-12"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="arcDateType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">dato fra 1700-01-01 til 2100-12-31</xs:documentation>
+			<xs:documentation xml:lang="en">date from 1700-01-01 to 2100-12-31</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:date">
+			<xs:minInclusive value="1700-01-01"/>
+			<xs:maxInclusive value="2100-12-31"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="archiveIDType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">type for en archiveID</xs:documentation>
+			<xs:documentation xml:lang="en">type for an archiveID</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="[A-ZÆØÅ]{2,4}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="archiveInformationPackageIDType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">type for en arkiveringsversionsID</xs:documentation>
+			<xs:documentation xml:lang="en">type for an information package ID</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="AVID\.[A-ZÆØÅ]{2,4}\.[1-9][0-9]*"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="archiveInformationPackageIDPreviousType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">type for en arkiveringsversionsID i denne eller tidligere bekendtgørelse</xs:documentation>
+			<xs:documentation xml:lang="en">type for an information package ID</xs:documentation>
+		</xs:annotation>
+		<xs:union memberTypes="archiveInformationPackageIDType">
+			<xs:simpleType>
+				<xs:restriction base="xs:int">
+					<xs:pattern value="[0-9]{8}"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:union>
+	</xs:simpleType>
+</xs:schema>

@@ -23,6 +23,7 @@
         <module>dbptk-bindings-siard2-1</module>
         <module>dbptk-bindings-siard2-2</module>
         <module>dbptk-bindings-siarddk-1007</module>
+        <module>dbptk-bindings-siarddk-1007-ext</module>
         <module>dbptk-bindings-siarddk-128</module>
         <module>dbptk-bindings-siarddk-128-ext</module>
     </modules>
@@ -97,6 +98,56 @@
 
                                 <!-- specify the schema to convert -->
                                 <schemaDirectory>${basedir}/src/main/resources/schema/1007</schemaDirectory>
+                                <schemaIncludes>
+                                    <include>archiveIndex.xsd</include>
+                                    <include>docIndex.xsd</include>
+                                    <include>fileIndex.xsd</include>
+                                    <include>XMLSchema.xsd</include>
+                                    <include>tableIndex.xsd</include>
+                                </schemaIncludes>
+                                <forceRegenerate>true</forceRegenerate>
+
+                                <generateDirectory>${project.build.directory}/generated-sources/xjc-b
+                                </generateDirectory>
+
+                                <!-- The package of your generated sources -->
+                                <generatePackage>com.databasepreservation.modules.siard.bindings.${packagename}</generatePackage>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>generate-siard-1007-ext-contextDocumentationIndex</id>
+                            <goals>
+                                <goal>generate</goal>
+                            </goals>
+                            <configuration>
+                                <strict>false</strict>
+
+                                <!-- specify the schema to convert -->
+                                <schemaDirectory>${basedir}/src/main/resources/schema/1007-ext</schemaDirectory>
+                                <schemaIncludes>
+                                    <include>contextDocumentationIndex.xsd</include>
+                                </schemaIncludes>
+
+
+                                <generateDirectory>${project.build.directory}/generated-sources/xjc-a
+                                </generateDirectory>
+
+                                <!-- The package of your generated sources -->
+                                <generatePackage>
+                                    com.databasepreservation.modules.siard.bindings.${packagename}.context
+                                </generatePackage>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>generate-siard-1007-ext</id>
+                            <goals>
+                                <goal>generate</goal>
+                            </goals>
+                            <configuration>
+                                <strict>false</strict>
+
+                                <!-- specify the schema to convert -->
+                                <schemaDirectory>${basedir}/src/main/resources/schema/1007-ext</schemaDirectory>
                                 <schemaIncludes>
                                     <include>archiveIndex.xsd</include>
                                     <include>docIndex.xsd</include>

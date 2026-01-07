@@ -330,6 +330,12 @@
 
             <dependency>
                 <groupId>com.databasepreservation</groupId>
+                <artifactId>dbptk-bindings-siarddk-1007-ext</artifactId>
+                <version>${dbptk.bindings.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.databasepreservation</groupId>
                 <artifactId>dbptk-bindings-siarddk-128</artifactId>
                 <version>${dbptk.bindings.version}</version>
             </dependency>

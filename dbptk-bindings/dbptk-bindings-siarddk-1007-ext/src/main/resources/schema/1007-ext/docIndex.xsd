@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- docIndex 0.8.3 -->
+<!-- Rigsarkivet 2016 -->
+<xs:schema xmlns="http://www.sa.dk/xmlns/diark/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.sa.dk/xmlns/diark/1.0" elementFormDefault="qualified" attributeFormDefault="unqualified" blockDefault="#all" finalDefault="#all" version="0.8.3" id="docIndex">
+	<xs:element name="docIndex" type="docIndexType"/>
+	<xs:complexType name="docIndexType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">Indeks for alle documenter i arkiveringsversionen</xs:documentation>
+			<xs:documentation xml:lang="en">Index for all documents in the information package</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="doc" type="documentType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="documentType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">type for et dokument</xs:documentation>
+			<xs:documentation xml:lang="en">A type for a document</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="dID" type="documentIDType">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">DocID - ID, som entydigt udpeger det enkelte dokument</xs:documentation>
+					<xs:documentation xml:lang="en">DocID - ID that uniquely identifies a document-</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="pID" type="documentIDType" nillable="true" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">ParentID - ID på overordnet dokument ved indlejrede dokumenter eller dokumenter, der på anden vis indgår i et hierarki</xs:documentation>
+					<xs:documentation xml:lang="en">ParentID - ID of the parent document for embedded documents or for documents which are otherwise part of a hierarchy</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="mID" type="mediaIDType">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">MediaID - ID på det lagringsmedie, som dokumentet ligger på</xs:documentation>
+					<xs:documentation xml:lang="en">MediaID - ID for the storage media of the the document</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="dCf" type="dCfType">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">ContainerFolder - Dokumentsamlingsmappe, som dokumentet ligger i. Skal være unikt inden for Documents, men dette krav er ikke indført i dette XML Schema for at lette skabelse og validering</xs:documentation>
+					<xs:documentation xml:lang="en">ContainerFolder - document container folder in which the document is residing. Must be unique within Documents, but this requirement is not implemented in this XML Schema in order to ease creation and validation</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="oFn" type="xs:normalizedString">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">OriginalFilename - Angivelse af filens navn inkl. suffix i IT-systemet</xs:documentation>
+					<xs:documentation xml:lang="en">OriginalFilename - The original name of the file in the IT-system including its extension</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="aFt" type="archivalFileType">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Angivelse af filens format i arkiveringsversionen</xs:documentation>
+					<xs:documentation xml:lang="en">The format of the file in the information package</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="gmlXsd" type="gmlXsdType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">For GML filer angives det skema, der skal bruges til validering af den pågældende GML-fil</xs:documentation>
+					<xs:documentation xml:lang="en">GML Schema to be used to for validation the GML-file in question</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:simpleType name="documentIDType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">type for et dokumentID</xs:documentation>
+			<xs:documentation xml:lang="en">A type for a document ID</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:positiveInteger">
+			<xs:pattern value="[1-9][0-9]{0,11}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="mediaIDType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">type for et medie ID</xs:documentation>
+			<xs:documentation xml:lang="en">A type for a media ID</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:positiveInteger">
+			<xs:pattern value="[1-9][0-9]{0,11}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="dCfType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">Type for en dokumentundermappenavn</xs:documentation>
+			<xs:documentation xml:lang="en">Type for a document container folder name</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="docCollection((10000)|([1-9][0-9]{0,3}))"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="archivalFileType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">type for et dokument i arkiveringversionen</xs:documentation>
+			<xs:documentation xml:lang="en">type for a document in the information package</xs:documentation>
+			<xs:documentation xml:lang="da">Små bogstaver (minuskler) for filtyper (suffix) er krævet i bekendtgørelse, men store bogstaver (versaler) er tilladt i skemaet for at mindske behov for navneændring</xs:documentation>
+			<xs:documentation xml:lang="en">Lower case is required, but upper case for the following file type extensions is accepted to reduce the need for renaming--></xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="tif|TIF"/>
+			<xs:pattern value="mp3|MP3"/>
+			<xs:pattern value="mpg|MPG"/>
+			<xs:pattern value="jp2|JP2"/>
+			<xs:pattern value="gml|GML"/>
+			<xs:pattern value="xsd|XSD"/>
+			<xs:pattern value="wav|WAV"/>
+			<xs:pattern value="bin"/>
+            <xs:pattern value="pdf|PDF"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="gmlXsdType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">Navn for et gml xml skema</xs:documentation>
+			<xs:documentation xml:lang="en">Name for a gml xml schema</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="(localSchema[1-9][0-9]{0,11}|1)\.(xsd|XSD)"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>
