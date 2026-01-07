@@ -30,6 +30,8 @@ public class ResourceFileIndexInputStreamStrategy implements FileIndexXsdInputSt
   public InputStream getInputStream(SIARDDKPathImportStrategy<?, ?> strategy) throws ModuleException {
     if (strategy instanceof SIARDDK1007PathImportStrategy) {
       return this.getClass().getClassLoader().getResourceAsStream("schema/1007/fileIndex.xsd");
+    } else if (strategy instanceof SIARDDK1007ExtPathImportStrategy) {
+      return this.getClass().getClassLoader().getResourceAsStream("schema/1007-ext/fileIndex.xsd");
     } else if (strategy instanceof SIARDDK128PathImportStrategy) {
       return this.getClass().getClassLoader().getResourceAsStream("schema/128/fileIndex.xsd");
     } else if (strategy instanceof SIARDDK128ExtPathImportStrategy) {
