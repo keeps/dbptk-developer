@@ -29,10 +29,10 @@ import com.databasepreservation.modules.siard.common.path.SIARDDK128MetadataPath
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.in.metadata.MetadataImportStrategy;
-import com.databasepreservation.modules.siard.in.metadata.SIARDDK1007MetadataImportStrategy;
+import com.databasepreservation.modules.siard.in.metadata.SIARDDK1007ExtMetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.metadata.SIARDDK128ExtMetadataImportStrategy;
 import com.databasepreservation.modules.siard.in.path.ResourceFileIndexInputStreamStrategy;
-import com.databasepreservation.modules.siard.in.path.SIARDDK1007PathImportStrategy;
+import com.databasepreservation.modules.siard.in.path.SIARDDK1007ExtPathImportStrategy;
 import com.databasepreservation.modules.siard.in.path.SIARDDK128ExtPathImportStrategy;
 import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
@@ -74,15 +74,15 @@ public class SIARDDKEditModule implements EditModule {
       metadataImportStrategy = new SIARDDK128ExtMetadataImportStrategy(pathStrategy, paramImportAsSchema);
 
     } else {
-      mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.DK_1007, siardPackageNormalizedPath,
+      mainContainer = new SIARDArchiveContainer(SIARDConstants.SiardVersion.DK_1007_EXT, siardPackageNormalizedPath,
         SIARDArchiveContainer.OutputContainerType.MAIN);
       readStrategy = new FolderReadStrategyMD5Sum(mainContainer);
 
       MetadataPathStrategy metadataPathStrategy = new SIARDDK1007MetadataPathStrategy();
-      SIARDDK1007PathImportStrategy pathStrategy = new SIARDDK1007PathImportStrategy(mainContainer, readStrategy,
+      SIARDDK1007ExtPathImportStrategy pathStrategy = new SIARDDK1007ExtPathImportStrategy(mainContainer, readStrategy,
         metadataPathStrategy, paramImportAsSchema, new ResourceFileIndexInputStreamStrategy());
 
-      metadataImportStrategy = new SIARDDK1007MetadataImportStrategy(pathStrategy, paramImportAsSchema);
+      metadataImportStrategy = new SIARDDK1007ExtMetadataImportStrategy(pathStrategy, paramImportAsSchema);
     }
   }
 

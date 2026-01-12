@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- contextDocumentationIndex 0.9.4 -->
+<!-- SA 2010 -->
+<xs:schema xmlns="http://www.sa.dk/xmlns/diark/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.sa.dk/xmlns/diark/1.0" elementFormDefault="qualified" attributeFormDefault="unqualified" blockDefault="#all" finalDefault="extension restriction" version="0.9.4" id="contextDocumentationIndex" xml:lang="en">
+	<xs:element name="contextDocumentationIndex">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation xml:lang="da">Indeks for alle dokumenter i arkiveringsversionens kontekstdokumentation</xs:documentation>
+				<xs:documentation xml:lang="en">Index for all documents in the context documentation of the information package</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="document" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="documentID" type="documentIDType">
+								<xs:annotation>
+									<xs:documentation xml:lang="da">DokumentID. Unikt ID på op til 12 cifre</xs:documentation>
+									<xs:documentation xml:lang="en">DocumentID. Unique ID with up to 12 digits in total</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="documentTitle" type="nonEmptyTextType">
+								<xs:annotation>
+									<xs:documentation xml:lang="da">Dokumenttitel. Fri tekst</xs:documentation>
+									<xs:documentation xml:lang="en">Document title. Free text</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="documentDescription" type="nonEmptyTextType" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation xml:lang="da">Dokumentbeskrivelse. Fri tekst</xs:documentation>
+									<xs:documentation xml:lang="en">Document description. Free text</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="documentDate" type="y_ym_ymdDatoType" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation xml:lang="da">Dato. År, år-måned, år-måned-dag</xs:documentation>
+									<xs:documentation xml:lang="en">Date. Year, year-month, year-month-day</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="documentAuthor" minOccurs="0" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="authorName" type="nonEmptyTextType" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation xml:lang="da">Forfatternavn. Fri tekst</xs:documentation>
+												<xs:documentation xml:lang="en">Author name. Free text</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="authorInstitution" type="nonEmptyTextType" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation xml:lang="da">Forfatterinstitution. Fri tekst</xs:documentation>
+												<xs:documentation xml:lang="en">Author institution. Free text</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="documentCategory" type="documentCategoryType">
+								<xs:annotation>
+									<xs:documentation xml:lang="da">Dokumentkategori</xs:documentation>
+									<xs:documentation xml:lang="en">Document category</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="documentCategoryType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">type for dokumentkategori</xs:documentation>
+			<xs:documentation xml:lang="en">type for a document category</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="systemInformation" type="systemInformationType" id="_1" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Dokumentation vedrørende administrativ brug af it-systemet</xs:documentation>
+					<xs:documentation xml:lang="en">Documentation regarding administrative use of the it system</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="operationalInformation" type="operationalInformationType" id="_2" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Dokumentation vedrørende it-systemets tekniske udformning, drift og udvikling</xs:documentation>
+					<xs:documentation xml:lang="en">Documentation regarding the technical design, operation and development of the it system</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="submissionInformation" type="submissionInformationType" id="_3" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Dokumentation vedrørende arkivskabers aflevering af data</xs:documentation>
+					<xs:documentation xml:lang="en">Documentation regarding the transfer of data from the archival creator </xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="ingestInformation" type="ingestInformationType" id="_4" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Dokumentation vedrørende arkivets modtagelse af data (udfyldes af modtagende arkiv)</xs:documentation>
+					<xs:documentation xml:lang="en">Documentation regarding the receipt of data by the archive</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="archivalPreservationInformation" type="archivalPreservationInformationType" id="_5" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Dokumentation vedrørende arkivets bevaring af arkiveringsversionen (udfyldes at det modtagende arkiv)</xs:documentation>
+					<xs:documentation xml:lang="en">Documentation regarding the preservation of the archival version by the archive</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="informationOther" type="informationOtherType" id="_6" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Anden dokumentation</xs:documentation>
+					<xs:documentation xml:lang="en">Other documentation</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="systemInformationType">
+		<xs:sequence>
+			<xs:element name="systemPurpose" type="xs:boolean" default="false" id="_1.a" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">It-systemets formål</xs:documentation>
+					<xs:documentation xml:lang="en">IT System purpose</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="systemRegulations" type="xs:boolean" default="false" id="_1.b" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">It-systemets lov- og regelgrundlag</xs:documentation>
+					<xs:documentation xml:lang="en">Legal and regulatory framework of the it system</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="systemContent" type="xs:boolean" default="false" id="_1.c" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">It-systemets indhold, population og særlige begreber</xs:documentation>
+					<xs:documentation xml:lang="en">IT System content, population and special concepts</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="systemAdministrativeFunctions" type="xs:boolean" default="false" id="_1.d" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">It-systemets administrative funktioner</xs:documentation>
+					<xs:documentation xml:lang="en">Administrative functions of the IT system</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="systemPresentationStructure" type="xs:boolean" default="false" id="_1.e" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">It-systemets præsentationsstruktur</xs:documentation>
+					<xs:documentation xml:lang="en">Presentation structure of the IT system</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="systemDataProvision" type="xs:boolean" default="false" id="_1.f" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Tilvejebringelse af data</xs:documentation>
+					<xs:documentation xml:lang="en">Provision of data</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="systemDataTransfer" type="xs:boolean" default="false" id="_1.g" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Videregivelse af data</xs:documentation>
+					<xs:documentation xml:lang="en">Transfer of data</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="systemPreviousSubsequentFunctions" type="xs:boolean" default="false" id="_1.h" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Data og funktioner fælles med forgænger- og efterfølgersystemer</xs:documentation>
+					<xs:documentation xml:lang="en">Data and functions in common with predecessor systems or successor systems</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="systemAgencyQualityControl" type="xs:boolean" default="false" id="_1.i" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Myndighedens egen kvalitetskontrol</xs:documentation>
+					<xs:documentation xml:lang="en">Quality control of the authority performed by itself</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="systemPublication" type="xs:boolean" default="false" id="_1.j" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Publikation af og om data</xs:documentation>
+					<xs:documentation xml:lang="en">Publication of and about data</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="systemInformationOther" type="xs:boolean" default="false" id="_1.k" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Andet</xs:documentation>
+					<xs:documentation xml:lang="da">Other</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="operationalInformationType">
+		<xs:sequence>
+			<xs:element name="operationalSystemInformation" type="xs:boolean" default="false" id="_2.a" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Driftsversionens opbygning</xs:documentation>
+					<xs:documentation xml:lang="en">Structure of the operational system</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="operationalSystemConvertedInformation" type="xs:boolean" default="false" id="_2.b" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Konvertering hos myndigheden</xs:documentation>
+					<xs:documentation xml:lang="en">Transformation at the authority</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="operationalSystemSOA" type="xs:boolean" default="false" id="_2.c" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Dokumentation af sammensætning af data og eventuelle dokumenter fra flere forskellige systemer i en serviceorienteret arkitektur</xs:documentation>
+					<xs:documentation xml:lang="en">Documentation of the combination of data and any documents from several different systems in a service oriented architecture</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="operationalSystemInformationOther" type="xs:boolean" default="false" id="_2.d" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Andet</xs:documentation>
+					<xs:documentation xml:lang="en">Other</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="submissionInformationType">
+		<xs:sequence>
+			<xs:element name="archivalProvisions" type="xs:boolean" default="false" id="_3.a" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Arkivets bestemmelser, herunder afleveringsbestemmelse</xs:documentation>
+					<xs:documentation xml:lang="en">Archive regulations, including stipulations about the transfer</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="archivalTransformationInformation" type="xs:boolean" default="false" id="_3.b" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Dokumentation af konvertering fra driftsversion til arkiveringsversion</xs:documentation>
+					<xs:documentation xml:lang="en">Documentation of transformation from operational system to information package</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="archivalInformationOther" type="xs:boolean" default="false" id="_3.c" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Andet</xs:documentation>
+					<xs:documentation xml:lang="en">Other</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ingestInformationType">
+		<xs:sequence>
+			<xs:element name="archivistNotes" type="xs:boolean" default="false" id="_4.a" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Arkivarnoter</xs:documentation>
+					<xs:documentation xml:lang="en">Archivist notes</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="archivalTestNotes" type="xs:boolean" default="false" id="_4.b" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Testnoter</xs:documentation>
+					<xs:documentation xml:lang="en">Test notes</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="archivalInformationOther" type="xs:boolean" default="false" id="_4.c" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Andet</xs:documentation>
+					<xs:documentation xml:lang="en">Other</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="archivalPreservationInformationType">
+		<xs:sequence>
+			<xs:element name="archivalMigrationInformation" type="xs:boolean" default="false" id="_5.a" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Konvertering hos arkivet</xs:documentation>
+					<xs:documentation xml:lang="en">Transformations at the archive</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="archivalInformationOther" type="xs:boolean" default="false" id="_5.b" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Andet</xs:documentation>
+					<xs:documentation xml:lang="en">Other</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="informationOtherType">
+		<xs:sequence>
+			<xs:element name="informationOther" type="xs:boolean" default="false" id="_6.a">
+				<xs:annotation>
+					<xs:documentation xml:lang="da">Andet</xs:documentation>
+					<xs:documentation xml:lang="en">Other</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:simpleType name="documentIDType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">type for et dokumentID for et dokument i generel dokumentation</xs:documentation>
+			<xs:documentation xml:lang="en">A type for a document ID for a document i generel documentation</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="[1-9][0-9]{0,11}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="y_ym_ymdDatoType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">datotype for et dokument i kontekstinformation</xs:documentation>
+			<xs:documentation xml:lang="en">date type for a document in context information</xs:documentation>
+		</xs:annotation>
+		<xs:union memberTypes="arcgYearType arcgYearMonthType arcDateType"/>
+	</xs:simpleType>
+	<xs:simpleType name="arcgYearType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">dato fra 1700 til 2100</xs:documentation>
+			<xs:documentation xml:lang="en">date from 1700 to 2100</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:gYear">
+			<xs:minInclusive value="1700"/>
+			<xs:maxInclusive value="2100"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="arcgYearMonthType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">dato og måned fra 1700-01 til 2100-12</xs:documentation>
+			<xs:documentation xml:lang="en">date and month from 1700-01 to 2100-12</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:gYearMonth">
+			<xs:minInclusive value="1700-01"/>
+			<xs:maxInclusive value="2100-12"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="arcDateType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">dato fra 1700-01-01 til 2100-12-31</xs:documentation>
+			<xs:documentation xml:lang="en">date from 1700-01-01 to 2100-12-31</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:date">
+			<xs:minInclusive value="1700-01-01"/>
+			<xs:maxInclusive value="2100-12-31"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="nonEmptyTextType">
+		<xs:annotation>
+			<xs:documentation xml:lang="da">type for tekst med en mindstelængde på 1 tegn</xs:documentation>
+			<xs:documentation xml:lang="en">type for text with a minimum lenght of 1 character</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>
