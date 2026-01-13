@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 4.3.0 (13/01/2026)
+#### New Features
+- Add SIARDDK1007Ext modules to allow lobs of PDF file type on SIARD-DK https://github.com/keeps/dbptk-developer/commit/d671b77e69026579eae2e9ce9aec607d2b9f0850
+---
+
 ## Version 4.2.0 (19/12/2025)
 #### New Features
 - Add SIARDDK128Ext modules to allow lobs of PDF file type on SIARD-DK https://github.com/keeps/dbptk-developer/commit/2a14d38e1390673171bde9a04af367779b9a944e
@@ -267,11 +272,3 @@ Special thanks to @daniel-skovenborg for his contributions to this release
 #### Dependencies update
 
 * Bump UCanAccess Driver #481
----
-
-## Version 2.9.7 (06/04/2021)
-#### Bug Fixes
-
-* Oracle connection fails if password has special characters #471
-* SIARD to SIARD migration ignoring some import-config properties #472
-* 'numeric' column type without any precision or scale is assumed to be integer #477
