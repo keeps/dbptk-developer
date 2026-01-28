@@ -567,11 +567,26 @@ public class SIARD22ContentExportStrategy implements ContentExportStrategy {
         xsdWriter.openTag(XS_SEQUENCE, 6);
 
         String xsdSubtype = Sql2008toXSDType.convert(col.getType().getSql2008TypeName());
-        for (BigInteger c = BigInteger.valueOf(0); c.compareTo(col.getCardinality()) < 0; c = c.add(BigInteger.ONE)) {
-          xsdWriter.beginOpenTag(XS_ELEMENT, 7).appendAttribute(MIN_OCCURS, "0");
-          xsdWriter.appendAttribute("name", "a" + c.add(BigInteger.ONE)).appendAttribute("type", xsdSubtype)
-            .endShorthandTag();
+
+        if (col.getCardinality() != null) {
+          long cardinality = col.getCardinality().longValue();
+          for (long i = 0L; i < cardinality; i++) {
+            xsdWriter.beginOpenTag(XS_ELEMENT, 7).appendAttribute(MIN_OCCURS, "0");
+            xsdWriter.appendAttribute("name", "a" + (i + 1)).appendAttribute("type", xsdSubtype).endShorthandTag();
+          }
+        } else {
+          // fallback
+          xsdWriter.beginOpenTag("xs:any", 7).appendAttribute(MIN_OCCURS, "0").appendAttribute("maxOccurs", "unbounded")
+            .appendAttribute("processContents", "skip").endShorthandTag();
         }
+
+        /*
+         * for (BigInteger c = BigInteger.valueOf(0); c.compareTo(col.getCardinality())
+         * < 0; c = c.add(BigInteger.ONE)) { xsdWriter.beginOpenTag(XS_ELEMENT,
+         * 7).appendAttribute(MIN_OCCURS, "0"); xsdWriter.appendAttribute("name", "a" +
+         * c.add(BigInteger.ONE)).appendAttribute("type", xsdSubtype)
+         * .endShorthandTag(); }
+         */
 
         // </xs:sequence>
         xsdWriter.closeTag(XS_SEQUENCE, 6);
