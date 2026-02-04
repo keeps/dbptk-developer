@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 4.3.1 (04/02/2026)
+#### Bug fixes
+
+- Fix NPE when writing array datatype XML schema 558ae8022e87af06b917b61347e971ff96017b6a
+- Enable export lobs threshold for SIARD 2.2 (missing when support was added) 49735a423994f54e0231629d249f4845cf966ae5
+---
+
 ## Version 4.3.0 (13/01/2026)
 #### New Features
 - Add SIARDDK1007Ext modules to allow lobs of PDF file type on SIARD-DK https://github.com/keeps/dbptk-developer/commit/d671b77e69026579eae2e9ce9aec607d2b9f0850
@@ -261,14 +268,3 @@ Special thanks to @daniel-skovenborg for his contributions to this release
 
 #### Enhancements
 * Improved support for Microsoft SQL Server use integrated login on Windows #488
----
-
-## Version 2.9.8 (08/06/2021)
-#### Bug Fixes
-
-* creating a siard do not take Postgresql own materialized views #485 
-* Problem with overwriting existing folder when exporting to SIARD-DK #480 
-
-#### Dependencies update
-
-* Bump UCanAccess Driver #481
