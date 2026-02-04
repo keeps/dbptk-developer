@@ -7,26 +7,18 @@
  */
 package com.databasepreservation.testing.utils;
 
+import java.util.Map;
+
 /**
  *
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 public class DbTypeResolver {
 
+  private static final Map<String, DatabaseUtilsFactory.DbType> DRIVER_MAP = Map.of("com.mysql.cj.jdbc.Driver",
+    DatabaseUtilsFactory.DbType.MYSQL, "org.postgresql.Driver", DatabaseUtilsFactory.DbType.POSTGRESQL);
+
   public static DatabaseUtilsFactory.DbType fromDriverClassName(String driverClassName) {
-    if (driverClassName == null) {
-      return DatabaseUtilsFactory.DbType.UNKNOWN;
-    }
-
-    String driver = driverClassName.toLowerCase();
-
-    if (driver.contains("mysql")) {
-      return DatabaseUtilsFactory.DbType.MYSQL;
-    } else if (driver.contains("postgresql")) {
-      return DatabaseUtilsFactory.DbType.POSTGRESQL;
-    } else {
-      return DatabaseUtilsFactory.DbType.UNKNOWN;
-    }
+    return DRIVER_MAP.getOrDefault(driverClassName, DatabaseUtilsFactory.DbType.UNKNOWN);
   }
-
 }

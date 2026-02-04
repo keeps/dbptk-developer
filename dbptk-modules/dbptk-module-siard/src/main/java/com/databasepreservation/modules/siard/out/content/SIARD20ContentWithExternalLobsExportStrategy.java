@@ -55,12 +55,11 @@ public class SIARD20ContentWithExternalLobsExportStrategy extends SIARD20Content
   // measured in Bytes
   private final long maximumLobsFolderSize;
   private final int maximumLobsPerFolder;
+  private final long blobThresholdLimit;
+  private final long clobThresholdLimit;
   private SIARDArchiveContainer currentExternalContainer;
   private long currentLobsFolderSize = 0;
   private int currentLobsInFolder = 0;
-  private final long blobThresholdLimit;
-  private final long clobThresholdLimit;
-
   private byte[] lobDigestChecksum = null;
 
   public SIARD20ContentWithExternalLobsExportStrategy(ContentPathExportStrategy contentPathStrategy,
@@ -123,13 +122,11 @@ public class SIARD20ContentWithExternalLobsExportStrategy extends SIARD20Content
     }
 
     // get size and file xml parameters
-    if (cell instanceof BinaryCell) {
-      final BinaryCell binCell = (BinaryCell) cell;
+    if (cell instanceof BinaryCell binCell) {
       lobSizeParameter = binCell.getSize();
       lobFileParameter = contentPathStrategy.getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(),
         columnIndex, currentRowIndex + 1);
-    } else if (cell instanceof SimpleCell) {
-      SimpleCell txtCell = (SimpleCell) cell;
+    } else if (cell instanceof SimpleCell txtCell) {
       lobSizeParameter = txtCell.getBytesSize();
       lobFileParameter = contentPathStrategy.getClobFilePath(currentSchema.getIndex(), currentTable.getIndex(),
         columnIndex, currentRowIndex + 1);
@@ -159,11 +156,9 @@ public class SIARD20ContentWithExternalLobsExportStrategy extends SIARD20Content
     }
 
     // get lob object
-    if (cell instanceof BinaryCell) {
-      final BinaryCell binCell = (BinaryCell) cell;
+    if (cell instanceof BinaryCell binCell) {
       lob = new LargeObject(binCell, lobFileParameter);
-    } else if (cell instanceof SimpleCell) {
-      SimpleCell txtCell = (SimpleCell) cell;
+    } else if (cell instanceof SimpleCell txtCell) {
       String data = txtCell.getSimpleData();
       ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8));
       lob = new LargeObject(new InputStreamProviderImpl(inputStream, data.getBytes().length), lobFileParameter);
@@ -208,8 +203,7 @@ public class SIARD20ContentWithExternalLobsExportStrategy extends SIARD20Content
       InputStream in = lob.getInputStreamProvider().createInputStream()) {
       LOGGER.debug("Writing lob to {}", lobRelativePath);
       IOUtils.copy(in, out);
-      if (out instanceof DigestOutputStream) {
-        DigestOutputStream digestOutputStream = (DigestOutputStream) out;
+      if (out instanceof DigestOutputStream digestOutputStream) {
         lobDigestChecksum = digestOutputStream.getMessageDigest().digest();
       }
     } catch (IOException e) {
@@ -219,7 +213,7 @@ public class SIARD20ContentWithExternalLobsExportStrategy extends SIARD20Content
 
   private SIARDArchiveContainer getAnotherExternalContainer() {
     if (contentPathStrategy instanceof SIARD20ContentWithExternalLobsPathExportStrategy paths) {
-        return new SIARDArchiveContainer(baseContainer.getVersion(), paths.nextContainerBasePath(baseContainer.getPath()),
+      return new SIARDArchiveContainer(baseContainer.getVersion(), paths.nextContainerBasePath(baseContainer.getPath()),
         SIARDArchiveContainer.OutputContainerType.AUXILIARY);
     } else {
       throw new NotImplementedException("Unsupported ContentPathStrategy");

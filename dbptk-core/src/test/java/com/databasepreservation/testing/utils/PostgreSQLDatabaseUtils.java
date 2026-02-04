@@ -10,7 +10,6 @@ package com.databasepreservation.testing.utils;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -41,6 +40,13 @@ public class PostgreSQLDatabaseUtils extends DatabaseUtils {
     }
 
     log("Dropped " + tables.size() + " tables from PostgreSQL schema: " + schema);
+  }
+
+  @Override
+  public void createTableIfNotExists(Connection conn, String tableCreationSQL) throws SQLException {
+    try (Statement stmt = conn.createStatement()) {
+      stmt.execute(tableCreationSQL);
+    }
   }
 
   @Override

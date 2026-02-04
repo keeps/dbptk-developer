@@ -76,7 +76,7 @@ public class MySQLTests {
 
   @AfterMethod
   void cleanUp() throws IOException, SQLException {
-    TestingHelper.cleanTargetDatabase(mySQLContainerTarget);
+    TestingHelper.cleanDatabase(mySQLContainerTarget);
 
     if (Files.notExists(tmpFolderSIARD)) {
       return; // Nothing to delete
@@ -147,7 +147,7 @@ public class MySQLTests {
   public void round_trip_test_siard_2_1() throws IOException, InterruptedException {
     // convert from the database to SIARD
     MySQLModuleFactory mySQLModuleFactory = new MySQLModuleFactory();
-    String[] forwardConversionArguments = TestingHelper.getExportToSIARD2Command(mySQLModuleFactory.getModuleName(),
+    String[] forwardConversionArguments = TestingHelper.getCommandToExportToSIARD2(mySQLModuleFactory.getModuleName(),
       mySQLContainerSource, siardPath.toString(), "2.1", false);
     Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(forwardConversionArguments), 0);
 
@@ -169,7 +169,7 @@ public class MySQLTests {
   public void round_trip_test_siard_2_1_with_external_lobs() throws IOException, InterruptedException {
     // convert from the database to SIARD
     MySQLModuleFactory mySQLModuleFactory = new MySQLModuleFactory();
-    String[] forwardConversionArguments = TestingHelper.getExportToSIARD2Command(mySQLModuleFactory.getModuleName(),
+    String[] forwardConversionArguments = TestingHelper.getCommandToExportToSIARD2(mySQLModuleFactory.getModuleName(),
       mySQLContainerSource, siardPath.toString(), "2.1", true);
     Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(forwardConversionArguments), 0);
 
@@ -191,7 +191,7 @@ public class MySQLTests {
   public void round_trip_test_siard_2_2() throws IOException, InterruptedException {
     // convert from the database to SIARD
     MySQLModuleFactory mySQLModuleFactory = new MySQLModuleFactory();
-    String[] forwardConversionArguments = TestingHelper.getExportToSIARD2Command(mySQLModuleFactory.getModuleName(),
+    String[] forwardConversionArguments = TestingHelper.getCommandToExportToSIARD2(mySQLModuleFactory.getModuleName(),
       mySQLContainerSource, siardPath.toString(), "2.2", false);
     Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(forwardConversionArguments), 0);
 
@@ -213,7 +213,7 @@ public class MySQLTests {
   public void round_trip_test_siard_2_2_with_external_lobs() throws IOException, InterruptedException {
     // convert from the database to SIARD
     MySQLModuleFactory mySQLModuleFactory = new MySQLModuleFactory();
-    String[] forwardConversionArguments = TestingHelper.getExportToSIARD2Command(mySQLModuleFactory.getModuleName(),
+    String[] forwardConversionArguments = TestingHelper.getCommandToExportToSIARD2(mySQLModuleFactory.getModuleName(),
       mySQLContainerSource, siardPath.toString(), "2.2", true);
     Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(forwardConversionArguments), 0);
 

@@ -20,14 +20,32 @@ import org.testcontainers.containers.JdbcDatabaseContainer;
  * @author Miguel Guimarães <mguimaraes@keep.pt>
  */
 public class TestingHelper {
+  private TestingHelper() {
+    // Utility class
+  }
 
-  public static void cleanTargetDatabase(JdbcDatabaseContainer<?> jdbcDatabaseContainer) throws SQLException {
-    try (Connection connTarget = DriverManager.getConnection(jdbcDatabaseContainer.getJdbcUrl(),
-      jdbcDatabaseContainer.getUsername(), jdbcDatabaseContainer.getPassword());) {
-      DatabaseUtils databaseUtils = DatabaseUtilsFactory
-        .getDatabaseUtils(DbTypeResolver.fromDriverClassName(jdbcDatabaseContainer.getDriverClassName()));
+  public static String createUniqueTableName(String baseTableName) {
+    return baseTableName + "_" + System.currentTimeMillis();
+  }
 
-      databaseUtils.dropAllTables(connTarget, jdbcDatabaseContainer.getDatabaseName());
+  public static void createTableIfNotExists(JdbcDatabaseContainer<?> container, String tableCreationSQL)
+    throws SQLException {
+    // 1. Get the utils from the cached factory
+    DatabaseUtils utils = getUtils(container);
+
+    try (Connection connection = DriverManager.getConnection(container.getJdbcUrl(), container.getUsername(),
+      container.getPassword());) {
+      utils.createTableIfNotExists(connection, tableCreationSQL);
+    }
+  }
+
+  public static void cleanDatabase(JdbcDatabaseContainer<?> container) throws SQLException {
+    // 1. Get the utils from the cached factory
+    DatabaseUtils utils = getUtils(container);
+
+    try (Connection connTarget = DriverManager.getConnection(container.getJdbcUrl(), container.getUsername(),
+      container.getPassword());) {
+      utils.dropAllTables(connTarget, container.getDatabaseName());
     }
   }
 
@@ -146,8 +164,8 @@ public class TestingHelper {
     return command.toArray(new String[0]);
   }
 
-  public static String[] getExportToSIARD2Command(String importModule, JdbcDatabaseContainer<?> container,
-    String siardPath, String exportVersion, boolean externalLobs) {
+  public static String[] getCommandToExportToSIARD2(String importModule, JdbcDatabaseContainer<?> container,
+    String siardPath, String exportVersion, boolean externalLobs, String clobThreshold, String blobThreshold) {
     List<String> command = new ArrayList<>();
     command.add("migrate");
     command.add(String.format("--import=%s", importModule));
@@ -168,13 +186,19 @@ public class TestingHelper {
     command.add("--export-pretty-xml");
     if (externalLobs) {
       command.add("--export-external-lobs");
-      command.add("--export-external-lobs-blob-threshold-limit=0");
-      command.add("--export-external-lobs-clob-threshold-limit=0");
+      command.add("--export-external-lobs-blob-threshold-limit=" + blobThreshold);
+      command.add("--export-external-lobs-clob-threshold-limit=" + clobThreshold);
     }
     return command.toArray(new String[0]);
   }
 
-  private TestingHelper() {
-    // Utility class
+  public static String[] getCommandToExportToSIARD2(String importModule, JdbcDatabaseContainer<?> container,
+    String siardPath, String exportVersion, boolean externalLobs) {
+    return getCommandToExportToSIARD2(importModule, container, siardPath, exportVersion, externalLobs, "0", "0");
+  }
+
+  // Private internal helper to reduce boilerplate
+  private static DatabaseUtils getUtils(JdbcDatabaseContainer<?> container) {
+    return DatabaseUtilsFactory.getDatabaseUtils(DbTypeResolver.fromDriverClassName(container.getDriverClassName()));
   }
 }

@@ -6,6 +6,7 @@
             <!-- Tests that don't have external dependencies -->
             <define name="all">
                 <include name="database-roundtrip"/>
+                <include name="database-test"/>
                 <include name="siard-roundtrip"/>
                 <include name="cli"/>
                 <include name="unit"/>
@@ -14,6 +15,7 @@
             </define>
         </groups>
         <classes>
+            <class name="com.databasepreservation.testing.integration.postgresql.PostgresqlToSIARDTest" />
             <class name="com.databasepreservation.testing.integration.roundtrip.MSSQLTests"/>
             <class name="com.databasepreservation.testing.integration.roundtrip.MSSQLTests"/>
             <class name="com.databasepreservation.testing.integration.roundtrip.PostgreSQLTests"/>

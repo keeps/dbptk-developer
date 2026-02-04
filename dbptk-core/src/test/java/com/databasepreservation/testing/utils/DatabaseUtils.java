@@ -19,6 +19,8 @@ import java.sql.SQLException;
 public abstract class DatabaseUtils {
   public abstract void dropAllTables(Connection conn, String databaseOrSchema) throws SQLException;
 
+  public abstract void createTableIfNotExists(Connection conn, String tableCreationSQL) throws SQLException;
+
   public abstract String[] getDumpDatabaseCommand(JdbcDatabaseContainer<?> container);
 
   // Common helper methods can go here

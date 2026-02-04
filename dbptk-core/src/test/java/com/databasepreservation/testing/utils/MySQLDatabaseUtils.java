@@ -7,6 +7,7 @@
  */
 package com.databasepreservation.testing.utils;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
 import java.sql.Connection;
@@ -45,6 +46,13 @@ public class MySQLDatabaseUtils extends DatabaseUtils {
     }
 
     log("Dropped " + tables.size() + " tables from MySQL database: " + databaseName);
+  }
+
+  @Override
+  public void createTableIfNotExists(Connection conn, String tableCreationSQL) throws SQLException {
+    try (Statement stmt = conn.createStatement()) {
+      stmt.execute(tableCreationSQL);
+    }
   }
 
   @Override

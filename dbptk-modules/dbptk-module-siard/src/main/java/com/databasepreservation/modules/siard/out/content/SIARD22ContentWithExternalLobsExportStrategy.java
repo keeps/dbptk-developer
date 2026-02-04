@@ -58,14 +58,13 @@ public class SIARD22ContentWithExternalLobsExportStrategy extends SIARD22Content
   // measured in Bytes
   private final long maximumLobsFolderSize;
   private final int maximumLobsPerFolder;
-  private Map<Triple<Integer, Integer, Integer>, SIARDArchiveContainer> currentExternalContainers;
-  private long currentLobsFolderSize = 0;
-  private int currentLobsInFolder = 0;
   // The size that a binary cell can be until it is written externally
   private final long blobThresholdLimit;
   // The size that a character cell can be until it is written externally
   private final long clobThresholdLimit;
-
+  private Map<Triple<Integer, Integer, Integer>, SIARDArchiveContainer> currentExternalContainers;
+  private long currentLobsFolderSize = 0;
+  private int currentLobsInFolder = 0;
   private byte[] lobDigestChecksum = null;
 
   public SIARD22ContentWithExternalLobsExportStrategy(ContentPathExportStrategy contentPathStrategy,
@@ -108,9 +107,14 @@ public class SIARD22ContentWithExternalLobsExportStrategy extends SIARD22Content
   protected void writeBinaryCell(String cellPrefix, Cell cell, ColumnStructure column, int columnIndex)
     throws ModuleException, IOException {
     BinaryCell binaryCell = (BinaryCell) cell;
+    long length = binaryCell.getSize();
 
     if (Sql2008toXSDType.isLargeType(column.getType(), reporter)) {
-      writeLargeObjectDataOutside(cellPrefix, cell, columnIndex);
+      if (length > blobThresholdLimit) {
+        writeLargeObjectDataOutside(cellPrefix, cell, columnIndex);
+      } else {
+        writeLargeObjectData(cellPrefix, cell, columnIndex);
+      }
     } else {
       // inline non-BLOB binary data
       try (InputStream inputStream = binaryCell.createInputStream()) {

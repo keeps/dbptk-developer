@@ -27,6 +27,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.MessageDigestCalculatingInputStream;
+import org.apache.commons.io.input.MessageDigestInputStream;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,17 +87,16 @@ public class SIARD22ContentExportStrategy implements ContentExportStrategy {
   protected final ContentPathExportStrategy contentPathStrategy;
   protected final WriteStrategy writeStrategy;
   protected final SIARDArchiveContainer baseContainer;
-  private final boolean prettyXMLOutput;
-  protected XMLBufferedWriter currentWriter;
   protected final boolean lowerCase;
   protected final String messageDigestAlgorithm;
+  private final boolean prettyXMLOutput;
+  protected XMLBufferedWriter currentWriter;
   protected SchemaStructure currentSchema;
   protected TableStructure currentTable;
   protected int currentRowIndex;
+  protected Reporter reporter;
   private int THRESHOLD_TREAT_STRING_AS_CLOB = 4000;
   private int THRESHOLD_TREAT_BINARY_AS_BLOB = 2000;
-
-  protected Reporter reporter;
 
   public SIARD22ContentExportStrategy(ContentPathExportStrategy contentPathStrategy, WriteStrategy writeStrategy,
     SIARDArchiveContainer baseContainer, boolean prettyXMLOutput, String digestAlgorithm, String fontCase) {
@@ -394,11 +394,9 @@ public class SIARD22ContentExportStrategy implements ContentExportStrategy {
     throws IOException, ModuleException {
     LargeObject lob;
 
-    if (cell instanceof BinaryCell) {
-      final BinaryCell binCell = (BinaryCell) cell;
-
-      try (MessageDigestCalculatingInputStream digest = new MessageDigestCalculatingInputStream(
-        binCell.createInputStream(), MessageDigest.getInstance(messageDigestAlgorithm))) {
+    if (cell instanceof BinaryCell binCell) {
+      try (MessageDigestInputStream digest = MessageDigestInputStream.builder()
+        .setInputStream(binCell.createInputStream()).setMessageDigest(messageDigestAlgorithm).get()) {
         WaitingInputStream waitingInputStream = new WaitingInputStream(digest);
         InputStream inputStream = new BufferedInputStream(waitingInputStream);
 
@@ -425,9 +423,7 @@ public class SIARD22ContentExportStrategy implements ContentExportStrategy {
       } catch (NoSuchAlgorithmException e) {
         throw new ModuleException().withMessage("The message digest algorithm does not exits").withCause(e);
       }
-    } else if (cell instanceof SimpleCell) {
-      SimpleCell txtCell = (SimpleCell) cell;
-
+    } else if (cell instanceof SimpleCell txtCell) {
       // workaround to have data from CLOBs saved as a temporary file to be read
       String data = txtCell.getSimpleData();
 
@@ -438,9 +434,8 @@ public class SIARD22ContentExportStrategy implements ContentExportStrategy {
       }
 
       ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data.getBytes());
-      try {
-        MessageDigestCalculatingInputStream digest = new MessageDigestCalculatingInputStream(byteArrayInputStream,
-          MessageDigest.getInstance(messageDigestAlgorithm));
+      try (MessageDigestInputStream digest = MessageDigestInputStream.builder().setInputStream(byteArrayInputStream)
+        .setMessageDigest(messageDigestAlgorithm).get()) {
         final WaitingInputStream waitingInputStream = new WaitingInputStream(digest);
         InputStream inputStream = new BufferedInputStream(waitingInputStream);
 
