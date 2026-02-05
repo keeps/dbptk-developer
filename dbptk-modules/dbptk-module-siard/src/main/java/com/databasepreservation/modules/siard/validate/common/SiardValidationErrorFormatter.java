@@ -143,11 +143,12 @@ public class SiardValidationErrorFormatter {
       SiardContextExtractor contextExtractor = new SiardContextExtractor(targetLineNumber);
       xmlReader.setContentHandler(contextExtractor);
 
-      // Parse will stop when we reach the target line
+      // Parse until target line is reached. SAX parsing will be stopped via exception
+      // (a common pattern for early termination in SAX parsing)
       try {
         xmlReader.parse(new InputSource(xmlInputStream));
       } catch (SAXException e) {
-        // Expected - we stop parsing at target line
+        // Expected - parsing is stopped when target line is reached
       }
 
       return contextExtractor.getContext();

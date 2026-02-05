@@ -131,7 +131,7 @@ public class MetadataXMLAgainstXSDValidator extends MetadataValidator {
       }
     }
     
-    // Report errors with formatted messages (limit to first 5 to avoid excessively long messages)
+    // Report errors with formatted messages (limit to MAX_REPORTED_ERRORS to avoid excessively long messages)
     StringBuilder errorMessage = new StringBuilder();
     int errorCount = 0;
     
