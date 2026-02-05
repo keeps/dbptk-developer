@@ -7,6 +7,8 @@
  */
 package com.databasepreservation.modules.siard.validate.common;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -27,6 +29,7 @@ import java.util.regex.Pattern;
  * @author Generated for enhanced SIARD validation diagnostics
  */
 public class SiardValidationErrorFormatter {
+  private static final Logger LOGGER = LoggerFactory.getLogger(SiardValidationErrorFormatter.class);
 
   // Patterns for extracting context from error messages
   private static final Pattern MISSING_ELEMENT_PATTERN = 
@@ -34,7 +37,7 @@ public class SiardValidationErrorFormatter {
   private static final Pattern EXPECTED_ELEMENT_PATTERN = 
     Pattern.compile("Expected elements? '([^']+)'");
   private static final Pattern INVALID_CONTENT_PATTERN = 
-    Pattern.compile("Invalid content was found starting with element(?::\\s|\\s)'([^']+)'");
+    Pattern.compile("Invalid content was found starting with element '([^']+)'");
 
   /**
    * Formats a validation error message with detailed context information.
@@ -121,7 +124,13 @@ public class SiardValidationErrorFormatter {
    * @return The extracted XML context, or null if extraction fails
    */
   public static SiardXmlContext extractXmlContext(InputStream xmlInputStream, int targetLineNumber) {
-    if (xmlInputStream == null || targetLineNumber <= 0) {
+    if (xmlInputStream == null) {
+      LOGGER.debug("Cannot extract XML context: input stream is null");
+      return null;
+    }
+    
+    if (targetLineNumber <= 0) {
+      LOGGER.debug("Cannot extract XML context: invalid target line number {}", targetLineNumber);
       return null;
     }
 
@@ -144,6 +153,7 @@ public class SiardValidationErrorFormatter {
       return contextExtractor.getContext();
     } catch (ParserConfigurationException | IOException | SAXException e) {
       // If context extraction fails, just return null
+      LOGGER.debug("Failed to extract XML context at line {}", targetLineNumber, e);
       return null;
     }
   }
