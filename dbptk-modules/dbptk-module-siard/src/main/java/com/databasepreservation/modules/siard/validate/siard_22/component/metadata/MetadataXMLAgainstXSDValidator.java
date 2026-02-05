@@ -33,6 +33,7 @@ import com.databasepreservation.modules.siard.validate.generic.component.metadat
  */
 public class MetadataXMLAgainstXSDValidator extends MetadataValidator {
   private static final Logger LOGGER = LoggerFactory.getLogger(MetadataXMLAgainstXSDValidator.class);
+  private static final int MAX_REPORTED_ERRORS = 5;
   private final String MODULE_NAME;
   private static final String M_50 = "5.0";
   private static final String M_501 = "M_5.0-1";
@@ -133,11 +134,10 @@ public class MetadataXMLAgainstXSDValidator extends MetadataValidator {
     // Report errors with formatted messages (limit to first 5 to avoid excessively long messages)
     StringBuilder errorMessage = new StringBuilder();
     int errorCount = 0;
-    int maxErrors = 5;
     
     for (SiardValidationErrorHandler.ValidationError error : errorHandler.getAllErrors()) {
-      if (errorCount >= maxErrors) {
-        int remainingErrors = errorHandler.getAllErrors().size() - maxErrors;
+      if (errorCount >= MAX_REPORTED_ERRORS) {
+        int remainingErrors = errorHandler.getAllErrors().size() - MAX_REPORTED_ERRORS;
         errorMessage.append("; ... and ").append(remainingErrors).append(" more error(s)");
         break;
       }

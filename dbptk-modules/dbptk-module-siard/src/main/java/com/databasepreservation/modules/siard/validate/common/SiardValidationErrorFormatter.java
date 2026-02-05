@@ -188,7 +188,7 @@ public class SiardValidationErrorFormatter {
         throws SAXException {
       // Stop parsing if we've reached the target line
       if (locator != null && locator.getLineNumber() >= targetLineNumber) {
-        throw new SAXException("Reached target line");
+        throw new SAXException("Context extraction completed: reached target line " + targetLineNumber);
       }
 
       currentText.setLength(0);
