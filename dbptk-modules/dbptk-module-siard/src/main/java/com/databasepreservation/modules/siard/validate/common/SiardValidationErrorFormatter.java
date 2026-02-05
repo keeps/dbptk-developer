@@ -34,7 +34,7 @@ public class SiardValidationErrorFormatter {
   private static final Pattern EXPECTED_ELEMENT_PATTERN = 
     Pattern.compile("Expected elements? '([^']+)'");
   private static final Pattern INVALID_CONTENT_PATTERN = 
-    Pattern.compile("Invalid content was found starting with element[: ]+'([^']+)'");
+    Pattern.compile("Invalid content was found starting with element(?::|\\s)'([^']+)'");
 
   /**
    * Formats a validation error message with detailed context information.
@@ -162,16 +162,22 @@ public class SiardValidationErrorFormatter {
     private boolean inTableName = false;
     private boolean inViewName = false;
     private final StringBuilder currentText = new StringBuilder();
+    private org.xml.sax.Locator locator;
 
     public SiardContextExtractor(int targetLineNumber) {
       this.targetLineNumber = targetLineNumber;
     }
 
     @Override
+    public void setDocumentLocator(org.xml.sax.Locator locator) {
+      this.locator = locator;
+    }
+
+    @Override
     public void startElement(String uri, String localName, String qName, org.xml.sax.Attributes attributes) 
         throws SAXException {
       // Stop parsing if we've reached the target line
-      if (getCurrentLineNumber() >= targetLineNumber) {
+      if (locator != null && locator.getLineNumber() >= targetLineNumber) {
         throw new SAXException("Reached target line");
       }
 
@@ -234,18 +240,6 @@ public class SiardValidationErrorFormatter {
       }
 
       currentText.setLength(0);
-    }
-
-    /**
-     * Gets the current line number during parsing.
-     * Note: This is a simplified implementation. In real scenarios, you would
-     * need to track line numbers through a Locator.
-     */
-    private int getCurrentLineNumber() {
-      // This is a limitation - SAX doesn't provide easy access to current line
-      // during parsing without a Locator. For now, we'll continue parsing
-      // and rely on the context we can extract.
-      return 0; // Will parse entire document
     }
 
     public SiardXmlContext getContext() {
