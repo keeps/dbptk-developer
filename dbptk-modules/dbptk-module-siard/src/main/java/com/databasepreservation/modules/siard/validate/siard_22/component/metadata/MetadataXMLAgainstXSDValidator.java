@@ -17,6 +17,8 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import com.databasepreservation.model.exception.ModuleException;
@@ -30,6 +32,7 @@ import com.databasepreservation.modules.siard.validate.generic.component.metadat
  * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class MetadataXMLAgainstXSDValidator extends MetadataValidator {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MetadataXMLAgainstXSDValidator.class);
   private final String MODULE_NAME;
   private static final String M_50 = "5.0";
   private static final String M_501 = "M_5.0-1";
@@ -123,6 +126,7 @@ public class MetadataXMLAgainstXSDValidator extends MetadataValidator {
         );
       } catch (IOException e) {
         // Context extraction failed, continue without it
+        LOGGER.debug("Failed to extract XML context for error at line {}", firstError.getLineNumber(), e);
       }
     }
     

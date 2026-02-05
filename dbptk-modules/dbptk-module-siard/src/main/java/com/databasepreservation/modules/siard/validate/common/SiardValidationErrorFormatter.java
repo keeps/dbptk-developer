@@ -34,7 +34,7 @@ public class SiardValidationErrorFormatter {
   private static final Pattern EXPECTED_ELEMENT_PATTERN = 
     Pattern.compile("Expected elements? '([^']+)'");
   private static final Pattern INVALID_CONTENT_PATTERN = 
-    Pattern.compile("Invalid content was found starting with element(?::|\\s)'([^']+)'");
+    Pattern.compile("Invalid content was found starting with element(?::\\s|\\s)'([^']+)'");
 
   /**
    * Formats a validation error message with detailed context information.
