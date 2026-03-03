@@ -138,7 +138,7 @@ public class SQLServerHelper extends SQLHelper {
 
   @Override
   public String getCheckConstraintsSQL(String schemaName, String tableName) {
-    return "SELECT cc.CONSTRAINT_NAME AS CHECK_NAME, " + "cc.CHECK_CLAUSE AS CHECK_CONDITION "
+    return "SELECT DISTINCT cc.CONSTRAINT_NAME AS CHECK_NAME, " + "cc.CHECK_CLAUSE AS CHECK_CONDITION "
       + "FROM INFORMATION_SCHEMA.CHECK_CONSTRAINTS cc " + "INNER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE c "
       + "ON cc.CONSTRAINT_NAME = c.CONSTRAINT_NAME " + "WHERE c.TABLE_NAME = '" + tableName + "' "
       + "AND c.TABLE_SCHEMA = '" + schemaName + "'";
