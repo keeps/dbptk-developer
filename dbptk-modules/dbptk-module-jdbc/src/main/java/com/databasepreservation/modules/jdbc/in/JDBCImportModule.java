@@ -1171,7 +1171,7 @@ public class JDBCImportModule implements DatabaseImportModule {
         int columnType = metaData.getColumnType(i);
         String columnTypeName = metaData.getColumnTypeName(i);
         int columnDisplaySize = metaData.getColumnDisplaySize(i);
-        int precision = metaData.getPrecision(i);
+        int precision = metaData.getScale(i);
 
         Type checkedType = datatypeImporter.getCheckedType(dbStructure, actualSchema, tableName, columnName, columnType,
           columnTypeName, columnDisplaySize, precision, 10);
