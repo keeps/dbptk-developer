@@ -297,9 +297,10 @@ public class SIARD22ContentImportStrategy extends DefaultHandler implements Cont
         if (columnLobsDir == null) {
           columnLobsDir = "";
         }
+
         String lobFile = attr.getValue(FILE_KEYWORD);
         String lobPath;
-        if (lobFile.startsWith(File.separator)) {
+        if (lobFile.startsWith(File.separator) || lobFile.startsWith("content")) {
           lobPath = lobFile;
         } else if (columnLobsDir.startsWith(File.separator)) {
           lobPath = Path.of(columnLobsDir, lobFile).toString();
