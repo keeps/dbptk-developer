@@ -413,7 +413,7 @@ public class SIARD22ContentExportStrategy implements ContentExportStrategy {
         byte[] messageDigest = digest.getMessageDigest().digest();
 
         currentWriter.beginOpenTag(cellPrefix + columnIndex, 2).space().append("file=\"")
-          .append(FilenameUtils.separatorsToUnix(contentPathStrategy.getInternalBlobFileName(currentRowIndex + 1)))
+          .append(FilenameUtils.separatorsToUnix(contentPathStrategy.getBlobFilePath(currentSchema.getIndex(), currentTable.getIndex(), columnIndex, currentRowIndex + 1)))
           .append('"').space().append("length=\"").append(String.valueOf(binCell.getSize())).append("\"").space()
           .append("digest=\"").append(MessageDigestUtils.getHexFromMessageDigest(messageDigest, lowerCase)).append("\"")
           .space().append("digestType=\"").append(messageDigestAlgorithm.toUpperCase()).append("\"");
@@ -452,7 +452,7 @@ public class SIARD22ContentExportStrategy implements ContentExportStrategy {
         byte[] messageDigest = digest.getMessageDigest().digest();
 
         currentWriter.beginOpenTag(cellPrefix + columnIndex, 2).space().append("file=\"")
-          .append(contentPathStrategy.getInternalClobFileName(currentRowIndex + 1)).append('"').space()
+          .append(contentPathStrategy.getClobFilePath(currentSchema.getIndex(),currentTable.getIndex(), columnIndex, currentRowIndex + 1)).append('"').space()
           .append("length=\"").append(String.valueOf(txtCell.getBytesSize())).append("\"").space().append("digest=\"")
           .append(MessageDigestUtils.getHexFromMessageDigest(messageDigest, lowerCase)).append("\"").space()
           .append("digestType=\"").append(messageDigestAlgorithm.toUpperCase()).append("\"");
