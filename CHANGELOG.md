@@ -1,5 +1,16 @@
 # Changelog
 
+## Version 4.4.0 (24/03/2026)
+#### Bug fixes
+
+- Update SIARD 2.2 import/export content strategy 7097826c6e97a18b1d1b21b1947ec1e64c12bc1e
+- Fix check constraints duplicated multiple times when exporting from SQL Server by adding DISTINCT to query 4eb80809255e32804f06ed1146f366875464093c
+
+#### Security
+- Several dependency major upgrades to fix security vulnerabilities
+
+---
+
 ## Version 4.3.1 (04/02/2026)
 #### Bug fixes
 
@@ -258,13 +269,3 @@ Special thanks to @daniel-skovenborg for his contributions to this release
 #### Bug Fixes
 
 * Merkle Tree filter malfunction with multi-schema databases #494 
----
-
-## Version 2.9.9 (13/07/2021)
-#### Bug Fixes
-
-* This parser does not support specification "dbptk-core" version "2.9.8" #486
-* ST_GEOMETRY gives Null Pointer Exception error #487
-
-#### Enhancements
-* Improved support for Microsoft SQL Server use integrated login on Windows #488
