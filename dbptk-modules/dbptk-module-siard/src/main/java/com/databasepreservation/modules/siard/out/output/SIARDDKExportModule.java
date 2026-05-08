@@ -35,14 +35,14 @@ import java.util.Map;
  *
  */
 public abstract class SIARDDKExportModule {
-  private MetadataExportStrategy metadataExportStrategy;
-  private SIARDArchiveContainer mainContainer;
-  private ContentExportStrategy contentExportStrategy;
-  private WriteStrategy writeStrategy;
-  private ContentPathExportStrategy contentPathExportStrategy;
-  private MetadataPathStrategy metadataPathStrategy;
-  private SIARDMarshaller siardMarshaller;
-  private LOBsTracker lobsTracker;
+  protected MetadataExportStrategy metadataExportStrategy;
+  protected SIARDArchiveContainer mainContainer;
+  protected ContentExportStrategy contentExportStrategy;
+  protected WriteStrategy writeStrategy;
+  protected ContentPathExportStrategy contentPathExportStrategy;
+  protected MetadataPathStrategy metadataPathStrategy;
+  protected SIARDMarshaller siardMarshaller;
+  protected LOBsTracker lobsTracker;
 
   private Map<String, String> exportModuleArgs;
   private SIARDDKFileIndexFileStrategy SIARDDKFileIndexFileStrategy;

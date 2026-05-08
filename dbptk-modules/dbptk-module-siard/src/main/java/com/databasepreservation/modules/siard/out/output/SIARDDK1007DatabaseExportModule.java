@@ -7,6 +7,7 @@
  */
 package com.databasepreservation.modules.siard.out.output;
 
+import com.databasepreservation.modules.siard.bindings.siard_dk_1007.SiardDiark;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 
 /**
@@ -22,5 +23,10 @@ public class SIARDDK1007DatabaseExportModule extends SIARDDKDatabaseExportModule
   @Override
   String getJAXBContext() {
     return SIARDDKConstants.JAXB_CONTEXT_FILEINDEX;
+  }
+
+  @Override
+  Class<?> getJAXBContextClass() {
+    return SiardDiark.class;
   }
 }
