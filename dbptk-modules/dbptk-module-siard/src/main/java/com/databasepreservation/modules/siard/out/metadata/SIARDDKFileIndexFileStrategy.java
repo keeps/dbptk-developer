@@ -12,6 +12,7 @@ import com.databasepreservation.model.structure.DatabaseStructure;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
+import jakarta.xml.bind.JAXBElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,8 +57,8 @@ public abstract class SIARDDKFileIndexFileStrategy<T, D> implements IndexFileStr
     String foNbase = baseContainer.getName(count - 1).toString(); // e.g.
     // AVID.SA.19000.1
 
-    T fileIndexType = createFileIndexTypeInstance();
-    List<D> fList = getF(fileIndexType);
+    JAXBElement<T> fileIndexType = createFileIndexTypeRootInstance();
+    List<D> fList = getF(fileIndexType.getValue());
 
     for (Map.Entry<String, byte[]> entry : md5sums.entrySet()) {
 
@@ -167,6 +168,8 @@ public abstract class SIARDDKFileIndexFileStrategy<T, D> implements IndexFileStr
 
     return digest;
   }
+
+  abstract JAXBElement<T> createFileIndexTypeRootInstance();
 
   abstract T createFileIndexTypeInstance();
 

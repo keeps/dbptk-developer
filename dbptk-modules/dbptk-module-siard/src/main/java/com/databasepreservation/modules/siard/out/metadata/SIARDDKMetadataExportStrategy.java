@@ -36,13 +36,13 @@ import java.util.Map;
 public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
   private static final Logger LOGGER = LoggerFactory.getLogger(SIARDDKMetadataExportStrategy.class);
 
-  private SIARDMarshaller siardMarshaller;
-  private MetadataPathStrategy metadataPathStrategy;
-  private SIARDDKFileIndexFileStrategy SIARDDKFileIndexFileStrategy;
-  private SIARDDKDocIndexFileStrategy SIARDDKDocIndexFileStrategy;
-  private Map<String, String> exportModuleArgs;
-  private LOBsTracker lobsTracker;
-  private SIARDDKAdapter siarddkAdapter;
+  protected SIARDMarshaller siardMarshaller;
+  protected MetadataPathStrategy metadataPathStrategy;
+  protected SIARDDKFileIndexFileStrategy SIARDDKFileIndexFileStrategy;
+  protected SIARDDKDocIndexFileStrategy SIARDDKDocIndexFileStrategy;
+  protected Map<String, String> exportModuleArgs;
+  protected LOBsTracker lobsTracker;
+  protected SIARDDKAdapter siarddkAdapter;
 
   private Reporter reporter;
 
@@ -197,7 +197,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     }
   }
 
-  private void createLocalSharedFolder(SIARDArchiveContainer container) {
+  protected void createLocalSharedFolder(SIARDArchiveContainer container) {
     Path containerPath = container.getPath();
     Path localShared = Paths.get("Schemas/localShared");
     File folder = containerPath.resolve(localShared).toFile();
