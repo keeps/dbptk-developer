@@ -12,9 +12,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import javax.xml.XMLConstants;
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBException;
-import jakarta.xml.bind.Marshaller;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -25,6 +22,10 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import com.databasepreservation.model.exception.ModuleException;
+
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 
 public class StandardSIARDMarshaller implements SIARDMarshaller {
 
@@ -41,6 +42,53 @@ public class StandardSIARDMarshaller implements SIARDMarshaller {
     JAXBContext context;
     try {
       context = JAXBContext.newInstance(contextStr);
+    } catch (JAXBException e) {
+      throw new ModuleException().withMessage("Error loading JAXBContent").withCause(e);
+    }
+
+    SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+    Schema xsdSchema = null;
+    try {
+      InputStream in = this.getClass().getResourceAsStream(localeSchemaLocation);
+      xsdSchema = schemaFactory.newSchema(new StreamSource(in));
+      in.close();
+    } catch (SAXException e) {
+      throw new ModuleException()
+        .withMessage("XSD file has errors: " + getClass().getResource(localeSchemaLocation).getPath()).withCause(e);
+    } catch (IOException e) {
+      throw new ModuleException().withMessage("Could not close InputStream").withCause(e);
+    }
+
+    Marshaller m;
+
+    try {
+
+      m = context.createMarshaller();
+      m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+      m.setProperty(Marshaller.JAXB_ENCODING, ENCODING);
+      m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, JAXBSchemaLocation);
+
+      m.setSchema(xsdSchema);
+
+      m.marshal(jaxbElement, writer);
+
+    } catch (JAXBException e) {
+      if (e.getCause() instanceof SAXParseException) {
+        LOGGER.error(e.getCause().getMessage());
+      }
+      throw new ModuleException().withMessage("Error while Marshalling JAXB").withCause(e);
+    }
+  }
+
+  @Override
+  public void marshal(Class<?> archiveClass, String localeSchemaLocation, String JAXBSchemaLocation,
+    OutputStream writer, Object jaxbElement) throws ModuleException {
+
+    // Set up JAXB marshaller
+
+    JAXBContext context;
+    try {
+      context = JAXBContext.newInstance(archiveClass.getPackage().getName(), archiveClass.getClassLoader());
     } catch (JAXBException e) {
       throw new ModuleException().withMessage("Error loading JAXBContent").withCause(e);
     }
