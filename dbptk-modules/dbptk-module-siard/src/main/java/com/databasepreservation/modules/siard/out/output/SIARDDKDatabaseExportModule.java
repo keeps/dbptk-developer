@@ -7,16 +7,6 @@
  */
 package com.databasepreservation.modules.siard.out.output;
 
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
-import com.databasepreservation.modules.siard.out.metadata.SIARDDKContextDocumentationWriter;
-import com.databasepreservation.modules.siard.out.metadata.SIARDDKFileIndexFileStrategy;
-import com.databasepreservation.modules.siard.out.metadata.SIARDMarshaller;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -24,6 +14,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
+
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.out.metadata.SIARDDKContextDocumentationWriter;
+import com.databasepreservation.modules.siard.out.metadata.SIARDDKFileIndexFileStrategy;
+import com.databasepreservation.modules.siard.out.metadata.SIARDMarshaller;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
@@ -117,7 +118,7 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
       OutputStream writer = SIARDDKFileIndexFileStrategy.getWriter(siarddkExportModule.getMainContainer(), path,
         siarddkExportModule.getWriteStrategy());
 
-      siardMarshaller.marshal(getJAXBContext(), metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.FILE_INDEX),
+      siardMarshaller.marshal(getJAXBContextClass(), metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.FILE_INDEX),
         "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/fileIndex.xsd", writer,
         SIARDDKFileIndexFileStrategy.generateXML(null));
 
@@ -129,4 +130,6 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
   }
 
   abstract String getJAXBContext();
+
+  abstract Class<?> getJAXBContextClass();
 }

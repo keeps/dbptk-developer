@@ -59,7 +59,7 @@ public class PostgreSQLHelper extends SQLHelper {
 
   @Override
   public String escapeTableName(String table) {
-    return getStartQuote() + table + getEndQuote();
+    return getStartQuote() + StringUtils.strip(table, "\"") + getEndQuote();
   }
 
   /**
