@@ -684,7 +684,7 @@ public class JDBCExportModule implements DatabaseFilterModule {
 
   protected void handleSimpleTypeNumericExactDataCell(String data, PreparedStatement ps, int index, Cell cell,
     ColumnStructure column) throws SQLException {
-    if (data != null) {
+    if (data != null && !data.isEmpty()) {
       BigDecimal bd = new BigDecimal(data);
       ps.setBigDecimal(index, bd);
     } else {
