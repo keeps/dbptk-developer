@@ -1945,6 +1945,22 @@ public class JDBCImportModule implements DatabaseImportModule {
     if (cellType instanceof SimpleTypeBinary && ((SimpleTypeBinary) cellType).isOutsideDatabase()) {
       cell = new SimpleCell(id, rawData.getString(columnName));
     } else {
+      String originalTypeName = cellType.getOriginalTypeName();
+      if (originalTypeName.contains("timestamp") || originalTypeName.contains("rowversion")) {
+          StringBuilder hexString = new StringBuilder();
+        byte[] rowVersion = rawData.getBytes(columnName);
+
+        if (rowVersion == null || rowVersion.length == 0){
+          return new NullCell(id);
+        }
+        else {
+          for (byte b : rowVersion) {
+            hexString.append(String.format("%02X", b));
+          }
+          return new SimpleCell(id, hexString.toString());
+        }
+      }
+
       Blob blob = rawData.getBlob(columnName);
       if (blob != null && !rawData.wasNull()) {
         cell = new BinaryCell(id, blob);

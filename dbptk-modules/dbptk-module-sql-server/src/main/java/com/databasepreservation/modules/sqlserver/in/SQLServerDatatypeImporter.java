@@ -31,8 +31,8 @@ public class SQLServerDatatypeImporter extends JDBCDatatypeImporter {
 
   @Override
   protected Type getBinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
-    if (typeName.equalsIgnoreCase("timestamp") || typeName.equalsIgnoreCase("rowversion")) {
-      return getVarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
+    if (typeName.contains("timestamp") || typeName.contains("rowversion")) {
+      return super.getBinaryType(typeName, 8, decimalDigits, numPrecRadix);
     }
     return super.getBinaryType(typeName, columnSize, decimalDigits, numPrecRadix);
   }
