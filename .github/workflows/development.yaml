@@ -56,3 +56,9 @@ jobs:
         run: mvn $MAVEN_CLI_OPTS clean package deploy -Dmaven.test.skip=true -Pdeploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: artifact
+          path: dbptk-core/target/dbptk-app-*.jar
+          retention-days: 5
