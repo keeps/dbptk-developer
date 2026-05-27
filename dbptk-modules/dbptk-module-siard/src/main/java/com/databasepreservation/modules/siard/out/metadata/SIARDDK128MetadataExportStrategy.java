@@ -5,6 +5,7 @@ import java.io.OutputStream;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.modules.siard.bindings.siard_dk_128.DocIndexType;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.adapters.SIARDDKAdapter;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
@@ -90,8 +91,7 @@ public class SIARDDK128MetadataExportStrategy extends SIARDDKMetadataExportStrat
         String path = metadataPathStrategy.getXmlFilePath(SIARDDKConstants.DOC_INDEX);
         OutputStream writer = SIARDDKFileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
 
-        siardMarshaller.marshal(SIARDDKConstants.JAXB_CONTEXT_DOCINDEX,
-          metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.DOC_INDEX),
+        siardMarshaller.marshal(DocIndexType.class, metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.DOC_INDEX),
           "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/docIndex.xsd", writer,
           SIARDDKDocIndexFileStrategy.generateXML(dbStructure));
 
