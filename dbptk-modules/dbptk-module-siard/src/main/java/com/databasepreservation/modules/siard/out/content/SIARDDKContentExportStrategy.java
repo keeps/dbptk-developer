@@ -331,7 +331,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
             InputStream is = new BufferedInputStream(binaryCell.createInputStream());
             // Removed because TIKA was a security vulnerability and this feature was not
             // needed/not fully implemented (see #341)
-            String mimeType = "unsupported";
+            String mimeType = binaryCell.getMimeType() != null ? binaryCell.getMimeType() : "unsupported";
             IOUtils.closeQuietly(is);
 
             // Archive BLOB - simultaneous writing always supported for
@@ -357,7 +357,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
             // Create new FileIndexFileStrategy
 
             // Write the BLOB
-            OutputStream out = SIARDDKFileIndexFileStrategy.getLOBWriter(baseContainer, blob.getOutputPath(), writeStrategy);
+            OutputStream out = SIARDDKFileIndexFileStrategy.getLOBWriter(baseContainer, blob.getOutputPath(),
+              writeStrategy);
             InputStream in = blob.getInputStreamProvider().createInputStream();
             IOUtils.copy(in, out);
             IOUtils.closeQuietly(in);
