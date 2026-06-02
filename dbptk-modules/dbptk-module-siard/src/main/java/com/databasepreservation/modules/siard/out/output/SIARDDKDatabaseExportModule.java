@@ -14,15 +14,18 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -44,19 +47,33 @@ import com.databasepreservation.modules.siard.services.conversion.LobConversionS
 import com.databasepreservation.modules.siard.services.conversion.TempFileTracker;
 
 /**
+ * Handles database export pipeline matching SIARD-DK compliance, incorporating
+ * high-throughput asynchronous LOB streaming conversion.
+ * 
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
 public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
 
-  private SIARDDKExportModule siarddkExportModule;
+  private final SIARDDKExportModule siarddkExportModule;
   private static final Logger logger = LoggerFactory.getLogger(SIARDDKDatabaseExportModule.class);
 
   private ExecutorService executorService;
-  private Queue<Future<Row>> pendingRowsQueue;
   private TempFileTracker tempFileTracker;
   private LobConversionService conversionService;
   private static final int MAX_QUEUE_SIZE = 100;
+
+  // Resilient Pipeline architecture attributes
+  private BlockingQueue<Future<ProcessedRowContext>> pendingRowsQueue;
+  private ExecutorService writerExecutor;
+  private Future<?> writerTask;
+  private final AtomicReference<Throwable> writerError = new AtomicReference<>();
+
+  /**
+   * Data context tuple to link rows with their transient extracted disk paths.
+   */
+  private record ProcessedRowContext(Row row, List<Path> transientPaths) {
+  }
 
   public SIARDDKDatabaseExportModule(SIARDDKExportModule siarddkExportModule) {
     super(siarddkExportModule.getContentExportStrategy(), siarddkExportModule.getMainContainer(),
@@ -70,10 +87,11 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
     super.initDatabase();
 
     this.tempFileTracker = new TempFileTracker();
-    String apiEndpoint = "http://localhost:8080";
+    String apiEndpoint = "http://localhost:8087";
     String targetFormat = "image/tiff";
     this.conversionService = new HttpLobConversionService(apiEndpoint, targetFormat, this.tempFileTracker);
     this.executorService = Executors.newVirtualThreadPerTaskExecutor();
+    this.writerExecutor = Executors.newSingleThreadExecutor(); // Dedicated single-thread pipeline consumer
 
     // Get docID info from the command line and add these to the LOBsTracker
 
@@ -114,33 +132,22 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
 
   @Override
   public void handleDataOpenTable(String tableId) throws ModuleException {
-    // Prepare the FIFO queue for the new table
-    this.pendingRowsQueue = new LinkedList<>();
+    logger.debug("Opening table '{}'. Initializing asynchronous pipeline...", tableId);
+    this.pendingRowsQueue = new LinkedBlockingQueue<>(MAX_QUEUE_SIZE);
+    this.writerError.set(null);
+    startAsyncWriter();
     super.handleDataOpenTable(tableId);
   }
 
   @Override
   public void handleDataRow(Row row) throws ModuleException {
-    // 1. Submit the row conversion to the Virtual Thread
-    Callable<Row> conversionTask = () -> processRow(row);
-    Future<Row> futureRow = executorService.submit(conversionTask);
-    pendingRowsQueue.add(futureRow);
-
-    logger.debug("Submitted row for asynchronous processing. Current queue size: {}", pendingRowsQueue.size());
-    // 2. Backpressure: Wait for the queue to drain if it reaches the limit
-    while (pendingRowsQueue.size() >= MAX_QUEUE_SIZE) {
-      logger.debug("Pending rows queue has reached the maximum size of {}. Waiting for the oldest task to complete...",
-        MAX_QUEUE_SIZE);
-      drainHeadAndExport();
-    }
+    enqueueRow(row);
   }
 
   @Override
   public void handleDataCloseTable(String tableId) throws ModuleException {
-    // Process and export all remaining rows in the queue
-    while (pendingRowsQueue != null && !pendingRowsQueue.isEmpty()) {
-      drainHeadAndExport();
-    }
+    logger.debug("Closing table '{}'. Draining remaining items in the pipeline...", tableId);
+    stopAsyncWriter();
     super.handleDataCloseTable(tableId);
   }
 
@@ -148,6 +155,9 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
   public void finishDatabase() throws ModuleException {
     if (executorService != null && !executorService.isShutdown()) {
       executorService.shutdown();
+    }
+    if (writerExecutor != null && !writerExecutor.isShutdown()) {
+      writerExecutor.shutdown();
     }
     if (tempFileTracker != null) {
       tempFileTracker.cleanupAll();
@@ -195,34 +205,111 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
     } catch (IOException e) {
       throw new ModuleException().withMessage("Error writing fileIndex to the archive.").withCause(e);
     }
-
   }
 
-  abstract String getJAXBContext();
-
-  abstract Class<?> getJAXBContextClass();
-
-  private void drainHeadAndExport() throws ModuleException {
-    Future<Row> oldestFuture = pendingRowsQueue.poll();
-    if (oldestFuture != null) {
+  /**
+   * Starts the sequential pipeline background consumer thread.
+   */
+  private void startAsyncWriter() {
+    this.writerTask = writerExecutor.submit(() -> {
       try {
-        logger.debug("Waiting for the oldest row conversion task to complete. Remaining queue size after polling: {}",
-          pendingRowsQueue.size());
-        Row processedRow = oldestFuture.get();
+        while (!Thread.currentThread().isInterrupted()) {
+          Future<ProcessedRowContext> future = pendingRowsQueue.take(); // Enforces strict sequential order
+          ProcessedRowContext context = future.get(); // Awaits specific LOB HTTP processing boundary
 
-        logger.debug("Oldest row conversion task completed. Exporting row with ID: {}", processedRow.getIndex());
+          super.handleDataRow(context.row());
 
-        super.handleDataRow(processedRow);
-      } catch (InterruptedException | ExecutionException e) {
-        oldestFuture.cancel(true);
-        throw new ModuleException().withMessage("Error processing row conversion task").withCause(e);
+          // Alleviate disk pressure by wiping extracted structures instantly after XML
+          // writing
+          cleanupTransientPaths(context.transientPaths());
+        }
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        logger.debug("Pipeline consumer thread was interrupted and is shutting down.");
+      } catch (ExecutionException e) {
+        logger.error("A background conversion task failed critically: {}", e.getCause().getMessage());
+        writerError.set(e.getCause());
+      } catch (Exception e) {
+        logger.error("An unexpected error occurred during sequential writing.", e);
+        writerError.set(e);
       }
+    });
+  }
+
+  /**
+   * Gracefully drains the remaining queue, safely stops the consumer and monitors
+   * failures.
+   */
+  private void stopAsyncWriter() throws ModuleException {
+    while (pendingRowsQueue != null && !pendingRowsQueue.isEmpty()) {
+      if (writerError.get() != null) {
+        break;
+      }
+      try {
+        TimeUnit.MILLISECONDS.sleep(20);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+    }
+
+    if (writerTask != null) {
+      writerTask.cancel(true);
+    }
+
+    // Purge and cancel any remaining futures to avoid thread and resource leakage
+    if (pendingRowsQueue != null) {
+      for (Future<ProcessedRowContext> future : pendingRowsQueue) {
+        future.cancel(true);
+        try {
+          if (future.isDone() && !future.isCancelled()) {
+            cleanupTransientPaths(future.get().transientPaths());
+          }
+        } catch (Exception ignored) {
+        }
+      }
+      pendingRowsQueue.clear();
+    }
+
+    if (writerError.get() != null) {
+      throw new ModuleException().withMessage("Row writing pipeline aborted").withCause(writerError.get());
     }
   }
 
-  private Row processRow(Row row) throws Exception {
-    logger.debug("Processing row with ID: {} in thread: {}", row.getIndex(), Thread.currentThread().getName());
+  /**
+   * Pushes rows into the pipeline, throwing fast if the writer task fails, and
+   * using non-deadlocking backpressure.
+   */
+  private void enqueueRow(Row row) throws ModuleException {
+    if (writerError.get() != null) {
+      throw new ModuleException().withMessage("Pipeline execution halted due to previous background failure")
+        .withCause(writerError.get());
+    }
+
+    Callable<ProcessedRowContext> conversionTask = () -> processRowAsync(row);
+    Future<ProcessedRowContext> future = executorService.submit(conversionTask);
+
+    try {
+      // Prevents deadlocks if the consumer thread crashes while queue is maxed out
+      while (!pendingRowsQueue.offer(future, 500, TimeUnit.MILLISECONDS)) {
+        if (writerError.get() != null) {
+          future.cancel(true);
+          throw new ModuleException().withMessage("Pipeline halted while enqueuing row").withCause(writerError.get());
+        }
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      future.cancel(true);
+      throw new ModuleException().withMessage("Row enqueuing process was interrupted").withCause(e);
+    }
+  }
+
+  /**
+   * Processes row columns concurrently on Virtual Threads mapping extracted files
+   * for lifecycle control.
+   */
+  private ProcessedRowContext processRowAsync(Row row) throws Exception {
     List<Cell> cells = row.getCells();
+    List<Path> transientPaths = new ArrayList<>();
 
     for (int i = 0; i < cells.size(); i++) {
       Cell cell = cells.get(i);
@@ -233,11 +320,28 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
           Cell newCell = new BinaryCell(cell.getId(), new PathInputStreamProvider(result.convertedFile()),
             "image/tiff");
           cells.set(i, newCell);
+
+          // Track extracted parts to clean them individually later
+          transientPaths.add(result.convertedFile());
+          transientPaths.add(result.reportFile());
+          transientPaths.add(result.convertedFile().getParent()); // directory container
         }
       }
     }
     row.setCells(cells);
-    logger.debug("Completed processing row with ID: {}", row.getIndex());
-    return row;
+    return new ProcessedRowContext(row, transientPaths);
   }
+
+  private void cleanupTransientPaths(List<Path> paths) {
+    if (paths == null || tempFileTracker == null) {
+      return;
+    }
+    for (Path path : paths) {
+      tempFileTracker.deleteEarly(path);
+    }
+  }
+
+  abstract String getJAXBContext();
+
+  abstract Class<?> getJAXBContextClass();
 }

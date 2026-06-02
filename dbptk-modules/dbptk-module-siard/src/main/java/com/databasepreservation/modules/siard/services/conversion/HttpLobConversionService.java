@@ -31,14 +31,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Handles communication with the external format conversion REST API. Uses
  * asynchronous polling and in-memory multipart streaming to process large
  * objects efficiently.
+ *
+ * @author Gabriel Barros <gbarros@keep.pt>
  */
 public class HttpLobConversionService implements LobConversionService {
 
   private static final Logger log = LoggerFactory.getLogger(HttpLobConversionService.class);
 
-  private static final int MAX_POLLING_ATTEMPTS = 300;
   private static final int MAX_NETWORK_RETRIES = 3;
   private static final int BASE_POLLING_INTERVAL_MS = 2000;
+  private static final int MAX_POLLING_ATTEMPTS = 600; // ~20 minutes maximum wait per file before assuming Zombie Job
 
   private final HttpClient httpClient;
   private final String baseUrl;
@@ -51,23 +53,18 @@ public class HttpLobConversionService implements LobConversionService {
     this.baseUrl = baseUrl;
     this.targetFormat = targetFormat;
     this.fileTracker = fileTracker;
-
     this.objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-    this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(30)).build();
+    this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(60)).build();
   }
 
   @Override
   public ConversionResult convertLob(String cellId, InputStream inputStream) throws Exception {
+    log.debug("Initiating conversion pipeline for cell: {}", cellId);
     String jobId = submitJob(cellId, inputStream);
     waitForCompletion(cellId, jobId);
     return downloadAndExtractResult(cellId, jobId);
   }
 
-  /**
-   * Submits the job using a SequenceInputStream to stream the multipart request
-   * directly, avoiding intermediate disk writes for the payload.
-   */
   private String submitJob(String cellId, InputStream inputStream) throws Exception {
     String boundary = "DbptkBoundary" + System.currentTimeMillis();
 
@@ -81,8 +78,6 @@ public class HttpLobConversionService implements LobConversionService {
     InputStream headerStream = new ByteArrayInputStream(header.getBytes(StandardCharsets.UTF_8));
     InputStream footerStream = new ByteArrayInputStream(footer.getBytes(StandardCharsets.UTF_8));
 
-    // Chains the header, actual LOB data, and footer without loading the LOB into
-    // memory
     InputStream multipartStream = new SequenceInputStream(
       Collections.enumeration(Arrays.asList(headerStream, inputStream, footerStream)));
 
@@ -90,57 +85,72 @@ public class HttpLobConversionService implements LobConversionService {
       .header("Content-Type", "multipart/form-data; boundary=" + boundary)
       .POST(BodyPublishers.ofInputStream(() -> multipartStream)).build();
 
-    // Not using executeWithRetry here because the InputStream is consumed and
-    // cannot be trivially reset.
     HttpResponse<String> submitResponse = httpClient.send(submitRequest, BodyHandlers.ofString());
 
     if (submitResponse.statusCode() >= 400) {
-      throw new RuntimeException("Failed to submit LOB for cell " + cellId + ": " + submitResponse.body());
+      log.error("API rejected LOB submission for cell {}. Status: {}, Body: {}", cellId, submitResponse.statusCode(),
+        submitResponse.body());
+      throw new RuntimeException("Failed to submit LOB for cell " + cellId);
     }
 
     JobSubmissionResponse job = objectMapper.readValue(submitResponse.body(), JobSubmissionResponse.class);
+    log.debug("Successfully dispatched cell {}. Assigned Job ID: {}", cellId, job.id());
     return job.id();
   }
 
-  /**
-   * Polls the job status API until completion or timeout. Includes jitter to
-   * prevent thundering herd.
-   */
   private void waitForCompletion(String cellId, String jobId) throws Exception {
-    for (int i = 0; i < MAX_POLLING_ATTEMPTS; i++) {
-      HttpRequest statusRequest = HttpRequest.newBuilder().uri(URI.create(baseUrl + "/jobs/" + jobId)).GET().build();
+    log.debug("Awaiting completion of Job {} (Cell {})", jobId, cellId);
 
+    for (int attempts = 1; attempts <= MAX_POLLING_ATTEMPTS; attempts++) {
+      HttpRequest statusRequest = HttpRequest.newBuilder().uri(URI.create(baseUrl + "/jobs/" + jobId)).GET().build();
       HttpResponse<String> statusResponse = executeWithRetry(statusRequest, BodyHandlers.ofString(),
         MAX_NETWORK_RETRIES);
+
       JobStatusResponse status = objectMapper.readValue(statusResponse.body(), JobStatusResponse.class);
 
       switch (status.status().toUpperCase()) {
         case "COMPLETED", "DONE", "SUCCESS" -> {
+          log.debug("Job {} (Cell {}) completed successfully after {} attempts.", jobId, cellId, attempts);
           return;
         }
-        case "FAILED", "ERROR", "EVICTED" -> throw new RuntimeException("Server failed to convert cell: " + cellId);
+        case "FAILED", "ERROR", "EVICTED" -> {
+          log.error("API reported terminal failure for Job {} (Cell {})", jobId, cellId);
+          throw new RuntimeException("Server failed to convert cell: " + cellId);
+        }
         default -> {
-          long sleepTime = BASE_POLLING_INTERVAL_MS + random.nextInt(1000); // Jittering
+          if (attempts % 30 == 0) {
+            log.warn("Job {} (Cell {}) is taking unusually long. Current status: {}. Attempt: {}/{}", jobId, cellId,
+              status.status(), attempts, MAX_POLLING_ATTEMPTS);
+          }
+          long sleepTime = BASE_POLLING_INTERVAL_MS + random.nextInt(1000);
           Thread.sleep(sleepTime);
         }
       }
     }
+    log.error("Zombie Job detected. API failed to resolve Job {} (Cell {}) within the maximum polling threshold.",
+      jobId, cellId);
     throw new RuntimeException("Timeout after waiting for conversion of cell: " + cellId);
   }
 
   /**
-   * Downloads the resulting ZIP and extracts its contents.
+   * Downloads the resulting ZIP and extracts its contents, freeing the ZIP file
+   * immediately after.
    */
   private ConversionResult downloadAndExtractResult(String cellId, String jobId) throws Exception {
     Path tempZipFile = Files.createTempFile("siarddk_conv_" + cellId + "_", ".zip");
     fileTracker.track(tempZipFile);
 
-    HttpRequest downloadRequest = HttpRequest.newBuilder().uri(URI.create(baseUrl + "/jobs/" + jobId + "/download"))
-      .GET().build();
+    try {
+      HttpRequest downloadRequest = HttpRequest.newBuilder().uri(URI.create(baseUrl + "/jobs/" + jobId + "/download"))
+        .GET().build();
 
-    executeWithRetry(downloadRequest, BodyHandlers.ofFile(tempZipFile), MAX_NETWORK_RETRIES);
+      executeWithRetry(downloadRequest, BodyHandlers.ofFile(tempZipFile), MAX_NETWORK_RETRIES);
 
-    return extractZipContents(cellId, tempZipFile);
+      return extractZipContents(cellId, tempZipFile);
+    } finally {
+      // Free disk space immediately after extraction
+      fileTracker.deleteEarly(tempZipFile);
+    }
   }
 
   private ConversionResult extractZipContents(String cellId, Path tempZipFile) throws Exception {
@@ -155,7 +165,6 @@ public class HttpLobConversionService implements LobConversionService {
       while ((zipEntry = zis.getNextEntry()) != null) {
         Path extractedFilePath = extractionDir.resolve(zipEntry.getName());
 
-        // Zip Slip vulnerability prevention
         if (!extractedFilePath.normalize().startsWith(extractionDir)) {
           throw new SecurityException("Corrupted ZIP entry: " + zipEntry.getName());
         }
@@ -179,10 +188,6 @@ public class HttpLobConversionService implements LobConversionService {
     return new ConversionResult(convertedLob, reportFile);
   }
 
-  /**
-   * Enforces resilient networking via exponential backoff. Intended exclusively
-   * for idempotent requests (e.g., GET).
-   */
   private <T> HttpResponse<T> executeWithRetry(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler,
     int maxRetries) throws Exception {
     Exception lastException = null;
@@ -196,7 +201,7 @@ public class HttpLobConversionService implements LobConversionService {
 
         if (attempt == maxRetries)
           break;
-        Thread.sleep((long) Math.pow(2, attempt) * 1000); // Exponential backoff: 2s, 4s, 8s...
+        Thread.sleep((long) Math.pow(2, attempt) * 1000);
       }
     }
     throw new IOException("Exhausted all network retries for URI: " + request.uri(), lastException);
