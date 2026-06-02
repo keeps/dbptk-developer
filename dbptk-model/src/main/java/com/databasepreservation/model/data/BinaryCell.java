@@ -28,6 +28,7 @@ public class BinaryCell extends Cell implements InputStreamProvider {
   private InputStreamProvider inputStreamProvider;
   private String file;
   private long length;
+  private String mimeType;
 
   /**
    * Creates a binary cell. This binary cell will mostly just be a wrapper around
@@ -73,6 +74,12 @@ public class BinaryCell extends Cell implements InputStreamProvider {
   public BinaryCell(String id, InputStreamProvider inputStreamProvider) {
     super(id);
     this.inputStreamProvider = inputStreamProvider;
+  }
+
+  public BinaryCell(String id, InputStreamProvider inputStreamProvider, String mimeType) {
+    super(id);
+    this.inputStreamProvider = inputStreamProvider;
+    this.mimeType = mimeType;
   }
 
   /**
@@ -127,5 +134,9 @@ public class BinaryCell extends Cell implements InputStreamProvider {
 
   public long getLength() {
     return length;
+  }
+
+  public String getMimeType() {
+    return mimeType;
   }
 }
