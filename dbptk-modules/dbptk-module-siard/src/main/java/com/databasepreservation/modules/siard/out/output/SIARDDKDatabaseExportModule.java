@@ -214,14 +214,24 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
     this.writerTask = writerExecutor.submit(() -> {
       try {
         while (!Thread.currentThread().isInterrupted()) {
+          logger.debug("Consumer thread is waiting to take the oldest row from the queue...");
           Future<ProcessedRowContext> future = pendingRowsQueue.take(); // Enforces strict sequential order
+
+          logger.debug("Oldest row taken. Awaiting its Virtual Thread completion (LOB HTTP boundary)...");
           ProcessedRowContext context = future.get(); // Awaits specific LOB HTTP processing boundary
+
+          if (context == null) {
+            logger.info("<< DEQUEUED: Poison Pill received. Safely shutting down the consumer thread.");
+            break;
+          }
 
           super.handleDataRow(context.row());
 
           // Alleviate disk pressure by wiping extracted structures instantly after XML
           // writing
           cleanupTransientPaths(context.transientPaths());
+          logger.debug("<< DEQUEUED: Row [{}] removed from queue and successfully written. Current size: {}/{}",
+            context.row().getIndex(), pendingRowsQueue.size(), MAX_QUEUE_SIZE);
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
@@ -241,31 +251,31 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
    * failures.
    */
   private void stopAsyncWriter() throws ModuleException {
-    while (pendingRowsQueue != null && !pendingRowsQueue.isEmpty()) {
-      if (writerError.get() != null) {
-        break;
-      }
+    if (writerError.get() == null) {
       try {
-        TimeUnit.MILLISECONDS.sleep(20);
-      } catch (InterruptedException e) {
+        logger.debug("|| TABLE END: Injecting Poison Pill into the queue and waiting for consumer to finish...");
+
+        Future<ProcessedRowContext> poisonPill = executorService.submit(() -> null);
+
+        while (!pendingRowsQueue.offer(poisonPill, 500, TimeUnit.MILLISECONDS)) {
+          if (writerError.get() != null)
+            break;
+        }
+
+        if (writerTask != null) {
+          writerTask.get();
+        }
+
+      } catch (InterruptedException | ExecutionException e) {
         Thread.currentThread().interrupt();
+        throw new ModuleException().withMessage("Failed to cleanly stop the background writer").withCause(e);
       }
     }
 
-    if (writerTask != null) {
-      writerTask.cancel(true);
-    }
-
-    // Purge and cancel any remaining futures to avoid thread and resource leakage
-    if (pendingRowsQueue != null) {
+    // Purge any remaining futures in case of a catastrophic error
+    if (pendingRowsQueue != null && !pendingRowsQueue.isEmpty()) {
       for (Future<ProcessedRowContext> future : pendingRowsQueue) {
         future.cancel(true);
-        try {
-          if (future.isDone() && !future.isCancelled()) {
-            cleanupTransientPaths(future.get().transientPaths());
-          }
-        } catch (Exception ignored) {
-        }
       }
       pendingRowsQueue.clear();
     }
@@ -290,12 +300,21 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
 
     try {
       // Prevents deadlocks if the consumer thread crashes while queue is maxed out
+      boolean waitingLogged = false;
       while (!pendingRowsQueue.offer(future, 500, TimeUnit.MILLISECONDS)) {
         if (writerError.get() != null) {
           future.cancel(true);
           throw new ModuleException().withMessage("Pipeline halted while enqueuing row").withCause(writerError.get());
         }
+
+        if (!waitingLogged) {
+          logger.debug("|| PAUSED: Queue is full. Suspended database reading. Waiting for space to enqueue row [{}]...",
+            row.getIndex());
+          waitingLogged = true;
+        }
       }
+      logger.debug(">> ENQUEUED: Row [{}] entered the queue. Current size: {}/{}", row.getIndex(),
+        pendingRowsQueue.size(), MAX_QUEUE_SIZE);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       future.cancel(true);
@@ -329,6 +348,11 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
       }
     }
     row.setCells(cells);
+
+    long readyCount = pendingRowsQueue.stream().filter(Future::isDone).count();
+    logger.debug("== READY: Row [{}] finished conversion. Currently {} ready rows waiting in queue.", row.getIndex(),
+      readyCount + 1);
+
     return new ProcessedRowContext(row, transientPaths);
   }
 
