@@ -36,15 +36,17 @@ import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.Row;
 import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.out.metadata.SIARDDKContextDocumentationWriter;
 import com.databasepreservation.modules.siard.out.metadata.SIARDDKFileIndexFileStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARDMarshaller;
-import com.databasepreservation.modules.siard.services.conversion.ConversionResult;
 import com.databasepreservation.modules.siard.services.conversion.HttpLobConversionService;
 import com.databasepreservation.modules.siard.services.conversion.LobConversionService;
 import com.databasepreservation.modules.siard.services.conversion.TempFileTracker;
+import com.databasepreservation.modules.siard.services.conversion.model.ConversionResult;
+import com.databasepreservation.utils.ConfigUtils;
 
 /**
  * Handles database export pipeline matching SIARD-DK compliance, incorporating
@@ -61,7 +63,8 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
   private ExecutorService executorService;
   private TempFileTracker tempFileTracker;
   private LobConversionService conversionService;
-  private static final int MAX_QUEUE_SIZE = 100;
+  private String targetLobFormat;
+  private static final Integer MAX_QUEUE_SIZE = ConfigUtils.getProperty(100, "dbptk.siarddk.export.maxQueueSize");
 
   // Resilient Pipeline architecture attributes
   private BlockingQueue<Future<ProcessedRowContext>> pendingRowsQueue;
@@ -86,10 +89,26 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
   public void initDatabase() throws ModuleException {
     super.initDatabase();
 
-    this.tempFileTracker = new TempFileTracker();
-    String apiEndpoint = "http://localhost:8087";
-    String targetFormat = "image/tiff";
-    this.conversionService = new HttpLobConversionService(apiEndpoint, targetFormat, this.tempFileTracker);
+    Map<String, String> exportModuleArgs = siarddkExportModule.getExportModuleArgs();
+    boolean isLobConversionEnabled = Boolean
+      .parseBoolean(exportModuleArgs.getOrDefault(SIARDDKModuleFactory.PARAMETER_LOB_CONVERSION_ENABLED, "false"));
+
+    if (isLobConversionEnabled) {
+      this.tempFileTracker = new TempFileTracker();
+      String apiEndpoint = exportModuleArgs.getOrDefault(SIARDDKModuleFactory.PARAMETER_LOB_CONVERSION_ENDPOINT,
+        "http://localhost:8087");
+      this.targetLobFormat = exportModuleArgs.getOrDefault(SIARDDKModuleFactory.PARAMETER_LOB_CONVERSION_TARGET_FORMAT,
+        "image/tiff");
+
+      this.conversionService = new HttpLobConversionService(apiEndpoint, this.targetLobFormat, this.tempFileTracker);
+      logger.info("LOB conversion service enabled. Endpoint: '{}', Target Format: '{}'", apiEndpoint,
+        this.targetLobFormat);
+    } else {
+      this.conversionService = null;
+      this.tempFileTracker = null;
+      logger.info("LOB conversion service is disabled.");
+    }
+
     this.executorService = Executors.newVirtualThreadPerTaskExecutor();
     this.writerExecutor = Executors.newSingleThreadExecutor(); // Dedicated single-thread pipeline consumer
 
@@ -221,7 +240,7 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
           ProcessedRowContext context = future.get(); // Awaits specific LOB HTTP processing boundary
 
           if (context == null) {
-            logger.info("<< DEQUEUED: Poison Pill received. Safely shutting down the consumer thread.");
+            logger.debug("<< DEQUEUED: Poison Pill received. Safely shutting down the consumer thread.");
             break;
           }
 
@@ -326,24 +345,36 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
    * Processes row columns concurrently on Virtual Threads mapping extracted files
    * for lifecycle control.
    */
-  private ProcessedRowContext processRowAsync(Row row) throws Exception {
+  private ProcessedRowContext processRowAsync(Row row) throws ModuleException {
     List<Cell> cells = row.getCells();
     List<Path> transientPaths = new ArrayList<>();
 
-    for (int i = 0; i < cells.size(); i++) {
-      Cell cell = cells.get(i);
+    if (this.conversionService != null) {
+      for (int i = 0; i < cells.size(); i++) {
+        Cell cell = cells.get(i);
 
-      if (cell instanceof BinaryCell binCell) {
-        try (InputStream originalStream = binCell.createInputStream()) {
-          ConversionResult result = conversionService.convertLob(cell.getId(), originalStream);
-          Cell newCell = new BinaryCell(cell.getId(), new PathInputStreamProvider(result.convertedFile()),
-            "image/tiff");
-          cells.set(i, newCell);
+        if (cell instanceof BinaryCell binCell) {
+          try (InputStream originalStream = binCell.createInputStream()) {
+            ConversionResult result = conversionService.convertLob(cell.getId(), originalStream);
 
-          // Track extracted parts to clean them individually later
-          transientPaths.add(result.convertedFile());
-          transientPaths.add(result.reportFile());
-          transientPaths.add(result.convertedFile().getParent()); // directory container
+            // TODO: Handle multiple files per cell if needed. Currently assumes single file
+            // output.
+            Cell newCell = new BinaryCell(cell.getId(), new PathInputStreamProvider(result.convertedFiles().getFirst()),
+              this.targetLobFormat);
+            cells.set(i, newCell);
+
+            // Track extracted parts to clean them individually later
+            transientPaths.addAll(result.convertedFiles());
+            transientPaths.add(result.reportFile());
+            transientPaths.add(result.convertedFiles().getFirst().getParent()); // directory container
+          } catch (Exception e) {
+            String errorMsg = String.format(
+              "Conversion failed for cell '%s' in row %d. "
+                + "Please check if the LOB service is running and accessible. Detail: %s",
+              cell.getId(), row.getIndex(), e.getMessage());
+            logger.error(errorMsg);
+            throw new ModuleException().withMessage(errorMsg).withCause(e);
+          }
         }
       }
     }

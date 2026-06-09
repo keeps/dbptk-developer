@@ -1,4 +1,4 @@
-package com.databasepreservation.modules.siard.services.conversion;
+package com.databasepreservation.modules.siard.services.conversion.model;
 
 /**
  * @author Gabriel Barros <gbarros@keep.pt>
