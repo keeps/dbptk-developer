@@ -28,7 +28,7 @@ public class Parameter {
 
   /* GUI Helper for SIARD Export Module */
   public enum CATEGORY_TYPE {
-    SIARD_EXPORT_OPTIONS, METADATA_EXPORT_OPTIONS, EXTERNAL_LOBS, NONE
+    SIARD_EXPORT_OPTIONS, METADATA_EXPORT_OPTIONS, EXTERNAL_LOBS, CONVERSION_SERVICE_OPTIONS, NONE
   }
 
   public enum FILE_FILTER_TYPE {
@@ -312,7 +312,9 @@ public class Parameter {
     return this;
   }
 
-  public Integer getDefaultSelectedIndex() { return defaultSelectedIndex; }
+  public Integer getDefaultSelectedIndex() {
+    return defaultSelectedIndex;
+  }
 
   /**
    * Gets the export option type for this parameter; Helper to automatize the
