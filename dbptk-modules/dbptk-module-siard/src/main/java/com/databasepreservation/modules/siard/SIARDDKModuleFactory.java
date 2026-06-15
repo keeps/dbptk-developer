@@ -176,11 +176,11 @@ public abstract class SIARDDKModuleFactory implements DatabaseModuleFactory {
         .exportOptions(Parameter.CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
       lobsPerFolder.inputType(Parameter.INPUT_TYPE.TEXT).exportOptions(Parameter.CATEGORY_TYPE.EXTERNAL_LOBS),
       lobsFolderSize.inputType(Parameter.INPUT_TYPE.TEXT).exportOptions(Parameter.CATEGORY_TYPE.EXTERNAL_LOBS),
-      lobConversionEnabled.inputType(Parameter.INPUT_TYPE.COMBOBOX).possibleValues("true", "false")
-        .defaultSelectedIndex(1).exportOptions(Parameter.CATEGORY_TYPE.EXTERNAL_LOBS),
-      lobConversionEndpoint.inputType(Parameter.INPUT_TYPE.TEXT).exportOptions(Parameter.CATEGORY_TYPE.EXTERNAL_LOBS),
+      lobConversionEnabled.inputType(Parameter.INPUT_TYPE.CHECKBOX).exportOptions(Parameter.CATEGORY_TYPE.CONVERSION_SERVICE_OPTIONS),
+      lobConversionEndpoint.inputType(Parameter.INPUT_TYPE.TEXT)
+        .exportOptions(Parameter.CATEGORY_TYPE.CONVERSION_SERVICE_OPTIONS),
       lobConversionTargetFormat.inputType(Parameter.INPUT_TYPE.TEXT)
-        .exportOptions(Parameter.CATEGORY_TYPE.EXTERNAL_LOBS)),
+        .exportOptions(Parameter.CATEGORY_TYPE.CONVERSION_SERVICE_OPTIONS)),
       null);
 
   }
