@@ -359,8 +359,8 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
 
             // TODO: Handle multiple files per cell if needed. Currently assumes single file
             // output.
-            Cell newCell = new BinaryCell(cell.getId(), new PathInputStreamProvider(result.convertedFiles().getFirst()),
-              this.targetLobFormat);
+            Cell newCell = new BinaryCell(cell.getId(), new PathInputStreamProvider(result.zipFile()),
+              "application/zip");
             cells.set(i, newCell);
 
             // Track extracted parts to clean them individually later
