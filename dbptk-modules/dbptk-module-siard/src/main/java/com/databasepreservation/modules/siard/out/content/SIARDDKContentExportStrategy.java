@@ -347,7 +347,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
                 .get("processedArtifacts"));
 
               String originalFileName = processedArtifacts.getFirst().get("originalName");
-              String firstProcessedFileMimeType = processedArtifacts.getFirst().get("finalFormat");
+              // Default to tiff, attempt to find real mimetype as we go through zip entries
+              String processedFilesExtension = "tif";
 
               try (ZipInputStream zis = new ZipInputStream(binaryCell.createInputStream())) {
                 ZipEntry zipEntry;
@@ -367,7 +368,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
                         break;
                       }
                     }
-                    if (processedArtifactReport == null) {
+                    if (processedArtifactReport == null || !processedArtifactReport.get("status").equals("CONVERTED")) {
                       logger.warn(
                         "Ignoring file {} in zip file for BLOB in table {}, column {} since it has not been processed.",
                         zipEntry.getName(), tableCounter, columnIndex);
@@ -384,6 +385,9 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
                         zipEntry.getName(), tableCounter, columnIndex);
                       break;
                     }
+
+                    // Set overall document mimetype
+                    processedFilesExtension = fileExtension;
 
                     // Increment file trackings
                     fileCount++;
@@ -413,7 +417,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
               // TO-DO: obtain (how?) hardcoded values
               SIARDDKDocIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1, lobsTracker.getDocCollectionCount(),
-                originalFileName, mimetypeHandler.getFileExtension(firstProcessedFileMimeType), null);
+                originalFileName, mimetypeHandler.getFileExtension(processedFilesExtension), null);
             }
 
           } else {
