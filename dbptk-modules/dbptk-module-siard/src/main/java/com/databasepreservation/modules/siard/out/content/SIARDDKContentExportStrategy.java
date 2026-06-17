@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.security.InvalidParameterException;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -354,11 +355,11 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
                 while ((zipEntry = zis.getNextEntry()) != null) {
                   // Archive BLOB - simultaneous writing always supported for
                   // SIARDDK
-                  if (!zipEntry.getName().toLowerCase().contains("report")) {
-                    fileCount++;
-                    lobSizeTotal = ((double) binaryCell.getSize()) / (1024 * 1024);
 
-                    String outputPath = contentPathExportStrategy.getBlobFilePath(-1, -1, -1, -1);
+                  // Skip report file
+                  if (!zipEntry.getName().toLowerCase().contains("report")) {
+
+                    // Find processing report for current entry
                     Map<String, String> processedArtifactReport = null;
                     for (Map<String, String> artifact : processedArtifacts) {
                       if (artifact.get("finalFileName").equals(zipEntry.getName())) {
@@ -366,10 +367,31 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
                         break;
                       }
                     }
-                    String fileExtension = mimetypeHandler.getFileExtension(processedArtifactReport.get("finalFormat"));
-                    outputPath += fileCount + "." + fileExtension;
+                    if (processedArtifactReport == null) {
+                      logger.warn(
+                        "Ignoring file {} in zip file for BLOB in table {}, column {} since it has not been processed.",
+                        zipEntry.getName(), tableCounter, columnIndex);
+                      break;
+                    }
+
+                    // Get processed file extension
+                    String fileExtension = null;
+                    try {
+                      fileExtension = mimetypeHandler.getFileExtension(processedArtifactReport.get("finalFormat"));
+                    } catch (InvalidParameterException e) {
+                      logger.warn(
+                        "Ignoring file {} in zip file for BLOB in table {}, column {} since it has an invalid mimetype.",
+                        zipEntry.getName(), tableCounter, columnIndex);
+                      break;
+                    }
+
+                    // Increment file trackings
+                    fileCount++;
+                    lobSizeTotal = ((double) binaryCell.getSize()) / (1024 * 1024);
 
                     // Write the BLOB
+                    String outputPath = contentPathExportStrategy.getBlobFilePath(-1, -1, -1, -1);
+                    outputPath += fileCount + "." + fileExtension;
                     OutputStream out = SIARDDKFileIndexFileStrategy.getLOBWriter(baseContainer, outputPath,
                       writeStrategy);
                     zis.transferTo(out);
