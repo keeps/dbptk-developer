@@ -7,6 +7,27 @@
  */
 package com.databasepreservation.modules.siard.out.content;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidParameterException;
+import java.util.List;
+import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.IOUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.Namespace;
+import org.jdom2.output.XMLOutputter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.ComposedCell;
@@ -27,26 +48,6 @@ import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.IOUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.Namespace;
-import org.jdom2.output.XMLOutputter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.security.InvalidParameterException;
-import java.util.List;
-import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
@@ -349,9 +350,10 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
               // Default to tiff, attempt to find real mimetype as we go through zip entries
               String processedFilesExtension = "tif";
 
+              int fileCount = 0;
               try (ZipInputStream zis = new ZipInputStream(binaryCell.createInputStream())) {
                 ZipEntry zipEntry;
-                int fileCount = 0;
+
                 while ((zipEntry = zis.getNextEntry()) != null) {
                   // Archive BLOB - simultaneous writing always supported for
                   // SIARDDK
@@ -371,7 +373,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
                       logger.warn(
                         "Ignoring file {} in zip file for BLOB in table {}, column {} since it has not been processed.",
                         zipEntry.getName(), tableCounter, columnIndex);
-                      break;
+                      continue;
                     }
 
                     // Get processed file extension
@@ -382,7 +384,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
                       logger.warn(
                         "Ignoring file {} in zip file for BLOB in table {}, column {} since it has an invalid mimetype.",
                         zipEntry.getName(), tableCounter, columnIndex);
-                      break;
+                      continue;
                     }
 
                     // Set overall document mimetype
@@ -407,16 +409,20 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
                 throw new ModuleException();
               }
               lobsTracker.addLOB(lobSizeTotal); // Only if LOB not NULL
-              tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-                .append(Integer.toString(lobsTracker.getLOBsCount())).append("</c").append(String.valueOf(columnIndex))
-                .append(">\n");
 
-              // Add file to docIndex (a lot easier to do here even though we
-              // are dealing with metadata)
+              if (fileCount > 0) {
+                tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
+                  .append(Integer.toString(lobsTracker.getLOBsCount())).append("</c")
+                  .append(String.valueOf(columnIndex)).append(">\n");
 
-              // TO-DO: obtain (how?) hardcoded values
-              SIARDDKDocIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1, lobsTracker.getDocCollectionCount(),
-                  originalFileName, processedFilesExtension, null);
+                // Add file to docIndex (a lot easier to do here even though we
+                // are dealing with metadata)
+                SIARDDKDocIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1,
+                  lobsTracker.getDocCollectionCount(), originalFileName, processedFilesExtension, null);
+              } else {
+                tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
+                  .append(" xsi:nil=\"true\"/>\n");
+              }
             }
 
           } else {
