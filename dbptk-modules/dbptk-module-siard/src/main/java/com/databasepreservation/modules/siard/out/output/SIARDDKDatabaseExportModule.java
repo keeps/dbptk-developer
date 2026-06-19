@@ -43,6 +43,7 @@ import com.databasepreservation.modules.siard.out.metadata.SIARDDKContextDocumen
 import com.databasepreservation.modules.siard.out.metadata.SIARDDKFileIndexFileStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARDMarshaller;
 import com.databasepreservation.modules.siard.services.conversion.HttpLobConversionService;
+import com.databasepreservation.modules.siard.services.conversion.HttpLobConversionServiceException;
 import com.databasepreservation.modules.siard.services.conversion.LobConversionService;
 import com.databasepreservation.modules.siard.services.conversion.TempFileTracker;
 import com.databasepreservation.modules.siard.services.conversion.model.ConversionResult;
@@ -367,13 +368,17 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
             transientPaths.addAll(result.convertedFiles());
             transientPaths.add(result.reportFile());
             transientPaths.add(result.convertedFiles().getFirst().getParent()); // directory container
-          } catch (Exception e) {
+          } catch (IOException | InterruptedException | HttpLobConversionServiceException e) {
+            String statusCodeInfo = "";
+            if (e instanceof HttpLobConversionServiceException apiEx && apiEx.getHttpStatusCode() != null) {
+              statusCodeInfo = " (HTTP " + apiEx.getHttpStatusCode() + ")";
+            }
+
             String errorMsg = String.format(
-              "Conversion failed for cell '%s' in row %d. "
-                + "Please check if the LOB service is running and accessible. Detail: %s",
-              cell.getId(), row.getIndex(), e.getMessage());
+              "Conversion failed for cell '%s' in row %d%s. " + "Pipeline continuing with original file. Detail: %s",
+              cell.getId(), row.getIndex(), statusCodeInfo, e.getMessage());
+
             logger.error(errorMsg);
-            throw new ModuleException().withMessage(errorMsg).withCause(e);
           }
         }
       }
