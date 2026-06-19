@@ -290,16 +290,14 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
               binaryCell.cleanResources();
             }
           } else {
-            tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
-              .append(" xsi:nil=\"true\"/>").append("\n");
+            whiteNilCell(columnIndex);
           }
 
         } else {
           // cell must contain BLOB or CLOB
 
           if (cell instanceof NullCell) {
-            tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
-              .append(" xsi:nil=\"true\"/>").append("\n");
+            whiteNilCell(columnIndex);
           } else if (cell instanceof SimpleCell) {
 
             // CLOB is not NULL
@@ -420,9 +418,13 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
                 SIARDDKDocIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1,
                   lobsTracker.getDocCollectionCount(), originalFileName, processedFilesExtension, null);
               } else {
-                tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
-                  .append(" xsi:nil=\"true\"/>\n");
+                whiteNilCell(columnIndex);
               }
+            } else {
+              logger.warn(
+                "Found BLOB with unsupported mimetype '{}' in table {}, column {}. ignoring content and archiving as .bin file.",
+                mimeType, tableCounter, columnIndex);
+              whiteNilCell(columnIndex);
             }
 
           } else {
@@ -438,6 +440,11 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     }
 
     return row;
+  }
+
+  private void whiteNilCell(int columnIndex) throws IOException {
+    tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
+      .append(" xsi:nil=\"true\"/>").append("\n");
   }
 
   @Override
