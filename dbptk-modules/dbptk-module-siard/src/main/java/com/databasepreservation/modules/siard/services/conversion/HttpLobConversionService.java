@@ -70,14 +70,16 @@ public class HttpLobConversionService implements LobConversionService {
   }
 
   @Override
-  public ConversionResult convertLob(String cellId, InputStream inputStream) throws Exception {
+  public ConversionResult convertLob(String cellId, InputStream inputStream)
+    throws IOException, InterruptedException, HttpLobConversionServiceException {
     log.debug("Initiating conversion pipeline for cell: {}", cellId);
     String jobId = submitJob(cellId, inputStream);
     waitForCompletion(cellId, jobId);
     return downloadResult(cellId, jobId);
   }
 
-  private String submitJob(String cellId, InputStream inputStream) throws Exception {
+  private String submitJob(String cellId, InputStream inputStream)
+    throws IOException, InterruptedException, HttpLobConversionServiceException {
     String boundary = "DbptkBoundary" + System.currentTimeMillis();
 
     String header = buildMultipartHeader(boundary, cellId);
@@ -98,7 +100,8 @@ public class HttpLobConversionService implements LobConversionService {
     if (submitResponse.statusCode() >= 400) {
       log.error("API rejected LOB submission for cell {}. Status: {}, Body: {}", cellId, submitResponse.statusCode(),
         submitResponse.body());
-      throw new RuntimeException("Failed to submit LOB for cell " + cellId);
+      throw new HttpLobConversionServiceException("Failed to submit LOB for cell " + cellId,
+        submitResponse.statusCode());
     }
 
     JobSubmissionResponse job = objectMapper.readValue(submitResponse.body(), JobSubmissionResponse.class);
@@ -106,7 +109,8 @@ public class HttpLobConversionService implements LobConversionService {
     return job.id();
   }
 
-  private void waitForCompletion(String cellId, String jobId) throws Exception {
+  private void waitForCompletion(String cellId, String jobId)
+    throws IOException, InterruptedException, HttpLobConversionServiceException {
     log.debug("Awaiting completion of Job {} (Cell {})", jobId, cellId);
 
     for (int attempts = 1; attempts <= MAX_POLLING_ATTEMPTS; attempts++) {
@@ -124,7 +128,7 @@ public class HttpLobConversionService implements LobConversionService {
         case JobStatus.FAILED, JobStatus.EVICTED -> {
           log.error("API reported terminal failure for Job {} (Cell {}) with status: {}", jobId, cellId,
             response.status());
-          throw new RuntimeException(
+          throw new HttpLobConversionServiceException(
             "Server failed to convert cell: " + cellId + " (Status: " + response.status() + ")");
         }
         case JobStatus.ACCEPTED, JobStatus.PROCESSING -> {
@@ -139,7 +143,7 @@ public class HttpLobConversionService implements LobConversionService {
     }
     log.error("Zombie Job detected. API failed to resolve Job {} (Cell {}) within the maximum polling threshold.",
       jobId, cellId);
-    throw new RuntimeException("Timeout after waiting for conversion of cell: " + cellId);
+    throw new HttpLobConversionServiceException("Timeout after waiting for conversion of cell: " + cellId);
   }
 
   /**
@@ -167,7 +171,7 @@ public class HttpLobConversionService implements LobConversionService {
    * Downloads the resulting ZIP and lists its contents, returning the compressed
    * file.
    */
-  private ConversionResult downloadResult(String cellId, String jobId) throws Exception {
+  private ConversionResult downloadResult(String cellId, String jobId) throws IOException, InterruptedException {
     Path zipFile = Files.createFile(Path.of("siarddk_conv_" + cellId + "_" + jobId + ".zip"));
     // TODO: Should this still be tracked?
     fileTracker.track(zipFile);
@@ -217,7 +221,7 @@ public class HttpLobConversionService implements LobConversionService {
     return new ConversionResult(convertedFiles, reportFile, tempZipFile);
   }
 
-  private ConversionResult listZipContents(String cellId, Path zipFile) throws Exception {
+  private ConversionResult listZipContents(String cellId, Path zipFile) throws IOException {
     Path extractionDir = Files.createTempDirectory("siarddk_extracted_" + cellId + "_");
     fileTracker.trackDir(extractionDir);
 
@@ -255,7 +259,7 @@ public class HttpLobConversionService implements LobConversionService {
   }
 
   private <T> HttpResponse<T> executeWithRetry(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler,
-    int maxRetries) throws Exception {
+    int maxRetries) throws InterruptedException, IOException {
     Exception lastException = null;
 
     for (int attempt = 1; attempt <= maxRetries; attempt++) {
