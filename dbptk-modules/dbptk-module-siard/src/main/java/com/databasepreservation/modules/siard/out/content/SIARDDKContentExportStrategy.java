@@ -13,9 +13,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
-import java.security.InvalidParameterException;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -47,6 +47,10 @@ import com.databasepreservation.modules.siard.out.metadata.SIARDDKFileIndexFileS
 import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
+import com.databasepreservation.modules.siard.services.conversion.LobConversionAuditor;
+import com.databasepreservation.modules.siard.services.conversion.model.report.ArtifactReport;
+import com.databasepreservation.modules.siard.services.conversion.model.report.ConversionReport;
+import com.databasepreservation.modules.siard.services.conversion.model.report.DbptkContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class SIARDDKContentExportStrategy implements ContentExportStrategy {
@@ -72,6 +76,9 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   private final LOBsTracker lobsTracker;
   private final MimetypeHandler mimetypeHandler;
 
+  private final LobConversionAuditor auditor;
+  private final ObjectMapper mapper;
+
   private Reporter reporter;
 
   public SIARDDKContentExportStrategy(SIARDDKExportModule siarddkExportModule) {
@@ -88,6 +95,11 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     baseContainer = siarddkExportModule.getMainContainer();
     writeStrategy = siarddkExportModule.getWriteStrategy();
     lobsTracker = siarddkExportModule.getLobsTracker();
+
+    this.mapper = new ObjectMapper();
+    Path exportRoot = baseContainer.getPath().getParent();
+    String archiveName = baseContainer.getPath().getFileName().toString();
+    this.auditor = new LobConversionAuditor(exportRoot, archiveName);
   }
 
   @Override
@@ -318,117 +330,20 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
           } else if (cell instanceof BinaryCell) {
 
             // BLOB case
-
             final BinaryCell binaryCell = (BinaryCell) cell;
-
-            double lobSizeTotal = 0;
             String mimeType = binaryCell.getMimeType() != null ? binaryCell.getMimeType() : "unsupported";
 
+            // -------------------------------------------------------------
+            // BLOB EXTRACTION DELEGATION
+            // -------------------------------------------------------------
             if (mimeType.equals("application/zip")) {
-              // First pass to read report json
-              Map<String, Object> report = null;
-              try (ZipInputStream zis = new ZipInputStream(binaryCell.createInputStream())) {
-                ZipEntry zipEntry;
-                while ((zipEntry = zis.getNextEntry()) != null) {
-                  if (zipEntry.getName().toLowerCase().contains("report")) {
-                    ObjectMapper mapper = new ObjectMapper();
-                    report = mapper.readValue(zis.readAllBytes(), Map.class);
-                  }
-                }
-              }
-              if (report == null) {
-                throw new ModuleException().withMessage(
-                  "Could not find report in zip file for BLOB in table " + tableCounter + ", column " + columnIndex);
-              }
-
-              List<Map<String, Object>> artifacts = (List<Map<String, Object>>) report.get("artifacts");
-
-              String originalFileName = (String) report.get("originalInputFile");
-              // Default to tiff, attempt to find real mimetype as we go through zip entries
-              String processedFilesExtension = "tif";
-
-              int fileCount = 0;
-              try (ZipInputStream zis = new ZipInputStream(binaryCell.createInputStream())) {
-                ZipEntry zipEntry;
-
-                while ((zipEntry = zis.getNextEntry()) != null) {
-                  // Archive BLOB - simultaneous writing always supported for
-                  // SIARDDK
-
-                  // Skip report file
-                  if (!zipEntry.getName().toLowerCase().contains("report")) {
-
-                    // Find processing report for current entry
-                    Map<String, Object> processedArtifactReport = null;
-                    for (Map<String, Object> artifact : artifacts) {
-                      if (artifact.get("logicalName").equals(zipEntry.getName())) {
-                        processedArtifactReport = artifact;
-                        break;
-                      }
-                    }
-                    boolean isBypassed = processedArtifactReport != null ? (Boolean) processedArtifactReport.get("isBypassed") : true;
-
-                    if (processedArtifactReport == null || isBypassed) {
-                      logger.warn(
-                        "Ignoring file {} in zip file for BLOB in table {}, column {} since it has not been processed.",
-                        zipEntry.getName(), tableCounter, columnIndex);
-                      continue;
-                    }
-
-                    // Get processed file extension
-                    String fileExtension = null;
-                    try {
-                      String finalMimeType = (String) processedArtifactReport.get("finalMimeType");
-                      fileExtension = mimetypeHandler.getFileExtension(finalMimeType);
-                    } catch (InvalidParameterException e) {
-                      logger.warn(
-                        "Ignoring file {} in zip file for BLOB in table {}, column {} since it has an invalid mimetype.",
-                        zipEntry.getName(), tableCounter, columnIndex);
-                      continue;
-                    }
-
-                    // Set overall document mimetype
-                    processedFilesExtension = fileExtension;
-
-                    // Increment file trackings
-                    fileCount++;
-                    lobSizeTotal = ((double) binaryCell.getSize()) / (1024 * 1024);
-
-                    // Write the BLOB
-                    String outputPath = contentPathExportStrategy.getBlobFilePath(-1, -1, -1, -1);
-                    outputPath += fileCount + "." + fileExtension;
-                    OutputStream out = SIARDDKFileIndexFileStrategy.getLOBWriter(baseContainer, outputPath,
-                      writeStrategy);
-                    zis.transferTo(out);
-
-                    // Add file to fileIndex
-                    SIARDDKFileIndexFileStrategy.addFile(outputPath);
-                  }
-                }
-              } catch (IOException e) {
-                throw new ModuleException();
-              }
-              lobsTracker.addLOB(lobSizeTotal); // Only if LOB not NULL
-
-              if (fileCount > 0) {
-                tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-                  .append(Integer.toString(lobsTracker.getLOBsCount())).append("</c")
-                  .append(String.valueOf(columnIndex)).append(">\n");
-
-                // Add file to docIndex (a lot easier to do here even though we
-                // are dealing with metadata)
-                SIARDDKDocIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1,
-                  lobsTracker.getDocCollectionCount(), originalFileName, processedFilesExtension, null);
-              } else {
-                whiteNilCell(columnIndex);
-              }
+              processConvertedLobArchive(binaryCell, columnIndex);
             } else {
               logger.warn(
                 "Found BLOB with unsupported mimetype '{}' in table {}, column {}. ignoring content and archiving as .bin file.",
                 mimeType, tableCounter, columnIndex);
               whiteNilCell(columnIndex);
             }
-
           } else {
             // never happens
           }
@@ -442,6 +357,93 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     }
 
     return row;
+  }
+
+  private void processConvertedLobArchive(BinaryCell binaryCell, int columnIndex) throws ModuleException {
+    try {
+      ConversionReport report = extractReportFromZip(binaryCell);
+      if (report == null) {
+        throw new ModuleException().withMessage("Missing conversion_report.json in cell archive.");
+      }
+
+      List<String> siardPhysicalPaths = new ArrayList<>();
+      int fileCount = 0;
+      String processedFilesExtension = "tif";
+
+      try (ZipInputStream zis = new ZipInputStream(binaryCell.createInputStream())) {
+        ZipEntry zipEntry;
+        while ((zipEntry = zis.getNextEntry()) != null) {
+          if (zipEntry.getName().toLowerCase().contains("report"))
+            continue;
+
+          ArtifactReport artifactMeta = findArtifactMetadata(report.artifacts(), zipEntry.getName());
+
+          if (artifactMeta == null || artifactMeta.isBypassed()) {
+            logger.warn("Ignoring bypassed or unknown file: {}. Reason: {}", zipEntry.getName(),
+              artifactMeta != null ? artifactMeta.errorMessage() : "Not in report");
+            continue;
+          }
+
+          String fileExt = mimetypeHandler.getFileExtension(artifactMeta.finalMimeType());
+          processedFilesExtension = fileExt;
+          fileCount++;
+
+          String outputPath = writeLobToSiardStorage(zis, fileCount, fileExt);
+          siardPhysicalPaths.add(outputPath);
+        }
+      }
+
+      double lobSizeTotal = ((double) binaryCell.getSize()) / (1024 * 1024);
+      lobsTracker.addLOB(lobSizeTotal);
+
+      if (fileCount > 0) {
+        writeLobReferenceToXml(columnIndex);
+        SIARDDKDocIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1, lobsTracker.getDocCollectionCount(),
+          report.originalInputFile(), processedFilesExtension, null);
+      } else {
+        whiteNilCell(columnIndex);
+      }
+
+      // Enriquecimento e Auditoria
+      ConversionReport enrichedReport = report
+        .withContext(new DbptkContext(tableCounter, columnIndex, siardPhysicalPaths));
+      auditor.appendAuditRecord(enrichedReport);
+
+    } catch (Exception e) {
+      throw new ModuleException().withMessage("Failed to process converted ZIP archive").withCause(e);
+    }
+  }
+
+  private ConversionReport extractReportFromZip(BinaryCell binaryCell) throws Exception {
+    try (ZipInputStream zis = new ZipInputStream(binaryCell.createInputStream())) {
+      ZipEntry zipEntry;
+      while ((zipEntry = zis.getNextEntry()) != null) {
+        if (zipEntry.getName().toLowerCase().contains("report")) {
+          return mapper.readValue(zis.readAllBytes(), ConversionReport.class);
+        }
+      }
+    }
+    return null;
+  }
+
+  private ArtifactReport findArtifactMetadata(List<ArtifactReport> artifacts, String fileName) {
+    if (artifacts == null)
+      return null;
+    return artifacts.stream().filter(a -> fileName.equals(a.logicalName())).findFirst().orElse(null);
+  }
+
+  private String writeLobToSiardStorage(InputStream zis, int fileCount, String extension) throws Exception {
+    String outputPath = contentPathExportStrategy.getBlobFilePath(-1, -1, -1, -1) + fileCount + "." + extension;
+    OutputStream out = SIARDDKFileIndexFileStrategy.getLOBWriter(baseContainer, outputPath, writeStrategy);
+    zis.transferTo(out);
+    SIARDDKFileIndexFileStrategy.addFile(outputPath);
+    return outputPath;
+  }
+
+  private void writeLobReferenceToXml(int columnIndex) throws IOException {
+    tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
+      .append(Integer.toString(lobsTracker.getLOBsCount())).append("</c").append(String.valueOf(columnIndex))
+      .append(">\n");
   }
 
   private void whiteNilCell(int columnIndex) throws IOException {
