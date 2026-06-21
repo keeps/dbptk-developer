@@ -341,10 +341,9 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
                   "Could not find report in zip file for BLOB in table " + tableCounter + ", column " + columnIndex);
               }
 
-              List<Map<String, String>> processedArtifacts = ((List<Map<String, String>>) report
-                .get("processedArtifacts"));
+              List<Map<String, Object>> artifacts = (List<Map<String, Object>>) report.get("artifacts");
 
-              String originalFileName = processedArtifacts.getFirst().get("originalName");
+              String originalFileName = (String) report.get("originalInputFile");
               // Default to tiff, attempt to find real mimetype as we go through zip entries
               String processedFilesExtension = "tif";
 
@@ -360,14 +359,16 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
                   if (!zipEntry.getName().toLowerCase().contains("report")) {
 
                     // Find processing report for current entry
-                    Map<String, String> processedArtifactReport = null;
-                    for (Map<String, String> artifact : processedArtifacts) {
-                      if (artifact.get("finalFileName").equals(zipEntry.getName())) {
+                    Map<String, Object> processedArtifactReport = null;
+                    for (Map<String, Object> artifact : artifacts) {
+                      if (artifact.get("logicalName").equals(zipEntry.getName())) {
                         processedArtifactReport = artifact;
                         break;
                       }
                     }
-                    if (processedArtifactReport == null || !processedArtifactReport.get("status").equals("CONVERTED")) {
+                    boolean isBypassed = processedArtifactReport != null ? (Boolean) processedArtifactReport.get("isBypassed") : true;
+
+                    if (processedArtifactReport == null || isBypassed) {
                       logger.warn(
                         "Ignoring file {} in zip file for BLOB in table {}, column {} since it has not been processed.",
                         zipEntry.getName(), tableCounter, columnIndex);
@@ -377,7 +378,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
                     // Get processed file extension
                     String fileExtension = null;
                     try {
-                      fileExtension = mimetypeHandler.getFileExtension(processedArtifactReport.get("finalFormat"));
+                      String finalMimeType = (String) processedArtifactReport.get("finalMimeType");
+                      fileExtension = mimetypeHandler.getFileExtension(finalMimeType);
                     } catch (InvalidParameterException e) {
                       logger.warn(
                         "Ignoring file {} in zip file for BLOB in table {}, column {} since it has an invalid mimetype.",
