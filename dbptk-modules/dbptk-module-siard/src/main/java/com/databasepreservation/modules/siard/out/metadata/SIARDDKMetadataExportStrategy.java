@@ -154,6 +154,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     writeSchemaFile(outputContainer, SIARDDKConstants.ARCHIVE_INDEX, writeStrategy);
     writeSchemaFile(outputContainer, SIARDDKConstants.CONTEXT_DOCUMENTATION_INDEX, writeStrategy);
     writeSchemaFile(outputContainer, SIARDDKConstants.FILE_INDEX, writeStrategy);
+    writeSchemaFile(outputContainer, SIARDDKConstants.RESEARCH_INDEX, writeStrategy);
     if (lobsTracker.getLOBsCount() > 0) {
       writeSchemaFile(outputContainer, SIARDDKConstants.DOC_INDEX, writeStrategy);
     }
