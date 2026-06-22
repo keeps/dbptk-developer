@@ -337,7 +337,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
             // BLOB EXTRACTION DELEGATION
             // -------------------------------------------------------------
             if (mimeType.equals("application/zip")) {
-              processConvertedLobArchive(binaryCell, columnIndex);
+              processConvertedLobArchive(binaryCell, row.getIndex(), columnIndex);
             } else {
               logger.warn(
                 "Found BLOB with unsupported mimetype '{}' in table {}, column {}. ignoring content and archiving as .bin file.",
@@ -359,7 +359,8 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     return row;
   }
 
-  private void processConvertedLobArchive(BinaryCell binaryCell, int columnIndex) throws ModuleException {
+  private void processConvertedLobArchive(BinaryCell binaryCell, long rowIndex, int columnIndex)
+    throws ModuleException {
     try {
       ConversionReport report = extractReportFromZip(binaryCell);
       if (report == null) {
@@ -399,14 +400,13 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
       if (fileCount > 0) {
         writeLobReferenceToXml(columnIndex);
         SIARDDKDocIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1, lobsTracker.getDocCollectionCount(),
-          report.originalInputFile(), processedFilesExtension, null);
+          report.originalFilename(), processedFilesExtension, null);
       } else {
         whiteNilCell(columnIndex);
       }
 
-      // Enriquecimento e Auditoria
       ConversionReport enrichedReport = report
-        .withContext(new DbptkContext(tableCounter, columnIndex, siardPhysicalPaths));
+        .withContext(new DbptkContext(tableCounter, rowIndex, columnIndex, siardPhysicalPaths));
       auditor.appendAuditRecord(enrichedReport);
 
     } catch (Exception e) {
