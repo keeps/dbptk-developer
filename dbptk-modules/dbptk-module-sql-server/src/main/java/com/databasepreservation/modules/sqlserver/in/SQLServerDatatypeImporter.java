@@ -34,6 +34,19 @@ public class SQLServerDatatypeImporter extends JDBCDatatypeImporter {
     if (typeName.equalsIgnoreCase("timestamp") || typeName.equalsIgnoreCase("rowversion")) {
       return getVarcharType(typeName, columnSize, decimalDigits, numPrecRadix);
     }
+
     return super.getBinaryType(typeName, columnSize, decimalDigits, numPrecRadix);
+  }
+
+  @Override
+  protected Type getVarbinaryType(String typeName, int columnSize, int decimalDigits, int numPrecRadix) {
+    if (typeName.equalsIgnoreCase("varbinary") && (columnSize == 2147483647 || columnSize == -1)) {
+      Type type = new SimpleTypeBinary(columnSize);
+      type.setSql99TypeName("BINARY LARGE OBJECT");
+      type.setSql2008TypeName("BINARY LARGE OBJECT");
+      return type;
+    }
+
+    return super.getVarbinaryType(typeName, columnSize, decimalDigits, numPrecRadix);
   }
 }
