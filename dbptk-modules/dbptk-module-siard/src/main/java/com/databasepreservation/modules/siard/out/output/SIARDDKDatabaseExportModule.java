@@ -367,7 +367,10 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
             // Track extracted parts to clean them individually later
             transientPaths.addAll(result.convertedFiles());
             transientPaths.add(result.reportFile());
-            transientPaths.add(result.convertedFiles().getFirst().getParent()); // directory container
+            transientPaths.add(result.zipFile());
+            if (!result.convertedFiles().isEmpty()) {
+              transientPaths.add(result.convertedFiles().getFirst().getParent()); // directory container
+            }
           } catch (IOException | InterruptedException | HttpLobConversionServiceException e) {
             String statusCodeInfo = "";
             if (e instanceof HttpLobConversionServiceException apiEx && apiEx.getHttpStatusCode() != null) {

@@ -147,33 +147,12 @@ public class HttpLobConversionService implements LobConversionService {
   }
 
   /**
-   * Downloads the resulting ZIP and extracts its contents, freeing the ZIP file
-   * immediately after.
-   */
-  private ConversionResult downloadAndExtractResult(String cellId, String jobId) throws Exception {
-    Path tempZipFile = Files.createTempFile("siarddk_conv_" + cellId + "_", ".zip");
-    fileTracker.track(tempZipFile);
-
-    try {
-      HttpRequest downloadRequest = HttpRequest.newBuilder().uri(URI.create(baseUrl + "/jobs/" + jobId + "/download"))
-        .GET().build();
-
-      executeWithRetry(downloadRequest, BodyHandlers.ofFile(tempZipFile), MAX_NETWORK_RETRIES);
-
-      return extractZipContents(cellId, tempZipFile);
-    } finally {
-      // Free disk space immediately after extraction
-      fileTracker.deleteEarly(tempZipFile);
-    }
-  }
-
-  /**
    * Downloads the resulting ZIP and lists its contents, returning the compressed
    * file.
    */
   private ConversionResult downloadResult(String cellId, String jobId) throws IOException, InterruptedException {
-    Path zipFile = Files.createFile(Path.of("siarddk_conv_" + cellId + "_" + jobId + ".zip"));
-    // TODO: Should this still be tracked?
+    Path zipFile = Files.createTempFile("siarddk_conv_" + cellId + "_" + jobId, ".zip");
+
     fileTracker.track(zipFile);
 
     HttpRequest downloadRequest = HttpRequest.newBuilder().uri(URI.create(baseUrl + "/jobs/" + jobId + "/download"))
@@ -182,43 +161,6 @@ public class HttpLobConversionService implements LobConversionService {
     executeWithRetry(downloadRequest, BodyHandlers.ofFile(zipFile), MAX_NETWORK_RETRIES);
 
     return listZipContents(cellId, zipFile);
-  }
-
-  private ConversionResult extractZipContents(String cellId, Path tempZipFile) throws Exception {
-    Path extractionDir = Files.createTempDirectory("siarddk_extracted_" + cellId + "_");
-    fileTracker.trackDir(extractionDir);
-
-    Path normalizedExtractionDir = extractionDir.normalize();
-
-    List<Path> convertedFiles = new ArrayList<>();
-    Path reportFile = null;
-
-    try (ZipInputStream zis = new ZipInputStream(new FileInputStream(tempZipFile.toFile()))) {
-      ZipEntry zipEntry;
-      while ((zipEntry = zis.getNextEntry()) != null) {
-        Path extractedFilePath = extractionDir.resolve(zipEntry.getName()).normalize();
-
-        if (!extractedFilePath.startsWith(normalizedExtractionDir)) {
-          throw new SecurityException("Corrupted ZIP entry (Zip Slip vulnerability detected): " + zipEntry.getName());
-        }
-
-        if (!zipEntry.isDirectory()) {
-          Files.copy(zis, extractedFilePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-
-          if (zipEntry.getName().toLowerCase().contains("report")) {
-            reportFile = extractedFilePath;
-          } else {
-            convertedFiles.add(extractedFilePath);
-          }
-        }
-      }
-    }
-
-    if (convertedFiles.isEmpty() || reportFile == null) {
-      throw new RuntimeException("Downloaded ZIP lacks expected format (at least 1 LOB + Report) for cell: " + cellId);
-    }
-
-    return new ConversionResult(convertedFiles, reportFile, tempZipFile);
   }
 
   private ConversionResult listZipContents(String cellId, Path zipFile) throws IOException {
