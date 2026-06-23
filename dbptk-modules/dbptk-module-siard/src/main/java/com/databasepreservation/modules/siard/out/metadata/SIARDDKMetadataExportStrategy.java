@@ -7,6 +7,18 @@
  */
 package com.databasepreservation.modules.siard.out.metadata;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Map;
+
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.structure.DatabaseStructure;
@@ -17,17 +29,6 @@ import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.out.content.LOBsTracker;
 import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Map;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
@@ -154,7 +155,6 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     writeSchemaFile(outputContainer, SIARDDKConstants.ARCHIVE_INDEX, writeStrategy);
     writeSchemaFile(outputContainer, SIARDDKConstants.CONTEXT_DOCUMENTATION_INDEX, writeStrategy);
     writeSchemaFile(outputContainer, SIARDDKConstants.FILE_INDEX, writeStrategy);
-    writeSchemaFile(outputContainer, SIARDDKConstants.RESEARCH_INDEX, writeStrategy);
     if (lobsTracker.getLOBsCount() > 0) {
       writeSchemaFile(outputContainer, SIARDDKConstants.DOC_INDEX, writeStrategy);
     }
@@ -165,7 +165,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     this.reporter = reporter;
   }
 
-  private void writeSchemaFile(SIARDArchiveContainer container, String indexFile, WriteStrategy writeStrategy)
+  protected void writeSchemaFile(SIARDArchiveContainer container, String indexFile, WriteStrategy writeStrategy)
     throws ModuleException {
 
     InputStream inputStream = this.getClass().getResourceAsStream(metadataPathStrategy.getXsdResourcePath(indexFile));
