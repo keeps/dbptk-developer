@@ -106,4 +106,20 @@ public class SIARDDK128MetadataExportStrategy extends SIARDDKMetadataExportStrat
 
     createLocalSharedFolder(outputContainer);
   }
+
+  @Override
+  public void writeMetadataXSD(DatabaseStructure dbStructure, SIARDArchiveContainer outputContainer,
+    WriteStrategy writeStrategy) throws ModuleException {
+
+    // Write contents to Schemas/standard
+    writeSchemaFile(outputContainer, SIARDDKConstants.XML_SCHEMA, writeStrategy);
+    writeSchemaFile(outputContainer, SIARDDKConstants.TABLE_INDEX, writeStrategy);
+    writeSchemaFile(outputContainer, SIARDDKConstants.ARCHIVE_INDEX, writeStrategy);
+    writeSchemaFile(outputContainer, SIARDDKConstants.CONTEXT_DOCUMENTATION_INDEX, writeStrategy);
+    writeSchemaFile(outputContainer, SIARDDKConstants.FILE_INDEX, writeStrategy);
+    writeSchemaFile(outputContainer, SIARDDKConstants.RESEARCH_INDEX, writeStrategy);
+    if (lobsTracker.getLOBsCount() > 0) {
+      writeSchemaFile(outputContainer, SIARDDKConstants.DOC_INDEX, writeStrategy);
+    }
+  }
 }
