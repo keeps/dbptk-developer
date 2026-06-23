@@ -58,12 +58,9 @@ public class ExternalLOBSCellHandlerS3MinIO implements ExternalLOBSCellHandler {
     try {
       GetObjectResponse object = minioClient
         .getObject(GetObjectArgs.builder().bucket(bucketName).object(cellValue).build());
-
-      StatObjectResponse stat = minioClient
-        .statObject(StatObjectArgs.builder().bucket(bucketName).object(cellValue).build());
-
-      return new BinaryCell(cellId, new InputStreamProviderImpl(object, stat.size()));
-
+      String contentLength = object.headers().get("Content-Length");
+      long size = contentLength != null ? Long.parseLong(contentLength) : -1;
+      return new BinaryCell(cellId, new InputStreamProviderImpl(object, size));
     } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException
       | InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException | XmlParserException e) {
       LOGGER.debug("Failed to obtain object from MinIO bucket '{}': {}", bucketName, e.getMessage(), e);
@@ -72,5 +69,10 @@ public class ExternalLOBSCellHandlerS3MinIO implements ExternalLOBSCellHandler {
     }
 
     return newCell;
+  }
+
+  @Override
+  public void close() throws Exception {
+    minioClient.close();
   }
 }

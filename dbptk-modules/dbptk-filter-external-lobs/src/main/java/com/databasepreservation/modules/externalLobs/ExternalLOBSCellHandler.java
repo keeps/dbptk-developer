@@ -10,6 +10,11 @@ package com.databasepreservation.modules.externalLobs;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.exception.ModuleException;
 
-public interface ExternalLOBSCellHandler {
+public interface ExternalLOBSCellHandler extends AutoCloseable {
   Cell handleCell(String cellId, String cellValue) throws ModuleException;
+
+  @Override
+  default void close() throws Exception {
+    // no-op by default
+  }
 }

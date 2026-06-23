@@ -35,7 +35,7 @@ public class ExternalLOBSCellHandlerRemoteFileSystem implements ExternalLOBSCell
   }
 
   @Override
-  public Cell handleCell(String cellId, String cellValue) throws ModuleException {
+  public synchronized Cell handleCell(String cellId, String cellValue) throws ModuleException {
     Cell newCell = new NullCell(cellId);
 
     if (basePath == null) {

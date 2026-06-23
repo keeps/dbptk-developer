@@ -464,6 +464,12 @@
                 <artifactId>eclipse-collections-forkjoin</artifactId>
                 <version>11.1.0</version>
             </dependency>
+
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>s3</artifactId>
+                <version>2.41.9</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

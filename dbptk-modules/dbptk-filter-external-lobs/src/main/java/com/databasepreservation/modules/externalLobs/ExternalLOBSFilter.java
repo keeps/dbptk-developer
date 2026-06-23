@@ -7,12 +7,18 @@
  */
 package com.databasepreservation.modules.externalLobs;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,20 +46,39 @@ import com.databasepreservation.modules.externalLobs.CellHandlers.ExternalLOBSCe
 import com.databasepreservation.modules.externalLobs.CellHandlers.ExternalLOBSCellHandlerRemoteFileSystem;
 import com.databasepreservation.modules.externalLobs.CellHandlers.ExternalLOBSCellHandlerS3AWS;
 import com.databasepreservation.modules.externalLobs.CellHandlers.ExternalLOBSCellHandlerS3MinIO;
+import com.databasepreservation.utils.ConfigUtils;
 
 public class ExternalLOBSFilter implements DatabaseFilterModule {
   private static final Logger LOGGER = LoggerFactory.getLogger(ExternalLOBSFilter.class);
 
+  private static final int DEFAULT_BATCH_SIZE = 100;
+  private static final int DEFAULT_MAX_CONCURRENT_REMOTE_FETCHES = 10;
+  private final ExecutorService executorService;
+  private final int batchSize;
+  private final Semaphore remoteConcurrencyLimiter;
+  private final List<Row> rowBuffer = new ArrayList<>();
   private DatabaseFilterModule exportModule;
   private Reporter reporter;
   private Map<String, ExternalLobsConfiguration> externalLobsConfigurations = new HashMap<>();
+  private Map<String, ExternalLOBSCellHandler> cellHandlers = new HashMap<>();
   private DatabaseStructure databaseStructure;
   private TableStructure currentTable = null;
   private boolean hasExternalLOBS = false;
   private List<Integer> externalLOBIndexes = new ArrayList<>();
+  private final Path temporaryLobPath;
 
   public ExternalLOBSFilter() {
-    // Empty constructor
+    this(ConfigUtils.getProperty(DEFAULT_BATCH_SIZE, "dbptk.external-lobs-filter.batch-size"), ConfigUtils
+      .getProperty(DEFAULT_MAX_CONCURRENT_REMOTE_FETCHES, "dbptk.external-lobs-filter.max-concurrent-remote-fetches"),
+            Path.of(ConfigUtils
+                    .getProperty(System.getProperty("java.io.tmpdir"), "dbptk.external-lobs-filter.temporary-lob-path")));
+  }
+
+  public ExternalLOBSFilter(int batchSize, int maxConcurrentRemoteFetches, Path temporaryLobPath) {
+    this.batchSize = batchSize;
+    this.remoteConcurrencyLimiter = new Semaphore(maxConcurrentRemoteFetches);
+    this.temporaryLobPath = temporaryLobPath;
+    this.executorService = Executors.newVirtualThreadPerTaskExecutor();
   }
 
   @Override
@@ -130,10 +155,12 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
           currentTable.getSchema(), currentTable.getName(), columns.get(i).getName(), currentTable.isFromView(),
           currentTable.isFromCustomView())) {
           externalLOBIndexes.add(i);
-          externalLobsConfigurations.put(tableId + i,
-            ModuleConfigurationManager.getInstance().getModuleConfiguration().getExternalLobsConfiguration(
-              currentTable.getSchema(), currentTable.getName(), columns.get(i).getName(), currentTable.isFromView(),
-              currentTable.isFromCustomView()));
+          String handlerKey = tableId + i;
+          ExternalLobsConfiguration config = ModuleConfigurationManager.getInstance().getModuleConfiguration()
+            .getExternalLobsConfiguration(currentTable.getSchema(), currentTable.getName(), columns.get(i).getName(),
+              currentTable.isFromView(), currentTable.isFromCustomView());
+          externalLobsConfigurations.put(handlerKey, config);
+          cellHandlers.put(handlerKey, getExternalLOBSCellHandler(config));
         }
       }
     }
@@ -144,6 +171,24 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
   @Override
   public void handleDataRow(Row row) throws ModuleException {
     if (hasExternalLOBS) {
+      rowBuffer.add(row);
+      if (rowBuffer.size() >= batchSize) {
+        flushRowBuffer();
+      }
+    } else {
+      this.exportModule.handleDataRow(row);
+    }
+  }
+
+  private void flushRowBuffer() throws ModuleException {
+    if (rowBuffer.isEmpty()) {
+      return;
+    }
+
+    // Accumulate all fetch tasks across all buffered rows
+    List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+    for (Row row : rowBuffer) {
       List<Cell> rowCells = row.getCells();
       for (int index : externalLOBIndexes) {
         Cell cell = rowCells.get(index);
@@ -151,11 +196,31 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
         if (cell instanceof SimpleCell simpleCell) {
           String reference = simpleCell.getSimpleData();
           if (reference != null && !reference.isEmpty()) {
-            final ExternalLobsConfiguration externalLobsConfiguration = externalLobsConfigurations
-              .get(currentTable.getId() + index);
-            Cell newCell = getExternalLOBSCellHandler(externalLobsConfiguration).handleCell(cell.getId(),
-              simpleCell.getSimpleData());
-            rowCells.set(index, newCell);
+            final int cellIndex = index;
+            final ExternalLOBSCellHandler handler = cellHandlers.get(currentTable.getId() + index);
+            final boolean requiresSemaphore = handler instanceof ExternalLOBSCellHandlerRemoteFileSystem;
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+              try {
+                if (requiresSemaphore) {
+                  remoteConcurrencyLimiter.acquire();
+                }
+                try {
+                  Cell newCell = handler.handleCell(cell.getId(), simpleCell.getSimpleData());
+                  rowCells.set(cellIndex, newCell);
+                } finally {
+                  if (requiresSemaphore) {
+                    remoteConcurrencyLimiter.release();
+                  }
+                }
+              } catch (ModuleException e) {
+                throw new CompletionException(e);
+              } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new CompletionException(
+                  new ModuleException().withMessage("Interrupted while waiting to fetch external LOB").withCause(e));
+              }
+            }, executorService);
+            futures.add(future);
           } else {
             reporter.ignored("Cell " + cell.getId(), "reference to external LOB is null");
             rowCells.set(index, new NullCell(cell.getId()));
@@ -164,19 +229,43 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
           LOGGER.error("Reference to LOB is not a SimpleCell");
           rowCells.set(index, new NullCell(cell.getId()));
         }
-
       }
-      row.setCells(rowCells);
     }
-    this.exportModule.handleDataRow(row);
+
+    // Wait for all parallel fetches to complete
+    try {
+      CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+    } catch (CompletionException e) {
+      Throwable cause = e.getCause();
+      if (cause instanceof ModuleException moduleException) {
+        throw moduleException;
+      }
+      throw new ModuleException().withMessage("Error fetching external LOBs in parallel").withCause(cause);
+    }
+
+    // Forward all rows to the export module in order
+    for (Row row : rowBuffer) {
+      this.exportModule.handleDataRow(row);
+    }
+
+    rowBuffer.clear();
   }
 
   @Override
   public void handleDataCloseTable(String tableId) throws ModuleException {
+    flushRowBuffer();
+    for (ExternalLOBSCellHandler handler : cellHandlers.values()) {
+      try {
+        handler.close();
+      } catch (Exception e) {
+        LOGGER.warn("Failed to close external LOB cell handler", e);
+      }
+    }
     hasExternalLOBS = false;
     externalLOBIndexes = new ArrayList<>();
     currentTable = null;
     externalLobsConfigurations = new HashMap<>();
+    cellHandlers = new HashMap<>();
     this.exportModule.handleDataCloseTable(tableId);
   }
 
@@ -187,6 +276,7 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
 
   @Override
   public void finishDatabase() throws ModuleException {
+    executorService.shutdown();
     this.exportModule.finishDatabase();
   }
 
@@ -216,7 +306,7 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
     if (configuration instanceof S3AWSExternalLobsConfiguration s3AWSExternalLobsConfiguration) {
       return new ExternalLOBSCellHandlerS3AWS(s3AWSExternalLobsConfiguration.getEndpoint(),
         s3AWSExternalLobsConfiguration.getRegion(), s3AWSExternalLobsConfiguration.getBucketName(),
-        s3AWSExternalLobsConfiguration.getAccessKey(), s3AWSExternalLobsConfiguration.getSecretKey(), reporter);
+        s3AWSExternalLobsConfiguration.getAccessKey(), s3AWSExternalLobsConfiguration.getSecretKey(), temporaryLobPath, reporter);
     }
 
     if (configuration instanceof S3MinIOExternalLobsConfiguration s3MinIOExternalLobsConfiguration) {
