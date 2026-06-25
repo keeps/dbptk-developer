@@ -15,6 +15,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import com.databasepreservation.managers.ExportModuleContextManager;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.modules.DatabaseImportModule;
 import com.databasepreservation.model.modules.DatabaseModuleFactory;
@@ -60,67 +61,75 @@ public class DatabaseMigration {
   public void migrate() throws ModuleException {
     validate();
 
-    // get import module and export module instance
-    Map<Parameter, String> importParameters = buildParametersFromStringParameters(importModuleFactory,
-      importModuleFactoryStringParameters);
-    Map<Parameter, String> exportParameters = buildParametersFromStringParameters(exportModuleFactory,
-      exportModuleFactoryStringParameters);
-
-    DatabaseImportModule importModule = importModuleFactory.buildImportModule(importParameters, reporter);
-    DatabaseFilterModule exportModule = exportModuleFactory.buildExportModule(exportParameters, reporter);
-
-    List<DatabaseFilterModule> beforeFilterModules = new ArrayList<>();
-    List<DatabaseFilterModule> afterFilterModules = new ArrayList<>();
-    for (int i = 0; i < filterFactories.size(); i++) {
-      Map<Parameter, String> filterParameters = new HashMap<>();
-      if (!filterFactoriesStringParameters.isEmpty()) {
-        filterParameters = buildParametersFromStringParameters(filterFactories.get(i),
-          filterFactoriesStringParameters.get(i));
+    try {
+      if (exportModuleFactory != null) {
+        ExportModuleContextManager.getInstance().setup(exportModuleFactory);
       }
 
-      if (filterFactories.get(i).getExecutionOrder().equals(ExecutionOrder.AFTER)) {
-        afterFilterModules.add(filterFactories.get(i).buildFilterModule(filterParameters, reporter));
-      } else {
-        beforeFilterModules.add(filterFactories.get(i).buildFilterModule(filterParameters, reporter));
+      // get import module and export module instance
+      Map<Parameter, String> importParameters = buildParametersFromStringParameters(importModuleFactory,
+        importModuleFactoryStringParameters);
+      Map<Parameter, String> exportParameters = buildParametersFromStringParameters(exportModuleFactory,
+        exportModuleFactoryStringParameters);
+
+      DatabaseImportModule importModule = importModuleFactory.buildImportModule(importParameters, reporter);
+      DatabaseFilterModule exportModule = exportModuleFactory.buildExportModule(exportParameters, reporter);
+
+      List<DatabaseFilterModule> beforeFilterModules = new ArrayList<>();
+      List<DatabaseFilterModule> afterFilterModules = new ArrayList<>();
+      for (int i = 0; i < filterFactories.size(); i++) {
+        Map<Parameter, String> filterParameters = new HashMap<>();
+        if (!filterFactoriesStringParameters.isEmpty()) {
+          filterParameters = buildParametersFromStringParameters(filterFactories.get(i),
+            filterFactoriesStringParameters.get(i));
+        }
+
+        if (filterFactories.get(i).getExecutionOrder().equals(ExecutionOrder.AFTER)) {
+          afterFilterModules.add(filterFactories.get(i).buildFilterModule(filterParameters, reporter));
+        } else {
+          beforeFilterModules.add(filterFactories.get(i).buildFilterModule(filterParameters, reporter));
+        }
       }
+
+      // set reporters
+      importModule.setOnceReporter(reporter);
+      for (DatabaseFilterModule filterModule : beforeFilterModules) {
+        filterModule.setOnceReporter(reporter);
+      }
+
+      for (DatabaseFilterModule filterModule : afterFilterModules) {
+        filterModule.setOnceReporter(reporter);
+      }
+      for (DatabaseFilterModule filterModule : filterModules) {
+        filterModule.setOnceReporter(reporter);
+      }
+      exportModule.setOnceReporter(reporter);
+
+      // create module chain with filters in the middle
+      Collections.reverse(filterModules);
+      Collections.reverse(beforeFilterModules);
+      Collections.reverse(afterFilterModules);
+
+      DatabaseFilterModule sinkModule = new SinkModule();
+
+      for (DatabaseFilterModule filterModule : afterFilterModules) {
+        sinkModule = filterModule.migrateDatabaseTo(sinkModule);
+      }
+
+      sinkModule = exportModule.migrateDatabaseTo(sinkModule);
+
+      for (DatabaseFilterModule filterModule : beforeFilterModules) {
+        sinkModule = filterModule.migrateDatabaseTo(sinkModule);
+      }
+
+      for (DatabaseFilterModule filterModule : filterModules) {
+        sinkModule = filterModule.migrateDatabaseTo(sinkModule);
+      }
+
+      importModule.migrateDatabaseTo(sinkModule);
+    } finally {
+      ExportModuleContextManager.destroy();
     }
-
-    // set reporters
-    importModule.setOnceReporter(reporter);
-    for (DatabaseFilterModule filterModule : beforeFilterModules) {
-      filterModule.setOnceReporter(reporter);
-    }
-
-    for (DatabaseFilterModule filterModule : afterFilterModules) {
-      filterModule.setOnceReporter(reporter);
-    }
-    for (DatabaseFilterModule filterModule : filterModules) {
-      filterModule.setOnceReporter(reporter);
-    }
-    exportModule.setOnceReporter(reporter);
-
-    // create module chain with filters in the middle
-    Collections.reverse(filterModules);
-    Collections.reverse(beforeFilterModules);
-    Collections.reverse(afterFilterModules);
-
-    DatabaseFilterModule sinkModule = new SinkModule();
-
-    for (DatabaseFilterModule filterModule : afterFilterModules) {
-      sinkModule = filterModule.migrateDatabaseTo(sinkModule);
-    }
-
-    sinkModule = exportModule.migrateDatabaseTo(sinkModule);
-
-    for (DatabaseFilterModule filterModule : beforeFilterModules) {
-      sinkModule = filterModule.migrateDatabaseTo(sinkModule);
-    }
-
-    for (DatabaseFilterModule filterModule : filterModules) {
-      sinkModule = filterModule.migrateDatabaseTo(sinkModule);
-    }
-
-    importModule.migrateDatabaseTo(sinkModule);
   }
 
   /**
