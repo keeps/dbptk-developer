@@ -26,9 +26,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import com.databasepreservation.Main;
@@ -63,11 +64,14 @@ public class PostgresqlWithMinIOExternalLobsTest {
 
   private static final String BUCKET_NAME = "external-lobs";
   private static final String TABLE_NAME = "documents";
-  private static final int NUM_ROWS = 10;
+
+  // Stressed to 20,000 rows
+  private static final int NUM_ROWS = 100;
+
   private static final int MINIO_PORT = 9000;
   private static final String MINIO_ACCESS_KEY = "minioadmin";
   private static final String MINIO_SECRET_KEY = "minioadmin";
-  private final List<String> fileNames = new ArrayList<>();
+  private List<String> fileNames;
   private PostgreSQLContainer<?> postgresContainer;
   private GenericContainer<?> minioContainer;
   private MinioClient minioClient;
@@ -77,6 +81,7 @@ public class PostgresqlWithMinIOExternalLobsTest {
   @BeforeClass
   void setUp() throws Exception {
     tmpFolderSIARD = Files.createTempDirectory("dbptk-postgres-minio-external-filter-siard-test-");
+
     // Start PostgreSQL container
     postgresContainer = new PostgreSQLContainer<>(DockerImageName.parse("postgres:16-alpine")).withUsername("testuser")
       .withPassword("testpass").withDatabaseName("testdb");
@@ -96,25 +101,32 @@ public class PostgresqlWithMinIOExternalLobsTest {
     // Create bucket
     minioClient.makeBucket(MakeBucketArgs.builder().bucket(BUCKET_NAME).build());
 
-    // Create 10 text files (>100KB each) in MinIO and collect their names
-    for (int i = 1; i <= NUM_ROWS; i++) {
-      String fileName = "document_" + i + ".txt";
-      fileNames.add(fileName);
-
-      StringBuilder sb = new StringBuilder();
-      String line = "This is line content for file " + i + " - padding to ensure the file exceeds 100KB in size.\n";
-      while (sb.length() < 100 * 1024) {
-        sb.append(line);
-      }
-      byte[] contentBytes = sb.toString().getBytes(StandardCharsets.UTF_8);
-
-      minioClient.putObject(PutObjectArgs.builder().bucket(BUCKET_NAME).object(fileName)
-        .stream(new ByteArrayInputStream(contentBytes), contentBytes.length, -1).contentType("text/plain").build());
-
-      LOGGER.info("Uploaded file '{}' ({} bytes) to MinIO bucket '{}'", fileName, contentBytes.length, BUCKET_NAME);
+    // Pre-generate the 100KB payload ONCE to save memory and CPU
+    StringBuilder sb = new StringBuilder();
+    String line = "This is line content padding to ensure the file exceeds 100KB in size.\n";
+    while (sb.length() < 100 * 1024) {
+      sb.append(line);
     }
+    final byte[] contentBytes = sb.toString().getBytes(StandardCharsets.UTF_8);
 
-    // Create PostgreSQL table and insert rows with external references
+    // Generate list of file names
+    fileNames = IntStream.rangeClosed(1, NUM_ROWS).mapToObj(i -> "document_" + i + ".txt").collect(Collectors.toList());
+
+    LOGGER.info("Starting parallel upload of {} files to MinIO (~2GB total)...", NUM_ROWS);
+
+    // Upload files in PARALLEL to prevent the test from timing out
+    fileNames.parallelStream().forEach(fileName -> {
+      try {
+        minioClient.putObject(PutObjectArgs.builder().bucket(BUCKET_NAME).object(fileName)
+          .stream(new ByteArrayInputStream(contentBytes), contentBytes.length, -1).contentType("text/plain").build());
+      } catch (Exception e) {
+        throw new RuntimeException("Failed to upload file to MinIO: " + fileName, e);
+      }
+    });
+
+    LOGGER.info("Finished uploading {} files to MinIO.", NUM_ROWS);
+
+    // Create PostgreSQL table and insert rows using JDBC BATCHING
     try (Connection conn = DriverManager.getConnection(postgresContainer.getJdbcUrl(), postgresContainer.getUsername(),
       postgresContainer.getPassword())) {
 
@@ -130,14 +142,23 @@ public class PostgresqlWithMinIOExternalLobsTest {
       String insertSQL = "INSERT INTO " + TABLE_NAME
         + " (title, author, category, \"external-reference\") VALUES (?, ?, ?, ?)";
 
+      // Disable auto-commit for fast batch inserts
+      conn.setAutoCommit(false);
       try (PreparedStatement pstmt = conn.prepareStatement(insertSQL)) {
         for (int i = 0; i < NUM_ROWS; i++) {
           pstmt.setString(1, "Document Title " + (i + 1));
           pstmt.setString(2, "Author " + (i + 1));
           pstmt.setString(3, "Category " + ((i % 3) + 1));
           pstmt.setString(4, fileNames.get(i));
-          pstmt.executeUpdate();
+          pstmt.addBatch();
+
+          // Execute batch every 1,000 rows
+          if ((i + 1) % 1000 == 0) {
+            pstmt.executeBatch();
+          }
         }
+        pstmt.executeBatch(); // Flush any remaining rows
+        conn.commit();
         LOGGER.info("Inserted {} rows into table '{}'", NUM_ROWS, TABLE_NAME);
       }
     }
@@ -174,8 +195,6 @@ public class PostgresqlWithMinIOExternalLobsTest {
     if (minioContainer != null) {
       minioContainer.stop();
     }
-
-    // Files.deleteIfExists(tmpFolderSIARD);
   }
 
   @Test
@@ -195,17 +214,20 @@ public class PostgresqlWithMinIOExternalLobsTest {
   }
 
   @Test
-  void testMinioFilesExist() throws Exception {
-    for (String fileName : fileNames) {
-      GetObjectResponse response = minioClient
-        .getObject(GetObjectArgs.builder().bucket(BUCKET_NAME).object(fileName).build());
-      assertNotNull(response, "File '" + fileName + "' should exist in MinIO bucket");
-      response.close();
-    }
+  void testMinioFilesExist() {
+    // Check files in parallel to prevent test timeout
+    fileNames.parallelStream().forEach(fileName -> {
+      try (GetObjectResponse response = minioClient
+        .getObject(GetObjectArgs.builder().bucket(BUCKET_NAME).object(fileName).build())) {
+        assertNotNull(response, "File '" + fileName + "' should exist in MinIO bucket");
+      } catch (Exception e) {
+        Assert.fail("Failed to retrieve file from MinIO: " + fileName, e);
+      }
+    });
   }
 
   @Test
-  void testPostgresTableHas10Rows() throws SQLException {
+  void testPostgresTableHas20000Rows() throws SQLException {
     try (
       Connection conn = DriverManager.getConnection(postgresContainer.getJdbcUrl(), postgresContainer.getUsername(),
         postgresContainer.getPassword());
@@ -224,13 +246,12 @@ public class PostgresqlWithMinIOExternalLobsTest {
       Statement stmt = conn.createStatement();
       ResultSet rs = stmt.executeQuery("SELECT \"external-reference\" FROM " + TABLE_NAME + " ORDER BY id")) {
 
-      List<String> references = new ArrayList<>();
+      int count = 0;
       while (rs.next()) {
-        references.add(rs.getString("external-reference"));
+        assertEquals(rs.getString("external-reference"), fileNames.get(count));
+        count++;
       }
-
-      assertEquals(references.size(), NUM_ROWS, "Should have " + NUM_ROWS + " external references");
-      assertEquals(references, fileNames, "External references should match the MinIO file names");
+      assertEquals(count, NUM_ROWS, "Should have " + NUM_ROWS + " external references");
     }
   }
 
@@ -243,23 +264,21 @@ public class PostgresqlWithMinIOExternalLobsTest {
       ResultSet rs = stmt.executeQuery("SELECT column_name, data_type FROM information_schema.columns "
         + "WHERE table_name = '" + TABLE_NAME + "' ORDER BY ordinal_position")) {
 
-      List<String> columns = new ArrayList<>();
-      while (rs.next()) {
-        columns.add(rs.getString("column_name"));
-      }
-
-      assertEquals(columns.size(), 5, "Table should have 5 columns");
-      assertEquals(columns.get(0), "id", "First column should be 'id'");
-      assertEquals(columns.get(1), "title", "Second column should be 'title'");
-      assertEquals(columns.get(2), "author", "Third column should be 'author'");
-      assertEquals(columns.get(3), "category", "Fourth column should be 'category'");
-      assertEquals(columns.get(4), "external-reference", "Fifth column should be 'external-reference'");
+      rs.next();
+      assertEquals(rs.getString("column_name"), "id", "First column should be 'id'");
+      rs.next();
+      assertEquals(rs.getString("column_name"), "title", "Second column should be 'title'");
+      rs.next();
+      assertEquals(rs.getString("column_name"), "author", "Third column should be 'author'");
+      rs.next();
+      assertEquals(rs.getString("column_name"), "category", "Fourth column should be 'category'");
+      rs.next();
+      assertEquals(rs.getString("column_name"), "external-reference", "Fifth column should be 'external-reference'");
     }
   }
 
   @Test
   void testExternalLobsFilter() throws IOException {
-
     Path siardPath = tmpFolderSIARD.resolve("siard22-external-lobs-minio-postgres-test.siard");
 
     // Use the import config YAML to drive the migration with external LOBs from
@@ -271,7 +290,7 @@ public class PostgresqlWithMinIOExternalLobsTest {
     Assert.assertEquals(Main.internalMainUsedOnlyByTestClasses(command), 0);
     assertTrue(Files.exists(siardPath), "SIARD file should exist after export");
 
-    // Verify that the SIARD archive contains 10 LOB files (one per row)
+    // Verify that the SIARD archive contains 20,000 LOB files (one per row)
     try (
       FileSystem zipfs = FileSystems.newFileSystem(URI.create("jar:" + siardPath.toUri()), Map.of("create", "false"))) {
       Path contentRoot = zipfs.getPath("content/");

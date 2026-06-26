@@ -7,7 +7,6 @@
  */
 package com.databasepreservation.modules.externalLobs;
 
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,19 +64,15 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
   private TableStructure currentTable = null;
   private boolean hasExternalLOBS = false;
   private List<Integer> externalLOBIndexes = new ArrayList<>();
-  private final Path temporaryLobPath;
 
   public ExternalLOBSFilter() {
     this(ConfigUtils.getProperty(DEFAULT_BATCH_SIZE, "dbptk.external-lobs-filter.batch-size"), ConfigUtils
-      .getProperty(DEFAULT_MAX_CONCURRENT_REMOTE_FETCHES, "dbptk.external-lobs-filter.max-concurrent-remote-fetches"),
-            Path.of(ConfigUtils
-                    .getProperty(System.getProperty("java.io.tmpdir"), "dbptk.external-lobs-filter.temporary-lob-path")));
+      .getProperty(DEFAULT_MAX_CONCURRENT_REMOTE_FETCHES, "dbptk.external-lobs-filter.max-concurrent-remote-fetches"));
   }
 
-  public ExternalLOBSFilter(int batchSize, int maxConcurrentRemoteFetches, Path temporaryLobPath) {
+  public ExternalLOBSFilter(int batchSize, int maxConcurrentRemoteFetches) {
     this.batchSize = batchSize;
     this.remoteConcurrencyLimiter = new Semaphore(maxConcurrentRemoteFetches);
-    this.temporaryLobPath = temporaryLobPath;
     this.executorService = Executors.newVirtualThreadPerTaskExecutor();
   }
 
@@ -306,7 +301,7 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
     if (configuration instanceof S3AWSExternalLobsConfiguration s3AWSExternalLobsConfiguration) {
       return new ExternalLOBSCellHandlerS3AWS(s3AWSExternalLobsConfiguration.getEndpoint(),
         s3AWSExternalLobsConfiguration.getRegion(), s3AWSExternalLobsConfiguration.getBucketName(),
-        s3AWSExternalLobsConfiguration.getAccessKey(), s3AWSExternalLobsConfiguration.getSecretKey(), temporaryLobPath, reporter);
+        s3AWSExternalLobsConfiguration.getAccessKey(), s3AWSExternalLobsConfiguration.getSecretKey(), reporter);
     }
 
     if (configuration instanceof S3MinIOExternalLobsConfiguration s3MinIOExternalLobsConfiguration) {

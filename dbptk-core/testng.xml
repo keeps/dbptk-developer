@@ -16,6 +16,7 @@
         </groups>
         <classes>
             <class name="com.databasepreservation.testing.integration.postgresql.PostgresqlToSIARDTest" />
+            <class name="com.databasepreservation.testing.integration.postgresql.PostgresqlWithMinIOExternalLobsTest" />
             <class name="com.databasepreservation.testing.integration.roundtrip.MSSQLTests"/>
             <class name="com.databasepreservation.testing.integration.roundtrip.MSSQLTests"/>
             <class name="com.databasepreservation.testing.integration.roundtrip.PostgreSQLTests"/>
