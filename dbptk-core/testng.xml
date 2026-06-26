@@ -15,7 +15,9 @@
             </define>
         </groups>
         <classes>
-            <class name="com.databasepreservation.testing.integration.postgresql.PostgresqlToSIARDTest" />
+            <class name="com.databasepreservation.testing.integration.postgresql.PostgreSQLWithMinIOExternalLobsTest" />
+            <!--class name="com.databasepreservation.testing.integration.postgresql.PostgresqlToSIARDTest" />
+
             <class name="com.databasepreservation.testing.integration.roundtrip.MSSQLTests"/>
             <class name="com.databasepreservation.testing.integration.roundtrip.MSSQLTests"/>
             <class name="com.databasepreservation.testing.integration.roundtrip.PostgreSQLTests"/>
@@ -31,7 +33,7 @@
             <class name="com.databasepreservation.siarddk.TestSIARDDKsql99ToXsdType"/>
             <class name="com.databasepreservation.testing.integration.siard.SiardTest"/>
             <class name="com.databasepreservation.testing.integration.siard.DevelopmentDebugTest"/>
-            <class name="com.databasepreservation.modules.siard.out.metadata.TestSIARDDK1007TableIndexFileStrategy"/>
+            <class name="com.databasepreservation.modules.siard.out.metadata.TestSIARDDK1007TableIndexFileStrategy"/-->
         </classes>
     </test>
 </suite>

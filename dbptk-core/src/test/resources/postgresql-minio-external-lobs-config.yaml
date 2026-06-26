@@ -1,0 +1,45 @@
+import:
+  module: "postgresql"
+  parameters:
+    hostname: "${POSTGRES_HOST}"
+    port-number: "${POSTGRES_PORT}"
+    username: "testuser"
+    password: "testpass"
+    database: "testdb"
+    disable-encryption: "true"
+schemas:
+  public:
+    tables:
+      - name: "documents"
+        columns:
+          - name: "id"
+            merkle: false
+          - name: "title"
+            merkle: false
+          - name: "author"
+            merkle: false
+          - name: "category"
+            merkle: false
+          - name: "external-reference"
+            merkle: false
+            externalLOB:
+              accessMethod: "S3-AWS"
+              endpoint: "${MINIO_ENDPOINT}"
+              region: "EU_WEST_1"
+              bucketName: "external-lobs"
+              accessKey: "minioadmin"
+              secretKey: "minioadmin"
+        where: ""
+        orderBy: ""
+    views:
+ignore:
+  users: false
+  roles: false
+  privileges: false
+  routines: false
+  triggers: false
+  primaryKeys: false
+  candidateKeys: false
+  foreignKeys: false
+  checkConstraints: false
+  views: true
