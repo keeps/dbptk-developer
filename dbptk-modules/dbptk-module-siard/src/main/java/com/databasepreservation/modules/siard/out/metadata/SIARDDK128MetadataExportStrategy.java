@@ -2,6 +2,8 @@ package com.databasepreservation.modules.siard.out.metadata;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.DatabaseStructure;
@@ -28,6 +30,10 @@ public class SIARDDK128MetadataExportStrategy extends SIARDDKMetadataExportStrat
     // TO-DO: Refactor this into one method in class that can be used by
     // SIARDDKDatabaseExportModule also
 
+    // Making the SIARD DK XML namespace default in case needed
+    Map<String, String> namespaceMap = new HashMap<>();
+    namespaceMap.put("http://www.sa.dk/xmlns/diark/1.0", "");
+
     // Generate tableIndex.xml
 
     try {
@@ -38,7 +44,7 @@ public class SIARDDK128MetadataExportStrategy extends SIARDDKMetadataExportStrat
       siardMarshaller.marshal("com.databasepreservation.modules.siard.bindings.siard_dk_128",
         metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.TABLE_INDEX),
         "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/tableIndex.xsd", writer,
-        tableIndexFileStrategy.generateXML(dbStructure));
+        tableIndexFileStrategy.generateXML(dbStructure), namespaceMap);
 
       writer.close();
 
@@ -93,7 +99,7 @@ public class SIARDDK128MetadataExportStrategy extends SIARDDKMetadataExportStrat
 
         siardMarshaller.marshal(DocIndexType.class, metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.DOC_INDEX),
           "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/docIndex.xsd", writer,
-          SIARDDKDocIndexFileStrategy.generateXML(dbStructure));
+          SIARDDKDocIndexFileStrategy.generateXML(dbStructure), namespaceMap);
 
         writer.close();
 

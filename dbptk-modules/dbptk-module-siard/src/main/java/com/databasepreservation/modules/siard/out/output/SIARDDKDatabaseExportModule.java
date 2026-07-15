@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -216,10 +217,14 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
       OutputStream writer = SIARDDKFileIndexFileStrategy.getWriter(siarddkExportModule.getMainContainer(), path,
         siarddkExportModule.getWriteStrategy());
 
+      // Making the SIARD DK XML namespace default in case needed
+      Map<String, String> namespaceMap = new HashMap<>();
+      namespaceMap.put("http://www.sa.dk/xmlns/diark/1.0", "");
+
       siardMarshaller.marshal(getJAXBContextClass(),
         metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.FILE_INDEX),
         "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/fileIndex.xsd", writer,
-        SIARDDKFileIndexFileStrategy.generateXML(null));
+        SIARDDKFileIndexFileStrategy.generateXML(null), namespaceMap);
 
       writer.close();
     } catch (IOException e) {

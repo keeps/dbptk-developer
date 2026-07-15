@@ -10,6 +10,7 @@ package com.databasepreservation.modules.siard.out.metadata;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 
 import javax.xml.XMLConstants;
 import javax.xml.transform.stream.StreamSource;
@@ -27,7 +28,7 @@ import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 
-public class StandardSIARDMarshaller implements SIARDMarshaller {
+public class  StandardSIARDMarshaller implements SIARDMarshaller {
 
   private static final String ENCODING = "UTF-8";
 
@@ -35,7 +36,7 @@ public class StandardSIARDMarshaller implements SIARDMarshaller {
 
   @Override
   public void marshal(String contextStr, String localeSchemaLocation, String JAXBSchemaLocation, OutputStream writer,
-    Object jaxbElement) throws ModuleException {
+    Object jaxbElement, Map<String, String> namespaceMap) throws ModuleException {
 
     // Set up JAXB marshaller
 
@@ -82,7 +83,7 @@ public class StandardSIARDMarshaller implements SIARDMarshaller {
 
   @Override
   public void marshal(Class<?> archiveClass, String localeSchemaLocation, String JAXBSchemaLocation,
-    OutputStream writer, Object jaxbElement) throws ModuleException {
+    OutputStream writer, Object jaxbElement, Map<String, String> namespaceMap) throws ModuleException {
 
     // Set up JAXB marshaller
 
@@ -114,6 +115,11 @@ public class StandardSIARDMarshaller implements SIARDMarshaller {
       m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
       m.setProperty(Marshaller.JAXB_ENCODING, ENCODING);
       m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, JAXBSchemaLocation);
+
+      if (m.getClass().getName().contains("eclipse") && namespaceMap != null) {
+        // vendor requires explicit mapping
+        m.setProperty("eclipse.namespace-prefix-mapper", namespaceMap);
+      }
 
       m.setSchema(xsdSchema);
 

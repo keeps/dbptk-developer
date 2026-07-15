@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
@@ -66,6 +67,10 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
 
     // Generate tableIndex.xml
 
+    // Making the SIARD DK XML namespace default in case needed
+    Map<String, String> namespaceMap = new HashMap<>();
+    namespaceMap.put("http://www.sa.dk/xmlns/diark/1.0", "");
+
     try {
       IndexFileStrategy tableIndexFileStrategy = new SIARDDKTableIndexFileStrategy(lobsTracker, siarddkAdapter);
       String path = metadataPathStrategy.getXmlFilePath(SIARDDKConstants.TABLE_INDEX);
@@ -74,7 +79,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
       siardMarshaller.marshal(SIARDDKConstants.JAXB_CONTEXT_TABLEINDEX,
         metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.TABLE_INDEX),
         "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/tableIndex.xsd", writer,
-        tableIndexFileStrategy.generateXML(dbStructure));
+        tableIndexFileStrategy.generateXML(dbStructure), namespaceMap);
 
       writer.close();
 
@@ -130,7 +135,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
         siardMarshaller.marshal(SIARDDKConstants.JAXB_CONTEXT_DOCINDEX,
           metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.DOC_INDEX),
           "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/docIndex.xsd", writer,
-          SIARDDKDocIndexFileStrategy.generateXML(dbStructure));
+          SIARDDKDocIndexFileStrategy.generateXML(dbStructure), namespaceMap);
 
         writer.close();
 
