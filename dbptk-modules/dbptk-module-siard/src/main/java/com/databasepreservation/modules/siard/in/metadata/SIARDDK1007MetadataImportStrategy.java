@@ -142,7 +142,7 @@ public class SIARDDK1007MetadataImportStrategy implements MetadataImportStrategy
       tableIndexUnmarshaller = tableIndexContext.createUnmarshaller();
       tableIndexUnmarshaller.setSchema(tableIndexXsdSchema);
       tableIndexInputStreamXml = readStrategyMD5Sum.createInputStream(container,
-        pathStrategy.getXmlFilePath(SIARDDKConstants.TABLE_INDEX), pathStrategy.getTabelIndexExpectedMD5Sum());
+        pathStrategy.getXmlFilePath(SIARDDKConstants.TABLE_INDEX), pathStrategy.getTableIndexExpectedMD5Sum());
       xmlRoot = (SiardDiark) tableIndexUnmarshaller.unmarshal(tableIndexInputStreamXml);
 
       archiveIndexUnmarshaller = archiveIndexContext.createUnmarshaller();

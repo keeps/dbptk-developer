@@ -7,13 +7,13 @@
  */
 package com.databasepreservation.modules.siard.in.path;
 
+import java.util.List;
+
 import com.databasepreservation.modules.siard.bindings.siard_dk_128.FileIndexType;
 import com.databasepreservation.modules.siard.bindings.siard_dk_128.FileIndexType.F;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
-
-import java.util.List;
 
 /**
  * @author António Lindo <alindo@keep.pt>
@@ -23,12 +23,14 @@ public class SIARDDK128PathImportStrategy extends SIARDDKPathImportStrategy<F, F
   public SIARDDK128PathImportStrategy(SIARDArchiveContainer mainFolder, ReadStrategy readStrategy,
     MetadataPathStrategy metadataPathStrategy, String importAsSchema,
     FileIndexXsdInputStreamStrategy fileIndexXsdInputStreamStrategy) {
-    super(mainFolder, readStrategy, metadataPathStrategy, importAsSchema, fileIndexXsdInputStreamStrategy, FileIndexType.class);
+    super(mainFolder, readStrategy, metadataPathStrategy, importAsSchema, fileIndexXsdInputStreamStrategy,
+      FileIndexType.class);
   }
 
   @Override
-  byte[] getMd5(F fileInfo) {
-    return fileInfo.getMd5();
+  SIARDDKFileIndexHandler createFileIndexHandler() {
+    return new SIARDDK128FileIndexHandler(archiveFolderLookupByFolderName, xsdFilePathLookupByFolderName,
+      xmlFilePathLookupByFolderName);
   }
 
   @Override
