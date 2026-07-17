@@ -32,7 +32,6 @@ import com.databasepreservation.modules.siard.in.read.FolderReadStrategyMD5Sum;
 import dk.sa.xmlns.diark._1_0.docindex.DocIndexType;
 import dk.sa.xmlns.diark._1_0.docindex.DocumentType;
 import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
 
@@ -48,56 +47,9 @@ public class SIARDDK1007ContentImportStrategy extends
     super(readStrategy, pathStrategy, importAsSchema);
   }
 
-  DocIndexType loadVirtualTableContent() throws ModuleException, FileNotFoundException {
-    JAXBContext context;
-    try {
-      context = JAXBContext.newInstance(DocIndexType.class.getPackage().getName());
-    } catch (JAXBException e) {
-      throw new ModuleException().withMessage("Error loading JAXBContext").withCause(e);
-    }
-
-    SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-    Schema xsdSchema = null;
-    InputStream xsdInputStream = new FileInputStream(pathStrategy.getMainFolder().getPath().toString()
-      + SIARDDKConstants.RESOURCE_FILE_SEPARATOR + pathStrategy.getXsdFilePath(SIARDDKConstants.DOC_INDEX));
-
-    try {
-      xsdSchema = schemaFactory.newSchema(new StreamSource(xsdInputStream));
-    } catch (SAXException e) {
-      throw new ModuleException()
-        .withMessage("Error reading metadata XSD file: " + pathStrategy.getXsdFilePath(SIARDDKConstants.DOC_INDEX))
-        .withCause(e);
-    }
-    InputStream inputStreamXml = null;
-    Unmarshaller unmarshaller;
-    try {
-      unmarshaller = context.createUnmarshaller();
-      unmarshaller.setSchema(xsdSchema);
-      inputStreamXml = new FileInputStream(pathStrategy.getMainFolder().getPath().toString()
-        + SIARDDKConstants.RESOURCE_FILE_SEPARATOR + pathStrategy.getXmlFilePath(SIARDDKConstants.DOC_INDEX));
-      Object result = unmarshaller.unmarshal(inputStreamXml);
-      DocIndexType docIndex;
-      if (result instanceof JAXBElement) {
-        docIndex = ((JAXBElement<DocIndexType>) result).getValue();
-      } else if (result instanceof DocIndexType) {
-        docIndex = (DocIndexType) result;
-      } else {
-        throw new IllegalArgumentException("Unexpected object type: " + result.getClass().getName());
-      }
-      return docIndex;
-    } catch (JAXBException e) {
-      throw new ModuleException().withMessage("Error while Unmarshalling JAXB").withCause(e);
-    } finally {
-      try {
-        xsdInputStream.close();
-        if (inputStreamXml != null) {
-          inputStreamXml.close();
-          xsdInputStream.close();
-        }
-      } catch (IOException e) {
-        logger.debug("Could not close xsdStream", e);
-      }
-    }
+  @Override
+  SIARDDKDocIndexHandler createDocIndexContentHandler(Schema xsdSchema) {
+    return new SIARDDK1007DocIndexHandler(pathStrategy, dbExportHandler);
   }
 
   @Override

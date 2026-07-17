@@ -28,8 +28,9 @@ public class SIARDDK128ExtPathImportStrategy extends SIARDDKPathImportStrategy<F
   }
 
   @Override
-  byte[] getMd5(F fileInfo) {
-    return fileInfo.getMd5();
+  SIARDDKFileIndexHandler createFileIndexHandler() {
+    return new SIARDDK128FileIndexHandler(archiveFolderLookupByFolderName, xsdFilePathLookupByFolderName,
+      xmlFilePathLookupByFolderName);
   }
 
   @Override

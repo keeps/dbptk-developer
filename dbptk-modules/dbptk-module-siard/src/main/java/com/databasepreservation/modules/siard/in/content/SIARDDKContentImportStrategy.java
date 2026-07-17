@@ -8,8 +8,10 @@
 package com.databasepreservation.modules.siard.in.content;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -299,70 +301,47 @@ public abstract class SIARDDKContentImportStrategy<T, D, F, S> extends DefaultHa
   }
 
   void populateVirtualTable(TableStructure table) throws ModuleException, FileNotFoundException {
-    D docIndex = loadVirtualTableContent();
-    currentTable = table;
     this.dbExportHandler.handleDataOpenTable(table.getId());
-    int rowCounter = 0;
-    for (T doc : getDocuments(docIndex)) {
-      Row row = new Row();
-      List<Cell> lstCells = new ArrayList<>();
-      row.setIndex(rowCounter);
-
-      // document id
-      Cell dIDCell = new SimpleCell(SIARDDKConstants.DID + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + rowCounter,
-        getDID(doc).toString());
-      lstCells.add(dIDCell);
-
-      // parent id
-      BigInteger pID = getPID(doc);
-      String pIDString = pID == null ? "" : pID.toString();
-
-      Cell pIDCell = new SimpleCell(SIARDDKConstants.PID + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + rowCounter,
-        pIDString);
-      lstCells.add(pIDCell);
-
-      try {
-        // document blob
-        String mainFolder = pathStrategy.getMainFolder().getPath().toString();
-        String siardFolderName = mainFolder.substring(0, mainFolder.length() - 1) + getMID(doc);
-        Path siardFolderPath = Paths.get(siardFolderName);
-        Path docPath = siardFolderPath
-          .resolve(Paths.get(SIARDDKConstants.DOCUMENTS_FOLDER_NAME, getDCf(doc), getDID(doc).toString()));
-
-        if (!docPath.startsWith(siardFolderPath.resolve(Paths.get(SIARDDKConstants.DOCUMENTS_FOLDER_NAME)))) {
-          throw new ModuleException().withMessage("Invalid path for folder: " + docPath);
-        }
-
-        String digest = "";
-        File docFolder = new File(docPath.toString());
-        if (docFolder.exists() && docFolder.isDirectory()) {
-          File[] fileList = docFolder.listFiles();
-          if (fileList != null && fileList.length == 1) {
-            docPath = docPath.resolve(Paths.get(fileList[0].getName()));
-            digest = DigestUtils.sha1Hex(Files.newInputStream(docPath));
-          }
-        }
-
-        Cell blobCell = new BinaryCell(
-          SIARDDKConstants.BLOB_EXTENSION + SIARDDKConstants.FILE_EXTENSION_SEPARATOR + rowCounter,
-          new DummyInputStreamProvider(), docPath.toString(), Files.size(docPath), digest,
-          DigestUtils.getSha1Digest().toString());
-        lstCells.add(blobCell);
-
-        // set and handle row
-        assert !lstCells.contains(null);
-        row.setCells(lstCells);
-        this.dbExportHandler.handleDataRow(row);
-
-        rowCounter++;
-      } catch (ModuleException | IOException e) {
-        throw new ModuleException().withMessage("Error handling data row index:" + rowCounter).withCause(e);
-      }
-    }
+    currentTable = table;
+    loadVirtualTableContent();
     this.dbExportHandler.handleDataCloseTable(table.getId());
   }
 
-  abstract D loadVirtualTableContent() throws ModuleException, FileNotFoundException;
+  void loadVirtualTableContent() throws ModuleException, FileNotFoundException {
+    ValidatorHandler validatorHandler;
+
+    try (InputStream xsdStream = new FileInputStream(pathStrategy.getMainFolder().getPath().toString()
+        + SIARDDKConstants.RESOURCE_FILE_SEPARATOR + pathStrategy.getXsdFilePath(SIARDDKConstants.DOC_INDEX))){
+      SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+      Schema xsdSchema = schemaFactory.newSchema(new StreamSource(xsdStream));
+      SIARDDKDocIndexHandler docIndexHandler = createDocIndexContentHandler(xsdSchema);
+      validatorHandler = createDocIndexValidatorHandler(xsdSchema, docIndexHandler);
+    } catch (IOException | SAXException e) {
+      throw new ModuleException().withMessage("Error while preparing doc index parser").withCause(e);
+    }
+
+    try {
+      SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
+      saxParserFactory.setValidating(false);
+      saxParserFactory.setNamespaceAware(true);
+      SAXParser saxParser = saxParserFactory.newSAXParser();
+      XMLReader xmlReader = saxParser.getXMLReader();
+      xmlReader.setContentHandler(validatorHandler);
+      xmlReader.parse(new InputSource(readStrategy.createInputStream(pathStrategy.getMainFolder(),
+          pathStrategy.getXmlFilePath(SIARDDKConstants.FILE_INDEX))));
+    } catch (SAXException | ParserConfigurationException | IOException e) {
+      throw new ModuleException().withMessage("Error while parsing doc index").withCause(e);
+    }
+  }
+
+  ValidatorHandler createDocIndexValidatorHandler(Schema xsdSchema, SIARDDKDocIndexHandler docIndexHandler) {
+    ValidatorHandler validatorHandler = xsdSchema.newValidatorHandler();
+    validatorHandler.setContentHandler(docIndexHandler);
+    return validatorHandler;
+  }
+
+  abstract SIARDDKDocIndexHandler createDocIndexContentHandler(Schema xsdSchema);
+
 
   abstract F loadContextDocTableContent() throws ModuleException, FileNotFoundException;
 
