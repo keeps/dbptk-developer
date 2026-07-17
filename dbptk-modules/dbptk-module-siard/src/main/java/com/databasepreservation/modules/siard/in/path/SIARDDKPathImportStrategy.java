@@ -7,34 +7,41 @@
  */
 package com.databasepreservation.modules.siard.in.path;
 
-import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
-import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
-import com.databasepreservation.modules.siard.in.read.ReadStrategy;
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBElement;
-import jakarta.xml.bind.JAXBException;
-import jakarta.xml.bind.Unmarshaller;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
-
-import javax.xml.XMLConstants;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.security.InvalidParameterException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.xml.XMLConstants;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.ValidatorHandler;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.DefaultHandler;
+
+import com.databasepreservation.model.exception.ModuleException;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
+import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.in.read.ReadStrategy;
+
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
 
 /**
  * @author Thomas Kristensen <tk@bithuset.dk>
@@ -45,7 +52,8 @@ import java.util.regex.Pattern;
  *         to retrieve md5sums.(The impl. of retrieval of md5sums for the meta
  *         data files are only implemented to the extend that it is needed. )
  */
-public abstract class SIARDDKPathImportStrategy<T, D> implements ContentPathImportStrategy, MetadataPathStrategy {
+public abstract class SIARDDKPathImportStrategy<T, D> extends DefaultHandler
+  implements ContentPathImportStrategy, MetadataPathStrategy {
   protected final Logger logger = LoggerFactory.getLogger(ContentPathImportStrategy.class);
   protected final String importAsSchema;
   protected final SIARDArchiveContainer mainFolder;
@@ -55,16 +63,14 @@ public abstract class SIARDDKPathImportStrategy<T, D> implements ContentPathImpo
   protected final Map<String, T> xsdFilePathLookupByFolderName = new HashMap<String, T>();
   protected final Map<String, String> folderNameLookupByTableId = new HashMap<String, String>();
   protected final Map<String, Path> archiveFolderLookupByFolderName = new HashMap<String, Path>();
-
-  private FileIndexXsdInputStreamStrategy fileIndexXsdInputStreamStrategy;
-
   protected final Pattern folderSperatorPattern = Pattern.compile("[\\\\\\/]");
+  private final Class<D> fileIndexTypeClass;
   // protected byte[] fileIndexExpectedMD5Sum; --For some reason, no md5sum is
   // required for fileIndex.xml in the standard
   protected byte[] tabelIndexExpectedMD5Sum;
   protected byte[] archiveIndexExpectedMD5Sum;
   protected boolean fileIndexIsParsed;
-  private final Class<D> fileIndexTypeClass;
+  private FileIndexXsdInputStreamStrategy fileIndexXsdInputStreamStrategy;
 
   public SIARDDKPathImportStrategy(SIARDArchiveContainer mainFolder, ReadStrategy readStrategy,
     MetadataPathStrategy metadataPathStrategy, String importAsSchema,
@@ -91,33 +97,32 @@ public abstract class SIARDDKPathImportStrategy<T, D> implements ContentPathImpo
       SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
       Schema xsdSchema = null;
       InputStream xsdStream = fileIndexXsdInputStreamStrategy.getInputStream(this);
+      ValidatorHandler validatorHandler = null;
       try {
         xsdSchema = schemaFactory.newSchema(new StreamSource(xsdStream));
+        validatorHandler = xsdSchema.newValidatorHandler();
+        validatorHandler.setContentHandler(new SIARDDKFileIndexHandler());
       } catch (SAXException e) {
         throw new ModuleException()
           .withMessage(
             "Error reading metadata XSD file: " + metadataPathStrategy.getXsdFilePath(SIARDDKConstants.FILE_INDEX))
           .withCause(e);
       }
-      InputStream reader = null;
-      D xmlFileIndex;
-      Unmarshaller unmarshaller;
+
       try {
-        unmarshaller = context.createUnmarshaller();
-        unmarshaller.setSchema(xsdSchema);
-        reader = readStrategy.createInputStream(mainFolder,
-          metadataPathStrategy.getXmlFilePath(SIARDDKConstants.FILE_INDEX));
-        @SuppressWarnings("unchecked")
-        JAXBElement<D> jaxbElement = (JAXBElement<D>) unmarshaller.unmarshal(reader);
-        xmlFileIndex = jaxbElement.getValue();
-      } catch (JAXBException e) {
-        throw new ModuleException().withMessage("Error while Unmarshalling JAXB").withCause(e);
+        SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
+        saxParserFactory.setValidating(false);
+        saxParserFactory.setNamespaceAware(true);
+        SAXParser saxParser = saxParserFactory.newSAXParser();
+        XMLReader xmlReader = saxParser.getXMLReader();
+        xmlReader.setContentHandler(validatorHandler);
+        xmlReader.parse(new InputSource(readStrategy.createInputStream(mainFolder,
+          metadataPathStrategy.getXmlFilePath(SIARDDKConstants.FILE_INDEX))));
+      } catch (SAXException | ParserConfigurationException | IOException e) {
+        throw new ModuleException().withMessage("Error while parsing file index").withCause(e);
       } finally {
         try {
           xsdStream.close();
-          if (reader != null) {
-            reader.close();
-          }
         } catch (IOException e) {
           logger.debug("Could not close xsdStream", e);
         }
