@@ -8,14 +8,15 @@
 package com.databasepreservation.modules.siard.in.path;
 
 import java.util.List;
-import com.databasepreservation.modules.siard.bindings.siard_dk_1007.FileIndexType;
-import com.databasepreservation.modules.siard.bindings.siard_dk_1007.FileIndexType.F;
-import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
-import com.databasepreservation.modules.siard.in.read.ReadStrategy;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.modules.siard.bindings.siard_dk_1007.FileIndexType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_1007.FileIndexType.F;
+import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
+import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 
 /**
  * @author António Lindo <alindo@keep.pt>
@@ -23,8 +24,16 @@ import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 public class SIARDDK1007PathImportStrategy extends SIARDDKPathImportStrategy<FileIndexType.F, FileIndexType> {
   protected final Logger logger = LoggerFactory.getLogger(ContentPathImportStrategy.class);
 
-  public SIARDDK1007PathImportStrategy(SIARDArchiveContainer mainFolder, ReadStrategy readStrategy, MetadataPathStrategy metadataPathStrategy, String importAsSchema, FileIndexXsdInputStreamStrategy fileIndexXsdInputStreamStrategy) {
-    super(mainFolder, readStrategy, metadataPathStrategy, importAsSchema, fileIndexXsdInputStreamStrategy, FileIndexType.class);
+  public SIARDDK1007PathImportStrategy(SIARDArchiveContainer mainFolder, ReadStrategy readStrategy,
+    MetadataPathStrategy metadataPathStrategy, String importAsSchema,
+    FileIndexXsdInputStreamStrategy fileIndexXsdInputStreamStrategy) {
+    super(mainFolder, readStrategy, metadataPathStrategy, importAsSchema, fileIndexXsdInputStreamStrategy,
+      FileIndexType.class);
+  }
+
+  @Override
+  SIARDDKFileIndexHandler<F> createFileIndexHandler() {
+    return null;
   }
 
   @Override
