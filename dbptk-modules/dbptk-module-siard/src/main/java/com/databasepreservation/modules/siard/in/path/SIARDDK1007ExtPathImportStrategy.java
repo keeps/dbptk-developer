@@ -32,13 +32,8 @@ public class SIARDDK1007ExtPathImportStrategy extends SIARDDKPathImportStrategy<
   }
 
   @Override
-  SIARDDKFileIndexHandler<F> createFileIndexHandler() {
+  SIARDDKFileIndexHandler createFileIndexHandler() {
     return null;
-  }
-
-  @Override
-  byte[] getMd5(F fileInfo) {
-    return fileInfo.getMd5();
   }
 
   @Override

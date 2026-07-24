@@ -45,9 +45,6 @@ import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.in.read.ReadStrategy;
 import com.databasepreservation.utils.ConfigUtils;
 
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBException;
-
 /**
  * @author Thomas Kristensen <tk@bithuset.dk>
  *
@@ -65,10 +62,10 @@ public abstract class SIARDDKPathImportStrategy<T, D> extends DefaultHandler
   protected final ReadStrategy readStrategy;
   protected final MetadataPathStrategy metadataPathStrategy;
   protected final DB mapDB;
-  protected final Map<String, T> xmlFilePathLookupByFolderName;
-  protected final Map<String, T> xsdFilePathLookupByFolderName;
+  protected final Map<String, SIARDDKFileIndexFile> xmlFilePathLookupByFolderName;
+  protected final Map<String, SIARDDKFileIndexFile> xsdFilePathLookupByFolderName;
   protected final Map<String, String> folderNameLookupByTableId;
-  protected final Map<String, Path> archiveFolderLookupByFolderName;
+  protected final Map<String, String> archiveFolderLookupByFolderName;
   protected final Pattern folderSperatorPattern = Pattern.compile("[\\\\\\/]");
   private final Class<D> fileIndexTypeClass;
   // protected byte[] fileIndexExpectedMD5Sum; --For some reason, no md5sum is
@@ -104,18 +101,11 @@ public abstract class SIARDDKPathImportStrategy<T, D> extends DefaultHandler
   public void parseFileIndexMetadata() throws ModuleException {
 
     if (!fileIndexIsParsed) {
-      JAXBContext context;
-      try {
-        context = JAXBContext.newInstance(fileIndexTypeClass.getPackage().getName());
-      } catch (JAXBException e) {
-        throw new ModuleException().withMessage("Error loading JAXBContext").withCause(e);
-      }
-
       SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-      Schema xsdSchema = null;
+      Schema xsdSchema;
       InputStream xsdStream = fileIndexXsdInputStreamStrategy.getInputStream(this);
-      ValidatorHandler validatorHandler = null;
-      SIARDDKFileIndexHandler<T> fileIndexHandler = null;
+      ValidatorHandler validatorHandler;
+      SIARDDKFileIndexHandler fileIndexHandler;
       try {
         xsdSchema = schemaFactory.newSchema(new StreamSource(xsdStream));
         validatorHandler = xsdSchema.newValidatorHandler();
@@ -220,7 +210,7 @@ public abstract class SIARDDKPathImportStrategy<T, D> extends DefaultHandler
   }
 
   public byte[] getTableXMLFileMD5(String schemaName, String tableId) throws ModuleException {
-    return getMd5(getTableXMLFileInfo(schemaName, tableId));
+    return getTableXMLFileInfo(schemaName, tableId).getMd5();
   }
 
   public byte[] getArchiveIndexExpectedMD5Sum() throws ModuleException {
@@ -240,25 +230,25 @@ public abstract class SIARDDKPathImportStrategy<T, D> extends DefaultHandler
     }
   }
 
-  protected T getTableXMLFileInfo(String schemaName, String tableId) throws ModuleException {
+  protected SIARDDKFileIndexFile getTableXMLFileInfo(String schemaName, String tableId) throws ModuleException {
     canLookupTable(schemaName, tableId);
     String folderName = folderNameLookupByTableId.get(tableId);
     canLookupXMLFilePath(folderName);
     return xmlFilePathLookupByFolderName.get(folderName);
   }
 
-  protected T getTableXSDFileInfo(String schemaName, String tableId) throws ModuleException {
+  protected SIARDDKFileIndexFile getTableXSDFileInfo(String schemaName, String tableId) throws ModuleException {
     canLookupTable(schemaName, tableId);
     String folderName = folderNameLookupByTableId.get(tableId);
     canLookupXSDFilePath(folderName);
     return xsdFilePathLookupByFolderName.get(folderName);
   }
 
-  protected String buildPathSansArchiveFolderName(T fileInfo) {
+  protected String buildPathSansArchiveFolderName(SIARDDKFileIndexFile fileInfo) {
     Path pathFolderSperatorNeutral = FileSystems.getDefault().getPath("",
-      folderSperatorPattern.split(getFoN(fileInfo)));
+      folderSperatorPattern.split(fileInfo.getFolderName()));
     pathFolderSperatorNeutral = pathFolderSperatorNeutral.subpath(1, pathFolderSperatorNeutral.getNameCount());
-    Path pathFolderSperatorNeutralWithFile = pathFolderSperatorNeutral.resolve(getFiN(fileInfo));
+    Path pathFolderSperatorNeutralWithFile = pathFolderSperatorNeutral.resolve(fileInfo.getFileName());
     return pathFolderSperatorNeutralWithFile.toString();
   }
 
@@ -268,14 +258,14 @@ public abstract class SIARDDKPathImportStrategy<T, D> extends DefaultHandler
   }
 
   public byte[] getTableXSDFileMD5(String schemaName, String tableId) throws ModuleException {
-    return getMd5(getTableXSDFileInfo(schemaName, tableId));
+    return getTableXSDFileInfo(schemaName, tableId).getMd5();
   }
 
   public Path getArchiveFolderPath(String schemaName, String tableId) throws ModuleException {
     canLookupTable(schemaName, tableId);
     String folderName = folderNameLookupByTableId.get(tableId);
     assert (archiveFolderLookupByFolderName.containsKey(folderName));
-    return archiveFolderLookupByFolderName.get(folderName);
+    return Path.of(archiveFolderLookupByFolderName.get(folderName));
   }
 
   @Override
@@ -325,9 +315,7 @@ public abstract class SIARDDKPathImportStrategy<T, D> extends DefaultHandler
     return mainFolder;
   }
 
-  abstract SIARDDKFileIndexHandler<T> createFileIndexHandler();
-
-  abstract byte[] getMd5(T fileInfo);
+  abstract SIARDDKFileIndexHandler createFileIndexHandler();
 
   abstract List<T> getF(D fileIndex);
 
