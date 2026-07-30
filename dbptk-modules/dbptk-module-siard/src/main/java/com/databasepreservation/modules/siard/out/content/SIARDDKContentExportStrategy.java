@@ -20,6 +20,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -365,6 +366,12 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
       ConversionReport report = extractReportFromZip(binaryCell);
       if (report == null) {
         throw new ModuleException().withMessage("Missing conversion_report.json in cell archive.");
+      }
+
+      String fileFromCell = binaryCell.getFile();
+      if (fileFromCell != null) {
+        String filename = FilenameUtils.getName(fileFromCell).stripTrailing();
+        report = report.withOriginalFilename(filename);
       }
 
       List<String> siardPhysicalPaths = new ArrayList<>();
