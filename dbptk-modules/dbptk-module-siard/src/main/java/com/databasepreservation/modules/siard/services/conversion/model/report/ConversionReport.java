@@ -19,4 +19,9 @@ public record ConversionReport(@JsonProperty("jobId") String jobId, @JsonPropert
     return new ConversionReport(jobId, status, originalFilename, totalArtifactsProduced, artifacts, errorMessage,
       context);
   }
+
+  public ConversionReport withOriginalFilename(String newFilename) {
+    return new ConversionReport(jobId, status, newFilename, totalArtifactsProduced, artifacts, errorMessage,
+      dbptkContext);
+  }
 }

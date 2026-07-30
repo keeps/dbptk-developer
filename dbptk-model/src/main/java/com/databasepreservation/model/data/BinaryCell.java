@@ -139,4 +139,8 @@ public class BinaryCell extends Cell implements InputStreamProvider {
   public String getMimeType() {
     return mimeType;
   }
+
+  public void setFile(String file) {
+    this.file = file;
+  }
 }
