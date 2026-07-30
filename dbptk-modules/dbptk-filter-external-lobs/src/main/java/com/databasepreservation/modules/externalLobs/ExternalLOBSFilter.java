@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.managers.ExportModuleContextManager;
 import com.databasepreservation.managers.ModuleConfigurationManager;
+import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
@@ -167,6 +168,9 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
               .get(currentTable.getId() + index);
             Cell newCell = getExternalLOBSCellHandler(externalLobsConfiguration).handleCell(cell.getId(),
               simpleCell.getSimpleData());
+            if (newCell instanceof BinaryCell binaryCell) {
+              binaryCell.setFile(simpleCell.getSimpleData());
+            }
             rowCells.set(index, newCell);
           } else {
             reporter.ignored("Cell " + cell.getId(), "reference to external LOB is null");
