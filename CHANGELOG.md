@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 4.4.1 (31/07/2026)
+#### Bug fixes
+
+- sqlserver rowversion export type (https://github.com/keeps/dbptk-developer/commit/b483bd666162c2df1fc5aa4ef28ebeed035403f8)
+
+---
+
 ## Version 4.4.0 (24/03/2026)
 #### Bug fixes
 
@@ -263,9 +270,3 @@ Special thanks to @daniel-skovenborg for his contributions to this release
 #### Security
 
 * Security fixes (Upgrade dependencies)
----
-
-## Version 2.9.10 (13/10/2021)
-#### Bug Fixes
-
-* Merkle Tree filter malfunction with multi-schema databases #494 
