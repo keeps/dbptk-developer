@@ -334,10 +334,28 @@ public class SIARD20ContentImportStrategy extends DefaultHandler implements Cont
           } else if (lobDir.endsWith(SIARD20ContentPathExportStrategy.CLOB_EXTENSION)) {
             inputStream = createInputStream(container, lobPath, lobDir);
             String data = IOUtils.toString(inputStream);
-            currentClobCell = new SimpleCell(
-              currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex, data);
+            if (data.length() <= 2000) {
+              currentClobCell = new SimpleCell(
+                currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex, data);
+              LOGGER.debug("CLOB cell {} on row #{} with lob dir {}", currentClobCell.getId(), rowIndex, lobDir);
 
-            LOGGER.debug("CLOB cell {} on row #{} with lob dir {}", currentClobCell.getId(), rowIndex, lobDir);
+            } else {
+              if (ignoreLobs) {
+                Optional<Long> optionalLength = extractLengthFromBinaryColumn(attr);
+                Optional<String> optionalDigest = extractDigestFromBinaryColumn(attr);
+                Optional<String> optionalDigestType = extractDigestTypeFromBinaryColumn(attr);
+
+                currentBlobCell = new BinaryCell(
+                  currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex,
+                  new DummyInputStreamProvider(), lobPath, optionalLength.orElse(0L), optionalDigest.orElse(null),
+                  optionalDigestType.orElse(null));
+              } else {
+                inputStream = createInputStream(container, lobPath, lobDir);
+                currentBlobCell = new BinaryCell(
+                  currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex, inputStream);
+              }
+              LOGGER.debug("BLOB cell {} on row #{} with lob dir {}", currentBlobCell.getId(), rowIndex, lobDir);
+            }
           }
         } catch (ModuleException | IOException e) {
           LOGGER.error("Failed to open lob at {}", lobDir, e);

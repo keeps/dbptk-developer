@@ -362,13 +362,37 @@ public class SIARD22ContentImportStrategy extends DefaultHandler implements Cont
               SegmentedPathInputStreamProvider inputStreamProvider = new SegmentedPathInputStreamProvider(
                 inputStreamPath);
               inputStream = inputStreamProvider.createInputStream();
-              data = IOUtils.toString(inputStream);
             } else {
               inputStream = createInputStream(container, lobPath);
-              data = IOUtils.toString(inputStream);
             }
-            currentClobCell = new SimpleCell(
-              currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex, data);
+            data = IOUtils.toString(inputStream);
+
+            if (data.length() <= 2000) {
+              currentClobCell = new SimpleCell(
+                currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex, data);
+              LOGGER.debug(
+                String.format("BLOB cell %s on row #%d with lob dir %s", currentBlobCell.getId(), rowIndex, lobPath));
+            } else {
+              if (ignoreLobs) {
+                Optional<Long> optionalLength = extractLengthFromBinaryColumn(attr);
+                Optional<String> optionalDigest = extractDigestFromBinaryColumn(attr);
+                Optional<String> optionalDigestType = extractDigestTypeFromBinaryColumn(attr);
+
+                currentBlobCell = new BinaryCell(
+                  currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex,
+                  new DummyInputStreamProvider(), lobPath, optionalLength.orElse(0L), optionalDigest.orElse(null),
+                  optionalDigestType.orElse(null));
+              } else {
+                if (lobPath.startsWith(File.separator)) {
+                  inputStream = Files.newInputStream(Paths.get(lobPath));
+                } else {
+                  inputStream = createInputStream(container, lobPath);
+                }
+                currentBlobCell = new BinaryCell(
+                  currentTable.getColumns().get(currentColumnIndex - 1).getId() + "." + rowIndex, inputStream);
+              }
+            }
+
 
             LOGGER.debug("CLOB cell {} on row #{} with lob path {}", currentClobCell.getId(), rowIndex, lobPath);
           }
