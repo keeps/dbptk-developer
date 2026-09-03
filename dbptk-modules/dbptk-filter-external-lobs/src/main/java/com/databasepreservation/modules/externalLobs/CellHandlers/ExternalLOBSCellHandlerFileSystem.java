@@ -40,7 +40,9 @@ public class ExternalLOBSCellHandlerFileSystem implements ExternalLOBSCellHandle
       return newCell;
     }
 
-    Path blobPath = basePath.resolve(cellValue);
+    String cellValueStripTrailing = cellValue.stripTrailing();
+
+    Path blobPath = basePath.resolve(cellValueStripTrailing);
 
     if (Files.exists(blobPath)) {
       if (Files.isRegularFile(blobPath)) {
@@ -48,15 +50,15 @@ public class ExternalLOBSCellHandlerFileSystem implements ExternalLOBSCellHandle
               newCell = new BinaryCell(cellId, new PathInputStreamProvider(blobPath));
           } catch (ModuleException e) {
               reporter.ignored("Cell " + cellId,
-                      blobPath.toString() + " ignore due to: " + e.getMessage() + "; Base path: " + this.basePath + " Cell Value: " + cellValue);
+                      blobPath.toString() + " ignore due to: " + e.getMessage() + "; Base path: " + this.basePath + " Cell Value: " + cellValueStripTrailing);
           }
       } else {
         reporter.ignored("Cell " + cellId,
-          blobPath.toString() + " is not a file; Base path: " + this.basePath + " Cell Value: " + cellValue);
+          blobPath.toString() + " is not a file; Base path: " + this.basePath + " Cell Value: " + cellValueStripTrailing);
       }
     } else {
       reporter.ignored("Cell " + cellId, "Path: " + blobPath.toString() + " could not be found; Base path: "
-        + this.basePath + " Cell Value: " + cellValue);
+        + this.basePath + " Cell Value: " + cellValueStripTrailing);
     }
     return newCell;
   }

@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.structure.DatabaseStructure;
+import jakarta.xml.bind.JAXBElement;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
@@ -19,10 +20,10 @@ import com.databasepreservation.model.structure.DatabaseStructure;
  */
 public abstract class SIARDDKDocIndexFileStrategy<T, D> implements IndexFileStrategy {
 
-  private T docIndex;
+  private JAXBElement<T> docIndex;
 
   public SIARDDKDocIndexFileStrategy() {
-    docIndex = createDocIndexTypeInstance();
+    docIndex = createDocIndexTypeRootInstance();
   }
 
   /*
@@ -70,10 +71,12 @@ public abstract class SIARDDKDocIndexFileStrategy<T, D> implements IndexFileStra
       setGmlXsd(doc, gmlXsd);
     }
 
-    getDoc(docIndex).add(doc);
+    getDoc(docIndex.getValue()).add(doc);
 
     return doc;
   }
+
+  abstract JAXBElement<T> createDocIndexTypeRootInstance();
 
   abstract T createDocIndexTypeInstance();
 
