@@ -11,6 +11,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import com.databasepreservation.Main;
+import com.databasepreservation.utils.ConfigUtils;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -29,6 +32,11 @@ import com.databasepreservation.modules.siard.constants.SIARDConstants.SiardVers
  */
 @Test(groups = {"siarddk-roundtrip"})
 public class SiardDKTestWrapper {
+
+  @BeforeClass
+  public void init() {
+    ConfigUtils.initialize();
+  }
 
   @DataProvider
   public Iterator<Object[]> siardVersionsProvider() {

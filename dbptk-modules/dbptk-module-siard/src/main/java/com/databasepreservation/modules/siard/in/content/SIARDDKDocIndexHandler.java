@@ -67,6 +67,27 @@ public abstract class SIARDDKDocIndexHandler extends DefaultHandler {
     if (localName.equals(getDocLocalName())) {
       endElementDoc();
     }
+    else if (localName.equals(getDocIDLocalName())) {
+      endElementDocID();
+    }
+    else if (localName.equals(getContainerFolderLocalName())) {
+      endElementContainerFolder();
+    }
+    else if (localName.equals(getGmlXSDLocalName())) {
+      endElementGmlXSD();
+    }
+    else if (localName.equals(getMediaIDLocalName())) {
+      endElementMediaID();
+    }
+    else if (localName.equals(getArchivalFileTypeLocalName())) {
+      endElementArchivalFileType();
+    }
+    else if (localName.equals(getParentIDLocalName())) {
+      endElementParentID();
+    }
+    else if (localName.equals(getOriginalFilenameLocalName())) {
+      endElementOriginalFilename();
+    }
   }
 
   @Override
