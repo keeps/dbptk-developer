@@ -328,7 +328,7 @@ public abstract class SIARDDKContentImportStrategy<T, D, F, S> extends DefaultHa
       XMLReader xmlReader = saxParser.getXMLReader();
       xmlReader.setContentHandler(validatorHandler);
       xmlReader.parse(new InputSource(readStrategy.createInputStream(pathStrategy.getMainFolder(),
-          pathStrategy.getXmlFilePath(SIARDDKConstants.FILE_INDEX))));
+          pathStrategy.getXmlFilePath(SIARDDKConstants.DOC_INDEX))));
     } catch (SAXException | ParserConfigurationException | IOException e) {
       throw new ModuleException().withMessage("Error while parsing doc index").withCause(e);
     }
