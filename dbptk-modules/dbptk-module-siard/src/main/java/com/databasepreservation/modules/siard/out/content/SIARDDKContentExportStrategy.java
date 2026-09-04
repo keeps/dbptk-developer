@@ -386,10 +386,17 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
           ArtifactReport artifactMeta = findArtifactMetadata(report.artifacts(), zipEntry.getName());
 
+          // Check if this file is bypassed
           if (artifactMeta == null || artifactMeta.isBypassed()) {
             logger.warn("Ignoring bypassed or unknown file: {}. Reason: {}", zipEntry.getName(),
               artifactMeta != null ? artifactMeta.errorMessage() : "Not in report");
             continue;
+          }
+
+          // LOB isn't bypassed; add it to tracker now
+          if (fileCount == 0) {
+            double lobSizeTotal = ((double) binaryCell.getSize()) / (1024 * 1024);
+            lobsTracker.addLOB(lobSizeTotal);
           }
 
           String fileExt = mimetypeHandler.getFileExtension(artifactMeta.finalMimeType());
@@ -400,9 +407,6 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
           siardPhysicalPaths.add(outputPath);
         }
       }
-
-      double lobSizeTotal = ((double) binaryCell.getSize()) / (1024 * 1024);
-      lobsTracker.addLOB(lobSizeTotal);
 
       if (fileCount > 0) {
         writeLobReferenceToXml(columnIndex);
