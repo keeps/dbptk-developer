@@ -71,7 +71,7 @@ public class SIARDDKContentPathExportStrategy implements ContentPathExportStrate
     // TO-DO: add test case
 
     int docCollectionCount = lobsTracker.getDocCollectionCount();
-    int LOBsCount = lobsTracker.getLOBsCount() + 1;
+    int LOBsCount = lobsTracker.getLOBsCount();
 
     // Note: code assumes one file in each folder
     return new StringBuilder().append(DOCUMENT_DIR).append(SIARDDKConstants.FILE_SEPARATOR).append(DOC_COLLECTION)
