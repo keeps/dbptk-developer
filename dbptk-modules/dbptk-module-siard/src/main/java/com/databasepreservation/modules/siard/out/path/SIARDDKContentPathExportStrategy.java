@@ -7,10 +7,11 @@
  */
 package com.databasepreservation.modules.siard.out.path;
 
+import org.apache.commons.lang3.NotImplementedException;
+
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 import com.databasepreservation.modules.siard.out.content.LOBsTracker;
 import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
-import org.apache.commons.lang3.NotImplementedException;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
@@ -24,14 +25,13 @@ public class SIARDDKContentPathExportStrategy implements ContentPathExportStrate
   private static final String SCHEMA_DIR = "schema";
   private static final String DOCUMENT_DIR = "Documents";
   private static final String DOC_COLLECTION = "docCollection";
-  private static final String fileCount = "1"; // Design decision
 
   private LOBsTracker lobsTracker;
 
   public SIARDDKContentPathExportStrategy(LOBsTracker loBsTracker) {
     this.lobsTracker = loBsTracker;
   }
-  
+
   public SIARDDKContentPathExportStrategy(SIARDDKExportModule siarddkExportModule) {
     this.lobsTracker = siarddkExportModule.getLobsTracker();
   }
@@ -71,13 +71,12 @@ public class SIARDDKContentPathExportStrategy implements ContentPathExportStrate
     // TO-DO: add test case
 
     int docCollectionCount = lobsTracker.getDocCollectionCount();
-    int LOBsCount = lobsTracker.getLOBsCount();
+    int LOBsCount = lobsTracker.getLOBsCount() + 1;
 
     // Note: code assumes one file in each folder
     return new StringBuilder().append(DOCUMENT_DIR).append(SIARDDKConstants.FILE_SEPARATOR).append(DOC_COLLECTION)
       .append(docCollectionCount).append(SIARDDKConstants.FILE_SEPARATOR).append(LOBsCount)
-      .append(SIARDDKConstants.FILE_SEPARATOR).append(fileCount).append(SIARDDKConstants.FILE_EXTENSION_SEPARATOR)
-      .toString();
+      .append(SIARDDKConstants.FILE_SEPARATOR).toString();
   }
 
   // Not used in SIARDDK

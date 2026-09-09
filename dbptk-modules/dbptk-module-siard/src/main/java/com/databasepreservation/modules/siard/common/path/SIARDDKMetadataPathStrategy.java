@@ -7,11 +7,11 @@
  */
 package com.databasepreservation.modules.siard.common.path;
 
-import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
-
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
@@ -54,7 +54,8 @@ public abstract class SIARDDKMetadataPathStrategy implements MetadataPathStrateg
     // Valid filenames
     String[] validFileNames = {SIARDDKConstants.TABLE_INDEX, SIARDDKConstants.ARCHIVE_INDEX, SIARDDKConstants.DOC_INDEX,
       SIARDDKConstants.CONTEXT_DOCUMENTATION_INDEX, SIARDDKConstants.FILE_INDEX,
-      SIARDDKConstants.DOCUMENT_IDENTIFICATION, SIARDDKConstants.XML_SCHEMA, "fileIndex_original", "docIndex_original"};
+      SIARDDKConstants.DOCUMENT_IDENTIFICATION, SIARDDKConstants.XML_SCHEMA, SIARDDKConstants.RESEARCH_INDEX,
+      "fileIndex_original", "docIndex_original"};
 
     ArrayList<String> validFilenames = new ArrayList<String>(Arrays.asList(validFileNames));
     if (validFilenames.contains(filename)) {

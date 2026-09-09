@@ -9,6 +9,8 @@ package com.databasepreservation.modules.siard.out.output;
 
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
 
+import dk.sa.xmlns.diark._1_0.fileindex.FileIndexType;
+
 /**
  * @author António Lindo <alindo@keep.pt>
  *
@@ -22,5 +24,10 @@ public class SIARDDK1007DatabaseExportModule extends SIARDDKDatabaseExportModule
   @Override
   String getJAXBContext() {
     return SIARDDKConstants.JAXB_CONTEXT_FILEINDEX;
+  }
+
+  @Override
+  Class<?> getJAXBContextClass() {
+    return FileIndexType.class;
   }
 }

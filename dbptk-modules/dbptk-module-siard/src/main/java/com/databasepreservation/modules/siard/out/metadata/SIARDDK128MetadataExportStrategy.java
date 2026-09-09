@@ -1,66 +1,30 @@
-/**
- * The contents of this file are subject to the license and copyright
- * detailed in the LICENSE file at the root of the source
- * tree and available online at
- *
- * https://github.com/keeps/db-preservation-toolkit
- */
 package com.databasepreservation.modules.siard.out.metadata;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Map;
-
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.databasepreservation.model.exception.ModuleException;
-import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.structure.DatabaseStructure;
+import com.databasepreservation.modules.siard.bindings.siard_dk_128.DocIndexType;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.common.adapters.SIARDDKAdapter;
-import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
-import com.databasepreservation.modules.siard.out.content.LOBsTracker;
 import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
 
 /**
- * @author Andreas Kring <andreas@magenta.dk>
  *
+ * @author Alexandre Flores <aflores@keep.pt>
  */
-public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
-  private static final Logger LOGGER = LoggerFactory.getLogger(SIARDDKMetadataExportStrategy.class);
+public class SIARDDK128MetadataExportStrategy extends SIARDDKMetadataExportStrategy {
 
-  protected SIARDMarshaller siardMarshaller;
-  protected MetadataPathStrategy metadataPathStrategy;
-  protected SIARDDKFileIndexFileStrategy SIARDDKFileIndexFileStrategy;
-  protected SIARDDKDocIndexFileStrategy SIARDDKDocIndexFileStrategy;
-  protected Map<String, String> exportModuleArgs;
-  protected LOBsTracker lobsTracker;
-  protected SIARDDKAdapter siarddkAdapter;
-
-  private Reporter reporter;
-
-  public SIARDDKMetadataExportStrategy(SIARDDKExportModule siarddkExportModule, SIARDDKAdapter siarddkAdapter) {
-    siardMarshaller = siarddkExportModule.getSiardMarshaller();
-    SIARDDKFileIndexFileStrategy = siarddkExportModule.getFileIndexFileStrategy();
-    SIARDDKDocIndexFileStrategy = siarddkExportModule.getDocIndexFileStrategy();
-    metadataPathStrategy = siarddkExportModule.getMetadataPathStrategy();
-    exportModuleArgs = siarddkExportModule.getExportModuleArgs();
-    lobsTracker = siarddkExportModule.getLobsTracker();
-    this.siarddkAdapter = siarddkAdapter;
+  public SIARDDK128MetadataExportStrategy(SIARDDKExportModule siarddkExportModule, SIARDDKAdapter siarddkAdapter) {
+    super(siarddkExportModule, siarddkAdapter);
   }
 
   @Override
   public void writeMetadataXML(DatabaseStructure dbStructure, SIARDArchiveContainer outputContainer,
     WriteStrategy writeStrategy) throws ModuleException {
-
     // TO-DO: Refactor this into one method in class that can be used by
     // SIARDDKDatabaseExportModule also
 
@@ -71,7 +35,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
       String path = metadataPathStrategy.getXmlFilePath(SIARDDKConstants.TABLE_INDEX);
       OutputStream writer = SIARDDKFileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
 
-      siardMarshaller.marshal(SIARDDKConstants.JAXB_CONTEXT_TABLEINDEX,
+      siardMarshaller.marshal("com.databasepreservation.modules.siard.bindings.siard_dk_128",
         metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.TABLE_INDEX),
         "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/tableIndex.xsd", writer,
         tableIndexFileStrategy.generateXML(dbStructure));
@@ -127,8 +91,7 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
         String path = metadataPathStrategy.getXmlFilePath(SIARDDKConstants.DOC_INDEX);
         OutputStream writer = SIARDDKFileIndexFileStrategy.getWriter(outputContainer, path, writeStrategy);
 
-        siardMarshaller.marshal(SIARDDKConstants.JAXB_CONTEXT_DOCINDEX,
-          metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.DOC_INDEX),
+        siardMarshaller.marshal(DocIndexType.class, metadataPathStrategy.getXsdResourcePath(SIARDDKConstants.DOC_INDEX),
           "http://www.sa.dk/xmlns/diark/1.0 ../Schemas/standard/docIndex.xsd", writer,
           SIARDDKDocIndexFileStrategy.generateXML(dbStructure));
 
@@ -142,7 +105,6 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     }
 
     createLocalSharedFolder(outputContainer);
-
   }
 
   @Override
@@ -155,58 +117,9 @@ public class SIARDDKMetadataExportStrategy implements MetadataExportStrategy {
     writeSchemaFile(outputContainer, SIARDDKConstants.ARCHIVE_INDEX, writeStrategy);
     writeSchemaFile(outputContainer, SIARDDKConstants.CONTEXT_DOCUMENTATION_INDEX, writeStrategy);
     writeSchemaFile(outputContainer, SIARDDKConstants.FILE_INDEX, writeStrategy);
+    writeSchemaFile(outputContainer, SIARDDKConstants.RESEARCH_INDEX, writeStrategy);
     if (lobsTracker.getLOBsCount() > 0) {
       writeSchemaFile(outputContainer, SIARDDKConstants.DOC_INDEX, writeStrategy);
     }
   }
-
-  @Override
-  public void setOnceReporter(Reporter reporter) {
-    this.reporter = reporter;
-  }
-
-  protected void writeSchemaFile(SIARDArchiveContainer container, String indexFile, WriteStrategy writeStrategy)
-    throws ModuleException {
-
-    InputStream inputStream = this.getClass().getResourceAsStream(metadataPathStrategy.getXsdResourcePath(indexFile));
-
-    String path = metadataPathStrategy.getXsdFilePath(indexFile);
-    if (indexFile.contains("original")) {
-      Path fullPath = Paths.get(path);
-      Path pathToFolder = Paths.get(path).getParent();
-      Path pathToFile = fullPath.getFileName();
-
-      String fileName = pathToFile.toString().split("_")[0] + ".xsd";
-      fullPath = pathToFolder.resolve(fileName);
-      path = fullPath.toString();
-      // System.out.println(path);
-    }
-
-    OutputStream outputStream = SIARDDKFileIndexFileStrategy.getWriter(container, path, writeStrategy);
-
-    try {
-      if (inputStream != null) {
-        IOUtils.copy(inputStream, outputStream);
-        inputStream.close();
-        outputStream.close();
-      }
-
-      SIARDDKFileIndexFileStrategy.addFile(path);
-
-    } catch (IOException e) {
-      throw new ModuleException().withMessage("There was an error writing " + indexFile + ".xsd").withCause(e);
-    }
-  }
-
-  protected void createLocalSharedFolder(SIARDArchiveContainer container) {
-    Path containerPath = container.getPath();
-    Path localShared = Paths.get("Schemas/localShared");
-    File folder = containerPath.resolve(localShared).toFile();
-    try {
-      folder.mkdirs();
-    } catch (SecurityException e) {
-      LOGGER.error("Could not create directories", e);
-    }
-  }
-
 }

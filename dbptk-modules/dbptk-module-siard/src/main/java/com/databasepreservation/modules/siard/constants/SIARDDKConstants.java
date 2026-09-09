@@ -54,6 +54,7 @@ public class SIARDDKConstants {
   public static final String ARCHIVE_INDEX = "archiveIndex";
   public static final String TABLE_INDEX = "tableIndex";
   public static final String FILE_INDEX = "fileIndex";
+  public static final String RESEARCH_INDEX = "researchIndex";
   public static final String DOC_INDEX = "docIndex";
   public static final String DOCUMENT_IDENTIFICATION = "documentIdentification";
   public static final String XML_SCHEMA = "XMLSchema";

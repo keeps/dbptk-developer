@@ -12,6 +12,8 @@ import java.util.List;
 
 import dk.sa.xmlns.diark._1_0.docindex.DocIndexType;
 import dk.sa.xmlns.diark._1_0.docindex.DocumentType;
+import dk.sa.xmlns.diark._1_0.docindex.ObjectFactory;
+import jakarta.xml.bind.JAXBElement;
 
 /**
  * @author António Lindo <alindo@keep.pt>
@@ -21,6 +23,11 @@ public class SIARDDK1007DocIndexFileStrategy extends SIARDDKDocIndexFileStrategy
 
   public SIARDDK1007DocIndexFileStrategy() {
     super();
+  }
+
+  @Override
+  JAXBElement<DocIndexType> createDocIndexTypeRootInstance() {
+    return new ObjectFactory().createDocIndex(createDocIndexTypeInstance());
   }
 
   @Override

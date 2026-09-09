@@ -7,11 +7,14 @@
  */
 package com.databasepreservation.modules.siard.out.metadata;
 
-import com.databasepreservation.modules.siard.bindings.siard_dk_128.DocIndexType;
-import com.databasepreservation.modules.siard.bindings.siard_dk_128.DocumentType;
-
 import java.math.BigInteger;
 import java.util.List;
+
+import com.databasepreservation.modules.siard.bindings.siard_dk_128.DocIndexType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_128.DocumentType;
+import com.databasepreservation.modules.siard.bindings.siard_dk_128.ObjectFactory;
+
+import jakarta.xml.bind.JAXBElement;
 
 /**
  * @author António Lindo <alindo@keep.pt>
@@ -21,6 +24,11 @@ public class SIARDDK128DocIndexFileStrategy extends SIARDDKDocIndexFileStrategy<
 
   public SIARDDK128DocIndexFileStrategy() {
     super();
+  }
+
+  @Override
+  JAXBElement<DocIndexType> createDocIndexTypeRootInstance() {
+    return new ObjectFactory().createDocIndex(createDocIndexTypeInstance());
   }
 
   @Override

@@ -42,6 +42,9 @@ public abstract class SIARDDKModuleFactory implements DatabaseModuleFactory {
   public static final String PARAMETER_AS_SCHEMA = "as-schema";
   public static final String PARAMETER_LOBS_PER_FOLDER = "lobs-per-folder";
   public static final String PARAMETER_LOBS_FOLDER_SIZE = "lobs-folder-size";
+  public static final String PARAMETER_LOB_CONVERSION_ENABLED = "lob-conversion";
+  public static final String PARAMETER_LOB_CONVERSION_ENDPOINT = "lob-conversion-endpoint";
+  public static final String PARAMETER_LOB_CONVERSION_TARGET_FORMAT = "lob-conversion-target-format";
 
   // TODO: As things are now, are we not always generating the '.1' version of
   // the archive (indicating that the last .[1-9][0-9] should perhaps not be
@@ -74,6 +77,20 @@ public abstract class SIARDDKModuleFactory implements DatabaseModuleFactory {
   private static final Parameter lobsFolderSize = new Parameter().shortName("lfs").longName(PARAMETER_LOBS_FOLDER_SIZE)
     .description("The maximum size (in megabytes) of the docCollection folders (default is 1000 MB").required(false)
     .hasArgument(true).setOptionalArgument(false).valueIfNotSet("1000");
+
+  private static final Parameter lobConversionEnabled = new Parameter().shortName("lc")
+    .longName(PARAMETER_LOB_CONVERSION_ENABLED).description("Enables asynchronous LOB conversion via HTTP.")
+    .hasArgument(false).setOptionalArgument(false).required(false).valueIfSet("true").valueIfNotSet("false");
+
+  private static final Parameter lobConversionEndpoint = new Parameter().shortName("lce")
+    .longName(PARAMETER_LOB_CONVERSION_ENDPOINT)
+    .description("The API endpoint URL for the LOB conversion service (default is http://localhost:8087).")
+    .hasArgument(true).setOptionalArgument(false).required(false).valueIfNotSet("http://localhost:8087");
+
+  private static final Parameter lobConversionTargetFormat = new Parameter().shortName("lcf")
+    .longName(PARAMETER_LOB_CONVERSION_TARGET_FORMAT)
+    .description("Target MIME type format for the LOB conversion (default is image/tiff).").hasArgument(true)
+    .setOptionalArgument(false).required(false).valueIfNotSet("image/tiff");
 
   // This is not used now, but will be used later
   // private static final Parameter clobType = new
@@ -120,6 +137,9 @@ public abstract class SIARDDKModuleFactory implements DatabaseModuleFactory {
     parameterMap.put(importAsSchema.longName(), importAsSchema);
     parameterMap.put(lobsPerFolder.longName(), lobsPerFolder);
     parameterMap.put(lobsFolderSize.longName(), lobsFolderSize);
+    parameterMap.put(lobConversionEnabled.longName(), lobConversionEnabled);
+    parameterMap.put(lobConversionEndpoint.longName(), lobConversionEndpoint);
+    parameterMap.put(lobConversionTargetFormat.longName(), lobConversionTargetFormat);
     // to be used later...
     // parameterMap.put(clobType.longName(), clobType);
     // parameterMap.put(clobLength.longName(), clobLength);
@@ -145,18 +165,22 @@ public abstract class SIARDDKModuleFactory implements DatabaseModuleFactory {
     // contextDocumentationIndex, contextDocmentationFolder,
     // clobType, clobLength), null);
 
-    return new Parameters(
-      Arrays.asList(
-        folder.inputType(Parameter.INPUT_TYPE.FOLDER).exportOptions(Parameter.CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
-        archiveIndex.inputType(Parameter.INPUT_TYPE.FILE_OPEN).fileFilter(Parameter.FILE_FILTER_TYPE.XML_EXTENSION)
-          .exportOptions(Parameter.CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
-        contextDocumentationIndex.inputType(Parameter.INPUT_TYPE.FILE_OPEN)
-          .fileFilter(Parameter.FILE_FILTER_TYPE.XML_EXTENSION)
-          .exportOptions(Parameter.CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
-        contextDocumentationFolder.inputType(Parameter.INPUT_TYPE.FOLDER)
-          .exportOptions(Parameter.CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
-        lobsPerFolder.inputType(Parameter.INPUT_TYPE.TEXT).exportOptions(Parameter.CATEGORY_TYPE.EXTERNAL_LOBS),
-        lobsFolderSize.inputType(Parameter.INPUT_TYPE.TEXT).exportOptions(Parameter.CATEGORY_TYPE.EXTERNAL_LOBS)),
+    return new Parameters(Arrays.asList(
+      folder.inputType(Parameter.INPUT_TYPE.FOLDER).exportOptions(Parameter.CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+      archiveIndex.inputType(Parameter.INPUT_TYPE.FILE_OPEN).fileFilter(Parameter.FILE_FILTER_TYPE.XML_EXTENSION)
+        .exportOptions(Parameter.CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+      contextDocumentationIndex.inputType(Parameter.INPUT_TYPE.FILE_OPEN)
+        .fileFilter(Parameter.FILE_FILTER_TYPE.XML_EXTENSION)
+        .exportOptions(Parameter.CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+      contextDocumentationFolder.inputType(Parameter.INPUT_TYPE.FOLDER)
+        .exportOptions(Parameter.CATEGORY_TYPE.SIARD_EXPORT_OPTIONS),
+      lobsPerFolder.inputType(Parameter.INPUT_TYPE.TEXT).exportOptions(Parameter.CATEGORY_TYPE.EXTERNAL_LOBS),
+      lobsFolderSize.inputType(Parameter.INPUT_TYPE.TEXT).exportOptions(Parameter.CATEGORY_TYPE.EXTERNAL_LOBS),
+      lobConversionEnabled.inputType(Parameter.INPUT_TYPE.CHECKBOX).exportOptions(Parameter.CATEGORY_TYPE.CONVERSION_SERVICE_OPTIONS),
+      lobConversionEndpoint.inputType(Parameter.INPUT_TYPE.TEXT)
+        .exportOptions(Parameter.CATEGORY_TYPE.CONVERSION_SERVICE_OPTIONS),
+      lobConversionTargetFormat.inputType(Parameter.INPUT_TYPE.TEXT)
+        .exportOptions(Parameter.CATEGORY_TYPE.CONVERSION_SERVICE_OPTIONS)),
       null);
 
   }
@@ -193,6 +217,21 @@ public abstract class SIARDDKModuleFactory implements DatabaseModuleFactory {
       pLobsFolderSize = parameters.get(lobsFolderSize);
     }
 
+    String pLobConversionEnabled = lobConversionEnabled.valueIfNotSet();
+    if (StringUtils.isNotBlank(parameters.get(lobConversionEnabled))) {
+      pLobConversionEnabled = parameters.get(lobConversionEnabled);
+    }
+
+    String pLobConversionEndpoint = lobConversionEndpoint.valueIfNotSet();
+    if (StringUtils.isNotBlank(parameters.get(lobConversionEndpoint))) {
+      pLobConversionEndpoint = parameters.get(lobConversionEndpoint);
+    }
+
+    String pLobConversionTargetFormat = lobConversionTargetFormat.valueIfNotSet();
+    if (StringUtils.isNotBlank(parameters.get(lobConversionTargetFormat))) {
+      pLobConversionTargetFormat = parameters.get(lobConversionTargetFormat);
+    }
+
     // to be used later...
     // String pClobType = parameters.get(clobType);
     // String pClobLength = parameters.get(clobLength);
@@ -205,6 +244,9 @@ public abstract class SIARDDKModuleFactory implements DatabaseModuleFactory {
     exportModuleArgs.put(contextDocumentationFolder.longName(), pContextDocumentationFolder);
     exportModuleArgs.put(lobsPerFolder.longName(), pLobsPerFolder);
     exportModuleArgs.put(lobsFolderSize.longName(), pLobsFolderSize);
+    exportModuleArgs.put(PARAMETER_LOB_CONVERSION_ENABLED, pLobConversionEnabled);
+    exportModuleArgs.put(PARAMETER_LOB_CONVERSION_ENDPOINT, pLobConversionEndpoint);
+    exportModuleArgs.put(PARAMETER_LOB_CONVERSION_TARGET_FORMAT, pLobConversionTargetFormat);
 
     // to be used later...
     // exportModuleArgs.put(clobType.longName(), pClobType);
@@ -226,6 +268,18 @@ public abstract class SIARDDKModuleFactory implements DatabaseModuleFactory {
     if (!pLobsFolderSize.equals(lobsFolderSize.valueIfNotSet())) {
       exportModuleParameters.add(lobsFolderSize.longName());
       exportModuleParameters.add(pLobsFolderSize);
+    }
+    if (!pLobConversionEnabled.equals(lobConversionEnabled.valueIfNotSet())) {
+      exportModuleParameters.add(PARAMETER_LOB_CONVERSION_ENABLED);
+      exportModuleParameters.add(pLobConversionEnabled);
+    }
+    if (!pLobConversionEndpoint.equals(lobConversionEndpoint.valueIfNotSet())) {
+      exportModuleParameters.add(PARAMETER_LOB_CONVERSION_ENDPOINT);
+      exportModuleParameters.add(pLobConversionEndpoint);
+    }
+    if (!pLobConversionTargetFormat.equals(lobConversionTargetFormat.valueIfNotSet())) {
+      exportModuleParameters.add(PARAMETER_LOB_CONVERSION_TARGET_FORMAT);
+      exportModuleParameters.add(pLobConversionTargetFormat);
     }
     reporter.exportModuleParameters(getModuleName(), exportModuleParameters.toArray(new String[0]));
 

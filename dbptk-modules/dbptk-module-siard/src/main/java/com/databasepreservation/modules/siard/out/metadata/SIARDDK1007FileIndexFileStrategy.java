@@ -18,6 +18,8 @@ package com.databasepreservation.modules.siard.out.metadata;
 
 import java.util.List;
 
+import dk.sa.xmlns.diark._1_0.fileindex.ObjectFactory;
+import jakarta.xml.bind.JAXBElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +36,11 @@ public class SIARDDK1007FileIndexFileStrategy extends SIARDDKFileIndexFileStrate
 
   public SIARDDK1007FileIndexFileStrategy() {
     super();
+  }
+
+  @Override
+  JAXBElement<FileIndexType> createFileIndexTypeRootInstance() {
+    return new ObjectFactory().createFileIndex(createFileIndexTypeInstance());
   }
 
   @Override
