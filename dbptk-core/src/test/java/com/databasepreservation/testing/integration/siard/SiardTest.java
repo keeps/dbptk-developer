@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.databasepreservation.common.io.providers.TemporaryPathInputStreamProvider;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.Row;
@@ -539,15 +540,15 @@ public class SiardTest {
         new Row(1,
           Arrays.asList(new SimpleCell("table02.col121.0", "1"), new SimpleCell("table02.col122.0", "3"),
             new SimpleCell("table02.col123.0", "abc"), new SimpleCell("table02.col124.0", "def"),
-            new BinaryCell("table02.col125.0", newBlob()))),
+            new BinaryCell("table02.col125.0", new TemporaryPathInputStreamProvider(newBlob()), "image/tiff"))),
         new Row(2,
           Arrays.asList(new SimpleCell("table02.col121.1", "2"), new SimpleCell("table02.col122.1", "1"),
             new SimpleCell("table02.col123.1", "dns"), new SimpleCell("table02.col124.1", "dud"),
-            new BinaryCell("table02.col125.1", newBlob()))),
+            new BinaryCell("table02.col125.1", new TemporaryPathInputStreamProvider(newBlob()), "image/tiff"))),
         new Row(3,
           Arrays.asList(new SimpleCell("table02.col121.2", "3"), new SimpleCell("table02.col122.2", "2"),
             new SimpleCell("table02.col123.2", "usl"), new SimpleCell("table02.col124.2", "aps"),
-            new BinaryCell("table02.col125.2", newBlob())))));
+            new BinaryCell("table02.col125.2", new TemporaryPathInputStreamProvider(newBlob()), "image/tiff")))));
     tableRows.put("schema02.table01", new ArrayList<Row>());
     tableRows.put("schema02.table02", new ArrayList<Row>());
 
