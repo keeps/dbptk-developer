@@ -25,11 +25,28 @@ public class SIARDDKMimetypeHandler implements MimetypeHandler {
   public SIARDDKMimetypeHandler() {
 
     mimetypeMap = new HashMap<String, String>();
-    mimetypeMap.put("image/tiff", "tif");
     mimetypeMap.put("image/jp2", "jp2");
+    mimetypeMap.put("image/jpeg2000", "jp2");
+    mimetypeMap.put("image/x-jp2", "jp2");
     mimetypeMap.put("audio/mpeg", "mp3");
+    mimetypeMap.put("audio/mp3", "mp3");
+    mimetypeMap.put("audio/x-mpeg", "mp3");
+    mimetypeMap.put("audio/mpeg3", "mp3");
     mimetypeMap.put("video/mp4", "mpg");
     mimetypeMap.put("video/mp2t", "mpg");
+    mimetypeMap.put("video/mpeg2", "mpg");
+    mimetypeMap.put("video/x-mpeg2", "mpg");
+    mimetypeMap.put("video/mpeg", "mpg");
+    mimetypeMap.put("video/mpeg4-generic", "mpg");
+    mimetypeMap.put("video/x-m4v", "mpg");
+    mimetypeMap.put("application/mp4", "mpg");
+    mimetypeMap.put("application/gml+xml", "gml");
+    mimetypeMap.put("text/gml", "gml");
+    mimetypeMap.put("application/xml", "gml");
+    mimetypeMap.put("audio/wav", "wav");
+    mimetypeMap.put("audio/x-wav", "wav");
+    mimetypeMap.put("audio/wave", "wav");
+    mimetypeMap.put("audio/vnd.wave", "wav");
     // TO-DO: check mimetypes for MPEG with sa.dk
 
     // Wave files are missing in fileIndex.xsd - this is an error. Will be
