@@ -341,12 +341,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
             if (mimeType.equals("application/zip")) {
               processConvertedLobArchive(binaryCell, row.getIndex(), columnIndex);
             } else {
-              logger.warn(
-                "Found BLOB with unsupported mimetype '{}' in table {}, column {}. ignoring content and archiving as .bin file.",
-                mimeType, tableCounter, columnIndex);
-              //whiteNilCell(columnIndex);
-
-              archiveRawLob(binaryCell, columnIndex);
+              processRawLobFile(binaryCell, columnIndex);
             }
           } else {
             // never happens
@@ -361,6 +356,43 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     }
 
     return row;
+  }
+
+  private void processRawLobFile(BinaryCell binaryCell, int columnIndex) throws ModuleException, IOException {
+    String mimeType = binaryCell.getMimeType() != null ? binaryCell.getMimeType() : "unsupported";
+    String fileExtension;
+    if (mimetypeHandler.isMimetypeAllowed(mimeType)) {
+      fileExtension = mimetypeHandler.getFileExtension(mimeType);
+    } else {
+      logger.warn(
+        "Found BLOB with unsupported mimetype '{}' in table {}, column {}. archiving as .bin file.",
+        mimeType, tableCounter, columnIndex);
+      fileExtension = SIARDDKConstants.UNKNOWN_MIMETYPE_BLOB_EXTENSION;
+      foundUnknownMimetype = true;
+    }
+
+    double lobSizeMB = ((double) binaryCell.getSize()) / (1024 * 1024);
+
+    String path = contentPathExportStrategy.getBlobFilePath(-1, -1, -1, -1) + "1." + fileExtension;
+    LargeObject blob = new LargeObject(binaryCell, path);
+
+    OutputStream out = SIARDDKFileIndexFileStrategy.getLOBWriter(baseContainer, blob.getOutputPath(), writeStrategy);
+    InputStream in = blob.getInputStreamProvider().createInputStream();
+    IOUtils.copy(in, out);
+    IOUtils.closeQuietly(in);
+    IOUtils.closeQuietly(out);
+    blob.getInputStreamProvider().cleanResources();
+
+    lobsTracker.addLOB(lobSizeMB);
+
+    writeLobReferenceToXml(columnIndex);
+
+    String originalFilename = binaryCell.getFile() != null ? FilenameUtils.getName(binaryCell.getFile()).stripTrailing()
+      : "originalFilename";
+    SIARDDKDocIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1, lobsTracker.getDocCollectionCount(),
+      originalFilename, fileExtension, null);
+
+    SIARDDKFileIndexFileStrategy.addFile(blob.getOutputPath());
   }
 
   private void processConvertedLobArchive(BinaryCell binaryCell, long rowIndex, int columnIndex)
@@ -422,40 +454,6 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     } catch (Exception e) {
       throw new ModuleException().withMessage("Failed to process converted ZIP archive").withCause(e);
     }
-  }
-
-  private void archiveRawLob(BinaryCell binaryCell, int columnIndex) throws ModuleException, IOException {
-    String mimeType = binaryCell.getMimeType() != null ? binaryCell.getMimeType() : "unsupported";
-    String fileExtension;
-    if (mimetypeHandler.isMimetypeAllowed(mimeType)) {
-      fileExtension = mimetypeHandler.getFileExtension(mimeType);
-    } else {
-      fileExtension = SIARDDKConstants.UNKNOWN_MIMETYPE_BLOB_EXTENSION;
-      foundUnknownMimetype = true;
-    }
-
-    double lobSizeMB = ((double) binaryCell.getSize()) / (1024 * 1024);
-
-    String path = contentPathExportStrategy.getBlobFilePath(-1, -1, -1, -1) + "1." + fileExtension;
-    LargeObject blob = new LargeObject(binaryCell, path);
-
-    OutputStream out = SIARDDKFileIndexFileStrategy.getLOBWriter(baseContainer, blob.getOutputPath(), writeStrategy);
-    InputStream in = blob.getInputStreamProvider().createInputStream();
-    IOUtils.copy(in, out);
-    IOUtils.closeQuietly(in);
-    IOUtils.closeQuietly(out);
-    blob.getInputStreamProvider().cleanResources();
-
-    lobsTracker.addLOB(lobSizeMB);
-
-    writeLobReferenceToXml(columnIndex);
-
-    String originalFilename = binaryCell.getFile() != null ? FilenameUtils.getName(binaryCell.getFile()).stripTrailing()
-      : "originalFilename";
-    SIARDDKDocIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1, lobsTracker.getDocCollectionCount(),
-      originalFilename, fileExtension, null);
-
-    SIARDDKFileIndexFileStrategy.addFile(blob.getOutputPath());
   }
 
   private ConversionReport extractReportFromZip(BinaryCell binaryCell) throws Exception {
