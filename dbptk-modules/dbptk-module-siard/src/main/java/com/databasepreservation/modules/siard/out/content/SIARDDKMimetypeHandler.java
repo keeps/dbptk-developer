@@ -25,6 +25,7 @@ public class SIARDDKMimetypeHandler implements MimetypeHandler {
   public SIARDDKMimetypeHandler() {
 
     mimetypeMap = new HashMap<String, String>();
+    mimetypeMap.put("image/tiff", "tif");
     mimetypeMap.put("image/jp2", "jp2");
     mimetypeMap.put("image/jpeg2000", "jp2");
     mimetypeMap.put("image/x-jp2", "jp2");
