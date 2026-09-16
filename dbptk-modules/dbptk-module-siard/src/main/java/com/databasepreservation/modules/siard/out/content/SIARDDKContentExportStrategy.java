@@ -40,6 +40,7 @@ import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
 import com.databasepreservation.modules.siard.common.LargeObject;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
@@ -49,6 +50,7 @@ import com.databasepreservation.modules.siard.out.metadata.SIARDDKFileIndexFileS
 import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
+import com.databasepreservation.modules.siard.services.conversion.BypassedLobReporter;
 import com.databasepreservation.modules.siard.services.conversion.LobConversionAuditor;
 import com.databasepreservation.modules.siard.services.conversion.model.report.ArtifactReport;
 import com.databasepreservation.modules.siard.services.conversion.model.report.ConversionReport;
@@ -79,6 +81,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   private final MimetypeHandler mimetypeHandler;
 
   private final LobConversionAuditor auditor;
+  private final BypassedLobReporter bypassedLobReporter;
   private final ObjectMapper mapper;
 
   private Reporter reporter;
@@ -102,6 +105,10 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     Path exportRoot = baseContainer.getPath().getParent();
     String archiveName = baseContainer.getPath().getFileName().toString();
     this.auditor = new LobConversionAuditor(exportRoot, archiveName);
+
+    String targetLobFormat = siarddkExportModule.getExportModuleArgs()
+      .getOrDefault(SIARDDKModuleFactory.PARAMETER_LOB_CONVERSION_TARGET_FORMAT, "image/tiff");
+    this.bypassedLobReporter = new BypassedLobReporter(exportRoot, archiveName, targetLobFormat);
   }
 
   @Override
@@ -450,6 +457,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
       ConversionReport enrichedReport = report
         .withContext(new DbptkContext(tableCounter, rowIndex, columnIndex, siardPhysicalPaths));
       auditor.appendAuditRecord(enrichedReport);
+      bypassedLobReporter.appendBypassedRecord(enrichedReport);
 
     } catch (Exception e) {
       throw new ModuleException().withMessage("Failed to process converted ZIP archive").withCause(e);
