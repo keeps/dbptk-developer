@@ -9,9 +9,9 @@ package com.databasepreservation.modules.siard.out.metadata;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-import com.databasepreservation.modules.siard.common.adapters.SIARDDK1007Adapter;
-import com.databasepreservation.modules.siard.common.adapters.SIARDDK128Adapter;
 import org.testng.annotations.Test;
+
+import com.databasepreservation.modules.siard.common.adapters.SIARDDK1007Adapter;
 
 /**
  * @author Andreas Kring <andreas@magenta.dk>
