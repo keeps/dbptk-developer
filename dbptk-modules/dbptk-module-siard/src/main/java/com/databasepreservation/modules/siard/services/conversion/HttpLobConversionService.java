@@ -75,7 +75,9 @@ public class HttpLobConversionService implements LobConversionService {
     log.debug("Initiating conversion pipeline for cell: {}", cellId);
     String jobId = submitJob(cellId, inputStream);
     waitForCompletion(cellId, jobId);
-    return downloadResult(cellId, jobId);
+    ConversionResult result = downloadResult(cellId, jobId);
+    deleteJob(cellId, jobId);
+    return result;
   }
 
   private String submitJob(String cellId, InputStream inputStream)
@@ -161,6 +163,23 @@ public class HttpLobConversionService implements LobConversionService {
     executeWithRetry(downloadRequest, BodyHandlers.ofFile(zipFile), MAX_NETWORK_RETRIES);
 
     return listZipContents(cellId, zipFile);
+  }
+
+  private void deleteJob(String cellId, String jobId) {
+    try {
+      HttpRequest deleteRequest = HttpRequest.newBuilder().uri(URI.create(baseUrl + "/jobs/" + jobId)).DELETE().build();
+      HttpResponse<Void> deleteResponse = executeWithRetry(deleteRequest, BodyHandlers.discarding(),
+        MAX_NETWORK_RETRIES);
+
+      if (deleteResponse.statusCode() >= 400) {
+        log.warn("API rejected deletion of Job {} (Cell {}). Status: {}", jobId, cellId, deleteResponse.statusCode());
+      }
+    } catch (IOException | InterruptedException e) {
+      if (e instanceof InterruptedException) {
+        Thread.currentThread().interrupt();
+      }
+      log.warn("Failed to delete Job {} (Cell {}) after successful download: {}", jobId, cellId, e.getMessage());
+    }
   }
 
   private ConversionResult listZipContents(String cellId, Path zipFile) throws IOException {
