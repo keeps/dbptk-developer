@@ -48,15 +48,6 @@ public class SIARDDKMimetypeHandler implements MimetypeHandler {
     mimetypeMap.put("audio/x-wav", "wav");
     mimetypeMap.put("audio/wave", "wav");
     mimetypeMap.put("audio/vnd.wave", "wav");
-    // TO-DO: check mimetypes for MPEG with sa.dk
-
-    // Wave files are missing in fileIndex.xsd - this is an error. Will be
-    // corrected by sa.dk later
-
-    // mimetypeMap.put("audio/wav", "wav");
-    // mimetypeMap.put("audio/x-wav", "wav");
-
-    // TO-DO: build (how?) GML files
   }
 
   /*
