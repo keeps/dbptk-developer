@@ -58,9 +58,9 @@ public class SIARDDKTableIndexFileStrategy implements IndexFileStrategy {
 
     // Set dbName - mandatory
     if (dbStructure.getDbOriginalName() != null) {
-      siarddkBinding.setDbName(dbStructure.getDbOriginalName());
+      siarddkBinding.setDbName(escapeString(dbStructure.getDbOriginalName()));
     } else {
-      siarddkBinding.setDbName(dbStructure.getName());
+      siarddkBinding.setDbName(escapeString(dbStructure.getName()));
     }
 
     // Set databaseProduct

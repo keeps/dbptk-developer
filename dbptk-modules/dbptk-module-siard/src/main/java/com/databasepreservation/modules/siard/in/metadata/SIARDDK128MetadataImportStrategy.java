@@ -142,7 +142,7 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
       tableIndexUnmarshaller = tableIndexContext.createUnmarshaller();
       tableIndexUnmarshaller.setSchema(tableIndexXsdSchema);
       tableIndexInputStreamXml = readStrategyMD5Sum.createInputStream(container,
-        pathStrategy.getXmlFilePath(SIARDDKConstants.TABLE_INDEX), pathStrategy.getTabelIndexExpectedMD5Sum());
+        pathStrategy.getXmlFilePath(SIARDDKConstants.TABLE_INDEX), pathStrategy.getTableIndexExpectedMD5Sum());
       xmlRoot = (SiardDiark) tableIndexUnmarshaller.unmarshal(tableIndexInputStreamXml);
 
       archiveIndexUnmarshaller = archiveIndexContext.createUnmarshaller();
@@ -323,7 +323,7 @@ public class SIARDDK128MetadataImportStrategy implements MetadataImportStrategy 
         virtualTable.setRows(contextDocumentationIndex.getDocument().size());
         virtualTable.setColumns(createContextDocumentsTableColumns());
         virtualTable.setPrimaryKey(createVirtualPrimaryKey(
-          SIARDDKConstants.CONTEXT_DOCUMENTATION_VIRTUAL_TABLE_PRIMARY_KEY_NAME, SIARDDKConstants.DID));
+          SIARDDKConstants.CONTEXT_DOCUMENTATION_VIRTUAL_TABLE_PRIMARY_KEY_NAME, SIARDDKConstants.DOCUMENT_ID));
         return virtualTable;
       }
     } catch (FileNotFoundException e) {

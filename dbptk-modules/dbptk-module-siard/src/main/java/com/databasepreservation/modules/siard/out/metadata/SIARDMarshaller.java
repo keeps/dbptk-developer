@@ -33,4 +33,21 @@ public interface SIARDMarshaller {
    */
   public void marshal(String context, String localeSchemaLocation, String JAXBSchemaLocation, OutputStream writer,
     Object jaxbElement) throws ModuleException;
+
+  /**
+   * Generate JAXB Marshaller for writing XML object to the archive.
+   *
+   * @param archiveClass
+   *          Siard archive class to give JAXB context
+   * @param localeSchemaLocation
+   *          The locale location of the XML schema for the metadata file.
+   * @param JAXBSchemaLocation
+   *          The Marshaller.JAXB_SCHEMA_LOCATION.
+   * @param writer
+   *          The OutputStream to write to.
+   * @param jaxbElement
+   *          The JAXB element to marshal.
+   */
+  public void marshal(Class<?> archiveClass, String localeSchemaLocation, String JAXBSchemaLocation,
+    OutputStream writer, Object jaxbElement) throws ModuleException;
 }

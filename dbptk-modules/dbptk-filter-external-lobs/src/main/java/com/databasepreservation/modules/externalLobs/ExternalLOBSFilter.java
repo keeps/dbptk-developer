@@ -14,10 +14,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.managers.ExportModuleContextManager;
 import com.databasepreservation.managers.ModuleConfigurationManager;
+import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.data.Row;
@@ -93,12 +96,7 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
 
             Type original = column.getType();
             description.append(". Original description: '").append(original.getDescription()).append("')");
-            SimpleTypeBinary newType = new SimpleTypeBinary();
-            newType.setSql99TypeName("BINARY VARYING", 1);
-            newType.setSql2008TypeName("BINARY VARYING", 1);
-            newType.setOriginalTypeName(original.getOriginalTypeName());
-            newType.setOutsideDatabase(true);
-
+            SimpleTypeBinary newType = getSimpleTypeBinary(original);
             column.setType(newType);
             column.setDescription(description.toString());
           }
@@ -108,6 +106,21 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
 
     this.databaseStructure = structure;
     this.exportModule.handleStructure(structure);
+  }
+
+  @NotNull
+  private static SimpleTypeBinary getSimpleTypeBinary(Type original) {
+    SimpleTypeBinary newType = new SimpleTypeBinary();
+    if (ExportModuleContextManager.getInstance().isSiadDKModule()) {
+      newType.setSql99TypeName("BINARY LARGE OBJECT");
+      newType.setSql2008TypeName("BINARY LARGE OBJECT");
+    } else {
+      newType.setSql99TypeName("BINARY VARYING", 1);
+      newType.setSql2008TypeName("BINARY VARYING", 1);
+    }
+    newType.setOriginalTypeName(original.getOriginalTypeName());
+    newType.setOutsideDatabase(true);
+    return newType;
   }
 
   @Override
@@ -155,6 +168,9 @@ public class ExternalLOBSFilter implements DatabaseFilterModule {
               .get(currentTable.getId() + index);
             Cell newCell = getExternalLOBSCellHandler(externalLobsConfiguration).handleCell(cell.getId(),
               simpleCell.getSimpleData());
+            if (newCell instanceof BinaryCell binaryCell) {
+              binaryCell.setFile(simpleCell.getSimpleData());
+            }
             rowCells.set(index, newCell);
           } else {
             reporter.ignored("Cell " + cell.getId(), "reference to external LOB is null");

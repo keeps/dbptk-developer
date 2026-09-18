@@ -7,16 +7,20 @@
  */
 package com.databasepreservation.modules.siard.out.content;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -36,6 +40,7 @@ import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
 import com.databasepreservation.modules.siard.common.LargeObject;
 import com.databasepreservation.modules.siard.common.SIARDArchiveContainer;
 import com.databasepreservation.modules.siard.constants.SIARDConstants;
@@ -45,6 +50,12 @@ import com.databasepreservation.modules.siard.out.metadata.SIARDDKFileIndexFileS
 import com.databasepreservation.modules.siard.out.output.SIARDDKExportModule;
 import com.databasepreservation.modules.siard.out.path.ContentPathExportStrategy;
 import com.databasepreservation.modules.siard.out.write.WriteStrategy;
+import com.databasepreservation.modules.siard.services.conversion.BypassedLobReporter;
+import com.databasepreservation.modules.siard.services.conversion.LobConversionAuditor;
+import com.databasepreservation.modules.siard.services.conversion.model.report.ArtifactReport;
+import com.databasepreservation.modules.siard.services.conversion.model.report.ConversionReport;
+import com.databasepreservation.modules.siard.services.conversion.model.report.DbptkContext;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
@@ -69,6 +80,10 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
   private final LOBsTracker lobsTracker;
   private final MimetypeHandler mimetypeHandler;
 
+  private final LobConversionAuditor auditor;
+  private final BypassedLobReporter bypassedLobReporter;
+  private final ObjectMapper mapper;
+
   private Reporter reporter;
 
   public SIARDDKContentExportStrategy(SIARDDKExportModule siarddkExportModule) {
@@ -85,6 +100,15 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     baseContainer = siarddkExportModule.getMainContainer();
     writeStrategy = siarddkExportModule.getWriteStrategy();
     lobsTracker = siarddkExportModule.getLobsTracker();
+
+    this.mapper = new ObjectMapper();
+    Path exportRoot = baseContainer.getPath().getParent();
+    String archiveName = baseContainer.getPath().getFileName().toString();
+    this.auditor = new LobConversionAuditor(exportRoot, archiveName);
+
+    String targetLobFormat = siarddkExportModule.getExportModuleArgs()
+      .getOrDefault(SIARDDKModuleFactory.PARAMETER_LOB_CONVERSION_TARGET_FORMAT, "image/tiff");
+    this.bypassedLobReporter = new BypassedLobReporter(exportRoot, archiveName, targetLobFormat);
   }
 
   @Override
@@ -287,16 +311,14 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
               binaryCell.cleanResources();
             }
           } else {
-            tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
-              .append(" xsi:nil=\"true\"/>").append("\n");
+            whiteNilCell(columnIndex);
           }
 
         } else {
           // cell must contain BLOB or CLOB
 
           if (cell instanceof NullCell) {
-            tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
-              .append(" xsi:nil=\"true\"/>").append("\n");
+            whiteNilCell(columnIndex);
           } else if (cell instanceof SimpleCell) {
 
             // CLOB is not NULL
@@ -317,63 +339,17 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
           } else if (cell instanceof BinaryCell) {
 
             // BLOB case
-
             final BinaryCell binaryCell = (BinaryCell) cell;
+            String mimeType = binaryCell.getMimeType() != null ? binaryCell.getMimeType() : "unsupported";
 
-            // BLOB is not NULL
-
-            double lobSizeMB = ((double) binaryCell.getSize()) / (1024 * 1024);
-            lobsTracker.addLOB(lobSizeMB); // Only if LOB not NULL
-
-            // Determine the mimetype (Tika should use an inputstream which
-            // supports marks)
-
-            InputStream is = new BufferedInputStream(binaryCell.createInputStream());
-            // Removed because TIKA was a security vulnerability and this feature was not
-            // needed/not fully implemented (see #341)
-            String mimeType = "unsupported";
-            IOUtils.closeQuietly(is);
-
-            // Archive BLOB - simultaneous writing always supported for
-            // SIARDDK
-
-            tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
-              .append(Integer.toString(lobsTracker.getLOBsCount())).append("</c").append(String.valueOf(columnIndex))
-              .append(">\n");
-
-            String path = contentPathExportStrategy.getBlobFilePath(-1, -1, -1, -1);
-            String fileExtension;
-            if (mimetypeHandler.isMimetypeAllowed(mimeType)) {
-              fileExtension = mimetypeHandler.getFileExtension(mimeType);
+            // -------------------------------------------------------------
+            // BLOB EXTRACTION DELEGATION
+            // -------------------------------------------------------------
+            if (mimeType.equals("application/zip")) {
+              processConvertedLobArchive(binaryCell, row.getIndex(), columnIndex);
             } else {
-              fileExtension = SIARDDKConstants.UNKNOWN_MIMETYPE_BLOB_EXTENSION;
-              // Log (table level) that unknown BLOB mimetype was detected
-              foundUnknownMimetype = true;
+              processRawLobFile(binaryCell, columnIndex);
             }
-            path += fileExtension;
-
-            LargeObject blob = new LargeObject(binaryCell, path);
-
-            // Create new FileIndexFileStrategy
-
-            // Write the BLOB
-            OutputStream out = SIARDDKFileIndexFileStrategy.getLOBWriter(baseContainer, blob.getOutputPath(), writeStrategy);
-            InputStream in = blob.getInputStreamProvider().createInputStream();
-            IOUtils.copy(in, out);
-            IOUtils.closeQuietly(in);
-            IOUtils.closeQuietly(out);
-            blob.getInputStreamProvider().cleanResources();
-
-            // Add file to docIndex (a lot easier to do here even though we
-            // are dealing with metadata)
-
-            // TO-DO: obtain (how?) hardcoded values
-            SIARDDKDocIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1, lobsTracker.getDocCollectionCount(),
-              "originalFilename", fileExtension, null);
-
-            // Add file to fileIndex
-            SIARDDKFileIndexFileStrategy.addFile(blob.getOutputPath());
-
           } else {
             // never happens
           }
@@ -387,6 +363,145 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     }
 
     return row;
+  }
+
+  private void processRawLobFile(BinaryCell binaryCell, int columnIndex) throws ModuleException, IOException {
+    String mimeType = binaryCell.getMimeType() != null ? binaryCell.getMimeType() : "unsupported";
+    String fileExtension;
+    if (mimetypeHandler.isMimetypeAllowed(mimeType)) {
+      fileExtension = mimetypeHandler.getFileExtension(mimeType);
+    } else {
+      logger.warn(
+        "Found BLOB with unsupported mimetype '{}' in table {}, column {}. archiving as .bin file.",
+        mimeType, tableCounter, columnIndex);
+      fileExtension = SIARDDKConstants.UNKNOWN_MIMETYPE_BLOB_EXTENSION;
+      foundUnknownMimetype = true;
+    }
+
+    double lobSizeMB = ((double) binaryCell.getSize()) / (1024 * 1024);
+    lobsTracker.addLOB(lobSizeMB);
+
+    String path = contentPathExportStrategy.getBlobFilePath(-1, -1, -1, -1) + "1." + fileExtension;
+    LargeObject blob = new LargeObject(binaryCell, path);
+
+    OutputStream out = SIARDDKFileIndexFileStrategy.getLOBWriter(baseContainer, blob.getOutputPath(), writeStrategy);
+    InputStream in = blob.getInputStreamProvider().createInputStream();
+    IOUtils.copy(in, out);
+    IOUtils.closeQuietly(in);
+    IOUtils.closeQuietly(out);
+    blob.getInputStreamProvider().cleanResources();
+
+    writeLobReferenceToXml(columnIndex);
+
+    String originalFilename = binaryCell.getFile() != null ? FilenameUtils.getName(binaryCell.getFile()).stripTrailing()
+      : "originalFilename";
+    SIARDDKDocIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1, lobsTracker.getDocCollectionCount(),
+      originalFilename, fileExtension, null);
+
+    SIARDDKFileIndexFileStrategy.addFile(blob.getOutputPath());
+  }
+
+  private void processConvertedLobArchive(BinaryCell binaryCell, long rowIndex, int columnIndex)
+    throws ModuleException {
+    try {
+      ConversionReport report = extractReportFromZip(binaryCell);
+      if (report == null) {
+        throw new ModuleException().withMessage("Missing conversion_report.json in cell archive.");
+      }
+
+      String fileFromCell = binaryCell.getFile();
+      if (fileFromCell != null) {
+        String filename = FilenameUtils.getName(fileFromCell).stripTrailing();
+        report = report.withOriginalFilename(filename);
+      }
+
+      List<String> siardPhysicalPaths = new ArrayList<>();
+      int fileCount = 0;
+      String processedFilesExtension = "tif";
+
+      try (ZipInputStream zis = new ZipInputStream(binaryCell.createInputStream())) {
+        ZipEntry zipEntry;
+        while ((zipEntry = zis.getNextEntry()) != null) {
+          if (zipEntry.getName().toLowerCase().contains("report"))
+            continue;
+
+          ArtifactReport artifactMeta = findArtifactMetadata(report.artifacts(), zipEntry.getName());
+
+          // Check if this file is bypassed
+          if (artifactMeta == null || artifactMeta.isBypassed()) {
+            logger.warn("Ignoring bypassed or unknown file: {}. Reason: {}", zipEntry.getName(),
+              artifactMeta != null ? artifactMeta.errorMessage() : "Not in report");
+            continue;
+          }
+
+          // LOB isn't bypassed; add it to tracker now
+          if (fileCount == 0) {
+            double lobSizeTotal = ((double) binaryCell.getSize()) / (1024 * 1024);
+            lobsTracker.addLOB(lobSizeTotal);
+          }
+
+          String fileExt = mimetypeHandler.getFileExtension(artifactMeta.finalMimeType());
+          processedFilesExtension = fileExt;
+          fileCount++;
+
+          String outputPath = writeLobToSiardStorage(zis, fileCount, fileExt);
+          siardPhysicalPaths.add(outputPath);
+        }
+      }
+
+      if (fileCount > 0) {
+        writeLobReferenceToXml(columnIndex);
+        SIARDDKDocIndexFileStrategy.addDoc(lobsTracker.getLOBsCount(), 0, 1, lobsTracker.getDocCollectionCount(),
+          report.originalFilename(), processedFilesExtension, null);
+      } else {
+        whiteNilCell(columnIndex);
+      }
+
+      ConversionReport enrichedReport = report
+        .withContext(new DbptkContext(tableCounter, rowIndex, columnIndex, siardPhysicalPaths));
+      auditor.appendAuditRecord(enrichedReport);
+      bypassedLobReporter.appendBypassedRecord(enrichedReport);
+
+    } catch (Exception e) {
+      throw new ModuleException().withMessage("Failed to process converted ZIP archive").withCause(e);
+    }
+  }
+
+  private ConversionReport extractReportFromZip(BinaryCell binaryCell) throws Exception {
+    try (ZipInputStream zis = new ZipInputStream(binaryCell.createInputStream())) {
+      ZipEntry zipEntry;
+      while ((zipEntry = zis.getNextEntry()) != null) {
+        if (zipEntry.getName().toLowerCase().contains("report")) {
+          return mapper.readValue(zis.readAllBytes(), ConversionReport.class);
+        }
+      }
+    }
+    return null;
+  }
+
+  private ArtifactReport findArtifactMetadata(List<ArtifactReport> artifacts, String fileName) {
+    if (artifacts == null)
+      return null;
+    return artifacts.stream().filter(a -> fileName.equals(a.logicalName())).findFirst().orElse(null);
+  }
+
+  private String writeLobToSiardStorage(InputStream zis, int fileCount, String extension) throws Exception {
+    String outputPath = contentPathExportStrategy.getBlobFilePath(-1, -1, -1, -1) + fileCount + "." + extension;
+    OutputStream out = SIARDDKFileIndexFileStrategy.getLOBWriter(baseContainer, outputPath, writeStrategy);
+    zis.transferTo(out);
+    SIARDDKFileIndexFileStrategy.addFile(outputPath);
+    return outputPath;
+  }
+
+  private void writeLobReferenceToXml(int columnIndex) throws IOException {
+    tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex)).append(">")
+      .append(Integer.toString(lobsTracker.getLOBsCount())).append("</c").append(String.valueOf(columnIndex))
+      .append(">\n");
+  }
+
+  private void whiteNilCell(int columnIndex) throws IOException {
+    tableXmlWriter.append(TAB).append(TAB).append("<c").append(String.valueOf(columnIndex))
+      .append(" xsi:nil=\"true\"/>").append("\n");
   }
 
   @Override
