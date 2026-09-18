@@ -74,9 +74,11 @@ public class HttpLobConversionService implements LobConversionService {
     throws IOException, InterruptedException, HttpLobConversionServiceException {
     log.debug("Initiating conversion pipeline for cell: {}", cellId);
     String jobId = submitJob(cellId, inputStream);
-    waitForCompletion(cellId, jobId);
+    JobStatus status = waitForCompletion(cellId, jobId);
     ConversionResult result = downloadResult(cellId, jobId);
-    deleteJob(cellId, jobId);
+    if (JobStatus.COMPLETED.equals(status)) {
+      deleteJob(cellId, jobId);
+    }
     return result;
   }
 
@@ -111,7 +113,7 @@ public class HttpLobConversionService implements LobConversionService {
     return job.id();
   }
 
-  private void waitForCompletion(String cellId, String jobId)
+  private JobStatus waitForCompletion(String cellId, String jobId)
     throws IOException, InterruptedException, HttpLobConversionServiceException {
     log.debug("Awaiting completion of Job {} (Cell {})", jobId, cellId);
 
@@ -125,7 +127,7 @@ public class HttpLobConversionService implements LobConversionService {
       switch (response.status()) {
         case JobStatus.COMPLETED -> {
           log.debug("Job {} (Cell {}) completed successfully after {} attempts.", jobId, cellId, attempts);
-          return;
+          return response.status();
         }
         case JobStatus.FAILED, JobStatus.EVICTED -> {
           log.error("API reported terminal failure for Job {} (Cell {}) with status: {}", jobId, cellId,
@@ -166,20 +168,15 @@ public class HttpLobConversionService implements LobConversionService {
   }
 
   private void deleteJob(String cellId, String jobId) {
-    try {
-      HttpRequest deleteRequest = HttpRequest.newBuilder().uri(URI.create(baseUrl + "/jobs/" + jobId)).DELETE().build();
-      HttpResponse<Void> deleteResponse = executeWithRetry(deleteRequest, BodyHandlers.discarding(),
-        MAX_NETWORK_RETRIES);
+    HttpRequest deleteRequest = HttpRequest.newBuilder().uri(URI.create(baseUrl + "/jobs/" + jobId)).DELETE().build();
 
-      if (deleteResponse.statusCode() >= 400) {
-        log.warn("API rejected deletion of Job {} (Cell {}). Status: {}", jobId, cellId, deleteResponse.statusCode());
+    httpClient.sendAsync(deleteRequest, BodyHandlers.discarding()).whenComplete((response, e) -> {
+      if (response.statusCode() >= 400) {
+        log.warn("API rejected deletion of Job {} (Cell {}). Status: {}", jobId, cellId, response.statusCode());
+      } else {
+        log.warn("Failed to delete Job {} (Cell {}) after successful download: {}", jobId, cellId, e.getMessage());
       }
-    } catch (IOException | InterruptedException e) {
-      if (e instanceof InterruptedException) {
-        Thread.currentThread().interrupt();
-      }
-      log.warn("Failed to delete Job {} (Cell {}) after successful download: {}", jobId, cellId, e.getMessage());
-    }
+    });
   }
 
   private ConversionResult listZipContents(String cellId, Path zipFile) throws IOException {
