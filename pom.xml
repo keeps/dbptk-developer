@@ -111,6 +111,14 @@
                 <configuration>
                     <rules>
                         <dependencyConvergence/>
+                        <bannedDependencies>
+                            <excludes>
+                                <exclude>xml-apis:xml-apis</exclude>
+                                <exclude>xml-apis:xml-apis-ext</exclude>
+                                <exclude>xml-apis:xmlParserAPIs</exclude>
+                                <exclude>xerces:xmlParserAPIs</exclude>
+                            </excludes>
+                        </bannedDependencies>
                     </rules>
                 </configuration>
             </plugin>
@@ -446,6 +454,12 @@
                 <groupId>xerces</groupId>
                 <artifactId>xercesImpl</artifactId>
                 <version>2.12.2</version>
+                <exclusions>
+                  <exclusion>
+                    <groupId>xml-apis</groupId>
+                    <artifactId>xml-apis</artifactId>
+                  </exclusion>
+                </exclusions>
             </dependency>
 
             <!-- lfaria 2024-02-14: Fixing Java 8 compatibility issue -->
