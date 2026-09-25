@@ -63,13 +63,13 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
     super("net.ucanaccess.jdbc.UcanaccessDriver",
       "jdbc:ucanaccess://" + msAccessFile.getAbsolutePath() + ";showSchema=true;", new MsAccessHelper(),
       new MsAccessUCanAccessDatatypeImporter(), moduleName, properties);
-      this.msAccessFile = msAccessFile;
+    this.msAccessFile = msAccessFile;
   }
 
   public MsAccessUCanAccessImportModule(String moduleName, File msAccessFile, String password) throws ModuleException {
     this(moduleName, msAccessFile, MapUtils.buildMapFromObjects(MsAccessUCanAccessModuleFactory.PARAMETER_FILE,
       msAccessFile, MsAccessUCanAccessModuleFactory.PARAMETER_PASSWORD, password));
-      this.password = password;
+    this.password = password;
   }
 
   public MsAccessUCanAccessImportModule(String moduleName, String accessFilePath) throws ModuleException {
@@ -84,10 +84,12 @@ public class MsAccessUCanAccessImportModule extends JDBCImportModule {
 
   @Override
   protected Connection createConnection() throws ModuleException {
-     UcanaccessConnectionBuilder builder = new UcanaccessConnectionBuilder().withDbPath(msAccessFile).withProp(Property.showSchema, true);
-     if (StringUtils.isNotEmpty(password)) {
-       builder.withPassword(password);
-     } 
+    UcanaccessConnectionBuilder builder = new UcanaccessConnectionBuilder().withDbPath(msAccessFile).withProp(
+      Property.showSchema, true);
+    if (StringUtils.isNotEmpty(password)) {
+      builder.withPassword(password);
+      builder.withProp(Property.jackcessOpener, MsAccessCryptCodecJackcessOpener.class.getName());
+    }
     return builder.build();
   }
 
