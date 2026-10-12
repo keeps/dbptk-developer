@@ -61,6 +61,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
 
   private static final String ENCODING = "utf-8";
   private static final String TAB = "  ";
+  private static final String CONVERSION_REPORT_FILENAME = "conversion_report.json";
   private static final String namespaceBase = "http://www.sa.dk/xmlns/siard/"
     + SIARDConstants.SiardVersion.DK.getNamespace() + "/";
   private static final Logger logger = LoggerFactory.getLogger(SIARDDKContentExportStrategy.class);
@@ -422,7 +423,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
       try (ZipInputStream zis = new ZipInputStream(binaryCell.createInputStream())) {
         ZipEntry zipEntry;
         while ((zipEntry = zis.getNextEntry()) != null) {
-          if (zipEntry.getName().toLowerCase().contains("report"))
+          if (CONVERSION_REPORT_FILENAME.equalsIgnoreCase(FilenameUtils.getName(zipEntry.getName())))
             continue;
 
           ArtifactReport artifactMeta = findArtifactMetadata(report.artifacts(), zipEntry.getName());
@@ -471,7 +472,7 @@ public class SIARDDKContentExportStrategy implements ContentExportStrategy {
     try (ZipInputStream zis = new ZipInputStream(binaryCell.createInputStream())) {
       ZipEntry zipEntry;
       while ((zipEntry = zis.getNextEntry()) != null) {
-        if (zipEntry.getName().toLowerCase().contains("report")) {
+        if (CONVERSION_REPORT_FILENAME.equalsIgnoreCase(FilenameUtils.getName(zipEntry.getName()))) {
           return mapper.readValue(zis.readAllBytes(), ConversionReport.class);
         }
       }
