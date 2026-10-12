@@ -53,6 +53,7 @@ public class HttpLobConversionService implements LobConversionService {
     "dbptk.service.lob.conversion.connectionTimeoutSeconds");
 
   private static final String CRLF = "\r\n";
+  private static final String CONVERSION_REPORT_FILENAME = "conversion_report.json";
 
   private final HttpClient httpClient;
   private final String baseUrl;
@@ -200,7 +201,7 @@ public class HttpLobConversionService implements LobConversionService {
         if (!zipEntry.isDirectory()) {
           Files.copy(zis, extractedFilePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
-          if (zipEntry.getName().toLowerCase().contains("report")) {
+          if (CONVERSION_REPORT_FILENAME.equalsIgnoreCase(extractedFilePath.getFileName().toString())) {
             reportFile = extractedFilePath;
           } else {
             convertedFiles.add(extractedFilePath);
