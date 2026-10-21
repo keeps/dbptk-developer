@@ -28,10 +28,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.databasepreservation.common.io.providers.InputStreamProviderImpl;
 import com.databasepreservation.common.io.providers.PathInputStreamProvider;
+import com.databasepreservation.common.io.providers.TemporaryPathInputStreamProvider;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
 import com.databasepreservation.model.data.Row;
@@ -39,6 +42,8 @@ import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.modules.siard.SIARDDKModuleFactory;
 import com.databasepreservation.modules.siard.common.path.MetadataPathStrategy;
 import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
+import com.databasepreservation.modules.siard.out.content.SIARDDKMimetypeDetector;
+import com.databasepreservation.modules.siard.out.content.SIARDDKMimetypeHandler;
 import com.databasepreservation.modules.siard.out.metadata.SIARDDKContextDocumentationWriter;
 import com.databasepreservation.modules.siard.out.metadata.SIARDDKFileIndexFileStrategy;
 import com.databasepreservation.modules.siard.out.metadata.SIARDMarshaller;
@@ -65,6 +70,7 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
   private TempFileTracker tempFileTracker;
   private LobConversionService conversionService;
   private String targetLobFormat;
+  private final SIARDDKMimetypeDetector mimetypeDetector = new SIARDDKMimetypeDetector(new SIARDDKMimetypeHandler());
   private static final Integer MAX_QUEUE_SIZE = ConfigUtils.getProperty(100, "dbptk.siarddk.export.maxQueueSize");
 
   // Resilient Pipeline architecture attributes
@@ -350,11 +356,14 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
     List<Cell> cells = row.getCells();
     List<Path> transientPaths = new ArrayList<>();
 
-    if (this.conversionService != null) {
-      for (int i = 0; i < cells.size(); i++) {
-        Cell cell = cells.get(i);
+    for (int i = 0; i < cells.size(); i++) {
+      Cell cell = cells.get(i);
 
-        if (cell instanceof BinaryCell binCell) {
+      if (cell instanceof BinaryCell originalCell) {
+        BinaryCell binCell = makeRepeatable(originalCell);
+        cells.set(i, binCell);
+
+        if (this.conversionService != null) {
           try (InputStream originalStream = binCell.createInputStream()) {
             ConversionResult result = conversionService.convertLob(cell.getId(), originalStream);
 
@@ -364,6 +373,9 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
               "application/zip");
             newCell.setFile(binCell.getFile());
             cells.set(i, newCell);
+            if (binCell != originalCell) {
+              binCell.cleanResources();
+            }
 
             // Track extracted parts to clean them individually later
             transientPaths.addAll(result.convertedFiles());
@@ -372,6 +384,8 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
             if (!result.convertedFiles().isEmpty()) {
               transientPaths.add(result.convertedFiles().getFirst().getParent()); // directory container
             }
+            // Jumps the fallback
+            continue;
           } catch (IOException | InterruptedException | HttpLobConversionServiceException e) {
             String statusCodeInfo = "";
             if (e instanceof HttpLobConversionServiceException apiEx && apiEx.getHttpStatusCode() != null) {
@@ -385,6 +399,15 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
             logger.error(errorMsg);
           }
         }
+
+        String nativeMimeType = detectSiardDkMimeType(binCell);
+        if (nativeMimeType != null) {
+          BinaryCell nativeCell = new BinaryCell(cell.getId(), binCell.getInputStreamProvider(), nativeMimeType);
+          nativeCell.setFile(binCell.getFile());
+          cells.set(i, nativeCell);
+          logger.debug("Cell '{}' in row {} is already a SIARD-DK format ({}).", cell.getId(), row.getIndex(),
+            nativeMimeType);
+        }
       }
     }
     row.setCells(cells);
@@ -394,6 +417,31 @@ public abstract class SIARDDKDatabaseExportModule extends SIARDExportDefault {
       readyCount + 1);
 
     return new ProcessedRowContext(row, transientPaths);
+  }
+
+  /**
+   * Makes the cell content readable more than once. Database LOBs come as a
+   * single-use stream ({@link InputStreamProviderImpl}), but here each LOB is
+   * read several times (conversion service, format detection and the final
+   * writer), so it is copied to a temporary file.
+   */
+  private BinaryCell makeRepeatable(BinaryCell cell) throws ModuleException {
+    if (!(cell.getInputStreamProvider() instanceof InputStreamProviderImpl)) {
+      return cell;
+    }
+    BinaryCell repeatable = new BinaryCell(cell.getId(), new TemporaryPathInputStreamProvider(cell.createInputStream()),
+      cell.getMimeType());
+    repeatable.setFile(cell.getFile());
+    return repeatable;
+  }
+
+  private String detectSiardDkMimeType(BinaryCell cell) {
+    try (InputStream in = cell.createInputStream()) {
+      return mimetypeDetector.detect(in, cell.getFile() != null ? FilenameUtils.getName(cell.getFile()) : null);
+    } catch (IOException | ModuleException e) {
+      logger.debug("Could not detect the format of cell '{}': {}", cell.getId(), e.getMessage());
+      return null;
+    }
   }
 
   private void cleanupTransientPaths(List<Path> paths) {
