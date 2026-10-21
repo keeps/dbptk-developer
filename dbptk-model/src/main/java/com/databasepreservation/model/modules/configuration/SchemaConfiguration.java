@@ -50,13 +50,15 @@ public class SchemaConfiguration {
   @JsonIgnore
   public boolean isSelectedColumnFromTable(String tableName, String columnName) {
     return tableConfigurations.stream().anyMatch(table -> table.getName().equals(tableName)
-      && table.getColumns().stream().anyMatch(column -> column.getName().equals(columnName)));
+      && (table.getColumns().isEmpty()
+        || table.getColumns().stream().anyMatch(column -> column.getName().equals(columnName))));
   }
 
   @JsonIgnore
   public boolean isSelectedColumnFromView(String viewName, String columnName) {
     return viewConfigurations.stream().anyMatch(view -> view.getName().equals(viewName)
-      && view.getColumns().stream().anyMatch(column -> column.getName().equals(columnName)));
+      && (view.getColumns().isEmpty()
+        || view.getColumns().stream().anyMatch(column -> column.getName().equals(columnName))));
   }
 
   @JsonIgnore
