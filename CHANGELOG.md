@@ -1,5 +1,16 @@
 # Changelog
 
+## Version 4.5.0 (21/10/2026)
+#### New Features
+- Communication with the external normalization service
+- Creation of a SIARD-DK without converted files as a fallback
+- Support and creation of SIARD-DK packages
+
+#### Bug fixes
+- Fix NPE when fileIndex.xml or docIndex.xml (from SIARD-DK) were too big
+- Import-config table/view with no columns listed now selects all columns instead of none
+---
+
 ## Version 4.4.1 (31/07/2026)
 #### Bug fixes
 
@@ -260,13 +271,3 @@ Special thanks to @daniel-skovenborg for his contributions to this release
 #### Enhancements
 * Remove percentage indicator from table progress #514
 * Add folder property to table structure #515
----
-
-## Version 2.10.0 (28/04/2022)
-#### New Features
-
-* Add a threshold for LOBs saved outside the SIARD file (#504) For more information access our [wiki](https://github.com/keeps/dbptk-developer/wiki/Store-lobs-outside-SIARD).
-
-#### Security
-
-* Security fixes (Upgrade dependencies)
