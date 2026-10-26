@@ -25,6 +25,7 @@ import com.databasepreservation.model.structure.ColumnStructure;
 import com.databasepreservation.model.structure.RoutineStructure;
 import com.databasepreservation.model.structure.SchemaStructure;
 import com.databasepreservation.model.structure.TableStructure;
+import com.databasepreservation.model.structure.UserStructure;
 import com.databasepreservation.model.structure.ViewStructure;
 import com.databasepreservation.modules.CloseableUtils;
 import com.databasepreservation.modules.jdbc.in.JDBCImportModule;
@@ -308,6 +309,39 @@ public class SQLServerJDBCImportModule extends JDBCImportModule {
       v.setQueryOriginal(originalQuery);
     }
     return views;
+  }
+
+  @Override
+  protected List<UserStructure> getUsers(String databaseName) throws SQLException, ModuleException {
+    try {
+      return super.getUsers(databaseName);
+    } catch (SQLException e) {
+      // some platforms (e.g. Azure SQL Database) do not allow SUSER_SNAME to be
+      // invoked with parameters, so try to obtain the users in an alternative way
+      LOGGER.debug("Could not obtain users with the default query, trying sys.database_principals", e);
+      try {
+        List<UserStructure> users = getDatabasePrincipalsUsers();
+        reporter.customMessage("SQLServerJDBCImportModule",
+          "Could not obtain the database owner (" + e.getMessage()
+            + "); users were obtained from sys.database_principals instead");
+        return users;
+      } catch (SQLException alternativeException) {
+        alternativeException.addSuppressed(e);
+        throw alternativeException;
+      }
+    }
+  }
+
+  private List<UserStructure> getDatabasePrincipalsUsers() throws SQLException, ModuleException {
+    List<UserStructure> users = new ArrayList<>();
+    try (ResultSet rs = getStatement().executeQuery(((SQLServerHelper) sqlHelper).getDatabasePrincipalsUsersSQL())) {
+      while (rs.next()) {
+        UserStructure user = new UserStructure();
+        user.setName(rs.getString("USER_NAME"));
+        users.add(user);
+      }
+    }
+    return users;
   }
 
   @Override
