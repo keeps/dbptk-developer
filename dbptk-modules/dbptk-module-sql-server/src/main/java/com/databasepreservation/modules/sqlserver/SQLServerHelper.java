@@ -163,6 +163,22 @@ public class SQLServerHelper extends SQLHelper {
     return "SELECT suser_sname(owner_sid) AS USER_NAME FROM sys.databases " + "WHERE name = '" + dbName + "'";
   }
 
+  /**
+   * Alternative to {@link #getUsersSQL(String)} for platforms where SUSER_SNAME
+   * cannot be invoked with parameters (e.g. Azure SQL Database). The users are
+   * obtained from sys.database_principals instead.
+   *
+   * Principal types: S = SQL user, U = Windows user, E = external user from
+   * Microsoft Entra ID. The built-in guest, INFORMATION_SCHEMA and sys users are
+   * excluded.
+   *
+   * @return the SQL to get all database users
+   */
+  public String getDatabasePrincipalsUsersSQL() {
+    return "SELECT name AS USER_NAME FROM sys.database_principals WHERE type IN ('S', 'U', 'E') "
+      + "AND name NOT IN ('guest', 'INFORMATION_SCHEMA', 'sys')";
+  }
+
   @Override
   //public String getRolesSQL() {
   //  return "SELECT name AS ROLE_NAME FROM sysusers WHERE issqlrole = 1";
