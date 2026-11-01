@@ -85,7 +85,8 @@ public class MsAccessUCanAccessModuleFactory implements DatabaseModuleFactory {
   }
 
   @Override
-  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter) throws ModuleException {
+  public DatabaseImportModule buildImportModule(Map<Parameter, String> parameters, Reporter reporter)
+    throws ModuleException {
     String pAccessFilePath = parameters.get(accessFilePath);
 
     String pAccessPassword = null;
