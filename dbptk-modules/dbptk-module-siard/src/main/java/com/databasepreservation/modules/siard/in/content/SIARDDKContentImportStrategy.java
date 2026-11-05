@@ -314,7 +314,7 @@ public abstract class SIARDDKContentImportStrategy<T, D, F, S> extends DefaultHa
         + SIARDDKConstants.RESOURCE_FILE_SEPARATOR + pathStrategy.getXsdFilePath(SIARDDKConstants.DOC_INDEX))){
       SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
       Schema xsdSchema = schemaFactory.newSchema(new StreamSource(xsdStream));
-      SIARDDKDocIndexHandler docIndexHandler = createDocIndexContentHandler(xsdSchema);
+      SIARDDKDocIndexContentImportHandler docIndexHandler = createDocIndexContentHandler(xsdSchema);
       validatorHandler = createDocIndexValidatorHandler(xsdSchema, docIndexHandler);
     } catch (IOException | SAXException e) {
       throw new ModuleException().withMessage("Error while preparing doc index parser").withCause(e);
@@ -334,13 +334,13 @@ public abstract class SIARDDKContentImportStrategy<T, D, F, S> extends DefaultHa
     }
   }
 
-  ValidatorHandler createDocIndexValidatorHandler(Schema xsdSchema, SIARDDKDocIndexHandler docIndexHandler) {
+  ValidatorHandler createDocIndexValidatorHandler(Schema xsdSchema, SIARDDKDocIndexContentImportHandler docIndexHandler) {
     ValidatorHandler validatorHandler = xsdSchema.newValidatorHandler();
     validatorHandler.setContentHandler(docIndexHandler);
     return validatorHandler;
   }
 
-  abstract SIARDDKDocIndexHandler createDocIndexContentHandler(Schema xsdSchema);
+  abstract SIARDDKDocIndexContentImportHandler createDocIndexContentHandler(Schema xsdSchema);
 
 
   abstract F loadContextDocTableContent() throws ModuleException, FileNotFoundException;

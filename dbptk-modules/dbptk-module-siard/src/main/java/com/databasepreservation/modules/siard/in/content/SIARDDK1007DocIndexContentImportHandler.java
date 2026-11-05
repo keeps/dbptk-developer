@@ -14,10 +14,10 @@ import com.databasepreservation.modules.siard.in.path.SIARDDKPathImportStrategy;
  *
  * @author Alexandre Flores <aflores@keep.pt>
  */
-public class SIARDDK1007DocIndexHandler extends SIARDDKDocIndexHandler {
+public class SIARDDK1007DocIndexContentImportHandler extends SIARDDKDocIndexContentImportHandler {
 
-  public SIARDDK1007DocIndexHandler(SIARDDKPathImportStrategy pathImportStrategy,
-                                    DatabaseExportModule databaseExportModule) {
+  public SIARDDK1007DocIndexContentImportHandler(SIARDDKPathImportStrategy pathImportStrategy,
+                                                 DatabaseExportModule databaseExportModule) {
     super(pathImportStrategy, databaseExportModule);
   }
 

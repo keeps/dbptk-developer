@@ -48,8 +48,8 @@ public class SIARDDK1007ContentImportStrategy extends
   }
 
   @Override
-  SIARDDKDocIndexHandler createDocIndexContentHandler(Schema xsdSchema) {
-    return new SIARDDK1007DocIndexHandler(pathStrategy, dbExportHandler);
+  SIARDDKDocIndexContentImportHandler createDocIndexContentHandler(Schema xsdSchema) {
+    return new SIARDDK1007DocIndexContentImportHandler(pathStrategy, dbExportHandler);
   }
 
   @Override
