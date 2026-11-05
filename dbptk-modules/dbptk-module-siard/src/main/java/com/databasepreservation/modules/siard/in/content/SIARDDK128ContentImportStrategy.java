@@ -54,8 +54,8 @@ public class SIARDDK128ContentImportStrategy extends
   }
 
   @Override
-  SIARDDKDocIndexHandler createDocIndexContentHandler(Schema xsdSchema) {
-    return new SIARDDK128DocIndexHandler(pathStrategy, dbExportHandler);
+  SIARDDKDocIndexContentImportHandler createDocIndexContentHandler(Schema xsdSchema) {
+    return new SIARDDK128DocIndexContentImportHandler(pathStrategy, dbExportHandler);
   }
 
   @Override
@@ -123,7 +123,7 @@ public class SIARDDK128ContentImportStrategy extends
   @Override
   BigInteger getPID(DocumentType doc) {
     if (doc.getPID() == null) {
-        return null;
+      return null;
     }
     return doc.getPID().getValue();
   }

@@ -14,9 +14,9 @@ import com.databasepreservation.modules.siard.in.path.SIARDDKPathImportStrategy;
  *
  * @author Alexandre Flores <aflores@keep.pt>
  */
-public class SIARDDK128DocIndexHandler extends SIARDDKDocIndexHandler {
+public class SIARDDK128DocIndexContentImportHandler extends SIARDDKDocIndexContentImportHandler {
 
-  public SIARDDK128DocIndexHandler(SIARDDKPathImportStrategy pathImportStrategy,
+  public SIARDDK128DocIndexContentImportHandler(SIARDDKPathImportStrategy pathImportStrategy,
     DatabaseExportModule databaseExportModule) {
     super(pathImportStrategy, databaseExportModule);
   }

@@ -35,7 +35,7 @@ import com.databasepreservation.modules.siard.constants.SIARDDKConstants;
  *
  * @author Alexandre Flores <aflores@keep.pt>
  */
-public abstract class SIARDDKDocIndexHandler extends DefaultHandler {
+public abstract class SIARDDKDocIndexContentImportHandler extends DefaultHandler {
   protected SIARDDKDocIndexDoc currentDoc;
   protected StringBuilder currentElementCharacters;
 
@@ -43,8 +43,8 @@ public abstract class SIARDDKDocIndexHandler extends DefaultHandler {
   private DatabaseExportModule databaseExportModule;
   private int rowCounter;
 
-  public SIARDDKDocIndexHandler(SIARDDKPathImportStrategy pathImportStrategy,
-    DatabaseExportModule databaseExportModule) {
+  public SIARDDKDocIndexContentImportHandler(SIARDDKPathImportStrategy pathImportStrategy,
+                                             DatabaseExportModule databaseExportModule) {
     this.pathImportStrategy = pathImportStrategy;
     this.databaseExportModule = databaseExportModule;
     rowCounter = 0;
