@@ -7,6 +7,8 @@
  */
 package com.databasepreservation.modules.externalLobs.CellHandlers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.databasepreservation.common.io.providers.InputStreamProviderImpl;
 import com.databasepreservation.model.data.BinaryCell;
 import com.databasepreservation.model.data.Cell;
@@ -14,15 +16,12 @@ import com.databasepreservation.model.data.NullCell;
 import com.databasepreservation.model.exception.ModuleException;
 import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.modules.externalLobs.ExternalLOBSCellHandler;
-
 import io.minio.GetObjectArgs;
 import io.minio.GetObjectResponse;
 import io.minio.MinioClient;
 import io.minio.StatObjectArgs;
 import io.minio.StatObjectResponse;
 import io.minio.errors.MinioException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Miguel Guimarães <mguimaraes@keep.pt>
@@ -55,7 +54,7 @@ public class ExternalLOBSCellHandlerS3MinIO implements ExternalLOBSCellHandler {
 
       return new BinaryCell(cellId, new InputStreamProviderImpl(object, stat.size()));
 
-    } catch (MinioException e) {
+    } catch (MinioException | IllegalStateException e) {
       LOGGER.debug("Failed to obtain object from MinIO bucket '{}': {}", bucketName, e.getMessage(), e);
       reporter.ignored("Cell " + cellId,
         "there was an error accessing the file in the bucket: '" + bucketName + "'; Cell Value: " + cellValue);
