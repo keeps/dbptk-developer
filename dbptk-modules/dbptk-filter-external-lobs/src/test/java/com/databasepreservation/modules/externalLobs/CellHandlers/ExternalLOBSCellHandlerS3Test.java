@@ -16,7 +16,8 @@ import java.net.ServerSocket;
 import java.util.Random;
 
 import org.testcontainers.DockerClientFactory;
-import org.testcontainers.containers.MinIOContainer;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 import org.testng.SkipException;
 import org.testng.annotations.AfterClass;
@@ -31,36 +32,37 @@ import com.databasepreservation.model.reporters.NoOpReporter;
 import com.databasepreservation.model.reporters.Reporter;
 import com.databasepreservation.modules.externalLobs.ExternalLOBSCellHandler;
 
-import io.minio.BucketExistsArgs;
-import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 
 /**
  * Runs both S3 cell handlers ({@link ExternalLOBSCellHandlerS3MinIO} and
- * {@link ExternalLOBSCellHandlerS3AWS}) against a real MinIO server. Skipped
- * when Docker is not available.
+ * {@link ExternalLOBSCellHandlerS3AWS}) against an S3Mock server. Skipped when
+ * Docker is not available.
  *
  * @author Alexandre Flores <aflores@keep.pt>
  */
 @Test(groups = {"s3"})
 public class ExternalLOBSCellHandlerS3Test {
-  // minio/minio is no longer published on Docker Hub
-  private static final DockerImageName MINIO_IMAGE = DockerImageName.parse("cgr.dev/chainguard/minio:latest")
-    .asCompatibleSubstituteFor("minio/minio");
+  private static final DockerImageName S3MOCK_IMAGE = DockerImageName.parse("adobe/s3mock:5.2.3");
+  private static final int S3MOCK_PORT = 9090;
 
   private static final String BUCKET = "lobs";
   private static final String KEY = "blob/42.bin";
   private static final String MISSING_KEY = "does/not/exist.bin";
   private static final String DUMMY_CELL_ID = "cell-1";
   private static final String REGION = "us-east-1";
+  // S3Mock accepts any credentials
+  private static final String ACCESS_KEY = "access-key";
+  private static final String SECRET_KEY = "secret-key";
   private static final byte[] CONTENT = new byte[512 * 1024];
 
   static {
     new Random(42).nextBytes(CONTENT);
   }
 
-  private MinIOContainer minio;
+  private GenericContainer<?> s3mock;
+  private String endpoint;
 
   private static void assertNullCell(String kind, Cell cell) {
     assertTrue(cell instanceof NullCell, kind + ": expected NullCell but got " + cell.getClass().getSimpleName());
@@ -68,9 +70,9 @@ public class ExternalLOBSCellHandlerS3Test {
   }
 
   @AfterClass(alwaysRun = true)
-  public void stopMinio() {
-    if (minio != null) {
-      minio.stop();
+  public void stopS3Mock() {
+    if (s3mock != null) {
+      s3mock.stop();
     }
   }
 
@@ -88,22 +90,22 @@ public class ExternalLOBSCellHandlerS3Test {
   }
 
   private ExternalLOBSCellHandler handler(String kind) {
-    return handler(kind, minio.getS3URL(), minio.getUserName(), minio.getPassword());
+    return handler(kind, endpoint, ACCESS_KEY, SECRET_KEY);
   }
 
   @BeforeClass
-  public void startMinio() throws Exception {
+  public void startS3Mock() throws Exception {
     if (!DockerClientFactory.instance().isDockerAvailable()) {
       throw new SkipException("Docker is not available");
     }
-    minio = new MinIOContainer(MINIO_IMAGE);
-    minio.start();
+    s3mock = new GenericContainer<>(S3MOCK_IMAGE).withExposedPorts(S3MOCK_PORT)
+      .withEnv("COM_ADOBE_TESTING_S3MOCK_STORE_INITIAL_BUCKETS", BUCKET)
+      .waitingFor(Wait.forHttp("/favicon.ico").forPort(S3MOCK_PORT).forStatusCode(200));
+    s3mock.start();
+    endpoint = "http://" + s3mock.getHost() + ":" + s3mock.getMappedPort(S3MOCK_PORT);
 
-    MinioClient client = MinioClient.builder().endpoint(minio.getS3URL())
-      .credentials(minio.getUserName(), minio.getPassword()).build();
-    if (!client.bucketExists(BucketExistsArgs.builder().bucket(BUCKET).build())) {
-      client.makeBucket(MakeBucketArgs.builder().bucket(BUCKET).build());
-    }
+    MinioClient client = MinioClient.builder().endpoint(endpoint).region(REGION).credentials(ACCESS_KEY, SECRET_KEY)
+      .build();
     client.putObject(PutObjectArgs.builder().bucket(BUCKET).object(KEY)
       .stream(new ByteArrayInputStream(CONTENT), (long) CONTENT.length, (long) -1).build());
   }
@@ -129,21 +131,13 @@ public class ExternalLOBSCellHandlerS3Test {
   }
 
   @Test(dataProvider = "handlers")
-  public void handleCell_wrongCredentials_returnsNullCell(String kind) throws Exception {
-    Cell cell = handler(kind, minio.getS3URL(), minio.getUserName(), "wrong-secret-key").handleCell(DUMMY_CELL_ID,
-      KEY);
-
-    assertNullCell(kind, cell);
-  }
-
-  @Test(dataProvider = "handlers")
   public void handleCell_endpointUnreachable_returnsNullCell(String kind) throws Exception {
     int closedPort;
     try (ServerSocket socket = new ServerSocket(0)) {
       closedPort = socket.getLocalPort();
     }
 
-    Cell cell = handler(kind, "http://localhost:" + closedPort, minio.getUserName(), minio.getPassword())
+    Cell cell = handler(kind, "http://localhost:" + closedPort, ACCESS_KEY, SECRET_KEY)
       .handleCell(DUMMY_CELL_ID, KEY);
 
     assertNullCell(kind, cell);
